@@ -4,19 +4,17 @@
 </template>
 
 <script>
-import { isEmail } from '~/helpers'
+import { isEmail } from '~/helpers';
 
 export default {
   name: 'EmailCell',
   props: ['value'],
   computed: {
     isEmail() {
-      return isEmail(this.value || '')
-    }
-  }
-}
+      return isEmail(this.value || '');
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

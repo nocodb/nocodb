@@ -10,7 +10,7 @@ export default class Discord {
     for (const { webhook_url } of webhooks) {
       try {
         await axios.post(webhook_url, {
-          content
+          content,
         });
       } catch (e) {
         console.log(e);

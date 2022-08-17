@@ -1,7 +1,7 @@
 <template>
-  <div class="d-flex align-center " :class="{'justify-center':!isForm,'nc-cell-hover-show': !localState}">
+  <div class="d-flex align-center" :class="{ 'justify-center': !isForm, 'nc-cell-hover-show': !localState }">
     <v-icon small :color="checkboxMeta.color" @click="toggle">
-      {{ localState ? checkedIcon :uncheckedIcon }}
+      {{ localState ? checkedIcon : uncheckedIcon }}
     </v-icon>
   </div>
 </template>
@@ -13,52 +13,47 @@ export default {
     column: Object,
     value: [String, Number, Boolean],
     isForm: Boolean,
-    readOnly: Boolean
+    readOnly: Boolean,
   },
   computed: {
-
     checkedIcon() {
-      return (this.checkboxMeta && this.checkboxMeta.icon && this.checkboxMeta.icon.checked) || 'mdi-check-bold'
+      return (this.checkboxMeta && this.checkboxMeta.icon && this.checkboxMeta.icon.checked) || 'mdi-check-bold';
     },
     uncheckedIcon() {
-      return (this.checkboxMeta && this.checkboxMeta.icon && this.checkboxMeta.icon.unchecked) || 'mdi-crop-square'
+      return (this.checkboxMeta && this.checkboxMeta.icon && this.checkboxMeta.icon.unchecked) || 'mdi-crop-square';
     },
     localState: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-      }
+        this.$emit('input', val);
+      },
     },
     parentListeners() {
-      const $listeners = {}
-      return $listeners
+      const $listeners = {};
+      return $listeners;
     },
     checkboxMeta() {
       return {
         icon: {
           checked: 'mdi-check-circle-outline',
-          unchecked: 'mdi-checkbox-blank-circle-outline'
+          unchecked: 'mdi-checkbox-blank-circle-outline',
         },
         color: 'primary',
-        ...(this.column && this.column.meta
-          ? this.column.meta
-          : {})
-      }
-    }
+        ...(this.column && this.column.meta ? this.column.meta : {}),
+      };
+    },
   },
   methods: {
     toggle() {
-      this.localState = !this.localState
-    }
-  }
-}
+      this.localState = !this.localState;
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

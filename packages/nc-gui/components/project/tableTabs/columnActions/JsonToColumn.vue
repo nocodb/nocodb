@@ -1,29 +1,20 @@
 <template>
-  <v-dialog
-    v-model="dialogShow"
-    width="60%"
-  >
+  <v-dialog v-model="dialogShow" width="60%">
     <v-card>
-      <h5 class="body-1 pa-1 text-center">
-        Paste JSON/JSON5 String
-      </h5>
+      <h5 class="body-1 pa-1 text-center">Paste JSON/JSON5 String</h5>
 
-      <div class="d-flex" style="height: 100%; width:100%">
+      <div class="d-flex" style="height: 100%; width: 100%">
         <div style="" class="text-center flex-shrink-1 d-flex flex-column">
-          <x-icon
-            icon-class="mx-2 mt-3 elevation-1"
-            color="success success"
-            @click="$emit('load',jsonContent)"
-          >
+          <x-icon icon-class="mx-2 mt-3 elevation-1" color="success success" @click="$emit('load', jsonContent)">
             mdi-send
           </x-icon>
         </div>
-        <div class="flex-grow-1" style="overflow:auto;height:100%">
+        <div class="flex-grow-1" style="overflow: auto; height: 100%">
           <monaco-json-editor
             v-model="jsonContent"
             :validate="false"
             lang="json"
-            style="height: 500px;width: 100%;min-width: 250px"
+            style="height: 500px; width: 100%; min-width: 250px"
           />
         </div>
       </div>
@@ -32,57 +23,49 @@
 </template>
 
 <script>
-
-import { MonacoJsonEditor } from '../../../monaco/index'
+import { MonacoJsonEditor } from '../../../monaco/index';
 
 export default {
   name: 'JsonToColumn',
   directives: {},
   components: { MonacoJsonEditor },
   validate({ params }) {
-    return true
+    return true;
   },
   props: {
     value: Boolean,
-    show: Boolean
+    show: Boolean,
   },
   data() {
     return {
       jsonContent: JSON.stringify({ first_name: 'James', last_name: 'Bond' }, 0, 2),
-      activeTab: 0
-    }
+      activeTab: 0,
+    };
   },
   head() {
-    return {}
+    return {};
   },
   computed: {
     dialogShow: {
       get() {
-        return this.show
+        return this.show;
       },
       set(val) {
-        this.$emit('update:show', val)
-      }
-    }
+        this.$emit('update:show', val);
+      },
+    },
   },
   watch: {},
-  created() {
-  },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  created() {},
+  mounted() {},
+  beforeDestroy() {},
   methods: {},
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

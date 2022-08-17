@@ -1,6 +1,6 @@
 ---
 title: 'Column Types'
-description: 'Column Types'
+description: 'NocoDB Column Types Overview'
 position: 530
 category: 'Product'
 menuTitle: 'Column Types'

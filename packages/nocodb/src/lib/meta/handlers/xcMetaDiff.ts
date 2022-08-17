@@ -15,12 +15,12 @@ enum XcMetaDiffType {
   TABLE_RELATION_REMOVE = 'TABLE_RELATION_REMOVE',
   TABLE_VIRTUAL_RELATION_ADD = 'TABLE_VIRTUAL_RELATION_ADD',
   TABLE_VIRTUAL_RELATION_REMOVE = 'TABLE_VIRTUAL_RELATION_REMOVE',
-  TABLE_VIRTUAL_M2M_REMOVE = 'TABLE_VIRTUAL_M2M_REMOVE'
+  TABLE_VIRTUAL_M2M_REMOVE = 'TABLE_VIRTUAL_M2M_REMOVE',
 }
 
 enum XcMetaType {
   TABLE = 'table',
-  VIEW = 'view'
+  VIEW = 'view',
 }
 
 interface NcMetaDiff {
@@ -33,7 +33,7 @@ interface NcMetaDiff {
 }
 
 // @ts-ignore
-export default async function(
+export default async function (
   this: NcMetaMgr,
   { args }: { args: any; req: any }
 ): Promise<Array<NcMetaDiff>> {
@@ -45,7 +45,7 @@ export default async function(
   const sqlClient = this.projectGetSqlClient(args);
 
   // @ts-ignore
-  const tableList = (await sqlClient.tableList())?.data?.list?.filter(t => {
+  const tableList = (await sqlClient.tableList())?.data?.list?.filter((t) => {
     if (builder?.prefix) {
       return t.tn?.startsWith(builder?.prefix);
     }
@@ -60,10 +60,10 @@ export default async function(
       this.getDbAlias(args),
       'nc_models',
       {
-        condition: { type: 'table' }
+        condition: { type: 'table' },
       }
     )
-  ).map(m => JSON.parse(m.meta));
+  ).map((m) => JSON.parse(m.meta));
 
   // @ts-ignore
   const relationList = (await sqlClient.relationListAll())?.data?.list;
@@ -71,7 +71,7 @@ export default async function(
   for (const table of tableList) {
     if (table.tn === 'nc_evolutions') continue;
 
-    const oldMetaIdx = oldMetas.findIndex(m => m.tn === table.tn);
+    const oldMetaIdx = oldMetas.findIndex((m) => m.tn === table.tn);
 
     // new table
     if (oldMetaIdx === -1) {
@@ -81,9 +81,9 @@ export default async function(
         detectedChanges: [
           {
             type: XcMetaDiffType.TABLE_NEW,
-            msg: `New table`
-          }
-        ]
+            msg: `New table`,
+          },
+        ],
       });
       continue;
     }
@@ -95,7 +95,7 @@ export default async function(
       _tn: oldMeta._tn,
       tn: table.tn,
       type: XcMetaType.TABLE,
-      detectedChanges: []
+      detectedChanges: [],
     };
     changes.push(tableProp);
 
@@ -105,14 +105,14 @@ export default async function(
     )?.data?.list;
 
     for (const column of colListRef[table.tn]) {
-      const oldColIdx = oldMeta.columns.findIndex(c => c.cn === column.cn);
+      const oldColIdx = oldMeta.columns.findIndex((c) => c.cn === column.cn);
 
       // new table
       if (oldColIdx === -1) {
         tableProp.detectedChanges.push({
           type: XcMetaDiffType.TABLE_COLUMN_ADD,
           msg: `New column(${column.cn})`,
-          cn: column.cn
+          cn: column.cn,
         });
         continue;
       }
@@ -124,7 +124,7 @@ export default async function(
         tableProp.detectedChanges.push({
           type: XcMetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
           msg: `Column type changed(${column.cn})`,
-          cn: oldCol.cn
+          cn: oldCol.cn,
         });
       }
     }
@@ -132,7 +132,7 @@ export default async function(
       tableProp.detectedChanges.push({
         type: XcMetaDiffType.TABLE_COLUMN_REMOVE,
         msg: `Column removed(${cn})`,
-        cn
+        cn,
       });
     }
     for (const vCol of oldMeta.v) {
@@ -140,14 +140,14 @@ export default async function(
 
       // check related tables & columns
 
-      const rTable = tableList.find(t => t.tn === vCol.mm?.rtn);
-      const m2mTable = tableList.find(t => t.tn === vCol.mm?.vtn);
+      const rTable = tableList.find((t) => t.tn === vCol.mm?.rtn);
+      const m2mTable = tableList.find((t) => t.tn === vCol.mm?.vtn);
 
       if (!rTable) {
         tableProp.detectedChanges.push({
           ...vCol,
           type: XcMetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
-          msg: `Many to many removed(${vCol.mm?.rtn} removed)`
+          msg: `Many to many removed(${vCol.mm?.rtn} removed)`,
         });
         continue;
       }
@@ -155,7 +155,7 @@ export default async function(
         tableProp.detectedChanges.push({
           ...vCol,
           type: XcMetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
-          msg: `Many to many removed(${vCol.mm?.vtn} removed)`
+          msg: `Many to many removed(${vCol.mm?.vtn} removed)`,
         });
         continue;
       }
@@ -175,15 +175,15 @@ export default async function(
         (await sqlClient.columnList({ tn: vCol.mm.vtn }))?.data?.list);
 
       if (
-        pColumns.every(c => c.cn !== vCol.mm.cn) ||
-        cColumns.every(c => c.cn !== vCol.mm.rcn) ||
-        vColumns.every(c => c.cn !== vCol.mm.vcn) ||
-        vColumns.every(c => c.cn !== vCol.mm.vrcn)
+        pColumns.every((c) => c.cn !== vCol.mm.cn) ||
+        cColumns.every((c) => c.cn !== vCol.mm.rcn) ||
+        vColumns.every((c) => c.cn !== vCol.mm.vcn) ||
+        vColumns.every((c) => c.cn !== vCol.mm.vrcn)
       ) {
         tableProp.detectedChanges.push({
           ...vCol,
           type: XcMetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
-          msg: `Many to many removed(One of the relation column removed)`
+          msg: `Many to many removed(One of the relation column removed)`,
         });
         continue;
       }
@@ -197,20 +197,20 @@ export default async function(
       detectedChanges: [
         {
           type: XcMetaDiffType.TABLE_REMOVE,
-          msg: `Table removed`
-        }
-      ]
+          msg: `Table removed`,
+        },
+      ],
     });
   }
 
   // @ts-ignore
   const viewList = (await sqlClient.viewList())?.data?.list
-    ?.map(v => {
+    ?.map((v) => {
       v.type = 'view';
       v.tn = v.view_name;
       return v;
     })
-    .filter(t => {
+    .filter((t) => {
       if (builder?.prefix) {
         return t.tn?.startsWith(builder?.prefix);
       }
@@ -223,13 +223,13 @@ export default async function(
       this.getDbAlias(args),
       'nc_models',
       {
-        condition: { type: 'view' }
+        condition: { type: 'view' },
       }
     )
-  ).map(m => JSON.parse(m.meta));
+  ).map((m) => JSON.parse(m.meta));
 
   for (const view of viewList) {
-    const oldViewMetaIdx = oldViewMetas.findIndex(m => m.tn === view.tn);
+    const oldViewMetaIdx = oldViewMetas.findIndex((m) => m.tn === view.tn);
 
     // new table
     if (oldViewMetaIdx === -1) {
@@ -239,9 +239,9 @@ export default async function(
         detectedChanges: [
           {
             type: XcMetaDiffType.VIEW_NEW,
-            msg: `New view`
-          }
-        ]
+            msg: `New view`,
+          },
+        ],
       });
       continue;
     }
@@ -252,7 +252,7 @@ export default async function(
     const viewProp = {
       tn: view.tn,
       type: XcMetaType.VIEW,
-      detectedChanges: []
+      detectedChanges: [],
     };
     changes.push(viewProp);
 
@@ -262,14 +262,16 @@ export default async function(
     )?.data?.list;
 
     for (const column of colListRef[view.tn]) {
-      const oldColIdx = oldViewMeta.columns.findIndex(c => c.cn === column.cn);
+      const oldColIdx = oldViewMeta.columns.findIndex(
+        (c) => c.cn === column.cn
+      );
 
       // new table
       if (oldColIdx === -1) {
         viewProp.detectedChanges.push({
           type: XcMetaDiffType.VIEW_COLUMN_ADD,
           msg: `New column(${column.cn})`,
-          cn: column.cn
+          cn: column.cn,
         });
         continue;
       }
@@ -281,7 +283,7 @@ export default async function(
         viewProp.detectedChanges.push({
           type: XcMetaDiffType.VIEW_COLUMN_TYPE_CHANGE,
           msg: `Column type changed(${column.cn})`,
-          cn: oldCol.cn
+          cn: oldCol.cn,
         });
       }
     }
@@ -289,7 +291,7 @@ export default async function(
       viewProp.detectedChanges.push({
         type: XcMetaDiffType.VIEW_COLUMN_REMOVE,
         msg: `Column removed(${cn})`,
-        cn
+        cn,
       });
     }
     /*  for (const vCol of oldViewMeta.v) {
@@ -354,9 +356,9 @@ export default async function(
       detectedChanges: [
         {
           type: XcMetaDiffType.VIEW_REMOVE,
-          msg: `View removed`
-        }
-      ]
+          msg: `View removed`,
+        },
+      ],
     });
   }
 
@@ -368,15 +370,15 @@ export default async function(
       'nc_relations',
       {
         condition: {
-          type: 'real'
-        }
+          type: 'real',
+        },
       }
     )
   ).filter((r, i, arr) => {
     return (
       i ===
       arr.findIndex(
-        r1 =>
+        (r1) =>
           r1.tn === r.tn &&
           r1.rtn === r.rtn &&
           r1.cn === r.cn &&
@@ -387,7 +389,7 @@ export default async function(
 
   // check relations
   for (const rel of relationList) {
-    const oldRelIdx = oldRelations.findIndex(oldRel => {
+    const oldRelIdx = oldRelations.findIndex((oldRel) => {
       return (
         rel.tn === oldRel.tn &&
         rel.rtn === oldRel.rtn &&
@@ -399,24 +401,24 @@ export default async function(
     // new table
     if (oldRelIdx === -1) {
       changes
-        .find(t => t.tn === rel.tn)
+        .find((t) => t.tn === rel.tn)
         ?.detectedChanges.push({
           type: XcMetaDiffType.TABLE_RELATION_ADD,
           tn: rel.tn,
           rtn: rel.rtn,
           cn: rel.cn,
           rcn: rel.rcn,
-          msg: `New relation added`
+          msg: `New relation added`,
         });
       changes
-        .find(t => t.tn === rel.rtn)
+        .find((t) => t.tn === rel.rtn)
         ?.detectedChanges.push({
           type: XcMetaDiffType.TABLE_RELATION_ADD,
           tn: rel.tn,
           rtn: rel.rtn,
           cn: rel.cn,
           rcn: rel.rcn,
-          msg: `New relation added`
+          msg: `New relation added`,
         });
       continue;
     }
@@ -425,24 +427,24 @@ export default async function(
 
   for (const oldRel of oldRelations) {
     changes
-      .find(t => t.tn === oldRel.tn)
+      .find((t) => t.tn === oldRel.tn)
       ?.detectedChanges.push({
         type: XcMetaDiffType.TABLE_RELATION_REMOVE,
         tn: oldRel.tn,
         rtn: oldRel.rtn,
         cn: oldRel.cn,
         rcn: oldRel.rcn,
-        msg: `Relation removed`
+        msg: `Relation removed`,
       });
     changes
-      .find(t => t.tn === oldRel.rtn)
+      .find((t) => t.tn === oldRel.rtn)
       ?.detectedChanges.push({
         type: XcMetaDiffType.TABLE_RELATION_REMOVE,
         tn: oldRel.tn,
         rtn: oldRel.rtn,
         cn: oldRel.cn,
         rcn: oldRel.rcn,
-        msg: `Relation removed`
+        msg: `Relation removed`,
       });
   }
 
@@ -452,33 +454,33 @@ export default async function(
     'nc_relations',
     {
       condition: {
-        type: 'virtual'
-      }
+        type: 'virtual',
+      },
     }
   );
 
   // check relations
   for (const vRel of oldVirtualRelations) {
-    if (tableList.every(t => t.tn !== vRel.tn && t.tn !== vRel.rtn)) {
+    if (tableList.every((t) => t.tn !== vRel.tn && t.tn !== vRel.rtn)) {
       changes
-        .find(t => t.tn === vRel.tn)
+        .find((t) => t.tn === vRel.tn)
         ?.detectedChanges.push({
           type: XcMetaDiffType.TABLE_VIRTUAL_RELATION_REMOVE,
           tn: vRel.tn,
           rtn: vRel.rtn,
           cn: vRel.cn,
           rcn: vRel.rcn,
-          msg: `Virtual relation removed`
+          msg: `Virtual relation removed`,
         });
       changes
-        .find(t => t.tn === vRel.rtn)
+        .find((t) => t.tn === vRel.rtn)
         ?.detectedChanges.push({
           type: XcMetaDiffType.TABLE_VIRTUAL_RELATION_REMOVE,
           tn: vRel.tn,
           rtn: vRel.rtn,
           cn: vRel.cn,
           rcn: vRel.rcn,
-          msg: `Virtual relation removed`
+          msg: `Virtual relation removed`,
         });
       continue;
     }
@@ -491,28 +493,28 @@ export default async function(
     )?.data?.list;
 
     if (
-      colListRef[vRel.tn].every(c => c.cn !== vRel.cn) ||
-      colListRef[vRel.rtn].every(c => c.cn !== vRel.rcn)
+      colListRef[vRel.tn].every((c) => c.cn !== vRel.cn) ||
+      colListRef[vRel.rtn].every((c) => c.cn !== vRel.rcn)
     ) {
       changes
-        .find(t => t.tn === vRel.tn)
+        .find((t) => t.tn === vRel.tn)
         ?.detectedChanges.push({
           type: XcMetaDiffType.TABLE_VIRTUAL_RELATION_REMOVE,
           tn: vRel.tn,
           rtn: vRel.rtn,
           cn: vRel.cn,
           rcn: vRel.rcn,
-          msg: `Virtual relation column missing`
+          msg: `Virtual relation column missing`,
         });
       changes
-        .find(t => t.tn === vRel.rtn)
+        .find((t) => t.tn === vRel.rtn)
         ?.detectedChanges.push({
           type: XcMetaDiffType.TABLE_VIRTUAL_RELATION_REMOVE,
           tn: vRel.tn,
           rtn: vRel.rtn,
           cn: vRel.cn,
           rcn: vRel.rcn,
-          msg: `Virtual relation column missing`
+          msg: `Virtual relation column missing`,
         });
     }
 

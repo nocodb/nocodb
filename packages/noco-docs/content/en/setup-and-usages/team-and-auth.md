@@ -6,7 +6,6 @@ category: 'Product'
 menuTitle: 'Team & Auth'
 ---
 
-
 Team & Auth can be found by clicking `Team & Settings` from the left navigation drawer and clicking `Team & Auth`.
 
 ![image](https://user-images.githubusercontent.com/35857179/161902474-fd06678c-a171-4237-b171-dc028b3753de.png)

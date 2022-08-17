@@ -67,14 +67,14 @@ class BaseModelSql extends BaseModel {
       columns,
       hasMany,
       belongsTo,
-      type
+      type,
     });
 
     this.dbDriver = dbDriver;
     this.columns = columns;
 
-    this.pks = columns.filter(c => c.pk === true);
-    this._primaryColRef = columns.find(c => c.pv);
+    this.pks = columns.filter((c) => c.pk === true);
+    this._primaryColRef = columns.find((c) => c.pv);
     this.hasManyRelations = hasMany;
     this.belongsToRelations = belongsTo;
     this.manyToManyRelations = manyToMany;
@@ -91,7 +91,7 @@ class BaseModelSql extends BaseModel {
       stepMin: 1,
       stepsMax: 100,
       record: true,
-      timeout: 25000
+      timeout: 25000,
     };
 
     this.clientType = this.dbDriver.clientType();
@@ -118,7 +118,7 @@ class BaseModelSql extends BaseModel {
     for (let i = 0; i < this.columns.length; ++i) {
       const {
         validate: { func, msg },
-        cn
+        cn,
       } = this.columns[i];
       for (let j = 0; j < func.length; ++j) {
         const fn = typeof func[j] === 'string' ? Validator[func[j]] : func[j];
@@ -194,14 +194,12 @@ class BaseModelSql extends BaseModel {
    * @returns {Object} Copy of the object excluding primary keys
    * @private
    */
-  _extractPks(
-    obj
-  ): {
+  _extractPks(obj): {
     [key: string]: any;
   } {
     const objCopy = this.mapAliasToColumn(obj);
     for (const key in objCopy) {
-      if (this.pks.filter(pk => pk._cn === key).length === 0) {
+      if (this.pks.filter((pk) => pk._cn === key).length === 0) {
         delete objCopy[key];
       }
     }
@@ -217,7 +215,9 @@ class BaseModelSql extends BaseModel {
   _extractPksValues(obj): string {
     const objCopy = this.mapAliasToColumn(obj);
     for (const key in objCopy) {
-      if (this.pks.filter(pk => pk._cn === key || pk.cn === key).length === 0) {
+      if (
+        this.pks.filter((pk) => pk._cn === key || pk.cn === key).length === 0
+      ) {
         delete objCopy[key];
       }
     }
@@ -300,7 +300,7 @@ class BaseModelSql extends BaseModel {
         response = await this._run(query);
       }
 
-      const ai = this.columns.find(c => c.ai);
+      const ai = this.columns.find((c) => c.ai);
       if (
         !response ||
         (typeof response?.[0] !== 'object' && response?.[0] !== null)
@@ -365,9 +365,7 @@ class BaseModelSql extends BaseModel {
 
       // this.validate(data);
       await this._run(
-        driver(this.tnPath)
-          .update(mappedData)
-          .where(this._wherePk(id))
+        driver(this.tnPath).update(mappedData).where(this._wherePk(id))
       );
 
       const response = await this.nestedRead(id, this.defaultNestedQueryParams);
@@ -394,9 +392,7 @@ class BaseModelSql extends BaseModel {
       const dbDriver = trx ? trx : this.dbDriver;
 
       const response = await this._run(
-        dbDriver(this.tnPath)
-          .del()
-          .where(this._wherePk(id))
+        dbDriver(this.tnPath).del().where(this._wherePk(id))
       );
       await this.afterDelete({ id }, trx, cookie);
       return response;
@@ -457,7 +453,7 @@ class BaseModelSql extends BaseModel {
           id = (await this._run(query))[0];
         }
 
-        const ai = this.columns.find(c => c.ai);
+        const ai = this.columns.find((c) => c.ai);
         if (ai) {
           response = await this.readByPk(id);
         } else {
@@ -495,15 +491,12 @@ class BaseModelSql extends BaseModel {
       const dbDriver = trx ? trx : this.dbDriver;
       // this.validate(data);
       const response = await this._run(
-        dbDriver(this.tnPath)
-          .update(data)
-          .where(this._wherePk(id))
-          .andWhere(
-            this._whereFk({
-              tnp,
-              parentId
-            })
-          )
+        dbDriver(this.tnPath).update(data).where(this._wherePk(id)).andWhere(
+          this._whereFk({
+            tnp,
+            parentId,
+          })
+        )
       );
       await this.afterUpdate(response, trx, cookie);
       return response;
@@ -563,15 +556,12 @@ class BaseModelSql extends BaseModel {
 
       const dbDriver = trx ? trx : this.dbDriver;
       const response = await this._run(
-        dbDriver(this.tnPath)
-          .del()
-          .where(this._wherePk(id))
-          .andWhere(
-            this._whereFk({
-              tnp,
-              parentId
-            })
-          )
+        dbDriver(this.tnPath).del().where(this._wherePk(id)).andWhere(
+          this._whereFk({
+            tnp,
+            parentId,
+          })
+        )
       );
       await this.afterDelete({ id, parentId, tnp }, trx, cookie);
       return response;
@@ -620,7 +610,7 @@ class BaseModelSql extends BaseModel {
    */
   async insertb(data) {
     try {
-      const insertDatas = data.map(d => this.mapAliasToColumn(d));
+      const insertDatas = data.map((d) => this.mapAliasToColumn(d));
 
       await this.beforeInsertb(insertDatas, null);
 
@@ -650,7 +640,7 @@ class BaseModelSql extends BaseModel {
   async updateb(data) {
     let transaction;
     try {
-      const insertDatas = data.map(d => this.mapAliasToColumn(d));
+      const insertDatas = data.map((d) => this.mapAliasToColumn(d));
 
       transaction = await this.dbDriver.transaction();
 
@@ -660,9 +650,7 @@ class BaseModelSql extends BaseModel {
         await this.validate(d);
         // this.validate(d);
         const response = await this._run(
-          transaction(this.tn)
-            .update(d)
-            .where(this._extractPks(d))
+          transaction(this.tn).update(d).where(this._extractPks(d))
         );
         res.push(response);
       }
@@ -694,11 +682,7 @@ class BaseModelSql extends BaseModel {
       const res = [];
       for (const d of ids) {
         if (Object.keys(d).length) {
-          const response = await this._run(
-            transaction(this.tn)
-              .del()
-              .where(d)
-          );
+          const response = await this._run(transaction(this.tn).del().where(d));
           res.push(response);
         }
       }
@@ -760,7 +744,7 @@ class BaseModelSql extends BaseModel {
           .andWhere(
             this._whereFk({
               tnp,
-              parentId
+              parentId,
             })
           )
           .limit(1)
@@ -794,7 +778,7 @@ class BaseModelSql extends BaseModel {
         sort,
         condition,
         conditionGraph = null,
-        having
+        having,
       } = this._getListArgs(args);
 
       const query = this.$db
@@ -841,9 +825,8 @@ class BaseModelSql extends BaseModel {
 
       const { hm: childs = '', bt: parents = '', mm: many = '' } = args;
 
-      const { where, condition, conditionGraph, ...rest } = this._getListArgs(
-        args
-      );
+      const { where, condition, conditionGraph, ...rest } =
+        this._getListArgs(args);
       let { fields } = rest;
       if (fields === '*') {
         fields = `${this.tn}.*`;
@@ -893,12 +876,8 @@ class BaseModelSql extends BaseModel {
    */
   async findOneByFk({ parentId, tnp, ...args }) {
     try {
-      const {
-        where,
-        condition,
-        conditionGraph,
-        ...restArgs
-      } = this._getListArgs(args);
+      const { where, condition, conditionGraph, ...restArgs } =
+        this._getListArgs(args);
       let { fields } = restArgs;
       if (fields === '*') {
         fields = `${this.tn}.*`;
@@ -932,7 +911,7 @@ class BaseModelSql extends BaseModel {
     where = '',
     conditionGraph = null,
     having = '',
-    condition
+    condition,
   }) {
     try {
       if (this.isPg() && !conditionGraph && !where && !having) {
@@ -984,7 +963,7 @@ class BaseModelSql extends BaseModel {
           .where(
             this._whereFk({
               parentId,
-              tnp
+              tnp,
             })
           )
           .count(`${this.tn}.${(this.pks[0] || this.columns[0]).cn} as count`)
@@ -1049,7 +1028,7 @@ class BaseModelSql extends BaseModel {
     try {
       const columns = [
         ...(column_name ? [column_name] : []),
-        ...fields.split(',').filter(Boolean)
+        ...fields.split(',').filter(Boolean),
       ];
       this.verifyGroupByColumns(columns);
       const query = this.$db
@@ -1103,7 +1082,7 @@ class BaseModelSql extends BaseModel {
     column_name,
     limit,
     offset,
-    sort
+    sort,
   }) {
     try {
       const query = this.$db
@@ -1118,7 +1097,7 @@ class BaseModelSql extends BaseModel {
         query.groupBy(column_name);
       }
       if (func && column_name) {
-        func.split(',').forEach(fn => query[fn](`${column_name} as ${fn}`));
+        func.split(',').forEach((fn) => query[fn](`${column_name} as ${fn}`));
       }
 
       this._paginateAndSort(query, { limit, offset, sort });
@@ -1198,7 +1177,7 @@ class BaseModelSql extends BaseModel {
             if (func) {
               func
                 .split(',')
-                .forEach(fn => query[fn](`${column_name} as ${fn}`));
+                .forEach((fn) => query[fn](`${column_name} as ${fn}`));
             }
             return this.isSqlite() ? this.dbDriver.select().from(query) : query;
           }),
@@ -1234,7 +1213,7 @@ class BaseModelSql extends BaseModel {
     limit,
     offset,
     sort,
-    conditionGraph = null
+    conditionGraph = null,
   }) {
     try {
       const query = this._buildDistinctQuery(
@@ -1275,9 +1254,9 @@ class BaseModelSql extends BaseModel {
    * @returns {Array<string>} - an array of the formula columns.
    */
   private filterFormulaColumns(columns: string[]) {
-    return columns.filter(column => {
+    return columns.filter((column) => {
       return this.virtualColumns.find(
-        col => col._cn === column && col?.formula
+        (col) => col._cn === column && col?.formula
       );
     });
   }
@@ -1397,8 +1376,8 @@ class BaseModelSql extends BaseModel {
         index,
         child,
         parentIds: parent.map(
-          p => p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn]
-        )
+          (p) => p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn]
+        ),
       },
       trx
     );
@@ -1434,14 +1413,14 @@ class BaseModelSql extends BaseModel {
 
     const childs = await this._run(
       driver.union(
-        parentIds.map(id => {
+        parentIds.map((id) => {
           const query = driver(this.dbModels[child].tnPath)
             .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
             .where(`${vtn}.${vcn}`, id) // p[this.columnToAlias?.[this.pks[0].cn] || this.pks[0].cn])
             .xwhere(where, this.dbModels[child].selectQuery(''))
             .select({
               [`${tn}_${vcn}`]: `${vtn}.${vcn}`,
-              ...this.dbModels[child].selectQuery(fields)
+              ...this.dbModels[child].selectQuery(fields),
             }); // ...fields.split(','));
 
           this._paginateAndSort(query, { sort, limit, offset }, null, true);
@@ -1452,7 +1431,7 @@ class BaseModelSql extends BaseModel {
     );
 
     const gs = _.groupBy(childs, `${tn}_${vcn}`);
-    return parentIds.map(id => gs[id] || []);
+    return parentIds.map((id) => gs[id] || []);
   }
 
   /**
@@ -1475,9 +1454,8 @@ class BaseModelSql extends BaseModel {
     ...args
   }: XcFilterWithAlias & { child: string; parentId: any }) {
     try {
-      const { where, limit, offset, sort, ...restArgs } = this._getListArgs(
-        args
-      );
+      const { where, limit, offset, sort, ...restArgs } =
+        this._getListArgs(args);
       let { fields } = restArgs;
       const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
 
@@ -1535,7 +1513,7 @@ class BaseModelSql extends BaseModel {
               this._getChildListInParent(
                 {
                   parent,
-                  child
+                  child,
                 },
                 rest,
                 index
@@ -1614,7 +1592,7 @@ class BaseModelSql extends BaseModel {
               this._getChildListInParent(
                 {
                   parent: items,
-                  child
+                  child,
                 },
                 rest,
                 index
@@ -1654,7 +1632,7 @@ class BaseModelSql extends BaseModel {
               this._getManyToManyList(
                 {
                   parent: items,
-                  child
+                  child,
                 },
                 rest,
                 index
@@ -1735,19 +1713,19 @@ class BaseModelSql extends BaseModel {
               const childModel = this.dbModels[meta.hm.tn];
               await driver(meta.hm.tn)
                 .update({
-                  [meta.hm.cn]: rowId
+                  [meta.hm.cn]: rowId,
                 })
                 .whereIn(
                   childModel.pks[0].cn,
-                  nestedData?.map(r => childModel._extractPksValues(r))
+                  nestedData?.map((r) => childModel._extractPksValues(r))
                 );
             });
           } else if (meta.mm) {
             postInsertOps.push(async () => {
               const childModel = this.dbModels[meta.mm.rtn];
-              const rows = nestedData.map(r => ({
+              const rows = nestedData.map((r) => ({
                 [meta.mm.vcn]: rowId,
-                [meta.mm.vrcn]: childModel._extractPksValues(r)
+                [meta.mm.vrcn]: childModel._extractPksValues(r),
               }));
               await driver(meta.mm.vtn).insert(rows);
             });
@@ -1773,7 +1751,7 @@ class BaseModelSql extends BaseModel {
         response = await this._run(query);
       }
 
-      const ai = this.columns.find(c => c.ai);
+      const ai = this.columns.find((c) => c.ai);
       if (
         !response ||
         (typeof response?.[0] !== 'object' && response?.[0] !== null)
@@ -1813,7 +1791,7 @@ class BaseModelSql extends BaseModel {
 
       if (response) rowId = this._extractPksValues(response);
 
-      await Promise.all(postInsertOps.map(f => f()));
+      await Promise.all(postInsertOps.map((f) => f()));
 
       if (rowId) {
         response = await this.nestedRead(
@@ -1856,7 +1834,7 @@ class BaseModelSql extends BaseModel {
             this._getChildListInParent(
               {
                 parent: items,
-                child
+                child,
               },
               rest,
               index,
@@ -1899,7 +1877,7 @@ class BaseModelSql extends BaseModel {
             this._getManyToManyList(
               {
                 parent: items,
-                child
+                child,
               },
               rest,
               index,
@@ -1927,7 +1905,7 @@ class BaseModelSql extends BaseModel {
       offset,
       sort,
       condition,
-      conditionGraph = null
+      conditionGraph = null,
     } = childModel._getListArgs(args);
 
     const query = childModel.$db
@@ -1962,9 +1940,11 @@ class BaseModelSql extends BaseModel {
       this.manyToManyRelations.find(({ vtn }) => assoc === vtn) || {};
     const childModel = this.dbModels[rtn];
 
-    const { where, condition, conditionGraph = null } = childModel._getListArgs(
-      args
-    );
+    const {
+      where,
+      condition,
+      conditionGraph = null,
+    } = childModel._getListArgs(args);
 
     const query = childModel.$db
       .count(`${rcn} as count`)
@@ -2106,7 +2086,7 @@ class BaseModelSql extends BaseModel {
         limit,
         offset,
         conditionGraph,
-        sort
+        sort,
         // ...restArgs
       } = this.dbModels[child]._getListArgs(rest);
       // let { fields } = restArgs;
@@ -2121,7 +2101,7 @@ class BaseModelSql extends BaseModel {
 
       fields = fields
         .split(',')
-        .map(c => `${child}.${c}`)
+        .map((c) => `${child}.${c}`)
         .join(',');
 
       const childs = await this._run(
@@ -2129,7 +2109,7 @@ class BaseModelSql extends BaseModel {
           this.dbDriver.queryBuilder().from(
             this.dbDriver
               .union(
-                ids.map(p => {
+                ids.map((p) => {
                   const query = this.dbDriver(this.dbModels[child].tnPath)
                     .where({ [cn]: p })
                     .conditionGraph(conditionGraph)
@@ -2191,7 +2171,7 @@ class BaseModelSql extends BaseModel {
 
       const childs = await this._run(
         this.dbDriver.unionAll(
-          ids.map(p => {
+          ids.map((p) => {
             const query = this.dbDriver(this.dbModels[child].tnPath)
               .count(`${cn} as count`)
               .where({ [cn]: p })
@@ -2229,7 +2209,7 @@ class BaseModelSql extends BaseModel {
       limit = 20,
       offset = 0,
       sort = '',
-      ignoreLimit = false
+      ignoreLimit = false,
     }: XcFilter & { ignoreLimit?: boolean },
     table?: string,
     isUnion?: boolean
@@ -2240,13 +2220,13 @@ class BaseModelSql extends BaseModel {
     if (!table && !sort && this.clientType === 'mssql' && !isUnion) {
       sort =
         this.columns
-          .filter(c => c.pk)
-          .map(c => `${c.cn}`)
+          .filter((c) => c.pk)
+          .map((c) => `${c.cn}`)
           .join(',') || `${this.columns[0].cn}`;
     }
 
     if (sort) {
-      sort.split(',').forEach(o => {
+      sort.split(',').forEach((o) => {
         if (o[0] === '-') {
           query.orderBy(this.columnToAlias[o.slice(1)] || o.slice(1), 'desc');
         } else {
@@ -2344,8 +2324,8 @@ class BaseModelSql extends BaseModel {
   public getTablePKandPVFields(table?: string): string {
     return (
       this.dbModels[table || this.tn]?.columns
-        ?.filter(col => col.pk || col.pv)
-        .map(col => col.cn) || ['*']
+        ?.filter((col) => col.pk || col.pv)
+        .map((col) => col.cn) || ['*']
     ).join(',');
   }
 
@@ -2472,7 +2452,7 @@ class BaseModelSql extends BaseModel {
             (ro, [k, a]) => ({ ...ro, [k]: a.join(',') }),
             {}
           ),
-          ...fieldsObj
+          ...fieldsObj,
         };
       } catch (e) {
         return {};
@@ -2577,7 +2557,7 @@ class BaseModelSql extends BaseModel {
             knex: this.dbDriver,
             rollup: v.rl,
             hasMany: this.hasManyRelations,
-            manyToMany: this.manyToManyRelations
+            manyToMany: this.manyToManyRelations,
           }).as(v._cn)
         );
       }
@@ -2615,7 +2595,7 @@ class BaseModelSql extends BaseModel {
         ...defaultNestedQueryParams,
         ...args,
         offset,
-        limit
+        limit,
       });
 
       if (!rows?.length) {
@@ -2630,7 +2610,7 @@ class BaseModelSql extends BaseModel {
           if (column._cn in row) {
             csvRow[column._cn] = this.serializeCellValue({
               value: row[column._cn],
-              column
+              column,
             });
           }
         }
@@ -2649,16 +2629,16 @@ class BaseModelSql extends BaseModel {
 
           const mapPropFn = (alias, colAlias) => {
             if (Array.isArray(row[prop])) {
-              csvRow[alias] = row[prop].map(r =>
+              csvRow[alias] = row[prop].map((r) =>
                 refModel.serializeCellValue({
                   value: r[colAlias],
-                  columnName: colAlias
+                  columnName: colAlias,
                 })
               );
             } else if (row[prop]) {
               csvRow[alias] = refModel.serializeCellValue({
                 value: row?.[prop]?.[colAlias],
-                columnName: colAlias
+                columnName: colAlias,
               });
             }
           };
@@ -2701,14 +2681,14 @@ class BaseModelSql extends BaseModel {
         fields:
           fields &&
           fields.filter(
-            f =>
-              this.columns.some(c => c._cn === f) ||
-              this.virtualColumns.some(c => c._cn === f)
+            (f) =>
+              this.columns.some((c) => c._cn === f) ||
+              this.virtualColumns.some((c) => c._cn === f)
           ),
-        data: csvRows
+        data: csvRows,
       },
       {
-        escapeFormulae: true
+        escapeFormulae: true,
       }
     );
     return { data, offset, elapsed };
@@ -2726,7 +2706,7 @@ class BaseModelSql extends BaseModel {
       return value;
     }
     const column =
-      args.column || this.columns.find(c => c._cn === args.columnName);
+      args.column || this.columns.find((c) => c._cn === args.columnName);
 
     switch (column?.uidt) {
       case 'Attachment': {
@@ -2738,7 +2718,7 @@ class BaseModelSql extends BaseModel {
         } catch {}
 
         return (data || []).map(
-          attachment =>
+          (attachment) =>
             `${encodeURI(attachment.title)}(${encodeURI(attachment.url)})`
         );
       }

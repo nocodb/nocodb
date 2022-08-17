@@ -7,11 +7,9 @@
     @keydown.enter="$emit('create', view)"
   >
     <v-card class="elevation-1 backgroundColor">
-      <v-card-title class="primary subheading white--text py-2">
-        Create A New View
-      </v-card-title>
+      <v-card-title class="primary subheading white--text py-2"> Create A New View </v-card-title>
 
-      <v-card-text class=" py-6 px-10 ">
+      <v-card-text class="py-6 px-10">
         <v-text-field
           ref="input"
           v-model="view.alias"
@@ -44,7 +42,7 @@
         <v-btn
           :disabled="!(view.name && view.name.length) || !(view.alias && view.alias.length)"
           color="primary"
-          @click="$emit('create',view)"
+          @click="$emit('create', view)"
         >
           {{ $t('general.submit') }}
         </v-btn>
@@ -54,8 +52,7 @@
 </template>
 
 <script>
-
-import inflection from 'inflection'
+import inflection from 'inflection';
 
 export default {
   name: 'DlgViewCreate',
@@ -63,38 +60,37 @@ export default {
   data() {
     return {
       view: {
-        name: ''
-      }
-    }
+        name: '',
+      },
+    };
   },
   computed: {
     dialogShow: {
       get() {
-        return this.value
+        return this.value;
       },
       set(v) {
-        this.$emit('input', v)
-      }
+        this.$emit('input', v);
+      },
     },
     projectPrefix() {
-      return this.$store.getters['project/GtrProjectPrefix']
-    }
+      return this.$store.getters['project/GtrProjectPrefix'];
+    },
   },
   watch: {
     'view.alias'(v) {
-      this.$set(this.view, 'name', `${this.projectPrefix || ''}${inflection.underscore(v)}`)
-    }
+      this.$set(this.view, 'name', `${this.projectPrefix || ''}${inflection.underscore(v)}`);
+    },
   },
   mounted() {
     setTimeout(() => {
-      this.$refs.input.$el.querySelector('input').focus()
-    }, 100)
-  }
-}
+      this.$refs.input.$el.querySelector('input').focus();
+    }, 100);
+  },
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

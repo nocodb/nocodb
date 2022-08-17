@@ -1,9 +1,9 @@
+import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '../../db/sql-data-mapper';
 // import { NcConfig } from '../../../interface/config';
 // import fs from 'fs';
 // import Knex from 'knex';
 
-import { SqlClientFactory } from 'nc-help';
 // import NcMetaIO from '../meta/NcMetaIO';
 import {
   defaultConnectionConfig,
@@ -103,12 +103,12 @@ export default class NcConnectionMgrv2 {
             const res = next();
             if (res instanceof Buffer) {
               return [...res]
-                .map(v => ('00' + v.toString(16)).slice(-2))
+                .map((v) => ('00' + v.toString(16)).slice(-2))
                 .join('');
             }
             return res;
-          }
-        }
+          },
+        },
       } as any
     );
     // if (isSqlite) {
@@ -133,7 +133,7 @@ export default class NcConnectionMgrv2 {
     const knex = _knex || this.get(base);
     return SqlClientFactory.create({
       knex,
-      ...base.getConnectionConfig()
+      ...base.getConnectionConfig(),
     });
   }
 }

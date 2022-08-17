@@ -17,11 +17,11 @@ let records = {
     Number: "1",
     Value: "$1.00",
     Percent: "0.01",
-    Duration: "60",
 };
 
 // links/ computed fields
 let records2 = {
+    Duration: "00:01",
     Done: true,
     Date: "2022-05-31",
     Rating: "1",
@@ -31,6 +31,12 @@ let records2 = {
     Computation: "4.04",
     Producer: ["P1", "P2"]
 };
+
+let tn = [ "Film", "Actor", "Producer", ]
+
+let cn = [ "Name", "Notes", "Status", "Tags", "Done", "Date", "Phone",
+    "Email", "URL", "Number", "Percent", "Duration", "Rating",
+    "Actor", "Status (from Actor)", "RollUp", "Computation", "Producer" ]
 
 function openWebhook(index) {
     cy.get(".nc-btn-webhook").should("exist").click();
@@ -62,94 +68,125 @@ function verifyWebhook(config) {
     cy.get(".nc-icon-hook-navigate-left").click({force:true})
 }
 
-export const genTest = (apiType, dbType) => {
+export const genTest = (apiType, dbType, testMode) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
-    describe(`Webhook`, () => {
+    describe(`Quick Tests`, () => {
+
+        let cellIdx = 1;
+        let columnCount = cn.length
+        if(testMode === 'AT_IMPORT') {
+            cellIdx = 3;
+            columnCount -= 3;
+        }
+
         before(() => {
-            cy.task("copyFile")
-            loginPage.signIn(roles.owner.credentials);
-            projectsPage.openProject("sample");
+            if( testMode === 'CY_QUICK') {
+                // cy.task("copyFile")
+                loginPage.signIn(roles.owner.credentials);
+                projectsPage.openProject("sample");
+            }
         });
 
         after(() => {});
+
+        it("Verify Schema", () => {
+            cy.openTableTab("Film", 3)
+
+            // verify if all tables exist
+            for(let i=0; i<tn.length; i++)
+                cy.get(".nc-project-tree").contains(tn[i]).should('exist')
+
+            // for Film table, verify columns
+            for(let i=0; i<columnCount; i++)
+                cy.get(".nc-grid-header-row").find(`[data-col="${cn[i]}"]`).should('exist')
+
+        });
 
         it("Verify Data types", () => {
             cy.openTableTab("Film", 3);
 
             // normal cells
             for (let [key, value] of Object.entries(records)) {
-                mainPage.getCell(key, 1).contains(value).should("exist");
+                mainPage.getCell(key, cellIdx).contains(value).should("exist");
             }
 
             // checkbox
             mainPage
-                .getCell("Done", 1)
+                .getCell("Done", cellIdx)
                 .find(".mdi-check-circle-outline")
                 .should(records2.Done ? "exist" : "not.exist");
 
             // date
 
+            // duration
+            mainPage.getCell("Duration", cellIdx).find('input').then(($e) => {
+                expect($e[0].value).to.equal(records2.Duration)
+            })
+
             // rating
             mainPage
-                .getCell("Rating", 1)
+                .getCell("Rating", cellIdx)
                 .find("button.mdi-star")
                 .should("have.length", records2.Rating);
 
+            // verifying only one instance as its different for PG & SQLite
+            // for PG: its Actor1, Actor1
+            // for SQLite: its Actor1, Actor2
             // LinkToAnotherRecord
-            mainPage.getCell("Actor", 1).scrollIntoView();
+            mainPage.getCell("Actor", cellIdx).scrollIntoView();
             cy.get(
-                ':nth-child(1) > [data-col="Actor"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(1) > .v-chip__content > .name'
+                `:nth-child(${cellIdx}) > [data-col="Actor"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(1) > .v-chip__content > .name`
             )
                 .contains(records2.Actor[0])
                 .should("exist");
-            cy.get(
-                ':nth-child(1) > [data-col="Actor"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(2) > .v-chip__content > .name'
-            )
-                .contains(records2.Actor[1])
-                .should("exist");
-            // mainPage.getCell("Actor", 1).find(".nc-virtual-cell > .v-lazy > .d-100 > .chips").eq(0).contains("Actor1").should('exist')
-            // mainPage.getCell("Actor", 1).find(".nc-virtual-cell > .v-lazy > .d-100 > .chips").eq(1).contains("Actor2").should('exist')
+            // cy.get(
+            //     `:nth-child(${cellIdx}) > [data-col="Actor"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(2) > .v-chip__content > .name`
+            // )
+            //     .contains(records2.Actor[1])
+            //     .should("exist");
 
             // lookup
-            mainPage.getCell("Status (from Actor)", 1).scrollIntoView();
+            mainPage.getCell("Status (from Actor)", cellIdx).scrollIntoView();
             cy.get(
-                ':nth-child(1) > [data-col="Status (from Actor)"] > .nc-virtual-cell > .v-lazy > .d-flex > :nth-child(1) > .v-chip__content > div > .set-item'
+                `:nth-child(${cellIdx}) > [data-col="Status (from Actor)"] > .nc-virtual-cell > .v-lazy > .d-flex > :nth-child(1) > .v-chip__content > div > .set-item`
             )
                 .contains(records2["Status (from Actor)"][0])
                 .should("exist");
-            cy.get(
-                ':nth-child(1) > [data-col="Status (from Actor)"] > .nc-virtual-cell > .v-lazy > .d-flex > :nth-child(2) > .v-chip__content > div > .set-item'
-            )
-                .contains(records2["Status (from Actor)"][1])
-                .should("exist");
+            // cy.get(
+            //     `:nth-child(${cellIdx}) > [data-col="Status (from Actor)"] > .nc-virtual-cell > .v-lazy > .d-flex > :nth-child(2) > .v-chip__content > div > .set-item`
+            // )
+            //     .contains(records2["Status (from Actor)"][1])
+            //     .should("exist");
 
             // rollup
-            mainPage.getCell("RollUp", 1).scrollIntoView();
-            // cy.get(':nth-child(1) > [data-col="RollUp"] > .nc-virtual-cell > .v-lazy > span').contains(records2.RollUp).should('exist')
-            cy.get(`:nth-child(1) > [data-col="RollUp"] > .nc-virtual-cell`)
-                .contains(records2.RollUp)
-                .should("exist");
+            if( testMode === 'CY_QUICK') {
 
-            // formula
-            mainPage.getCell("Computation", 1).scrollIntoView();
-            cy.get(
-                `:nth-child(1) > [data-col="Computation"] > .nc-virtual-cell`
-            )
-                .contains(records2.Computation)
-                .should("exist");
+                mainPage.getCell("RollUp", cellIdx).scrollIntoView();
+                cy.get(`:nth-child(${cellIdx}) > [data-col="RollUp"] > .nc-virtual-cell`)
+                  .contains(records2.RollUp)
+                  .should("exist");
 
-            // ltar hm relation
-            mainPage.getCell("Producer", 1).scrollIntoView();
-            cy.get(
-              ':nth-child(1) > [data-col="Producer"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(1) > .v-chip__content > .name'
-            )
-              .contains(records2.Producer[0])
-              .should("exist");
-            cy.get(
-              ':nth-child(1) > [data-col="Producer"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(2) > .v-chip__content > .name'
-            )
-              .contains(records2.Producer[1])
-              .should("exist");
+                // formula
+                mainPage.getCell("Computation", cellIdx).scrollIntoView();
+                cy.get(
+                  `:nth-child(${cellIdx}) > [data-col="Computation"] > .nc-virtual-cell`
+                )
+                  .contains(records2.Computation)
+                  .should("exist");
+
+                // ltar hm relation
+                mainPage.getCell("Producer", cellIdx).scrollIntoView();
+                cy.get(
+                  `:nth-child(${cellIdx}) > [data-col="Producer"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(1) > .v-chip__content > .name`
+                )
+                  .contains(records2.Producer[0])
+                  .should("exist");
+                cy.get(
+                  `:nth-child(${cellIdx}) > [data-col="Producer"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(2) > .v-chip__content > .name`
+                )
+                  .contains(records2.Producer[1])
+                  .should("exist");
+            }
 
             cy.closeTableTab("Film");
         });
@@ -210,42 +247,43 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("Verify Webhooks", () => {
-            cy.openTableTab("Actor", 25);
-            openWebhook(0)
-            verifyWebhook({
-                title: "Webhook-1",
-                event: "After Insert",
-                notification: "URL",
-                type: "POST",
-                url: "http://localhost:9090/hook",
-                condition: false
-            })
-            cy.get("body").type("{esc}");
+            if( testMode === 'CY_QUICK') {
+                cy.openTableTab("Actor", 25);
+                openWebhook(0)
+                verifyWebhook({
+                    title: "Webhook-1",
+                    event: "After Insert",
+                    notification: "URL",
+                    type: "POST",
+                    url: "http://localhost:9090/hook",
+                    condition: false
+                })
+                cy.get("body").type("{esc}");
 
-            openWebhook(1)
-            verifyWebhook({
-                title: "Webhook-2",
-                event: "After Update",
-                notification: "URL",
-                type: "POST",
-                url: "http://localhost:9090/hook",
-                condition: false
-            })
-            cy.get("body").type("{esc}");
+                openWebhook(1)
+                verifyWebhook({
+                    title: "Webhook-2",
+                    event: "After Update",
+                    notification: "URL",
+                    type: "POST",
+                    url: "http://localhost:9090/hook",
+                    condition: false
+                })
+                cy.get("body").type("{esc}");
 
-            openWebhook(2)
-            verifyWebhook({
-                title: "Webhook-3",
-                event: "After Delete",
-                notification: "URL",
-                type: "POST",
-                url: "http://localhost:9090/hook",
-                condition: false
-            })
-            cy.get("body").type("{esc}");
+                openWebhook(2)
+                verifyWebhook({
+                    title: "Webhook-3",
+                    event: "After Delete",
+                    notification: "URL",
+                    type: "POST",
+                    url: "http://localhost:9090/hook",
+                    condition: false
+                })
+                cy.get("body").type("{esc}");
 
-            cy.closeTableTab("Actor");
-
+                cy.closeTableTab("Actor");
+            }
         });
 
         it("Pagination", () => {
@@ -274,7 +312,8 @@ export const genTest = (apiType, dbType) => {
 
             cy.get(".nc-grid-header-cell").contains('Name').should("be.visible");
             cy.get(".nc-grid-header-cell").contains('Notes').should("be.visible");
-            cy.get(".nc-grid-header-cell").contains('Attachments').should("not.be.visible");
+            // fix me!
+            if(testMode !== 'AT_IMPORT') cy.get(".nc-grid-header-cell").contains('Attachments').should("not.be.visible");
             cy.get(".nc-grid-header-cell").contains('Status').should("be.visible");
             cy.get(".nc-grid-header-cell").contains('Film').should("be.visible");
 
@@ -291,7 +330,7 @@ export const genTest = (apiType, dbType) => {
               .contains('Name')
               .should("exist");
             cy.get(".nc-sort-dir-select").eq(0)
-              .contains('A -> Z')
+              .contains('A → Z')
               .should("exist");
             cy.get(".nc-sort-menu-btn").click();
 
@@ -315,25 +354,47 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("Views, bt relation", () => {
-            cy.openTableTab("Producer", 3)
-            cy.get('.nc-grid-view-item').should('have.length', 4)
-            cy.get('.nc-form-view-item').should('have.length', 4)
-            cy.get('.nc-gallery-view-item').should('have.length', 3)
+            if( testMode === 'CY_QUICK') {
 
-            // LinkToAnotherRecord hm relation
-            mainPage.getCell("FilmRead", 1).scrollIntoView();
-            cy.get(
-              ':nth-child(1) > [data-col="FilmRead"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(1) > .v-chip__content > .name'
-            )
-              .contains('Movie-1')
-              .should("exist");
+                cy.openTableTab("Producer", 3)
+                cy.get('.nc-grid-view-item').should('have.length', 4)
+                cy.get('.nc-form-view-item').should('have.length', 4)
+                cy.get('.nc-gallery-view-item').should('have.length', 3)
 
-            cy.closeTableTab("Producer")
+                // LinkToAnotherRecord hm relation
+                mainPage.getCell("FilmRead", 1).scrollIntoView();
+                cy.get(
+                  ':nth-child(1) > [data-col="FilmRead"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(1) > .v-chip__content > .name'
+                )
+                  .contains('Movie-1')
+                  .should("exist");
+
+                cy.closeTableTab("Producer")
+            }
         })
+
+        it("Delete Project", () => {
+            if( testMode === 'AT_IMPORT') {
+                mainPage.toolBarTopLeft(mainPage.HOME).click({force:true})
+                cy.get(`.mdi-delete-outline`, {
+                    timeout: 10000,
+                })
+                  .should("exist")
+                  .last()
+                  .click();
+
+                cy.getActiveModal()
+                  .find("button")
+                  .contains("Submit")
+                  .should("exist")
+                  .click();
+                cy.toastWait("deleted successfully");
+            }
+        });
     });
 };
 
-genTest("rest", "xcdb");
+// genTest("rest", "xcdb");
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -11,14 +11,14 @@ abstract class BaseModelXcMeta extends BaseRender {
     const columnsArr = [];
 
     for (const column of args.columns) {
-      if (this.ctx?.belongsTo?.find(c => c.cn === column.cn))
+      if (this.ctx?.belongsTo?.find((c) => c.cn === column.cn))
         column.uidt = UITypes.ForeignKey;
 
       const columnObj = {
         validate: {
           func: [],
           args: [],
-          msg: []
+          msg: [],
         },
         column_name: column.cn || column.column_name,
         title: column._cn || column.cn || column.column_name || column.title,
@@ -28,7 +28,7 @@ abstract class BaseModelXcMeta extends BaseRender {
         uidt: column.uidt || this.getUIDataType(column),
         uip: column.uip,
         uicn: column.uicn,
-        ...column
+        ...column,
       };
 
       if (column.rqd) {
@@ -98,7 +98,7 @@ abstract class BaseModelXcMeta extends BaseRender {
       db_type: this.ctx.db_type,
       type: this.ctx.type,
 
-      v: this.getVitualColumns()
+      v: this.getVitualColumns(),
     };
   }
 
@@ -124,20 +124,20 @@ abstract class BaseModelXcMeta extends BaseRender {
   public getVitualColumns(): any[] {
     // todo: handle duplicate relation
     const virtualColumns = [
-      ...(this.ctx.hasMany || []).map(hm => {
+      ...(this.ctx.hasMany || []).map((hm) => {
         return {
           uidt: UITypes.LinkToAnotherRecord,
           type: 'hm',
           hm,
-          _cn: `${hm._tn}List`
+          _cn: `${hm._tn}List`,
         };
       }),
-      ...(this.ctx.belongsTo || []).map(bt => ({
+      ...(this.ctx.belongsTo || []).map((bt) => ({
         uidt: UITypes.LinkToAnotherRecord,
         type: 'bt',
         bt,
-        _cn: `${bt._rtn}Read`
-      }))
+        _cn: `${bt._rtn}Read`,
+      })),
     ];
 
     const oldVirtualCols = this.ctx?.oldMeta?.v || [];

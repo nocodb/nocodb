@@ -1,7 +1,7 @@
-export default function(
+export default function (
   requestHandler: (req: any, res: any, next?: any) => any
 ) {
-  return async function(req: any, res: any, next: any) {
+  return async function (req: any, res: any, next: any) {
     try {
       return await requestHandler(req, res, next);
     } catch (e) {

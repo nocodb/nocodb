@@ -8,7 +8,7 @@ import {
   ModelTypes,
   substituteColumnAliasWithIdInFormula,
   UITypes,
-  ViewTypes
+  ViewTypes,
 } from 'nocodb-sdk';
 import Column from '../models/Column';
 import LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
@@ -30,7 +30,7 @@ import { getUniqueColumnAliasName } from '../meta/helpers/getUniqueName';
 import NcProjectBuilderEE from '../v1-legacy/NcProjectBuilderEE';
 import Audit from '../models/Audit';
 
-export default async function(ctx: NcUpgraderCtx) {
+export default async function (ctx: NcUpgraderCtx) {
   const ncMeta = ctx.ncMeta;
 
   const projects = await ctx.ncMeta.projectList();
@@ -85,7 +85,7 @@ async function migrateProjects(
       prefix: projectConfig.prefix,
       is_meta: !!projectConfig.prefix,
       title: projectConfig?.title,
-      bases: projectConfig?.envs?._noco?.db?.map(d => {
+      bases: projectConfig?.envs?._noco?.db?.map((d) => {
         const inflection = (d && d.meta && d.meta.inflection) || {};
         return {
           is_meta: !!projectConfig.prefix,
@@ -94,11 +94,11 @@ async function migrateProjects(
           created_at: project.created_at,
           updated_at: project.updated_at,
           inflection_column: inflection.cn,
-          inflection_table: inflection.tn
+          inflection_table: inflection.tn,
         };
       }),
       created_at: project.created_at,
-      updated_at: project.updated_at
+      updated_at: project.updated_at,
     };
     const p = await Project.createProject(projectBody, ncMeta);
     projectsObj[p.id] = p;
@@ -126,7 +126,7 @@ async function migrateProjectUsers(
         fk_user_id: projectUser.user_id,
         roles: projectUser.roles,
         created_at: projectUser.created_at,
-        updated_at: projectUser.updated_at
+        updated_at: projectUser.updated_at,
       },
       ncMeta
     );
@@ -328,7 +328,7 @@ const filterV1toV2CompOpMap = {
   'is not null': 'notnull',
   'is null': 'null',
   'is not equal': 'neq',
-  'is not like': 'nlike'
+  'is not like': 'nlike',
 };
 
 interface Relationv1 {
@@ -387,7 +387,11 @@ async function migrateProjectModels(
       // parse meta
 
       const project = await Project.getWithInfo(modelData.project_id, ncMeta);
-      if (!project) continue;
+
+      // skip if associated project is not found
+      if (!project) {
+        continue;
+      }
 
       const baseId = project.bases[0].id;
 
@@ -403,7 +407,7 @@ async function migrateProjectModels(
           type: modelData.type === 'table' ? ModelTypes.TABLE : ModelTypes.VIEW,
           created_at: modelData.created_at,
           updated_at: modelData.updated_at,
-          mm: !!modelData.mm
+          mm: !!modelData.mm,
         },
         ncMeta
       );
@@ -437,7 +441,7 @@ async function migrateProjectModels(
       for (const columnMeta of meta.columns) {
         let system = false;
 
-        if (meta.belongsTo?.find(bt => bt.cn === columnMeta.cn)) {
+        if (meta.belongsTo?.find((bt) => bt.cn === columnMeta.cn)) {
           system = true;
           columnMeta.uidt = UITypes.ForeignKey;
         }
@@ -452,16 +456,13 @@ async function migrateProjectModels(
             title: columnMeta._cn,
             column_name: columnMeta.cn,
             system,
-            fk_model_id: model.id
+            fk_model_id: model.id,
           },
           ncMeta
         );
 
-        projectModelColumnRefs[model.table_name][
-          column.column_name
-        ] = projectModelColumnAliasRefs[model.table_name][
-          column.title
-        ] = column;
+        projectModelColumnRefs[model.table_name][column.column_name] =
+          projectModelColumnAliasRefs[model.table_name][column.title] = column;
       }
 
       // migrate table virtual columns
@@ -496,7 +497,7 @@ async function migrateProjectModels(
             let virtual = false;
             if (columnMeta.mm) {
               const relation = relations.find(
-                r =>
+                (r) =>
                   r.rtn === columnMeta.mm.tn &&
                   r.rcn === columnMeta.mm.cn &&
                   r.tn === columnMeta.mm.vtn &&
@@ -506,7 +507,7 @@ async function migrateProjectModels(
             } else if (columnMeta.hm) {
               virtual =
                 relations.find(
-                  r =>
+                  (r) =>
                     r.rtn === columnMeta.hm.rtn &&
                     r.tn === columnMeta.hm.tn &&
                     r.rcn === columnMeta.hm.rcn &&
@@ -515,7 +516,7 @@ async function migrateProjectModels(
             } else if (columnMeta.bt) {
               virtual =
                 relations.find(
-                  r =>
+                  (r) =>
                     r.rtn === columnMeta.bt.rtn &&
                     r.tn === columnMeta.bt.tn &&
                     r.rcn === columnMeta.bt.rcn &&
@@ -541,14 +542,13 @@ async function migrateProjectModels(
                 fk_mm_child_column_id,
                 fk_mm_parent_column_id,
                 fk_related_model_id: columnMeta.hm ? tnId : rtnId,
-                virtual
+                virtual,
               },
               ncMeta
             );
 
-            projectModelColumnAliasRefs[model.table_name][
-              column.title
-            ] = column;
+            projectModelColumnAliasRefs[model.table_name][column.title] =
+              column;
           });
         } else {
           // other virtual columns insert
@@ -558,7 +558,7 @@ async function migrateProjectModels(
               const columnMeta: Lookupv1 = _columnMeta;
 
               const colBody: any = {
-                _cn: columnMeta._cn
+                _cn: columnMeta._cn,
               };
 
               colBody.fk_lookup_column_id =
@@ -571,9 +571,8 @@ async function migrateProjectModels(
               // extract related(virtual relation) column id
               for (const col of columns) {
                 if (col.uidt === UITypes.LinkToAnotherRecord) {
-                  const colOpt = await col.getColOptions<
-                    LinkToAnotherRecordColumn
-                  >(ncMeta);
+                  const colOpt =
+                    await col.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (
                     colOpt.type === columnMeta.lk.type &&
                     colOpt.fk_child_column_id ===
@@ -601,20 +600,19 @@ async function migrateProjectModels(
                 {
                   uidt: UITypes.Lookup,
                   ...colBody,
-                  fk_model_id: model.id
+                  fk_model_id: model.id,
                 },
                 ncMeta
               );
-              projectModelColumnAliasRefs[model.table_name][
-                column.title
-              ] = column;
+              projectModelColumnAliasRefs[model.table_name][column.title] =
+                column;
             } else if (_columnMeta.rl) {
               //  migrate rollup column
               const columnMeta: Rollupv1 = _columnMeta;
 
               const colBody: Partial<RollupColumn & Column> = {
                 title: columnMeta._cn,
-                rollup_function: columnMeta.rl.fn
+                rollup_function: columnMeta.rl.fn,
               };
 
               colBody.fk_rollup_column_id =
@@ -629,9 +627,8 @@ async function migrateProjectModels(
               // extract related(virtual relation) column id
               for (const col of columns) {
                 if (col.uidt === UITypes.LinkToAnotherRecord) {
-                  const colOpt = await col.getColOptions<
-                    LinkToAnotherRecordColumn
-                  >(ncMeta);
+                  const colOpt =
+                    await col.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
                   if (
                     colOpt.type === columnMeta.rl.type &&
                     colOpt.fk_child_column_id ===
@@ -658,18 +655,17 @@ async function migrateProjectModels(
                 {
                   uidt: UITypes.Rollup,
                   ...colBody,
-                  fk_model_id: model.id
+                  fk_model_id: model.id,
                 },
                 ncMeta
               );
-              projectModelColumnAliasRefs[model.table_name][
-                column.title
-              ] = column;
+              projectModelColumnAliasRefs[model.table_name][column.title] =
+                column;
             } else if (_columnMeta.formula) {
               const columnMeta: Formulav1 = _columnMeta;
               //  migrate formula column
               const colBody: any = {
-                _cn: columnMeta._cn
+                _cn: columnMeta._cn,
               };
               if (columnMeta?.formula?.error?.length) {
                 colBody.error = Array.isArray(columnMeta.formula.error)
@@ -690,14 +686,13 @@ async function migrateProjectModels(
                 {
                   uidt: UITypes.Formula,
                   ...colBody,
-                  fk_model_id: model.id
+                  fk_model_id: model.id,
                 },
                 ncMeta
               );
 
-              projectModelColumnAliasRefs[model.table_name][
-                column.title
-              ] = column;
+              projectModelColumnAliasRefs[model.table_name][column.title] =
+                column;
             }
           });
         }
@@ -705,9 +700,9 @@ async function migrateProjectModels(
 
       // extract system hasmany relation
       const hmColumns = meta.hasMany?.filter(
-        hm =>
+        (hm) =>
           !meta.v.find(
-            v =>
+            (v) =>
               v.hm &&
               v.hm.rtn === hm.rtn &&
               v.hm.rcn === hm.rcn &&
@@ -729,7 +724,7 @@ async function migrateProjectModels(
 
           const virtual =
             relations.find(
-              r =>
+              (r) =>
                 r.rtn === rel.rtn &&
                 r.tn === rel.tn &&
                 r.rcn === rel.rcn &&
@@ -752,7 +747,7 @@ async function migrateProjectModels(
               dr: rel.dr,
               fk_related_model_id: tnId,
               system: true,
-              virtual
+              virtual,
             },
             ncMeta
           );
@@ -765,15 +760,13 @@ async function migrateProjectModels(
         // insert default view data here
         // @ts-ignore
         const defaultView = await View.list(model.id, ncMeta).then(
-          views => views[0]
+          (views) => views[0]
         );
 
-        objViewRef[project.id][modelData.title][
-          defaultView.title
-        ] = defaultView;
-        objViewQPRef[project.id][modelData.title][
-          defaultView.title
-        ] = queryParams;
+        objViewRef[project.id][modelData.title][defaultView.title] =
+          defaultView;
+        objViewQPRef[project.id][modelData.title][defaultView.title] =
+          queryParams;
 
         const viewColumns = await View.getColumns(defaultView.id, ncMeta);
 
@@ -788,7 +781,7 @@ async function migrateProjectModels(
         let orderCount = 1;
         for (const [_cn, column] of aliasColArr) {
           const viewColumn = viewColumns.find(
-            c => column.id === c.fk_column_id
+            (c) => column.id === c.fk_column_id
           );
           if (!viewColumn) continue;
           await GridViewColumn.update(
@@ -798,7 +791,7 @@ async function migrateProjectModels(
               show: queryParams?.showFields
                 ? queryParams?.showFields?.[_cn] || false
                 : true,
-              width: queryParams?.columnsWidth?.[_cn]
+              width: queryParams?.columnsWidth?.[_cn],
             },
             ncMeta
           );
@@ -806,8 +799,8 @@ async function migrateProjectModels(
         await View.update(
           defaultView.id,
           {
-            show_system_fields: queryParams?.showSystemFields,
-            order: modelData.view_order
+            show_system_fields: queryParams.showSystemFields,
+            order: modelData.view_order,
           },
           ncMeta
         );
@@ -832,7 +825,7 @@ async function migrateProjectModels(
       objModelColumnRef,
       objViewRef,
       objViewQPRef,
-      objModelAliasRef
+      objModelAliasRef,
     },
     ncMeta
   );
@@ -846,7 +839,7 @@ async function migrateProjectModels(
       objModelColumnRef,
       objViewRef,
       objViewQPRef,
-      objModelAliasRef
+      objModelAliasRef,
     },
     ncMeta
   );
@@ -859,7 +852,7 @@ async function migrateProjectModels(
     objModelColumnRef,
     objViewRef,
     objViewQPRef,
-    objModelAliasRef
+    objModelAliasRef,
   };
 }
 
@@ -870,7 +863,7 @@ async function migrateProjectModelViews(
     // objModelColumnRef,
     objModelColumnAliasRef,
     objViewRef,
-    objViewQPRef
+    objViewQPRef,
   }: MigrateCtxV1,
   ncMeta
 ) {
@@ -885,18 +878,19 @@ async function migrateProjectModelViews(
       queryParams = JSON.parse(viewData.query_params);
     }
 
-    objViewQPRef[project.id][viewData.parent_model_title][
-      viewData.title
-    ] = queryParams;
+    objViewQPRef[project.id][viewData.parent_model_title][viewData.title] =
+      queryParams;
 
-    const insertObj: Partial<View &
-      GridView &
-      KanbanView &
-      FormView &
-      GalleryView & {
-        created_at;
-        updated_at;
-      }> = {
+    const insertObj: Partial<
+      View &
+        GridView &
+        KanbanView &
+        FormView &
+        GalleryView & {
+          created_at;
+          updated_at;
+        }
+    > = {
       title: viewData.title,
       show: true,
       order: viewData.view_order,
@@ -904,7 +898,7 @@ async function migrateProjectModelViews(
       project_id: project.id,
       base_id: baseId,
       created_at: viewData.created_at,
-      updated_at: viewData.updated_at
+      updated_at: viewData.updated_at,
     };
 
     if (viewData.show_as === 'grid') {
@@ -950,7 +944,7 @@ async function migrateProjectModelViews(
     let orderCount = 1;
 
     for (const [_cn, column] of aliasColArr) {
-      const viewColumn = viewColumns.find(c => column.id === c.fk_column_id);
+      const viewColumn = viewColumns.find((c) => column.id === c.fk_column_id);
       const order = orderCount++;
       const show = queryParams?.showFields
         ? queryParams?.showFields?.[_cn] || false
@@ -966,19 +960,21 @@ async function migrateProjectModelViews(
             required: columnParams?.required,
             description: columnParams?.description,
             order,
-            show
+            show,
           },
           ncMeta
         );
       } else if (viewData.show_as === 'grid') {
-        const viewColumn = viewColumns.find(c => column.id === c.fk_column_id);
+        const viewColumn = viewColumns.find(
+          (c) => column.id === c.fk_column_id
+        );
         if (!viewColumn) continue;
         await GridViewColumn.update(
           viewColumn.id,
           {
             order,
             show,
-            width: queryParams?.columnsWidth?.[_cn]
+            width: queryParams?.columnsWidth?.[_cn],
           },
           ncMeta
         );
@@ -988,7 +984,7 @@ async function migrateProjectModelViews(
           viewColumn.id,
           {
             order,
-            show
+            show,
           },
           ncMeta
         );
@@ -998,7 +994,7 @@ async function migrateProjectModelViews(
       view.id,
       {
         show_system_fields: queryParams.showSystemFields,
-        order: viewData.view_order
+        order: viewData.view_order,
       },
       ncMeta
     );
@@ -1011,7 +1007,7 @@ async function migrateViewsParams(
     objModelColumnAliasRef,
     objViewRef,
     objViewQPRef,
-    objModelColumnRef
+    objModelColumnRef,
   }: MigrateCtxV1,
   ncMeta
 ) {
@@ -1029,7 +1025,7 @@ async function migrateViewsParams(
           await View.update(
             view.id,
             {
-              lock_type: queryParams?.viewStatus?.type
+              lock_type: queryParams?.viewStatus?.type,
             },
             ncMeta
           );
@@ -1046,7 +1042,7 @@ async function migrateViewsParams(
                   )?.id || null
                 : null,
               fk_view_id: view.id,
-              direction: sort.order === '-' ? 'desc' : 'asc'
+              direction: sort.order === '-' ? 'desc' : 'asc',
             },
             ncMeta
           );
@@ -1065,7 +1061,7 @@ async function migrateViewsParams(
               fk_view_id: view.id,
               comparison_op: filterV1toV2CompOpMap[filter.op],
               logical_op: filter.logicOp,
-              value: filter.value
+              value: filter.value,
             },
             ncMeta
           );
@@ -1119,7 +1115,7 @@ async function migrateUIAcl(ctx: MigrateCtxV1, ncMeta: any) {
         fk_view_id,
         disabled: acl.disabled,
         created_at: acl.created_at,
-        updated_at: acl.updated_at
+        updated_at: acl.updated_at,
       },
       ncMeta
     );
@@ -1169,7 +1165,7 @@ async function migrateSharedViews(ctx: MigrateCtxV1, ncMeta: any) {
       fk_view_id,
       {
         uuid: sharedView.view_id,
-        password: sharedView.password
+        password: sharedView.password,
       },
       ncMeta
     );
@@ -1191,7 +1187,7 @@ async function migrateSharedBase(ncMeta: any) {
       {
         uuid: sharedBase.shared_base_id,
         password: sharedBase.password,
-        roles: sharedBase.roles
+        roles: sharedBase.roles,
       },
       ncMeta
     );
@@ -1219,7 +1215,7 @@ async function migratePlugins(ncMeta: any) {
       creator_website: plugin.creator_website,
       price: plugin.price,
       created_at: plugin.created_at,
-      updated_at: plugin.updated_at
+      updated_at: plugin.updated_at,
     });
   }
 }
@@ -1277,7 +1273,7 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
         timeout: hookMeta.timeout,
         active: hookMeta.active,
         created_at: hookMeta.created_at,
-        updated_at: hookMeta.updated_at
+        updated_at: hookMeta.updated_at,
       },
       ncMeta
     );
@@ -1302,7 +1298,7 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
           fk_hook_id: hook.id,
           logical_op: filter.logicOp,
           comparison_op: filterV1toV2CompOpMap[filter.op],
-          value: filter.value
+          value: filter.value,
         },
         ncMeta
       );
@@ -1346,7 +1342,7 @@ async function migrateAutitLog(
       description: audit.description,
       details: audit.details,
       created_at: audit.created_at,
-      updated_at: audit.updated_at
+      updated_at: audit.updated_at,
     };
 
     if (audit.model_name) {
@@ -1355,10 +1351,10 @@ async function migrateAutitLog(
         ctx.objModelRef?.[audit.project_id]?.[audit.model_name] ||
         // extract model by using model_id property from audit
         ctx.objModelRef?.[audit.project_id]?.[
-          ctx.metas?.find(m => m.id == audit.model_id)?.title
+          ctx.metas?.find((m) => m.id == audit.model_id)?.title
         ] ||
         ctx.objModelAliasRef?.[audit.project_id]?.[
-          ctx.metas?.find(m => m.id == audit.model_id)?.alias
+          ctx.metas?.find((m) => m.id == audit.model_id)?.alias
         ];
 
       // if model is not found skip audit insertion

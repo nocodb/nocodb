@@ -4,7 +4,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
-  MetaTable
+  MetaTable,
 } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
 import View from './View';
@@ -24,7 +24,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
 
   static async list(projectId): Promise<ModelRoleVisibility[]> {
     let data = await NocoCache.getList(CacheScope.MODEL_ROLE_VISIBILITY, [
-      projectId
+      projectId,
     ]);
     if (!data.length) {
       data = await Noco.ncMeta.metaList2(
@@ -38,7 +38,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         data
       );
     }
-    return data?.map(baseData => new ModelRoleVisibility(baseData));
+    return data?.map((baseData) => new ModelRoleVisibility(baseData));
   }
 
   static async get(
@@ -65,7 +65,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         //   :
         {
           fk_view_id: args.fk_view_id,
-          role: args.role
+          role: args.role,
         }
       );
       await NocoCache.set(
@@ -96,11 +96,11 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       null,
       MetaTable.MODEL_ROLE_VISIBILITY,
       {
-        disabled: body.disabled
+        disabled: body.disabled,
       },
       {
         fk_view_id,
-        role
+        role,
       }
     );
   }
@@ -120,7 +120,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       MetaTable.MODEL_ROLE_VISIBILITY,
       {
         fk_view_id,
-        role
+        role,
       }
     );
   }
@@ -141,7 +141,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       project_id: body.project_id,
       base_id: body.base_id,
       created_at: body.created_at,
-      updated_at: body.updated_at
+      updated_at: body.updated_at,
     };
 
     if (!(body.project_id && body.base_id)) {
@@ -166,7 +166,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     return this.get(
       {
         fk_view_id: body.fk_view_id,
-        role: body.role
+        role: body.role,
       },
       ncMeta
     );

@@ -23,7 +23,7 @@ export async function upload(req: Request, res: Response) {
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
   const column = await getColumnFromFilePath(filePath);
   const attachments = await Promise.all(
-    (req as any).files?.map(async file => {
+    (req as any).files?.map(async (file) => {
       const fileName = `${nanoid(6)}${path.extname(file.originalname)}`;
       const relativePath = slash(path.join(destPath, fileName));
       let url = await storageAdapter.fileCreate(
@@ -62,7 +62,7 @@ export async function uploadViaURL(req: Request, res: Response) {
 
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
   const attachments = await Promise.all(
-    req.body?.map?.(async urlMeta => {
+    req.body?.map?.(async (urlMeta) => {
       const { url, fileName: _fileName } = urlMeta;
       const fileName = `${nanoid(6)}${_fileName || url.split('/').pop()}`;
 
@@ -82,7 +82,7 @@ export async function uploadViaURL(req: Request, res: Response) {
         title: fileName,
         mimetype: urlMeta.mimetype,
         size: urlMeta.size,
-        icon: mimeIcons[path.extname(fileName).slice(1)] || undefined
+        icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
       };
     })
   );
@@ -97,13 +97,8 @@ export async function fileRead(req, res) {
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
     // const type = mimetypes[path.extname(req.s.fileName).slice(1)] || 'text/plain';
     const type =
-      mimetypes[
-        path
-          .extname(req.params?.[0])
-          .split('/')
-          .pop()
-          .slice(1)
-      ] || 'text/plain';
+      mimetypes[path.extname(req.params?.[0]).split('/').pop().slice(1)] ||
+      'text/plain';
     // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
     const img = await storageAdapter.fileRead(
       slash(
@@ -112,7 +107,7 @@ export async function fileRead(req, res) {
           'uploads',
           req.params?.[0]
             ?.split('/')
-            .filter(p => p !== '..')
+            .filter((p) => p !== '..')
             .join('/')
         )
       )
@@ -152,13 +147,8 @@ router.get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/, async (req, res) => {
   try {
     // const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
     const type =
-      mimetypes[
-        path
-          .extname(req.params[2])
-          .split('/')
-          .pop()
-          .slice(1)
-      ] || 'text/plain';
+      mimetypes[path.extname(req.params[2]).split('/').pop().slice(1)] ||
+      'text/plain';
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
     // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
@@ -181,13 +171,13 @@ router.get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/, async (req, res) => {
 });
 
 export function sanitizeUrlPath(paths) {
-  return paths.map(url => url.replace(/[/.?#]+/g, '_'));
+  return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
 }
 
 router.post(
   '/api/v1/db/storage/upload',
   multer({
-    storage: multer.diskStorage({})
+    storage: multer.diskStorage({}),
   }).any(),
   ncMetaAclMw(upload, 'upload')
 );

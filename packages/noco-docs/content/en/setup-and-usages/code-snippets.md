@@ -1,6 +1,6 @@
 ---
 title: 'Code Snippets'
-description: 'Code Snippets'
+description: 'Code Snippets Examples in different ways'
 position: 540
 category: 'Product'
 menuTitle: 'Code Snippets'

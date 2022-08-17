@@ -1,17 +1,9 @@
 <template>
-  <div v-if="!feedbackFormHidden" class="nc-feedback-form-wrapper">
-    <v-icon class="nc-close-icon" large @click="feedbackFormHidden = true">
-      mdi-close-circle-outline
-    </v-icon>
+  <div v-if="!feedbackFormIsHidden" class="nc-feedback-form-wrapper">
+    <v-icon class="nc-close-icon" large @click="feedbackFormIsHidden = true"> mdi-close-circle-outline </v-icon>
 
-    <iframe
-      src="https://docs.google.com/forms/d/e/1FAIpQLSeTlAfZjszgr53lArz3NvUEnJGOT9JtG9NAU5d0oQwunDS2Pw/viewform?embedded=true"
-      width="100%"
-      height="500"
-      frameborder="0"
-      marginheight="0"
-      marginwidth="0"
-    >Loading…
+    <iframe :src="feedbackFormUrl" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"
+      >Loading…
     </iframe>
   </div>
   <div v-else />
@@ -21,16 +13,19 @@
 export default {
   name: 'FeedbackForm',
   computed: {
-    feedbackFormHidden: {
+    feedbackFormIsHidden: {
       get() {
-        return this.$store.state.settings.feedbackFormHidden
+        return this.$store.state.settings.feedbackForm.isHidden;
       },
-      set(val) {
-        this.$store.commit('settings/MutFeedbackFormHidden', val)
-      }
-    }
-  }
-}
+      set(isHidden) {
+        this.$store.commit('settings/MutFeedbackForm', { ...this.$store.state.settings.feedbackForm, isHidden });
+      },
+    },
+    feedbackFormUrl() {
+      return this.$store.state.settings.feedbackForm.url;
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">

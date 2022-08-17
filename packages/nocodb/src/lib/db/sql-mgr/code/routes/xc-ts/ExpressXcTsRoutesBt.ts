@@ -36,7 +36,7 @@ class ExpressXcTsRoutesBt extends BaseRender {
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -47,9 +47,9 @@ async function(req, res){
     });
     res.json(data);
 }
-                `
-        ]
-      }
+                `,
+        ],
+      },
     ];
   }
 

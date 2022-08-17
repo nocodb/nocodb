@@ -20,8 +20,10 @@ export const genTest = (apiType, dbType) => {
         //   .find(".v-list > .v-list-item")
         //   .contains("Share View")
         //   .click();
-        mainPage.shareView().click();
-
+        mainPage.shareView().click({ force: true });
+        
+        cy.wait(5000);
+        
         // wait, as URL initially will be /undefined
         cy.getActiveModal()
             .find(".share-link-box")
@@ -86,7 +88,7 @@ export const genTest = (apiType, dbType) => {
                     .contains("Address1")
                     .click();
                 mainPage.hideField("Address2");
-                mainPage.sortField("Address", "Z -> A");
+                mainPage.sortField("Address", "Z → A");
                 mainPage.filterField("Address", "is like", "Ab");
                 generateViewLink("combined");
                 cy.log(viewURL["combined"]);
@@ -205,7 +207,7 @@ export const genTest = (apiType, dbType) => {
 
             it(`Share ${viewType.toUpperCase()} view : Enable sort`, () => {
                 // Sort menu operations (Country Column, Z->A)
-                mainPage.sortField("Address", "Z -> A");
+                mainPage.sortField("Address", "Z → A");
                 mainPage
                     .getCell("Address", 1)
                     .contains("669 Firozabad Loop")

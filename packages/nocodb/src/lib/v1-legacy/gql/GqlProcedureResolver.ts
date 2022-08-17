@@ -25,7 +25,7 @@ export class GqlProcedureResolver extends BaseProcedure {
   }
 
   public fnHandler(name) {
-    return (async args => {
+    return (async (args) => {
       let body = [];
       try {
         body = JSON.parse(args.body);
@@ -37,7 +37,7 @@ export class GqlProcedureResolver extends BaseProcedure {
 
   private procHandler(name) {
     // @ts-ignore
-    return (async args => {
+    return (async (args) => {
       let body = [];
       try {
         body = JSON.parse(args.body);
@@ -87,12 +87,12 @@ type Mutation {
 
   private async middleware(_args, { req }, info: any) {
     const roles = (req as any)?.session?.passport?.user?.roles ?? {
-      guest: true
+      guest: true,
     };
 
     try {
       const allowed = Object.keys(roles).some(
-        role => roles[role] && this.acls?.[info.fieldName.slice(1)]?.[role]
+        (role) => roles[role] && this.acls?.[info.fieldName.slice(1)]?.[role]
       );
       if (allowed) {
         // any additional rules can be made here

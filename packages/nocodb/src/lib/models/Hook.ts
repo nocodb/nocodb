@@ -3,7 +3,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
-  MetaTable
+  MetaTable,
 } from '../utils/globals';
 import Noco from '../Noco';
 import Model from './Model';
@@ -86,30 +86,30 @@ export default class Hook implements HookType {
     if (!hooks.length) {
       hooks = await ncMeta.metaList(null, null, MetaTable.HOOKS, {
         condition: {
-          fk_model_id: param.fk_model_id
+          fk_model_id: param.fk_model_id,
           // ...(param.event ? { event: param.event?.toLowerCase?.() } : {}),
           // ...(param.operation
           //   ? { operation: param.operation?.toLowerCase?.() }
           //   : {})
         },
         orderBy: {
-          created_at: 'asc'
-        }
+          created_at: 'asc',
+        },
       });
       await NocoCache.setList(CacheScope.HOOK, [param.fk_model_id], hooks);
     }
     // filter event & operation
     if (param.event) {
       hooks = hooks.filter(
-        h => h.event?.toLowerCase() === param.event?.toLowerCase()
+        (h) => h.event?.toLowerCase() === param.event?.toLowerCase()
       );
     }
     if (param.operation) {
       hooks = hooks.filter(
-        h => h.operation?.toLowerCase() === param.operation?.toLowerCase()
+        (h) => h.operation?.toLowerCase() === param.operation?.toLowerCase()
       );
     }
-    return hooks?.map(h => new Hook(h));
+    return hooks?.map((h) => new Hook(h));
   }
 
   public static async insert(
@@ -145,7 +145,7 @@ export default class Hook implements HookType {
       project_id: hook.project_id,
       base_id: hook.base_id,
       created_at: hook.created_at,
-      updated_at: hook.updated_at
+      updated_at: hook.updated_at,
     };
 
     if (!(hook.project_id && hook.base_id)) {
@@ -194,7 +194,7 @@ export default class Hook implements HookType {
       retries: hook.retries,
       retry_interval: hook.retry_interval,
       timeout: hook.timeout,
-      active: hook.active
+      active: hook.active,
     };
 
     // get existing cache
@@ -220,7 +220,7 @@ export default class Hook implements HookType {
       null,
       MetaTable.FILTER_EXP,
       {
-        condition: { fk_hook_id: hookId }
+        condition: { fk_hook_id: hookId },
       }
     );
     for (const filter of filterList) {

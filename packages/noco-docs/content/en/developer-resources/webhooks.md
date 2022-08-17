@@ -1,6 +1,6 @@
 ---
 title: "Webhooks"
-description: "Webhooks"
+description: "Webhooks allows user to trigger on certain operations on following database operations"
 position: 1500
 category: "Developer Resources"
 menuTitle: "Webhooks"

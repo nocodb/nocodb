@@ -14,12 +14,9 @@
       >
         <template v-if="_isUIAllowed('smartSheet')">
           <v-tab v-show="relationTabs && relationTabs.length" class="">
-            <v-icon small>
-              mdi-table-edit
-            </v-icon>&nbsp;<span
-              class="caption text-capitalize font-weight-bold"
+            <v-icon small> mdi-table-edit </v-icon>&nbsp;<span class="caption text-capitalize font-weight-bold">
+              {{ nodes.title }}</span
             >
-              {{ nodes.title }}</span>
           </v-tab>
           <v-tab-item style="height: 100%">
             <rows-xc-data-table
@@ -42,16 +39,16 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
-import { UITypes } from 'nocodb-sdk'
-import dlgLabelSubmitCancel from '../utils/DlgLabelSubmitCancel'
-import { isMetaTable } from '@/helpers/xutils'
-import RowsXcDataTable from '~/components/project/spreadsheet/RowsXcDataTable'
+import { mapActions } from 'vuex';
+import { UITypes } from 'nocodb-sdk';
+import dlgLabelSubmitCancel from '../utils/DlgLabelSubmitCancel';
+import { isMetaTable } from '@/helpers/xutils';
+import RowsXcDataTable from '~/components/project/spreadsheet/RowsXcDataTable';
 
 export default {
   components: {
     RowsXcDataTable,
-    dlgLabelSubmitCancel
+    dlgLabelSubmitCancel,
   },
   data() {
     return {
@@ -66,46 +63,43 @@ export default {
       loadRows: false,
       loadColumnsMock: false,
       relationTabs: [],
-      deleteId: null
-    }
+      deleteId: null,
+    };
   },
   methods: {
     async handleKeyDown(event) {
-      const activeTabEleKey = `tabs${this.active}`
-      if (
-        this.$refs[activeTabEleKey] &&
-        this.$refs[activeTabEleKey].handleKeyDown
-      ) {
-        await this.$refs[activeTabEleKey].handleKeyDown(event)
+      const activeTabEleKey = `tabs${this.active}`;
+      if (this.$refs[activeTabEleKey] && this.$refs[activeTabEleKey].handleKeyDown) {
+        await this.$refs[activeTabEleKey].handleKeyDown(event);
       }
     },
     ...mapActions({
       removeTableTab: 'tabs/removeTableTab',
-      loadTablesFromParentTreeNode: 'project/loadTablesFromParentTreeNode'
+      loadTablesFromParentTreeNode: 'project/loadTablesFromParentTreeNode',
     }),
     mtdNewTableUpdate(value) {
-      this.newTableCopy = value
+      this.newTableCopy = value;
     },
     onTabChange() {
-      this.$emit('update:hideLogWindows', this.active === 2)
-    }
+      this.$emit('update:hideLogWindows', this.active === 2);
+    },
   },
   computed: {
     isMetaTable() {
-      return isMetaTable(this.nodes.table_name)
-    }
+      return isMetaTable(this.nodes.table_name);
+    },
   },
   mounted() {
-    this.onTabChange()
+    this.onTabChange();
   },
   props: {
     nodes: Object,
     hideLogWindows: Boolean,
     tabId: String,
     isActive: Boolean,
-    isView: Boolean
-  }
-}
+    isView: Boolean,
+  },
+};
 </script>
 
 <style scoped>

@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 import catchError, { NcError } from './catchError';
 import extractProjectIdAndAuthenticate from './extractProjectIdAndAuthenticate';
 
-export default function(handlerFn, permissionName) {
+export default function (handlerFn, permissionName) {
   return [
     extractProjectIdAndAuthenticate,
     catchError(async function authMiddleware(req, _res, next) {
@@ -78,6 +78,6 @@ export default function(handlerFn, permissionName) {
       // }
       next();
     }),
-    catchError(handlerFn)
+    catchError(handlerFn),
   ];
 }

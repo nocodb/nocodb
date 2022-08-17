@@ -42,32 +42,44 @@ export async function appInfo(req: Request, res: Response) {
     ncMin: !!process.env.NC_MIN,
     teleEnabled: !process.env.NC_DISABLE_TELE,
     noSignUp: process.env.NC_NO_SIGN_UP === '1',
-    ncSiteUrl: (req as any).ncSiteUrl
+    ncSiteUrl: (req as any).ncSiteUrl,
   };
 
   res.json(result);
 }
 
-export async function releaseVersion(_req: Request, res: Response) {
+export async function versionInfo(_req: Request, res: Response) {
   const result = await axios
     .get('https://github.com/nocodb/nocodb/releases/latest')
-    .then(response => {
+    .then((response) => {
       return {
+        currentVersion: packageVersion,
         releaseVersion: response.request.res.responseUrl.replace(
           'https://github.com/nocodb/nocodb/releases/tag/',
           ''
-        )
+        ),
       };
     });
 
   res.json(result);
 }
 
+export async function feedbackFormGet(_req: Request, res: Response) {
+  axios
+    .get('https://nocodb.com/api/v1/feedback_form')
+    .then((response) => {
+      res.json(response.data);
+    })
+    .catch((e) => {
+      res.status(500).json({ error: e.message });
+    });
+}
+
 export async function appHealth(_: Request, res: Response) {
   res.json({
     message: 'OK',
     timestamp: Date.now(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 }
 
@@ -112,7 +124,7 @@ async function _axiosRequestMake(req: Request, res: Response) {
         }, {})
       : {},
     responseType: apiMeta.responseType || 'json',
-    withCredentials: true
+    withCredentials: true,
   };
   const data = await require('axios')(_req);
   return res.json(data?.data);
@@ -120,11 +132,12 @@ async function _axiosRequestMake(req: Request, res: Response) {
 
 export async function axiosRequestMake(req: Request, res: Response) {
   const {
-    apiMeta: { url }
+    apiMeta: { url },
   } = req.body;
   const isExcelImport = /.*\.(xls|xlsx|xlsm|ods|ots)/;
   const isCSVImport = /.*\.(csv)/;
-  const ipBlockList = /(10)(\.([2]([0-5][0-5]|[01234][6-9])|[1][0-9][0-9]|[1-9][0-9]|[0-9])){3}|(172)\.(1[6-9]|2[0-9]|3[0-1])(\.(2[0-4][0-9]|25[0-5]|[1][0-9][0-9]|[1-9][0-9]|[0-9])){2}|(192)\.(168)(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){2}|(0.0.0.0)|localhost?/g;
+  const ipBlockList =
+    /(10)(\.([2]([0-5][0-5]|[01234][6-9])|[1][0-9][0-9]|[1-9][0-9]|[0-9])){3}|(172)\.(1[6-9]|2[0-9]|3[0-1])(\.(2[0-4][0-9]|25[0-5]|[1][0-9][0-9]|[1-9][0-9]|[0-9])){2}|(192)\.(168)(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){2}|(0.0.0.0)|localhost?/g;
   if (
     ipBlockList.test(url) ||
     (!isCSVImport.test(url) && !isExcelImport.test(url))
@@ -137,13 +150,14 @@ export async function axiosRequestMake(req: Request, res: Response) {
   return await _axiosRequestMake(req, res);
 }
 
-export default router => {
+export default (router) => {
   router.post(
     '/api/v1/db/meta/connection/test',
     ncMetaAclMw(testConnection, 'testConnection')
   );
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
-  router.get('/api/v1/version', catchError(releaseVersion));
+  router.get('/api/v1/version', catchError(versionInfo));
   router.get('/api/v1/health', catchError(appHealth));
+  router.get('/api/v1/feedback_form', catchError(feedbackFormGet));
 };

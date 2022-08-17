@@ -2,19 +2,15 @@
   <v-menu offset-y :close-on-content-click="false" class="">
     <!--        notification button -->
 
-    <template #activator="{on}">
+    <template #activator="{ on }">
       <div class="d-flex align-center ml-4 justify-center">
         <v-badge v-if="GetHasErrors && !GetPendingStatus" color="red" overlap bottom>
           <template #badge>
-            <v-icon v-ripple="{class : 'nc-ripple'}" size="10" v-on="on">
-              mdi-exclamation
-            </v-icon>
+            <v-icon v-ripple="{ class: 'nc-ripple' }" size="10" v-on="on"> mdi-exclamation </v-icon>
           </template>
-          <v-icon v-ripple="{class : 'nc-ripple'}" size="20" class="nc-menu-alert" v-on="on">
-            mdi-bell-ring
-          </v-icon>
+          <v-icon v-ripple="{ class: 'nc-ripple' }" size="20" class="nc-menu-alert" v-on="on"> mdi-bell-ring </v-icon>
         </v-badge>
-        <v-icon v-else v-ripple="{class : 'nc-ripple'}" size="20" class="nc-menu-alert" v-on="on">
+        <v-icon v-else v-ripple="{ class: 'nc-ripple' }" size="20" class="nc-menu-alert" v-on="on">
           mdi-bell-ring
         </v-icon>
         <v-progress-circular
@@ -28,26 +24,12 @@
       </div>
     </template>
 
-    <v-list v-if="notificationList.length" style="max-height: 250px;overflow-y: auto">
-      <div
-        v-for="item in notificationList"
-        :key="item.time"
-      >
+    <v-list v-if="notificationList.length" style="max-height: 250px; overflow-y: auto">
+      <div v-for="item in notificationList" :key="item.time">
         <v-list-item>
           <v-list-item-avatar size="30">
-            <v-progress-circular
-              v-if="item.status === 'pending'"
-              :width="3"
-              size="30"
-              color="orange"
-              indeterminate
-            />
-            <v-icon
-              v-else
-              v-ripple="{class : 'nc-ripple'}"
-              size="20"
-              :class="notificationIcons[item.status].class"
-            >
+            <v-progress-circular v-if="item.status === 'pending'" :width="3" size="30" color="orange" indeterminate />
+            <v-icon v-else v-ripple="{ class: 'nc-ripple' }" size="20" :class="notificationIcons[item.status].class">
               {{ notificationIcons[item.status].icon }}
             </v-icon>
           </v-list-item-avatar>
@@ -64,12 +46,10 @@
       </div>
     </v-list>
     <v-list>
-      <v-list-item v-if="notificationList.length" style="min-height:30px">
-        <a
-          class="text-center mb-0"
-          style="width: 100%;min-width:200px"
-          @click.prevent="clearNotification"
-        >{{ $t('msg.info.notifications.clear') }}</a>
+      <v-list-item v-if="notificationList.length" style="min-height: 30px">
+        <a class="text-center mb-0" style="width: 100%; min-width: 200px" @click.prevent="clearNotification">{{
+          $t('msg.info.notifications.clear')
+        }}</a>
       </v-list-item>
       <v-list-item v-else>
         <v-list-item-content>
@@ -83,26 +63,27 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'Notification',
   computed: {
-
     ...mapGetters({
       GetHasErrors: 'notification/GetHasErrors',
-      GetPendingStatus: 'notification/GetPendingStatus'
+      GetPendingStatus: 'notification/GetPendingStatus',
     }),
     notificationList() {
-      return this.$store.state.notification.list
-    }
+      return this.$store.state.notification.list;
+    },
   },
   filters: {
     capitalize(value) {
-      if (!value) { return '' }
-      value = value.toString()
-      return value.charAt(0).toUpperCase() + value.slice(1)
-    }
+      if (!value) {
+        return '';
+      }
+      value = value.toString();
+      return value.charAt(0).toUpperCase() + value.slice(1);
+    },
   },
   data() {
     return {
@@ -110,57 +91,54 @@ export default {
         success: {
           message: ' successful',
           class: 'success',
-          icon: 'mdi-check-circle'
+          icon: 'mdi-check-circle',
         },
         error: {
           message: ' failed',
           class: 'error',
-          icon: 'mdi-cloud-alert'
+          icon: 'mdi-cloud-alert',
         },
         pending: {
           message: ' pending',
           class: 'success',
-          icon: 'mdi-check-circle'
-        }
-      }
-    }
+          icon: 'mdi-check-circle',
+        },
+      },
+    };
   },
   methods: {
     timeDifference(previous) {
-      const current = Date.now()
-      const msPerMinute = 60 * 1000
-      const msPerHour = msPerMinute * 60
-      const msPerDay = msPerHour * 24
-      const msPerMonth = msPerDay * 30
-      const msPerYear = msPerDay * 365
+      const current = Date.now();
+      const msPerMinute = 60 * 1000;
+      const msPerHour = msPerMinute * 60;
+      const msPerDay = msPerHour * 24;
+      const msPerMonth = msPerDay * 30;
+      const msPerYear = msPerDay * 365;
 
-      const elapsed = current - previous
+      const elapsed = current - previous;
 
       if (elapsed < msPerMinute) {
-        return Math.round(elapsed / 1000) + ' seconds ago'
+        return Math.round(elapsed / 1000) + ' seconds ago';
       } else if (elapsed < msPerHour) {
-        return Math.round(elapsed / msPerMinute) + ' minutes ago'
+        return Math.round(elapsed / msPerMinute) + ' minutes ago';
       } else if (elapsed < msPerDay) {
-        return Math.round(elapsed / msPerHour) + ' hours ago'
+        return Math.round(elapsed / msPerHour) + ' hours ago';
       } else if (elapsed < msPerMonth) {
-        return 'approximately ' + Math.round(elapsed / msPerDay) + ' days ago'
+        return 'approximately ' + Math.round(elapsed / msPerDay) + ' days ago';
       } else if (elapsed < msPerYear) {
-        return 'approximately ' + Math.round(elapsed / msPerMonth) + ' months ago'
+        return 'approximately ' + Math.round(elapsed / msPerMonth) + ' months ago';
       } else {
-        return 'approximately ' + Math.round(elapsed / msPerYear) + ' years ago'
+        return 'approximately ' + Math.round(elapsed / msPerYear) + ' years ago';
       }
     },
     clearNotification() {
-      this.$store.commit('notification/MutListClearFinished')
-    }
-
-  }
-}
+      this.$store.commit('notification/MutListClearFinished');
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

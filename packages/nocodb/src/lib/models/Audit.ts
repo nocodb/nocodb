@@ -58,7 +58,7 @@ export default class Audit implements AuditType {
       description: audit.description,
       details: audit.details,
       created_at: audit.created_at,
-      updated_at: audit.updated_at
+      updated_at: audit.updated_at,
     });
 
     return auditRec;
@@ -77,7 +77,7 @@ export default class Audit implements AuditType {
       .where('op_type', AuditOperationTypes.COMMENT)
       .groupBy('row_id');
 
-    return audits?.map(a => new Audit(a));
+    return audits?.map((a) => new Audit(a));
   }
   public static async commentsList(args) {
     const query = Noco.ncMeta
@@ -91,17 +91,17 @@ export default class Audit implements AuditType {
 
     const audits = await query;
 
-    return audits?.map(a => new Audit(a));
+    return audits?.map((a) => new Audit(a));
   }
 
   static async projectAuditList(projectId: string, { limit = 25, offset = 0 }) {
     return await Noco.ncMeta.metaList2(null, null, MetaTable.AUDIT, {
       condition: { project_id: projectId },
       orderBy: {
-        created_at: 'desc'
+        created_at: 'desc',
       },
       limit,
-      offset
+      offset,
     });
   }
   static async projectAuditCount(projectId: string): Promise<number> {
@@ -116,7 +116,7 @@ export default class Audit implements AuditType {
 
   static async deleteRowComments(fk_model_id: string, ncMeta = Noco.ncMeta) {
     return ncMeta.metaDelete(null, null, MetaTable.AUDIT, {
-      fk_model_id
+      fk_model_id,
     });
   }
 }

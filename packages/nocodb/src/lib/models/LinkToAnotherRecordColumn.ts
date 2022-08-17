@@ -37,7 +37,7 @@ export default class LinkToAnotherRecordColumn {
   public async getChildColumn(ncMeta = Noco.ncMeta): Promise<Column> {
     return (this.childColumn = await Column.get(
       {
-        colId: this.fk_child_column_id
+        colId: this.fk_child_column_id,
       },
       ncMeta
     ));
@@ -46,7 +46,7 @@ export default class LinkToAnotherRecordColumn {
   public async getMMChildColumn(ncMeta = Noco.ncMeta): Promise<Column> {
     return (this.mmChildColumn = await Column.get(
       {
-        colId: this.fk_mm_child_column_id
+        colId: this.fk_mm_child_column_id,
       },
       ncMeta
     ));
@@ -55,7 +55,7 @@ export default class LinkToAnotherRecordColumn {
   public async getParentColumn(ncMeta = Noco.ncMeta): Promise<Column> {
     return (this.parentColumn = await Column.get(
       {
-        colId: this.fk_parent_column_id
+        colId: this.fk_parent_column_id,
       },
       ncMeta
     ));
@@ -63,7 +63,7 @@ export default class LinkToAnotherRecordColumn {
   public async getMMParentColumn(ncMeta = Noco.ncMeta): Promise<Column> {
     return (this.mmParentColumn = await Column.get(
       {
-        colId: this.fk_mm_parent_column_id
+        colId: this.fk_mm_parent_column_id,
       },
       ncMeta
     ));
@@ -71,7 +71,7 @@ export default class LinkToAnotherRecordColumn {
   public async getMMModel(ncMeta = Noco.ncMeta): Promise<Model> {
     return (this.mmModel = await Model.getByIdOrName(
       {
-        id: this.fk_mm_model_id
+        id: this.fk_mm_model_id,
       },
       ncMeta
     ));
@@ -79,7 +79,7 @@ export default class LinkToAnotherRecordColumn {
   public async getRelatedTable(ncMeta = Noco.ncMeta): Promise<Model> {
     return (this.relatedTable = await Model.getByIdOrName(
       {
-        id: this.fk_related_model_id
+        id: this.fk_related_model_id,
       },
       ncMeta
     ));
@@ -108,7 +108,7 @@ export default class LinkToAnotherRecordColumn {
 
       fk_index_name: data.fk_index_name,
       fk_related_model_id: data.fk_related_model_id,
-      virtual: data.virtual
+      virtual: data.virtual,
     });
     return this.read(data.fk_column_id, ncMeta);
   }

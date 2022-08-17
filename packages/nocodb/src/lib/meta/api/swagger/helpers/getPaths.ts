@@ -10,7 +10,7 @@ export default async function getPaths(
     project,
     model,
     columns,
-    views
+    views,
   }: {
     project: Project;
     model: Model;
@@ -24,12 +24,12 @@ export default async function getPaths(
     type: model.type,
     orgs: 'v1',
     columns,
-    projectName: project.title
+    projectName: project.title,
   });
 
   for (const { view, columns: viewColumns } of views) {
     const swaggerColumns = columns.filter(
-      c => viewColumns.find(vc => vc.fk_column_id === c.column.id)?.show
+      (c) => viewColumns.find((vc) => vc.fk_column_id === c.column.id)?.show
     );
     Object.assign(
       swaggerPaths,
@@ -39,7 +39,7 @@ export default async function getPaths(
         type: model.type,
         orgs: 'v1',
         columns: swaggerColumns,
-        projectName: project.title
+        projectName: project.title,
       })
     );
   }

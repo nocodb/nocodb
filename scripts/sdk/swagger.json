@@ -854,6 +854,25 @@
         "tags": [
           "Project"
         ]
+      },      
+      "patch": {
+        "summary": "Project update",
+        "operationId": "project-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Project"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
       }
     },
     "/api/v1/db/meta/projects/{projectId}/shared": {

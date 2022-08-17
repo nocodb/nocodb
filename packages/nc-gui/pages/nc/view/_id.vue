@@ -3,20 +3,18 @@
 </template>
 
 <script>
-import XcTable from '../../../components/project/spreadsheet/public/XcTable'
+import XcTable from '../../../components/project/spreadsheet/public/XcTable';
 
 export default {
   components: { XcTable },
   layout: 'public',
   data: () => ({
-    data: null
-  })
-}
+    data: null,
+  }),
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

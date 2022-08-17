@@ -51,18 +51,13 @@
       </x-btn>
     </v-toolbar>
     <div class="d-flex justify-center">
-      <v-skeleton-loader
-        v-if="loading"
-        type="table"
-        class="flex-shrink-1"
-        style="min-width:75%"
-      />
+      <v-skeleton-loader v-if="loading" type="table" class="flex-shrink-1" style="min-width: 75%" />
       <v-data-table
         v-else
         dense
         class="flex-shrink-1"
-        style="min-width:75%"
-        :headers="[{},{},{},{value:'tn'},{value:'rtn'},{}]"
+        style="min-width: 75%"
+        :headers="[{}, {}, {}, { value: 'tn' }, { value: 'rtn' }, {}]"
         hide-default-header
         :items="relations"
         :search="search"
@@ -70,27 +65,19 @@
         <template #header>
           <thead>
             <tr class="text-left caption">
-              <th class="grey--text">
-                #
-              </th>
+              <th class="grey--text">#</th>
               <th class="grey--text">
                 Table Name <span class="caption grey--text">({{ selectedCount }})</span>
               </th>
-              <th class="grey--text">
-                Relation
-              </th>
-              <th class="grey--text">
-                Parent
-              </th>
-              <th class="grey--text">
-                Child
-              </th>
+              <th class="grey--text">Relation</th>
+              <th class="grey--text">Parent</th>
+              <th class="grey--text">Child</th>
               <!--              <th />-->
             </tr>
           </thead>
         </template>
 
-        <template #item="{item,index}">
+        <template #item="{ item, index }">
           <tr class="caption">
             <td>{{ index + 1 }}</td>
             <td>{{ item.relationType === 'hm' ? item.rtn : item.table_name }}</td>
@@ -122,64 +109,69 @@ export default {
     toggle: true,
     updating: false,
     relations: [],
-    search: ''
+    search: '',
   }),
   computed: {
     selectedCount() {
-      return `${this.relations.filter(({ enabled }) => enabled).length}/${this.relations.length}`
+      return `${this.relations.filter(({ enabled }) => enabled).length}/${this.relations.length}`;
     },
     edited() {
-      return this.relations.some(({ edited }) => edited)
-    }
+      return this.relations.some(({ edited }) => edited);
+    },
   },
   async created() {
-    await this.loadRelations()
+    await this.loadRelations();
   },
   methods: {
     async loadRelations() {
-      this.loading = true
+      this.loading = true;
       try {
-        this.relations = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'xcRelationsGet'])
+        this.relations = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.dbAlias,
+            env: this.$store.getters['project/GtrEnv'],
+          },
+          'xcRelationsGet',
+        ]);
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
-      this.loading = false
+      this.loading = false;
     },
     toggleAll(toggle) {
-      this.toggle = !toggle
+      this.toggle = !toggle;
       for (const rel of this.relations) {
-        this.$set(rel, 'edited', rel.edited || rel.enabled !== toggle)
-        this.$set(rel, 'enabled', toggle)
+        this.$set(rel, 'edited', rel.edited || rel.enabled !== toggle);
+        this.$set(rel, 'enabled', toggle);
       }
     },
     async save() {
-      const editedRelations = this.relations.filter(({ edited }) => edited)
-      this.updating = true
+      const editedRelations = this.relations.filter(({ edited }) => edited);
+      this.updating = true;
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'xcRelationsSet', editedRelations])
-        this.$toast.success('Relations enabled/disabled successfully').goAway(3000)
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.dbAlias,
+            env: this.$store.getters['project/GtrEnv'],
+          },
+          'xcRelationsSet',
+          editedRelations,
+        ]);
+        this.$toast.success('Relations enabled/disabled successfully').goAway(3000);
         for (const rel of this.relations) {
-          this.$set(rel, 'edited', false)
+          this.$set(rel, 'edited', false);
         }
       } catch (e) {
-        this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
-        console.log(e.message)
+        this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000);
+        console.log(e.message);
       }
-      this.updating = false
-    }
-  }
-}
+      this.updating = false;
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

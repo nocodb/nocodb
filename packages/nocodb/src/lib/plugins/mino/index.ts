@@ -21,43 +21,43 @@ const config: XcPluginConfig = {
         label: 'Minio Endpoint',
         placeholder: 'Minio Endpoint',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'port',
         label: 'Port',
         placeholder: 'Port',
         type: XcType.Number,
-        required: true
+        required: true,
       },
       {
         key: 'bucket',
         label: 'Bucket Name',
         placeholder: 'Bucket Name',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'access_key',
         label: 'Access Key',
         placeholder: 'Access Key',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'access_secret',
         label: 'Access Secret',
         placeholder: 'Access Secret',
         type: XcType.Password,
-        required: true
+        required: true,
       },
       {
         key: 'useSSL',
         label: 'Use SSL',
         placeholder: 'Use SSL',
         type: XcType.Checkbox,
-        required: true
-      }
+        required: true,
+      },
     ],
     actions: [
       {
@@ -65,20 +65,20 @@ const config: XcPluginConfig = {
         placeholder: 'Test',
         key: 'test',
         actionType: XcActionType.TEST,
-        type: XcType.Button
+        type: XcType.Button,
       },
       {
         label: 'Save',
         placeholder: 'Save',
         key: 'save',
         actionType: XcActionType.SUBMIT,
-        type: XcType.Button
-      }
+        type: XcType.Button,
+      },
     ],
     msgOnInstall:
       'Successfully installed and attachment will be stored in Minio',
-    msgOnUninstall: ''
-  }
+    msgOnUninstall: '',
+  },
 };
 
 export default config;

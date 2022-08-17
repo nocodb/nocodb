@@ -1,5 +1,5 @@
 <template>
-  <div class="nc-container" :class="{active:modal}" @click="modal=false">
+  <div class="nc-container" :class="{ active: modal }" @click="modal = false">
     <div class="nc-content elevation-3 pa-4" @click.stop>
       <slot />
     </div>
@@ -7,47 +7,45 @@
 </template>
 
 <script>
-
 export default {
   name: 'NcSlider',
   props: {
-    value: Boolean
+    value: Boolean,
   },
   computed: {
     modal: {
       get() {
-        return this.value
+        return this.value;
       },
       set(v) {
-        this.$emit('input', v)
-      }
-    }
+        this.$emit('input', v);
+      },
+    },
   },
   mounted() {
-    (document.querySelector('[data-app]') || this.$root.$el).append(this.$el)
+    (document.querySelector('[data-app]') || this.$root.$el).append(this.$el);
   },
   destroyed() {
-    this.$el.parentNode && this.$el.parentNode.removeChild(this.$el)
+    this.$el.parentNode && this.$el.parentNode.removeChild(this.$el);
   },
   created() {
-    document.body.addEventListener('keyup', this.onKeyup, true)
+    document.body.addEventListener('keyup', this.onKeyup, true);
   },
   beforeDestroy() {
-    document.body.removeEventListener('keyup', this.onKeyup, true)
+    document.body.removeEventListener('keyup', this.onKeyup, true);
   },
 
   methods: {
     onKeyup(e) {
       if (e.key === 'Escape') {
-        this.modal = false
+        this.modal = false;
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
-
 .nc-container {
   position: fixed;
   pointer-events: none;
@@ -65,7 +63,7 @@ export default {
     bottom: 0;
     top: 0;
     right: min(-50%, -700px);
-    transition: .3s right;
+    transition: 0.3s right;
     overflow-y: auto;
   }
 
@@ -73,7 +71,7 @@ export default {
     pointer-events: all;
 
     & > .nc-content {
-      right: 0
+      right: 0;
     }
   }
 }

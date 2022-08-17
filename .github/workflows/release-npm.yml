@@ -76,9 +76,7 @@ jobs:
           branch: 'release/${{ github.event.inputs.tag || inputs.tag }}'
           delete-branch: true
           title: 'Release ${{ github.event.inputs.tag || inputs.tag }}'
-          labels: |
-            Bot: Automated PR
-            Bot: Automerge
+          labels: 'Bot: Automerge'
       - name: Check outputs
         if: ${{ github.event.inputs.targetEnv == 'PROD' || inputs.targetEnv == 'PROD' }}
         run: |

@@ -1,6 +1,6 @@
 ---
 title: "Rollup"
-description: "Rollup"
+description: "Understanding Rollup Column!"
 position: 560
 category: "Product"
 menuTitle: "Rollup"

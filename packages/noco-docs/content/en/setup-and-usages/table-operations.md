@@ -1,6 +1,6 @@
 ---
 title: "Table Operations"
-description: "Table Operations"
+description: "Table Operations: Row, Column, Quick Import, Export & Import"
 position: 510
 category: "Product"
 menuTitle: "Table Operations"

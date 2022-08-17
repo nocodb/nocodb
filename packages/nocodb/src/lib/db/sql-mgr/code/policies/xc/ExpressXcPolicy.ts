@@ -34,8 +34,8 @@ class ExpressXcMiddleware extends BaseRender {
         columns: this.ctx.columns,
         hasMany: this.ctx.hasMany,
         relations: this.ctx.relations,
-        routeVersionLetter: this.ctx.routeVersionLetter
-      }
+        routeVersionLetter: this.ctx.routeVersionLetter,
+      },
     };
 
     /* for complex code provide a func and args - do derivation within the func cbk */
@@ -47,8 +47,8 @@ class ExpressXcMiddleware extends BaseRender {
         columns: this.ctx.columns,
         belongsTo: this.ctx.belongsTo,
         relations: this.ctx.relations,
-        routeVersionLetter: this.ctx.routeVersionLetter
-      }
+        routeVersionLetter: this.ctx.routeVersionLetter,
+      },
     };
 
     return data;
@@ -57,10 +57,10 @@ class ExpressXcMiddleware extends BaseRender {
   private _renderXcHasManyRoutePermissions(args) {
     let str = '';
     let hmRelations = args.relations
-      ? args.relations.filter(r => r.rtn === args.tn)
+      ? args.relations.filter((r) => r.rtn === args.tn)
       : [];
     if (hmRelations.length > 1)
-      hmRelations = lodash.uniqBy(hmRelations, function(e) {
+      hmRelations = lodash.uniqBy(hmRelations, function (e) {
         return [e.tn, e.rtn].join();
       });
     for (let i = 0; i < hmRelations.length; ++i) {
@@ -83,10 +83,10 @@ class ExpressXcMiddleware extends BaseRender {
     let str = '';
     //
     let btRelations = args.relations
-      ? args.relations.filter(r => r.tn === args.tn)
+      ? args.relations.filter((r) => r.tn === args.tn)
       : [];
     if (btRelations.length > 1)
-      btRelations = lodash.uniqBy(btRelations, function(e) {
+      btRelations = lodash.uniqBy(btRelations, function (e) {
         return [e.tn, e.rtn].join();
       });
     for (let i = 0; i < btRelations.length; ++i) {
@@ -103,9 +103,9 @@ class ExpressXcMiddleware extends BaseRender {
           ? {
               create: true,
               update: true,
-              delete: true
+              delete: true,
             }
-          : {})
+          : {}),
       },
       editor: {
         read: true,
@@ -113,9 +113,9 @@ class ExpressXcMiddleware extends BaseRender {
           ? {
               create: true,
               update: true,
-              delete: true
+              delete: true,
             }
-          : {})
+          : {}),
       },
       commenter: {
         read: true,
@@ -123,9 +123,9 @@ class ExpressXcMiddleware extends BaseRender {
           ? {
               create: false,
               update: false,
-              delete: false
+              delete: false,
             }
-          : {})
+          : {}),
       },
       viewer: {
         read: true,
@@ -133,9 +133,9 @@ class ExpressXcMiddleware extends BaseRender {
           ? {
               create: false,
               update: false,
-              delete: false
+              delete: false,
             }
-          : {})
+          : {}),
       },
       guest: {
         read: false,
@@ -143,10 +143,10 @@ class ExpressXcMiddleware extends BaseRender {
           ? {
               create: false,
               update: false,
-              delete: false
+              delete: false,
             }
-          : {})
-      }
+          : {}),
+      },
     };
   }
 }

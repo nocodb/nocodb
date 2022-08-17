@@ -10,7 +10,7 @@ export default class Mattermost {
     for (const { webhook_url } of webhooks) {
       try {
         await axios.post(webhook_url, {
-          text
+          text,
         });
       } catch (e) {
         console.log(e);

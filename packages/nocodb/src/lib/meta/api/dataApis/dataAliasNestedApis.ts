@@ -18,7 +18,7 @@ export async function mmList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -26,19 +26,19 @@ export async function mmList(req: Request, res: Response, next) {
   const data = await baseModel.mmList(
     {
       colId: column.id,
-      parentId: req.params.rowId
+      parentId: req.params.rowId,
     },
     req.query as any
   );
   const count: any = await baseModel.mmListCount({
     colId: column.id,
-    parentId: req.params.rowId
+    parentId: req.params.rowId,
   });
 
   res.json(
     new PagedResponseImpl(data, {
       count,
-      ...req.query
+      ...req.query,
     })
   );
 }
@@ -52,14 +52,14 @@ export async function mmExcludedList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
   const column = await getColumnByIdOrName(req.params.columnName, model);
 
   const data = await baseModel.getMmChildrenExcludedList(
     {
       colId: column.id,
-      pid: req.params.rowId
+      pid: req.params.rowId,
     },
     req.query
   );
@@ -67,7 +67,7 @@ export async function mmExcludedList(req: Request, res: Response, next) {
   const count = await baseModel.getMmChildrenExcludedListCount(
     {
       colId: column.id,
-      pid: req.params.rowId
+      pid: req.params.rowId,
     },
     req.query
   );
@@ -75,7 +75,7 @@ export async function mmExcludedList(req: Request, res: Response, next) {
   res.json(
     new PagedResponseImpl(data, {
       count,
-      ...req.query
+      ...req.query,
     })
   );
 }
@@ -90,7 +90,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -98,7 +98,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
   const data = await baseModel.getHmChildrenExcludedList(
     {
       colId: column.id,
-      pid: req.params.rowId
+      pid: req.params.rowId,
     },
     req.query
   );
@@ -106,7 +106,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
   const count = await baseModel.getHmChildrenExcludedListCount(
     {
       colId: column.id,
-      pid: req.params.rowId
+      pid: req.params.rowId,
     },
     req.query
   );
@@ -114,7 +114,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
   res.json(
     new PagedResponseImpl(data, {
       count,
-      ...req.query
+      ...req.query,
     })
   );
 }
@@ -128,7 +128,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -136,7 +136,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
   const data = await baseModel.getBtChildrenExcludedList(
     {
       colId: column.id,
-      cid: req.params.rowId
+      cid: req.params.rowId,
     },
     req.query
   );
@@ -144,7 +144,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
   const count = await baseModel.getBtChildrenExcludedListCount(
     {
       colId: column.id,
-      cid: req.params.rowId
+      cid: req.params.rowId,
     },
     req.query
   );
@@ -152,7 +152,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
   res.json(
     new PagedResponseImpl(data, {
       count,
-      ...req.query
+      ...req.query,
     })
   );
 }
@@ -166,7 +166,7 @@ export async function hmList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -174,20 +174,20 @@ export async function hmList(req: Request, res: Response, next) {
   const data = await baseModel.hmList(
     {
       colId: column.id,
-      id: req.params.rowId
+      id: req.params.rowId,
     },
     req.query
   );
 
   const count = await baseModel.hmListCount({
     colId: column.id,
-    id: req.params.rowId
+    id: req.params.rowId,
   });
 
   res.json(
     new PagedResponseImpl(data, {
       count,
-      ...req.query
+      ...req.query,
     } as any)
   );
 }
@@ -203,7 +203,7 @@ async function relationDataRemove(req, res) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -211,7 +211,7 @@ async function relationDataRemove(req, res) {
   await baseModel.removeChild({
     colId: column.id,
     childId: req.params.refRowId,
-    rowId: req.params.rowId
+    rowId: req.params.rowId,
   });
 
   res.json({ msg: 'success' });
@@ -227,14 +227,14 @@ async function relationDataAdd(req, res) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
   await baseModel.addChild({
     colId: column.id,
     childId: req.params.refRowId,
-    rowId: req.params.rowId
+    rowId: req.params.rowId,
   });
 
   res.json({ msg: 'success' });
@@ -242,7 +242,7 @@ async function relationDataAdd(req, res) {
 
 async function getColumnByIdOrName(columnNameOrId: string, model: Model) {
   const column = (await model.getColumns()).find(
-    c =>
+    (c) =>
       c.title === columnNameOrId ||
       c.id === columnNameOrId ||
       c.column_name === columnNameOrId

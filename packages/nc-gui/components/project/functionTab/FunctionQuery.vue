@@ -3,20 +3,23 @@
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
         <v-breadcrumbs
-          :items="[{
-                     text: nodes.env,
-                     disabled: true,
-                     href: '#'
-                   },{
-                     text: nodes.dbAlias,
-                     disabled: true,
-                     href: '#'
-                   },
-                   {
-                     text: nodes.function_name + ' (function)',
-                     disabled: true,
-                     href: '#'
-                   }]"
+          :items="[
+            {
+              text: nodes.env,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.dbAlias,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.function_name + ' (function)',
+              disabled: true,
+              href: '#',
+            },
+          ]"
           divider=">"
           dark
           large
@@ -24,21 +27,12 @@
           class="title"
         >
           <template #divider>
-            <v-icon small color="grey lighten-2">
-              forward
-            </v-icon>
+            <v-icon small color="grey lighten-2"> forward </v-icon>
           </template>
         </v-breadcrumbs>
       </v-toolbar-title>
       <v-spacer />
-      <x-btn
-        outlined
-        :tooltip="$t('tooltip.saveChanges')"
-        small
-        color="primary"
-        icon="save"
-        @click="applyChanges()"
-      >
+      <x-btn outlined :tooltip="$t('tooltip.saveChanges')" small color="primary" icon="save" @click="applyChanges()">
         <!-- Save -->
         {{ $t('general.save') }}
       </x-btn>
@@ -71,11 +65,11 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex';
 
-import { SqlUiFactory } from 'nocodb-sdk'
-import MonacoEditor from '../../monaco/Monaco'
-import dlgLabelSubmitCancel from '../../utils/DlgLabelSubmitCancel'
+import { SqlUiFactory } from 'nocodb-sdk';
+import MonacoEditor from '../../monaco/Monaco';
+import dlgLabelSubmitCancel from '../../utils/DlgLabelSubmitCancel';
 
 export default {
   components: { MonacoEditor, dlgLabelSubmitCancel },
@@ -84,18 +78,17 @@ export default {
       functionData: {},
       newFunction: !!this.nodes.newFunction,
       oldCreateFunction: '',
-      dialogShow: false
-    }
+      dialogShow: false,
+    };
   },
   computed: {
-    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
+    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
   },
   methods: {
     ...mapActions({
       loadFunctionsFromChildTreeNode: 'project/loadFunctionsFromChildTreeNode',
-      loadFunctionsFromParentTreeNode:
-        'project/loadFunctionsFromParentTreeNode',
-      removeFunctionTab: 'tabs/removeFunctionTab'
+      loadFunctionsFromParentTreeNode: 'project/loadFunctionsFromParentTreeNode',
+      removeFunctionTab: 'tabs/removeFunctionTab',
     }),
 
     async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
@@ -106,18 +99,18 @@ export default {
       // cmd + enter -> send api
 
       switch ([metaKey, key].join('_')) {
-        case 'true_s' :
-          await this.applyChanges()
-          break
-        case 'true_l' :
-          await this.loadFunction()
-          break
+        case 'true_s':
+          await this.applyChanges();
+          break;
+        case 'true_l':
+          await this.loadFunction();
+          break;
         // case 'true_n' :
         //   this.addColumn();
         //   break;
-        case 'true_d' :
-          await this.deleteFunction('showDialog')
-          break
+        case 'true_d':
+          await this.deleteFunction('showDialog');
+          break;
       }
     },
 
@@ -125,9 +118,9 @@ export default {
       if (this.newFunction) {
         this.functionData = {
           function_name: this.nodes.function_name,
-          create_function: ''
-        }
-        return
+          create_function: '',
+        };
+        return;
       }
       // const client = await this.sqlMgr.projectGetSqlClient({
       //   env: this.nodes.env,
@@ -143,14 +136,18 @@ export default {
       //   dbAlias: this.nodes.dbAlias
       // }, 'functionRead', { function_name: this.nodes.function_name})
 
-      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'functionRead', { function_name: this.nodes.function_name }])
+      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        {
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+        },
+        'functionRead',
+        { function_name: this.nodes.function_name },
+      ]);
 
       // console.log("functionData read", result);
-      this.functionData = result.data.list[0]
-      this.oldCreateFunction = `${this.functionData.create_function}` + ''
+      this.functionData = result.data.list[0];
+      this.oldCreateFunction = `${this.functionData.create_function}` + '';
     },
     async applyChanges() {
       try {
@@ -158,113 +155,112 @@ export default {
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'functionCreate',
             {
               function_name: this.nodes.function_name,
-              create_function: this.functionData.create_function
-            }])
+              create_function: this.functionData.create_function,
+            },
+          ]);
           await this.loadFunctionsFromChildTreeNode({
             _nodes: {
-              ...this.nodes
-            }
-          })
-          this.newFunction = false
-          this.oldCreateFunction = `${this.functionData.create_function}` + ''
-          this.$toast.success('Function created successfully').goAway(3000)
+              ...this.nodes,
+            },
+          });
+          this.newFunction = false;
+          this.oldCreateFunction = `${this.functionData.create_function}` + '';
+          this.$toast.success('Function created successfully').goAway(3000);
         } else {
-          const functionName = this.sqlUi.extractFunctionName(this.functionData.create_function)
+          const functionName = this.sqlUi.extractFunctionName(this.functionData.create_function);
           if (!functionName) {
-            this.$toast.error('Invalid syntax, please check function name.').goAway(5000)
-            return
+            this.$toast.error('Invalid syntax, please check function name.').goAway(5000);
+            return;
           }
 
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'functionUpdate',
             {
               function_name: functionName,
               create_function: this.functionData.create_function,
               function_declaration: this.functionData.function_declaration,
-              oldCreateFunction: this.oldCreateFunction
-            }])
+              oldCreateFunction: this.oldCreateFunction,
+            },
+          ]);
 
-          this.oldCreateFunction = `${this.functionData.create_function}` + ''
-          this.$toast.success('Function updated successfully').goAway(3000)
+          this.oldCreateFunction = `${this.functionData.create_function}` + '';
+          this.$toast.success('Function updated successfully').goAway(3000);
         }
       } catch (e) {
-        this.$toast.error('Saving function failed').goAway(3000)
-        throw e
+        this.$toast.error('Saving function failed').goAway(3000);
+        throw e;
       }
     },
     async deleteFunction(action = '') {
       try {
         if (action === 'showDialog') {
-          this.dialogShow = true
+          this.dialogShow = true;
         } else if (action === 'hideDialog') {
-          this.dialogShow = false
+          this.dialogShow = false;
         } else {
           await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'functionDelete',
             {
               function_name: this.nodes.function_name,
               create_function: this.functionData.create_function,
-              function_declaration: this.functionData.function_declaration
-            }])
+              function_declaration: this.functionData.function_declaration,
+            },
+          ]);
 
           this.removeFunctionTab({
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias,
-            function_name: this.nodes.function_name
-          })
+            function_name: this.nodes.function_name,
+          });
           await this.loadFunctionsFromParentTreeNode({
             _nodes: {
-              ...this.nodes
-            }
-          })
-          this.dialogShow = false
-          this.$toast.success('Function deleted successfully').goAway(3000)
+              ...this.nodes,
+            },
+          });
+          this.dialogShow = false;
+          this.$toast.success('Function deleted successfully').goAway(3000);
         }
       } catch (e) {
-        this.$toast.error('Deleting function failed').goAway(3000)
-        throw e
+        this.$toast.error('Deleting function failed').goAway(3000);
+        throw e;
       }
-    }
+    },
   },
-  beforeCreated() {
-  },
+  beforeCreated() {},
   watch: {},
   created() {
-    this.sqlUi = SqlUiFactory.create(this.nodes.dbConnection)
+    this.sqlUi = SqlUiFactory.create(this.nodes.dbConnection);
   },
   mounted() {
-    this.loadFunction()
+    this.loadFunction();
   },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
+  beforeDestroy() {},
+  destroy() {},
   directives: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: ['nodes']
-}
+  props: ['nodes'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

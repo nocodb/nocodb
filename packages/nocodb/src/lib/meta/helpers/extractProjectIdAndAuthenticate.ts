@@ -33,7 +33,7 @@ export default async (req, res, next) => {
       req.body?.fk_model_id
     ) {
       const model = await Model.getByIdOrName({
-        id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id
+        id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id,
       });
       req.ncProjectId = model?.project_id;
     } else if (params.viewId) {
@@ -87,6 +87,7 @@ export default async (req, res, next) => {
         { session: false },
         async (_err, user, _info) => {
           if (user && !req.headers['xc-shared-base-id']) {
+            if (await User.isSuperAdmin(user.id)) user.roles = 'owner';
             if (
               req.path.indexOf('/user/me') === -1 &&
               req.header('xc-preview') &&
@@ -95,10 +96,10 @@ export default async (req, res, next) => {
               return resolve({
                 ...user,
                 isAuthorized: true,
-                roles: req.header('xc-preview')
+                roles: req.header('xc-preview'),
               });
             }
-            if (await User.isSuperAdmin(user.id)) user.roles = 'owner';
+
             return resolve({ ...user, isAuthorized: true });
           }
 
@@ -107,7 +108,7 @@ export default async (req, res, next) => {
               'authtoken',
               {
                 session: false,
-                optional: false
+                optional: false,
               },
               async (_err, user, _info) => {
                 // if (_err) return reject(_err);
@@ -115,6 +116,7 @@ export default async (req, res, next) => {
                   return resolve({
                     ...user,
                     isAuthorized: true,
+                    isPublicBase: true,
                     roles:
                       user.roles === 'owner' ||
                       (await User.isSuperAdmin(user.id))
@@ -133,7 +135,7 @@ export default async (req, res, next) => {
                 return resolve({
                   ...user,
                   isAuthorized: true,
-                  isPublicBase: true
+                  isPublicBase: true,
                 });
               } else {
                 resolve({ roles: 'guest' });

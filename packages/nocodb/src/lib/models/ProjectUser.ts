@@ -2,7 +2,7 @@ import {
   // CacheDelDirection,
   CacheGetType,
   CacheScope,
-  MetaTable
+  MetaTable,
 } from '../utils/globals';
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
@@ -30,7 +30,7 @@ export default class ProjectUser {
         project_id: projectUser.project_id,
         roles: projectUser.roles,
         created_at: projectUser.created_at,
-        updated_at: projectUser.updated_at
+        updated_at: projectUser.updated_at,
       },
       true
     );
@@ -52,7 +52,7 @@ export default class ProjectUser {
     if (!projectUser) {
       projectUser = await ncMeta.metaGet2(null, null, MetaTable.PROJECT_USERS, {
         fk_user_id: userId,
-        project_id: projectId
+        project_id: projectId,
       });
       await NocoCache.set(
         `${CacheScope.PROJECT_USER}:${projectId}:${userId}`,
@@ -67,7 +67,7 @@ export default class ProjectUser {
       project_id,
       limit = 25,
       offset = 0,
-      query
+      query,
     }: {
       project_id: string;
       limit: number;
@@ -93,7 +93,7 @@ export default class ProjectUser {
       queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     }
 
-    queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function() {
+    queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
       this.on(
         `${MetaTable.PROJECT_USERS}.fk_user_id`,
         '=',
@@ -151,7 +151,7 @@ export default class ProjectUser {
 
   public static async getUsersCount(
     {
-      query
+      query,
     }: {
       query?: string;
     },
@@ -181,7 +181,7 @@ export default class ProjectUser {
       const email = user.email;
       for (const key of [
         `${CacheScope.USER}:${email}`,
-        `${CacheScope.USER}:${email}___${projectId}`
+        `${CacheScope.USER}:${email}___${projectId}`,
       ]) {
         const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
         if (o) {
@@ -197,11 +197,11 @@ export default class ProjectUser {
       null,
       MetaTable.PROJECT_USERS,
       {
-        roles
+        roles,
       },
       {
         fk_user_id: userId,
-        project_id: projectId
+        project_id: projectId,
       }
     );
   }
@@ -213,7 +213,7 @@ export default class ProjectUser {
     //   CacheDelDirection.CHILD_TO_PARENT
     // );
     const { email } = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
-      id: userId
+      id: userId,
     });
     if (email) {
       await NocoCache.delAll(CacheScope.USER, `${email}*`);
@@ -221,7 +221,7 @@ export default class ProjectUser {
     await NocoCache.del(`${CacheScope.PROJECT_USER}:${projectId}:${userId}`);
     return await ncMeta.metaDelete(null, null, MetaTable.PROJECT_USERS, {
       fk_user_id: userId,
-      project_id: projectId
+      project_id: projectId,
     });
   }
 }

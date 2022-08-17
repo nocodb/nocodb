@@ -1,14 +1,14 @@
 import { NcBuilderUpgraderCtx } from '../BaseApiBuilder';
 
-export default async function(ctx: NcBuilderUpgraderCtx) {
+export default async function (ctx: NcBuilderUpgraderCtx) {
   const models = await ctx.xcMeta.metaList(
     ctx.projectId,
     ctx.dbAlias,
     'nc_models',
     {
       xcCondition: {
-        _or: [{ type: { eq: 'table' } }, { type: { eq: 'view' } }]
-      }
+        _or: [{ type: { eq: 'table' } }, { type: { eq: 'view' } }],
+      },
     }
   );
   let order = 0;
@@ -19,7 +19,7 @@ export default async function(ctx: NcBuilderUpgraderCtx) {
       'nc_models',
       {
         order: ++order,
-        view_order: 1
+        view_order: 1,
       },
       model.id
     );
@@ -29,7 +29,7 @@ export default async function(ctx: NcBuilderUpgraderCtx) {
       ctx.dbAlias,
       'nc_models',
       {
-        condition: { parent_model_title: model.title }
+        condition: { parent_model_title: model.title },
       }
     );
     let view_order = 1;
@@ -39,7 +39,7 @@ export default async function(ctx: NcBuilderUpgraderCtx) {
         ctx.dbAlias,
         'nc_models',
         {
-          view_order: ++view_order
+          view_order: ++view_order,
         },
         view.id
       );

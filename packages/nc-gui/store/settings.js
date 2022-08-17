@@ -38,7 +38,13 @@ export const state = () => ({
   autoApplyFilter: true,
   apiLoading: false,
   includeM2M: false,
-  feedbackFormHidden: true
+  feedbackFormHidden: true,
+  feedbackForm: {
+    // eslint-disable-next-line max-len
+    url: 'https://docs.google.com/forms/d/e/1FAIpQLSeTlAfZjszgr53lArz3NvUEnJGOT9JtG9NAU5d0oQwunDS2Pw/viewform?embedded=true',
+    createdAt: new Date('2020-01-01T00:00:00.000Z'),
+    isHidden: false
+  }
 })
 
 export const mutations = {
@@ -51,8 +57,8 @@ export const mutations = {
   MutToggleLogWindow(state, show) {
     state.logWindow = !state.logWindow
   },
-  MutFeedbackFormHidden(state, show) {
-    state.feedbackFormHidden = show
+  MutFeedbackForm(state, feedbackForm) {
+    state.feedbackForm = feedbackForm
   },
   MutScreensaver(state, show) {
     state.screensaver = show

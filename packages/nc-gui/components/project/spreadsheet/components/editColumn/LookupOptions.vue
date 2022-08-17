@@ -17,11 +17,10 @@
             :rules="[v => !!v || 'Required']"
             dense
           >
-            <template #item="{item}">
-              <span class="caption"><span class="font-weight-bold">{{ item.column.title }}</span> <small>({{ relationNames[item.col.type] }} {{
-                item.title || item.table_name
-              }})
-              </small></span>
+            <template #item="{ item }">
+              <span class="caption"><span class="font-weight-bold">{{ item.column.title }}</span>
+                <small>({{ relationNames[item.col.type] }} {{ item.title || item.table_name }}) </small></span
+              >
             </template>
           </v-autocomplete>
         </v-col>
@@ -39,7 +38,7 @@
             dense
             :loading="loadingColumns"
             :item-value="v => v"
-            :rules="[v => !!v || 'Required',checkLookupExist]"
+            :rules="[v => !!v || 'Required', checkLookupExist]"
           />
         </v-col>
       </v-row>
@@ -48,8 +47,7 @@
 </template>
 
 <script>
-
-import { isSystemColumn, UITypes } from 'nocodb-sdk'
+import { isSystemColumn, UITypes } from 'nocodb-sdk';
 
 export default {
   name: 'LookupOptions',
@@ -60,43 +58,48 @@ export default {
     relationNames: {
       mm: 'Many To Many',
       hm: 'Has Many',
-      bt: 'Belongs To'
+      bt: 'Belongs To',
     },
-    tables: []
+    tables: [],
   }),
   computed: {
     refTables() {
       if (!this.tables || !this.tables.length) {
-        return []
+        return [];
       }
 
-      const refTables = this.meta.columns.filter(c =>
-        c.uidt === UITypes.LinkToAnotherRecord && !c.system
-      ).map(c => ({
-        col: c.colOptions,
-        column: c,
-        ...this.tables.find(t => t.id === c.colOptions.fk_related_model_id)
-      }))
+      const refTables = this.meta.columns
+        .filter(c => c.uidt === UITypes.LinkToAnotherRecord && !c.system)
+        .map(c => ({
+          col: c.colOptions,
+          column: c,
+          ...this.tables.find(t => t.id === c.colOptions.fk_related_model_id),
+        }))
+        .filter(table => table.col.fk_related_model_id === table.id && !table.mm);
 
-      return refTables
+      return refTables;
     },
     columnList() {
-      return ((
-        this.lookup &&
-        this.lookup.table &&
-        this.$store.state.meta.metas &&
-        this.$store.state.meta.metas[this.lookup.table.id] &&
-        this.$store.state.meta.metas[this.lookup.table.id].columns
-      ) || []).filter(c => !isSystemColumn(c))
-    }
+      return (
+        (this.lookup &&
+          this.lookup.table &&
+          this.$store.state.meta.metas &&
+          this.$store.state.meta.metas[this.lookup.table.id] &&
+          this.$store.state.meta.metas[this.lookup.table.id].columns) ||
+        []
+      ).filter(c => !isSystemColumn(c));
+    },
   },
   async mounted() {
-    await this.loadTablesList()
+    await this.loadTablesList();
   },
   methods: {
     async loadTablesList() {
-      const result = (await this.$api.dbTable.list(this.$store.state.project.projectId, this.$store.state.project.project.bases[0].id))
-      this.tables = result.list
+      const result = await this.$api.dbTable.list(
+        this.$store.state.project.projectId,
+        this.$store.state.project.project.bases[0].id
+      );
+      this.tables = result.list;
     },
     checkLookupExist(v) {
       return (this.lookup.table && (this.meta.v || []).every(c => !(
@@ -107,20 +110,20 @@ export default {
       ))) || 'Lookup already exist'
     },
     async onTableChange() {
-      this.loadingColumns = true
+      this.loadingColumns = true;
       if (this.lookup.table) {
         try {
           await this.$store.dispatch('meta/ActLoadMeta', {
             dbAlias: this.nodes.dbAlias,
             env: this.nodes.env,
-            id: this.lookup.table.id
-          })
+            id: this.lookup.table.id,
+          });
         } catch (e) {
           // ignore
         }
       }
 
-      this.loadingColumns = false
+      this.loadingColumns = false;
     },
     async save() {
       try {
@@ -128,21 +131,19 @@ export default {
           title: this.alias,
           fk_relation_column_id: this.lookup.table.col.fk_column_id,
           fk_lookup_column_id: this.lookup.column.id,
-          uidt: UITypes.Lookup
-        }
+          uidt: UITypes.Lookup,
+        };
 
-        await this.$api.dbTableColumn.create(this.meta.id, lookupCol)
+        await this.$api.dbTableColumn.create(this.meta.id, lookupCol);
 
-        return this.$emit('saved', this.alias)
+        return this.$emit('saved', this.alias);
       } catch (e) {
-        console.log(e)
-        this.$toast.error(e.message).goAway(3000)
+        console.log(e);
+        this.$toast.error(e.message).goAway(3000);
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

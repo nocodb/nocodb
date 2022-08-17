@@ -8,7 +8,7 @@ import { BaseModelSql } from '../../db/sql-data-mapper';
 import BaseApiBuilder from './BaseApiBuilder';
 import formSubmissionEmailTemplate from './formSubmissionEmailTemplate';
 
-Handlebars.registerHelper('json', function(context) {
+Handlebars.registerHelper('json', function (context) {
   return JSON.stringify(context);
 });
 
@@ -41,7 +41,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
           description: `${id} inserted into ${this._tn}`,
           // details: JSON.stringify(data),
           ip: req?.clientIp,
-          user: req?.user?.email
+          user: req?.user?.email,
         }
       );
   }
@@ -79,7 +79,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
           ),
           details: this._updateAuditDetails(req['oldData'], req['body']),
           ip: req.clientIp,
-          user: req.user?.email
+          user: req.user?.email,
         }
       );
     const ignoreWebhook = req.query?.ignoreWebhook;
@@ -97,7 +97,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
     return `Table ${this._tn} : ${id} ${(() => {
       const keys = Object.keys(data);
       const result = [];
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (oldData[key] !== data[key]) {
           result.push(
             `field ${key} got changed from ${oldData[key]} to ${data[key]}`
@@ -112,7 +112,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
     return (() => {
       const keys = Object.keys(data);
       const result = [];
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (oldData[key] !== data[key]) {
           result.push(`<span class="">${key}</span>
           : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${oldData[key]}</span>
@@ -141,7 +141,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
           op_sub_type: 'DELETE',
           description: `${req?.params.id} deleted from ${this._tn}`,
           ip: req?.clientIp,
-          user: req?.user?.email
+          user: req?.user?.email,
         }
       );
     await this.handleHooks('after.delete', data, req);
@@ -160,8 +160,8 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
       const emails = Object.entries(
         formView?.query_params?.extraViewParams?.formParams?.emailMe || {}
       )
-        .filter(a => a[1])
-        .map(a => a[0]);
+        .filter((a) => a[1])
+        .map((a) => a[0]);
       if (emails?.length) {
         const transformedData = this._transformSubmittedFormDataForEmail(
           data,
@@ -174,8 +174,8 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
           html: ejs.render(formSubmissionEmailTemplate, {
             data: transformedData,
             tn: this.tn,
-            _tn: this._tn
-          })
+            _tn: this._tn,
+          }),
         });
       }
     }
@@ -228,7 +228,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
                   req,
                   data,
                   hook.notification?.payload
-                )
+                ),
               });
               break;
             case 'URL':
@@ -290,7 +290,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
           transformedData[col._cn] = JSON.parse(transformedData[col._cn]);
         }
         transformedData[col._cn] = (transformedData[col._cn] || [])
-          .map(attachment => {
+          .map((attachment) => {
             if (
               [
                 'jpeg',
@@ -301,7 +301,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
                 'bmp',
                 'ico',
                 'jpg',
-                'webp'
+                'webp',
               ].includes(attachment.title.split('.').pop())
             ) {
               return `<a href="${attachment.url}" target="_blank"><img height="50px" src="${attachment.url}"/></a>`;
@@ -329,7 +329,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
             transformedData?.[prop]?.[
               this.builder
                 .getMeta(virtual.bt.rtn)
-                ?.columns?.find(c => c.pv)?._cn
+                ?.columns?.find((c) => c.pv)?._cn
             ];
         }
       } else if (virtual.hm) {
@@ -339,10 +339,11 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
         } else {
           transformedData[prop] = transformedData?.[prop]
             ?.map(
-              r =>
+              (r) =>
                 r[
-                  this.builder.getMeta(virtual.hm.tn)?.columns?.find(c => c.pv)
-                    ?._cn
+                  this.builder
+                    .getMeta(virtual.hm.tn)
+                    ?.columns?.find((c) => c.pv)?._cn
                 ]
             )
             .join(', ');
@@ -354,10 +355,11 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
         } else {
           transformedData[prop] = transformedData?.[prop]
             ?.map(
-              r =>
+              (r) =>
                 r[
-                  this.builder.getMeta(virtual.mm.tn)?.columns?.find(c => c.pv)
-                    ?._cn
+                  this.builder
+                    .getMeta(virtual.mm.tn)
+                    ?.columns?.find((c) => c.pv)?._cn
                 ]
             )
             .join(', ');
@@ -434,7 +436,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
             return headersObj;
           }, {})
         : {},
-      withCredentials: true
+      withCredentials: true,
     };
     return req;
   }
@@ -534,7 +536,7 @@ class BaseModel<T extends BaseApiBuilder<any>> extends BaseModelSql {
       data,
       user: req?.user,
       payload,
-      env: process.env
+      env: process.env,
     });
   }
 }

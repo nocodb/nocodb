@@ -13,7 +13,6 @@ import importFresh from 'import-fresh';
 import morgan from 'morgan';
 import NcToolGui from 'nc-lib-gui';
 import requestIp from 'request-ip';
-import { v4 as uuidv4 } from 'uuid';
 
 import { NcConfig } from '../interface/config';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
@@ -163,7 +162,7 @@ export default class Noco {
   ) {
     // @ts-ignore
     const {
-      progressCallback
+      progressCallback,
       // registerRoutes,
       // registerContext,
       // registerGql
@@ -187,7 +186,6 @@ export default class Noco {
     }
 
     await Noco._ncMeta.metaInit();
-    await this.readOrGenJwtSecret();
     await initAdminFromEnv();
 
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
@@ -213,7 +211,7 @@ export default class Noco {
     this.router.use(cookieParser());
     this.router.use(
       bodyParser.json({
-        limit: process.env.NC_REQUEST_BODY_SIZE || '50mb'
+        limit: process.env.NC_REQUEST_BODY_SIZE || '50mb',
       })
     );
     this.router.use(morgan('tiny'));
@@ -266,7 +264,7 @@ export default class Noco {
       next();
     });
     Tele.init({
-      instance: getInstance
+      instance: getInstance,
     });
     Tele.emit('evt_app_started', await User.count());
     // weAreHiring();
@@ -333,7 +331,7 @@ export default class Noco {
               await builder.init(true);
             } else {
               const projectBuilder = this.projectBuilders.find(
-                pb => pb.id == data.req?.project_id
+                (pb) => pb.id == data.req?.project_id
               );
               return projectBuilder?.handleRunTimeChanges(data);
             }
@@ -347,7 +345,7 @@ export default class Noco {
               data?.req?.project_id
             );
             const projectBuilder = this.projectBuilders.find(
-              pb => pb.id === projectId
+              (pb) => pb.id === projectId
             );
 
             projectBuilder.updateConfig(project.config);
@@ -364,7 +362,7 @@ export default class Noco {
             Noco._ncMeta.setConfig(this.config);
             this.metaMgr.setConfig(this.config);
             Object.assign(process.env, {
-              NODE_ENV: this.env = this.config.workingEnv
+              NODE_ENV: (this.env = this.config.workingEnv),
             });
             this.router.stack.splice(0, this.router.stack.length);
             this.ncToolApi.destroy();
@@ -377,7 +375,7 @@ export default class Noco {
 
         default: {
           const projectBuilder = this.projectBuilders.find(
-            pb => pb.id == data.req?.project_id
+            (pb) => pb.id == data.req?.project_id
           );
           return projectBuilder?.handleRunTimeChanges(data);
         }
@@ -453,14 +451,14 @@ export default class Noco {
             await migrator.init({
               folder: this.config?.toolDir,
               env: this.env,
-              dbAlias: connectionConfig.meta.dbAlias
+              dbAlias: connectionConfig.meta.dbAlias,
             });
           }
 
           await migrator.sync({
             folder: this.config?.toolDir,
             env: this.env,
-            dbAlias: connectionConfig.meta.dbAlias
+            dbAlias: connectionConfig.meta.dbAlias,
           });
 
           await migrator.migrationsUp({
@@ -468,7 +466,7 @@ export default class Noco {
             env: this.env,
             dbAlias: connectionConfig.meta.dbAlias,
             migrationSteps: 99999,
-            sqlContentMigrate: 1
+            sqlContentMigrate: 1,
           });
 
           log(
@@ -487,35 +485,6 @@ export default class Noco {
         'Warning : ignoring migrations on boot since tools directory not defined'
       );
     }
-  }
-
-  private async readOrGenJwtSecret(): Promise<any> {
-    if (this.config?.auth?.jwt && !this.config.auth.jwt.secret) {
-      let secret = (
-        await Noco._ncMeta.metaGet('', '', 'nc_store', {
-          key: 'nc_auth_jwt_secret'
-        })
-      )?.value;
-      if (!secret) {
-        await Noco._ncMeta.metaInsert('', '', 'nc_store', {
-          key: 'nc_auth_jwt_secret',
-          value: secret = uuidv4()
-        });
-      }
-      this.config.auth.jwt.secret = secret;
-    }
-    let serverId = (
-      await Noco._ncMeta.metaGet('', '', 'nc_store', {
-        key: 'nc_server_id'
-      })
-    )?.value;
-    if (!serverId) {
-      await Noco._ncMeta.metaInsert('', '', 'nc_store', {
-        key: 'nc_server_id',
-        value: serverId = Tele.id
-      });
-    }
-    process.env.NC_SERVER_UUID = serverId;
   }
 
   public static get ncMeta(): NcMetaIO {

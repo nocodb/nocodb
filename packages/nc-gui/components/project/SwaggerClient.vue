@@ -29,14 +29,14 @@
           </v-text-field>
         </div>
       </v-col>
-      <v-col cols="12" class="py-0 px-5" style="width: 100%;height: calc(100% - 52px)">
+      <v-col cols="12" class="py-0 px-5" style="width: 100%; height: calc(100% - 52px)">
         <iframe
           id="foo"
           ref="webview"
-          v-shortkey="['ctrl','shift','w']"
+          v-shortkey="['ctrl', 'shift', 'w']"
           class="white"
           :src="webViewUrl"
-          style="width: 100%;height: 100%"
+          style="width: 100%; height: 100%"
           @shortkey="test"
         />
       </v-col>
@@ -50,45 +50,41 @@ export default {
   data() {
     return {
       url: '',
-      webViewUrl: ''
-    }
+      webViewUrl: '',
+    };
   },
   async created() {
     // if (this.$store.state.graphqlClient.list && this.$store.state.graphqlClient.list[0])
     //   this.webViewUrl = this.url = this.$store.state.graphqlClient.list[0].url;
     try {
-      const { info } = (await this.$axios.get(`/nc/${this.$route.params.project_id}/projectApiInfo`, {
-        headers: {
-          'xc-auth': this.$store.state.users.token
-        }
-      })).data
-      const swagger = Object.values(info).find(v => v.swaggerUrl)
+      const { info } = (
+        await this.$axios.get(`/nc/${this.$route.params.project_id}/projectApiInfo`, {
+          headers: {
+            'xc-auth': this.$store.state.users.token,
+          },
+        })
+      ).data;
+      const swagger = Object.values(info).find(v => v.swaggerUrl);
       if (swagger) {
-        this.webViewUrl = this.url = swagger.swaggerUrl
+        this.webViewUrl = this.url = swagger.swaggerUrl;
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   },
-  mounted() {
-
-  },
+  mounted() {},
   methods: {
     test() {
-      console.log('triggerd')
+      console.log('triggerd');
     },
     loadUrl() {
-      this.webViewUrl = this.url
+      this.webViewUrl = this.url;
       // if (this.url)
       //   this.$store.commit('graphqlClient/MutListAdd', {url: this.url});
-    }
-  }
-
-}
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

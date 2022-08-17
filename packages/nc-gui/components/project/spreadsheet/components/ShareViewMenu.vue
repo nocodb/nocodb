@@ -9,9 +9,7 @@
       text
       @click="$emit('share')"
     >
-      <v-icon size="13" class="mr-1" color="#777">
-        mdi-open-in-new
-      </v-icon>
+      <v-icon size="13" class="mr-1" color="#777"> mdi-open-in-new </v-icon>
       <!-- Share View -->
       {{ $t('activity.shareView') }}
     </v-btn>
@@ -20,8 +18,8 @@
 
 <script>
 export default {
-  name: 'ShareViewMenu'
-}
+  name: 'ShareViewMenu',
+};
 </script>
 
-  <style scoped />
+<style scoped />

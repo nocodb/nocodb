@@ -10,12 +10,12 @@
       <p class="hidden" v-on="on" />
     </template>
     <v-card class="elevation-1">
-      <v-card-title class="grey darken-2 subheading " style="height:30px">
-        {{ title || "" }}
+      <v-card-title class="grey darken-2 subheading" style="height: 30px">
+        {{ title || '' }}
       </v-card-title>
 
       <v-card-text class="pt-4 pl-4">
-        <span class="headline ">{{ heading }}</span>
+        <span class="headline">{{ heading }}</span>
       </v-card-text>
       <v-divider />
 
@@ -24,11 +24,7 @@
         <v-btn small class="" @click="actionsMtd('hideDialog')">
           {{ $t('general.cancel') }}
         </v-btn>
-        <v-btn
-          small
-          :class="type"
-          @click="actionsMtd()"
-        >
+        <v-btn small :class="type" @click="actionsMtd()">
           {{ $t('general.submit') }}
         </v-btn>
       </v-card-actions>
@@ -37,41 +33,34 @@
 </template>
 
 <script>
-
 export default {
   name: 'DlgLabelSubmitCancel',
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   // todo: 2 way binding for dialogShow
   props: ['heading', 'dialogShow', 'actionsMtd', 'title', 'type'],
   data() {
-    return {}
+    return {};
   },
   head() {
-    return {}
+    return {};
   },
   computed: {},
   watch: {},
-  created() {
-  },
-  beforeDestroy() {
-  },
+  created() {},
+  beforeDestroy() {},
   methods: {},
 
-  beforeCreated() {
-  },
-  xcCronSavented() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  xcCronSavented() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

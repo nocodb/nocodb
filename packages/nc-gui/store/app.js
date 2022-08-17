@@ -1,12 +1,12 @@
 export const state = () => ({
-  releaseVersion: null,
+  currentVersion: null,
   hiddenRelease: null,
   latestRelease: null
 })
 
 export const mutations = {
-  MutReleaseVersion(state, releaseVersion) {
-    state.releaseVersion = releaseVersion
+  MutCurrentVersion(state, currentVersion) {
+    state.currentVersion = currentVersion
   },
   MutHiddenRelease(state, hiddenRelease) {
     state.hiddenRelease = hiddenRelease

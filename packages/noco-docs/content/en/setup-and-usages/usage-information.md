@@ -6,8 +6,6 @@ category: 'Product'
 menuTitle: 'Usage Information'
 ---
 
-<announcement></announcement>
-
 NocoDB is a fast growing open source project which is UI heavy and we are committed to providing a solution that exceeds the expectations of the users and community.
 We are also committed to continuing to develop and make NocoDB even better than it is today.
 To that end, NocoDB contains a feature in which anonymous and otherwise non-sensitive data is collected.

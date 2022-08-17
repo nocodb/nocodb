@@ -36,7 +36,7 @@ export default class GqlBaseResolver {
       return;
     }
     // @ts-ignore
-    let handler = args => {
+    let handler = (args) => {
       return null;
     };
 

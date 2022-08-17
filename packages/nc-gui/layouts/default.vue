@@ -39,21 +39,15 @@
 
         <!--        <v-toolbar-items  />-->
         <!-- loading -->
-        <span
-          v-show="$nuxt.$loading.show"
-          class="caption grey--text ml-3"
-        >{{ $t("general.loading") }}
-          <v-icon small color="grey">mdi-spin mdi-loading</v-icon></span>
+        <span v-show="$nuxt.$loading.show" class="caption grey--text ml-3"
+          >{{ $t('general.loading') }} <v-icon small color="grey">mdi-spin mdi-loading</v-icon></span
+        >
 
         <span v-shortkey="['ctrl', 'shift', 'd']" @shortkey="openDiscord" />
       </div>
 
-      <div
-        v-if="isDashboard"
-        class="text-capitalize text-center title"
-        style="flex: 1"
-      >
-        {{ $store.getters["project/GtrProjectName"] }}
+      <div v-if="isDashboard" class="text-capitalize text-center title" style="flex: 1">
+        {{ $store.getters['project/GtrProjectName'] }}
       </div>
 
       <div style="flex: 1" class="d-flex justify-end">
@@ -69,19 +63,14 @@
                 btn-class="primary--text nc-menu-share white"
                 @click="shareModal = true"
               >
-                <v-icon small class="mr-1">
-                  mdi-account-supervisor-outline
-                </v-icon>
+                <v-icon small class="mr-1"> mdi-account-supervisor-outline </v-icon>
                 <!-- Share -->
-                {{ $t("activity.share") }}
+                {{ $t('activity.share') }}
               </x-btn>
 
               <share-or-invite-modal v-model="shareModal" />
             </div>
-            <span
-              v-shortkey="['ctrl', 'shift', 'd']"
-              @shortkey="$router.push('/')"
-            />
+            <span v-shortkey="['ctrl', 'shift', 'd']" @shortkey="$router.push('/')" />
             <x-btn
               v-if="!$store.state.settings.nc"
               text
@@ -89,16 +78,11 @@
               tooltip="Enable/Disable Models"
               @click="cronTabAdd()"
             >
-              <v-icon size="20">
-                mdi-timetable
-              </v-icon> &nbsp; Crons
+              <v-icon size="20"> mdi-timetable </v-icon> &nbsp; Crons
             </x-btn>
           </template>
           <template v-else>
-            <span
-              v-shortkey="['ctrl', 'shift', 'c']"
-              @shortkey="settingsTabAdd"
-            />
+            <span v-shortkey="['ctrl', 'shift', 'c']" @shortkey="settingsTabAdd" />
 
             <span v-shortkey="['ctrl', 'shift', 'b']" @shortkey="changeTheme" />
           </template>
@@ -107,31 +91,17 @@
 
           <v-menu v-if="isAuthenticated" offset-y>
             <template #activator="{ on }">
-              <v-icon
-                v-ge="['Profile', '']"
-                text
-                class="font-weight-bold nc-menu-account icon"
-                v-on="on"
-              >
+              <v-icon v-ge="['Profile', '']" text class="font-weight-bold nc-menu-account icon" v-on="on">
                 <!--              <v-icon></v-icon>-->
                 mdi-dots-vertical
               </v-icon>
             </template>
             <v-list dense class="nc-user-menu">
               <template>
-                <v-list-item
-                  v-t="['c:navbar:user:email']"
-                  v-ge="['Settings', '']"
-                  dense
-                  to="/user/settings"
-                >
+                <v-list-item v-t="['c:navbar:user:email']" v-ge="['Settings', '']" dense to="/user/settings">
                   <v-list-item-title>
-                    <v-icon small>
-                      mdi-at
-                    </v-icon>&nbsp;
-                    <span class="font-weight-bold caption">{{
-                      userEmail
-                    }}</span>
+                    <v-icon small> mdi-at </v-icon>&nbsp;
+                    <span class="font-weight-bold caption">{{ userEmail }}</span>
                   </v-list-item-title>
                 </v-list-item>
 
@@ -144,33 +114,22 @@
                   v-t="['a:navbar:user:copy-auth-token']"
                   v-clipboard="$store.state.users.token"
                   dense
-                  @click.stop="
-                    $toast.success($t('msg.toast.authToken')).goAway(3000)
-                  "
+                  @click.stop="$toast.success($t('msg.toast.authToken')).goAway(3000)"
                 >
                   <v-list-item-title>
-                    <v-icon key="terminal-dash" small>
-                      mdi-content-copy
-                    </v-icon>&nbsp;
-                    <span class="font-weight-regular caption">{{
-                      $t("activity.account.authToken")
-                    }}</span>
+                    <v-icon key="terminal-dash" small> mdi-content-copy </v-icon>&nbsp;
+                    <span class="font-weight-regular caption">{{ $t('activity.account.authToken') }}</span>
                   </v-list-item-title>
                 </v-list-item>
                 <v-list-item
                   v-if="isDashboard"
                   v-t="['a:navbar:user:swagger']"
                   dense
-                  @click.stop="
-                    openUrl(swaggerLink)
-                  "
+                  @click.stop="openUrl(swaggerLink)"
                 >
                   <v-list-item-title>
-                    <v-icon key="terminal-dash" small>
-                      mdi-code-json
-                    </v-icon>&nbsp;
-                    <span class="font-weight-regular caption">
-                      {{ "Swagger API Doc" }}</span>
+                    <v-icon key="terminal-dash" small> mdi-code-json </v-icon>&nbsp;
+                    <span class="font-weight-regular caption"> {{ 'Swagger API Doc' }}</span>
                   </v-list-item-title>
                 </v-list-item>
                 <!--                <v-list-item
@@ -197,46 +156,24 @@
                   @click="copyProjectInfo"
                 >
                   <v-list-item-title>
-                    <v-icon small>
-                      mdi-content-copy
-                    </v-icon>&nbsp;
-                    <span class="font-weight-regular caption">{{
-                      $t("activity.account.projInfo")
-                    }}</span>
+                    <v-icon small> mdi-content-copy </v-icon>&nbsp;
+                    <span class="font-weight-regular caption">{{ $t('activity.account.projInfo') }}</span>
                   </v-list-item-title>
                 </v-list-item>
                 <v-divider v-if="isDashboard" />
-                <v-list-item
-                  v-if="isDashboard"
-                  v-t="['c:navbar:user:themes']"
-                  dense
-                  @click.stop="settingsTabAdd"
-                >
+                <v-list-item v-if="isDashboard" v-t="['c:navbar:user:themes']" dense @click.stop="settingsTabAdd">
                   <v-list-item-title>
-                    <v-icon key="terminal-dash" small>
-                      mdi-palette
-                    </v-icon>&nbsp;
-                    <span class="font-weight-regular caption">{{
-                      $t("activity.account.themes")
-                    }}</span>
+                    <v-icon key="terminal-dash" small> mdi-palette </v-icon>&nbsp;
+                    <span class="font-weight-regular caption">{{ $t('activity.account.themes') }}</span>
                   </v-list-item-title>
                 </v-list-item>
 
                 <v-divider v-if="isDashboard" />
 
-                <v-list-item
-                  v-t="['a:navbar:user:sign-out']"
-                  v-ge="['Sign Out', '']"
-                  dense
-                  @click="MtdSignOut"
-                >
+                <v-list-item v-t="['a:navbar:user:sign-out']" v-ge="['Sign Out', '']" dense @click="MtdSignOut">
                   <v-list-item-title>
-                    <v-icon small>
-                      mdi-logout
-                    </v-icon>&nbsp;
-                    <span class="font-weight-regular caption">{{
-                      $t("general.signOut")
-                    }}</span>
+                    <v-icon small> mdi-logout </v-icon>&nbsp;
+                    <span class="font-weight-regular caption">{{ $t('general.signOut') }}</span>
                   </v-list-item-title>
                 </v-list-item>
               </template>
@@ -244,44 +181,23 @@
           </v-menu>
           <v-menu v-else offset-y open-on-hover>
             <template #activator="{ on }">
-              <v-btn
-                v-ge="['Profile', '']"
-                text
-                class="font-weight-bold nc-menu-account"
-                v-on="on"
-              >
+              <v-btn v-ge="['Profile', '']" text class="font-weight-bold nc-menu-account" v-on="on">
                 <!--              Menu-->
                 <v-icon>mdi-account</v-icon>
                 <v-icon>arrow_drop_down</v-icon>
               </v-btn>
             </template>
             <v-list dense>
-              <v-list-item
-                v-if="!user && !isThisMobile"
-                dense
-                to="/user/authentication/signup"
-              >
+              <v-list-item v-if="!user && !isThisMobile" dense to="/user/authentication/signup">
                 <v-list-item-title>
-                  <v-icon small>
-                    mdi-account-plus-outline
-                  </v-icon> &nbsp;
-                  <span class="font-weight-regular caption">{{
-                    $t("general.signUp")
-                  }}</span>
+                  <v-icon small> mdi-account-plus-outline </v-icon> &nbsp;
+                  <span class="font-weight-regular caption">{{ $t('general.signUp') }}</span>
                 </v-list-item-title>
               </v-list-item>
-              <v-list-item
-                v-if="!user && !isThisMobile"
-                dense
-                to="/user/authentication/signin"
-              >
+              <v-list-item v-if="!user && !isThisMobile" dense to="/user/authentication/signin">
                 <v-list-item-title>
-                  <v-icon small>
-                    mdi-login
-                  </v-icon> &nbsp;
-                  <span class="font-weight-regular caption">{{
-                    $t("general.signIn")
-                  }}</span>
+                  <v-icon small> mdi-login </v-icon> &nbsp;
+                  <span class="font-weight-regular caption">{{ $t('general.signIn') }}</span>
                 </v-list-item-title>
               </v-list-item>
             </v-list>
@@ -292,14 +208,7 @@
 
     <v-main class="pb-0 mb-0">
       <v-container class="ma-0 pa-0" fluid style="">
-        <v-progress-linear
-          v-show="GetPendingStatus"
-          top
-          absolute
-          color="success"
-          indeterminate
-          height="2"
-        />
+        <v-progress-linear v-show="GetPendingStatus" top absolute color="success" indeterminate height="2" />
 
         <nuxt />
       </v-container>
@@ -312,11 +221,7 @@
       :error-dialog-cancel="errorDialogCancel"
       :error-dialog-report="errorDialogReport"
     />
-    <dlgDebug
-      v-if="dialogDebug"
-      :dialog-show="dialogDebug"
-      :mtd-dialog-cancel="dialogDebugCancel"
-    />
+    <dlgDebug v-if="dialogDebug" :dialog-show="dialogDebug" :mtd-dialog-cancel="dialogDebugCancel" />
     <settings v-model="settingsDialog" />
     <loader />
   </v-app>
@@ -328,7 +233,6 @@
 </template>
 
 <script>
-
 import { mapGetters, mapActions, mapMutations } from 'vuex'
 import ReleaseInfo from '~/components/ReleaseInfo'
 import 'splitpanes/dist/splitpanes.css'
@@ -351,7 +255,7 @@ export default {
     Language,
     XBtn,
     dlgUnexpectedError,
-    settings
+    settings,
   },
   data: () => ({
     headerHeight,
@@ -363,7 +267,7 @@ export default {
       owner: 'mdi-account-star',
       creator: 'mdi-account-hard-hat',
       editor: 'mdi-account-edit',
-      viewer: 'mdi-eye-outline'
+      viewer: 'mdi-eye-outline',
     },
     showAppStore: false,
     showChangeEnv: false,
@@ -385,17 +289,23 @@ export default {
     snackbar: false,
     timeout: 10000,
     rolesList: null,
-    shareModal: false
+    shareModal: false,
   }),
   computed: {
     logo() {
       return this.$store.state.settings.darkTheme ? require('~/assets/img/brand/finn-white.svg') : require('~/assets/img/brand/finn.svg')
     },
     swaggerLink() {
-      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
+      return new URL(
+        `/api/v1/db/meta/projects/${this.projectId}/swagger`,
+        this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl
+      );
     },
     redocLink() {
-      return new URL(`/api/v1/db/meta/projects/${this.projectId}/redoc`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
+      return new URL(
+        `/api/v1/db/meta/projects/${this.projectId}/redoc`,
+        this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl
+      );
     },
     ...mapGetters({
       projects: 'project/list',
@@ -410,49 +320,49 @@ export default {
       isRest: 'project/GtrProjectIsRest',
       isGrpc: 'project/GtrProjectIsGrpc',
       role: 'users/GtrRole',
-      userEmail: 'users/GtrUserEmail'
+      userEmail: 'users/GtrUserEmail',
     }),
     user() {
-      return this.$store.getters['users/GtrUser']
+      return this.$store.getters['users/GtrUser'];
     },
     isThisMobile() {
       // just an example, could be one specific value if that's all you need
-      return this.isHydrated ? this.$vuetify.breakpoint.smAndDown : false
-    }
+      return this.isHydrated ? this.$vuetify.breakpoint.smAndDown : false;
+    },
   },
   watch: {
     '$route.path'(path, oldPath) {
       try {
         if (oldPath === path) {
-          return
+          return;
         }
-        const recaptcha = this.$recaptchaInstance
+        const recaptcha = this.$recaptchaInstance;
         if (path.startsWith('/user/')) {
-          recaptcha.showBadge()
+          recaptcha.showBadge();
         } else {
-          recaptcha.hideBadge()
+          recaptcha.hideBadge();
         }
       } catch (e) {}
     },
     '$route.params.project_id'(newId, oldId) {
       if (newId && newId !== oldId) {
-        this.loadProjectInfo()
+        this.loadProjectInfo();
       }
       if (!newId) {
-        this.swaggerOrGraphiqlUrl = null
+        this.swaggerOrGraphiqlUrl = null;
       }
-    }
+    },
   },
   mounted() {
-    this.selectedEnv = this.$store.getters['project/GtrActiveEnv']
-    this.loadProjectInfo()
+    this.selectedEnv = this.$store.getters['project/GtrActiveEnv'];
+    this.loadProjectInfo();
   },
   methods: {
     ...mapActions({ changeActiveTab: 'tabs/changeActiveTab' }),
     ...mapMutations({
       toggleLogWindow: 'settings/MutToggleLogWindow',
       toggleOutputWindow: 'settings/MutToggleOutputWindow',
-      toggleTreeviewWindow: 'settings/MutToggleTreeviewWindow'
+      toggleTreeviewWindow: 'settings/MutToggleTreeviewWindow',
     }),
     async loadProjectInfo() {
       // if (this.$route.params.project_id) {
@@ -469,23 +379,23 @@ export default {
       // }
     },
     setPreviewUSer(previewAs) {
-      this.previewAs = previewAs
-      window.location.reload()
+      this.previewAs = previewAs;
+      window.location.reload();
     },
     showAppStoreIcon() {
-      this.showAppStore = true
-      this.$toast.info('Apps unlocked').goAway(5000)
+      this.showAppStore = true;
+      this.$toast.info('Apps unlocked').goAway(5000);
     },
 
     isProjectInfoLoaded() {
-      return this.$store.state.project.appInfo !== null
+      return this.$store.state.project.appInfo !== null;
     },
     githubClickHandler(e) {
       //   e.preventDefault();
       //   shell.openExternal(e.path.find(e => e.href).href);
     },
     openUrl(url) {
-      window.open(url, '_blank')
+      window.open(url, '_blank');
     },
     openPricingPage() {
       //   shell.openExternal(process.env.serverUrl + '/pricing')
@@ -500,253 +410,242 @@ export default {
       //   shell.openExternal('https://github.com/NocoDB/NocoDB')
     },
     dialogDebugCancel() {
-      this.dialogDebug = false
+      this.dialogDebug = false;
     },
     dialogDebugShow() {
-      this.dialogDebug = true
+      this.dialogDebug = true;
     },
 
     errorDialogCancel() {
-      this.dialogErrorShow = false
+      this.dialogErrorShow = false;
     },
     errorDialogReport() {
-      this.dialogErrorShow = false
+      this.dialogErrorShow = false;
     },
     loadChat() {
       if (!window.Tawk_API) {
-        const s1 = document.createElement('script')
-        const s0 = document.getElementsByTagName('script')[0]
-        s1.async = true
-        s1.src = 'https://embed.tawk.to/5d81b8de9f6b7a4457e23ba7/default'
-        s1.charset = 'UTF-8'
-        s1.setAttribute('crossorigin', '*')
-        s0.parentNode.insertBefore(s1, s0)
-        setTimeout(() => window.Tawk_API && window.Tawk_API.maximize(), 2000)
+        const s1 = document.createElement('script');
+        const s0 = document.getElementsByTagName('script')[0];
+        s1.async = true;
+        s1.src = 'https://embed.tawk.to/5d81b8de9f6b7a4457e23ba7/default';
+        s1.charset = 'UTF-8';
+        s1.setAttribute('crossorigin', '*');
+        s0.parentNode.insertBefore(s1, s0);
+        setTimeout(() => window.Tawk_API && window.Tawk_API.maximize(), 2000);
       } else {
-        window.Tawk_API.maximize()
+        window.Tawk_API.maximize();
       }
     },
     handleMigrationsMenuClick(item, closeMenu = true, sqlEditor = false) {},
     apiClientTabAdd() {
       // if (this.$route.path.indexOf('dashboard') > -1) {
-      const tabIndex = this.tabs.findIndex(el => el.key === 'apiClientDir')
+      const tabIndex = this.tabs.findIndex(el => el.key === 'apiClientDir');
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
-        const item = { name: 'API Client', key: 'apiClientDir' }
-        item._nodes = { env: '_noco' }
-        item._nodes.type = 'apiClientDir'
-        this.$store.dispatch('tabs/ActAddTab', item)
+        const item = { name: 'API Client', key: 'apiClientDir' };
+        item._nodes = { env: '_noco' };
+        item._nodes.type = 'apiClientDir';
+        this.$store.dispatch('tabs/ActAddTab', item);
       }
     },
     apiClientSwaggerTabAdd() {
       // if (this.$route.path.indexOf('dashboard') > -1) {
-      const tabIndex = this.tabs.findIndex(
-        el => el.key === 'apiClientSwaggerDir'
-      )
+      const tabIndex = this.tabs.findIndex(el => el.key === 'apiClientSwaggerDir');
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
-        const item = { name: 'API Client', key: 'apiClientSwaggerDir' }
-        item._nodes = { env: '_noco' }
-        item._nodes.type = 'apiClientSwaggerDir'
-        this.$store.dispatch('tabs/ActAddTab', item)
+        const item = { name: 'API Client', key: 'apiClientSwaggerDir' };
+        item._nodes = { env: '_noco' };
+        item._nodes.type = 'apiClientSwaggerDir';
+        this.$store.dispatch('tabs/ActAddTab', item);
       }
     },
     projectInfoTabAdd() {
-      const tabIndex = this.tabs.findIndex(el => el.key === 'projectInfo')
+      const tabIndex = this.tabs.findIndex(el => el.key === 'projectInfo');
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
-        const item = { name: 'Info', key: 'projectInfo' }
-        item._nodes = { env: '_noco' }
-        item._nodes.type = 'projectInfo'
-        this.$store.dispatch('tabs/ActAddTab', item)
+        const item = { name: 'Info', key: 'projectInfo' };
+        item._nodes = { env: '_noco' };
+        item._nodes.type = 'projectInfo';
+        this.$store.dispatch('tabs/ActAddTab', item);
       }
     },
     xcMetaTabAdd() {
       // if (this.$route.path.indexOf('dashboard') > -1) {
-      const tabIndex = this.tabs.findIndex(el => el.key === 'meta')
+      const tabIndex = this.tabs.findIndex(el => el.key === 'meta');
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
-        const item = { name: 'Meta', key: 'meta' }
-        item._nodes = { env: '_noco' }
-        item._nodes.type = 'meta'
-        this.$store.dispatch('tabs/ActAddTab', item)
+        const item = { name: 'Meta', key: 'meta' };
+        item._nodes = { env: '_noco' };
+        item._nodes.type = 'meta';
+        this.$store.dispatch('tabs/ActAddTab', item);
       }
     },
     apiClientSwaggerOpen() {
-      this.$router.push('/apiClient')
+      this.$router.push('/apiClient');
     },
     graphqlClientTabAdd() {
-      window.open(this.swaggerOrGraphiqlUrl, '_blank')
+      window.open(this.swaggerOrGraphiqlUrl, '_blank');
     },
     swaggerClientTabAdd() {
-      window.open(this.swaggerOrGraphiqlUrl, '_blank')
+      window.open(this.swaggerOrGraphiqlUrl, '_blank');
     },
     grpcTabAdd() {
-      const tabIndex = this.tabs.findIndex(el => el.key === 'grpcClient')
+      const tabIndex = this.tabs.findIndex(el => el.key === 'grpcClient');
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
-        const item = { name: 'gRPC Client', key: 'grpcClient' }
-        item._nodes = { env: '_noco' }
-        item._nodes.type = 'grpcClient'
-        this.$store.dispatch('tabs/ActAddTab', item)
+        const item = { name: 'gRPC Client', key: 'grpcClient' };
+        item._nodes = { env: '_noco' };
+        item._nodes.type = 'grpcClient';
+        this.$store.dispatch('tabs/ActAddTab', item);
       }
     },
     rolesTabAdd() {
-      const tabIndex = this.tabs.findIndex(el => el.key === 'roles')
+      const tabIndex = this.tabs.findIndex(el => el.key === 'roles');
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
-        const item = { name: 'Team & Auth ', key: 'roles' }
-        item._nodes = { env: '_noco' }
-        item._nodes.type = 'roles'
-        this.$store.dispatch('tabs/ActAddTab', item)
+        const item = { name: 'Team & Auth ', key: 'roles' };
+        item._nodes = { env: '_noco' };
+        item._nodes.type = 'roles';
+        this.$store.dispatch('tabs/ActAddTab', item);
       }
       setTimeout(() => {
-        this.$eventBus.$emit('show-add-user')
-      }, 200)
+        this.$eventBus.$emit('show-add-user');
+      }, 200);
     },
     settingsTabAdd() {
-      const tabIndex = this.tabs.findIndex(
-        el => el.key === 'projectSettings'
-      )
+      const tabIndex = this.tabs.findIndex(el => el.key === 'projectSettings');
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
-        const item = { name: 'Themes', key: 'projectSettings' }
-        item._nodes = { env: '_noco' }
-        item._nodes.type = 'projectSettings'
-        this.$store.dispatch('tabs/ActAddTab', item)
+        const item = { name: 'Themes', key: 'projectSettings' };
+        item._nodes = { env: '_noco' };
+        item._nodes.type = 'projectSettings';
+        this.$store.dispatch('tabs/ActAddTab', item);
       }
     },
     aclTabAdd() {
-      const tabIndex = this.tabs.findIndex(el => el.key === 'acl')
+      const tabIndex = this.tabs.findIndex(el => el.key === 'acl');
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
-        const item = { name: 'ACL', key: 'acl' }
-        item._nodes = { env: '_noco' }
-        item._nodes.type = 'acl'
-        this.$store.dispatch('tabs/ActAddTab', item)
+        const item = { name: 'ACL', key: 'acl' };
+        item._nodes = { env: '_noco' };
+        item._nodes.type = 'acl';
+        this.$store.dispatch('tabs/ActAddTab', item);
       }
     },
     disableOrEnableModelTabAdd() {
-      const tabIndex = this.tabs.findIndex(
-        el => el.key === 'disableOrEnableModel'
-      )
+      const tabIndex = this.tabs.findIndex(el => el.key === 'disableOrEnableModel');
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
-        const item = { name: 'Meta Management', key: 'disableOrEnableModel' }
-        item._nodes = { env: '_noco' }
-        item._nodes.type = 'disableOrEnableModel'
-        this.$store.dispatch('tabs/ActAddTab', item)
+        const item = { name: 'Meta Management', key: 'disableOrEnableModel' };
+        item._nodes = { env: '_noco' };
+        item._nodes.type = 'disableOrEnableModel';
+        this.$store.dispatch('tabs/ActAddTab', item);
       }
     },
     cronTabAdd() {
-      const tabIndex = this.tabs.findIndex(el => el.key === 'cronJobs')
+      const tabIndex = this.tabs.findIndex(el => el.key === 'cronJobs');
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
-        const item = { name: 'Cron Jobs', key: 'cronJobs' }
-        item._nodes = { env: '_noco' }
-        item._nodes.type = 'cronJobs'
-        this.$store.dispatch('tabs/ActAddTab', item)
+        const item = { name: 'Cron Jobs', key: 'cronJobs' };
+        item._nodes = { env: '_noco' };
+        item._nodes.type = 'cronJobs';
+        this.$store.dispatch('tabs/ActAddTab', item);
       }
     },
     appsTabAdd() {
-      const tabIndex = this.tabs.findIndex(el => el.key === 'appStore')
+      const tabIndex = this.tabs.findIndex(el => el.key === 'appStore');
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
-        const item = { name: 'App Store', key: 'appStore' }
-        item._nodes = { env: '_noco' }
-        item._nodes.type = 'appStore'
-        this.$store.dispatch('tabs/ActAddTab', item)
+        const item = { name: 'App Store', key: 'appStore' };
+        item._nodes = { env: '_noco' };
+        item._nodes.type = 'appStore';
+        this.$store.dispatch('tabs/ActAddTab', item);
       }
     },
     async codeGenerateMvc() {
       try {
         await this.sqlMgr.projectGenerateBackend({
-          env: '_noco'
-        })
-        this.$toast.success('Yay, REST APIs with MVC generated').goAway(4000)
+          env: '_noco',
+        });
+        this.$toast.success('Yay, REST APIs with MVC generated').goAway(4000);
       } catch (e) {
-        this.$toast.error('Error generating REST APIs code :' + e).goAway(4000)
-        throw e
+        this.$toast.error('Error generating REST APIs code :' + e).goAway(4000);
+        throw e;
       }
     },
     cookieStatus(status) {
-      this.status = status
+      this.status = status;
     },
     cookieClickedAccept() {
-      this.status = 'accept'
+      this.status = 'accept';
     },
     cookieClickedDecline() {
-      this.status = 'decline'
+      this.status = 'decline';
       // localStorage.removeItem('vue-cookie-accept-decline')
     },
     removeCookie() {
       // console.log('Cookie removed')
-      localStorage.removeItem('vue-cookie-accept-decline')
-      this.status = 'Cookie removed, refresh the page.'
+      localStorage.removeItem('vue-cookie-accept-decline');
+      this.status = 'Cookie removed, refresh the page.';
     },
 
     MtdContactUs() {
-      this.snackbar = true
+      this.snackbar = true;
     },
 
     MtdHiring() {
-      this.$router.push('/info/hiring')
+      this.$router.push('/info/hiring');
     },
 
     MtdFaq() {
-      this.$router.push('/info/faq')
+      this.$router.push('/info/faq');
     },
     MtdTos() {
-      this.$router.push('/info/tos')
+      this.$router.push('/info/tos');
     },
     async MtdSignOut() {
-      await this.$store.dispatch('users/ActSignOut')
-      this.$router.push('/user/authentication/signin')
+      await this.$store.dispatch('users/ActSignOut');
+      this.$router.push('/user/authentication/signin');
     },
     MtdToggleDrawer() {
       if (!this.$store.getters['users/GtrUser']) {
-        this.drawer = false
+        this.drawer = false;
       } else {
-        this.drawer = !this.drawer
+        this.drawer = !this.drawer;
       }
       // console.log('Toggling drawer', this.drawer);
     },
     changeTheme() {
-      this.$store.dispatch(
-        'settings/ActToggleDarkMode',
-        !this.$store.state.settings.darkTheme
-      )
-      this.$e('c:navbar:theme')
+      this.$store.dispatch('settings/ActToggleDarkMode', !this.$store.state.settings.darkTheme);
+      this.$e('c:navbar:theme');
     },
     async copyProjectInfo() {
       try {
-        const data = await this.$api.project.metaGet(
-          this.$store.state.project.projectId
-        )
+        const data = await this.$api.project.metaGet(this.$store.state.project.projectId);
         copyTextToClipboard(
           Object.entries(data)
             .map(([k, v]) => `${k}: **${v}**`)
             .join('\n')
-        )
-        this.$toast.info('Copied project info to clipboard').goAway(3000)
+        );
+        this.$toast.info('Copied project info to clipboard').goAway(3000);
       } catch (e) {
-        console.log(e)
-        this.$toast.error(e.message).goAway(3000)
+        console.log(e);
+        this.$toast.error(e.message).goAway(3000);
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style lang="scss">

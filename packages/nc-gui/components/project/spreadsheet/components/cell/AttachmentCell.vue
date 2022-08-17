@@ -11,9 +11,7 @@
   >
     <div v-if="dragOver" class="drop-overlay">
       <div>
-        <v-icon small>
-          mdi-cloud-upload-outline
-        </v-icon>
+        <v-icon small> mdi-cloud-upload-outline </v-icon>
         <span class="caption font-weight-bold">Drop here</span>
       </div>
     </div>
@@ -21,14 +19,12 @@
       <div v-for="item in localState" :key="item.title" class="thumbnail d-flex align-center justify-center">
         <v-lazy class="d-flex align-center justify-center">
           <v-tooltip bottom>
-            <template #activator="{on}">
-              <img v-if="isImage(item.title)" alt="#" :src="item.url" v-on="on">
+            <template #activator="{ on }">
+              <img v-if="isImage(item.title)" alt="#" :src="item.url" v-on="on" />
               <v-icon v-else-if="item.icon" size="33" v-on="on">
                 {{ item.icon }}
               </v-icon>
-              <v-icon v-else size="33" v-on="on">
-                mdi-file
-              </v-icon>
+              <v-icon v-else size="33" v-on="on"> mdi-file </v-icon>
             </template>
             <span>{{ item.title }}</span>
           </v-tooltip>
@@ -39,27 +35,27 @@
 </template>
 
 <script>
-import { isImage } from '@/components/project/spreadsheet/helpers/imageExt'
+import { isImage } from '@/components/project/spreadsheet/helpers/imageExt';
 
 export default {
   name: 'AttachmentCell',
   props: ['value', 'column'],
   data: () => ({
-    dragOver: false
+    dragOver: false,
   }),
   computed: {
     localState() {
       try {
-        return JSON.parse(this.value) || []
+        return JSON.parse(this.value) || [];
       } catch (e) {
-        return []
+        return [];
       }
-    }
+    },
   },
   methods: {
-    isImage
-  }
-}
+    isImage,
+  },
+};
 </script>
 
 <style scoped>
@@ -95,7 +91,6 @@ export default {
   align-items: center;
   pointer-events: none;
 }
-
 </style>
 <!--
 /**

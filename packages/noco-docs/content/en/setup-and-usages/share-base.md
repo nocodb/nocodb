@@ -1,6 +1,6 @@
 ---
 title: "Share Base"
-description: "Procedure to share a base & generating embedded iframe"
+description: "Procedures to share a base & generating embedded iframe"
 position: 615
 category: "Product"
 menuTitle: "Share Base"

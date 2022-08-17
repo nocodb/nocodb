@@ -10,13 +10,11 @@
             hide-details
             class="my-2 mx-auto search-field"
             :placeholder="`Search '${db.connection.database}' models`"
-            style="max-width:300px"
+            style="max-width: 300px"
             outlined
           >
             <template #prepend-inner>
-              <v-icon small>
-                search
-              </v-icon>
+              <v-icon small> search </v-icon>
             </template>
           </v-text-field>
 
@@ -61,10 +59,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="(relation,i) in relations"
-                :key="i"
-              >
+              <tr v-for="(relation, i) in relations" :key="i">
                 <td>{{ relation.relationType === 'hm' ? relation.rtn : relation.table_name }}</td>
                 <td>{{ relation.relationType === 'hm' ? 'HasMany' : 'BelongsTo' }}</td>
                 <td>{{ relation.rtn }}</td>
@@ -72,16 +67,14 @@
 
                 <td v-for="role in roles" :key="`${i}-${role}`">
                   <v-tooltip bottom>
-                    <template #activator="{on}">
-                      <div
-                        v-on="on"
-                      >
+                    <template #activator="{ on }">
+                      <div v-on="on">
                         <v-checkbox
                           v-model="relation.disabled[role]"
                           dense
                           :true-value="false"
                           :false-value="true"
-                          @change="$set(relation,'edited',true)"
+                          @change="$set(relation, 'edited', true)"
                         />
                       </div>
                     </template>
@@ -102,7 +95,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'ToggleRelationsUiAcl',
@@ -113,47 +106,55 @@ export default {
     updating: false,
     dbsTab: 0,
     filter: '',
-    relations: null
+    relations: null,
   }),
   async mounted() {
-    await this.loadViewList()
+    await this.loadViewList();
   },
   methods: {
     async loadViewList() {
-      this.relations = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        dbAlias: this.db.meta.dbAlias,
-        env: this.$store.getters['project/GtrEnv']
-      }, 'xcVisibilityMetaGet', {
-        type: 'relation'
-      }]))
+      this.relations = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        {
+          dbAlias: this.db.meta.dbAlias,
+          env: this.$store.getters['project/GtrEnv'],
+        },
+        'xcVisibilityMetaGet',
+        {
+          type: 'relation',
+        },
+      ]);
     },
     async save() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'xcVisibilityMetaSet', {
-          type: 'relation',
-          disableList: this.relations.filter(t => t.edited)
-        }])
-        this.$toast.success('Updated UI ACL for tables successfully').goAway(3000)
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv'],
+          },
+          'xcVisibilityMetaSet',
+          {
+            type: 'relation',
+            disableList: this.relations.filter(t => t.edited),
+          },
+        ]);
+        this.$toast.success('Updated UI ACL for tables successfully').goAway(3000);
       } catch (e) {
-        this.$toast.error('Some error occurred').goAway(3000)
+        this.$toast.error('Some error occurred').goAway(3000);
       }
-    }
+    },
   },
   computed: {
     ...mapGetters({
-      dbAliasList: 'project/GtrDbAliasList'
+      dbAliasList: 'project/GtrDbAliasList',
     }),
     edited() {
-      return this.relations && this.relations.length && this.relations.some(t => t.edited)
+      return this.relations && this.relations.length && this.relations.some(t => t.edited);
     },
     roles() {
-      return this.relations && this.relations.length ? Object.keys(this.relations[0].disabled) : []
-    }
-  }
-}
+      return this.relations && this.relations.length ? Object.keys(this.relations[0].disabled) : [];
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -166,12 +167,11 @@ export default {
     border-right: 1px solid #7f828b33;
   }
 
-  .search-field.v-text-field > .v-input__control, .search-field.v-text-field > .v-input__control > .v-input__slot {
+  .search-field.v-text-field > .v-input__control,
+  .search-field.v-text-field > .v-input__control > .v-input__slot {
     min-height: auto;
-
   }
 }
-
 </style>
 <!--
 /**

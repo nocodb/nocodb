@@ -40,7 +40,7 @@ export default class ApiToken {
     const tokens = await ncMeta.metaList(null, null, MetaTable.API_TOKENS, {
       condition: { user_id: userId },
     });
-    return tokens?.map(t => new ApiToken(t));
+    return tokens?.map((t) => new ApiToken(t));
   }
 
   private static async listAllTokens(ncMeta = Noco.ncMeta) {

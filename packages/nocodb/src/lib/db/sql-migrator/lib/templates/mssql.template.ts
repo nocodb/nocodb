@@ -13,14 +13,14 @@ module.exports = {
               : null || 1433,
             user: 'sa',
             password: 'Password123.',
-            database: 'default_dev'
+            database: 'default_dev',
           },
           meta: {
             tn: 'nc_evolutions',
-            dbAlias: 'primary'
-          }
-        }
-      ]
+            dbAlias: 'primary',
+          },
+        },
+      ],
     },
     test: {
       api: {},
@@ -32,15 +32,15 @@ module.exports = {
             port: DOCKER_DB_PORT ? parseInt(DOCKER_DB_PORT) : null || 1433,
             user: 'sa',
             password: 'Password123.',
-            database: 'default_test'
+            database: 'default_test',
           },
           meta: {
             tn: 'nc_evolutions',
-            dbAlias: 'primary'
-          }
-        }
-      ]
-    }
+            dbAlias: 'primary',
+          },
+        },
+      ],
+    },
   },
   workingEnv: '_noco',
   meta: {
@@ -49,8 +49,8 @@ module.exports = {
     queriesFolder: 'queries',
     apisFolder: 'apis',
     orm: 'sequelize',
-    router: 'express'
-  }
+    router: 'express',
+  },
 };
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

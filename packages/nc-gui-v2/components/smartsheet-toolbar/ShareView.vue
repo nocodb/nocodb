@@ -147,7 +147,6 @@ onMounted(() => {
         <a-collapse-panel key="1" header="More Options">
           <div class="mb-2">
             <a-checkbox v-model:checked="passwordProtected" class="!text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
-            <!--           todo: add password toggle -->
             <div v-if="passwordProtected" class="flex gap-2 mt-2 mb-4">
               <a-input
                 v-model:value="shared.password"

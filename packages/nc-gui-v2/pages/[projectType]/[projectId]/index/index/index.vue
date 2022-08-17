@@ -1,34 +1,89 @@
 <script lang="ts" setup>
+import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { ref, useDialog, useDropZone, useNuxtApp } from '#imports'
 import DlgQuickImport from '~/components/dlg/QuickImport.vue'
 
-const el = ref<HTMLDivElement>()
+const dropZone = ref<HTMLDivElement>()
 
-const { isOverDropZone } = useDropZone(el, onDrop)
+const { isOverDropZone } = useDropZone(dropZone, onDrop)
 
 const { $e } = useNuxtApp()
 
+type QuickImportTypes = 'excel' | 'json' | 'csv'
+
+const allowedQuickImportTypes = [
+  // Excel
+  '.xls, .xlsx, .xlsm, .ods, .ots',
+
+  // CSV
+  '.csv',
+
+  // JSON
+  '.json',
+]
+
 function onDrop(droppedFiles: File[] | null) {
-  console.log('onDrop', droppedFiles)
+  if (!droppedFiles) return
+
+  /** we can only handle one file per drop */
+  if (droppedFiles.length > 1) {
+    return message.error({
+      content: `Only one file can be imported at a time.`,
+      duration: 2,
+    })
+  }
+
+  let fileType: QuickImportTypes | null = null
+  const isValid = allowedQuickImportTypes.some((type) => {
+    const isAllowed = droppedFiles[0].type.replace('/', '.').endsWith(type)
+
+    if (isAllowed) {
+      fileType = type.replace('.', '') as QuickImportTypes
+    }
+
+    return isAllowed
+  })
+
+  /** Invalid file type was dropped */
+  if (!isValid) {
+    return message.error({
+      content: 'Invalid file type',
+      duration: 2,
+    })
+  }
+
+  if (fileType && isValid) {
+    openQuickImportDialog(fileType, droppedFiles[0])
+  }
 }
 
-function openQuickImportDialog(type: string) {
+function openQuickImportDialog(type: QuickImportTypes, file: File) {
   $e(`a:actions:import-${type}`)
 
-  const { close } = useDialog(DlgQuickImport, {
-    'modelValue': true,
+  const isOpen = ref(true)
+
+  const { close, vNode } = useDialog(DlgQuickImport, {
+    'modelValue': isOpen,
     'importType': type,
     'onUpdate:modelValue': closeDialog,
   })
 
+  vNode.value?.component?.exposed?.handleChange({
+    file: { originFileObj: file },
+    event: { percent: 100 },
+  } as UploadChangeParam<UploadFile<File>>)
+
   function closeDialog() {
+    isOpen.value = false
+
     close(1000)
   }
 }
 </script>
 
 <template>
-  <div ref="el" class="h-full w-full text-gray-400 flex items-center justify-center relative">
+  <div ref="dropZone" class="h-full w-full text-gray-400 flex items-center justify-center relative">
     <general-overlay
       v-model="isOverDropZone"
       inline

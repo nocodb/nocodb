@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form, message } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
-import type { UploadChangeParam } from 'ant-design-vue'
+import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import {
   ExcelTemplateAdapter,
   ExcelUrlTemplateAdapter,
@@ -23,11 +23,10 @@ import {
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
-  importOnly: boolean
-  files?: Record<string, any>[]
+  importOnly?: boolean
 }
 
-const { importType, importOnly, files: initialFiles = [], ...rest } = defineProps<Props>()
+const { importType, importOnly = false, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -54,7 +53,7 @@ const templateEditorModal = ref(false)
 const useForm = Form.useForm
 
 const importState = reactive({
-  fileList: initialFiles as Record<string, any>[],
+  fileList: [] as (UploadFile & { data: any })[],
   url: '',
   jsonEditor: {},
   parserConfig: {
@@ -207,8 +206,22 @@ function handleChange(info: UploadChangeParam) {
     reader.onload = (e: ProgressEvent<FileReader>) => {
       const target = importState.fileList.find((f) => f.uid === info.file.uid)
 
-      if (target && e.target) {
-        target.data = (e.target as any).result
+      if (e.target) {
+        if (target) {
+          target.data = e.target.result
+        } else if (!target) {
+          // push new file to fileList
+          importState.fileList.push({
+            ...info.file.originFileObj!,
+            name: info.file.originFileObj!.name,
+            fileName: info.file.originFileObj!.name,
+            originFileObj: info.file.originFileObj!,
+            type: info.file.originFileObj!.type,
+            uid: Math.random().toString(36).substring(2),
+            status: 'done',
+            data: e.target.result,
+          })
+        }
       }
     }
 
@@ -257,6 +270,10 @@ function getAdapter(name: string, val: any) {
 
   return null
 }
+
+defineExpose({
+  handleChange,
+})
 </script>
 
 <template>
@@ -277,7 +294,7 @@ function getAdapter(name: string, val: any) {
           @import="handleImport"
         />
 
-        <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
+        <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" tab-position="top">
           <a-tab-pane key="uploadTab" :closable="false">
             <template #tab>
               <div class="flex items-center gap-2">
@@ -292,7 +309,7 @@ function getAdapter(name: string, val: any) {
                 name="file"
                 class="nc-input-import !scrollbar-thin-dull"
                 :accept="importMeta.acceptTypes"
-                :max-count="2"
+                :max-count="1"
                 list-type="picture"
                 @change="handleChange"
                 @reject="rejectDrop"

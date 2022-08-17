@@ -7,6 +7,7 @@ import {
   MetaInj,
   ReloadViewDataHookInj,
   computed,
+  createEventHook,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
   getUIDTIcon,
@@ -40,11 +41,11 @@ const { quickImportType, projectTemplate, importData, importColumns, importOnly,
 
 const emit = defineEmits(['import'])
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref({} as TableType))
 
 const columns = computed(() => meta.value?.columns || [])
 
-const reloadHook = inject(ReloadViewDataHookInj)!
+const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const useForm = Form.useForm
 
@@ -673,6 +674,7 @@ onMounted(() => {
                       <mdi-key-star class="text-lg" />
                     </div>
                   </a-tooltip>
+
                   <a-tooltip v-else>
                     <template #title>
                       <!-- TODO: i18n -->
@@ -688,15 +690,19 @@ onMounted(() => {
                 </template>
               </template>
             </a-table>
-            <div class="text-center mt-5">
+
+            <div class="mt-5 flex gap-2 justify-center">
               <a-tooltip bottom>
                 <template #title>
                   <!-- TODO: i18n -->
                   <span>Add Number Column</span>
                 </template>
 
-                <a-button @click="addNewColumnRow(table, 'Number')">
-                  <div class="flex items-center">
+                <a-button
+                  class="group hover:(ring-1 ring-pink-500 !border-transparent)"
+                  @click="addNewColumnRow(table, 'Number')"
+                >
+                  <div class="group-hover:!text-pink-500 flex items-center">
                     <mdi-numeric class="text-lg" />
                   </div>
                 </a-button>
@@ -707,8 +713,12 @@ onMounted(() => {
                   <!-- TODO: i18n -->
                   <span>Add SingleLineText Column</span>
                 </template>
-                <a-button @click="addNewColumnRow(table, 'SingleLineText')">
-                  <div class="flex items-center">
+
+                <a-button
+                  class="group hover:(ring-1 ring-pink-500 !border-transparent)"
+                  @click="addNewColumnRow(table, 'SingleLineText')"
+                >
+                  <div class="group-hover:!text-pink-500 flex items-center">
                     <mdi-alpha-a class="text-lg" />
                   </div>
                 </a-button>
@@ -719,8 +729,12 @@ onMounted(() => {
                   <!-- TODO: i18n -->
                   <span>Add LongText Column</span>
                 </template>
-                <a-button @click="addNewColumnRow(table, 'LongText')">
-                  <div class="flex items-center">
+
+                <a-button
+                  class="group hover:(ring-1 ring-pink-500 !border-transparent)"
+                  @click="addNewColumnRow(table, 'LongText')"
+                >
+                  <div class="group-hover:!text-pink-500 flex items-center">
                     <mdi-text class="text-lg" />
                   </div>
                 </a-button>
@@ -731,9 +745,13 @@ onMounted(() => {
                   <!-- TODO: i18n -->
                   <span>Add Other Column</span>
                 </template>
-                <a-button @click="addNewColumnRow(table, 'SingleLineText')">
+
+                <a-button
+                  class="group hover:(ring-1 ring-pink-500 !border-transparent)"
+                  @click="addNewColumnRow(table, 'SingleLineText')"
+                >
                   <div class="flex items-center">
-                    <mdi-plus class="text-lg" />
+                    <mdi-plus class="group-hover:!text-pink-500 text-lg" />
                     Column
                   </div>
                 </a-button>

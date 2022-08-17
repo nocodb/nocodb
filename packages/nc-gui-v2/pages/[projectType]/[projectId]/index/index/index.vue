@@ -98,7 +98,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
       <div class="flex items-center flex-wrap justify-center gap-2 prose-lg leading-8">
         To get started, either drop a <span class="flex items-center gap-2"><PhFileCsv /> CSV</span>,
         <span class="flex items-center gap-2"><BiFiletypeJson /> JSON</span> or
-        <span class="flex items-center gap-2"><BiFiletypeXlsx /> Excel</span> file in here or click the button in the top-left of
+        <span class="flex items-center gap-2"><BiFiletypeXlsx /> Excel</span> file here or click the button in the top-left of
         this page.
       </div>
     </div>

@@ -22,7 +22,7 @@ if (!notFound.value) {
   provide(IsPublicInj, ref(true))
   provide(IsFormInj, ref(true))
 
-  useProvideSmartsheetStore(sharedView as Ref<TableType>, meta as Ref<TableType>)
+  useProvideSmartsheetStore(sharedView as Ref<TableType>, meta as Ref<TableType>, true)
 }
 </script>
 

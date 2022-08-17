@@ -10,7 +10,6 @@ const {
   open,
   isLoading,
   isPublicGrid,
-  isForm,
   isReadonly,
   visibleItems,
   modalVisible,
@@ -33,6 +32,8 @@ const sortableRef = ref<HTMLDivElement>()
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
+
+const { isSharedForm } = useSmartsheetStoreOrThrow()
 
 onKeyDown('Escape', () => {
   modalVisible.value = false
@@ -61,7 +62,7 @@ function onClick(item: Record<string, any>) {
     <template #title>
       <div class="flex gap-4">
         <div
-          v-if="!isReadonly && (isForm || isUIAllowed('tableAttachment')) && !isPublicGrid && !isLocked"
+          v-if="isSharedForm || (!isReadonly && isUIAllowed('tableAttachment') && !isPublicGrid && !isLocked)"
           class="nc-attach-file group"
           @click="open"
         >
@@ -78,7 +79,7 @@ function onClick(item: Record<string, any>) {
     </template>
 
     <div ref="dropZoneRef">
-      <template v-if="!isReadonly && !dragging">
+      <template v-if="isSharedForm || (!isReadonly && !dragging)">
         <general-overlay
           v-model="isOverDropZone"
           inline
@@ -94,9 +95,8 @@ function onClick(item: Record<string, any>) {
           <a-card class="nc-attachment-item group">
             <a-tooltip v-if="!isReadonly">
               <template #title> Remove File </template>
-
               <MdiCloseCircle
-                v-if="isUIAllowed('tableAttachment') && !isPublicGrid && !isLocked"
+                v-if="isSharedForm || (isUIAllowed('tableAttachment') && !isPublicGrid && !isLocked)"
                 class="nc-attachment-remove"
                 @click.stop="removeFile(i)"
               />

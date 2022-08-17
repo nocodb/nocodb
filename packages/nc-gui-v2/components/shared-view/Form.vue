@@ -23,7 +23,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
     columnObj.colOptions &&
     columnObj.colOptions.type === RelationTypes.BELONGS_TO
   ) {
-    columnObj = formColumns.value.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<
+    columnObj = formColumns.value?.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<
       string,
       any
     >

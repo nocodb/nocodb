@@ -21,6 +21,14 @@ export interface ProjectMetaInfo {
   PackageVersion?: string
 }
 
+export interface Field {
+  order: number
+  show: number | boolean
+  title: string
+  fk_column_id?: string
+  system?: boolean
+}
+
 export type Roles = Record<Role, boolean>
 
 export type Filter = FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string; readOnly?: boolean }

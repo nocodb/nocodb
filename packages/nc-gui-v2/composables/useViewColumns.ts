@@ -4,18 +4,11 @@ import { watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
 import { IsPublicInj } from '#imports'
+import type { Field } from '~/lib'
 
 export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRef<TableType>, reloadData?: () => void) {
   const isPublic = inject(IsPublicInj, ref(false))
-  const fields = ref<
-    {
-      order: number
-      show: number | boolean
-      title: string
-      fk_column_id?: string
-      system?: boolean
-    }[]
-  >()
+  const fields = ref<Field[]>()
 
   const filterQuery = ref('')
 
@@ -39,7 +32,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
         }
       }, {})
       fields.value = meta.value?.columns
-        ?.map((column) => {
+        ?.map((column: ColumnType) => {
           const currentColumnField = fieldById[column.id!] || {}
 
           return {
@@ -50,13 +43,13 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
             system: isSystemColumn(currentColumnField.type || false),
           }
         })
-        .sort((a, b) => a.order - b.order)
+        .sort((a: Field, b: Field) => a.order - b.order)
     }
   }
 
   const showAll = async (ignoreIds?: any) => {
     if (isPublic.value) {
-      fields.value = fields.value?.map((field) => ({
+      fields.value = fields.value?.map((field: Field) => ({
         ...field,
         show: true,
       }))
@@ -79,7 +72,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   }
   const hideAll = async (ignoreIds?: any) => {
     if (isPublic.value) {
-      fields.value = fields.value?.map((field) => ({
+      fields.value = fields.value?.map((field: Field) => ({
         ...field,
         show: false,
       }))
@@ -101,9 +94,9 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   }
 
   const saveOrUpdate = async (field: any, index: number) => {
-    if (isPublic && fields.value) {
+    if (isPublic.value && fields.value) {
       fields.value[index] = field
-      meta.value.columns = meta.value?.columns?.map((column) => {
+      meta.value.columns = meta.value?.columns?.map((column: ColumnType) => {
         if (column.id === field.fk_column_id) {
           return {
             ...column,
@@ -128,16 +121,16 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     reloadData?.()
   }
 
-  const metaColumnById = computed(() => {
-    return (
-      meta.value?.columns?.reduce<Record<string, ColumnType>>((acc, curr) => {
-        return {
+  const metaColumnById = computed<Record<string, ColumnType>>(
+    () =>
+      meta.value?.columns?.reduce(
+        (acc: ColumnType, curr: ColumnType) => ({
           ...acc,
           [curr.id!]: curr,
-        }
-      }, {}) || {}
-    )
-  })
+        }),
+        {},
+      ) || {},
+  )
 
   const showSystemFields = computed({
     get() {
@@ -160,33 +153,33 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
 
   const filteredFieldList = computed(() => {
     return (
-      fields.value?.filter((field) => {
+      fields.value?.filter((field: Field) => {
         // hide system columns if not enabled
         if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
           return false
         }
 
         return !filterQuery?.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase())
-      }) || {}
+      }) || []
     )
   })
 
   const sortedAndFilteredFields = computed<ColumnType[]>(() => {
     return (fields?.value
-      ?.filter((c) => {
+      ?.filter((field: Field) => {
         // hide system columns if not enabled
         if (
           !showSystemFields.value &&
           metaColumnById.value &&
-          metaColumnById?.value?.[c.fk_column_id!] &&
-          isSystemColumn(metaColumnById.value?.[c.fk_column_id!])
+          metaColumnById?.value?.[field.fk_column_id!] &&
+          isSystemColumn(metaColumnById.value?.[field.fk_column_id!])
         ) {
           return false
         }
-        return c.show && metaColumnById?.value?.[c.fk_column_id!]
+        return field.show && metaColumnById?.value?.[field.fk_column_id!]
       })
-      ?.sort((a, b) => a.order - b.order)
-      ?.map((c) => metaColumnById?.value?.[c.fk_column_id!]) || []) as ColumnType[]
+      ?.sort((a: Field, b: Field) => a.order - b.order)
+      ?.map((field: Field) => metaColumnById?.value?.[field.fk_column_id!]) || []) as ColumnType[]
   })
 
   // reload view columns when table meta changes

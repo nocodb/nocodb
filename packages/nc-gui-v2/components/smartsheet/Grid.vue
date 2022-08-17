@@ -463,7 +463,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
             </tr>
           </tbody>
         </table>
-        <template #overlay>
+        <template v-if="!isLocked" #overlay>
           <a-menu class="bg-white shadow" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)"
               ><span class="text-xs">Delete row</span></a-menu-item

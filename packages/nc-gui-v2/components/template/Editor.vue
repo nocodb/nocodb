@@ -698,12 +698,9 @@ onMounted(() => {
                   <span>Add Number Column</span>
                 </template>
 
-                <a-button
-                  class="group hover:(ring-1 ring-pink-500 !border-transparent)"
-                  @click="addNewColumnRow(table, 'Number')"
-                >
-                  <div class="group-hover:!text-pink-500 flex items-center">
-                    <mdi-numeric class="text-lg" />
+                <a-button class="group" @click="addNewColumnRow(table, 'Number')">
+                  <div class="flex items-center">
+                    <mdi-numeric class="group-hover:!text-pink-500 flex text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -714,12 +711,9 @@ onMounted(() => {
                   <span>Add SingleLineText Column</span>
                 </template>
 
-                <a-button
-                  class="group hover:(ring-1 ring-pink-500 !border-transparent)"
-                  @click="addNewColumnRow(table, 'SingleLineText')"
-                >
-                  <div class="group-hover:!text-pink-500 flex items-center">
-                    <mdi-alpha-a class="text-lg" />
+                <a-button class="group" @click="addNewColumnRow(table, 'SingleLineText')">
+                  <div class="flex items-center">
+                    <mdi-alpha-a class="group-hover:!text-pink-500 text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -730,12 +724,9 @@ onMounted(() => {
                   <span>Add LongText Column</span>
                 </template>
 
-                <a-button
-                  class="group hover:(ring-1 ring-pink-500 !border-transparent)"
-                  @click="addNewColumnRow(table, 'LongText')"
-                >
-                  <div class="group-hover:!text-pink-500 flex items-center">
-                    <mdi-text class="text-lg" />
+                <a-button class="group" @click="addNewColumnRow(table, 'LongText')">
+                  <div class="flex items-center">
+                    <mdi-text class="group-hover:!text-pink-500 text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -746,13 +737,9 @@ onMounted(() => {
                   <span>Add Other Column</span>
                 </template>
 
-                <a-button
-                  class="group hover:(ring-1 ring-pink-500 !border-transparent)"
-                  @click="addNewColumnRow(table, 'SingleLineText')"
-                >
-                  <div class="flex items-center">
+                <a-button class="group" @click="addNewColumnRow(table, 'SingleLineText')">
+                  <div class="flex items-center gap-1">
                     <mdi-plus class="group-hover:!text-pink-500 text-lg" />
-                    Column
                   </div>
                 </a-button>
               </a-tooltip>

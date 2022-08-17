@@ -191,7 +191,7 @@ async function parseAndExtractData(val: any, name: string) {
   }
 }
 
-function rejectDrop(fileList: Record<string, any>[]) {
+function rejectDrop(fileList: UploadFile[]) {
   fileList.map((file) => {
     return message.error(`Failed to upload file ${file.name}`)
   })

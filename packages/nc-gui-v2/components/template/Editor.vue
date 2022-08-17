@@ -84,7 +84,7 @@ const uiTypeOptions = ref<Option[]>(
 
 const srcDestMapping = ref<Record<string, any>[]>([])
 
-const data = reactive<{ title: string | null; name: string; tables: TableType[] }>({
+const data = reactive<{ title: string | null; name: string; tables: (TableType & { ref_table_name: string })[] }>({
   title: null,
   name: 'Project Name',
   tables: [],

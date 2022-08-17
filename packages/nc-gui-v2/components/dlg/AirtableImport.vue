@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
       <div v-if="step === 2">
         <div class="mb-4 prose-xl font-bold">Logs</div>
 
-        <a-card ref="logRef" body-style="background-color: #000000; height:400px; overflow: auto;">
+        <a-card ref="logRef" :body-style="{ backgroundColor: '#000000', height: '400px', overflow: 'auto' }">
           <div v-for="({ msg, status }, i) in progress" :key="i">
             <div v-if="status === 'FAILED'" class="flex items-center">
               <MdiCloseCircleOutlineIcon class="text-red-500" />

@@ -24,9 +24,10 @@ interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
   importOnly: boolean
+  files?: Record<string, any>[]
 }
 
-const { importType, importOnly, ...rest } = defineProps<Props>()
+const { importType, importOnly, files: initialFiles = [], ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -53,7 +54,7 @@ const templateEditorModal = ref(false)
 const useForm = Form.useForm
 
 const importState = reactive({
-  fileList: [] as Record<string, any>[],
+  fileList: initialFiles as Record<string, any>[],
   url: '',
   jsonEditor: {},
   parserConfig: {
@@ -69,12 +70,10 @@ const isImportTypeCsv = computed(() => importType === 'csv')
 
 const IsImportTypeExcel = computed(() => importType === 'excel')
 
-const validators = computed(() => {
-  return {
-    url: [fieldRequiredValidator, importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
-    maxRowsToParse: [fieldRequiredValidator],
-  }
-})
+const validators = computed(() => ({
+  url: [fieldRequiredValidator, importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
+  maxRowsToParse: [fieldRequiredValidator],
+}))
 
 const { validate, validateInfos } = useForm(importState, validators)
 

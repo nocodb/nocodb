@@ -1,12 +1,29 @@
 <script lang="ts" setup>
-import { ref, useDropZone } from '#imports'
+import { ref, useDialog, useDropZone, useNuxtApp } from '#imports'
+import DlgQuickImport from '~/components/dlg/QuickImport.vue'
 
 const el = ref<HTMLDivElement>()
 
 const { isOverDropZone } = useDropZone(el, onDrop)
 
-function onDrop() {
-  console.log('onDrop')
+const { $e } = useNuxtApp()
+
+function onDrop(droppedFiles: File[] | null) {
+  console.log('onDrop', droppedFiles)
+}
+
+function openQuickImportDialog(type: string) {
+  $e(`a:actions:import-${type}`)
+
+  const { close } = useDialog(DlgQuickImport, {
+    'modelValue': true,
+    'importType': type,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    close(1000)
+  }
 }
 </script>
 

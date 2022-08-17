@@ -86,6 +86,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
                       resolve(res)
                     }
                     reader.readAsDataURL(file)
+                  } else {
+                    resolve(res)
                   }
                 }),
             ),

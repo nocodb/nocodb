@@ -27,16 +27,16 @@ watchEffect(async () => {
 
 const reloadEventHook = createEventHook<void>()
 
+const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
+
 // todo: move to store
 provide(MetaInj, meta)
 provide(TabMetaInj, tabMeta)
 provide(ActiveViewInj, activeView)
-provide(IsLockedInj, false)
+provide(IsLockedInj, isLocked)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
 provide(RightSidebarInj, ref(false))
-
-const { isGallery, isGrid, isForm } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
 
 watch(tabMeta, async (newTabMeta, oldTabMeta) => {
   if (newTabMeta !== oldTabMeta && newTabMeta?.id) await getMeta(newTabMeta.id)

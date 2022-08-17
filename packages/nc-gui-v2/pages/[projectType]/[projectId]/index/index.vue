@@ -33,13 +33,17 @@ const icon = (tab: TabItem) => {
 function openQuickImportDialog(type: string) {
   $e(`a:actions:import-${type}`)
 
+  const isOpen = ref(true)
+
   const { close } = useDialog(DlgQuickImport, {
-    'modelValue': true,
+    'modelValue': isOpen,
     'importType': type,
     'onUpdate:modelValue': closeDialog,
   })
 
   function closeDialog() {
+    isOpen.value = false
+
     close(1000)
   }
 }
@@ -47,12 +51,16 @@ function openQuickImportDialog(type: string) {
 function openTableCreateDialog() {
   $e('a:actions:create-table')
 
+  const isOpen = ref(true)
+
   const { close } = useDialog(DlgTableCreate, {
-    'modelValue': true,
+    'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
   })
 
   function closeDialog() {
+    isOpen.value = false
+
     close(1000)
   }
 }
@@ -60,12 +68,16 @@ function openTableCreateDialog() {
 function openAirtableImportDialog() {
   $e('a:actions:import-airtable')
 
+  const isOpen = ref(true)
+
   const { close } = useDialog(DlgAirtableImport, {
-    'modelValue': true,
+    'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
   })
 
   function closeDialog() {
+    isOpen.value = false
+
     close(1000)
   }
 }

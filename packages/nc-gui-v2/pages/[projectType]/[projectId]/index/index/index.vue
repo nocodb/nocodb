@@ -76,6 +76,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 
   function closeDialog() {
     isOpen.value = false
+
     close(1000)
   }
 }

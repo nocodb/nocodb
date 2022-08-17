@@ -1,12 +1,20 @@
 <script setup lang="ts">
-import io from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
-import { Form, message } from 'ant-design-vue'
+import io from 'socket.io-client'
 import type { Card as AntCard } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, fieldRequiredValidator } from '~/utils'
-import MdiCloseCircleOutlineIcon from '~icons/mdi/close-circle-outline'
-import MdiCurrencyUsdIcon from '~icons/mdi/currency-usd'
-import MdiLoadingIcon from '~icons/mdi/loading'
+import { Form, message } from 'ant-design-vue'
+import {
+  computed,
+  extractSdkResponseErrorMsg,
+  fieldRequiredValidator,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useNuxtApp,
+  useProject,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -54,29 +62,21 @@ const syncSource = ref({
   },
 })
 
-const validators = computed(() => {
-  return {
-    'details.apiKey': [fieldRequiredValidator],
-    'details.syncSourceUrlOrId': [fieldRequiredValidator],
-  }
-})
+const validators = computed(() => ({
+  'details.apiKey': [fieldRequiredValidator],
+  'details.syncSourceUrlOrId': [fieldRequiredValidator],
+}))
 
 const dialogShow = computed({
-  get() {
-    return modelValue
-  },
-  set(v) {
-    emit('update:modelValue', v)
-  },
+  get: () => modelValue,
+  set: (v) => emit('update:modelValue', v),
 })
 
 const useForm = Form.useForm
 
 const { validateInfos } = useForm(syncSource, validators)
 
-const disableImportButton = computed(() => {
-  return !syncSource.value.details.apiKey || !syncSource.value.details.syncSourceUrlOrId
-})
+const disableImportButton = computed(() => !syncSource.value.details.apiKey || !syncSource.value.details.syncSourceUrlOrId)
 
 async function saveAndSync() {
   await createOrUpdate()
@@ -86,6 +86,7 @@ async function saveAndSync() {
 async function createOrUpdate() {
   try {
     const { id, ...payload } = syncSource.value
+
     if (id !== '') {
       await $fetch(`/api/v1/db/meta/syncs/${id}`, {
         baseURL,
@@ -94,13 +95,12 @@ async function createOrUpdate() {
         body: payload,
       })
     } else {
-      const data: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
+      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
         baseURL,
         method: 'POST',
         headers: { 'xc-auth': $state.token.value as string },
         body: payload,
       })
-      syncSource.value = data
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -113,7 +113,9 @@ async function loadSyncSrc() {
     method: 'GET',
     headers: { 'xc-auth': $state.token.value as string },
   })
+
   const { list: srcs } = data
+
   if (srcs && srcs[0]) {
     srcs[0].details = srcs[0].details || {}
     syncSource.value = migrateSync(srcs[0])
@@ -171,6 +173,7 @@ function migrateSync(src: any) {
     src.details.options.syncViews = src.syncViews
     delete src.syncViews
   }
+
   return src
 }
 
@@ -188,6 +191,7 @@ onMounted(async () => {
   socket = io(new URL(baseURL, window.location.href.split(/[?#]/)[0]).href, {
     extraHeaders: { 'xc-auth': $state.token.value as string },
   })
+
   socket.on('connect_error', () => {
     socket?.disconnect()
     socket = null
@@ -203,7 +207,7 @@ onMounted(async () => {
     progress.value.push(d)
 
     // FIXME: this doesn't work
-    nextTick(() => {
+    await nextTick(() => {
       ;(logRef.value?.$el as HTMLDivElement).scrollTo()
     })
 
@@ -213,6 +217,7 @@ onMounted(async () => {
       // TODO: add tab of the first table
     }
   })
+
   await loadSyncSrc()
 })
 
@@ -317,13 +322,13 @@ onBeforeUnmount(() => {
         <a-card ref="logRef" :body-style="{ backgroundColor: '#000000', height: '400px', overflow: 'auto' }">
           <div v-for="({ msg, status }, i) in progress" :key="i">
             <div v-if="status === 'FAILED'" class="flex items-center">
-              <MdiCloseCircleOutlineIcon class="text-red-500" />
+              <MdiCloseCircleOutline class="text-red-500" />
 
               <span class="text-red-500 ml-2">{{ msg }}</span>
             </div>
 
             <div v-else class="flex items-center">
-              <MdiCurrencyUsdIcon class="text-green-500" />
+              <MdiCurrencyUsd class="text-green-500" />
 
               <span class="text-green-500 ml-2">{{ msg }}</span>
             </div>
@@ -337,7 +342,7 @@ onBeforeUnmount(() => {
             "
             class="flex items-center"
           >
-            <MdiLoadingIcon class="text-green-500 animate-spin" />
+            <MdiLoading class="text-green-500 animate-spin" />
             <span class="text-green-500 ml-2"> Importing</span>
           </div>
         </a-card>

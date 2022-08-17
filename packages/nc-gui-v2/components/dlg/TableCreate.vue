@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { Form } from 'ant-design-vue'
-import { onMounted, useProject, useTable, useTabs } from '#imports'
-import { validateTableName } from '~/utils/validation'
+import { computed, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
 import { TabType } from '~/composables'
 
 interface Props {
-  modelValue?: boolean
+  modelValue: boolean
 }
 
 const props = defineProps<Props>()
@@ -15,6 +14,8 @@ const emit = defineEmits(['update:modelValue'])
 const dialogShow = useVModel(props, 'modelValue', emit)
 
 const isAdvanceOptVisible = ref(false)
+
+const inputEl = ref<HTMLInputElement>()
 
 const { addTab } = useTabs()
 
@@ -28,15 +29,13 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTable(as
     title: table.title,
     type: TabType.TABLE,
   })
+
   dialogShow.value = false
 })
 
-const validateDuplicateAlias = (v: string) => {
-  return (tables?.value || []).every((t) => t.title !== (v || '')) || 'Duplicate table alias'
-}
-const inputEl = ref<HTMLInputElement>()
-
 const useForm = Form.useForm
+
+const validateDuplicateAlias = (v: string) => (tables.value || []).every((t) => t.title !== (v || '')) || 'Duplicate table alias'
 
 const validators = computed(() => {
   return {
@@ -48,6 +47,7 @@ const { validateInfos } = useForm(table, validators)
 
 onMounted(() => {
   generateUniqueTitle()
+
   inputEl.value?.focus()
 })
 </script>

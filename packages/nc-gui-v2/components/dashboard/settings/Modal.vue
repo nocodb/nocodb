@@ -140,7 +140,7 @@ watch(
   >
     <div class="flex flex-row justify-between w-full items-center mb-1">
       <a-typography-title class="ml-4 select-none" type="secondary" :level="5">SETTINGS</a-typography-title>
-      <a-button type="text" class="!rounded-md border-none -mt-1.5" @click="vModel = false">
+      <a-button type="text" class="!rounded-md border-none -mt-1.5 -mr-1" @click="vModel = false">
         <template #icon>
           <MdiCloseIcon class="cursor-pointer mt-1" />
         </template>

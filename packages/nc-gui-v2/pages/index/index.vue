@@ -69,103 +69,119 @@ onMounted(() => {
       </div>
 
       <div class="min-w-2/4 flex-auto">
-        <a-card :loading="isLoading" class="!rounded-lg shadow">
-          <h1 class="text-center text-4xl p-2 nc-project-page-title flex items-center justify-center gap-2 text-gray-600">
+        <a-card class="transition-all duration-300 ease-out !rounded-lg shadow">
+          <h1 class="flex items-center justify-center gap-2 leading-8 mb-8">
             <!-- My Projects -->
-            <b>{{ $t('title.myProject') }}</b>
+            <span class="text-4xl">{{ $t('title.myProject') }}</span>
 
-            <MdiRefresh
-              v-t="['a:project:refresh']"
-              class="text-sm text-gray-500 hover:text-primary mt-1 cursor-pointer"
-              @click="loadProjects"
-            />
+            <a-tooltip title="Reload projects">
+              <span
+                class="transition-all duration-200 h-full flex items-center group hover:ring active:(ring ring-pink-500) rounded-full mt-1"
+                :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
+              >
+                <MdiRefresh
+                  v-t="['a:project:refresh']"
+                  class="text-xl text-gray-500 group-hover:text-pink-500 cursor-pointer"
+                  :class="isLoading ? '!text-primary' : ''"
+                  @click="loadProjects"
+                />
+              </span>
+            </a-tooltip>
           </h1>
 
           <div class="order-1 flex mb-6">
             <a-input-search
               v-model:value="filterQuery"
-              class="max-w-[200px] nc-project-page-search"
+              class="max-w-[250px] nc-project-page-search rounded"
               :placeholder="$t('activity.searchProject')"
             />
 
             <div class="flex-grow" />
 
-            <a-dropdown v-if="isUIAllowed('projectCreate', true)" @click.stop>
-              <a-button class="nc-new-project-menu !shadow">
-                <div class="flex align-center">
+            <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']">
+              <button class="nc-new-project-menu">
+                <div class="flex items-center w-full">
                   {{ $t('title.newProj') }}
                   <MdiMenuDown class="menu-icon" />
                 </div>
-              </a-button>
+              </button>
 
               <template #overlay>
                 <a-menu>
-                  <div
-                    v-t="['c:project:create:xcdb']"
-                    class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-xc-db-project"
-                    @click="navigateTo('/project/create')"
-                  >
-                    <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
+                  <a-menu-item>
+                    <div
+                      v-t="['c:project:create:xcdb']"
+                      class="nc-project-menu-item gap-4"
+                      @click="navigateTo('/project/create')"
+                    >
+                      <MdiPlusOutline class="text-lg" />
 
-                    <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
-                  </div>
+                      <div>{{ $t('activity.createProject') }}</div>
+                    </div>
+                  </a-menu-item>
 
-                  <div
-                    v-t="['c:project:create:extdb']"
-                    class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-external-db-project"
-                    @click="navigateTo('/project/create-external')"
-                  >
-                    <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
+                  <a-menu-item>
+                    <div
+                      v-t="['c:project:create:extdb']"
+                      class="nc-project-menu-item gap-4"
+                      @click="navigateTo('/project/create-external')"
+                    >
+                      <MdiDatabaseOutline class="text-lg" />
 
-                    <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
-                  </div>
+                      <div v-html="$t('activity.createProjectExtended.extDB')" />
+                    </div>
+                  </a-menu-item>
                 </a-menu>
               </template>
             </a-dropdown>
           </div>
 
-          <div v-if="isLoading">
-            <a-skeleton />
-          </div>
+          <TransitionGroup name="layout" mode="out-in">
+            <div v-if="isLoading">
+              <a-skeleton />
+            </div>
 
-          <a-table
-            v-else
-            :custom-row="
-              (record) => ({
-                onClick: () => {
-                  $e('a:project:open')
-                  navigateTo(`/nc/${record.id}`)
-                },
-              })
-            "
-            :data-source="filteredProjects"
-            :pagination="{ position: ['bottomCenter'] }"
-          >
-            <!-- Title -->
-            <a-table-column key="title" :title="$t('general.title')" data-index="title">
-              <template #default="{ text }">
-                <div
-                  class="capitalize !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap nc-project-row"
-                  :title="text"
-                >
-                  {{ text }}
-                </div>
-              </template>
-            </a-table-column>
-            <!-- Actions -->
-            <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
-              <template #default="{ text, record }">
-                <div class="flex align-center">
-                  <MdiEditOutline
-                    v-t="['c:project:edit:rename']"
-                    class="nc-action-btn"
-                    @click.stop="navigateTo(`/project/${text}`)"
-                  />
-                  <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
-                </div>
-              </template>
-            </a-table-column>
-          </a-table>
+            <a-table
+              v-else
+              :custom-row="
+                (record) => ({
+                  onClick: () => {
+                    $e('a:project:open')
+                    navigateTo(`/nc/${record.id}`)
+                  },
+                  class: ['group'],
+                })
+              "
+              :data-source="filteredProjects"
+              :pagination="{ position: ['bottomCenter'] }"
+            >
+              <!-- Title -->
+              <a-table-column key="title" :title="$t('general.title')" data-index="title">
+                <template #default="{ text }">
+                  <div
+                    class="capitalize color-transition group-hover:text-pink-500 !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap"
+                  >
+                    {{ text }}
+                  </div>
+                </template>
+              </a-table-column>
+              <!-- Actions -->
+
+              <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
+                <template #default="{ text, record }">
+                  <div class="flex items-center gap-2">
+                    <MdiEditOutline
+                      v-t="['c:project:edit:rename']"
+                      class="nc-action-btn"
+                      @click.stop="navigateTo(`/project/${text}`)"
+                    />
+
+                    <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
+                  </div>
+                </template>
+              </a-table-column>
+            </a-table>
+          </TransitionGroup>
         </a-card>
       </div>
 
@@ -182,7 +198,25 @@ onMounted(() => {
 
 <style scoped>
 .nc-action-btn {
-  @apply text-gray-500 hover:text-primary mr-2 cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
+  @apply text-gray-500 hover:(text-pink-500 ring) active:(ring ring-pink-500) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
+}
+
+.nc-new-project-menu {
+  @apply cursor-pointer z-1 relative color-transition rounded-md px-3 py-2 text-white;
+
+  &::after {
+    @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
+    content: '';
+    z-index: -1;
+  }
+
+  &:hover::after {
+    @apply transform scale-110 ring ring-pink-500;
+  }
+
+  &:active::after {
+    @apply ring ring-pink-500;
+  }
 }
 
 :deep(.ant-table-cell) {

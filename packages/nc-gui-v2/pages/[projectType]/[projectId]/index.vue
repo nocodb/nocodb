@@ -8,12 +8,14 @@ import {
   ref,
   useClipboard,
   useElementHover,
+  useGlobal,
   useProject,
   useRoute,
   useTabs,
   useUIPermission,
 } from '#imports'
 import { TabType } from '~/composables'
+
 const route = useRoute()
 
 const { appInfo, token } = useGlobal()
@@ -66,11 +68,13 @@ const isHovered = useElementHover(sidebar)
 const copyProjectInfo = async () => {
   try {
     await loadProjectMetaInfo()
-    copy(
+
+    await copy(
       Object.entries(projectMetaInfo.value!)
         .map(([k, v]) => `${k}: **${v}**`)
         .join('\n'),
     )
+
     message.info('Copied project info to clipboard')
   } catch (e: any) {
     console.log(e)
@@ -80,7 +84,8 @@ const copyProjectInfo = async () => {
 
 const copyAuthToken = async () => {
   try {
-    copy(token.value!)
+    await copy(token.value!)
+
     message.info('Copied auth token to clipboard')
   } catch (e: any) {
     console.log(e)
@@ -138,7 +143,7 @@ const copyAuthToken = async () => {
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
-              class="group cursor-pointer flex gap-4 items-center nc-project-menu"
+              class="group cursor-pointer flex gap-4 items-center nc-project-menu overflow-hidden"
             >
               <template v-if="isOpen">
                 <div class="text-xl font-semibold truncate">{{ project.title }}</div>
@@ -274,10 +279,6 @@ const copyAuthToken = async () => {
 </template>
 
 <style lang="scss" scoped>
-.nc-project-menu-item {
-  @apply cursor-pointer flex items-center gap-2 py-2 hover:text-primary after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
-}
-
 :deep(.ant-dropdown-menu-item-group-title) {
   @apply border-b-1;
 }

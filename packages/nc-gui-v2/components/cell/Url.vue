@@ -44,8 +44,10 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 watch(
   () => editEnabled.value,
   () => {
-    if (!editEnabled.value && localState.value && !isValidURL(localState.value)) {
+    if (column.value.meta?.validate && !editEnabled.value && localState.value && !isValidURL(localState.value)) {
       message.error('Invalid URL')
+      localState.value = undefined
+      return
     }
     localState.value = value
   },

@@ -59,7 +59,11 @@ watch(
   () => modelValue,
   (nextModel) => {
     if (nextModel) {
-      attachments.value = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
+      try {
+        attachments.value = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
+      } catch {
+        attachments.value = []
+      }
     }
   },
   { immediate: true },

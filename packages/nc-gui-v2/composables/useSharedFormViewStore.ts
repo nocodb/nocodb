@@ -116,7 +116,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const data: Record<string, any> = { ...(formState?.value ?? {}), ...(additionalState?.value || {}) }
       const attachment: Record<string, any> = {}
 
-      for (const col of metas?.value?.[sharedFormView?.value?.fk_model_id as string]?.columns ?? []) {
+      for (const col of metas?.value?.[sharedView?.value?.fk_model_id as string]?.columns ?? []) {
         if (col.uidt === UITypes.Attachment) {
           attachment[`_${col.title}`] = data[col.title!]
           delete data[col.title!]

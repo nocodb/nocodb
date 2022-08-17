@@ -92,6 +92,10 @@ html {
   @apply bg-primary/20 hover:(bg-primary/20);
 }
 
+.nc-locked-overlay {
+  @apply absolute h-full w-full z-2 top-0 left-0;
+}
+
 .ant-modal-wrap {
   @apply !scrollbar-thin-dull;
 }

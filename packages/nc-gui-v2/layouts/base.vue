@@ -22,7 +22,10 @@ const logout = () => {
 
     <a-layout class="!flex-col">
       <Transition name="layout">
-        <a-layout-header v-if="signedIn" class="flex !bg-primary items-center text-white pl-4 pr-5 shadow-lg">
+        <a-layout-header
+          v-if="!route.meta.public && signedIn"
+          class="flex !bg-primary items-center text-white pl-4 pr-5 shadow-lg"
+        >
           <div
             v-if="
               route.name === 'index' || route.name === 'project-index-create' || route.name === 'project-index-create-external'
@@ -48,7 +51,7 @@ const logout = () => {
           <GeneralShareBaseButton />
 
           <a-tooltip placement="bottom">
-            <template #title> Switch language </template>
+            <template #title> Switch language</template>
 
             <div class="flex pr-4 items-center">
               <GeneralLanguage class="cursor-pointer text-2xl" />
@@ -88,7 +91,7 @@ const logout = () => {
       </Transition>
 
       <a-tooltip placement="bottom">
-        <template #title> Switch language </template>
+        <template #title> Switch language</template>
 
         <Transition name="layout">
           <div v-if="!signedIn" class="nc-lang-btn">

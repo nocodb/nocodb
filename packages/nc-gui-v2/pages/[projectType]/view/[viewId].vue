@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import { ReadonlyInj, ReloadViewDataHookInj, useRoute } from '#imports'
+import {
+  ReadonlyInj,
+  ReloadViewDataHookInj,
+  createEventHook,
+  definePageMeta,
+  provide,
+  ref,
+  useRoute,
+  useSharedView,
+} from '#imports'
 
 definePageMeta({
+  public: true,
   requiresAuth: false,
   layout: 'shared-view',
 })
@@ -10,7 +20,7 @@ const route = useRoute()
 
 const reloadEventHook = createEventHook<void>()
 provide(ReloadViewDataHookInj, reloadEventHook)
-provide(ReadonlyInj, ref(true))
+provide(ReadonlyInj, true)
 
 const { loadSharedView } = useSharedView()
 const showPassword = ref(false)
@@ -27,6 +37,7 @@ try {
     <div v-if="showPassword">
       <SharedViewAskPassword v-model="showPassword" />
     </div>
+
     <SharedViewGrid v-else />
   </NuxtLayout>
 </template>

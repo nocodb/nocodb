@@ -160,7 +160,11 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
           return false
         }
 
-        return !filterQuery?.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase())
+        if (filterQuery.value === '') {
+          return true
+        } else {
+          return field.title.toLowerCase().includes(filterQuery.value.toLowerCase())
+        }
       }) || []
     )
   })

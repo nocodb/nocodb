@@ -2,6 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import { ColumnInj, EditModeInj, computed, inject, isValidURL } from '#imports'
+import MaterialSymbolsWarning from '~icons/material-symbols/warning'
 
 interface Props {
   modelValue?: string | null
@@ -22,13 +23,13 @@ const vModel = computed({
   get: () => value,
   set: (val) => {
     localState.value = val
-    if (!column.value.meta?.validate || (val && isValidURL(val))) {
+    if (!column.value.meta?.validate || (val && isValidURL(val)) || !val) {
       emit('update:modelValue', val)
     }
   },
 })
 
-const isValid = computed(() => value && isValidURL(value))
+const isValid = computed(() => !column.value.meta?.validate || (value && isValidURL(value)))
 
 const url = computed(() => {
   if (!value || !isValidURL(value)) return ''
@@ -55,11 +56,22 @@ watch(
 </script>
 
 <template>
-  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm" @blur="editEnabled = false" />
+  <div class="flex flex-row items-center justify-between">
+    <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm w-full" @blur="editEnabled = false" />
 
-  <nuxt-link v-else-if="isValid" class="text-sm underline hover:opacity-75" :to="url" target="_blank">{{ value }} </nuxt-link>
+    <nuxt-link v-else-if="isValid" class="text-sm underline hover:opacity-75" :to="url" target="_blank">{{ value }} </nuxt-link>
 
-  <span v-else>{{ value }}</span>
+    <span v-else class="w-9/10 overflow-ellipsis overflow-hidden">{{ value }}</span>
+
+    <div v-if="!isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
+      <a-tooltip placement="top">
+        <template #title> Invalid URL </template>
+        <div class="flex flex-row items-center">
+          <MaterialSymbolsWarning />
+        </div>
+      </a-tooltip>
+    </div>
+  </div>
 </template>
 
 <!--

@@ -18,9 +18,9 @@ useProvideSmartsheetStore(sharedView as Ref<TableType>, meta)
 </script>
 
 <template>
-  <div class="nc-container flex flex-col h-full mt-4 px-6">
+  <div class="nc-container flex flex-col h-full mt-1.5 px-12">
     <SmartsheetToolbar />
-    <SmartsheetGrid class="px-3" />
+    <SmartsheetGrid />
   </div>
 </template>
 

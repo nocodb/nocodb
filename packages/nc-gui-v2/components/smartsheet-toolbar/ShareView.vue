@@ -21,7 +21,7 @@ const { isUIAllowed } = useUIPermission()
 
 let showShareModel = $ref(false)
 
-const passwordProtected = $ref(false)
+let passwordProtected = $ref(false)
 
 const shared = ref()
 
@@ -100,6 +100,20 @@ const copyLink = () => {
   copy(sharedViewUrl?.value as string)
   message.success('Copied to clipboard')
 }
+
+watch(
+  () => passwordProtected,
+  (value) => {
+    if (!value) {
+      shared.value.password = ''
+      saveShareLinkPassword()
+    }
+  },
+)
+
+onMounted(() => {
+  if (shared.value?.password?.length) passwordProtected = true
+})
 </script>
 
 <template>

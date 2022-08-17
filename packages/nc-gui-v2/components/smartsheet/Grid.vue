@@ -59,7 +59,15 @@ const { xWhere, isPkAvail, cellRefs } = useSmartsheetStoreOrThrow()
 
 const addColumnDropdown = ref(false)
 
-const contextMenu = ref(false)
+const _contextMenu = ref(false)
+const contextMenu = computed({
+  get: () => _contextMenu.value,
+  set: (val) => {
+    if (!readonly) {
+      _contextMenu.value = val
+    }
+  },
+})
 
 const contextMenuTarget = ref(false)
 const expandedFormDlg = ref(false)

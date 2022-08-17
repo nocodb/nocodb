@@ -83,13 +83,15 @@ watch(
     rowState.value[column.value.title!] = storedFiles.value
   },
 )
+
+const { isSharedForm } = useSmartsheetStoreOrThrow()
 </script>
 
 <template>
   <div class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1">
     <Carousel />
 
-    <template v-if="!isReadonly && !dragging && !!currentCellRef">
+    <template v-if="isSharedForm || (!isReadonly && !dragging && !!currentCellRef)">
       <general-overlay
         v-model="isOverDropZone"
         inline

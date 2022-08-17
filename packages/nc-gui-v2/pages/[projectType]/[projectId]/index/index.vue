@@ -98,77 +98,85 @@ function openAirtableImportDialog() {
           </a-tab-pane>
 
           <template #leftExtra>
-            <a-menu v-if="isUIAllowed('addOrImport')" v-model:selectedKeys="currentMenu" class="border-0" mode="horizontal">
-              <a-sub-menu key="addORImport">
-                <template #title>
-                  <div class="text-sm flex items-center gap-2 pt-[8px] pb-3">
-                    <MdiPlusBoxOutline />
-                    Add / Import
-                  </div>
-                </template>
+            <a-dropdown v-if="isUIAllowed('addOrImport')" :trigger="['click', 'hover']">
+              <div
+                class="cursor-pointer color-transition group hover:text-primary text-sm flex items-center gap-2 py-[9.5px] px-[20px]"
+              >
+                <MdiPlusBoxOutline class="group-hover:text-pink-500" />
+                Add / Import
+              </div>
 
-                <a-menu-item-group v-if="isUIAllowed('addTable')">
-                  <a-menu-item key="add-new-table" @click="openTableCreateDialog">
-                    <span class="flex items-center gap-2">
-                      <MdiTable class="text-primary" />
+              <template #overlay>
+                <a-menu class="nc-add-project-menu !pt-0 ml-6">
+                  <a-menu-item v-if="isUIAllowed('addTable')" key="add-new-table" @click="openTableCreateDialog">
+                    <div class="color-transition nc-project-menu-item group">
+                      <MdiTable class="group-hover:text-pink-500" />
                       <!-- Add new table -->
                       {{ $t('tooltip.addTable') }}
-                    </span>
-                  </a-menu-item>
-                </a-menu-item-group>
-
-                <a-menu-item-group title="QUICK IMPORT FROM">
-                  <a-menu-item v-if="isUIAllowed('airtableImport')" key="quick-import-airtable" @click="openAirtableImportDialog">
-                    <span class="flex items-center gap-2">
-                      <MdiTableLarge class="text-primary" />
-                      <!-- TODO: i18n -->
-                      Airtable
-                    </span>
+                    </div>
                   </a-menu-item>
 
-                  <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv" @click="openQuickImportDialog('csv')">
-                    <span class="flex items-center gap-2">
-                      <MdiFileDocumentOutline class="text-primary" />
-                      <!-- TODO: i18n -->
-                      CSV file
-                    </span>
+                  <a-menu-item-group title="QUICK IMPORT FROM" class="!px-0 !mx-0">
+                    <a-menu-item
+                      v-if="isUIAllowed('airtableImport')"
+                      key="quick-import-airtable"
+                      @click="openAirtableImportDialog"
+                    >
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiTableLarge class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        Airtable
+                      </div>
+                    </a-menu-item>
+
+                    <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv" @click="openQuickImportDialog('csv')">
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiFileDocumentOutline class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        CSV file
+                      </div>
+                    </a-menu-item>
+
+                    <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json" @click="openQuickImportDialog('json')">
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiCodeJson class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        JSON file
+                      </div>
+                    </a-menu-item>
+
+                    <a-menu-item
+                      v-if="isUIAllowed('excelImport')"
+                      key="quick-import-excel"
+                      @click="openQuickImportDialog('excel')"
+                    >
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiFileExcel class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        Microsoft Excel
+                      </div>
+                    </a-menu-item>
+                  </a-menu-item-group>
+
+                  <a-menu-divider class="my-1" />
+
+                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table">
+                    <a
+                      v-t="['e:datasource:import-request']"
+                      href="https://github.com/nocodb/nocodb/issues/2052"
+                      target="_blank"
+                      class="prose-sm pa-0 group"
+                    >
+                      <span class="flex items-center gap-2">
+                        <MdiOpenInNew class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        Request a data source you need?
+                      </span>
+                    </a>
                   </a-menu-item>
-
-                  <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json" @click="openQuickImportDialog('json')">
-                    <span class="flex items-center gap-2">
-                      <MdiCodeJson class="text-primary" />
-                      <!-- TODO: i18n -->
-                      JSON file
-                    </span>
-                  </a-menu-item>
-
-                  <a-menu-item v-if="isUIAllowed('excelImport')" key="quick-import-excel" @click="openQuickImportDialog('excel')">
-                    <span class="flex items-center gap-2">
-                      <MdiFileExcel class="text-primary" />
-                      <!-- TODO: i18n -->
-                      Microsoft Excel
-                    </span>
-                  </a-menu-item>
-                </a-menu-item-group>
-
-                <a-menu-divider class="ma-0 mb-2" />
-
-                <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="ma-0 mt-3">
-                  <a
-                    v-t="['e:datasource:import-request']"
-                    href="https://github.com/nocodb/nocodb/issues/2052"
-                    target="_blank"
-                    class="prose-sm pa-0"
-                  >
-                    <span class="flex items-center gap-2">
-                      <MdiOpenInNew class="text-primary" />
-                      <!-- TODO: i18n -->
-                      Request a data source you need?
-                    </span>
-                  </a>
-                </a-menu-item>
-              </a-sub-menu>
-            </a-menu>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </template>
         </a-tabs>
       </div>
@@ -202,6 +210,12 @@ function openAirtableImportDialog() {
         @apply bg-gray-100 text-gray-500;
       }
     }
+  }
+}
+
+.nc-add-project-menu {
+  :deep(.ant-dropdown-menu-item-group-list) {
+    @apply !mx-0;
   }
 }
 

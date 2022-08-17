@@ -106,16 +106,16 @@ const exportFile = async (exportType: ExportTypes) => {
       </a-button>
 
       <template #overlay>
-        <div class="bg-white shadow-lg !border">
+        <div class="bg-gray-50 py-2 shadow-lg !border">
           <div>
             <div v-t="['a:actions:download-csv']" class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
-              <MdiDownloadOutline />
+              <MdiDownloadOutline class="text-gray-500" />
               <!-- Download as CSV -->
               {{ $t('activity.downloadCSV') }}
             </div>
 
             <div v-t="['a:actions:download-excel']" class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)">
-              <MdiDownloadOutline />
+              <MdiDownloadOutline class="text-gray-500" />
               <!-- Download as XLSX -->
               {{ $t('activity.downloadExcel') }}
             </div>
@@ -126,7 +126,7 @@ const exportFile = async (exportType: ExportTypes) => {
               class="nc-menu-item"
               @click="quickImportDialog = true"
             >
-              <MdiUploadOutline />
+              <MdiUploadOutline class="text-gray-500" />
               <!-- Upload CSV -->
               {{ $t('activity.uploadCSV') }}
             </div>
@@ -137,7 +137,7 @@ const exportFile = async (exportType: ExportTypes) => {
               class="nc-menu-item"
               @click="sharedViewListDlg = true"
             >
-              <MdiViewListOutline />
+              <MdiViewListOutline class="text-gray-500" />
               <!-- Shared View List -->
               {{ $t('activity.listSharedView') }}
             </div>
@@ -148,7 +148,7 @@ const exportFile = async (exportType: ExportTypes) => {
               class="nc-menu-item"
               @click="showWebhookDrawer = true"
             >
-              <MdiHook />
+              <MdiHook class="text-gray-500" />
               {{ $t('objects.webhooks') }}
             </div>
           </div>

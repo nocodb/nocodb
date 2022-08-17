@@ -99,7 +99,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                         </div>
                         <div v-if="isVirtualCol(field)" class="mt-0">
                           <SmartsheetVirtualCell class="mt-0 nc-input" :column="field" />
-                          <div class="text-gray-500 text-[10px] mb-2 ml-1" v-if="field.description">{{ field.description }}</div>
+                          <div v-if="field.description" class="text-gray-500 text-[10px] mb-2 ml-1">{{ field.description }}</div>
                           <template v-if="v$.virtual.$dirty && v$.virtual?.[field.title]">
                             <div v-for="error of v$.virtual[field.title].$errors" :key="error" class="text-xs text-red-500">
                               {{ error.$message }}
@@ -113,7 +113,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                             :column="field"
                             :edit-enabled="true"
                           />
-                          <div class="text-gray-500 text-[10px] mb-2 ml-1" v-if="field.description">{{ field.description }}</div>
+                          <div v-if="field.description" class="text-gray-500 text-[10px] mb-2 ml-1">{{ field.description }}</div>
                           <template v-if="v$.localState.$dirty && v$.localState?.[field.title]">
                             <div v-for="error of v$.localState[field.title].$errors" :key="error" class="text-xs text-red-500">
                               {{ error.$message }}

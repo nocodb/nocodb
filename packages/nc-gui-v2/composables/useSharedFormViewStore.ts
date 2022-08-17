@@ -3,7 +3,7 @@ import { minLength, required } from '@vuelidate/validators'
 import { message } from 'ant-design-vue'
 import type { ColumnType, FormType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { Ref } from 'vue'
+import type { Ref } from 'vue'
 import { SharedViewPasswordInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { useInjectionState, useMetas } from '#imports'
@@ -21,7 +21,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedView = ref<ViewType>()
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
-  const columns = ref<(ColumnType & { required?: boolean })[]>()
+  const columns = ref<(ColumnType & { required?: boolean; show?: boolean })[]>()
 
   const { $api } = useNuxtApp()
   const { metas, setMeta } = useMetas()
@@ -36,18 +36,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
-  const formColumns = computed(
-    () =>
-      columns?.value
-        ?.filter?.(
-          (f: Record<string, any>) =>
-            f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,
-        )
-        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
-        .map<ColumnType & { required: boolean }>((c: ColumnType & { required?: boolean }) => ({
-          ...c,
-          required: !!(c.required || 0),
-        })) ?? [],
+  const formColumns = computed(() =>
+    columns?.value?.filter((c) => c.show)?.filter((col) => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord),
   )
   const loadSharedView = async () => {
     try {

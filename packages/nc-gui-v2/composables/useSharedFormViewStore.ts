@@ -113,9 +113,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
 
       progress.value = true
-      const data:Record<string,any> = { ...(formState?.value ?? {}), ...(additionalState?.value || {}) }
+      const data: Record<string, any> = { ...(formState?.value ?? {}), ...(additionalState?.value || {}) }
       const attachment: Record<string, any> = {}
-
 
       for (const col of metas?.value?.[sharedFormView?.value?.fk_model_id as string]?.columns ?? []) {
         if (col.uidt === UITypes.Attachment) {

@@ -69,8 +69,16 @@ html {
     @apply ring shadow-2xl transform scale-110;
   }
 
+  &.disabled-ring:hover::after {
+    @apply ring-0;
+  }
+
   svg {
     @apply z-1 text-xl p-1 text-gray-500;
+  }
+  
+  .disabled {
+    @apply cursor-not-allowed border-none;
   }
 }
 

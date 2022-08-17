@@ -10,6 +10,7 @@ interface Props {
   editEnabled: boolean
   rowIndex?: number
   active?: boolean
+  virtual?: boolean
 }
 
 const props = defineProps<Props>()
@@ -19,6 +20,8 @@ const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editE
 const column = toRef(props, 'column')
 
 const active = toRef(props, 'active', false)
+
+const virtual = toRef(props, 'virtual', false)
 
 provide(ColumnInj, column)
 
@@ -54,10 +57,6 @@ const isManualSaved = $computed(() => {
   return [UITypes.Currency, UITypes.Duration].includes(column?.value?.uidt as UITypes)
 })
 
-const isPrimary = computed(() => {
-  return column?.value?.pv
-})
-
 const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
@@ -75,6 +74,7 @@ const vModel = computed({
 })
 
 const {
+  isPrimary,
   isURL,
   isEmail,
   isJSON,
@@ -112,7 +112,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
 <template>
   <div
     class="nc-cell w-full h-full"
-    :class="{ 'text-blue-600': isPrimary }"
+    :class="{ 'text-blue-600': isPrimary && !virtual }"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up

@@ -4441,15 +4441,22 @@
                           "type": "string"
                         },
                         "columns": {
-                          "oneOf": [
+                          "allOf": [
                             {
-                              "$ref": "#/components/schemas/GridColumn"
+                              "oneOf": [
+                                {
+                                  "$ref": "#/components/schemas/GridColumn"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/FormColumn"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/GalleryColumn"
+                                }
+                              ]
                             },
                             {
-                              "$ref": "#/components/schemas/FormColumn"
-                            },
-                            {
-                              "$ref": "#/components/schemas/GalleryColumn"
+                              "$ref": "#/components/schemas/Column"
                             }
                           ]
                         },
@@ -4459,6 +4466,7 @@
                       }
                     },
                     {
+                      "type": "object",
                       "properties": {
                         "view": {
                           "oneOf": [
@@ -4473,8 +4481,7 @@
                             }
                           ]
                         }
-                      },
-                      "type": "object"
+                      }
                     }
                   ]
                 }
@@ -6137,6 +6144,9 @@
             "type": "string"
           },
           "slug": {
+            "type": "string"
+          },
+          "uuid": {
             "type": "string"
           },
           "show_system_fields": {

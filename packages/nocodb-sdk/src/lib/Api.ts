@@ -130,6 +130,7 @@ export interface ViewType {
   order?: number;
   fk_model_id?: string;
   slug?: string;
+  uuid?: string;
   show_system_fields?: boolean;
   lock_type?: 'collaborative' | 'locked' | 'personal';
 }
@@ -3083,14 +3084,15 @@ export class Api<
      * @tags Public
      * @name SharedViewMetaGet
      * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/meta
-     * @response `200` `(ViewType & { relatedMetas?: any, client?: string, columns?: (GridColumnType | FormColumnType | GalleryColumnType), model?: TableType } & { view?: (FormType | GridType | GalleryType) })` OK
+     * @response `200` `(ViewType & { relatedMetas?: any, client?: string, columns?: ((GridColumnType | FormColumnType | GalleryColumnType) & ColumnType), model?: TableType } & { view?: (FormType | GridType | GalleryType) })` OK
      */
     sharedViewMetaGet: (sharedViewUuid: string, params: RequestParams = {}) =>
       this.request<
         ViewType & {
           relatedMetas?: any;
           client?: string;
-          columns?: GridColumnType | FormColumnType | GalleryColumnType;
+          columns?: (GridColumnType | FormColumnType | GalleryColumnType) &
+            ColumnType;
           model?: TableType;
         } & { view?: FormType | GridType | GalleryType },
         any

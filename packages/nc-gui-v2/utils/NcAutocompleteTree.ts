@@ -37,6 +37,7 @@ export class NcAutocompleteTree {
     }
     root.value = root.value || []
     root.value.push(word)
+    root.isLeaf = true
   }
 
   find(word: string) {
@@ -48,12 +49,11 @@ export class NcAutocompleteTree {
         return null // if not found return null
       }
     }
-
     return root // return the root where it ends search
   }
 
   traverse(root: Node) {
-    if (root.value && root.value.length) {
+    if (root.isLeaf) {
       this.suggestions.push(...root.value)
     }
 
@@ -69,6 +69,8 @@ export class NcAutocompleteTree {
     if (!root) {
       return this.suggestions
     } // cannot suggest anything
+
+    this.suggestions.push(...root.value)
 
     const children = root.children
 

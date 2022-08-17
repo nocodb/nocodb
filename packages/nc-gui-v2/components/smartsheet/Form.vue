@@ -48,7 +48,7 @@ const view = inject(ActiveViewInj)
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view as any)
 
-const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, false, async () => {
+const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, async () => {
   await loadFormView()
   setFormData()
 })

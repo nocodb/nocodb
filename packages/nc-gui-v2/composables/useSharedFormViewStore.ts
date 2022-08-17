@@ -13,7 +13,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const notFound = ref(false)
   const submitted = ref(false)
   const passwordDlg = ref(false)
-  const password = ref(null)
+  const password = ref('')
   const secondsRemain = ref(0)
 
   provide(SharedViewPasswordInj, password)
@@ -41,7 +41,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   )
   const loadSharedView = async () => {
     try {
-      // todo: swagger type correction
       const viewMeta = await $api.public.sharedViewMetaGet(sharedViewId, {
         headers: {
           'xc-password': password.value,
@@ -117,7 +116,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const data = { ...formState, ...additionalState }
       const attachment: Record<string, any> = {}
 
-      for (const col of metas?.value?.[sharedView?.value?.fk_model_id]?.columns ?? []) {
+      for (const col of metas?.value?.[sharedFormView?.value?.fk_model_id as string]?.columns ?? []) {
         if (col.uidt === UITypes.Attachment) {
           attachment[`_${col.title}`] = data[col.title!]
           delete data[col.title!]
@@ -125,7 +124,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
 
       await $api.public.dataCreate(
-        sharedView?.value?.uuid,
+        sharedView?.value?.uuid as string,
         {
           data,
           ...attachment,
@@ -140,7 +139,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       submitted.value = true
       progress.value = false
 
-      await message.success(sharedView.value.success_msg || 'Saved successfully.')
+      await message.success(sharedFormView.value?.success_msg || 'Saved successfully.')
     } catch (e: any) {
       console.log(e)
       throw e
@@ -151,7 +150,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   /** reset form if show_blank_form is true */
   watch(submitted, (nextVal: boolean) => {
-    if (nextVal && sharedView.value?.view?.show_blank_form) {
+    if (nextVal && sharedFormView.value?.show_blank_form) {
       secondsRemain.value = 5
       const intvl = setInterval(() => {
         secondsRemain.value = secondsRemain.value - 1

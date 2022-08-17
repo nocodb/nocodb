@@ -121,16 +121,17 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     reloadData?.()
   }
 
-  const metaColumnById = computed<Record<string, ColumnType>>(
-    () =>
-      meta.value?.columns?.reduce(
-        (acc: ColumnType, curr: ColumnType) => ({
-          ...acc,
-          [curr.id!]: curr,
-        }),
-        {},
-      ) || {},
-  )
+  const metaColumnById = computed<Record<string, ColumnType>>(() => {
+    if (!meta.value?.columns) return {}
+
+    return meta.value?.columns?.reduce(
+      (acc: ColumnType, curr: ColumnType) => ({
+        ...acc,
+        [curr.id!]: curr,
+      }),
+      {} as any,
+    )
+  })
 
   const showSystemFields = computed({
     get() {

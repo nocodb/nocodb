@@ -5,18 +5,17 @@ import {
   ReloadViewDataHookInj,
   createEventHook,
   definePageMeta,
+  extractSdkResponseErrorMsg,
   provide,
   ref,
   useRoute,
   useSharedView,
 } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
 
 definePageMeta({
   public: true,
   requiresAuth: false,
   layout: 'shared-view',
-  isSharedView: true,
 })
 
 const route = useRoute()

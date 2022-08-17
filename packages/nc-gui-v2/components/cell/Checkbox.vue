@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ColumnInj, IsFormInj, getMdiIcon, inject } from '#imports'
-import { ReadonlyInj } from '~/context'
+import { ColumnInj, IsFormInj, ReadonlyInj, getMdiIcon, inject } from '#imports'
 
 interface Props {
   modelValue?: boolean | undefined | number

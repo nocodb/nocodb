@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { message } from 'ant-design-vue'
 import {
   ReadonlyInj,
   ReloadViewDataHookInj,
@@ -9,6 +10,7 @@ import {
   useRoute,
   useSharedView,
 } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 definePageMeta({
   public: true,
@@ -28,8 +30,13 @@ const showPassword = ref(false)
 
 try {
   await loadSharedView(route.params.viewId as string)
-} catch (e) {
-  showPassword.value = true
+} catch (e: any) {
+  if (e?.response?.status === 403) {
+    showPassword.value = true
+  } else {
+    console.error(e)
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 </script>
 

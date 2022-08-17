@@ -3,7 +3,7 @@ import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { useSharedFormStoreOrThrow } from '#imports'
 
 const {
-  sharedView,
+  sharedFormView,
   submitForm,
   v$,
   formState,
@@ -43,19 +43,19 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
       <template v-else-if="submitted">
         <div class="flex justify-center">
-          <div v-if="sharedView.view" style="min-width: 350px" class="mt-3">
-            <a-alert type="success" outlined :message="sharedView.view.success_msg || 'Successfully submitted form data'">
+          <div v-if="sharedFormView" style="min-width: 350px" class="mt-3">
+            <a-alert type="success" outlined :message="sharedFormView.success_msg || 'Successfully submitted form data'">
             </a-alert>
-            <p v-if="sharedView.view.show_blank_form" class="text-xs text-gray-500 text-center my-4">
+            <p v-if="sharedFormView.show_blank_form" class="text-xs text-gray-500 text-center my-4">
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
-            <div v-if="sharedView.view.submit_another_form" class="text-center">
+            <div v-if="sharedFormView.submit_another_form" class="text-center">
               <a-button type="primary" @click="submitted = false"> Submit Another Form</a-button>
             </div>
           </div>
         </div>
       </template>
-      <div v-else-if="sharedView" class="">
+      <div v-else-if="sharedFormView" class="">
         <a-row class="justify-center">
           <a-col :md="20">
             <div>
@@ -75,11 +75,11 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
                   <div class="mx-auto nc-form bg-white shadow-lg pa-2 mb-10 max-w-[600px] mx-auto rounded">
                     <h2 class="mt-4 text-4xl font-weight-bold text-left mx-4 mb-3 px-1">
-                      {{ sharedView.view.heading }}
+                      {{ sharedFormView.heading }}
                     </h2>
 
                     <div class="text-lg text-left mx-4 py-2 px-1 text-gray-500">
-                      {{ sharedView.view.subheading }}
+                      {{ sharedFormView.subheading }}
                     </div>
                     <div class="h-100">
                       <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col mt-4 px-4 space-y-2">

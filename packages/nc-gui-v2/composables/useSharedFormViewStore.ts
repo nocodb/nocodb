@@ -1,8 +1,9 @@
 import useVuelidate from '@vuelidate/core'
 import { minLength, required } from '@vuelidate/validators'
 import { message } from 'ant-design-vue'
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { ColumnType, FormType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { Ref } from 'vue'
 import { SharedViewPasswordInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { useInjectionState, useMetas } from '#imports'
@@ -17,8 +18,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   provide(SharedViewPasswordInj, password)
 
-  // todo: type
-  const sharedView = ref<any>()
+  const sharedView = ref<ViewType>()
+  const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
   const columns = ref<(ColumnType & { required?: boolean })[]>()
 
@@ -27,7 +28,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const formState = ref({})
 
   const { state: additionalState } = useProvideSmartsheetRowStore(
-    meta,
+    meta as Ref<TableType>,
     ref({
       row: formState,
       rowMeta: { new: true },
@@ -51,7 +52,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const loadSharedView = async () => {
     try {
       // todo: swagger type correction
-      const viewMeta: any = await $api.public.sharedViewMetaGet(sharedViewId, {
+      const viewMeta = await $api.public.sharedViewMetaGet(sharedViewId, {
         headers: {
           'xc-password': password.value,
         },
@@ -60,8 +61,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       passwordDlg.value = false
 
       sharedView.value = viewMeta
+      sharedFormView.value = viewMeta.view
       meta.value = viewMeta.model
-      columns.value = viewMeta.model.columns
+      columns.value = viewMeta.model?.columns
 
       setMeta(viewMeta.model)
 
@@ -180,6 +182,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   return {
     sharedView,
+    sharedFormView,
     loadSharedView,
     columns,
     submitForm,

@@ -58,6 +58,7 @@ onMounted(() => {
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
       <a-button key="submit" size="large" type="primary" @click="createTable()">{{ $t('general.submit') }}</a-button>
     </template>
+
     <div class="pl-10 pr-10 pt-5">
       <a-form :model="table" name="create-new-table-form" @keydown.enter="createTable">
         <!-- Create A New Table -->

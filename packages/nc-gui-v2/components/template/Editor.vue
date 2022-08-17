@@ -10,10 +10,12 @@ import {
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
   getUIDTIcon,
+  inject,
   nextTick,
   onMounted,
   reactive,
   ref,
+  useNuxtApp,
   useProject,
   useTabs,
   useTemplateRefsList,
@@ -38,15 +40,19 @@ const { quickImportType, projectTemplate, importData, importColumns, importOnly,
 
 const emit = defineEmits(['import'])
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj)!
 
-const columns = computed(() => meta?.value?.columns || [])
+const columns = computed(() => meta.value?.columns || [])
 
 const reloadHook = inject(ReloadViewDataHookInj)!
 
 const useForm = Form.useForm
 
 const { $api } = useNuxtApp()
+
+const { addTab } = useTabs()
+
+const { sqlUi, project, loadTables } = useProject()
 
 const hasSelectColumn = ref<boolean[]>([])
 
@@ -75,22 +81,12 @@ const uiTypeOptions = ref<Option[]>(
     })),
 )
 
+const srcDestMapping = ref<Record<string, any>[]>([])
+
 const data = reactive<{ title: string | null; name: string; tables: TableType[] }>({
   title: null,
   name: 'Project Name',
   tables: [],
-})
-
-const { addTab } = useTabs()
-
-const { sqlUi, project, loadTables } = useProject()
-
-onMounted(() => {
-  parseAndLoadTemplate()
-
-  nextTick(() => {
-    inputRefs.value[0]?.focus()
-  })
 })
 
 const validators = computed(() =>
@@ -110,9 +106,34 @@ const validators = computed(() =>
   }, {}),
 )
 
-const srcDestMapping = ref<Record<string, any>[]>([])
-
 const { validate, validateInfos } = useForm(data, validators)
+
+const isValid = computed(() => {
+  if (importOnly) {
+    for (const record of srcDestMapping.value) {
+      if (!fieldsValidation(record)) {
+        return false
+      }
+    }
+  } else {
+    for (const [_, o] of Object.entries(validateInfos)) {
+      if (o?.validateStatus) {
+        if (o.validateStatus === 'error') {
+          return false
+        }
+      }
+    }
+  }
+  return true
+})
+
+onMounted(() => {
+  parseAndLoadTemplate()
+
+  nextTick(() => {
+    inputRefs.value[0]?.focus()
+  })
+})
 
 function filterOption(input: string, option: Option) {
   return option.value.toUpperCase().includes(input.toUpperCase())
@@ -121,7 +142,9 @@ function filterOption(input: string, option: Option) {
 function parseAndLoadTemplate() {
   if (projectTemplate) {
     parseTemplate(projectTemplate)
+
     expansionPanel.value = Array.from({ length: data.tables.length || 0 }, (_, i) => i)
+
     hasSelectColumn.value = Array.from({ length: data.tables.length || 0 }, () => false)
   }
 }
@@ -145,6 +168,7 @@ function parseTemplate({ tables = [], ...rest }: Props['projectTemplate']) {
       ],
     })),
   }
+
   Object.assign(data, parsedTemplate)
 }
 
@@ -166,8 +190,10 @@ function addNewColumnRow(table: Record<string, any>, uidt?: string) {
     column_name: `title${table.columns.length + 1}`,
     uidt,
   })
+
   nextTick(() => {
     const input = inputRefs.value[table.columns.length - 1]
+
     input.focus()
     input.select()
   })
@@ -194,10 +220,12 @@ function missingRequiredColumnsValidation() {
     (c: Record<string, any>) =>
       (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) && !srcDestMapping.value.some((r) => r.destCn === c.title),
   )
+
   if (missingRequiredColumns.length) {
     message.error(`Following columns are required : ${missingRequiredColumns.map((c) => c.title).join(', ')}`)
     return false
   }
+
   return true
 }
 
@@ -206,6 +234,7 @@ function atLeastOneEnabledValidation() {
     message.error('At least one column has to be selected')
     return false
   }
+
   return true
 }
 
@@ -252,6 +281,7 @@ function fieldsValidation(record: Record<string, any>) {
         message.error('Source data contains some invalid numbers')
         return false
       }
+
       break
     case UITypes.Checkbox:
       if (
@@ -271,16 +301,20 @@ function fieldsValidation(record: Record<string, any>) {
                 input === '1'
               )
             }
+
             return input !== 1 && input !== 0 && input !== true && input !== false
           }
+
           return false
         })
       ) {
         message.error('Source data contains some invalid boolean values')
+
         return false
       }
       break
   }
+
   return true
 }
 
@@ -288,24 +322,33 @@ async function importTemplate() {
   if (importOnly) {
     // validate required columns
     if (!missingRequiredColumnsValidation()) return
+
     // validate at least one column needs to be selected
     if (!atLeastOneEnabledValidation()) return
 
     try {
       isImporting.value = true
-      const tableName = meta?.value.title as string
+
+      const tableName = meta.value.title
+
       const data = importData[tableName]
-      const projectName = project.value.title as string
+
+      const projectName = project.value.title!
+
       const total = data.length
+
       for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
         const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
           srcDestMapping.value.reduce((res: Record<string, any>, col: Record<string, any>) => {
             if (col.enabled && col.destCn) {
               const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
+
               let input = row[col.srcCn]
+
               // parse potential boolean values
               if (v.uidt === UITypes.Checkbox) {
                 input = input.replace(/["']/g, '').toLowerCase().trim()
+
                 if (input === 'false' || input === 'no' || input === 'n') {
                   input = '0'
                 } else if (input === 'true' || input === 'yes' || input === 'y') {
@@ -325,8 +368,11 @@ async function importTemplate() {
             return res
           }, {}),
         )
+
         await $api.dbTableRow.bulkCreate('noco', projectName, tableName, batchData)
+
         importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
+
         progress += batchData.length
       }
 
@@ -421,6 +467,7 @@ async function importTemplate() {
       }
       // reload table list
       await loadTables()
+
       addTab({
         ...tab,
         type: TabType.TABLE,
@@ -432,25 +479,6 @@ async function importTemplate() {
     }
   }
 }
-
-const isValid = computed(() => {
-  if (importOnly) {
-    for (const record of srcDestMapping.value) {
-      if (!fieldsValidation(record)) {
-        return false
-      }
-    }
-  } else {
-    for (const [_, o] of Object.entries(validateInfos)) {
-      if (o?.validateStatus) {
-        if (o.validateStatus === 'error') {
-          return false
-        }
-      }
-    }
-  }
-  return true
-})
 
 function mapDefaultColumns() {
   srcDestMapping.value = []

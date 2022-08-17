@@ -231,25 +231,13 @@ onBeforeUnmount(() => {
     class="pa-2"
     @keydown.esc="dialogShow = false"
   >
-    <template #footer>
-      <div v-if="step === 1">
-        <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-        <a-button
-          key="submit"
-          v-t="['c:sync-airtable:save-and-sync']"
-          type="primary"
-          class="nc-btn-airtable-import"
-          :disabled="disableImportButton"
-          @click="saveAndSync"
-          >Import
-        </a-button>
-      </div>
-    </template>
-    <span class="ml-5 mt-5 prose-xl font-weight-bold" type="secondary" :level="5">QUICK IMPORT - AIRTABLE</span>
-    <div class="ml-5 mr-5">
+    <div class="px-5">
+      <div class="mt-5 prose-xl font-weight-bold">QUICK IMPORT - AIRTABLE</div>
+
       <div v-if="step === 1">
         <div class="mb-4">
           <span class="mr-3 pt-2 text-gray-500 text-xs">Credentials</span>
+
           <a
             href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials"
             class="prose-sm underline text-grey text-xs"
@@ -257,6 +245,7 @@ onBeforeUnmount(() => {
             >Where to find this?
           </a>
         </div>
+
         <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="ma-0">
           <a-form-item v-bind="validateInfos['details.apiKey']">
             <a-input-password
@@ -266,6 +255,7 @@ onBeforeUnmount(() => {
               size="large"
             />
           </a-form-item>
+
           <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']">
             <a-input
               v-model:value="syncSource.details.syncSourceUrlOrId"
@@ -274,23 +264,31 @@ onBeforeUnmount(() => {
               size="large"
             />
           </a-form-item>
-          <span class="prose-lg self-center my-4 text-gray-500">Advanced Settings</span>
+
+          <div class="prose-lg self-center my-4 text-gray-500">Advanced Settings</div>
+
           <a-divider class="mt-2 mb-5" />
+
           <div class="mt-0 my-2">
             <a-checkbox v-model:checked="syncSource.details.options.syncData">Import Data</a-checkbox>
           </div>
+
           <div class="my-2">
             <a-checkbox v-model:checked="syncSource.details.options.syncViews">Import Secondary Views</a-checkbox>
           </div>
+
           <div class="my-2">
             <a-checkbox v-model:checked="syncSource.details.options.syncRollup">Import Rollup Columns</a-checkbox>
           </div>
+
           <div class="my-2">
             <a-checkbox v-model:checked="syncSource.details.options.syncLookup">Import Lookup Columns</a-checkbox>
           </div>
+
           <div class="my-2">
             <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">Import Attachment Columns</a-checkbox>
           </div>
+
           <a-tooltip placement="top">
             <template #title>
               <span>Coming Soon!</span>
@@ -298,29 +296,39 @@ onBeforeUnmount(() => {
             <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>Import Formula Columns</a-checkbox>
           </a-tooltip>
         </a-form>
+
         <a-divider />
+
         <div>
           <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">Questions / Help - Reach out here</a>
+
           <br />
+
           <div>
             This feature is currently in beta and more information can be found
             <a class="prose-sm" href="https://github.com/nocodb/nocodb/discussions/2122" target="_blank">here</a>.
           </div>
         </div>
       </div>
+
       <div v-if="step === 2">
         <div class="mb-4 prose-xl font-bold">Logs</div>
+
         <a-card ref="logRef" body-style="background-color: #000000; height:400px; overflow: auto;">
           <div v-for="({ msg, status }, i) in progress" :key="i">
             <div v-if="status === 'FAILED'" class="flex items-center">
               <MdiCloseCircleOutlineIcon class="text-red-500" />
+
               <span class="text-red-500 ml-2">{{ msg }}</span>
             </div>
+
             <div v-else class="flex items-center">
               <MdiCurrencyUsdIcon class="text-green-500" />
+
               <span class="text-green-500 ml-2">{{ msg }}</span>
             </div>
           </div>
+
           <div
             v-if="
               !progress ||
@@ -333,14 +341,30 @@ onBeforeUnmount(() => {
             <span class="text-green-500 ml-2"> Importing</span>
           </div>
         </a-card>
+
         <div class="flex justify-center items-center">
-          <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false"
-            >Go to Dashboard</a-button
-          >
+          <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">
+            Go to Dashboard
+          </a-button>
         </div>
       </div>
     </div>
+
+    <template #footer>
+      <div v-if="step === 1">
+        <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+
+        <a-button
+          key="submit"
+          v-t="['c:sync-airtable:save-and-sync']"
+          type="primary"
+          class="nc-btn-airtable-import"
+          :disabled="disableImportButton"
+          @click="saveAndSync"
+        >
+          Import
+        </a-button>
+      </div>
+    </template>
   </a-modal>
 </template>
-
-<style scoped lang="scss"></style>

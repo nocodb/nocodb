@@ -55,7 +55,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : readOnly ? 'Select date' : ''))
+const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
 </script>
 
 <template>

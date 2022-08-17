@@ -64,7 +64,7 @@ watch(
     :bordered="false"
     class="!w-full px-1"
     format="YYYY-MM-DD HH:mm"
-    :placeholder="isDateInvalid ? 'Invalid date' : !readOnly ? 'Select date and time' : ''"
+    :placeholder="isDateInvalid ? 'Invalid date' : ''"
     :allow-clear="!readOnly"
     :input-read-only="true"
     :dropdown-class-name="randomClass"

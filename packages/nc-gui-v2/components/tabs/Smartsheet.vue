@@ -57,9 +57,13 @@ provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 
+const treeViewIsLockedInj = inject('TreeViewIsLockedInj', ref(false))
+
 watch(tabMeta, async (newTabMeta, oldTabMeta) => {
   if (newTabMeta !== oldTabMeta && newTabMeta?.id) await getMeta(newTabMeta.id)
 })
+
+watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immediate: true })
 </script>
 
 <template>

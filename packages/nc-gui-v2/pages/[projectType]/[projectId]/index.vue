@@ -4,6 +4,7 @@ import {
   navigateTo,
   onKeyStroke,
   openLink,
+  provide,
   provideSidebar,
   ref,
   useClipboard,
@@ -25,6 +26,10 @@ const { addTab, clearTabs } = useTabs()
 const { isUIAllowed } = useUIPermission()
 
 const { copy } = useClipboard()
+
+const isLocked = ref(false)
+
+provide('TreeViewIsLockedInj', isLocked)
 
 // create a new sidebar state
 const { isOpen, toggle } = provideSidebar({ isOpen: true })

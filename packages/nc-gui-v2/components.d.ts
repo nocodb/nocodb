@@ -64,6 +64,8 @@ declare module '@vue/runtime-core' {
     ATypography: typeof import('ant-design-vue/es')['Typography']
     ATypographyTitle: typeof import('ant-design-vue/es')['TypographyTitle']
     AUploadDragger: typeof import('ant-design-vue/es')['UploadDragger']
+    BiFiletypeJson: typeof import('~icons/bi/filetype-json')['default']
+    BiFiletypeXlsx: typeof import('~icons/bi/filetype-xlsx')['default']
     CilFullscreen: typeof import('~icons/cil/fullscreen')['default']
     CilFullscreenExit: typeof import('~icons/cil/fullscreen-exit')['default']
     ClaritySuccessLine: typeof import('~icons/clarity/success-line')['default']
@@ -180,6 +182,7 @@ declare module '@vue/runtime-core' {
     MdiViewListOutline: typeof import('~icons/mdi/view-list-outline')['default']
     MdiWhatsapp: typeof import('~icons/mdi/whatsapp')['default']
     MdiXml: typeof import('~icons/mdi/xml')['default']
+    PhFileCsv: typeof import('~icons/ph/file-csv')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

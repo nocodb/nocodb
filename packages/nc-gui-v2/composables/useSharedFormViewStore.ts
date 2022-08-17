@@ -106,15 +106,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     computed(() => ({ localState: formState?.value, virtual: additionalState?.value })),
   )
 
-  const submitForm = async (formState: Record<string, any>, additionalState: Record<string, any>) => {
+  const submitForm = async () => {
     try {
       if (!(await v$.value?.$validate())) {
         return
       }
 
       progress.value = true
-      const data = { ...formState, ...additionalState }
+      const data:Record<string,any> = { ...(formState?.value ?? {}), ...(additionalState?.value || {}) }
       const attachment: Record<string, any> = {}
+
 
       for (const col of metas?.value?.[sharedFormView?.value?.fk_model_id as string]?.columns ?? []) {
         if (col.uidt === UITypes.Attachment) {
@@ -142,7 +143,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       await message.success(sharedFormView.value?.success_msg || 'Saved successfully.')
     } catch (e: any) {
       console.log(e)
-      throw e
       await message.error(await extractSdkResponseErrorMsg(e))
     }
     progress.value = false

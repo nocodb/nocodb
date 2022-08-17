@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
+import { ActiveViewInj, FieldsInj, IsLockedInj, IsPublicInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import { computed, inject, useNuxtApp, useViewColumns, watch } from '#imports'
 
 const meta = inject(MetaInj)!
@@ -8,6 +8,7 @@ const activeView = inject(ActiveViewInj)!
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 const rootFields = inject(FieldsInj)
 const isLocked = inject(IsLockedInj)
+const isPublic = inject(IsPublicInj)
 
 const { $e } = useNuxtApp()
 
@@ -101,7 +102,7 @@ const onMove = (event: { moved: { newIndex: number } }) => {
         </div>
         <v-divider class="my-2" />
 
-        <div class="p-2 py-1 flex" @click.stop>
+        <div v-if="!isPublic" class="p-2 py-1 flex" @click.stop>
           <a-checkbox v-model:checked="showSystemFields">
             <span class="text-xs"> {{ $t('activity.showSystemFields') }}</span>
           </a-checkbox>

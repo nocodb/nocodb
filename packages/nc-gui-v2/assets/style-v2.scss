@@ -211,3 +211,7 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
     @apply ring ring-pink-500;
   }
 }
+
+.ant-tabs-dropdown-menu-title-content{
+  @apply flex items-center;
+}

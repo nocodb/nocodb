@@ -408,9 +408,3 @@ defineExpose({
     </template>
   </a-modal>
 </template>
-
-<style scoped lang="scss">
-:deep(.ant-upload-list) {
-  @apply max-h-80 overflow-auto scrollbar-thin-dull pr-2;
-}
-</style>

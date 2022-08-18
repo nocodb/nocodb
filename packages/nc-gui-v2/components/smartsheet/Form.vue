@@ -198,12 +198,8 @@ async function addAllColumns() {
   $e('a:form-view:add-all')
 }
 
-function xor(a: any, b: any) {
-  return !!a !== !!b
-}
-
 function shouldSkipColumn(col: Record<string, any>) {
-  return xor(isDbRequired(col), col.uidt === UITypes.LinkToAnotherRecord) || !!col.required
+  return isDbRequired(col) || !!col.required
 }
 
 async function removeAllColumns() {

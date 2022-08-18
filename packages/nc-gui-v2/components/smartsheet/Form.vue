@@ -144,8 +144,19 @@ function isDbRequired(column: Record<string, any>) {
   return isRequired
 }
 
+function onMoveCallback(event: any) {
+  if (shouldSkipColumn(event.draggedContext.element)) {
+    return false
+  }
+}
+
 function onMove(event: any) {
   const { newIndex, element, oldIndex } = event.added || event.moved || event.removed
+  console.log(event)
+  if (shouldSkipColumn(element)) {
+    console.log('SKIPPED')
+    return
+  }
 
   if (event.added) {
     element.show = true
@@ -199,7 +210,7 @@ async function addAllColumns() {
 }
 
 function shouldSkipColumn(col: Record<string, any>) {
-  return isDbRequired(col) || !!col.required
+  return isDbRequired(col) || !!col.required || !!col.rqd
 }
 
 async function removeAllColumns() {
@@ -508,6 +519,7 @@ onMounted(async () => {
               draggable=".item"
               group="form-inputs"
               class="h-100"
+              :move="onMoveCallback"
               @change="onMove($event)"
               @start="drag = true"
               @end="drag = false"

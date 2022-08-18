@@ -132,7 +132,7 @@ function resetError() {
           </Transition>
 
           <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-            <a-input v-model:value="form.email" size="large" :placeholder="$t('labels.email')" @focus="resetError" />
+            <a-input v-model:value="form.email" size="large" :placeholder="$t('msg.info.signUp.workEmail')" @focus="resetError" />
           </a-form-item>
 
           <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
@@ -140,7 +140,7 @@ function resetError() {
               v-model:value="form.password"
               size="large"
               class="password"
-              :placeholder="$t('labels.password')"
+              :placeholder="$t('msg.info.signUp.enterPassword')"
               @focus="resetError"
             />
           </a-form-item>

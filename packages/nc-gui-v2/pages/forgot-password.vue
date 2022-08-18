@@ -96,7 +96,7 @@ function resetError() {
           </Transition>
 
           <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-            <a-input v-model:value="form.email" size="large" :placeholder="$t('labels.email')" @focus="resetError" />
+            <a-input v-model:value="form.email" size="large" :placeholder="$t('msg.info.signUp.workEmail')" @focus="resetError" />
           </a-form-item>
 
           <div class="self-center flex flex-col gap-4 items-center justify-center w-full">

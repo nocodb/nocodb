@@ -2,8 +2,8 @@
 // - formula dependency list
 // - nested lookup/ rollup
 
-const Api = require('nocodb-sdk').Api;
-const { UITypes } = require('nocodb-sdk');
+const Api = require('nocodb-sdk-daily').Api;
+const { UITypes } = require('nocodb-sdk-daily');
 const jsonfile = require('jsonfile');
 
 let inputConfig = jsonfile.readFileSync(`config.json`)

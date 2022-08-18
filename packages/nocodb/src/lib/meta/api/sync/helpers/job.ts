@@ -1,9 +1,9 @@
 import FetchAT from './fetchAT';
-import { UITypes } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk-daily';
 import { Tele } from 'nc-help';
 // import * as sMap from './syncMap';
 
-import { Api } from 'nocodb-sdk';
+import { Api } from 'nocodb-sdk-daily';
 
 import Airtable from 'airtable';
 import jsonfile from 'jsonfile';

@@ -30,7 +30,7 @@ import SESPluginConfig from '../../plugins/ses';
 import Noco from '../../Noco';
 import Local from '../../v1-legacy/plugins/adapters/storage/Local';
 import { MetaTable } from '../../utils/globals';
-import { PluginCategory } from 'nocodb-sdk';
+import { PluginCategory } from 'nocodb-sdk-daily';
 import Plugin from '../../models/Plugin';
 
 const defaultPlugins = [

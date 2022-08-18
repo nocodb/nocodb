@@ -3,7 +3,7 @@ import { Request, Router } from 'express';
 import Model from '../../models/Model';
 // @ts-ignore
 import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { ViewTypes } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk-daily';
 // @ts-ignore
 import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 // @ts-ignore

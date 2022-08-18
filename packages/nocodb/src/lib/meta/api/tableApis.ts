@@ -11,7 +11,7 @@ import {
   TableReqType,
   TableType,
   UITypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk-daily';
 import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 import Project from '../../models/Project';
 import Audit from '../../models/Audit';

@@ -1,4 +1,4 @@
-import { ColumnType } from 'nocodb-sdk';
+import { ColumnType } from 'nocodb-sdk-daily';
 
 import knex from 'knex';
 import KnexClient from '../KnexClient';

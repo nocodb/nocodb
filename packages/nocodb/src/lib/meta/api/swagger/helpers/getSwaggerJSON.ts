@@ -5,7 +5,7 @@ import getPaths from './getPaths';
 import getSchemas from './getSchemas';
 import Project from '../../../../models/Project';
 import getSwaggerColumnMetas from './getSwaggerColumnMetas';
-import { ViewTypes } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk-daily';
 import GridViewColumn from '../../../../models/GridViewColumn';
 import View from '../../../../models/View';
 

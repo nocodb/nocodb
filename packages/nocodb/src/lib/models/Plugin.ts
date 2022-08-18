@@ -1,4 +1,4 @@
-import { PluginType } from 'nocodb-sdk';
+import { PluginType } from 'nocodb-sdk-daily';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';

@@ -5,7 +5,7 @@ import request from 'supertest';
 
 import { Noco } from '../lib';
 import NcConfigFactory from '../lib/utils/NcConfigFactory';
-import { UITypes } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk-daily';
 
 const knex = require('knex');
 

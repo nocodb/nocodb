@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TableType, validatePassword } from 'nocodb-sdk';
+import { TableType, validatePassword } from 'nocodb-sdk-daily';
 import catchError, { NcError } from '../../helpers/catchError';
 const { isEmail } = require('validator');
 import * as ejs from 'ejs';

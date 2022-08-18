@@ -7,7 +7,7 @@ import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import View from '../../../models/View';
 import catchError, { NcError } from '../../helpers/catchError';
 import multer from 'multer';
-import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk';
+import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk-daily';
 import Column from '../../../models/Column';
 import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';

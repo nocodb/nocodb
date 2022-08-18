@@ -1,5 +1,5 @@
 import { SwaggerColumn } from '../getSwaggerColumnMetas';
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { RelationTypes, UITypes } from 'nocodb-sdk-daily';
 import LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
 
 export const rowIdParam = {

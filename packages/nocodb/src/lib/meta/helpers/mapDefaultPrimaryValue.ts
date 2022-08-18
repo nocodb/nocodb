@@ -1,4 +1,4 @@
-import { ColumnType } from 'nocodb-sdk';
+import { ColumnType } from 'nocodb-sdk-daily';
 
 export default function mapDefaultPrimaryValue<T extends ColumnType>(
   columnsArr: Array<T>

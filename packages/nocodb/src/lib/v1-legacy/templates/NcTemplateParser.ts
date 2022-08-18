@@ -6,7 +6,7 @@ import {
   SqliteUi,
   SqlUiFactory,
   UITypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk-daily';
 
 export default class NcTemplateParser {
   sqlUi:

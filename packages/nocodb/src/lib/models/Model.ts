@@ -10,7 +10,7 @@ import {
   TableType,
   UITypes,
   ViewTypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk-daily';
 import {
   CacheDelDirection,
   CacheGetType,

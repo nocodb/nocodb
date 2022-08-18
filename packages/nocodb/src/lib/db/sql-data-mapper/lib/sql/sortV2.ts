@@ -7,7 +7,7 @@ import RollupColumn from '../../../../models/RollupColumn';
 import LookupColumn from '../../../../models/LookupColumn';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../../models/FormulaColumn';
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { RelationTypes, UITypes } from 'nocodb-sdk-daily';
 import { sanitize } from './helpers/sanitize';
 
 export default async function sortV2(

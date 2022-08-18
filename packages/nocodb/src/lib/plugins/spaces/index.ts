@@ -1,4 +1,4 @@
-import { XcActionType, XcType } from 'nocodb-sdk';
+import { XcActionType, XcType } from 'nocodb-sdk-daily';
 import { XcPluginConfig } from 'nc-plugin';
 
 import SpacesPlugin from './SpacesPlugin';

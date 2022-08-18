@@ -1,6 +1,6 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { GridColumnType } from 'nocodb-sdk';
+import { GridColumnType } from 'nocodb-sdk-daily';
 import extractProps from '../meta/helpers/extractProps';
 import View from './View';
 import NocoCache from '../cache/NocoCache';

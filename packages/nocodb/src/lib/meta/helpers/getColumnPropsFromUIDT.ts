@@ -1,4 +1,4 @@
-import { ColumnReqType, SqlUIColumn, SqlUiFactory, UITypes } from 'nocodb-sdk';
+import { ColumnReqType, SqlUIColumn, SqlUiFactory, UITypes } from 'nocodb-sdk-daily';
 import Base from '../../models/Base';
 
 export default function getColumnPropsFromUIDT(

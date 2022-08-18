@@ -7,7 +7,7 @@ import FormulaColumn from '../../../../../models/FormulaColumn';
 import { XKnex } from '../../../index';
 import LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../../../models/LookupColumn';
-import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
+import { jsepCurlyHook, UITypes } from 'nocodb-sdk-daily';
 
 // todo: switch function based on database
 

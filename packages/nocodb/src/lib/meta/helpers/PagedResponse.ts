@@ -1,4 +1,4 @@
-import { PaginatedType } from 'nocodb-sdk';
+import { PaginatedType } from 'nocodb-sdk-daily';
 
 const config: any = {
   limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),

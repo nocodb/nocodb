@@ -4,7 +4,7 @@ import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import Model from '../../models/Model';
 import Project from '../../models/Project';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
+import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk-daily';
 import { Router } from 'express';
 import Base from '../../models/Base';
 import ModelXcMetaFactory from '../../db/sql-mgr/code/models/xc/ModelXcMetaFactory';

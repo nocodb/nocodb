@@ -5,7 +5,7 @@ import RollupColumn from './RollupColumn';
 import SelectOption from './SelectOption';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
-import { ColumnType, UITypes } from 'nocodb-sdk';
+import { ColumnType, UITypes } from 'nocodb-sdk-daily';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -861,7 +861,7 @@ export default class Column<T = any> implements ColumnType {
       o = { ...o, ...updateObj };
       // set cache
       await NocoCache.set(key, o);
-    }    
+    }
     // set meta
     await ncMeta.metaUpdate(
       null,

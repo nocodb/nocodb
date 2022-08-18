@@ -1,7 +1,7 @@
 import catchError from '../helpers/catchError';
 import { Request, Response, Router } from 'express';
 import Hook from '../../models/Hook';
-import { HookListType, HookType } from 'nocodb-sdk';
+import { HookListType, HookType } from 'nocodb-sdk-daily';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { invokeWebhook } from '../helpers/webhookHelpers';
 import Model from '../../models/Model';

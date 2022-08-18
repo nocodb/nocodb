@@ -1,4 +1,4 @@
-import { XcActionType, XcForm, XcType } from 'nocodb-sdk';
+import { XcActionType, XcForm, XcType } from 'nocodb-sdk-daily';
 
 const input: XcForm = {
   title: 'Configure Email SMTP',

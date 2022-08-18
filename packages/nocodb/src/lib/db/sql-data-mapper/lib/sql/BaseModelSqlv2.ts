@@ -25,7 +25,7 @@ import {
   SortType,
   UITypes,
   ViewTypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk-daily';
 import formSubmissionEmailTemplate from '../../../../utils/common/formSubmissionEmailTemplate';
 import ejs from 'ejs';
 import Audit from '../../../../models/Audit';

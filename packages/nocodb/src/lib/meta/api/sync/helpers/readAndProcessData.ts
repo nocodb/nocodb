@@ -1,5 +1,5 @@
 import { AirtableBase } from 'airtable/lib/airtable_base';
-import { Api, RelationTypes, TableType, UITypes } from 'nocodb-sdk';
+import { Api, RelationTypes, TableType, UITypes } from 'nocodb-sdk-daily';
 
 const BULK_DATA_BATCH_SIZE = 2000;
 const ASSOC_BULK_DATA_BATCH_SIZE = 5000;

@@ -11,7 +11,7 @@ import * as express from 'express';
 import { Router } from 'express';
 import importFresh from 'import-fresh';
 import morgan from 'morgan';
-import NcToolGui from 'nc-lib-gui';
+import NcToolGui from 'nc-lib-gui-2';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -118,7 +118,7 @@ export default class Noco {
       this.config.toolDir = process.cwd();
     }
 
-    this.ncToolApi = new NcToolGui(this.config);
+    // this.ncToolApi = new NcToolGui(this.config);
     // if (server) {
     //   server.set('view engine', 'ejs');
     // }
@@ -248,10 +248,13 @@ export default class Noco {
     await NcPluginMgrv2.init(Noco.ncMeta);
     registerMetaApis(this.router, server);
 
-    this.router.use(
+    // this.router.use(
+    //   this.config.dashboardPath,
+    //   await this.ncToolApi.expressMiddleware()
+    // );
+    this.router.use(NcToolGui.expressMiddleware(
       this.config.dashboardPath,
-      await this.ncToolApi.expressMiddleware()
-    );
+    ));
     this.router.get('/', (_req, res) =>
       res.redirect(this.config.dashboardPath)
     );

@@ -1,4 +1,4 @@
-import { AuditOperationTypes, AuditType } from 'nocodb-sdk';
+import { AuditOperationTypes, AuditType } from 'nocodb-sdk-daily';
 import { MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import Model from './Model';

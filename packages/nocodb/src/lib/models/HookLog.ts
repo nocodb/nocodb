@@ -2,7 +2,7 @@ import { MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import extractProps from '../meta/helpers/extractProps';
 import Hook from './Hook';
-import { HookLogType } from 'nocodb-sdk';
+import { HookLogType } from 'nocodb-sdk-daily';
 
 export default class HookLog implements HookLogType {
   id?: string;

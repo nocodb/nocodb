@@ -7,7 +7,7 @@ import bcrypt from 'bcryptjs';
 import Noco from '../../../Noco';
 import { CacheScope, MetaTable } from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
-import { validatePassword } from 'nocodb-sdk';
+import { validatePassword } from 'nocodb-sdk-daily';
 import boxen from 'boxen';
 import NocoCache from '../../../cache/NocoCache';
 

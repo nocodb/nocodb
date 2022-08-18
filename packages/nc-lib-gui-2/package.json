@@ -1,0 +1,34 @@
+{
+  "name": "nc-lib-gui-2",
+  "version": "0.0.4",
+  "description": "> TODO: description",
+  "author": "“pranavxc” <pranavxc@gmail.com>",
+  "homepage": "https://gitlab.com/xgenecloud-ts/xgenecloud-ts#readme",
+  "license": "AGPL-3.0-or-later",
+  "main": "lib/XcLibGui.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/xgenecloud-ts/xgenecloud-ts.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://gitlab.com/xgenecloud-ts/xgenecloud-ts/issues"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "body-parser": "^1.19.0",
+    "dayjs": "^1.10.4",
+    "express": "^4.17.1",
+    "serve-static": "^1.15.0",
+    "vuedraggable": "^2.24.3"
+  }
+}

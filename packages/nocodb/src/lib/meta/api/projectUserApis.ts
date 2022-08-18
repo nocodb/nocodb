@@ -13,7 +13,7 @@ import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
 import * as ejs from 'ejs';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import Noco from '../../Noco';
-import { PluginCategory } from 'nocodb-sdk';
+import { PluginCategory } from 'nocodb-sdk-daily';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { randomTokenString } from '../helpers/stringHelpers';
 

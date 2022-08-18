@@ -10,7 +10,7 @@ import {
   UITypes,
   ViewType,
   ViewTypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk-daily';
 import Column from '../models/Column';
 import LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
 import NcHelp from '../utils/NcHelp';

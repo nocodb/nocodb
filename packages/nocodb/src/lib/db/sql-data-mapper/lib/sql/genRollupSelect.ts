@@ -1,5 +1,5 @@
 import Knex from 'knex';
-import { RelationTypes } from 'nocodb-sdk';
+import { RelationTypes } from 'nocodb-sdk-daily';
 
 export default function ({
   knex,

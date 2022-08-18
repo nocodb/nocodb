@@ -1,6 +1,6 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import { FormColumnType } from 'nocodb-sdk';
+import { FormColumnType } from 'nocodb-sdk-daily';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
 import extractProps from '../meta/helpers/extractProps';

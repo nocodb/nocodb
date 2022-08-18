@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Project from '../../models/Project';
-import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
+import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk-daily';
 import DOMPurify from 'isomorphic-dompurify';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import syncMigration from '../helpers/syncMigration';

@@ -50,35 +50,35 @@ const logout = () => {
 
           <GeneralShareBaseButton />
 
-          <a-tooltip placement="bottom">
+          <a-tooltip placement="bottom" :mouse-enter-delay="1">
             <template #title> Switch language</template>
 
             <div class="flex pr-4 items-center">
-              <GeneralLanguage class="cursor-pointer text-2xl" />
+              <GeneralLanguage class="cursor-pointer text-2xl hover:text-pink-500" />
             </div>
           </a-tooltip>
 
           <template v-if="signedIn && !isSharedBase">
             <a-dropdown :trigger="['click']">
-              <MdiDotsVertical class="md:text-xl cursor-pointer nc-user-menu" @click.prevent />
+              <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-pink-500" @click.prevent />
 
               <template #overlay>
-                <a-menu class="!py-0 nc-user-menu dark:(!bg-gray-800) leading-8 !rounded">
+                <a-menu class="!py-0 dark:(!bg-gray-800) leading-8 !rounded">
                   <a-menu-item key="0" class="!rounded-t">
-                    <nuxt-link v-t="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">
-                      <MdiAt class="mt-1 group-hover:text-success" />&nbsp;
+                    <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
+                      <MdiAt class="mt-1 group-hover:text-pink-500" />&nbsp;
 
-                      <span class="prose group-hover:text-black nc-user-menu-email">{{ email }}</span>
+                      <span class="prose">{{ email }}</span>
                     </nuxt-link>
                   </a-menu-item>
 
                   <a-menu-divider class="!m-0" />
 
                   <a-menu-item key="1" class="!rounded-b">
-                    <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
-                      <MdiLogout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
+                    <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                      <MdiLogout class="group-hover:(!text-pink-500)" />&nbsp;
 
-                      <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">
+                      <span class="prose">
                         {{ $t('general.signOut') }}
                       </span>
                     </div>
@@ -113,7 +113,19 @@ const logout = () => {
 }
 
 :deep(.ant-dropdown-menu-item-group-list) {
+  @apply !mx-0;
+}
+
+:deep(.ant-dropdown-menu-item-group-title) {
+  @apply border-b-1;
+}
+
+:deep(.ant-dropdown-menu-item-group-list) {
   @apply m-0;
+}
+
+:deep(.ant-dropdown-menu-item) {
+  @apply !py-0 active:(ring ring-pink-500);
 }
 
 .nc-lang-btn {

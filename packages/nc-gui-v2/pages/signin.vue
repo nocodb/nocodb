@@ -128,8 +128,11 @@ function resetError() {
           </div>
 
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-            <button class="submit" type="submit">
-              <span class="flex items-center gap-2"><MdiLogin /> {{ $t('general.signIn') }}</span>
+            <button class="submit group" type="submit">
+              <span class="flex items-center gap-2">
+                <MdiLogin />
+                {{ $t('general.signIn') }}
+              </span>
             </button>
 
             <div class="text-end prose-sm">

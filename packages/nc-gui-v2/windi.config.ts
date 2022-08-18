@@ -55,27 +55,10 @@ export default defineConfig({
       mono: ['Roboto', 'mono'],
     },
     extend: {
-      typography: {
-        DEFAULT: {
-          css: {
-            'a': {
-              'color': '#1348ba',
-              '&:hover': {
-                color: 'rgba(19,72,186,0.75)',
-              },
-            },
-            'nuxt-link': {
-              'color': '#1348ba',
-              '&:hover': {
-                color: 'rgba(19,72,186,0.75)',
-              },
-            },
-          },
-        },
-      },
       colors: {
         ...windiColors,
         ...themeColors,
+        accent: windiColors.pink['500'],
         dark: colors.dark,
         light: colors.light,
       },

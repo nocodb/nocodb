@@ -27,17 +27,8 @@ main {
   overflow-x: hidden;
 }
 
-nav,
-nav .v-list {
-  @apply dark:(!bg-gray-900 text-white)
-}
-
-.v-divider {
-  @apply dark:bg-white
-}
-
 a {
-  @apply prose text-primary underline hover:opacity-75 dark:(text-secondary);
+  @apply prose text-primary !underline hover:!text-pink-500;
 }
 
 h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
@@ -159,25 +150,24 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 .page-leave-active,
 .layout-enter-active,
 .layout-leave-active {
-  @apply transition-opacity duration-300 ease-in-out;
+  @apply transition-opacity duration-400 ease-in-out;
 }
 
-.page-enter-active,
-.page-leave-active,
-.layout-enter-active,
-.layout-leave-active {
+.page-enter-from,
+.page-leave-to,
+.layout-enter-from,
+.layout-leave-to {
   @apply opacity-0;
 }
 
 .slide-enter-active,
 .slide-leave-active {
   @apply transition-all duration-200 ease-in-out;
-  transform: translate(100%, 0);
 }
 
-.slide-enter,
+.slide-enter-from,
 
-.slide-leave-active {
+.slide-leave-to {
   transform: translate(-100%, 0);
 }
 
@@ -190,8 +180,8 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
   @apply ring ring-xl;
 }
 
-.glow-enter,
-.glow-leave-active {
+.glow-enter-from,
+.glow-leave-to {
   @apply opacity-0;
 }
 

@@ -10,12 +10,15 @@ import {
   useApi,
   useGlobal,
   useI18n,
+  useNuxtApp,
   useRoute,
 } from '#imports'
 
 definePageMeta({
   requiresAuth: false,
 })
+
+const { $e } = useNuxtApp()
 
 const route = useRoute()
 
@@ -84,6 +87,8 @@ async function signUp() {
       signIn(token!)
 
       await navigateTo('/')
+
+      $e('a:auth:sign-up')
     })
     .catch(async (err) => {
       error = await extractSdkResponseErrorMsg(err)

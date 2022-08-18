@@ -106,20 +106,20 @@ onMounted(() => {
                   <template #title>
                     <span>ID column is required, you can rename this later if required.</span>
                   </template>
-                  <a-checkbox v-model:checked="table.columns.id" disabled>ID</a-checkbox>
+                  <a-checkbox v-model:checked="table.columnsToggleInfo.id" disabled>ID</a-checkbox>
                 </a-tooltip>
               </a-col>
 
               <a-col :span="6">
-                <a-checkbox v-model:checked="table.columns.title"> title </a-checkbox>
+                <a-checkbox v-model:checked="table.columnsToggleInfo.title"> title </a-checkbox>
               </a-col>
 
               <a-col :span="6">
-                <a-checkbox v-model:checked="table.columns.created_at"> created_at </a-checkbox>
+                <a-checkbox v-model:checked="table.columnsToggleInfo.created_at"> created_at </a-checkbox>
               </a-col>
 
               <a-col :span="6">
-                <a-checkbox v-model:checked="table.columns.updated_at"> updated_at </a-checkbox>
+                <a-checkbox v-model:checked="table.columnsToggleInfo.updated_at"> updated_at </a-checkbox>
               </a-col>
             </a-row>
           </div>

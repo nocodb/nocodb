@@ -171,7 +171,7 @@ function onMove(event: any) {
 }
 
 function hideColumn(idx: number) {
-  if (isDbRequired(localColumns.value[idx]) || localColumns.value[idx].required) {
+  if (shouldSkipColumn(localColumns.value[idx])) {
     message.info("Required field can't be moved")
     return
   }
@@ -189,7 +189,7 @@ function hideColumn(idx: number) {
 }
 
 async function addAllColumns() {
-  for (const col of (formColumnData as Record<string, any>)?.value) {
+  for (const col of (localColumns as Record<string, any>)?.value) {
     if (!systemFieldsIds.value.includes(col.fk_column_id)) {
       col.show = true
     }
@@ -198,17 +198,22 @@ async function addAllColumns() {
   $e('a:form-view:add-all')
 }
 
+function xor(a: any, b: any) {
+  return !!a !== !!b
+}
+
+function shouldSkipColumn(col: Record<string, any>) {
+  return xor(isDbRequired(col), col.uidt === UITypes.LinkToAnotherRecord) || !!col.required
+}
+
 async function removeAllColumns() {
-  for (const col of (formColumnData as Record<string, any>)?.value) {
-    if (isDbRequired(col) || !!col.required) {
-      continue
-    }
-    col.show = false
+  for (const col of (localColumns as Record<string, any>)?.value) {
+    if (!shouldSkipColumn(col)) col.show = false
   }
   await hideAll(
     (localColumns as Record<string, any>)?.value
-      .filter((f: Record<string, any>) => isDbRequired(f) || !!f.required)
-      .map((f: Record<string, any>) => f.fk_column_id),
+      .filter((col: Record<string, any>) => shouldSkipColumn(col))
+      .map((col: Record<string, any>) => col.fk_column_id),
   )
   $e('a:form-view:remove-all')
 }
@@ -251,7 +256,12 @@ function setFormData() {
 
   localColumns.value = col
     .filter(
-      (f: Record<string, any>) => f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,
+      (f: Record<string, any>) =>
+        f.show &&
+        f.uidt !== UITypes.Rollup &&
+        f.uidt !== UITypes.Lookup &&
+        f.uidt !== UITypes.Formula &&
+        f.uidt !== UITypes.SpecificDBType,
     )
     .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
     .map((c: Record<string, any>) => ({ ...c, required: !!(c.required || 0) }))
@@ -259,7 +269,13 @@ function setFormData() {
   systemFieldsIds.value = getSystemColumns(col).map((c: Record<string, any>) => c.fk_column_id)
 
   hiddenColumns.value = col.filter(
-    (f: Record<string, any>) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && f.uidt !== UITypes.Formula,
+    (f: Record<string, any>) =>
+      !f.show &&
+      !systemFieldsIds.value.includes(f.fk_column_id) &&
+      f.uidt !== UITypes.Rollup &&
+      f.uidt !== UITypes.Lookup &&
+      f.uidt !== UITypes.Formula &&
+      f.uidt !== UITypes.SpecificDBType,
   )
 }
 

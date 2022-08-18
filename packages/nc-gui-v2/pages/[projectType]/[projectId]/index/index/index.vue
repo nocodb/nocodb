@@ -92,13 +92,15 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 </script>
 
 <template>
-  <div ref="dropZone" class="h-full w-full text-gray-400 flex items-center justify-center relative">
+  <div ref="dropZone" class="h-full w-full text-gray-600 flex items-center justify-center relative">
     <general-overlay
-      v-model="isOverDropZone"
+      :model-value="true"
+      :class="[isOverDropZone ? 'bg-gray-300/75 border-primary shadow' : 'bg-gray-100/25 border-gray-500 pointer-events-none']"
       inline
-      class="text-white text-3xl shadow-pink-500 shadow-inner bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
+      style="top: 20%; left: 20%; right: 20%; bottom: 20%"
+      class="text-3xl flex items-center justify-center gap-2 border-1 border-dashed rounded"
     >
-      <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here
+      <template v-if="isOverDropZone"> <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here </template>
     </general-overlay>
 
     <div class="flex flex-col gap-6 items-center justify-center md:w-1/2 mx-auto text-center">

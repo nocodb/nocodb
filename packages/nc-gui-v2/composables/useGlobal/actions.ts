@@ -1,11 +1,10 @@
 import { message } from 'ant-design-vue'
+import { Api } from 'nocodb-sdk'
 import type { Actions, State } from './types'
-import { useNuxtApp } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
-  // todo replace with just `new Api()`? Would solve recursion issues
-  /** we have to use the globally injected api instance, otherwise we run into recursion as `useApi` calls `useGlobal` */
-  const { $api } = useNuxtApp()
+  /** detached api instance, will not trigger global loading */
+  const api = new Api()
 
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = () => {
@@ -30,7 +29,7 @@ export function useGlobalActions(state: State): Actions {
 
   /** manually try to refresh token */
   const refreshToken = async () => {
-    $api.instance
+    api.instance
       .post('/auth/refresh-token', null, {
         withCredentials: true,
       })

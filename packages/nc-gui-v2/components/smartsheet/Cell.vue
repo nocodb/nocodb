@@ -9,7 +9,9 @@ import {
   IsLockedInj,
   IsPublicInj,
   computed,
+  inject,
   provide,
+  ref,
   toRef,
   useColumn,
   useDebounceFn,
@@ -42,11 +44,11 @@ provide(EditModeInj, useVModel(props, 'editEnabled', emit))
 
 provide(ActiveCellInj, active)
 
-const isForm = inject(IsFormInj)
+const isForm = inject(IsFormInj, ref(false))
 
-const isPublic = inject(IsPublicInj)
+const isPublic = inject(IsPublicInj, ref(false))
 
-const isLocked = inject(IsLockedInj)
+const isLocked = inject(IsLockedInj, ref(false))
 
 let changed = $ref(false)
 

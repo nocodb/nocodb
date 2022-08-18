@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import * as XLSX from 'xlsx'
-// todo: export types is missing EXCEL
-// import { ExportTypes } from 'nocodb-sdk'
+import { ExportTypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
 import { message } from 'ant-design-vue'
 import {
   ActiveViewInj,
   FieldsInj,
+  IsLockedInj,
   IsPublicInj,
   MetaInj,
   extractSdkResponseErrorMsg,
@@ -17,26 +17,23 @@ import {
   useUIPermission,
 } from '#imports'
 
-enum ExportTypes {
-  EXCEL = 'excel',
-  CSV = 'csv',
-}
-
 const sharedViewListDlg = ref(false)
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
 const isView = false
 
-// TODO: pending for shared view
-
 const { project } = useProject()
 
 const { $api } = useNuxtApp()
 
 const meta = inject(MetaInj)
+
 const fields = inject(FieldsInj, ref([]))
+
 const selectedView = inject(ActiveViewInj)
+
+const isLocked = inject(IsLockedInj)
 
 const showWebhookDrawer = ref(false)
 
@@ -106,16 +103,16 @@ const exportFile = async (exportType: ExportTypes) => {
       </a-button>
 
       <template #overlay>
-        <div class="bg-white shadow-lg !border">
+        <div class="bg-gray-50 py-2 shadow-lg !border">
           <div>
             <div v-t="['a:actions:download-csv']" class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
-              <MdiDownloadOutline />
+              <MdiDownloadOutline class="text-gray-500" />
               <!-- Download as CSV -->
               {{ $t('activity.downloadCSV') }}
             </div>
 
             <div v-t="['a:actions:download-excel']" class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)">
-              <MdiDownloadOutline />
+              <MdiDownloadOutline class="text-gray-500" />
               <!-- Download as XLSX -->
               {{ $t('activity.downloadExcel') }}
             </div>
@@ -124,9 +121,10 @@ const exportFile = async (exportType: ExportTypes) => {
               v-if="isUIAllowed('csvImport') && !isView && !isPublicView"
               v-t="['a:actions:upload-csv']"
               class="nc-menu-item"
-              @click="quickImportDialog = true"
+              :class="{ disabled: isLocked }"
+              @click="!isLocked ? (quickImportDialog = true) : {}"
             >
-              <MdiUploadOutline />
+              <MdiUploadOutline class="text-gray-500" />
               <!-- Upload CSV -->
               {{ $t('activity.uploadCSV') }}
             </div>
@@ -137,7 +135,7 @@ const exportFile = async (exportType: ExportTypes) => {
               class="nc-menu-item"
               @click="sharedViewListDlg = true"
             >
-              <MdiViewListOutline />
+              <MdiViewListOutline class="text-gray-500" />
               <!-- Shared View List -->
               {{ $t('activity.listSharedView') }}
             </div>
@@ -148,7 +146,7 @@ const exportFile = async (exportType: ExportTypes) => {
               class="nc-menu-item"
               @click="showWebhookDrawer = true"
             >
-              <MdiHook />
+              <MdiHook class="text-gray-500" />
               {{ $t('objects.webhooks') }}
             </div>
           </div>

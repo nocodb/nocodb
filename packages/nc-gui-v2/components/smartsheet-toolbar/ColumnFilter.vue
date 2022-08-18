@@ -2,31 +2,42 @@
 import type { FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
-import { useNuxtApp } from '#app'
-import { inject, useViewFilters } from '#imports'
-import { comparisonOpList } from '~/utils/filterUtils'
-import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-import MdiDeleteIcon from '~icons/mdi/close-box'
-import MdiAddIcon from '~icons/mdi/plus'
-import type { Filter } from '~/lib/types'
+import {
+  ActiveViewInj,
+  MetaInj,
+  ReloadViewDataHookInj,
+  comparisonOpList,
+  computed,
+  inject,
+  ref,
+  useNuxtApp,
+  useViewFilters,
+  watch,
+} from '#imports'
+import type { Filter } from '~/lib'
 
-const {
-  nested = false,
-  parentId,
-  autoSave = true,
-  hookId = null,
-  modelValue,
-} = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean; hookId?: string; modelValue?: Filter[] }>()
+interface Props {
+  nested?: boolean
+  parentId?: string
+  autoSave: boolean
+  hookId?: string
+  modelValue?: Filter[]
+}
+
+const { nested = false, parentId, autoSave = true, hookId = null, modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:filtersLength'])
 
-const meta = inject(MetaInj)
+const logicalOps = [
+  { value: 'and', text: 'AND' },
+  { value: 'or', text: 'OR' },
+]
 
-const activeView = inject(ActiveViewInj)
+const meta = inject(MetaInj)!
 
-const reloadDataHook = inject(ReloadViewDataHookInj)
+const activeView = inject(ActiveViewInj)!
 
-// todo: replace with inject or get from state
+const reloadDataHook = inject(ReloadViewDataHookInj)!
 
 const { $e } = useNuxtApp()
 
@@ -35,10 +46,12 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGr
   parentId,
   computed(() => autoSave),
   () => {
-    reloadDataHook?.trigger()
+    reloadDataHook.trigger()
   },
   modelValue,
 )
+
+const nestedFilters = ref()
 
 const filterUpdateCondition = (filter: FilterType, i: number) => {
   saveOrUpdate(filter, i)
@@ -63,12 +76,14 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
 //     return true
 //   })
 
-const columns = computed(() => meta?.value?.columns)
+const columns = computed(() => meta.value?.columns)
+
 const types = computed(() => {
-  if (!meta?.value?.columns?.length) {
+  if (!meta.value?.columns?.length) {
     return {}
   }
-  return meta?.value?.columns?.reduce((obj: any, col: any) => {
+
+  return meta.value?.columns?.reduce((obj: any, col: any) => {
     switch (col.uidt) {
       case UITypes.Number:
       case UITypes.Decimal:
@@ -83,22 +98,15 @@ const types = computed(() => {
 })
 
 watch(
-  () => (activeView?.value as any)?.id,
+  () => activeView.value?.id,
   (n, o) => {
     if (n !== o) loadFilters(hookId as string)
   },
   { immediate: true },
 )
 
-const nestedFilters = ref()
-
-const logicalOps = [
-  { value: 'and', text: 'AND' },
-  { value: 'or', text: 'OR' },
-]
-
 watch(
-  () => filters?.value?.length,
+  () => filters.value.length,
   (length) => {
     emit('update:filtersLength', length ?? 0)
   },
@@ -106,7 +114,10 @@ watch(
 
 const applyChanges = async (hookId?: string) => {
   await sync(hookId)
-  for (const nestedFilter of nestedFilters?.value || []) {
+
+  if (!nestedFilters.value.length) return
+
+  for (const nestedFilter of nestedFilters.value) {
     if (nestedFilter.parentId) {
       await nestedFilter.applyChanges(hookId, true)
     }
@@ -128,7 +139,7 @@ defineExpose({
       <template v-for="(filter, i) in filters" :key="filter.id || i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
-            <MdiDeleteIcon
+            <MdiCloseBox
               v-if="!filter.readOnly"
               :key="i"
               small
@@ -174,7 +185,7 @@ defineExpose({
                                       mdi-close-box
                                     </v-icon> -->
 
-            <MdiDeleteIcon
+            <MdiCloseBox
               v-if="!filter.readOnly"
               class="nc-filter-item-remove-btn text-grey align-self-center"
               @click.stop="deleteFilter(filter, i)"
@@ -260,7 +271,7 @@ defineExpose({
       <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter">
         <div class="flex align-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
-          <MdiAddIcon />
+          <MdiPlus />
           <!-- Add Filter -->
           {{ $t('activity.addFilter') }}
         </div>
@@ -268,7 +279,7 @@ defineExpose({
       <a-button class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex align-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
-          <MdiAddIcon />
+          <MdiPlus />
           Add Filter Group
           <!--     todo: add i18n {{ $t('activity.addFilterGroup') }} -->
         </div>

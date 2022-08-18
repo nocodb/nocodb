@@ -129,7 +129,6 @@ watch(isOpen, (n, _o) => {
     v-model:value="vModel"
     mode="multiple"
     class="w-full"
-    :placeholder="!readOnly ? 'Select an option' : ''"
     :bordered="false"
     :show-arrow="!readOnly"
     :show-search="false"

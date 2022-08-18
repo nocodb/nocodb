@@ -20,6 +20,8 @@ const active = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj)!
 
+const isLocked = inject(IsLockedInj, ref(false))
+
 const expandedFormDlg = ref(false)
 </script>
 
@@ -37,13 +39,13 @@ export default {
   >
     <span class="name">{{ value }}</span>
 
-    <div v-show="active || isForm" v-if="!readonly" class="flex align-center">
+    <div v-show="active || isForm" v-if="!readonly && !isLocked" class="flex align-center">
       <MdiCloseThick class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
     </div>
 
     <Suspense>
       <ExpandedForm
-        v-if="!readonly"
+        v-if="!readonly && !isLocked && expandedFormDlg"
         v-model="expandedFormDlg"
         :row="{ row: item }"
         :meta="relatedTableMeta"

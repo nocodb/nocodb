@@ -21,7 +21,7 @@ const { isUIAllowed } = useUIPermission()
 
 let showShareModel = $ref(false)
 
-const passwordProtected = $ref(false)
+let passwordProtected = $ref(false)
 
 const shared = ref()
 
@@ -100,6 +100,20 @@ const copyLink = () => {
   copy(sharedViewUrl?.value as string)
   message.success('Copied to clipboard')
 }
+
+watch(
+  () => passwordProtected,
+  (value) => {
+    if (!value) {
+      shared.value.password = ''
+      saveShareLinkPassword()
+    }
+  },
+)
+
+onMounted(() => {
+  if (shared.value?.password?.length) passwordProtected = true
+})
 </script>
 
 <template>
@@ -133,7 +147,6 @@ const copyLink = () => {
         <a-collapse-panel key="1" header="More Options">
           <div class="mb-2">
             <a-checkbox v-model:checked="passwordProtected" class="!text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
-            <!--           todo: add password toggle -->
             <div v-if="passwordProtected" class="flex gap-2 mt-2 mb-4">
               <a-input
                 v-model:value="shared.password"

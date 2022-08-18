@@ -2,6 +2,7 @@ import type { ColumnType, LinkToAnotherRecordType, PaginatedType, TableType } fr
 import type { ComputedRef, Ref } from 'vue'
 import { Modal, message } from 'ant-design-vue'
 import {
+  IsPublicInj,
   NOCO,
   computed,
   extractSdkResponseErrorMsg,
@@ -13,6 +14,7 @@ import {
   useProject,
 } from '#imports'
 import type { Row } from '~/composables'
+import { SharedViewPasswordInj } from '~/context'
 
 interface DataApiResponse {
   list: Record<string, any>
@@ -26,6 +28,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const { metas, getMeta } = useMetas()
     const { project } = useProject()
     const { $api } = useNuxtApp()
+    const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
     const childrenExcludedList = ref<DataApiResponse | undefined>()
     const childrenList = ref<DataApiResponse | undefined>()
     const childrenExcludedListPagination = reactive({
@@ -38,6 +41,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       query: '',
       size: 10,
     })
+
+    const isPublic: boolean = $(inject(IsPublicInj, ref(false)))
 
     const colOptions = $computed(() => column?.value.colOptions as LinkToAnotherRecordType)
 
@@ -79,8 +84,29 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const loadChildrenExcludedList = async () => {
       try {
-        /** if new row load all records */
-        if (isNewRow?.value) {
+        if (isPublic) {
+          const route = useRoute()
+          childrenExcludedList.value = await $api.public.dataRelationList(
+            route.params.viewId as string,
+            column?.value?.id,
+            {},
+            {
+              headers: {
+                'xc-password': sharedViewPassword.value,
+              },
+              query: {
+                limit: childrenExcludedListPagination.size,
+                offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
+                where:
+                  childrenExcludedListPagination.query &&
+                  `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
+                fields: [relatedTablePrimaryValueProp.value, ...relatedTablePrimaryKeyProps.value],
+              } as any,
+            },
+          )
+
+          /** if new row load all records */
+        } else if (isNewRow?.value) {
           childrenExcludedList.value = await $api.dbTableRow.list(
             NOCO,
             project.value.id as string,

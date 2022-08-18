@@ -23,6 +23,8 @@ const { deleteTable } = useTable()
 
 const { isUIAllowed } = useUIPermission()
 
+const isLocked = inject('TreeViewIsLockedInj')
+
 const tablesById = $computed<Record<string, TableType>>(() =>
   tables?.value?.reduce((acc: Record<string, TableType>, table: TableType) => {
     acc[table.id as string] = table
@@ -199,7 +201,11 @@ const activeTable = computed(() => {
 
                   <div class="nc-tbl-title flex-1">{{ table.title }}</div>
 
-                  <a-dropdown v-if="isUIAllowed('table-rename') || isUIAllowed('table-delete')" :trigger="['click']" @click.stop>
+                  <a-dropdown
+                    v-if="!isLocked && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
+                    :trigger="['click']"
+                    @click.stop
+                  >
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
 
                     <template #overlay>
@@ -209,7 +215,7 @@ const activeTable = computed(() => {
                           v-t="['c:table:rename']"
                           class="!text-xs"
                           @click="showRenameTableDlg(table)"
-                          ><div>Rename</div></a-menu-item
+                          ><div>{{ $t('general.rename') }}</div></a-menu-item
                         >
 
                         <a-menu-item
@@ -218,7 +224,7 @@ const activeTable = computed(() => {
                           class="!text-xs"
                           @click="deleteTable(table)"
                         >
-                          Delete</a-menu-item
+                          {{ $t('general.delete') }}</a-menu-item
                         >
                       </a-menu>
                     </template>
@@ -238,7 +244,7 @@ const activeTable = computed(() => {
         </div>
       </div>
 
-      <template #overlay>
+      <template v-if="!isLocked" #overlay>
         <a-menu class="cursor-pointer">
           <template v-if="contextMenuTarget.type === 'table'">
             <a-menu-item

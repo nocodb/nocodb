@@ -2,7 +2,7 @@
 import type { ViewTypes } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { viewIcons } from '~/utils'
-import { onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
+import { IsLockedInj, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
 
 interface Props {
   view: Record<string, any>
@@ -26,6 +26,8 @@ const vModel = useVModel(props, 'view', emits)
 const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
+
+const isLocked = inject(IsLockedInj)
 
 /** Is editing the view name enabled */
 let isEditing = $ref<boolean>(false)
@@ -168,7 +170,7 @@ function onStopEdit() {
 
       <div class="flex-1" />
 
-      <template v-if="!isEditing && isUIAllowed('virtualViewsCreateOrEdit')">
+      <template v-if="!isEditing && !isLocked && isUIAllowed('virtualViewsCreateOrEdit')">
         <div class="flex items-center gap-1">
           <a-tooltip placement="left">
             <template #title>

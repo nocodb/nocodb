@@ -99,7 +99,7 @@ useEventListener(document, 'click', handleClose)
 </script>
 
 <template>
-  <div ref="editOrAddRef" class="min-w-[400px] max-h-[95vh] bg-white shadow p-6 overflow-auto" @click.stop>
+  <div ref="editOrAddRef" class="min-w-[400px] max-h-[95vh] bg-gray-50 shadow-lg p-6 overflow-auto !border" @click.stop>
     <a-form v-if="formState" v-model="formState" name="column-create-or-edit" layout="vertical">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
@@ -132,7 +132,6 @@ useEventListener(document, 'click', handleClose)
           v-model:value="formState"
         />
         <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
-        <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
         <SmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
           v-model:value="formState"

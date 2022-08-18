@@ -130,6 +130,7 @@ export interface ViewType {
   order?: number;
   fk_model_id?: string;
   slug?: string;
+  uuid?: string;
   show_system_fields?: boolean;
   lock_type?: 'collaborative' | 'locked' | 'personal';
 }
@@ -3062,22 +3063,6 @@ export class Api<
       }),
 
     /**
-     * No description
-     *
-     * @tags Public
-     * @name SharedViewMetaGet
-     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/meta
-     * @response `200` `object` OK
-     */
-    sharedViewMetaGet: (sharedViewUuid: string, params: RequestParams = {}) =>
-      this.request<object, any>({
-        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/meta`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
      * @description Read project details
      *
      * @tags Public
@@ -3088,6 +3073,31 @@ export class Api<
     sharedBaseGet: (sharedBaseUuid: string, params: RequestParams = {}) =>
       this.request<{ project_id?: string }, any>({
         path: `/api/v1/db/public/shared-base/${sharedBaseUuid}/meta`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
+     * @name SharedViewMetaGet
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/meta
+     * @response `200` `(ViewType & { relatedMetas?: any, client?: string, columns?: ((GridColumnType | FormColumnType | GalleryColumnType) & ColumnType), model?: TableType } & { view?: (FormType | GridType | GalleryType) })` OK
+     */
+    sharedViewMetaGet: (sharedViewUuid: string, params: RequestParams = {}) =>
+      this.request<
+        ViewType & {
+          relatedMetas?: any;
+          client?: string;
+          columns?: (GridColumnType | FormColumnType | GalleryColumnType) &
+            ColumnType;
+          model?: TableType;
+        } & { view?: FormType | GridType | GalleryType },
+        any
+      >({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/meta`,
         method: 'GET',
         format: 'json',
         ...params,

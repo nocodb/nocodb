@@ -56,10 +56,14 @@ export function useColumn(column: Ref<ColumnType>) {
   const isManualSaved = computed(() =>
     [UITypes.Currency, UITypes.Year, UITypes.Time, UITypes.Duration].includes(uiDatatype.value),
   )
+  const isPrimary = computed(() => {
+    return column?.value?.pv
+  })
 
   return {
     abstractType,
     dataTypeLow,
+    isPrimary,
     isBoolean,
     isString,
     isTextArea,

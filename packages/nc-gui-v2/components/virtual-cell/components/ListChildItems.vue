@@ -11,6 +11,7 @@ import {
   useVModel,
   watch,
 } from '#imports'
+import { IsPublicInj } from '~/context'
 
 const props = defineProps<{ modelValue?: boolean }>()
 
@@ -21,6 +22,8 @@ const ExpandedForm: any = defineAsyncComponent(() => import('../../smartsheet/ex
 const vModel = useVModel(props, 'modelValue', emit)
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const column = inject(ColumnInj)
 
@@ -117,7 +120,7 @@ const expandedFormRow = ref()
                   @click.stop="unlinkRow(row)"
                 />
                 <MdiDeleteOutline
-                  v-if="!readonly"
+                  v-if="!readonly && !isPublic"
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
                   @click.stop="deleteRelatedRow(row, unlinkIfNewRow)"
                 />
@@ -145,7 +148,7 @@ const expandedFormRow = ref()
 
     <Suspense>
       <ExpandedForm
-        v-if="expandedFormRow"
+        v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
         :row="{ row: expandedFormRow }"
         :meta="relatedTableMeta"

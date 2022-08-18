@@ -17,6 +17,10 @@ main {
   @apply m-0 h-full w-full bg-white dark:(bg-black text-white);
 }
 
+html {
+  overflow-y: auto !important;
+}
+
 main {
   @apply flex-0 w-full relative scrollbar-thin-dull;
   overflow-x: hidden;
@@ -43,14 +47,23 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
   @apply color-transition;
 }
 
-html {
-  overflow-y: auto !important;
-}
-
-
 // menu item styling
 .nc-menu-item {
   @apply cursor-pointer text-xs flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+
+  &.disabled { 
+    @apply text-black text-opacity-25 bg-[#f5f5f5] cursor-not-allowed text-shadow-none box-shadow-none border-[#d9d9d9];
+  }
+}
+
+.nc-project-menu-item {
+  @apply cursor-pointer flex items-center gap-2 py-2 hover:text-primary after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+
+  &:hover {
+    .nc-icon {
+      @apply text-pink-500;
+    }
+  }
 }
 
 .nc-sidebar-right-item {
@@ -65,8 +78,16 @@ html {
     @apply ring shadow-2xl transform scale-110;
   }
 
+  &.disabled-ring:hover::after {
+    @apply ring-0;
+  }
+
   svg {
     @apply z-1 text-xl p-1 text-gray-500;
+  }
+  
+  .disabled {
+    @apply cursor-not-allowed border-none;
   }
 }
 
@@ -78,6 +99,10 @@ html {
 // for highlighting toolbar menu item
 .nc-active-btn > .ant-btn{
   @apply bg-primary/20 hover:(bg-primary/20);
+}
+
+.nc-locked-overlay {
+  @apply absolute h-full w-full z-2 top-0 left-0;
 }
 
 .ant-modal-wrap {
@@ -136,9 +161,9 @@ html {
   @apply transition-opacity duration-300 ease-in-out;
 }
 
-.page-enter,
+.page-enter-active,
 .page-leave-active,
-.layout-enter,
+.layout-enter-active,
 .layout-leave-active {
   @apply opacity-0;
 }
@@ -166,4 +191,22 @@ html {
 .glow-enter,
 .glow-leave-active {
   @apply opacity-0;
+}
+
+.scaling-btn {
+  @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 bg-gray-100/50 text-white bg-primary;
+
+  &::after {
+    @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
+    content: '';
+    z-index: -1;
+  }
+
+  &:hover::after {
+    @apply transform scale-110 ring ring-pink-500;
+  }
+
+  &:active::after {
+    @apply ring ring-pink-500;
+  }
 }

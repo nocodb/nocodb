@@ -5,6 +5,7 @@ import {
   CellValueInj,
   ColumnInj,
   IsFormInj,
+  IsLockedInj,
   ReadonlyInj,
   ReloadViewDataHookInj,
   RowInj,
@@ -33,6 +34,8 @@ const isForm = inject(IsFormInj)
 
 const readonly = inject(ReadonlyInj, false)
 
+const isLocked = inject(IsLockedInj)
+
 const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
@@ -49,9 +52,9 @@ await loadRelatedTableMeta()
 
 const localCellValue = computed(() => {
   if (cellValue?.value) {
-    return cellValue?.value
+    return cellValue?.value ?? []
   } else if (isNew.value) {
-    return state?.value?.[column?.value.title as string]
+    return state?.value?.[column?.value.title as string] ?? []
   }
   return []
 })
@@ -88,12 +91,15 @@ const unlinkRef = async (rec: Record<string, any>) => {
         </template>
       </div>
 
-      <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
-        <MdiArrowExpand class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="childListDlg = true" />
+      <div v-if="!isLocked" class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
+        <MdiArrowExpand
+          class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
+          @click="childListDlg = true"
+        />
 
         <MdiPlus
           v-if="!readonly"
-          class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
+          class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
           @click="listItemsDlg = true"
         />
       </div>

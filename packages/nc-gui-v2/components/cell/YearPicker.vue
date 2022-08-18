@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { computed, inject, onClickOutside, ref, watch } from '#imports'
+import { ReadonlyInj, computed, inject, onClickOutside, ref, watch } from '#imports'
 
 interface Props {
   modelValue?: number | string | null
@@ -53,7 +53,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : readOnly ? 'Select year' : ''))
+const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
 </script>
 
 <template>

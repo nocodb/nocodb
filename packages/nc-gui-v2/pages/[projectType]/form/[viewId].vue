@@ -1,39 +1,31 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import type { TableType } from 'nocodb-sdk'
-import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReloadViewDataHookInj, useRoute } from '#imports'
+import type { TableType } from 'nocodb-sdk/build/main'
+import { useProvideSharedFormStore } from '~/composables/useSharedFormViewStore'
+import { IsFormInj, IsPublicInj, MetaInj, ReloadViewDataHookInj } from '~/context'
+import { createEventHook, definePageMeta, provide, ref, useProvideSmartsheetStore, useRoute } from '#imports'
 
 definePageMeta({
-  requiresAuth: false,
+  public: true,
 })
 
 const route = useRoute()
 
 const reloadEventHook = createEventHook<void>()
-const { sharedView, loadSharedView, meta, formColumns } = useSharedView()
 
-await loadSharedView(route.params.viewId as string)
+const { loadSharedView, sharedView, meta, notFound } = useProvideSharedFormStore(route.params.viewId as string)
 
-provide(ReloadViewDataHookInj, reloadEventHook)
-provide(MetaInj, meta)
-provide(ActiveViewInj, sharedView)
-provide(FieldsInj, formColumns)
-provide(IsPublicInj, ref(true))
+await loadSharedView()
+if (!notFound.value) {
+  provide(ReloadViewDataHookInj, reloadEventHook)
+  provide(MetaInj, meta)
+  provide(IsPublicInj, ref(true))
+  provide(IsFormInj, ref(true))
 
-useProvideSmartsheetStore(sharedView as Ref<TableType>, meta)
+  useProvideSmartsheetStore(sharedView as Ref<TableType>, meta as Ref<TableType>, true)
+}
 </script>
 
 <template>
-  <NuxtLayout id="content" class="flex">
-    <div class="nc-container flex flex-col h-full mt-2 px-6">
-      <SharedViewForm />
-    </div>
-  </NuxtLayout>
+  <SharedViewForm />
 </template>
-
-<style scoped>
-.nc-container {
-  height: calc(100% - var(--header-height));
-  flex: 1 1 100%;
-}
-</style>

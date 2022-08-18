@@ -4,16 +4,19 @@ import {
   navigateTo,
   onKeyStroke,
   openLink,
+  provide,
   provideSidebar,
   ref,
   useClipboard,
   useElementHover,
+  useGlobal,
   useProject,
   useRoute,
   useTabs,
   useUIPermission,
 } from '#imports'
 import { TabType } from '~/composables'
+
 const route = useRoute()
 
 const { appInfo, token } = useGlobal()
@@ -25,6 +28,10 @@ const { addTab, clearTabs } = useTabs()
 const { isUIAllowed } = useUIPermission()
 
 const { copy } = useClipboard()
+
+const isLocked = ref(false)
+
+provide('TreeViewIsLockedInj', isLocked)
 
 // create a new sidebar state
 const { isOpen, toggle } = provideSidebar({ isOpen: true })
@@ -66,11 +73,13 @@ const isHovered = useElementHover(sidebar)
 const copyProjectInfo = async () => {
   try {
     await loadProjectMetaInfo()
-    copy(
+
+    await copy(
       Object.entries(projectMetaInfo.value!)
         .map(([k, v]) => `${k}: **${v}**`)
         .join('\n'),
     )
+
     message.info('Copied project info to clipboard')
   } catch (e: any) {
     console.log(e)
@@ -80,7 +89,8 @@ const copyProjectInfo = async () => {
 
 const copyAuthToken = async () => {
   try {
-    copy(token.value!)
+    await copy(token.value!)
+
     message.info('Copied auth token to clipboard')
   } catch (e: any) {
     console.log(e)
@@ -134,11 +144,11 @@ const copyAuthToken = async () => {
             </template>
           </div>
 
-          <a-dropdown v-else :trigger="['click']" placement="bottom">
+          <a-dropdown v-else class="h-full" :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
-              class="group cursor-pointer flex gap-4 items-center nc-project-menu"
+              class="group cursor-pointer flex gap-4 items-center nc-project-menu overflow-hidden"
             >
               <template v-if="isOpen">
                 <div class="text-xl font-semibold truncate">{{ project.title }}</div>
@@ -177,6 +187,8 @@ const copyAuthToken = async () => {
                     </div>
                   </a-menu-item>
 
+                  <a-menu-divider />
+
                   <a-menu-item key="api">
                     <div
                       v-if="isUIAllowed('apiDocs')"
@@ -191,7 +203,7 @@ const copyAuthToken = async () => {
 
                   <a-menu-item key="copy">
                     <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
-                      <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
+                      <MdiScriptTextKeyOutline class="group-hover:text-pink-500 nc-copy-project-info" />
                       Copy Auth Token
                     </div>
                   </a-menu-item>
@@ -215,7 +227,7 @@ const copyAuthToken = async () => {
                   <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
                     <template #title>
                       <div class="nc-project-menu-item group">
-                        <MdiContentCopy class="group-hover:text-pink-500 nc-project-preview" />
+                        <MdiFileEyeOutline class="group-hover:text-pink-500 nc-project-preview" />
                         Preview Project As
 
                         <div class="flex-1" />
@@ -272,10 +284,6 @@ const copyAuthToken = async () => {
 </template>
 
 <style lang="scss" scoped>
-.nc-project-menu-item {
-  @apply cursor-pointer flex items-center gap-2 py-2 hover:text-primary after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
-}
-
 :deep(.ant-dropdown-menu-item-group-title) {
   @apply border-b-1;
 }
@@ -286,9 +294,5 @@ const copyAuthToken = async () => {
 
 :deep(.ant-dropdown-menu-item) {
   @apply !py-0 active:(ring ring-pink-500);
-}
-
-:deep(.ant-dropdown-trigger) {
-  @apply h-full;
 }
 </style>

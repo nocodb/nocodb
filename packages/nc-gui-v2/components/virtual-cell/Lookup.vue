@@ -64,7 +64,7 @@ const lookupColumnMetaProps = useColumn(lookupColumn)
           :key="i"
           :class="{ 'bg-gray-100 px-2 rounded-full': !lookupColumnMetaProps.isAttachment }"
         >
-          <SmartsheetCell :model-value="v" :column="lookupColumn" :edit-enabled="false" />
+          <SmartsheetCell :model-value="v" :column="lookupColumn" :edit-enabled="false" :virtual="true" />
         </div>
       </template>
     </template>

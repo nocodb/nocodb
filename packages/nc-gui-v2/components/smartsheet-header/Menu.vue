@@ -3,20 +3,21 @@ import { Modal, message } from 'ant-design-vue'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNuxtApp } from '#app'
-import { useMetas } from '#imports'
-import { ColumnInj, MetaInj } from '~/context'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import { ColumnInj, IsLockedInj, MetaInj, extractSdkResponseErrorMsg, useMetas } from '#imports'
 import MdiEditIcon from '~icons/mdi/pencil'
 import MdiStarIcon from '~icons/mdi/star'
 import MdiDeleteIcon from '~icons/mdi/delete-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
+
 const emit = defineEmits(['edit'])
 
 const column = inject(ColumnInj)
 
 const meta = inject(MetaInj)
+
+const isLocked = inject(IsLockedInj)
 
 const { $api, $e } = useNuxtApp()
 
@@ -53,7 +54,7 @@ const setAsPrimaryValue = async () => {
 </script>
 
 <template>
-  <a-dropdown placement="bottomRight" :trigger="['click']">
+  <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']">
     <MdiMenuDownIcon class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
     <template #overlay>
       <a-menu class="shadow bg-white">

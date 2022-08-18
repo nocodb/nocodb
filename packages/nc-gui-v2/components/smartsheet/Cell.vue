@@ -1,7 +1,20 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import { ActiveCellInj, ColumnInj, EditModeInj, computed, provide, toRef, useColumn, useDebounceFn, useVModel } from '#imports'
+import {
+  ActiveCellInj,
+  ColumnInj,
+  EditModeInj,
+  IsFormInj,
+  IsLockedInj,
+  IsPublicInj,
+  computed,
+  provide,
+  toRef,
+  useColumn,
+  useDebounceFn,
+  useVModel,
+} from '#imports'
 import { NavigateDir } from '~/lib'
 
 interface Props {
@@ -10,6 +23,7 @@ interface Props {
   editEnabled: boolean
   rowIndex?: number
   active?: boolean
+  virtual?: boolean
 }
 
 const props = defineProps<Props>()
@@ -20,11 +34,19 @@ const column = toRef(props, 'column')
 
 const active = toRef(props, 'active', false)
 
+const virtual = toRef(props, 'virtual', false)
+
 provide(ColumnInj, column)
 
 provide(EditModeInj, useVModel(props, 'editEnabled', emit))
 
 provide(ActiveCellInj, active)
+
+const isForm = inject(IsFormInj)
+
+const isPublic = inject(IsPublicInj)
+
+const isLocked = inject(IsLockedInj)
 
 let changed = $ref(false)
 
@@ -54,10 +76,6 @@ const isManualSaved = $computed(() => {
   return [UITypes.Currency, UITypes.Duration].includes(column?.value?.uidt as UITypes)
 })
 
-const isPrimary = computed(() => {
-  return column?.value?.pv
-})
-
 const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
@@ -75,6 +93,7 @@ const vModel = computed({
 })
 
 const {
+  isPrimary,
   isURL,
   isEmail,
   isJSON,
@@ -99,7 +118,7 @@ const {
 } = useColumn(column)
 
 const syncAndNavigate = (dir: NavigateDir) => {
-  if (isJSON) return
+  if (isJSON.value) return
 
   if (changed) {
     emit('save')
@@ -112,7 +131,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
 <template>
   <div
     class="nc-cell w-full h-full"
-    :class="{ 'text-blue-600': isPrimary }"
+    :class="{ 'text-blue-600': isPrimary && !virtual }"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up
@@ -134,13 +153,14 @@ const syncAndNavigate = (dir: NavigateDir) => {
     <CellEmail v-else-if="isEmail" v-model="vModel" />
     <CellUrl v-else-if="isURL" v-model="vModel" />
     <CellPhoneNumber v-else-if="isPhoneNumber" v-model="vModel" />
+    <CellPercent v-else-if="isPercent" v-model="vModel" />
     <CellCurrency v-else-if="isCurrency" v-model="vModel" />
     <CellDecimal v-else-if="isDecimal" v-model="vModel" />
     <CellInteger v-else-if="isInt" v-model="vModel" />
     <CellFloat v-else-if="isFloat" v-model="vModel" />
     <CellText v-else-if="isString" v-model="vModel" />
-    <CellPercent v-else-if="isPercent" v-model="vModel" />
     <CellJson v-else-if="isJSON" v-model="vModel" />
     <CellText v-else v-model="vModel" />
+    <div v-if="(isLocked || (isPublic && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
   </div>
 </template>

@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import { inject, ref } from '#imports'
-import { RightSidebarInj } from '~/context'
-
 const emits = defineEmits(['addRow'])
-
-const sidebarOpen = inject(RightSidebarInj, ref(true))
+const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
+const isLocked = inject(IsLockedInj)
 </script>
 
 <template>
-  <a-tooltip :placement="sidebarOpen ? 'bottomRight' : 'left'">
+  <a-tooltip :placement="isOpen ? 'bottomRight' : 'left'">
     <template #title> {{ $t('activity.addRow') }} </template>
-
-    <div class="nc-sidebar-right-item hover:after:bg-primary/75 group">
-      <MdiPlusOutline class="cursor-pointer group-hover:(!text-white)" @click="emits('addRow')" />
+    <div
+      :class="{ 'hover:after:bg-primary/75 group': !isLocked, 'disabled-ring': isLocked }"
+      class="nc-sidebar-right-item nc-sidebar-add-row"
+    >
+      <MdiPlusOutline
+        :class="{ 'cursor-pointer group-hover:(!text-white)': !isLocked, 'disabled': isLocked }"
+        @click="!isLocked ? emits('addRow') : {}"
+      />
     </div>
   </a-tooltip>
 </template>

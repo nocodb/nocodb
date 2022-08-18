@@ -7,7 +7,7 @@ const isLocked = inject(IsLockedInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj)!
 
 const onClick = () => {
-  if (!isLocked) openNewRecordFormHook.trigger()
+  if (!isLocked?.value) openNewRecordFormHook.trigger()
 }
 </script>
 

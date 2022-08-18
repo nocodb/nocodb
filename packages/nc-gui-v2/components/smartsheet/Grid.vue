@@ -384,7 +384,7 @@ const onNavigate = (dir: NavigateDir) => {
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
                     <div class="align-center flex gap-1 min-w-[55px]">
                       <div
-                        v-if="!readonly && !isLocked"
+                        v-if="!readOnly && !isLocked"
                         class="nc-row-no text-xs text-gray-500"
                         :class="{ hidden: row.rowMeta.selected }"
                       >
@@ -398,7 +398,7 @@ const onNavigate = (dir: NavigateDir) => {
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
                       </div>
                       <span class="flex-1" />
-                      <div v-if="!readonly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
+                      <div v-if="!readOnly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
                         <span
                           v-if="row.rowMeta?.commentCount"
                           class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"

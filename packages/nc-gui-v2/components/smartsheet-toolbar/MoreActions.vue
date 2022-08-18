@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import * as XLSX from 'xlsx'
-// todo: export types is missing EXCEL
-// import { ExportTypes } from 'nocodb-sdk'
+import { ExportTypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
 import { message } from 'ant-design-vue'
 import {
@@ -18,18 +17,11 @@ import {
   useUIPermission,
 } from '#imports'
 
-enum ExportTypes {
-  EXCEL = 'excel',
-  CSV = 'csv',
-}
-
 const sharedViewListDlg = ref(false)
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
 const isView = false
-
-// TODO: pending for shared view
 
 const { project } = useProject()
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { validatePassword } from 'nocodb-sdk'
 import {
   definePageMeta,
   extractSdkResponseErrorMsg,
@@ -43,7 +44,7 @@ const formRules = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (isEmail(v)) return resolve(true)
+          if (!v?.length || isEmail(v)) return resolve(true)
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
       },
@@ -51,9 +52,15 @@ const formRules = {
     },
   ],
   password: [
-    // Password is required
-    { required: true, message: t('msg.error.signUpRules.passwdRequired') },
-    { min: 8, message: t('msg.error.signUpRules.passwdLength') },
+    {
+      validator: (_: unknown, v: string) => {
+        return new Promise((resolve, reject) => {
+          const { error, valid } = validatePassword(v)
+          if (valid) return resolve(true)
+          reject(new Error(error))
+        })
+      },
+    },
   ],
 }
 

@@ -14,7 +14,7 @@ body,
 #__nuxt,
 .ant-layout,
 main {
-  @apply m-0 h-full w-full bg-white dark:(bg-black text-white);
+  @apply m-0 h-full w-full bg-white;
 }
 
 html {

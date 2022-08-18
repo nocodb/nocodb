@@ -68,17 +68,17 @@ const logout = () => {
                     <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
                       <MdiAt class="mt-1 group-hover:text-pink-500" />&nbsp;
 
-                      <span class="prose">{{ email }}</span>
+                      <span class="prose group-hover:text-primary"> {{ email }}</span>
                     </nuxt-link>
                   </a-menu-item>
 
                   <a-menu-divider class="!m-0" />
 
-                  <a-menu-item key="1" class="!rounded-b">
+                  <a-menu-item key="1" class="!rounded-b group">
                     <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
-                      <MdiLogout class="group-hover:(!text-pink-500)" />&nbsp;
+                      <MdiLogout class="group-hover:text-pink-500" />&nbsp;
 
-                      <span class="prose">
+                      <span class="prose group-hover:text-primary">
                         {{ $t('general.signOut') }}
                       </span>
                     </div>

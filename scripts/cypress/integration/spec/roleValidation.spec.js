@@ -42,25 +42,6 @@ export function _advSettings(roleType, previewMode) {
             .should("be.checked");
     }
 
-    // if (true == previewMode) {
-    //     // preview mode, role toggle menubar is visible
-    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_EDITOR).should("exist");
-    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_COMMENTER).should("exist");
-    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_VIEWER).should("exist");
-    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_RESET).should("exist");
-    // } else {
-    //     // normal mode, role toggle menubar is visible only for owner/ creator
-    //     mainPage
-    //         .navigationDraw(mainPage.ROLE_VIEW_EDITOR)
-    //         .should(validationString);
-    //     mainPage
-    //         .navigationDraw(mainPage.ROLE_VIEW_COMMENTER)
-    //         .should(validationString);
-    //     mainPage
-    //         .navigationDraw(mainPage.ROLE_VIEW_VIEWER)
-    //         .should(validationString);
-    // }
-
     cy.get("body").click("bottomRight");
 }
 
@@ -292,16 +273,16 @@ export function disableTableAccess(tbl, role) {
     const cls = `.nc-acl-${tbl}-${role}-chkbox`;
     cy.get(cls).find("input").should("be.checked").click({ force: true });
     cy.get(cls).find("input").should("not.be.checked");
-    cy.get(".nc-acl-save").next().click({ force: true });
-    cy.toastWait("Updated UI ACL for tables successfully");
+    // cy.get(".nc-acl-save").next().click({ force: true });
+    // cy.toastWait("Updated UI ACL for tables successfully");
 }
 
 export function enableTableAccess(tbl, role) {
     const cls = `.nc-acl-${tbl}-${role}-chkbox`;
     cy.get(cls).find("input").should("not.be.checked").click({ force: true });
     cy.get(cls).find("input").should("be.checked");
-    cy.get(".nc-acl-save").next().click({ force: true });
-    cy.toastWait("Updated UI ACL for tables successfully");
+    // cy.get(".nc-acl-save").next().click({ force: true });
+    // cy.toastWait("Updated UI ACL for tables successfully");
 }
 
 export function _accessControl(roleType, previewMode) {

@@ -33,12 +33,13 @@ export class _settingsPage {
         // cy.get('.nc-team-settings').should('exist').click()
         // cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
         cy.get('.nc-project-menu').should('exist').click()
-        cy.getActiveMenu().find(`[data-menu-id=${menuId}]`).should('exist').click()
+        cy.getActiveMenu().find(`[data-menu-id="teamAndSettings"]`).should('exist').click()
+        cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
     }
 
-    // openTab(tabId) {
-    //     cy.get(`[data-menu-id=${tabId}]`).should('exist').last().click()
-    // }
+    openTab(tabId) {
+        cy.get(`[data-menu-id=${tabId}]`).should('exist').last().click()
+    }
 
     closeMenu() {
         cy.getActiveModal().find('.ant-modal-close-x').click({ force: true });
@@ -113,30 +114,26 @@ export class _mainPage {
     //
     addNewUserToProject = (userCred, roleType) => {
         let linkText;
+        let roleIndex = ["creator", "editor", "commenter", "viewer"].indexOf(roleType)
 
         // click on New User button, feed details
-        cy.get('button:contains("New User")').first().click();
+        cy.get('button.nc-invite-team').click();
 
-        cy.snip("NewUser");
-
-        cy.get('label:contains("E-mail")')
-            .next("input")
+        cy.get('input[placeholder="E-mail"]')
             .type(userCred.username)
-            .trigger("input");
 
-        cy.get('label:contains("Select User Role")').click();
+        cy.get('.ant-select.nc-user-roles').click();
 
         // opt-in requested role & submit
-        cy.snipActiveMenu("Menu_RoleType");
-        cy.getActiveMenu().contains(roleType).click();
-        cy.get(".nc-invite-or-save-btn").click();
+        // cy.getActiveSelection().contains(roleType).click({force: true});
+        cy.getActiveSelection().find('.nc-role-option').eq(roleIndex).should('exist').click()
+        cy.getActiveModal().find("button.ant-btn-primary").click();
 
         cy.toastWait("Successfully updated the user details");
 
         // get URL, invoke
-        cy.snipActiveModal("Modal_NewUserURL");
         cy.getActiveModal()
-            .find(".v-alert")
+            .find(".ant-alert-message")
             .then(($obj) => {
                 linkText = $obj.text().trim();
                 cy.log(linkText);
@@ -432,15 +429,12 @@ export class _mainPage {
         // open Project metadata tab
         //
         settingsPage.openMenu(settingsPage.PROJ_METADATA)
-        // settingsPage.openTab(settingsPage.METADATA)
+        settingsPage.openTab(settingsPage.METADATA)
     }
 
     closeMetaTab() {
         // close Project metadata tab
         settingsPage.closeMenu()
-
-        // refresh
-        cy.refreshTableTab();
     }
 
     metaSyncValidate(tbl, msg) {

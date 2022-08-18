@@ -19,7 +19,7 @@ import { TabType } from '~/composables'
 
 const route = useRoute()
 
-const { appInfo, token } = useGlobal()
+const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
 const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo } = useProject()
 
@@ -41,6 +41,13 @@ const dialogOpen = ref(false)
 const openDialogKey = ref<string>()
 
 const dropdownOpen = ref(false)
+
+const email = computed(() => user.value?.email ?? '---')
+
+const logout = () => {
+  signOut()
+  navigateTo('/signin')
+}
 
 /** Sidebar ref */
 const sidebar = ref()
@@ -234,6 +241,44 @@ definePageMeta({
 
                   <a-menu-divider />
 
+                  <template v-if="signedIn && !isSharedBase">
+                    <a-sub-menu v-if="isUIAllowed('previewAs')" key="account">
+                      <template #title>
+                        <div class="nc-project-menu-item group">
+                          <MdiAccount class="group-hover:text-pink-500 nc-project-preview" />
+                          Account
+                          <div class="flex-1" />
+
+                          <MaterialSymbolsChevronRightRounded
+                            class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                          />
+                        </div>
+                      </template>
+
+                      <template #expandIcon></template>
+
+                      <a-menu class="!py-0 dark:(!bg-gray-800) leading-8 !rounded">
+                        <a-menu-item key="0" class="!rounded-t">
+                          <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
+                            <MdiAt class="mt-1 group-hover:text-pink-500" />&nbsp;
+
+                            <span class="prose">{{ email }}</span>
+                          </nuxt-link>
+                        </a-menu-item>
+
+                        <a-menu-item key="1" class="!rounded-b">
+                          <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                            <MdiLogout class="group-hover:(!text-pink-500)" />&nbsp;
+
+                            <span class="prose">
+                              {{ $t('general.signOut') }}
+                            </span>
+                          </div>
+                        </a-menu-item>
+                      </a-menu>
+                    </a-sub-menu>
+                  </template>
+
                   <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
                     <template #title>
                       <div class="nc-project-menu-item group">
@@ -252,6 +297,23 @@ definePageMeta({
 
                     <GeneralPreviewAs />
                   </a-sub-menu>
+
+                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="language">
+                    <template #title>
+                      <div class="nc-project-menu-item group">
+                        <MaterialSymbolsTranslate class="group-hover:text-pink-500 nc-language" />
+                        Language
+                        <div class="flex-1" />
+
+                        <MaterialSymbolsChevronRightRounded
+                          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                        />
+                      </div>
+                    </template>
+
+                    <template #expandIcon></template>
+                    <GeneralLanguage sub-menu />
+                  </a-sub-menu>
                 </a-menu-item-group>
               </a-menu>
             </template>
@@ -264,29 +326,6 @@ definePageMeta({
             />
           </div>
         </div>
-
-        <a-tooltip :mouse-enter-delay="1" placement="right">
-          <template #title> Toggle table list </template>
-
-          <Transition name="glow">
-            <div
-              v-show="!isOpen || isHovered"
-              class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-1/2 right-[-0.75rem] shadow bg-gray-100 rounded-full"
-            >
-              <MaterialSymbolsChevronLeftRounded
-                v-if="isOpen"
-                class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-                @click="toggle(false)"
-              />
-
-              <MaterialSymbolsChevronRightRounded
-                v-else
-                class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-                @click="toggle(true)"
-              />
-            </div>
-          </Transition>
-        </a-tooltip>
 
         <DashboardTreeView v-show="isOpen" />
       </a-layout-sider>
@@ -324,6 +363,7 @@ definePageMeta({
       @apply !border-r-0;
     }
   }
+
   &:hover .nc-sidebar-left-toggle-icon {
     @apply opacity-100;
   }

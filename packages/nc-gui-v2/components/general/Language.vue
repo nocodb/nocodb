@@ -2,6 +2,8 @@
 import { Language } from '~/lib'
 import { onMounted, useGlobal, useI18n, useNuxtApp } from '#imports'
 
+const { subMenu } = defineProps<{ subMenu?: boolean }>()
+
 const { $e } = useNuxtApp()
 
 const { lang: currentLang } = useGlobal()
@@ -37,7 +39,36 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-dropdown class="select-none color-transition" :trigger="['click']">
+  <template v-if="subMenu">
+    <a-menu class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0 rounded">
+      <a-menu-item
+        v-for="lang of languages"
+        :key="lang"
+        :class="lang === locale ? '!bg-primary/10 text-primary' : ''"
+        class="group"
+        :value="lang"
+        @click="changeLanguage(lang)"
+      >
+        <div
+          :class="lang === locale ? '!font-semibold !text-primary' : ''"
+          class="nc-project-menu-item capitalize group-hover:text-pink-500"
+        >
+          {{ Language[lang] || lang }}
+        </div>
+      </a-menu-item>
+
+      <a-menu-item>
+        <a
+          href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
+          target="_blank"
+          class="caption py-2 text-primary underline hover:opacity-75"
+        >
+          {{ $t('activity.translate') }}
+        </a>
+      </a-menu-item>
+    </a-menu>
+  </template>
+  <a-dropdown v-else class="select-none color-transition" :trigger="['click']">
     <MaterialSymbolsTranslate v-bind="$attrs" class="md:text-xl cursor-pointer nc-menu-translate" />
 
     <template #overlay>

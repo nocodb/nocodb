@@ -370,9 +370,9 @@ function openAirtableImportDialog() {
       </template>
     </a-dropdown>
 
-    <a-divider class="mt-0 mb-2" />
+    <a-divider class="mt-0 mb-0" />
 
-    <div class="items-center flex justify-center mb-1">
+    <div class="items-center flex justify-center p-2">
       <!--
      Todo : move the component
      <GithubStarButton />

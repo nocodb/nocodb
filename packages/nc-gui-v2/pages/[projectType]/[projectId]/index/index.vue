@@ -50,7 +50,7 @@ const { isOpen, toggle } = useSidebar()
           </a-tab-pane>
         </a-tabs>
         <span class="flex-1" />
-        <div class="flex justify-center align-self-center mr-2">
+        <div class="flex justify-center align-self-center mr-2 min-w-[115px]">
           <div v-show="isLoading" class="flex items-center gap-2 ml-3 text-white">
             {{ $t('general.loading') }}
 
@@ -79,11 +79,14 @@ const { isOpen, toggle } = useSidebar()
       @apply !bg-white/0;
     }
 
-    & > .ant-tabs-nav-wrap > .ant-tabs-nav-list {
-      .ant-tabs-nav-add {
-        @apply !hidden;
-      }
+    .ant-tabs-nav-add {
+      @apply !hidden;
+    }
+    .ant-tabs-nav-more {
+      @apply text-white;
+    }
 
+    & > .ant-tabs-nav-wrap > .ant-tabs-nav-list {
       & > .ant-tabs-tab-active {
         @apply font-weight-medium;
       }

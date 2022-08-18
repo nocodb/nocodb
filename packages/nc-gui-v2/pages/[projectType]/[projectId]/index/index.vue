@@ -15,8 +15,6 @@ const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
 
-const currentMenu = ref<string[]>(['addORImport'])
-
 provide(TabMetaInj, activeTab)
 
 const icon = (tab: TabItem) => {
@@ -91,7 +89,8 @@ function openAirtableImportDialog() {
           <a-tab-pane v-for="(tab, i) in tabs" :key="i">
             <template #tab>
               <div class="flex align-center gap-2">
-                <component :is="icon(tab)" class="text-sm"></component>
+                <component :is="icon(tab)" class="text-sm" />
+
                 {{ tab.title }}
               </div>
             </template>

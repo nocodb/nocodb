@@ -59,39 +59,33 @@ function resetError() {
 
 <template>
   <NuxtLayout>
-    <a-form
-      ref="formValidator"
-      layout="vertical"
-      :model="form"
-      class="bg-primary/5 forgot-password h-full flex justify-center items-center nc-form-signin"
-      @finish="resetPassword"
-    >
-      <div class="h-full w-full flex flex-col items-center justify-center pt-[50px]">
-        <div
-          class="color-transition bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
-        >
-          <general-noco-icon
-            class="color-transition hover:(ring ring-pink-500)"
-            :class="[isLoading ? 'animated-bg-gradient' : '']"
-          />
+    <div class="md:bg-primary/5 forgot-password h-full min-h-[600px] flex flex-col justify-center items-center">
+      <div
+        class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+      >
+        <general-noco-icon
+          class="color-transition hover:(ring ring-pink-500)"
+          :class="[isLoading ? 'animated-bg-gradient' : '']"
+        />
 
-          <div class="self-center flex flex-col justify-center items-center text-center gap-2">
-            <h1 class="prose-2xl font-bold my-4 w-full">{{ $t('title.resetPassword') }}</h1>
+        <div class="self-center flex flex-col justify-center items-center text-center gap-2">
+          <h1 class="prose-2xl font-bold my-4 w-full">{{ $t('title.resetPassword') }}</h1>
 
-            <template v-if="!success">
-              <div class="prose-sm">{{ $t('msg.info.passwordRecovery.message_1') }}</div>
-              <div class="prose-sm mb-4">{{ $t('msg.info.passwordRecovery.message_2') }}</div>
-            </template>
+          <template v-if="!success">
+            <div class="prose-sm">{{ $t('msg.info.passwordRecovery.message_1') }}</div>
+            <div class="prose-sm mb-4">{{ $t('msg.info.passwordRecovery.message_2') }}</div>
+          </template>
 
-            <template v-else>
-              <div class="prose-sm text-success flex items-center leading-8 gap-2">
-                {{ $t('msg.info.passwordRecovery.success') }} <ClaritySuccessLine />
-              </div>
+          <template v-else>
+            <div class="prose-sm text-success flex items-center leading-8 gap-2">
+              {{ $t('msg.info.passwordRecovery.success') }} <ClaritySuccessLine />
+            </div>
 
-              <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
-            </template>
-          </div>
+            <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
+          </template>
+        </div>
 
+        <a-form ref="formValidator" layout="vertical" :model="form" no-style @finish="resetPassword">
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center">
@@ -107,7 +101,10 @@ function resetError() {
 
           <div class="self-center flex flex-col gap-4 items-center justify-center w-full">
             <button class="submit" type="submit">
-              <span class="flex items-center gap-2"><MdiLogin /> {{ $t('activity.sendEmail') }}</span>
+              <span class="flex items-center gap-2">
+                <MdiLogin />
+                {{ $t('activity.sendEmail') }}
+              </span>
             </button>
 
             <div class="text-end prose-sm">
@@ -115,9 +112,9 @@ function resetError() {
               <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
             </div>
           </div>
-        </div>
+        </a-form>
       </div>
-    </a-form>
+    </div>
   </NuxtLayout>
 </template>
 

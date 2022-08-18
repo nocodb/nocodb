@@ -12,6 +12,7 @@ import {
   computed,
   inject,
   ref,
+  useProject,
   useProvideLTARStore,
   useSmartsheetRowStoreOrThrow,
 } from '#imports'
@@ -32,13 +33,15 @@ const reloadTrigger = inject(ReloadViewDataHookInj)!
 
 const isForm = inject(IsFormInj)
 
-const readonly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, false)
 
 const isLocked = inject(IsLockedInj)
 
 const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
+
+const { isSharedBase } = useProject()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
@@ -91,14 +94,14 @@ const unlinkRef = async (rec: Record<string, any>) => {
         </template>
       </div>
 
-      <div v-if="!isLocked" class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
+      <div v-if="!isLocked && !isSharedBase" class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
         <MdiArrowExpand
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click="childListDlg = true"
         />
 
         <MdiPlus
-          v-if="!readonly"
+          v-if="!readOnly"
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
           @click="listItemsDlg = true"
         />

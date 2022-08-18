@@ -159,12 +159,12 @@ function openAirtableImportDialog() {
 
                   <a-menu-divider class="my-0" />
 
-                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1">
+                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
                     <a
                       v-t="['e:datasource:import-request']"
                       href="https://github.com/nocodb/nocodb/issues/2052"
                       target="_blank"
-                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group"
+                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                     >
                       <MdiOpenInNew class="group-hover:text-pink-500" />
                       <!-- TODO: i18n -->

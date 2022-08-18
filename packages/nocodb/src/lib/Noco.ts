@@ -13,6 +13,7 @@ import importFresh from 'import-fresh';
 import morgan from 'morgan';
 import NcToolGui from 'nc-lib-gui';
 import requestIp from 'request-ip';
+import { v4 as uuidv4 } from 'uuid';
 
 import { NcConfig } from '../interface/config';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
@@ -39,7 +40,6 @@ import NcPluginMgrv2 from './meta/helpers/NcPluginMgrv2';
 import User from './models/User';
 import { Tele } from 'nc-help';
 import * as http from 'http';
-// import weAreHiring from './utils/weAreHiring';
 import getInstance from './utils/getInstance';
 import initAdminFromEnv from './meta/api/userApi/initAdminFromEnv';
 
@@ -186,6 +186,7 @@ export default class Noco {
     }
 
     await Noco._ncMeta.metaInit();
+    await this.initJwt();
     await initAdminFromEnv();
 
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
@@ -267,7 +268,6 @@ export default class Noco {
       instance: getInstance,
     });
     Tele.emit('evt_app_started', await User.count());
-    // weAreHiring();
     return this.router;
   }
 
@@ -485,6 +485,43 @@ export default class Noco {
         'Warning : ignoring migrations on boot since tools directory not defined'
       );
     }
+  }
+
+  private async initJwt(): Promise<any> {
+    if (this.config?.auth?.jwt) {
+      if (!this.config.auth.jwt.secret) {
+        let secret = (
+          await Noco._ncMeta.metaGet('', '', 'nc_store', {
+            key: 'nc_auth_jwt_secret',
+          })
+        )?.value;
+        if (!secret) {
+          await Noco._ncMeta.metaInsert('', '', 'nc_store', {
+            key: 'nc_auth_jwt_secret',
+            value: (secret = uuidv4()),
+          });
+        }
+        this.config.auth.jwt.secret = secret;
+      }
+
+      this.config.auth.jwt.options = this.config.auth.jwt.options || {};
+      if (!this.config.auth.jwt.options?.expiresIn) {
+        this.config.auth.jwt.options.expiresIn =
+          process.env.NC_JWT_EXPIRES_IN ?? '10h';
+      }
+    }
+    let serverId = (
+      await Noco._ncMeta.metaGet('', '', 'nc_store', {
+        key: 'nc_server_id',
+      })
+    )?.value;
+    if (!serverId) {
+      await Noco._ncMeta.metaInsert('', '', 'nc_store', {
+        key: 'nc_server_id',
+        value: (serverId = Tele.id),
+      });
+    }
+    process.env.NC_SERVER_UUID = serverId;
   }
 
   public static get ncMeta(): NcMetaIO {

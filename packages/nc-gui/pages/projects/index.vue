@@ -537,6 +537,40 @@ export default {
         path: `project/0?edit=true&projectId=${project.id}`,
       });
     },
+    async importMetaZip() {
+      const projectId = this.project_id
+      if (
+        this.$refs.importFile &&
+        this.$refs.importFile.files &&
+        this.$refs.importFile.files[0]
+      ) {
+        const zipFile = this.$refs.importFile.files[0]
+        this.loading = 'import-zip'
+        try {
+          this.$refs.importFile.value = ''
+          await this.$store.dispatch('sqlMgr/ActUploadOld', [
+            {
+              // dbAlias: 'db',
+              project_id: projectId,
+              env: '_noco'
+            },
+            'xcMetaTablesImportZipToLocalFsAndDb',
+            {},
+            zipFile
+          ])
+          // this.$toast.success('Successfully imported metadata').goAway(3000)
+          this.$toast
+            .success(`${this.$t('msg.toast.importMetadata')}`)
+            .goAway(3000)
+          await this.projectsLoad()
+        } catch (e) {
+          console.log(e)
+          this.$toast.error(e.message).goAway(3000)
+        }
+        this.dialogShow = false
+        this.loading = null
+      }
+    }
   },
 };
 </script>

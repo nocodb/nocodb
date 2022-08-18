@@ -87,6 +87,6 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
       </template>
     </div>
 
-    <SmartsheetSidebar />
+    <SmartsheetSidebar v-if="meta" />
   </div>
 </template>

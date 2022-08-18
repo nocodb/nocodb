@@ -23,8 +23,13 @@ import { useGlobal } from '#imports'
 export default defineNuxtRouteMiddleware((to, from) => {
   const state = useGlobal()
 
+  /** if public allow */
+  if (to.meta.public) return
+
   /** if shred base allow without validating */
   if (to.params?.projectType === 'base') return
+
+  if (to.meta.public) return
 
   /** if auth is required or unspecified (same as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {

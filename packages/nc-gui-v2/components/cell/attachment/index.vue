@@ -4,7 +4,16 @@ import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import Modal from './Modal.vue'
 import Carousel from './Carousel.vue'
-import { computed, isImage, openLink, ref, useDropZone, useSmartsheetStoreOrThrow, watch } from '#imports'
+import {
+  computed,
+  isImage,
+  openLink,
+  ref,
+  useDropZone,
+  useSmartsheetRowStoreOrThrow,
+  useSmartsheetStoreOrThrow,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any>[] | null
@@ -23,12 +32,25 @@ const sortableRef = ref<HTMLDivElement>()
 
 const { cellRefs } = useSmartsheetStoreOrThrow()!
 
-const { column, modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon, selectedImage, isReadonly } =
-  useProvideAttachmentCell(updateModelValue)
+const {
+  column,
+  modalVisible,
+  attachments,
+  visibleItems,
+  onDrop,
+  isLoading,
+  open,
+  FileIcon,
+  selectedImage,
+  isReadonly,
+  storedFiles,
+} = useProvideAttachmentCell(updateModelValue)
 
 const currentCellRef = computed(() => cellRefs.value.find((cell) => cell.dataset.key === `${rowIndex}${column.value.id}`))
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
+
+const { state: rowState } = useSmartsheetRowStoreOrThrow()
 
 const { isOverDropZone } = useDropZone(currentCellRef, onDrop)
 
@@ -37,7 +59,11 @@ watch(
   () => modelValue,
   (nextModel) => {
     if (nextModel) {
-      attachments.value = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
+      try {
+        attachments.value = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
+      } catch {
+        attachments.value = []
+      }
     }
   },
   { immediate: true },
@@ -53,13 +79,23 @@ onKeyDown('Escape', () => {
   modalVisible.value = false
   isOverDropZone.value = false
 })
+
+/** sync storedFiles state with row state */
+watch(
+  () => storedFiles.value.length || 0,
+  () => {
+    rowState.value[column.value.title!] = storedFiles.value
+  },
+)
+
+const { isSharedForm } = useSmartsheetStoreOrThrow()
 </script>
 
 <template>
   <div class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1">
     <Carousel />
 
-    <template v-if="!isReadonly && !dragging && !!currentCellRef">
+    <template v-if="isSharedForm || (!isReadonly && !dragging && !!currentCellRef)">
       <general-overlay
         v-model="isOverDropZone"
         inline

@@ -23,6 +23,7 @@ interface Props {
   editEnabled: boolean
   rowIndex?: number
   active?: boolean
+  virtual?: boolean
 }
 
 const props = defineProps<Props>()
@@ -32,6 +33,8 @@ const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editE
 const column = toRef(props, 'column')
 
 const active = toRef(props, 'active', false)
+
+const virtual = toRef(props, 'virtual', false)
 
 provide(ColumnInj, column)
 
@@ -73,10 +76,6 @@ const isManualSaved = $computed(() => {
   return [UITypes.Currency, UITypes.Duration].includes(column?.value?.uidt as UITypes)
 })
 
-const isPrimary = computed(() => {
-  return column?.value?.pv
-})
-
 const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
@@ -94,6 +93,7 @@ const vModel = computed({
 })
 
 const {
+  isPrimary,
   isURL,
   isEmail,
   isJSON,
@@ -118,7 +118,7 @@ const {
 } = useColumn(column)
 
 const syncAndNavigate = (dir: NavigateDir) => {
-  if (isJSON) return
+  if (isJSON.value) return
 
   if (changed) {
     emit('save')
@@ -131,7 +131,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
 <template>
   <div
     class="nc-cell w-full h-full"
-    :class="{ 'text-blue-600': isPrimary }"
+    :class="{ 'text-blue-600': isPrimary && !virtual }"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up
@@ -153,12 +153,12 @@ const syncAndNavigate = (dir: NavigateDir) => {
     <CellEmail v-else-if="isEmail" v-model="vModel" />
     <CellUrl v-else-if="isURL" v-model="vModel" />
     <CellPhoneNumber v-else-if="isPhoneNumber" v-model="vModel" />
+    <CellPercent v-else-if="isPercent" v-model="vModel" />
     <CellCurrency v-else-if="isCurrency" v-model="vModel" />
     <CellDecimal v-else-if="isDecimal" v-model="vModel" />
     <CellInteger v-else-if="isInt" v-model="vModel" />
     <CellFloat v-else-if="isFloat" v-model="vModel" />
     <CellText v-else-if="isString" v-model="vModel" />
-    <CellPercent v-else-if="isPercent" v-model="vModel" />
     <CellJson v-else-if="isJSON" v-model="vModel" />
     <CellText v-else v-model="vModel" />
     <div v-if="(isLocked || (isPublic && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />

@@ -162,7 +162,7 @@ function resetError() {
 
       <div class="prose-sm mt-4 text-gray-500">
         By signing up, you agree to the
-        <a class="prose-sm text-pink-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">Terms of Service</a>
+        <a class="prose-sm text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">Terms of Service</a>
       </div>
     </div>
   </NuxtLayout>
@@ -186,7 +186,7 @@ function resetError() {
   }
 
   .submit {
-    @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 bg-gray-100/50 text-white bg-primary;
+    @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 text-white;
 
     &::after {
       @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;

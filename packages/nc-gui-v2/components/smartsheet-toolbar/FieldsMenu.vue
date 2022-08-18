@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
+import { ActiveViewInj, FieldsInj, IsLockedInj, IsPublicInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import { computed, inject, useNuxtApp, useViewColumns, watch } from '#imports'
 
 const meta = inject(MetaInj)!
@@ -8,6 +8,7 @@ const activeView = inject(ActiveViewInj)!
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 const rootFields = inject(FieldsInj)
 const isLocked = inject(IsLockedInj)
+const isPublic = inject(IsPublicInj)
 
 const { $e } = useNuxtApp()
 
@@ -49,14 +50,10 @@ const onMove = (event: { moved: { newIndex: number } }) => {
 
   if (fields.value.length < 2) return
 
-  if (fields.value.length - 1 === event.moved.newIndex) {
-    fields.value[event.moved.newIndex].order = (fields.value[event.moved.newIndex - 1].order || 1) + 1
-  } else if (event.moved.newIndex === 0) {
-    fields.value[event.moved.newIndex].order = (fields.value[1].order || 1) / 2
-  } else {
-    fields.value[event.moved.newIndex].order =
-      ((fields.value[event.moved.newIndex - 1].order || 1) + (fields.value[event.moved.newIndex + 1].order || 1)) / 2
-  }
+  fields.value.map((field, index) => {
+    field.order = index + 1
+    return field
+  })
 
   saveOrUpdate(fields.value[event.moved.newIndex], event.moved.newIndex)
 
@@ -87,10 +84,10 @@ const onMove = (event: { moved: { newIndex: number } }) => {
           <a-input v-model:value="filterQuery" size="small" :placeholder="$t('placeholder.searchFields')" />
         </div>
         <div class="nc-fields-list py-1">
-          <Draggable :list="fields" item-key="id" @change="onMove($event)">
-            <template #item="{ element: field }">
+          <Draggable v-model="fields" item-key="id" @change="onMove($event)">
+            <template #item="{ element: field, index: index }">
               <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex" @click.stop>
-                <a-checkbox v-model:checked="field.show" class="flex-shrink" @change="saveOrUpdate(field, i)">
+                <a-checkbox v-model:checked="field.show" class="flex-shrink" @change="saveOrUpdate(field, index)">
                   <span class="">{{ field.title }}</span>
                 </a-checkbox>
                 <div class="flex-1" />
@@ -101,7 +98,7 @@ const onMove = (event: { moved: { newIndex: number } }) => {
         </div>
         <v-divider class="my-2" />
 
-        <div class="p-2 py-1 flex" @click.stop>
+        <div v-if="!isPublic" class="p-2 py-1 flex" @click.stop>
           <a-checkbox v-model:checked="showSystemFields">
             <span class="text-xs"> {{ $t('activity.showSystemFields') }}</span>
           </a-checkbox>

@@ -13,6 +13,7 @@ import {
   useVModel,
   watch,
 } from '#imports'
+import { IsPublicInj } from '~/context'
 
 const props = defineProps<{ modelValue: boolean }>()
 
@@ -37,6 +38,8 @@ const {
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew } = useSmartsheetRowStoreOrThrow()
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const linkRow = async (row: Record<string, any>) => {
   if (isNew.value) {
@@ -105,7 +108,7 @@ const newRowState = computed(() => {
         ></a-input>
         <div class="flex-1" />
         <MdiReload class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
-        <a-button type="primary" size="small" @click="expandedFormDlg = true">Add new record</a-button>
+        <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">Add new record</a-button>
       </div>
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0">

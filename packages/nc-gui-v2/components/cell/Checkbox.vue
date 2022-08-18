@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ColumnInj, IsFormInj, getMdiIcon, inject } from '#imports'
-import { EditModeInj } from '~/context'
+import { ColumnInj, IsFormInj, ReadonlyInj, getMdiIcon, inject } from '#imports'
 
 interface Props {
   modelValue?: boolean | undefined | number
@@ -20,7 +19,7 @@ const column = inject(ColumnInj)
 
 const isForm = inject(IsFormInj)
 
-const editEnabled = inject(EditModeInj)
+const readOnly = inject(ReadonlyInj)
 
 const checkboxMeta = $computed(() => {
   return {
@@ -34,14 +33,17 @@ const checkboxMeta = $computed(() => {
 })
 
 function onClick() {
-  if (editEnabled) {
+  if (!readOnly) {
     vModel = !vModel
   }
 }
 </script>
 
 <template>
-  <div class="flex" :class="{ 'justify-center': !isForm, 'nc-cell-hover-show': !vModel }">
+  <div
+    class="flex"
+    :class="{ 'justify-center': !isForm, 'nc-cell-hover-show': !vModel && !readOnly, 'opacity-0': readOnly && !vModel }"
+  >
     <div class="px-1 pt-1 rounded-full items-center" :class="{ 'bg-gray-100': !vModel }" @click="onClick">
       <component
         :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"

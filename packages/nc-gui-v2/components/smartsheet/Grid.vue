@@ -41,7 +41,7 @@ const isPublicView = inject(IsPublicInj, ref(false))
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
 const fields = inject(FieldsInj, ref([]))
-const readonly = inject(ReadonlyInj, ref(false))
+const readOnly = inject(ReadonlyInj, false)
 const isLocked = inject(IsLockedInj, false)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
@@ -59,7 +59,15 @@ const { xWhere, isPkAvail, cellRefs } = useSmartsheetStoreOrThrow()
 
 const addColumnDropdown = ref(false)
 
-const contextMenu = ref(false)
+const _contextMenu = ref(false)
+const contextMenu = computed({
+  get: () => _contextMenu.value,
+  set: (val) => {
+    if (!readOnly) {
+      _contextMenu.value = val
+    }
+  },
+})
 
 const contextMenuTarget = ref(false)
 const expandedFormDlg = ref(false)
@@ -272,11 +280,15 @@ const onNavigate = (dir: NavigateDir) => {
     case NavigateDir.NEXT:
       if (selected.row < data.value.length - 1) {
         selected.row++
+      } else {
+        editEnabled = false
       }
       break
     case NavigateDir.PREV:
       if (selected.row > 0) {
         selected.row--
+      } else {
+        editEnabled = false
       }
       break
   }
@@ -302,15 +314,20 @@ const expandForm = (row: Row, state: Record<string, any>) => {
             <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
               <th>
                 <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center">
-                  <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
-                  <div
-                    :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
-                    class="nc-check-all w-full align-center"
-                  >
-                    <a-checkbox v-model:checked="selectedAllRecords" />
+                  <template v-if="!readOnly">
+                    <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
+                    <div
+                      :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
+                      class="nc-check-all w-full align-center"
+                    >
+                      <a-checkbox v-model:checked="selectedAllRecords" />
 
-                    <span class="flex-1" />
-                  </div>
+                      <span class="flex-1" />
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div class="text-gray-500">#</div>
+                  </template>
                 </div>
               </th>
               <th
@@ -324,12 +341,11 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 @xcresized="resizingCol = null"
               >
                 <div class="w-full h-full bg-gray-100 flex items-center">
-                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readonly" />
+                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readOnly" />
 
-                  <SmartsheetHeaderCell v-else :column="col" :hide-menu="readonly" />
+                  <SmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly" />
                 </div>
               </th>
-              <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
               <th
                 v-if="!readonly && !isLocked && isUIAllowed('add-column')"
                 v-t="['c:column:add']"
@@ -368,7 +384,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                         {{ rowIndex + 1 }}
                       </div>
                       <div
-                        v-if="!readonly"
+                        v-if="!readOnly"
                         :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
                         class="nc-row-expand-and-checkbox"
                       >

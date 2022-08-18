@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import { ColumnInj, EditModeInj, computed, inject, isValidURL } from '#imports'
-import MaterialSymbolsWarning from '~icons/material-symbols/warning'
+import MiCircleWarning from '~icons/mi/circle-warning'
 
 interface Props {
   modelValue?: string | null
@@ -29,7 +29,7 @@ const vModel = computed({
   },
 })
 
-const isValid = computed(() => !column.value.meta?.validate || (value && isValidURL(value)))
+const isValid = computed(() => value && isValidURL(value))
 
 const url = computed(() => {
   if (!value || !isValidURL(value)) return ''
@@ -63,11 +63,11 @@ watch(
 
     <span v-else class="w-9/10 overflow-ellipsis overflow-hidden">{{ value }}</span>
 
-    <div v-if="!isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
+    <div v-if="column.meta?.validate && !isValid && value?.length && !editEnabled" class="mr-1 w-1/10">
       <a-tooltip placement="top">
         <template #title> Invalid URL </template>
         <div class="flex flex-row items-center">
-          <MaterialSymbolsWarning />
+          <MiCircleWarning class="text-red-400 h-4" />
         </div>
       </a-tooltip>
     </div>

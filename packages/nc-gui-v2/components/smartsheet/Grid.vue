@@ -45,6 +45,7 @@ const readOnly = inject(ReadonlyInj, false)
 const isLocked = inject(IsLockedInj, false)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
+const openNewRecordFormHook = inject(OpenNewRecordFormHookInj)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -87,6 +88,7 @@ const {
   deleteSelectedRows,
   selectedAllRecords,
   loadAggCommentsCount,
+  removeLastEmptyRow,
 } = useViewData(meta, view as any, xWhere)
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
@@ -105,6 +107,17 @@ provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 reloadViewDataHook?.on(async () => {
   await loadData()
   loadAggCommentsCount()
+})
+
+const expandForm = (row: Row, state?: Record<string, any>) => {
+  expandedFormRow.value = row
+  expandedFormRowState.value = state
+  expandedFormDlg.value = true
+}
+
+openNewRecordFormHook?.on(async () => {
+  const newRow = await addEmptyRow()
+  expandForm(newRow)
 })
 
 const selectCell = (row: number, col: number) => {
@@ -292,12 +305,6 @@ const onNavigate = (dir: NavigateDir) => {
       }
       break
   }
-}
-
-const expandForm = (row: Row, state: Record<string, any>) => {
-  expandedFormRow.value = row
-  expandedFormRowState.value = state
-  expandedFormDlg.value = true
 }
 </script>
 
@@ -504,6 +511,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
+      @remove-last-empty-row="removeLastEmptyRow"
     />
   </div>
 </template>

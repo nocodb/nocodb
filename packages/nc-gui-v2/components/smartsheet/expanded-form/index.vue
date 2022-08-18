@@ -36,7 +36,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue', 'removeLastEmptyRow'])
 
 const row = toRef(props, 'row')
 
@@ -91,6 +91,11 @@ watch(
 const isExpanded = useVModel(props, 'modelValue', emits, {
   defaultValue: false,
 })
+
+const onClose = () => {
+  if (row.value?.rowMeta?.new) emits('removeLastEmptyRow')
+  isExpanded.value = false
+}
 </script>
 
 <script lang="ts">
@@ -101,7 +106,7 @@ export default {
 
 <template>
   <a-modal v-model:visible="isExpanded" :footer="null" width="min(90vw,1000px)" :body-style="{ padding: 0 }" :closable="false">
-    <Header @cancel="isExpanded = false" />
+    <Header @cancel="onClose" />
     <div class="!bg-gray-100 rounded">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[70vh]">
         <div class="flex-grow overflow-auto scrollbar-thin-primary">

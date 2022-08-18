@@ -354,7 +354,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
               >
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
                   <div class="h-full w-[60px] flex align-center justify-center">
-                    <MdiPlus class="text-sm" />
+                    <MdiPlus class="text-sm nc-column-add" />
                   </div>
 
                   <template #overlay>

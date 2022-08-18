@@ -214,11 +214,13 @@ export function useViewData(
       oldRow: {},
       rowMeta: { new: true },
     })
+
     return formattedData.value[addAfter]
   }
 
   const removeLastEmptyRow = () => {
     const lastRow = formattedData.value[formattedData.value.length - 1]
+
     if (lastRow.rowMeta.new) {
       formattedData.value.pop()
     }

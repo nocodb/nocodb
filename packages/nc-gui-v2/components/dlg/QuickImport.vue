@@ -53,7 +53,7 @@ const templateEditorModal = ref(false)
 const useForm = Form.useForm
 
 const importState = reactive({
-  fileList: [] as (UploadFile & { data: any })[],
+  fileList: [] as (UploadFile & { data: string | ArrayBuffer })[],
   url: '',
   jsonEditor: {},
   parserConfig: {
@@ -163,7 +163,7 @@ async function handleImport() {
   dialogShow.value = false
 }
 
-async function parseAndExtractData(val: any, name: string) {
+async function parseAndExtractData(val: string | ArrayBuffer, name: string) {
   try {
     templateData.value = null
     importData.value = null
@@ -206,18 +206,14 @@ function handleChange(info: UploadChangeParam) {
     reader.onload = (e: ProgressEvent<FileReader>) => {
       const target = importState.fileList.find((f) => f.uid === info.file.uid)
 
-      if (e.target) {
+      if (e.target && e.target.result) {
+        /** if the file was pushed into the list by `<a-upload-dragger>` we just add the data to the file */
         if (target) {
           target.data = e.target.result
         } else if (!target) {
-          // push new file to fileList
+          /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
           importState.fileList.push({
-            ...info.file.originFileObj!,
-            name: info.file.originFileObj!.name,
-            fileName: info.file.originFileObj!.name,
-            originFileObj: info.file.originFileObj!,
-            type: info.file.originFileObj!.type,
-            uid: Math.random().toString(36).substring(2),
+            ...info.file,
             status: 'done',
             data: e.target.result,
           })

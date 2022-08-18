@@ -70,7 +70,16 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
   })
 
   vNode.value?.component?.exposed?.handleChange({
-    file: { originFileObj: file },
+    file: {
+      uid: `${type}-${file.name}-${Math.random().toString(36).substring(2)}`,
+      name: file.name,
+      type: file.type,
+      status: 'done',
+      fileName: file.name,
+      lastModified: file.lastModified,
+      size: file.size,
+      originFileObj: file,
+    },
     event: { percent: 100 },
   } as UploadChangeParam<UploadFile<File>>)
 

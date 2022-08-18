@@ -36,7 +36,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'removeLastEmptyRow'])
+const emits = defineEmits(['update:modelValue', 'cancel'])
 
 const row = toRef(props, 'row')
 
@@ -93,7 +93,7 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
 })
 
 const onClose = () => {
-  if (row.value?.rowMeta?.new) emits('removeLastEmptyRow')
+  if (row.value?.rowMeta?.new) emits('cancel')
   isExpanded.value = false
 }
 </script>

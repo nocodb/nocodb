@@ -511,7 +511,7 @@ const onNavigate = (dir: NavigateDir) => {
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
-      @remove-last-empty-row="removeLastEmptyRow"
+      @cancel="removeLastEmptyRow"
     />
   </div>
 </template>

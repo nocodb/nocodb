@@ -24,3 +24,10 @@ declare module '@vue/runtime-core' {
     i18n: I18n<MessageSchema, unknown, unknown, false>['global']
   }
 }
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    requiresAuth?: boolean
+    public?: boolean
+  }
+}

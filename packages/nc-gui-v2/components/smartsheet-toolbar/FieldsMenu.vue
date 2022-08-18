@@ -1,14 +1,31 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { ActiveViewInj, FieldsInj, IsLockedInj, IsPublicInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-import { computed, inject, useNuxtApp, useViewColumns, watch } from '#imports'
+import {
+  ActiveViewInj,
+  FieldsInj,
+  IsLockedInj,
+  IsPublicInj,
+  MetaInj,
+  ReloadViewDataHookInj,
+  computed,
+  inject,
+  ref,
+  useNuxtApp,
+  useViewColumns,
+  watch,
+} from '#imports'
 
 const meta = inject(MetaInj)!
+
 const activeView = inject(ActiveViewInj)!
+
 const reloadDataHook = inject(ReloadViewDataHookInj)!
+
 const rootFields = inject(FieldsInj)
-const isLocked = inject(IsLockedInj)
-const isPublic = inject(IsPublicInj)
+
+const isLocked = inject(IsLockedInj, ref(false))
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { $e } = useNuxtApp()
 

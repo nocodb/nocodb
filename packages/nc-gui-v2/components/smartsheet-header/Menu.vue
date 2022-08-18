@@ -1,13 +1,6 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
-import { inject } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useNuxtApp } from '#app'
-import { ColumnInj, IsLockedInj, MetaInj, extractSdkResponseErrorMsg, useMetas } from '#imports'
-import MdiEditIcon from '~icons/mdi/pencil'
-import MdiStarIcon from '~icons/mdi/star'
-import MdiDeleteIcon from '~icons/mdi/delete-outline'
-import MdiMenuDownIcon from '~icons/mdi/menu-down'
+import { ColumnInj, IsLockedInj, MetaInj, extractSdkResponseErrorMsg, inject, useI18n, useMetas, useNuxtApp } from '#imports'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
 
@@ -34,8 +27,9 @@ const deleteColumn = () =>
     async onOk() {
       try {
         await $api.dbTableColumn.delete(column?.value?.id as string)
-        getMeta(meta?.value?.id as string, true)
-      } catch (e) {
+
+        await getMeta(meta?.value?.id as string, true)
+      } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     },
@@ -44,8 +38,11 @@ const deleteColumn = () =>
 const setAsPrimaryValue = async () => {
   try {
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
-    getMeta(meta?.value?.id as string, true)
+
+    await getMeta(meta?.value?.id as string, true)
+
     message.success('Successfully updated as primary column')
+
     $e('a:column:set-primary')
   } catch (e) {
     message.error('Failed to update primary column')
@@ -55,29 +52,31 @@ const setAsPrimaryValue = async () => {
 
 <template>
   <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']">
-    <MdiMenuDownIcon class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
+    <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
+
     <template #overlay>
       <a-menu class="shadow bg-white">
         <a-menu-item @click="emit('edit')">
           <div class="nc-column-edit nc-header-menu-item">
-            <MdiEditIcon class="text-primary" />
+            <MdiPencil class="text-primary" />
             <!-- Edit -->
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
+
         <a-menu-item v-if="!virtual" @click="setAsPrimaryValue">
           <div class="nc-column-set-primary nc-header-menu-item">
-            <MdiStarIcon class="text-primary" />
+            <MdiStar class="text-primary" />
 
             <!--       todo : tooltip -->
             <!-- Set as Primary value -->
             {{ $t('activity.setPrimary') }}
           </div>
-          <!--        <span class="caption font-weight-bold">Primary value will be shown in place of primary key</span> -->
         </a-menu-item>
+
         <a-menu-item @click="deleteColumn">
           <div class="nc-column-delete nc-header-menu-item">
-            <MdiDeleteIcon class="text-error" />
+            <MdiDeleteOutline class="text-error" />
             <!-- Delete -->
             {{ $t('general.delete') }}
           </div>

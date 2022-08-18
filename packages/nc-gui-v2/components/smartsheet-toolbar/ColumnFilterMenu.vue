@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { watchEffect } from '@vue/runtime-core'
 import type ColumnFilter from './ColumnFilter.vue'
-import { ActiveViewInj, IsLockedInj, IsPublicInj } from '~/context'
-import MdiFilterIcon from '~icons/mdi/filter-outline'
-import MdiMenuDownIcon from '~icons/mdi/menu-down'
+import { ActiveViewInj, IsLockedInj, IsPublicInj, computed, inject, ref, useGlobal, useViewFilters, watchEffect } from '#imports'
 
-const isLocked = inject(IsLockedInj)
+const isLocked = inject(IsLockedInj, ref(false))
+
 const activeView = inject(ActiveViewInj)
-const isPublic = inject(IsPublicInj)
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { filterAutoSave } = useGlobal()
+
+const filterComp = ref<typeof ColumnFilter>()
 
 // todo: avoid duplicate api call by keeping a filter store
 const { filters, loadFilters } = useViewFilters(
@@ -19,17 +20,16 @@ const { filters, loadFilters } = useViewFilters(
 )
 
 const filtersLength = ref(0)
+
 watchEffect(async () => {
   if (activeView?.value) {
     await loadFilters()
-    filtersLength.value = filters?.value?.length ?? 0
+
+    filtersLength.value = filters.value.length || 0
   }
 })
-const filterComp = ref<typeof ColumnFilter>()
 
-const applyChanges = async () => {
-  await filterComp?.value?.applyChanges()
-}
+const applyChanges = async () => await filterComp.value?.applyChanges()
 </script>
 
 <template>
@@ -37,10 +37,10 @@ const applyChanges = async () => {
     <div :class="{ 'nc-badge nc-active-btn': filtersLength }">
       <a-button v-t="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex align-center gap-1">
-          <MdiFilterIcon />
+          <MdiFilterOutline />
           <!-- Filter -->
           <span class="text-capitalize !text-sm font-weight-medium">{{ $t('activity.filter') }}</span>
-          <MdiMenuDownIcon class="text-grey" />
+          <MdiMenuDown class="text-grey" />
         </div>
       </a-button>
     </div>

@@ -97,7 +97,7 @@ function openAirtableImportDialog() {
           </a-tab-pane>
 
           <template #leftExtra>
-            <a-dropdown v-if="isUIAllowed('addOrImport')" :trigger="['click', 'hover']">
+            <a-dropdown v-if="isUIAllowed('addOrImport')" :trigger="['click']">
               <div
                 class="cursor-pointer color-transition group hover:text-primary text-sm flex items-center gap-2 py-[9.5px] px-[20px]"
               >
@@ -106,9 +106,9 @@ function openAirtableImportDialog() {
               </div>
 
               <template #overlay>
-                <a-menu class="nc-add-project-menu !pt-0 ml-6">
+                <a-menu class="nc-add-project-menu !py-0 ml-6 rounded text-sm">
                   <a-menu-item v-if="isUIAllowed('addTable')" key="add-new-table" @click="openTableCreateDialog">
-                    <div class="color-transition nc-project-menu-item group">
+                    <div class="color-transition nc-project-menu-item after:(!rounded-t) group">
                       <MdiTable class="group-hover:text-pink-500" />
                       <!-- Add new table -->
                       {{ $t('tooltip.addTable') }}
@@ -157,20 +157,18 @@ function openAirtableImportDialog() {
                     </a-menu-item>
                   </a-menu-item-group>
 
-                  <a-menu-divider class="my-1" />
+                  <a-menu-divider class="my-0" />
 
-                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table">
+                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1">
                     <a
                       v-t="['e:datasource:import-request']"
                       href="https://github.com/nocodb/nocodb/issues/2052"
                       target="_blank"
-                      class="prose-sm pa-0 group"
+                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group"
                     >
-                      <span class="flex items-center gap-2">
-                        <MdiOpenInNew class="group-hover:text-pink-500" />
-                        <!-- TODO: i18n -->
-                        Request a data source you need?
-                      </span>
+                      <MdiOpenInNew class="group-hover:text-pink-500" />
+                      <!-- TODO: i18n -->
+                      Request a data source you need?
                     </a>
                   </a-menu-item>
                 </a-menu>
@@ -215,6 +213,18 @@ function openAirtableImportDialog() {
 .nc-add-project-menu {
   :deep(.ant-dropdown-menu-item-group-list) {
     @apply !mx-0;
+  }
+
+  :deep(.ant-dropdown-menu-item-group-title) {
+    @apply border-b-1;
+  }
+
+  :deep(.ant-dropdown-menu-item-group-list) {
+    @apply m-0;
+  }
+
+  :deep(.ant-dropdown-menu-item) {
+    @apply !py-0 active:(ring ring-pink-500);
   }
 }
 

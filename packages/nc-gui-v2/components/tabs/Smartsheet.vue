@@ -5,6 +5,7 @@ import SmartsheetGrid from '../smartsheet/Grid.vue'
 import {
   ActiveViewInj,
   FieldsInj,
+  IsFormInj,
   IsLockedInj,
   MetaInj,
   ReloadViewDataHookInj,
@@ -12,6 +13,7 @@ import {
   computed,
   inject,
   provide,
+  provideSidebar,
   useMetas,
   useProvideSmartsheetStore,
   watch,
@@ -41,7 +43,7 @@ watchEffect(async () => {
 
 const reloadEventHook = createEventHook<void>()
 
-const { isGallery, isGrid, isForm } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
+const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
 
 // provide the sidebar injection state
 provideSidebar({ storageKey: 'nc-right-sidebar' })
@@ -50,14 +52,18 @@ provideSidebar({ storageKey: 'nc-right-sidebar' })
 provide(MetaInj, meta)
 provide(TabMetaInj, tabMeta)
 provide(ActiveViewInj, activeView)
-provide(IsLockedInj, false)
+provide(IsLockedInj, isLocked)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 
+const treeViewIsLockedInj = inject('TreeViewIsLockedInj', ref(false))
+
 watch(tabMeta, async (newTabMeta, oldTabMeta) => {
   if (newTabMeta !== oldTabMeta && newTabMeta?.id) await getMeta(newTabMeta.id)
 })
+
+watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immediate: true })
 </script>
 
 <template>

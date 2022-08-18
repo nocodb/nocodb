@@ -7,6 +7,7 @@ import { message } from 'ant-design-vue'
 import {
   ActiveViewInj,
   FieldsInj,
+  IsLockedInj,
   IsPublicInj,
   MetaInj,
   extractSdkResponseErrorMsg,
@@ -35,8 +36,12 @@ const { project } = useProject()
 const { $api } = useNuxtApp()
 
 const meta = inject(MetaInj)
+
 const fields = inject(FieldsInj, ref([]))
+
 const selectedView = inject(ActiveViewInj)
+
+const isLocked = inject(IsLockedInj)
 
 const showWebhookDrawer = ref(false)
 
@@ -124,7 +129,8 @@ const exportFile = async (exportType: ExportTypes) => {
               v-if="isUIAllowed('csvImport') && !isView && !isPublicView"
               v-t="['a:actions:upload-csv']"
               class="nc-menu-item"
-              @click="quickImportDialog = true"
+              :class="{ disabled: isLocked }"
+              @click="!isLocked ? (quickImportDialog = true) : {}"
             >
               <MdiUploadOutline class="text-gray-500" />
               <!-- Upload CSV -->

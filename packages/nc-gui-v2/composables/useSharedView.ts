@@ -1,4 +1,4 @@
-import type { ColumnType, ExportTypes, FilterType, PaginatedType, SortType, TableType, ViewType } from 'nocodb-sdk'
+import type { ExportTypes, FilterType, PaginatedType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 

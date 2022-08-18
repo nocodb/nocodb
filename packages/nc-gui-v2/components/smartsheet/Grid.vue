@@ -347,7 +347,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 </div>
               </th>
               <th
-                v-if="!readOnly && isUIAllowed('add-column')"
+                v-if="!readOnly && !isLocked && isUIAllowed('add-column')"
                 v-t="['c:column:add']"
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
@@ -376,10 +376,11 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 <tr class="nc-grid-row">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
                     <div class="align-center flex gap-1 min-w-[55px]">
-                      <div v-if="!readOnly" class="nc-row-no text-xs text-gray-500" :class="{ hidden: row.rowMeta.selected }">
-                        {{ rowIndex + 1 }}
-                      </div>
-                      <div v-else class="text-xs text-gray-500">
+                      <div
+                        v-if="!readonly && !isLocked"
+                        class="nc-row-no text-xs text-gray-500"
+                        :class="{ hidden: row.rowMeta.selected }"
+                      >
                         {{ rowIndex + 1 }}
                       </div>
                       <div
@@ -390,7 +391,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
                       </div>
                       <span class="flex-1" />
-                      <div v-if="!readOnly" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
+                      <div v-if="!readonly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
                         <span
                           v-if="row.rowMeta?.commentCount"
                           class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
@@ -478,7 +479,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
             </tr>
           </tbody>
         </table>
-        <template #overlay>
+        <template v-if="!isLocked" #overlay>
           <a-menu class="bg-white shadow" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)"
               ><span class="text-xs">Delete row</span></a-menu-item

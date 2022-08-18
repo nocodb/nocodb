@@ -1,7 +1,20 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import { ActiveCellInj, ColumnInj, EditModeInj, computed, provide, toRef, useColumn, useDebounceFn, useVModel } from '#imports'
+import {
+  ActiveCellInj,
+  ColumnInj,
+  EditModeInj,
+  IsFormInj,
+  IsLockedInj,
+  IsPublicInj,
+  computed,
+  provide,
+  toRef,
+  useColumn,
+  useDebounceFn,
+  useVModel,
+} from '#imports'
 import { NavigateDir } from '~/lib'
 
 interface Props {
@@ -28,6 +41,12 @@ provide(ColumnInj, column)
 provide(EditModeInj, useVModel(props, 'editEnabled', emit))
 
 provide(ActiveCellInj, active)
+
+const isForm = inject(IsFormInj)
+
+const isPublic = inject(IsPublicInj)
+
+const isLocked = inject(IsLockedInj)
 
 let changed = $ref(false)
 
@@ -142,5 +161,6 @@ const syncAndNavigate = (dir: NavigateDir) => {
     <CellText v-else-if="isString" v-model="vModel" />
     <CellJson v-else-if="isJSON" v-model="vModel" />
     <CellText v-else v-model="vModel" />
+    <div v-if="(isLocked || (isPublic && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
   </div>
 </template>

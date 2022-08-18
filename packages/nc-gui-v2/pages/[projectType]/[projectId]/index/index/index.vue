@@ -1,12 +1,14 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
-import { ref, useDialog, useDropZone, useNuxtApp } from '#imports'
+import { ref, useDialog, useDropZone, useFileDialog, useNuxtApp, watch } from '#imports'
 import DlgQuickImport from '~/components/dlg/QuickImport.vue'
 
 const dropZone = ref<HTMLDivElement>()
 
 const { isOverDropZone } = useDropZone(dropZone, onDrop)
+
+const { files, open, reset } = useFileDialog()
 
 const { $e } = useNuxtApp()
 
@@ -22,6 +24,16 @@ const allowedQuickImportTypes = [
   // JSON
   '.json',
 ]
+
+watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles), { flush: 'post' })
+
+function onFileSelect(fileList: FileList | null) {
+  if (!fileList) return
+
+  const files = Array.from(fileList).map((file) => file)
+
+  onDrop(files)
+}
 
 function onDrop(droppedFiles: File[] | null) {
   if (!droppedFiles) return
@@ -87,6 +99,8 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
     isOpen.value = false
 
     close(1000)
+
+    reset()
   }
 }
 </script>
@@ -95,10 +109,11 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
   <div ref="dropZone" class="h-full w-full text-gray-600 flex items-center justify-center relative">
     <general-overlay
       :model-value="true"
-      :class="[isOverDropZone ? 'bg-gray-300/75 border-primary shadow' : 'bg-gray-100/25 border-gray-500 pointer-events-none']"
+      :class="[isOverDropZone ? 'bg-gray-300/75 border-primary shadow' : 'bg-gray-100/25 border-gray-500 cursor-pointer']"
       inline
       style="top: 20%; left: 20%; right: 20%; bottom: 20%"
-      class="text-3xl flex items-center justify-center gap-2 border-1 border-dashed rounded"
+      class="text-3xl flex items-center justify-center gap-2 border-1 border-dashed rounded hover:border-primary"
+      @click="open"
     >
       <template v-if="isOverDropZone"> <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here </template>
     </general-overlay>

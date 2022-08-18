@@ -43,10 +43,7 @@ export function useDialog(
   )
 
   /** When calling scope is disposed, destroy component */
-  tryOnScopeDispose(() => {
-    close()
-    stop()
-  })
+  tryOnScopeDispose(close)
 
   /** destroy component, can be debounced */
   function close(debounce = 0) {

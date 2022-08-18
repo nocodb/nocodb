@@ -4,12 +4,14 @@ import Sortable from 'sortablejs'
 import { Empty } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
 import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
+import DlgAirtableImport from '~/components/dlg/AirtableImport.vue'
+import DlgQuickImport from '~/components/dlg/QuickImport.vue'
+import DlgTableCreate from '~/components/dlg/TableCreate.vue'
 import { TabType } from '~/composables'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiDrag from '~icons/mdi/drag-vertical'
-import GithubStarButton from '~/components/dashboard/GithubStarButton.vue'
 
 const { addTab } = useTabs()
 
@@ -135,21 +137,45 @@ const addTableTab = (table: TableType) => {
 const activeTable = computed(() => {
   return [TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null
 })
+
+function openQuickImportDialog(type: string) {
+  $e(`a:actions:import-${type}`)
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(DlgQuickImport, {
+    'modelValue': isOpen,
+    'importType': type,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+function openAirtableImportDialog() {
+  $e('a:actions:import-airtable')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(DlgAirtableImport, {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 </script>
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <div class="px-6 py-[8.5px] border-b-1 nc-filter-input">
-      <div class="flex items-center bg-gray-50 rounded relative">
-        <a-input
-          v-model:value="filterQuery"
-          class="nc-filter-input !bg-transparent"
-          :placeholder="$t('placeholder.searchProjectTree')"
-        />
-        <MdiSearch class="nc-filter-input-icon text-gray-400 mx-3 absolute right-[-4px] top-[7px]" />
-      </div>
-    </div>
-
     <a-dropdown :trigger="['contextmenu']">
       <div
         class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull"
@@ -168,6 +194,77 @@ const activeTable = computed(() => {
           </span>
         </div>
         <div style="direction: ltr" class="flex-1">
+          <div
+            class="group flex items-center gap-2 pl-5 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+            @click="tableCreateDlg = true"
+          >
+            <MdiPlus />
+            <span class="text-gray-500 group-hover:(text-primary/100) flex-1">{{ $t('tooltip.addTable') }}</span>
+            <a-dropdown :trigger="['click']" @click.stop>
+              <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100" />
+              <template #overlay>
+                <a-menu class="nc-add-project-menu !py-0 ml-6 rounded text-sm">
+                  <a-menu-item-group title="QUICK IMPORT FROM" class="!px-0 !mx-0">
+                    <a-menu-item
+                      v-if="isUIAllowed('airtableImport')"
+                      key="quick-import-airtable"
+                      @click="openAirtableImportDialog"
+                    >
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiTableLarge class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        Airtable
+                      </div>
+                    </a-menu-item>
+
+                    <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv" @click="openQuickImportDialog('csv')">
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiFileDocumentOutline class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        CSV file
+                      </div>
+                    </a-menu-item>
+
+                    <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json" @click="openQuickImportDialog('json')">
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiCodeJson class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        JSON file
+                      </div>
+                    </a-menu-item>
+
+                    <a-menu-item
+                      v-if="isUIAllowed('excelImport')"
+                      key="quick-import-excel"
+                      @click="openQuickImportDialog('excel')"
+                    >
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiFileExcel class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        Microsoft Excel
+                      </div>
+                    </a-menu-item>
+                  </a-menu-item-group>
+
+                  <a-menu-divider class="my-0" />
+
+                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
+                    <a
+                      v-t="['e:datasource:import-request']"
+                      href="https://github.com/nocodb/nocodb/issues/2052"
+                      target="_blank"
+                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
+                    >
+                      <MdiOpenInNew class="group-hover:text-pink-500" />
+                      <!-- TODO: i18n -->
+                      Request a data source you need?
+                    </a>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+          </div>
+
           <div v-if="tables.length" class="transition-height duration-200 overflow-hidden">
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div
@@ -276,7 +373,12 @@ const activeTable = computed(() => {
     <a-divider class="mt-0 mb-2" />
 
     <div class="items-center flex justify-center mb-1">
-      <GithubStarButton />
+      <!--
+     Todo : move the component
+     <GithubStarButton />
+     -->
+
+      <GeneralShareBaseButton class="!mr-0" />
     </div>
 
     <DlgTableCreate v-if="tableCreateDlg" v-model="tableCreateDlg" />

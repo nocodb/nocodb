@@ -97,6 +97,10 @@ const copyAuthToken = async () => {
     message.error(e.message)
   }
 }
+
+definePageMeta({
+  hideHeader: true,
+})
 </script>
 
 <template>
@@ -107,7 +111,7 @@ const copyAuthToken = async () => {
         :collapsed="!isOpen"
         width="250"
         collapsed-width="50"
-        class="relative shadow-md h-full z-1"
+        class="relative shadow-md h-full z-1 nc-left-sidebar"
         :trigger="null"
         collapsible
         theme="light"
@@ -144,14 +148,20 @@ const copyAuthToken = async () => {
             </template>
           </div>
 
-          <a-dropdown v-else class="h-full" :trigger="['click']" placement="bottom">
+          <a-dropdown v-else class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
-              class="group cursor-pointer flex gap-4 items-center nc-project-menu overflow-hidden"
+              class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
             >
               <template v-if="isOpen">
-                <div class="text-xl font-semibold truncate">{{ project.title }}</div>
+                <a-tooltip v-if="project.title?.length > 12" placement="bottom">
+                  <div class="text-lg font-semibold truncate">{{ project.title }}</div>
+                  <template #title>
+                    <div class="text-sm">{{ project.title }}</div>
+                  </template>
+                </a-tooltip>
+                <div v-else class="text-lg font-semibold truncate">{{ project.title }}</div>
 
                 <MdiChevronDown class="min-w-[28.5px] group-hover:text-pink-500 text-2xl" />
               </template>
@@ -246,6 +256,13 @@ const copyAuthToken = async () => {
               </a-menu>
             </template>
           </a-dropdown>
+          <div class="nc-sidebar-left-toggle-icon hover:after:bg-primary/75 group nc-sidebar-add-row flex align-center px-2">
+            <MdiBackburger
+              class="cursor-pointer transform transition-transform duration-500"
+              :class="{ 'rotate-180': !isOpen }"
+              @click="toggle(!isOpen)"
+            />
+          </div>
         </div>
 
         <a-tooltip :mouse-enter-delay="1" placement="right">
@@ -294,5 +311,21 @@ const copyAuthToken = async () => {
 
 :deep(.ant-dropdown-menu-item) {
   @apply !py-0 active:(ring ring-pink-500);
+}
+
+:global(#nc-sidebar-left .ant-layout-sider-collapsed) {
+  @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
+}
+
+.nc-left-sidebar {
+  .nc-sidebar-left-toggle-icon {
+    @apply opacity-0 transition-opactity duration-200 transition-color text-white/80 hover:text-white/100;
+    .nc-left-sidebar {
+      @apply !border-r-0;
+    }
+  }
+  &:hover .nc-sidebar-left-toggle-icon {
+    @apply opacity-100;
+  }
 }
 </style>

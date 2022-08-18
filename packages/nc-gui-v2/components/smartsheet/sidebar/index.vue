@@ -125,7 +125,11 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
       </Transition>
     </a-tooltip>
 
-    <Toolbar v-if="isOpen" :class="{ 'flex items-center py-3 px-3 justify-between border-b-1': !isForm }" />
+    <Toolbar
+      v-if="isOpen"
+      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)]"
+      :class="{ 'flex items-center py-3 px-3 justify-between border-b-1': !isForm }"
+    />
 
     <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">
       <template #start>

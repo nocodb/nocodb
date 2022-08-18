@@ -1,4 +1,5 @@
 export * from './useApi'
+export * from './useDialog'
 export * from './useGlobal'
 export * from './useInjectionState'
 export * from './useSidebar'

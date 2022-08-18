@@ -1,33 +1,23 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
+import { TabMetaInj, provide, ref, useDialog, useNuxtApp, useProject, useTabs, useUIPermission } from '#imports'
+import DlgTableCreate from '~/components/dlg/TableCreate.vue'
+import DlgAirtableImport from '~/components/dlg/AirtableImport.vue'
+import DlgQuickImport from '~/components/dlg/QuickImport.vue'
 import { TabType } from '~/composables'
-import { TabMetaInj, useProject, useTabs, useUIPermission } from '#imports'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
+
+const { $e } = useNuxtApp()
 
 const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
 
-const { isSharedBase } = useProject()
-
-const tableCreateDialog = ref(false)
-
-const airtableImportDialog = ref(false)
-
-const quickImportDialog = ref(false)
-
-const importType = ref('')
-
-const currentMenu = ref<string[]>(['addORImport'])
+const { isSharedBase } = useProject
 
 provide(TabMetaInj, activeTab)
-
-function openQuickImportDialog(type: string) {
-  quickImportDialog.value = true
-  importType.value = type
-}
 
 const icon = (tab: TabItem) => {
   switch (tab.type) {
@@ -37,6 +27,58 @@ const icon = (tab: TabItem) => {
       return MdiView
     case TabType.AUTH:
       return MdiAccountGroup
+  }
+}
+
+function openQuickImportDialog(type: string) {
+  $e(`a:actions:import-${type}`)
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(DlgQuickImport, {
+    'modelValue': isOpen,
+    'importType': type,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+function openTableCreateDialog() {
+  $e('a:actions:create-table')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(DlgTableCreate, {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+function openAirtableImportDialog() {
+  $e('a:actions:import-airtable')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(DlgAirtableImport, {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
   }
 }
 </script>
@@ -49,121 +91,99 @@ const icon = (tab: TabItem) => {
           <a-tab-pane v-for="(tab, i) in tabs" :key="i">
             <template #tab>
               <div class="flex align-center gap-2">
-                <component :is="icon(tab)" class="text-sm"></component>
+                <component :is="icon(tab)" class="text-sm" />
+
                 {{ tab.title }}
               </div>
             </template>
           </a-tab-pane>
 
           <template #leftExtra>
-            <a-menu
-              v-if="isUIAllowed('addOrImport') && !isSharedBase"
-              v-model:selectedKeys="currentMenu"
-              class="border-0"
-              mode="horizontal"
-            >
-              <a-sub-menu key="addORImport">
-                <template #title>
-                  <div class="text-sm flex items-center gap-2 pt-[8px] pb-3">
-                    <MdiPlusBoxOutline />
-                    Add / Import
-                  </div>
-                </template>
+            <a-dropdown v-if="isUIAllowed('addOrImport') && !isSharedBase" :trigger="['click']">
+              <div
+                class="cursor-pointer color-transition group hover:text-primary text-sm flex items-center gap-2 py-[9.5px] px-[20px]"
+              >
+                <MdiPlusBoxOutline class="group-hover:text-pink-500" />
+                Add / Import
+              </div>
 
-                <a-menu-item-group v-if="isUIAllowed('addTable')">
-                  <a-menu-item key="add-new-table" v-t="['a:actions:create-table']" @click="tableCreateDialog = true">
-                    <span class="flex items-center gap-2">
-                      <MdiTable class="text-primary" />
+              <template #overlay>
+                <a-menu class="nc-add-project-menu !py-0 ml-6 rounded text-sm">
+                  <a-menu-item v-if="isUIAllowed('addTable')" key="add-new-table" @click="openTableCreateDialog">
+                    <div class="color-transition nc-project-menu-item after:(!rounded-t) group">
+                      <MdiTable class="group-hover:text-pink-500" />
                       <!-- Add new table -->
                       {{ $t('tooltip.addTable') }}
-                    </span>
-                  </a-menu-item>
-                </a-menu-item-group>
-
-                <a-menu-item-group title="QUICK IMPORT FROM">
-                  <a-menu-item
-                    v-if="isUIAllowed('airtableImport')"
-                    key="quick-import-airtable"
-                    v-t="['a:actions:import-airtable']"
-                    @click="airtableImportDialog = true"
-                  >
-                    <span class="flex items-center gap-2">
-                      <MdiTableLarge class="text-primary" />
-                      <!-- TODO: i18n -->
-                      Airtable
-                    </span>
-                  </a-menu-item>
-                  <a-menu-item
-                    v-if="isUIAllowed('csvImport')"
-                    key="quick-import-csv"
-                    v-t="['a:actions:import-csv']"
-                    @click="openQuickImportDialog('csv')"
-                  >
-                    <span class="flex items-center gap-2">
-                      <MdiFileDocumentOutline class="text-primary" />
-                      <!-- TODO: i18n -->
-                      CSV file
-                    </span>
+                    </div>
                   </a-menu-item>
 
-                  <a-menu-item
-                    v-if="isUIAllowed('jsonImport')"
-                    key="quick-import-json"
-                    v-t="['a:actions:import-json']"
-                    @click="openQuickImportDialog('json')"
-                  >
-                    <span class="flex items-center gap-2">
-                      <MdiCodeJson class="text-primary" />
-                      <!-- TODO: i18n -->
-                      JSON file
-                    </span>
-                  </a-menu-item>
+                  <a-menu-item-group title="QUICK IMPORT FROM" class="!px-0 !mx-0">
+                    <a-menu-item
+                      v-if="isUIAllowed('airtableImport')"
+                      key="quick-import-airtable"
+                      @click="openAirtableImportDialog"
+                    >
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiTableLarge class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        Airtable
+                      </div>
+                    </a-menu-item>
 
-                  <a-menu-item
-                    v-if="isUIAllowed('excelImport')"
-                    key="quick-import-excel"
-                    v-t="['a:actions:import-excel']"
-                    @click="openQuickImportDialog('excel')"
-                  >
-                    <span class="flex items-center gap-2">
-                      <MdiFileExcel class="text-primary" />
-                      <!-- TODO: i18n -->
-                      Microsoft Excel
-                    </span>
-                  </a-menu-item>
-                </a-menu-item-group>
+                    <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv" @click="openQuickImportDialog('csv')">
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiFileDocumentOutline class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        CSV file
+                      </div>
+                    </a-menu-item>
 
-                <a-menu-divider class="ma-0 mb-2" />
+                    <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json" @click="openQuickImportDialog('json')">
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiCodeJson class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        JSON file
+                      </div>
+                    </a-menu-item>
 
-                <a-menu-item
-                  v-if="isUIAllowed('importRequest')"
-                  key="add-new-table"
-                  v-t="['e:datasource:import-request']"
-                  class="ma-0 mt-3"
-                >
-                  <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank" class="prose-sm pa-0">
-                    <span class="flex items-center gap-2">
-                      <MdiOpenInNew class="text-primary" />
+                    <a-menu-item
+                      v-if="isUIAllowed('excelImport')"
+                      key="quick-import-excel"
+                      @click="openQuickImportDialog('excel')"
+                    >
+                      <div class="color-transition nc-project-menu-item group">
+                        <MdiFileExcel class="group-hover:text-pink-500" />
+                        <!-- TODO: i18n -->
+                        Microsoft Excel
+                      </div>
+                    </a-menu-item>
+                  </a-menu-item-group>
+
+                  <a-menu-divider class="my-0" />
+
+                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
+                    <a
+                      v-t="['e:datasource:import-request']"
+                      href="https://github.com/nocodb/nocodb/issues/2052"
+                      target="_blank"
+                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
+                    >
+                      <MdiOpenInNew class="group-hover:text-pink-500" />
                       <!-- TODO: i18n -->
                       Request a data source you need?
-                    </span>
-                  </a>
-                </a-menu-item>
-              </a-sub-menu>
-            </a-menu>
+                    </a>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </template>
         </a-tabs>
       </div>
-      <div class="w-full min-h-[300px] flex-grow">
+
+      <div class="w-full min-h-[300px] flex-auto">
         <NuxtPage />
       </div>
     </div>
-
-    <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
-
-    <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" :import-type="importType" />
-
-    <DlgAirtableImport v-if="airtableImportDialog" v-model="airtableImportDialog" />
   </div>
 </template>
 
@@ -189,6 +209,24 @@ const icon = (tab: TabItem) => {
         @apply bg-gray-100 text-gray-500;
       }
     }
+  }
+}
+
+.nc-add-project-menu {
+  :deep(.ant-dropdown-menu-item-group-list) {
+    @apply !mx-0;
+  }
+
+  :deep(.ant-dropdown-menu-item-group-title) {
+    @apply border-b-1;
+  }
+
+  :deep(.ant-dropdown-menu-item-group-list) {
+    @apply m-0;
+  }
+
+  :deep(.ant-dropdown-menu-item) {
+    @apply !py-0 active:(ring ring-pink-500);
   }
 }
 

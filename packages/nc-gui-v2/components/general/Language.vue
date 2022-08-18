@@ -37,22 +37,22 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-dropdown class="select-none" :trigger="['click']">
+  <a-dropdown class="select-none color-transition" :trigger="['click']">
     <MaterialSymbolsTranslate v-bind="$attrs" class="md:text-xl cursor-pointer nc-menu-translate" />
 
     <template #overlay>
-      <a-menu class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0 dark:(!bg-gray-800 !text-white)">
+      <a-menu class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0 rounded">
         <a-menu-item
           v-for="lang of languages"
           :key="lang"
-          :class="lang === locale ? '!bg-primary/10 text-primary dark:(!bg-gray-700 !text-secondary)' : ''"
-          class="!min-h-8 group"
+          :class="lang === locale ? '!bg-primary/10 text-primary' : ''"
+          class="group"
           :value="lang"
           @click="changeLanguage(lang)"
         >
           <div
             :class="lang === locale ? '!font-semibold !text-primary' : ''"
-            class="capitalize md:(!leading-8) group-hover:(text-primary font-semibold) dark:(group-hover:text-secondary)"
+            class="nc-project-menu-item capitalize group-hover:text-pink-500"
           >
             {{ Language[lang] || lang }}
           </div>
@@ -71,3 +71,21 @@ onMounted(() => {
     </template>
   </a-dropdown>
 </template>
+
+<style scoped>
+:deep(.ant-dropdown-menu-item-group-list) {
+  @apply !mx-0;
+}
+
+:deep(.ant-dropdown-menu-item-group-title) {
+  @apply border-b-1;
+}
+
+:deep(.ant-dropdown-menu-item-group-list) {
+  @apply m-0;
+}
+
+:deep(.ant-dropdown-menu-item) {
+  @apply !py-0 active:(ring ring-pink-500);
+}
+</style>

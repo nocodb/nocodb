@@ -45,6 +45,7 @@ const readOnly = inject(ReadonlyInj, false)
 const isLocked = inject(IsLockedInj, false)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
+const openNewRecordFormHook = inject(OpenNewRecordFormHookInj)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -87,6 +88,7 @@ const {
   deleteSelectedRows,
   selectedAllRecords,
   loadAggCommentsCount,
+  removeLastEmptyRow,
 } = useViewData(meta, view as any, xWhere)
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
@@ -105,6 +107,17 @@ provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 reloadViewDataHook?.on(async () => {
   await loadData()
   loadAggCommentsCount()
+})
+
+const expandForm = (row: Row, state?: Record<string, any>) => {
+  expandedFormRow.value = row
+  expandedFormRowState.value = state
+  expandedFormDlg.value = true
+}
+
+openNewRecordFormHook?.on(async () => {
+  const newRow = await addEmptyRow()
+  expandForm(newRow)
 })
 
 const selectCell = (row: number, col: number) => {
@@ -293,12 +306,6 @@ const onNavigate = (dir: NavigateDir) => {
       break
   }
 }
-
-const expandForm = (row: Row, state: Record<string, any>) => {
-  expandedFormRow.value = row
-  expandedFormRowState.value = state
-  expandedFormDlg.value = true
-}
 </script>
 
 <template>
@@ -354,7 +361,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
               >
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
                   <div class="h-full w-[60px] flex align-center justify-center">
-                    <MdiPlus class="text-sm" />
+                    <MdiPlus class="text-sm nc-column-add" />
                   </div>
 
                   <template #overlay>
@@ -377,7 +384,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
                     <div class="align-center flex gap-1 min-w-[55px]">
                       <div
-                        v-if="!readonly && !isLocked"
+                        v-if="!readOnly && !isLocked"
                         class="nc-row-no text-xs text-gray-500"
                         :class="{ hidden: row.rowMeta.selected }"
                       >
@@ -391,7 +398,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
                       </div>
                       <span class="flex-1" />
-                      <div v-if="!readonly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
+                      <div v-if="!readOnly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
                         <span
                           v-if="row.rowMeta?.commentCount"
                           class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
@@ -515,6 +522,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
+      @cancel="removeLastEmptyRow"
     />
   </div>
 </template>

@@ -1,6 +1,17 @@
 import type { ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { IsPublicInj, ReloadViewDataHookInj, useMetas, useNuxtApp, useUIPermission } from '#imports'
+import {
+  IsPublicInj,
+  ReloadViewDataHookInj,
+  computed,
+  inject,
+  ref,
+  useMetas,
+  useNuxtApp,
+  useSharedView,
+  useUIPermission,
+  watch,
+} from '#imports'
 import type { Filter } from '~/lib'
 
 export function useViewFilters(
@@ -17,12 +28,15 @@ export function useViewFilters(
   const _filters = ref<Filter[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
+
   const { $api } = useNuxtApp()
+
   const { isUIAllowed } = useUIPermission()
+
   const { metas } = useMetas()
 
   const filters = computed({
-    get: () => (isPublic.value ? siblingFilters || nestedFilters.value : _filters.value),
+    get: () => (isPublic.value ? siblingFilters || nestedFilters.value : _filters.value) ?? [],
     set: (value) => {
       if (isPublic.value) {
         if (siblingFilters) {
@@ -94,6 +108,7 @@ export function useViewFilters(
     // if shared or sync permission not allowed simply remove it from array
     if (isPublic.value || !isUIAllowed('filterSync')) {
       filters.value.splice(i, 1)
+
       reloadData?.()
     } else {
       if (filter.id) {
@@ -103,7 +118,9 @@ export function useViewFilters(
           // if auto-apply enabled invoke delete api and remove from array
         } else {
           await $api.dbTableFilter.delete(filter.id)
+
           reloadData?.()
+
           filters.value.splice(i, 1)
         }
         // if not synced yet remove it from array
@@ -115,11 +132,14 @@ export function useViewFilters(
 
   const saveOrUpdate = async (filter: Filter, i: number, force = false) => {
     if (isPublic.value) {
-      filters.value[i] = { ...filter } as any
+      filters.value[i] = { ...filter }
+
       filters.value = [...filters.value]
+
       return
     }
     if (!view?.value) return
+
     if (!isUIAllowed('filterSync')) {
       // skip
     } else if (!autoApply?.value && !force) {
@@ -136,12 +156,11 @@ export function useViewFilters(
         fk_parent_id: parentId,
       })) as any
     }
+
     reloadData?.()
   }
 
-  const addFilter = () => {
-    filters.value.push(placeholderFilter)
-  }
+  const addFilter = () => filters.value.push(placeholderFilter)
 
   const addFilterGroup = async () => {
     const child = placeholderFilter
@@ -150,10 +169,13 @@ export function useViewFilters(
       status: 'create',
       logical_op: 'and',
     }
+
     if (isPublic.value) placeHolderGroupFilter.children = [child]
 
     filters.value.push(placeHolderGroupFilter)
+
     const index = filters.value.length - 1
+
     await saveOrUpdate(filters.value[index], index, true)
   }
 
@@ -167,9 +189,7 @@ export function useViewFilters(
       return metas?.value?.[view?.value?.fk_model_id as string]?.columns?.length || 0
     },
     async (nextColsLength, oldColsLength) => {
-      if (nextColsLength < oldColsLength) {
-        await loadFilters()
-      }
+      if (nextColsLength < oldColsLength) await loadFilters()
     },
   )
 

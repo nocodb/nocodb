@@ -14,7 +14,7 @@ body,
 #__nuxt,
 .ant-layout,
 main {
-  @apply m-0 h-full w-full bg-white dark:(bg-black text-white);
+  @apply m-0 h-full w-full bg-white;
 }
 
 html {
@@ -36,7 +36,7 @@ nav .v-list {
 }
 
 a {
-  @apply prose text-primary underline hover:opacity-75 dark:(text-secondary) hover:(opacity-75);
+  @apply prose text-primary underline hover:opacity-75 dark:(text-secondary);
 }
 
 h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
@@ -194,7 +194,7 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 }
 
 .scaling-btn {
-  @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 bg-gray-100/50 text-white bg-primary;
+  @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 bg-gray-100/50 text-white;
 
   &::after {
     @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;

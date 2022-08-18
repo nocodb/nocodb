@@ -229,13 +229,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    width="max(30vw, 600px)"
-    :mask-closable="false"
-    class="pa-2"
-    @keydown.esc="dialogShow = false"
-  >
+  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" class="pa-2" @keydown.esc="dialogShow = false">
     <div class="px-5">
       <div class="mt-5 prose-xl font-weight-bold">QUICK IMPORT - AIRTABLE</div>
 

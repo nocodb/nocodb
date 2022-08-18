@@ -147,7 +147,8 @@ onMounted(() => {
                 (record) => ({
                   onClick: () => {
                     $e('a:project:open')
-                    navigateTo(`/nc/${record.id}`)
+
+                    navigateTo(`/nc/${record.id}/auth`)
                   },
                   class: ['group'],
                 })

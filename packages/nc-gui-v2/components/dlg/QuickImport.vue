@@ -200,7 +200,7 @@ function rejectDrop(fileList: UploadFile[]) {
 function handleChange(info: UploadChangeParam) {
   const status = info.file.status
 
-  if (status !== 'uploading') {
+  if (status !== 'uploading' && status !== 'removed') {
     const reader = new FileReader()
 
     reader.onload = (e: ProgressEvent<FileReader>) => {

@@ -75,8 +75,6 @@ await loadProject()
 
 await loadTables()
 
-const isHovered = useElementHover(sidebar)
-
 const copyProjectInfo = async () => {
   try {
     await loadProjectMetaInfo()

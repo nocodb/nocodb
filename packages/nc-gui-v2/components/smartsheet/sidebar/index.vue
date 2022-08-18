@@ -55,8 +55,6 @@ let selectedViewId = $ref('')
 /** is view creation modal open */
 let modalOpen = $ref(false)
 
-const isHovered = useElementHover(sidebar)
-
 /** Watch route param and change active view based on `viewTitle` */
 watch(
   [views, () => route.params.viewTitle],

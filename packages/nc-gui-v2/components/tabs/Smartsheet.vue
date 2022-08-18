@@ -8,6 +8,7 @@ import {
   IsFormInj,
   IsLockedInj,
   MetaInj,
+  OpenNewRecordFormHookInj,
   ReloadViewDataHookInj,
   TabMetaInj,
   computed,
@@ -42,6 +43,7 @@ watchEffect(async () => {
 })
 
 const reloadEventHook = createEventHook<void>()
+const openNewRecordFormHook = createEventHook<void>()
 
 const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
 
@@ -54,6 +56,7 @@ provide(TabMetaInj, tabMeta)
 provide(ActiveViewInj, activeView)
 provide(IsLockedInj, isLocked)
 provide(ReloadViewDataHookInj, reloadEventHook)
+provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 

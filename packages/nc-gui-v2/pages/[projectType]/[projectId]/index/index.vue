@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
 import { TabType } from '~/composables'
-import { TabMetaInj, useTabs, useUIPermission } from '#imports'
+import { TabMetaInj, useProject, useTabs, useUIPermission } from '#imports'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
@@ -10,10 +10,16 @@ const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
 
+const { isSharedBase } = useProject()
+
 const tableCreateDialog = ref(false)
+
 const airtableImportDialog = ref(false)
+
 const quickImportDialog = ref(false)
+
 const importType = ref('')
+
 const currentMenu = ref<string[]>(['addORImport'])
 
 provide(TabMetaInj, activeTab)
@@ -50,7 +56,12 @@ const icon = (tab: TabItem) => {
           </a-tab-pane>
 
           <template #leftExtra>
-            <a-menu v-if="isUIAllowed('addOrImport')" v-model:selectedKeys="currentMenu" class="border-0" mode="horizontal">
+            <a-menu
+              v-if="isUIAllowed('addOrImport') && !isSharedBase"
+              v-model:selectedKeys="currentMenu"
+              class="border-0"
+              mode="horizontal"
+            >
               <a-sub-menu key="addORImport">
                 <template #title>
                   <div class="text-sm flex items-center gap-2 pt-[8px] pb-3">

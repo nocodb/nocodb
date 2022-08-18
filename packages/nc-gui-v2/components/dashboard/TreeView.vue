@@ -202,7 +202,7 @@ const activeTable = computed(() => {
                   <div class="nc-tbl-title flex-1">{{ table.title }}</div>
 
                   <a-dropdown
-                    v-if="!isLocked && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
+                    v-if="!isSharedBase && !isLocked && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
                     :trigger="['click']"
                     @click.stop
                   >
@@ -244,7 +244,7 @@ const activeTable = computed(() => {
         </div>
       </div>
 
-      <template v-if="!isLocked" #overlay>
+      <template v-if="!isLocked && !isSharedBase" #overlay>
         <a-menu class="cursor-pointer">
           <template v-if="contextMenuTarget.type === 'table'">
             <a-menu-item

@@ -12,7 +12,6 @@ import {
   inject,
   provide,
   ref,
-  useElementHover,
   useRoute,
   useRouter,
   useViews,

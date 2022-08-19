@@ -8,7 +8,6 @@ import {
   provideSidebar,
   ref,
   useClipboard,
-  useElementHover,
   useGlobal,
   useProject,
   useRoute,

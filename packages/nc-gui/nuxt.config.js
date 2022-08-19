@@ -3,6 +3,11 @@ import MonacoEditorWebpackPlugin from 'monaco-editor-webpack-plugin'
 // import HtmlWebpackPlugin from 'html-webpack-plugin';
 const fs = require('fs')
 const packageJson = JSON.parse(fs.readFileSync('../nc-lib-gui/package.json', 'utf8'))
+const version = packageJson.version
+  .replace(/\.(\d+)$/, (_, v) => {
+    // if (v === '99') throw new Error('Package version reached 99')
+    return `.${++v}`
+  })
 export default {
   /*
   ** Nuxt rendering mode

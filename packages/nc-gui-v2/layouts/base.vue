@@ -23,7 +23,7 @@ const logout = () => {
     <a-layout class="!flex-col">
       <Transition name="layout">
         <a-layout-header
-          v-if="!route.meta.public && signedIn"
+          v-if="!route.meta.public && signedIn && !route.meta.hideHeader"
           class="flex !bg-primary items-center text-white pl-4 pr-5 shadow-lg"
         >
           <div

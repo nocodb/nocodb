@@ -1,21 +1,14 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
-import { TabMetaInj, provide, ref, useDialog, useNuxtApp, useProject, useTabs, useUIPermission } from '#imports'
-import DlgTableCreate from '~/components/dlg/TableCreate.vue'
-import DlgAirtableImport from '~/components/dlg/AirtableImport.vue'
-import DlgQuickImport from '~/components/dlg/QuickImport.vue'
-import { TabType } from '~/composables'
+import { TabMetaInj, provide, useSidebar, useTabs } from '#imports'
+import { TabType, useGlobal } from '~/composables'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
 
-const { $e } = useNuxtApp()
-
 const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
-const { isUIAllowed } = useUIPermission()
-
-const { isSharedBase } = useProject
+const { isLoading } = useGlobal()
 
 provide(TabMetaInj, activeTab)
 
@@ -30,63 +23,21 @@ const icon = (tab: TabItem) => {
   }
 }
 
-function openQuickImportDialog(type: string) {
-  $e(`a:actions:import-${type}`)
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(DlgQuickImport, {
-    'modelValue': isOpen,
-    'importType': type,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-function openTableCreateDialog() {
-  $e('a:actions:create-table')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(DlgTableCreate, {
-    'modelValue': isOpen,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-function openAirtableImportDialog() {
-  $e('a:actions:import-airtable')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(DlgAirtableImport, {
-    'modelValue': isOpen,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
+const { isOpen, toggle } = useSidebar()
 </script>
 
 <template>
-  <div class="h-full w-full nc-container pt-[9px]">
+  <div class="h-full w-full nc-container">
     <div class="h-full w-full flex flex-col">
-      <div>
+      <div class="flex items-end !min-h-[50px] bg-primary/100">
+        <div v-if="!isOpen" class="nc-sidebar-left-toggle-icon hover:after:bg-primary/75 group nc-sidebar-add-row py-2 px-3">
+          <MdiMenu
+            class="cursor-pointer transform transition-transform duration-500 text-white"
+            :class="{ 'rotate-180': !isOpen }"
+            @click="toggle(!isOpen)"
+          />
+        </div>
+
         <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="closeTab(activeTabIndex)">
           <a-tab-pane v-for="(tab, i) in tabs" :key="i">
             <template #tab>
@@ -97,87 +48,15 @@ function openAirtableImportDialog() {
               </div>
             </template>
           </a-tab-pane>
-
-          <template #leftExtra>
-            <a-dropdown v-if="isUIAllowed('addOrImport') && !isSharedBase" :trigger="['click']">
-              <div
-                class="cursor-pointer color-transition group hover:text-primary text-sm flex items-center gap-2 py-[9.5px] px-[20px]"
-              >
-                <MdiPlusBoxOutline class="group-hover:text-pink-500" />
-                Add / Import
-              </div>
-
-              <template #overlay>
-                <a-menu class="nc-add-project-menu !py-0 ml-6 rounded text-sm">
-                  <a-menu-item v-if="isUIAllowed('addTable')" key="add-new-table" @click="openTableCreateDialog">
-                    <div class="color-transition nc-project-menu-item after:(!rounded-t) group">
-                      <MdiTable class="group-hover:text-pink-500" />
-                      <!-- Add new table -->
-                      {{ $t('tooltip.addTable') }}
-                    </div>
-                  </a-menu-item>
-
-                  <a-menu-item-group title="QUICK IMPORT FROM" class="!px-0 !mx-0">
-                    <a-menu-item
-                      v-if="isUIAllowed('airtableImport')"
-                      key="quick-import-airtable"
-                      @click="openAirtableImportDialog"
-                    >
-                      <div class="color-transition nc-project-menu-item group">
-                        <MdiTableLarge class="group-hover:text-pink-500" />
-                        <!-- TODO: i18n -->
-                        Airtable
-                      </div>
-                    </a-menu-item>
-
-                    <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv" @click="openQuickImportDialog('csv')">
-                      <div class="color-transition nc-project-menu-item group">
-                        <MdiFileDocumentOutline class="group-hover:text-pink-500" />
-                        <!-- TODO: i18n -->
-                        CSV file
-                      </div>
-                    </a-menu-item>
-
-                    <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json" @click="openQuickImportDialog('json')">
-                      <div class="color-transition nc-project-menu-item group">
-                        <MdiCodeJson class="group-hover:text-pink-500" />
-                        <!-- TODO: i18n -->
-                        JSON file
-                      </div>
-                    </a-menu-item>
-
-                    <a-menu-item
-                      v-if="isUIAllowed('excelImport')"
-                      key="quick-import-excel"
-                      @click="openQuickImportDialog('excel')"
-                    >
-                      <div class="color-transition nc-project-menu-item group">
-                        <MdiFileExcel class="group-hover:text-pink-500" />
-                        <!-- TODO: i18n -->
-                        Microsoft Excel
-                      </div>
-                    </a-menu-item>
-                  </a-menu-item-group>
-
-                  <a-menu-divider class="my-0" />
-
-                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
-                    <a
-                      v-t="['e:datasource:import-request']"
-                      href="https://github.com/nocodb/nocodb/issues/2052"
-                      target="_blank"
-                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-                    >
-                      <MdiOpenInNew class="group-hover:text-pink-500" />
-                      <!-- TODO: i18n -->
-                      Request a data source you need?
-                    </a>
-                  </a-menu-item>
-                </a-menu>
-              </template>
-            </a-dropdown>
-          </template>
         </a-tabs>
+        <span class="flex-1" />
+        <div class="flex justify-center align-self-center mr-2 min-w-[115px]">
+          <div v-show="isLoading" class="flex items-center gap-2 ml-3 text-white">
+            {{ $t('general.loading') }}
+
+            <MdiReload :class="{ 'animate-infinite animate-spin': isLoading }" />
+          </div>
+        </div>
       </div>
 
       <div class="w-full min-h-[300px] flex-auto">
@@ -189,24 +68,39 @@ function openAirtableImportDialog() {
 
 <style scoped lang="scss">
 .nc-container {
-  height: calc(100vh - var(--header-height));
+  height: 100vh;
   flex: 1 1 100%;
 }
 
 :deep(.nc-root-tabs) {
   & > .ant-tabs-nav {
-    @apply !mb-0;
+    @apply !mb-0 before:(!border-b-0);
+    .ant-tabs-extra-content {
+      @apply !bg-white/0;
+    }
+
+    .ant-tabs-nav-add {
+      @apply !hidden;
+    }
+    .ant-tabs-nav-more {
+      @apply text-white;
+    }
 
     & > .ant-tabs-nav-wrap > .ant-tabs-nav-list {
-      & > .ant-tabs-nav-add {
-        @apply !hidden;
-      }
-
       & > .ant-tabs-tab-active {
         @apply font-weight-medium;
       }
+
+      & > .ant-tabs-tab {
+        @apply border-0;
+      }
+
       & > .ant-tabs-tab:not(.ant-tabs-tab-active) {
-        @apply bg-gray-100 text-gray-500;
+        //@apply bg-gray-100 text-gray-500;
+        @apply bg-white/10 text-white/90;
+        .ant-tabs-tab-remove {
+          @apply !text-white;
+        }
       }
     }
   }

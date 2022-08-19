@@ -84,11 +84,9 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
             <SmartsheetForm v-else-if="isForm" />
           </div>
         </div>
-
-        <teleport to="#content">
-          <SmartsheetSidebar />
-        </teleport>
       </template>
     </div>
+
+    <SmartsheetSidebar v-if="meta" />
   </div>
 </template>

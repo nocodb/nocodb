@@ -9,7 +9,7 @@ const { isUIAllowed } = useUIPermission()
 </script>
 
 <template>
-  <div class="flex items-center mr-4">
+  <div class="flex items-center">
     <a-button
       v-if="
         isUIAllowed('newUser') &&
@@ -20,7 +20,7 @@ const { isUIAllowed } = useUIPermission()
       "
       size="middle"
       type="primary"
-      class="!bg-white !text-primary rounded"
+      class="rounded"
       @click="showUserModal = true"
     >
       <div class="flex items-center space-x-1">

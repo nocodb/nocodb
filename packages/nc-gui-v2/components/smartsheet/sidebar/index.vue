@@ -110,7 +110,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
         <a-tooltip v-if="isUIAllowed('virtualViewsCreateOrEdit')" placement="left">
           <template #title> {{ $t('objects.webhooks') }}</template>
 
-          <div class="nc-sidebar-right-item hover:after:bg-gray-300">
+          <div class="nc-sidebar-right-item hover:after:bg-gray-300 nc-webhook-icon">
             <MdiHook @click.stop />
           </div>
         </a-tooltip>

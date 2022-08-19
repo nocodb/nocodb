@@ -24,7 +24,7 @@ const { isUIAllowed } = useUIPermission()
       @click="showUserModal = true"
     >
       <div class="flex items-center space-x-1">
-        <mdi-account-supervisor-outline class="mr-1" />
+        <mdi-account-supervisor-outline class="mr-1 nc-share-base" />
         <div>{{ $t('activity.share') }}</div>
       </div>
     </a-button>

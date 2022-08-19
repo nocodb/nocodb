@@ -1,12 +1,18 @@
 <script lang="ts" setup>
-import { onMounted } from '@vue/runtime-core'
 import type { Form } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
-import { nextTick, reactive, ref, useApi, useSidebar } from '#imports'
-import { navigateTo, useNuxtApp } from '#app'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { projectTitleValidator } from '~/utils/validation'
-import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
+import {
+  extractSdkResponseErrorMsg,
+  navigateTo,
+  nextTick,
+  onMounted,
+  projectTitleValidator,
+  reactive,
+  ref,
+  useApi,
+  useNuxtApp,
+  useSidebar,
+} from '#imports'
 
 const { $e } = useNuxtApp()
 
@@ -21,6 +27,8 @@ const nameValidationRules = [
   },
   projectTitleValidator,
 ]
+
+const form = ref<typeof Form>()
 
 const formState = reactive({
   title: '',
@@ -39,15 +47,15 @@ const createProject = async () => {
   }
 }
 
-const form = ref<typeof Form>()
-
 // select and focus title field on load
 onMounted(async () => {
   await nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
+
       input.setSelectionRange(0, formState.title.length)
+
       input.focus()
     }, 500)
   })
@@ -55,24 +63,61 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a-card :loading="isLoading" class="w-[500px] !mx-auto !mt-100px shadow-md">
-    <GeneralNocoIcon />
+  <div class="overflow-auto md:bg-primary bg-opacity-5 pb-4 create h-full min-h-[600px] flex flex-col justify-center items-end">
+    <div
+      class="bg-white mt-65px relative flex flex-col justify-center gap-2 w-full max-w-[500px] !mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+    >
+      <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
 
-    <h3 class="text-3xl text-center font-semibold mt-8 mb-2">{{ $t('activity.createProject') }}</h3>
+      <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
 
-    <a-form ref="form" :model="formState" name="basic" layout="vertical" autocomplete="off" @finish="createProject">
-      <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="my-10 mx-10">
-        <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
-      </a-form-item>
+      <a-form ref="form" :model="formState" name="basic" layout="vertical" no-style autocomplete="off" @finish="createProject">
+        <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="my-10 mx-10">
+          <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+        </a-form-item>
 
-      <a-form-item style="text-align: center" class="mt-2">
-        <a-button type="primary" html-type="submit">
-          <div class="flex items-center">
-            <MaterialSymbolsRocketLaunchOutline class="mr-1" />
-            {{ $t('general.create') }}
-          </div>
-        </a-button>
-      </a-form-item>
-    </a-form>
-  </a-card>
+        <div class="text-center">
+          <button class="submit" type="submit">
+            <span class="flex items-center gap-2">
+              <MaterialSymbolsRocketLaunchOutline />
+              {{ $t('general.create') }}
+            </span>
+          </button>
+        </div>
+      </a-form>
+    </div>
+  </div>
 </template>
+
+<style lang="scss">
+.create {
+  .ant-input-affix-wrapper,
+  .ant-input {
+    @apply !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+  }
+
+  .password {
+    input {
+      @apply !border-none;
+    }
+  }
+
+  .submit {
+    @apply z-1 relative color-transition rounded p-3 text-white shadow-sm;
+
+    &::after {
+      @apply rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
+      content: '';
+      z-index: -1;
+    }
+
+    &:hover::after {
+      @apply transform scale-110 ring ring-accent;
+    }
+
+    &:active::after {
+      @apply ring ring-accent;
+    }
+  }
+}
+</style>

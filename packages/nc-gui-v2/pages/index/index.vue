@@ -68,7 +68,7 @@ onMounted(() => {
 
 <template>
   <NuxtLayout>
-    <div class="flex flex-col md:flex-row flex-wrap gap-6 py-6 px-12">
+    <div class="flex flex-col lg:flex-row flex-wrap gap-6 py-6 px-12">
       <div class="hidden xl:(block)">
         <GeneralSponsors />
       </div>
@@ -191,10 +191,12 @@ onMounted(() => {
         </a-card>
       </div>
 
-      <div class="flex gap-6 md:block">
-        <GeneralSocialCard />
+      <div class="flex flex-1 justify-between gap-6 lg:block">
+        <div>
+          <GeneralSocialCard />
+        </div>
 
-        <div class="block mt-0 md:(!mt-6) xl:hidden">
+        <div class="block mt-0 lg:(!mt-6) xl:hidden">
           <GeneralSponsors />
         </div>
       </div>

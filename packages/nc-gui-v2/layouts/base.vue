@@ -40,7 +40,7 @@ hooks.hook('page:finish', () => {
         class="flex !bg-primary items-center text-white pl-4 pr-5 shadow-lg"
       >
         <div
-          v-if="route.name === 'index' || route.name === 'project-index-create' || route.name === 'project-index-create-external'"
+          v-if="!route.params.projectType"
           class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
           @click="navigateTo('/')"
         >

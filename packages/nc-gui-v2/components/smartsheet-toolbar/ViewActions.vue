@@ -147,7 +147,7 @@ async function changeLockType(type: LockType) {
       <template #overlay>
         <a-menu class="ml-6 !text-sm !p-0 !rounded">
           <a-menu-item-group>
-            <a-sub-menu key="lock-type" v-if="isUIAllowed('view-type')" >
+            <a-sub-menu v-if="isUIAllowed('view-type')" key="lock-type">
               <template #title>
                 <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                   <MdiFileEyeOutline class="group-hover:text-pink-500" />
@@ -200,8 +200,7 @@ async function changeLockType(type: LockType) {
                       <MdiAccountIcon />
                       {{ $t('title.personalView') }}
                       <div class="nc-subtitle">
-                        Only you can edit the view configuration. Other collaborators’ personal views are hidden by
-                        default.
+                        Only you can edit the view configuration. Other collaborators’ personal views are hidden by default.
                       </div>
                     </div>
                   </div>
@@ -268,13 +267,12 @@ async function changeLockType(type: LockType) {
               </a-menu-item>
             </a-sub-menu>
 
-
             <a-menu-item>
               <div
                 v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView"
                 v-t="['a:actions:shared-view-list']"
-                @click="sharedViewListDlg = true"
                 class="py-2 flex gap-2"
+                @click="sharedViewListDlg = true"
               >
                 <MdiViewListOutline class="text-gray-500" />
                 <!-- Shared View List -->
@@ -282,7 +280,6 @@ async function changeLockType(type: LockType) {
               </div>
             </a-menu-item>
             <a-menu-item>
-
               <div
                 v-if="isUIAllowed('webhook') && !isView && !isPublicView"
                 v-t="['c:actions:webhook']"
@@ -293,7 +290,6 @@ async function changeLockType(type: LockType) {
                 {{ $t('objects.webhooks') }}
               </div>
             </a-menu-item>
-
           </a-menu-item-group>
         </a-menu>
       </template>

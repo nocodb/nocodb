@@ -4,7 +4,7 @@ const { isOpen, toggle } = useSidebar({ storageKey: 'nc-right-sidebar' })
 </script>
 
 <template>
-<!--  <a-tooltip :placement="isOpen ? 'bottomRight' : 'left'" :mouse-enter-delay="0.8">
+  <!--  <a-tooltip :placement="isOpen ? 'bottomRight' : 'left'" :mouse-enter-delay="0.8">
     <template #title> Toggle sidebar</template>
 
     <div class="nc-sidebar-right-item hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row">
@@ -14,11 +14,9 @@ const { isOpen, toggle } = useSidebar({ storageKey: 'nc-right-sidebar' })
         @click="toggle(!isOpen)"
       />
     </div>
-  </a-tooltip>-->
+  </a-tooltip> -->
 
-  <a-button @click="toggle(!isOpen)" size="small">
-  <div class="flex items-center gap-2">  <MdiMenu/> Views
-  </div>
+  <a-button size="small" @click="toggle(!isOpen)">
+    <div class="flex items-center gap-2"><MdiMenu /> Views</div>
   </a-button>
-
 </template>

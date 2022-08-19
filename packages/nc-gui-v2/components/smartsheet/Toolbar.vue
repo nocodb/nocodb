@@ -8,8 +8,7 @@ const { isGrid, isForm, isGallery } = useSmartsheetStoreOrThrow()
 const { allowCSVDownload } = useSharedView()
 const isPublic = inject(IsPublicInj, ref(false))
 
-const {isOpen} =useSidebar()
-
+const { isOpen } = useSidebar()
 </script>
 
 <template>
@@ -24,21 +23,15 @@ const {isOpen} =useSidebar()
 
     <SmartsheetToolbarShareView v-if="(isForm || isGrid) && !isPublic" />
 
-
-
-
-    <!--    <SmartsheetToolbarMoreActions v-if="(isGrid && !isPublic) || (isGrid && isPublic && allowCSVDownload)" />-->
+    <!--    <SmartsheetToolbarMoreActions v-if="(isGrid && !isPublic) || (isGrid && isPublic && allowCSVDownload)" /> -->
     <div class="flex-1" />
 
-
-    <Reload/>
-    <AddRow/>
+    <Reload />
+    <AddRow />
 
     <SmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mr-2 ml-2" />
 
-    <ToggleDrawer class="mr-2"/>
-
-
+    <ToggleDrawer class="mr-2" />
   </div>
 </template>
 

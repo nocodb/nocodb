@@ -83,14 +83,12 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
 
             <SmartsheetForm v-else-if="isForm" />
           </div>
-          <SmartsheetSidebar class="nc-right-sidebar" v-if="meta" />
+          <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
         </div>
       </template>
     </div>
-
   </div>
 </template>
-
 
 <style scoped>
 :deep(.nc-right-sidebar.ant-layout-sider-collapsed) {

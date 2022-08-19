@@ -246,6 +246,10 @@ export default class Column<T = any> implements ColumnType {
           }
         } else {
           for (const [i, option] of column.colOptions.options.entries() || [].entries()) {
+            // Trim end of enum/set
+            if (column.dt === 'enum' || column.dt === 'set') {
+              option.title = option.title.trimEnd();
+            }
             await SelectOption.insert(
               {
                 ...option,
@@ -274,6 +278,10 @@ export default class Column<T = any> implements ColumnType {
           }
         } else {
           for (const [i, option] of column.colOptions.options.entries() || [].entries()) {
+            // Trim end of enum/set
+            if (column.dt === 'enum' || column.dt === 'set') {
+              option.title = option.title.trimEnd();
+            }
             await SelectOption.insert(
               {
                 ...option,

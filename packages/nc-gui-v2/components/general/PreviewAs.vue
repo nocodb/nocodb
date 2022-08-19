@@ -77,11 +77,13 @@ watch(previewAs, () => window.location.reload())
 
   <template v-else>
     <template v-for="role of roleList" :key="role.title">
-      <a-menu-item :class="`pointer nc-preview-${role.title}`" @click="previewAs = role.title">
+      <a-menu-item @click="previewAs = role.title">
         <div class="nc-project-menu-item group">
           <component :is="roleIcon[role.title]" class="group-hover:text-pink-500" />
 
-          <span class="capitalize" :class="{ 'x-active--text': role.title === previewAs }">{{ role.title }}</span>
+          <span class="capitalize" :class="{ 'x-active--text': role.title === previewAs }">
+            {{ role.title }}
+          </span>
         </div>
       </a-menu-item>
     </template>
@@ -91,7 +93,9 @@ watch(previewAs, () => window.location.reload())
         <div class="nc-project-menu-item group">
           <MdiClose class="group-hover:text-pink-500" />
           <!-- Reset Preview -->
-          <span class="text-capitalize text-xs whitespace-nowrap">{{ $t('activity.resetReview') }}</span>
+          <span class="text-capitalize text-xs whitespace-nowrap">
+            {{ $t('activity.resetReview') }}
+          </span>
         </div>
       </a-menu-item>
     </template>

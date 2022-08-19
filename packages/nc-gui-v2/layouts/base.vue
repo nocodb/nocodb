@@ -60,7 +60,7 @@ const logout = () => {
 
           <template v-if="signedIn && !isSharedBase">
             <a-dropdown :trigger="['click']">
-              <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-pink-500" @click.prevent />
+              <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-pink-500 nc-menu-accounts" @click.prevent />
 
               <template #overlay>
                 <a-menu class="!py-0 dark:(!bg-gray-800) leading-8 !rounded">
@@ -108,26 +108,6 @@ const logout = () => {
 </template>
 
 <style lang="scss" scoped>
-:deep(.ant-dropdown-menu-item-group-title) {
-  @apply border-b-1;
-}
-
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply !mx-0;
-}
-
-:deep(.ant-dropdown-menu-item-group-title) {
-  @apply border-b-1;
-}
-
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply m-0;
-}
-
-:deep(.ant-dropdown-menu-item) {
-  @apply !py-0 active:(ring ring-pink-500);
-}
-
 .nc-lang-btn {
   @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white active:(ring ring-pink-500) hover:(ring ring-pink-500);
 

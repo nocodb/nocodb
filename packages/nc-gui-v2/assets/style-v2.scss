@@ -213,11 +213,25 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
   }
 }
 
-.ant-tabs-dropdown-menu-title-content{
-  @apply flex items-center;
+.ant-dropdown-menu-submenu {
+  @apply !py-0;
+
+  .ant-dropdown-menu, .ant-menu {
+    @apply m-0 p-0;
+  }
+
+  .ant-menu-item {
+    @apply !m-0 !px-2;
+  }
 }
 
+.ant-dropdown-menu-submenu-popup {
+  @apply scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !shadow !rounded;
+}
 
+.ant-tabs-dropdown-menu-title-content {
+  @apply flex items-center;
+}
 
 .ant-dropdown-menu-item-group-list {
   @apply !mx-0;
@@ -231,10 +245,11 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
   @apply m-0;
 }
 
-.ant-dropdown-menu-item {
+.ant-dropdown-menu-item, .ant-menu-item {
   @apply !py-0 active:(ring ring-pink-500);
 }
 
-.ant-dropdown-menu-title-conten{
+.ant-dropdown-menu-title-content,
+.ant-menu-title-content {
   @apply !py-0;
 }

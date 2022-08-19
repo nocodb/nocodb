@@ -186,7 +186,7 @@ const copyAuthToken = async () => {
                 </a-tooltip>
                 <div v-else class="text-lg font-semibold truncate">{{ project.title }}</div>
 
-                <MdiChevronDown class="min-w-[28.5px] group-hover:text-pink-500 text-2xl" />
+                <MdiChevronDown class="min-w-[28.5px] group-hover:text-accent text-2xl" />
               </template>
 
               <template v-else>
@@ -199,7 +199,7 @@ const copyAuthToken = async () => {
                 <a-menu-item-group>
                   <template #title>
                     <div class="group select-none flex items-center gap-4 py-1">
-                      <MdiFolder class="group-hover:text-pink-500 text-xl" />
+                      <MdiFolder class="group-hover:text-accent text-xl" />
 
                       <div class="flex flex-col">
                         <div class="text-lg group-hover:(!text-primary) font-semibold truncate">{{ project.title }}</div>
@@ -207,7 +207,7 @@ const copyAuthToken = async () => {
                         <div class="flex items-center gap-1">
                           <div class="group-hover:(!text-primary)">ID:</div>
 
-                          <div class="text-xs group-hover:text-pink-500 truncate font-italic">{{ project.id }}</div>
+                          <div class="text-xs group-hover:text-accent truncate font-italic">{{ project.id }}</div>
                         </div>
                       </div>
                     </div>
@@ -215,7 +215,7 @@ const copyAuthToken = async () => {
 
                   <a-menu-item key="copy">
                     <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">
-                      <MdiContentCopy class="group-hover:text-pink-500" />
+                      <MdiContentCopy class="group-hover:text-accent" />
                       Copy Project Info
                     </div>
                   </a-menu-item>
@@ -229,14 +229,14 @@ const copyAuthToken = async () => {
                       class="nc-project-menu-item group"
                       @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                     >
-                      <MdiApi class="group-hover:text-pink-500" />
+                      <MdiApi class="group-hover:text-accent" />
                       Swagger: Rest APIs
                     </div>
                   </a-menu-item>
 
                   <a-menu-item key="copy">
                     <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
-                      <MdiScriptTextKeyOutline class="group-hover:text-pink-500" />
+                      <MdiScriptTextKeyOutline class="group-hover:text-accent" />
                       Copy Auth Token
                     </div>
                   </a-menu-item>
@@ -250,7 +250,7 @@ const copyAuthToken = async () => {
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'teamAndAuth')"
                     >
-                      <MdiCog class="group-hover:text-pink-500" />
+                      <MdiCog class="group-hover:text-accent" />
                       Team & Settings
                     </div>
                   </a-menu-item>
@@ -260,13 +260,13 @@ const copyAuthToken = async () => {
                   <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
                     <template #title>
                       <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                        <MdiFileEyeOutline class="group-hover:text-pink-500" />
+                        <MdiFileEyeOutline class="group-hover:text-accent" />
                         Preview Project As
 
                         <div class="flex-1" />
 
                         <MaterialSymbolsChevronRightRounded
-                          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
                         />
                       </div>
                     </template>
@@ -279,12 +279,12 @@ const copyAuthToken = async () => {
                   <a-sub-menu key="language" class="lang-menu scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0">
                     <template #title>
                       <div class="nc-project-menu-item group">
-                        <MaterialSymbolsTranslate class="group-hover:text-pink-500 nc-language" />
+                        <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />
                         Language
                         <div class="flex-1" />
 
                         <MaterialSymbolsChevronRightRounded
-                          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
                         />
                       </div>
                     </template>
@@ -297,12 +297,12 @@ const copyAuthToken = async () => {
                     <a-sub-menu v-if="isUIAllowed('previewAs')" key="account">
                       <template #title>
                         <div class="nc-project-menu-item group">
-                          <MdiAccount class="group-hover:text-pink-500" />
+                          <MdiAccount class="group-hover:text-accent" />
                           Account
                           <div class="flex-1" />
 
                           <MaterialSymbolsChevronRightRounded
-                            class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                            class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
                           />
                         </div>
                       </template>
@@ -311,7 +311,7 @@ const copyAuthToken = async () => {
 
                       <a-menu-item key="0" class="!rounded-t">
                         <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
-                          <MdiAt class="mt-1 group-hover:text-pink-500" />&nbsp;
+                          <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                           <span class="prose-sm">{{ email }}</span>
                         </nuxt-link>
@@ -319,7 +319,7 @@ const copyAuthToken = async () => {
 
                       <a-menu-item key="1" class="!rounded-b">
                         <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
-                          <MdiLogout class="group-hover:(!text-pink-500)" />&nbsp;
+                          <MdiLogout class="group-hover:(!text-accent)" />&nbsp;
 
                           <span class="prose-sm">
                             {{ $t('general.signOut') }}

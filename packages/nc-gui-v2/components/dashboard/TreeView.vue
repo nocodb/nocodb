@@ -250,7 +250,7 @@ function openTableCreateDialog() {
                       @click="openAirtableImportDialog"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiTableLarge class="group-hover:text-pink-500" />
+                        <MdiTableLarge class="group-hover:text-accent" />
                         <!-- TODO: i18n -->
                         Airtable
                       </div>
@@ -258,7 +258,7 @@ function openTableCreateDialog() {
 
                     <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv" @click="openQuickImportDialog('csv')">
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiFileDocumentOutline class="group-hover:text-pink-500" />
+                        <MdiFileDocumentOutline class="group-hover:text-accent" />
                         <!-- TODO: i18n -->
                         CSV file
                       </div>
@@ -266,7 +266,7 @@ function openTableCreateDialog() {
 
                     <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json" @click="openQuickImportDialog('json')">
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiCodeJson class="group-hover:text-pink-500" />
+                        <MdiCodeJson class="group-hover:text-accent" />
                         <!-- TODO: i18n -->
                         JSON file
                       </div>
@@ -278,7 +278,7 @@ function openTableCreateDialog() {
                       @click="openQuickImportDialog('excel')"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiFileExcel class="group-hover:text-pink-500" />
+                        <MdiFileExcel class="group-hover:text-accent" />
                         <!-- TODO: i18n -->
                         Microsoft Excel
                       </div>
@@ -294,7 +294,7 @@ function openTableCreateDialog() {
                       target="_blank"
                       class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                     >
-                      <MdiOpenInNew class="group-hover:text-pink-500" />
+                      <MdiOpenInNew class="group-hover:text-accent" />
                       <!-- TODO: i18n -->
                       Request a data source you need?
                     </a>
@@ -505,7 +505,7 @@ function openTableCreateDialog() {
 }
 
 :deep(.ant-dropdown-menu-item) {
-  @apply !py-0 active:(ring ring-pink-500);
+  @apply !py-0 active:(ring ring-accent);
 }
 
 :deep(.ant-dropdown-menu-title-content) {

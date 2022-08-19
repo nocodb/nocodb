@@ -49,7 +49,7 @@ a {
 
   &:hover {
     .nc-icon {
-      @apply text-pink-500;
+      @apply text-accent;
     }
   }
 }
@@ -191,11 +191,11 @@ a {
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-pink-500;
+    @apply transform scale-110 ring ring-accent;
   }
 
   &:active::after {
-    @apply ring ring-pink-500;
+    @apply ring ring-accent;
   }
 }
 
@@ -232,7 +232,7 @@ a {
 }
 
 .ant-dropdown-menu-item, .ant-menu-item {
-  @apply !py-0 active:(ring ring-pink-500);
+  @apply !py-0 active:(ring ring-accent);
 }
 
 .ant-dropdown-menu-title-content,

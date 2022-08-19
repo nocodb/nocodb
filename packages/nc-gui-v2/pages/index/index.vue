@@ -81,12 +81,12 @@ onMounted(() => {
 
             <a-tooltip title="Reload projects">
               <span
-                class="transition-all duration-200 h-full flex items-center group hover:ring active:(ring ring-pink-500) rounded-full mt-1"
+                class="transition-all duration-200 h-full flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
                 :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
               >
                 <MdiRefresh
                   v-t="['a:project:refresh']"
-                  class="text-xl text-gray-500 group-hover:text-pink-500 cursor-pointer"
+                  class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
                   :class="isLoading ? '!text-primary' : ''"
                   @click="loadProjects"
                 />
@@ -165,7 +165,7 @@ onMounted(() => {
               <a-table-column key="title" :title="$t('general.title')" data-index="title">
                 <template #default="{ text }">
                   <div
-                    class="capitalize color-transition group-hover:text-pink-500 !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap"
+                    class="capitalize color-transition group-hover:text-accent !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap"
                   >
                     {{ text }}
                   </div>
@@ -204,7 +204,7 @@ onMounted(() => {
 
 <style scoped>
 .nc-action-btn {
-  @apply text-gray-500 hover:(text-pink-500 ring) active:(ring ring-pink-500) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
+  @apply text-gray-500 hover:(text-accent ring) active:(ring ring-accent) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
 }
 
 .nc-new-project-menu {
@@ -217,11 +217,11 @@ onMounted(() => {
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-pink-500;
+    @apply transform scale-110 ring ring-accent;
   }
 
   &:active::after {
-    @apply ring ring-pink-500;
+    @apply ring ring-accent;
   }
 }
 

@@ -412,7 +412,7 @@ const onNavigate = (dir: NavigateDir) => {
                           class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
                         >
                           <MdiArrowExpand
-                            class="select-none transform hover:(text-pink-500 scale-120) nc-row-expand"
+                            class="select-none transform hover:(text-accent scale-120) nc-row-expand"
                             @click="expandForm(row, state)"
                           />
                         </div>

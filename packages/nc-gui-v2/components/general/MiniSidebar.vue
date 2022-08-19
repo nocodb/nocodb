@@ -74,24 +74,24 @@ const logout = () => {
                 </span>
               </template>
 
-              <a-menu-item class="active:(ring ring-pink-500)">
+              <a-menu-item class="active:(ring ring-accent)">
                 <div
                   v-t="['c:project:create:xcdb']"
                   class="group flex items-center gap-2 py-2 hover:text-primary"
                   @click="navigateTo('/project/create')"
                 >
-                  <MdiPlus class="text-lg group-hover:text-pink-500" />
+                  <MdiPlus class="text-lg group-hover:text-accent" />
                   {{ $t('activity.createProject') }}
                 </div>
               </a-menu-item>
 
-              <a-menu-item class="rounded-b active:(ring ring-pink-500)">
+              <a-menu-item class="rounded-b active:(ring ring-accent)">
                 <div
                   v-t="['c:project:create:extdb']"
                   class="group flex items-center gap-2 py-2 hover:text-primary"
                   @click="navigateTo('/project/create-external')"
                 >
-                  <MdiDatabaseOutline class="text-lg group-hover:text-pink-500" />
+                  <MdiDatabaseOutline class="text-lg group-hover:text-accent" />
                   <div v-html="$t('activity.createProjectExtended.extDB')" />
                 </div>
               </a-menu-item>
@@ -125,7 +125,7 @@ const logout = () => {
     @apply flex w-full justify-center items-center h-12 group p-2;
 
     &.active {
-      @apply bg-pink-500 border-t-1 border-b-1;
+      @apply bg-accent border-t-1 border-b-1;
     }
   }
 }

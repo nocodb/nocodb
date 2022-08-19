@@ -66,7 +66,7 @@ function onClick(item: Record<string, any>) {
           class="nc-attach-file group"
           @click="open"
         >
-          <MaterialSymbolsAttachFile class="transform group-hover:(text-pink-500 scale-120)" />
+          <MaterialSymbolsAttachFile class="transform group-hover:(text-accent scale-120)" />
           Attach File
         </div>
 
@@ -83,9 +83,9 @@ function onClick(item: Record<string, any>) {
         <general-overlay
           v-model="isOverDropZone"
           inline
-          class="text-white ring ring-pink-500 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
+          class="text-white ring ring-accent bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
         >
-          <MaterialSymbolsFileCopyOutline class="text-pink-500" height="35" width="35" />
+          <MaterialSymbolsFileCopyOutline class="text-accent" height="35" width="35" />
           <div class="text-white text-3xl">Drop here</div>
         </general-overlay>
       </template>
@@ -155,7 +155,7 @@ function onClick(item: Record<string, any>) {
   .nc-attach-file {
     @apply select-none cursor-pointer color-transition flex items-center gap-1 border-1 p-2 rounded
     @apply hover:(bg-primary bg-opacity-10 text-primary ring);
-    @apply active:(ring-pink-500 bg-primary bg-opacity-20);
+    @apply active:(ring-accent bg-primary bg-opacity-20);
   }
 
   .nc-attachment-item {
@@ -176,7 +176,7 @@ function onClick(item: Record<string, any>) {
       }
 
       &:active::after {
-        @apply ring ring-pink-500 shadow transform scale-103;
+        @apply ring ring-accent shadow transform scale-103;
       }
     }
   }
@@ -185,7 +185,7 @@ function onClick(item: Record<string, any>) {
     @apply bg-white absolute bottom-2 right-2;
     @apply transition-opacity duration-150 ease-in opacity-0 hover:ring;
     @apply cursor-pointer rounded shadow flex items-center p-1 border-1;
-    @apply active:(ring border-0 ring-pink-500);
+    @apply active:(ring border-0 ring-accent);
   }
 
   .nc-attachment-remove {

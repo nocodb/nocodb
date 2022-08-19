@@ -349,17 +349,13 @@ function openTableCreateDialog() {
 
                     <template #overlay>
                       <a-menu class="!py-0 rounded text-sm">
-                        <a-menu-item
-                          v-if="isUIAllowed('table-rename')"
-                          v-t="['c:table:rename']"
-                          @click="openRenameTableDialog(table)"
-                        >
+                        <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table)">
                           <div class="nc-project-menu-item">
                             {{ $t('general.rename') }}
                           </div>
                         </a-menu-item>
 
-                        <a-menu-item v-if="isUIAllowed('table-delete')" v-t="['c:table:delete']" @click="deleteTable(table)">
+                        <a-menu-item v-if="isUIAllowed('table-delete')" @click="() => $e('c:table:delete') && deleteTable(table)">
                           <div class="nc-project-menu-item">
                             {{ $t('general.delete') }}
                           </div>
@@ -387,11 +383,7 @@ function openTableCreateDialog() {
       <template v-if="!isLocked" #overlay>
         <a-menu class="!py-0 rounded text-sm">
           <template v-if="contextMenuTarget.type === 'table'">
-            <a-menu-item
-              v-if="isUIAllowed('table-rename')"
-              v-t="['c:table:rename']"
-              @click="openRenameTableDialog(contextMenuTarget.value)"
-            >
+            <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value)">
               <div class="nc-project-menu-item">
                 {{ $t('general.rename') }}
               </div>
@@ -399,8 +391,7 @@ function openTableCreateDialog() {
 
             <a-menu-item
               v-if="isUIAllowed('table-delete')"
-              v-t="['c:table:delete']"
-              @click="deleteTable(contextMenuTarget.value)"
+              @click="() => $e('c:table:delete') && deleteTable(contextMenuTarget.value)"
             >
               <div class="nc-project-menu-item">
                 {{ $t('general.delete') }}
@@ -409,7 +400,7 @@ function openTableCreateDialog() {
           </template>
 
           <template v-else>
-            <a-menu-item v-t="['c:table:reload']" @click="reloadTables">
+            <a-menu-item @click="reloadTables">
               <div class="nc-project-menu-item">
                 {{ $t('general.reload') }}
               </div>

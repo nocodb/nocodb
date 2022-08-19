@@ -238,9 +238,9 @@ definePageMeta({
 
                   <a-menu-divider />
 
-                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
+                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
                     <template #title>
-                      <div class="nc-project-menu-item group">
+                      <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                         <MdiFileEyeOutline class="group-hover:text-pink-500" />
                         Preview Project As
 

@@ -11,9 +11,9 @@ import {
   defineAsyncComponent,
   inject,
   ref,
-  useProject,
   useProvideLTARStore,
   useSmartsheetRowStoreOrThrow,
+  useUIPermission,
 } from '#imports'
 import MdiArrowExpand from '~icons/mdi/arrow-expand'
 import MdiPlus from '~icons/mdi/plus'
@@ -36,11 +36,12 @@ const readOnly = inject(ReadonlyInj, false)
 
 const isLocked = inject(IsLockedInj)
 
-const { isSharedBase } = useProject()
+const { isUIAllowed } = useUIPermission()
 
 const listItemsDlg = ref(false)
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
+
 const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
@@ -77,7 +78,10 @@ const unlinkRef = async (rec: Record<string, any>) => {
         <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlinkRef(value)" />
       </template>
     </div>
-    <div v-if="!readOnly && !isLocked && !isSharedBase" class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
+    <div
+      v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')"
+      class="flex-1 flex justify-end gap-1 min-h-[30px] align-center"
+    >
       <component
         :is="addIcon"
         class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"

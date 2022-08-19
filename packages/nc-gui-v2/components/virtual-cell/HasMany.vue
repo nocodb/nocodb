@@ -13,9 +13,9 @@ import {
   defineAsyncComponent,
   inject,
   ref,
-  useProject,
   useProvideLTARStore,
   useSmartsheetRowStoreOrThrow,
+  useUIPermission,
 } from '#imports'
 
 const ItemChip = defineAsyncComponent(() => import('./components/ItemChip.vue'))
@@ -42,9 +42,10 @@ const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
-const { isSharedBase } = useProject()
+const { isUIAllowed } = useUIPermission()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
+
 const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
@@ -94,7 +95,10 @@ const unlinkRef = async (rec: Record<string, any>) => {
           </span>
         </template>
       </div>
-      <div v-if="!isLocked && !isSharedBase" class="flex-grow flex justify-end gap-1 min-h-[30px] align-center">
+      <div
+        v-if="!isLocked && isUIAllowed('xcDatatableEditable')"
+        class="flex-grow flex justify-end gap-1 min-h-[30px] align-center"
+      >
         <MdiArrowExpand
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click="childListDlg = true"

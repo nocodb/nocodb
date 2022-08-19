@@ -39,10 +39,10 @@ export function useViewData(
   const formattedData = ref<Row[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
-  const { project } = useProject()
+  const { project, isSharedBase } = useProject()
   const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
   const { $api } = useNuxtApp()
-  const { sorts, nestedFilters: filters } = useSharedView()
+  const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
   const { isUIAllowed } = useUIPermission()
 
   const paginationData = computed({
@@ -84,7 +84,7 @@ export function useViewData(
   /** load row comments count */
   const loadAggCommentsCount = async () => {
     // todo: handle in public api
-    if (isPublic.value) return
+    if (isPublic.value || isSharedBase.value) return
 
     const ids = formattedData.value
       ?.filter(({ rowMeta: { new: isNew } }) => !isNew)
@@ -112,7 +112,7 @@ export function useViewData(
       ? await $api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(filters.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where: where?.value,
         })
       : await fetchSharedViewData()

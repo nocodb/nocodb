@@ -6,31 +6,17 @@ export function useViewSorts(
   view: Ref<(GridType | KanbanType | GalleryType) & { id?: string }> | undefined,
   reloadData?: () => void,
 ) {
-  const _sorts = ref<SortType[]>([])
-
-  const { sorts: sharedViewSorts, sharedView } = useSharedView()
+  const { sharedView } = useSharedView()
+  const { sorts } = useSmartsheetStoreOrThrow()
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { isSharedBase } = useProject()
-
-  const sorts = computed<SortType[]>({
-    get: () => (isPublic.value || isSharedBase.value ? sharedViewSorts.value : _sorts.value),
-    set: (value) => {
-      if (isPublic.value || isSharedBase.value) {
-        sharedViewSorts.value = value
-      } else {
-        _sorts.value = value
-      }
-      reloadHook?.trigger()
-    },
-  })
-
   const { $api } = useNuxtApp()
 
   const { isUIAllowed } = useUIPermission()
+  const { isSharedBase } = useProject()
 
   const loadSorts = async () => {
     if (isPublic.value) {
@@ -74,5 +60,10 @@ export function useViewSorts(
     sorts.value.splice(i, 1)
     sorts.value = [...sorts.value]
   }
+
+  watch(sorts, () => {
+    reloadHook?.trigger()
+  })
+
   return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate }
 }

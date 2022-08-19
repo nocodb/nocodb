@@ -1,5 +1,6 @@
+import { message } from 'ant-design-vue'
 import { defineNuxtRouteMiddleware, navigateTo } from '#app'
-import { useGlobal } from '#imports'
+import { useApi, useGlobal } from '#imports'
 
 /**
  * Global auth middleware
@@ -20,8 +21,10 @@ import { useGlobal } from '#imports'
  *  })
  * ```
  */
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware(async (to, from) => {
   const state = useGlobal()
+
+  await tryGoogleAuth()
 
   /** if public allow */
   if (to.meta.public) return
@@ -48,3 +51,28 @@ export default defineNuxtRouteMiddleware((to, from) => {
     }
   }
 })
+
+async function tryGoogleAuth() {
+  const { signIn } = useGlobal()
+
+  const { api } = useApi()
+
+  if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
+    try {
+      const {
+        data: { token },
+      } = await api.instance.post(
+        `/auth/${window.location.search.includes('state=github') ? 'github' : 'google'}/genTokenByCode${window.location.search}`,
+      )
+
+      signIn(token)
+    } catch (e: any) {
+      if (e.response && e.response.data && e.response.data.msg) {
+        message.error({ content: e.response.data.msg })
+      }
+    }
+
+    const newURL = window.location.href.split('?')[0]
+    window.history.pushState('object', document.title, newURL)
+  }
+}

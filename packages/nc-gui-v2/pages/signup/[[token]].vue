@@ -96,6 +96,8 @@ async function signUp() {
     })
 }
 
+function googleSignUp() {}
+
 function resetError() {
   if (error) error = null
 }
@@ -151,6 +153,18 @@ function resetError() {
                 {{ $t('general.signUp') }}
               </span>
             </button>
+
+            <a
+              v-if="appInfo.googleAuthEnabled"
+              href="http://localhost:8080/auth/google"
+              class="submit after:(!bg-white) !text-primary border-1 border-primary"
+            >
+              <span class="flex items-center gap-2">
+                <LogosGoogleGmail />
+
+                Sign up with Google
+              </span>
+            </a>
 
             <div class="flex items-center gap-2">
               <a-switch

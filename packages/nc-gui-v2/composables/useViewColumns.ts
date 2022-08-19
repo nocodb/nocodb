@@ -98,7 +98,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   }
 
   const saveOrUpdate = async (field: any, index: number) => {
-    if ((isPublic.value || isSharedBase) && fields.value) {
+    if (isPublic.value && fields.value) {
       fields.value[index] = field
       meta.value.columns = meta.value?.columns?.map((column: ColumnType) => {
         if (column.id === field.fk_column_id) {

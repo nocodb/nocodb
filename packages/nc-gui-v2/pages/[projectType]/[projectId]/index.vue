@@ -238,6 +238,42 @@ definePageMeta({
 
                   <a-menu-divider />
 
+                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
+                    <template #title>
+                      <div class="nc-project-menu-item group">
+                        <MdiFileEyeOutline class="group-hover:text-pink-500 nc-project-preview" />
+                        Preview Project As
+
+                        <div class="flex-1" />
+
+                        <MaterialSymbolsChevronRightRounded
+                          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                        />
+                      </div>
+                    </template>
+
+                    <template #expandIcon></template>
+
+                    <GeneralPreviewAs />
+                  </a-sub-menu>
+
+                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="language">
+                    <template #title>
+                      <div class="nc-project-menu-item group">
+                        <MaterialSymbolsTranslate class="group-hover:text-pink-500 nc-language" />
+                        Language
+                        <div class="flex-1" />
+
+                        <MaterialSymbolsChevronRightRounded
+                          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                        />
+                      </div>
+                    </template>
+
+                    <template #expandIcon></template>
+                    <GeneralLanguage sub-menu />
+                  </a-sub-menu>
+
                   <template v-if="signedIn && !isSharedBase">
                     <a-sub-menu v-if="isUIAllowed('previewAs')" key="account">
                       <template #title>
@@ -275,42 +311,6 @@ definePageMeta({
                       </a-menu>
                     </a-sub-menu>
                   </template>
-
-                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
-                    <template #title>
-                      <div class="nc-project-menu-item group">
-                        <MdiFileEyeOutline class="group-hover:text-pink-500 nc-project-preview" />
-                        Preview Project As
-
-                        <div class="flex-1" />
-
-                        <MaterialSymbolsChevronRightRounded
-                          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-                        />
-                      </div>
-                    </template>
-
-                    <template #expandIcon></template>
-
-                    <GeneralPreviewAs />
-                  </a-sub-menu>
-
-                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="language">
-                    <template #title>
-                      <div class="nc-project-menu-item group">
-                        <MaterialSymbolsTranslate class="group-hover:text-pink-500 nc-language" />
-                        Language
-                        <div class="flex-1" />
-
-                        <MaterialSymbolsChevronRightRounded
-                          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-                        />
-                      </div>
-                    </template>
-
-                    <template #expandIcon></template>
-                    <GeneralLanguage sub-menu />
-                  </a-sub-menu>
                 </a-menu-item-group>
               </a-menu>
             </template>

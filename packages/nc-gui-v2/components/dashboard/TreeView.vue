@@ -2,11 +2,23 @@
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { Empty } from 'ant-design-vue'
-import { useNuxtApp } from '#app'
-import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
+import {
+  computed,
+  inject,
+  reactive,
+  ref,
+  useDialog,
+  useNuxtApp,
+  useProject,
+  useTable,
+  useTabs,
+  useUIPermission,
+  watchEffect,
+} from '#imports'
 import DlgAirtableImport from '~/components/dlg/AirtableImport.vue'
 import DlgQuickImport from '~/components/dlg/QuickImport.vue'
 import DlgTableCreate from '~/components/dlg/TableCreate.vue'
+import DlgTableRename from '~/components/dlg/TableRename.vue'
 import { TabType } from '~/composables'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
@@ -27,16 +39,25 @@ const { isUIAllowed } = useUIPermission()
 
 const isLocked = inject('TreeViewIsLockedInj')
 
-const tablesById = $computed<Record<string, TableType>>(() =>
-  tables?.value?.reduce((acc: Record<string, TableType>, table: TableType) => {
-    acc[table.id as string] = table
+let key = $ref(0)
+
+const menuRef = $ref<HTMLLIElement>()
+
+const filterQuery = $ref('')
+
+const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null))
+
+const tablesById = $computed(() =>
+  tables.value?.reduce((acc: Record<string, TableType>, table) => {
+    acc[table.id!] = table
+
     return acc
   }, {}),
 )
 
-let key = $ref(0)
-
-const menuRef = $ref<HTMLLIElement>()
+const filteredTables = $computed(() =>
+  tables.value?.filter((table) => !filterQuery || table.title.toLowerCase().includes(filterQuery.toLowerCase())),
+)
 
 let sortable: Sortable
 
@@ -104,37 +125,44 @@ const icon = (table: TableType) => {
   }
 }
 
-const filterQuery = $ref('')
-const filteredTables = $computed(() => {
-  return tables?.value?.filter((table) => !filterQuery || table?.title.toLowerCase()?.includes(filterQuery.toLowerCase()))
-})
-
 const contextMenuTarget = reactive<{ type?: 'table' | 'main'; value?: any }>({})
+
 const setMenuContext = (type: 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
+
   $e('c:table:create:navdraw:right-click')
 }
 
-const renameTableDlg = ref(false)
-const renameTableMeta = ref()
-const showRenameTableDlg = (table: TableType, rightClick = false) => {
-  $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
-  renameTableMeta.value = table
-  renameTableDlg.value = true
-}
 const reloadTables = async () => {
   $e('a:table:refresh:navdraw')
+
   await loadTables()
 }
+
 const addTableTab = (table: TableType) => {
   $e('a:table:open')
+
   addTab({ title: table.title, id: table.id, type: table.type as any })
 }
 
-const activeTable = computed(() => {
-  return [TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null
-})
+function openRenameTableDialog(table: TableType, rightClick = false) {
+  $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(DlgTableRename, {
+    'modelValue': isOpen,
+    'tableMeta': table,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 
 function openQuickImportDialog(type: string) {
   $e(`a:actions:import-${type}`)
@@ -195,30 +223,29 @@ function openTableCreateDialog() {
       <div
         class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull"
         :class="{ 'mb-[20px]': isSharedBase }"
-        style="direction: rtl"
       >
-        <div
-          style="direction: ltr"
-          class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
-          @contextmenu="setMenuContext('main')"
-        >
+        <div class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer" @contextmenu="setMenuContext('main')">
           <span class="flex-grow text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
             {{ $t('objects.tables') }}
 
             <template v-if="tables?.length"> ({{ tables.length }}) </template>
           </span>
         </div>
-        <div style="direction: ltr" class="flex-1">
+
+        <div class="flex-1">
           <div
             class="group flex items-center gap-2 pl-5 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             @click="openTableCreateDialog"
           >
             <MdiPlus />
+
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1">{{ $t('tooltip.addTable') }}</span>
+
             <a-dropdown :trigger="['click']" @click.stop>
               <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100" />
+
               <template #overlay>
-                <a-menu class="nc-add-project-menu !py-0 ml-6 rounded text-sm">
+                <a-menu class="!py-0 rounded text-sm">
                   <a-menu-item-group title="QUICK IMPORT FROM" class="!px-0 !mx-0">
                     <a-menu-item
                       v-if="isUIAllowed('airtableImport')"
@@ -321,23 +348,22 @@ function openTableCreateDialog() {
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
 
                     <template #overlay>
-                      <a-menu class="cursor-pointer">
+                      <a-menu class="!py-0 rounded text-sm">
                         <a-menu-item
                           v-if="isUIAllowed('table-rename')"
                           v-t="['c:table:rename']"
-                          class="!text-xs"
-                          @click="showRenameTableDlg(table)"
-                          ><div>{{ $t('general.rename') }}</div></a-menu-item
+                          @click="openRenameTableDialog(table)"
                         >
+                          <div class="nc-project-menu-item">
+                            {{ $t('general.rename') }}
+                          </div>
+                        </a-menu-item>
 
-                        <a-menu-item
-                          v-if="isUIAllowed('table-delete')"
-                          v-t="['c:table:delete']"
-                          class="!text-xs"
-                          @click="deleteTable(table)"
-                        >
-                          {{ $t('general.delete') }}</a-menu-item
-                        >
+                        <a-menu-item v-if="isUIAllowed('table-delete')" v-t="['c:table:delete']" @click="deleteTable(table)">
+                          <div class="nc-project-menu-item">
+                            {{ $t('general.delete') }}
+                          </div>
+                        </a-menu-item>
                       </a-menu>
                     </template>
                   </a-dropdown>
@@ -350,35 +376,43 @@ function openTableCreateDialog() {
             <div class="flex flex-col align-center">
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
-              <a-button type="primary" @click.stop="openTableCreateDialog">{{ $t('tooltip.addTable') }}</a-button>
+              <a-button type="primary" @click.stop="openTableCreateDialog">
+                {{ $t('tooltip.addTable') }}
+              </a-button>
             </div>
           </a-card>
         </div>
       </div>
 
       <template v-if="!isLocked" #overlay>
-        <a-menu class="cursor-pointer">
+        <a-menu class="!py-0 rounded text-sm">
           <template v-if="contextMenuTarget.type === 'table'">
             <a-menu-item
               v-if="isUIAllowed('table-rename')"
               v-t="['c:table:rename']"
-              class="!text-xs"
-              @click="showRenameTableDlg(contextMenuTarget.value)"
+              @click="openRenameTableDialog(contextMenuTarget.value)"
             >
-              {{ $t('general.rename') }}
+              <div class="nc-project-menu-item">
+                {{ $t('general.rename') }}
+              </div>
             </a-menu-item>
+
             <a-menu-item
               v-if="isUIAllowed('table-delete')"
               v-t="['c:table:delete']"
-              class="!text-xs"
               @click="deleteTable(contextMenuTarget.value)"
             >
-              {{ $t('general.delete') }}
+              <div class="nc-project-menu-item">
+                {{ $t('general.delete') }}
+              </div>
             </a-menu-item>
           </template>
+
           <template v-else>
-            <a-menu-item v-t="['c:table:reload']" class="!text-xs" @click="reloadTables">
-              {{ $t('general.reload') }}
+            <a-menu-item v-t="['c:table:reload']" @click="reloadTables">
+              <div class="nc-project-menu-item">
+                {{ $t('general.reload') }}
+              </div>
             </a-menu-item>
           </template>
         </a-menu>
@@ -388,15 +422,8 @@ function openTableCreateDialog() {
     <a-divider class="mt-0 mb-0" />
 
     <div class="items-center flex justify-center p-2">
-      <!--
-     Todo : move the component
-     <GithubStarButton />
-     -->
-
       <GeneralShareBaseButton class="!mr-0" />
     </div>
-
-    <DlgTableRename v-if="renameTableMeta" v-model="renameTableDlg" :table-meta="renameTableMeta" />
   </div>
 </template>
 
@@ -471,5 +498,29 @@ function openTableCreateDialog() {
   .ant-input {
     @apply pr-6 !border-0;
   }
+}
+
+:deep(.ant-dropdown-menu-item-group-title) {
+  @apply border-b-1;
+}
+
+:deep(.ant-dropdown-menu-item-group-list) {
+  @apply !mx-0;
+}
+
+:deep(.ant-dropdown-menu-item-group-title) {
+  @apply border-b-1;
+}
+
+:deep(.ant-dropdown-menu-item-group-list) {
+  @apply m-0;
+}
+
+:deep(.ant-dropdown-menu-item) {
+  @apply !py-0 active:(ring ring-pink-500);
+}
+
+:deep(.ant-dropdown-menu-title-content) {
+  @apply !p-0;
 }
 </style>

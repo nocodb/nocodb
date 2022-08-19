@@ -7,7 +7,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
 </script>
 
 <template>
-  <a-card :body-style="{ padding: '0' }" class="w-[300px] shadow-sm rounded-lg">
+  <a-card :body-style="{ padding: '0px' }" class="w-[300px] shadow-sm !rounded-lg">
     <a-list class="w-full" dense>
       <a-list-item>
         <nuxt-link class="text-primary" to="https://github.com/nocodb/nocodb" target="_blank">

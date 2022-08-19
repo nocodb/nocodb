@@ -28,18 +28,27 @@ describe('getFindOne', () => {
     id: 'dbDriverId',
   };
   const req = { query: {} };
-  const baseModel = {
-    findOne: sinon.fake.returns(undefined),
-  };
-  const baseGetFake = sinon.replace(Base, 'get', sinon.fake.returns(base));
-  const baseModelFake = sinon.replace(
-    Model,
-    'getBaseModelSQL',
-    sinon.fake.returns(baseModel)
-  );
-  sinon.replace(NcConnectionMgrv2, 'get', sinon.fake.returns(dbDriver));
-  const getAstFake = sinon.fake.returns({ id: 1 });
-  sinon.replace(getAstObject, 'default', getAstFake);
+  let baseModel;
+  let baseGetFake;
+  let baseModelFake;
+  beforeEach(() => {
+    baseModel = {
+      findOne: sinon.fake.returns(undefined),
+    };
+    baseGetFake = sinon.replace(Base, 'get', sinon.fake.returns(base));
+    baseModelFake = sinon.replace(
+      Model,
+      'getBaseModelSQL',
+      sinon.fake.returns(baseModel)
+    );
+    sinon.replace(NcConnectionMgrv2, 'get', sinon.fake.returns(dbDriver));
+    const getAstFake = sinon.fake.returns({ id: 1 });
+    sinon.replace(getAstObject, 'default', getAstFake);
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  }),
 
   it('calls Base.get to find base', async () => {
     await getFindOne(model, view, req);
@@ -69,11 +78,13 @@ describe('getFindOne', () => {
   });
 
   describe('when data is found', () => {
+    const findOneResult = {
+      id: 'dataId'
+    };
+    beforeEach(() => {
+      baseModel.findOne = sinon.fake.returns([findOneResult]);
+    });
     it('returns data', async () => {
-      const findOneResult = {
-        id: 'dataId',
-      };
-      baseModel.findOne = sinon.fake.returns(findOneResult);
       expect(await getFindOne(model, view, req)).eql(findOneResult);
     });
   });

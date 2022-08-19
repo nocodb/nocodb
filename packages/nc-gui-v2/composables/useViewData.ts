@@ -92,7 +92,7 @@ export function useViewData(
         return extractPkFromRow(row, meta?.value?.columns as ColumnType[])
       })
 
-    if (!ids?.length) return
+    if (!ids?.length || ids?.some((id) => !id)) return
 
     aggCommentCount.value = await $api.utils.commentCount({
       ids,

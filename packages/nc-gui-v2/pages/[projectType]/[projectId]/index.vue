@@ -326,12 +326,11 @@ definePageMeta({
         <DashboardTreeView v-show="isOpen" />
       </a-layout-sider>
     </template>
-
-    <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
-
-    <NuxtPage />
-
-    <GeneralPreviewAs float />
+    <div :key="$route.fullPath">
+      <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
+      <NuxtPage />
+      <GeneralPreviewAs float />
+    </div>
   </NuxtLayout>
 </template>
 

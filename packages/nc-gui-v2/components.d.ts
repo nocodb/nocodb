@@ -71,6 +71,8 @@ declare module '@vue/runtime-core' {
     BiFiletypeXlsx: typeof import('~icons/bi/filetype-xlsx')['default']
     CilFullscreen: typeof import('~icons/cil/fullscreen')['default']
     CilFullscreenExit: typeof import('~icons/cil/fullscreen-exit')['default']
+    ClarityColorPickerLine: typeof import('~icons/clarity/color-picker-line')['default']
+    ClarityImageLine: typeof import('~icons/clarity/image-line')['default']
     ClaritySuccessLine: typeof import('~icons/clarity/success-line')['default']
     EvaEmailOutline: typeof import('~icons/eva/email-outline')['default']
     IcBaselineMoreVert: typeof import('~icons/ic/baseline-more-vert')['default']

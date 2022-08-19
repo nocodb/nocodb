@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { Chrome } from '@ckpack/vue-color'
 import { message } from 'ant-design-vue'
 import {
+  computed,
+  definePageMeta,
   navigateTo,
   onKeyStroke,
   openLink,
@@ -12,9 +15,15 @@ import {
   useProject,
   useRoute,
   useTabs,
+  useTheme,
   useUIPermission,
+  watch,
 } from '#imports'
 import { TabType } from '~/composables'
+
+definePageMeta({
+  hideHeader: true,
+})
 
 const route = useRoute()
 
@@ -41,15 +50,29 @@ const openDialogKey = ref<string>()
 
 const dropdownOpen = ref(false)
 
+/** Sidebar ref */
+const sidebar = ref()
+
+const pickedColor = ref<any>('')
+
+const pickerActive = ref(false)
+
 const email = computed(() => user.value?.email ?? '---')
+
+const { setTheme } = useTheme()
+
+watch(pickedColor, (nextColor) => {
+  if (nextColor) {
+    setTheme({
+      primaryColor: nextColor.hex,
+    })
+  }
+})
 
 const logout = () => {
   signOut()
   navigateTo('/signin')
 }
-
-/** Sidebar ref */
-const sidebar = ref()
 
 onKeyStroke(
   'Escape',
@@ -101,10 +124,6 @@ const copyAuthToken = async () => {
     message.error(e.message)
   }
 }
-
-definePageMeta({
-  hideHeader: true,
-})
 </script>
 
 <template>
@@ -309,6 +328,17 @@ definePageMeta({
                       </a-menu-item>
                     </a-sub-menu>
                   </template>
+
+                  <a-menu-divider />
+
+                  <a-menu-item class="relative">
+                    <div class="nc-project-menu-item group" @click.stop="pickerActive = !pickerActive">
+                      <ClarityImageLine class="group-hover:text-accent" />
+                      Theme
+
+                      <Chrome v-if="pickerActive" v-model="pickedColor" class="absolute top-0 right-5" @click.stop />
+                    </div>
+                  </a-menu-item>
                 </a-menu-item-group>
               </a-menu>
             </template>

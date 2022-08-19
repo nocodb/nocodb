@@ -36,7 +36,7 @@ const logout = () => {
             <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
 
-          <div class="flex justify-center">
+          <div class="!text-white flex justify-center">
             <div v-show="isLoading" class="flex items-center gap-2 ml-3">
               {{ $t('general.loading') }}
 

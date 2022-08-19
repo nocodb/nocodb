@@ -132,7 +132,7 @@ async function changeLockType(type: LockType) {
   <div>
     <a-dropdown>
       <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
-        <div class="flex gap-2 align-center">
+        <div class="flex gap-2 items-center">
           <component
             :is="viewIcons[selectedView?.type].icon"
             class="nc-view-icon group-hover:hidden"
@@ -311,6 +311,6 @@ async function changeLockType(type: LockType) {
 
 <style scoped>
 .nc-locked-menu-item > div {
-  @apply grid grid-cols-[30px,auto] gap-2  p-2 align-center;
+  @apply grid grid-cols-[30px,auto] gap-2  p-2 items-center;
 }
 </style>

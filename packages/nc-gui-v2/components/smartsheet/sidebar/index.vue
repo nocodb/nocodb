@@ -99,6 +99,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     class="relative shadow-md h-full"
     theme="light"
   >
+    <!--
     <Toolbar
       v-if="isOpen"
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)]"
@@ -128,7 +129,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
         <div v-if="!isForm" class="dot" />
       </template>
     </Toolbar>
-
+-->
     <div v-if="isOpen" class="flex-1 flex flex-col">
       <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
 

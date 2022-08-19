@@ -12,7 +12,6 @@ import {
   inject,
   provide,
   ref,
-  useElementHover,
   useRoute,
   useRouter,
   useViews,
@@ -54,8 +53,6 @@ let selectedViewId = $ref('')
 
 /** is view creation modal open */
 let modalOpen = $ref(false)
-
-const isHovered = useElementHover(sidebar)
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(
@@ -102,30 +99,11 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     class="relative shadow-md h-full"
     theme="light"
   >
-    <a-tooltip :mouse-enter-delay="1" placement="left">
-      <template #title> Toggle sidebar </template>
-
-      <Transition name="glow">
-        <div
-          v-show="sidebarCollapsed || isHovered"
-          class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-1/2 left-[-1rem] shadow bg-gray-100 rounded-full"
-        >
-          <MaterialSymbolsChevronRightRounded
-            v-if="isOpen"
-            class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400 nc-right-sidebar-toggle"
-            @click="isOpen = false"
-          />
-
-          <MaterialSymbolsChevronLeftRounded
-            v-else
-            class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400 nc-right-sidebar-toggle"
-            @click="isOpen = true"
-          />
-        </div>
-      </Transition>
-    </a-tooltip>
-
-    <Toolbar v-if="isOpen" :class="{ 'flex items-center py-3 px-3 justify-between border-b-1': !isForm }" />
+    <Toolbar
+      v-if="isOpen"
+      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)]"
+      :class="{ 'flex items-center py-3 px-3 justify-between border-b-1': !isForm }"
+    />
 
     <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">
       <template #start>

@@ -8,7 +8,6 @@ import {
   provideSidebar,
   ref,
   useClipboard,
-  useElementHover,
   useGlobal,
   useProject,
   useRoute,
@@ -19,7 +18,7 @@ import { TabType } from '~/composables'
 
 const route = useRoute()
 
-const { appInfo, token } = useGlobal()
+const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
 const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo } = useProject()
 
@@ -41,6 +40,13 @@ const dialogOpen = ref(false)
 const openDialogKey = ref<string>()
 
 const dropdownOpen = ref(false)
+
+const email = computed(() => user.value?.email ?? '---')
+
+const logout = () => {
+  signOut()
+  navigateTo('/signin')
+}
 
 /** Sidebar ref */
 const sidebar = ref()
@@ -67,8 +73,6 @@ function toggleDialog(value?: boolean, key?: string) {
 await loadProject()
 
 await loadTables()
-
-const isHovered = useElementHover(sidebar)
 
 const copyProjectInfo = async () => {
   try {
@@ -97,6 +101,10 @@ const copyAuthToken = async () => {
     message.error(e.message)
   }
 }
+
+definePageMeta({
+  hideHeader: true,
+})
 </script>
 
 <template>
@@ -107,7 +115,7 @@ const copyAuthToken = async () => {
         :collapsed="!isOpen"
         width="250"
         collapsed-width="50"
-        class="relative shadow-md h-full z-1"
+        class="relative shadow-md h-full z-1 nc-left-sidebar"
         :trigger="null"
         collapsible
         theme="light"
@@ -144,14 +152,20 @@ const copyAuthToken = async () => {
             </template>
           </div>
 
-          <a-dropdown v-else class="h-full" :trigger="['click']" placement="bottom">
+          <a-dropdown v-else class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
-              class="group cursor-pointer flex gap-4 items-center nc-project-menu overflow-hidden"
+              class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
             >
               <template v-if="isOpen">
-                <div class="text-xl font-semibold truncate">{{ project.title }}</div>
+                <a-tooltip v-if="project.title?.length > 12" placement="bottom">
+                  <div class="text-lg font-semibold truncate">{{ project.title }}</div>
+                  <template #title>
+                    <div class="text-sm">{{ project.title }}</div>
+                  </template>
+                </a-tooltip>
+                <div v-else class="text-lg font-semibold truncate">{{ project.title }}</div>
 
                 <MdiChevronDown class="min-w-[28.5px] group-hover:text-pink-500 text-2xl" />
               </template>
@@ -224,6 +238,44 @@ const copyAuthToken = async () => {
 
                   <a-menu-divider />
 
+                  <template v-if="signedIn && !isSharedBase">
+                    <a-sub-menu v-if="isUIAllowed('previewAs')" key="account">
+                      <template #title>
+                        <div class="nc-project-menu-item group">
+                          <MdiAccount class="group-hover:text-pink-500 nc-project-preview" />
+                          Account
+                          <div class="flex-1" />
+
+                          <MaterialSymbolsChevronRightRounded
+                            class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                          />
+                        </div>
+                      </template>
+
+                      <template #expandIcon></template>
+
+                      <a-menu class="!py-0 dark:(!bg-gray-800) leading-8 !rounded">
+                        <a-menu-item key="0" class="!rounded-t">
+                          <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
+                            <MdiAt class="mt-1 group-hover:text-pink-500" />&nbsp;
+
+                            <span class="prose">{{ email }}</span>
+                          </nuxt-link>
+                        </a-menu-item>
+
+                        <a-menu-item key="1" class="!rounded-b">
+                          <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                            <MdiLogout class="group-hover:(!text-pink-500)" />&nbsp;
+
+                            <span class="prose">
+                              {{ $t('general.signOut') }}
+                            </span>
+                          </div>
+                        </a-menu-item>
+                      </a-menu>
+                    </a-sub-menu>
+                  </template>
+
                   <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
                     <template #title>
                       <div class="nc-project-menu-item group">
@@ -242,34 +294,35 @@ const copyAuthToken = async () => {
 
                     <GeneralPreviewAs />
                   </a-sub-menu>
+
+                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="language">
+                    <template #title>
+                      <div class="nc-project-menu-item group">
+                        <MaterialSymbolsTranslate class="group-hover:text-pink-500 nc-language" />
+                        Language
+                        <div class="flex-1" />
+
+                        <MaterialSymbolsChevronRightRounded
+                          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                        />
+                      </div>
+                    </template>
+
+                    <template #expandIcon></template>
+                    <GeneralLanguage sub-menu />
+                  </a-sub-menu>
                 </a-menu-item-group>
               </a-menu>
             </template>
           </a-dropdown>
+          <div class="nc-sidebar-left-toggle-icon hover:after:bg-primary/75 group nc-sidebar-add-row flex align-center px-2">
+            <MdiBackburger
+              class="cursor-pointer transform transition-transform duration-500"
+              :class="{ 'rotate-180': !isOpen }"
+              @click="toggle(!isOpen)"
+            />
+          </div>
         </div>
-
-        <a-tooltip :mouse-enter-delay="1" placement="right">
-          <template #title> Toggle table list </template>
-
-          <Transition name="glow">
-            <div
-              v-show="!isOpen || isHovered"
-              class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-1/2 right-[-0.75rem] shadow bg-gray-100 rounded-full"
-            >
-              <MaterialSymbolsChevronLeftRounded
-                v-if="isOpen"
-                class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-                @click="toggle(false)"
-              />
-
-              <MaterialSymbolsChevronRightRounded
-                v-else
-                class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-                @click="toggle(true)"
-              />
-            </div>
-          </Transition>
-        </a-tooltip>
 
         <DashboardTreeView v-show="isOpen" />
       </a-layout-sider>
@@ -294,5 +347,26 @@ const copyAuthToken = async () => {
 
 :deep(.ant-dropdown-menu-item) {
   @apply !py-0 active:(ring ring-pink-500);
+}
+
+:global(#nc-sidebar-left .ant-layout-sider-collapsed) {
+  @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
+}
+
+.nc-left-sidebar {
+  .nc-sidebar-left-toggle-icon {
+    @apply opacity-0 transition-opactity duration-200 transition-color text-white/80 hover:text-white/100;
+    .nc-left-sidebar {
+      @apply !border-r-0;
+    }
+  }
+
+  &:hover .nc-sidebar-left-toggle-icon {
+    @apply opacity-100;
+  }
+}
+
+:deep(.ant-dropdown-menu-submenu-title) {
+  @apply py-0;
 }
 </style>

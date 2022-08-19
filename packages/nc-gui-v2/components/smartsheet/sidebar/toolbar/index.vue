@@ -5,6 +5,7 @@ import Reload from './Reload.vue'
 import ExportCache from './ExportCache.vue'
 import DeleteCache from './DeleteCache.vue'
 import DebugMeta from './DebugMeta.vue'
+import ToggleDrawer from './ToggleDrawer.vue'
 import { IsFormInj } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
@@ -14,6 +15,8 @@ const isForm = inject(IsFormInj)
 const debug = $ref(false)
 
 const clickCount = $ref(0)
+
+const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
 </script>
 
 <template>
@@ -52,6 +55,10 @@ const clickCount = $ref(0)
     <div class="dot" />
 
     <AddRow v-if="isUIAllowed('xcDatatableEditable')" @click.stop />
+
+    <div :class="{ 'w-[calc(100%_+_16px)] h-[1px] bg-gray-200 mt-1 -ml-1': !isOpen, 'dot': isOpen }" />
+
+    <ToggleDrawer />
 
     <slot name="end" />
   </div>

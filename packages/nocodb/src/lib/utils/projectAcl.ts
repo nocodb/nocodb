@@ -211,6 +211,7 @@ export default {
 
     // sort & filter
     sortList: true,
+    filterList: true,
     projectInfoGet: true,
 
     galleryViewGet: true,
@@ -240,7 +241,7 @@ export default {
     indexList: true,
     list: true,
     xcExportAsCsv: true,
-    dataCount: true,
+    dataCount: true
   },
   user_new: {
     passwordChange: true,

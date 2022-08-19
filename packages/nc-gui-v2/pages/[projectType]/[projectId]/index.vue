@@ -271,7 +271,7 @@ definePageMeta({
                     </template>
 
                     <template #expandIcon></template>
-                    <GeneralLanguage sub-menu />
+                    <GeneralLanguageMenu />
                   </a-sub-menu>
 
                   <template v-if="signedIn && !isSharedBase">

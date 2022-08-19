@@ -1,11 +1,5 @@
-<script lang="ts" setup>
-const { subMenu } = defineProps<{ subMenu?: boolean }>()
-</script>
-
 <template>
-  <GeneralLanguageMenu v-if="subMenu" />
-
-  <a-dropdown v-else class="select-none color-transition" :trigger="['click']">
+  <a-dropdown class="select-none color-transition" :trigger="['click']">
     <MaterialSymbolsTranslate v-bind="$attrs" class="md:text-xl cursor-pointer nc-menu-translate" />
 
     <template #overlay>

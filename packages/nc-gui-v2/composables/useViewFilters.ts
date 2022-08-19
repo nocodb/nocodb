@@ -29,8 +29,6 @@ export function useViewFilters(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { isSharedBase } = useProject()
-
   const { $api } = useNuxtApp()
 
   const { isUIAllowed } = useUIPermission()

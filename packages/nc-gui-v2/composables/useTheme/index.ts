@@ -43,7 +43,7 @@ const [setup, use] = useInjectionState((config?: Partial<ThemeConfig>) => {
     theme: currentTheme,
     setTheme,
   }
-})
+}, 'theme')
 
 export const provideTheme = setup
 

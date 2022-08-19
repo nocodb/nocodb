@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
-import { ref, useDialog, useDropZone, useFileDialog, useNuxtApp, watch } from '#imports'
+import { ref, useDialog, useDropZone, useFileDialog, useNuxtApp, useProject, watch } from '#imports'
 import DlgQuickImport from '~/components/dlg/QuickImport.vue'
 
 const dropZone = ref<HTMLDivElement>()
@@ -9,6 +9,8 @@ const dropZone = ref<HTMLDivElement>()
 const { isOverDropZone } = useDropZone(dropZone, onDrop)
 
 const { files, open, reset } = useFileDialog()
+
+const { isSharedBase } = useProject()
 
 const { $e } = useNuxtApp()
 
@@ -106,26 +108,31 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 </script>
 
 <template>
-  <div ref="dropZone" class="h-full w-full text-gray-600 flex items-center justify-center relative">
-    <general-overlay
-      :model-value="true"
-      :class="[isOverDropZone ? 'bg-gray-300/75 border-primary shadow' : 'bg-gray-100/25 border-gray-500 cursor-pointer']"
-      inline
-      style="top: 20%; left: 20%; right: 20%; bottom: 20%"
-      class="text-3xl flex items-center justify-center gap-2 border-1 border-dashed rounded hover:border-primary"
-      @click="open"
-    >
-      <template v-if="isOverDropZone"> <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here </template>
-    </general-overlay>
-
-    <div class="flex flex-col gap-6 items-center justify-center md:w-1/2 mx-auto text-center">
+  <div class="h-full w-full text-gray-600 flex items-center justify-center relative">
+    <div v-if="isSharedBase" class="flex flex-col gap-6 items-center justify-center mx-auto text-center">
       <div class="text-3xl">Welcome to NocoDB!</div>
+    </div>
+    <div v-else ref="dropZone">
+      <general-overlay
+        :model-value="true"
+        :class="[isOverDropZone ? 'bg-gray-300/75 border-primary shadow' : 'bg-gray-100/25 border-gray-500 cursor-pointer']"
+        inline
+        style="top: 20%; left: 20%; right: 20%; bottom: 20%"
+        class="text-3xl flex items-center justify-center gap-2 border-1 border-dashed rounded hover:border-primary"
+        @click="open"
+      >
+        <template v-if="isOverDropZone"> <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here </template>
+      </general-overlay>
 
-      <div class="flex items-center flex-wrap justify-center gap-2 prose-lg leading-8">
-        To get started, either drop a <span class="flex items-center gap-2"><PhFileCsv /> CSV</span>,
-        <span class="flex items-center gap-2"><BiFiletypeJson /> JSON</span> or
-        <span class="flex items-center gap-2"><BiFiletypeXlsx /> Excel</span> file here or click the button in the top-left of
-        this page.
+      <div class="flex flex-col gap-6 items-center justify-center md:w-1/2 mx-auto text-center">
+        <div class="text-3xl">Welcome to NocoDB!</div>
+
+        <div class="flex items-center flex-wrap justify-center gap-2 prose-lg leading-8">
+          To get started, either drop a <span class="flex items-center gap-2"><PhFileCsv /> CSV</span>,
+          <span class="flex items-center gap-2"><BiFiletypeJson /> JSON</span> or
+          <span class="flex items-center gap-2"><BiFiletypeXlsx /> Excel</span> file here or click the button in the top-left of
+          this page.
+        </div>
       </div>
     </div>
   </div>

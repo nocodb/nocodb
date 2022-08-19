@@ -31,7 +31,7 @@ const { isOpen } = useSidebar()
 
     <SmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mr-2 ml-2" />
 
-    <ToggleDrawer class="mr-2" />
+    <ToggleDrawer v-if="!isOpen" class="mr-2" />
   </div>
 </template>
 

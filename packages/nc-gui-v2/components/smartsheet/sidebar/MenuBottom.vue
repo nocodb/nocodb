@@ -36,6 +36,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
 <template>
   <a-menu :selected-keys="[]" class="flex-1 flex flex-col">
+    <div class="flex-1"></div>
     <div v-if="isUIAllowed('virtualViewsCreateOrEdit')">
       <h3 class="px-3 py-1 text-xs font-semibold flex items-center gap-4 text-gray-500">
         {{ $t('activity.createView') }}
@@ -52,7 +53,7 @@ function onOpenModal(type: ViewTypes, title = '') {
           </template>
 
           <div class="text-xs flex items-center h-full w-full gap-2">
-            <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color}`" />
+            <component :is="viewIcons[ViewTypes.GRID].icon" :style="{ color: viewIcons[ViewTypes.GRID].color }" />
 
             <div>{{ $t('objects.viewType.grid') }}</div>
 
@@ -74,7 +75,7 @@ function onOpenModal(type: ViewTypes, title = '') {
           </template>
 
           <div class="text-xs flex items-center h-full w-full gap-2">
-            <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color}`" />
+            <component :is="viewIcons[ViewTypes.GALLERY].icon" :style="{ color: viewIcons[ViewTypes.GALLERY].color }" />
 
             <div>{{ $t('objects.viewType.gallery') }}</div>
 
@@ -97,7 +98,7 @@ function onOpenModal(type: ViewTypes, title = '') {
           </template>
 
           <div class="text-xs flex items-center h-full w-full gap-2">
-            <component :is="viewIcons[ViewTypes.FORM].icon" :class="`text-${viewIcons[ViewTypes.FORM].color}`" />
+            <component :is="viewIcons[ViewTypes.FORM].icon" :style="{ color: viewIcons[ViewTypes.FORM].color }" />
 
             <div>{{ $t('objects.viewType.form') }}</div>
 
@@ -107,9 +108,10 @@ function onOpenModal(type: ViewTypes, title = '') {
           </div>
         </a-tooltip>
       </a-menu-item>
+
+      <div class="w-full h-4"></div>
     </div>
 
-    <div class="flex-1"></div>
     <!--    <SmartsheetSidebarMenuApiSnippet v-model="showApiSnippet" /> -->
 
     <!--    <div class="flex-auto justify-end flex flex-col gap-3 mt-3"> -->
@@ -129,7 +131,7 @@ function onOpenModal(type: ViewTypes, title = '') {
     <!--      </button> -->
     <!--    </div> -->
 
-    <general-flipping-card class="my-4 lg:my-6 min-h-[100px]" :triggers="['click', { duration: 15000 }]">
+    <!--    <general-flipping-card class="my-4 lg:my-6 min-h-[100px]" :triggers="['click', { duration: 15000 }]">
       <template #front>
         <div class="flex h-full w-full gap-6 flex-col">
           <general-social />
@@ -149,7 +151,7 @@ function onOpenModal(type: ViewTypes, title = '') {
       </template>
 
       <template #back>
-        <!-- todo: add project cost -->
+        &lt;!&ndash; todo: add project cost &ndash;&gt;
         <a
           href="https://github.com/sponsors/nocodb"
           target="_blank"
@@ -160,7 +162,7 @@ function onOpenModal(type: ViewTypes, title = '') {
           {{ $t('activity.sponsorUs') }}
         </a>
       </template>
-    </general-flipping-card>
+    </general-flipping-card> -->
 
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
   </a-menu>

@@ -39,7 +39,7 @@ const applyChanges = async () => await filterComp.value?.applyChanges()
         <div class="flex items-center gap-1">
           <MdiFilterOutline />
           <!-- Filter -->
-          <span class="text-capitalize !text-sm font-weight-medium">{{ $t('activity.filter') }}</span>
+          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.filter') }}</span>
           <MdiMenuDown class="text-grey" />
         </div>
       </a-button>

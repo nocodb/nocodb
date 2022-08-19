@@ -136,10 +136,10 @@ async function changeLockType(type: LockType) {
           <component
             :is="viewIcons[selectedView?.type].icon"
             class="nc-view-icon group-hover:hidden"
-            :class="`text-${viewIcons[selectedView?.type].color}`"
+            :style="{ color: viewIcons[selectedView?.type].color }"
           />
-          <span class="!text-sm font-weight-medium">{{ selectedView?.title }}</span>
-          <component :is="Icon" />
+          <span class="!text-sm font-weight-normal">{{ selectedView?.title }}</span>
+          <component :is="Icon" class="text-gray-500" />
           <MdiMenuDown class="text-grey" />
         </div>
       </a-button>
@@ -162,7 +162,7 @@ async function changeLockType(type: LockType) {
 
               <template #expandIcon></template>
               <a-menu-item>
-                <!--              <div class="min-w-[350px] max-w-[500px] shadow bg-white"> -->
+                <!--              <div class=" max-w-[500px] shadow bg-white"> -->
                 <!--                <div> -->
                 <div class="nc-locked-menu-item" @click="changeLockType(LockType.Collaborative)">
                   <div>
@@ -307,6 +307,6 @@ async function changeLockType(type: LockType) {
 
 <style scoped>
 .nc-locked-menu-item > div {
-  @apply grid grid-cols-[30px,auto] gap-2  p-2 items-center;
+  @apply grid grid-cols-[30px, auto] gap-2  p-2 items-center min-w-[350px];
 }
 </style>

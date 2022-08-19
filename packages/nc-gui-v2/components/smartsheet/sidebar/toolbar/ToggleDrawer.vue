@@ -15,8 +15,12 @@ const { isOpen, toggle } = useSidebar({ storageKey: 'nc-right-sidebar' })
       />
     </div>
   </a-tooltip> -->
-
-  <a-button size="small" @click="toggle(!isOpen)">
-    <div class="flex items-center gap-2"><MdiMenu /> Views</div>
-  </a-button>
+  <div :class="{ 'nc-active-btn': isOpen }">
+    <a-button size="small" @click="toggle(!isOpen)">
+      <div class="flex items-center gap-1 text-xs" :class="{ 'text-gray-500': !isOpen }">
+        <MdiMenu class="!text-xs" />
+        Views
+      </div>
+    </a-button>
+  </div>
 </template>

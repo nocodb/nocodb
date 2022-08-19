@@ -22,7 +22,7 @@ const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
 <template>
   <div
     v-if="!isForm"
-    class="flex gap-2"
+    class="flex gap-2 justify-start"
     @click="
       () => {
         clickCount = clickCount + 1
@@ -45,7 +45,7 @@ const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
 
       <div class="dot" />
     </template>
-    <h3 class="pt-3 px-3 text-xs text-gray-500 font-semibold">{{ $t('objects.views') }}</h3>
+    <!--    <h3 class="pt-3 px-3 text-xs text-gray-500 font-semibold">{{ $t('objects.views') }}</h3> -->
 
     <!--    <LockMenu v-if="isUIAllowed('view-type')" @click.stop /> -->
 
@@ -60,7 +60,7 @@ const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
     <!--    <div :class="{ 'w-[calc(100%_+_16px)] h-[1px] bg-gray-200 mt-1 -ml-1': !isOpen, 'dot': isOpen }" /> -->
 
     <ToggleDrawer />
-
+    <span></span>
     <slot name="end" />
   </div>
   <div v-else>

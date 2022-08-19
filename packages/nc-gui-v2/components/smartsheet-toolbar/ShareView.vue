@@ -126,7 +126,7 @@ onMounted(() => {
       <div class="flex items-center gap-1" @click="genShareLink">
         <MdiOpenInNewIcon />
         <!-- Share View -->
-        <span class="!text-sm font-weight-medium"> {{ $t('activity.shareView') }}</span>
+        <span class="!text-sm font-weight-normal"> {{ $t('activity.shareView') }}</span>
       </div>
     </a-button>
 

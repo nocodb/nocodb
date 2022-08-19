@@ -160,7 +160,7 @@ function onStopEdit() {
         <component
           :is="viewIcons[vModel.type].icon"
           class="nc-view-icon group-hover:hidden"
-          :class="`text-${viewIcons[vModel.type].color}`"
+          :style="{ color: viewIcons[vModel?.type]?.color }"
         />
       </div>
 

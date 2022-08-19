@@ -17,7 +17,7 @@ describe('sqlClientDecorator', () => {
         { cn: 'name', pk: false },
       ];
       const ObjectTobeDecorated = {
-        get: sinon.fake.returns(undefined),
+        get: null,
         value: () => {
           return {
             columnList: () => {
@@ -34,18 +34,26 @@ describe('sqlClientDecorator', () => {
         { name: 'id', is_primary_key: true },
         { name: 'name', is_primary_key: false },
       ];
-      sinon.replace(
-        SchemaInspectorObj,
-        'default',
-        sinon.fake.returns({
-          columnInfo: (_tn) => columnsFromSchemaInspector,
-        })
-      );
       const decoratedObj = decoratorFn(1, 2, ObjectTobeDecorated);
       const modifiedColumnsWithCorrectPrimaryKey = [
         { cn: 'id', pk: true },
         { cn: 'name', pk: false },
       ];
+
+      beforeEach(() => {
+        sinon.replace(
+          SchemaInspectorObj,
+          'default',
+          sinon.fake.returns({
+            columnInfo: (_tn) => columnsFromSchemaInspector,
+          })
+        );
+        ObjectTobeDecorated.get = sinon.fake.returns(undefined);
+      });
+
+      afterEach(() => {
+        sinon.restore();
+      });
 
       it('returns modified columns with correct primary key', async () => {
         const columList = await decoratedObj.value().columnList({ tn: 'test' });

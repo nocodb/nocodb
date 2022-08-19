@@ -60,7 +60,7 @@ const logout = () => {
 
           <template v-if="signedIn && !isSharedBase">
             <a-dropdown :trigger="['click']">
-              <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-pink-500" @click.prevent />
+              <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-pink-500 nc-menu-accounts" @click.prevent />
 
               <template #overlay>
                 <a-menu class="!py-0 dark:(!bg-gray-800) leading-8 !rounded">

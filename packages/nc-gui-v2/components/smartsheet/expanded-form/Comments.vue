@@ -62,7 +62,7 @@ watch(
       <div class="flex-shrink-1 mt-2 d-flex">
         <a-input
           v-model:value="comment"
-          class="!text-xs"
+          class="!text-xs nc-comment-box"
           ghost
           :class="{ focus: showborder }"
           @focusin="showborder = true"

@@ -34,7 +34,7 @@ const logout = () => {
       </div>
 
       <template v-if="signedIn" #overlay>
-        <a-menu class="ml-2 !py-0 min-w-32 leading-8 !rounded">
+        <a-menu class="ml-2 !py-0 min-w-32 leading-8 !rounded nc-menu-account">
           <a-menu-item-group title="User Settings">
             <a-menu-item key="email" class="!rounded-t">
               <nuxt-link v-t="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">

@@ -222,7 +222,7 @@ export class _mainPage {
             .click()
             .type(host);
         cy.getActiveModal().find('[placeholder="Port"]').click().type(port);
-        cy.getActiveModal().find('[placeholder="Secure"]').click().type(secure);
+        if (secure) cy.getActiveModal().find('[placeholder="Secure"]').click();
         cy.getActiveModal().find("button").contains("Save").click();
         cy.toastWait(
             "Successfully installed and email notification will use SMTP configuration"

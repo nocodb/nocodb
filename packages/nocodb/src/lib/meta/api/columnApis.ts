@@ -557,6 +557,13 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
               colBody.colOptions.options.push({ title: '' });
             }
           }
+
+          // Trim end of enum/set
+          if (colBody.dt === 'enum' || colBody.dt === 'set') {
+            for (const opt of colBody.colOptions.options) {
+              opt.title = opt.title.trimEnd()
+            }
+          }
           
           if (colBody.uidt === UITypes.SingleSelect) {
             colBody.dtxp = (colBody.colOptions?.options.length)
@@ -720,21 +727,6 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
   ) {
     colBody = getColumnPropsFromUIDT(colBody, base);
     
-    if (colBody.uidt === UITypes.SingleSelect) {
-      colBody.dtxp = (colBody.colOptions?.options.length)
-        ? `${colBody.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
-        : '';
-    } else if (colBody.uidt === UITypes.MultiSelect){
-      colBody.dtxp = (colBody.colOptions?.options.length)
-        ? `${colBody.colOptions.options.map((o) => {
-            if(o.title.includes(',')) {
-              NcError.badRequest('Illegal char(\',\') for MultiSelect');
-            }
-            return `'${o.title.replace(/'/gi, '\'\'')}'`;
-          }).join(',')}`
-        : '';
-    }
-
     const baseModel = await Model.getBaseModelSQL({
       id: table.id,
       dbDriver: NcConnectionMgrv2.get(base)
@@ -807,6 +799,28 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         if (!colBody.colOptions.options.length && (!colBody.dtxp || colBody.dtxp === '')) {
           colBody.dtxp = '\'\'';
         }
+      }
+
+      // Trim end of enum/set
+      if (colBody.dt === 'enum' || colBody.dt === 'set') {
+        for (const opt of colBody.colOptions.options) {
+          opt.title = opt.title.trimEnd()
+        }
+      }
+
+      if (colBody.uidt === UITypes.SingleSelect) {
+        colBody.dtxp = (colBody.colOptions?.options.length)
+          ? `${colBody.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+          : '';
+      } else if (colBody.uidt === UITypes.MultiSelect){
+        colBody.dtxp = (colBody.colOptions?.options.length)
+          ? `${colBody.colOptions.options.map((o) => {
+              if(o.title.includes(',')) {
+                NcError.badRequest('Illegal char(\',\') for MultiSelect');
+              }
+              return `'${o.title.replace(/'/gi, '\'\'')}'`;
+            }).join(',')}`
+          : '';
       }
 
       // Handle option delete

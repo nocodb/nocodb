@@ -2,14 +2,15 @@ import User from '../../../models/User';
 import ProjectUser from '../../../models/ProjectUser';
 import { promisify } from 'util';
 import { Strategy as CustomStrategy } from 'passport-custom';
-
-import { Strategy } from 'passport-jwt';
 import passport from 'passport';
-import { ExtractJwt } from 'passport-jwt';
+import passportJWT from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { randomTokenString } from '../../helpers/stringHelpers';
 
 const PassportLocalStrategy = require('passport-local').Strategy;
+const ExtractJwt = passportJWT.ExtractJwt;
+const JwtStrategy = passportJWT.Strategy;
 
 const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
@@ -22,39 +23,44 @@ import { CacheGetType, CacheScope } from '../../../utils/globals';
 import ApiToken from '../../../models/ApiToken';
 import Noco from '../../../Noco';
 import Plugin from '../../../models/Plugin';
-import { randomTokenString } from './helpers';
 
 export function initStrategies(router): void {
   passport.use(
     'authtoken',
     new AuthTokenStrategy(
       { headerFields: ['xc-token'], passReqToCallback: true },
-      async ({ ncProjectId: projectId }, token, done) => {
-        try {
-          const apiToken = await ApiToken.getByToken(token);
-          if (!apiToken) return done({ msg: 'Invalid token' });
-          if (!apiToken.user_id) return done(null, { roles: 'editor' });
+      ({ ncProjectId: projectId }, token, done) => {
+        ApiToken.getByToken(token)
+          .then(async (apiToken) => {
+            if (apiToken) {
+              if (!apiToken?.user_id) return done(null, { roles: 'editor' });
 
-          const user = await User.get(apiToken.user_id);
-          if (!user) return done(new Error('User not found'));
+              const user = await User.get(apiToken.user_id);
+              if (!user) return done(new Error('User not found'));
 
-          if (!projectId) {
-            await NocoCache.set(`${CacheScope.USER}:${user.email}`, user);
-            return done(null, user);
-          }
+              if (!projectId) {
+                await NocoCache.set(`${CacheScope.USER}:${user.email}`, user);
+                return done(null, user);
+              }
 
-          const projectUser = await ProjectUser.get(projectId, user.id);
-          user.roles = projectUser?.roles || 'user';
-          user.roles = user.roles === 'owner' ? 'owner,creator' : user.roles;
+              const projectUser = await ProjectUser.get(projectId, user.id);
+              user.roles = projectUser?.roles || 'user';
+              user.roles =
+                user.roles === 'owner' ? 'owner,creator' : user.roles;
 
-          await NocoCache.set(
-            `${CacheScope.USER}:${user.email}___${projectId}`,
-            user
-          );
-          done(null, user);
-        } catch (err) {
-          done(err);
-        }
+              await NocoCache.set(
+                `${CacheScope.USER}:${user.email}__${projectId}`,
+                user
+              );
+              return done(null, user);
+            } else {
+              return done({ msg: 'Invalid tok' });
+            }
+          })
+          .catch((e) => {
+            console.log(e);
+            done({ msg: 'Invalid tok' });
+          });
       }
     )
   );
@@ -99,7 +105,7 @@ export function initStrategies(router): void {
   });
 
   passport.use(
-    new Strategy(
+    new JwtStrategy(
       {
         secretOrKey: Noco.getConfig().auth.jwt.secret,
         ...jwtOptions,
@@ -118,6 +124,13 @@ export function initStrategies(router): void {
         );
 
         if (cachedVal) {
+          if (
+            !cachedVal.token_version ||
+            !jwtPayload.token_version ||
+            cachedVal.token_version !== jwtPayload.token_version
+          ) {
+            return done(new Error('Token Expired. Please login again.'));
+          }
           return done(null, cachedVal);
         }
 

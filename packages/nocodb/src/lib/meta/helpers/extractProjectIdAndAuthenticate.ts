@@ -116,7 +116,6 @@ export default async (req, res, next) => {
                   return resolve({
                     ...user,
                     isAuthorized: true,
-                    isPublicBase: true,
                     roles:
                       user.roles === 'owner' ||
                       (await User.isSuperAdmin(user.id))

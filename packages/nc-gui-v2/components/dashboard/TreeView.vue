@@ -34,8 +34,6 @@ const tablesById = $computed<Record<string, TableType>>(() =>
   }, {}),
 )
 
-const tableCreateDlg = ref(false)
-
 let key = $ref(0)
 
 const menuRef = $ref<HTMLLIElement>()
@@ -172,6 +170,23 @@ function openAirtableImportDialog() {
     close(1000)
   }
 }
+
+function openTableCreateDialog() {
+  $e('a:actions:create-table')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(DlgTableCreate, {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 </script>
 
 <template>
@@ -196,7 +211,7 @@ function openAirtableImportDialog() {
         <div style="direction: ltr" class="flex-1">
           <div
             class="group flex items-center gap-2 pl-5 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
-            @click="tableCreateDlg = true"
+            @click="openTableCreateDialog"
           >
             <MdiPlus />
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1">{{ $t('tooltip.addTable') }}</span>
@@ -335,7 +350,7 @@ function openAirtableImportDialog() {
             <div class="flex flex-col align-center">
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
-              <a-button type="primary" @click.stop="tableCreateDlg = true">{{ $t('tooltip.addTable') }}</a-button>
+              <a-button type="primary" @click.stop="openTableCreateDialog">{{ $t('tooltip.addTable') }}</a-button>
             </div>
           </a-card>
         </div>
@@ -381,7 +396,6 @@ function openAirtableImportDialog() {
       <GeneralShareBaseButton class="!mr-0" />
     </div>
 
-    <DlgTableCreate v-if="tableCreateDlg" v-model="tableCreateDlg" />
     <DlgTableRename v-if="renameTableMeta" v-model="renameTableDlg" :table-meta="renameTableMeta" />
   </div>
 </template>

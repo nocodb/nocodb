@@ -180,11 +180,11 @@ function onDeleted() {
       :view="view"
       :on-validate="validate"
       class="transition-all ease-in duration-300"
-      :class="[
-        isMarked === view.id ? 'bg-gray-200' : '',
-        route.params.viewTitle && route.params.viewTitle.includes(view.title) ? 'active' : '',
-        `nc-view-item nc-${view.type}-view-item`,
-      ]"
+      :class="{
+        'bg-gray-100': isMarked === view.id,
+        'active': route.params.viewTitle && route.params.viewTitle === view.title,
+        [`nc-view-item nc-${view.type}-view-item`]: true,
+      }"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="onDelete"

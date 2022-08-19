@@ -50,15 +50,12 @@ onMounted(() => {
           :value="lang"
           @click="changeLanguage(lang)"
         >
-          <div
-            :class="lang === locale ? '!font-semibold !text-primary' : ''"
-            class="nc-project-menu-item capitalize group-hover:text-pink-500"
-          >
+          <div :class="lang === locale ? '!font-semibold !text-primary' : ''" class="nc-project-menu-item capitalize">
             {{ Language[lang] || lang }}
           </div>
         </a-menu-item>
 
-        <a-menu-item>
+        <a-menu-item class="mt-1">
           <a
             href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
             target="_blank"

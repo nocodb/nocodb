@@ -17,9 +17,9 @@ export function useViewSorts(
   const { isSharedBase } = useProject()
 
   const sorts = computed<SortType[]>({
-    get: () => (isPublic.value ? sharedViewSorts.value : _sorts.value),
+    get: () => (isPublic.value || isSharedBase ? sharedViewSorts.value : _sorts.value),
     set: (value) => {
-      if (isPublic.value) {
+      if (isPublic.value || isSharedBase) {
         sharedViewSorts.value = value
       } else {
         _sorts.value = value

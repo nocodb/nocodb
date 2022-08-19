@@ -27,7 +27,7 @@ export default defineConfig({
     questionMark,
     formsPlugin,
     typographyPlugin({
-      dark: false,
+      dark: true,
     }),
     aspectRatioPlugin,
     lineClampPlugin,

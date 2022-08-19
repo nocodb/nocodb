@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { computed, themeV2Colors, useRoute, useTheme } from '#imports'
+import { computed, provideTheme, useRoute } from '#imports'
 
 const route = useRoute()
 
 const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || route.path.startsWith('/nc/form'))
 
-useTheme({
-  primaryColor: themeV2Colors['royal-blue'].DEFAULT,
-  accentColor: themeV2Colors.pink['500'],
-})
+provideTheme()
 </script>
 
 <template>

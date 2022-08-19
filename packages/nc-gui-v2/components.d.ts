@@ -72,6 +72,7 @@ declare module '@vue/runtime-core' {
     CilFullscreen: typeof import('~icons/cil/fullscreen')['default']
     CilFullscreenExit: typeof import('~icons/cil/fullscreen-exit')['default']
     ClarityColorPickerLine: typeof import('~icons/clarity/color-picker-line')['default']
+    ClarityColorPickerSolid: typeof import('~icons/clarity/color-picker-solid')['default']
     ClarityImageLine: typeof import('~icons/clarity/image-line')['default']
     ClaritySuccessLine: typeof import('~icons/clarity/success-line')['default']
     EvaEmailOutline: typeof import('~icons/eva/email-outline')['default']

@@ -53,18 +53,19 @@ const dropdownOpen = ref(false)
 /** Sidebar ref */
 const sidebar = ref()
 
-const pickedColor = ref<any>('')
+const pickedColor = ref<any>('#ffffff')
 
-const pickerActive = ref(false)
+let pickerActive = $ref<boolean | 'primary' | 'accent'>(false)
 
 const email = computed(() => user.value?.email ?? '---')
 
-const { setTheme } = useTheme()
+const { setTheme, theme } = useTheme()
 
 watch(pickedColor, (nextColor) => {
-  if (nextColor) {
+  if (pickerActive && nextColor.hex) {
     setTheme({
-      primaryColor: nextColor.hex,
+      primaryColor: pickerActive === 'primary' ? nextColor.hex : theme.value.primaryColor,
+      accentColor: pickerActive === 'accent' ? nextColor.hex : theme.value.accentColor,
     })
   }
 })
@@ -124,6 +125,22 @@ const copyAuthToken = async () => {
     message.error(e.message)
   }
 }
+
+const openColorPicker = (type: 'primary' | 'accent') => {
+  if (!pickerActive || pickerActive !== type) {
+    pickedColor.value = type === 'primary' ? theme.value.primaryColor : theme.value.accentColor
+    pickerActive = type
+  } else {
+    pickerActive = false
+  }
+}
+
+const onMenuClose = (visible: boolean) => {
+  if (!visible) {
+    pickedColor.value = '#ffffff'
+    pickerActive = false
+  }
+}
 </script>
 
 <template>
@@ -171,7 +188,7 @@ const copyAuthToken = async () => {
             </template>
           </div>
 
-          <a-dropdown v-else class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom">
+          <a-dropdown v-else class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom" @visible-change="onMenuClose">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
@@ -331,14 +348,42 @@ const copyAuthToken = async () => {
 
                   <a-menu-divider />
 
-                  <a-menu-item class="relative">
-                    <div class="nc-project-menu-item group" @click.stop="pickerActive = !pickerActive">
-                      <ClarityImageLine class="group-hover:text-accent" />
-                      Theme
+                  <a-sub-menu>
+                    <template #title>
+                      <div class="nc-project-menu-item group">
+                        <ClarityImageLine class="group-hover:text-accent" />
+                        Theme
 
-                      <Chrome v-if="pickerActive" v-model="pickedColor" class="absolute top-0 right-5" @click.stop />
-                    </div>
-                  </a-menu-item>
+                        <div class="flex-1" />
+
+                        <MaterialSymbolsChevronRightRounded
+                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                        />
+                      </div>
+                    </template>
+
+                    <a-menu-item>
+                      <div class="nc-project-menu-item group" @click.stop="openColorPicker('primary')">
+                        <ClarityColorPickerSolid class="group-hover:text-accent" />
+                        Primary Color
+                      </div>
+                    </a-menu-item>
+
+                    <a-menu-item>
+                      <div class="nc-project-menu-item group" @click.stop="openColorPicker('accent')">
+                        <ClarityColorPickerSolid class="group-hover:text-accent" />
+                        Accent Color
+                      </div>
+                    </a-menu-item>
+                  </a-sub-menu>
+
+                  <Chrome
+                    v-if="pickerActive"
+                    v-model="pickedColor"
+                    class="z-99 absolute right-[-225px]"
+                    @click.stop
+                    @blur="onMenuClose(false)"
+                  />
                 </a-menu-item-group>
               </a-menu>
             </template>

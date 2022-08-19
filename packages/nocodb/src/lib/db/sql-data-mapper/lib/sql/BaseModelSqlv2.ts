@@ -251,7 +251,7 @@ class BaseModelSqlv2 {
 
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    const data = await this.extractRawQueryAndExec(qb);
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -362,7 +362,7 @@ class BaseModelSqlv2 {
     qb.groupBy(args.column_name);
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
-    let data = await qb;
+    const data = await qb;
     return data;
   }
 
@@ -571,7 +571,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  public async multipleMmList({ colId, parentIds }, args: { limit?; offset? } = {}) {
+  public async multipleMmList(
+    { colId, parentIds },
+    args: { limit?; offset? } = {}
+  ) {
     const { where, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
@@ -879,7 +882,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await qb;
+    const data = await qb;
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -979,7 +982,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    const data = await this.extractRawQueryAndExec(qb);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1018,7 +1021,8 @@ class BaseModelSqlv2 {
             .select(cn)
             // .where(childTable.primaryKey.cn, cid)
             .where(_wherePk(childTable.primaryKeys, cid))
-        ).orWhereNull(rcn);
+            .whereNotNull(cn)
+        );
       })
       .count(`*`, { as: 'count' });
 
@@ -1079,7 +1083,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    const data = await this.extractRawQueryAndExec(qb);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1554,8 +1558,7 @@ class BaseModelSqlv2 {
               {
                 const childCol = await colOptions.getChildColumn();
                 const parentCol = await colOptions.getParentColumn();
-                insertObj[childCol.column_name] =
-                  nestedData?.[parentCol.title];
+                insertObj[childCol.column_name] = nestedData?.[parentCol.title];
               }
               break;
             case RelationTypes.HAS_MANY:

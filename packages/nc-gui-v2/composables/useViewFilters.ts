@@ -29,6 +29,8 @@ export function useViewFilters(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
+  const { isSharedBase } = useProject()
+
   const { $api } = useNuxtApp()
 
   const { isUIAllowed } = useUIPermission()
@@ -60,7 +62,7 @@ export function useViewFilters(
   }
 
   const loadFilters = async (hookId?: string) => {
-    if (isPublic.value) return
+    if (isPublic.value || isSharedBase) return
 
     if (hookId) {
       if (parentId) {

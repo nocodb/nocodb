@@ -16,8 +16,14 @@ export default class SMTP implements IEmailAdapter {
     const config = {
       host: this.input?.host,
       port: parseInt(this.input?.port, 10),
-      secure: this.input?.secure,
-      ignoreTLS: this.input?.ignoreTLS,
+      secure:
+        typeof this.input?.secure === 'boolean'
+          ? this.input?.secure
+          : this.input?.secure === 'true',
+      ignoreTLS:
+        typeof this.input?.ignoreTLS === 'boolean'
+          ? this.input?.ignoreTLS
+          : this.input?.ignoreTLS === 'true',
       auth: {
         user: this.input?.username,
         pass: this.input?.password,

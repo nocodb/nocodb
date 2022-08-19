@@ -112,14 +112,14 @@ onMounted(() => {
               </button>
 
               <template #overlay>
-                <a-menu>
+                <a-menu class="!py-0 rounded">
                   <a-menu-item>
                     <div
                       v-t="['c:project:create:xcdb']"
-                      class="nc-project-menu-item gap-4"
+                      class="nc-project-menu-item group"
                       @click="navigateTo('/project/create')"
                     >
-                      <MdiPlusOutline class="text-lg" />
+                      <MdiPlusOutline class="group-hover:text-accent" />
 
                       <div>{{ $t('activity.createProject') }}</div>
                     </div>
@@ -128,10 +128,10 @@ onMounted(() => {
                   <a-menu-item>
                     <div
                       v-t="['c:project:create:extdb']"
-                      class="nc-project-menu-item gap-4"
+                      class="nc-project-menu-item group"
                       @click="navigateTo('/project/create-external')"
                     >
-                      <MdiDatabaseOutline class="text-lg" />
+                      <MdiDatabaseOutline class="group-hover:text-accent" />
 
                       <div v-html="$t('activity.createProjectExtended.extDB')" />
                     </div>
@@ -165,7 +165,7 @@ onMounted(() => {
               <a-table-column key="title" :title="$t('general.title')" data-index="title">
                 <template #default="{ text }">
                   <div
-                    class="capitalize color-transition group-hover:text-accent !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap"
+                    class="capitalize color-transition group-hover:text-primary !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap"
                   >
                     {{ text }}
                   </div>
@@ -204,7 +204,7 @@ onMounted(() => {
 
 <style scoped>
 .nc-action-btn {
-  @apply text-gray-500 hover:(text-accent ring) active:(ring ring-accent) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
+  @apply text-gray-500 group-hover:text-accent active:(ring ring-accent) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
 }
 
 .nc-new-project-menu {

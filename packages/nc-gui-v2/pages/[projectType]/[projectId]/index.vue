@@ -366,7 +366,7 @@ definePageMeta({
   }
 }
 
-:deep(.ant-dropdown-menu-submenu-title){
-  @apply py-0
+:deep(.ant-dropdown-menu-submenu-title) {
+  @apply py-0;
 }
 </style>

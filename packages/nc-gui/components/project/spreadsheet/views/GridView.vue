@@ -655,8 +655,9 @@ export default {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
-                copyTextToClipboard(rowObj[columnObj.title] || '');
-                break;
+                this.$toast.info('Copied to clipboard').goAway(2000)
+                copyTextToClipboard(rowObj[columnObj.title] || '')
+                break
               // // paste ctrl/cmd + v
               // case 86: {
               //   const text = await navigator.clipboard.readText()

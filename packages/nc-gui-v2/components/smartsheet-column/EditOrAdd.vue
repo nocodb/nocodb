@@ -99,7 +99,12 @@ useEventListener(document, 'click', handleClose)
 </script>
 
 <template>
-  <div ref="editOrAddRef" class="min-w-[400px] max-h-[95vh] bg-gray-50 shadow-lg p-6 overflow-auto !border" @click.stop>
+  <div
+    ref="editOrAddRef"
+    class="w-[400px] max-h-[95vh] bg-gray-50 shadow-lg p-6 overflow-auto !border"
+    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
+    @click.stop
+  >
     <a-form v-if="formState" v-model="formState" name="column-create-or-edit" layout="vertical">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">

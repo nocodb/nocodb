@@ -3,13 +3,12 @@ import path from 'path';
 import { promisify } from 'util';
 
 import glob from 'glob';
+import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
+import Debug from '../../util/Debug';
+import Emit from '../../util/emit';
 // import Handlebars from 'handlebars';
 // import mkdirp from 'mkdirp';
-import { SqlClientFactory } from 'nc-help';
-import Debug from '../util/Debug';
-import Result from '../util/Result';
-import Emit from '../util/emit';
-import * as fileHelp from '../util/file.help';
+import * as fileHelp from '../../util/file.help';
 
 // import SqlMigrator from './SqlMigrator';
 // import NcConfigFactory from '../../../utils/NcConfigFactory';
@@ -18,6 +17,7 @@ import { XKnex } from '../../sql-data-mapper';
 import Project from '../../../models/Project';
 import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
+import Result from '../../util/Result';
 
 const evt = new Emit();
 const log = new Debug('KnexMigrator');
@@ -53,7 +53,7 @@ export default class KnexMigratorv2 {
     log.api(data);
     evt.evt.emit('UI', {
       status: 0,
-      data: `Migrator : ${data}`
+      data: `Migrator : ${data}`,
     });
   }
 
@@ -61,7 +61,7 @@ export default class KnexMigratorv2 {
     log.warn(data);
     evt.evt.emit('UI', {
       status: 1,
-      data
+      data,
     });
   }
 
@@ -69,7 +69,7 @@ export default class KnexMigratorv2 {
     log.error(data);
     evt.evt.emit('UI', {
       status: -1,
-      data
+      data,
     });
   }
 
@@ -389,21 +389,21 @@ export default class KnexMigratorv2 {
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.user}`
       );
       await sqlClient.createDatabaseIfNotExists({
-        database: connectionConfig.connection.user
+        database: connectionConfig.connection.user,
       });
     } else if (connectionConfig.client !== 'sqlite3') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`
       );
       await sqlClient.createDatabaseIfNotExists({
-        database: connectionConfig.connection.database
+        database: connectionConfig.connection.database,
       });
     } else {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.connection.filename}`
       );
       await sqlClient.createDatabaseIfNotExists({
-        database: connectionConfig.connection.connection.filename
+        database: connectionConfig.connection.connection.filename,
       });
     }
 
@@ -411,7 +411,7 @@ export default class KnexMigratorv2 {
 
     if (!('NC_MIGRATIONS_DISABLED' in process.env)) {
       await sqlClient.createTableIfNotExists({
-        tn: 'nc_evolutions'
+        tn: 'nc_evolutions',
       });
     }
     // if (connectionConfig.client === "pg") {
@@ -437,19 +437,19 @@ export default class KnexMigratorv2 {
     if (connectionConfig.client === 'oracledb') {
       this.emit(`Dropping DB : ${connectionConfig.connection.user}`);
       await sqlClient.dropDatabase({
-        database: connectionConfig.connection.user
+        database: connectionConfig.connection.user,
       });
     } else if (connectionConfig.client === 'sqlite3') {
       this.emit(
         `Dropping DB : ${connectionConfig.connection.connection.filename}`
       );
       await sqlClient.dropDatabase({
-        database: connectionConfig.connection.connection.filename
+        database: connectionConfig.connection.connection.filename,
       });
     } else {
       this.emit(`Dropping DB : ${connectionConfig.connection.database}`);
       await sqlClient.dropDatabase({
-        database: connectionConfig.connection.database
+        database: connectionConfig.connection.database,
       });
     }
 
@@ -571,7 +571,7 @@ export default class KnexMigratorv2 {
         filesDown = files = await this.metaDb(NC_MIGRATION)
           .where({
             project_id: this.projectId,
-            db_alias: base.id
+            db_alias: base.id,
           })
           .orderBy('id', 'asc');
       } else {
@@ -592,7 +592,7 @@ export default class KnexMigratorv2 {
       );
 
       if (this.suffix) {
-        migrations = migrations.filter(m => m.title.includes(this.suffix));
+        migrations = migrations.filter((m) => m.title.includes(this.suffix));
       }
 
       /** ************** END : get files and migrations *************** */
@@ -603,16 +603,16 @@ export default class KnexMigratorv2 {
           result.data.object.list.push({
             title: migrations[i].title,
             titleDown: migrations[i].titleDown,
-            status: false
+            status: false,
           });
         }
 
         result.data.object.pending = files.length - migrations.length;
       } else if (files.length > migrations.length || onlyList) {
         this.emit(
-          `Number of evolutions pending for '${'env'}:${
-            base.alias
-          }': '${files.length - migrations.length}'`
+          `Number of evolutions pending for '${'env'}:${base.alias}': '${
+            files.length - migrations.length
+          }'`
         );
         result.data.object.pending = files.length - migrations.length;
 
@@ -675,7 +675,7 @@ export default class KnexMigratorv2 {
                 result.data.object.list.push({
                   title: files[i].title,
                   titleDown: filesDown[i].title_down,
-                  status: false
+                  status: false,
                 });
               }
             } else {
@@ -685,7 +685,7 @@ export default class KnexMigratorv2 {
                 result.data.object.list.push({
                   title: fileParts[fileParts.length - 1],
                   titleDown: downFileParts[fileParts.length - 1],
-                  status: false
+                  status: false,
                 });
               }
             }
@@ -720,7 +720,7 @@ export default class KnexMigratorv2 {
               result.data.object.list.push({
                 title: fileName,
                 titleDown: fileNameDown,
-                status: true
+                status: true,
               });
             } else {
               let upStatement;
@@ -734,7 +734,7 @@ export default class KnexMigratorv2 {
                 upStatements.push(
                   ...upStatement
                     .split(/\/\*\s*xc[\s\S]*?\s*\*\//)
-                    .filter(s => s.trim())
+                    .filter((s) => s.trim())
                 );
               }
 
@@ -742,7 +742,7 @@ export default class KnexMigratorv2 {
                 title: fileName,
                 titleDown: fileNameDown,
                 // description: files[i],
-                status: 0
+                status: 0,
                 // created: Date.now()
               });
             }
@@ -837,7 +837,7 @@ export default class KnexMigratorv2 {
         files = await this.metaDb(NC_MIGRATION)
           .where({
             project_id: this.projectId,
-            db_alias: base.id
+            db_alias: base.id,
           })
           .orderBy('title', 'asc');
       } else {
@@ -908,11 +908,11 @@ export default class KnexMigratorv2 {
                 downStatements.push(
                   ...downStatement
                     .split(/\/\*\s*xc[\s\S]*?\s*\*\//)
-                    .filter(s => s.trim())
+                    .filter((s) => s.trim())
                 );
 
               metaDownDeletes.push({
-                titleDown: fileName
+                titleDown: fileName,
               });
             }
           }
@@ -1085,7 +1085,7 @@ export default class KnexMigratorv2 {
         up: '',
         down: '',
         title: upFileName,
-        title_down: downFileName
+        title_down: downFileName,
       });
 
       // } else {
@@ -1108,7 +1108,7 @@ export default class KnexMigratorv2 {
 
       return {
         up: upFileName,
-        down: downFileName
+        down: downFileName,
       };
     } catch (e) {
       log.debug(e);
@@ -1216,7 +1216,7 @@ export default class KnexMigratorv2 {
       // ),
       title: `${this.toolDir}`,
       sqlContentMigrate: args.sqlContentMigrate,
-      sqlClient: args.sqlClient
+      sqlClient: args.sqlClient,
     });
   }
 
@@ -1281,7 +1281,7 @@ export default class KnexMigratorv2 {
       //   '*.down.sql'
       // ),
       title: `nc_evolutions`,
-      sqlContentMigrate: args.sqlContentMigrate
+      sqlContentMigrate: args.sqlContentMigrate,
     });
   }
 
@@ -1341,19 +1341,19 @@ export default class KnexMigratorv2 {
             .where({
               project_id: base.project_id,
               db_alias: base.id,
-              title: args.up
+              title: args.up,
             })
             .first()
         ) {
           await this.metaDb(NC_MIGRATION)
             .update({
               up: upStatement,
-              down: downStatement
+              down: downStatement,
             })
             .where({
               project_id: this.projectId,
               db_alias: base.id,
-              title: args.up
+              title: args.up,
             });
         } else {
           await this.metaDb(NC_MIGRATION).insert({
@@ -1362,7 +1362,7 @@ export default class KnexMigratorv2 {
             up: upStatement,
             down: downStatement,
             title: args.up,
-            title_down: args.down
+            title_down: args.down,
           });
         }
       } else {
@@ -1425,7 +1425,7 @@ export default class KnexMigratorv2 {
     try {
       result.data.object = {
         up: '',
-        down: ''
+        down: '',
       };
 
       // if (!this.project) {
@@ -1440,7 +1440,7 @@ export default class KnexMigratorv2 {
           .where({
             db_alias: args.dbAlias,
             project_id: this.projectId,
-            title: args.title
+            title: args.title,
           })
           .first();
 

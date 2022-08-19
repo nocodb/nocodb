@@ -20,7 +20,8 @@ export default {
     settings: true,
     'team-auth': true,
     apiTokenTab: true,
-    newToken: true
+    newToken: true,
+    projectSettings: true
   },
   commenter: {
     smartSheet: true,
@@ -30,7 +31,8 @@ export default {
     settings: true,
     'team-auth': true,
     apiTokenTab: true,
-    newToken: true
+    newToken: true,
+    projectSettings: true
   },
   viewer: {
     smartSheet: true,
@@ -39,11 +41,13 @@ export default {
     settings: true,
     'team-auth': true,
     apiTokenTab: true,
-    newToken: true
+    newToken: true,
+    projectSettings: true
   },
   user: {
     projectCreate: true,
-    projectActions: true
+    projectActions: true,
+    projectSettings: true
   }
 }
 /**

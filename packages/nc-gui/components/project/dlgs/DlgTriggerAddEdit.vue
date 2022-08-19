@@ -12,7 +12,7 @@
         <p class="hidden" v-on="on" />
       </template>
       <v-card class="elevation-20">
-        <v-card-title class="grey darken-2 subheading" style="height:30px">
+        <v-card-title class="grey darken-2 subheading" style="height: 30px">
           <!-- {{
             this.newTrigger
               ? "Add New Trigger"
@@ -21,11 +21,7 @@
         </v-card-title>
         <v-card-text class="pt-4 pl-4">
           <p class="headline">
-            {{
-              newTrigger
-                ? "Add New Trigger"
-                : "Editing Trigger " + trigger.trigger_name
-            }}
+            {{ newTrigger ? 'Add New Trigger' : 'Editing Trigger ' + trigger.trigger_name }}
           </p>
           <v-form ref="form" v-model="valid">
             <v-text-field
@@ -46,8 +42,8 @@
                   :rules="formRules.timing"
                   required
                   dense
-                />
-              </v-col><v-col class="pa-1" cols="6">
+                /> </v-col
+              ><v-col class="pa-1" cols="6">
                 <v-autocomplete
                   v-model="trigger.event"
                   label="Event"
@@ -76,11 +72,7 @@
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </v-btn>
-          <v-btn
-            class="primary "
-            :disabled="!valid"
-            @click="mtdDialogSubmit(trigger, newTrigger)"
-          >
+          <v-btn class="primary" :disabled="!valid" @click="mtdDialogSubmit(trigger, newTrigger)">
             <u class="shortkey">S</u>ubmit
           </v-btn>
         </v-card-actions>
@@ -90,8 +82,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import MonacoEditor from '../../monaco/Monaco'
+import { mapGetters } from 'vuex';
+import MonacoEditor from '../../monaco/Monaco';
 
 export default {
   components: { MonacoEditor },
@@ -101,11 +93,11 @@ export default {
       formRules: {
         trigger_name: [
           v => !!v || 'Name is required',
-          v => (v && v.length <= 100) || 'Name must be less than 100 characters'
+          v => (v && v.length <= 100) || 'Name must be less than 100 characters',
         ],
         timing: [v => !!v || 'Timing is required'],
         event: [v => !!v || 'Event is required'],
-        statement: [v => !!v || 'Statement is required']
+        statement: [v => !!v || 'Statement is required'],
       },
       triggerTimingOptions: ['BEFORE', 'AFTER'],
       triggerEventOptions: ['INSERT', 'UPDATE', 'DELETE'],
@@ -114,9 +106,9 @@ export default {
         trigger_name: this.triggerObject.trigger || '',
         timing: this.triggerObject.timing || 'BEFORE',
         event: this.triggerObject.event || 'INSERT',
-        statement: this.triggerObject.statement || 'BEGIN\n\nEND;'
-      }
-    }
+        statement: this.triggerObject.statement || 'BEGIN\n\nEND;',
+      },
+    };
   },
   methods: {},
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
@@ -126,31 +118,23 @@ export default {
   async created() {},
   mounted() {
     requestAnimationFrame(() => {
-      this.$refs.focus.focus()
-    })
+      this.$refs.focus.focus();
+    });
   },
   beforeDestroy() {},
   destroy() {},
   directives: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: [
-    'nodes',
-    'newTrigger',
-    'triggerObject',
-    'dialogShow',
-    'mtdDialogCancel',
-    'mtdDialogSubmit'
-  ]
-}
+  props: ['nodes', 'newTrigger', 'triggerObject', 'dialogShow', 'mtdDialogCancel', 'mtdDialogSubmit'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

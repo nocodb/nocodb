@@ -17,11 +17,11 @@
             :rules="[v => !!v || 'Required']"
             dense
           >
-            <template #item="{item}">
-              <span class="caption"><span class="font-weight-bold">{{ item.column.title }}</span> <small>({{ relationNames[item.col.type] }} {{
-                item.title || item.table_name
-              }})
-              </small></span>
+            <template #item="{ item }">
+              <span class="caption"
+                ><span class="font-weight-bold">{{ item.column.title }}</span>
+                <small>({{ relationNames[item.col.type] }} {{ item.title || item.table_name }}) </small></span
+              >
             </template>
           </v-autocomplete>
         </v-col>
@@ -30,7 +30,7 @@
             ref="input"
             v-model="rollup.column"
             outlined
-            class="caption  nc-rollup-column"
+            class="caption nc-rollup-column"
             hide-details="auto"
             :label="$t('labels.childColumn')"
             :full-width="false"
@@ -47,7 +47,7 @@
             ref="aggrInput"
             v-model="rollup.fn"
             outlined
-            class="caption  nc-rollup-fn"
+            class="caption nc-rollup-fn"
             hide-details="auto"
             label="Aggregate function"
             :full-width="false"
@@ -63,8 +63,7 @@
 </template>
 
 <script>
-
-import { isSystemColumn, isVirtualCol, UITypes } from 'nocodb-sdk'
+import { isSystemColumn, isVirtualCol, UITypes } from 'nocodb-sdk';
 
 export default {
   name: 'RollupOptions',
@@ -75,7 +74,7 @@ export default {
     tables: [],
     relationNames: {
       mm: 'Many To Many',
-      hm: 'Has Many'
+      hm: 'Has Many',
       // bt: 'Belongs To'
     },
     aggrFunctionsList: [
@@ -87,57 +86,63 @@ export default {
       { text: 'sum', value: 'sum' },
       { text: 'countDistinct', value: 'countDistinct' },
       { text: 'sumDistinct', value: 'sumDistinct' },
-      { text: 'avgDistinct', value: 'avgDistinct' }
-    ]
+      { text: 'avgDistinct', value: 'avgDistinct' },
+    ],
   }),
   computed: {
     refTables() {
-      if (!this.tables || !this.tables.length) { return [] }
+      if (!this.tables || !this.tables.length) {
+        return [];
+      }
 
-      const refTables = this.meta.columns.filter(c =>
-        c.uidt === UITypes.LinkToAnotherRecord && c.colOptions.type !== 'bt' && !c.system
-      ).map(c => ({
-        col: c.colOptions,
-        column: c,
-        ...this.tables.find(t => t.id === c.colOptions.fk_related_model_id)
-      }))
+      const refTables = this.meta.columns
+        .filter(c => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions.type !== 'bt' && !c.system)
+        .map(c => ({
+          col: c.colOptions,
+          column: c,
+          ...this.tables.find(t => t.id === c.colOptions.fk_related_model_id),
+        }));
 
-      return refTables
+      return refTables;
     },
     columnList() {
-      return ((
-        this.rollup &&
-        this.rollup.table &&
-        this.$store.state.meta.metas &&
-        this.$store.state.meta.metas[this.rollup.table.table_name] &&
-        this.$store.state.meta.metas[this.rollup.table.table_name].columns
-      ) || []).filter(col => !isVirtualCol(col.uidt) && !isSystemColumn(col))
-    }
+      return (
+        (this.rollup &&
+          this.rollup.table &&
+          this.$store.state.meta.metas &&
+          this.$store.state.meta.metas[this.rollup.table.table_name] &&
+          this.$store.state.meta.metas[this.rollup.table.table_name].columns) ||
+        []
+      ).filter(col => !isVirtualCol(col.uidt) && !isSystemColumn(col));
+    },
   },
   async mounted() {
-    await this.loadTablesList()
+    await this.loadTablesList();
   },
   methods: {
     async loadTablesList() {
-      const result = (await this.$api.dbTable.list(this.$store.state.project.projectId, this.$store.state.project.project.bases[0].id))
+      const result = await this.$api.dbTable.list(
+        this.$store.state.project.projectId,
+        this.$store.state.project.project.bases[0].id
+      );
 
-      this.tables = result.list
+      this.tables = result.list;
     },
     async onTableChange() {
-      this.loadingColumns = true
+      this.loadingColumns = true;
       if (this.rollup.table) {
         try {
           await this.$store.dispatch('meta/ActLoadMeta', {
             dbAlias: this.nodes.dbAlias,
             env: this.nodes.env,
-            id: this.rollup.table.id
-          })
+            id: this.rollup.table.id,
+          });
         } catch (e) {
           // ignore
         }
       }
 
-      this.loadingColumns = false
+      this.loadingColumns = false;
     },
     async save() {
       try {
@@ -146,20 +151,18 @@ export default {
           fk_relation_column_id: this.rollup.table.col.fk_column_id,
           fk_rollup_column_id: this.rollup.column.id,
           uidt: UITypes.Rollup,
-          rollup_function: this.rollup.fn
-        }
+          rollup_function: this.rollup.fn,
+        };
 
-        await this.$api.dbTableColumn.create(this.meta.id, rollupCol)
+        await this.$api.dbTableColumn.create(this.meta.id, rollupCol);
 
-        return this.$emit('saved', this.alias)
+        return this.$emit('saved', this.alias);
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(e.message).goAway(3000);
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

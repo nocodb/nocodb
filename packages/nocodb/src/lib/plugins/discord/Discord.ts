@@ -10,7 +10,7 @@ export default class Discord implements IWebhookNotificationAdapter {
     for (const { webhook_url } of payload?.channels) {
       try {
         await axios.post(webhook_url, {
-          content
+          content,
         });
       } catch (e) {
         console.log(e);

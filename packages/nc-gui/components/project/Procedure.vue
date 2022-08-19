@@ -1,15 +1,11 @@
 <template>
   <v-tabs height="28" class="" color="x-active">
-    <v-tab>
-      SQL
-    </v-tab>
+    <v-tab> SQL </v-tab>
     <v-tab-item>
       <procedure-query :nodes="nodes" />
     </v-tab-item>
 
-    <v-tab>
-      ACL
-    </v-tab>
+    <v-tab> ACL </v-tab>
     <v-tab-item>
       <procedure-acl :nodes="nodes" />
     </v-tab-item>
@@ -17,18 +13,16 @@
 </template>
 
 <script>
-
-import ProcedureQuery from './procedureTab/ProcedureQuery'
-import ProcedureAcl from './procedureTab/ProcedureAcl'
+import ProcedureQuery from './procedureTab/ProcedureQuery';
+import ProcedureAcl from './procedureTab/ProcedureAcl';
 
 export default {
   components: { ProcedureAcl, ProcedureQuery },
-  props: ['nodes']
-}
+  props: ['nodes'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

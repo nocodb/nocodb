@@ -34,7 +34,7 @@ export async function viewList(
   //await View.list(req.params.tableId)
   const filteredViewList = viewList.filter((view: any) => {
     return Object.keys((req as any).session?.passport?.user?.roles).some(
-      role =>
+      (role) =>
         (req as any)?.session?.passport?.user?.roles[role] &&
         !view.disabled[role]
     );
@@ -69,9 +69,9 @@ export async function viewDelete(req: Request, res: Response, next) {
   res.json(result);
 }
 
-async function shareViewPasswordUpdate(req: Request<any, any>, res) {
-  Tele.emit('evt', { evt_type: 'sharedView:password-updated' });
-  res.json(await View.passwordUpdate(req.params.viewId, req.body));
+async function shareViewUpdate(req: Request<any, any>, res) {
+  Tele.emit('evt', { evt_type: 'sharedView:updated' });
+  res.json(await View.update(req.params.viewId, req.body));
 }
 
 async function shareViewDelete(req: Request<any, any>, res) {
@@ -140,7 +140,7 @@ router.post(
 router.patch(
   '/api/v1/db/meta/views/:viewId/share',
   metaApiMetrics,
-  ncMetaAclMw(shareViewPasswordUpdate, 'shareViewPasswordUpdate')
+  ncMetaAclMw(shareViewUpdate, 'shareViewUpdate')
 );
 router.delete(
   '/api/v1/db/meta/views/:viewId/share',

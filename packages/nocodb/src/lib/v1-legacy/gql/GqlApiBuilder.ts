@@ -15,7 +15,7 @@ import NcHelp from '../../utils/NcHelp';
 import NcProjectBuilder from '../NcProjectBuilder';
 import Noco from '../../Noco';
 import BaseApiBuilder, {
-  XcTablesPopulateParams
+  XcTablesPopulateParams,
 } from '../../utils/common/BaseApiBuilder';
 import NcMetaIO from '../../meta/NcMetaIO';
 
@@ -51,7 +51,7 @@ const IGNORE_TABLES = [
   'nc_projects',
   'nc_projects_users',
   'nc_relations',
-  'nc_shared_views'
+  'nc_shared_views',
 ];
 
 // Base class of GQL type
@@ -107,10 +107,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     const modelNames: string[] = [
       ...new Set(
-        relationInModels.map(rel => {
+        relationInModels.map((rel) => {
           return rel.relationType === 'hm' ? rel.rtn : rel.tn;
         })
-      )
+      ),
     ] as string[];
 
     // get current meta from db
@@ -121,16 +121,16 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       {
         xcCondition: {
           title: {
-            in: modelNames
-          }
-        }
+            in: modelNames,
+          },
+        },
       }
     );
 
     for (const {
       meta,
       id,
-      title
+      title,
       // schema_previous
     } of metas) {
       const metaObj = JSON.parse(meta);
@@ -172,11 +172,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           this.dbAlias,
           'nc_models',
           {
-            schema: newSchema
+            schema: newSchema,
             // schema_previous: JSON.stringify(previousSchemas)
           },
           {
-            id
+            id,
           }
         );
       }
@@ -198,15 +198,15 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           [tn]: args.columns?.map(({ altered: _al, ...rest }) =>
             this.mergeUiColAndDbColMetas(
               rest,
-              columnsFromDb?.find(c => c.cn === rest.cn)
+              columnsFromDb?.find((c) => c.cn === rest.cn)
             )
-          )
+          ),
         }
       : {};
 
     await this.xcTablesPopulate({
       tableNames: [{ tn, _tn: args._tn }],
-      columns
+      columns,
     });
     await this.reInitializeGraphqlEndpoint();
   }
@@ -277,8 +277,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     return {
       type: 'graphql',
       apiEndpoint: this.tablesCount
-        ? `/nc/${this.projectId}/${this.connectionConfig?.meta?.api?.prefix ||
-            'v1'}/graphql`
+        ? `/nc/${this.projectId}/${
+            this.connectionConfig?.meta?.api?.prefix || 'v1'
+          }/graphql`
         : 'Empty database',
       client: this.connectionConfig.client,
       databaseName: (this.connectionConfig?.connection as any)?.database,
@@ -289,7 +290,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       viewsCount: this.viewsCount,
       functionsCount: this.functionsCount,
       proceduresCount: this.proceduresCount,
-      timeTaken: t2.toFixed(1)
+      timeTaken: t2.toFixed(1),
     };
   }
 
@@ -303,7 +304,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       enabledModels,
       tableAndViewArr,
       functionArr,
-      procedureArr
+      procedureArr,
     } = await this.readXcModelsAndGroupByType();
 
     const procedureResolver = new GqlProcedureResolver(
@@ -322,17 +323,17 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       'nc_resolvers',
       {
         condition: {
-          handler_type: 1
-        }
+          handler_type: 1,
+        },
       }
     );
     const middlewaresArr = (
       await this.xcMeta.metaList(this.projectId, this.dbAlias, 'nc_resolvers', {
         condition: {
-          handler_type: 2
-        }
+          handler_type: 2,
+        },
       })
-    ).map(o => {
+    ).map((o) => {
       o.functions = JSON.parse(o.functions);
       return o;
     });
@@ -496,7 +497,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             mw,
             {},
             listPropName,
-            this.metas[mm.tn].columns.find(c => c.pk)._cn
+            this.metas[mm.tn].columns.find((c) => c.pk)._cn
           );
           // todo: count
           // if (countPropName in this.types[tn].prototype) {
@@ -575,14 +576,14 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           this.generateLoaderFromStringBody(
             loaderFunctionsObj[`${tn}Hm${hm.tn}List`]
           ) ||
-            (async idsAndArg => {
+            (async (idsAndArg) => {
               const data = await this.models[tn].hasManyListGQL({
                 child: hm.tn,
                 ids: idsAndArg.map(({ id }) => id),
-                ...(idsAndArg?.[0]?.args || {})
+                ...(idsAndArg?.[0]?.args || {}),
               });
               return idsAndArg.map(({ id }) =>
-                data[id] ? data[id].map(c => new self.types[hm.tn](c)) : []
+                data[id] ? data[id].map((c) => new self.types[hm.tn](c)) : []
               );
             }),
           [mw.postLoaderMiddleware]
@@ -596,10 +597,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             { id: this[colNameAlias], args },
             args,
             context,
-            info
+            info,
           ]);
         },
-        configurable: true
+        configurable: true,
       });
     }
   }
@@ -621,7 +622,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       const listLoader = new DataLoader(
         BaseType.applyMiddlewareForLoader(
           [mw.middleware],
-          async parentIdsAndArg => {
+          async (parentIdsAndArg) => {
             return (
               await this.models[tn]._getGroupedManyToManyList({
                 parentIds: parentIdsAndArg.map(({ id }) => id),
@@ -632,13 +633,13 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
                   ...Object.entries(parentIdsAndArg?.[0]?.args || {}).reduce(
                     (params, [key, val]) => ({
                       ...params,
-                      [`m${key}1`]: val
+                      [`m${key}1`]: val,
                     }),
                     {}
-                  )
-                }
+                  ),
+                },
               })
-            )?.map(child => child.map(c => new self.types[mm.rtn](c)));
+            )?.map((child) => child.map((c) => new self.types[mm.rtn](c)));
           },
           [mw.postLoaderMiddleware]
         )
@@ -651,10 +652,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             { id: this[colNameAlias], args },
             args,
             context,
-            info
+            info,
           ]);
         },
-        configurable: true
+        configurable: true,
       });
     }
   }
@@ -681,7 +682,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             (async (ids: string[]) => {
               const data = await this.models[tn].hasManyListCount({
                 child: hm.tn,
-                ids
+                ids,
               });
               return data;
             }),
@@ -694,7 +695,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         async value(args: any, context: any, info: any): Promise<any> {
           return countLoader.load([this[colNameAlias], args, context, info]);
         },
-        configurable: true
+        configurable: true,
       });
     }
   }
@@ -716,7 +717,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           (async (ids: string[]) => {
             const data = await self.models[belongsToRel.rtn].list({
               limit: ids.length,
-              where: `(${belongsToRel.rcn},in,${ids.join(',')})`
+              where: `(${belongsToRel.rcn},in,${ids.join(',')})`,
             });
             const gs = _.groupBy(data, rcolNameAlias);
             return ids.map(
@@ -736,7 +737,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           ? readLoader.load([this[colName], args, context, info])
           : null;
       },
-      configurable: true
+      configurable: true,
     });
   }
 
@@ -760,12 +761,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     const relations = await this.relationsSyncAndGet();
 
     // set table name alias
-    relations.forEach(r => {
+    relations.forEach((r) => {
       r._rtn =
-        args?.tableNames?.find(t => t.tn === r.rtn)?._tn ||
+        args?.tableNames?.find((t) => t.tn === r.rtn)?._tn ||
         this.getTableNameAlias(r.rtn);
       r._tn =
-        args?.tableNames?.find(t => t.tn === r.tn)?._tn ||
+        args?.tableNames?.find((t) => t.tn === r.tn)?._tn ||
         this.getTableNameAlias(r.tn);
       r.enabled = true;
     });
@@ -776,12 +777,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       if (!args?.oldMetas)
         // extract tables which have relation with the tables in list
         for (const r of relations) {
-          if (args.tableNames.some(t => t.tn === r.tn)) {
+          if (args.tableNames.some((t) => t.tn === r.tn)) {
             if (!relatedTableList.includes(r.rtn)) {
               relatedTableList.push(r.rtn);
               await this.onTableDelete(r.rtn);
             }
-          } else if (args.tableNames.some(t => t.tn === r.rtn)) {
+          } else if (args.tableNames.some((t) => t.tn === r.rtn)) {
             if (!relatedTableList.includes(r.tn)) {
               relatedTableList.push(r.tn);
               await this.onTableDelete(r.tn);
@@ -795,14 +796,14 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           tn,
           _tn,
           type: args.type,
-          order: ++order
+          order: ++order,
         }));
 
-      tables.push(...relatedTableList.map(t => ({ tn: t })));
+      tables.push(...relatedTableList.map((t) => ({ tn: t })));
     } else {
       tables = (await this.sqlClient.tableList())?.data?.list
         ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
-        ?.map(t => {
+        ?.map((t) => {
           t.order = ++order;
           return t;
         });
@@ -813,14 +814,14 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           ?.sort((a, b) =>
             (a.view_name || a.tn).localeCompare(b.view_name || b.tn)
           )
-          ?.map(v => {
+          ?.map((v) => {
             this.viewsCount++;
             v.type = 'view';
             v.tn = v.view_name;
             v.order = ++order;
             return v;
           })
-          .filter(v => {
+          .filter((v) => {
             /* filter based on prefix */
             if (this.projectBuilder?.prefix) {
               return v.view_name.startsWith(this.projectBuilder?.prefix);
@@ -873,7 +874,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     /* filter based on prefix */
     if (this.projectBuilder?.prefix) {
-      tables = tables.filter(t => {
+      tables = tables.filter((t) => {
         // t._tn = t._tn || t.tn.replace(this.projectBuilder?.prefix, '');
         return t.tn.startsWith(this.projectBuilder?.prefix);
       });
@@ -883,10 +884,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     // await this.syncRelations();
 
     if (tables.length) {
-      relations.forEach(rel => (rel.enabled = true));
+      relations.forEach((rel) => (rel.enabled = true));
       const self = this;
 
-      const tableResolvers = tables.map(table => {
+      const tableResolvers = tables.map((table) => {
         return async () => {
           /* Filter relations for current table */
           const columns =
@@ -977,7 +978,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
                 type: table.type || 'table',
                 meta: JSON.stringify(this.metas[table.tn]),
                 // schema: this.schemas[table.tn],
-                alias: this.metas[table.tn]._tn
+                alias: this.metas[table.tn]._tn,
               }
             );
           } else if (args?.oldMetas?.[table.tn]?.id) {
@@ -994,7 +995,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
                 title: table.tn,
                 alias: this.metas[table.tn]._tn,
                 meta: JSON.stringify(this.metas[table.tn]),
-                type: table.type || 'table'
+                type: table.type || 'table',
               },
               args?.oldMetas?.[table.tn]?.id
             );
@@ -1023,7 +1024,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
                     {
                       title: table.tn,
                       resolver,
-                      acl: JSON.stringify(acl)
+                      acl: JSON.stringify(acl),
                     }
                   );
                 };
@@ -1036,7 +1037,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
                 'nc_resolvers',
                 {
                   title: table.tn,
-                  handler_type: 2
+                  handler_type: 2,
                 }
               );
             });
@@ -1114,7 +1115,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
                 parent: tn,
                 child: hm.tn,
                 relation: 'hm',
-                resolver: 'list'
+                resolver: 'list',
               }
             );
 
@@ -1127,7 +1128,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
                 parent: tn,
                 child: hm.tn,
                 relation: 'hm',
-                resolver: 'list'
+                resolver: 'list',
               }
             );
           }
@@ -1177,7 +1178,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
                 parent: bt.rtn,
                 child: tn,
                 relation: 'bt',
-                resolver: 'Read'
+                resolver: 'Read',
               }
             );
           }
@@ -1201,7 +1202,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
               meta.type,
               meta._tn
             ),
-            manyToMany: meta.manyToMany
+            manyToMany: meta.manyToMany,
           })
         ).getString();
 
@@ -1210,10 +1211,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           this.dbAlias,
           'nc_models',
           {
-            schema: this.schemas[meta.tn]
+            schema: this.schemas[meta.tn],
           },
           {
-            title: meta.tn
+            title: meta.tn,
           }
         );
       }
@@ -1247,7 +1248,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
               mw,
               {},
               listPropName,
-              meta.columns.find(c => c.pk)._cn
+              meta.columns.find((c) => c.pk)._cn
             );
             // if (countPropName in this.types[tn].prototype) {
             //   continue;
@@ -1270,7 +1271,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
                 parent: tn,
                 child: mm.rtn,
                 relation: 'mm',
-                resolver: 'mmlist'
+                resolver: 'mmlist',
               }
             );
 
@@ -1304,7 +1305,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     await super.xcTablesRowDelete(tn, extras);
 
     await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_resolvers', {
-      title: tn
+      title: tn,
     });
   }
 
@@ -1329,7 +1330,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       this.dbAlias,
       'nc_models'
     );
-    const enabledModels = metaArr.filter(m => m.enabled).map(m => m.title);
+    const enabledModels = metaArr.filter((m) => m.enabled).map((m) => m.title);
     /* Get all relations */
     const relations = await this.getXcRelationList();
 
@@ -1419,7 +1420,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         // todo: persisting old table_alias and columnAlias
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(meta, {
-          columns: oldMeta.columns
+          columns: oldMeta.columns,
         });
         this.log(
           `xcTableRename : Updating model meta - '%s' => '%s'`,
@@ -1435,7 +1436,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             title: newTablename,
             meta: JSON.stringify(meta),
             schema: this.schemas[newTablename],
-            alias: meta._tn
+            alias: meta._tn,
           },
           { title: oldTablename }
         );
@@ -1470,12 +1471,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           'nc_resolvers',
           {
             title: newTablename,
-            resolver: res
+            resolver: res,
           },
           {
             title: oldTablename,
             resolver: oldRes,
-            handler_type: 1
+            handler_type: 1,
           }
         );
       }
@@ -1485,11 +1486,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         this.dbAlias,
         'nc_resolvers',
         {
-          title: newTablename
+          title: newTablename,
         },
         {
           title: oldTablename,
-          handler_type: 2
+          handler_type: 2,
         }
       );
 
@@ -1507,14 +1508,14 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           'nc_loaders',
           {
             title: `${newTablename}Hm${hm.tn}List`,
-            parent: newTablename
+            parent: newTablename,
           },
           {
             title: `${oldTablename}Hm${hm.tn}List`,
             parent: oldTablename,
             child: hm.tn,
             relation: 'hm',
-            resolver: 'list'
+            resolver: 'list',
           }
         );
         await this.xcMeta.metaUpdate(
@@ -1523,14 +1524,14 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           'nc_loaders',
           {
             title: `${newTablename}Hm${hm.tn}Count`,
-            parent: newTablename
+            parent: newTablename,
           },
           {
             title: `${oldTablename}Hm${hm.tn}Count`,
             parent: oldTablename,
             child: hm.tn,
             relation: 'hm',
-            resolver: 'list'
+            resolver: 'list',
           }
         );
       }
@@ -1548,14 +1549,14 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           'nc_loaders',
           {
             title: `${newTablename}Bt${bt.rtn}`,
-            child: newTablename
+            child: newTablename,
           },
           {
             title: `${oldTablename}Bt${bt.rtn}`,
             parent: bt.rtn,
             child: oldTablename,
             relation: 'bt',
-            resolver: 'Read'
+            resolver: 'Read',
           }
         );
       }
@@ -1617,7 +1618,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           const oldMeta = JSON.parse(rExistingModel.meta);
           Object.assign(oldMeta, {
             hasMany: rMeta.hasMany,
-            belongsTo: rMeta.belongsTo
+            belongsTo: rMeta.belongsTo,
           });
           this.log(
             `xcTableRename : Updating related table model meta - '%s'`,
@@ -1630,7 +1631,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             'nc_models',
             {
               meta: JSON.stringify(oldMeta),
-              schema: this.schemas[relationTable]
+              schema: this.schemas[relationTable],
             },
             { title: relationTable }
           );
@@ -1656,14 +1657,14 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
               'nc_loaders',
               {
                 title: `${relationTable}Hm${newTablename}List`,
-                child: newTablename
+                child: newTablename,
               },
               {
                 title: `${relationTable}Hm${oldTablename}List`,
                 parent: relationTable,
                 child: oldTablename,
                 relation: 'hm',
-                resolver: 'list'
+                resolver: 'list',
               }
             );
             await this.xcMeta.metaUpdate(
@@ -1672,14 +1673,14 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
               'nc_loaders',
               {
                 title: `${relationTable}Hm${newTablename}Count`,
-                child: newTablename
+                child: newTablename,
               },
               {
                 title: `${relationTable}Hm${oldTablename}Count`,
                 parent: relationTable,
                 child: oldTablename,
                 relation: 'hm',
-                resolver: 'list'
+                resolver: 'list',
               }
             );
           }
@@ -1700,14 +1701,14 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
               'nc_loaders',
               {
                 title: `${relationTable}Bt${newTablename}`,
-                parent: newTablename
+                parent: newTablename,
               },
               {
                 title: `${relationTable}Bt${oldTablename}`,
                 parent: oldTablename,
                 child: relationTable,
                 relation: 'bt',
-                resolver: 'Read'
+                resolver: 'Read',
               }
             );
           }
@@ -1741,7 +1742,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     const {
       // meta,
       relatedTableList,
-      tableName: t
+      tableName: t,
     } = await super.onTableAliasRename(oldTableAliasName, newTableAliasName);
 
     for (const table of [t, ...relatedTableList]) {
@@ -1760,7 +1761,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         this.dbAlias,
         'nc_models',
         {
-          schema: this.schemas[table]
+          schema: this.schemas[table],
         },
         { title: table }
       );
@@ -1789,12 +1790,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           this.dbAlias,
           'nc_resolvers',
           {
-            resolver: res
+            resolver: res,
           },
           {
             title: table,
             resolver: oldRes,
-            handler_type: 1
+            handler_type: 1,
           }
         );
       }
@@ -1814,7 +1815,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     const relations = await this.getXcRelationList();
 
     // set table name alias
-    relations.forEach(r => {
+    relations.forEach((r) => {
       r._rtn = this.getTableNameAlias(r.rtn);
       r._tn = this.getTableNameAlias(r.tn);
       r.enabled = true;
@@ -1836,7 +1837,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       const meta = ModelXcMetaFactory.create(this.connectionConfig, {
         dir: '',
         ctx,
-        filename: ''
+        filename: '',
       }).getObject();
       // this.metas[tnp] = meta;
       this.schemas[tnp] = GqlXcSchemaFactory.create(
@@ -1865,11 +1866,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         // todo: persisting old table_alias and columnAlias
         // todo: get enable state of other relations
         const oldMeta = JSON.parse(existingModel.meta);
-        meta.hasMany.forEach(hm => {
+        meta.hasMany.forEach((hm) => {
           hm.enabled = true;
         });
         Object.assign(oldMeta, {
-          hasMany: meta.hasMany
+          hasMany: meta.hasMany,
         });
 
         /* Add new has many relation to virtual columns */
@@ -1879,10 +1880,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         }`;
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
-          hm: meta.hasMany
-            .reverse()
-            .find(hm => hm.rtn === tnp && hm.tn === tnc),
-          _cn: relationColumnName
+          hm: meta.hasMany.find((hm) => hm.rtn === tnp && hm.tn === tnc),
+          _cn: `${this.getTableNameAlias(tnp)} => ${this.getTableNameAlias(
+            tnc
+          )}`,
         });
         if (queryParams?.showFields) {
           queryParams.showFields[relationColumnName] = true;
@@ -1900,7 +1901,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             schema: this.schemas[tnp],
             ...(queryParams
               ? { query_params: JSON.stringify(queryParams) }
-              : {})
+              : {}),
           },
           { title: tnp }
         );
@@ -1915,7 +1916,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         listPropName
       );
 
-      const hm = hasMany.find(rel => rel.tn === tnc);
+      const hm = hasMany.find((rel) => rel.tn === tnc);
       {
         /* has many relation list loader with middleware */
         const mw = new GqlMiddleware(this.acls, tnc, '', this.models);
@@ -1990,7 +1991,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         parent: tnp,
         child: tnc,
         relation: 'hm',
-        resolver: 'list'
+        resolver: 'list',
       });
 
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
@@ -1998,7 +1999,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         parent: tnp,
         child: tnc,
         relation: 'hm',
-        resolver: 'list'
+        resolver: 'list',
       });
     }
 
@@ -2047,7 +2048,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         // todo: persisting old table_alias and columnAlias
         const oldMeta = JSON.parse(existingModel.meta);
         Object.assign(oldMeta, {
-          belongsTo: meta.belongsTo
+          belongsTo: meta.belongsTo,
         });
         /* Add new belongs to relation to virtual columns */
         const columnSuffixNumber = args.columnSuffixNumber || '';
@@ -2056,10 +2057,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         }`;
         oldMeta.v = oldMeta.v || [];
         oldMeta.v.push({
-          bt: meta.belongsTo
-            .reverse()
-            .find(hm => hm.rtn === tnp && hm.tn === tnc),
-          _cn: relationColumnName
+          bt: meta.belongsTo.find((hm) => hm.rtn === tnp && hm.tn === tnc),
+          _cn: `${this.getTableNameAlias(tnp)} <= ${this.getTableNameAlias(
+            tnc
+          )}`,
         });
 
         if (queryParams?.showFields) {
@@ -2076,7 +2077,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             schema: this.schemas[tnc],
             ...(queryParams
               ? { query_params: JSON.stringify(queryParams) }
-              : {})
+              : {}),
           },
           { title: tnc }
         );
@@ -2088,7 +2089,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         propName
       );
 
-      const currentRelation = belongsTo.find(rel => rel.rtn === tnp);
+      const currentRelation = belongsTo.find((rel) => rel.rtn === tnp);
 
       // create read loader with middleware
       const mw = new GqlMiddleware(this.acls, tnp, '', this.models);
@@ -2127,7 +2128,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         parent: tnp,
         child: tnc,
         relation: 'bt',
-        resolver: 'Read'
+        resolver: 'Read',
       });
     }
 
@@ -2167,7 +2168,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       const meta = ModelXcMetaFactory.create(this.connectionConfig, {
         dir: '',
         ctx,
-        filename: ''
+        filename: '',
       }).getObject();
 
       this.schemas[tnp] = GqlXcSchemaFactory.create(
@@ -2195,7 +2196,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             ({ hm, lk }) =>
               (!hm || hm.rtn !== tnp || hm.tn !== tnc) &&
               !(lk && lk.type === 'hm' && lk.rtn === tnp && lk.tn === tnc)
-          )
+          ),
         });
         // todo: backup schema
         await this.xcMeta.metaUpdate(
@@ -2205,7 +2206,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           {
             title: tnp,
             meta: JSON.stringify(oldMeta),
-            schema: this.schemas[tnp]
+            schema: this.schemas[tnp],
           },
           { title: tnp }
         );
@@ -2228,7 +2229,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
       await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_loaders', {
         parent: tnp,
-        child: tnc
+        child: tnc,
       });
     }
 
@@ -2274,7 +2275,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             ({ bt, lk }) =>
               (!bt || bt.rtn !== tnp || bt.tn !== tnc) &&
               !(lk && lk.type === 'bt' && lk.rtn === tnp && lk.tn === tnc)
-          )
+          ),
         });
         await this.xcMeta.metaUpdate(
           this.projectId,
@@ -2283,7 +2284,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           {
             title: tnc,
             meta: JSON.stringify(oldMeta),
-            schema: this.schemas[tnc]
+            schema: this.schemas[tnc],
           },
           { title: tnc }
         );
@@ -2298,7 +2299,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
       await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_loaders', {
         parent: tnp,
-        child: tnc
+        child: tnc,
       });
     }
 
@@ -2317,7 +2318,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         this.dbAlias,
         'nc_models'
       );
-      const enabledModels = metaArr.filter(m => m.enabled).map(m => m.title);
+      const enabledModels = metaArr
+        .filter((m) => m.enabled)
+        .map((m) => m.title);
 
       if (!enabledModels.includes(changeObj.tn)) {
         return;
@@ -2360,11 +2363,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           this.dbAlias,
           'nc_models',
           {
-            schema: this.schemas[tn]
+            schema: this.schemas[tn],
             // schema_previous: JSON.stringify(previousSchemas)
           },
           {
-            title: tn
+            title: tn,
           }
         );
       }
@@ -2381,7 +2384,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         this.dbAlias,
         'nc_models'
       );
-      const enabledModels = metaArr.filter(m => m.enabled).map(m => m.title);
+      const enabledModels = metaArr
+        .filter((m) => m.enabled)
+        .map((m) => m.title);
 
       if (!enabledModels.includes(viewName)) {
         return;
@@ -2423,11 +2428,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           this.dbAlias,
           'nc_models',
           {
-            schema: meta.schema
+            schema: meta.schema,
             // schema_previous: JSON.stringify(previousSchemas)
           },
           {
-            title: viewName
+            title: viewName,
           }
         );
       }
@@ -2455,7 +2460,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       'nc_resolvers',
       {
         handler_type: 2,
-        title: tn
+        title: tn,
       }
     );
 
@@ -2483,7 +2488,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     /* Get all relations */
     const relations = await this.getXcRelationList();
-    const generateNewSchemas = enabledModels.map(tn => {
+    const generateNewSchemas = enabledModels.map((tn) => {
       return async () => {
         /* Filter relations for current table */
         const columns = await this.getColumnList(tn);
@@ -2527,11 +2532,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
             this.dbAlias,
             'nc_models',
             {
-              schema: this.schemas[tn]
+              schema: this.schemas[tn],
               // schema_previous: JSON.stringify(previousSchemas)
             },
             {
-              title: tn
+              title: tn,
             }
           );
         }
@@ -2554,7 +2559,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     this.log(`onViewCreate : '%s'`, viewName);
     await this.xcTablesPopulate({
       tableNames: [{ tn: viewName }],
-      type: 'view'
+      type: 'view',
     });
     await this.reInitializeGraphqlEndpoint();
   }
@@ -2564,7 +2569,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     const functions = (await this.sqlClient.functionList())?.data?.list;
     // do insertion parallelly
-    const functionObj = functions.find(f => f.function_name === functionName);
+    const functionObj = functions.find((f) => f.function_name === functionName);
     if (functionObj) {
       this.log(
         `onFunctionCreate : Generating and inserting '%s' function meta and acl`,
@@ -2575,7 +2580,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_models', {
         title: functionObj.function_name,
         meta: JSON.stringify({ ...functionObj, type: 'function' }),
-        type: 'function'
+        type: 'function',
       });
     }
     this.generateAndSaveAcl(functionName, 'function');
@@ -2592,7 +2597,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
       title: functionName,
-      type: 'function'
+      type: 'function',
     });
 
     this.resolvers.___procedure.functionDelete(functionName);
@@ -2607,7 +2612,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     const procedures = (await this.sqlClient.procedureList())?.data?.list;
     // do insertion parallelly
     const procedureObj = procedures.find(
-      f => f.procedure_name === procedureName
+      (f) => f.procedure_name === procedureName
     );
     if (procedureObj) {
       this.log(
@@ -2619,7 +2624,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_models', {
         title: procedureObj.procedure_name,
         meta: JSON.stringify({ ...procedureObj, type: 'procedure' }),
-        type: 'procedure'
+        type: 'procedure',
       });
     }
     this.generateAndSaveAcl(procedureName, 'procedure');
@@ -2635,7 +2640,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
     this.log(`onProcedureDelete : Deleting '%s' function meta`, procedureName);
     await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
       title: procedureName,
-      type: 'procedure'
+      type: 'procedure',
     });
 
     this.resolvers.___procedure.procedureDelete(procedureName);
@@ -2651,7 +2656,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
 
     await this.initGraphqlRoute();
 
-    const grIndex = this.gqlRouter.stack.findIndex(r => {
+    const grIndex = this.gqlRouter.stack.findIndex((r) => {
       return r?.regexp?.test('/graphql/');
     });
     this.gqlRouter.stack.splice(grIndex, 1);
@@ -2675,18 +2680,18 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           },
           m2mNotChildren: m2mNotChildren({ models: this.models }),
           m2mNotChildrenCount: m2mNotChildrenCount({ models: this.models }),
-          JSON: GraphQLJSON
+          JSON: GraphQLJSON,
         },
-        ...Object.values(this.resolvers).map(r =>
+        ...Object.values(this.resolvers).map((r) =>
           r.mapResolvers(this.customResolver)
-        )
+        ),
       ]);
 
       this.log(`initGraphqlRoute : Building graphql schema`);
       const schemaStr = mergeTypeDefs(
         [
           ...Object.values(this.schemas).filter(Boolean),
-          ` ${this.customResolver?.schema || ''} \n ${commonSchema}`
+          ` ${this.customResolver?.schema || ''} \n ${commonSchema}`,
           // ...this.typesWithFormulaProps
         ],
         {
@@ -2694,7 +2699,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
           forceSchemaDefinition: true,
           reverseDirectives: true,
           throwOnConflict: true,
-          useSchemaDefinition: true
+          useSchemaDefinition: true,
         }
       );
       const schema = buildSchema(schemaStr);
@@ -2707,19 +2712,19 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         graphqlHTTP({
           context: { req, res, next },
           graphiql: {
-            headerEditorEnabled: true
+            headerEditorEnabled: true,
           },
           rootValue,
           schema,
           validationRules: [
             depthLimit(
               this.connectionConfig?.meta?.api?.graphqlDepthLimit ?? 10
-            )
+            ),
           ],
-          customExecuteFn: async args => {
+          customExecuteFn: async (args) => {
             const data = await execute(args);
             return data;
-          }
+          },
         })(req, res);
       });
 
@@ -2737,7 +2742,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       return;
     }
     // @ts-ignore
-    const handler = ids => {
+    const handler = (ids) => {
       return [];
     };
 
@@ -2785,10 +2790,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         this.dbAlias,
         'nc_models',
         {
-          schema: this.schemas[tn]
+          schema: this.schemas[tn],
         },
         {
-          title: tn
+          title: tn,
         }
       );
     }
@@ -2806,7 +2811,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         mw,
         {},
         listPropName,
-        this.metas[parent].columns.find(c => c.pk)._cn
+        this.metas[parent].columns.find((c) => c.pk)._cn
       );
     }
 
@@ -2824,7 +2829,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         mw,
         {},
         listPropName,
-        this.metas[child].columns.find(c => c.pk)._cn
+        this.metas[child].columns.find((c) => c.pk)._cn
       );
     }
 
@@ -2833,14 +2838,14 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       parent,
       child,
       relation: 'mm',
-      resolver: 'list'
+      resolver: 'list',
     });
     await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_loaders', {
       title: `${child}Mm${parent}List`,
       parent: child,
       child: parent,
       relation: 'mm',
-      resolver: 'list'
+      resolver: 'list',
     });
 
     await this.reInitializeGraphqlEndpoint();
@@ -2866,7 +2871,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       );
       this.schemas[tn] = GqlXcSchemaFactory.create(this.connectionConfig, {
         ...this.generateRendererArgs(ctx),
-        manyToMany
+        manyToMany,
       }).getString();
       // todo: update schema history
       await this.xcMeta.metaUpdate(
@@ -2874,10 +2879,10 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         this.dbAlias,
         'nc_models',
         {
-          schema: this.schemas[tn]
+          schema: this.schemas[tn],
         },
         {
-          title: tn
+          title: tn,
         }
       );
     }
@@ -2893,8 +2898,8 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       {
         fields: ['meta'],
         condition: {
-          type: 'table'
-        }
+          type: 'table',
+        },
       }
     );
     if (!models.length) {
@@ -2918,9 +2923,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         dir: '',
         ctx: {
           ...ctx,
-          manyToMany: meta.manyToMany
+          manyToMany: meta.manyToMany,
         },
-        filename: ''
+        filename: '',
       }).getString();
 
       /* update schema in metadb */
@@ -2929,11 +2934,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         this.dbAlias,
         'nc_models',
         {
-          schema
+          schema,
         },
         {
           title: meta.tn,
-          type: 'table'
+          type: 'table',
         }
       );
     }
@@ -2961,9 +2966,9 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         dir: '',
         ctx: {
           ...ctx,
-          manyToMany: meta.manyToMany
+          manyToMany: meta.manyToMany,
         },
-        filename: ''
+        filename: '',
       }).getString();
 
       /* update schema in metadb */
@@ -2972,11 +2977,11 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         this.dbAlias,
         'nc_models',
         {
-          schema
+          schema,
         },
         {
           title: meta.tn,
-          type: 'table'
+          type: 'table',
         }
       );
 
@@ -2993,7 +2998,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
               parent: mm.tn,
               child: mm.rtn,
               relation: 'mm',
-              resolver: 'mmlist'
+              resolver: 'mmlist',
             }
           );
         }
@@ -3038,7 +3043,7 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
       this.connectionConfig,
       this.generateRendererArgs({
         ...meta,
-        ...ctx
+        ...ctx,
       })
     ).getString();
     if (oldSchema !== this.schemas[tn]) {
@@ -3059,12 +3064,12 @@ export class GqlApiBuilder extends BaseApiBuilder<Noco> implements XcMetaMgr {
         this.dbAlias,
         'nc_models',
         {
-          schema: this.schemas[tn]
+          schema: this.schemas[tn],
           // schema_previous: JSON.stringify(previousSchemas)
         },
         {
           title: tn,
-          type: 'table'
+          type: 'table',
         }
       );
     }

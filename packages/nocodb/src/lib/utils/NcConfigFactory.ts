@@ -1,4 +1,3 @@
-import { SqlClientFactory } from 'nc-help';
 import fs from 'fs';
 import parseDbUrl from 'parse-database-url';
 import { URL } from 'url';
@@ -7,22 +6,23 @@ import {
   AuthConfig,
   DbConfig,
   MailerConfig,
-  NcConfig
+  NcConfig,
 } from '../../interface/config';
 import * as path from 'path';
+import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 
 const {
   uniqueNamesGenerator,
   starWars,
   adjectives,
-  animals
+  animals,
 } = require('unique-names-generator');
 
 const driverClientMapping = {
   mysql: 'mysql2',
   postgres: 'pg',
   sqlite: 'sqlite3',
-  mssql: 'mssql'
+  mssql: 'mssql',
 };
 
 const defaultClientPortMapping = {
@@ -30,13 +30,13 @@ const defaultClientPortMapping = {
   mysql2: 3306,
   postgres: 5432,
   pg: 5432,
-  mssql: 1433
+  mssql: 1433,
 };
 
 const defaultConnectionConfig: any = {
   // https://github.com/knex/knex/issues/97
   // timezone: process.env.NC_TIMEZONE || 'UTC',
-  dateStrings: true
+  dateStrings: true,
 };
 
 // default knex options
@@ -55,8 +55,8 @@ export default class NcConfigFactory implements NcConfig {
 
     ncConfig.auth = {
       jwt: {
-        secret: process.env.NC_AUTH_JWT_SECRET
-      }
+        secret: process.env.NC_AUTH_JWT_SECRET,
+      },
     };
 
     ncConfig.port = +(process?.env?.PORT ?? 8080);
@@ -97,8 +97,8 @@ export default class NcConfigFactory implements NcConfig {
           min: 1,
           max: 1,
           // disposeTimeout: 360000*1000,
-          idleTimeoutMillis: 360000 * 1000
-        }
+          idleTimeoutMillis: 360000 * 1000,
+        },
       } as any;
     }
 
@@ -120,7 +120,7 @@ export default class NcConfigFactory implements NcConfig {
   }
 
   public static hasDbUrl(): boolean {
-    return Object.keys(process.env).some(envKey =>
+    return Object.keys(process.env).some((envKey) =>
       envKey.startsWith('NC_DB_URL')
     );
   }
@@ -155,12 +155,12 @@ export default class NcConfigFactory implements NcConfig {
           client: 'sqlite3',
           connection: {
             filename:
-              url.searchParams.get('d') || url.searchParams.get('database')
+              url.searchParams.get('d') || url.searchParams.get('database'),
           },
           database:
             url.searchParams.get('d') || url.searchParams.get('database'),
-          useNullAsDefault: true
-        }
+          useNullAsDefault: true,
+        },
       } as any;
     } else {
       dbConfig = {
@@ -173,13 +173,13 @@ export default class NcConfigFactory implements NcConfig {
           password:
             url.searchParams.get('p') || url.searchParams.get('password'),
           port: +url.port,
-          user: url.searchParams.get('u') || url.searchParams.get('user')
+          user: url.searchParams.get('u') || url.searchParams.get('user'),
         },
         // pool: {
         //   min: 1,
         //   max: 1
         // },
-        acquireConnectionTimeout: 600000
+        acquireConnectionTimeout: 600000,
       } as any;
 
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
@@ -194,7 +194,7 @@ export default class NcConfigFactory implements NcConfig {
         dbConfig.connection.ssl = {
           keyFilePath: url.searchParams.get('keyFilePath'),
           certFilePath: url.searchParams.get('certFilePath'),
-          caFilePath: url.searchParams.get('caFilePath')
+          caFilePath: url.searchParams.get('caFilePath'),
         };
       }
     }
@@ -219,15 +219,15 @@ export default class NcConfigFactory implements NcConfig {
             type ||
             ((url.searchParams.get('api') ||
               url.searchParams.get('a')) as any) ||
-            'rest'
+            'rest',
         },
         dbAlias: url.searchParams.get('dbAlias') || `db${key}`,
         metaTables: 'db',
         migrations: {
           disabled: false,
-          name: 'nc_evolutions'
-        }
-      }
+          name: 'nc_evolutions',
+        },
+      },
     });
 
     return dbConfig;
@@ -237,7 +237,7 @@ export default class NcConfigFactory implements NcConfig {
     return uniqueNamesGenerator({
       dictionaries: [[starWars], [adjectives, animals]][
         Math.floor(Math.random() * 2)
-      ]
+      ],
     })
       .toLowerCase()
       .replace(/[ -]/g, '_');
@@ -253,7 +253,7 @@ export default class NcConfigFactory implements NcConfig {
       dbConfig = {
         client: 'sqlite3',
         connection: {
-          filename: db
+          filename: db,
         },
         ...(db === ':memory:'
           ? {
@@ -261,10 +261,10 @@ export default class NcConfigFactory implements NcConfig {
                 min: 1,
                 max: 1,
                 // disposeTimeout: 360000*1000,
-                idleTimeoutMillis: 360000 * 1000
-              }
+                idleTimeoutMillis: 360000 * 1000,
+              },
             }
-          : {})
+          : {}),
       };
     } else {
       dbConfig = {
@@ -277,14 +277,14 @@ export default class NcConfigFactory implements NcConfig {
           password:
             url.searchParams.get('p') || url.searchParams.get('password'),
           port: +url.port,
-          user: url.searchParams.get('u') || url.searchParams.get('user')
+          user: url.searchParams.get('u') || url.searchParams.get('user'),
         },
         acquireConnectionTimeout: 600000,
         ...(url.searchParams.has('search_path')
           ? {
-              searchPath: url.searchParams.get('search_path').split(',')
+              searchPath: url.searchParams.get('search_path').split(','),
             }
-          : {})
+          : {}),
       };
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
         dbConfig.connection.ssl = true;
@@ -308,7 +308,7 @@ export default class NcConfigFactory implements NcConfig {
           'd',
           'user',
           'u',
-          'search_path'
+          'search_path',
         ].includes(key)
       ) {
         key.split('.').reduce((obj, k, i, arr) => {
@@ -353,12 +353,12 @@ export default class NcConfigFactory implements NcConfig {
     if (process.env.NC_AUTH_ADMIN_SECRET) {
       config.auth = {
         masterKey: {
-          secret: process.env.NC_AUTH_ADMIN_SECRET
-        }
+          secret: process.env.NC_AUTH_ADMIN_SECRET,
+        },
       };
     } else if (process.env.NC_NO_AUTH) {
       config.auth = {
-        disabled: true
+        disabled: true,
       };
       // } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
     } else if (config?.envs?.['_noco']?.db?.[0]) {
@@ -368,8 +368,8 @@ export default class NcConfigFactory implements NcConfig {
           dbAlias:
             process.env.NC_AUTH_JWT_DB_ALIAS ||
             config.envs['_noco'].db[0].meta.dbAlias,
-          secret: process.env.NC_AUTH_JWT_SECRET
-        }
+          secret: process.env.NC_AUTH_JWT_SECRET,
+        },
       };
     }
 
@@ -386,8 +386,8 @@ export default class NcConfigFactory implements NcConfig {
           min: 1,
           max: 1,
           // disposeTimeout: 360000*1000,
-          idleTimeoutMillis: 360000 * 1000
-        }
+          idleTimeoutMillis: 360000 * 1000,
+        },
       } as any;
     }
 
@@ -400,9 +400,9 @@ export default class NcConfigFactory implements NcConfig {
           secure: process.env.NC_MAILER_SECURE === 'true',
           auth: {
             user: process.env.NC_MAILER_USER,
-            pass: process.env.NC_MAILER_PASS
-          }
-        }
+            pass: process.env.NC_MAILER_PASS,
+          },
+        },
       };
     }
 
@@ -439,8 +439,8 @@ export default class NcConfigFactory implements NcConfig {
         connection: {
           ...dbConnectionConfig,
           database: dbConnectionConfig.connection.filename,
-          useNullAsDefault: true
-        }
+          useNullAsDefault: true,
+        },
       };
     }
 
@@ -452,15 +452,15 @@ export default class NcConfigFactory implements NcConfig {
         api: {
           prefix: '',
           swagger: true,
-          type: type || 'rest'
+          type: type || 'rest',
         },
         dbAlias: `db${key}`,
         metaTables: 'db',
         migrations: {
           disabled: false,
-          name: 'nc_evolutions'
-        }
-      }
+          name: 'nc_evolutions',
+        },
+      },
     });
 
     // config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
@@ -469,12 +469,12 @@ export default class NcConfigFactory implements NcConfig {
     if (process.env.NC_AUTH_ADMIN_SECRET) {
       config.auth = {
         masterKey: {
-          secret: process.env.NC_AUTH_ADMIN_SECRET
-        }
+          secret: process.env.NC_AUTH_ADMIN_SECRET,
+        },
       };
     } else if (process.env.NC_NO_AUTH) {
       config.auth = {
-        disabled: true
+        disabled: true,
       };
       // } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
     } else if (config?.envs?.['_noco']?.db?.[0]) {
@@ -484,8 +484,8 @@ export default class NcConfigFactory implements NcConfig {
           dbAlias:
             process.env.NC_AUTH_JWT_DB_ALIAS ||
             config.envs['_noco'].db[0].meta.dbAlias,
-          secret: process.env.NC_AUTH_JWT_SECRET
-        }
+          secret: process.env.NC_AUTH_JWT_SECRET,
+        },
       };
     }
 
@@ -502,8 +502,8 @@ export default class NcConfigFactory implements NcConfig {
           min: 1,
           max: 1,
           // disposeTimeout: 360000*1000,
-          idleTimeoutMillis: 360000 * 1000
-        }
+          idleTimeoutMillis: 360000 * 1000,
+        },
       } as any;
     }
 
@@ -531,10 +531,10 @@ export default class NcConfigFactory implements NcConfig {
     if (args.meta?.db?.client === 'sqlite3') {
       const metaSqlClient = SqlClientFactory.create({
         ...args.meta.db,
-        connection: args.meta.db
+        connection: args.meta.db,
       });
       await metaSqlClient.createDatabaseIfNotExists({
-        database: args.meta.db?.connection?.filename
+        database: args.meta.db?.connection?.filename,
       });
     } else {
       const metaSqlClient = SqlClientFactory.create(args.meta.db);
@@ -569,9 +569,9 @@ export default class NcConfigFactory implements NcConfig {
     db: {
       client: 'sqlite3',
       connection: {
-        filename: 'noco.db'
-      }
-    }
+        filename: 'noco.db',
+      },
+    },
   };
   public mailer: MailerConfig;
   public try = false;

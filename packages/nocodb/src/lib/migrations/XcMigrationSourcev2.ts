@@ -9,6 +9,8 @@ import * as nc_017_add_user_token_version_column from './v2/nc_017_add_user_toke
 import * as nc_018_remove_user_token_version_column from './v2/nc_018_remove_user_token_version_column';
 import * as nc_019_cascade_relations_metadata from './v2/nc_019_cascade_relations_metadata';
 import * as nc_020_add_user_id_in_nc_api_tokens from './v2/nc_020_add_user_id_in_nc_api_tokens';
+import * as nc_018_add_meta_in_view from './v2/nc_018_add_meta_in_view';
+import * as nc_117_readd_user_token_version_column_finnoco from './v2/nc_117_readd_user_token_version_column_finnoco';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -29,6 +31,8 @@ export default class XcMigrationSourcev2 {
       'nc_018_remove_user_token_version_column',
       'nc_019_cascade_relations_metadata',
       'nc_020_add_user_id_in_nc_api_tokens',
+      'nc_018_add_meta_in_view',
+      'nc_117_readd_user_token_version_column_finnoco',
     ]);
   }
 
@@ -60,6 +64,10 @@ export default class XcMigrationSourcev2 {
         return nc_019_cascade_relations_metadata;
       case 'nc_020_add_user_id_in_nc_api_tokens':
         return nc_020_add_user_id_in_nc_api_tokens;
+      case 'nc_018_add_meta_in_view':
+        return nc_018_add_meta_in_view;
+      case 'nc_117_readd_user_token_version_column_finnoco':
+        return nc_117_readd_user_token_version_column_finnoco;
     }
   }
 }
@@ -70,6 +78,7 @@ export default class XcMigrationSourcev2 {
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
  * @author Wing-Kam Wong <wingkwong.code@gmail.com>
+ * @author Vijay rathore <vijay.rathore@finn.auto>
  *
  * @license GNU AGPL version 3 or any later version
  *

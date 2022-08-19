@@ -27,54 +27,54 @@ export default {
   name: 'TextAreaCell',
   props: {
     value: String,
-    isForm: Boolean
+    isForm: Boolean,
   },
   data: () => ({
-    localState: ''
+    localState: '',
   }),
   computed: {
-
     parentListeners() {
-      const $listeners = {}
+      const $listeners = {};
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
+        $listeners.blur = this.$listeners.blur;
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
+        $listeners.focus = this.$listeners.focus;
       }
 
-      return $listeners
-    }
+      return $listeners;
+    },
   },
   watch: {
     value(val) {
-      this.localState = val
+      this.localState = val;
     },
     localState(val) {
       if (this.isForm) {
-        this.$emit('input', val)
+        this.$emit('input', val);
       }
-    }
+    },
   },
   created() {
-    this.localState = this.value
+    this.localState = this.value;
   },
   mounted() {
-    this.$refs.textarea && this.$refs.textarea.focus()
+    this.$refs.textarea && this.$refs.textarea.focus();
   },
   methods: {
     save() {
-      this.$emit('input', this.localState)
-    }
-  }
-}
+      this.$emit('input', this.localState);
+    },
+  },
+};
 </script>
 
 <style scoped>
-input, textarea {
+input,
+textarea {
   width: 100%;
-  min-height:60px;
+  min-height: 60px;
   height: calc(100% - 28px);
   color: var(--v-textColor-base);
 }

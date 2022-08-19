@@ -5,47 +5,39 @@
       <v-toolbar flat height="42" class="toolbar-border-bottom">
         <v-toolbar-title>
           <v-breadcrumbs
-            :items="[{
-                       text: nodes.env,
-                       disabled: true,
-                       href: '#'
-                     },{
-                       text: nodes.dbAlias,
-                       disabled: true,
-                       href: '#'
-                     },
-                     {
-                       text: nodes.table_name + ' (ACL)',
-                       disabled: true,
-                       href: '#'
-                     }]"
+            :items="[
+              {
+                text: nodes.env,
+                disabled: true,
+                href: '#',
+              },
+              {
+                text: nodes.dbAlias,
+                disabled: true,
+                href: '#',
+              },
+              {
+                text: nodes.table_name + ' (ACL)',
+                disabled: true,
+                href: '#',
+              },
+            ]"
             divider=">"
             small
           >
             <template #divider>
-              <v-icon small color="grey lighten-2">
-                forward
-              </v-icon>
+              <v-icon small color="grey lighten-2"> forward </v-icon>
             </template>
           </v-breadcrumbs>
         </v-toolbar-title>
         <v-spacer />
-        <x-btn
-          v-ge="['acl','reload']"
-          outlined
-          tooltip="Reload ACL"
-          color="primary"
-          small
-          @click="aclInit"
-        >
-          <v-icon small left>
-            refresh
-          </v-icon>
+        <x-btn v-ge="['acl', 'reload']" outlined tooltip="Reload ACL" color="primary" small @click="aclInit">
+          <v-icon small left> refresh </v-icon>
           <!-- Reload -->
           {{ $t('general.reload') }}
         </x-btn>
         <x-btn
-          v-ge="['acl','open-folder']"
+          v-ge="['acl', 'open-folder']"
           tooltip="Open ACL Folder"
           icon="mdi-folder-open"
           outlined
@@ -56,7 +48,7 @@
           Open Folder
         </x-btn>
         <x-btn
-          v-ge="['acl','save']"
+          v-ge="['acl', 'save']"
           outlined
           :tooltip="$t('tooltip.saveChanges')"
           color="primary"
@@ -65,9 +57,7 @@
           :disabled="disableSaveButton"
           @click="save"
         >
-          <v-icon small left>
-            save
-          </v-icon>
+          <v-icon small left> save </v-icon>
           <!-- Save -->
           {{ $t('general.save') }}
         </x-btn>
@@ -92,7 +82,7 @@
                   <template #activator="{ on }">
                     <v-checkbox
                       v-model="allToggle"
-                      v-ge="['acl','toggle-checkbox']"
+                      v-ge="['acl', 'toggle-checkbox']"
                       class="mt-1 flex-shrink-1"
                       dense
                       v-on="on"
@@ -107,7 +97,7 @@
               v-for="role in roles"
               :key="role"
               :colspan="methods.length"
-              style="border-left: 1px solid grey;border-bottom: 1px solid grey"
+              style="border-left: 1px solid grey; border-bottom: 1px solid grey"
             >
               <div class="d-flex align-center justify-center">
                 <span>{{ role }}</span>
@@ -117,7 +107,7 @@
           <tr>
             <!--          <th colspan="2"></th>-->
             <template v-for="role in roles">
-              <template v-for="(method,i) in methods">
+              <template v-for="(method, i) in methods">
                 <th
                   :key="`${method}_${role}`"
                   width="25"
@@ -131,7 +121,7 @@
           </tr>
           <tr>
             <template v-for="role in roles">
-              <template v-for="(method,i) in methods">
+              <template v-for="(method, i) in methods">
                 <th
                   :key="`${method}_${role}`"
                   width="25"
@@ -142,15 +132,18 @@
                     <template #activator="{ on }">
                       <v-checkbox
                         v-model="columnToggle[`${method}_${role}`]"
-                        v-ge="['acl','toggle-checkbox']"
+                        v-ge="['acl', 'toggle-checkbox']"
                         class="mt-0"
                         dense
                         v-on="on"
-                        @change="toggleColumn(role,method,columnToggle[`${method}_${role}`])"
+                        @change="toggleColumn(role, method, columnToggle[`${method}_${role}`])"
                       />
                     </template>
 
-                    <span>{{ columnToggle[`${method}_${role}`] ? 'Disable' : 'Enable' }} all {{ method }} routes for {{ role }}</span>
+                    <span
+                      >{{ columnToggle[`${method}_${role}`] ? 'Disable' : 'Enable' }} all {{ method }} routes for
+                      {{ role }}</span
+                    >
                   </v-tooltip>
                 </th>
               </template>
@@ -158,17 +151,21 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(route,path) in data1" v-show="!search || path.toLowerCase().indexOf(search.toLowerCase()) > -1" :key="path">
+          <tr
+            v-for="(route, path) in data1"
+            v-show="!search || path.toLowerCase().indexOf(search.toLowerCase()) > -1"
+            :key="path"
+          >
             <td width="20" class="px-0">
               <v-tooltip bottom>
                 <template #activator="{ on }">
                   <v-checkbox
                     v-model="rowToggle[path]"
-                    v-ge="['acl','toggle-checkbox']"
+                    v-ge="['acl', 'toggle-checkbox']"
                     class="mt-0 ml-3"
                     dense
                     v-on="on"
-                    @change="toggleRow(path,rowToggle[path])"
+                    @change="toggleRow(path, rowToggle[path])"
                   />
                 </template>
 
@@ -184,28 +181,21 @@
               </v-tooltip>
             </td>
             <template v-for="role in roles">
-              <template v-for="(method,i) in methods">
+              <template v-for="(method, i) in methods">
                 <td :key="`${path}_${method}_${role}`" :style="i ? '' : 'border-left: 1px solid grey'" class="pa-1">
                   <v-checkbox
                     v-if="data1[path][method]"
                     v-model="data1[path][method][role]"
-                    v-ge="['acl','toggle-checkbox']"
+                    v-ge="['acl', 'toggle-checkbox']"
                     class="mt-0"
                     dense
                     :color="methodColor[method]"
                     :input-value="data1[path][method][role]"
-                    @change="toggleCell(path,method,role,data1[path][method][role])"
+                    @change="toggleCell(path, method, role, data1[path][method][role])"
                   />
-                  <span
-                    v-else
-                    @dblclick="$set(data1[path],method , {})"
-                  >
-                    <v-checkbox
-                      v-ge="['acl','toggle-checkbox']"
-                      class="mt-0"
-                      dense
-                      :disabled="true"
-                    /></span>
+                  <span v-else @dblclick="$set(data1[path], method, {})">
+                    <v-checkbox v-ge="['acl', 'toggle-checkbox']" class="mt-0" dense :disabled="true"
+                  /></span>
                 </td>
               </template>
             </template>
@@ -213,15 +203,13 @@
         </tbody>
       </v-simple-table>
 
-      <v-alert v-else outlined type="info">
-        Permission file not found
-      </v-alert>
+      <v-alert v-else outlined type="info"> Permission file not found </v-alert>
     </v-card>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
 // const {fs, importFresh,shell,path} = require("electron").remote.require('./libs');
 
@@ -242,131 +230,151 @@ export default {
         post: 'orange',
         put: 'deep-orange',
         patch: 'pink lighten-1',
-        delete: 'red darken-3'
+        delete: 'red darken-3',
       },
-      roles: [
-        'creator',
-        'editor',
-        'guest'
-      ],
-      methods: [
-        'get', 'post', 'put', 'patch', 'delete'
-      ],
-      data1: null
-    }
+      roles: ['creator', 'editor', 'guest'],
+      methods: ['get', 'post', 'put', 'patch', 'delete'],
+      data1: null,
+    };
   },
   methods: {
-
     openFolder() {
       // shell.openItem(path.dirname(this.policyPath))
     },
     toggleColumn(role, method, checked) {
       for (const [path, methods] of Object.entries(this.data1)) {
         if (methods[method]) {
-          this.$set(methods[method], role, checked)
-          this.toggleCell(path, method, role, checked)
+          this.$set(methods[method], role, checked);
+          this.toggleCell(path, method, role, checked);
         }
       }
     },
     toggleRow(path, checked) {
       for (const [method, roles] of Object.entries(this.data1[path])) {
         for (const role in roles) {
-          this.$set(roles, role, checked)
-          this.toggleCell(path, method, role, checked)
+          this.$set(roles, role, checked);
+          this.toggleCell(path, method, role, checked);
         }
       }
     },
     toggleAll(checked) {
-      this.disableSaveButton = false
+      this.disableSaveButton = false;
       for (const path in this.data1) {
-        this.rowToggle[path] = checked
+        this.rowToggle[path] = checked;
       }
       for (const role of this.roles) {
         for (const method of this.methods) {
-          this.columnToggle[`${method}_${role}`] = checked
+          this.columnToggle[`${method}_${role}`] = checked;
         }
       }
 
       for (const methods of Object.values(this.data1)) {
         for (const method of Object.values(methods)) {
           for (const role of this.roles) {
-            this.$set(method, role, checked)
+            this.$set(method, role, checked);
           }
         }
       }
     },
     toggleCell(path, method, role, checked) {
-      this.disableSaveButton = false
-      this.$set(this.columnToggle, `${method}_${role}`, Object.values(this.data1).some(methods => methods[method] && methods[method][role]))
-      this.$set(this.rowToggle, path, Object.values(this.data1[path]).some(roles => Object.values(roles).some(v => v)))
+      this.disableSaveButton = false;
+      this.$set(
+        this.columnToggle,
+        `${method}_${role}`,
+        Object.values(this.data1).some(methods => methods[method] && methods[method][role])
+      );
+      this.$set(
+        this.rowToggle,
+        path,
+        Object.values(this.data1[path]).some(roles => Object.values(roles).some(v => v))
+      );
     },
     initColumnCheckBox() {
       for (const role of this.roles) {
         for (const method of this.methods) {
-          this.columnToggle[`${method}_${role}`] = Object.values(this.data1).some(methods => methods[method] && methods[method][role])
+          this.columnToggle[`${method}_${role}`] = Object.values(this.data1).some(
+            methods => methods[method] && methods[method][role]
+          );
         }
       }
     },
     initRowCheckBox() {
       for (const path in this.data1) {
-        this.rowToggle[path] = Object.values(this.data1[path]).filter(roles => Object.entries(roles).filter(([role, v]) => {
-          if (!this.roles.includes(role)) { this.roles = [...this.roles, role] }
-          return v
-        }).length).length
+        this.rowToggle[path] = Object.values(this.data1[path]).filter(
+          roles =>
+            Object.entries(roles).filter(([role, v]) => {
+              if (!this.roles.includes(role)) {
+                this.roles = [...this.roles, role];
+              }
+              return v;
+            }).length
+        ).length;
       }
     },
     async aclInit() {
-      this.disableSaveButton = true
+      this.disableSaveButton = true;
       this.policyPath = await this.sqlMgr.projectGetPolicyPath({
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
-        table_name: this.nodes.table_name
-      })
+        table_name: this.nodes.table_name,
+      });
       try {
         // this.data1 = JSON.parse(JSON.stringify((await this.sqlMgr.importFresh({path: this.policyPath})).permissions));
-        this.data1 = JSON.parse(JSON.stringify((await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'importFresh', { path: this.policyPath }])).permissions))
-        this.initColumnCheckBox()
-        this.initRowCheckBox()
+        this.data1 = JSON.parse(
+          JSON.stringify(
+            (await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'importFresh', { path: this.policyPath }]))
+              .permissions
+          )
+        );
+        this.initColumnCheckBox();
+        this.initRowCheckBox();
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
     },
     async save() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'writeFile', {
-          path: this.policyPath,
-          data: `module.exports.permissions = ${JSON.stringify(this.data1, 0, 2)}`
-        }])
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          null,
+          'writeFile',
+          {
+            path: this.policyPath,
+            data: `module.exports.permissions = ${JSON.stringify(this.data1, 0, 2)}`,
+          },
+        ]);
 
-        this.disableSaveButton = true
-        this.$toast.success(`${this.policyPath} updated successfully`).goAway(3000)
+        this.disableSaveButton = true;
+        this.$toast.success(`${this.policyPath} updated successfully`).goAway(3000);
       } catch (e) {
-        console.log(e)
-        this.$toast.error(`${this.policyPath} updating failed`).goAway(3000)
+        console.log(e);
+        this.$toast.error(`${this.policyPath} updating failed`).goAway(3000);
       }
-    }
+    },
   },
   computed: {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
     allToggle: {
       get() {
-        return this.data1 && Object.values(this.data1).some(methods => Object.values(methods).some(roles => Object.values(roles).some(v => v)))
+        return (
+          this.data1 &&
+          Object.values(this.data1).some(methods =>
+            Object.values(methods).some(roles => Object.values(roles).some(v => v))
+          )
+        );
       },
       set(checked) {
-        this.toggleAll(checked)
-      }
-    }
+        this.toggleAll(checked);
+      },
+    },
   },
   watch: {},
   async created() {
-    this.aclInit()
-  }
-}
+    this.aclInit();
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -28,8 +28,8 @@ class SwaggerXcBt extends BaseRender {
       args: {
         tn: this.ctx.tn,
         columns: this.ctx.columns,
-        relations: this.ctx.relations
-      }
+        relations: this.ctx.relations,
+      },
     };
 
     return data;
@@ -54,8 +54,8 @@ class SwaggerXcBt extends BaseRender {
       tags: [
         {
           name: `${this.ctx._tn}BelongsTo${this.ctx._rtn || this.ctx.rtn}`,
-          description: 'Everything about belongs to relation'
-        }
+          description: 'Everything about belongs to relation',
+        },
       ],
       paths: {
         [`/nc/${this.ctx.project_id}/api/${this.ctx.routeVersionLetter}/${
@@ -63,8 +63,9 @@ class SwaggerXcBt extends BaseRender {
         }/belongs/${this.ctx._rtn || this.ctx.rtn}`]: {
           get: {
             tags: [`${this.ctx._tn}BelongsTo${this.ctx._rtn || this.ctx.rtn}`],
-            summary: `Get ${this.ctx._tn} list with ${this.ctx._rtn ||
-              this.ctx.rtn} parent`,
+            summary: `Get ${this.ctx._tn} list with ${
+              this.ctx._rtn || this.ctx.rtn
+            } parent`,
             description: '',
             operationId: `${this.ctx._tn}WithParent`,
             produces: ['application/json'],
@@ -73,28 +74,28 @@ class SwaggerXcBt extends BaseRender {
                 in: 'query',
                 name: 'where',
                 type: 'String',
-                description: 'Where expression'
+                description: 'Where expression',
               },
               {
                 in: 'query',
                 name: 'limit',
                 description: 'Page size limit',
                 type: 'integer',
-                format: 'int64'
+                format: 'int64',
               },
               {
                 in: 'query',
                 name: 'offset',
                 description: 'Pagination offset',
                 type: 'integer',
-                format: 'int64'
+                format: 'int64',
               },
               {
                 in: 'query',
                 name: 'sort',
                 description: 'Sort parameter',
-                type: 'string'
-              }
+                type: 'string',
+              },
             ],
             responses: {
               '200': {
@@ -102,15 +103,15 @@ class SwaggerXcBt extends BaseRender {
                 schema: {
                   type: 'array',
                   items: {
-                    type: 'object'
-                  }
-                }
-              }
-            }
-          }
-        }
+                    type: 'object',
+                  },
+                },
+              },
+            },
+          },
+        },
       },
-      definitions: {}
+      definitions: {},
     };
   }
 }

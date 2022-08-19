@@ -61,7 +61,7 @@ export default class NcMetaMgrv2 {
 
     router.use(
       bodyParser.json({
-        limit: process.env.NC_REQUEST_BODY_SIZE || 1024 * 1024
+        limit: process.env.NC_REQUEST_BODY_SIZE || 1024 * 1024,
       })
     );
 
@@ -70,7 +70,7 @@ export default class NcMetaMgrv2 {
       const upload = multer({
         storage: multer.diskStorage({
           // dest: path.join(this.config.toolDir, 'uploads')
-        })
+        }),
       });
       // router.post(this.config.dashboardPath, upload.single('file'));
       router.post(this.config.dashboardPath, upload.any());
@@ -142,8 +142,7 @@ export default class NcMetaMgrv2 {
               )
             ) {
               return res.status(401).json({
-                msg:
-                  'Unauthorized access : xc-auth does not have admin permission'
+                msg: 'Unauthorized access : xc-auth does not have admin permission',
               });
             }
           } else if (this.config?.auth?.masterKey) {
@@ -151,8 +150,7 @@ export default class NcMetaMgrv2 {
               req.headers['xc-master-key'] !== this.config.auth.masterKey.secret
             ) {
               return res.status(401).json({
-                msg:
-                  'Unauthorized access : xc-admin header missing or not matching'
+                msg: 'Unauthorized access : xc-admin header missing or not matching',
               });
             }
           }
@@ -186,8 +184,8 @@ export default class NcMetaMgrv2 {
               user: req.user,
               ctx: {
                 req,
-                res
-              }
+                res,
+              },
             });
           }
 
@@ -234,8 +232,8 @@ export default class NcMetaMgrv2 {
                   process.env.NC_GITHUB_CLIENT_SECRET
                 ),
                 oneClick: !!process.env.NC_ONE_CLICK,
-                connectToExternalDB: !process.env
-                  .NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
+                connectToExternalDB:
+                  !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
                 version: packageVersion,
                 defaultLimit: Math.max(
                   Math.min(
@@ -255,7 +253,7 @@ export default class NcMetaMgrv2 {
                 // projectHasDb: this.toolMgr.projectHasDb(),
                 type: this.config.type,
                 env: this.config.workingEnv,
-                oneClick: !!process.env.NC_ONE_CLICK
+                oneClick: !!process.env.NC_ONE_CLICK,
               });
             }
           }
@@ -264,7 +262,7 @@ export default class NcMetaMgrv2 {
             projectHasDb,
             type: this.config.type,
             env: this.config.workingEnv,
-            oneClick: !!process.env.NC_ONE_CLICK
+            oneClick: !!process.env.NC_ONE_CLICK,
           });
         } catch (e) {
           console.log(e);
@@ -377,8 +375,8 @@ export default class NcMetaMgrv2 {
           res: result,
           ctx: {
             req,
-            res
-          }
+            res,
+          },
         });
       }
 
@@ -405,11 +403,11 @@ export default class NcMetaMgrv2 {
       console.log(e);
       if (e instanceof XCEeError) {
         res.status(402).json({
-          msg: e.message
+          msg: e.message,
         });
       } else {
         res.status(400).json({
-          msg: e.message
+          msg: e.message,
         });
       }
     }
@@ -430,7 +428,7 @@ export default class NcMetaMgrv2 {
     return {
       projectId: this.getProjectId(args),
       dbAlias: this.getDbAlias(args),
-      xcMeta: this.xcMeta
+      xcMeta: this.xcMeta,
     };
   }
 }

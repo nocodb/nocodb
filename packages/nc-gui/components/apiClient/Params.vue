@@ -7,22 +7,18 @@
         <thead>
           <tr>
             <th class="text-left caption" width="5%" />
-            <th class="text-left caption grey--text" width="40%">
-              Param Name
-            </th>
-            <th class="text-left caption grey--text" width="40%">
-              Value
-            </th>
+            <th class="text-left caption grey--text" width="40%">Param Name</th>
+            <th class="text-left caption grey--text" width="40%">Value</th>
             <th class="text-left caption" width="5%" />
           </tr>
         </thead>
         <!--        <tbody>-->
         <draggable v-if="value" v-model="paramList" tag="tbody">
-          <tr v-for="(item,i) in paramList" :key="i">
+          <tr v-for="(item, i) in paramList" :key="i">
             <td>
               <v-checkbox
                 v-model="item.enabled"
-                v-ge="['api-client-params','enable']"
+                v-ge="['api-client-params', 'enable']"
                 small
                 class="mt-0 caption"
                 color="primary lighten-1"
@@ -40,8 +36,11 @@
                 single-line
                 dense
                 :env="env"
-                @input="() => { if(i === value.length - 1 && item.name.length) value.push({name:'',value:'',
-                                                                                           enabled:true}) }"
+                @input="
+                  () => {
+                    if (i === value.length - 1 && item.name.length) value.push({ name: '', value: '', enabled: true });
+                  }
+                "
               />
             </td>
             <td style="height: auto">
@@ -58,11 +57,11 @@
             </td>
             <td class="">
               <x-icon
-                v-ge="['api-client-params','delete']"
+                v-ge="['api-client-params', 'delete']"
                 color="error grey"
                 small
                 tooltip="Delete param"
-                @click="value.splice(i,1)"
+                @click="value.splice(i, 1)"
               >
                 mdi-delete-outline
               </x-icon>
@@ -75,66 +74,64 @@
 </template>
 
 <script>
-
-import draggable from 'vuedraggable'
+import draggable from 'vuedraggable';
 
 export default {
   directives: {},
   components: { draggable },
   validate({ params }) {
-    return true
+    return true;
   },
   props: { value: Array, env: String },
   data() {
-    return {}
+    return {};
   },
   head() {
-    return {}
+    return {};
   },
   computed: {
     paramList: {
       // two way binding(v-model)
       get() {
-        return this.value
+        return this.value;
       },
       set(value) {
-        this.$emit('input', value)
-      }
-    }
+        this.$emit('input', value);
+      },
+    },
   },
   watch: {
     value: {
       handler(val) {
         // keeps at least one param row
-        if (!val || !val.length) { this.$emit('input', [{ name: '', value: '', enabled: true }]) }
-      }
-    }
+        if (!val || !val.length) {
+          this.$emit('input', [{ name: '', value: '', enabled: true }]);
+        }
+      },
+    },
   },
   created() {
     // creating value if not exist
     if (!this.value || !this.value.length) {
-      this.$emit('input', [{
-        name: '',
-        value: '',
-        enabled: true
-      }])
+      this.$emit('input', [
+        {
+          name: '',
+          value: '',
+          enabled: true,
+        },
+      ]);
     }
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  mounted() {},
+  beforeDestroy() {},
   methods: {},
 
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

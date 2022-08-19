@@ -6,20 +6,17 @@
           <v-col md="4" offset-md="4">
             <v-card class="pa-10 elevation-10 mt-10" color="">
               <div
-                style="position: absolute;top:-45px;
-                  left:-moz-calc(50% - 45px);
-                  left:-webkit-calc(50% - 45px);
-                  left:calc(50% - 45px);
+                style="
+                  position: absolute;
+                  top: -45px;
+                  left: -moz-calc(50% - 45px);
+                  left: -webkit-calc(50% - 45px);
+                  left: calc(50% - 45px);
                   border-radius: 15px;
-                  "
+                "
                 class="primary"
               >
-                <v-img
-                  class="mx-auto"
-                  width="90"
-                  height="90"
-                  :src="require('~/assets/img/icons/512x512-trans.png')"
-                />
+                <v-img class="mx-auto" width="90" height="90" :src="require('~/assets/img/icons/512x512-trans.png')" />
               </div>
 
               <h1 class="mt-4">
@@ -32,7 +29,7 @@
                   {{ formUtil.formErrMsg }}
                 </v-alert>
               </div>
-              <v-form v-if=" type === 'jwt'" ref="formType" v-model="formUtil.valid" elevation-20 @submit="MtdOnSignup">
+              <v-form v-if="type === 'jwt'" ref="formType" v-model="formUtil.valid" elevation-20 @submit="MtdOnSignup">
                 <p v-if="firstUser" class="success--text">
                   <!-- You will be the 'Super Admin' -->
                   {{ $t('msg.info.signUp.superAdmin') }}
@@ -60,7 +57,7 @@
                 </v-text-field>
 
                 <v-btn
-                  v-ge="['Sign Up ','']"
+                  v-ge="['Sign Up ', '']"
                   color="primary"
                   class="btn--large"
                   :disabled="!formUtil.recpatcha || !formUtil.valid"
@@ -77,13 +74,13 @@
                   />
                 </v-btn>
 
-                <br>
-                <br>
+                <br />
+                <br />
                 <div class="d-flex align-center justify-center mb-2">
-                  <v-switch v-model="subscribe" dense hide-details class="mt-0  pt-0" />
+                  <v-switch v-model="subscribe" dense hide-details class="mt-0 pt-0" />
                   <label class="caption font-weight-light">Subscribe to our weekly newsletter</label>
                 </div>
-                <p v-ge="['Already have an account ?','']" class="font-weight-light caption">
+                <p v-ge="['Already have an account ?', '']" class="font-weight-light caption">
                   {{ $t('msg.info.signUp.alreadyHaveAccount') }}
                   <router-link to="/user/authentication/signin">
                     {{ $t('general.signIn') }}
@@ -91,7 +88,6 @@
                 </p>
 
                 <v-btn
-
                   v-if="googleAuthEnabled"
                   :href="`${$axios.defaults.baseURL}/auth/google?state=${token}`"
                   outlined
@@ -100,12 +96,7 @@
                   block
                   color="blue"
                 >
-                  <img
-                    :src="require('~/assets/img/gmail.png')"
-                    class="img-responsive"
-                    alt="google"
-                    width="24px"
-                  >
+                  <img :src="require('~/assets/img/gmail.png')" class="img-responsive" alt="google" width="24px" />
                   <b>&nbsp; &nbsp;Sign In with Google</b>
                 </v-btn>
               </v-form>
@@ -114,7 +105,7 @@
               <!--              </p>-->
 
               <v-form
-                v-else-if=" type === 'masterKey'"
+                v-else-if="type === 'masterKey'"
                 ref="formType1"
                 v-model="formUtil.valid1"
                 elevation-20
@@ -124,7 +115,6 @@
                   v-model="form.secret"
                   label="Admin Secret"
                   :rules="formRules.secret"
-
                   min="8"
                   :append-icon="formUtil.e4 ? 'visibility' : 'visibility_off'"
                   :type="formUtil.e4 ? 'password' : 'text'"
@@ -140,7 +130,7 @@
                 <!--                </vue-recaptcha>-->
 
                 <v-btn
-                  v-ge="['Authenticate','']"
+                  v-ge="['Authenticate', '']"
                   color="primary"
                   class="btn--large"
                   :disabled="!formUtil.recpatcha || !formUtil.valid1"
@@ -149,7 +139,7 @@
                   Authenticate&nbsp;
                 </v-btn>
 
-                <br>
+                <br />
 
                 <!--              <div>-->
 
@@ -178,8 +168,8 @@
 
                 <!--              </div>-->
               </v-form>
-              <template v-else-if="type==='none'">
-                <br>
+              <template v-else-if="type === 'none'">
+                <br />
                 <v-alert type="warning" outlined icon="mdi-alert">
                   <!--                <v-icon color="warning">mdi-alert</v-icon>-->
                   Authentication not configured in configuration
@@ -187,13 +177,16 @@
               </template>
             </v-card>
 
-            <br>
+            <br />
 
             <v-row justify="center">
               <p class="text-right grey--text font-weight-light caption">
                 By signing up, you agree to
-                <span class="grey--text pointer" @click="openUrl('https://nocodb.com/policy-nocodb')"><u>Terms of service</u></span>
-              </p> &nbsp;
+                <span class="grey--text pointer" @click="openUrl('https://nocodb.com/policy-nocodb')"
+                  ><u>Terms of service</u></span
+                >
+              </p>
+              &nbsp;
 
               <!--              <div class="d-flex align-center mb-4 justify-center">
                 <v-checkbox v-model="subscribe" color="grey" dense hide-details class="mt-0  pt-0" />
@@ -222,12 +215,11 @@
 </template>
 
 <script>
-
 // const {shell} = require("electron").remote.require(
 //   "./libs"
 // );
-import { isEmail } from '@/helpers'
-import passwordValidateMixin from '@/pages/user/authentication/passwordValidateMixin'
+import { isEmail } from '@/helpers';
+import passwordValidateMixin from '@/pages/user/authentication/passwordValidateMixin';
 // import VueRecaptcha from 'vue-recaptcha';
 
 export default {
@@ -238,32 +230,25 @@ export default {
   mixins: [passwordValidateMixin],
   layout: 'empty',
   validate() {
-    return true
+    return true;
   },
   props: {},
 
   data() {
     return {
       subscribe: false,
-      isDev: (process.env.NODE_ENV === 'dev'),
+      isDev: process.env.NODE_ENV === 'dev',
 
       dialog: false,
       form: {
         email: null,
-        password: null
+        password: null,
       },
 
       formRules: {
-        email: [
-          v => !!v || 'E-mail is required',
-          v => isEmail(v) || 'E-mail must be valid'
-        ],
-        password: [
-          v => (this.PasswordValidate(v)) || this.passwordValidateMsg
-        ],
-        secret: [
-          v => !!v || 'Required'
-        ]
+        email: [v => !!v || 'E-mail is required', v => isEmail(v) || 'E-mail must be valid'],
+        password: [v => this.PasswordValidate(v) || this.passwordValidateMsg],
+        secret: [v => !!v || 'Required'],
       },
       formUtil: {
         formErr: false,
@@ -274,44 +259,41 @@ export default {
         e3: true,
         e4: true,
         passwordProgress: 0,
-        progressColorValue: 'red'
+        progressColorValue: 'red',
       },
 
       googleAuthUrl: '/api/auth/google',
-      facebookAuthUrl: '/api/auth/facebook'
-    }
+      facebookAuthUrl: '/api/auth/facebook',
+    };
   },
   head() {
     return {
       title: 'Sign Up | Noco',
-      meta: [
-        { hid: 'Sign Up To Noco', name: 'Sign Up To Noco', content: 'Sign Up To Noco' }
-      ]
-    }
+      meta: [{ hid: 'Sign Up To Noco', name: 'Sign Up To Noco', content: 'Sign Up To Noco' }],
+    };
   },
   computed: {
     counter() {
-      return this.$store.getters['users/GtrCounter']
+      return this.$store.getters['users/GtrCounter'];
     },
     displayName() {
-      return this.$store.getters['users/GtrUser']
+      return this.$store.getters['users/GtrUser'];
     },
     type() {
-      return this.$store.state.project.appInfo && this.$store.state.project.appInfo.authType
+      return this.$store.state.project.appInfo && this.$store.state.project.appInfo.authType;
     },
     firstUser() {
-      return this.$store.state.project.appInfo && this.$store.state.project.appInfo.firstUser
+      return this.$store.state.project.appInfo && this.$store.state.project.appInfo.firstUser;
     },
     googleAuthEnabled() {
-      return this.$store.state.project.appInfo && this.$store.state.project.appInfo.googleAuthEnabled
+      return this.$store.state.project.appInfo && this.$store.state.project.appInfo.googleAuthEnabled;
     },
     token() {
-      return this.$route.params.token
-    }
+      return this.$route.params.token;
+    },
   },
   watch: {},
   async created() {
-
     // const type = await this.$store.dispatch('users/ActGetAuthType');
     // this.type = type.type;
     // this.firstUser = type.firstUser;
@@ -323,34 +305,33 @@ export default {
     // console.log(this.$route.query);
 
     if ('buy' in this.$route.query) {
-      this.googleAuthUrl += '?redirect_to=/'
-      this.facebookAuthUrl += '?redirect_to=/'
+      this.googleAuthUrl += '?redirect_to=/';
+      this.facebookAuthUrl += '?redirect_to=/';
     } else {
-      this.googleAuthUrl += '?redirect_to=/'
-      this.facebookAuthUrl += '?redirect_to=/'
+      this.googleAuthUrl += '?redirect_to=/';
+      this.facebookAuthUrl += '?redirect_to=/';
     }
   },
-  beforeDestroy() {
-  },
+  beforeDestroy() {},
   methods: {
     openUrl(url) {
-      window.open(url, '_blank')
+      window.open(url, '_blank');
     },
     openGoogleSiginInBrowser(e) {
-      e.preventDefault()
+      e.preventDefault();
     },
     openGithubSiginInBrowser(e) {
-      e.preventDefault()
+      e.preventDefault();
       // shell.openExternal(process.env.auth.github.url)
     },
     onNormalVerify() {
-      this.formUtil.recpatcha = true
+      this.formUtil.recpatcha = true;
       // this.formUtil.recpatcha = false;
     },
 
     progressColor(num) {
-      this.formUtil.progressColorValue = ['error', 'warning', 'info', 'success'][Math.floor(num / 25)]
-      return this.formUtil.progressColorValue
+      this.formUtil.progressColorValue = ['error', 'warning', 'info', 'success'][Math.floor(num / 25)];
+      return this.formUtil.progressColorValue;
     },
 
     /*  PasswordValidate(p) {
@@ -405,52 +386,52 @@ export default {
     }, */
 
     PlusCounter() {
-      this.$store.dispatch('ActPlusCounter')
+      this.$store.dispatch('ActPlusCounter');
     },
 
     async MtdOnSignup(e) {
-      e.preventDefault()
+      e.preventDefault();
       if (this.type === 'jwt') {
         if (this.$refs.formType.validate()) {
           // this.$nuxt.$loading.start()
           // console.log('hello', this.form);
-          this.form.firstName = this.form.username
-          this.form.lastName = this.form.username
+          this.form.firstName = this.form.username;
+          this.form.lastName = this.form.username;
           //
           // await this.$recaptchaLoaded()
           // const recaptchaToken = await this.$recaptcha('login')
           const err = await this.$store.dispatch('users/ActSignUp', {
             ...this.form,
             token: this.$route.params.token,
-            ignore_subscribe: !this.subscribe
-          })// recaptchaToken});
+            ignore_subscribe: !this.subscribe,
+          }); // recaptchaToken});
 
           // console.log('in method signup', err);
 
-          await this.$store.dispatch('project/ActLoadProjectInfo')
+          await this.$store.dispatch('project/ActLoadProjectInfo');
 
           if (err) {
-            this.formUtil.formErr = true
-            this.formUtil.formErrMsg = err.data.msg
-            return
+            this.formUtil.formErr = true;
+            this.formUtil.formErrMsg = err.data.msg;
+            return;
           }
 
           // this.$nuxt.$loading.finish()
         }
       } else if (this.type === 'masterKey') {
-        const valid = await this.$store.dispatch('users/ActVerifyMasterKey', this.form.secret)
+        const valid = await this.$store.dispatch('users/ActVerifyMasterKey', this.form.secret);
         if (!valid) {
-          this.formUtil.formErr = true
-          this.formUtil.formErrMsg = 'Invalid admin secret'
-          return
+          this.formUtil.formErr = true;
+          this.formUtil.formErrMsg = 'Invalid admin secret';
+          return;
         }
-        this.$store.commit('users/MutMasterKey', this.form.secret)
+        this.$store.commit('users/MutMasterKey', this.form.secret);
       }
 
       if ('redirect_to' in this.$route.query) {
-        this.$router.push(this.$route.query.redirect_to)
+        this.$router.push(this.$route.query.redirect_to);
       } else {
-        this.$router.push('/projects?toast')
+        this.$router.push('/projects?toast');
       }
     },
 
@@ -459,23 +440,17 @@ export default {
     },
 
     async MtdOnSignupGoogle(e) {
-      await this.$store.dispatch('users/ActAuthGoogle')
+      await this.$store.dispatch('users/ActAuthGoogle');
       // console.log('MtdOnSignupGoogle', err);
-    }
-
+    },
   },
 
-  beforeCreated() {
-  },
-  destroy() {
-  }
-
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -7,7 +7,7 @@ process.env.NC_VERSION = '0009044';
 const server = express();
 server.use(
   cors({
-    exposedHeaders: 'xc-db-response'
+    exposedHeaders: 'xc-db-response',
   })
 );
 
@@ -26,7 +26,7 @@ process.env[`DEBUG`] = 'xc*';
     console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
   });
   server.use(await Noco.init({}, httpServer, server));
-})().catch(e => console.log(e));
+})().catch((e) => console.log(e));
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

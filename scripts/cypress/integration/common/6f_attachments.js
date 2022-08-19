@@ -66,7 +66,9 @@ export const genTest = (apiType, dbType) => {
             //   .find(".v-list > .v-list-item")
             //   .contains("Share View")
             //   .click();
-            mainPage.shareView().click();
+            mainPage.shareView().click({ force: true });
+
+            cy.wait(5000);
 
             // copy link text, visit URL
             cy.getActiveModal()

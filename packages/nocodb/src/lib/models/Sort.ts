@@ -5,7 +5,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
-  MetaTable
+  MetaTable,
 } from '../utils/globals';
 import NocoCache from '../cache/NocoCache';
 import { SortType } from 'nocodb-sdk';
@@ -30,7 +30,7 @@ export default class Sort {
       CacheDelDirection.PARENT_TO_CHILD
     );
     await ncMeta.metaDelete(null, null, MetaTable.SORT, {
-      fk_view_id: viewId
+      fk_view_id: viewId,
     });
   }
 
@@ -42,7 +42,7 @@ export default class Sort {
           .knex(MetaTable.SORT)
           .max('order', { as: 'order' })
           .where({
-            fk_view_id: sortObj.fk_view_id
+            fk_view_id: sortObj.fk_view_id,
           })
           .first()
       )?.order || 0) + 1;
@@ -54,7 +54,7 @@ export default class Sort {
       direction: sortObj.direction,
       project_id: sortObj.project_id,
       base_id: sortObj.base_id,
-      order
+      order,
     };
     if (!(sortObj.project_id && sortObj.base_id)) {
       const model = await Column.get({ colId: sortObj.fk_column_id }, ncMeta);
@@ -82,7 +82,7 @@ export default class Sort {
   public getColumn(): Promise<Column> {
     if (!this.fk_column_id) return null;
     return Column.get({
-      colId: this.fk_column_id
+      colId: this.fk_column_id,
     });
   }
 
@@ -96,8 +96,8 @@ export default class Sort {
       sortList = await ncMeta.metaList2(null, null, MetaTable.SORT, {
         condition: { fk_view_id: viewId },
         orderBy: {
-          order: 'asc'
-        }
+          order: 'asc',
+        },
       });
       await NocoCache.setList(CacheScope.SORT, [viewId], sortList);
     }
@@ -106,7 +106,7 @@ export default class Sort {
         (a.order != null ? a.order : Infinity) -
         (b.order != null ? b.order : Infinity)
     );
-    return sortList.map(s => new Sort(s));
+    return sortList.map((s) => new Sort(s));
   }
 
   public static async update(sortId, body, ncMeta = Noco.ncMeta) {
@@ -127,7 +127,7 @@ export default class Sort {
       MetaTable.SORT,
       {
         fk_column_id: body.fk_column_id,
-        direction: body.direction
+        direction: body.direction,
       },
       sortId
     );
@@ -159,7 +159,7 @@ export default class Sort {
   public async getModel(ncMeta = Noco.ncMeta): Promise<Model> {
     return Model.getByIdOrName(
       {
-        id: this.fk_view_id
+        id: this.fk_view_id,
       },
       ncMeta
     );

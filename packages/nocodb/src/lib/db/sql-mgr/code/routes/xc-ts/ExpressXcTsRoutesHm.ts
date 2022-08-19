@@ -36,7 +36,7 @@ class ExpressXcTsRoutesHm extends BaseRender {
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -47,8 +47,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `
-        ]
+                `,
+        ],
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}`,
@@ -57,7 +57,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -69,8 +69,8 @@ async function(req, res){
     })
     res.json(data);
 }
-                `
-        ]
+                `,
+        ],
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}`,
@@ -79,7 +79,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: false
+          guest: false,
         },
         functions: [
           `
@@ -91,8 +91,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `
-        ]
+                `,
+        ],
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/findOne`,
@@ -101,7 +101,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -113,8 +113,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `
-        ]
+                `,
+        ],
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/count`,
@@ -123,7 +123,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -135,8 +135,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `
-        ]
+                `,
+        ],
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/:id`,
@@ -145,7 +145,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -157,8 +157,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `
-        ]
+                `,
+        ],
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/:id`,
@@ -167,7 +167,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: false
+          guest: false,
         },
         functions: [
           `
@@ -180,8 +180,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `
-        ]
+                `,
+        ],
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/:id`,
@@ -190,7 +190,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: false
+          guest: false,
         },
         functions: [
           `
@@ -202,8 +202,8 @@ async function(req, res){
     });
     res.json(data);
 }
-                `
-        ]
+                `,
+        ],
       },
       {
         path: `/api/v1/${ejsData._tn}/:parentId/${ejsData._ctn}/:id/exists`,
@@ -212,7 +212,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -225,9 +225,9 @@ async function(req, res){
     });
     res.json(data);
 }
-                `
-        ]
-      }
+                `,
+        ],
+      },
     ];
   }
 

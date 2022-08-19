@@ -1,12 +1,13 @@
-import { Debug, SqlClientFactory } from 'nc-help';
-
 // import debug from 'debug';
 
-const log = new Debug('SqlMgr');
 // import {XKnex} from "../sql-data-mapper";
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
+import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
 import KnexMigratorv2 from '../../sql-migrator/lib/KnexMigratorv2';
 import Base from '../../../models/Base';
+import Debug from '../../util/Debug';
+
+const log = new Debug('SqlMgr');
 
 export default class SqlMgrv2 {
   protected _migrator: KnexMigratorv2;

@@ -13,7 +13,7 @@ export async function columnAdd(req: Request, res: Response) {
     req.body.fk_column_id,
     {
       ...req.body,
-      view_id: req.params.viewId
+      view_id: req.params.viewId,
     }
   );
   Tele.emit('evt', { evt_type: 'viewColumn:inserted' });

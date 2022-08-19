@@ -30,22 +30,23 @@ function removeEmpty(obj) {
   );
 }
 
+
 function addColumnSpecificData(c) {
   // pick required fields to proceed further
-  let col = removeEmpty(
-    (({ id, title, column_name, uidt, dt, pk, pv, rqd, dtxp, system }) => ({
-      id,
-      title,
-      column_name,
-      uidt,
-      dt,
-      pk,
-      pv,
-      rqd,
-      dtxp,
-      system
-    }))(c)
-  );
+  let col;
+  if(inputConfig.excludeDt) {
+    col = removeEmpty(
+      (({ id, title, column_name, uidt, pk, pv, rqd, dtxp, system, ai }) => ({
+        id, title, column_name, uidt, pk, pv, rqd, dtxp, system, ai
+      }))(c)
+    );
+  } else {
+    col = removeEmpty(
+      (({ id, title, column_name, uidt, dt, pk, pv, rqd, dtxp, system, ai }) => ({
+        id, title, column_name, uidt, dt, pk, pv, rqd, dtxp, system, ai
+      }))(c)
+    );
+  }
 
   switch (c.uidt) {
     case UITypes.Formula:

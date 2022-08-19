@@ -1,8 +1,6 @@
 <template>
   <v-dialog v-model="show" width="600" content-class="dialog">
-    <v-icon small class="close-icon" @click="$emit('input',false)">
-      mdi-close
-    </v-icon>
+    <v-icon small class="close-icon" @click="$emit('input', false)"> mdi-close </v-icon>
     <v-card width="600">
       <v-card-title class="textColor--text mx-2 justify-center">
         {{ title }}
@@ -15,25 +13,18 @@
           dense
           outlined
           placeholder="Filter query"
-          class=" caption search-field ml-2"
+          class="caption search-field ml-2"
           @keydown.enter="loadData"
         >
           <template #append>
-            <x-icon tooltip="Apply filter" small icon.class="mt-1" @click="loadData">
-              mdi-keyboard-return
-            </x-icon>
+            <x-icon tooltip="Apply filter" small icon.class="mt-1" @click="loadData"> mdi-keyboard-return </x-icon>
           </template>
         </v-text-field>
         <v-spacer />
 
-        <v-icon small class="mr-1" @click="loadData()">
-          mdi-reload
-        </v-icon>
+        <v-icon small class="mr-1" @click="loadData()"> mdi-reload </v-icon>
         <v-btn v-if="!isPublic" small class="caption mr-2" color="primary" @click="$emit('add-new-record')">
-          <v-icon small>
-            mdi-plus
-          </v-icon>&nbsp;
-          New Record
+          <v-icon small> mdi-plus </v-icon>&nbsp; New Record
         </v-btn>
       </v-card-title>
 
@@ -41,19 +32,20 @@
         <div class="items-container">
           <template v-if="data && data.list && data.list.length">
             <v-card
-              v-for="(ch,i) in data.list"
+              v-for="(ch, i) in data.list"
               :key="i"
               v-ripple
-              class="ma-2  child-card"
+              class="ma-2 child-card"
               outlined
-              @click="$emit('add',ch)"
+              @click="$emit('add', ch)"
             >
               <v-card-text class="primary-value textColor--text text--lighten-2 d-flex">
-                <span class="font-weight-bold"> {{ ch[primaryCol] || (ch &&Object.values(ch).slice(0,1).join()) }}&nbsp;</span>
-                <span
-                  v-if="primaryKey"
-                  class="grey--text caption primary-key "
-                >(Primary Key : {{ ch[primaryKey] }})</span>
+                <span class="font-weight-bold">
+                  {{ ch[primaryCol] || (ch && Object.values(ch).slice(0, 1).join()) }}&nbsp;</span
+                >
+                <span v-if="primaryKey" class="grey--text caption primary-key"
+                  >(Primary Key : {{ ch[primaryKey] }})</span
+                >
                 <v-spacer />
                 <v-chip v-if="hm && ch[`${_cn}Read`] && ch[`${_cn}Read`][hmParentPrimaryValCol]" x-small>
                   {{ ch[`${_cn}Read`][hmParentPrimaryValCol] }}
@@ -68,12 +60,12 @@
           </div>
         </div>
       </v-card-text>
-      <v-card-actions class="justify-center py-2  flex-column">
+      <v-card-actions class="justify-center py-2 flex-column">
         <pagination
           v-if="data && data.list && data.list.length"
           v-model="page"
           :size="size"
-          :count="data && data.pageInfo&& data.pageInfo.totalRows"
+          :count="data && data.pageInfo && data.pageInfo.totalRows"
           class="mb-3"
           @input="loadData"
         />
@@ -83,7 +75,7 @@
 </template>
 
 <script>
-import Pagination from '~/components/project/spreadsheet/components/Pagination'
+import Pagination from '~/components/project/spreadsheet/components/Pagination';
 
 export default {
   name: 'ListItems',
@@ -95,13 +87,13 @@ export default {
     hm: [Object, Function, Boolean],
     title: {
       type: String,
-      default: 'Link Record'
+      default: 'Link Record',
     },
     queryParams: {
       type: Object,
       default() {
-        return {}
-      }
+        return {};
+      },
     },
     primaryKey: String,
     primaryCol: String,
@@ -114,53 +106,53 @@ export default {
     isPublic: Boolean,
     password: String,
     column: Object,
-    rowId: [Number, String]
+    rowId: [Number, String],
   },
   data: () => ({
     data: null,
     page: 1,
-    query: ''
+    query: '',
   }),
   computed: {
     show: {
       set(v) {
-        this.$emit('input', v)
+        this.$emit('input', v);
       },
       get() {
-        return this.value
-      }
+        return this.value;
+      },
     },
     hmParentPrimaryValCol() {
-      return this.hm &&
-        this.parentMeta &&
-        this.parentMeta.columns.find(v => v.pv).title
-    }
+      return this.hm && this.parentMeta && this.parentMeta.columns.find(v => v.pv).title;
+    },
   },
   mounted() {
-    this.loadData()
+    this.loadData();
   },
   methods: {
     async loadData() {
       if (this.isPublic) {
-        this.data = (await this.$api.public.dataRelationList(
+        this.data = await this.$api.public.dataRelationList(
           this.$route.params.id,
           this.column.id,
-          {}, {
+          {},
+          {
             headers: {
-              'xc-password': this.password
+              'xc-password': this.password,
             },
             query: {
               limit: this.size,
               offset: this.size * (this.page - 1),
-              ...this.queryParams
-            }
-          }))
+              ...this.queryParams,
+            },
+          }
+        );
       } else {
-        const where = `(${this.primaryCol},like,%${this.query}%)`
+        const where = `(${this.primaryCol},like,%${this.query}%)`;
 
         // eslint-disable-next-line no-lonely-if
         if (this.column && this.column.colOptions && this.rowId) {
-          this.data = (await this.$api.dbTableRow.nestedChildrenExcludedList(
+          this.data = await this.$api.dbTableRow.nestedChildrenExcludedList(
             'noco',
             this.projectName,
             this.parentMeta.title,
@@ -170,23 +162,21 @@ export default {
             {
               limit: this.size,
               offset: this.size * (this.page - 1),
-              where: this.query && `(${this.primaryCol},like,${this.query})`
-            }))
+              where: this.query && `(${this.primaryCol},like,${this.query})`,
+            }
+          );
         } else {
-          this.data = (await this.$api.dbTableRow.list(
-            'noco',
-            this.projectName,
-            this.meta.title, {
-              limit: this.size,
-              offset: this.size * (this.page - 1),
-              ...this.queryParams,
-              where
-            }))
+          this.data = await this.$api.dbTableRow.list('noco', this.projectName, this.meta.title, {
+            limit: this.size,
+            offset: this.size * (this.page - 1),
+            ...this.queryParams,
+            where,
+          });
         }
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -204,21 +194,20 @@ export default {
   &:hover .remove-child-icon {
     opacity: 1;
   }
-
 }
 
 .child-card {
   cursor: pointer;
 
   &:hover {
-    box-shadow: 0 0 .2em var(--v-textColor-lighten5)
+    box-shadow: 0 0 0.2em var(--v-textColor-lighten5);
   }
 }
 
 .primary-value {
   .primary-key {
     display: none;
-    margin-left: .5em;
+    margin-left: 0.5em;
   }
 
   &:hover .primary-key {

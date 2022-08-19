@@ -1,6 +1,6 @@
 ---
 title: 'NocoDB SDK'
-description: 'SDK'
+description: 'NocoDB SDK Overview'
 position: 1400
 category: 'Developer Resources'
 menuTitle: 'NocoDB SDK'

@@ -1,9 +1,7 @@
 <template>
   <v-responsive @contextmenu="showMenuFn">
     <div class="">
-      <v-card
-        class="mx-0 pa-0 elevation-0"
-      >
+      <v-card class="mx-0 pa-0 elevation-0">
         <v-card-text class="pa-0">
           <v-data-table
             class="small-footer"
@@ -13,16 +11,16 @@
             :items="$store.state.outputs.list"
             :loading="loading"
           >
-            <template #header="{props:{headers}}">
-              <tr style="height:19px !important;">
+            <template #header="{ props: { headers } }">
+              <tr style="height: 19px !important">
                 <th v-for="header in headers" :key="header.title" class="py-0 caption font-weight-bold">
                   {{ header.text }}
                 </th>
               </tr>
             </template>
 
-            <template #item="{item}">
-              <tr style="height:19px !important;">
+            <template #item="{ item }">
+              <tr style="height: 19px !important">
                 <td v-for="(header, index) in $store.state.outputs.headers" :key="index" class="caption my-0 py-0">
                   {{ item[header.text] }}
                 </td>
@@ -34,14 +32,7 @@
     </div>
     <!-- </v-flex
       > -->
-    <v-menu
-      v-if="showMenu"
-      v-model="showMenu"
-      absolute
-      :position-x="x"
-      :position-y="y"
-      offset-y
-    >
+    <v-menu v-if="showMenu" v-model="showMenu" absolute :position-x="x" :position-y="y" offset-y>
       <v-list>
         <v-list-item @click="clearLogs">
           <v-list-item-title>Clear Logs</v-list-item-title>
@@ -53,12 +44,11 @@
 </template>
 
 <script>
-
 export default {
   components: {},
   directives: {},
   validate({ params }) {
-    return true
+    return true;
   },
   props: {},
   data() {
@@ -69,38 +59,32 @@ export default {
       y: 0,
       headers: [],
       result: [],
-      maxLogs: 100
-    }
+      maxLogs: 100,
+    };
   },
   computed: {},
   watch: {},
-  created() {
-  },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  created() {},
+  mounted() {},
+  beforeDestroy() {},
   methods: {
     showMenuFn(e) {
-      e.preventDefault()
-      this.showMenu = false
-      this.x = e.clientX
-      this.y = e.clientY
+      e.preventDefault();
+      this.showMenu = false;
+      this.x = e.clientX;
+      this.y = e.clientY;
       this.$nextTick(() => {
-        this.showMenu = true
-      })
-    }
+        this.showMenu = true;
+      });
+    },
   },
 
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

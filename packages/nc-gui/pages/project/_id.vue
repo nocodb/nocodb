@@ -3,16 +3,14 @@
 </template>
 
 <script>
-import CreateOrEditProject from '~/components/CreateOrEditProject'
+import CreateOrEditProject from '~/components/CreateOrEditProject';
 export default {
   name: 'Id',
-  components: { CreateOrEditProject }
-}
+  components: { CreateOrEditProject },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

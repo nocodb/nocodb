@@ -13,22 +13,10 @@ on:
       - "packages/nc-plugin/**"
       - "packages/nocodb/**"
 jobs:
-  # Validate Branch
-  validate-branch:
-    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          if [[ ${{ github.base_ref }} != 'develop' ]]; then
-            echo "PR Release only runs on develop as a base branch"
-            exit 1
-          fi
-
   # enrich tag for pr release
   set-tag:
-    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' }}
     runs-on: 'ubuntu-latest'
-    needs: [validate-branch]
     steps:
       - name: set-tag
         id: tag-step
@@ -54,7 +42,7 @@ jobs:
 
   # Build, install, publish frontend and backend to npm
   release-npm:
-    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' }}
     needs: [set-tag]
     uses: ./.github/workflows/release-npm.yml
     with:
@@ -65,7 +53,7 @@ jobs:
 
   # Build docker image and push to docker hub
   release-docker:
-    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' }}
     needs: [release-npm, set-tag]
     uses: ./.github/workflows/release-docker.yml
     with:
@@ -79,6 +67,7 @@ jobs:
 
   # Build executables and publish to GitHub
   release-executables:
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' }}
     needs: [set-tag, release-npm]
     uses: ./.github/workflows/release-timely-executables.yml
     with:
@@ -86,28 +75,23 @@ jobs:
     secrets:
       NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
-  # leave-comment:
-  #   runs-on: 'ubuntu-latest'
-  #   needs: [release-docker, set-tag]
-  #   steps:
-  #     - run: |
-  #         echo docker run -d -p 8888:8080 nocodb/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
-
+  # Add a comment for PR docker build
   leave-comment:
-    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' }}
     runs-on: 'ubuntu-latest'
     needs: [release-docker, set-tag]
     steps:
       - uses: peter-evans/commit-comment@v2
         with:
           body: |
-            The PR changes have been deployed. Pleae run the following command to verify:
+            The PR changes have been deployed. Please run the following command to verify:
             ```
             docker run -d -p 8888:8080 nocodb/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
             ```
 
+  # Add a comment for PR executable build
   leave-executable-comment:
-    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' }}
     runs-on: 'ubuntu-latest'
     needs: [release-executables, set-tag]
     steps:
@@ -140,11 +124,3 @@ jobs:
             ```
 
             For executables visit [here](https://github.com/nocodb/nocodb-timely/releases/tag/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }})
-
-
-  # if-merged:
-  #   if: github.event.pull_request.merged == true
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - run: |
-  #       echo The PR was merged

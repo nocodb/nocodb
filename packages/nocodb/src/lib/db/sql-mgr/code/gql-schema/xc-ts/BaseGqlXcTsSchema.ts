@@ -26,7 +26,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
 
     data.columns = {
       func: this._renderColumns.bind(this),
-      args: this.ctx
+      args: this.ctx,
     };
 
     return data;
@@ -142,7 +142,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
 
     let hasManyRelations = args.hasMany;
     if (hasManyRelations.length > 1) {
-      hasManyRelations = lodash.uniqBy(hasManyRelations, e => {
+      hasManyRelations = lodash.uniqBy(hasManyRelations, (e) => {
         return [e.tn, e.rtn].join();
       });
     }
@@ -161,7 +161,7 @@ abstract class BaseGqlXcTsSchema extends BaseRender {
 
     let belongsToRelations = args.belongsTo;
     if (belongsToRelations.length > 1) {
-      belongsToRelations = lodash.uniqBy(belongsToRelations, e => {
+      belongsToRelations = lodash.uniqBy(belongsToRelations, (e) => {
         return [e.tn, e.rtn].join();
       });
     }

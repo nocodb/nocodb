@@ -1,13 +1,9 @@
 <template>
   <v-dialog v-model="dialogShow" persistent max-width="800">
     <v-card>
-      <v-progress-linear
-        v-if="progressbar"
-        indeterminate
-        color="green"
-      />
+      <v-progress-linear v-if="progressbar" indeterminate color="green" />
       <div class="px-2">
-        <v-card-title class=" headline">
+        <v-card-title class="headline">
           Instant API Editor
           <v-spacer />
           <v-btn small :disabled="progressbar" @click="dialogShow = false">
@@ -15,9 +11,7 @@
             {{ $t('general.cancel') }}
           </v-btn>
           <v-btn color="primary" small :disabled="progressbar" @click="saveCode">
-            <v-icon small class="mr-1">
-              mdi-content-save
-            </v-icon>
+            <v-icon small class="mr-1"> mdi-content-save </v-icon>
             <!-- Save -->
             {{ $t('general.save') }}
           </v-btn>
@@ -28,10 +22,7 @@
           <!--            v-model="code"-->
           <!--          ></v-textarea>-->
 
-          <monaco-ts-editor
-            v-model="code"
-            style="min-height: 450px"
-          />
+          <monaco-ts-editor v-model="code" style="min-height: 450px" />
         </v-card-text>
       </div>
     </v-card>
@@ -39,7 +30,7 @@
 </template>
 
 <script>
-import MonacoTsEditor from '../monaco/MonacoTsEditor'
+import MonacoTsEditor from '../monaco/MonacoTsEditor';
 
 export default {
   name: 'GqlHandlerCodeEditor',
@@ -50,70 +41,76 @@ export default {
     nodes: Object,
     isMiddleware: {
       type: Boolean,
-      default: false
+      default: false,
     },
-    functions: String
+    functions: String,
   },
   data: () => ({
     progressbar: false,
-    code: ''
+    code: '',
   }),
   computed: {
     dialogShow: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-      }
-    }
+        this.$emit('input', val);
+      },
+    },
   },
   watch: {
     async resolver(val) {
       try {
-        console.log('=============', this.functions)
-        this.code = JSON.parse(this.functions)[0]
+        console.log('=============', this.functions);
+        this.code = JSON.parse(this.functions)[0];
       } catch (e) {
-        const functionCode = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, this.isMiddleware ? 'defaultResolverMiddlewareCode' : 'defaultResolverHandlerCodeGet', {
-          table_name: this.nodes.table_name || this.nodes.view_name,
-          resolver: this.resolver
-        }])
+        const functionCode = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+          },
+          this.isMiddleware ? 'defaultResolverMiddlewareCode' : 'defaultResolverHandlerCodeGet',
+          {
+            table_name: this.nodes.table_name || this.nodes.view_name,
+            resolver: this.resolver,
+          },
+        ]);
         if (functionCode) {
-          this.code = functionCode
+          this.code = functionCode;
         }
       }
-    }
+    },
   },
   methods: {
     async saveCode() {
       try {
-        this.progressbar = true
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, this.isMiddleware ? 'xcResolverMiddlewareUpdate' : 'xcResolverHandlerUpdate', {
-          table_name: this.nodes.table_name || this.nodes.view_name,
-          resolver: this.resolver,
-          functions: [this.code]
-        }])
-        this.$toast.success('API Handler updated successfully').goAway(3000)
-        this.dialogShow = false
+        this.progressbar = true;
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+          },
+          this.isMiddleware ? 'xcResolverMiddlewareUpdate' : 'xcResolverHandlerUpdate',
+          {
+            table_name: this.nodes.table_name || this.nodes.view_name,
+            resolver: this.resolver,
+            functions: [this.code],
+          },
+        ]);
+        this.$toast.success('API Handler updated successfully').goAway(3000);
+        this.dialogShow = false;
       } catch (e) {
-        console.log('Error', e)
-        this.$toast.error('Some internal error occurred').goAway(3000)
+        console.log('Error', e);
+        this.$toast.error('Some internal error occurred').goAway(3000);
       }
-      this.progressbar = false
-    }
-  }
-}
+      this.progressbar = false;
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

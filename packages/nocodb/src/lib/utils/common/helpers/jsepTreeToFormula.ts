@@ -50,7 +50,7 @@ export default function jsepTreeToFormula(node) {
   }
 
   if (node.type === 'Compound') {
-    return node.body.map(e => jsepTreeToFormula(e)).join(' ');
+    return node.body.map((e) => jsepTreeToFormula(e)).join(' ');
   }
 
   if (node.type === 'ConditionalExpression') {

@@ -198,7 +198,7 @@ Please refer to [Environment variables](https://docs.nocodb.com/getting-started/
 
 # Development setup
 
-Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
+Please refer to [Development Setup](https://docs-dev.nocodb.com/engineering/development-setup)
 
 # Contributing
 

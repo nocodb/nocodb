@@ -66,9 +66,9 @@
 
     <!--    </v-toolbar>-->
 
-    <splitpanes style="height:calc(100%); " class="xc-theme">
+    <splitpanes style="height: calc(100%)" class="xc-theme">
       <pane v-if="showsqlTvs" :size="showsqlTvs ? 25 : 0" :max-size="showsqlTvs ? 50 : 0" style="overflow: auto">
-        <div v-if="showsqlTvs" style="width:100%;height:100%">
+        <div v-if="showsqlTvs" style="width: 100%; height: 100%">
           <v-row class="pa-0 ma-0 pa-2 pl-2 d-block">
             <x-icon
               class="mr-2 cursor-pointer"
@@ -95,29 +95,24 @@
           <v-divider />
 
           <v-expansion-panels v-model="expandedPanel" accordion focusable>
-            <v-expansion-panel
-              v-for="(tv,i) in sqlTvs"
-              :key="i"
-            >
+            <v-expansion-panel v-for="(tv, i) in sqlTvs" :key="i">
               <v-expansion-panel-header hide-actions>
-                <template #default="{open}">
+                <template #default="{ open }">
                   <div class="d-flex">
                     <v-icon color="">
                       {{ open ? 'mdi-menu-down' : 'mdi-menu-right' }}
                     </v-icon>
-                    <v-icon small color="grey" class="ml-1 mr-2">
-                      mdi-folder
-                    </v-icon>
+                    <v-icon small color="grey" class="ml-1 mr-2"> mdi-folder </v-icon>
 
-                    <span
-                      class="body-2 flex-grow-1"
-                    >{{ $store.getters['sqlClient/GtrCurrentSqlFilePaths'][i].fileName }}</span>
+                    <span class="body-2 flex-grow-1">{{
+                      $store.getters['sqlClient/GtrCurrentSqlFilePaths'][i].fileName
+                    }}</span>
 
                     <x-icon
                       color="white grey"
                       class="float-right mr-3"
                       small
-                      @click="toggle[i]=true,x = $event.clientX,y = $event.clientY"
+                      @click="(toggle[i] = true), (x = $event.clientX), (y = $event.clientY)"
                       @click.stop=""
                     >
                       mdi-dots-horizontal
@@ -128,12 +123,12 @@
                       :position-x="x"
                       :position-y="y"
                       :items="{
-                        'Add Folder':'add-folder',
-                        'Reveal in Folder':'reveal-in-folder',
-                        'Delete Collection':'delete-collection',
-                        'Refresh Collection':'refresh-collection'
+                        'Add Folder': 'add-folder',
+                        'Reveal in Folder': 'reveal-in-folder',
+                        'Delete Collection': 'delete-collection',
+                        'Refresh Collection': 'refresh-collection',
                       }"
-                      @click="ctxMenuClickHandler($event,i)"
+                      @click="ctxMenuClickHandler($event, i)"
                     />
                   </div>
                 </template>
@@ -152,28 +147,16 @@
                   @add-node="onAddNode"
                 >
                   <span slot="leafNodeIcon" />
-                  <v-icon slot="treeNodeIcon" small color="grey" class="mr-1">
-                    mdi-folder-star
-                  </v-icon>
+                  <v-icon slot="treeNodeIcon" small color="grey" class="mr-1"> mdi-folder-star </v-icon>
 
-                  <v-icon slot="addTreeNode" small>
-                    mdi-folder-plus
-                  </v-icon>
-                  <v-icon slot="addLeafNode" small>
-                    mdi-file-plus
-                  </v-icon>
-                  <v-icon slot="editNode" small class="mt-n1">
-                    mdi-file-edit
-                  </v-icon>
-                  <v-icon slot="delNode" small>
-                    mdi-delete
-                  </v-icon>
+                  <v-icon slot="addTreeNode" small> mdi-folder-plus </v-icon>
+                  <v-icon slot="addLeafNode" small> mdi-file-plus </v-icon>
+                  <v-icon slot="editNode" small class="mt-n1"> mdi-file-edit </v-icon>
+                  <v-icon slot="delNode" small> mdi-delete </v-icon>
                   <template #extraLeafNode>
-                    <v-icon small>
-                      mdi-delete
-                    </v-icon>
+                    <v-icon small> mdi-delete </v-icon>
                   </template>
-                  <template #label="{item}">
+                  <template #label="{ item }">
                     <v-icon
                       v-if="item.isLeaf"
                       small
@@ -190,28 +173,18 @@
           </v-expansion-panels>
         </div>
       </pane>
-      <pane style="overflow: auto" :size="showsqlTvs ? 75 :100">
-        <div style="position: relative;height: 100%;min-height: 200px">
-          <v-tabs
-            v-model="tab"
-            style="height: 100%"
-            dense
-            height="38"
-            class="sql-editor-tab"
-          >
-            <v-tab v-for="(c,i) in editors" :key="i">
-              <template v-if="c.type==='file'">
+      <pane style="overflow: auto" :size="showsqlTvs ? 75 : 100">
+        <div style="position: relative; height: 100%; min-height: 200px">
+          <v-tabs v-model="tab" style="height: 100%" dense height="38" class="sql-editor-tab">
+            <v-tab v-for="(c, i) in editors" :key="i">
+              <template v-if="c.type === 'file'">
                 {{ c.fileName }}
-                <v-icon small class="ml-2" @click.prevent.stop="fileClose('showDialog',i)">
-                  close
-                </v-icon>
+                <v-icon small class="ml-2" @click.prevent.stop="fileClose('showDialog', i)"> close </v-icon>
               </template>
-              <template v-else>
-                Query - {{ i + 1 }}
-              </template>
+              <template v-else> Query - {{ i + 1 }} </template>
             </v-tab>
             <v-tabs-items v-model="tab" style="height: calc(100% - 38px)">
-              <v-tab-item v-for="(c,i) in editors" :key="i" style="height: 100%">
+              <v-tab-item v-for="(c, i) in editors" :key="i" style="height: 100%">
                 <div class="d-flex" style="height: 100%; position: relative">
                   <div style="" class="text-center flex-shrink-1 d-flex flex-column">
                     <x-icon
@@ -241,9 +214,9 @@
                       mdi-star
                     </x-icon>
                     <x-icon
-                      :tooltip="showsqlTvs?'Close Sql Collection( ⌘ K )':'Open Sql Collection( ⌘ K )'"
+                      :tooltip="showsqlTvs ? 'Close Sql Collection( ⌘ K )' : 'Open Sql Collection( ⌘ K )'"
                       icon-class="mx-2 mt-3 elevation-1 py-1"
-                      :color="showsqlTvs?'amber amber':'amber amber'"
+                      :color="showsqlTvs ? 'amber amber' : 'amber amber'"
                       small
                       @click="showSqlCollectionToggle"
                     >
@@ -279,7 +252,7 @@
                       mdi-close-box
                     </x-icon>
                   </div>
-                  <div class="flex-grow-1" style="overflow:auto;height:100%">
+                  <div class="flex-grow-1" style="overflow: auto; height: 100%">
                     <MonacoSqlEditor
                       :ref="`editor-${i}`"
                       :tables="tableList"
@@ -289,7 +262,7 @@
                       css-style="height:100%"
                       @execute="runSelectedSqlCode"
                       @bookmark="bookmarkQuery"
-                      @searchHistory=" $refs.search.$el.querySelector('input').click()"
+                      @searchHistory="$refs.search.$el.querySelector('input').click()"
                       @toggleBookmark="showSqlCollectionToggle"
                       @saveFile="fileSave(editors[tab])"
                       @openFile="openFile"
@@ -320,16 +293,16 @@
 
 // Todo: handling resize bar when hidden
 
-import { mapGetters } from 'vuex'
-import { VueTreeList, Tree, TreeNode } from 'vue-tree-list'
-import { Splitpanes, Pane } from 'splitpanes'
-import sqlRightClickOptions from '../../helpers/sqlRightClickOptions'
-import dlgLabelSubmitCancel from '../utils/DlgLabelSubmitCancel.vue'
+import { mapGetters } from 'vuex';
+import { VueTreeList, Tree, TreeNode } from 'vue-tree-list';
+import { Splitpanes, Pane } from 'splitpanes';
+import sqlRightClickOptions from '../../helpers/sqlRightClickOptions';
+import dlgLabelSubmitCancel from '../utils/DlgLabelSubmitCancel.vue';
 
-import Utils from '../../helpers/Utils'
+import Utils from '../../helpers/Utils';
 
-import MonacoSqlEditor from '../monaco/MonacoSqlEditor'
-import {SqlUiFactory} from "nocodb-sdk";
+import MonacoSqlEditor from '../monaco/MonacoSqlEditor';
+import { SqlUiFactory } from 'nocodb-sdk';
 
 export default {
   components: {
@@ -337,9 +310,9 @@ export default {
     dlgLabelSubmitCancel,
     VueTreeList,
     Splitpanes,
-    Pane
+    Pane,
   },
-  data () {
+  data() {
     return {
       expandedPanel: null,
       toggle: {},
@@ -360,21 +333,21 @@ export default {
               name: 'Node 1-2',
               id: 2,
               isLeaf: true,
-              pid: 1
-            }
-          ]
+              pid: 1,
+            },
+          ],
         },
         {
           name: 'Node 2',
           id: 3,
           pid: 0,
-          disabled: true
+          disabled: true,
         },
         {
           name: 'Node 3',
           id: 4,
-          pid: 0
-        }
+          pid: 0,
+        },
       ]),
       opened: [],
 
@@ -403,59 +376,58 @@ export default {
           align: 'left',
           sortable: false,
           value: 'query',
-          class: 'text-center black'
-        }
-      ]
-    }
+          class: 'text-center black',
+        },
+      ],
+    };
   },
   computed: {
     ...mapGetters({
       sqlMgr: 'sqlMgr/sqlMgr',
       currentProjectFolder: 'project/currentProjectFolder',
-      projectQueriesFolder: 'project/projectQueriesFolder'
-    })
+      projectQueriesFolder: 'project/projectQueriesFolder',
+    }),
   },
-  watch:
-      {
-        editors: {
-          handler (editors) {
-            this.$store.commit('sqlClient/MutSetEditors', editors)
-          },
-          deep: true
-        }
+  watch: {
+    editors: {
+      handler(editors) {
+        this.$store.commit('sqlClient/MutSetEditors', editors);
       },
-  async created () {
+      deep: true,
+    },
+  },
+  async created() {
     this.$store.dispatch('sqlClient/loadSqlCollectionForProject', {
       projectId: 1,
-      projectName: this.$store.getters['project/GtrProjectName']
-    })
+      projectName: this.$store.getters['project/GtrProjectName'],
+    });
 
     try {
       /* load all files that are were previously opened */
       if (!this.$store.getters['sqlClient/GtrCurrentSqlFilePaths'].length) {
-        const defaultPath = '' // path.join(this.currentProjectFolder, 'server', 'tool', this.nodes.dbAlias, this.projectQueriesFolder, 'queries.xc.json');
+        const defaultPath = ''; // path.join(this.currentProjectFolder, 'server', 'tool', this.nodes.dbAlias, this.projectQueriesFolder, 'queries.xc.json');
         this.$store.commit('sqlClient/MutSqlFilePathsAdd', {
           path: defaultPath,
-          fileName: ''// path.basename(defaultPath)
-        })
+          fileName: '', // path.basename(defaultPath)
+        });
       }
 
       for (let i = 0; i < this.$store.getters['sqlClient/GtrCurrentSqlFilePaths'].length; ++i) {
-        await this.loadFileCollection(this.$store.getters['sqlClient/GtrCurrentSqlFilePaths'][i])
+        await this.loadFileCollection(this.$store.getters['sqlClient/GtrCurrentSqlFilePaths'][i]);
       }
     } catch (e) {
-      console.log('Failed to load previously opened query collections', e)
+      console.log('Failed to load previously opened query collections', e);
     }
 
-    this.sqlUi = SqlUiFactory.create(this.nodes.dbConnection)
-    console.log('------------', this.nodes)
-    this.editors = this.$store.state.sqlClient.editors.map(editor => ({ ...editor }))
-    this.checkClipboardForQuery(this.$store.state.sqlClient.clipboardQuery)
-    const vm = this
+    this.sqlUi = SqlUiFactory.create(this.nodes.dbConnection);
+    console.log('------------', this.nodes);
+    this.editors = this.$store.state.sqlClient.editors.map(editor => ({ ...editor }));
+    this.checkClipboardForQuery(this.$store.state.sqlClient.clipboardQuery);
+    const vm = this;
     this.$store.watch(
       state => state.sqlClient.clipboardQuery,
       clipboardQuery => vm.checkClipboardForQuery(clipboardQuery)
-    )
+    );
 
     // const client = await this.sqlMgr.projectGetSqlClient({
     //   env: this.nodes.env,
@@ -463,19 +435,17 @@ export default {
     // });
     // const result = await client.tableList();
     // console.log(result)
-    this.tableList = [] // result.data.list.map(table => table.table_name)
+    this.tableList = []; // result.data.list.map(table => table.table_name)
 
-    this.expandedPanel = 0
+    this.expandedPanel = 0;
   },
-  mounted () {
-  },
-  beforeDestroy () {
-  },
+  mounted() {},
+  beforeDestroy() {},
   methods: {
     dateToHowManyAgo: Utils.dateToHowManyAgo,
     findById: Utils.findById,
 
-    async openNewCollection () {
+    async openNewCollection() {
       // try {
       //   const toLocalPath = path.join(this.currentProjectFolder, 'server', 'tool', this.nodes.dbAlias, this.projectQueriesFolder)
       //
@@ -501,7 +471,7 @@ export default {
       // }
     },
 
-    async columnNameCbk (tn) {
+    async columnNameCbk(tn) {
       // tableColumnList
       //
       // const client = await this.sqlMgr.projectGetSqlClient({
@@ -512,158 +482,168 @@ export default {
       // const columns = result.data.list.map(table => table.column_name)
       // this.$set(this.tableColumnList, tn, columns);
       // return columns;
-      return []
+      return [];
     },
 
-    async tvNodeDelete (node) {
-      console.log(node)
-      node.remove()
-      await this.savefileCollections(this.expandedPanel)
+    async tvNodeDelete(node) {
+      console.log(node);
+      node.remove();
+      await this.savefileCollections(this.expandedPanel);
     },
 
-    async tvNodeRename (params) {
-      console.log(params)
-      await this.savefileCollections(this.expandedPanel)
+    async tvNodeRename(params) {
+      console.log(params);
+      await this.savefileCollections(this.expandedPanel);
     },
 
-    async onAddNode (params) {
-      console.log(params)
-      await this.savefileCollections(this.expandedPanel)
+    async onAddNode(params) {
+      console.log(params);
+      await this.savefileCollections(this.expandedPanel);
     },
 
-    tvNodeOnClick (params) {
-      console.log(params)
-      if (params.query) { this.selectQuery(params) }
+    tvNodeOnClick(params) {
+      console.log(params);
+      if (params.query) {
+        this.selectQuery(params);
+      }
     },
-    async openCollectionFolder (pathString) {
-      shell.showItemInFolder(pathString)
+    async openCollectionFolder(pathString) {
+      shell.showItemInFolder(pathString);
     },
-    tvToObject (index) {
-      const vm = this
+    tvToObject(index) {
+      const vm = this;
 
-      function _dfs (oldNode) {
-        const newNode = {}
+      function _dfs(oldNode) {
+        const newNode = {};
 
         for (const k in oldNode) {
           if (k !== 'children' && k !== 'parent') {
-            newNode[k] = oldNode[k]
+            newNode[k] = oldNode[k];
           }
         }
 
         if (oldNode.children && oldNode.children.length > 0) {
-          newNode.children = []
+          newNode.children = [];
           for (let i = 0, len = oldNode.children.length; i < len; i++) {
-            newNode.children.push(_dfs(oldNode.children[i]))
+            newNode.children.push(_dfs(oldNode.children[i]));
           }
         }
-        return newNode
+        return newNode;
       }
 
-      return _dfs(vm.sqlTvs[index]).children
+      return _dfs(vm.sqlTvs[index]).children;
     },
 
-    async tvNodeFolderAdd (index) {
-      const node = new TreeNode({ name: 'New Folder', isLeaf: false })
-      if (!this.sqlTvs[index].children) { this.sqlTvs[index].children = [] }
-      this.sqlTvs[index].addChildren(node)
-      await this.savefileCollections(index)
+    async tvNodeFolderAdd(index) {
+      const node = new TreeNode({ name: 'New Folder', isLeaf: false });
+      if (!this.sqlTvs[index].children) {
+        this.sqlTvs[index].children = [];
+      }
+      this.sqlTvs[index].addChildren(node);
+      await this.savefileCollections(index);
     },
 
-    async ctxMenuClickHandler (actionEvent, index) {
-      console.log(actionEvent, index)
+    async ctxMenuClickHandler(actionEvent, index) {
+      console.log(actionEvent, index);
       switch (actionEvent.value) {
         case 'add-folder':
-          this.tvNodeFolderAdd(index)
-          break
+          this.tvNodeFolderAdd(index);
+          break;
         case 'reveal-in-folder':
-          await this.openCollectionFolder(this.$store.getters['sqlClient/GtrCurrentSqlFilePaths'][index].path)
-          break
+          await this.openCollectionFolder(this.$store.getters['sqlClient/GtrCurrentSqlFilePaths'][index].path);
+          break;
         case 'delete-collection':
-          this.$store.commit('sqlClient/MutSqlFilePathsRemove', index)
-          this.fileCollections.splice(index, 1)
-          this.sqlTvs.splice(index, 1)
-          break
+          this.$store.commit('sqlClient/MutSqlFilePathsRemove', index);
+          this.fileCollections.splice(index, 1);
+          this.sqlTvs.splice(index, 1);
+          break;
         case 'refresh-collection':
-          await this.refreshFileCollection(index)
-          break
+          await this.refreshFileCollection(index);
+          break;
         default:
-          break
+          break;
       }
       // this.deleteQueryByPath(this.sqlTvs, this.menuItem.path);
     },
-    async runSelectedSqlCode () {
-      this.executeQuery(this.$refs[`editor-${this.tab}`][0].getCurrentQuery())
+    async runSelectedSqlCode() {
+      this.executeQuery(this.$refs[`editor-${this.tab}`][0].getCurrentQuery());
     },
-    async runAllSqlCode () {
-      const queryString = this.$refs[`editor-${this.tab}`][0].getAllContent()
+    async runAllSqlCode() {
+      const queryString = this.$refs[`editor-${this.tab}`][0].getAllContent();
 
-      const queries = this.sqlUi.splitQueries(queryString)
+      const queries = this.sqlUi.splitQueries(queryString);
       if (queries) {
         for (const query of queries) {
-          await this.executeQuery(query)
+          await this.executeQuery(query);
         }
-      } else { await this.executeQuery('') }
-
-      console.log(queries)
-    },
-    async runSqlCode () {
-      this.executeQuery(this.editors[this.tab].code)
-    },
-    async executeQuery (query) {
-      if (query.trim() === '') {
-        this.$toast.info('Query is empty').goAway(5000)
-        return
+      } else {
+        await this.executeQuery('');
       }
-      this.loading = true
+
+      console.log(queries);
+    },
+    async runSqlCode() {
+      this.executeQuery(this.editors[this.tab].code);
+    },
+    async executeQuery(query) {
+      if (query.trim() === '') {
+        this.$toast.info('Query is empty').goAway(5000);
+        return;
+      }
+      this.loading = true;
 
       try {
         const result = await this.$store.dispatch('sqlClient/executeQuery', {
           envs: {
             env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias
+            dbAlias: this.nodes.dbAlias,
           },
-          query
-        })
-        this.$store.commit('outputs/MutListSet', { sqlUi: this.sqlUi, headers: [], result })
+          query,
+        });
+        this.$store.commit('outputs/MutListSet', { sqlUi: this.sqlUi, headers: [], result });
         // this.result = this.sqlUi.handleRawOutput(result, this.headers);
       } catch (e) {
-        this.$toast.error('Query failed : ' + e.message).goAway(3000)
+        this.$toast.error('Query failed : ' + e.message).goAway(3000);
         this.$store.commit('outputs/MutListSet', {
           headers: [{ text: 'Mesage', value: 'message', sortable: false }],
-          result: [{ message: e.message }]
-        })
+          result: [{ message: e.message }],
+        });
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
-    editorClear () {
-      this.editors[this.tab].code = ''
-      this.$store.commit('outputs/MutClear')
+    editorClear() {
+      this.editors[this.tab].code = '';
+      this.$store.commit('outputs/MutClear');
     },
-    queryDeleteFromHistory (item) {
-      this.$store.commit('sqlClient/MutListRemoveItem', item)
+    queryDeleteFromHistory(item) {
+      this.$store.commit('sqlClient/MutListRemoveItem', item);
     },
-    selectQuery ({ query }) {
-      if (this.editors[this.tab].code.trim()) { this.editors[this.tab].code += '\n\n' + query } else { this.editors[this.tab].code = query }
-      this.$refs[`editor-${this.tab}`][0].focus()
+    selectQuery({ query }) {
+      if (this.editors[this.tab].code.trim()) {
+        this.editors[this.tab].code += '\n\n' + query;
+      } else {
+        this.editors[this.tab].code = query;
+      }
+      this.$refs[`editor-${this.tab}`][0].focus();
     },
-    async copyAndExecute (query) {
-      this.selectQuery(query)
-      await this.runSqlCode()
+    async copyAndExecute(query) {
+      this.selectQuery(query);
+      await this.runSqlCode();
     },
-    queryFilter (item, queryText, itemText) {
-      return item.query.toLowerCase().includes(queryText.toLowerCase())
+    queryFilter(item, queryText, itemText) {
+      return item.query.toLowerCase().includes(queryText.toLowerCase());
     },
-    changedSelectedQuery (query) {
-      this.selectQuery({ query })
+    changedSelectedQuery(query) {
+      this.selectQuery({ query });
     },
-    checkClipboardForQuery (clipboardQuery) {
+    checkClipboardForQuery(clipboardQuery) {
       if (clipboardQuery) {
-        this.$set(this.editors[this.tab], 'code', clipboardQuery)
-        this.$store.commit('sqlClient/MutSetClipboardQuery', null)
+        this.$set(this.editors[this.tab], 'code', clipboardQuery);
+        this.$store.commit('sqlClient/MutSetClipboardQuery', null);
       }
     },
-    openFile () {
+    openFile() {
       // if (this.editors.filter(({ type }) => type === 'file').length >= 4) {
       //   this.$toast.info('Only 4 files can be opened').goAway(4000)
       //   return
@@ -682,7 +662,7 @@ export default {
       //   })
       // }
     },
-    openSqlFileCollection () {
+    openSqlFileCollection() {
       // const vm = this
       // const file = dialog.showOpenDialog({
       //   properties: ['openFile']
@@ -702,10 +682,10 @@ export default {
       //   }
       // }
     },
-    showSqlCollectionToggle (status = true) {
-      this.showsqlTvs = !this.showsqlTvs
+    showSqlCollectionToggle(status = true) {
+      this.showsqlTvs = !this.showsqlTvs;
     },
-    fileSave (editor, cbk = null) {
+    fileSave(editor, cbk = null) {
       // console.log(editor)
       // if (editor.type != 'file') {
       //   return
@@ -720,60 +700,66 @@ export default {
       //   if (cbk) { cbk(err, result) }
       // })
     },
-    async fileClose (action = '', index) {
+    async fileClose(action = '', index) {
       if (action === 'showDialog') {
-        this.closeFileDlg = true
-        this.closeIndex = index
+        this.closeFileDlg = true;
+        this.closeIndex = index;
       } else if (action === 'hideDialog') {
-        this.editors.splice(this.closeIndex, 1)
-        this.closeFileDlg = false
-        this.closeIndex = null
+        this.editors.splice(this.closeIndex, 1);
+        this.closeFileDlg = false;
+        this.closeIndex = null;
       } else {
-        const vm = this
+        const vm = this;
         this.fileSave(this.editors[this.closeIndex], function (err, result) {
-          vm.editors.splice(vm.closeIndex, 1)
-          vm.closeIndex = null
-          vm.closeFileDlg = false
-        })
+          vm.editors.splice(vm.closeIndex, 1);
+          vm.closeIndex = null;
+          vm.closeFileDlg = false;
+        });
       }
     },
-    queryClickHandler (item) {
-      console.log('bookmark', item)
-      if (item.type !== 'folder') { this.selectQuery({ query: item.query }) }
+    queryClickHandler(item) {
+      console.log('bookmark', item);
+      if (item.type !== 'folder') {
+        this.selectQuery({ query: item.query });
+      }
     },
-    ctxMenuShow (e, item) {
-      if (!item) { return }
-      this.menuItem = item
-      e.preventDefault()
-      this.x = e.clientX
-      this.y = e.clientY
+    ctxMenuShow(e, item) {
+      if (!item) {
+        return;
+      }
+      this.menuItem = item;
+      e.preventDefault();
+      this.x = e.clientX;
+      this.y = e.clientY;
       this.$nextTick(() => {
-        this.menuVisible = true
-      })
+        this.menuVisible = true;
+      });
     },
-    ctxMenuOptions () {
-      if (!this.menuItem || !this.menuItem) { return }
-      const options = sqlRightClickOptions[this.menuItem.type === 'folder' ? 'folder' : 'file']
-      return options
+    ctxMenuOptions() {
+      if (!this.menuItem || !this.menuItem) {
+        return;
+      }
+      const options = sqlRightClickOptions[this.menuItem.type === 'folder' ? 'folder' : 'file'];
+      return options;
     },
 
-    async fileCollectionsReload () {
-      const data = new Tree(await this.fileCollections.read())
-      console.log(data)
+    async fileCollectionsReload() {
+      const data = new Tree(await this.fileCollections.read());
+      console.log(data);
 
-      this.sqlTvs = data
+      this.sqlTvs = data;
       // this.$set(this, 'sqlTvs', data);
     },
 
-    async savefileCollections (index = 0) {
-      await this.fileCollections[index].write({ data: this.tvToObject(index) })
+    async savefileCollections(index = 0) {
+      await this.fileCollections[index].write({ data: this.tvToObject(index) });
     },
 
-    async bookmarkQuery () {
-      const q = this.$refs[`editor-${this.tab}`][0].getCurrentQuery()
+    async bookmarkQuery() {
+      const q = this.$refs[`editor-${this.tab}`][0].getCurrentQuery();
 
       if (q.trim()) {
-        this.showsqlTvs = true
+        this.showsqlTvs = true;
 
         const node = new TreeNode({
           id: Date.now(),
@@ -784,26 +770,36 @@ export default {
           label: 'Example',
           name: 'Last saved query',
           pid: 0,
-          isLeaf: true
-        })
+          isLeaf: true,
+        });
 
-        let expandedPanelIndex = this.expandedPanel
+        let expandedPanelIndex = this.expandedPanel;
         if (typeof expandedPanelIndex !== 'number') {
           expandedPanelIndex = this.$store.getters['sqlClient/GtrCurrentSqlFilePaths'].findIndex(
-            file => file.path === path.join(this.currentProjectFolder, 'server', 'tool', this.nodes.dbAlias, this.projectQueriesFolder, 'queries.xc.json')
-          )
+            file =>
+              file.path ===
+              path.join(
+                this.currentProjectFolder,
+                'server',
+                'tool',
+                this.nodes.dbAlias,
+                this.projectQueriesFolder,
+                'queries.xc.json'
+              )
+          );
         }
 
-        if (!this.sqlTvs[expandedPanelIndex].children) { this.sqlTvs[expandedPanelIndex].children = [] }
-        this.sqlTvs[expandedPanelIndex].addChildren(node)
-        await this.savefileCollections(expandedPanelIndex)
+        if (!this.sqlTvs[expandedPanelIndex].children) {
+          this.sqlTvs[expandedPanelIndex].children = [];
+        }
+        this.sqlTvs[expandedPanelIndex].addChildren(node);
+        await this.savefileCollections(expandedPanelIndex);
 
-        this.$toast.success('Query bookmarked').goAway(1000)
+        this.$toast.success('Query bookmarked').goAway(1000);
       }
     },
 
-    async loadFileCollection (pathObj, index = 0) {
-
+    async loadFileCollection(pathObj, index = 0) {
       // try {
       //   const fileCollection = new FileCollection(pathObj);
       //   await fileCollection.init();
@@ -816,54 +812,48 @@ export default {
       //   console.log('Error in loadFileCollection:', e);
       //   throw e;
       // }
-
     },
-    async refreshFileCollection (index = 0) {
+    async refreshFileCollection(index = 0) {
       try {
-        const pathObj = this.$store.getters['sqlClient/GtrCurrentSqlFilePaths'][index]
-        const fileCollection = new FileCollection(pathObj)
-        await fileCollection.init()
+        const pathObj = this.$store.getters['sqlClient/GtrCurrentSqlFilePaths'][index];
+        const fileCollection = new FileCollection(pathObj);
+        await fileCollection.init();
 
-        this.fileCollections[index] = fileCollection
+        this.fileCollections[index] = fileCollection;
 
-        const data = new Tree(await fileCollection.read())
-        this.$set(this.sqlTvs, index, data)
+        const data = new Tree(await fileCollection.read());
+        this.$set(this.sqlTvs, index, data);
       } catch (e) {
-        console.log('Error in loadFileCollection:', e)
-        throw e
+        console.log('Error in loadFileCollection:', e);
+        throw e;
       }
-    }
-
+    },
   },
 
-  beforeCreated () {
-  },
-  destroy () {
-  },
+  beforeCreated() {},
+  destroy() {},
   directives: {},
-  validate ({ params }) {
-    return true
+  validate({ params }) {
+    return true;
   },
-  head () {
-    return {}
+  head() {
+    return {};
   },
-  props: ['nodes']
-}
-
+  props: ['nodes'],
+};
 </script>
 
 <style scoped>
-  .vertical-resizer {
-    height: 5px;
-    background: grey;
-    cursor: ns-resize;
-    position: relative;
-  }
+.vertical-resizer {
+  height: 5px;
+  background: grey;
+  cursor: ns-resize;
+  position: relative;
+}
 
-  .vertical-resizer + * {
-    overflow-y: auto;
-  }
-
+.vertical-resizer + * {
+  overflow-y: auto;
+}
 </style>
 
 <!--

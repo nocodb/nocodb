@@ -9,7 +9,7 @@ import {
   PgClient,
   SqlClient,
   // SqlClientFactory,
-  Tele
+  Tele,
 } from 'nc-help';
 
 import XcDynamicChanges from '../../../interface/XcDynamicChanges';
@@ -60,11 +60,12 @@ const IGNORE_TABLES = [
   'nc_projects',
   'nc_projects_users',
   'nc_relations',
-  'nc_shared_views'
+  'nc_shared_views',
 ];
 
 export default abstract class BaseApiBuilder<T extends Noco>
-  implements XcDynamicChanges {
+  implements XcDynamicChanges
+{
   public abstract readonly type: string;
 
   public get knex(): XKnex {
@@ -192,7 +193,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
-      projectId: this.projectId
+      projectId: this.projectId,
     });
   }
 
@@ -240,20 +241,20 @@ export default abstract class BaseApiBuilder<T extends Noco>
               _or: [
                 {
                   tn: {
-                    eq: tn
-                  }
+                    eq: tn,
+                  },
                 },
                 {
                   rtn: {
-                    eq: tn
-                  }
-                }
-              ]
+                    eq: tn,
+                  },
+                },
+              ],
             },
             ...(extras?.ignoreVirtualRelations
               ? [{ type: { neq: 'virtual' } }]
-              : [])
-          ]
+              : []),
+          ],
         }
       );
 
@@ -264,7 +265,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_shared_views',
       {
-        model_name: tn
+        model_name: tn,
       }
     );
     if (delete this.metas[tn]) delete this.metas[tn];
@@ -282,7 +283,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       onUpdate,
       parentColumn,
       virtual,
-      foreignKeyName: fkn
+      foreignKeyName: fkn,
     } = args;
 
     XcCache.del([this.projectId, this.dbAlias, 'table', tnp].join('::'));
@@ -304,7 +305,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
           db_type: this.connectionConfig?.client,
           dr: onDelete,
           ur: onUpdate,
-          fkn
+          fkn,
         }
       );
     } else {
@@ -314,13 +315,13 @@ export default abstract class BaseApiBuilder<T extends Noco>
         'nc_relations',
         {
           _tn: this.getTableNameAlias(tnc),
-          _rtn: this.getTableNameAlias(tnp)
+          _rtn: this.getTableNameAlias(tnp),
         },
         {
           tn: tnc,
           cn: childColumn,
           rtn: tnp,
-          rcn: parentColumn
+          rcn: parentColumn,
         }
       );
     }
@@ -346,7 +347,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       rtn: tnp,
       rcn: parentColumn,
       type: 'real',
-      db_type: this.connectionConfig?.client
+      db_type: this.connectionConfig?.client,
     });
 
     await this.deleteRelationInACL(tnp, tnc);
@@ -355,15 +356,13 @@ export default abstract class BaseApiBuilder<T extends Noco>
     XcCache.del([this.projectId, this.dbAlias, 'table', tnp].join('::'));
 
     for (const tn of [tnc, tnp]) {
-      const {
-        virtualViews,
-        virtualViewsParamsArr
-      } = await this.extractSharedAndVirtualViewsParams(tn);
+      const { virtualViews, virtualViewsParamsArr } =
+        await this.extractSharedAndVirtualViewsParams(tn);
 
       // extract alias of relation virtual column
       const relation = tnc === tn ? 'bt' : 'hm';
       const alias = this.getMeta(tn)?.v?.find(
-        v => v?.[relation]?.tn === tnc && v?.[relation]?.rtn === tnp
+        (v) => v?.[relation]?.tn === tnc && v?.[relation]?.rtn === tnp
       )?._cn;
 
       // virtual views param update
@@ -406,7 +405,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         this.dbAlias,
         'nc_models',
         {
-          query_params: JSON.stringify(virtualViewsParamsArr[i])
+          query_params: JSON.stringify(virtualViewsParamsArr[i]),
         },
         virtualViews[i].id
       );
@@ -421,11 +420,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
       {
         condition: {
           type: 'vtable',
-          parent_model_title: tn
-        }
+          parent_model_title: tn,
+        },
       }
     );
-    const virtualViewsParamsArr = virtualViews.map(v => {
+    const virtualViewsParamsArr = virtualViews.map((v) => {
       try {
         return JSON.parse(v.query_params);
       } catch (e) {}
@@ -434,7 +433,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
     return {
       virtualViews,
-      virtualViewsParamsArr
+      virtualViewsParamsArr,
     };
   }
 
@@ -456,10 +455,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_relations',
       {
-        tn: newTableName
+        tn: newTableName,
       },
       {
-        tn: oldTableName
+        tn: oldTableName,
       }
     );
     await this.xcMeta.metaUpdate(
@@ -467,10 +466,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_relations',
       {
-        rtn: newTableName
+        rtn: newTableName,
       },
       {
-        rtn: oldTableName
+        rtn: oldTableName,
       }
     );
 
@@ -479,10 +478,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_hooks',
       {
-        tn: newTableName
+        tn: newTableName,
       },
       {
-        tn: oldTableName
+        tn: oldTableName,
       }
     );
 
@@ -492,7 +491,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_models',
       {
-        parent_model_title: newTableName
+        parent_model_title: newTableName,
       },
       { parent_model_title: oldTableName, type: 'vtable' }
     );
@@ -528,10 +527,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_relations',
       {
-        _rtn: newTableAliasName
+        _rtn: newTableAliasName,
       },
       {
-        _rtn: oldTableAliasName
+        _rtn: oldTableAliasName,
       }
     );
 
@@ -593,10 +592,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_relations',
       {
-        _tn: newTableAliasName
+        _tn: newTableAliasName,
       },
       {
-        _tn: oldTableAliasName
+        _tn: oldTableAliasName,
       }
     );
     /* Update meta data */
@@ -606,7 +605,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       'nc_models',
       {
         meta: JSON.stringify(meta),
-        alias: newTableAliasName
+        alias: newTableAliasName,
       },
       { title: tableName, type: 'table' }
     );
@@ -664,10 +663,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
         this.dbAlias,
         'nc_models',
         {
-          meta: JSON.stringify(meta)
+          meta: JSON.stringify(meta),
         },
         {
-          title: relTableName
+          title: relTableName,
         }
       );
 
@@ -696,7 +695,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       'nc_models',
       {
         title: tn,
-        type: 'table'
+        type: 'table',
       }
     );
 
@@ -738,7 +737,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_models',
       {
-        title: tn
+        title: tn,
       }
     );
 
@@ -756,11 +755,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
     // todo : optimize db operations
     const columns =
       changeObj.columns
-        .filter(c => c.altered !== 4)
+        .filter((c) => c.altered !== 4)
         .map(({ altered: _al, ...rest }) =>
           this.mergeUiColAndDbColMetas(
             rest,
-            columnsFromDb?.find(c => c.cn === rest.cn)
+            columnsFromDb?.find((c) => c.cn === rest.cn)
           )
         ) || (await this.getColumnList(tn));
 
@@ -769,10 +768,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const belongsTo = this.extractBelongsToRelationsOfTable(relations, tn);
     const hasMany = this.extractHasManyRelationsOfTable(relations, tn);
 
-    const {
-      virtualViews,
-      virtualViewsParamsArr
-    } = await this.extractSharedAndVirtualViewsParams(tn);
+    const { virtualViews, virtualViewsParamsArr } =
+      await this.extractSharedAndVirtualViewsParams(tn);
 
     const ctx = this.generateContextForTable(
       tn,
@@ -791,7 +788,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const newMeta: any = ModelXcMetaFactory.create(this.connectionConfig, {
       dir: '',
       ctx,
-      filename: ''
+      filename: '',
     }).getObject();
 
     /* get ACL row  */
@@ -820,8 +817,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
       let newCol;
       // column update
       if (column.altered === 8 || column.altered === 2) {
-        oldCol = oldMeta.columns.find(c => c.cn === column.cno);
-        newCol = newMeta.columns.find(c => c.cn === column.cn);
+        oldCol = oldMeta.columns.find((c) => c.cn === column.cno);
+        newCol = newMeta.columns.find((c) => c.cn === column.cn);
         if (
           newCol &&
           oldCol &&
@@ -836,7 +833,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
           updateColumnNameInFormula({
             virtualColumns: newMeta.v,
             oldColumnName: oldCol.cn,
-            newColumnName: newCol.cn
+            newColumnName: newCol.cn,
           });
 
           // todo: populate alias
@@ -847,11 +844,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
             this.dbAlias,
             'nc_relations',
             {
-              cn: column.cn
+              cn: column.cn,
             },
             {
               cn: column.cno,
-              tn
+              tn,
             }
           );
           await this.xcMeta.metaUpdate(
@@ -859,11 +856,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
             this.dbAlias,
             'nc_relations',
             {
-              rcn: column.cn
+              rcn: column.cn,
             },
             {
               rcn: column.cno,
-              rtn: tn
+              rtn: tn,
             }
           );
 
@@ -880,10 +877,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
               sortList,
               showFields = {},
               fieldsOrder,
-              extraViewParams = {}
+              extraViewParams = {},
             } = qp;
             /* update sort field */
-            const s = sortList?.find(v => v.field === column.cno);
+            const s = sortList?.find((v) => v.field === column.cno);
             if (s) {
               s.field = column.cn;
             }
@@ -934,7 +931,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
               }
 
               // update lookup columns
-              this.metas[bt.rtn].v?.forEach(v => {
+              this.metas[bt.rtn].v?.forEach((v) => {
                 if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cno) {
                   relationTableMetas.add(this.metas[bt.rtn]);
                   v.lk.lcn = column.cn;
@@ -962,7 +959,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
               }
 
               // update lookup columns
-              this.metas[hm.tn].v?.forEach(v => {
+              this.metas[hm.tn].v?.forEach((v) => {
                 if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cno) {
                   relationTableMetas.add(this.metas[hm.tn]);
                   v.lk.lcn = column.cn;
@@ -990,7 +987,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
               }
 
               // update lookup columns
-              this.metas[mm.rtn].v?.forEach(v => {
+              this.metas[mm.rtn].v?.forEach((v) => {
                 if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cno) {
                   relationTableMetas.add(this.metas[mm.rtn]);
                   v.lk.lcn = column.cn;
@@ -1027,7 +1024,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
         addErrorOnColumnDeleteInFormula({
           virtualColumns: newMeta.v,
-          columnName: column.cno
+          columnName: column.cno,
         });
 
         aclOper.push(async () => this.deleteColumnNameInACL(tn, column.cno));
@@ -1040,11 +1037,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
             sortList,
             showFields = {},
             fieldsOrder,
-            extraViewParams = {}
+            extraViewParams = {},
           } = qp;
           /* update sort field */
           const sIndex = (sortList || []).findIndex(
-            v => v.field === column.cno
+            (v) => v.field === column.cno
           );
           if (sIndex > -1) {
             sortList.splice(sIndex, 1);
@@ -1076,7 +1073,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         if (newMeta.belongsTo?.length) {
           for (const bt of newMeta.belongsTo) {
             // filter out lookup columns which maps to current col
-            this.metas[bt.rtn].v = this.metas[bt.rtn].v?.filter(v => {
+            this.metas[bt.rtn].v = this.metas[bt.rtn].v?.filter((v) => {
               if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cn) {
                 relationTableMetas.add(this.metas[bt.rtn]);
                 return false;
@@ -1090,7 +1087,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         if (newMeta.hasMany?.length) {
           for (const hm of newMeta.hasMany) {
             // filter out lookup columns which maps to current col
-            this.metas[hm.tn].v = this.metas[hm.tn].v?.filter(v => {
+            this.metas[hm.tn].v = this.metas[hm.tn].v?.filter((v) => {
               if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cn) {
                 relationTableMetas.add(this.metas[hm.tn]);
                 return false;
@@ -1104,7 +1101,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         if (newMeta.manyToMany?.length) {
           for (const mm of newMeta.manyToMany) {
             // filter out lookup columns which maps to current col
-            this.metas[mm.rtn].v = this.metas[mm.rtn].v?.filter(v => {
+            this.metas[mm.rtn].v = this.metas[mm.rtn].v?.filter((v) => {
               if (v.lk && v.lk.ltn === tn && v.lk.lcn === column.cn) {
                 relationTableMetas.add(this.metas[mm.rtn]);
                 return false;
@@ -1128,8 +1125,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
           queryParams.showFields[column.cno] = true;
         }
       } else {
-        oldCol = oldMeta.columns.find(c => c.cn === column.cn);
-        newCol = newMeta.columns.find(c => c.cn === column.cn);
+        oldCol = oldMeta.columns.find((c) => c.cn === column.cn);
+        newCol = newMeta.columns.find((c) => c.cn === column.cn);
         if (newCol && oldCol) {
           newCol.validate = oldCol.validate;
           if (
@@ -1155,10 +1152,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
         this.dbAlias,
         'nc_models',
         {
-          meta: JSON.stringify(relMeta)
+          meta: JSON.stringify(relMeta),
         },
         {
-          title: relMeta.tn
+          title: relMeta.tn,
         }
       );
       this.models[relMeta.tn] = this.getBaseModel(relMeta);
@@ -1173,10 +1170,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
       'nc_models',
       {
         meta: JSON.stringify(newMeta),
-        ...(queryParams ? { query_params: JSON.stringify(queryParams) } : {})
+        ...(queryParams ? { query_params: JSON.stringify(queryParams) } : {}),
       },
       {
-        title: tn
+        title: tn,
       }
     );
     XcCache.del([this.projectId, this.dbAlias, 'table', tn].join('::'));
@@ -1188,10 +1185,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_acl',
       {
-        acl: JSON.stringify(acl)
+        acl: JSON.stringify(acl),
       },
       {
-        tn
+        tn,
       }
     );
 
@@ -1221,9 +1218,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
         ? {
             dtx: uiCol.dtx,
             dtxp: uiCol.dtxp,
-            dtxs: uiCol.dtxs
+            dtxs: uiCol.dtxs,
           }
-        : {})
+        : {}),
     };
   }
 
@@ -1242,7 +1239,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_models',
       {
-        title: viewName
+        title: viewName,
       }
     );
 
@@ -1271,7 +1268,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const newMeta = ModelXcMetaFactory.create(this.connectionConfig, {
       dir: '',
       ctx,
-      filename: ''
+      filename: '',
     }).getObject();
 
     this.baseLog(`onViewUpdate : Updating model meta of '%s' view`, viewName);
@@ -1281,17 +1278,17 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_models',
       {
-        meta: JSON.stringify(newMeta)
+        meta: JSON.stringify(newMeta),
       },
       {
-        title: viewName
+        title: viewName,
       }
     );
 
     if (beforeMetaUpdate) {
       await beforeMetaUpdate({
         ctx,
-        meta: newMeta
+        meta: newMeta,
       });
     }
     this.baseLog(
@@ -1331,7 +1328,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       { name: '0083006', handler: ncModelsOrderUpgrader },
       { name: '0083007', handler: ncParentModelTitleUpgrader },
       { name: '0083008', handler: ncRemoveDuplicatedRelationRows },
-      { name: '0084002', handler: this.ncUpAddNestedResolverArgs.bind(this) }
+      { name: '0084002', handler: this.ncUpAddNestedResolverArgs.bind(this) },
     ];
     if (!(await this.xcMeta?.knex?.schema?.hasTable?.('nc_store'))) {
       return;
@@ -1360,7 +1357,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
               xcMeta: this.xcMeta,
               builder: this,
               dbAlias: this.dbAlias,
-              projectId: this.projectId
+              projectId: this.projectId,
             });
 
             // update version in meta after each upgrade
@@ -1370,10 +1367,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
               this.dbAlias,
               'nc_store',
               {
-                value: JSON.stringify(configObj)
+                value: JSON.stringify(configObj),
               },
               {
-                key: 'NC_CONFIG'
+                key: 'NC_CONFIG',
               }
             );
 
@@ -1389,10 +1386,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
           this.dbAlias,
           'nc_store',
           {
-            value: JSON.stringify(configObj)
+            value: JSON.stringify(configObj),
           },
           {
-            key: 'NC_CONFIG'
+            key: 'NC_CONFIG',
           }
         );
       }
@@ -1406,7 +1403,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
       await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_store', {
         key: 'NC_CONFIG',
-        value: JSON.stringify(configObj)
+        value: JSON.stringify(configObj),
       });
       if (isOld) {
         await this.xcUpgrade();
@@ -1455,11 +1452,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
   public async xcTablesRowDelete(tn: string, extras?: any): Promise<void> {
     await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
-      title: tn
+      title: tn,
     });
     if (!extras?.ignoreViews)
       await this.xcMeta.metaDelete(this.projectId, this.dbAlias, 'nc_models', {
-        parent_model_title: tn
+        parent_model_title: tn,
       });
   }
 
@@ -1473,11 +1470,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
       'nc_relations',
       {
         _tn: this.getTableNameAlias(childTable),
-        _rtn: this.getTableNameAlias(parentTable)
+        _rtn: this.getTableNameAlias(parentTable),
       },
       {
         tn: childTable,
-        rtn: parentTable
+        rtn: parentTable,
       }
     );
   }
@@ -1499,14 +1496,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const childMeta = this.metas[child];
 
     parentMeta.manyToMany = parentMeta.manyToMany.filter(
-      mm =>
+      (mm) =>
         !(
           (mm.tn === parent && mm.rtn === child) ||
           (mm.tn === child && mm.rtn === parent)
         )
     );
     childMeta.manyToMany = childMeta.manyToMany.filter(
-      mm =>
+      (mm) =>
         !(
           (mm.tn === parent && mm.rtn === child) ||
           (mm.tn === child && mm.rtn === parent)
@@ -1551,7 +1548,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         this.dbAlias,
         'nc_models',
         {
-          meta: JSON.stringify(meta)
+          meta: JSON.stringify(meta),
         },
         { title: meta.tn }
       );
@@ -1563,15 +1560,13 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
     for (const [tnp, tnc] of [
       [parent, child],
-      [child, parent]
+      [child, parent],
     ]) {
-      const {
-        virtualViews,
-        virtualViewsParamsArr
-      } = await this.extractSharedAndVirtualViewsParams(tnp);
+      const { virtualViews, virtualViewsParamsArr } =
+        await this.extractSharedAndVirtualViewsParams(tnp);
 
       const alias = this.getMeta(tnp)?.v?.find(
-        v => v?.tn === tnp && v?.mm?.rtn === tnc
+        (v) => v?.tn === tnp && v?.mm?.rtn === tnc
       )?._cn;
 
       // virtual views param update
@@ -1615,7 +1610,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   public async onVirtualColumnAliasUpdate({
     tn,
     oldAlias,
-    newAlias
+    newAlias,
   }: any): Promise<void> {
     const model = await this.xcMeta.metaGet(
       this.projectId,
@@ -1633,11 +1628,11 @@ export default abstract class BaseApiBuilder<T extends Noco>
       {
         condition: {
           type: 'vtable',
-          parent_model_title: tn
-        }
+          parent_model_title: tn,
+        },
       }
     );
-    const virtualViewsParamsArr = virtualViews.map(v => {
+    const virtualViewsParamsArr = virtualViews.map((v) => {
       try {
         return JSON.parse(v.query_params);
       } catch (e) {}
@@ -1687,13 +1682,13 @@ export default abstract class BaseApiBuilder<T extends Noco>
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
-      projectId: this.projectId
+      projectId: this.projectId,
     });
     this.sqlClient = NcConnectionMgr.getSqlClient({
       dbAlias: this.dbAlias,
       env: this.config.env,
       config: this.config,
-      projectId: this.projectId
+      projectId: this.projectId,
     });
     // if (!this.dbDriver) {
     //   if(this.projectBuilder?.prefix){
@@ -1798,7 +1793,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   ): any[] {
     this.baseLog(`extractHasManyRelationsOfTable : '%s'`, tn);
     const hasManyRel = relations.filter(
-      r => r.rtn === tn && (!enabledModels || enabledModels.includes(r.tn))
+      (r) => r.rtn === tn && (!enabledModels || enabledModels.includes(r.tn))
     );
     const hasMany = JSON.parse(JSON.stringify(hasManyRel));
     return hasMany;
@@ -1813,7 +1808,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const belongsTo = JSON.parse(
       JSON.stringify(
         relations.filter(
-          r => r.tn === tn && (!enabledModels || enabledModels.includes(r.rtn))
+          (r) =>
+            r.tn === tn && (!enabledModels || enabledModels.includes(r.rtn))
         )
       )
     );
@@ -1863,7 +1859,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       dbAlias: '',
       routeVersionLetter: this.routeVersionLetter,
       type,
-      project_id: this.projectId
+      project_id: this.projectId,
     };
     return ctx;
   }
@@ -1886,7 +1882,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   }
 
   protected getTableName(alias) {
-    return Object.values(this.metas).find(m => m._tn === alias)?.tn;
+    return Object.values(this.metas).find((m) => m._tn === alias)?.tn;
   }
 
   protected generateContextForHasMany(
@@ -1900,7 +1896,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       _tn: this.metas[ctx.tn]?._tn,
       _ctn: relationColumnName,
       ctn: tnc,
-      project_id: this.projectId
+      project_id: this.projectId,
     };
   }
 
@@ -1960,7 +1956,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   ): any[] {
     this.baseLog(`filterRelationsForTable : '%s'`, tn);
     const tableRelations = relations.filter(
-      r =>
+      (r) =>
         (r.tn === tn && (!enabledModels || enabledModels.includes(r.rtn))) ||
         (r.rtn === tn && (!enabledModels || enabledModels.includes(r.tn)))
     );
@@ -2015,8 +2011,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
       'nc_models',
       {
         condition: {
-          show_as: 'form'
-        }
+          show_as: 'form',
+        },
       }
     );
 
@@ -2049,18 +2045,18 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.procedureOrFunctionAcls[name] = {
         creator: true,
         editor: true,
-        guest: false
+        guest: false,
       };
       /* create nc_models and its rows if it doesn't exists  */
       if (
         !(await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_acl', {
-          tn: name
+          tn: name,
         }))
       ) {
         await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_acl', {
           tn: name,
           acl: JSON.stringify(this.procedureOrFunctionAcls[name]),
-          type
+          type,
         });
       }
     } else {
@@ -2072,19 +2068,19 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.acls[name] = new ExpressXcPolicy({
         dir: '',
         ctx: { type },
-        filename: ''
+        filename: '',
       }).getObject();
 
       /* create nc_models and its rows if it doesn't exists  */
       if (
         !(await this.xcMeta.metaGet(this.projectId, this.dbAlias, 'nc_acl', {
-          tn: name
+          tn: name,
         }))
       ) {
         await this.xcMeta.metaInsert(this.projectId, this.dbAlias, 'nc_acl', {
           tn: name,
           acl: JSON.stringify(this.acls[name]),
-          type
+          type,
         });
       }
     }
@@ -2144,7 +2140,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       enabledModels,
       tableAndViewArr,
       functionArr,
-      procedureArr
+      procedureArr,
     };
   }
 
@@ -2168,8 +2164,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
           'type',
           'db_type',
           'dr',
-          'fkn'
-        ]
+          'fkn',
+        ],
       }
     );
 
@@ -2211,7 +2207,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
           db_type: this.connectionConfig?.client,
           dr: relation?.dr,
           ur: relation?.ur,
-          fkn: relation?.cstn
+          fkn: relation?.cstn,
         }
       );
     }
@@ -2219,10 +2215,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
   }
 
   protected async syncRelations(): Promise<boolean> {
-    const [
-      relations,
-      missingRelations
-    ] = await this.getRelationsAndMissingRelations();
+    const [relations, missingRelations] =
+      await this.getRelationsAndMissingRelations();
     if (!missingRelations) return false;
 
     this.relationsCount = relations.length + missingRelations.length;
@@ -2245,7 +2239,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
           db_type: this.connectionConfig?.client,
           dr: relation?.dr,
           ur: relation?.ur,
-          fkn: relation?.cstn
+          fkn: relation?.cstn,
         }
       );
     }
@@ -2272,8 +2266,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
           'type',
           'db_type',
           'dr',
-          'fkn'
-        ]
+          'fkn',
+        ],
       }
     );
 
@@ -2282,10 +2276,12 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
     // Relations missing in metadata
     const missingRelations = dbRelations
-      .filter(dbRelation => {
-        return relations.every(relation => relation?.fkn !== dbRelation?.cstn);
+      .filter((dbRelation) => {
+        return relations.every(
+          (relation) => relation?.fkn !== dbRelation?.cstn
+        );
       })
-      .map(relation => {
+      .map((relation) => {
         relation.enabled = true;
         relation.fkn = relation?.cstn;
         return relation;
@@ -2303,7 +2299,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_relations',
       {
-        tn: newTableName
+        tn: newTableName,
       },
       { tn: oldTableName }
     );
@@ -2313,7 +2309,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_relations',
       {
-        rtn: newTableName
+        rtn: newTableName,
       },
       { rtn: oldTableName }
     );
@@ -2322,7 +2318,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   protected async getManyToManyRelations({
     parent = null,
     child = null,
-    localMetas = null
+    localMetas = null,
   } = {}): Promise<Set<any>> {
     const metas = new Set<any>();
     const assocMetas = new Set<any>();
@@ -2357,7 +2353,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
         // add manytomany data under metadata of both linked tables
         tableMetaA.manyToMany = tableMetaA.manyToMany || [];
-        if (tableMetaA.manyToMany.every(mm => mm.vtn !== meta.tn)) {
+        if (tableMetaA.manyToMany.every((mm) => mm.vtn !== meta.tn)) {
           tableMetaA.manyToMany.push({
             tn: tableMetaA.tn,
             cn: meta.belongsTo[0].rcn,
@@ -2369,14 +2365,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
             _tn: tableMetaA._tn,
             _cn: meta.belongsTo[0]._rcn,
             _rtn: meta.belongsTo[1]._rtn,
-            _rcn: meta.belongsTo[1]._rcn
+            _rcn: meta.belongsTo[1]._rcn,
           });
           metas.add(tableMetaA);
         }
         // ignore if A & B are same table
         if (tableMetaB !== tableMetaA) {
           tableMetaB.manyToMany = tableMetaB.manyToMany || [];
-          if (tableMetaB.manyToMany.every(mm => mm.vtn !== meta.tn)) {
+          if (tableMetaB.manyToMany.every((mm) => mm.vtn !== meta.tn)) {
             tableMetaB.manyToMany.push({
               tn: tableMetaB.tn,
               cn: meta.belongsTo[1].rcn,
@@ -2388,7 +2384,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
               _tn: tableMetaB._tn,
               _cn: meta.belongsTo[1]._rcn,
               _rtn: meta.belongsTo[0]._rtn,
-              _rcn: meta.belongsTo[0]._rcn
+              _rcn: meta.belongsTo[0]._rcn,
             });
             metas.add(tableMetaB);
           }
@@ -2422,7 +2418,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
       meta.v = [
         ...meta.v.filter(
-          vc => !(vc.hm && meta.manyToMany.some(mm => vc.hm.tn === mm.vtn))
+          (vc) => !(vc.hm && meta.manyToMany.some((mm) => vc.hm.tn === mm.vtn))
         ),
         // todo: ignore duplicate m2m relations
         // todo: optimize, just compare associative table(Vtn)
@@ -2430,7 +2426,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
           .filter(
             (v, i) =>
               !meta.v.some(
-                v1 =>
+                (v1) =>
                   v1.mm &&
                   ((v1.mm.tn === v.tn && v.rtn === v1.mm.rtn) ||
                     (v1.mm.rtn === v.tn && v.tn === v1.mm.rtn)) &&
@@ -2445,7 +2441,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
                   v.vtn === v1.vtn
               )
           )
-          .map(mm => {
+          .map((mm) => {
             if (
               queryParams?.showFields &&
               !(`${mm._tn} <=> ${mm._rtn}` in queryParams.showFields)
@@ -2455,9 +2451,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
             return {
               mm,
-              _cn: `${mm._tn} <=> ${mm._rtn}`
+              _cn: `${mm._tn} <=> ${mm._rtn}`,
             };
-          })
+          }),
       ];
       await this.xcMeta.metaUpdate(
         this.projectId,
@@ -2465,7 +2461,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         'nc_models',
         {
           meta: JSON.stringify(meta),
-          ...(queryParams ? { query_params: JSON.stringify(queryParams) } : {})
+          ...(queryParams ? { query_params: JSON.stringify(queryParams) } : {}),
         },
         { title: meta.tn }
       );
@@ -2482,7 +2478,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         this.dbAlias,
         'nc_models',
         {
-          mm: 1
+          mm: 1,
         },
         { title: meta.tn }
       );
@@ -2507,8 +2503,8 @@ export default abstract class BaseApiBuilder<T extends Noco>
       {
         fields: ['meta'],
         condition: {
-          type: 'table'
-        }
+          type: 'table',
+        },
       }
     );
     if (!models.length) {
@@ -2532,7 +2528,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       meta.v = ModelXcMetaFactory.create(this.connectionConfig, {
         dir: '',
         ctx,
-        filename: ''
+        filename: '',
       }).getVitualColumns();
       // set default primary values
       ModelXcMetaFactory.create(
@@ -2545,7 +2541,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
         this.dbAlias,
         'nc_models',
         {
-          meta: JSON.stringify(meta)
+          meta: JSON.stringify(meta),
         },
         { title: meta.tn }
       );
@@ -2558,7 +2554,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
   private getColumnNameAlias(col, tableName?: string) {
     return (
-      this.metas?.[tableName]?.columns?.find(c => c.cn === col.cn)?._cn ||
+      this.metas?.[tableName]?.columns?.find((c) => c.cn === col.cn)?._cn ||
       col._cn ||
       this.getInflectedName(col.cn, this.connectionConfig?.meta?.inflection?.cn)
     );
@@ -2576,7 +2572,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       return;
     }
 
-    const replaceTableName = obj => {
+    const replaceTableName = (obj) => {
       if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
         return;
       }
@@ -2603,9 +2599,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
       {
         xcCondition: {
           acl: {
-            like: '%"custom":%'
-          }
-        }
+            like: '%"custom":%',
+          },
+        },
       }
     );
 
@@ -2632,10 +2628,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
         this.dbAlias,
         'nc_acl',
         {
-          acl: JSON.stringify(aclObj)
+          acl: JSON.stringify(aclObj),
         },
         {
-          id: aclRow.id
+          id: aclRow.id,
         }
       );
     }
@@ -2643,7 +2639,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
   // @ts-ignore
   private async deleteTableNameInACL(table: string) {
-    const replaceTableName = obj => {
+    const replaceTableName = (obj) => {
       if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
         return;
       }
@@ -2668,9 +2664,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
       {
         xcCondition: {
           acl: {
-            like: '%"custom":%'
-          }
-        }
+            like: '%"custom":%',
+          },
+        },
       }
     );
 
@@ -2695,10 +2691,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
         this.dbAlias,
         'nc_acl',
         {
-          acl: JSON.stringify(aclObj)
+          acl: JSON.stringify(aclObj),
         },
         {
-          id: aclRow.id
+          id: aclRow.id,
         }
       );
     }
@@ -2717,7 +2713,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       return;
     }
 
-    const findColumnAndRename = obj => {
+    const findColumnAndRename = (obj) => {
       if (!obj) {
         return;
       }
@@ -2741,7 +2737,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       }
     };
 
-    const replaceColumnName = obj => {
+    const replaceColumnName = (obj) => {
       if (!obj || typeof obj !== 'object') {
         return;
       }
@@ -2766,9 +2762,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
       {
         xcCondition: {
           acl: {
-            like: '%"custom":%'
-          }
-        }
+            like: '%"custom":%',
+          },
+        },
       }
     );
 
@@ -2797,10 +2793,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
           this.dbAlias,
           'nc_acl',
           {
-            acl: JSON.stringify(aclObj)
+            acl: JSON.stringify(aclObj),
           },
           {
-            id: aclRow.id
+            id: aclRow.id,
           }
         );
       } catch (e) {
@@ -2817,7 +2813,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
   ): Promise<void> {
     this.baseLog(`deleteColumnNameInACL : '${cn}' in '${table}'`);
 
-    const findColumnAndRename = obj => {
+    const findColumnAndRename = (obj) => {
       if (!obj) {
         return;
       }
@@ -2840,7 +2836,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       }
     };
 
-    const replaceColumnName = obj => {
+    const replaceColumnName = (obj) => {
       if (!obj || typeof obj !== 'object') {
         return;
       }
@@ -2865,9 +2861,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
       {
         xcCondition: {
           acl: {
-            like: '%"custom":%'
-          }
-        }
+            like: '%"custom":%',
+          },
+        },
       }
     );
 
@@ -2896,10 +2892,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
           this.dbAlias,
           'nc_acl',
           {
-            acl: JSON.stringify(aclObj)
+            acl: JSON.stringify(aclObj),
           },
           {
-            id: aclRow.id
+            id: aclRow.id,
           }
         );
       } catch (e) {
@@ -2958,9 +2954,9 @@ export default abstract class BaseApiBuilder<T extends Noco>
       {
         xcCondition: {
           acl: {
-            like: '%"custom":%'
-          }
-        }
+            like: '%"custom":%',
+          },
+        },
       }
     );
 
@@ -2988,10 +2984,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
           this.dbAlias,
           'nc_acl',
           {
-            acl: JSON.stringify(aclObj)
+            acl: JSON.stringify(aclObj),
           },
           {
-            id: aclRow.id
+            id: aclRow.id,
           }
         );
       } catch (e) {
@@ -3073,16 +3069,16 @@ export default abstract class BaseApiBuilder<T extends Noco>
           _or: [
             {
               tn: {
-                eq: tableName
-              }
+                eq: tableName,
+              },
             },
             {
               rtn: {
-                eq: tableName
-              }
-            }
-          ]
-        }
+                eq: tableName,
+              },
+            },
+          ],
+        },
       }
     );
     const colListRef = {};
@@ -3110,10 +3106,10 @@ export default abstract class BaseApiBuilder<T extends Noco>
       // todo: compare with real relation list
       if (
         !(
-          tableList.find(t => t.tn === rel.rtn) &&
-          tableList.find(t => t.tn === rel.tn) &&
-          colListRef[rel.tn].find(t => t.cn === rel.cn) &&
-          colListRef[rel.rtn].find(t => t.cn === rel.rcn)
+          tableList.find((t) => t.tn === rel.rtn) &&
+          tableList.find((t) => t.tn === rel.tn) &&
+          colListRef[rel.tn].find((t) => t.cn === rel.cn) &&
+          colListRef[rel.rtn].find((t) => t.cn === rel.rcn)
         )
       )
         await this.xcMeta.metaDelete(
@@ -3134,7 +3130,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
 
     await this.onTableDelete(tableName, {
       ignoreRelations: true,
-      ignoreViews: true
+      ignoreViews: true,
     } as any);
 
     let queryParams: any;
@@ -3144,16 +3140,14 @@ export default abstract class BaseApiBuilder<T extends Noco>
       queryParams = {};
     }
 
-    const {
-      virtualViews,
-      virtualViewsParamsArr
-    } = await this.extractSharedAndVirtualViewsParams(tableName);
+    const { virtualViews, virtualViewsParamsArr } =
+      await this.extractSharedAndVirtualViewsParams(tableName);
 
     for (const oldColumn of oldMeta.columns) {
-      if (colListRef[tableName].find(c => c.cn === oldColumn.cn)) continue;
+      if (colListRef[tableName].find((c) => c.cn === oldColumn.cn)) continue;
       addErrorOnColumnDeleteInFormula({
         virtualColumns: oldMeta.v,
-        columnName: oldColumn.cn
+        columnName: oldColumn.cn,
       });
     }
 
@@ -3162,7 +3156,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
     const meta = this.getMeta(tableName);
 
     for (const oldColumn of oldMeta.columns) {
-      if (meta.columns.find(c => c.cn === oldColumn.cn)) continue;
+      if (meta.columns.find((c) => c.cn === oldColumn.cn)) continue;
 
       // virtual views param update
       for (const qp of [queryParams, ...virtualViewsParamsArr]) {
@@ -3174,12 +3168,12 @@ export default abstract class BaseApiBuilder<T extends Noco>
           sortList = [],
           showFields = {},
           fieldsOrder = [],
-          extraViewParams = {}
+          extraViewParams = {},
         } = qp;
 
         /* update sort field */
         const sIndex = (sortList || []).findIndex(
-          v => v.field === oldColumn._cn
+          (v) => v.field === oldColumn._cn
         );
         if (sIndex > -1) {
           sortList.splice(sIndex, 1);
@@ -3233,7 +3227,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
       this.dbAlias,
       'nc_models',
       {
-        query_params: JSON.stringify(queryParams)
+        query_params: JSON.stringify(queryParams),
       },
       { title: tableName, type: 'table' }
     );
@@ -3246,7 +3240,7 @@ export default abstract class BaseApiBuilder<T extends Noco>
           .knex('nc_models')
           .where({
             project_id: this.projectId,
-            db_alias: this.dbAlias
+            db_alias: this.dbAlias,
           })
           .max('order as max')
           .first()
@@ -3302,7 +3296,7 @@ export {
   IGNORE_TABLES,
   NcBuilderUpgraderCtx,
   NcMetaData,
-  XcTablesPopulateParams
+  XcTablesPopulateParams,
 };
 
 /**

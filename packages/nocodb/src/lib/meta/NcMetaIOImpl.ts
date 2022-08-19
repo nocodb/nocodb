@@ -66,7 +66,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
 
     return {
       list: await query,
-      count: Object.values(await countQuery.count().first())?.[0] as any
+      count: Object.values(await countQuery.count().first())?.[0] as any,
     };
   }
 
@@ -85,7 +85,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
       this.connection = trx || XKnex(this.config?.meta?.db);
     } else {
       let dbIndex = this.config.envs?.[this.config.workingEnv]?.db.findIndex(
-        c => c.meta.dbAlias === this.config?.auth?.jwt?.dbAlias
+        (c) => c.meta.dbAlias === this.config?.auth?.jwt?.dbAlias
       );
       dbIndex = dbIndex === -1 ? 0 : dbIndex;
       this.connection = XKnex(
@@ -107,11 +107,11 @@ export default class NcMetaIOImpl extends NcMetaIO {
   public async metaInit(): Promise<boolean> {
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSource(),
-      tableName: 'xc_knex_migrations'
+      tableName: 'xc_knex_migrations',
     });
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSourcev2(),
-      tableName: 'xc_knex_migrationsv2'
+      tableName: 'xc_knex_migrationsv2',
     });
     return true;
   }
@@ -246,7 +246,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
       project_id,
       created_at: this.knexConnection?.fn?.now(),
       updated_at: this.knexConnection?.fn?.now(),
-      ...data
+      ...data,
     });
   }
 
@@ -260,14 +260,14 @@ export default class NcMetaIOImpl extends NcMetaIO {
     const id = data?.id || this.genNanoid(target);
     const insertObj = {
       ...data,
-      ...(ignoreIdGeneration ? {} : { id })
+      ...(ignoreIdGeneration ? {} : { id }),
     };
     if (base_id !== null) insertObj.base_id = base_id;
     if (project_id !== null) insertObj.project_id = project_id;
     await this.knexConnection(target).insert({
       ...insertObj,
       created_at: insertObj?.created_at || this.knexConnection?.fn?.now(),
-      updated_at: insertObj?.updated_at || this.knexConnection?.fn?.now()
+      updated_at: insertObj?.updated_at || this.knexConnection?.fn?.now(),
     });
     return insertObj;
   }
@@ -454,7 +454,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
 
     if (apiType) {
       await Promise.all(
-        META_TABLES?.[apiType]?.map(table => {
+        META_TABLES?.[apiType]?.map((table) => {
           return (async () => {
             try {
               await this.knexConnection(table)
@@ -492,19 +492,19 @@ export default class NcMetaIOImpl extends NcMetaIO {
         config: CryptoJS.AES.encrypt(
           JSON.stringify(config),
           this.config?.auth?.jwt?.secret
-        ).toString()
+        ).toString(),
       };
       // todo: check project name used or not
       await this.knexConnection('nc_projects').insert({
         ...project,
         created_at: this.knexConnection?.fn?.now(),
-        updated_at: this.knexConnection?.fn?.now()
+        updated_at: this.knexConnection?.fn?.now(),
       });
 
       // todo
       await this.knexConnection(MetaTable.PROJECT).insert({
         id,
-        title: projectName
+        title: projectName,
       });
 
       project.prefix = config.prefix;
@@ -520,21 +520,19 @@ export default class NcMetaIOImpl extends NcMetaIO {
         config: CryptoJS.AES.encrypt(
           JSON.stringify(config, null, 2),
           this.config?.auth?.jwt?.secret
-        ).toString()
+        ).toString(),
       };
       // todo: check project name used or not
-      await this.knexConnection('nc_projects')
-        .update(project)
-        .where({
-          id: projectId
-        });
+      await this.knexConnection('nc_projects').update(project).where({
+        id: projectId,
+      });
     } catch (e) {
       console.log(e);
     }
   }
 
   public async projectList(): Promise<any[]> {
-    return (await this.knexConnection('nc_projects').select()).map(p => {
+    return (await this.knexConnection('nc_projects').select()).map((p) => {
       p.config = CryptoJS.AES.decrypt(
         p.config,
         this.config?.auth?.jwt?.secret
@@ -578,7 +576,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
               '=',
               'xc_users.id'
             )
-            .where(qb => {
+            .where((qb) => {
               qb.where('nc_projects_users.roles', 'like', '%creator%').orWhere(
                 'nc_projects_users.roles',
                 'like',
@@ -590,7 +588,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
             .first()
             .as('is_creator')
         )
-    ).map(p => {
+    ).map((p) => {
       p.allowed = p.user_id === userId;
       p.config = CryptoJS.AES.decrypt(
         p.config,
@@ -607,7 +605,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return !!(await this.knexConnection('nc_projects_users')
       .where({
         project_id: projectId,
-        user_id: userId
+        user_id: userId,
       })
       .first());
   }
@@ -615,7 +613,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   public async projectGet(projectName: string, encrypt?): Promise<any> {
     const project = await this.knexConnection('nc_projects')
       .where({
-        title: projectName
+        title: projectName,
       })
       .first();
 
@@ -631,7 +629,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   public async projectGetById(projectId: string, encrypt?): Promise<any> {
     const project = await this.knexConnection('nc_projects')
       .where({
-        id: projectId
+        id: projectId,
       })
       .first();
     if (project && !encrypt) {
@@ -646,7 +644,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   public projectDelete(title: string): Promise<any> {
     return this.knexConnection('nc_projects')
       .where({
-        title
+        title,
       })
       .delete();
   }
@@ -654,7 +652,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   public projectDeleteById(id: string): Promise<any> {
     return this.knexConnection('nc_projects')
       .where({
-        id
+        id,
       })
       .delete();
   }
@@ -665,10 +663,10 @@ export default class NcMetaIOImpl extends NcMetaIO {
   ): Promise<any> {
     return this.knexConnection('nc_projects')
       .update({
-        status
+        status,
       })
       .where({
-        id: projectId
+        id: projectId,
       });
   }
 
@@ -681,7 +679,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
       await this.knexConnection('nc_projects_users')
         .where({
           user_id: userId,
-          project_id: projectId
+          project_id: projectId,
         })
         .first()
     ) {
@@ -690,7 +688,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return this.knexConnection('nc_projects_users').insert({
       user_id: userId,
       project_id: projectId,
-      roles
+      roles,
     });
   }
 
@@ -698,7 +696,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return this.knexConnection('nc_projects_users')
       .where({
         user_id: userId,
-        project_id: projectId
+        project_id: projectId,
       })
       .delete();
   }
@@ -706,26 +704,26 @@ export default class NcMetaIOImpl extends NcMetaIO {
   public removeXcUser(userId: any): Promise<any> {
     return this.knexConnection('xc_users')
       .where({
-        id: userId
+        id: userId,
       })
       .delete();
   }
 
   get isRest(): boolean {
     return this.config?.envs?.[this.config.workingEnv]?.db?.some(
-      db => db?.meta?.api?.type === 'rest'
+      (db) => db?.meta?.api?.type === 'rest'
     );
   }
 
   get isGql(): boolean {
     return this.config?.envs?.[this.config.workingEnv]?.db?.some(
-      db => db?.meta?.api?.type === 'graphql'
+      (db) => db?.meta?.api?.type === 'graphql'
     );
   }
 
   get isGrpc(): boolean {
     return this.config?.envs?.[this.config.workingEnv]?.db?.some(
-      db => db?.meta?.api?.type === 'grpc'
+      (db) => db?.meta?.api?.type === 'grpc'
     );
   }
 

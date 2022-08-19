@@ -3,42 +3,42 @@
   <v-card>
     <v-textarea v-model="template" />
 
-    <v-btn @click="ImportTemplate">
-      import
-    </v-btn>
+    <v-btn @click="ImportTemplate"> import </v-btn>
   </v-card>
-<!--  </v-dialog>-->
+  <!--  </v-dialog>-->
 </template>
 
 <script>
 export default {
   name: 'ImportTemplate',
   props: {
-    nodes: Object
+    nodes: Object,
   },
   data() {
     return {
-      template: ''
-    }
+      template: '',
+    };
   },
   methods: {
     importTemplate() {
       try {
-        const template = JSON.parse(this.template)
-        this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.nodes.dbAlias,
-          env: '_noco'
-        }, 'xcModelsCreateFromTemplate', {
-          template
-        }])
+        const template = JSON.parse(this.template);
+        this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.nodes.dbAlias,
+            env: '_noco',
+          },
+          'xcModelsCreateFromTemplate',
+          {
+            template,
+          },
+        ]);
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(e.message).goAway(3000);
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

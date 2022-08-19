@@ -59,7 +59,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
       parentId: req.params.parentId,
       tnp: req.parentModel.tn,
       id: req.params.id,
-      ...req.query
+      ...req.query,
     } as any);
     res.xcJson(data);
   }
@@ -69,7 +69,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
       parentId: req.params.parentId,
       tnp: req.parentModel.tn,
       id: req.params.id,
-      data: req.body
+      data: req.body,
     });
     res.json(data);
   }
@@ -78,7 +78,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
     const data = await req.childModel.delByFk({
       parentId: req.params.parentId,
       tnp: req.parentModel.tn,
-      id: req.params.id
+      id: req.params.id,
     });
     res.json(data);
   }
@@ -87,7 +87,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
     const data = await req.childModel.insertByFk({
       parentId: req.params.parentId,
       tnp: req.parentModel.tn,
-      data: req.body
+      data: req.body,
     });
     res.xcJson(data);
   }
@@ -96,7 +96,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
     const data = await req.childModel.findOneByFk({
       parentId: req.params.parentId,
       tnp: req.parentModel.tn,
-      ...req.query
+      ...req.query,
     });
     res.xcJson(data);
   }
@@ -105,7 +105,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
     const data = await req.childModel.countByFk({
       parentId: req.params.parentId,
       tnp: req.parentModel.tn,
-      ...req.query
+      ...req.query,
     } as any);
     res.json(data);
   }
@@ -115,7 +115,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
       parentId: req.params.parentId,
       tnp: req.parentModel.tn,
       id: req.params.id,
-      ...req.query
+      ...req.query,
     } as any);
     res.json(data);
   }
@@ -124,7 +124,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
     const data = await req.parentModel.hasManyChildren({
       child: req.childModel.tn,
       ...req.params,
-      ...req.query
+      ...req.query,
     } as any);
     res.xcJson(data);
   }
@@ -132,7 +132,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
   public async hasManyList(req: Request | any, res): Promise<void> {
     const data = await req.parentModel.hasManyList({
       ...req.query,
-      childs: this.childTable // req.childModel.tn
+      childs: this.childTable, // req.childModel.tn
     } as any);
     res.xcJson(data);
   }
@@ -151,7 +151,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
       get: 'read',
       post: 'create',
       put: 'update',
-      delete: 'delete'
+      delete: 'delete',
     };
 
     const roleOperationPossible = (roles, operation, object) => {
@@ -166,7 +166,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
           );
           (req as any).query.conditionGraph = {
             condition,
-            models: this.models
+            models: this.models,
           };
         }
         if (this.parentAcl?.[roleName]?.[operation]?.custom) {
@@ -176,7 +176,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
           );
           (req as any).query.parentNestedCondition = {
             condition,
-            models: this.models
+            models: this.models,
           };
         }
 
@@ -184,7 +184,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
 
         if (parentColumns) {
           const allowedParentCols = Object.keys(parentColumns).filter(
-            col => parentColumns[col]
+            (col) => parentColumns[col]
           );
           res.locals.xcAcl.allowedParentCols =
             res.locals.xcAcl.allowedParentCols || [];
@@ -226,11 +226,11 @@ export class RestCtrlHasMany extends RestBaseCtrl {
       if (columns) {
         // todo: merge allowed columns if multiple roles
         const allowedChildCols = Object.keys(columns).filter(
-          col => columns[col]
+          (col) => columns[col]
         );
         Object.assign(res.locals.xcAcl, {
           allowedChildCols,
-          childColumns: columns
+          childColumns: columns,
         });
 
         if (operation === 'update' || operation === 'create') {
@@ -264,7 +264,7 @@ export class RestCtrlHasMany extends RestBaseCtrl {
 
     const roles = (req as any)?.locals?.user?.roles ??
       (req as any)?.session?.passport?.user?.roles ?? {
-        guest: true
+        guest: true,
       };
     try {
       const allowed = roleOperationPossible(
@@ -281,12 +281,12 @@ export class RestCtrlHasMany extends RestBaseCtrl {
           ? `Access Denied : Please Login or Signup for a new account`
           : `Access Denied for this account`;
         return res.status(403).json({
-          msg
+          msg,
         });
       }
     } catch (e) {
       return res.status(403).json({
-        msg: e.message
+        msg: e.message,
       });
     }
   }

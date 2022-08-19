@@ -21,7 +21,7 @@ export default class FormulaColumn {
       fk_column_id: data.fk_column_id,
       formula_raw: data.formula_raw,
       formula: data.formula,
-      error: data.error
+      error: data.error,
     });
 
     return this.read(data.fk_column_id, ncMeta);
@@ -57,7 +57,7 @@ export default class FormulaColumn {
       'formula',
       'formula_raw',
       'fk_column_id',
-      'error'
+      'error',
     ]);
     // get existing cache
     const key = `${CacheScope.COL_FORMULA}:${id}`;

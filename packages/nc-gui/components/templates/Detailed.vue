@@ -13,7 +13,7 @@
         <template v-if="loadingTemplate">
           <v-skeleton-loader type="image" />
           <div class="d-flex mt-2 align-center">
-            <v-skeleton-loader style="width:200px; " type="card-heading" />
+            <v-skeleton-loader style="width: 200px" type="card-heading" />
             <v-spacer />
             <v-skeleton-loader type="button" />
           </div>
@@ -21,24 +21,14 @@
           <v-skeleton-loader type="table" class="mt-2" />
         </template>
         <template v-else-if="templateData">
-          <v-img
-            :src="templateData.image_url"
-            height="200px"
-            :style="{ background: templateData.image_url }"
-          />
+          <v-img :src="templateData.image_url" height="200px" :style="{ background: templateData.image_url }" />
           <div class="d-flex align-center mt-10">
             <h2 class="display-2 font-weight-bold my-0 flex-grow-1">
               {{ templateData.title }}
             </h2>
             <v-menu v-if="createProject" bottom offset-y>
-              <template #activator="{on}">
-                <v-btn
-                  :loading="loading"
-                  :disabled="loading"
-                  class="primary"
-                  x-large
-                  v-on="on"
-                >
+              <template #activator="{ on }">
+                <v-btn :loading="loading" :disabled="loading" class="primary" x-large v-on="on">
                   Use template
                   <v-icon>mdi-menu-down</v-icon>
                 </v-btn>
@@ -46,30 +36,19 @@
               <v-list>
                 <v-list-item dense class="py-2" @click="useTemplate('rest')">
                   <v-list-item-title>
-                    <v-icon class="mr-1" :color="textColors[7]">
-                      mdi-code-json
-                    </v-icon>
+                    <v-icon class="mr-1" :color="textColors[7]"> mdi-code-json </v-icon>
                     Create REST Project
                   </v-list-item-title>
                 </v-list-item>
                 <v-list-item dense class="py-2" @click="useTemplate('graphql')">
                   <v-list-item-title>
-                    <v-icon class="mr-1" :color="textColors[3]">
-                      mdi-graphql
-                    </v-icon>
+                    <v-icon class="mr-1" :color="textColors[3]"> mdi-graphql </v-icon>
                     Create GQL Project
                   </v-list-item-title>
                 </v-list-item>
               </v-list>
             </v-menu>
-            <v-btn
-              v-else
-              :loading="loading"
-              :disabled="loading"
-              class="primary"
-              x-large
-              @click="useTemplate"
-            >
+            <v-btn v-else :loading="loading" :disabled="loading" class="primary" x-large @click="useTemplate">
               Use template
             </v-btn>
           </div>
@@ -91,9 +70,9 @@
 </template>
 
 <script>
-import TemplatEditor from '~/components/templates/Editor'
-import Categories from '~/components/templates/Categories'
-import colors from '~/mixins/colors'
+import TemplatEditor from '~/components/templates/Editor';
+import Categories from '~/components/templates/Categories';
+import colors from '~/mixins/colors';
 
 export default {
   name: 'ProjectTemplateDetailed',
@@ -104,45 +83,47 @@ export default {
     modal: Boolean,
     viewMode: Boolean,
     id: [String, Number],
-    createProject: Boolean
+    createProject: Boolean,
   },
   data: () => ({ templateData: null, counter: 0, loadingTemplate: false }),
   computed: {
     templateId() {
-      return this.modal ? this.id : this.$route.params.id
-    }
+      return this.modal ? this.id : this.$route.params.id;
+    },
   },
   mounted() {
-    this.loadTemplateData()
+    this.loadTemplateData();
   },
   methods: {
     async loadTemplateData() {
-      this.loadingTemplate = true
+      this.loadingTemplate = true;
       try {
-        const res = await this.$axios.get(`${process.env.NC_API_URL}/api/v1/nc/templates/${this.templateId}`)
-        const data = res.data
-        this.templateData = JSON.parse(data.template)
-        await this.$nextTick()
-        if (this.$refs.editor) { this.$refs.editor.parseAndLoadTemplate() }
+        const res = await this.$axios.get(`${process.env.NC_API_URL}/api/v1/nc/templates/${this.templateId}`);
+        const data = res.data;
+        this.templateData = JSON.parse(data.template);
+        await this.$nextTick();
+        if (this.$refs.editor) {
+          this.$refs.editor.parseAndLoadTemplate();
+        }
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
-      this.loadingTemplate = false
+      this.loadingTemplate = false;
     },
     useTemplate(apiType) {
       if (this.modal) {
-        this.$emit('import', this.templateData, apiType)
+        this.$emit('import', this.templateData, apiType);
       }
     },
     async onSaved() {
-      await this.loadTemplateData()
+      await this.loadTemplateData();
       if (this.$refs.cat) {
-        await this.$refs.cat.loadCategories()
+        await this.$refs.cat.loadCategories();
       }
-      this.$emit('saved')
-    }
-  }
-}
+      this.$emit('saved');
+    },
+  },
+};
 </script>
 
 <style scoped>

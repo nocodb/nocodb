@@ -1,6 +1,6 @@
 ---
 title: 'App Store'
-description: 'App Store'
+description: 'NocoDB provides different integrations in three main categories in App Store'
 position: 1100
 category: 'Product'
 menuTitle: 'App Store'

@@ -3,12 +3,6 @@ import MonacoEditorWebpackPlugin from 'monaco-editor-webpack-plugin'
 // import HtmlWebpackPlugin from 'html-webpack-plugin';
 const fs = require('fs')
 const packageJson = JSON.parse(fs.readFileSync('../nc-lib-gui/package.json', 'utf8'))
-const version = packageJson.version
-  .replace(/\.(\d+)$/, (_, v) => {
-    // if (v === '99') throw new Error('Package version reached 99')
-    return `.${++v}`
-  })
-
 export default {
   /*
   ** Nuxt rendering mode
@@ -211,12 +205,6 @@ export default {
         // config.output.publicPath = "./_nuxt/";
         // NOTE: future release version of xc-lib-gui
 
-        // const fs = require('fs');
-        // const packageJson = JSON.parse(fs.readFileSync('../xc-lib-gui/package.json', 'utf8'));
-        // const version = packageJson.version.replace(/\.(\d+)$/, (_, v) => {
-        //   // if (v === '99') throw new Error('Package version reached 99')
-        //   return `.${++v}`
-        // });
         if (process.env.targetEnv === 'DEV') {
           // nightly build
           // e.g. 0.84.2-20220220-1250

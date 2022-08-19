@@ -31,7 +31,7 @@ export enum MetaDiffType {
   VIEW_COLUMN_REMOVE = 'VIEW_COLUMN_REMOVE',
   TABLE_RELATION_ADD = 'TABLE_RELATION_ADD',
   TABLE_RELATION_REMOVE = 'TABLE_RELATION_REMOVE',
-  TABLE_VIRTUAL_M2M_REMOVE = 'TABLE_VIRTUAL_M2M_REMOVE'
+  TABLE_VIRTUAL_M2M_REMOVE = 'TABLE_VIRTUAL_M2M_REMOVE',
 }
 
 type MetaDiff = {
@@ -114,7 +114,7 @@ async function getMetaDiff(
   // @ts-ignore
   const tableList: Array<{ tn: string }> = (
     await sqlClient.tableList()
-  )?.data?.list?.filter(t => {
+  )?.data?.list?.filter((t) => {
     if (project?.prefix) {
       return t.tn?.startsWith(project?.prefix);
     }
@@ -144,7 +144,9 @@ async function getMetaDiff(
   for (const table of tableList) {
     if (table.tn === 'nc_evolutions') continue;
 
-    const oldMetaIdx = oldTableMetas.findIndex(m => m.table_name === table.tn);
+    const oldMetaIdx = oldTableMetas.findIndex(
+      (m) => m.table_name === table.tn
+    );
 
     // new table
     if (oldMetaIdx === -1) {
@@ -154,9 +156,9 @@ async function getMetaDiff(
         detectedChanges: [
           {
             type: MetaDiffType.TABLE_NEW,
-            msg: `New table`
-          }
-        ]
+            msg: `New table`,
+          },
+        ],
       });
       continue;
     }
@@ -169,7 +171,7 @@ async function getMetaDiff(
       title: oldMeta.title,
       table_name: table.tn,
       type: ModelTypes.TABLE,
-      detectedChanges: []
+      detectedChanges: [],
     };
     changes.push(tableProp);
 
@@ -182,7 +184,7 @@ async function getMetaDiff(
 
     for (const column of colListRef[table.tn]) {
       const oldColIdx = oldMeta.columns.findIndex(
-        c => c.column_name === column.cn
+        (c) => c.column_name === column.cn
       );
 
       // new table
@@ -191,7 +193,7 @@ async function getMetaDiff(
           type: MetaDiffType.TABLE_COLUMN_ADD,
           msg: `New column(${column.cn})`,
           cn: column.cn,
-          id: oldMeta.id
+          id: oldMeta.id,
         });
         continue;
       }
@@ -204,7 +206,7 @@ async function getMetaDiff(
           msg: `Column type changed(${column.cn})`,
           cn: oldCol.column_name,
           id: oldMeta.id,
-          column: oldCol
+          column: oldCol,
         });
       }
     }
@@ -214,7 +216,7 @@ async function getMetaDiff(
           UITypes.LinkToAnotherRecord,
           UITypes.Rollup,
           UITypes.Lookup,
-          UITypes.Formula
+          UITypes.Formula,
         ].includes(column.uidt)
       ) {
         if (column.uidt === UITypes.LinkToAnotherRecord) {
@@ -230,7 +232,7 @@ async function getMetaDiff(
         cn: column.column_name,
         id: oldMeta.id,
         column: column,
-        colId: column.id
+        colId: column.id,
       });
     }
   }
@@ -245,9 +247,9 @@ async function getMetaDiff(
           msg: `Table removed`,
           tn: model.table_name,
           id: model.id,
-          model
-        }
-      ]
+          model,
+        },
+      ],
     });
   }
 
@@ -262,28 +264,30 @@ async function getMetaDiff(
     if (colOpt.type === RelationTypes.MANY_TO_MANY) {
       const m2mModel = await colOpt.getMMModel();
 
-      const relatedTable = tableList.find(t => t.tn === parentModel.table_name);
-      const m2mTable = tableList.find(t => t.tn === m2mModel.table_name);
+      const relatedTable = tableList.find(
+        (t) => t.tn === parentModel.table_name
+      );
+      const m2mTable = tableList.find((t) => t.tn === m2mModel.table_name);
 
       if (!relatedTable) {
         changes
-          .find(t => t.table_name === childModel.table_name)
+          .find((t) => t.table_name === childModel.table_name)
           .detectedChanges.push({
             type: MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
             msg: `Many to many removed(${parentModel.table_name} removed)`,
             colId: relationCol.id,
-            column: relationCol
+            column: relationCol,
           });
         continue;
       }
       if (!m2mTable) {
         changes
-          .find(t => t.table_name === childModel.table_name)
+          .find((t) => t.table_name === childModel.table_name)
           .detectedChanges.push({
             type: MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
             msg: `Many to many removed(${m2mModel.table_name} removed)`,
             colId: relationCol.id,
-            column: relationCol
+            column: relationCol,
           });
         continue;
       }
@@ -308,18 +312,18 @@ async function getMetaDiff(
       const m2mParentCol = await colOpt.getMMParentColumn();
 
       if (
-        pColumns.every(c => c.cn !== parentCol.column_name) ||
-        cColumns.every(c => c.cn !== childCol.column_name) ||
-        vColumns.every(c => c.cn !== m2mChildCol.column_name) ||
-        vColumns.every(c => c.cn !== m2mParentCol.column_name)
+        pColumns.every((c) => c.cn !== parentCol.column_name) ||
+        cColumns.every((c) => c.cn !== childCol.column_name) ||
+        vColumns.every((c) => c.cn !== m2mChildCol.column_name) ||
+        vColumns.every((c) => c.cn !== m2mParentCol.column_name)
       ) {
         changes
-          .find(t => t.table_name === childModel.table_name)
+          .find((t) => t.table_name === childModel.table_name)
           .detectedChanges.push({
             type: MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
             msg: `Many to many removed(One of the relation column removed)`,
             colId: relationCol.id,
-            column: relationCol
+            column: relationCol,
           });
       }
 
@@ -329,7 +333,7 @@ async function getMetaDiff(
     if (relationCol.colOptions.virtual) continue;
 
     const dbRelation = relationList.find(
-      r =>
+      (r) =>
         r.cn === childCol.column_name &&
         r.tn === childModel.table_name &&
         r.rcn === parentCol.column_name &&
@@ -347,7 +351,7 @@ async function getMetaDiff(
     } else {
       changes
         .find(
-          t =>
+          (t) =>
             t.table_name ===
             (colOpt.type === RelationTypes.BELONGS_TO
               ? childModel.table_name
@@ -361,7 +365,7 @@ async function getMetaDiff(
           rcn: parentCol.column_name,
           msg: `Relation removed`,
           colId: relationCol.id,
-          column: relationCol
+          column: relationCol,
         });
     }
   }
@@ -369,7 +373,7 @@ async function getMetaDiff(
   for (const relation of relationList) {
     if (!relation?.found?.[RelationTypes.BELONGS_TO]) {
       changes
-        .find(t => t.table_name === relation.tn)
+        .find((t) => t.table_name === relation.tn)
         ?.detectedChanges.push({
           type: MetaDiffType.TABLE_RELATION_ADD,
           tn: relation.tn,
@@ -377,12 +381,12 @@ async function getMetaDiff(
           cn: relation.cn,
           rcn: relation.rcn,
           msg: `New relation added`,
-          relationType: RelationTypes.BELONGS_TO
+          relationType: RelationTypes.BELONGS_TO,
         });
     }
     if (!relation?.found?.[RelationTypes.HAS_MANY]) {
       changes
-        .find(t => t.table_name === relation.rtn)
+        .find((t) => t.table_name === relation.rtn)
         ?.detectedChanges.push({
           type: MetaDiffType.TABLE_RELATION_ADD,
           tn: relation.tn,
@@ -390,7 +394,7 @@ async function getMetaDiff(
           cn: relation.cn,
           rcn: relation.rcn,
           msg: `New relation added`,
-          relationType: RelationTypes.HAS_MANY
+          relationType: RelationTypes.HAS_MANY,
         });
     }
   }
@@ -402,12 +406,12 @@ async function getMetaDiff(
     tn: string;
     type: 'view';
   }> = (await sqlClient.viewList())?.data?.list
-    ?.map(v => {
+    ?.map((v) => {
       v.type = 'view';
       v.tn = v.view_name;
       return v;
     })
-    .filter(t => {
+    .filter((t) => {
       if (project?.prefix) {
         return t.tn?.startsWith(project?.prefix);
       }
@@ -415,7 +419,7 @@ async function getMetaDiff(
     }); // @ts-ignore
 
   for (const view of viewList) {
-    const oldMetaIdx = oldViewMetas.findIndex(m => m.table_name === view.tn);
+    const oldMetaIdx = oldViewMetas.findIndex((m) => m.table_name === view.tn);
 
     // new table
     if (oldMetaIdx === -1) {
@@ -425,9 +429,9 @@ async function getMetaDiff(
         detectedChanges: [
           {
             type: MetaDiffType.VIEW_NEW,
-            msg: `New view`
-          }
-        ]
+            msg: `New view`,
+          },
+        ],
       });
       continue;
     }
@@ -440,7 +444,7 @@ async function getMetaDiff(
       title: oldMeta.title,
       table_name: view.tn,
       type: ModelTypes.VIEW,
-      detectedChanges: []
+      detectedChanges: [],
     };
     changes.push(tableProp);
 
@@ -453,7 +457,7 @@ async function getMetaDiff(
 
     for (const column of colListRef[view.tn]) {
       const oldColIdx = oldMeta.columns.findIndex(
-        c => c.column_name === column.cn
+        (c) => c.column_name === column.cn
       );
 
       // new table
@@ -462,7 +466,7 @@ async function getMetaDiff(
           type: MetaDiffType.VIEW_COLUMN_ADD,
           msg: `New column(${column.cn})`,
           cn: column.cn,
-          id: oldMeta.id
+          id: oldMeta.id,
         });
         continue;
       }
@@ -475,7 +479,7 @@ async function getMetaDiff(
           msg: `Column type changed(${column.cn})`,
           cn: oldCol.column_name,
           id: oldMeta.id,
-          column: oldCol
+          column: oldCol,
         });
       }
     }
@@ -485,7 +489,7 @@ async function getMetaDiff(
           UITypes.LinkToAnotherRecord,
           UITypes.Rollup,
           UITypes.Lookup,
-          UITypes.Formula
+          UITypes.Formula,
         ].includes(column.uidt)
       ) {
         continue;
@@ -497,7 +501,7 @@ async function getMetaDiff(
         cn: column.column_name,
         id: oldMeta.id,
         column: column,
-        colId: column.id
+        colId: column.id,
       });
     }
   }
@@ -512,9 +516,9 @@ async function getMetaDiff(
           msg: `Table removed`,
           tn: model.table_name,
           id: model.id,
-          model
-        }
-      ]
+          model,
+        },
+      ],
     });
   }
 
@@ -551,14 +555,14 @@ export async function metaDiffSync(req, res) {
           {
             const columns = (
               await sqlClient.columnList({ tn: table_name })
-            )?.data?.list?.map(c => ({ ...c, column_name: c.cn }));
+            )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
             mapDefaultPrimaryValue(columns);
 
             const model = await Model.insert(project.id, base.id, {
               table_name: table_name,
               title: getTableNameAlias(table_name, project.prefix, base),
-              type: ModelTypes.TABLE
+              type: ModelTypes.TABLE,
             });
 
             for (const column of columns) {
@@ -566,7 +570,7 @@ export async function metaDiffSync(req, res) {
                 uidt: getColumnUiType(base, column),
                 fk_model_id: model.id,
                 ...column,
-                title: getColumnNameAlias(column.column_name, base)
+                title: getColumnNameAlias(column.column_name, base),
               });
             }
           }
@@ -575,14 +579,14 @@ export async function metaDiffSync(req, res) {
           {
             const columns = (
               await sqlClient.columnList({ tn: table_name })
-            )?.data?.list?.map(c => ({ ...c, column_name: c.cn }));
+            )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
             mapDefaultPrimaryValue(columns);
 
             const model = await Model.insert(project.id, base.id, {
               table_name: table_name,
               title: getTableNameAlias(table_name, project.prefix, base),
-              type: ModelTypes.VIEW
+              type: ModelTypes.VIEW,
             });
 
             for (const column of columns) {
@@ -590,7 +594,7 @@ export async function metaDiffSync(req, res) {
                 uidt: getColumnUiType(base, column),
                 fk_model_id: model.id,
                 ...column,
-                title: getColumnNameAlias(column.column_name, base)
+                title: getColumnNameAlias(column.column_name, base),
               });
             }
           }
@@ -606,8 +610,8 @@ export async function metaDiffSync(req, res) {
           {
             const columns = (
               await sqlClient.columnList({ tn: table_name })
-            )?.data?.list?.map(c => ({ ...c, column_name: c.cn }));
-            const column = columns.find(c => c.cn === change.cn);
+            )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+            const column = columns.find((c) => c.cn === change.cn);
             column.uidt = getColumnUiType(base, column);
             //todo: inflection
             column.title = getColumnNameAlias(column.cn, base);
@@ -623,8 +627,8 @@ export async function metaDiffSync(req, res) {
           {
             const columns = (
               await sqlClient.columnList({ tn: table_name })
-            )?.data?.list?.map(c => ({ ...c, column_name: c.cn }));
-            const column = columns.find(c => c.cn === change.cn);
+            )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+            const column = columns.find((c) => c.cn === change.cn);
             const metaFact = ModelXcMetaFactory.create(
               { client: base.type },
               {}
@@ -648,24 +652,24 @@ export async function metaDiffSync(req, res) {
               const parentModel = await Model.getByIdOrName({
                 project_id: base.project_id,
                 base_id: base.id,
-                table_name: change.rtn
+                table_name: change.rtn,
               });
               const childModel = await Model.getByIdOrName({
                 project_id: base.project_id,
                 base_id: base.id,
-                table_name: change.tn
+                table_name: change.tn,
               });
               const parentCol = await parentModel
                 .getColumns()
-                .then(cols => cols.find(c => c.column_name === change.rcn));
+                .then((cols) => cols.find((c) => c.column_name === change.rcn));
               const childCol = await childModel
                 .getColumns()
-                .then(cols => cols.find(c => c.column_name === change.cn));
+                .then((cols) => cols.find((c) => c.column_name === change.cn));
 
               await Column.update(childCol.id, {
                 ...childCol,
                 uidt: UITypes.ForeignKey,
-                system: true
+                system: true,
               });
 
               if (change.relationType === RelationTypes.BELONGS_TO) {
@@ -681,7 +685,7 @@ export async function metaDiffSync(req, res) {
                   type: RelationTypes.BELONGS_TO,
                   fk_parent_column_id: parentCol.id,
                   fk_child_column_id: childCol.id,
-                  virtual: false
+                  virtual: false,
                 });
               } else if (change.relationType === RelationTypes.HAS_MANY) {
                 const title = getUniqueColumnAliasName(
@@ -696,7 +700,7 @@ export async function metaDiffSync(req, res) {
                   type: RelationTypes.HAS_MANY,
                   fk_parent_column_id: parentCol.id,
                   fk_child_column_id: childCol.id,
-                  virtual: false
+                  virtual: false,
                 });
               }
             });
@@ -722,9 +726,8 @@ async function isMMRelationExist(
   belongsToCol: Column<LinkToAnotherRecordColumn>
 ) {
   let isExist = false;
-  const colChildOpt = await belongsToCol.getColOptions<
-    LinkToAnotherRecordColumn
-  >();
+  const colChildOpt =
+    await belongsToCol.getColOptions<LinkToAnotherRecordColumn>();
   for (const col of await model.getColumns()) {
     if (col.uidt === UITypes.LinkToAnotherRecord) {
       const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
@@ -752,7 +755,7 @@ export async function extractAndGenerateManyToManyRelations(
     // check if table is a Bridge table(or Associative Table) by checking
     // number of foreign keys and columns
 
-    const normalColumns = assocModel.columns.filter(c => !isVirtualCol(c));
+    const normalColumns = assocModel.columns.filter((c) => !isVirtualCol(c));
     const belongsToCols: Column<LinkToAnotherRecordColumn>[] = [];
     for (const col of assocModel.columns) {
       if (col.uidt == UITypes.LinkToAnotherRecord) {
@@ -796,7 +799,7 @@ export async function extractAndGenerateManyToManyRelations(
           fk_mm_parent_column_id:
             belongsToCols[1].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
-          uidt: UITypes.LinkToAnotherRecord
+          uidt: UITypes.LinkToAnotherRecord,
         });
       }
       if (!isRelationAvailInB) {
@@ -814,7 +817,7 @@ export async function extractAndGenerateManyToManyRelations(
           fk_mm_parent_column_id:
             belongsToCols[0].colOptions.fk_child_column_id,
           type: RelationTypes.MANY_TO_MANY,
-          uidt: UITypes.LinkToAnotherRecord
+          uidt: UITypes.LinkToAnotherRecord,
         });
       }
 

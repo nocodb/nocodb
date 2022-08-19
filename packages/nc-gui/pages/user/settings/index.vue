@@ -2,41 +2,20 @@
   <v-container class="text-center">
     <v-row align="center">
       <v-col class="col-md-8 offset-md-2">
-        <v-tabs
-          v-model="tabs1.tab"
-          background-color=""
-          class="elevation-2"
-        >
+        <v-tabs v-model="tabs1.tab" background-color="" class="elevation-2">
           <v-tabs-slider />
 
-          <v-tab
-            v-for="(t,i) in tabs1.tabs"
-            :key="i"
-            :href="`#tab-${i}`"
-          >
+          <v-tab v-for="(t, i) in tabs1.tabs" :key="i" :href="`#tab-${i}`">
             <span class="caption text-capitalize">{{ t.title }}</span>
           </v-tab>
 
-          <v-tab-item
-            v-for="(t,i) in tabs1.tabs"
-            :key="i"
-            :value="'tab-' + i"
-          >
-            <v-card
-              v-if="t.type==='password'"
-              class="py-10 "
-              flat
-              tile
-            >
-              <br>
+          <v-tab-item v-for="(t, i) in tabs1.tabs" :key="i" :value="'tab-' + i">
+            <v-card v-if="t.type === 'password'" class="py-10" flat tile>
+              <br />
               <div v-if="isAdmin">
                 <h1>You are an Admin too!</h1>
-                <h2 class="title is-2">
-                  You are admin as well
-                </h2>
-                <router-link to="/user/admin">
-                  User list
-                </router-link>
+                <h2 class="title is-2">You are admin as well</h2>
+                <router-link to="/user/admin"> User list </router-link>
               </div>
 
               <v-row align="center">
@@ -89,12 +68,7 @@
                         @click:append="() => (e5 = !e5)"
                       />
 
-                      <v-btn
-                        class="caption"
-                        color="primary"
-                        :disabled="!valid"
-                        @click="resetUserPassword"
-                      >
+                      <v-btn class="caption" color="primary" :disabled="!valid" @click="resetUserPassword">
                         SAVE PASSWORD
                       </v-btn>
                     </v-form>
@@ -110,28 +84,29 @@
 </template>
 
 <script>
-import { isEmail } from '@/helpers'
+import { isEmail } from '@/helpers';
 
 export default {
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   props: {},
   data() {
     return {
       user: {
-        provider: 'local'
+        provider: 'local',
       },
       tabs: 3,
       tabs1: {
         tab: null,
-        tabs: [{
-          type: 'password',
-          title: 'Change Password'
-        }
-        ]
+        tabs: [
+          {
+            type: 'password',
+            title: 'Change Password',
+          },
+        ],
       },
 
       subscriptions: [],
@@ -139,11 +114,11 @@ export default {
       passwordDetails: {
         newPassword: null,
         verifyPassword: null,
-        currentPassword: null
+        currentPassword: null,
       },
       formUtil: {
         formErr: false,
-        formErrMsg: ''
+        formErrMsg: '',
       },
       e3: true,
       e4: true,
@@ -154,21 +129,20 @@ export default {
           // E-mail is required
           v => !!v || this.$t('msg.error.signUpRules.emailReqd'),
           // E-mail must be valid
-          v => isEmail(v) ||
-            this.$t('msg.error.signUpRules.emailInvalid')
+          v => isEmail(v) || this.$t('msg.error.signUpRules.emailInvalid'),
         ],
         password: [
           // Current Password
           [
             // Password is required
-            v => !!v || this.$t('msg.error.signUpRules.passwdRequired')
+            v => !!v || this.$t('msg.error.signUpRules.passwdRequired'),
           ],
           // New Password
           [
             // Password is required
             v => !!v || this.$t('msg.error.signUpRules.passwdRequired'),
             // You password must be atleast 8 characters
-            v => (v && v.length >= 8) || this.$t('msg.error.signUpRules.passwdLength')
+            v => (v && v.length >= 8) || this.$t('msg.error.signUpRules.passwdLength'),
           ],
           // Confirm Password
           [
@@ -177,82 +151,70 @@ export default {
             // TODO: i18n
             v => v === this.passwordDetails.newPassword || 'Confirm password should match',
             // You password must be atleast 8 characters
-            v => (v && v.length >= 8) || this.$t('msg.error.signUpRules.passwdLength')
-          ]
-        ]
-      }
-    }
+            v => (v && v.length >= 8) || this.$t('msg.error.signUpRules.passwdLength'),
+          ],
+        ],
+      },
+    };
   },
   head() {
-    return {}
+    return {};
   },
   computed: {
     isAdmin() {
       if (this.$store.state.users.user) {
         // console.log(this.$store.state.users.user.roles.indexOf('creator'));
-        return 'creator' in this.$store.state.users.user.roles
+        return 'creator' in this.$store.state.users.user.roles;
       }
-      return false
+      return false;
     },
 
     isEmailAuth() {
       if (this.$store.state.users.user) {
         // console.log(this.$store.state.users.user.roles.indexOf('creator'));
-        return (this.$store.state.users.user.provider === 'local')
+        return this.$store.state.users.user.provider === 'local';
       }
-      return false
-    }
-
+      return false;
+    },
   },
   watch: {},
-  created() {
-  },
+  created() {},
   mounted() {
-    this.getSubscriptions()
+    this.getSubscriptions();
   },
-  beforeDestroy() {
-  },
+  beforeDestroy() {},
   methods: {
     test() {
       // console.log('test method');
     },
 
     async resetUserPassword(e) {
-      e.preventDefault()
+      e.preventDefault();
       if (this.$refs.formType[0].validate()) {
         try {
-          await this.$api.auth.passwordChange(
-            {
-              currentPassword: this.passwordDetails.currentPassword,
-              newPassword: this.passwordDetails.newPassword
-            }
-          )
-          this.$toast.success('Password changed successfully. Please login again.').goAway(3000)
-          this.$refs.formType[0].reset()
-          await this.$store.dispatch('users/ActSignOut')
-          this.$router.push('/user/authentication/signin')
+          await this.$api.auth.passwordChange({
+            currentPassword: this.passwordDetails.currentPassword,
+            newPassword: this.passwordDetails.newPassword,
+          });
+          this.$toast.success('Password changed successfully. Please login again.').goAway(3000);
+          this.$refs.formType[0].reset();
+          await this.$store.dispatch('users/ActSignOut');
+          this.$router.push('/user/authentication/signin');
         } catch (e) {
-          this.$toast
-            .error(await this._extractSdkResponseErrorMsg(e))
-            .goAway(3000);
+          this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000);
           return;
         }
       }
     },
 
-    async getSubscriptions(e) {
-    }
+    async getSubscriptions(e) {},
   },
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

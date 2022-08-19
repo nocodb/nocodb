@@ -1,6 +1,6 @@
 ---
 title: "Share View"
-description: "Procedure to share a view"
+description: "Procedures to share a view"
 position: 620
 category: "Product"
 menuTitle: "Share View"

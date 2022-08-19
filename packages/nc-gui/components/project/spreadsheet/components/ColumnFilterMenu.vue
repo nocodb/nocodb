@@ -1,9 +1,5 @@
 <template>
-  <v-menu
-    offset-y
-    eager
-    transition="slide-y-transition"
-  >
+  <v-menu offset-y eager transition="slide-y-transition">
     <template #activator="{ on }">
       <v-badge :value="filters.length" color="primary" dot overlap>
         <v-btn
@@ -18,14 +14,10 @@
           }"
           v-on="on"
         >
-          <v-icon small class="mr-1" color="grey  darken-3">
-            mdi-filter-outline
-          </v-icon>
+          <v-icon small class="mr-1" color="grey  darken-3"> mdi-filter-outline </v-icon>
           <!-- Filter -->
-          {{ $t("activity.filter") }}
-          <v-icon small color="#777">
-            mdi-menu-down
-          </v-icon>
+          {{ $t('activity.filter') }}
+          <v-icon small color="#777"> mdi-menu-down </v-icon>
         </v-btn>
       </v-badge>
     </template>
@@ -50,20 +42,14 @@
         >
           <template #label>
             <span class="grey--text caption">
-              {{ $t("msg.info.filterAutoApply") }}
+              {{ $t('msg.info.filterAutoApply') }}
               <!-- Auto apply -->
             </span>
           </template>
         </v-checkbox>
 
         <v-spacer />
-        <v-btn
-          v-show="!autosave"
-          color="primary"
-          small
-          class="caption ml-2"
-          @click="applyChanges"
-        >
+        <v-btn v-show="!autosave" color="primary" small class="caption ml-2" @click="applyChanges">
           Apply changes
         </v-btn>
       </div>
@@ -72,61 +58,57 @@
 </template>
 
 <script>
-import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilter'
+import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilter';
 
 export default {
   name: 'ColumnFilterMenu',
   components: { ColumnFilter },
   props: ['fieldList', 'isLocked', 'value', 'meta', 'viewId', 'shared'],
   data: () => ({
-    filters: []
+    filters: [],
   }),
   computed: {
     autosave: {
       set(v) {
-        this.$store.commit('settings/MutAutoApplyFilter', v)
-        this.$e('a:filter:auto-apply', { flag: v })
+        this.$store.commit('settings/MutAutoApplyFilter', v);
+        this.$e('a:filter:auto-apply', { flag: v });
       },
       get() {
-        return this.$store.state.settings.autoApplyFilter
-      }
-    }
+        return this.$store.state.settings.autoApplyFilter;
+      },
+    },
   },
   watch: {
     filters: {
       handler(v) {
         if (this.autosave) {
-          this.$emit('input', v)
+          this.$emit('input', v);
         }
       },
-      deep: true
+      deep: true,
     },
     autosave(v) {
       if (!v) {
-        this.filters = JSON.parse(JSON.stringify(this.value || []))
+        this.filters = JSON.parse(JSON.stringify(this.value || []));
       }
     },
     value(v) {
-      this.filters = this.autosave
-        ? v || []
-        : JSON.parse(JSON.stringify(v || []))
-    }
+      this.filters = this.autosave ? v || [] : JSON.parse(JSON.stringify(v || []));
+    },
   },
   created() {
-    this.filters = this.autosave
-      ? this.value || []
-      : JSON.parse(JSON.stringify(this.value || []))
+    this.filters = this.autosave ? this.value || [] : JSON.parse(JSON.stringify(this.value || []));
   },
   methods: {
     applyChanges() {
-      this.$emit('input', this.filters)
+      this.$emit('input', this.filters);
       if (this.$refs.filter) {
-        this.$refs.filter.applyChanges()
+        this.$refs.filter.applyChanges();
       }
-      this.$e('a:filter:apply')
-    }
-  }
-}
+      this.$e('a:filter:apply');
+    },
+  },
+};
 </script>
 
 <style scoped>

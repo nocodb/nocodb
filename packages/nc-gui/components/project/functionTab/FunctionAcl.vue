@@ -3,48 +3,40 @@
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
         <v-breadcrumbs
-          :items="[{
-                     text: nodes.env,
-                     disabled: true,
-                     href: '#'
-                   },{
-                     text: nodes.dbAlias,
-                     disabled: true,
-                     href: '#'
-                   },
-                   {
-                     text: (nodes.function_name) + ' (ACL)',
-                     disabled: true,
-                     href: '#'
-                   }]"
+          :items="[
+            {
+              text: nodes.env,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.dbAlias,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.function_name + ' (ACL)',
+              disabled: true,
+              href: '#',
+            },
+          ]"
           divider=">"
           small
         >
           <template #divider>
-            <v-icon small color="grey lighten-2">
-              forward
-            </v-icon>
+            <v-icon small color="grey lighten-2"> forward </v-icon>
           </template>
         </v-breadcrumbs>
       </v-toolbar-title>
       <v-spacer />
-      <x-btn
-        v-ge="['acl','reload']"
-        outlined
-        tooltip="Reload ACL"
-        color="primary"
-        small
-        @click="loadAcl"
-      >
-        <v-icon small left>
-          refresh
-        </v-icon>
+      <x-btn v-ge="['acl', 'reload']" outlined tooltip="Reload ACL" color="primary" small @click="loadAcl">
+        <v-icon small left> refresh </v-icon>
         <!-- Reload -->
         {{ $t('general.reload') }}
       </x-btn>
 
       <x-btn
-        v-ge="['acl','save']"
+        v-ge="['acl', 'save']"
         outlined
         :tooltip="$t('tooltip.saveChanges')"
         color="primary"
@@ -53,9 +45,7 @@
         :disabled="!edited"
         @click="save"
       >
-        <v-icon small left>
-          save
-        </v-icon>
+        <v-icon small left> save </v-icon>
         <!-- Save -->
         {{ $t('general.save') }}
       </x-btn>
@@ -74,12 +64,7 @@
         <tr>
           <th>{{ nodes.function_name }}</th>
           <th v-for="role in roles" :key="role" class="permission-checkbox-container">
-            <v-checkbox
-              v-model="data[role]"
-              dense
-              hide-details
-              @change="edited=true"
-            />
+            <v-checkbox v-model="data[role]" dense hide-details @change="edited = true" />
           </th>
         </tr>
       </tbody>
@@ -94,54 +79,61 @@ export default {
   data: () => ({
     loading: false,
     edited: false,
-    data: null
+    data: null,
   }),
   computed: {
     roles() {
-      return this.data ? Object.keys(this.data) : []
-    }
+      return this.data ? Object.keys(this.data) : [];
+    },
   },
   async created() {
-    await this.loadAcl()
+    await this.loadAcl();
   },
   methods: {
     async loadAcl() {
-      this.loading = true
-      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'xcAclGet', {
-        name: this.nodes.function_name
-      }])
-      this.data = JSON.parse(result.acl)
+      this.loading = true;
+      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        {
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+        },
+        'xcAclGet',
+        {
+          name: this.nodes.function_name,
+        },
+      ]);
+      this.data = JSON.parse(result.acl);
 
-      this.loading = false
+      this.loading = false;
     },
     async save() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'xcAclSave', {
-          name: this.nodes.function_name,
-          acl: this.data
-        }])
-        this.$toast.success('ACL saved successfully').goAway(3000)
-        this.edited = false
-        await this.loadAcl()
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+          },
+          'xcAclSave',
+          {
+            name: this.nodes.function_name,
+            acl: this.data,
+          },
+        ]);
+        this.$toast.success('ACL saved successfully').goAway(3000);
+        this.edited = false;
+        await this.loadAcl();
       } catch (e) {
-        this.$toast.error('Some error occurred').goAway(3000)
+        this.$toast.error('Some error occurred').goAway(3000);
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
-
 ::v-deep {
   .permission-checkbox-container .v-input {
-    transform: scale(.8);
+    transform: scale(0.8);
     margin-top: 0;
   }
 

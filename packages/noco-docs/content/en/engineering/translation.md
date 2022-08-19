@@ -1,9 +1,9 @@
 ---
-title: "i18n"
+title: "i18n translation"
 description: "Contribute to NocoDB's i18n translation"
-position: 2000
+position: 3400
 category: "Engineering"
-menuTitle: "i18n"
+menuTitle: "i18n translation"
 ---
 
 NocoDB supports many foreign languages & we welcome community contributions via an easy to use [google-spreadsheet](https://docs.google.com/spreadsheets/d/1kGp92yLwhs1l7lwwgeor3oN1dFl7JZWuQOa4WSeZ0TE/edit#gid=2076107172).

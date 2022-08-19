@@ -5,7 +5,7 @@ import NcConfigFactory from '../utils/NcConfigFactory';
 
 import Noco from '../Noco';
 
-export default async function(dbUrl): Promise<void> {
+export default async function (dbUrl): Promise<void> {
   const server = express();
   server.use(cors());
 
@@ -28,16 +28,17 @@ export default async function(dbUrl): Promise<void> {
             'Dvdrental (Sample SQLite Database)',
             'started'
           );
-        }
+        },
       })
     );
     server.listen(process.env.PORT || 8080, () => {
       console.log(
-        `App started successfully.\nVisit -> http://localhost:${process.env
-          .PORT || 8080}/xc`
+        `App started successfully.\nVisit -> http://localhost:${
+          process.env.PORT || 8080
+        }/xc`
       );
     });
-  })().catch(e => console.log(e));
+  })().catch((e) => console.log(e));
 }
 
 /**

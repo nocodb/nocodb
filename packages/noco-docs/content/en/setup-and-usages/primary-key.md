@@ -1,6 +1,6 @@
 ---
 title: "Primary Key"
-description: "Primary Key"
+description: "Understanding Primary Key in NocoDB!"
 position: 575
 category: "Product"
 menuTitle: "Primary Key"

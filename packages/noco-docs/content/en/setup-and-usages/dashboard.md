@@ -1,6 +1,6 @@
 ---
 title: 'Dashboard'
-description: 'Dashboard'
+description: 'Accessing the Dashboard!'
 position: 500
 category: 'Product'
 menuTitle: 'Dashboard'

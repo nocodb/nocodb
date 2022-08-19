@@ -5,7 +5,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
-  MetaTable
+  MetaTable,
 } from '../utils/globals';
 import extractProps from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
@@ -53,7 +53,7 @@ export default class Project implements ProjectType {
         description: projectBody.description,
         is_meta: projectBody.is_meta,
         created_at: projectBody.created_at,
-        updated_at: projectBody.updated_at
+        updated_at: projectBody.updated_at,
       }
     );
 
@@ -68,7 +68,7 @@ export default class Project implements ProjectType {
         {
           type: base.config?.client,
           ...base,
-          projectId
+          projectId,
         },
         ncMeta
       );
@@ -91,23 +91,23 @@ export default class Project implements ProjectType {
           _or: [
             {
               deleted: {
-                eq: false
-              }
+                eq: false,
+              },
             },
             {
               deleted: {
-                eq: null
-              }
-            }
-          ]
-        }
+                eq: null,
+              },
+            },
+          ],
+        },
       });
       await NocoCache.setList(CacheScope.PROJECT, [], projectList);
     }
     projectList = projectList.filter(
-      p => p.deleted === 0 || p.deleted === false || p.deleted === null
+      (p) => p.deleted === 0 || p.deleted === false || p.deleted === null
     );
-    return projectList.map(m => new Project(m));
+    return projectList.map((m) => new Project(m));
   }
 
   // @ts-ignore
@@ -121,7 +121,7 @@ export default class Project implements ProjectType {
     if (!projectData) {
       projectData = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
         id: projectId,
-        deleted: false
+        deleted: false,
       });
       await NocoCache.set(`${CacheScope.PROJECT}:${projectId}`, projectData);
     } else {
@@ -151,7 +151,7 @@ export default class Project implements ProjectType {
     if (!projectData) {
       projectData = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
         id: projectId,
-        deleted: false
+        deleted: false,
       });
       if (projectData) {
         await NocoCache.set(`${CacheScope.PROJECT}:${projectId}`, projectData);
@@ -232,7 +232,7 @@ export default class Project implements ProjectType {
       'bases',
       'uuid',
       'password',
-      'roles'
+      'roles',
     ]);
     // get existing cache
     const key = `${CacheScope.PROJECT}:${projectId}`;
@@ -310,7 +310,7 @@ export default class Project implements ProjectType {
     let projectData = null;
     if (!projectId) {
       projectData = await Noco.ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
-        uuid
+        uuid,
       });
       await NocoCache.set(`${CacheScope.PROJECT}:${uuid}`, projectData?.id);
     } else {
@@ -337,7 +337,7 @@ export default class Project implements ProjectType {
     if (!projectId) {
       projectData = await Noco.ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
         title,
-        deleted: false
+        deleted: false,
       });
       await NocoCache.set(`${CacheScope.PROJECT}:${title}`, projectData?.id);
     } else {
@@ -360,22 +360,22 @@ export default class Project implements ProjectType {
         null,
         MetaTable.PROJECT,
         {
-          deleted: false
+          deleted: false,
         },
         null,
         {
           _or: [
             {
               id: {
-                eq: titleOrId
-              }
+                eq: titleOrId,
+              },
             },
             {
               title: {
-                eq: titleOrId
-              }
-            }
-          ]
+                eq: titleOrId,
+              },
+            },
+          ],
         }
       );
       await NocoCache.set(

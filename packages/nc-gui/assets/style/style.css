@@ -365,7 +365,7 @@ html {
 
 
 /* sorting and filter */
-.menu-filter-dropdown {
+.menu-filter-dropdown:not(.nested) {
   max-height: 500px;
   overflow-y: auto;
 }

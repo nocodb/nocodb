@@ -724,7 +724,6 @@ export class HttpClient<SecurityDataType = unknown> {
         formData.append(key, property);
       } else if (typeof property === 'object' && property !== null) {
         if (Array.isArray(property)) {
-          // eslint-disable-next-line functional/no-loop-statement
           for (const prop of property) {
             formData.append(`${key}[]`, prop);
           }
@@ -1234,6 +1233,24 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/db/meta/projects/${projectId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Project
+     * @name Update
+     * @summary Project update
+     * @request PATCH:/api/v1/db/meta/projects/{projectId}
+     * @response `200` `void` OK
+     */
+    update: (projectId: string, data: any, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 

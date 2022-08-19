@@ -10,14 +10,14 @@ module.exports = {
             port: process.env.DOCKER_DB_PORT || 3306,
             user: 'root',
             password: 'password',
-            database: 'default_dev'
+            database: 'default_dev',
           },
           meta: {
             tn: 'nc_evolutions',
-            dbAlias: 'primary'
-          }
-        }
-      ]
+            dbAlias: 'primary',
+          },
+        },
+      ],
     },
     test: {
       api: {},
@@ -29,15 +29,15 @@ module.exports = {
             port: DOCKER_DB_PORT || 3306,
             user: 'root',
             password: 'password',
-            database: 'default_test'
+            database: 'default_test',
           },
           meta: {
             tn: 'nc_evolutions',
-            dbAlias: 'primary'
-          }
-        }
-      ]
-    }
+            dbAlias: 'primary',
+          },
+        },
+      ],
+    },
   },
   workingEnv: '_noco',
   meta: {
@@ -46,8 +46,8 @@ module.exports = {
     queriesFolder: 'queries',
     apisFolder: 'apis',
     orm: 'sequelize',
-    router: 'express'
-  }
+    router: 'express',
+  },
 };
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

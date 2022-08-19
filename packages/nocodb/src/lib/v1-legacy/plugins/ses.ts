@@ -10,43 +10,43 @@ const input: XcForm = {
       label: 'From',
       placeholder: 'From',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'host',
       label: 'Host',
       placeholder: 'Host',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'port',
       label: 'Port',
       placeholder: 'Port',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'secure',
       label: 'Secure',
       placeholder: 'Secure',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'username',
       label: 'Username',
       placeholder: 'Username',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'password',
       label: 'Password',
       placeholder: 'Password',
       type: XcType.Password,
-      required: true
-    }
+      required: true,
+    },
   ],
   actions: [
     {
@@ -54,19 +54,19 @@ const input: XcForm = {
       placeholder: 'Test',
       key: 'test',
       actionType: XcActionType.TEST,
-      type: XcType.Button
+      type: XcType.Button,
     },
     {
       label: 'Save',
       placeholder: 'Save',
       key: 'save',
       actionType: XcActionType.SUBMIT,
-      type: XcType.Button
-    }
+      type: XcType.Button,
+    },
   ],
   msgOnInstall:
     'Successfully installed and email notification will use Amazon SES',
-  msgOnUninstall: ''
+  msgOnUninstall: '',
 };
 
 export default {
@@ -78,5 +78,5 @@ export default {
   price: 'Free',
   tags: 'Email',
   category: 'Email',
-  input_schema: JSON.stringify(input)
+  input_schema: JSON.stringify(input),
 };

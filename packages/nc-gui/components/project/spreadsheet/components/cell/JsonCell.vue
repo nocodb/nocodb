@@ -5,10 +5,8 @@
 <script>
 export default {
   name: 'JsonCell',
-  props: ['value']
-}
+  props: ['value'],
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

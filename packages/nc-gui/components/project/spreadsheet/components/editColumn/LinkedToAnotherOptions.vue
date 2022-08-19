@@ -3,14 +3,7 @@
     <v-container fluid class="wrapper mb-3">
       <v-row>
         <v-col>
-          <v-radio-group
-            v-model="type"
-            row
-            hide-details
-            dense
-            class="pt-0 mt-0"
-            @change="$refs.input.validate()"
-          >
+          <v-radio-group v-model="type" row hide-details dense class="pt-0 mt-0" @change="$refs.input.validate()">
             <v-radio value="hm" label="Has Many" />
             <v-radio value="mm" label="Many To Many" />
           </v-radio-group>
@@ -35,17 +28,12 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-container fluid class=" mb-3">
+    <v-container fluid class="mb-3">
       <v-row>
-        <v-col cols="12" class="pt-0" :class="{'pb-0': advanceOptions}">
-          <div
-            class="pointer grey--text text-right caption nc-more-options"
-            @click="advanceOptions = !advanceOptions"
-          >
+        <v-col cols="12" class="pt-0" :class="{ 'pb-0': advanceOptions }">
+          <div class="pointer grey--text text-right caption nc-more-options" @click="advanceOptions = !advanceOptions">
             {{ advanceOptions ? $t('general.hideAll') : $t('general.showMore') }}
-            <v-icon x-small color="grey">
-              mdi-{{ advanceOptions ? 'minus' : 'plus' }}-circle-outline
-            </v-icon>
+            <v-icon x-small color="grey"> mdi-{{ advanceOptions ? 'minus' : 'plus' }}-circle-outline </v-icon>
           </div>
         </v-col>
       </v-row>
@@ -102,7 +90,7 @@
 </template>
 
 <script>
-import { ModelTypes, UITypes } from 'nocodb-sdk'
+import { ModelTypes, UITypes } from 'nocodb-sdk';
 
 export default {
   name: 'LinkedToAnotherOptions',
@@ -114,27 +102,21 @@ export default {
     relation: {},
     isRefTablesLoading: false,
     isRefColumnsLoading: false,
-    advanceOptions: false
+    advanceOptions: false,
   }),
   computed: {
     onUpdateDeleteOptions() {
       if (this.isMSSQL) {
-        return ['NO ACTION']
+        return ['NO ACTION'];
       }
-      return [
-        'NO ACTION',
-        'CASCADE',
-        'RESTRICT',
-        'SET NULL',
-        'SET DEFAULT'
-      ]
+      return ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT'];
     },
     tableRules() {
-      return []
-    }
+      return [];
+    },
   },
   async created() {
-    await this.loadTablesList()
+    await this.loadTablesList();
     this.relation = {
       parentId: null,
       childID: null,
@@ -145,18 +127,19 @@ export default {
       onDelete: 'NO ACTION',
       onUpdate: 'NO ACTION',
       updateRelation: !!this.column.rtn,
-      virtual: this.isSQLite
-    }
+      virtual: this.isSQLite,
+    };
   },
   methods: {
     async loadTablesList() {
-      this.isRefTablesLoading = true
+      this.isRefTablesLoading = true;
 
-      const result = (await this.$api.dbTable.list(this.$store.state.project.projectId, this.$store.state.project.project.bases[0].id))
-        .list.filter(t => t.type === ModelTypes.TABLE)
+      const result = (
+        await this.$api.dbTable.list(this.$store.state.project.projectId, this.$store.state.project.project.bases[0].id)
+      ).list.filter(t => t.type === ModelTypes.TABLE);
 
-      this.refTables = result // .data.list.map(({ table_name, title }) => ({ table_name, title }))
-      this.isRefTablesLoading = false
+      this.refTables = result; // .data.list.map(({ table_name, title }) => ({ table_name, title }))
+      this.isRefTablesLoading = false;
     },
     async saveRelation() {
       await this.$api.dbTableColumn.create(this.meta.id, {
@@ -164,22 +147,20 @@ export default {
         parentId: this.meta.id,
         uidt: UITypes.LinkToAnotherRecord,
         title: this.alias,
-        type: this.type
-      })
+        type: this.type,
+      });
 
-      await this.$store.dispatch('meta/ActLoadMeta', { id: this.relation.childId, force: true })
+      await this.$store.dispatch('meta/ActLoadMeta', { id: this.relation.childId, force: true });
     },
     onColumnSelect() {
-      const col = this.refColumns.find(c => this.relation.parentColumn === c.column_name)
-      this.$emit('onColumnSelect', col)
-    }
-  }
-
-}
+      const col = this.refColumns.find(c => this.relation.parentColumn === c.column_name);
+      this.$emit('onColumnSelect', col);
+    },
+  },
+};
 </script>
 
 <style scoped>
-
 .wrapper {
   border: solid 2px #7f828b33;
   border-radius: 4px;

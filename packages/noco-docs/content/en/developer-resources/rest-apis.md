@@ -1,5 +1,6 @@
 ---
 title: 'REST APIs'
+description: 'NocoDB REST API Overview'
 position: 1010
 category: 'Developer Resources'
 menuTitle: 'REST APIs'
@@ -174,10 +175,11 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 |  **Name**    | **Alias** | **Use case** | **Default value**  |**Example value**  |
 |---|---|---|---|---|
 |  [where](#comparison-operators)  | [w](#comparison-operators)  |  Complicated where conditions | | `(colName,eq,colValue)~or(colName2,gt,colValue2)` <br />[Usage: Comparison operators](#comparison-operators) <br />[Usage: Logical operators](#logical-operators) |
-|  limit  | l |  Number of rows to get(SQL limit value)  | 10  | 20 |
-|  offset  | o |  Offset for pagination(SQL offset value)  | 0  | 20 |
+|  limit  | l |  Number of rows to get (SQL limit value)  | 10  | 20 |
+|  offset  | o |  Offset for pagination (SQL offset value)  | 0  | 20 |
 |  sort  | s |  Sort by column name, Use `-` as prefix for descending sort  |   | column_name |
 |  fields  | f |  Required column names in result  |  * | column_name1,column_name2 |
+|  shuffle  | r |  Shuffle the result for pagination |  0 | 1 (Only allow 0 or 1. Other values would see it as 0) |
 
 <!-- 
 |  fields1  | f1 |  Required column names in child result  |  * | column_name1,column_name2 |

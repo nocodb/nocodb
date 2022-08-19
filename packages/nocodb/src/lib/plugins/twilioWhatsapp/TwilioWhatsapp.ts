@@ -19,7 +19,7 @@ export default class TwilioWhatsapp implements IWebhookNotificationAdapter {
         await this.client.messages.create({
           body: content,
           from: `whatsapp:${this.input.from}`,
-          to: `whatsapp:${num}`
+          to: `whatsapp:${num}`,
         });
       } catch (e) {
         console.log(e);

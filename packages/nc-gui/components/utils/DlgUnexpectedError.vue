@@ -23,13 +23,7 @@
           <v-btn small class="" @click="errorDialogCancel">
             {{ $t('general.cancel') }}
           </v-btn>
-          <v-btn
-            small
-            class="warning"
-            @click="errorDialogReport"
-          >
-            Report
-          </v-btn>
+          <v-btn small class="warning" @click="errorDialogReport"> Report </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -37,45 +31,32 @@
 </template>
 
 <script>
-
 export default {
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
-  props: [
-    'heading',
-    'error',
-    'dialogErrorShow',
-    'errorDialogCancel',
-    'errorDialogReport'
-  ],
+  props: ['heading', 'error', 'dialogErrorShow', 'errorDialogCancel', 'errorDialogReport'],
   data() {
-    return { fieldValue: '' }
+    return { fieldValue: '' };
   },
   head() {
-    return {}
+    return {};
   },
   computed: {},
   watch: {},
-  created() {
-  },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  created() {},
+  mounted() {},
+  beforeDestroy() {},
   methods: {},
 
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

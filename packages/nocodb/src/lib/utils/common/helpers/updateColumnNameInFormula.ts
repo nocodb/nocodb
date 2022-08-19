@@ -1,15 +1,15 @@
 import jsepTreeToFormula from './jsepTreeToFormula';
 
-export default function(args: {
+export default function (args: {
   virtualColumns;
   oldColumnName: string;
   newColumnName: string;
 }): void | boolean {
   let modified = false;
 
-  const fn = pt => {
+  const fn = (pt) => {
     if (pt.type === 'CallExpression') {
-      pt.arguments.map(arg => fn(arg));
+      pt.arguments.map((arg) => fn(arg));
     } else if (pt.type === 'Literal') {
     } else if (pt.type === 'Identifier') {
       if (pt.name === args.oldColumnName) {

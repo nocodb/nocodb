@@ -1,6 +1,6 @@
 ---
 title: 'Accessing APIs'
-description: 'Accessing APIs'
+description: 'How to access NocoDB APIs with Auth or API token?'
 position: 1000
 category: 'Developer Resources'
 menuTitle: 'Accessing APIs'

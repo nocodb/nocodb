@@ -53,7 +53,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
     for (let i = 0; i < this.wb.SheetNames.length; i++) {
       const columnNamePrefixRef = { id: 0 }
       const sheet = this.wb.SheetNames[i]
-      let tn = (sheet || 'table').replace(/\W/g, '_').trim()
+      let tn = (sheet || 'table').replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
 
       while (tn in tableNamePrefixRef) {
         tn = `${tn}${++tableNamePrefixRef[tn]}`
@@ -91,7 +91,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       // const colLen = Math.max()
       for (let col = 0; col < rows[0].length; col++) {
         let cn = ((columnNameRowExist && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
-          `field_${col + 1}`).replace(/\W/g, '_').trim()
+          `field_${col + 1}`).replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
 
         while (cn in columnNamePrefixRef) {
           cn = `${cn}${++columnNamePrefixRef[cn]}`

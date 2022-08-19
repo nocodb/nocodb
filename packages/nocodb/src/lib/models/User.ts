@@ -22,6 +22,7 @@ export default class User implements UserType {
   email_verification_token?: string;
   email_verified: boolean;
   roles?: string;
+  token_version?: string;
 
   constructor(data: User) {
     Object.assign(this, data);
@@ -44,6 +45,7 @@ export default class User implements UserType {
       'email_verification_token',
       'email_verified',
       'roles',
+      'token_version',
     ]);
 
     if (insertObj.email) {
@@ -77,6 +79,7 @@ export default class User implements UserType {
       'email_verification_token',
       'email_verified',
       'roles',
+      'token_version',
     ]);
 
     if (updateObj.email) {
@@ -90,7 +93,7 @@ export default class User implements UserType {
       // update user:<id>
       `${CacheScope.USER}:${id}`,
       // update user:<email>
-      `${CacheScope.USER}:${user.email}`
+      `${CacheScope.USER}:${user.email}`,
     ];
     for (const key of keys) {
       let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -116,7 +119,7 @@ export default class User implements UserType {
       ));
     if (!user) {
       user = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
-        email
+        email,
       });
       await NocoCache.set(`${CacheScope.USER}:${email}`, user);
     }
@@ -132,10 +135,7 @@ export default class User implements UserType {
 
   static async count(ncMeta = Noco.ncMeta) {
     return (
-      await ncMeta
-        .knex(MetaTable.USERS)
-        .count('id', { as: 'count' })
-        .first()
+      await ncMeta.knex(MetaTable.USERS).count('id', { as: 'count' }).first()
     )?.count;
   }
 
@@ -160,7 +160,7 @@ export default class User implements UserType {
 
   static async getByRefreshToken(refresh_token, ncMeta = Noco.ncMeta) {
     const user = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
-      refresh_token
+      refresh_token,
     });
     return user;
   }

@@ -3,7 +3,7 @@
     <v-row align="center">
       <v-col md="6" offset-md="3">
         <h1>Change Password</h1>
-        <br>
+        <br />
 
         <v-card class="pa-5 elevation-10" color="">
           <v-form ref="formType" v-model="valid" lazy-validation>
@@ -37,78 +37,63 @@
               :type="e5 ? 'password' : 'text'"
             />
 
-            <v-btn
-              color="primary"
-              large
-              :disabled="!valid"
-              @click="resetUserPassword"
-            >
-              SAVE PASSWORD
-            </v-btn>
+            <v-btn color="primary" large :disabled="!valid" @click="resetUserPassword"> SAVE PASSWORD </v-btn>
           </v-form>
         </v-card>
       </v-col>
     </v-row>
   </v-container>
-
 </template>
 
 <script>
-import { isEmail } from '@/helpers'
+import { isEmail } from '@/helpers';
 
 export default {
-  directives: { },
-  components: { },
-  validate({ params }) { return true },
-  props: { },
+  directives: {},
+  components: {},
+  validate({ params }) {
+    return true;
+  },
+  props: {},
   data() {
     return {
       passwordDetails: {
         newPassword: null,
         verifyPassword: null,
         currentPassword: null,
-        oldPassword: null
+        oldPassword: null,
       },
       e3: true,
       e4: true,
       e5: true,
       valid: true,
       formRules: {
-        email: [
-          v => !!v || 'E-mail is required',
-          v => isEmail(v) || 'E-mail must be valid'
-        ],
-        password: [
-          v => !!v || 'Password is required'
-        ]
-      }
-
-    }
+        email: [v => !!v || 'E-mail is required', v => isEmail(v) || 'E-mail must be valid'],
+        password: [v => !!v || 'Password is required'],
+      },
+    };
   },
-  head() { return {} },
-  computed: {
+  head() {
+    return {};
   },
-  watch: { },
-  created() { },
+  computed: {},
+  watch: {},
+  created() {},
   mounted() {},
   beforeDestroy() {},
   methods: {
-
     async resetUserPassword(e) {
-      e.preventDefault()
+      e.preventDefault();
       // console.log('passworDetails',this.passwordDetails);
-      await this.$store.dispatch('ActPostPasswordChange', this.passwordDetails)
-    }
-
+      await this.$store.dispatch('ActPostPasswordChange', this.passwordDetails);
+    },
   },
   beforeCreated() {},
-  destroy() {}
-}
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

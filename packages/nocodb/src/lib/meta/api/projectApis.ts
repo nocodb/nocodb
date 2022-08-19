@@ -35,11 +35,24 @@ export async function projectGet(
   const project = await Project.getWithInfo(req.params.projectId);
 
   // delete datasource connection details
-  project.bases?.forEach(b => {
-    ['config'].forEach(k => delete b[k]);
+  project.bases?.forEach((b) => {
+    ['config'].forEach((k) => delete b[k]);
   });
 
   res.json(project);
+}
+
+export async function projectUpdate(
+  req: Request<any, any, any>,
+  res: Response<ProjectListType>
+) {
+  // only support updating title at this moment
+  const data: any = {
+    title: DOMPurify.sanitize(req?.body?.title),
+  };
+  const result = await Project.update(req.params.projectId, data);
+  Tele.emit('evt', { evt_type: 'project:update' });
+  res.json(result);
 }
 
 export async function projectList(
@@ -54,7 +67,7 @@ export async function projectList(
       .json(
         new PagedResponseImpl(projects, {
           count: projects.length,
-          limit: projects.length
+          limit: projects.length,
         })
       );
   } catch (e) {
@@ -88,8 +101,8 @@ async function projectCreate(req: Request<any, any>, res) {
         config: null,
         is_meta: true,
         inflection_column: 'camelize',
-        inflection_table: 'camelize'
-      }
+        inflection_table: 'camelize',
+      },
     ];
   } else {
     projectBody.is_meta = false;
@@ -110,7 +123,7 @@ async function projectCreate(req: Request<any, any>, res) {
   await ProjectUser.insert({
     fk_user_id: (req as any).user.id,
     project_id: project.id,
-    roles: 'owner'
+    roles: 'owner',
   });
 
   await syncMigration(project);
@@ -125,7 +138,7 @@ async function projectCreate(req: Request<any, any>, res) {
 
   Tele.emit('evt', {
     evt_type: 'project:created',
-    xcdb: !projectBody.external
+    xcdb: !projectBody.external,
   });
 
   Tele.emit('evt', { evt_type: 'project:rest' });
@@ -141,7 +154,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
     relationsCount: 0,
     viewsCount: 0,
     client: base?.getConnectionConfig()?.client,
-    timeTaken: 0
+    timeTaken: 0,
   };
 
   const t = process.hrtime();
@@ -158,7 +171,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
 
   let tables = (await sqlClient.tableList())?.data?.list
     ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
-    ?.map(t => {
+    ?.map((t) => {
       t.order = ++order;
       t.title = getTableNameAlias(t.tn, project.prefix, base);
       t.table_name = t.tn;
@@ -167,60 +180,62 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
 
   /* filter based on prefix */
   if (project?.prefix) {
-    tables = tables.filter(t => {
+    tables = tables.filter((t) => {
       return t?.tn?.startsWith(project?.prefix);
     });
   }
 
   info.tablesCount = tables.length;
 
-  tables.forEach(t => {
+  tables.forEach((t) => {
     t.title = getTableNameAlias(t.tn, project.prefix, base);
   });
 
-  relations.forEach(r => {
+  relations.forEach((r) => {
     r.title = getTableNameAlias(r.tn, project.prefix, base);
     r.rtitle = getTableNameAlias(r.rtn, project.prefix, base);
   });
 
   // await this.syncRelations();
 
-  const tableMetasInsert = tables.map(table => {
+  const tableMetasInsert = tables.map((table) => {
     return async () => {
       /* filter relation where this table is present */
       const tableRelations = relations.filter(
-        r => r.tn === table.tn || r.rtn === table.tn
+        (r) => r.tn === table.tn || r.rtn === table.tn
       );
 
-      const columns: Array<Omit<Column, 'column_name' | 'title'> & {
-        cn: string;
-        system?: boolean;
-      }> = (await sqlClient.columnList({ tn: table.tn }))?.data?.list;
+      const columns: Array<
+        Omit<Column, 'column_name' | 'title'> & {
+          cn: string;
+          system?: boolean;
+        }
+      > = (await sqlClient.columnList({ tn: table.tn }))?.data?.list;
 
       const hasMany =
         table.type === 'view'
           ? []
-          : tableRelations.filter(r => r.rtn === table.tn);
+          : tableRelations.filter((r) => r.rtn === table.tn);
       const belongsTo =
         table.type === 'view'
           ? []
-          : tableRelations.filter(r => r.tn === table.tn);
+          : tableRelations.filter((r) => r.tn === table.tn);
 
       mapDefaultPrimaryValue(columns);
 
       // add vitual columns
       const virtualColumns = [
-        ...hasMany.map(hm => {
+        ...hasMany.map((hm) => {
           return {
             uidt: UITypes.LinkToAnotherRecord,
             type: 'hm',
             hm,
-            title: `${hm.title} List`
+            title: `${hm.title} List`,
           };
         }),
-        ...belongsTo.map(bt => {
+        ...belongsTo.map((bt) => {
           // find and mark foreign key column
-          const fkColumn = columns.find(c => c.cn === bt.cn);
+          const fkColumn = columns.find((c) => c.cn === bt.cn);
           if (fkColumn) {
             fkColumn.uidt = UITypes.ForeignKey;
             fkColumn.system = true;
@@ -230,9 +245,9 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
             uidt: UITypes.LinkToAnotherRecord,
             type: 'bt',
             bt,
-            title: `${bt.rtitle}`
+            title: `${bt.rtitle}`,
           };
-        })
+        }),
       ];
 
       // await Model.insert(project.id, base.id, meta);
@@ -242,7 +257,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
         table_name: table.tn || table.table_name,
         title: table.title,
         type: table.type || 'table',
-        order: table.order
+        order: table.order,
       });
 
       // table crud apis
@@ -257,7 +272,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
           ...column,
           title: getColumnNameAlias(column.cn, base),
           column_name: column.cn,
-          order: colOrder++
+          order: colOrder++,
         });
       }
       virtualColumnsInsert.push(async () => {
@@ -274,14 +289,14 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
           const rel = column.hm || column.bt;
 
           const rel_column_id = (await models2?.[rel.tn]?.getColumns())?.find(
-            c => c.column_name === rel.cn
+            (c) => c.column_name === rel.cn
           )?.id;
 
           const tnId = models2?.[rel.tn]?.id;
 
           const ref_rel_column_id = (
             await models2?.[rel.rtn]?.getColumns()
-          )?.find(c => c.column_name === rel.rcn)?.id;
+          )?.find((c) => c.column_name === rel.rcn)?.id;
 
           const rtnId = models2?.[rel.rtn]?.id;
 
@@ -302,7 +317,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
               dr: rel.dr,
               order: colOrder++,
               fk_related_model_id: column.hm ? tnId : rtnId,
-              system: column.system
+              system: column.system,
             });
 
             // nested relations data apis
@@ -324,7 +339,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
     await sqlClient.viewList()
   )?.data?.list
     // ?.filter(({ tn }) => !IGNORE_TABLES.includes(tn))
-    ?.map(v => {
+    ?.map((v) => {
       v.order = ++order;
       v.table_name = v.view_name;
       v.title = getTableNameAlias(v.view_name, project.prefix, base);
@@ -333,14 +348,14 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
 
   /* filter based on prefix */
   if (project?.prefix) {
-    views = tables.filter(t => {
+    views = tables.filter((t) => {
       return t?.tn?.startsWith(project?.prefix);
     });
   }
 
   info.viewsCount = views.length;
 
-  const viewMetasInsert = views.map(table => {
+  const viewMetasInsert = views.map((table) => {
     return async () => {
       const columns = (await sqlClient.columnList({ tn: table.table_name }))
         ?.data?.list;
@@ -351,7 +366,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
         title: getTableNameAlias(table.table_name, project.prefix, base),
         // todo: sanitize
         type: ModelTypes.VIEW,
-        order: table.order
+        order: table.order,
       });
 
       let colOrder = 1;
@@ -365,7 +380,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
           ...column,
           title: getColumnNameAlias(column.cn, base),
           order: colOrder++,
-          uidt: getColumnUiType(base, column)
+          uidt: getColumnUiType(base, column),
         });
       }
     };
@@ -391,7 +406,7 @@ export async function projectInfoGet(req, res) {
     Database: project.bases?.[0]?.type,
     ProjectOnRootDB: !!project?.is_meta,
     RootDB: Noco.getConfig()?.meta?.db?.client,
-    PackageVersion: packageVersion
+    PackageVersion: packageVersion,
   });
 }
 
@@ -419,14 +434,14 @@ export async function projectCost(req, res) {
   Tele.event({
     event: 'a:project:cost',
     data: {
-      cost
-    }
+      cost,
+    },
   });
 
   res.json({ cost });
 }
 
-export default router => {
+export default (router) => {
   router.get(
     '/api/v1/db/meta/projects/:projectId/info',
     metaApiMetrics,
@@ -436,6 +451,11 @@ export default router => {
     '/api/v1/db/meta/projects/:projectId',
     metaApiMetrics,
     ncMetaAclMw(projectGet, 'projectGet')
+  );
+  router.patch(
+    '/api/v1/db/meta/projects/:projectId',
+    metaApiMetrics,
+    ncMetaAclMw(projectUpdate, 'projectUpdate')
   );
   router.get(
     '/api/v1/db/meta/projects/:projectId/cost',

@@ -3,20 +3,18 @@
 </template>
 
 <script>
-import XcForm from '../../../components/project/spreadsheet/public/XcForm'
+import XcForm from '../../../components/project/spreadsheet/public/XcForm';
 
 export default {
   components: { XcForm },
   layout: 'public',
   data: () => ({
-    data: null
-  })
-}
+    data: null,
+  }),
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

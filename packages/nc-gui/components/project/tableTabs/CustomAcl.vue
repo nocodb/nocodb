@@ -6,18 +6,16 @@
 
     <ul>
       <template v-if="Array.isArray(value)">
-        <li v-for="(v,i) in value">
+        <li v-for="(v, i) in value">
           <custom-acl v-model="value[i]" :nodes="nodes" :table="table" />
         </li>
-        <li class="caption add" @click="addConditionObj">
-          add +
-        </li>
+        <li class="caption add" @click="addConditionObj">add +</li>
       </template>
       <template v-else>
-        <li v-for="(key,i) in keys" v-if="key !== 'relationType'" :key="key" :class="{empty: !keys[i]}">
+        <li v-for="(key, i) in keys" v-if="key !== 'relationType'" :key="key" :class="{ empty: !keys[i] }">
           <div class="d-inline">
             <!--      <span contenteditable v-text="key" class="key"></span>-->
-            <select :ref="'keySelect'+i" v-model="keys[i]" class="caption" @change="onKeyChange(i,key)">
+            <select :ref="'keySelect' + i" v-model="keys[i]" class="caption" @change="onKeyChange(i, key)">
               <template v-if="table">
                 <optgroup v-if="columns && columns.length" label="columns">
                   <option v-for="col in columns" v-show="!keys.includes(col)" :data-value="col">
@@ -26,16 +24,12 @@
                 </optgroup>
                 <optgroup v-if="hmList && hmList.length" label="Has Many">
                   <option v-for="hm in hmList" v-show="!keys.includes(hm)" data-relation-type="hm" :data-table="hm">
-                    {{
-                      hm
-                    }}
+                    {{ hm }}
                   </option>
                 </optgroup>
                 <optgroup v-if="btList && btList.length" label="BelongsTo">
                   <option v-for="bt in btList" v-show="!keys.includes(bt)" data-relation-type="bt" :data-table="bt">
-                    {{
-                      bt
-                    }}
+                    {{ bt }}
                   </option>
                 </optgroup>
                 <optgroup label="Logical Operators">
@@ -64,11 +58,7 @@
             <span class="separator"> : </span>
           </div>
           <template v-if="typeof value[key] === 'string'">
-            <input
-              v-model="value[key]"
-              type="text"
-              class="value caption"
-            >
+            <input v-model="value[key]" type="text" class="value caption" />
           </template>
           <!--          @input="e => $set(value,key,e.target.innerHTML)"   -->
 
@@ -79,14 +69,11 @@
             <custom-acl
               v-model="value[key]"
               :nodes="nodes"
-              :table="(value[key].relationType ? key : null)
-                || (logicOp.includes(key) ? table : null)"
+              :table="(value[key].relationType ? key : null) || (logicOp.includes(key) ? table : null)"
             />
           </template>
         </li>
-        <li v-if="table" class="caption add" @click="addConditionProp">
-          add +
-        </li>
+        <li v-if="table" class="caption add" @click="addConditionProp">add +</li>
       </template>
     </ul>
     {{ Array.isArray(value) ? '] ,' : '} ,' }}
@@ -94,126 +81,143 @@
 </template>
 
 <script>
-
-import { insertKey } from '../../../helpers/xutils'
+import { insertKey } from '../../../helpers/xutils';
 
 export default {
   name: 'CustomAcl',
-  props: [
-    'value',
-    'table',
-    'column',
-    'nodes'
-  ],
+  props: ['value', 'table', 'column', 'nodes'],
   data: () => ({
     columns: null,
     hmList: null,
     btList: null,
-    logicOp: [
-      '_and', '_or', '_not'
-    ],
-    compOp: [
-      'eq', 'neq', 'like', 'nlike', 'in', 'gt', 'lt', 'le', 'ge'
-    ],
-    loading: false
+    logicOp: ['_and', '_or', '_not'],
+    compOp: ['eq', 'neq', 'like', 'nlike', 'in', 'gt', 'lt', 'le', 'ge'],
+    loading: false,
   }),
   computed: {
     keys() {
-      return Object.keys(this.value)
-    }
+      return Object.keys(this.value);
+    },
   },
-  created() {
-  },
+  created() {},
   async mounted() {
-    await this.loadTableMetaDetails()
+    await this.loadTableMetaDetails();
   },
   methods: {
     onKeyChange(i, key) {
-      let value = JSON.parse(JSON.stringify(this.value))
+      let value = JSON.parse(JSON.stringify(this.value));
 
-      const selected = this.$refs[`keySelect${i}`][0].selectedOptions
-      let selectedVal = ''
-      if (selected && selected[0]) { selectedVal = selected[0].dataset }
+      const selected = this.$refs[`keySelect${i}`][0].selectedOptions;
+      let selectedVal = '';
+      if (selected && selected[0]) {
+        selectedVal = selected[0].dataset;
+      }
       if (selectedVal.value) {
-        delete value[key]
-        value = insertKey(this.keys[i], { eq: '' }, value, i)
+        delete value[key];
+        value = insertKey(this.keys[i], { eq: '' }, value, i);
       } else if (selectedVal.relationType === 'hm') {
-        delete value[key]
-        value = insertKey(selectedVal.table, {
-          relationType: 'hm',
-          '': ''
-        }, value, i)
+        delete value[key];
+        value = insertKey(
+          selectedVal.table,
+          {
+            relationType: 'hm',
+            '': '',
+          },
+          value,
+          i
+        );
       } else if (selectedVal.relationType === 'bt') {
-        delete value[key]
-        value = insertKey(selectedVal.table, {
-          relationType: 'bt',
-          '': ''
-        }, value, i)
+        delete value[key];
+        value = insertKey(
+          selectedVal.table,
+          {
+            relationType: 'bt',
+            '': '',
+          },
+          value,
+          i
+        );
       } else if (selectedVal.op) {
-        const oldVal = value[key]
-        delete value[key]
+        const oldVal = value[key];
+        delete value[key];
         if (selectedVal.logicalOp) {
           if (selectedVal.op === '_not') {
-            value = insertKey(selectedVal.op, {
-              '': ''
-            }, value, i)
+            value = insertKey(
+              selectedVal.op,
+              {
+                '': '',
+              },
+              value,
+              i
+            );
           } else {
-            value = insertKey(selectedVal.op, [{
-              '': ''
-            }], value, i)
+            value = insertKey(
+              selectedVal.op,
+              [
+                {
+                  '': '',
+                },
+              ],
+              value,
+              i
+            );
           }
         } else {
-          value[selectedVal.op] = oldVal
+          value[selectedVal.op] = oldVal;
         }
       }
-      this.$emit('input', value)
+      this.$emit('input', value);
     },
     addConditionProp() {
-      const value = JSON.parse(JSON.stringify(this.value))
-      value[''] = ''
-      this.$emit('input', value)
+      const value = JSON.parse(JSON.stringify(this.value));
+      value[''] = '';
+      this.$emit('input', value);
     },
     addConditionObj() {
-      const value = JSON.parse(JSON.stringify(this.value))
+      const value = JSON.parse(JSON.stringify(this.value));
       value.push({
-        '': ''
-      })
-      this.$emit('input', value)
+        '': '',
+      });
+      this.$emit('input', value);
     },
     deleteCondition(key) {
-      const value = JSON.parse(JSON.stringify(this.value))
-      delete value[key]
-      this.$emit('input', value)
+      const value = JSON.parse(JSON.stringify(this.value));
+      delete value[key];
+      this.$emit('input', value);
     },
     async loadTableMetaDetails() {
       if (this.table) {
-        this.loading = true
+        this.loading = true;
         try {
-          const meta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-            env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias
-          }, 'tableXcModelGet', {
-            tn: this.table
-          }])
-          const metaObj = JSON.parse(meta.meta)
-          this.columns = metaObj.columns.map(v => v.column_name)
-          console.log(metaObj)
-          this.hmList = metaObj.hasMany.map(v => v.table_name)
-          this.btList = metaObj.belongsTo.map(v => v.rtn)
+          const meta = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+            {
+              env: this.nodes.env,
+              dbAlias: this.nodes.dbAlias,
+            },
+            'tableXcModelGet',
+            {
+              tn: this.table,
+            },
+          ]);
+          const metaObj = JSON.parse(meta.meta);
+          this.columns = metaObj.columns.map(v => v.column_name);
+          console.log(metaObj);
+          this.hmList = metaObj.hasMany.map(v => v.table_name);
+          this.btList = metaObj.belongsTo.map(v => v.rtn);
         } catch (e) {
-          console.log('load meta', this.table, e)
+          console.log('load meta', this.table, e);
         } finally {
-          this.loading = false
+          this.loading = false;
         }
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
-
-.key, .value {
+.key,
+.value {
   min-width: 40px;
   border-bottom: 1px dotted #bbbbbb;
   display: inline-block;
@@ -230,7 +234,6 @@ ul {
   }
 
   border-left: 1px dotted #bbbbbb;
-
 }
 
 select {
@@ -261,7 +264,7 @@ select {
   max-width: 0;
   overflow: hidden;
   //opacity: 0;
-  transition: max-width .4s, opacity .4s;
+  transition: max-width 0.4s, opacity 0.4s;
 }
 
 div:hover > .delete-wrapper .delete {
@@ -269,10 +272,10 @@ div:hover > .delete-wrapper .delete {
   //opacity: 1;
 }
 
-select, input {
+select,
+input {
   color: var(--v-primary-text);
 }
-
 </style>
 <!--
 /**

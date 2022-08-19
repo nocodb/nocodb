@@ -9,15 +9,15 @@ const input: XcForm = {
       label: 'Channel Name',
       placeholder: 'Channel Name',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'webhook_url',
       label: 'Webhook URL',
       type: XcType.Password,
       placeholder: 'Webhook URL',
-      required: true
-    }
+      required: true,
+    },
   ],
   actions: [
     {
@@ -25,19 +25,19 @@ const input: XcForm = {
       placeholder: 'Test',
       key: 'test',
       actionType: XcActionType.TEST,
-      type: XcType.Button
+      type: XcType.Button,
     },
     {
       label: 'Save',
       placeholder: 'Save',
       key: 'save',
       actionType: XcActionType.SUBMIT,
-      type: XcType.Button
-    }
+      type: XcType.Button,
+    },
   ],
   msgOnInstall:
     'Successfully installed and Discord is enabled for notification.',
-  msgOnUninstall: ''
+  msgOnUninstall: '',
 };
 
 export default {
@@ -49,5 +49,5 @@ export default {
   price: 'Free',
   tags: 'Chat',
   category: 'Chat',
-  input_schema: JSON.stringify(input)
+  input_schema: JSON.stringify(input),
 };

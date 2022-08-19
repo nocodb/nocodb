@@ -20,7 +20,6 @@ Simple installation - takes about three minutes!
     
 ## Quick try
 
-
 ### 1-Click Deploy to Heroku
 
 Before doing so, make sure you have a Heroku account. By default, an add-on Heroku Postgres will be used as meta database. You can see the connection string defined in `DATABASE_URL` by navigating to Heroku App Settings and selecting Config Vars.
@@ -63,6 +62,55 @@ npm start
 brew tap nocodb/nocodb
 brew install nocodb
 nocodb
+```
+
+### Executables
+
+You can download executables directly and run without any extra dependancy. Use the right command based on your platform.
+
+
+##### MacOS (x64)
+
+```bash
+curl http://get.nocodb.com/macos-x64 -o nocodb -L \
+  && chmod +x nocodb \
+  && ./nocodb
+```
+
+##### MacOS (arm64)
+
+```bash
+curl http://get.nocodb.com/macos-arm64 -o nocodb -L \
+  && chmod +x nocodb \
+  && ./nocodb
+```
+
+##### Linux (x64)
+
+```bash
+curl http://get.nocodb.com/linux-x64 -o nocodb -L \
+  && chmod +x nocodb \
+  && ./nocodb
+```
+##### Linux (arm64)
+
+```bash
+curl http://get.nocodb.com/linux-arm64 -o nocodb -L \
+  && chmod +x nocodb \
+  && ./nocodb
+```
+
+##### Windows (x64)
+
+```bash
+iwp http://get.nocodb.com/win-x64
+.\Noco-win-x64.exe
+```
+##### Windows (arm64)
+
+```bash
+iwp http://get.nocodb.com/win-arm64
+.\Noco-win-arm64.exe
 ```
 
 ### Docker 
@@ -322,31 +370,7 @@ aws ecs create-service \
 </alert>
 
 ## Development Setup
-
-If you want to modify the source code,
-
-- Start the backend locally
-
-```bash
-cd packages/nocodb
-npm install
-npm run watch:run
-```
-
-- Start the frontend locally
-
-```bash
-cd packages/nc-gui
-npm install
-npm run dev
-```
-
-- Open ``localhost:3000/dashboard`` in browser
-
-<alert>
-  nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. <br>
-   You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
-</alert>
+Please refer to [Development Setup](https://docs-dev.nocodb.com/engineering/development-setup).
 
 ## Sample Demos
 

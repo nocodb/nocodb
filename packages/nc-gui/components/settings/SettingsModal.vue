@@ -1,31 +1,13 @@
 <template>
   <div>
-    <slot :click="() => settingsModal = true">
-      <v-icon class="mx-2" @click="settingsModal=true">
-        mdi-cog-outline
-      </v-icon>
+    <slot :click="() => (settingsModal = true)">
+      <v-icon class="mx-2" @click="settingsModal = true"> mdi-cog-outline </v-icon>
     </slot>
-    <v-dialog
-      v-model="settingsModal"
-      width="90%"
-      overlay-opacity=".9"
-      transition="dialog-bottom-transition"
-    >
-      <v-card
-        width="100%"
-        min-height="350px"
-      >
-        <div
-          class="d-flex"
-        >
-          <v-navigation-drawer
-            v-if="settingsModal"
-            left
-            permanent
-            height="90vh"
-            class="backgroundColor1"
-          >
-            <div class=" advance-menu ">
+    <v-dialog v-model="settingsModal" width="90%" overlay-opacity=".9" transition="dialog-bottom-transition">
+      <v-card width="100%" min-height="350px">
+        <div class="d-flex">
+          <v-navigation-drawer v-if="settingsModal" left permanent height="90vh" class="backgroundColor1">
+            <div class="advance-menu">
               <v-list
                 v-if="_isUIAllowed('treeViewProjectSettings')"
                 dense
@@ -34,7 +16,9 @@
                 <v-list-item>
                   <v-list-item-title>
                     <!-- Settings -->
-                    <span class="body-2 font-weight-medium grey--text  text-uppercase caption">{{ $t('activity.settings') }}</span>
+                    <span class="body-2 font-weight-medium grey--text text-uppercase caption">{{
+                      $t('activity.settings')
+                    }}</span>
                   </v-list-item-title>
                 </v-list-item>
                 <v-list-item-group v-model="activePage" color="x-active" mandatory>
@@ -48,15 +32,17 @@
                         v-on="on"
                       >
                         <v-list-item-icon>
-                          <v-icon small>
-                            mdi-account-group
-                          </v-icon>
+                          <v-icon small> mdi-account-group </v-icon>
                         </v-list-item-icon>
                         <!-- Team & Auth -->
                         <v-list-item-title>
-                          <span :class="{'font-weight-medium': activePage === 'roles', 'font-weight-regular':activePage !=='roles'}">{{
-                            $t('title.teamAndAuth')
-                          }}</span>
+                          <span
+                            :class="{
+                              'font-weight-medium': activePage === 'roles',
+                              'font-weight-regular': activePage !== 'roles',
+                            }"
+                            >{{ $t('title.teamAndAuth') }}</span
+                          >
                         </v-list-item-title>
                       </v-list-item>
                     </template>
@@ -75,15 +61,17 @@
                           v-on="on"
                         >
                           <v-list-item-icon>
-                            <v-icon small>
-                              mdi-storefront-outline
-                            </v-icon>
+                            <v-icon small> mdi-storefront-outline </v-icon>
                           </v-list-item-icon>
                           <!-- App Store -->
                           <v-list-item-title>
-                            <span :class="{'font-weight-medium': activePage === 'appStore', 'font-weight-regular':activePage !=='appStore'}">{{
-                              $t('title.appStore')
-                            }}</span>
+                            <span
+                              :class="{
+                                'font-weight-medium': activePage === 'appStore',
+                                'font-weight-regular': activePage !== 'appStore',
+                              }"
+                              >{{ $t('title.appStore') }}</span
+                            >
                           </v-list-item-title>
                         </v-list-item>
                       </template>
@@ -101,15 +89,17 @@
                           v-on="on"
                         >
                           <v-list-item-icon>
-                            <v-icon small>
-                              mdi-table-multiple
-                            </v-icon>
+                            <v-icon small> mdi-table-multiple </v-icon>
                           </v-list-item-icon>
                           <!-- Project Metadata -->
                           <v-list-item-title>
-                            <span :class="{'font-weight-medium': activePage === 'disableOrEnableModel', 'font-weight-regular':activePage !=='disableOrEnableModel'}">{{
-                              $t('title.projMeta')
-                            }}</span>
+                            <span
+                              :class="{
+                                'font-weight-medium': activePage === 'disableOrEnableModel',
+                                'font-weight-regular': activePage !== 'disableOrEnableModel',
+                              }"
+                              >{{ $t('title.projMeta') }}</span
+                            >
                           </v-list-item-title>
                         </v-list-item>
                       </template>
@@ -127,15 +117,17 @@
                           v-on="on"
                         >
                           <v-list-item-icon>
-                            <v-icon small>
-                              mdi-notebook-outline
-                            </v-icon>
+                            <v-icon small> mdi-notebook-outline </v-icon>
                           </v-list-item-icon>
                           <!-- Project Metadata -->
                           <v-list-item-title>
-                            <span :class="{'font-weight-medium': activePage === 'audit', 'font-weight-regular':activePage !=='audit' }">{{
-                              $t('title.audit')
-                            }}</span>
+                            <span
+                              :class="{
+                                'font-weight-medium': activePage === 'audit',
+                                'font-weight-regular': activePage !== 'audit',
+                              }"
+                              >{{ $t('title.audit') }}</span
+                            >
                           </v-list-item-title>
                         </v-list-item>
                       </template>
@@ -148,27 +140,17 @@
             </div>
           </v-navigation-drawer>
           <v-container class="flex-grow-1 py-9 px-15" style="max-height: 90vh; overflow-y: auto">
-            <div v-if="activePage === 'audit'" style="height:100%">
+            <div v-if="activePage === 'audit'" style="height: 100%">
               <audit-tab />
             </div>
-            <div
-              v-else-if="activePage === 'meta'"
-            >
+            <div v-else-if="activePage === 'meta'">
               <xc-meta />
             </div>
-            <div
-              v-else-if="activePage === 'roles'"
-            >
-              <auth-tab
-                v-if="_isUIAllowed('team-auth')"
-              />
+            <div v-else-if="activePage === 'roles'">
+              <auth-tab v-if="_isUIAllowed('team-auth')" />
             </div>
-            <div
-              v-else-if="activePage === 'disableOrEnableModel'"
-            >
-              <disable-or-enable-models
-                v-if="_isUIAllowed('project-metadata')"
-              />
+            <div v-else-if="activePage === 'disableOrEnableModel'">
+              <disable-or-enable-models v-if="_isUIAllowed('project-metadata')" />
             </div>
             <app-store v-else />
           </v-container>
@@ -179,12 +161,12 @@
 </template>
 
 <script>
-import AppStore from '~/components/project/AppStore'
-import DisableOrEnableModels from '~/components/project/projectMetadata/DisableOrEnableModels'
-import AuthTab from '~/components/AuthTab'
-import XcMeta from '~/components/project/settings/XcMeta'
-import AuditTab from '~/components/project/AuditTab'
-import ImportFromAirtable from '~/components/import/ImportFromAirtable'
+import AppStore from '~/components/project/AppStore';
+import DisableOrEnableModels from '~/components/project/projectMetadata/DisableOrEnableModels';
+import AuthTab from '~/components/AuthTab';
+import XcMeta from '~/components/project/settings/XcMeta';
+import AuditTab from '~/components/project/AuditTab';
+import ImportFromAirtable from '~/components/import/ImportFromAirtable';
 
 export default {
   name: 'SettingsModal',
@@ -192,16 +174,15 @@ export default {
   data: () => ({
     settingsModal: false,
     activePage: 'role',
-    improtFromAirtableModal: false
-  })
-}
+    improtFromAirtableModal: false,
+  }),
+};
 </script>
 
 <style scoped lang="scss">
-::v-deep{
-  .v-list-item__icon{
+::v-deep {
+  .v-list-item__icon {
     margin-right: 0 !important;
   }
 }
-
 </style>

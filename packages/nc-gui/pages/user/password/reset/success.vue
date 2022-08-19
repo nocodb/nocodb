@@ -1,16 +1,12 @@
 <template>
   <section class="section container">
     <div class="box">
-      <h2 class="title is-2">
-        Password successfully reset
-      </h2>
+      <h2 class="title is-2">Password successfully reset</h2>
     </div>
 
     <v-row>
       <v-alert v-model="alert" type="success" dismissible>
-        <h1 class="title is-2">
-          Password reset is Successfull
-        </h1>
+        <h1 class="title is-2">Password reset is Successfull</h1>
       </v-alert>
     </v-row>
   </section>
@@ -18,34 +14,30 @@
 
 <script>
 export default {
-  directives: { },
-  components: { },
-  validate({ params }) { return true },
-  props: { },
+  directives: {},
+  components: {},
+  validate({ params }) {
+    return true;
+  },
+  props: {},
   data() {
-    return {
-
-    }
+    return {};
   },
-  head() { return {} },
-  computed: {
-
+  head() {
+    return {};
   },
-  watch: { },
-  created() { },
+  computed: {},
+  watch: {},
+  created() {},
   mounted() {},
   beforeDestroy() {},
-  methods: {
-
-  },
+  methods: {},
   beforeCreated() {},
-  destroy() {}
-}
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

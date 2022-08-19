@@ -7,7 +7,7 @@ process.env.NC_VERSION = '0009044';
 const server = express();
 server.use(
   cors({
-    exposedHeaders: 'xc-db-response'
+    exposedHeaders: 'xc-db-response',
   })
 );
 
@@ -16,10 +16,7 @@ server.set('view engine', 'ejs');
 const date = new Date();
 const metaDb = `meta_v2_${date.getFullYear()}_${(date.getMonth() + 1)
   .toString()
-  .padStart(2, '0')}_${date
-  .getDate()
-  .toString()
-  .padStart(2, '0')}`;
+  .padStart(2, '0')}_${date.getDate().toString().padStart(2, '0')}`;
 // process.env[`NC_DB`] = `mysql2://localhost:3306?u=root&p=password&d=${metaDb}`;
 // process.env[`NC_DB`] = `pg:/2/localhost:3306?u=root&p=password&d=mar_24`;
 process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}`;
@@ -33,7 +30,7 @@ process.env[`DEBUG`] = 'xc*';
     console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
   });
   server.use(await Noco.init({}, httpServer, server));
-})().catch(e => console.log(e));
+})().catch((e) => console.log(e));
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

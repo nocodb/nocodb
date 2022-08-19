@@ -6,7 +6,7 @@ export async function cacheGet(_, res) {
   const data = await NocoCache.export();
   res.set({
     'Content-Type': 'application/json',
-    'Content-Disposition': `attachment; filename="cache-export.json"`
+    'Content-Disposition': `attachment; filename="cache-export.json"`,
   });
   res.send(JSON.stringify(data));
 }

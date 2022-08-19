@@ -1,11 +1,11 @@
 <template>
   <v-chip
     class="chip"
-    :class="{active}"
+    :class="{ active }"
     small
     text-color="textColor"
     :color="isDark ? '' : 'primary lighten-5'"
-    @click="!readonly && active && $emit('edit',item)"
+    @click="!readonly && active && $emit('edit', item)"
   >
     <slot><span class="name" :title="value">{{ value }}</span></slot>
     <div v-show="active" v-if="!readonly && _isUIAllowed('xcDatatableEditable')" class="mr-n1 ml-2">
@@ -28,9 +28,9 @@ export default {
     value: [String, Number, Boolean],
     active: Boolean,
     item: Object,
-    readonly: Boolean
-  }
-}
+    readonly: Boolean,
+  },
+};
 </script>
 
 <style scoped lang="scss">

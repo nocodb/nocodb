@@ -37,7 +37,7 @@
 </template>
 
 <script>
-import { currencyCodes, currencyLocales, validateCurrencyCode, validateCurrencyLocale } from '~/helpers/currencyHelper'
+import { currencyCodes, currencyLocales, validateCurrencyCode, validateCurrencyLocale } from '~/helpers/currencyHelper';
 
 export default {
   name: 'CurrencyOptions',
@@ -45,43 +45,43 @@ export default {
   data: () => ({
     colMeta: {
       currency_locale: 'en-US',
-      currency_code: 'USD'
+      currency_code: 'USD',
     },
     currencyList: currencyCodes,
     currencyLocaleList: currencyLocales(),
-    isValidCurrencyLocale: (value) => {
-      return validateCurrencyLocale(value) || 'Invalid locale'
+    isValidCurrencyLocale: value => {
+      return validateCurrencyLocale(value) || 'Invalid locale';
     },
-    isValidCurrencyCode: (value) => {
-      return validateCurrencyCode(value) || 'Invalid Currency Code'
-    }
+    isValidCurrencyCode: value => {
+      return validateCurrencyCode(value) || 'Invalid Currency Code';
+    },
   }),
   computed: {
     isMoney() {
-      return this.column.dt === 'money'
+      return this.column.dt === 'money';
     },
     isPG() {
-      return ['pg'].includes(this.$store.getters['project/GtrClientType'])
+      return ['pg'].includes(this.$store.getters['project/GtrClientType']);
     },
     message() {
       if (this.isMoney && this.isPG) {
-        return "PostgreSQL 'money' type has own currency settings"
+        return "PostgreSQL 'money' type has own currency settings";
       }
-      return ''
-    }
+      return '';
+    },
   },
   watch: {
     value() {
-      this.colMeta = this.value || {}
+      this.colMeta = this.value || {};
     },
     colMeta(v) {
-      this.$emit('input', v)
-    }
+      this.$emit('input', v);
+    },
   },
   created() {
-    this.colMeta = this.value ? { ...this.value } : { ...this.colMeta }
-  }
-}
+    this.colMeta = this.value ? { ...this.value } : { ...this.colMeta };
+  },
+};
 </script>
 
 <style scoped>

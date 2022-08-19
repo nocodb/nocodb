@@ -146,7 +146,7 @@ a {
 .page-leave-active,
 .layout-enter-active,
 .layout-leave-active {
-  @apply transition-opacity duration-400 ease-in-out;
+  @apply transition-all duration-200 ease;
 }
 
 .page-enter-from,
@@ -162,7 +162,6 @@ a {
 }
 
 .slide-enter-from,
-
 .slide-leave-to {
   transform: translate(-100%, 0);
 }

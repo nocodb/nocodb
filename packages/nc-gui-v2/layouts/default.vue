@@ -19,11 +19,9 @@ export default {
 
 <template>
   <div class="w-full h-full">
-    <Transition duration="5000" name="page">
-      <Teleport to="#nc-sidebar-left">
-        <slot name="sidebar" />
-      </Teleport>
-    </Transition>
+    <Teleport to="#nc-sidebar-left">
+      <slot name="sidebar" />
+    </Teleport>
 
     <a-layout-content>
       <slot />

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { navigateTo } from '#app'
-import { computed, useGlobal, useRoute } from '#imports'
+import { computed, navigateTo, ref, useGlobal, useNuxtApp, useProject, useRoute } from '#imports'
 
 const { signOut, signedIn, isLoading, user } = useGlobal()
 
@@ -10,15 +9,30 @@ const route = useRoute()
 
 const email = computed(() => user.value?.email ?? '---')
 
+const hasSider = ref(false)
+
+const sidebar = ref<HTMLDivElement>()
+
 const logout = () => {
   signOut()
   navigateTo('/signin')
 }
+
+const { hooks } = useNuxtApp()
+
+/** when page suspensions have finished, check if a sidebar element was teleported into the layout */
+hooks.hook('page:finish', () => {
+  if (sidebar.value) {
+    hasSider.value = sidebar.value?.children.length > 0
+  }
+})
 </script>
 
 <template>
   <a-layout id="nc-app" has-sider>
-    <div id="nc-sidebar-left" />
+    <Transition name="slide">
+      <div v-show="hasSider" id="nc-sidebar-left" ref="sidebar" />
+    </Transition>
 
     <a-layout class="!flex-col">
       <a-layout-header

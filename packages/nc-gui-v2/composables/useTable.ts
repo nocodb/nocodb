@@ -1,22 +1,15 @@
 import { Modal, message } from 'ant-design-vue'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { useProject } from './useProject'
-import { TabType } from '~/composables/useTabs'
-import { extractSdkResponseErrorMsg } from '~/utils'
 import { useNuxtApp } from '#app'
+import { TabType } from '~/composables/useTabs'
+import { SYSTEM_COLUMNS, extractSdkResponseErrorMsg, useProject } from '#imports'
 
 export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
   const table = reactive<{ title: string; table_name: string; columns: string[]; columnsToggleInfo: Record<string, boolean> }>({
     title: '',
     table_name: '',
-    columns: ['id', 'title', 'created_at', 'updated_at'],
-    columnsToggleInfo: {
-      id: true,
-      title: true,
-      created_at: true,
-      updated_at: true,
-    },
+    columns: [...SYSTEM_COLUMNS],
   })
 
   const { $e, $api } = useNuxtApp()
@@ -27,18 +20,15 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
 
   const createTable = async () => {
     if (!sqlUi?.value) return
-    const columns = sqlUi?.value
-      ?.getNewTableColumns()
-      .filter((col) => {
-        if (col.column_name === 'id' && table.columns.includes('id_ag')) {
-          Object.assign(col, sqlUi?.value?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
-          col.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(col.dt)
-          col.dtxs = sqlUi?.value?.getDefaultScaleForDatatype(col.dt)
-          return true
-        }
-        return table.columns.includes(col.column_name)
-      })
-      .filter((col) => table.columnsToggleInfo[col.column_name])
+    const columns = sqlUi?.value?.getNewTableColumns().filter((col) => {
+      if (col.column_name === 'id' && table.columns.includes('id_ag')) {
+        Object.assign(col, sqlUi?.value?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
+        col.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(col.dt)
+        col.dtxs = sqlUi?.value?.getDefaultScaleForDatatype(col.dt)
+        return true
+      }
+      return table.columns.includes(col.column_name)
+    })
 
     const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
       ...table,

@@ -6372,7 +6372,8 @@
         },
         "required": [
           "table_name",
-          "title"
+          "title",
+          "columns"
         ]
       },
       "TableList": {

@@ -45,18 +45,22 @@ const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
 
       <div class="dot" />
     </template>
+    <h3 class="pt-3 px-3 text-xs text-gray-500 font-semibold">{{ $t('objects.views') }}</h3>
 
-    <LockMenu v-if="isUIAllowed('view-type')" @click.stop />
+<!--    <LockMenu v-if="isUIAllowed('view-type')" @click.stop />-->
 
-    <div v-if="isUIAllowed('view-type')" class="dot" />
+<!--    <div v-if="isUIAllowed('view-type')" class="dot" />-->
 
-    <Reload @click.stop />
+<!--    <Reload @click.stop />-->
 
-    <div class="dot" />
+<!--    <div class="dot" />-->
 
-    <AddRow v-if="isUIAllowed('xcDatatableEditable')" @click.stop />
+<!--    <AddRow v-if="isUIAllowed('xcDatatableEditable')" @click.stop />-->
 
-    <div :class="{ 'w-[calc(100%_+_16px)] h-[1px] bg-gray-200 mt-1 -ml-1': !isOpen, 'dot': isOpen }" />
+<!--    <div :class="{ 'w-[calc(100%_+_16px)] h-[1px] bg-gray-200 mt-1 -ml-1': !isOpen, 'dot': isOpen }" />-->
+
+
+
 
     <ToggleDrawer />
 

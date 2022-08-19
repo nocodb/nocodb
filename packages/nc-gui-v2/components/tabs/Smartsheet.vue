@@ -87,6 +87,13 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
       </template>
     </div>
 
-    <SmartsheetSidebar v-if="meta" />
+    <SmartsheetSidebar class="nc-right-sidebar" v-if="meta" />
   </div>
 </template>
+
+
+<style scoped>
+:deep(.nc-right-sidebar.ant-layout-sider-collapsed) {
+  @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
+}
+</style>

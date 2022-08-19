@@ -109,24 +109,25 @@ function onOpenModal(type: ViewTypes, title = '') {
       </a-menu-item>
     </div>
 
-    <SmartsheetSidebarMenuApiSnippet v-model="showApiSnippet" />
+    <div class="flex-1"></div>
+<!--    <SmartsheetSidebarMenuApiSnippet v-model="showApiSnippet" />-->
 
-    <div class="flex-auto justify-end flex flex-col gap-3 mt-3">
-      <button
-        v-if="isUIAllowed('virtualViewsCreateOrEdit')"
-        class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease !text-xs nc-webhook-btn"
-        @click="onWebhooks"
-      >
-        <mdi-hook />{{ $t('objects.webhooks') }}
-      </button>
+<!--    <div class="flex-auto justify-end flex flex-col gap-3 mt-3">-->
+<!--      <button-->
+<!--        v-if="isUIAllowed('virtualViewsCreateOrEdit')"-->
+<!--        class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease !text-xs nc-webhook-btn"-->
+<!--        @click="onWebhooks"-->
+<!--      >-->
+<!--        <mdi-hook />{{ $t('objects.webhooks') }}-->
+<!--      </button>-->
 
-      <button
-        class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease !text-xs"
-        @click="onApiSnippet"
-      >
-        <mdi-xml />Get API Snippet
-      </button>
-    </div>
+<!--      <button-->
+<!--        class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease !text-xs"-->
+<!--        @click="onApiSnippet"-->
+<!--      >-->
+<!--        <mdi-xml />Get API Snippet-->
+<!--      </button>-->
+<!--    </div>-->
 
     <general-flipping-card class="my-4 lg:my-6 min-h-[100px]" :triggers="['click', { duration: 15000 }]">
       <template #front>

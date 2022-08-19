@@ -4,8 +4,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import { computed } from 'vue'
 import { message } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
-import { useSmartsheetStoreOrThrow } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import { extractSdkResponseErrorMsg, useProject, useSmartsheetStoreOrThrow } from '#imports'
 import MdiOpenInNewIcon from '~icons/mdi/open-in-new'
 import MdiCopyIcon from '~icons/mdi/content-copy'
 
@@ -18,6 +17,8 @@ const { $e } = useNuxtApp()
 const { dashboardUrl } = useDashboard()
 
 const { isUIAllowed } = useUIPermission()
+
+const { isSharedBase } = useProject()
 
 let showShareModel = $ref(false)
 
@@ -118,7 +119,12 @@ onMounted(() => {
 
 <template>
   <div>
-    <a-button v-if="isUIAllowed('share-view')" v-t="['c:view:share']" outlined class="nc-btn-share-view nc-toolbar-btn">
+    <a-button
+      v-if="isUIAllowed('share-view') && !isSharedBase"
+      v-t="['c:view:share']"
+      outlined
+      class="nc-btn-share-view nc-toolbar-btn"
+    >
       <div class="flex align-center gap-1" @click="genShareLink">
         <MdiOpenInNewIcon />
         <!-- Share View -->

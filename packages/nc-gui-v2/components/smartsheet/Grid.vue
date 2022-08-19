@@ -489,14 +489,25 @@ const onNavigate = (dir: NavigateDir) => {
         <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
           <a-menu class="bg-white shadow" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)"
-              ><span class="text-xs">Delete row</span></a-menu-item
+              ><span class="text-xs">
+                <!-- Delete Row -->
+                {{ $t('activity.deleteRow') }}
+              </span></a-menu-item
             >
-            <a-menu-item @click="deleteSelectedRows"><span class="text-xs">Delete all selected rows</span></a-menu-item>
+            <a-menu-item @click="deleteSelectedRows"
+              ><span class="text-xs">
+                <!-- Delete Selected Rows -->
+                {{ $t('activity.deleteSelectedRow') }}
+              </span></a-menu-item
+            >
             <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)"
               ><span class="text-xs">Clear cell</span>
             </a-menu-item>
             <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              <span class="text-xs">Insert new row</span>
+              <span class="text-xs">
+                <!-- Insert New Row -->
+                {{ $t('activity.insertRow') }}
+              </span>
             </a-menu-item>
           </a-menu>
         </template>

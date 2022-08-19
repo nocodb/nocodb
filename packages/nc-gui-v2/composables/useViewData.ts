@@ -2,7 +2,7 @@ import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, 
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
-import { IsPublicInj, NOCO, extractPkFromRow, extractSdkResponseErrorMsg, useProject } from '#imports'
+import { IsPublicInj, NOCO, extractPkFromRow, extractSdkResponseErrorMsg, useProject, useUIPermission } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -42,6 +42,8 @@ export function useViewData(
   const { project } = useProject()
   const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
   const { $api } = useNuxtApp()
+  const { sorts, nestedFilters: filters } = useSharedView()
+  const { isUIAllowed } = useUIPermission()
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
@@ -109,6 +111,8 @@ export function useViewData(
     const response = !isPublic.value
       ? await $api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
           ...params,
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(filters.value) }),
           where: where?.value,
         })
       : await fetchSharedViewData()

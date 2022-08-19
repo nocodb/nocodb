@@ -7,15 +7,19 @@ export function useViewSorts(
   reloadData?: () => void,
 ) {
   const _sorts = ref<SortType[]>([])
+
   const { sorts: sharedViewSorts, sharedView } = useSharedView()
 
   const reloadHook = inject(ReloadViewDataHookInj)
+
   const isPublic = inject(IsPublicInj, ref(false))
 
+  const { isSharedBase } = useProject()
+
   const sorts = computed<SortType[]>({
-    get: () => (isPublic.value ? sharedViewSorts.value : _sorts.value),
+    get: () => (isPublic.value || isSharedBase ? sharedViewSorts.value : _sorts.value),
     set: (value) => {
-      if (isPublic.value) {
+      if (isPublic.value || isSharedBase) {
         sharedViewSorts.value = value
       } else {
         _sorts.value = value
@@ -39,9 +43,7 @@ export function useViewSorts(
   }
 
   const saveOrUpdate = async (sort: SortType, i: number) => {
-    // TODO:
-    // if (!this.shared && this._isUIAllowed('sortSync')) {
-    if (isPublic.value) {
+    if (isPublic.value || isSharedBase) {
       sorts.value[i] = sort
       sorts.value = [...sorts.value]
       return
@@ -66,10 +68,7 @@ export function useViewSorts(
   }
 
   const deleteSort = async (sort: SortType, i: number) => {
-    // TOOD:
-    // if (!this.shared && sort.id && this._isUIAllowed('sortSync')) {
-
-    if (isUIAllowed('sortSync') && sort.id && !isPublic.value) {
+    if (isUIAllowed('sortSync') && sort.id && !isPublic.value && !isSharedBase) {
       await $api.dbTableSort.delete(sort.id)
     }
     sorts.value.splice(i, 1)

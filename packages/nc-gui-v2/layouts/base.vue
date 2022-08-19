@@ -48,7 +48,7 @@ const logout = () => {
 
           <GeneralReleaseInfo />
 
-          <GeneralShareBaseButton />
+          <GeneralShareBaseButton v-if="!isSharedBase" />
 
           <a-tooltip placement="bottom" :mouse-enter-delay="1">
             <template #title> Switch language</template>

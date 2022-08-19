@@ -241,7 +241,7 @@ function openTableCreateDialog() {
 
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1">{{ $t('tooltip.addTable') }}</span>
 
-            <a-dropdown :trigger="['click']" @click.stop>
+            <a-dropdown v-if="!isSharedBase" :trigger="['click']" @click.stop>
               <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100" />
 
               <template #overlay>
@@ -341,7 +341,7 @@ function openTableCreateDialog() {
                   <div class="nc-tbl-title flex-1">{{ table.title }}</div>
 
                   <a-dropdown
-                    v-if="!isLocked && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
+                    v-if="!isSharedBase && !isLocked && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
                     :trigger="['click']"
                     @click.stop
                   >
@@ -380,7 +380,7 @@ function openTableCreateDialog() {
         </div>
       </div>
 
-      <template v-if="!isLocked" #overlay>
+      <template v-if="!isLocked && !isSharedBase" #overlay>
         <a-menu class="!py-0 rounded text-sm">
           <template v-if="contextMenuTarget.type === 'table'">
             <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value)">

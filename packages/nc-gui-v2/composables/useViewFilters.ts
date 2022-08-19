@@ -60,8 +60,6 @@ export function useViewFilters(
   }
 
   const loadFilters = async (hookId?: string) => {
-    if (isPublic.value) return
-
     if (hookId) {
       if (parentId) {
         filters.value = await $api.dbTableFilter.childrenRead(parentId)

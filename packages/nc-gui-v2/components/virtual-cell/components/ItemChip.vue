@@ -1,5 +1,14 @@
 <script lang="ts" setup>
-import { ActiveCellInj, IsFormInj, ReadonlyInj, defineAsyncComponent, inject, ref, useLTARStoreOrThrow } from '#imports'
+import {
+  ActiveCellInj,
+  IsFormInj,
+  ReadonlyInj,
+  defineAsyncComponent,
+  inject,
+  ref,
+  useLTARStoreOrThrow,
+  useUIPermission,
+} from '#imports'
 
 interface Props {
   value?: string | number | boolean
@@ -14,7 +23,9 @@ const ExpandedForm: any = defineAsyncComponent(() => import('../../smartsheet/ex
 
 const { relatedTableMeta } = useLTARStoreOrThrow()!
 
-const readonly = inject(ReadonlyInj, false)
+const { isUIAllowed } = useUIPermission()
+
+const readOnly = inject(ReadonlyInj, false)
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -39,13 +50,13 @@ export default {
   >
     <span class="name">{{ value }}</span>
 
-    <div v-show="active || isForm" v-if="!readonly && !isLocked" class="flex align-center">
+    <div v-show="active || isForm" v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')" class="flex align-center">
       <MdiCloseThick class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
     </div>
 
     <Suspense>
       <ExpandedForm
-        v-if="!readonly && !isLocked && expandedFormDlg"
+        v-if="!readOnly && !isLocked && expandedFormDlg"
         v-model="expandedFormDlg"
         :row="{ row: item }"
         :meta="relatedTableMeta"

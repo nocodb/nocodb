@@ -8,6 +8,7 @@ import type { Field } from '~/lib'
 
 export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRef<TableType>, reloadData?: () => void) {
   const isPublic = inject(IsPublicInj, ref(false))
+
   const fields = ref<Field[]>()
 
   const filterQuery = ref('')
@@ -16,10 +17,13 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
 
   const { isUIAllowed } = useUIPermission()
 
+  const { isSharedBase } = useProject()
+
   const loadViewColumns = async () => {
     if (!meta || !view) return
 
     let order = 1
+
     if (view.value?.id) {
       const data = (isPublic.value ? meta.value?.columns : await $api.dbViewColumn.list(view.value.id)) as any[]
 
@@ -48,7 +52,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   }
 
   const showAll = async (ignoreIds?: any) => {
-    if (isPublic.value) {
+    if (isPublic.value || isSharedBase) {
       fields.value = fields.value?.map((field: Field) => ({
         ...field,
         show: true,
@@ -71,7 +75,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     reloadData?.()
   }
   const hideAll = async (ignoreIds?: any) => {
-    if (isPublic.value) {
+    if (isPublic.value || isSharedBase) {
       fields.value = fields.value?.map((field: Field) => ({
         ...field,
         show: false,
@@ -94,7 +98,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   }
 
   const saveOrUpdate = async (field: any, index: number) => {
-    if (isPublic.value && fields.value) {
+    if ((isPublic.value || isSharedBase) && fields.value) {
       fields.value[index] = field
       meta.value.columns = meta.value?.columns?.map((column: ColumnType) => {
         if (column.id === field.fk_column_id) {
@@ -140,7 +144,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     },
     set(v: boolean) {
       if (view?.value?.id) {
-        if (!isPublic.value) {
+        if (!isPublic.value && !isSharedBase) {
           $api.dbView
             .update(view.value.id, {
               show_system_fields: v,

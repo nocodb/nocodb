@@ -11,7 +11,19 @@ import { useApi, useGlobal } from '#imports'
  * the user is redirected to the home page.
  *
  * By default, we assume that auth is required
- * If not required, mark the page as `requiresAuth: false` using `definePageMeta`
+ * If not required, mark the page as
+ * ```
+ * definePageMeta({
+ *   requiresAuth: false
+ * })
+ * ```
+ *
+ * If auth should be circumvented completely mark the page as public
+ * ```
+ * definePageMeta({
+ *   public: true
+ * })
+ * ```
  *
  * @example
  * ```
@@ -51,6 +63,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   }
 })
 
+/**
+ * If present, try using google auth data to sign user in before navigating to the next page
+ */
 async function tryGoogleAuth() {
   const { signIn } = useGlobal()
 

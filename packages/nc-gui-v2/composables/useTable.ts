@@ -6,10 +6,10 @@ import { TabType } from '~/composables/useTabs'
 import { SYSTEM_COLUMNS, extractSdkResponseErrorMsg, useProject } from '#imports'
 
 export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
-  const table = reactive<{ title: string; table_name: string; columns: string[]; columnsToggleInfo: Record<string, boolean> }>({
+  const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
-    columns: [...SYSTEM_COLUMNS],
+    columns: SYSTEM_COLUMNS,
   })
 
   const { $e, $api } = useNuxtApp()

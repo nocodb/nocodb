@@ -16,6 +16,7 @@ import {
 
 definePageMeta({
   requiresAuth: false,
+  title: 'general.signUp',
 })
 
 const { $e } = useNuxtApp()

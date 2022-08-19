@@ -3,6 +3,7 @@ import { Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import {
   computed,
+  definePageMeta,
   extractSdkResponseErrorMsg,
   navigateTo,
   onMounted,
@@ -12,6 +13,10 @@ import {
   useSidebar,
   useUIPermission,
 } from '#imports'
+
+definePageMeta({
+  title: 'title.myProject',
+})
 
 const { $e } = useNuxtApp()
 

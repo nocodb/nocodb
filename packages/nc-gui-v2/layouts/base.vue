@@ -53,19 +53,19 @@ const logout = () => {
           <a-tooltip placement="bottom" :mouse-enter-delay="1">
             <template #title> Switch language</template>
 
-            <div class="flex pr-4 items-center">
+            <div class="flex pr-4 items-center text-white">
               <GeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
             </div>
           </a-tooltip>
 
           <template v-if="signedIn && !isSharedBase">
             <a-dropdown :trigger="['click']">
-              <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts" @click.prevent />
+              <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white" @click.prevent />
 
               <template #overlay>
                 <a-menu class="!py-0 leading-8 !rounded">
                   <a-menu-item key="0" class="!rounded-t">
-                    <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
+                    <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
                       <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                       <span class="prose group-hover:text-primary"> {{ email }}</span>

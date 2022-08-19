@@ -44,7 +44,6 @@ export function useViewSorts(
 
   const saveOrUpdate = async (sort: SortType, i: number) => {
     if (isPublic.value || isSharedBase) {
-      // FIXME: not working for isSharedBase case
       sorts.value[i] = sort
       sorts.value = [...sorts.value]
       return

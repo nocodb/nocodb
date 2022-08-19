@@ -75,6 +75,7 @@ const { isOpen, toggle } = useSidebar()
 :deep(.nc-root-tabs) {
   & > .ant-tabs-nav {
     @apply !mb-0 before:(!border-b-0);
+
     .ant-tabs-extra-content {
       @apply !bg-white/0;
     }

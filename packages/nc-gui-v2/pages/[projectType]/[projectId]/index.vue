@@ -257,10 +257,7 @@ definePageMeta({
                     <GeneralPreviewAs />
                   </a-sub-menu>
 
-                  <a-sub-menu
-                    key="language"
-                    class="lang-menu scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0 rounded-b"
-                  >
+                  <a-sub-menu key="language" class="lang-menu scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0">
                     <template #title>
                       <div class="nc-project-menu-item group">
                         <MaterialSymbolsTranslate class="group-hover:text-pink-500 nc-language" />

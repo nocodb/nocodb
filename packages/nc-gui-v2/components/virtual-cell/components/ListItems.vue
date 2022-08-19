@@ -99,7 +99,7 @@ const newRowState = computed(() => {
 <template>
   <a-modal v-model:visible="vModel" :footer="null" title="Link Record">
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col">
-      <div class="flex mb-4 align-center gap-2">
+      <div class="flex mb-4 items-center gap-2">
         <a-input
           v-model:value="childrenExcludedListPagination.query"
           placeholder="Filter query"
@@ -115,7 +115,7 @@ const newRowState = computed(() => {
           <a-card
             v-for="(refRow, i) in childrenExcludedList?.list ?? []"
             :key="i"
-            class="ma-2 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
+            class="m-2 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
             @click="linkRow(refRow)"
           >
             {{ refRow[relatedTablePrimaryValueProp]

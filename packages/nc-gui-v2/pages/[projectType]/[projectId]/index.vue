@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { Chrome } from '@ckpack/vue-color'
 import { message } from 'ant-design-vue'
 import {
+  computed,
+  definePageMeta,
   navigateTo,
   onKeyStroke,
   openLink,
@@ -12,9 +15,15 @@ import {
   useProject,
   useRoute,
   useTabs,
+  useTheme,
   useUIPermission,
+  watch,
 } from '#imports'
 import { TabType } from '~/composables'
+
+definePageMeta({
+  hideHeader: true,
+})
 
 const route = useRoute()
 
@@ -41,15 +50,30 @@ const openDialogKey = ref<string>()
 
 const dropdownOpen = ref(false)
 
+/** Sidebar ref */
+const sidebar = ref()
+
+const pickedColor = ref<any>('#ffffff')
+
+let pickerActive = $ref<boolean | 'primary' | 'accent'>(false)
+
 const email = computed(() => user.value?.email ?? '---')
+
+const { setTheme, theme } = useTheme()
+
+watch(pickedColor, (nextColor) => {
+  if (pickerActive && nextColor.hex) {
+    setTheme({
+      primaryColor: pickerActive === 'primary' ? nextColor.hex : theme.value.primaryColor,
+      accentColor: pickerActive === 'accent' ? nextColor.hex : theme.value.accentColor,
+    })
+  }
+})
 
 const logout = () => {
   signOut()
   navigateTo('/signin')
 }
-
-/** Sidebar ref */
-const sidebar = ref()
 
 onKeyStroke(
   'Escape',
@@ -102,9 +126,21 @@ const copyAuthToken = async () => {
   }
 }
 
-definePageMeta({
-  hideHeader: true,
-})
+const openColorPicker = (type: 'primary' | 'accent') => {
+  if (!pickerActive || pickerActive !== type) {
+    pickedColor.value = type === 'primary' ? theme.value.primaryColor : theme.value.accentColor
+    pickerActive = type
+  } else {
+    pickerActive = false
+  }
+}
+
+const onMenuClose = (visible: boolean) => {
+  if (!visible) {
+    pickedColor.value = '#ffffff'
+    pickerActive = false
+  }
+}
 </script>
 
 <template>
@@ -152,7 +188,7 @@ definePageMeta({
             </template>
           </div>
 
-          <a-dropdown v-else class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom">
+          <a-dropdown v-else class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom" @visible-change="onMenuClose">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
@@ -167,7 +203,7 @@ definePageMeta({
                 </a-tooltip>
                 <div v-else class="text-lg font-semibold truncate">{{ project.title }}</div>
 
-                <MdiChevronDown class="min-w-[28.5px] group-hover:text-pink-500 text-2xl" />
+                <MdiChevronDown class="min-w-[28.5px] group-hover:text-accent text-2xl" />
               </template>
 
               <template v-else>
@@ -180,7 +216,7 @@ definePageMeta({
                 <a-menu-item-group>
                   <template #title>
                     <div class="group select-none flex items-center gap-4 py-1">
-                      <MdiFolder class="group-hover:text-pink-500 text-xl" />
+                      <MdiFolder class="group-hover:text-accent text-xl" />
 
                       <div class="flex flex-col">
                         <div class="text-lg group-hover:(!text-primary) font-semibold truncate">{{ project.title }}</div>
@@ -188,7 +224,7 @@ definePageMeta({
                         <div class="flex items-center gap-1">
                           <div class="group-hover:(!text-primary)">ID:</div>
 
-                          <div class="text-xs group-hover:text-pink-500 truncate font-italic">{{ project.id }}</div>
+                          <div class="text-xs group-hover:text-accent truncate font-italic">{{ project.id }}</div>
                         </div>
                       </div>
                     </div>
@@ -196,7 +232,7 @@ definePageMeta({
 
                   <a-menu-item key="copy">
                     <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">
-                      <MdiContentCopy class="group-hover:text-pink-500" />
+                      <MdiContentCopy class="group-hover:text-accent" />
                       Copy Project Info
                     </div>
                   </a-menu-item>
@@ -210,14 +246,14 @@ definePageMeta({
                       class="nc-project-menu-item group"
                       @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                     >
-                      <MdiApi class="group-hover:text-pink-500" />
+                      <MdiApi class="group-hover:text-accent" />
                       Swagger: Rest APIs
                     </div>
                   </a-menu-item>
 
                   <a-menu-item key="copy">
                     <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
-                      <MdiScriptTextKeyOutline class="group-hover:text-pink-500" />
+                      <MdiScriptTextKeyOutline class="group-hover:text-accent" />
                       Copy Auth Token
                     </div>
                   </a-menu-item>
@@ -231,7 +267,7 @@ definePageMeta({
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'teamAndAuth')"
                     >
-                      <MdiCog class="group-hover:text-pink-500" />
+                      <MdiCog class="group-hover:text-accent" />
                       Team & Settings
                     </div>
                   </a-menu-item>
@@ -241,13 +277,13 @@ definePageMeta({
                   <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
                     <template #title>
                       <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                        <MdiFileEyeOutline class="group-hover:text-pink-500" />
+                        <MdiFileEyeOutline class="group-hover:text-accent" />
                         Preview Project As
 
                         <div class="flex-1" />
 
                         <MaterialSymbolsChevronRightRounded
-                          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
                         />
                       </div>
                     </template>
@@ -260,12 +296,12 @@ definePageMeta({
                   <a-sub-menu key="language" class="lang-menu scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0">
                     <template #title>
                       <div class="nc-project-menu-item group">
-                        <MaterialSymbolsTranslate class="group-hover:text-pink-500 nc-language" />
+                        <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />
                         Language
                         <div class="flex-1" />
 
                         <MaterialSymbolsChevronRightRounded
-                          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
                         />
                       </div>
                     </template>
@@ -278,12 +314,12 @@ definePageMeta({
                     <a-sub-menu v-if="isUIAllowed('previewAs')" key="account">
                       <template #title>
                         <div class="nc-project-menu-item group">
-                          <MdiAccount class="group-hover:text-pink-500" />
+                          <MdiAccount class="group-hover:text-accent" />
                           Account
                           <div class="flex-1" />
 
                           <MaterialSymbolsChevronRightRounded
-                            class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                            class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
                           />
                         </div>
                       </template>
@@ -292,7 +328,7 @@ definePageMeta({
 
                       <a-menu-item key="0" class="!rounded-t">
                         <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
-                          <MdiAt class="mt-1 group-hover:text-pink-500" />&nbsp;
+                          <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                           <span class="prose-sm">{{ email }}</span>
                         </nuxt-link>
@@ -300,7 +336,7 @@ definePageMeta({
 
                       <a-menu-item key="1" class="!rounded-b">
                         <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
-                          <MdiLogout class="group-hover:(!text-pink-500)" />&nbsp;
+                          <MdiLogout class="group-hover:(!text-accent)" />&nbsp;
 
                           <span class="prose-sm">
                             {{ $t('general.signOut') }}
@@ -309,12 +345,53 @@ definePageMeta({
                       </a-menu-item>
                     </a-sub-menu>
                   </template>
+
+                  <a-menu-divider />
+
+                  <a-sub-menu>
+                    <template #title>
+                      <div class="nc-project-menu-item group">
+                        <ClarityImageLine class="group-hover:text-accent" />
+                        Theme
+
+                        <div class="flex-1" />
+
+                        <MaterialSymbolsChevronRightRounded
+                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                        />
+                      </div>
+                    </template>
+
+                    <a-menu-item>
+                      <div class="nc-project-menu-item group" @click.stop="openColorPicker('primary')">
+                        <ClarityColorPickerSolid class="group-hover:text-accent" />
+                        Primary Color
+                      </div>
+                    </a-menu-item>
+
+                    <a-menu-item>
+                      <div class="nc-project-menu-item group" @click.stop="openColorPicker('accent')">
+                        <ClarityColorPickerSolid class="group-hover:text-accent" />
+                        Accent Color
+                      </div>
+                    </a-menu-item>
+                  </a-sub-menu>
+
+                  <Chrome
+                    v-if="pickerActive"
+                    v-model="pickedColor"
+                    class="z-99 absolute right-[-225px]"
+                    @click.stop
+                    @blur="onMenuClose(false)"
+                  />
                 </a-menu-item-group>
               </a-menu>
             </template>
           </a-dropdown>
 
-          <div class="nc-sidebar-left-toggle-icon hover:after:bg-primary/75 group nc-sidebar-add-row flex align-center px-2">
+          <div
+            class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
+          >
             <MdiBackburger
               class="cursor-pointer transform transition-transform duration-500"
               :class="{ 'rotate-180': !isOpen }"

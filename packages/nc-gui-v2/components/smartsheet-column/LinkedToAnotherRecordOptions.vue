@@ -68,7 +68,7 @@ const refTables = $computed(() => {
     </div>
 
     <div
-      class="text-xs cursor-pointer text-grey nc-more-options my-2 flex align-center gap-1 justify-end"
+      class="text-xs cursor-pointer text-grey nc-more-options my-2 flex items-center gap-1 justify-end"
       @click="advancedOptions = !advancedOptions"
     >
       {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}

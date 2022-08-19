@@ -109,13 +109,13 @@ export default {
     <Header @cancel="onClose" />
     <div class="!bg-gray-100 rounded">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[70vh]">
-        <div class="flex-grow overflow-auto scrollbar-thin-primary">
+        <div class="flex-1 overflow-auto scrollbar-thin-primary">
           <div class="w-[500px] mx-auto">
             <div v-for="col of fields" :key="col.title" class="mt-2 py-2" :class="`nc-expand-col-${col.title}`">
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
               <SmartsheetHeaderCell v-else :column="col" />
 
-              <div class="!bg-white rounded px-1 min-h-[35px] flex align-center mt-2">
+              <div class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2">
                 <VirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
 
                 <Cell

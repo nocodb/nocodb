@@ -1,10 +1,8 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
-import { computed } from 'vue'
 import { message } from 'ant-design-vue'
-import { useNuxtApp } from '#app'
-import { extractSdkResponseErrorMsg, useProject, useSmartsheetStoreOrThrow } from '#imports'
+import { computed, extractSdkResponseErrorMsg, useNuxtApp, useProject, useSmartsheetStoreOrThrow } from '#imports'
 import MdiOpenInNewIcon from '~icons/mdi/open-in-new'
 import MdiCopyIcon from '~icons/mdi/content-copy'
 
@@ -125,7 +123,7 @@ onMounted(() => {
       outlined
       class="nc-btn-share-view nc-toolbar-btn"
     >
-      <div class="flex align-center gap-1" @click="genShareLink">
+      <div class="flex items-center gap-1" @click="genShareLink">
         <MdiOpenInNewIcon />
         <!-- Share View -->
         <span class="!text-sm font-weight-medium"> {{ $t('activity.shareView') }}</span>
@@ -179,7 +177,7 @@ onMounted(() => {
 
 <style scoped>
 .share-link-box {
-  @apply flex p-2 w-full items-center align-center gap-1 bg-gray-100 rounded;
+  @apply flex p-2 w-full items-center items-center gap-1 bg-gray-100 rounded;
 }
 
 :deep(.ant-collapse-header) {

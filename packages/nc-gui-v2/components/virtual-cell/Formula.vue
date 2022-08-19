@@ -32,7 +32,7 @@ const urls = computed(() => replaceUrlsWithLink(result.value))
       <span>ERR!</span>
     </a-tooltip>
 
-    <div class="pa-2" @dblclick="showEditFormulaWarningMessage">
+    <div class="p-2" @dblclick="showEditFormulaWarningMessage">
       <div v-if="urls" v-html="urls" />
       <div v-else>{{ result }}</div>
       <div v-if="showEditFormulaWarning" class="text-left text-wrap mt-2 text-[#e65100]">

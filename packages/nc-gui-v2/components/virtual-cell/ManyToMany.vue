@@ -84,9 +84,9 @@ const unlinkRef = async (rec: Record<string, any>) => {
 </script>
 
 <template>
-  <div class="flex align-center gap-1 w-full h-full chips-wrapper">
+  <div class="flex items-center gap-1 w-full h-full chips-wrapper">
     <template v-if="!isForm">
-      <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
+      <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
           <ItemChip v-for="(cell, i) of cells" :key="i" :item="cell.item" :value="cell.value" @unlink="unlinkRef(cell.item)" />
 
@@ -94,7 +94,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
         </template>
       </div>
 
-      <div v-if="!isLocked && isUIAllowed('xcDatatableEditable')" class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
+      <div v-if="!isLocked && isUIAllowed('xcDatatableEditable')" class="flex-1 flex justify-end gap-1 min-h-[30px] items-center">
         <MdiArrowExpand
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click="childListDlg = true"

@@ -35,8 +35,8 @@ const iconColor = '#1890ff'
 </script>
 
 <template>
-  <div class="flex p-2 align-center gap-2 p-4">
-    <h5 class="text-lg font-weight-medium flex align-center gap-1 mb-0 min-w-0 overflow-x-hidden truncate">
+  <div class="flex p-2 items-center gap-2 p-4">
+    <h5 class="text-lg font-weight-medium flex items-center gap-1 mb-0 min-w-0 overflow-x-hidden truncate">
       <mdi-table-arrow-right :style="{ color: iconColor }" />
 
       <template v-if="meta">
@@ -51,7 +51,7 @@ const iconColor = '#1890ff'
       <template v-if="primaryValue">: {{ primaryValue }}</template>
     </h5>
 
-    <div class="flex-grow" />
+    <div class="flex-1" />
 
     <mdi-reload class="cursor-pointer select-none" />
 

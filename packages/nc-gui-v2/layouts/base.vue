@@ -36,7 +36,7 @@ const logout = () => {
             <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
 
-          <div class="flex justify-center">
+          <div class="!text-white flex justify-center">
             <div v-show="isLoading" class="flex items-center gap-2 ml-3">
               {{ $t('general.loading') }}
 
@@ -53,20 +53,20 @@ const logout = () => {
           <a-tooltip placement="bottom" :mouse-enter-delay="1">
             <template #title> Switch language</template>
 
-            <div class="flex pr-4 items-center">
-              <GeneralLanguage class="cursor-pointer text-2xl hover:text-pink-500" />
+            <div class="flex pr-4 items-center text-white">
+              <GeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
             </div>
           </a-tooltip>
 
           <template v-if="signedIn && !isSharedBase">
             <a-dropdown :trigger="['click']">
-              <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-pink-500 nc-menu-accounts" @click.prevent />
+              <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white" @click.prevent />
 
               <template #overlay>
-                <a-menu class="!py-0 dark:(!bg-gray-800) leading-8 !rounded">
+                <a-menu class="!py-0 leading-8 !rounded">
                   <a-menu-item key="0" class="!rounded-t">
-                    <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
-                      <MdiAt class="mt-1 group-hover:text-pink-500" />&nbsp;
+                    <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
+                      <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                       <span class="prose group-hover:text-primary"> {{ email }}</span>
                     </nuxt-link>
@@ -76,7 +76,7 @@ const logout = () => {
 
                   <a-menu-item key="1" class="!rounded-b group">
                     <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
-                      <MdiLogout class="group-hover:text-pink-500" />&nbsp;
+                      <MdiLogout class="group-hover:text-accent" />&nbsp;
 
                       <span class="prose group-hover:text-primary">
                         {{ $t('general.signOut') }}
@@ -109,7 +109,7 @@ const logout = () => {
 
 <style lang="scss" scoped>
 .nc-lang-btn {
-  @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white active:(ring ring-pink-500) hover:(ring ring-pink-500);
+  @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white active:(ring ring-accent) hover:(ring ring-accent);
 
   &::after {
     @apply rounded-full absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
@@ -118,11 +118,11 @@ const logout = () => {
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-pink-500;
+    @apply transform scale-110 ring ring-accent;
   }
 
   &:active::after {
-    @apply ring ring-pink-500;
+    @apply ring ring-accent;
   }
 }
 </style>

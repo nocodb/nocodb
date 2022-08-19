@@ -92,7 +92,7 @@ const exportFile = async (exportType: ExportTypes) => {
   <div>
     <a-dropdown>
       <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
-        <div class="flex gap-1 align-center">
+        <div class="flex gap-1 items-center">
           <MdiFlashOutline />
 
           <!-- More -->

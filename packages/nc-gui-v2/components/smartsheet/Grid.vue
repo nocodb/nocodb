@@ -309,7 +309,7 @@ const onNavigate = (dir: NavigateDir) => {
 </script>
 
 <template>
-  <div class="flex flex-col h-100 min-h-0 w-100">
+  <div class="flex flex-col h-full min-h-0 w-full">
     <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
         <table
@@ -325,7 +325,7 @@ const onNavigate = (dir: NavigateDir) => {
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                     <div
                       :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
-                      class="nc-check-all w-full align-center"
+                      class="nc-check-all w-full items-center"
                     >
                       <a-checkbox v-model:checked="selectedAllRecords" />
 
@@ -360,7 +360,7 @@ const onNavigate = (dir: NavigateDir) => {
                 @click.stop="addColumnDropdown = true"
               >
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
-                  <div class="h-full w-[60px] flex align-center justify-center">
+                  <div class="h-full w-[60px] flex items-center justify-center">
                     <MdiPlus class="text-sm nc-column-add" />
                   </div>
 
@@ -382,7 +382,7 @@ const onNavigate = (dir: NavigateDir) => {
               <template #default="{ state }">
                 <tr class="nc-grid-row">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
-                    <div class="align-center flex gap-1 min-w-[55px]">
+                    <div class="items-center flex gap-1 min-w-[55px]">
                       <div
                         v-if="!readOnly && !isLocked"
                         class="nc-row-no text-xs text-gray-500"
@@ -407,9 +407,12 @@ const onNavigate = (dir: NavigateDir) => {
                         >
                           {{ row.rowMeta.commentCount }}
                         </span>
-                        <div v-else class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
+                        <div
+                          v-else
+                          class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
+                        >
                           <MdiArrowExpand
-                            class="select-none transform hover:(text-pink-500 scale-120) nc-row-expand"
+                            class="select-none transform hover:(text-accent scale-120) nc-row-expand"
                             @click="expandForm(row, state)"
                           />
                         </div>
@@ -540,7 +543,7 @@ const onNavigate = (dir: NavigateDir) => {
 
   td:not(:first-child) > div {
     overflow: hidden;
-    @apply flex align-center h-auto px-1;
+    @apply flex items-center h-auto px-1;
   }
 
   table,
@@ -572,7 +575,7 @@ const onNavigate = (dir: NavigateDir) => {
   }
 
   td.active::before {
-    @apply bg-primary/5;
+    @apply bg-primary bg-opacity-5;
   }
 }
 

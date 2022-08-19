@@ -34,7 +34,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 </script>
 
 <template>
-  <div class="bg-primary/100 !h-[100vh] overflow-auto w-100 flex flex-col">
+  <div class="bg-primary !h-[100vh] overflow-auto w-full flex flex-col">
     <div>
       <img src="~/assets/img/icons/512x512-trans.png" width="30" class="mx-4 mt-2" />
     </div>
@@ -59,21 +59,21 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
         <a-row class="justify-center">
           <a-col :md="20">
             <div>
-              <div class="h-full ma-0 rounded-b-0">
+              <div class="h-full m-0 rounded-b-0">
                 <div
                   class="nc-form-wrapper pb-10 rounded shadow-xl"
                   style="background: linear-gradient(180deg, #dbdbdb 0, #dbdbdb 200px, white 200px)"
                 >
                   <div class="mt-10 flex items-center justify-center flex-col">
-                    <div class="nc-form-banner backgroundColor darken-1 flex-column justify-center d-flex">
-                      <div class="flex items-center justify-center grow h-[100px]">
+                    <div class="nc-form-banner backgroundColor darken-1 flex-col justify-center flex">
+                      <div class="flex items-center justify-center flex-1 h-[100px]">
                         <img src="~/assets/img/icon.png" width="50" class="mx-4" />
                         <span class="text-4xl font-weight-bold">NocoDB</span>
                       </div>
                     </div>
                   </div>
 
-                  <div class="mx-auto nc-form bg-white shadow-lg pa-2 mb-10 max-w-[600px] mx-auto rounded">
+                  <div class="mx-auto nc-form bg-white shadow-lg p-2 mb-10 max-w-[600px] mx-auto rounded">
                     <h2 class="mt-4 text-4xl font-weight-bold text-left mx-4 mb-3 px-1">
                       {{ sharedFormView.heading }}
                     </h2>
@@ -81,7 +81,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                     <div class="text-lg text-left mx-4 py-2 px-1 text-gray-500">
                       {{ sharedFormView.subheading }}
                     </div>
-                    <div class="h-100">
+                    <div class="h-full">
                       <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col mt-4 px-4 space-y-2">
                         <div class="flex">
                           <SmartsheetHeaderVirtualCell
@@ -159,7 +159,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
 <style scoped lang="scss">
 .nc-input {
-  @apply w-full !bg-white rounded px-2 py-2 min-h-[40px] mt-2 mb-2 flex align-center border-solid border-1 border-primary;
+  @apply w-full !bg-white rounded px-2 py-2 min-h-[40px] mt-2 mb-2 flex items-center border-solid border-1 border-primary;
 }
 
 .nc-form-wrapper {

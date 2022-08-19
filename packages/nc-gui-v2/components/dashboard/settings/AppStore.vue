@@ -130,7 +130,7 @@ onMounted(async () => {
           />
           <div v-else />
         </div>
-        <div class="flex flex-col flex-grow-1 w-3/5 pl-3">
+        <div class="flex flex-col flex-1 w-3/5 pl-3">
           <a-typography-title :level="5">{{ app.title }}</a-typography-title>
           {{ app.description }}
         </div>

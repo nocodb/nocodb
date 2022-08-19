@@ -95,7 +95,7 @@ watch(inputs, () => {
   <div class="w-full">
     <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
       <template #item="{ element, index }">
-        <div class="flex py-1 align-center">
+        <div class="flex py-1 items-center">
           <MdiDragIcon small class="nc-child-draggable-icon handle" />
           <a-dropdown v-model:visible="colorMenus[index]" :trigger="['click']">
             <template #overlay>
@@ -109,7 +109,7 @@ watch(inputs, () => {
       </template>
       <template #footer>
         <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
-          <div class="flex align-center"><MdiPlusIcon /><span class="flex-auto">Add option</span></div>
+          <div class="flex items-center"><MdiPlusIcon /><span class="flex-auto">Add option</span></div>
         </a-button>
       </template>
     </Draggable>

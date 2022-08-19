@@ -99,7 +99,7 @@ const columns = [
 
 <template>
   <div class="flex flex-row w-full">
-    <div class="flex flex-column w-full">
+    <div class="flex flex-col w-full">
       <div class="flex flex-row items-center w-full mb-4 gap-2">
         <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search">
           <template #prefix>
@@ -137,7 +137,7 @@ const columns = [
           <template #bodyCell="{ record, column }">
             <div v-if="column.name === 'table_name'">{{ record._ptn }}</div>
             <div v-if="column.name === 'view_name'">
-              <div class="flex align-center">
+              <div class="flex items-center">
                 <component :is="viewIcons[record.type].icon" :class="`text-${viewIcons[record.type].color} mr-1`" />
                 {{ record.title }}
               </div>

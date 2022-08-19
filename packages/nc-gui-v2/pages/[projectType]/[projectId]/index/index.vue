@@ -29,8 +29,11 @@ const { isOpen, toggle } = useSidebar()
 <template>
   <div class="h-full w-full nc-container">
     <div class="h-full w-full flex flex-col">
-      <div class="flex items-end !min-h-[50px] bg-primary/100">
-        <div v-if="!isOpen" class="nc-sidebar-left-toggle-icon hover:after:bg-primary/75 group nc-sidebar-add-row py-2 px-3">
+      <div class="flex items-end !min-h-[50px] !bg-primary">
+        <div
+          v-if="!isOpen"
+          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
+        >
           <MdiMenu
             class="cursor-pointer transform transition-transform duration-500 text-white"
             :class="{ 'rotate-180': !isOpen }"
@@ -41,7 +44,7 @@ const { isOpen, toggle } = useSidebar()
         <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="closeTab(activeTabIndex)">
           <a-tab-pane v-for="(tab, i) in tabs" :key="i">
             <template #tab>
-              <div class="flex align-center gap-2">
+              <div class="flex items-center gap-2">
                 <component :is="icon(tab)" class="text-sm" />
 
                 {{ tab.title }}
@@ -49,8 +52,10 @@ const { isOpen, toggle } = useSidebar()
             </template>
           </a-tab-pane>
         </a-tabs>
+
         <span class="flex-1" />
-        <div class="flex justify-center align-self-center mr-2 min-w-[115px]">
+
+        <div class="flex justify-center self-center mr-2 min-w-[115px]">
           <div v-show="isLoading" class="flex items-center gap-2 ml-3 text-white">
             {{ $t('general.loading') }}
 

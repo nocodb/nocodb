@@ -700,7 +700,7 @@ onMounted(() => {
 
                 <a-button class="group" @click="addNewColumnRow(table, 'Number')">
                   <div class="flex items-center">
-                    <mdi-numeric class="group-hover:!text-pink-500 flex text-lg" />
+                    <mdi-numeric class="group-hover:!text-accent flex text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -713,7 +713,7 @@ onMounted(() => {
 
                 <a-button class="group" @click="addNewColumnRow(table, 'SingleLineText')">
                   <div class="flex items-center">
-                    <mdi-alpha-a class="group-hover:!text-pink-500 text-lg" />
+                    <mdi-alpha-a class="group-hover:!text-accent text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -726,7 +726,7 @@ onMounted(() => {
 
                 <a-button class="group" @click="addNewColumnRow(table, 'LongText')">
                   <div class="flex items-center">
-                    <mdi-text class="group-hover:!text-pink-500 text-lg" />
+                    <mdi-text class="group-hover:!text-accent text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -739,7 +739,7 @@ onMounted(() => {
 
                 <a-button class="group" @click="addNewColumnRow(table, 'SingleLineText')">
                   <div class="flex items-center gap-1">
-                    <mdi-plus class="group-hover:!text-pink-500 text-lg" />
+                    <mdi-plus class="group-hover:!text-accent text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -761,7 +761,7 @@ onMounted(() => {
     @apply bg-white;
   }
   :deep(.template-form-row) > td {
-    @apply pa-0 mb-0;
+    @apply p-0 mb-0;
     .ant-form-item {
       @apply mb-0;
     }

@@ -36,7 +36,7 @@ onMounted(async () => await fetchReleaseInfo())
   <div v-if="releaseAlert" class="flex items-center">
     <a-dropdown :trigger="['click']" placement="bottom">
       <a-button class="bg-primary border-none">
-        <div class="flex gap-1 align-center text-white">
+        <div class="flex gap-1 items-center text-white">
           <span class="text-sm font-weight-medium">{{ $t('activity.upgrade.available') }}</span>
           <mdi-menu-down />
         </div>
@@ -56,7 +56,7 @@ onMounted(async () => await fetchReleaseInfo())
               {{ $t('activity.upgrade.howTo') }}
             </div>
           </nuxt-link>
-          <a-divider class="ma-0" />
+          <a-divider class="m-0" />
           <div class="nc-menu-item" @click="latestRelease = null">
             <mdi-close />
             <!-- Hide menu -->

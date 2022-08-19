@@ -220,12 +220,9 @@ function openTableCreateDialog() {
 <template>
   <div class="nc-treeview-container flex flex-col">
     <a-dropdown :trigger="['contextmenu']">
-      <div
-        class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull"
-        :class="{ 'mb-[20px]': isSharedBase }"
-      >
-        <div class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer" @contextmenu="setMenuContext('main')">
-          <span class="flex-grow text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
+      <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col scrollbar-thin-dull" :class="{ 'mb-[20px]': isSharedBase }">
+        <div class="py-1 px-3 flex w-full items-center gap-1 cursor-pointer" @contextmenu="setMenuContext('main')">
+          <span class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
             {{ $t('objects.tables') }}
 
             <template v-if="tables?.length"> ({{ tables.length }}) </template>
@@ -253,7 +250,7 @@ function openTableCreateDialog() {
                       @click="openAirtableImportDialog"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiTableLarge class="group-hover:text-pink-500" />
+                        <MdiTableLarge class="group-hover:text-accent" />
                         <!-- TODO: i18n -->
                         Airtable
                       </div>
@@ -261,7 +258,7 @@ function openTableCreateDialog() {
 
                     <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv" @click="openQuickImportDialog('csv')">
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiFileDocumentOutline class="group-hover:text-pink-500" />
+                        <MdiFileDocumentOutline class="group-hover:text-accent" />
                         <!-- TODO: i18n -->
                         CSV file
                       </div>
@@ -269,7 +266,7 @@ function openTableCreateDialog() {
 
                     <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json" @click="openQuickImportDialog('json')">
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiCodeJson class="group-hover:text-pink-500" />
+                        <MdiCodeJson class="group-hover:text-accent" />
                         <!-- TODO: i18n -->
                         JSON file
                       </div>
@@ -281,7 +278,7 @@ function openTableCreateDialog() {
                       @click="openQuickImportDialog('excel')"
                     >
                       <div class="color-transition nc-project-menu-item group">
-                        <MdiFileExcel class="group-hover:text-pink-500" />
+                        <MdiFileExcel class="group-hover:text-accent" />
                         <!-- TODO: i18n -->
                         Microsoft Excel
                       </div>
@@ -297,7 +294,7 @@ function openTableCreateDialog() {
                       target="_blank"
                       class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                     >
-                      <MdiOpenInNew class="group-hover:text-pink-500" />
+                      <MdiOpenInNew class="group-hover:text-accent" />
                       <!-- TODO: i18n -->
                       Request a data source you need?
                     </a>
@@ -322,7 +319,7 @@ function openTableCreateDialog() {
                 :data-id="table.id"
                 @click="addTableTab(table)"
               >
-                <div class="flex align-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+                <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                   <div class="flex w-auto">
                     <MdiDrag
                       v-if="isUIAllowed('treeview-drag-n-drop')"
@@ -369,7 +366,7 @@ function openTableCreateDialog() {
           </div>
 
           <a-card v-else class="mt-4 mx-4 !bg-gray-50">
-            <div class="flex flex-col align-center">
+            <div class="flex flex-col items-center">
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
               <a-button type="primary" @click.stop="openTableCreateDialog">
@@ -410,10 +407,10 @@ function openTableCreateDialog() {
       </template>
     </a-dropdown>
 
-    <a-divider class="mt-0 mb-0" />
+    <a-divider class="!my-0" />
 
-    <div class="items-center flex justify-center p-2">
-      <GeneralShareBaseButton class="!mr-0" />
+    <div class="flex items-center justify-center p-2">
+      <GeneralShareBaseButton />
     </div>
   </div>
 </template>
@@ -424,7 +421,7 @@ function openTableCreateDialog() {
 }
 
 .nc-treeview-footer-item {
-  @apply cursor-pointer px-4 py-2 flex align-center hover:bg-gray-200/20 text-xs text-current;
+  @apply cursor-pointer px-4 py-2 flex items-center hover:bg-gray-200/20 text-xs text-current;
 }
 
 :deep(.nc-filter-input input::placeholder) {
@@ -460,7 +457,7 @@ function openTableCreateDialog() {
   }
 
   .sortable-chosen {
-    @apply !bg-primary/25 text-primary;
+    @apply !bg-primary bg-opacity-25 text-primary;
   }
 }
 
@@ -469,20 +466,20 @@ function openTableCreateDialog() {
 }
 
 .nc-tree-item svg {
-  @apply text-primary/60;
+  @apply text-primary text-opacity-60;
 }
 
 .nc-tree-item.active {
-  @apply !text-primary font-weight-bold after:(!opacity-20);
-  @apply border-r-3 border-indigo-500;
+  @apply text-primary font-weight-bold after:(!opacity-20);
+  @apply border-r-3 border-primary;
 
   svg {
-    @apply !text-primary;
+    @apply text-primary !text-opacity-100;
   }
 }
 
 .nc-tree-item:hover {
-  @apply !text-grey after:(!opacity-5);
+  @apply text-primary after:(!opacity-5);
 }
 
 :deep(.nc-filter-input) {
@@ -508,7 +505,7 @@ function openTableCreateDialog() {
 }
 
 :deep(.ant-dropdown-menu-item) {
-  @apply !py-0 active:(ring ring-pink-500);
+  @apply !py-0 active:(ring ring-accent);
 }
 
 :deep(.ant-dropdown-menu-title-content) {

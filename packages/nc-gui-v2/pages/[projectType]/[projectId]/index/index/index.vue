@@ -121,7 +121,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
         class="text-3xl flex items-center justify-center gap-2 border-1 border-dashed rounded hover:border-primary"
         @click="open"
       >
-        <template v-if="isOverDropZone"> <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here </template>
+        <template v-if="isOverDropZone"> <MaterialSymbolsFileCopyOutline class="text-accent" /> Drop here </template>
       </general-overlay>
 
       <div class="flex flex-col gap-6 items-center justify-center md:w-1/2 mx-auto text-center">

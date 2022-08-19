@@ -75,6 +75,7 @@ const { isOpen, toggle } = useSidebar()
 :deep(.nc-root-tabs) {
   & > .ant-tabs-nav {
     @apply !mb-0 before:(!border-b-0);
+
     .ant-tabs-extra-content {
       @apply !bg-white/0;
     }
@@ -103,24 +104,6 @@ const { isOpen, toggle } = useSidebar()
         }
       }
     }
-  }
-}
-
-.nc-add-project-menu {
-  :deep(.ant-dropdown-menu-item-group-list) {
-    @apply !mx-0;
-  }
-
-  :deep(.ant-dropdown-menu-item-group-title) {
-    @apply border-b-1;
-  }
-
-  :deep(.ant-dropdown-menu-item-group-list) {
-    @apply m-0;
-  }
-
-  :deep(.ant-dropdown-menu-item) {
-    @apply !py-0 active:(ring ring-pink-500);
   }
 }
 

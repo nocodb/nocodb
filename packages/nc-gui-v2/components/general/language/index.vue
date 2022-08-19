@@ -3,25 +3,9 @@
     <MaterialSymbolsTranslate v-bind="$attrs" class="md:text-xl cursor-pointer nc-menu-translate" />
 
     <template #overlay>
-      <GeneralLanguageMenu />
+      <a-menu class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0 rounded">
+        <GeneralLanguageMenu />
+      </a-menu>
     </template>
   </a-dropdown>
 </template>
-
-<style scoped>
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply !mx-0;
-}
-
-:deep(.ant-dropdown-menu-item-group-title) {
-  @apply border-b-1;
-}
-
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply m-0;
-}
-
-:deep(.ant-dropdown-menu-item) {
-  @apply !py-0 active:(ring ring-pink-500);
-}
-</style>

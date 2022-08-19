@@ -129,12 +129,4 @@ const logout = () => {
     }
   }
 }
-
-:deep(.ant-dropdown-menu-item-group-title) {
-  @apply border-b-1;
-}
-
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply m-0;
-}
 </style>

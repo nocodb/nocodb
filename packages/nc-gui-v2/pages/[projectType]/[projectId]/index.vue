@@ -196,7 +196,7 @@ definePageMeta({
 
                   <a-menu-item key="copy">
                     <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">
-                      <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
+                      <MdiContentCopy class="group-hover:text-pink-500" />
                       Copy Project Info
                     </div>
                   </a-menu-item>
@@ -210,14 +210,14 @@ definePageMeta({
                       class="nc-project-menu-item group"
                       @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                     >
-                      <MdiApi class="group-hover:text-pink-500 nc-swagger-api-docs" />
+                      <MdiApi class="group-hover:text-pink-500" />
                       Swagger: Rest APIs
                     </div>
                   </a-menu-item>
 
                   <a-menu-item key="copy">
                     <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
-                      <MdiScriptTextKeyOutline class="group-hover:text-pink-500 nc-copy-project-info" />
+                      <MdiScriptTextKeyOutline class="group-hover:text-pink-500" />
                       Copy Auth Token
                     </div>
                   </a-menu-item>
@@ -231,17 +231,17 @@ definePageMeta({
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'teamAndAuth')"
                     >
-                      <MdiCog class="group-hover:text-pink-500 nc-team-settings" />
+                      <MdiCog class="group-hover:text-pink-500" />
                       Team & Settings
                     </div>
                   </a-menu-item>
 
                   <a-menu-divider />
 
-                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
+                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
                     <template #title>
-                      <div class="nc-project-menu-item group">
-                        <MdiFileEyeOutline class="group-hover:text-pink-500 nc-project-preview" />
+                      <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                        <MdiFileEyeOutline class="group-hover:text-pink-500" />
                         Preview Project As
 
                         <div class="flex-1" />
@@ -257,7 +257,7 @@ definePageMeta({
                     <GeneralPreviewAs />
                   </a-sub-menu>
 
-                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="language">
+                  <a-sub-menu key="language" class="lang-menu scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0">
                     <template #title>
                       <div class="nc-project-menu-item group">
                         <MaterialSymbolsTranslate class="group-hover:text-pink-500 nc-language" />
@@ -278,7 +278,7 @@ definePageMeta({
                     <a-sub-menu v-if="isUIAllowed('previewAs')" key="account">
                       <template #title>
                         <div class="nc-project-menu-item group">
-                          <MdiAccount class="group-hover:text-pink-500 nc-project-preview" />
+                          <MdiAccount class="group-hover:text-pink-500" />
                           Account
                           <div class="flex-1" />
 
@@ -290,31 +290,30 @@ definePageMeta({
 
                       <template #expandIcon></template>
 
-                      <a-menu class="!py-0 dark:(!bg-gray-800) leading-8 !rounded">
-                        <a-menu-item key="0" class="!rounded-t">
-                          <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
-                            <MdiAt class="mt-1 group-hover:text-pink-500" />&nbsp;
+                      <a-menu-item key="0" class="!rounded-t">
+                        <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
+                          <MdiAt class="mt-1 group-hover:text-pink-500" />&nbsp;
 
-                            <span class="prose">{{ email }}</span>
-                          </nuxt-link>
-                        </a-menu-item>
+                          <span class="prose-sm">{{ email }}</span>
+                        </nuxt-link>
+                      </a-menu-item>
 
-                        <a-menu-item key="1" class="!rounded-b">
-                          <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
-                            <MdiLogout class="group-hover:(!text-pink-500)" />&nbsp;
+                      <a-menu-item key="1" class="!rounded-b">
+                        <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                          <MdiLogout class="group-hover:(!text-pink-500)" />&nbsp;
 
-                            <span class="prose">
-                              {{ $t('general.signOut') }}
-                            </span>
-                          </div>
-                        </a-menu-item>
-                      </a-menu>
+                          <span class="prose-sm">
+                            {{ $t('general.signOut') }}
+                          </span>
+                        </div>
+                      </a-menu-item>
                     </a-sub-menu>
                   </template>
                 </a-menu-item-group>
               </a-menu>
             </template>
           </a-dropdown>
+
           <div class="nc-sidebar-left-toggle-icon hover:after:bg-primary/75 group nc-sidebar-add-row flex align-center px-2">
             <MdiBackburger
               class="cursor-pointer transform transition-transform duration-500"
@@ -337,18 +336,6 @@ definePageMeta({
 </template>
 
 <style lang="scss" scoped>
-:deep(.ant-dropdown-menu-item-group-title) {
-  @apply border-b-1;
-}
-
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply m-0;
-}
-
-:deep(.ant-dropdown-menu-item) {
-  @apply !py-0 active:(ring ring-pink-500);
-}
-
 :global(#nc-sidebar-left .ant-layout-sider-collapsed) {
   @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
 }
@@ -356,6 +343,7 @@ definePageMeta({
 .nc-left-sidebar {
   .nc-sidebar-left-toggle-icon {
     @apply opacity-0 transition-opactity duration-200 transition-color text-white/80 hover:text-white/100;
+
     .nc-left-sidebar {
       @apply !border-r-0;
     }

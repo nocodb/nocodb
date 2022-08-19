@@ -215,7 +215,7 @@ function openTableCreateDialog() {
           >
             <MdiPlus />
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1">{{ $t('tooltip.addTable') }}</span>
-            <a-dropdown :trigger="['click']" @click.stop>
+            <a-dropdown v-if="!isSharedBase" :trigger="['click']" @click.stop>
               <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100" />
               <template #overlay>
                 <a-menu class="nc-add-project-menu !py-0 ml-6 rounded text-sm">

@@ -761,7 +761,7 @@ onMounted(() => {
     @apply bg-white;
   }
   :deep(.template-form-row) > td {
-    @apply pa-0 mb-0;
+    @apply p-0 mb-0;
     .ant-form-item {
       @apply mb-0;
     }

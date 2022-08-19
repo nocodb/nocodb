@@ -219,11 +219,11 @@ function onDeleted() {
   }
 
   .sortable-chosen {
-    @apply !bg-primary/25 text-primary;
+    @apply !bg-primary bg-opacity-25 text-primary;
   }
 
   .active {
-    @apply bg-primary/20 text-primary font-medium;
+    @apply bg-primary bg-opacity-25 text-primary font-medium;
   }
 }
 </style>

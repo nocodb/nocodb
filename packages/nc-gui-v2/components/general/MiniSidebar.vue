@@ -48,7 +48,7 @@ const logout = () => {
 
             <a-menu-item key="signout" class="!rounded-b">
               <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
-                <MdiLogout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
+                <MdiLogout class="group-hover:(!text-red-500)" />&nbsp;
                 <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">
                   {{ $t('general.signOut') }}
                 </span>

@@ -72,15 +72,15 @@ const unlinkRef = async (rec: Record<string, any>) => {
 </script>
 
 <template>
-  <div class="flex w-full chips-wrapper align-center" :class="{ active }">
-    <div class="chips d-flex align-center flex-grow">
+  <div class="flex w-full chips-wrapper items-center" :class="{ active }">
+    <div class="chips flex items-center flex-1">
       <template v-if="value && relatedTablePrimaryValueProp">
         <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlinkRef(value)" />
       </template>
     </div>
     <div
       v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')"
-      class="flex-1 flex justify-end gap-1 min-h-[30px] align-center"
+      class="flex-1 flex justify-end gap-1 min-h-[30px] items-center"
     >
       <component
         :is="addIcon"

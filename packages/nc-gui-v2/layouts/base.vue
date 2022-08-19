@@ -63,7 +63,7 @@ const logout = () => {
               <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-pink-500 nc-menu-accounts" @click.prevent />
 
               <template #overlay>
-                <a-menu class="!py-0 dark:(!bg-gray-800) leading-8 !rounded">
+                <a-menu class="!py-0 leading-8 !rounded">
                   <a-menu-item key="0" class="!rounded-t">
                     <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
                       <MdiAt class="mt-1 group-hover:text-pink-500" />&nbsp;

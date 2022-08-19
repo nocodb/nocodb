@@ -447,7 +447,7 @@
       "importZip": "Import project meta zip-bestand en start opnieuw op.",
       "importText": "Import NocoDB-project door het uploaden van het metadata zip-bestand",
       "metaNoChange": "Geen verandering gevonden",
-      "sqlMigration": "Schema-migraties worden automatisch gemaakt. Maak een tabel en vernieuw deze pagina.",
+      "sqlMigration": "Schem-migraties worden automatisch gemaakt. Maak een tabel en vernieuw deze pagina.",
       "dbConnectionStatus": "Omgeving gevalideerd",
       "dbConnected": "Succesvolle verbinding",
       "notifications": {

@@ -36,7 +36,7 @@ const applyChanges = async () => await filterComp.value?.applyChanges()
   <a-dropdown :trigger="['click']">
     <div :class="{ 'nc-badge nc-active-btn': filtersLength }">
       <a-button v-t="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
-        <div class="flex align-center gap-1">
+        <div class="flex items-center gap-1">
           <MdiFilterOutline />
           <!-- Filter -->
           <span class="text-capitalize !text-sm font-weight-medium">{{ $t('activity.filter') }}</span>
@@ -51,7 +51,7 @@ const applyChanges = async () => await filterComp.value?.applyChanges()
         :auto-save="filterAutoSave"
         @update:filters-length="filtersLength = $event"
       >
-        <div v-if="!isPublic" class="d-flex align-end mt-2 min-h-[30px]" @click.stop>
+        <div v-if="!isPublic" class="flex items-end mt-2 min-h-[30px]" @click.stop>
           <a-checkbox id="col-filter-checkbox" v-model:checked="filterAutoSave" class="col-filter-checkbox" hide-details dense>
             <span class="text-grey text-xs">
               {{ $t('msg.info.filterAutoApply') }}

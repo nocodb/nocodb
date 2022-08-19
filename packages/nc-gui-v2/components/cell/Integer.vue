@@ -31,7 +31,7 @@ function onKeyDown(evt: KeyboardEvent) {
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none pa-0 border-none w-full h-full prose-sm"
+    class="outline-none p-0 border-none w-full h-full prose-sm"
     type="number"
     @blur="editEnabled = false"
     @keydown="onKeyDown"

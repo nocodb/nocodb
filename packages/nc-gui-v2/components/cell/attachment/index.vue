@@ -109,7 +109,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
     <div
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
-      class="group flex gap-1 items-center active:ring rounded border-1 p-1 hover:bg-primary/10"
+      class="group flex gap-1 items-center active:ring rounded border-1 p-1 hover:(bg-primary bg-opacity-10)"
       @click.stop="open"
     >
       <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
@@ -160,7 +160,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
         </div>
       </div>
 
-      <div class="group flex gap-1 items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
+      <div class="group flex gap-1 items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)">
         <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <a-tooltip v-else placement="bottom">

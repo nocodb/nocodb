@@ -76,7 +76,7 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
 
       <template v-if="meta">
         <div class="flex flex-1 min-h-0">
-          <div v-if="activeView" class="h-full flex-grow min-w-0 min-h-0">
+          <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0">
             <SmartsheetGrid v-if="isGrid" :ref="el" />
 
             <SmartsheetGallery v-else-if="isGallery" />

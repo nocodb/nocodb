@@ -25,5 +25,5 @@ export const createVuetifyPlugin = () =>
   })
 
 export default defineNuxtPlugin((nuxtApp) => {
-  nuxtApp.vueApp.use(createVuetifyPlugin())
+  // nuxtApp.vueApp.use(createVuetifyPlugin())
 })

@@ -154,8 +154,8 @@ function onClick(item: Record<string, any>) {
 .nc-attachment-modal {
   .nc-attach-file {
     @apply select-none cursor-pointer color-transition flex items-center gap-1 border-1 p-2 rounded
-    @apply hover:(bg-primary/10 text-primary ring);
-    @apply active:(ring-pink-500 bg-primary/20);
+    @apply hover:(bg-primary bg-opacity-10 text-primary ring);
+    @apply active:(ring-pink-500 bg-primary bg-opacity-20);
   }
 
   .nc-attachment-item {

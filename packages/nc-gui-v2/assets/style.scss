@@ -1,9 +1,9 @@
 @import 'ant-design-vue/dist/antd.variable.min.css';
-@import 'ant-design-vue/dist/antd.min.css';
 
 :root {
   --header-height: 50px;
   --toolbar-height: 48px;
+  --tw-text-opacity: 1;
 }
 
 .ant-layout-header {
@@ -28,11 +28,7 @@ main {
 }
 
 a {
-  @apply prose text-primary !underline hover:!text-pink-500;
-}
-
-h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
-  @apply dark:(!text-white);
+  @apply !text-primary !underline hover:!text-accent;
 }
 
 .nc-icon {
@@ -90,7 +86,7 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 
 // for highlighting toolbar menu item
 .nc-active-btn > .ant-btn{
-  @apply bg-primary/20 hover:(bg-primary/20);
+  @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);
 }
 
 .nc-locked-overlay {

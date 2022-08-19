@@ -99,7 +99,7 @@ const Icon = computed(() => {
 
 <style scoped>
 .nc-menu-item > div {
-  @apply grid grid-cols-[30px,auto] gap-2  p-2 align-center;
+  @apply grid grid-cols-[30px,auto] gap-2  p-2 items-center;
 }
 
 .nc-menu-item > div > svg {
@@ -107,7 +107,7 @@ const Icon = computed(() => {
 }
 
 .nc-menu-option > :first-child {
-  @apply align-self-center;
+  @apply self-center;
 }
 
 .nc-subtitle {

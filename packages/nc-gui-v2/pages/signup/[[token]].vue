@@ -103,14 +103,11 @@ function resetError() {
 
 <template>
   <NuxtLayout>
-    <div class="md:bg-primary/5 signup h-full min-h-[600px] flex flex-col justify-center items-center">
+    <div class="md:bg-primary bg-opacity-5 signup h-full min-h-[600px] flex flex-col justify-center items-center">
       <div
         class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
-        <general-noco-icon
-          class="color-transition hover:(ring ring-pink-500)"
-          :class="[isLoading ? 'animated-bg-gradient' : '']"
-        />
+        <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
 
         <h1 class="prose-2xl font-bold self-center my-4">
           {{ $t('general.signUp') }}
@@ -159,7 +156,7 @@ function resetError() {
               <a-switch
                 v-model:checked="subscribe"
                 size="small"
-                class="my-1 hover:(ring ring-pink-500) focus:(!ring !ring-pink-500)"
+                class="my-1 hover:(ring ring-accent) focus:(!ring !ring-accent)"
               />
               <div class="prose-xs text-gray-500">Subscribe to our weekly newsletter</div>
             </div>
@@ -175,7 +172,7 @@ function resetError() {
 
       <div class="prose-sm mt-4 text-gray-500">
         By signing up, you agree to the
-        <a class="prose-sm text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">Terms of Service</a>
+        <a class="prose-sm !text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">Terms of Service</a>
       </div>
     </div>
   </NuxtLayout>
@@ -185,34 +182,30 @@ function resetError() {
 .signup {
   .ant-input-affix-wrapper,
   .ant-input {
-    @apply dark:(bg-gray-700 !text-white) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+    @apply !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
   }
 
   .password {
     input {
       @apply !border-none;
     }
-
-    .ant-input-password-icon {
-      @apply dark:!text-white;
-    }
   }
 
   .submit {
-    @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 text-white;
+    @apply z-1 relative color-transition rounded p-3 text-white shadow;
 
     &::after {
-      @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
+      @apply rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
       content: '';
       z-index: -1;
     }
 
     &:hover::after {
-      @apply transform scale-110 ring ring-pink-500;
+      @apply transform scale-110 ring ring-accent;
     }
 
     &:active::after {
-      @apply ring ring-pink-500;
+      @apply ring ring-accent;
     }
   }
 }

@@ -11,7 +11,7 @@ import animations from '@windicss/plugin-animations'
 // @ts-expect-error no types for plugin-question-mark
 import questionMark from '@windicss/plugin-question-mark'
 
-import { theme as colors, themeColors } from './utils/colorsUtils'
+import { theme as colors, themeColors, themeV2Colors } from './utils/colorsUtils'
 
 export default defineConfig({
   extract: {
@@ -27,7 +27,7 @@ export default defineConfig({
     questionMark,
     formsPlugin,
     typographyPlugin({
-      dark: true,
+      dark: false,
     }),
     aspectRatioPlugin,
     lineClampPlugin,
@@ -42,10 +42,8 @@ export default defineConfig({
 
   shortcuts: {
     'color-transition': 'transition-color duration-100 ease-in',
-    'scrollbar-thin-primary':
-      'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white dark:(!scrollbar-track-black)',
-    'scrollbar-thin-dull':
-      'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300 scrollbar-track-white dark:(!scrollbar-track-black)',
+    'scrollbar-thin-primary': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white',
+    'scrollbar-thin-dull': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300 scrollbar-track-white',
   },
 
   theme: {
@@ -55,10 +53,16 @@ export default defineConfig({
       mono: ['Roboto', 'mono'],
     },
     extend: {
+      textColor: {
+        primary: 'rgba(var(--color-primary), var(--tw-text-opacity))',
+        accent: 'rgba(var(--color-accent), var(--tw-text-opacity))',
+      },
       colors: {
         ...windiColors,
         ...themeColors,
-        accent: windiColors.pink['500'],
+        ...themeV2Colors,
+        primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
+        accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
         dark: colors.dark,
         light: colors.light,
       },

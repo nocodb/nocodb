@@ -229,7 +229,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" class="pa-2" @keydown.esc="dialogShow = false">
+  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" class="p-2" @keydown.esc="dialogShow = false">
     <div class="px-5">
       <div class="mt-5 prose-xl font-weight-bold">QUICK IMPORT - AIRTABLE</div>
 
@@ -245,7 +245,7 @@ onBeforeUnmount(() => {
           </a>
         </div>
 
-        <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="ma-0">
+        <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="m-0">
           <a-form-item v-bind="validateInfos['details.apiKey']">
             <a-input-password
               v-model:value="syncSource.details.apiKey"

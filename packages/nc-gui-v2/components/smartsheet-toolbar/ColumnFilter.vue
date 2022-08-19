@@ -148,7 +148,7 @@ defineExpose({
             />
             <span v-else :key="`${i}dummy`" />
 
-            <div :key="`${i}nested`" class="d-flex">
+            <div :key="`${i}nested`" class="flex">
               <a-select
                 v-model:value="filter.logical_op"
                 :dropdown-match-select-width="false"
@@ -187,7 +187,7 @@ defineExpose({
 
             <MdiCloseBox
               v-if="!filter.readOnly"
-              class="nc-filter-item-remove-btn text-grey align-self-center"
+              class="nc-filter-item-remove-btn text-grey self-center"
               @click.stop="deleteFilter(filter, i)"
             />
             <span v-else />
@@ -269,7 +269,7 @@ defineExpose({
 
     <div class="flex gap-2 mb-2 mt-4">
       <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter">
-        <div class="flex align-center gap-1">
+        <div class="flex items-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <MdiPlus />
           <!-- Add Filter -->
@@ -277,7 +277,7 @@ defineExpose({
         </div>
       </a-button>
       <a-button class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
-        <div class="flex align-center gap-1">
+        <div class="flex items-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <MdiPlus />
           Add Filter Group

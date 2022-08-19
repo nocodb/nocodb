@@ -101,7 +101,7 @@ onMounted(() => {
               :placeholder="$t('activity.searchProject')"
             />
 
-            <div class="flex-grow" />
+            <div class="flex-1" />
 
             <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']">
               <button class="nc-new-project-menu">

@@ -314,7 +314,9 @@ definePageMeta({
             </template>
           </a-dropdown>
 
-          <div class="nc-sidebar-left-toggle-icon hover:after:bg-primary/75 group nc-sidebar-add-row flex align-center px-2">
+          <div
+            class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
+          >
             <MdiBackburger
               class="cursor-pointer transform transition-transform duration-500"
               :class="{ 'rotate-180': !isOpen }"

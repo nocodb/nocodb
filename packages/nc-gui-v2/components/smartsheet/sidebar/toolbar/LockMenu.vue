@@ -113,4 +113,5 @@ const Icon = computed(() => {
 .nc-subtitle {
   @apply font-size-sm font-weight-light;
 }
+
 </style>

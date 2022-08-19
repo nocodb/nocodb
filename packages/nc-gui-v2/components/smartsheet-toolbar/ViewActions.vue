@@ -164,13 +164,13 @@ async function changeLockType(type: LockType) {
               <a-menu-item>
                 <!--              <div class="min-w-[350px] max-w-[500px] shadow bg-white"> -->
                 <!--                <div> -->
-                <div class="nc-menu-item" @click="changeLockType(LockType.Collaborative)">
+                <div class="nc-locked-menu-item" @click="changeLockType(LockType.Collaborative)">
                   <div>
                     <MdiCheck v-if="!view?.lock_type || view?.lock_type === LockType.Collaborative" />
                     <span v-else />
                     <div>
                       <MdiAccountGroupIcon />
-                      Collaborative view
+                      {{ $t('title.collabView') }}
                       <div class="nc-subtitle">
                         Collaborators with edit permissions or higher can change the view configuration.
                       </div>
@@ -179,26 +179,26 @@ async function changeLockType(type: LockType) {
                 </div>
               </a-menu-item>
               <a-menu-item>
-                <div class="nc-menu-item" @click="changeLockType(LockType.Locked)">
+                <div class="nc-locked-menu-item" @click="changeLockType(LockType.Locked)">
                   <div>
                     <MdiCheck v-if="selectedView?.lock_type === LockType.Locked" />
                     <span v-else />
                     <div>
                       <MdiLockOutlineIcon />
-                      Locked View
+                      {{ $t('title.lockedView') }}
                       <div class="nc-subtitle">No one can edit the view configuration until it is unlocked.</div>
                     </div>
                   </div>
                 </div>
               </a-menu-item>
               <a-menu-item>
-                <div class="nc-menu-item" @click="changeLockType(LockType.Personal)">
+                <div class="nc-locked-menu-item" @click="changeLockType(LockType.Personal)">
                   <div>
                     <MdiCheck v-if="selectedView?.lock_type === LockType.Personal" />
                     <span v-else />
                     <div>
                       <MdiAccountIcon />
-                      Personal view
+                      {{ $t('title.personalView') }}
                       <div class="nc-subtitle">
                         Only you can edit the view configuration. Other collaborators’ personal views are hidden by
                         default.
@@ -242,8 +242,8 @@ async function changeLockType(type: LockType) {
             <a-sub-menu key="upload">
               <template #title>
                 <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                  <MdiDownload class="group-hover:text-pink-500" />
-                  Download
+                  <MdiUpload class="group-hover:text-pink-500" />
+                  Upload
                   <div class="flex-1" />
 
                   <MaterialSymbolsChevronRightRounded
@@ -267,55 +267,6 @@ async function changeLockType(type: LockType) {
                 </div>
               </a-menu-item>
             </a-sub-menu>
-
-            <!--            <div class="bg-gray-50 py-2 shadow-lg !border"> -->
-            <!--              <div> -->
-            <!--                <div v-t="['a:actions:download-csv']" class="nc-menu-item" @click="exportFile(ExportTypes.CSV)"> -->
-            <!--                  <MdiDownloadOutline class="text-gray-500" /> -->
-            <!--                  &lt;!&ndash; Download as CSV &ndash;&gt; -->
-            <!--                  {{ $t('activity.downloadCSV') }} -->
-            <!--                </div> -->
-
-            <!--                <div v-t="['a:actions:download-excel']" class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)"> -->
-            <!--                  <MdiDownloadOutline class="text-gray-500" /> -->
-            <!--                  &lt;!&ndash; Download as XLSX &ndash;&gt; -->
-            <!--                  {{ $t('activity.downloadExcel') }} -->
-            <!--                </div> -->
-
-            <!--                <div -->
-            <!--                  v-if="isUIAllowed('csvImport') && !isView && !isPublicView" -->
-            <!--                  v-t="['a:actions:upload-csv']" -->
-            <!--                  class="nc-menu-item" -->
-            <!--                  :class="{ disabled: isLocked }" -->
-            <!--                  @click="!isLocked ? (quickImportDialog = true) : {}" -->
-            <!--                > -->
-            <!--                  <MdiUploadOutline class="text-gray-500" /> -->
-            <!--                  &lt;!&ndash; Upload CSV &ndash;&gt; -->
-            <!--                  {{ $t('activity.uploadCSV') }} -->
-            <!--                </div> -->
-
-            <!--                <div -->
-            <!--                  v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView" -->
-            <!--                  v-t="['a:actions:shared-view-list']" -->
-            <!--                  class="nc-menu-item" -->
-            <!--                  @click="sharedViewListDlg = true" -->
-            <!--                > -->
-            <!--                  <MdiViewListOutline class="text-gray-500" /> -->
-            <!--                  &lt;!&ndash; Shared View List &ndash;&gt; -->
-            <!--                  {{ $t('activity.listSharedView') }} -->
-            <!--                </div> -->
-
-            <!--                <div -->
-            <!--                  v-if="isUIAllowed('webhook') && !isView && !isPublicView" -->
-            <!--                  v-t="['c:actions:webhook']" -->
-            <!--                  class="nc-menu-item" -->
-            <!--                  @click="showWebhookDrawer = true" -->
-            <!--                > -->
-            <!--                  <MdiHook class="text-gray-500" /> -->
-            <!--                  {{ $t('objects.webhooks') }} -->
-            <!--                </div> -->
-            <!--              </div> -->
-            <!--            </div> -->
 
 
             <a-menu-item>
@@ -357,3 +308,9 @@ async function changeLockType(type: LockType) {
     </a-modal>
   </div>
 </template>
+
+<style scoped>
+.nc-locked-menu-item > div {
+  @apply grid grid-cols-[30px,auto] gap-2  p-2 align-center;
+}
+</style>

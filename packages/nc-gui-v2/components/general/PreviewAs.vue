@@ -58,7 +58,8 @@ watch(previewAs, () => window.location.reload())
     <div class="divider" />
 
     <div class="pointer flex items-center gap-4">
-      <span>Preview as:</span>
+      <!-- Preview as -->
+      <span>{{ $t('activity.previewAs') }}</span>
 
       <a-radio-group v-model:value="previewAs" name="radioGroup">
         <a-radio v-for="role of roleList" :key="role.title" class="capitalize !text-white" :value="role.title"

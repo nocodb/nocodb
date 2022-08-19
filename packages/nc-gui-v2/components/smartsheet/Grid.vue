@@ -486,7 +486,7 @@ const onNavigate = (dir: NavigateDir) => {
             </tr>
           </tbody>
         </table>
-        <template v-if="!isLocked" #overlay>
+        <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
           <a-menu class="bg-white shadow" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)"
               ><span class="text-xs">Delete row</span></a-menu-item

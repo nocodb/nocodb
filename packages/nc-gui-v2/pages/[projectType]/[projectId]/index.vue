@@ -365,4 +365,8 @@ definePageMeta({
     @apply opacity-100;
   }
 }
+
+:deep(.ant-dropdown-menu-submenu-title){
+  @apply py-0
+}
 </style>

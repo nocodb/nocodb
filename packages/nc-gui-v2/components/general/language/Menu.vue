@@ -1,37 +1,27 @@
 <script lang="ts" setup>
+import { Language } from '~/lib'
 import { onMounted, useGlobal, useI18n, useNuxtApp } from '#imports'
-
+const { $e } = useNuxtApp()
+const { lang: currentLang } = useGlobal()
 const { availableLocales = ['en'], locale } = useI18n()
 const languages = $computed(() => availableLocales.sort())
-
-const { $e } = useNuxtApp()
-
-const { lang: currentLang } = useGlobal()
-
 const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
-
 function applyDirection() {
   const targetDirection = isRtlLang ? 'rtl' : 'ltr'
-
   const oppositeDirection = targetDirection === 'ltr' ? 'rtl' : 'ltr'
-
   document.body.classList.remove(oppositeDirection)
   document.body.classList.add(targetDirection)
   document.body.style.direction = targetDirection
 }
-
-onMounted(() => {
-  applyDirection()
-})
-
 function changeLanguage(lang: string) {
   currentLang.value = lang
   locale.value = lang
-
   applyDirection()
-
   $e('c:navbar:lang', { lang })
 }
+onMounted(() => {
+  applyDirection()
+})
 </script>
 
 <template>
@@ -44,15 +34,12 @@ function changeLanguage(lang: string) {
       :value="lang"
       @click="changeLanguage(lang)"
     >
-      <div
-        :class="lang === locale ? '!font-semibold !text-primary' : ''"
-        class="nc-project-menu-item capitalize group-hover:text-pink-500"
-      >
+      <div :class="lang === locale ? '!font-semibold !text-primary' : ''" class="nc-project-menu-item capitalize">
         {{ Language[lang] || lang }}
       </div>
     </a-menu-item>
 
-    <a-menu-item>
+    <a-menu-item class="mt-1">
       <a
         href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
         target="_blank"

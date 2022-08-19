@@ -1,18 +1,15 @@
 <script lang="ts" setup>
-import Menu from './Menu.vue'
-
 const { subMenu } = defineProps<{ subMenu?: boolean }>()
 </script>
 
 <template>
-  <template v-if="subMenu">
-    <Menu />
-  </template>
+  <GeneralLanguageMenu v-if="subMenu" />
+
   <a-dropdown v-else class="select-none color-transition" :trigger="['click']">
     <MaterialSymbolsTranslate v-bind="$attrs" class="md:text-xl cursor-pointer nc-menu-translate" />
 
     <template #overlay>
-      <Menu />
+      <GeneralLanguageMenu />
     </template>
   </a-dropdown>
 </template>

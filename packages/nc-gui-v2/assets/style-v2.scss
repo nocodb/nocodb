@@ -176,6 +176,7 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 }
 
 .slide-enter,
+
 .slide-leave-active {
   transform: translate(-100%, 0);
 }
@@ -214,4 +215,26 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 
 .ant-tabs-dropdown-menu-title-content{
   @apply flex items-center;
+}
+
+
+
+.ant-dropdown-menu-item-group-list {
+  @apply !mx-0;
+}
+
+.ant-dropdown-menu-item-group-title {
+  @apply border-b-1;
+}
+
+.ant-dropdown-menu-item-group-list {
+  @apply m-0;
+}
+
+.ant-dropdown-menu-item {
+  @apply !py-0 active:(ring ring-pink-500);
+}
+
+.ant-dropdown-menu-title-conten{
+  @apply !py-0;
 }

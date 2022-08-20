@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'nocodb-sdk'
+import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
 import Toolbar from './toolbar/index.vue'
@@ -81,7 +81,7 @@ function openModal({ type, title = '', copyViewId }: { type: ViewTypes; title: s
 }
 
 /** Handle view creation */
-function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
+function onCreate(view: ViewType) {
   views.value.push(view)
   activeView.value = view
   router.push({ params: { viewTitle: view.title || '' } })
@@ -105,7 +105,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
       :class="{ 'flex items-center py-3 px-3 justify-between border-b-1': !isForm }"
     />
     <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
-      <MenuTop class="flex-1" @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
+      <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
 
       <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="px-3">
         <div class="!my-3 w-full border-b-1 border-dashed" />

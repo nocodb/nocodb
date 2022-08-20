@@ -65,7 +65,7 @@ watch(
               class="shrink grow-0 nc-sort-dir-select !text-xs"
               :label="$t('labels.operation')"
               @click.stop
-              @update:value="saveOrUpdate(sort, i)"
+              @select="saveOrUpdate(sort, i)"
             >
               <a-select-option
                 v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"

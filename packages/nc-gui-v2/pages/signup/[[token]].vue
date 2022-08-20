@@ -96,8 +96,6 @@ async function signUp() {
     })
 }
 
-function googleSignUp() {}
-
 function resetError() {
   if (error) error = null
 }

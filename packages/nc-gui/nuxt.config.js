@@ -224,6 +224,7 @@ export default {
         config.output.publicPath = './_nuxt/'
       }
 
+
       return config
     }
   },

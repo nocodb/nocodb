@@ -14,6 +14,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     try {
       if (socket) socket.disconnect()
 
+      // location.href - route.path
+
       // todo: extract base url
       const url = 'http://localhost:8080' // new URL($axios.defaults.baseURL, window.location.href.split(/[?#]/)[0]).href
       socket = io(url, {

@@ -95,7 +95,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
           </span>
         </template>
       </div>
-      <div v-if="!isLocked && isUIAllowed('xcDatatableEditable')" class="flex-1 flex justify-end gap-1 min-h-[30px] items-center">
+      <div v-if="!isLocked && isUIAllowed('xcDatatableEditable')" class="flex justify-end gap-1 min-h-[30px] items-center">
         <MdiArrowExpand
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click="childListDlg = true"

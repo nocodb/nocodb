@@ -9,25 +9,11 @@ interface Emits {
 
 const emits = defineEmits<Emits>()
 
-const { $e } = useNuxtApp()
-
 const { isUIAllowed } = useUIPermission()
 
 const isView = ref(false)
 
-let showApiSnippet = $ref(false)
-
 const showWebhookDrawer = ref(false)
-
-function onApiSnippet() {
-  // get API snippet
-  showApiSnippet = true
-  $e('a:view:api-snippet')
-}
-
-function onWebhooks() {
-  showWebhookDrawer.value = true
-}
 
 function onOpenModal(type: ViewTypes, title = '') {
   emits('openModal', { type, title })
@@ -35,7 +21,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 </script>
 
 <template>
-  <a-menu :selected-keys="[]" class="flex-1 flex flex-col">
+  <a-menu :selected-keys="[]" class="flex flex-col">
     <div class="flex-1"></div>
     <div v-if="isUIAllowed('virtualViewsCreateOrEdit')">
       <h3 class="px-3 py-1 text-xs font-semibold flex items-center gap-4 text-gray-500">
@@ -112,26 +98,9 @@ function onOpenModal(type: ViewTypes, title = '') {
       <div class="w-full h-4"></div>
     </div>
 
-    <!--    <SmartsheetSidebarMenuApiSnippet v-model="showApiSnippet" /> -->
-
-    <!--    <div class="flex-auto justify-end flex flex-col gap-3 mt-3"> -->
-    <!--      <button -->
-    <!--        v-if="isUIAllowed('virtualViewsCreateOrEdit')" -->
-    <!--        class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease !text-xs nc-webhook-btn" -->
-    <!--        @click="onWebhooks" -->
-    <!--      > -->
-    <!--        <mdi-hook />{{ $t('objects.webhooks') }} -->
-    <!--      </button> -->
-
-    <!--      <button -->
-    <!--        class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease !text-xs" -->
-    <!--        @click="onApiSnippet" -->
-    <!--      > -->
-    <!--        <mdi-xml />Get API Snippet -->
-    <!--      </button> -->
-    <!--    </div> -->
-
-    <!--    <general-flipping-card class="my-4 lg:my-6 min-h-[100px]" :triggers="['click', { duration: 15000 }]">
+    <!--
+       todo: bring back later
+       <general-flipping-card class="my-4 lg:my-6 min-h-[100px]" :triggers="['click', { duration: 15000 }]">
       <template #front>
         <div class="flex h-full w-full gap-6 flex-col">
           <general-social />

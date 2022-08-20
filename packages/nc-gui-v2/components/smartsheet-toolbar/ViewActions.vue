@@ -44,6 +44,8 @@ const showWebhookDrawer = ref(false)
 
 const quickImportDialog = ref(false)
 
+const showApiSnippet = ref(false)
+
 const { isUIAllowed } = useUIPermission()
 
 const exportFile = async (exportType: ExportTypes) => {
@@ -151,7 +153,6 @@ async function changeLockType(type: LockType) {
             >
               <template #title>
                 <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0">
-
                   <SmartsheetToolbarLockType hide-tick :type="selectedView?.lock_type || LockType.Collaborative" />
 
                   <MaterialSymbolsChevronRightRounded
@@ -253,6 +254,17 @@ async function changeLockType(type: LockType) {
               >
                 <MdiHook class="text-gray-500" />
                 {{ $t('objects.webhooks') }}
+              </div>
+            </a-menu-item>
+            <a-menu-item>
+              <div
+                v-if="isUIAllowed('webhook') && !isView && !isPublicView"
+                v-t="['c:actions:webhook']"
+                class="py-2 flex gap-2"
+                @click="showWebhookDrawer = true"
+              >
+                <MdiHook class="text-gray-500" />
+                <mdi-hook />{{ $t('objects.webhooks') }}
               </div>
             </a-menu-item>
           </a-menu-item-group>

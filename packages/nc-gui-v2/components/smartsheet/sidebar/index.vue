@@ -131,7 +131,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     </Toolbar>
 -->
     <div v-if="isOpen" class="flex-1 flex flex-col">
-      <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
+      <MenuTop class="flex-1" @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
 
       <a-divider v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="my-2" />
 

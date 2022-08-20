@@ -197,7 +197,7 @@ function onDeleted() {
 
 <style lang="scss">
 .nc-views-menu {
-  @apply flex-1 max-h-[30vh] overflow-y-scroll scrollbar-thin-dull;
+  @apply flex-1 overflow-y-scroll scrollbar-thin-dull;
 
   .ghost,
   .ghost > * {

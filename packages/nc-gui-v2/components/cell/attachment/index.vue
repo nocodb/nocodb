@@ -17,7 +17,7 @@ import {
 
 interface Props {
   modelValue: string | Record<string, any>[] | null
-  rowIndex: number
+  rowIndex?: number
 }
 
 interface Emits {

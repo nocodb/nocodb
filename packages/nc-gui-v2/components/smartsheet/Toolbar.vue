@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { IsPublicInj, useSmartsheetStoreOrThrow } from '#imports'
-import AddRow from '~/components/smartsheet/sidebar/toolbar/AddRow.vue'
-import Reload from '~/components/smartsheet/sidebar/toolbar/Reload.vue'
 import ToggleDrawer from '~/components/smartsheet/sidebar/toolbar/ToggleDrawer.vue'
 
 const { isGrid, isForm, isGallery } = useSmartsheetStoreOrThrow()
@@ -32,8 +30,8 @@ const { isOpen } = useSidebar()
 
     <div class="flex-1" />
 
-    <Reload />
-    <AddRow />
+    <SmartsheetToolbarReload class="mx-1" />
+    <SmartsheetToolbarAddRow class="mx-1" />
 
     <SmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mr-2 ml-2" />
 

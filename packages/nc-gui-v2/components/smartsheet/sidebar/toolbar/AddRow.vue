@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { OpenNewRecordFormHookInj, inject } from '#imports'
 
-const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
 const isLocked = inject(IsLockedInj)
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj)!
@@ -12,7 +11,7 @@ const onClick = () => {
 </script>
 
 <template>
-  <a-tooltip :placement="isOpen ? 'bottomRight' : 'left'">
+  <a-tooltip placement="bottom">
     <template #title> {{ $t('activity.addRow') }} </template>
     <div
       :class="{ 'hover:after:(bg-primary bg-opacity-75) group': !isLocked, 'disabled-ring': isLocked }"

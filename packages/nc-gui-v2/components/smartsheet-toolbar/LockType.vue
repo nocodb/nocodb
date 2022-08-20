@@ -38,7 +38,7 @@ const selectedView = inject(ActiveViewInj)
         <span v-else />
       </template>
       <div>
-        <component :is="types[type].icon" />
+        <component :is="types[type].icon" class="text-gray-500" />
         {{ $t(types[type].title) }}
         <div class="nc-subtitle">
           {{ types[type].subtitle }}

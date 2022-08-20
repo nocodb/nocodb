@@ -107,7 +107,9 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
       <MenuTop class="flex-1" @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
 
-      <a-divider v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="!my-3" />
+      <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="px-3">
+        <div class="!my-3 w-full border-b-1 border-dashed" />
+      </div>
 
       <MenuBottom @open-modal="openModal" />
     </div>
@@ -130,9 +132,5 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 
 :deep(.ant-layout-sider-children) {
   @apply flex flex-col;
-}
-
-.dot {
-  @apply w-[3px] h-[3px] bg-gray-300 rounded-full;
 }
 </style>

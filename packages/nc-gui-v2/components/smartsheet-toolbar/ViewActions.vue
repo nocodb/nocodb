@@ -142,7 +142,7 @@ async function changeLockType(type: LockType) {
       </a-button>
 
       <template #overlay>
-        <a-menu class="ml-6 !text-sm !p-0 !rounded">
+        <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
           <a-menu-item-group>
             <a-sub-menu
               v-if="isUIAllowed('view-type')"
@@ -150,7 +150,7 @@ async function changeLockType(type: LockType) {
               class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0"
             >
               <template #title>
-                <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0">
+                <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
                   <SmartsheetToolbarLockType hide-tick :type="selectedView?.lock_type || LockType.Collaborative" />
 
                   <MaterialSymbolsChevronRightRounded
@@ -174,7 +174,7 @@ async function changeLockType(type: LockType) {
             <a-sub-menu key="download">
               <template #title>
                 <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                  <MdiDownload class="group-hover:text-accent" />
+                  <MdiDownload class="group-hover:text-accent text-gray-500" />
                   Download
                   <div class="flex-1" />
 
@@ -201,11 +201,10 @@ async function changeLockType(type: LockType) {
               </a-menu-item>
             </a-sub-menu>
             <template v-if="isUIAllowed('csvImport') && !isView && !isPublicView">
-              <a-menu-divider />
               <a-sub-menu key="upload">
                 <template #title>
                   <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                    <MdiUpload class="group-hover:text-accent" />
+                    <MdiUpload class="group-hover:text-accent text-gray-500" />
                     Upload
                     <div class="flex-1" />
 
@@ -236,7 +235,7 @@ async function changeLockType(type: LockType) {
               <div
                 v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView"
                 v-t="['a:actions:shared-view-list']"
-                class="py-2 flex gap-2"
+                class="py-2 flex gap-2 items-center"
                 @click="sharedViewListDlg = true"
               >
                 <MdiViewListOutline class="text-gray-500" />
@@ -248,7 +247,7 @@ async function changeLockType(type: LockType) {
               <div
                 v-if="isUIAllowed('webhook') && !isView && !isPublicView"
                 v-t="['c:actions:webhook']"
-                class="py-2 flex gap-2"
+                class="py-2 flex gap-2 items-center"
                 @click="showWebhookDrawer = true"
               >
                 <MdiHook class="text-gray-500" />

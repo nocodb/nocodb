@@ -56,10 +56,10 @@ const { isOpen, toggle } = useSidebar()
         <span class="flex-1" />
 
         <div class="flex justify-center self-center mr-2 min-w-[115px]">
-          <div v-show="isLoading" class="flex items-center gap-2 ml-3 text-white">
+          <div v-show="isLoading" class="flex items-center gap-2 ml-3 text-gray-200">
             {{ $t('general.loading') }}
 
-            <MdiReload :class="{ 'animate-infinite animate-spin': isLoading }" />
+            <MdiLoading :class="{ 'animate-infinite animate-spin': isLoading }" />
           </div>
         </div>
       </div>

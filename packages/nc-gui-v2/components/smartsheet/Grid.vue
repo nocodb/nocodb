@@ -314,7 +314,7 @@ const onNavigate = (dir: NavigateDir) => {
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
         <table
           ref="smartTable"
-          class="xc-row-table nc-grid backgroundColorDefault !h-auto"
+          class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
           @contextmenu.prevent="contextMenu = true"
         >
           <thead>
@@ -475,11 +475,11 @@ const onNavigate = (dir: NavigateDir) => {
               <td
                 v-t="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell"
+                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
                 @click="addEmptyRow()"
               >
                 <div class="px-2 w-full flex items-center text-gray-500">
-                  <MdiPlus class="text-pint-500 text-xs ml-2" />
+                  <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
 
                   <span class="ml-1">
                     {{ $t('activity.addRow') }}

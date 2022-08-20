@@ -3,13 +3,11 @@ import { ReloadViewDataHookInj, inject } from '#imports'
 
 const reloadHook = inject(ReloadViewDataHookInj)!
 
-const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
-
 const onClick = () => reloadHook.trigger()
 </script>
 
 <template>
-  <a-tooltip :placement="isOpen ? 'bottomRight' : 'left'">
+  <a-tooltip placement="bottom">
     <template #title> {{ $t('general.reload') }} </template>
 
     <div class="nc-sidebar-right-item hover:after:bg-green-500 group">

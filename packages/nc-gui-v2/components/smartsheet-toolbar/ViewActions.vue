@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx'
 import { ExportTypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
 import { message } from 'ant-design-vue'
+import { LockType } from '~/lib'
 import { viewIcons } from '~/utils'
 import {
   ActiveViewInj,
@@ -21,12 +22,6 @@ import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
 
-enum LockType {
-  Personal = 'personal',
-  Locked = 'locked',
-  Collaborative = 'collaborative',
-}
-
 const sharedViewListDlg = ref(false)
 
 const isPublicView = inject(IsPublicInj, ref(false))
@@ -35,7 +30,7 @@ const isView = false
 
 const { project } = useProject()
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const meta = inject(MetaInj)
 
@@ -112,12 +107,14 @@ const Icon = computed(() => {
 async function changeLockType(type: LockType) {
   $e('a:grid:lockmenu', { lockType: type })
 
+  if (!selectedView?.value) return
+
   if (type === 'personal') {
     return message.info('Coming soon')
   }
   try {
-    ;(view.value as any).lock_type = type
-    $api.dbView.update(view.value.id as string, {
+    ;(selectedView.value as any).lock_type = type
+    $api.dbView.update(selectedView.value.id as string, {
       lock_type: type,
     })
 
@@ -130,7 +127,7 @@ async function changeLockType(type: LockType) {
 
 <template>
   <div>
-    <a-dropdown>
+    <a-dropdown :trigger="['click']">
       <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-2 items-center">
           <component
@@ -147,77 +144,43 @@ async function changeLockType(type: LockType) {
       <template #overlay>
         <a-menu class="ml-6 !text-sm !p-0 !rounded">
           <a-menu-item-group>
-            <a-sub-menu v-if="isUIAllowed('view-type')" key="lock-type">
+            <a-sub-menu
+              v-if="isUIAllowed('view-type')"
+              key="lock-type"
+              class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0"
+            >
               <template #title>
-                <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                  <MdiFileEyeOutline class="group-hover:text-pink-500" />
-                  Lock Type
-                  <div class="flex-1" />
+                <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0">
+
+                  <SmartsheetToolbarLockType hide-tick :type="selectedView?.lock_type || LockType.Collaborative" />
 
                   <MaterialSymbolsChevronRightRounded
-                    class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
                   />
                 </div>
               </template>
 
               <template #expandIcon></template>
-              <a-menu-item>
-                <!--              <div class=" max-w-[500px] shadow bg-white"> -->
-                <!--                <div> -->
-                <div class="nc-locked-menu-item" @click="changeLockType(LockType.Collaborative)">
-                  <div>
-                    <MdiCheck v-if="!view?.lock_type || view?.lock_type === LockType.Collaborative" />
-                    <span v-else />
-                    <div>
-                      <MdiAccountGroupIcon />
-                      {{ $t('title.collabView') }}
-                      <div class="nc-subtitle">
-                        Collaborators with edit permissions or higher can change the view configuration.
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <a-menu-item @click="changeLockType(LockType.Collaborative)">
+                <SmartsheetToolbarLockType :type="LockType.Collaborative" />
               </a-menu-item>
-              <a-menu-item>
-                <div class="nc-locked-menu-item" @click="changeLockType(LockType.Locked)">
-                  <div>
-                    <MdiCheck v-if="selectedView?.lock_type === LockType.Locked" />
-                    <span v-else />
-                    <div>
-                      <MdiLockOutlineIcon />
-                      {{ $t('title.lockedView') }}
-                      <div class="nc-subtitle">No one can edit the view configuration until it is unlocked.</div>
-                    </div>
-                  </div>
-                </div>
+              <a-menu-item @click="changeLockType(LockType.Locked)">
+                <SmartsheetToolbarLockType :type="LockType.Locked" />
               </a-menu-item>
-              <a-menu-item>
-                <div class="nc-locked-menu-item" @click="changeLockType(LockType.Personal)">
-                  <div>
-                    <MdiCheck v-if="selectedView?.lock_type === LockType.Personal" />
-                    <span v-else />
-                    <div>
-                      <MdiAccountIcon />
-                      {{ $t('title.personalView') }}
-                      <div class="nc-subtitle">
-                        Only you can edit the view configuration. Other collaborators’ personal views are hidden by default.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!--                </div> -->
-                <!--              </div> -->
+              <a-menu-item @click="changeLockType(LockType.Personal)">
+                <SmartsheetToolbarLockType :type="LockType.Personal" />
               </a-menu-item>
             </a-sub-menu>
+            <a-menu-divider />
             <a-sub-menu key="download">
               <template #title>
                 <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                  <MdiDownload class="group-hover:text-pink-500" />
+                  <MdiDownload class="group-hover:text-accent" />
                   Download
                   <div class="flex-1" />
 
                   <MaterialSymbolsChevronRightRounded
-                    class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
                   />
                 </div>
               </template>
@@ -238,15 +201,16 @@ async function changeLockType(type: LockType) {
                 </div>
               </a-menu-item>
             </a-sub-menu>
+            <a-menu-divider />
             <a-sub-menu key="upload">
               <template #title>
                 <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                  <MdiUpload class="group-hover:text-pink-500" />
+                  <MdiUpload class="group-hover:text-accent" />
                   Upload
                   <div class="flex-1" />
 
                   <MaterialSymbolsChevronRightRounded
-                    class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
                   />
                 </div>
               </template>
@@ -267,6 +231,7 @@ async function changeLockType(type: LockType) {
               </a-menu-item>
             </a-sub-menu>
 
+            <a-menu-divider />
             <a-menu-item>
               <div
                 v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView"
@@ -306,7 +271,11 @@ async function changeLockType(type: LockType) {
 </template>
 
 <style scoped>
-.nc-locked-menu-item > div {
-  @apply grid grid-cols-[30px, auto] gap-2  p-2 items-center min-w-[350px];
+:deep(.ant-dropdown-menu-submenu-title) {
+  @apply py-0;
+}
+
+:deep(.ant-dropdown-menu-item-group-title) {
+  @apply hidden;
 }
 </style>

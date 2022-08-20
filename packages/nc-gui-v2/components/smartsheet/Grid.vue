@@ -633,4 +633,8 @@ const onNavigate = (dir: NavigateDir) => {
     }
   }
 }
+
+tbody tr:hover {
+  @apply bg-gray-100 bg-opacity-50;
+}
 </style>

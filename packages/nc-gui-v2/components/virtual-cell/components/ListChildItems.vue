@@ -81,9 +81,9 @@ const expandedFormRow = ref()
 </script>
 
 <template>
-  <component :is="container" v-model:visible="vModel" :footer="null" title="Child list">
-    <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col">
-      <div class="flex mb-4 items-center gap-2">
+  <component :is="container" v-model:visible="vModel" :footer="null" title="Child list" :body-style="{ padding: 0 }">
+    <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
+      <div class="flex mb-4 items-center gap-2 px-12">
         <div class="flex-1" />
 
         <MdiReload v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
@@ -96,11 +96,11 @@ const expandedFormRow = ref()
         </a-button>
       </div>
       <template v-if="(isNew && state?.[column?.title]?.length) || childrenList?.pageInfo?.totalRows">
-        <div class="flex-1 overflow-auto min-h-0">
+        <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12">
           <a-card
             v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
             :key="i"
-            class="m-2 hover:(!bg-gray-200/50 shadow-md)"
+            class="!my-4 hover:(!bg-gray-200/50 shadow-md)"
             @click="
               () => {
                 expandedFormRow = row
@@ -113,7 +113,6 @@ const expandedFormRow = ref()
                 {{ row[relatedTablePrimaryValueProp] }}
                 <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
               </div>
-              <div class="flex-1"></div>
               <div v-if="!readonly" class="flex gap-2">
                 <MdiLinkVariantRemove
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
@@ -128,15 +127,18 @@ const expandedFormRow = ref()
             </div>
           </a-card>
         </div>
-        <a-pagination
-          v-if="!isNew && childrenList?.pageInfo"
-          v-model:current="childrenListPagination.page"
-          v-model:page-size="childrenListPagination.size"
-          class="mt-2 mx-auto"
-          size="small"
-          :total="childrenList.pageInfo.totalRows"
-          show-less-items
-        />
+
+        <div class="flex justify-center mt-6">
+          <a-pagination
+            v-if="!isNew && childrenList?.pageInfo"
+            v-model:current="childrenListPagination.page"
+            v-model:page-size="childrenListPagination.size"
+            class="mt-2 mx-auto"
+            size="small"
+            :total="childrenList.pageInfo.totalRows"
+            show-less-items
+          />
+        </div>
       </template>
       <a-empty
         v-else

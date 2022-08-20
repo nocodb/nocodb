@@ -80,7 +80,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
     </div>
     <div
       v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')"
-      class="flex-1 flex justify-end gap-1 min-h-[30px] items-center"
+      class="flex justify-end gap-1 min-h-[30px] items-center"
     >
       <component
         :is="addIcon"

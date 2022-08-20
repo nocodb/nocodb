@@ -203,7 +203,7 @@ const onMenuClose = (visible: boolean) => {
                 </a-tooltip>
                 <div v-else class="text-lg font-semibold truncate">{{ project.title }}</div>
 
-                <MdiChevronDown class="min-w-[28.5px] group-hover:text-accent text-2xl" />
+                <MdiChevronDown class="min-w-[17px] group-hover:text-accent text-md" />
               </template>
 
               <template v-else>

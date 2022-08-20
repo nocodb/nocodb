@@ -170,9 +170,7 @@ function onDeleted() {
 </script>
 
 <template>
-  <h3 class="pt-3 px-3 text-xs text-gray-500 font-semibold">{{ $t('objects.views') }}</h3>
-
-  <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu" :selected-keys="selected">
+  <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
     <RenameableMenuItem
       v-for="view of views"
       :id="view.id"
@@ -197,7 +195,7 @@ function onDeleted() {
 
 <style lang="scss">
 .nc-views-menu {
-  @apply flex-1 max-h-[30vh] overflow-y-scroll scrollbar-thin-dull;
+  @apply flex-1 min-h-[100px] overflow-y-scroll scrollbar-thin-dull;
 
   .ghost,
   .ghost > * {

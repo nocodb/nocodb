@@ -86,7 +86,7 @@ const onMove = (event: { moved: { newIndex: number } }) => {
           <MdiEyeOffOutline />
 
           <!-- Fields -->
-          <span class="text-capitalize !text-sm font-weight-medium">{{ $t('objects.fields') }}</span>
+          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
         </div>

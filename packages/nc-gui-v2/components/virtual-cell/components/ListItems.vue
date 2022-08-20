@@ -97,9 +97,9 @@ const newRowState = computed(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" :footer="null" title="Link Record">
-    <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col">
-      <div class="flex mb-4 items-center gap-2">
+  <a-modal v-model:visible="vModel" :footer="null" title="Link Record" :body-style="{ padding: 0 }">
+    <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
+      <div class="flex mb-4 items-center gap-2 px-12">
         <a-input
           v-model:value="childrenExcludedListPagination.query"
           placeholder="Filter query"
@@ -111,11 +111,11 @@ const newRowState = computed(() => {
         <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">Add new record</a-button>
       </div>
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">
-        <div class="flex-1 overflow-auto min-h-0">
+        <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12">
           <a-card
             v-for="(refRow, i) in childrenExcludedList?.list ?? []"
             :key="i"
-            class="m-2 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
+            class="!my-4 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
             @click="linkRow(refRow)"
           >
             {{ refRow[relatedTablePrimaryValueProp]
@@ -124,15 +124,17 @@ const newRowState = computed(() => {
             >
           </a-card>
         </div>
-        <a-pagination
-          v-if="childrenExcludedList?.pageInfo"
-          v-model:current="childrenExcludedListPagination.page"
-          v-model:page-size="childrenExcludedListPagination.size"
-          class="mt-2 mx-auto !text-xs"
-          size="small"
-          :total="childrenExcludedList.pageInfo.totalRows"
-          show-less-items
-        />
+        <div class="flex justify-center mt-6">
+          <a-pagination
+            v-if="childrenExcludedList?.pageInfo"
+            v-model:current="childrenExcludedListPagination.page"
+            v-model:page-size="childrenExcludedListPagination.size"
+            class="mt-2 !text-xs"
+            size="small"
+            :total="childrenExcludedList.pageInfo.totalRows"
+            show-less-items
+          />
+        </div>
       </template>
       <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 

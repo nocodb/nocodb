@@ -44,7 +44,7 @@ export default {
 
 <template>
   <div
-    class="group py-1 px-2 mr-1 my-1 flex items-center bg-blue-100/60 hover:bg-blue-100/40 rounded-[2px]"
+    class="chip group py-1 px-2 mr-1 my-1 flex items-center bg-blue-100/60 hover:bg-blue-100/40 rounded-[2px]"
     :class="{ active }"
     @click="expandedFormDlg = true"
   >
@@ -74,6 +74,7 @@ export default {
   .name {
     text-overflow: ellipsis;
     overflow: hidden;
+    white-space: nowrap;
   }
 }
 </style>

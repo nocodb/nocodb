@@ -40,7 +40,7 @@ watch(
         ><div class="flex items-center gap-1">
           <MdiSortIcon />
           <!-- Sort -->
-          <span class="text-capitalize !text-sm font-weight-medium">{{ $t('activity.sort') }}</span>
+          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
           <MdiMenuDownIcon class="text-grey" />
         </div>
       </a-button>

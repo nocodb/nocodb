@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { ref, useNuxtApp } from '#imports'
+import { ref } from '#imports'
 import { viewIcons } from '~/utils'
 
 interface Emits {

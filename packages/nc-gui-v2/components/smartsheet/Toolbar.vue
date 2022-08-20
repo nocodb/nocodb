@@ -5,15 +5,22 @@ import Reload from '~/components/smartsheet/sidebar/toolbar/Reload.vue'
 import ToggleDrawer from '~/components/smartsheet/sidebar/toolbar/ToggleDrawer.vue'
 
 const { isGrid, isForm, isGallery } = useSmartsheetStoreOrThrow()
-const { allowCSVDownload } = useSharedView()
 const isPublic = inject(IsPublicInj, ref(false))
+const { allowCSVDownload } = useSharedView()
 
 const { isOpen } = useSidebar()
 </script>
 
 <template>
-  <div class="nc-table-toolbar w-full py-1 flex gap-1 items-center h-[var(--toolbar-height)] px-2 border-b" style="z-index: 7">
-    <SmartsheetToolbarViewActions v-if="isGrid || isGallery" :show-system-fields="false" class="ml-1" />
+  <div
+    class="nc-table-toolbar w-full py-1 flex gap-1 items-center h-[var(--toolbar-height)] px-2 border-b overflow-x-hidden"
+    style="z-index: 7"
+  >
+    <SmartsheetToolbarViewActions
+      v-if="(isGrid && !isPublic) || (isGrid && isPublic && allowCSVDownload)"
+      :show-system-fields="false"
+      class="ml-1"
+    />
 
     <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery" :show-system-fields="false" class="ml-1" />
 
@@ -23,7 +30,6 @@ const { isOpen } = useSidebar()
 
     <SmartsheetToolbarShareView v-if="(isForm || isGrid) && !isPublic" />
 
-    <!--    <SmartsheetToolbarMoreActions v-if="(isGrid && !isPublic) || (isGrid && isPublic && allowCSVDownload)" /> -->
     <div class="flex-1" />
 
     <Reload />

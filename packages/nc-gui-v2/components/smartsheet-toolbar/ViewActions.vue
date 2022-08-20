@@ -44,8 +44,6 @@ const showWebhookDrawer = ref(false)
 
 const quickImportDialog = ref(false)
 
-const showApiSnippet = ref(false)
-
 const { isUIAllowed } = useUIPermission()
 
 const exportFile = async (exportType: ExportTypes) => {
@@ -153,7 +151,6 @@ async function changeLockType(type: LockType) {
             >
               <template #title>
                 <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0">
-
                   <SmartsheetToolbarLockType hide-tick :type="selectedView?.lock_type || LockType.Collaborative" />
 
                   <MaterialSymbolsChevronRightRounded
@@ -189,50 +186,51 @@ async function changeLockType(type: LockType) {
 
               <template #expandIcon></template>
               <a-menu-item>
-                <div v-t="['a:actions:download-csv']" class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
+                <div v-t="['a:actions:download-csv']" class="nc-project-menu-item" @click="exportFile(ExportTypes.CSV)">
                   <MdiDownloadOutline class="text-gray-500" />
                   <!-- Download as CSV -->
                   {{ $t('activity.downloadCSV') }}
                 </div>
               </a-menu-item>
               <a-menu-item>
-                <div v-t="['a:actions:download-excel']" class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)">
+                <div v-t="['a:actions:download-excel']" class="nc-project-menu-item" @click="exportFile(ExportTypes.EXCEL)">
                   <MdiDownloadOutline class="text-gray-500" />
                   <!-- Download as XLSX -->
                   {{ $t('activity.downloadExcel') }}
                 </div>
               </a-menu-item>
             </a-sub-menu>
-            <a-menu-divider />
-            <a-sub-menu key="upload">
-              <template #title>
-                <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                  <MdiUpload class="group-hover:text-accent" />
-                  Upload
-                  <div class="flex-1" />
+            <template v-if="isUIAllowed('csvImport') && !isView && !isPublicView">
+              <a-menu-divider />
+              <a-sub-menu key="upload">
+                <template #title>
+                  <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                    <MdiUpload class="group-hover:text-accent" />
+                    Upload
+                    <div class="flex-1" />
 
-                  <MaterialSymbolsChevronRightRounded
-                    class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                  />
-                </div>
-              </template>
+                    <MaterialSymbolsChevronRightRounded
+                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                    />
+                  </div>
+                </template>
 
-              <template #expandIcon></template>
-              <a-menu-item>
-                <div
-                  v-if="isUIAllowed('csvImport') && !isView && !isPublicView"
-                  v-t="['a:actions:upload-csv']"
-                  class="nc-menu-item"
-                  :class="{ disabled: isLocked }"
-                  @click="!isLocked ? (quickImportDialog = true) : {}"
-                >
-                  <MdiUploadOutline class="text-gray-500" />
-                  <!-- Upload CSV -->
-                  {{ $t('activity.uploadCSV') }}
-                </div>
-              </a-menu-item>
-            </a-sub-menu>
-
+                <template #expandIcon></template>
+                <a-menu-item>
+                  <div
+                    v-if="isUIAllowed('csvImport') && !isView && !isPublicView"
+                    v-t="['a:actions:upload-csv']"
+                    class="nc-project-menu-item"
+                    :class="{ disabled: isLocked }"
+                    @click="!isLocked ? (quickImportDialog = true) : {}"
+                  >
+                    <MdiUploadOutline class="text-gray-500" />
+                    <!-- Upload CSV -->
+                    {{ $t('activity.uploadCSV') }}
+                  </div>
+                </a-menu-item>
+              </a-sub-menu>
+            </template>
             <a-menu-divider />
             <a-menu-item>
               <div
@@ -257,17 +255,6 @@ async function changeLockType(type: LockType) {
                 {{ $t('objects.webhooks') }}
               </div>
             </a-menu-item>
-            <a-menu-item>
-              <div
-                v-if="isUIAllowed('webhook') && !isView && !isPublicView"
-                v-t="['c:actions:webhook']"
-                class="py-2 flex gap-2"
-                @click="showWebhookDrawer = true"
-              >
-                <MdiHook class="text-gray-500" />
-                <mdi-hook />{{ $t('objects.webhooks') }}
-              </div>
-            </a-menu-item>
           </a-menu-item-group>
         </a-menu>
       </template>
@@ -280,7 +267,6 @@ async function changeLockType(type: LockType) {
     <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="max(900px,60vw)" :footer="null">
       <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
     </a-modal>
-
   </div>
 </template>
 

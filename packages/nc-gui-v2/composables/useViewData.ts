@@ -83,7 +83,6 @@ export function useViewData(
 
   /** load row comments count */
   const loadAggCommentsCount = async () => {
-    // todo: handle in public api
     if (isPublic.value || isSharedBase.value) return
 
     const ids = formattedData.value

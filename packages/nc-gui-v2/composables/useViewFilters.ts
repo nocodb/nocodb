@@ -1,6 +1,18 @@
 import type { ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { IsPublicInj, ReloadViewDataHookInj, computed, inject, ref, useMetas, useNuxtApp, useUIPermission, watch } from '#imports'
+import { message } from 'ant-design-vue'
+import {
+  IsPublicInj,
+  ReloadViewDataHookInj,
+  computed,
+  extractSdkResponseErrorMsg,
+  inject,
+  ref,
+  useMetas,
+  useNuxtApp,
+  useUIPermission,
+  watch,
+} from '#imports'
 import type { Filter } from '~/lib'
 
 export function useViewFilters(
@@ -66,36 +78,42 @@ export function useViewFilters(
           filters.value = await $api.dbTableFilter.read(view?.value?.id as string)
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
   const sync = async (hookId?: string, _nested = false) => {
-    for (const [i, filter] of Object.entries(filters.value)) {
-      if (filter.status === 'delete') {
-        await $api.dbTableFilter.delete(filter.id as string)
-      } else if (filter.status === 'update') {
-        await $api.dbTableFilter.update(filter.id as string, {
-          ...filter,
-          fk_parent_id: parentId,
-        })
-      } else if (filter.status === 'create') {
-        if (hookId) {
-          filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
+    try {
+      for (const [i, filter] of Object.entries(filters.value)) {
+        if (filter.status === 'delete') {
+          await $api.dbTableFilter.delete(filter.id as string)
+        } else if (filter.status === 'update') {
+          await $api.dbTableFilter.update(filter.id as string, {
             ...filter,
             fk_parent_id: parentId,
-          })) as any
-        } else {
-          filters.value[+i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
-            ...filter,
-            fk_parent_id: parentId,
-          })) as any
+          })
+        } else if (filter.status === 'create') {
+          if (hookId) {
+            filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
+              ...filter,
+              fk_parent_id: parentId,
+            })) as any
+          } else {
+            filters.value[+i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
+              ...filter,
+              fk_parent_id: parentId,
+            })) as any
+          }
         }
       }
-    }
 
-    reloadData?.()
+      reloadData?.()
+    } catch (e: any) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
 
   const deleteFilter = async (filter: Filter, i: number) => {
@@ -111,11 +129,16 @@ export function useViewFilters(
           filter.status = 'delete'
           // if auto-apply enabled invoke delete api and remove from array
         } else {
-          await $api.dbTableFilter.delete(filter.id)
+          try {
+            await $api.dbTableFilter.delete(filter.id)
 
-          reloadData?.()
+            reloadData?.()
 
-          filters.value.splice(i, 1)
+            filters.value.splice(i, 1)
+          } catch (e: any) {
+            console.log(e)
+            message.error(await extractSdkResponseErrorMsg(e))
+          }
         }
         // if not synced yet remove it from array
       } else {
@@ -127,22 +150,27 @@ export function useViewFilters(
   const saveOrUpdate = async (filter: Filter, i: number, force = false) => {
     if (!view?.value) return
 
-    if (nestedMode.value) {
-      filters.value[i] = { ...filter }
-      filters.value = [...filters.value]
-    } else if (!autoApply?.value && !force) {
-      filter.status = filter.id ? 'update' : 'create'
-    } else if (filter.id) {
-      await $api.dbTableFilter.update(filter.id, {
-        ...filter,
-        fk_parent_id: parentId,
-      })
-    } else {
-      // todo: return type of dbTableFilter is void?
-      filters.value[i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
-        ...filter,
-        fk_parent_id: parentId,
-      })) as any
+    try {
+      if (nestedMode.value) {
+        filters.value[i] = { ...filter }
+        filters.value = [...filters.value]
+      } else if (!autoApply?.value && !force) {
+        filter.status = filter.id ? 'update' : 'create'
+      } else if (filter.id) {
+        await $api.dbTableFilter.update(filter.id, {
+          ...filter,
+          fk_parent_id: parentId,
+        })
+      } else {
+        // todo: return type of dbTableFilter is void?
+        filters.value[i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
+          ...filter,
+          fk_parent_id: parentId,
+        })) as any
+      }
+    } catch (e: any) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
     }
 
     reloadData?.()

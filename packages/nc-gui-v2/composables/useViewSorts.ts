@@ -17,9 +17,9 @@ export function useViewSorts(
   const { isSharedBase } = useProject()
 
   const sorts = computed<SortType[]>({
-    get: () => (isPublic.value || isSharedBase ? sharedViewSorts.value : _sorts.value),
+    get: () => (isPublic.value || isSharedBase.value ? sharedViewSorts.value : _sorts.value),
     set: (value) => {
-      if (isPublic.value || isSharedBase) {
+      if (isPublic.value || isSharedBase.value) {
         sharedViewSorts.value = value
       } else {
         _sorts.value = value
@@ -43,7 +43,7 @@ export function useViewSorts(
   }
 
   const saveOrUpdate = async (sort: SortType, i: number) => {
-    if (isPublic.value || isSharedBase) {
+    if (isPublic.value || isSharedBase.value) {
       sorts.value[i] = sort
       sorts.value = [...sorts.value]
       return
@@ -68,7 +68,7 @@ export function useViewSorts(
   }
 
   const deleteSort = async (sort: SortType, i: number) => {
-    if (isUIAllowed('sortSync') && sort.id && !isPublic.value && !isSharedBase) {
+    if (isUIAllowed('sortSync') && sort.id && !isPublic.value && !isSharedBase.value) {
       await $api.dbTableSort.delete(sort.id)
     }
     sorts.value.splice(i, 1)

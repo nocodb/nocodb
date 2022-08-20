@@ -11,6 +11,7 @@ interface Attachment {
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 const { loadData, paginationData, formattedData: data, loadGalleryData, galleryData, changePage } = useViewData(meta, view as any)
 
@@ -49,6 +50,10 @@ const attachments = (record: any): Array<Attachment> => {
     return []
   }
 }
+
+reloadViewDataHook?.on(async () => {
+  await loadData()
+})
 </script>
 
 <template>
@@ -84,7 +89,7 @@ const attachments = (record: any): Array<Attachment> => {
               <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
                 <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
                 <template v-else>
-                  <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="record.row[col.title]" :column="col" />
+                  <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="record.row[col.title]" :column="col" :row="record" />
                   <SmartsheetCell v-else v-model="record.row[col.title]" :column="col" :edit-enabled="false" />
                 </template>
               </div>

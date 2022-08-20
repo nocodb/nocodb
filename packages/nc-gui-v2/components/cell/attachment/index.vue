@@ -100,16 +100,16 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
         v-model="isOverDropZone"
         inline
         :target="currentCellRef"
-        class="text-white text-lg ring ring-pink-500 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
+        class="text-white text-lg ring ring-accent bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
       >
-        <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here
+        <MaterialSymbolsFileCopyOutline class="text-accent" /> Drop here
       </general-overlay>
     </template>
 
     <div
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
-      class="group flex gap-1 items-center active:ring rounded border-1 p-1 hover:bg-primary/10"
+      class="group flex gap-1 items-center active:ring rounded border-1 p-1 hover:(bg-primary bg-opacity-10)"
       @click.stop="open"
     >
       <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
@@ -118,7 +118,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
         <template #title> Click or drop a file into cell </template>
 
         <div class="flex items-center gap-2">
-          <MaterialSymbolsAttachFile class="transform group-hover:(text-pink-500 scale-120) text-gray-500 text-[10px]" />
+          <MaterialSymbolsAttachFile class="transform group-hover:(text-accent scale-120) text-gray-500 text-[10px]" />
 
           <div v-if="!visibleItems.length" class="group-hover:text-primary text-gray-500 text-xs">Add file(s)</div>
         </div>
@@ -160,14 +160,14 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
         </div>
       </div>
 
-      <div class="group flex gap-1 items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
+      <div class="group flex gap-1 items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)">
         <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <a-tooltip v-else placement="bottom">
           <template #title> View attachments </template>
 
           <MdiArrowExpand
-            class="select-none transform group-hover:(text-pink-500 scale-120) text-[10px] text-gray-500"
+            class="select-none transform group-hover:(text-accent scale-120) text-[10px] text-gray-500"
             @click.stop="modalVisible = true"
           />
         </a-tooltip>

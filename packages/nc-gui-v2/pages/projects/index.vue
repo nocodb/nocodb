@@ -64,10 +64,10 @@ const deleteProject = (project: ProjectType) => {
           <v-menu class="select-none">
             <template #activator="{ props }">
               <div
-                class="color-transition hover:(bg-gray-100 dark:bg-secondary/25) dark:(bg-secondary/50 !text-white shadow-gray-600) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
+                class="color-transition hover:(bg-gray-100) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
                 @click="props.onClick"
               >
-                <MdiPlus class="text-primary dark:(!text-white) text-2xl" />
+                <MdiPlus class="text-primary text-2xl" />
                 {{ $t('title.newProj') }}
               </div>
             </template>
@@ -91,7 +91,7 @@ const deleteProject = (project: ProjectType) => {
           </v-menu>
         </div>
 
-        <a-menu class="pr-4 dark:bg-gray-800 dark:text-white flex-1 border-0">
+        <a-menu class="pr-4 flex-1 border-0">
           <a-menu-item
             v-for="(option, index) in navDrawerOptions"
             :key="index"
@@ -114,20 +114,20 @@ const deleteProject = (project: ProjectType) => {
       </div>
     </template>
 
-    <v-container class="flex-1 mb-12">
+    <div class="flex-1 mb-12">
       <div class="flex">
-        <div class="flex-1 text-2xl md:text-4xl font-bold text-gray-500 dark:text-white p-4">
+        <div class="flex-1 text-2xl md:text-4xl font-bold text-gray-500 p-4">
           {{ activePage }}
         </div>
 
         <div class="self-end flex text-4xl mb-1">
           <MaterialSymbolsGridView
-            :class="route.name === 'index-index' ? '!text-primary dark:(!text-secondary/75)' : ''"
+            :class="route.name === 'index-index' ? '!text-primary' : ''"
             class="cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
             @click="navigateTo('/')"
           />
           <MaterialSymbolsFormatListBulletedRounded
-            :class="route.name === 'index-index-list' ? '!text-primary dark:(!text-secondary/75)' : ''"
+            :class="route.name === 'index-index-list' ? '!text-primary' : ''"
             class="cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
             @click="navigateTo('/list')"
           />
@@ -137,7 +137,7 @@ const deleteProject = (project: ProjectType) => {
       <a-divider class="!mb-4 lg:(!mb-8)" />
 
       <NuxtPage :projects="projects" @delete-project="deleteProject" />
-    </v-container>
+    </div>
 
     <a-modal></a-modal>
   </NuxtLayout>

@@ -1,5 +1,4 @@
-import { defineNuxtPlugin } from '#app'
-import { useDark, useGlobal, watch } from '#imports'
+import { defineNuxtPlugin, useApi, useGlobal } from '#imports'
 
 /**
  * Initialize global state and watches for changes
@@ -15,25 +14,15 @@ import { useDark, useGlobal, watch } from '#imports'
  */
 export default defineNuxtPlugin(async (nuxtApp) => {
   const state = useGlobal()
-  const { $api } = useNuxtApp()
 
-  const darkMode = useDark()
+  const { api } = useApi()
 
   /** set i18n locale to stored language */
   nuxtApp.vueApp.i18n.locale.value = state.lang.value
 
   try {
-    state.appInfo.value = await $api.utils.appInfo()
+    state.appInfo.value = await api.utils.appInfo()
   } catch (e) {
     console.error(e)
   }
-
-  /** set current dark mode from storage */
-  watch(
-    state.darkMode,
-    (newMode) => {
-      darkMode.value = newMode
-    },
-    { immediate: true },
-  )
 })

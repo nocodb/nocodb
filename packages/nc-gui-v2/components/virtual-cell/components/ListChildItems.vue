@@ -83,13 +83,13 @@ const expandedFormRow = ref()
 <template>
   <component :is="container" v-model:visible="vModel" :footer="null" title="Child list">
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col">
-      <div class="flex mb-4 align-center gap-2">
+      <div class="flex mb-4 items-center gap-2">
         <div class="flex-1" />
 
         <MdiReload v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
 
         <a-button v-if="!readonly" type="primary" ghost class="!text-xs" size="small" @click="emit('attachRecord')">
-          <div class="flex align-center gap-1">
+          <div class="flex items-center gap-1">
             <MdiLinkVariantRemove class="text-xs" type="primary" @click="unlinkRow(row)" />
             Link to '{{ meta.title }}'
           </div>
@@ -100,7 +100,7 @@ const expandedFormRow = ref()
           <a-card
             v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
             :key="i"
-            class="ma-2 hover:(!bg-gray-200/50 shadow-md)"
+            class="m-2 hover:(!bg-gray-200/50 shadow-md)"
             @click="
               () => {
                 expandedFormRow = row
@@ -108,8 +108,8 @@ const expandedFormRow = ref()
               }
             "
           >
-            <div class="flex align-center">
-              <div class="flex-grow overflow-hidden min-w-0">
+            <div class="flex items-center">
+              <div class="flex-1 overflow-hidden min-w-0">
                 {{ row[relatedTablePrimaryValueProp] }}
                 <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
               </div>

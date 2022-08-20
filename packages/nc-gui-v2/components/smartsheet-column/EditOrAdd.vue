@@ -117,7 +117,7 @@ useEventListener(document, 'click', handleClose)
         >
           <a-select v-model:value="formState.uidt" show-search class="nc-column-type-input" @change="onUidtOrIdTypeChange">
             <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
-              <div class="flex gap-1 align-center">
+              <div class="flex gap-1 items-center">
                 <component :is="opt.icon" class="text-grey" />
                 {{ opt.name }}
               </div>
@@ -144,7 +144,7 @@ useEventListener(document, 'click', handleClose)
       </div>
       <div
         v-if="!isVirtualCol(formState.uidt)"
-        class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex align-center gap-1 justify-end"
+        class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
       >
         {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
@@ -197,7 +197,7 @@ useEventListener(document, 'click', handleClose)
 }
 
 :deep(.ant-select-selection-item) {
-  @apply flex align-center;
+  @apply flex items-center;
 }
 
 :deep(.ant-form-item-explain-error) {

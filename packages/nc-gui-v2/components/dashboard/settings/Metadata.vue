@@ -73,7 +73,7 @@ const columns = [
 
 <template>
   <div class="flex flex-row w-full">
-    <div class="flex flex-column w-3/5">
+    <div class="flex flex-col w-3/5">
       <div class="flex flex-row justify-end items-center w-full mb-4">
         <a-button class="self-start nc-btn-metasync-reload" @click="loadMetaDiff">
           <div class="flex items-center gap-2 text-gray-600 font-light">

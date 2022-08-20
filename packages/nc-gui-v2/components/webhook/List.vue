@@ -64,7 +64,7 @@ onMounted(() => {
         class="cursor-pointer max-h-[75vh] overflow-y-auto scrollbar-thin-primary"
       >
         <template #renderItem="{ item, index }">
-          <a-list-item class="pa-2" @click="emit('edit', item)">
+          <a-list-item class="p-2" @click="emit('edit', item)">
             <a-list-item-meta>
               <template #description>
                 <span class="uppercase"> {{ item.event }} {{ item.operation }}</span>
@@ -93,7 +93,7 @@ onMounted(() => {
         </template>
       </a-list>
     </div>
-    <div v-else class="pa-4 bg-gray-100 text-gray-600">
+    <div v-else class="p-4 bg-gray-100 text-gray-600">
       Webhooks list is empty, create new webhook by clicking 'Create webhook' button.
     </div>
   </div>

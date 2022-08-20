@@ -32,7 +32,7 @@ const openProject = async (project: ProjectType) => {
 
     <template v-for="project of projects" :key="project.id">
       <div
-        class="cursor-pointer grid grid-cols-3 gap-2 prose-md hover:(bg-gray-300/30 dark:bg-gray-500/30 shadow-sm) p-2 transition-color ease-in duration-100"
+        class="cursor-pointer grid grid-cols-3 gap-2 prose-md hover:(bg-gray-300/30) p-2 transition-color ease-in duration-100"
         @click="openProject(project)"
       >
         <div class="font-semibold capitalize">{{ project.title || 'Untitled' }}</div>

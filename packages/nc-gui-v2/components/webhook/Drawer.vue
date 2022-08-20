@@ -35,7 +35,7 @@ async function editHook(hook: Record<string, any>) {
       <WebhookEditor v-if="editOrAdd" ref="webhookEditorRef" @back-to-list="editOrAdd = false" />
       <WebhookList v-else @edit="editHook" @add="editOrAdd = true" />
     </div>
-    <div class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center">
+    <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center">
       <a-button v-t="['e:hiring']" href="https://angel.co/company/nocodb" target="_blank" size="large">
         🚀 We are Hiring! 🚀
       </a-button>

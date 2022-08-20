@@ -26,7 +26,7 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKey])
 
 <template>
   <div>
-    <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs mx-6">
+    <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs !mx-6">
       <a-tab-pane v-for="(tab, key) of tabsInfo" :key="key" class="select-none">
         <template #tab>
           <span>

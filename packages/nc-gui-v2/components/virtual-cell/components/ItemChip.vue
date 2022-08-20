@@ -44,13 +44,13 @@ export default {
 
 <template>
   <div
-    class="group py-1 px-2 mr-1 my-1 flex align-center bg-blue-100/60 hover:bg-blue-100/40 rounded-[2px]"
+    class="group py-1 px-2 mr-1 my-1 flex items-center bg-blue-100/60 hover:bg-blue-100/40 rounded-[2px]"
     :class="{ active }"
     @click="expandedFormDlg = true"
   >
     <span class="name">{{ value }}</span>
 
-    <div v-show="active || isForm" v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')" class="flex align-center">
+    <div v-show="active || isForm" v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')" class="flex items-center">
       <MdiCloseThick class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
     </div>
 

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { Chrome } from '@ckpack/vue-color'
-import { enumColor } from '@/utils'
-import { computed, ref, watch } from '#imports'
+import { computed, enumColor, ref, watch } from '#imports'
 
 interface Props {
   modelValue?: string | any

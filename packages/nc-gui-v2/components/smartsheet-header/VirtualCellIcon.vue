@@ -38,7 +38,7 @@ const icon = computed(() => {
     case UITypes.LinkToAnotherRecord:
       switch ((column?.value?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: MMIcon, color: 'text-pink-500' }
+          return { icon: MMIcon, color: 'text-accent' }
         case RelationTypes.HAS_MANY:
           return { icon: HMIcon, color: 'text-yellow-500' }
         case RelationTypes.BELONGS_TO:
@@ -52,7 +52,7 @@ const icon = computed(() => {
     case UITypes.Lookup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: TableColumnPlusBefore, color: 'text-pink-500' }
+          return { icon: TableColumnPlusBefore, color: 'text-accent' }
         case RelationTypes.HAS_MANY:
           return { icon: TableColumnPlusBefore, color: 'text-yellow-500' }
         case RelationTypes.BELONGS_TO:
@@ -62,7 +62,7 @@ const icon = computed(() => {
     case UITypes.Rollup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: RollupIcon, color: 'text-pink-500' }
+          return { icon: RollupIcon, color: 'text-accent' }
         case RelationTypes.HAS_MANY:
           return { icon: RollupIcon, color: 'text-yellow-500' }
         case RelationTypes.BELONGS_TO:

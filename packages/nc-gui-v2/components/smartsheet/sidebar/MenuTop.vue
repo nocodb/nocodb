@@ -180,11 +180,11 @@ function onDeleted() {
       :view="view"
       :on-validate="validate"
       class="transition-all ease-in duration-300"
-      :class="[
-        isMarked === view.id ? 'bg-gray-200' : '',
-        route.params.viewTitle && route.params.viewTitle.includes(view.title) ? 'active' : '',
-        `nc-view-item nc-${view.type}-view-item`,
-      ]"
+      :class="{
+        'bg-gray-100': isMarked === view.id,
+        'active': route.params.viewTitle && route.params.viewTitle === view.title,
+        [`nc-view-item nc-${view.type}-view-item`]: true,
+      }"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="onDelete"
@@ -219,11 +219,11 @@ function onDeleted() {
   }
 
   .sortable-chosen {
-    @apply !bg-primary/25 text-primary;
+    @apply !bg-primary bg-opacity-25 text-primary;
   }
 
   .active {
-    @apply bg-primary/20 text-primary font-medium;
+    @apply bg-primary bg-opacity-25 text-primary font-medium;
   }
 }
 </style>

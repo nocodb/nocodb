@@ -2,6 +2,7 @@
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, provide, useViewData } from '#imports'
 import Row from '~/components/smartsheet/Row.vue'
+import type { Row as RowType } from '~/composables'
 import { ActiveViewInj, ChangePageInj, FieldsInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj, ReadonlyInj } from '~/context'
 import ImageIcon from '~icons/mdi/file-image-box'
 
@@ -13,13 +14,19 @@ const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
+const expandedFormDlg = ref(false)
+const expandedFormRow = ref<RowType>()
+const expandedFormRowState = ref<Record<string, any>>()
+
 const { loadData, paginationData, formattedData: data, loadGalleryData, galleryData, changePage } = useViewData(meta, view as any)
+
+const { isUIAllowed } = useUIPermission()
 
 provide(IsFormInj, ref(false))
 provide(IsGridInj, false)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
-provide(ReadonlyInj, true)
+provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
@@ -54,12 +61,19 @@ const attachments = (record: any): Array<Attachment> => {
 reloadViewDataHook?.on(async () => {
   await loadData()
 })
+
+const expandForm = (row: RowType, state?: Record<string, any>) => {
+  if (!isUIAllowed('xcDatatableEditable')) return
+  expandedFormRow.value = row
+  expandedFormRowState.value = state
+  expandedFormDlg.value = true
+}
 </script>
 
 <template>
   <div class="flex flex-col h-full w-full">
     <div class="nc-gallery-container min-h-0 flex-1 grid grid-cols-4 gap-4 my-4 px-3 overflow-auto">
-      <div v-for="(record, recordIndex) in data" :key="recordIndex" class="flex flex-col">
+      <div v-for="(record, recordIndex) in data" :key="recordIndex" class="flex flex-col" @dblclick="expandForm(record)">
         <Row :row="record">
           <a-card hoverable class="!rounded-lg h-full">
             <template #cover>
@@ -90,7 +104,7 @@ reloadViewDataHook?.on(async () => {
                 <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
                 <template v-else>
                   <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="record.row[col.title]" :column="col" :row="record" />
-                  <SmartsheetCell v-else v-model="record.row[col.title]" :column="col" :edit-enabled="false" />
+                  <SmartsheetCell v-else v-model="record.row[col.title]" :column="col" :edit-enabled="false" :read-only="true" />
                 </template>
               </div>
             </div>
@@ -99,6 +113,13 @@ reloadViewDataHook?.on(async () => {
       </div>
     </div>
     <SmartsheetPagination />
+    <SmartsheetExpandedForm
+      v-if="expandedFormRow && expandedFormDlg"
+      v-model="expandedFormDlg"
+      :row="expandedFormRow"
+      :state="expandedFormRowState"
+      :meta="meta"
+    />
   </div>
 </template>
 

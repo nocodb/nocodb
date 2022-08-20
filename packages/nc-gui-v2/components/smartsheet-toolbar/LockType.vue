@@ -31,7 +31,7 @@ const selectedView = inject(ActiveViewInj)
 </script>
 
 <template>
-  <div class="nc-locked-menu-item"  @click="emit('select', type)">
+  <div class="nc-locked-menu-item" @click="emit('select', type)">
     <div :class="{ 'show-tick': !hideTick }">
       <template v-if="!hideTick">
         <MdiCheck v-if="selectedView?.lock_type === type" />
@@ -60,5 +60,4 @@ const selectedView = inject(ActiveViewInj)
     @apply text-xs text-gray-500 font-weight-light;
   }
 }
-
 </style>

@@ -104,36 +104,10 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)]"
       :class="{ 'flex items-center py-3 px-3 justify-between border-b-1': !isForm }"
     />
-
-    <!--
-    <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">
-      <template #start>
-        <a-tooltip v-if="isUIAllowed('virtualViewsCreateOrEdit')" placement="left">
-          <template #title> {{ $t('objects.webhooks') }}</template>
-
-          <div class="nc-sidebar-right-item hover:after:bg-gray-300 nc-webhook-icon">
-            <MdiHook @click.stop />
-          </div>
-        </a-tooltip>
-
-        <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="dot" />
-
-        <a-tooltip placement="left">
-          <template #title> Get API Snippet</template>
-
-          <div class="nc-sidebar-right-item group hover:after:bg-yellow-500">
-            <MdiXml class="group-hover:(!text-white)" @click.stop />
-          </div>
-        </a-tooltip>
-
-        <div v-if="!isForm" class="dot" />
-      </template>
-    </Toolbar>
--->
-    <div v-if="isOpen" class="flex-1 flex flex-col">
+    <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
       <MenuTop class="flex-1" @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
 
-      <a-divider v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="my-2" />
+      <a-divider v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="!my-3" />
 
       <MenuBottom @open-modal="openModal" />
     </div>

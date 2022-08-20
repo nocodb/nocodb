@@ -153,6 +153,7 @@ async function changeLockType(type: LockType) {
             >
               <template #title>
                 <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0">
+
                   <SmartsheetToolbarLockType hide-tick :type="selectedView?.lock_type || LockType.Collaborative" />
 
                   <MaterialSymbolsChevronRightRounded
@@ -279,6 +280,7 @@ async function changeLockType(type: LockType) {
     <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="max(900px,60vw)" :footer="null">
       <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
     </a-modal>
+
   </div>
 </template>
 

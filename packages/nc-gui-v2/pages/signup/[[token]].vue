@@ -154,8 +154,8 @@ function resetError() {
 
             <a
               v-if="appInfo.googleAuthEnabled"
-              href="http://localhost:8080/auth/google"
-              class="submit after:(!bg-white) !text-primary border-1 border-primary"
+              :href="`${api.instance.defaults.baseURL}/auth/google`"
+              class="submit after:(!bg-white) !text-primary border-1 border-primary !no-underline"
             >
               <span class="flex items-center gap-2">
                 <LogosGoogleGmail />

@@ -68,16 +68,23 @@ onMounted(() => {
 
 <template>
   <NuxtLayout>
-    <div class="flex flex-col lg:flex-row flex-wrap gap-6 py-6 px-12">
+    <div class="bg-primary bg-opacity-5 flex flex-col lg:flex-row flex-wrap gap-6 py-6 px-12 pt-65px">
       <div class="hidden xl:(block)">
         <GeneralSponsors />
       </div>
 
       <div class="min-w-2/4 flex-auto">
-        <a-card class="transition-all duration-300 ease-out !rounded-lg shadow">
-          <h1 class="flex items-center justify-center gap-2 leading-8 mb-8">
+        <div
+          class="bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+        >
+          <general-noco-icon
+            class="color-transition hover:(ring ring-accent)"
+            :class="[isLoading ? 'animated-bg-gradient' : '']"
+          />
+
+          <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
             <!-- My Projects -->
-            <span class="text-4xl">{{ $t('title.myProject') }}</span>
+            <div class="text-4xl">{{ $t('title.myProject') }}</div>
 
             <a-tooltip title="Reload projects">
               <span
@@ -94,7 +101,7 @@ onMounted(() => {
             </a-tooltip>
           </h1>
 
-          <div class="order-1 flex mb-6">
+          <div class="flex mb-6">
             <a-input-search
               v-model:value="filterQuery"
               class="max-w-[250px] nc-project-page-search rounded"
@@ -188,7 +195,7 @@ onMounted(() => {
               </a-table-column>
             </a-table>
           </TransitionGroup>
-        </a-card>
+        </div>
       </div>
 
       <div class="flex flex-1 justify-between gap-6 lg:block">
@@ -213,7 +220,7 @@ onMounted(() => {
   @apply cursor-pointer z-1 relative color-transition rounded-md px-3 py-2 text-white;
 
   &::after {
-    @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
+    @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary bg-opacity-100;
     content: '';
     z-index: -1;
   }

@@ -53,7 +53,7 @@ const fields = computedInject(FieldsInj, (_fields) => {
 
 provide(MetaInj, meta)
 
-const { commentsDrawer, changedColumns, state: rowState } = useProvideExpandedFormStore(meta, row)
+const { commentsDrawer, changedColumns, state: rowState, isNew } = useProvideExpandedFormStore(meta, row)
 
 const { $api } = useNuxtApp()
 
@@ -113,6 +113,7 @@ export default {
           <div class="w-[500px] mx-auto">
             <div v-for="col of fields" :key="col.title" class="mt-2 py-2" :class="`nc-expand-col-${col.title}`">
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+
               <SmartsheetHeaderCell v-else :column="col" />
 
               <div class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2">
@@ -130,7 +131,7 @@ export default {
           </div>
         </div>
 
-        <div class="nc-comments-drawer min-w-0 min-h-full max-h-full" :class="{ active: commentsDrawer }">
+        <div v-if="!isNew" class="nc-comments-drawer min-w-0 min-h-full max-h-full" :class="{ active: commentsDrawer }">
           <div class="h-full">
             <Comments v-if="commentsDrawer" />
           </div>

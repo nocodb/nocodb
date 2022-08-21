@@ -57,7 +57,7 @@ const iconColor = '#1890ff'
 
     <component
       :is="drawerToggleIcon"
-      v-if="isUIAllowed('rowComments')"
+      v-if="isUIAllowed('rowComments') && !isNew"
       class="cursor-pointer select-none nc-toggle-comments"
       @click="commentsDrawer = !commentsDrawer"
     />

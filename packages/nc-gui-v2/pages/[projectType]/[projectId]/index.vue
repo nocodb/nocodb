@@ -311,7 +311,7 @@ const onMenuClose = (visible: boolean) => {
                   </a-sub-menu>
 
                   <template v-if="signedIn && !isSharedBase">
-                    <a-sub-menu v-if="isUIAllowed('previewAs')" key="account">
+                    <a-sub-menu key="account">
                       <template #title>
                         <div class="nc-project-menu-item group">
                           <MdiAccount class="group-hover:text-accent" />

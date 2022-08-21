@@ -32,8 +32,7 @@ async function loadTableList() {
     isLoading = true
 
     tables = await $api.project.modelVisibilityList(project.value?.id, {
-      // FIXME: type
-      includeM2M: includeM2M.value || '',
+      includeM2M: includeM2M.value,
     })
   } catch (e) {
     console.error(e)

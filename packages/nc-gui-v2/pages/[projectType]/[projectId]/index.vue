@@ -327,7 +327,7 @@ const onMenuClose = (visible: boolean) => {
                       <template #expandIcon></template>
 
                       <a-menu-item key="0" class="!rounded-t">
-                        <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group no-underline" to="/user">
+                        <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
                           <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                           <span class="prose-sm">{{ email }}</span>

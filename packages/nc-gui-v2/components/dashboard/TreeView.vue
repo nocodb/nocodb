@@ -232,6 +232,7 @@ function openTableCreateDialog() {
         <div class="flex-1">
           <div
             class="group flex items-center gap-2 pl-5 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+            v-if="isUIAllowed('table-create')"
             @click="openTableCreateDialog"
           >
             <MdiPlus />

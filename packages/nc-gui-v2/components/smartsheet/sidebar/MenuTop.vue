@@ -137,6 +137,10 @@ onMounted(() => menuRef && initSortable(menuRef.$el))
 /** Navigate to view by changing url param */
 function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
   router.push({ params: { viewTitle: view.title || '' } })
+  if (view.type === 1 && selected.value[0] === view.id) {
+    // reload the page if the same form view is clicked
+    router.go(0)
+  }
 }
 
 /** Rename a view */

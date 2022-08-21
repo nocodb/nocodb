@@ -49,20 +49,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-5/6">
-    <div class="mb-4">
+  <div class="">
+    <div class="mb-2">
       <div class="float-left font-bold text-xl mt-2 mb-4">{{ meta.title }} : Webhooks</div>
       <a-button class="float-right" type="primary" size="large" @click="emit('add')">
         {{ $t('activity.addWebhook') }}
       </a-button>
     </div>
     <a-divider />
-    <div v-if="hooks.length">
-      <a-list
-        item-layout="horizontal"
-        :data-source="hooks"
-        class="cursor-pointer max-h-[75vh] overflow-y-auto scrollbar-thin-primary"
-      >
+    <div v-if="hooks.length" class="">
+      <a-list item-layout="horizontal" :data-source="hooks" class="cursor-pointer scrollbar-thin-primary">
         <template #renderItem="{ item, index }">
           <a-list-item class="p-2" @click="emit('edit', item)">
             <a-list-item-meta>
@@ -93,8 +89,10 @@ onMounted(() => {
         </template>
       </a-list>
     </div>
-    <div v-else class="p-4 bg-gray-100 text-gray-600">
-      Webhooks list is empty, create new webhook by clicking 'Create webhook' button.
+    <div v-else class="min-h-[75vh]">
+      <div class="p-4 bg-gray-100 text-gray-600">
+        Webhooks list is empty, create new webhook by clicking 'Create webhook' button.
+      </div>
     </div>
   </div>
 </template>

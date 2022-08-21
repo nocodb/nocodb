@@ -54,7 +54,7 @@ const page = computed({
 
 :deep(.ant-pagination-item:not(.ant-pagination-item-active) a) {
   line-height: 21px !important;
-  @apply text-sm !text-gray-500 ;
+  @apply text-sm !text-gray-500;
 }
 
 :deep(.ant-pagination-item-link) {

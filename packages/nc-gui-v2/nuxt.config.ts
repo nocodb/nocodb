@@ -98,4 +98,13 @@ export default defineNuxtConfig({
     dirs: ['./context', './utils', './lib'],
     imports: [{ name: 'useI18n', from: 'vue-i18n' }],
   },
+
+  pageTransition: {
+    name: 'page',
+    mode: 'out-in',
+  },
+  layoutTransition: {
+    name: 'layout',
+    mode: 'out-in',
+  },
 })

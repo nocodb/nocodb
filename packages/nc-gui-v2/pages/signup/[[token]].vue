@@ -152,6 +152,18 @@ function resetError() {
               </span>
             </button>
 
+            <a
+              v-if="appInfo.googleAuthEnabled"
+              :href="`${api.instance.defaults.baseURL}/auth/google`"
+              class="submit after:(!bg-white) !text-primary border-1 border-primary !no-underline"
+            >
+              <span class="flex items-center gap-2">
+                <LogosGoogleGmail />
+
+                Sign up with Google
+              </span>
+            </a>
+
             <div class="flex items-center gap-2">
               <a-switch
                 v-model:checked="subscribe"

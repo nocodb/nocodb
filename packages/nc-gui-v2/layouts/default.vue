@@ -13,15 +13,15 @@ useHead({
 
 <script lang="ts">
 export default {
-  name: 'Default',
+  name: 'DefaultLayout',
 }
 </script>
 
 <template>
   <div class="w-full h-full">
-    <teleport v-if="$slots.sidebar" to="#nc-sidebar-left">
+    <Teleport to="#nc-sidebar-left">
       <slot name="sidebar" />
-    </teleport>
+    </Teleport>
 
     <a-layout-content>
       <slot />

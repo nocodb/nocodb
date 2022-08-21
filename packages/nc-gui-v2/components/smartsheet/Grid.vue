@@ -87,7 +87,6 @@ const {
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
-  loadAggCommentsCount,
   removeLastEmptyRow,
 } = useViewData(meta, view as any, xWhere)
 
@@ -106,7 +105,6 @@ provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 reloadViewDataHook?.on(async () => {
   await loadData()
-  loadAggCommentsCount()
 })
 
 const expandForm = (row: Row, state?: Record<string, any>) => {
@@ -128,7 +126,7 @@ const selectCell = (row: number, col: number) => {
 watch(
   () => (view?.value as any)?.id,
   async (n?: string, o?: string) => {
-    if (n && n !== o) {
+    if (n && o && n !== o) {
       await loadData()
     }
   },

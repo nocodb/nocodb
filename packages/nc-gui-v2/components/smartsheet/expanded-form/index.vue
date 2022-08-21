@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { isVirtualCol } from 'nocodb-sdk'
+import { isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import Cell from '../Cell.vue'
 import VirtualCell from '../VirtualCell.vue'
@@ -46,7 +46,7 @@ const meta = toRef(props, 'meta')
 
 const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
-    return meta.value.columns ?? []
+    return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col))
   }
   return _fields?.value ?? []
 })

@@ -73,7 +73,7 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
 <template>
   <div class="flex flex-col h-full w-full">
     <div class="nc-gallery-container min-h-0 flex-1 grid grid-cols-4 gap-4 my-4 px-3 overflow-auto">
-      <div v-for="(record, recordIndex) in data" :key="recordIndex" class="flex flex-col" @dblclick="expandForm(record)">
+      <div v-for="(record, recordIndex) in data" :key="recordIndex" class="flex flex-col" @click="expandForm(record)">
         <Row :row="record">
           <a-card hoverable class="!rounded-lg h-full">
             <template #cover>

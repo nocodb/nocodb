@@ -40,7 +40,7 @@ const selectedView = inject(ActiveViewInj)
       <div>
         <component :is="types[type].icon" class="text-gray-500" />
         {{ $t(types[type].title) }}
-        <div class="nc-subtitle">
+        <div class="nc-subtitle whitespace-normal">
           {{ types[type].subtitle }}
         </div>
       </div>

@@ -352,7 +352,7 @@ function openTableCreateDialog() {
                           </div>
                         </a-menu-item>
 
-                        <a-menu-item v-if="isUIAllowed('table-delete')" @click="() => $e('c:table:delete') && deleteTable(table)">
+                        <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(table)">
                           <div class="nc-project-menu-item">
                             {{ $t('general.delete') }}
                           </div>
@@ -386,10 +386,7 @@ function openTableCreateDialog() {
               </div>
             </a-menu-item>
 
-            <a-menu-item
-              v-if="isUIAllowed('table-delete')"
-              @click="() => $e('c:table:delete') && deleteTable(contextMenuTarget.value)"
-            >
+            <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(contextMenuTarget.value)">
               <div class="nc-project-menu-item">
                 {{ $t('general.delete') }}
               </div>

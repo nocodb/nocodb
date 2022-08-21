@@ -7,8 +7,8 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
 </script>
 
 <template>
-  <a-card :body-style="{ padding: '0px' }" class="w-[300px] shadow-sm rounded-lg">
-    <a-lis class="w-full" dense>
+  <a-card :body-style="{ padding: '0px' }" class="w-[300px] shadow-sm !rounded-lg">
+    <a-list class="w-full" dense>
       <slot name="before" />
 
       <a-list-item>
@@ -109,7 +109,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
           </div>
         </nuxt-link>
       </a-list-item>
-    </a-lis>
+    </a-list>
   </a-card>
 </template>
 

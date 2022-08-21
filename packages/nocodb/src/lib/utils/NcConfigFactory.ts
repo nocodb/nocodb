@@ -21,6 +21,7 @@ const {
 const driverClientMapping = {
   mysql: 'mysql2',
   postgres: 'pg',
+  postgresql: 'pg',
   sqlite: 'sqlite3',
   mssql: 'mssql',
 };
@@ -636,16 +637,35 @@ export default class NcConfigFactory implements NcConfig {
   }
 
   public static extractXcUrlFromJdbc(url: string) {
-    const config = parseDbUrl(url);
-    const port = config.port || defaultClientPortMapping[config.driver];
-    const res = `${driverClientMapping[config.driver] || config.driver}://${
-      config.host
-    }${port ? `:${port}` : ''}?p=${config.password}&u=${config.user}&d=${
-      config.database
-    }`;
-    if (config.search_path) {
-      return `${res}&search_path=${config.search_path}`;
+    // drop the jdbc prefix
+    if (url.startsWith('jdbc:')) {
+      url = url.substring(5);
     }
+
+    const config = parseDbUrl(url);
+
+    const parsedConfig: { driver?: string, host?: string, port?: string, database?: string, user?:string, password?: string  } = {}
+    for (const [key, value] of Object.entries(config)) {
+      const fnd = knownQueryParams.find((param) => param.parameter === key || param.aliases.includes(key))
+      if (fnd) {
+        parsedConfig[fnd.parameter] = value;
+      } else {
+        parsedConfig[key] = value;
+      }
+    }
+
+    if (!parsedConfig?.port) parsedConfig.port = defaultClientPortMapping[parsedConfig.driver];
+
+    const { driver, host, port, database, user, password, ...extra } = parsedConfig;
+    
+    let extraParams = '';
+
+    for (const [key, value] of Object.entries(extra)) {
+      extraParams += `&${key}=${value}`;
+    }
+
+    const res = `${driverClientMapping[driver] || driver}://${host}${port ? `:${port}` : ''}?u=${user}&p=${password}&d=${database}${extraParams}`;
+
     return res;
   }
 

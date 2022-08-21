@@ -658,13 +658,13 @@ export default class NcConfigFactory implements NcConfig {
 
     const { driver, host, port, database, user, password, ...extra } = parsedConfig;
     
-    let extraParams = '';
+    const extraParams = [];
 
     for (const [key, value] of Object.entries(extra)) {
-      extraParams += `&${key}=${value}`;
+      extraParams.push(`${key}=${value}`);
     }
 
-    const res = `${driverClientMapping[driver] || driver}://${host}${port ? `:${port}` : ''}?u=${user}&p=${password}&d=${database}${extraParams}`;
+    const res = `${driverClientMapping[driver] || driver}://${host}${port ? `:${port}` : ''}?${user ? `u=${user}&` : ''}${password ? `p=${password}&` : ''}${database ? `d=${database}&` : ''}${extraParams.join('&')}`;
 
     return res;
   }

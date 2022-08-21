@@ -64,7 +64,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a-card class="w-[500px] mx-auto !mt-100px shadow-md">
+  <a-card class="w-[500px] !mx-auto !mt-100px shadow-md">
     <h3 class="text-3xl text-center font-semibold mb-2">{{ $t('activity.editProject') }}</h3>
 
     <a-form ref="form" :model="formState" name="basic" layout="vertical" autocomplete="off" @finish="renameProject">

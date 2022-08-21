@@ -1,40 +1,16 @@
 <script setup lang="ts">
 import { enumColor as colors } from '#imports'
 
-const { showSwaggerLink } = defineProps<{ showSwaggerLink?: boolean }>()
-
-const { project } = useProject()
-
-const route = useRoute()
-
-const { appInfo } = useGlobal()
-
 const { lang: currentLang } = useGlobal()
 
 const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
-
-const openSwaggerLink = () => {
-  openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.value?.ncSiteUrl)
-}
 </script>
 
 <template>
-  <a-card :body-style="{ padding: '0px' }" class="w-[300px] shadow-sm !rounded-lg">
-    <a-list class="w-full" dense>
-      <a-list-item v-if="showSwaggerLink && project">
-        <nuxt-link
-          v-t="['e:docs']"
-          class="text-primary !no-underline !text-current py-4 font-weight-medium"
-          target="_blank"
-          @click="openSwaggerLink"
-        >
-          <div class="ml-3 flex items-center text-sm">
-            <LogosSwagger />
-            <!--            todo:  i18n -->
-            <span class="ml-3">{{ project.title }} : Swagger Documentation</span>
-          </div>
-        </nuxt-link>
-      </a-list-item>
+  <a-card :body-style="{ padding: '0px' }" class="w-[300px] shadow-sm rounded-lg">
+    <a-lis class="w-full" dense>
+      <slot name="before" />
+
       <a-list-item>
         <nuxt-link
           v-t="['e:docs']"
@@ -76,8 +52,8 @@ const openSwaggerLink = () => {
             </div>
             <div v-else class="flex items-center">
               <!-- Star -->
-              {{ `${$t('labels.community.starUs1')} ` }}
-
+              {{ $t('labels.community.starUs1') }}
+              {{ ' ' }}
               <!-- us on Github -->
               {{ $t('labels.community.starUs2') }}
             </div>
@@ -85,7 +61,7 @@ const openSwaggerLink = () => {
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link class="text-primary !no-underline !text-current" to="https://calendly.com/nocodb-meeting" target="_blank">
+        <nuxt-link class="!no-underline !text-current" to="https://calendly.com/nocodb-meeting" target="_blank">
           <div class="flex items-center text-sm">
             <mdi-calendar-month class="mx-3 text-lg" :color="colors.dark[3 % colors.dark.length]" />
             <!-- Book a Free DEMO -->
@@ -96,7 +72,7 @@ const openSwaggerLink = () => {
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link class="text-primary !no-underline !text-current" to="https://discord.gg/5RgZmkW" target="_blank">
+        <nuxt-link class="!no-underline !text-current" to="https://discord.gg/5RgZmkW" target="_blank">
           <div class="flex items-center text-sm">
             <mdi-discord class="mx-3 text-lg" :color="colors.dark[0 % colors.dark.length]" />
             <!-- Get your questions answered -->
@@ -107,7 +83,7 @@ const openSwaggerLink = () => {
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link class="text-primary !no-underline !text-current" to="https://twitter.com/NocoDB" target="_blank">
+        <nuxt-link class="!no-underline !text-current" to="https://twitter.com/NocoDB" target="_blank">
           <div class="flex items-center text-sm">
             <mdi-twitter class="mx-3 text-lg" :color="colors.dark[1 % colors.dark.length]" />
             <!-- Follow NocoDB -->
@@ -118,12 +94,7 @@ const openSwaggerLink = () => {
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link
-          v-t="['e:hiring']"
-          class="text-primary !no-underline !text-current"
-          target="_blank"
-          to="http://careers.nocodb.com"
-        >
+        <nuxt-link v-t="['e:hiring']" class="!no-underline !text-current" target="_blank" to="http://careers.nocodb.com">
           <div class="flex items-center text-sm">
             <!--            todo:  i18n -->
             <div class="ml-3">🚀 <span class="ml-3">We are Hiring!!!</span></div>
@@ -131,19 +102,14 @@ const openSwaggerLink = () => {
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link
-          v-t="['e:reddit']"
-          class="text-primary !no-underline !text-current"
-          target="_blank"
-          to="https://www.reddit.com/r/NocoDB/"
-        >
+        <nuxt-link v-t="['e:reddit']" class="!no-underline !text-current" target="_blank" to="https://www.reddit.com/r/NocoDB/">
           <div class="ml-3 flex items-center text-sm">
             <LogosRedditIcon />
             <span class="ml-4">/r/NocoDB/</span>
           </div>
         </nuxt-link>
       </a-list-item>
-    </a-list>
+    </a-lis>
   </a-card>
 </template>
 

@@ -18,9 +18,6 @@ const { isUIAllowed } = useUIPermission()
         route.name !== 'project-index-create-external' &&
         route.name !== 'index-user-index'
       "
-      size="middle"
-      type="primary"
-      class="rounded"
       @click="showUserModal = true"
     >
       <div class="flex items-center space-x-1">

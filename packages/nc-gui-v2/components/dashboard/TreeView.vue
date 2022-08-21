@@ -409,8 +409,10 @@ function openTableCreateDialog() {
 
     <a-divider class="!my-0" />
 
-    <div class="flex items-center justify-center p-2">
-      <GeneralShareBaseButton />
+    <div class="flex items-start flex-col justify-start px-4 py-5 gap-2">
+      <GeneralShareBaseButton class="py-1 px-2 text-primary font-bold cursor-pointer select-none" />
+
+      <GeneralHelpAndSupport class="py-1 px-2 text-gray-500 cursor-pointer select-none" />
     </div>
   </div>
 </template>

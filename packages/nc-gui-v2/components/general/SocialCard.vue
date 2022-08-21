@@ -9,8 +9,38 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
 <template>
   <a-card :body-style="{ padding: '0px' }" class="w-[300px] shadow-sm !rounded-lg">
     <a-list class="w-full" dense>
+      <slot name="before" />
+
       <a-list-item>
-        <nuxt-link class="text-primary" to="https://github.com/nocodb/nocodb" target="_blank">
+        <nuxt-link
+          v-t="['e:docs']"
+          class="text-primary !no-underline !text-current"
+          target="_blank"
+          to="https://docs.nocodb.com/"
+        >
+          <div class="ml-3 flex items-center text-sm">
+            <MdiBookOpenOutline class="text-lg text-accent" />
+            <!--            todo:  i18n -->
+            <span class="ml-3">Documentation</span>
+          </div>
+        </nuxt-link>
+      </a-list-item>
+      <a-list-item>
+        <nuxt-link
+          v-t="['e:docs']"
+          class="text-primary !no-underline !text-current"
+          target="_blank"
+          to="https://apis.nocodb.com/"
+        >
+          <div class="ml-3 flex items-center text-sm">
+            <MdiJson class="text-lg text-green-500" />
+            <!--            todo:  i18n -->
+            <span class="ml-3">API Documentation</span>
+          </div>
+        </nuxt-link>
+      </a-list-item>
+      <a-list-item>
+        <nuxt-link class="text-primary !no-underline !text-current" to="https://github.com/nocodb/nocodb" target="_blank">
           <div class="flex items-center text-sm">
             <mdi-github class="mx-3 text-lg" />
             <div v-if="isRtlLang">
@@ -23,7 +53,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
             <div v-else class="flex items-center">
               <!-- Star -->
               {{ $t('labels.community.starUs1') }}
-              <mdi-star-outline class="mx-1" />
+              {{ ' ' }}
               <!-- us on Github -->
               {{ $t('labels.community.starUs2') }}
             </div>
@@ -31,7 +61,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link class="text-primary" to="https://calendly.com/nocodb-meeting" target="_blank">
+        <nuxt-link class="!no-underline !text-current" to="https://calendly.com/nocodb-meeting" target="_blank">
           <div class="flex items-center text-sm">
             <mdi-calendar-month class="mx-3 text-lg" :color="colors.dark[3 % colors.dark.length]" />
             <!-- Book a Free DEMO -->
@@ -42,7 +72,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link class="text-primary" to="https://discord.gg/5RgZmkW" target="_blank">
+        <nuxt-link class="!no-underline !text-current" to="https://discord.gg/5RgZmkW" target="_blank">
           <div class="flex items-center text-sm">
             <mdi-discord class="mx-3 text-lg" :color="colors.dark[0 % colors.dark.length]" />
             <!-- Get your questions answered -->
@@ -53,7 +83,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link class="text-primary" to="https://twitter.com/NocoDB" target="_blank">
+        <nuxt-link class="!no-underline !text-current" to="https://twitter.com/NocoDB" target="_blank">
           <div class="flex items-center text-sm">
             <mdi-twitter class="mx-3 text-lg" :color="colors.dark[1 % colors.dark.length]" />
             <!-- Follow NocoDB -->
@@ -63,10 +93,19 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
           </div>
         </nuxt-link>
       </a-list-item>
-      <a-list-item v-t="['e:hiring']">
-        <nuxt-link class="text-primary" target="_blank" to="http://careers.nocodb.com">
+      <a-list-item>
+        <nuxt-link v-t="['e:hiring']" class="!no-underline !text-current" target="_blank" to="http://careers.nocodb.com">
           <div class="flex items-center text-sm">
-            <div class="ml-3">🚀 <span class="ml-2">We are Hiring!!!</span></div>
+            <!--            todo:  i18n -->
+            <div class="ml-3">🚀 <span class="ml-3">We are Hiring!!!</span></div>
+          </div>
+        </nuxt-link>
+      </a-list-item>
+      <a-list-item>
+        <nuxt-link v-t="['e:reddit']" class="!no-underline !text-current" target="_blank" to="https://www.reddit.com/r/NocoDB/">
+          <div class="ml-3 flex items-center text-sm">
+            <LogosRedditIcon />
+            <span class="ml-4">/r/NocoDB/</span>
           </div>
         </nuxt-link>
       </a-list-item>

@@ -204,5 +204,6 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     saveOrUpdate,
     sortedAndFilteredFields,
     showSystemFields,
+    metaColumnById,
   }
 }

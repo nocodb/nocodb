@@ -85,10 +85,6 @@ onKeyStroke(
 
 clearTabs()
 
-if (!route.params.type && isUIAllowed('teamAndAuth')) {
-  addTab({ type: TabType.AUTH, title: 'Team & Auth' })
-}
-
 function toggleDialog(value?: boolean, key?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
   openDialogKey.value = key
@@ -97,6 +93,10 @@ function toggleDialog(value?: boolean, key?: string) {
 await loadProject()
 
 await loadTables()
+
+if (!route.params.type && isUIAllowed('teamAndAuth')) {
+  addTab({ type: TabType.AUTH, title: 'Team & Auth' })
+}
 
 const copyProjectInfo = async () => {
   try {

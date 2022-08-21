@@ -58,7 +58,7 @@ export default {
       <ExpandedForm
         v-if="!readOnly && !isLocked && expandedFormDlg"
         v-model="expandedFormDlg"
-        :row="{ row: item }"
+        :row="{ row: item, rowMeta: {}, oldRow: { ...item } }"
         :meta="relatedTableMeta"
         load-row
         use-meta-fields

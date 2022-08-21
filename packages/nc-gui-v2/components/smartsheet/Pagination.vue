@@ -49,12 +49,14 @@ const page = computed({
 
 <style scoped>
 :deep(.ant-pagination-item a) {
-  @apply text-sm !leading-[21px];
+  @apply text-sm !leading-[21px] !no-underline;
 }
+
 :deep(.ant-pagination-item:not(.ant-pagination-item-active) a) {
   line-height: 21px !important;
-  @apply text-sm text-gray-500;
+  @apply text-sm !text-gray-500;
 }
+
 :deep(.ant-pagination-item-link) {
   @apply text-gray-500;
 }

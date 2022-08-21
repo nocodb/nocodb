@@ -52,15 +52,23 @@ const iconColor = '#1890ff'
     </h5>
 
     <div class="flex-1" />
-
-    <mdi-reload class="cursor-pointer select-none" />
-
-    <component
-      :is="drawerToggleIcon"
-      v-if="isUIAllowed('rowComments')"
-      class="cursor-pointer select-none nc-toggle-comments"
-      @click="commentsDrawer = !commentsDrawer"
-    />
+    <a-tooltip placement="bottom">
+      <template #title>
+        <div class="text-center w-full">Reload</div>
+      </template>
+      <mdi-reload class="cursor-pointer select-none" />
+    </a-tooltip>
+    <a-tooltip placement="bottom">
+      <template #title>
+        <div class="text-center w-full">Toggle comments draw</div>
+      </template>
+      <component
+        :is="drawerToggleIcon"
+        v-if="isUIAllowed('rowComments') && !isNew"
+        class="cursor-pointer select-none nc-toggle-comments"
+        @click="commentsDrawer = !commentsDrawer"
+      />
+    </a-tooltip>
 
     <a-button class="!text" @click="emit('cancel')">
       <!-- Cancel -->

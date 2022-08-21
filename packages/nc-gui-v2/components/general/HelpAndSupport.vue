@@ -74,9 +74,9 @@ const openSwaggerLink = () => {
     @apply !gap-3;
 
     .ant-list-item {
-      @apply mb-2 border-1 bg-white;
+      @apply mb-2 border-1 bg-white border-gray-200;
       &:last-child {
-        @apply border-1;
+        @apply !border-solid;
       }
     }
   }

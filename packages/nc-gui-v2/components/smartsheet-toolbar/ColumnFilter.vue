@@ -115,7 +115,7 @@ watch(
 const applyChanges = async (hookId?: string) => {
   await sync(hookId)
 
-  if (!nestedFilters.value.length) return
+  if (!nestedFilters.value?.length) return
 
   for (const nestedFilter of nestedFilters.value) {
     if (nestedFilter.parentId) {

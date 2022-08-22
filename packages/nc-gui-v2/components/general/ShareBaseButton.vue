@@ -9,7 +9,7 @@ const { isUIAllowed } = useUIPermission()
 </script>
 
 <template>
-  <div class="flex items-center">
+  <div class="flex items-center w-full pl-3 hover:(text-primary bg-primary bg-opacity-5)">
     <div
       v-if="
         isUIAllowed('newUser') &&

@@ -41,7 +41,7 @@ const openSwaggerLink = () => {
           <a-list-item v-if="project">
             <nuxt-link
               v-t="['e:docs']"
-              class="text-primary !no-underline !text-current py-4 font-weight-medium"
+              class="!no-underline !text-current py-4 font-semibold"
               target="_blank"
               @click="openSwaggerLink"
             >

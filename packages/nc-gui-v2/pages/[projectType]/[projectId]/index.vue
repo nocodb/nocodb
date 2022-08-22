@@ -362,6 +362,8 @@ const onMenuClose = (visible: boolean) => {
                       </div>
                     </template>
 
+                    <template #expandIcon></template>
+
                     <a-menu-item>
                       <div class="nc-project-menu-item group" @click.stop="openColorPicker('primary')">
                         <ClarityColorPickerSolid class="group-hover:text-accent" />

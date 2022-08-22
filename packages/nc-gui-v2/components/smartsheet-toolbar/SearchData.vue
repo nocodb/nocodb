@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { computed, inject, ref, useSmartsheetStoreOrThrow } from '#imports'
-import { ReloadViewDataHookInj } from '~/context'
+import { ReloadViewDataHookInj, computed, inject, onClickOutside, ref, useSmartsheetStoreOrThrow } from '#imports'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
@@ -8,7 +7,9 @@ const { search, meta } = useSmartsheetStoreOrThrow()
 
 // todo: where is this value supposed to come from? it's not in the store
 const isDropdownOpen = ref(false)
+
 const searchDropdown = ref(null)
+
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
 
 const columns = computed(() =>
@@ -42,8 +43,7 @@ function onPressEnter() {
         :options="columns"
         dropdown-class-name="!py-0 !rounded"
         class="!absolute top-0 left-0 w-full h-full z-10 !text-xs opacity-0"
-      >
-      </a-select>
+      />
     </div>
     <a-input
       v-model:value="search.query"

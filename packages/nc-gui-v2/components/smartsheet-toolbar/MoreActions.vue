@@ -92,7 +92,7 @@ const exportFile = async (exportType: ExportTypes) => {
   <div>
     <a-dropdown>
       <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
-        <div class="flex gap-1 align-center">
+        <div class="flex gap-1 items-center">
           <MdiFlashOutline />
 
           <!-- More -->
@@ -130,7 +130,7 @@ const exportFile = async (exportType: ExportTypes) => {
             </div>
 
             <div
-              v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView"
+              v-if="isUIAllowed('sharedViewList') && !isView && !isPublicView"
               v-t="['a:actions:shared-view-list']"
               class="nc-menu-item"
               @click="sharedViewListDlg = true"
@@ -139,7 +139,6 @@ const exportFile = async (exportType: ExportTypes) => {
               <!-- Shared View List -->
               {{ $t('activity.listSharedView') }}
             </div>
-
             <div
               v-if="isUIAllowed('webhook') && !isView && !isPublicView"
               v-t="['c:actions:webhook']"

@@ -24,13 +24,14 @@ watch(
 
 <template>
   <div class="h-full flex flex-col w-full bg-[#eceff1] p-2">
-    <div ref="commentsWrapperEl" class="flex-grow-1 min-h-[100px] overflow-y-auto scrollbar-thin-primary p-2 space-y-2">
+    <div ref="commentsWrapperEl" class="flex-1 min-h-[100px] overflow-y-auto scrollbar-thin-primary p-2 space-y-2">
       <v-skeleton-loader v-if="isCommentsLoading && !commentsAndLogs" type="list-item-avatar-two-line@8" />
 
       <template v-else>
         <div v-for="log of commentsAndLogs" :key="log.id" class="flex gap-1 text-xs">
           <MdiAccountCircle class="row-span-2" :class="isYou(log.user) ? 'text-pink-300' : 'text-blue-300 '" />
-          <div class="flex-grow">
+
+          <div class="flex-1">
             <p class="mb-1 caption edited-text text-[10px] text-gray-500">
               {{ isYou(log.user) ? 'You' : log.user == null ? 'Shared base' : log.user }}
               {{ log.op_type === 'COMMENT' ? 'commented' : log.op_sub_type === 'INSERT' ? 'created' : 'edited' }}
@@ -59,7 +60,7 @@ watch(
           ><span class="text-[11px] text-gray-500">Comments only</span>
         </a-checkbox>
       </div>
-      <div class="flex-shrink-1 mt-2 d-flex">
+      <div class="shrink mt-2 flex">
         <a-input
           v-model:value="comment"
           class="!text-xs nc-comment-box"
@@ -70,7 +71,7 @@ watch(
           @keyup.enter.prevent="saveComment"
         >
           <template #addonBefore>
-            <div class="flex align-center">
+            <div class="flex items-center">
               <mdi-account-circle class="text-lg text-pink-300" small @click="saveComment" />
             </div>
           </template>

@@ -131,21 +131,17 @@ const resetError = () => {
 
   .ant-input-affix-wrapper,
   .ant-input {
-    @apply dark:(!bg-gray-700 !text-white) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+    @apply !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
   }
 
   .password {
     input {
       @apply !border-none;
     }
-
-    .ant-input-password-icon {
-      @apply dark:!text-white;
-    }
   }
 
   .submit {
-    @apply ml-1 border border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
+    @apply ml-1 border border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:(bg-primary bg-opacity-75);
   }
 }
 </style>

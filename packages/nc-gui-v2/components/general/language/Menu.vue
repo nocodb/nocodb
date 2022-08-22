@@ -39,7 +39,7 @@ onMounted(() => {
   <a-menu-item
     v-for="lang of languages"
     :key="lang"
-    :class="lang === locale ? '!bg-primary/10 text-primary' : ''"
+    :class="lang === locale ? '!bg-primary bg-opacity-10 text-primary' : ''"
     class="group"
     :value="lang"
     @click="changeLanguage(lang)"

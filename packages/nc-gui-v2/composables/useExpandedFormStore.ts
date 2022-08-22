@@ -121,7 +121,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         return obj
       }, {} as Record<string, any>)
 
-      if (row.value.rowMeta.new) {
+      if (row.value.rowMeta?.new) {
         data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, updateOrInsertObj)
 
         /* todo:
@@ -133,11 +133,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
                 }
               }
             } */
-        row.value = {
+
+        Object.assign(row.value, {
           row: data,
           rowMeta: {},
           oldRow: { ...data },
-        }
+        })
 
         /// todo:
         // await this.reload();

@@ -99,7 +99,12 @@ useEventListener(document, 'click', handleClose)
 </script>
 
 <template>
-  <div ref="editOrAddRef" class="min-w-[400px] max-h-[95vh] bg-gray-50 shadow-lg p-6 overflow-auto !border" @click.stop>
+  <div
+    ref="editOrAddRef"
+    class="w-[400px] max-h-[95vh] bg-gray-50 shadow-lg p-6 overflow-auto !border"
+    :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
+    @click.stop
+  >
     <a-form v-if="formState" v-model="formState" name="column-create-or-edit" layout="vertical">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
@@ -112,7 +117,7 @@ useEventListener(document, 'click', handleClose)
         >
           <a-select v-model:value="formState.uidt" show-search class="nc-column-type-input" @change="onUidtOrIdTypeChange">
             <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
-              <div class="flex gap-1 align-center">
+              <div class="flex gap-1 items-center">
                 <component :is="opt.icon" class="text-grey" />
                 {{ opt.name }}
               </div>
@@ -139,7 +144,7 @@ useEventListener(document, 'click', handleClose)
       </div>
       <div
         v-if="!isVirtualCol(formState.uidt)"
-        class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex align-center gap-1 justify-end"
+        class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
       >
         {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
@@ -192,7 +197,7 @@ useEventListener(document, 'click', handleClose)
 }
 
 :deep(.ant-select-selection-item) {
-  @apply flex align-center;
+  @apply flex items-center;
 }
 
 :deep(.ant-form-item-explain-error) {

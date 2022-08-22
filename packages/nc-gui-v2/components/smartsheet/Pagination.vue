@@ -34,7 +34,7 @@ const page = computed({
       show-less-items
       :show-size-changer="false"
     />
-    <div v-else class="mx-auto d-flex align-center mt-n1" style="max-width: 250px">
+    <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
       <span class="text-xs" style="white-space: nowrap"> Change page:</span>
       <a-input :value="page" size="small" class="ml-1 !text-xs" type="number" @keydown.enter="changePage(page)">
         <template #suffix>
@@ -49,12 +49,14 @@ const page = computed({
 
 <style scoped>
 :deep(.ant-pagination-item a) {
-  @apply text-sm !leading-[21px];
+  @apply text-sm !leading-[21px] !no-underline;
 }
+
 :deep(.ant-pagination-item:not(.ant-pagination-item-active) a) {
   line-height: 21px !important;
-  @apply text-sm text-gray-500;
+  @apply text-sm !text-gray-500;
 }
+
 :deep(.ant-pagination-item-link) {
   @apply text-gray-500;
 }

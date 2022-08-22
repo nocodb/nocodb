@@ -1,11 +1,8 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
-import { computed } from 'vue'
 import { message } from 'ant-design-vue'
-import { useNuxtApp } from '#app'
-import { useSmartsheetStoreOrThrow } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import { computed, extractSdkResponseErrorMsg, useNuxtApp, useProject, useSmartsheetStoreOrThrow } from '#imports'
 import MdiOpenInNewIcon from '~icons/mdi/open-in-new'
 import MdiCopyIcon from '~icons/mdi/content-copy'
 
@@ -18,6 +15,8 @@ const { $e } = useNuxtApp()
 const { dashboardUrl } = useDashboard()
 
 const { isUIAllowed } = useUIPermission()
+
+const { isSharedBase } = useProject()
 
 let showShareModel = $ref(false)
 
@@ -118,11 +117,16 @@ onMounted(() => {
 
 <template>
   <div>
-    <a-button v-if="isUIAllowed('share-view')" v-t="['c:view:share']" outlined class="nc-btn-share-view nc-toolbar-btn">
-      <div class="flex align-center gap-1" @click="genShareLink">
+    <a-button
+      v-if="isUIAllowed('share-view') && !isSharedBase"
+      v-t="['c:view:share']"
+      outlined
+      class="nc-btn-share-view nc-toolbar-btn"
+    >
+      <div class="flex items-center gap-1" @click="genShareLink">
         <MdiOpenInNewIcon />
         <!-- Share View -->
-        <span class="!text-sm font-weight-medium"> {{ $t('activity.shareView') }}</span>
+        <span class="!text-sm font-weight-normal"> {{ $t('activity.shareView') }}</span>
       </div>
     </a-button>
 
@@ -173,7 +177,7 @@ onMounted(() => {
 
 <style scoped>
 .share-link-box {
-  @apply flex p-2 w-full items-center align-center gap-1 bg-gray-100 rounded;
+  @apply flex p-2 w-full items-center items-center gap-1 bg-gray-100 rounded;
 }
 
 :deep(.ant-collapse-header) {

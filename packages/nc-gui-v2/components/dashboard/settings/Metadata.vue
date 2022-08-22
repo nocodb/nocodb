@@ -6,7 +6,7 @@ import MdiDatabaseSync from '~icons/mdi/database-sync'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
 const { $api } = useNuxtApp()
-const { project } = useProject()
+const { project, loadTables } = useProject()
 
 let isLoading = $ref(false)
 let isDifferent = $ref(false)
@@ -39,6 +39,7 @@ async function syncMetaDiff() {
     isLoading = true
     await $api.project.metaDiffSync(project.value.id)
     message.info('Table metadata recreated successfully')
+    await loadTables()
     await loadMetaDiff()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -58,8 +59,9 @@ const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gra
 const columns = [
   {
     title: tableHeaderRenderer('Models'),
-    dataIndex: 'title',
-    key: 'title',
+    key: 'table_name',
+    customRender: ({ record }: { record: { table_name: string; title?: string } }) =>
+      h('div', {}, record.title || record.table_name),
   },
   {
     title: tableHeaderRenderer('Sync State'),
@@ -73,7 +75,7 @@ const columns = [
 
 <template>
   <div class="flex flex-row w-full">
-    <div class="flex flex-column w-3/5">
+    <div class="flex flex-col w-3/5">
       <div class="flex flex-row justify-end items-center w-full mb-4">
         <a-button class="self-start nc-btn-metasync-reload" @click="loadMetaDiff">
           <div class="flex items-center gap-2 text-gray-600 font-light">

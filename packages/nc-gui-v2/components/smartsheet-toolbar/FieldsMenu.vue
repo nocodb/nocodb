@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ColumnType } from 'nocodb-sdk'
+import { isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import {
   ActiveViewInj,
@@ -14,6 +16,8 @@ import {
   useViewColumns,
   watch,
 } from '#imports'
+import CellIcon from '~/components/smartsheet-header/CellIcon.vue'
+import VirtualCellIcon from '~/components/smartsheet-header/VirtualCellIcon.vue'
 
 const meta = inject(MetaInj)!
 
@@ -39,6 +43,7 @@ const {
   showAll,
   hideAll,
   saveOrUpdate,
+  metaColumnById,
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
 watch(
@@ -76,17 +81,22 @@ const onMove = (event: { moved: { newIndex: number } }) => {
 
   $e('a:fields:reorder')
 }
+
+const getIcon = (c: ColumnType) =>
+  h(isVirtualCol(c) ? VirtualCellIcon : CellIcon, {
+    columnMeta: c,
+  })
 </script>
 
 <template>
   <a-dropdown :trigger="['click']">
     <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
       <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
-        <div class="flex align-center gap-1">
+        <div class="flex items-center gap-1">
           <MdiEyeOffOutline />
 
           <!-- Fields -->
-          <span class="text-capitalize !text-sm font-weight-medium">{{ $t('objects.fields') }}</span>
+          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
         </div>
@@ -103,9 +113,12 @@ const onMove = (event: { moved: { newIndex: number } }) => {
         <div class="nc-fields-list py-1">
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
-              <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex" @click.stop>
-                <a-checkbox v-model:checked="field.show" class="flex-shrink" @change="saveOrUpdate(field, index)">
-                  <span class="">{{ field.title }}</span>
+              <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex items-center" @click.stop>
+                <a-checkbox v-model:checked="field.show" class="shrink" @change="saveOrUpdate(field, index)">
+                  <div class="flex items-center">
+                    <component :is="getIcon(metaColumnById[field.fk_column_id])" />
+                    <span>{{ field.title }}</span>
+                  </div>
                 </a-checkbox>
                 <div class="flex-1" />
                 <MdiDrag class="cursor-move" />
@@ -113,7 +126,8 @@ const onMove = (event: { moved: { newIndex: number } }) => {
             </template>
           </Draggable>
         </div>
-        <v-divider class="my-2" />
+
+        <a-divider class="!my-2" />
 
         <div v-if="!isPublic" class="p-2 py-1 flex" @click.stop>
           <a-checkbox v-model:checked="showSystemFields">
@@ -138,5 +152,8 @@ const onMove = (event: { moved: { newIndex: number } }) => {
 <style scoped lang="scss">
 :deep(.ant-checkbox-inner) {
   @apply transform scale-60;
+}
+:deep(.ant-checkbox) {
+  @apply top-auto;
 }
 </style>

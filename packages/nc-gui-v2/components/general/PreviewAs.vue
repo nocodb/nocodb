@@ -58,7 +58,8 @@ watch(previewAs, () => window.location.reload())
     <div class="divider" />
 
     <div class="pointer flex items-center gap-4">
-      <span>Preview as:</span>
+      <!-- Preview as -->
+      <span>{{ $t('activity.previewAs') }}</span>
 
       <a-radio-group v-model:value="previewAs" name="radioGroup">
         <a-radio v-for="role of roleList" :key="role.title" class="capitalize !text-white" :value="role.title"
@@ -79,7 +80,7 @@ watch(previewAs, () => window.location.reload())
     <template v-for="role of roleList" :key="role.title">
       <a-menu-item @click="previewAs = role.title">
         <div class="nc-project-menu-item group">
-          <component :is="roleIcon[role.title]" class="group-hover:text-pink-500" />
+          <component :is="roleIcon[role.title]" class="group-hover:text-accent" />
 
           <span class="capitalize" :class="{ 'x-active--text': role.title === previewAs }">
             {{ role.title }}
@@ -91,7 +92,7 @@ watch(previewAs, () => window.location.reload())
     <template v-if="previewAs">
       <a-menu-item @click="previewAs = null">
         <div class="nc-project-menu-item group">
-          <MdiClose class="group-hover:text-pink-500" />
+          <MdiClose class="group-hover:text-accent" />
           <!-- Reset Preview -->
           <span class="text-capitalize text-xs whitespace-nowrap">
             {{ $t('activity.resetReview') }}

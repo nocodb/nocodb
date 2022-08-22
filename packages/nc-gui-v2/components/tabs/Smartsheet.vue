@@ -76,7 +76,7 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
 
       <template v-if="meta">
         <div class="flex flex-1 min-h-0">
-          <div v-if="activeView" class="h-full flex-grow min-w-0 min-h-0">
+          <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
             <SmartsheetGrid v-if="isGrid" :ref="el" />
 
             <SmartsheetGallery v-else-if="isGallery" />
@@ -86,7 +86,12 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
         </div>
       </template>
     </div>
-
-    <SmartsheetSidebar v-if="meta" />
+    <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
   </div>
 </template>
+
+<style scoped>
+:deep(.nc-right-sidebar.ant-layout-sider-collapsed) {
+  @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
+}
+</style>

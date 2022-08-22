@@ -3,6 +3,19 @@ import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import {
+  ActiveViewInj,
+  ChangePageInj,
+  FieldsInj,
+  IsFormInj,
+  IsGridInj,
+  IsLockedInj,
+  IsPublicInj,
+  MetaInj,
+  OpenNewRecordFormHookInj,
+  PaginationDataInj,
+  ReadonlyInj,
+  ReloadViewDataHookInj,
+  enumColor,
   inject,
   onClickOutside,
   onMounted,
@@ -12,25 +25,12 @@ import {
   useEventListener,
   useGridViewColumnWidth,
   useSmartsheetStoreOrThrow,
+  useUIPermission,
   useViewData,
   watch,
 } from '#imports'
 import type { Row } from '~/composables'
-import {
-  ActiveViewInj,
-  ChangePageInj,
-  FieldsInj,
-  IsFormInj,
-  IsGridInj,
-  IsLockedInj,
-  IsPublicInj,
-  MetaInj,
-  PaginationDataInj,
-  ReadonlyInj,
-  ReloadViewDataHookInj,
-} from '~/context'
 import { NavigateDir } from '~/lib'
-import { enumColor } from '~/utils'
 
 const meta = inject(MetaInj)
 
@@ -42,7 +42,7 @@ const isPublicView = inject(IsPublicInj, ref(false))
 // fields menu and get used in grid and gallery
 const fields = inject(FieldsInj, ref([]))
 const readOnly = inject(ReadonlyInj, false)
-const isLocked = inject(IsLockedInj, false)
+const isLocked = inject(IsLockedInj, ref(false))
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj)
@@ -87,7 +87,6 @@ const {
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
-  loadAggCommentsCount,
   removeLastEmptyRow,
 } = useViewData(meta, view as any, xWhere)
 
@@ -106,7 +105,6 @@ provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 reloadViewDataHook?.on(async () => {
   await loadData()
-  loadAggCommentsCount()
 })
 
 const expandForm = (row: Row, state?: Record<string, any>) => {
@@ -128,7 +126,7 @@ const selectCell = (row: number, col: number) => {
 watch(
   () => (view?.value as any)?.id,
   async (n?: string, o?: string) => {
-    if (n && n !== o) {
+    if (n && o && n !== o) {
       await loadData()
     }
   },
@@ -309,12 +307,12 @@ const onNavigate = (dir: NavigateDir) => {
 </script>
 
 <template>
-  <div class="flex flex-col h-100 min-h-0 w-100">
+  <div class="flex flex-col h-full min-h-0 w-full">
     <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
         <table
           ref="smartTable"
-          class="xc-row-table nc-grid backgroundColorDefault !h-auto"
+          class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
           @contextmenu.prevent="contextMenu = true"
         >
           <thead>
@@ -325,7 +323,7 @@ const onNavigate = (dir: NavigateDir) => {
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                     <div
                       :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
-                      class="nc-check-all w-full align-center"
+                      class="nc-check-all w-full items-center"
                     >
                       <a-checkbox v-model:checked="selectedAllRecords" />
 
@@ -360,7 +358,7 @@ const onNavigate = (dir: NavigateDir) => {
                 @click.stop="addColumnDropdown = true"
               >
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
-                  <div class="h-full w-[60px] flex align-center justify-center">
+                  <div class="h-full w-[60px] flex items-center justify-center">
                     <MdiPlus class="text-sm nc-column-add" />
                   </div>
 
@@ -382,7 +380,7 @@ const onNavigate = (dir: NavigateDir) => {
               <template #default="{ state }">
                 <tr class="nc-grid-row">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
-                    <div class="align-center flex gap-1 min-w-[55px]">
+                    <div class="items-center flex gap-1 min-w-[55px]">
                       <div
                         v-if="!readOnly && !isLocked"
                         class="nc-row-no text-xs text-gray-500"
@@ -407,9 +405,12 @@ const onNavigate = (dir: NavigateDir) => {
                         >
                           {{ row.rowMeta.commentCount }}
                         </span>
-                        <div v-else class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
+                        <div
+                          v-else
+                          class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
+                        >
                           <MdiArrowExpand
-                            class="select-none transform hover:(text-pink-500 scale-120) nc-row-expand"
+                            class="select-none transform hover:(text-accent scale-120) nc-row-expand"
                             @click="expandForm(row, state)"
                           />
                         </div>
@@ -472,11 +473,11 @@ const onNavigate = (dir: NavigateDir) => {
               <td
                 v-t="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell"
+                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
                 @click="addEmptyRow()"
               >
                 <div class="px-2 w-full flex items-center text-gray-500">
-                  <MdiPlus class="text-pint-500 text-xs ml-2" />
+                  <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
 
                   <span class="ml-1">
                     {{ $t('activity.addRow') }}
@@ -486,17 +487,32 @@ const onNavigate = (dir: NavigateDir) => {
             </tr>
           </tbody>
         </table>
-        <template v-if="!isLocked" #overlay>
-          <a-menu class="bg-white shadow" @click="contextMenu = false">
-            <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)"
-              ><span class="text-xs">Delete row</span></a-menu-item
-            >
-            <a-menu-item @click="deleteSelectedRows"><span class="text-xs">Delete all selected rows</span></a-menu-item>
-            <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)"
-              ><span class="text-xs">Clear cell</span>
+
+        <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
+          <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
+            <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
+              <div class="nc-project-menu-item">
+                <!-- Delete Row -->
+                {{ $t('activity.deleteRow') }}
+              </div>
             </a-menu-item>
+
+            <a-menu-item @click="deleteSelectedRows">
+              <div class="nc-project-menu-item">
+                <!-- Delete Selected Rows -->
+                {{ $t('activity.deleteSelectedRow') }}
+              </div>
+            </a-menu-item>
+
+            <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)">
+              <div class="nc-project-menu-item">Clear cell</div>
+            </a-menu-item>
+
             <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              <span class="text-xs">Insert new row</span>
+              <div class="nc-project-menu-item">
+                <!-- Insert New Row -->
+                {{ $t('activity.insertRow') }}
+              </div>
             </a-menu-item>
           </a-menu>
         </template>
@@ -529,7 +545,7 @@ const onNavigate = (dir: NavigateDir) => {
 
   td:not(:first-child) > div {
     overflow: hidden;
-    @apply flex align-center h-auto px-1;
+    @apply flex items-center h-auto px-1;
   }
 
   table,
@@ -561,7 +577,7 @@ const onNavigate = (dir: NavigateDir) => {
   }
 
   td.active::before {
-    @apply bg-primary/5;
+    @apply bg-primary bg-opacity-5;
   }
 }
 
@@ -618,5 +634,9 @@ const onNavigate = (dir: NavigateDir) => {
       @apply flex;
     }
   }
+}
+
+tbody tr:hover {
+  @apply bg-gray-100 bg-opacity-50;
 }
 </style>

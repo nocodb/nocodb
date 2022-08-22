@@ -29,5 +29,6 @@ declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean
     public?: boolean
+    hideHeader?: boolean
   }
 }

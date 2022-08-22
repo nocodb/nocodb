@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'nocodb-sdk'
+import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
 import Toolbar from './toolbar/index.vue'
@@ -81,7 +81,7 @@ function openModal({ type, title = '', copyViewId }: { type: ViewTypes; title: s
 }
 
 /** Handle view creation */
-function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
+function onCreate(view: ViewType) {
   views.value.push(view)
   activeView.value = view
   router.push({ params: { viewTitle: view.title || '' } })
@@ -104,35 +104,12 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)]"
       :class="{ 'flex items-center py-3 px-3 justify-between border-b-1': !isForm }"
     />
-
-    <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">
-      <template #start>
-        <a-tooltip v-if="isUIAllowed('virtualViewsCreateOrEdit')" placement="left">
-          <template #title> {{ $t('objects.webhooks') }}</template>
-
-          <div class="nc-sidebar-right-item hover:after:bg-gray-300 nc-webhook-icon">
-            <MdiHook @click.stop />
-          </div>
-        </a-tooltip>
-
-        <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="dot" />
-
-        <a-tooltip placement="left">
-          <template #title> Get API Snippet</template>
-
-          <div class="nc-sidebar-right-item group hover:after:bg-yellow-500">
-            <MdiXml class="group-hover:(!text-white)" @click.stop />
-          </div>
-        </a-tooltip>
-
-        <div v-if="!isForm" class="dot" />
-      </template>
-    </Toolbar>
-
-    <div v-if="isOpen" class="flex-1 flex flex-col">
+    <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
       <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
 
-      <a-divider v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="my-2" />
+      <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="px-3">
+        <div class="!my-3 w-full border-b-1 border-dashed" />
+      </div>
 
       <MenuBottom @open-modal="openModal" />
     </div>
@@ -155,9 +132,5 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 
 :deep(.ant-layout-sider-children) {
   @apply flex flex-col;
-}
-
-.dot {
-  @apply w-[3px] h-[3px] bg-gray-300 rounded-full;
 }
 </style>

@@ -1,4 +1,3 @@
-@import './color.css';
 html {
 	font-size: 16px;
 	word-spacing: 1px;
@@ -8,29 +7,9 @@ html {
 	-webkit-font-smoothing: antialiased;
 	box-sizing: border-box;
 }
+
 body {
 	font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, Vazirmatn, sans-serif;
-}
-*, *:before, *:after {
-	box-sizing: border-box;
-	margin: 0;
-}
-.btn, .pointer {
-	cursor: pointer;
-}
-.primary {
-	color: var(--primary);
-}
-.secondary {
-	color: var(--secondary);
-}
-.btn-primary {
-	background-color: var(--primary);
-	color: #fff;
-}
-.btn-secondary {
-	background-color: var(--secondary);
-	color: #000;
 }
 
 /* 

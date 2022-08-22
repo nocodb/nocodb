@@ -1,9 +1,9 @@
 @import 'ant-design-vue/dist/antd.variable.min.css';
-@import 'ant-design-vue/dist/antd.min.css';
 
 :root {
   --header-height: 50px;
   --toolbar-height: 48px;
+  --tw-text-opacity: 1;
 }
 
 .ant-layout-header {
@@ -27,21 +27,8 @@ main {
   overflow-x: hidden;
 }
 
-nav,
-nav .v-list {
-  @apply dark:(!bg-gray-900 text-white)
-}
-
-.v-divider {
-  @apply dark:bg-white
-}
-
 a {
-  @apply prose text-primary underline hover:opacity-75 dark:(text-secondary);
-}
-
-h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
-  @apply dark:(!text-white);
+  @apply !text-primary !underline hover:!text-accent;
 }
 
 .nc-icon {
@@ -62,7 +49,7 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 
   &:hover {
     .nc-icon {
-      @apply text-pink-500;
+      @apply text-accent;
     }
   }
 }
@@ -99,7 +86,7 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 
 // for highlighting toolbar menu item
 .nc-active-btn > .ant-btn{
-  @apply bg-primary/20 hover:(bg-primary/20);
+  @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);
 }
 
 .nc-locked-overlay {
@@ -159,25 +146,23 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 .page-leave-active,
 .layout-enter-active,
 .layout-leave-active {
-  @apply transition-opacity duration-300 ease-in-out;
+  @apply transition-all duration-200 ease;
 }
 
-.page-enter-active,
-.page-leave-active,
-.layout-enter-active,
-.layout-leave-active {
+.page-enter-from,
+.page-leave-to,
+.layout-enter-from,
+.layout-leave-to {
   @apply opacity-0;
 }
 
 .slide-enter-active,
 .slide-leave-active {
   @apply transition-all duration-200 ease-in-out;
-  transform: translate(100%, 0);
 }
 
-.slide-enter,
-
-.slide-leave-active {
+.slide-enter-from,
+.slide-leave-to {
   transform: translate(-100%, 0);
 }
 
@@ -190,8 +175,8 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
   @apply ring ring-xl;
 }
 
-.glow-enter,
-.glow-leave-active {
+.glow-enter-from,
+.glow-leave-to {
   @apply opacity-0;
 }
 
@@ -205,11 +190,11 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-pink-500;
+    @apply transform scale-110 ring ring-accent;
   }
 
   &:active::after {
-    @apply ring ring-pink-500;
+    @apply ring ring-accent;
   }
 }
 
@@ -246,10 +231,14 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 }
 
 .ant-dropdown-menu-item, .ant-menu-item {
-  @apply !py-0 active:(ring ring-pink-500);
+  @apply !py-0 active:(ring ring-accent);
 }
 
 .ant-dropdown-menu-title-content,
 .ant-menu-title-content {
   @apply !py-0;
+}
+
+.ant-dropdown-menu-submenu-title{
+  @apply !pr-2;
 }

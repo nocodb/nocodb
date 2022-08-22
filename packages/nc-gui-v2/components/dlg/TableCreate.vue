@@ -45,6 +45,11 @@ const validators = computed(() => {
 })
 const { validateInfos } = useForm(table, validators)
 
+const systemColumnsCheckboxInfo = SYSTEM_COLUMNS.map((c, index) => ({
+  value: c,
+  disabled: index === 0,
+}))
+
 onMounted(() => {
   generateUniqueTitle()
 
@@ -53,7 +58,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" @keydown.esc="dialogShow = false">
+  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" centered @keydown.esc="dialogShow = false">
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 
@@ -78,8 +83,8 @@ onMounted(() => {
           />
         </a-form-item>
 
-        <div class="flex justify-end">
-          <div class="pointer" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
+        <div class="flex justify-end items-center">
+          <div class="pointer flex flex-row items-center gap-x-1" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
             {{ isAdvanceOptVisible ? 'Hide' : 'Show' }} more
 
             <MdiMinusCircleOutline v-if="isAdvanceOptVisible" class="text-gray-500" />
@@ -95,32 +100,29 @@ onMounted(() => {
           </a-form-item>
 
           <div>
-            <div class="mb-5">
+            <div class="mb-1">
               <!-- Add Default Columns -->
               {{ $t('msg.info.addDefaultColumns') }}
             </div>
 
             <a-row>
-              <a-col :span="6">
-                <a-tooltip placement="top">
-                  <template #title>
-                    <span>ID column is required, you can rename this later if required.</span>
-                  </template>
-                  <a-checkbox v-model:checked="table.columns.id" disabled>ID</a-checkbox>
-                </a-tooltip>
-              </a-col>
-
-              <a-col :span="6">
-                <a-checkbox v-model:checked="table.columns.title"> title </a-checkbox>
-              </a-col>
-
-              <a-col :span="6">
-                <a-checkbox v-model:checked="table.columns.created_at"> created_at </a-checkbox>
-              </a-col>
-
-              <a-col :span="6">
-                <a-checkbox v-model:checked="table.columns.updated_at"> updated_at </a-checkbox>
-              </a-col>
+              <a-checkbox-group
+                v-model:value="table.columns"
+                :options="systemColumnsCheckboxInfo"
+                class="!flex flex-row justify-between w-full"
+              >
+                <template #label="{ value }">
+                  <a-tooltip v-if="value === 'id'" placement="top" class="!flex">
+                    <template #title>
+                      <span>ID column is required, you can rename this later if required.</span>
+                    </template>
+                    ID
+                  </a-tooltip>
+                  <div v-else class="flex">
+                    {{ value }}
+                  </div>
+                </template>
+              </a-checkbox-group>
             </a-row>
           </div>
         </div>

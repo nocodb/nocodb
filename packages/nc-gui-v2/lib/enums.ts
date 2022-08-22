@@ -54,3 +54,9 @@ export enum NavigateDir {
   NEXT,
   PREV,
 }
+
+export enum LockType {
+  Personal = 'personal',
+  Locked = 'locked',
+  Collaborative = 'collaborative',
+}

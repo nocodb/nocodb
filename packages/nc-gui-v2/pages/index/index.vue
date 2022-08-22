@@ -3,6 +3,7 @@ import { Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import {
   computed,
+  definePageMeta,
   extractSdkResponseErrorMsg,
   navigateTo,
   onMounted,
@@ -12,6 +13,10 @@ import {
   useSidebar,
   useUIPermission,
 } from '#imports'
+
+definePageMeta({
+  title: 'title.myProject',
+})
 
 const { $e } = useNuxtApp()
 
@@ -76,12 +81,12 @@ onMounted(() => {
 
             <a-tooltip title="Reload projects">
               <span
-                class="transition-all duration-200 h-full flex items-center group hover:ring active:(ring ring-pink-500) rounded-full mt-1"
+                class="transition-all duration-200 h-full flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
                 :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
               >
                 <MdiRefresh
                   v-t="['a:project:refresh']"
-                  class="text-xl text-gray-500 group-hover:text-pink-500 cursor-pointer"
+                  class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
                   :class="isLoading ? '!text-primary' : ''"
                   @click="loadProjects"
                 />
@@ -96,7 +101,7 @@ onMounted(() => {
               :placeholder="$t('activity.searchProject')"
             />
 
-            <div class="flex-grow" />
+            <div class="flex-1" />
 
             <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']">
               <button class="nc-new-project-menu">
@@ -107,14 +112,14 @@ onMounted(() => {
               </button>
 
               <template #overlay>
-                <a-menu>
+                <a-menu class="!py-0 rounded">
                   <a-menu-item>
                     <div
                       v-t="['c:project:create:xcdb']"
-                      class="nc-project-menu-item gap-4"
+                      class="nc-project-menu-item group"
                       @click="navigateTo('/project/create')"
                     >
-                      <MdiPlusOutline class="text-lg" />
+                      <MdiPlusOutline class="group-hover:text-accent" />
 
                       <div>{{ $t('activity.createProject') }}</div>
                     </div>
@@ -123,10 +128,10 @@ onMounted(() => {
                   <a-menu-item>
                     <div
                       v-t="['c:project:create:extdb']"
-                      class="nc-project-menu-item gap-4"
+                      class="nc-project-menu-item group"
                       @click="navigateTo('/project/create-external')"
                     >
-                      <MdiDatabaseOutline class="text-lg" />
+                      <MdiDatabaseOutline class="group-hover:text-accent" />
 
                       <div v-html="$t('activity.createProjectExtended.extDB')" />
                     </div>
@@ -148,7 +153,7 @@ onMounted(() => {
                   onClick: () => {
                     $e('a:project:open')
 
-                    navigateTo(`/nc/${record.id}/auth`)
+                    navigateTo(`/nc/${record.id}`)
                   },
                   class: ['group'],
                 })
@@ -160,7 +165,7 @@ onMounted(() => {
               <a-table-column key="title" :title="$t('general.title')" data-index="title">
                 <template #default="{ text }">
                   <div
-                    class="capitalize color-transition group-hover:text-pink-500 !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap"
+                    class="capitalize color-transition group-hover:text-primary !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap"
                   >
                     {{ text }}
                   </div>
@@ -199,7 +204,7 @@ onMounted(() => {
 
 <style scoped>
 .nc-action-btn {
-  @apply text-gray-500 hover:(text-pink-500 ring) active:(ring ring-pink-500) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
+  @apply text-gray-500 group-hover:text-accent active:(ring ring-accent) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
 }
 
 .nc-new-project-menu {
@@ -212,11 +217,11 @@ onMounted(() => {
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-pink-500;
+    @apply transform scale-110 ring ring-accent;
   }
 
   &:active::after {
-    @apply ring ring-pink-500;
+    @apply ring ring-accent;
   }
 }
 

@@ -1,5 +1,6 @@
+import { message } from 'ant-design-vue'
 import { defineNuxtRouteMiddleware, navigateTo } from '#app'
-import { useGlobal } from '#imports'
+import { useApi, useGlobal } from '#imports'
 
 /**
  * Global auth middleware
@@ -10,7 +11,19 @@ import { useGlobal } from '#imports'
  * the user is redirected to the home page.
  *
  * By default, we assume that auth is required
- * If not required, mark the page as `requiresAuth: false` using `definePageMeta`
+ * If not required, mark the page as
+ * ```
+ * definePageMeta({
+ *   requiresAuth: false
+ * })
+ * ```
+ *
+ * If auth should be circumvented completely mark the page as public
+ * ```
+ * definePageMeta({
+ *   public: true
+ * })
+ * ```
  *
  * @example
  * ```
@@ -20,19 +33,25 @@ import { useGlobal } from '#imports'
  *  })
  * ```
  */
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware(async (to, from) => {
   const state = useGlobal()
 
-  /** if public allow */
+  /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
+  if (!state.signedIn && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth()
+
+  /** if public allow all visitors */
   if (to.meta.public) return
 
-  /** if shred base allow without validating */
+  /** if shared base allow without validating */
   if (to.params?.projectType === 'base') return
-
-  if (to.meta.public) return
 
   /** if auth is required or unspecified (same as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
+    /** If this is the first usern navigate to signup page directly */
+    if (state.appInfo.value.firstUser) {
+      return navigateTo('/signup')
+    }
+
     return navigateTo('/signin')
   } else if (to.meta.requiresAuth === false && state.signedIn.value) {
     /**
@@ -48,3 +67,31 @@ export default defineNuxtRouteMiddleware((to, from) => {
     }
   }
 })
+
+/**
+ * If present, try using google auth data to sign user in before navigating to the next page
+ */
+async function tryGoogleAuth() {
+  const { signIn } = useGlobal()
+
+  const { api } = useApi()
+
+  if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
+    try {
+      const {
+        data: { token },
+      } = await api.instance.post(
+        `/auth/${window.location.search.includes('state=github') ? 'github' : 'google'}/genTokenByCode${window.location.search}`,
+      )
+
+      signIn(token)
+    } catch (e: any) {
+      if (e.response && e.response.data && e.response.data.msg) {
+        message.error({ content: e.response.data.msg })
+      }
+    }
+
+    const newURL = window.location.href.split('?')[0]
+    window.history.pushState('object', document.title, newURL)
+  }
+}

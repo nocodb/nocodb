@@ -383,14 +383,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mb-4">
-    <div class="float-left mt-2">
-      <div class="flex items-center">
+  <div class="flex">
+    <div class="flex-1">
+      <div class="flex items-center mt-2">
         <MdiArrowLeftBold class="mr-3 text-xl cursor-pointer" @click="emit('backToList')" />
         <span class="inline text-xl font-bold">{{ meta.title }} : {{ hook.title || 'Webhooks' }} </span>
       </div>
     </div>
-    <div class="float-right mb-5">
+    <div>
       <a-button class="mr-3" size="large" @click="testWebhook">
         <div class="flex items-center">
           <MdiGestureDoubleTap class="mr-2" />

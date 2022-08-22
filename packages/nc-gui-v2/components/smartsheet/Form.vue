@@ -357,7 +357,7 @@ onMounted(async () => {
 <template>
   <a-row v-if="submitted" class="h-full">
     <a-col :span="24">
-      <div v-if="formViewData" class="align-center justify-center text-center mt-2">
+      <div v-if="formViewData" class="items-center justify-center text-center mt-2">
         <a-alert type="success">
           <template #message>
             <div class="text-center">{{ formViewData.success_msg || 'Successfully submitted form data' }}</div>
@@ -376,7 +376,7 @@ onMounted(async () => {
     <a-col
       v-if="isEditable"
       :span="8"
-      class="bg-[#f7f7f7] shadow-md pa-5 h-full overflow-auto scrollbar-thin-primary nc-form-left-drawer"
+      class="bg-[#f7f7f7] shadow-md p-5 h-full overflow-auto scrollbar-thin-primary nc-form-left-drawer"
     >
       <div class="flex">
         <div class="flex flex-row flex-1 text-lg">
@@ -412,7 +412,7 @@ onMounted(async () => {
         <template #item="{ element }">
           <a-card
             size="small"
-            class="ma-0 pa-0 cursor-pointer item mb-2"
+            class="m-0 p-0 cursor-pointer item mb-2"
             @mousedown="moved = false"
             @mousemove="moved = false"
             @mouseup="handleMouseUp(element)"
@@ -470,7 +470,7 @@ onMounted(async () => {
         <!-- for future implementation of cover image -->
       </div>
       <a-card
-        class="h-full ma-0 rounded-b-0 pa-4 border-none"
+        class="h-full m-0 rounded-b-0 p-4 border-none"
         :body-style="{
           maxWidth: '700px',
           margin: '0 auto',
@@ -478,9 +478,9 @@ onMounted(async () => {
         }"
       >
         <a-form ref="formRef" :model="formState" class="nc-form">
-          <a-card class="rounded ma-2 py-10 px-5">
+          <a-card class="rounded m-2 py-10 px-5">
             <!-- Header -->
-            <a-form-item v-if="isEditable" class="ma-0 gap-0 pa-0">
+            <a-form-item v-if="isEditable" class="m-0 gap-0 p-0">
               <a-input
                 v-model:value="formViewData.heading"
                 class="w-full text-bold text-h3"
@@ -496,7 +496,7 @@ onMounted(async () => {
             <div v-else class="ml-3 w-full text-bold text-h3">{{ formViewData.heading }}</div>
 
             <!-- Sub Header -->
-            <a-form-item v-if="isEditable" class="ma-0 gap-0 pa-0">
+            <a-form-item v-if="isEditable" class="m-0 gap-0 p-0">
               <a-input
                 v-model:value="formViewData.subheading"
                 class="w-full"
@@ -518,7 +518,7 @@ onMounted(async () => {
               item-key="fk_column_id"
               draggable=".item"
               group="form-inputs"
-              class="h-100"
+              class="h-full"
               :move="onMoveCallback"
               @change="onMove($event)"
               @start="drag = true"
@@ -526,7 +526,7 @@ onMounted(async () => {
             >
               <template #item="{ element, index }">
                 <div
-                  class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3"
+                  class="nc-editable item cursor-pointer hover:(bg-primary bg-opacity-10) p-3"
                   :class="`nc-form-drag-${element.title.replaceAll(' ', '')}`"
                   @click="activeRow = element.title"
                 >
@@ -555,7 +555,7 @@ onMounted(async () => {
 
                   <a-form-item
                     v-if="isVirtualCol(element)"
-                    class="ma-0 gap-0 pa-0"
+                    class="m-0 gap-0 p-0"
                     :name="element.title"
                     :rules="[{ required: element.required, message: `${element.title} is required` }]"
                   >
@@ -570,7 +570,7 @@ onMounted(async () => {
 
                   <a-form-item
                     v-else
-                    class="ma-0 gap-0 pa-0"
+                    class="m-0 gap-0 p-0"
                     :name="element.title"
                     :rules="[{ required: element.required, message: `${element.title} is required` }]"
                   >
@@ -710,7 +710,7 @@ onMounted(async () => {
 }
 
 .nc-input {
-  @apply w-full !bg-white rounded px-2 py-2 min-h-[40px] mt-2 mb-2 flex align-center border-solid border-1 border-primary;
+  @apply w-full !bg-white rounded px-2 py-2 min-h-[40px] mt-2 mb-2 flex items-center border-solid border-1 border-primary;
 }
 
 .form-meta-input::placeholder {

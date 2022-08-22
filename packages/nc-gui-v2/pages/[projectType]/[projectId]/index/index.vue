@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
-import { TabMetaInj, provide, useSidebar, useTabs } from '#imports'
-import { TabType, useGlobal } from '~/composables'
+import { TabType } from '~/composables'
+import { TabMetaInj, provide, useGlobal, useSidebar, useTabs } from '#imports'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
@@ -24,13 +24,20 @@ const icon = (tab: TabItem) => {
 }
 
 const { isOpen, toggle } = useSidebar()
+
+function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
+  if (action === 'remove') closeTab(targetKey)
+}
 </script>
 
 <template>
   <div class="h-full w-full nc-container">
     <div class="h-full w-full flex flex-col">
-      <div class="flex items-end !min-h-[50px] bg-primary/100">
-        <div v-if="!isOpen" class="nc-sidebar-left-toggle-icon hover:after:bg-primary/75 group nc-sidebar-add-row py-2 px-3">
+      <div class="flex items-end !min-h-[50px] !bg-primary">
+        <div
+          v-if="!isOpen"
+          class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
+        >
           <MdiMenu
             class="cursor-pointer transform transition-transform duration-500 text-white"
             :class="{ 'rotate-180': !isOpen }"
@@ -38,10 +45,10 @@ const { isOpen, toggle } = useSidebar()
           />
         </div>
 
-        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="closeTab(activeTabIndex)">
-          <a-tab-pane v-for="(tab, i) in tabs" :key="i">
+        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
+          <a-tab-pane v-for="(tab, i) of tabs" :key="i">
             <template #tab>
-              <div class="flex align-center gap-2">
+              <div class="flex items-center gap-2">
                 <component :is="icon(tab)" class="text-sm" />
 
                 {{ tab.title }}
@@ -49,12 +56,14 @@ const { isOpen, toggle } = useSidebar()
             </template>
           </a-tab-pane>
         </a-tabs>
+
         <span class="flex-1" />
-        <div class="flex justify-center align-self-center mr-2 min-w-[115px]">
-          <div v-show="isLoading" class="flex items-center gap-2 ml-3 text-white">
+
+        <div class="flex justify-center self-center mr-2 min-w-[115px]">
+          <div v-show="isLoading" class="flex items-center gap-2 ml-3 text-gray-200">
             {{ $t('general.loading') }}
 
-            <MdiReload :class="{ 'animate-infinite animate-spin': isLoading }" />
+            <MdiLoading :class="{ 'animate-infinite animate-spin': isLoading }" />
           </div>
         </div>
       </div>

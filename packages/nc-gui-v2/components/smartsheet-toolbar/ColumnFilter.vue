@@ -41,6 +41,7 @@ const reloadDataHook = inject(ReloadViewDataHookInj)!
 
 const { $e } = useNuxtApp()
 
+const { nestedFilters } = useSmartsheetStoreOrThrow()
 const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync } = useViewFilters(
   activeView,
   parentId,
@@ -48,10 +49,11 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGr
   () => {
     reloadDataHook.trigger()
   },
-  modelValue,
+  modelValue || nestedFilters.value,
+  !modelValue,
 )
 
-const nestedFilters = ref()
+const localNestedFilters = ref()
 
 const filterUpdateCondition = (filter: FilterType, i: number) => {
   saveOrUpdate(filter, i)
@@ -115,9 +117,9 @@ watch(
 const applyChanges = async (hookId?: string) => {
   await sync(hookId)
 
-  if (!nestedFilters.value?.length) return
+  if (!localNestedFilters.value?.length) return
 
-  for (const nestedFilter of nestedFilters.value) {
+  for (const nestedFilter of localNestedFilters.value) {
     if (nestedFilter.parentId) {
       await nestedFilter.applyChanges(hookId, true)
     }
@@ -166,7 +168,7 @@ defineExpose({
             <div class="col-span-5">
               <SmartsheetToolbarColumnFilter
                 v-if="filter.id || filter.children"
-                ref="nestedFilters"
+                ref="localNestedFilters"
                 v-model="filter.children"
                 :parent-id="filter.id"
                 nested

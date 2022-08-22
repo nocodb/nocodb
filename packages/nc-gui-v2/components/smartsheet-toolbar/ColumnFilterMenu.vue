@@ -12,11 +12,15 @@ const { filterAutoSave } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
+const { nestedFilters } = useSmartsheetStoreOrThrow()
 // todo: avoid duplicate api call by keeping a filter store
 const { filters, loadFilters } = useViewFilters(
   activeView,
   undefined,
-  computed(() => false),
+  computed(() => true),
+  () => false,
+  nestedFilters.value,
+  true,
 )
 
 const filtersLength = ref(0)

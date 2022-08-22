@@ -1,14 +1,15 @@
 import type { ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import { message } from 'ant-design-vue'
 import {
   IsPublicInj,
   ReloadViewDataHookInj,
   computed,
+  extractSdkResponseErrorMsg,
   inject,
   ref,
   useMetas,
   useNuxtApp,
-  useSharedView,
   useUIPermission,
   watch,
 } from '#imports'
@@ -19,13 +20,12 @@ export function useViewFilters(
   parentId?: string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
-  siblingFilters?: Filter[],
+  currentFilters?: Filter[],
+  isNestedRoot?: boolean,
 ) {
-  const { nestedFilters } = useSharedView()
-
   const reloadHook = inject(ReloadViewDataHookInj)
 
-  const _filters = ref<Filter[]>([])
+  const { nestedFilters } = useSmartsheetStoreOrThrow()
 
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -34,21 +34,23 @@ export function useViewFilters(
   const { isUIAllowed } = useUIPermission()
 
   const { metas } = useMetas()
+  const _filters = ref<Filter[]>([])
 
-  const filters = computed({
-    get: () => (isPublic.value ? siblingFilters || nestedFilters.value : _filters.value) ?? [],
-    set: (value) => {
-      if (isPublic.value) {
-        if (siblingFilters) {
-          siblingFilters = value
-        } else {
-          nestedFilters.value = value
-        }
+  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync' || !isUIAllowed('filterChildrenRead')))
+
+  const filters = computed<Filter[]>({
+    get: () => (nestedMode.value ? currentFilters! : _filters.value),
+    set: (value: Filter[]) => {
+      if (nestedMode.value) {
+        currentFilters = value
+        if (isNestedRoot) nestedFilters.value = value
+
         nestedFilters.value = [...nestedFilters.value]
         reloadHook?.trigger()
-      } else {
-        _filters.value = value
+        return
       }
+
+      _filters.value = value
     },
   })
 
@@ -60,53 +62,65 @@ export function useViewFilters(
   }
 
   const loadFilters = async (hookId?: string) => {
-    if (hookId) {
-      if (parentId) {
-        filters.value = await $api.dbTableFilter.childrenRead(parentId)
+    if (nestedMode.value) return
+
+    try {
+      if (hookId) {
+        if (parentId) {
+          filters.value = await $api.dbTableFilter.childrenRead(parentId)
+        } else {
+          filters.value = (await $api.dbTableWebhookFilter.read(hookId as string)) as any
+        }
       } else {
-        filters.value = (await $api.dbTableWebhookFilter.read(hookId as string)) as any
+        if (parentId) {
+          filters.value = await $api.dbTableFilter.childrenRead(parentId)
+        } else {
+          filters.value = await $api.dbTableFilter.read(view?.value?.id as string)
+        }
       }
-    } else {
-      if (parentId) {
-        filters.value = await $api.dbTableFilter.childrenRead(parentId)
-      } else {
-        filters.value = await $api.dbTableFilter.read(view?.value?.id as string)
-      }
+    } catch (e: any) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
   const sync = async (hookId?: string, _nested = false) => {
-    for (const [i, filter] of Object.entries(filters.value)) {
-      if (filter.status === 'delete') {
-        await $api.dbTableFilter.delete(filter.id as string)
-      } else if (filter.status === 'update') {
-        await $api.dbTableFilter.update(filter.id as string, {
-          ...filter,
-          fk_parent_id: parentId,
-        })
-      } else if (filter.status === 'create') {
-        if (hookId) {
-          filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
+    try {
+      for (const [i, filter] of Object.entries(filters.value)) {
+        if (filter.status === 'delete') {
+          await $api.dbTableFilter.delete(filter.id as string)
+        } else if (filter.status === 'update') {
+          await $api.dbTableFilter.update(filter.id as string, {
             ...filter,
             fk_parent_id: parentId,
-          })) as any
-        } else {
-          filters.value[+i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
-            ...filter,
-            fk_parent_id: parentId,
-          })) as any
+          })
+        } else if (filter.status === 'create') {
+          if (hookId) {
+            filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
+              ...filter,
+              fk_parent_id: parentId,
+            })) as any
+          } else {
+            filters.value[+i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
+              ...filter,
+              fk_parent_id: parentId,
+            })) as any
+          }
         }
       }
-    }
 
-    reloadData?.()
+      reloadData?.()
+    } catch (e: any) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
 
   const deleteFilter = async (filter: Filter, i: number) => {
     // if shared or sync permission not allowed simply remove it from array
-    if (isPublic.value || !isUIAllowed('filterSync')) {
+    if (nestedMode.value) {
       filters.value.splice(i, 1)
-
+      filters.value = [...filters.value]
       reloadData?.()
     } else {
       if (filter.id) {
@@ -115,11 +129,16 @@ export function useViewFilters(
           filter.status = 'delete'
           // if auto-apply enabled invoke delete api and remove from array
         } else {
-          await $api.dbTableFilter.delete(filter.id)
+          try {
+            await $api.dbTableFilter.delete(filter.id)
 
-          reloadData?.()
+            reloadData?.()
 
-          filters.value.splice(i, 1)
+            filters.value.splice(i, 1)
+          } catch (e: any) {
+            console.log(e)
+            message.error(await extractSdkResponseErrorMsg(e))
+          }
         }
         // if not synced yet remove it from array
       } else {
@@ -129,30 +148,29 @@ export function useViewFilters(
   }
 
   const saveOrUpdate = async (filter: Filter, i: number, force = false) => {
-    if (isPublic.value) {
-      filters.value[i] = { ...filter }
-
-      filters.value = [...filters.value]
-
-      return
-    }
     if (!view?.value) return
 
-    if (!isUIAllowed('filterSync')) {
-      // skip
-    } else if (!autoApply?.value && !force) {
-      filter.status = filter.id ? 'update' : 'create'
-    } else if (filter.id) {
-      await $api.dbTableFilter.update(filter.id, {
-        ...filter,
-        fk_parent_id: parentId,
-      })
-    } else {
-      // todo: return type of dbTableFilter is void?
-      filters.value[i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
-        ...filter,
-        fk_parent_id: parentId,
-      })) as any
+    try {
+      if (nestedMode.value) {
+        filters.value[i] = { ...filter }
+        filters.value = [...filters.value]
+      } else if (!autoApply?.value && !force) {
+        filter.status = filter.id ? 'update' : 'create'
+      } else if (filter.id) {
+        await $api.dbTableFilter.update(filter.id, {
+          ...filter,
+          fk_parent_id: parentId,
+        })
+      } else {
+        // todo: return type of dbTableFilter is void?
+        filters.value[i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
+          ...filter,
+          fk_parent_id: parentId,
+        })) as any
+      }
+    } catch (e: any) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
     }
 
     reloadData?.()
@@ -168,7 +186,7 @@ export function useViewFilters(
       logical_op: 'and',
     }
 
-    if (isPublic.value) placeHolderGroupFilter.children = [child]
+    if (nestedMode.value) placeHolderGroupFilter.children = [child]
 
     filters.value.push(placeHolderGroupFilter)
 

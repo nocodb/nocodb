@@ -25,7 +25,7 @@ export default {
 
                 <MdiReload :class="{ 'animate-infinite animate-spin': isLoading }" />
               </template>
-              <div v-else class="text-xl font-semibold truncate">
+              <div v-else class="text-xl font-semibold truncate text-white">
                 {{ sharedView?.title }}
               </div>
             </div>

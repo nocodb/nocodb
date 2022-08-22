@@ -1,11 +1,19 @@
-name: "Release : NPM packages"
+name: "Release : NPM packages (v2)"
 
 on:
+  # Triggered manually
   workflow_dispatch:
-       inputs:
-         tag:
-           description: "Previous Docker image tag"
-           required: true
+    inputs:
+      tag:
+        description: "Tag"
+        required: true
+      targetEnv:
+        description: "Target Environment"
+        required: true
+        type: choice
+        options:
+          - DEV
+          - PROD
 
 jobs:
   release:

@@ -8,10 +8,10 @@ on:
     # ready_for_review: non PR release
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - "packages/nocodb-sdk/**"
+      # - "packages/nocodb-sdk/**"
       - "packages/nc-gui-v2/**"
-      - "packages/nc-plugin/**"
-      - "packages/nocodb/**"
+      # - "packages/nc-plugin/**"
+      # - "packages/nocodb/**"
 jobs:
   # enrich tag for pr release
   set-tag:

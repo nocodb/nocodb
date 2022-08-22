@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
-import { TabMetaInj, provide, useSidebar, useTabs } from '#imports'
-import { TabType, useGlobal } from '~/composables'
+import { TabType } from '~/composables'
+import { TabMetaInj, provide, useGlobal, useSidebar, useTabs } from '#imports'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
@@ -24,6 +24,10 @@ const icon = (tab: TabItem) => {
 }
 
 const { isOpen, toggle } = useSidebar()
+
+function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
+  if (action === 'remove') closeTab(targetKey)
+}
 </script>
 
 <template>
@@ -41,8 +45,8 @@ const { isOpen, toggle } = useSidebar()
           />
         </div>
 
-        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="closeTab(activeTabIndex)">
-          <a-tab-pane v-for="(tab, i) in tabs" :key="i">
+        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
+          <a-tab-pane v-for="(tab, i) of tabs" :key="i">
             <template #tab>
               <div class="flex items-center gap-2">
                 <component :is="icon(tab)" class="text-sm" />

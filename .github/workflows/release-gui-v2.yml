@@ -39,6 +39,7 @@ jobs:
           cd ../.. &&
           sleep 30 &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk2.js &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/bumpNcGuiVersion.js &&
           cd packages/nc-gui-v2 &&
           npm install &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy:publish &&

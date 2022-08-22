@@ -35,8 +35,8 @@ const iconColor = '#1890ff'
 </script>
 
 <template>
-  <div class="flex p-2 align-center gap-2 p-4">
-    <h5 class="text-lg font-weight-medium flex align-center gap-1 mb-0 min-w-0 overflow-x-hidden truncate">
+  <div class="flex p-2 items-center gap-2 p-4">
+    <h5 class="text-lg font-weight-medium flex items-center gap-1 mb-0 min-w-0 overflow-x-hidden truncate">
       <mdi-table-arrow-right :style="{ color: iconColor }" />
 
       <template v-if="meta">
@@ -51,16 +51,24 @@ const iconColor = '#1890ff'
       <template v-if="primaryValue">: {{ primaryValue }}</template>
     </h5>
 
-    <div class="flex-grow" />
-
-    <mdi-reload class="cursor-pointer select-none" />
-
-    <component
-      :is="drawerToggleIcon"
-      v-if="isUIAllowed('rowComments')"
-      class="cursor-pointer select-none"
-      @click="commentsDrawer = !commentsDrawer"
-    />
+    <div class="flex-1" />
+    <a-tooltip placement="bottom">
+      <template #title>
+        <div class="text-center w-full">Reload</div>
+      </template>
+      <mdi-reload class="cursor-pointer select-none" />
+    </a-tooltip>
+    <a-tooltip placement="bottom">
+      <template #title>
+        <div class="text-center w-full">Toggle comments draw</div>
+      </template>
+      <component
+        :is="drawerToggleIcon"
+        v-if="isUIAllowed('rowComments') && !isNew"
+        class="cursor-pointer select-none nc-toggle-comments"
+        @click="commentsDrawer = !commentsDrawer"
+      />
+    </a-tooltip>
 
     <a-button class="!text" @click="emit('cancel')">
       <!-- Cancel -->

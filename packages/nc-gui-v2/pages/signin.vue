@@ -80,24 +80,15 @@ function resetError() {
 
 <template>
   <NuxtLayout>
-    <a-form
-      ref="formValidator"
-      :model="form"
-      layout="vertical"
-      class="bg-primary/5 signin h-full flex justify-center items-center nc-form-signin"
-      @finish="signIn"
-    >
-      <div class="h-full w-full flex flex-col items-center justify-center pt-[50px]">
-        <div
-          class="bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
-        >
-          <general-noco-icon
-            class="!rounded-full color-transition hover:(ring ring-pink-500)"
-            :class="[isLoading ? 'animated-bg-gradient' : '']"
-          />
+    <div class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signup">
+      <div
+        class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+      >
+        <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
 
-          <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
+        <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 
+        <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signIn">
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center">
@@ -108,7 +99,7 @@ function resetError() {
           </Transition>
 
           <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-            <a-input v-model:value="form.email" size="large" :placeholder="$t('labels.email')" @focus="resetError" />
+            <a-input v-model:value="form.email" size="large" :placeholder="$t('msg.info.signUp.workEmail')" @focus="resetError" />
           </a-form-item>
 
           <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
@@ -116,20 +107,23 @@ function resetError() {
               v-model:value="form.password"
               size="large"
               class="password"
-              :placeholder="$t('labels.password')"
+              :placeholder="$t('msg.info.signUp.enterPassword')"
               @focus="resetError"
             />
           </a-form-item>
 
-          <div class="hidden md:block self-end">
+          <div class="hidden md:block text-right">
             <nuxt-link class="prose-sm" to="/forgot-password">
               {{ $t('msg.info.signUp.forgotPassword') }}
             </nuxt-link>
           </div>
 
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-            <button class="submit" type="submit">
-              <span class="flex items-center gap-2"><MdiLogin /> {{ $t('general.signIn') }}</span>
+            <button class="submit group" type="submit">
+              <span class="flex items-center gap-2">
+                <MdiLogin />
+                {{ $t('general.signIn') }}
+              </span>
             </button>
 
             <div class="text-end prose-sm">
@@ -143,9 +137,9 @@ function resetError() {
               </nuxt-link>
             </div>
           </div>
-        </div>
+        </a-form>
       </div>
-    </a-form>
+    </div>
   </NuxtLayout>
 </template>
 
@@ -153,34 +147,30 @@ function resetError() {
 .signin {
   .ant-input-affix-wrapper,
   .ant-input {
-    @apply dark:(bg-gray-700 !text-white) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+    @apply !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
   }
 
   .password {
     input {
       @apply !border-none;
     }
-
-    .ant-input-password-icon {
-      @apply dark:!text-white;
-    }
   }
 
   .submit {
-    @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 text-white;
+    @apply z-1 relative color-transition rounded p-3 text-white shadow-sm;
 
     &::after {
-      @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
+      @apply rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
       content: '';
       z-index: -1;
     }
 
     &:hover::after {
-      @apply transform scale-110 ring ring-pink-500;
+      @apply transform scale-110 ring ring-accent;
     }
 
     &:active::after {
-      @apply ring ring-pink-500;
+      @apply ring ring-accent;
     }
   }
 }

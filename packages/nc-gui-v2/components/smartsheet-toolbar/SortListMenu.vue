@@ -37,10 +37,10 @@ watch(
   <a-dropdown offset-y class="" :trigger="['click']">
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-t="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
-        ><div class="flex align-center gap-1">
+        ><div class="flex items-center gap-1">
           <MdiSortIcon />
           <!-- Sort -->
-          <span class="text-capitalize !text-sm font-weight-medium">{{ $t('activity.sort') }}</span>
+          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
           <MdiMenuDownIcon class="text-grey" />
         </div>
       </a-button>
@@ -49,12 +49,8 @@ watch(
       <div class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto !border">
         <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
           <template v-for="(sort, i) in sorts || []" :key="i">
-            <!--          <v-icon :key="`${i}icon`" class="nc-sort-item-remove-btn" small @click.stop="deleteSort(sort)"> mdi-close-box </v-icon> -->
-            <MdiDeleteIcon
-              class="nc-sort-item-remove-btn text-grey align-self-center"
-              small
-              @click.stop="deleteSort(sort, i)"
-            ></MdiDeleteIcon>
+            <MdiDeleteIcon class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
+
             <FieldListAutoCompleteDropdown
               v-model="sort.fk_column_id"
               class="caption nc-sort-field-select"
@@ -63,12 +59,13 @@ watch(
               @click.stop
               @update:model-value="saveOrUpdate(sort, i)"
             />
+
             <a-select
               v-model:value="sort.direction"
-              class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select !text-xs"
+              class="shrink grow-0 nc-sort-dir-select !text-xs"
               :label="$t('labels.operation')"
               @click.stop
-              @update:value="saveOrUpdate(sort, i)"
+              @select="saveOrUpdate(sort, i)"
             >
               <a-select-option
                 v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"
@@ -78,14 +75,10 @@ watch(
                 <span>{{ option.text }}</span>
               </a-select-option>
             </a-select>
-            <!--            <template #item="{ item }"> -->
-            <!--              <span class="caption font-weight-regular">{{ item.text }}</span> -->
-            <!--            </template> -->
-            <!--          </v-select> -->
           </template>
         </div>
         <a-button class="text-capitalize mb-1 mt-4" type="primary" ghost @click.stop="addSort">
-          <div class="flex gap-1 align-center">
+          <div class="flex gap-1 items-center">
             <MdiAddIcon />
             <!-- Add Sort Option -->
             {{ $t('activity.addSort') }}

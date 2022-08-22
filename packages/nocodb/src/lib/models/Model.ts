@@ -94,7 +94,7 @@ export default class Model implements TableType {
   public static async insert(
     projectId,
     baseId,
-    model: TableReqType & {
+    model: Partial<TableReqType> & {
       mm?: boolean;
       created_at?: any;
       updated_at?: any;

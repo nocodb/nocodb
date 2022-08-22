@@ -1,13 +1,9 @@
 <script lang="ts" setup>
-import AddRow from './AddRow.vue'
-import LockMenu from './LockMenu.vue'
-import Reload from './Reload.vue'
 import ExportCache from './ExportCache.vue'
 import DeleteCache from './DeleteCache.vue'
 import DebugMeta from './DebugMeta.vue'
+import ToggleDrawer from './ToggleDrawer.vue'
 import { IsFormInj } from '#imports'
-
-const { isUIAllowed } = useUIPermission()
 
 const isForm = inject(IsFormInj)
 
@@ -19,7 +15,7 @@ const clickCount = $ref(0)
 <template>
   <div
     v-if="!isForm"
-    class="flex gap-2"
+    class="flex gap-2 justify-start"
     @click="
       () => {
         clickCount = clickCount + 1
@@ -28,7 +24,8 @@ const clickCount = $ref(0)
     "
   >
     <slot name="start" />
-
+    <ToggleDrawer />
+    <span></span>
     <template v-if="debug">
       <ExportCache />
 
@@ -42,16 +39,6 @@ const clickCount = $ref(0)
 
       <div class="dot" />
     </template>
-
-    <LockMenu v-if="isUIAllowed('view-type')" @click.stop />
-
-    <div v-if="isUIAllowed('view-type')" class="dot" />
-
-    <Reload @click.stop />
-
-    <div class="dot" />
-
-    <AddRow v-if="isUIAllowed('xcDatatableEditable')" @click.stop />
 
     <slot name="end" />
   </div>

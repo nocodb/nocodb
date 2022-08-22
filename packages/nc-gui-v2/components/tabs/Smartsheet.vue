@@ -8,6 +8,7 @@ import {
   IsFormInj,
   IsLockedInj,
   MetaInj,
+  OpenNewRecordFormHookInj,
   ReloadViewDataHookInj,
   TabMetaInj,
   computed,
@@ -42,6 +43,7 @@ watchEffect(async () => {
 })
 
 const reloadEventHook = createEventHook<void>()
+const openNewRecordFormHook = createEventHook<void>()
 
 const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
 
@@ -54,6 +56,7 @@ provide(TabMetaInj, tabMeta)
 provide(ActiveViewInj, activeView)
 provide(IsLockedInj, isLocked)
 provide(ReloadViewDataHookInj, reloadEventHook)
+provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 
@@ -73,7 +76,7 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
 
       <template v-if="meta">
         <div class="flex flex-1 min-h-0">
-          <div v-if="activeView" class="h-full flex-grow min-w-0 min-h-0">
+          <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
             <SmartsheetGrid v-if="isGrid" :ref="el" />
 
             <SmartsheetGallery v-else-if="isGallery" />
@@ -81,11 +84,14 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
             <SmartsheetForm v-else-if="isForm" />
           </div>
         </div>
-
-        <teleport to="#content">
-          <SmartsheetSidebar />
-        </teleport>
       </template>
     </div>
+    <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
   </div>
 </template>
+
+<style scoped>
+:deep(.nc-right-sidebar.ant-layout-sider-collapsed) {
+  @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
+}
+</style>

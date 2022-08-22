@@ -1,13 +1,25 @@
 <script setup lang="ts">
 import { IsPublicInj, useSmartsheetStoreOrThrow } from '#imports'
+import ToggleDrawer from '~/components/smartsheet/sidebar/toolbar/ToggleDrawer.vue'
 
 const { isGrid, isForm, isGallery } = useSmartsheetStoreOrThrow()
-const { allowCSVDownload } = useSharedView()
 const isPublic = inject(IsPublicInj, ref(false))
+const { allowCSVDownload } = useSharedView()
+
+const { isOpen } = useSidebar()
 </script>
 
 <template>
-  <div class="nc-table-toolbar w-full py-1 flex gap-1 items-center h-[48px] px-2 border-b" style="z-index: 7">
+  <div
+    class="nc-table-toolbar w-full py-1 flex gap-1 items-center h-[var(--toolbar-height)] px-2 border-b overflow-x-hidden"
+    style="z-index: 7"
+  >
+    <SmartsheetToolbarViewActions
+      v-if="(isGrid && !isPublic) || (isGrid && isPublic && allowCSVDownload)"
+      :show-system-fields="false"
+      class="ml-1"
+    />
+
     <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery" :show-system-fields="false" class="ml-1" />
 
     <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery" />
@@ -16,9 +28,14 @@ const isPublic = inject(IsPublicInj, ref(false))
 
     <SmartsheetToolbarShareView v-if="(isForm || isGrid) && !isPublic" />
 
-    <SmartsheetToolbarMoreActions v-if="(isGrid && !isPublic) || (isGrid && isPublic && allowCSVDownload)" />
     <div class="flex-1" />
-    <SmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mr-2" />
+
+    <SmartsheetToolbarReload class="mx-1" />
+    <SmartsheetToolbarAddRow class="mx-1" />
+
+    <SmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mr-2 ml-2" />
+
+    <ToggleDrawer v-if="!isOpen" class="mr-2" />
   </div>
 </template>
 

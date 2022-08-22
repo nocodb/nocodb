@@ -15,6 +15,7 @@ import {
   ref,
   useProvideLTARStore,
   useSmartsheetRowStoreOrThrow,
+  useUIPermission,
 } from '#imports'
 
 const ItemChip = defineAsyncComponent(() => import('./components/ItemChip.vue'))
@@ -33,7 +34,7 @@ const reloadTrigger = inject(ReloadViewDataHookInj)!
 
 const isForm = inject(IsFormInj)
 
-const readonly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, false)
 
 const isLocked = inject(IsLockedInj)
 
@@ -41,7 +42,10 @@ const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
+const { isUIAllowed } = useUIPermission()
+
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
+
 const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
@@ -81,9 +85,9 @@ const unlinkRef = async (rec: Record<string, any>) => {
 </script>
 
 <template>
-  <div class="flex align-center items-center gap-1 w-full chips-wrapper">
+  <div class="flex items-center items-center gap-1 w-full chips-wrapper">
     <template v-if="!isForm">
-      <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
+      <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
           <ItemChip v-for="(cell, i) of cells" :key="i" :item="cell.item" :value="cell.value" @unlink="unlinkRef(cell.item)" />
           <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">
@@ -91,13 +95,13 @@ const unlinkRef = async (rec: Record<string, any>) => {
           </span>
         </template>
       </div>
-      <div v-if="!isLocked" class="flex-grow flex justify-end gap-1 min-h-[30px] align-center">
+      <div v-if="!isLocked && isUIAllowed('xcDatatableEditable')" class="flex justify-end gap-1 min-h-[30px] items-center">
         <MdiArrowExpand
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click="childListDlg = true"
         />
         <MdiPlus
-          v-if="!readonly"
+          v-if="!readOnly"
           class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
           @click="listItemsDlg = true"
         />

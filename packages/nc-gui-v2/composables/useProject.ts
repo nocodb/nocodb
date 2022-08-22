@@ -18,6 +18,15 @@ export function useProject(projectId?: MaybeRef<string>) {
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
 
+  const projectBaseType = $computed(() => project.value?.bases?.[0]?.type || '')
+  const isMysql = computed(() => ['mysql', 'mysql2'].includes(projectBaseType))
+  const isMssql = computed(() => projectBaseType === 'mssql')
+  const isPg = computed(() => projectBaseType === 'pg')
+  const sqlUi = computed(
+    () => SqlUiFactory.create({ client: projectBaseType }) as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>,
+  )
+  const isSharedBase = computed(() => projectType === 'base')
+
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
       const data = await $api.project.metaGet(project.value.id!, {}, {})
@@ -28,7 +37,17 @@ export function useProject(projectId?: MaybeRef<string>) {
   async function loadProjectRoles() {
     projectRoles.value = {}
 
-    if (project.value.id) {
+    if (isSharedBase.value) {
+      const user = await $api.auth.me(
+        {},
+        {
+          headers: {
+            'xc-shared-base-id': route.params.projectId,
+          },
+        },
+      )
+      projectRoles.value = user.roles
+    } else if (project.value.id) {
       const user = await $api.auth.me({ project_id: project.value.id })
       projectRoles.value = user.roles
     }
@@ -37,8 +56,7 @@ export function useProject(projectId?: MaybeRef<string>) {
   async function loadTables() {
     if (project.value.id) {
       const tablesResponse = await $api.dbTable.list(project.value.id, {
-        // FIXME: type
-        includeM2M: includeM2M.value || '',
+        includeM2M: includeM2M.value,
       })
       if (tablesResponse.list) tables.value = tablesResponse.list
     }
@@ -57,16 +75,6 @@ export function useProject(projectId?: MaybeRef<string>) {
     await loadProjectRoles()
     await loadTables()
   }
-
-  const projectBaseType = $computed(() => project.value?.bases?.[0]?.type || '')
-
-  const isMysql = computed(() => ['mysql', 'mysql2'].includes(projectBaseType))
-  const isMssql = computed(() => projectBaseType === 'mssql')
-  const isPg = computed(() => projectBaseType === 'pg')
-  const sqlUi = computed(
-    () => SqlUiFactory.create({ client: projectBaseType }) as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>,
-  )
-  const isSharedBase = computed(() => projectType === 'base')
 
   return {
     project,

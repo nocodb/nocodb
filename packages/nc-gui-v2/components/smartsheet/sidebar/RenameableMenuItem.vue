@@ -147,7 +147,7 @@ function onStopEdit() {
 <template>
   <a-menu-item
     class="select-none group !flex !items-center !my-0"
-    @dblclick.stop="isUIAllowed('virtualViewsCreateOrEdit') && onDblClick"
+    @dblclick.stop="isUIAllowed('virtualViewsCreateOrEdit') && onDblClick()"
     @click.stop="onClick"
   >
     <div v-t="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
@@ -160,7 +160,7 @@ function onStopEdit() {
         <component
           :is="viewIcons[vModel.type].icon"
           class="nc-view-icon group-hover:hidden"
-          :class="`text-${viewIcons[vModel.type].color}`"
+          :style="{ color: viewIcons[vModel?.type]?.color }"
         />
       </div>
 

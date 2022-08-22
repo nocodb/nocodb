@@ -41,6 +41,7 @@ const reloadDataHook = inject(ReloadViewDataHookInj)!
 
 const { $e } = useNuxtApp()
 
+const { nestedFilters } = useSmartsheetStoreOrThrow()
 const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync } = useViewFilters(
   activeView,
   parentId,
@@ -48,10 +49,11 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGr
   () => {
     reloadDataHook.trigger()
   },
-  modelValue,
+  modelValue || nestedFilters.value,
+  !modelValue,
 )
 
-const nestedFilters = ref()
+const localNestedFilters = ref()
 
 const filterUpdateCondition = (filter: FilterType, i: number) => {
   saveOrUpdate(filter, i)
@@ -115,9 +117,9 @@ watch(
 const applyChanges = async (hookId?: string) => {
   await sync(hookId)
 
-  if (!nestedFilters.value.length) return
+  if (!localNestedFilters.value?.length) return
 
-  for (const nestedFilter of nestedFilters.value) {
+  for (const nestedFilter of localNestedFilters.value) {
     if (nestedFilter.parentId) {
       await nestedFilter.applyChanges(hookId, true)
     }
@@ -148,7 +150,7 @@ defineExpose({
             />
             <span v-else :key="`${i}dummy`" />
 
-            <div :key="`${i}nested`" class="d-flex">
+            <div :key="`${i}nested`" class="flex">
               <a-select
                 v-model:value="filter.logical_op"
                 :dropdown-match-select-width="false"
@@ -166,7 +168,7 @@ defineExpose({
             <div class="col-span-5">
               <SmartsheetToolbarColumnFilter
                 v-if="filter.id || filter.children"
-                ref="nestedFilters"
+                ref="localNestedFilters"
                 v-model="filter.children"
                 :parent-id="filter.id"
                 nested
@@ -187,7 +189,7 @@ defineExpose({
 
             <MdiCloseBox
               v-if="!filter.readOnly"
-              class="nc-filter-item-remove-btn text-grey align-self-center"
+              class="nc-filter-item-remove-btn text-grey self-center"
               @click.stop="deleteFilter(filter, i)"
             />
             <span v-else />
@@ -269,7 +271,7 @@ defineExpose({
 
     <div class="flex gap-2 mb-2 mt-4">
       <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter">
-        <div class="flex align-center gap-1">
+        <div class="flex items-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <MdiPlus />
           <!-- Add Filter -->
@@ -277,7 +279,7 @@ defineExpose({
         </div>
       </a-button>
       <a-button class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
-        <div class="flex align-center gap-1">
+        <div class="flex items-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <MdiPlus />
           Add Filter Group

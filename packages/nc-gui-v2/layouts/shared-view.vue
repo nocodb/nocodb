@@ -25,7 +25,7 @@ export default {
 
                 <MdiReload :class="{ 'animate-infinite animate-spin': isLoading }" />
               </template>
-              <div v-else class="text-xl font-semibold truncate">
+              <div v-else class="text-xl font-semibold truncate text-white">
                 {{ sharedView?.title }}
               </div>
             </div>
@@ -40,13 +40,3 @@ export default {
     </a-layout>
   </a-layout>
 </template>
-
-<style lang="scss" scoped>
-:deep(.ant-dropdown-menu-item-group-title) {
-  @apply border-b-1;
-}
-
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply m-0;
-}
-</style>

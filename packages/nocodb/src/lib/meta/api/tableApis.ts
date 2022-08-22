@@ -78,14 +78,13 @@ export async function tableList(req: Request, res: Response<TableListType>) {
     })
   ).filter((t) => tableViewMapping[t.id]);
 
-  res // todo: pagination
-    .json(
-      new PagedResponseImpl(
-        req.query?.includeM2M
-          ? tableList
-          : (tableList.filter((t) => !t.mm) as Model[])
-      )
-    );
+  res.json(
+    new PagedResponseImpl(
+      req.query?.includeM2M === 'true'
+        ? tableList
+        : (tableList.filter((t) => !t.mm) as Model[])
+    )
+  );
 }
 
 export async function tableCreate(req: Request<any, any, TableReqType>, res) {

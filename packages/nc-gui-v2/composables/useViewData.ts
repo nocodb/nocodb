@@ -2,7 +2,7 @@ import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, 
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
-import { IsPublicInj, NOCO, extractPkFromRow, extractSdkResponseErrorMsg, useProject } from '#imports'
+import { IsPublicInj, NOCO, extractPkFromRow, extractSdkResponseErrorMsg, useProject, useUIPermission } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -39,9 +39,11 @@ export function useViewData(
   const formattedData = ref<Row[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
-  const { project } = useProject()
+  const { project, isSharedBase } = useProject()
   const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
   const { $api } = useNuxtApp()
+  const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+  const { isUIAllowed } = useUIPermission()
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
@@ -81,8 +83,7 @@ export function useViewData(
 
   /** load row comments count */
   const loadAggCommentsCount = async () => {
-    // todo: handle in public api
-    if (isPublic.value) return
+    if (isPublic.value || isSharedBase.value) return
 
     const ids = formattedData.value
       ?.filter(({ rowMeta: { new: isNew } }) => !isNew)
@@ -90,7 +91,7 @@ export function useViewData(
         return extractPkFromRow(row, meta?.value?.columns as ColumnType[])
       })
 
-    if (!ids?.length) return
+    if (!ids?.length || ids?.some((id) => !id)) return
 
     aggCommentCount.value = await $api.utils.commentCount({
       ids,
@@ -109,6 +110,8 @@ export function useViewData(
     const response = !isPublic.value
       ? await $api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
           ...params,
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where: where?.value,
         })
       : await fetchSharedViewData()
@@ -214,6 +217,16 @@ export function useViewData(
       oldRow: {},
       rowMeta: { new: true },
     })
+
+    return formattedData.value[addAfter]
+  }
+
+  const removeLastEmptyRow = () => {
+    const lastRow = formattedData.value[formattedData.value.length - 1]
+
+    if (lastRow.rowMeta.new) {
+      formattedData.value.pop()
+    }
   }
 
   const deleteRowById = async (id: string) => {
@@ -356,5 +369,6 @@ export function useViewData(
     updateFormView,
     aggCommentCount,
     loadAggCommentsCount,
+    removeLastEmptyRow,
   }
 }

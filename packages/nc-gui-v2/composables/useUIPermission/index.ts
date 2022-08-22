@@ -7,7 +7,7 @@ export function useUIPermission() {
 
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
 
-  const getRoles = (skipPreviewAs = false) => {
+  const baseRoles = computed(() => {
     let userRoles = user.value?.roles || {}
 
     // if string populate key-value paired object
@@ -19,24 +19,24 @@ export function useUIPermission() {
     }
 
     // merge user role and project specific user roles
-    let roles = {
+    const roles = {
       ...userRoles,
       ...projectRoles.value,
     }
 
+    return roles
+  })
+
+  const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
+    let roles = baseRoles.value
     if (previewAs.value && !skipPreviewAs) {
       roles = {
         [previewAs.value]: true,
       }
     }
 
-    return roles
-  }
-
-  const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
-    return Object.entries<boolean>(getRoles(skipPreviewAs)).some(([role, hasRole]) => {
+    return Object.entries<boolean>(roles).some(([role, hasRole]) => {
       const rolePermission = rolePermissions[role as keyof typeof rolePermissions] as '*' | Record<Permission, true>
-
       return hasRole && (rolePermission === '*' || rolePermission?.[permission as Permission])
     })
   }

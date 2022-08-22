@@ -55,7 +55,7 @@ onClickOutside(carouselRef, () => {
         </div>
 
         <div
-          class="select-none group hover:ring active:ring-pink-500 cursor-pointer leading-8 inline-block px-3 py-1 bg-gray-300 text-white mb-4 text-center rounded shadow"
+          class="select-none group hover:ring active:ring-accent cursor-pointer leading-8 inline-block px-3 py-1 bg-gray-300 text-white mb-4 text-center rounded shadow"
           @click.stop="downloadFile(selectedImage)"
         >
           <h3 class="group-hover:text-primary">{{ selectedImage && selectedImage.title }}</h3>
@@ -133,7 +133,7 @@ onClickOutside(carouselRef, () => {
 }
 
 .ant-carousel :deep(.slick-arrow.custom-slick-arrow) {
-  @apply text-4xl text-white hover:text-primary active:text-pink-500 opacity-100 cursor-pointer z-1;
+  @apply text-4xl text-white hover:text-primary active:text-accent opacity-100 cursor-pointer z-1;
 }
 .ant-carousel :deep(.custom-slick-arrow:before) {
   display: none;

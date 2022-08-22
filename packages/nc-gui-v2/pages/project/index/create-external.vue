@@ -213,7 +213,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-card class="max-w-[600px] mx-auto !mt-100px !mb-5 !shadow-md">
+  <a-card class="max-w-[600px] !mx-auto !mt-100px !mb-5 !shadow-md">
     <GeneralNocoIcon />
 
     <h3 class="text-3xl text-center font-semibold mt-8 mb-4">{{ $t('activity.createProject') }}</h3>

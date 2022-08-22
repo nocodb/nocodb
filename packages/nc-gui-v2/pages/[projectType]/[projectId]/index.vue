@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { Chrome } from '@ckpack/vue-color'
 import { message } from 'ant-design-vue'
 import {
+  computed,
+  definePageMeta,
   navigateTo,
   onKeyStroke,
   openLink,
@@ -8,18 +11,23 @@ import {
   provideSidebar,
   ref,
   useClipboard,
-  useElementHover,
   useGlobal,
   useProject,
   useRoute,
   useTabs,
+  useTheme,
   useUIPermission,
+  watch,
 } from '#imports'
 import { TabType } from '~/composables'
 
+definePageMeta({
+  hideHeader: true,
+})
+
 const route = useRoute()
 
-const { appInfo, token } = useGlobal()
+const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
 const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo } = useProject()
 
@@ -45,6 +53,28 @@ const dropdownOpen = ref(false)
 /** Sidebar ref */
 const sidebar = ref()
 
+const pickedColor = ref<any>('#ffffff')
+
+let pickerActive = $ref<boolean | 'primary' | 'accent'>(false)
+
+const email = computed(() => user.value?.email ?? '---')
+
+const { setTheme, theme } = useTheme()
+
+watch(pickedColor, (nextColor) => {
+  if (pickerActive && nextColor.hex) {
+    setTheme({
+      primaryColor: pickerActive === 'primary' ? nextColor.hex : theme.value.primaryColor,
+      accentColor: pickerActive === 'accent' ? nextColor.hex : theme.value.accentColor,
+    })
+  }
+})
+
+const logout = () => {
+  signOut()
+  navigateTo('/signin')
+}
+
 onKeyStroke(
   'Escape',
   () => {
@@ -55,10 +85,6 @@ onKeyStroke(
 
 clearTabs()
 
-if (!route.params.type && isUIAllowed('teamAndAuth')) {
-  addTab({ type: TabType.AUTH, title: 'Team & Auth' })
-}
-
 function toggleDialog(value?: boolean, key?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
   openDialogKey.value = key
@@ -68,7 +94,9 @@ await loadProject()
 
 await loadTables()
 
-const isHovered = useElementHover(sidebar)
+if (!route.params.type && isUIAllowed('teamAndAuth')) {
+  addTab({ type: TabType.AUTH, title: 'Team & Auth' })
+}
 
 const copyProjectInfo = async () => {
   try {
@@ -97,6 +125,22 @@ const copyAuthToken = async () => {
     message.error(e.message)
   }
 }
+
+const openColorPicker = (type: 'primary' | 'accent') => {
+  if (!pickerActive || pickerActive !== type) {
+    pickedColor.value = type === 'primary' ? theme.value.primaryColor : theme.value.accentColor
+    pickerActive = type
+  } else {
+    pickerActive = false
+  }
+}
+
+const onMenuClose = (visible: boolean) => {
+  if (!visible) {
+    pickedColor.value = '#ffffff'
+    pickerActive = false
+  }
+}
 </script>
 
 <template>
@@ -107,7 +151,7 @@ const copyAuthToken = async () => {
         :collapsed="!isOpen"
         width="250"
         collapsed-width="50"
-        class="relative shadow-md h-full z-1"
+        class="relative shadow-md h-full z-1 nc-left-sidebar"
         :trigger="null"
         collapsible
         theme="light"
@@ -144,16 +188,22 @@ const copyAuthToken = async () => {
             </template>
           </div>
 
-          <a-dropdown v-else class="h-full" :trigger="['click']" placement="bottom">
+          <a-dropdown v-else class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom" @visible-change="onMenuClose">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
-              class="group cursor-pointer flex gap-4 items-center nc-project-menu overflow-hidden"
+              class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
             >
               <template v-if="isOpen">
-                <div class="text-xl font-semibold truncate">{{ project.title }}</div>
+                <a-tooltip v-if="project.title?.length > 12" placement="bottom">
+                  <div class="text-lg font-semibold truncate">{{ project.title }}</div>
+                  <template #title>
+                    <div class="text-sm">{{ project.title }}</div>
+                  </template>
+                </a-tooltip>
+                <div v-else class="text-lg font-semibold truncate">{{ project.title }}</div>
 
-                <MdiChevronDown class="min-w-[28.5px] group-hover:text-pink-500 text-2xl" />
+                <MdiChevronDown class="min-w-[17px] group-hover:text-accent text-md" />
               </template>
 
               <template v-else>
@@ -166,7 +216,7 @@ const copyAuthToken = async () => {
                 <a-menu-item-group>
                   <template #title>
                     <div class="group select-none flex items-center gap-4 py-1">
-                      <MdiFolder class="group-hover:text-pink-500 text-xl" />
+                      <MdiFolder class="group-hover:text-accent text-xl" />
 
                       <div class="flex flex-col">
                         <div class="text-lg group-hover:(!text-primary) font-semibold truncate">{{ project.title }}</div>
@@ -174,7 +224,7 @@ const copyAuthToken = async () => {
                         <div class="flex items-center gap-1">
                           <div class="group-hover:(!text-primary)">ID:</div>
 
-                          <div class="text-xs group-hover:text-pink-500 truncate font-italic">{{ project.id }}</div>
+                          <div class="text-xs group-hover:text-accent truncate font-italic">{{ project.id }}</div>
                         </div>
                       </div>
                     </div>
@@ -182,7 +232,7 @@ const copyAuthToken = async () => {
 
                   <a-menu-item key="copy">
                     <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">
-                      <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
+                      <MdiContentCopy class="group-hover:text-accent" />
                       Copy Project Info
                     </div>
                   </a-menu-item>
@@ -196,14 +246,14 @@ const copyAuthToken = async () => {
                       class="nc-project-menu-item group"
                       @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                     >
-                      <MdiApi class="group-hover:text-pink-500 nc-swagger-api-docs" />
+                      <MdiApi class="group-hover:text-accent" />
                       Swagger: Rest APIs
                     </div>
                   </a-menu-item>
 
                   <a-menu-item key="copy">
                     <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
-                      <MdiScriptTextKeyOutline class="group-hover:text-pink-500 nc-copy-project-info" />
+                      <MdiScriptTextKeyOutline class="group-hover:text-accent" />
                       Copy Auth Token
                     </div>
                   </a-menu-item>
@@ -217,23 +267,23 @@ const copyAuthToken = async () => {
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'teamAndAuth')"
                     >
-                      <MdiCog class="group-hover:text-pink-500 nc-team-settings" />
+                      <MdiCog class="group-hover:text-accent" />
                       Team & Settings
                     </div>
                   </a-menu-item>
 
                   <a-menu-divider />
 
-                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
+                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
                     <template #title>
-                      <div class="nc-project-menu-item group">
-                        <MdiFileEyeOutline class="group-hover:text-pink-500 nc-project-preview" />
+                      <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                        <MdiFileEyeOutline class="group-hover:text-accent" />
                         Preview Project As
 
                         <div class="flex-1" />
 
                         <MaterialSymbolsChevronRightRounded
-                          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
                         />
                       </div>
                     </template>
@@ -242,57 +292,145 @@ const copyAuthToken = async () => {
 
                     <GeneralPreviewAs />
                   </a-sub-menu>
+
+                  <a-sub-menu key="language" class="lang-menu scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0">
+                    <template #title>
+                      <div class="nc-project-menu-item group">
+                        <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />
+                        Language
+                        <div class="flex-1" />
+
+                        <MaterialSymbolsChevronRightRounded
+                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                        />
+                      </div>
+                    </template>
+
+                    <template #expandIcon></template>
+                    <GeneralLanguageMenu />
+                  </a-sub-menu>
+
+                  <template v-if="signedIn && !isSharedBase">
+                    <a-sub-menu key="account">
+                      <template #title>
+                        <div class="nc-project-menu-item group">
+                          <MdiAccount class="group-hover:text-accent" />
+                          Account
+                          <div class="flex-1" />
+
+                          <MaterialSymbolsChevronRightRounded
+                            class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                          />
+                        </div>
+                      </template>
+
+                      <template #expandIcon></template>
+
+                      <a-menu-item key="0" class="!rounded-t">
+                        <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
+                          <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
+
+                          <span class="prose-sm">{{ email }}</span>
+                        </nuxt-link>
+                      </a-menu-item>
+
+                      <a-menu-item key="1" class="!rounded-b">
+                        <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                          <MdiLogout class="group-hover:(!text-accent)" />&nbsp;
+
+                          <span class="prose-sm">
+                            {{ $t('general.signOut') }}
+                          </span>
+                        </div>
+                      </a-menu-item>
+                    </a-sub-menu>
+                  </template>
+
+                  <a-menu-divider />
+
+                  <a-sub-menu>
+                    <template #title>
+                      <div class="nc-project-menu-item group">
+                        <ClarityImageLine class="group-hover:text-accent" />
+                        Theme
+
+                        <div class="flex-1" />
+
+                        <MaterialSymbolsChevronRightRounded
+                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                        />
+                      </div>
+                    </template>
+
+                    <a-menu-item>
+                      <div class="nc-project-menu-item group" @click.stop="openColorPicker('primary')">
+                        <ClarityColorPickerSolid class="group-hover:text-accent" />
+                        Primary Color
+                      </div>
+                    </a-menu-item>
+
+                    <a-menu-item>
+                      <div class="nc-project-menu-item group" @click.stop="openColorPicker('accent')">
+                        <ClarityColorPickerSolid class="group-hover:text-accent" />
+                        Accent Color
+                      </div>
+                    </a-menu-item>
+                  </a-sub-menu>
+
+                  <Chrome
+                    v-if="pickerActive"
+                    v-model="pickedColor"
+                    class="z-99 absolute right-[-225px]"
+                    @click.stop
+                    @blur="onMenuClose(false)"
+                  />
                 </a-menu-item-group>
               </a-menu>
             </template>
           </a-dropdown>
+
+          <div
+            class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
+          >
+            <MdiBackburger
+              class="cursor-pointer transform transition-transform duration-500"
+              :class="{ 'rotate-180': !isOpen }"
+              @click="toggle(!isOpen)"
+            />
+          </div>
         </div>
-
-        <a-tooltip :mouse-enter-delay="1" placement="right">
-          <template #title> Toggle table list </template>
-
-          <Transition name="glow">
-            <div
-              v-show="!isOpen || isHovered"
-              class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-1/2 right-[-0.75rem] shadow bg-gray-100 rounded-full"
-            >
-              <MaterialSymbolsChevronLeftRounded
-                v-if="isOpen"
-                class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-                @click="toggle(false)"
-              />
-
-              <MaterialSymbolsChevronRightRounded
-                v-else
-                class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-                @click="toggle(true)"
-              />
-            </div>
-          </Transition>
-        </a-tooltip>
 
         <DashboardTreeView v-show="isOpen" />
       </a-layout-sider>
     </template>
-
-    <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
-
-    <NuxtPage />
-
-    <GeneralPreviewAs float />
+    <div :key="$route.fullPath">
+      <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
+      <NuxtPage />
+      <GeneralPreviewAs float />
+    </div>
   </NuxtLayout>
 </template>
 
 <style lang="scss" scoped>
-:deep(.ant-dropdown-menu-item-group-title) {
-  @apply border-b-1;
+:global(#nc-sidebar-left .ant-layout-sider-collapsed) {
+  @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
 }
 
-:deep(.ant-dropdown-menu-item-group-list) {
-  @apply m-0;
+.nc-left-sidebar {
+  .nc-sidebar-left-toggle-icon {
+    @apply opacity-0 transition-opactity duration-200 transition-color text-white/80 hover:text-white/100;
+
+    .nc-left-sidebar {
+      @apply !border-r-0;
+    }
+  }
+
+  &:hover .nc-sidebar-left-toggle-icon {
+    @apply opacity-100;
+  }
 }
 
-:deep(.ant-dropdown-menu-item) {
-  @apply !py-0 active:(ring ring-pink-500);
+:deep(.ant-dropdown-menu-submenu-title) {
+  @apply py-0;
 }
 </style>

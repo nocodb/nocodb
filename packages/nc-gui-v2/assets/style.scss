@@ -1,8 +1,9 @@
 @import 'ant-design-vue/dist/antd.variable.min.css';
-@import 'ant-design-vue/dist/antd.min.css';
 
 :root {
   --header-height: 50px;
+  --toolbar-height: 48px;
+  --tw-text-opacity: 1;
 }
 
 .ant-layout-header {
@@ -14,7 +15,7 @@ body,
 #__nuxt,
 .ant-layout,
 main {
-  @apply m-0 h-full w-full bg-white dark:(bg-black text-white);
+  @apply m-0 h-full w-full bg-white;
 }
 
 html {
@@ -26,21 +27,8 @@ main {
   overflow-x: hidden;
 }
 
-nav,
-nav .v-list {
-  @apply dark:(!bg-gray-900 text-white)
-}
-
-.v-divider {
-  @apply dark:bg-white
-}
-
 a {
-  @apply prose text-primary underline hover:opacity-75 dark:(text-secondary) hover:(opacity-75);
-}
-
-h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
-  @apply dark:(!text-white);
+  @apply !text-primary !underline hover:!text-accent;
 }
 
 .nc-icon {
@@ -51,7 +39,7 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 .nc-menu-item {
   @apply cursor-pointer text-xs flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
 
-  &.disabled { 
+  &.disabled {
     @apply text-black text-opacity-25 bg-[#f5f5f5] cursor-not-allowed text-shadow-none box-shadow-none border-[#d9d9d9];
   }
 }
@@ -61,7 +49,7 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 
   &:hover {
     .nc-icon {
-      @apply text-pink-500;
+      @apply text-accent;
     }
   }
 }
@@ -85,7 +73,7 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
   svg {
     @apply z-1 text-xl p-1 text-gray-500;
   }
-  
+
   .disabled {
     @apply cursor-not-allowed border-none;
   }
@@ -98,7 +86,7 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 
 // for highlighting toolbar menu item
 .nc-active-btn > .ant-btn{
-  @apply bg-primary/20 hover:(bg-primary/20);
+  @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);
 }
 
 .nc-locked-overlay {
@@ -158,24 +146,23 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 .page-leave-active,
 .layout-enter-active,
 .layout-leave-active {
-  @apply transition-opacity duration-300 ease-in-out;
+  @apply transition-all duration-200 ease;
 }
 
-.page-enter-active,
-.page-leave-active,
-.layout-enter-active,
-.layout-leave-active {
+.page-enter-from,
+.page-leave-to,
+.layout-enter-from,
+.layout-leave-to {
   @apply opacity-0;
 }
 
 .slide-enter-active,
 .slide-leave-active {
   @apply transition-all duration-200 ease-in-out;
-  transform: translate(100%, 0);
 }
 
-.slide-enter,
-.slide-leave-active {
+.slide-enter-from,
+.slide-leave-to {
   transform: translate(-100%, 0);
 }
 
@@ -188,13 +175,13 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
   @apply ring ring-xl;
 }
 
-.glow-enter,
-.glow-leave-active {
+.glow-enter-from,
+.glow-leave-to {
   @apply opacity-0;
 }
 
 .scaling-btn {
-  @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 bg-gray-100/50 text-white bg-primary;
+  @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 bg-gray-100/50 text-white;
 
   &::after {
     @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
@@ -203,10 +190,55 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-pink-500;
+    @apply transform scale-110 ring ring-accent;
   }
 
   &:active::after {
-    @apply ring ring-pink-500;
+    @apply ring ring-accent;
   }
+}
+
+.ant-dropdown-menu-submenu {
+  @apply !py-0;
+
+  .ant-dropdown-menu, .ant-menu {
+    @apply m-0 p-0;
+  }
+
+  .ant-menu-item {
+    @apply !m-0 !px-2;
+  }
+}
+
+.ant-dropdown-menu-submenu-popup {
+  @apply scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !shadow !rounded;
+}
+
+.ant-tabs-dropdown-menu-title-content {
+  @apply flex items-center;
+}
+
+.ant-dropdown-menu-item-group-list {
+  @apply !mx-0;
+}
+
+.ant-dropdown-menu-item-group-title {
+  @apply border-b-1;
+}
+
+.ant-dropdown-menu-item-group-list {
+  @apply m-0;
+}
+
+.ant-dropdown-menu-item, .ant-menu-item {
+  @apply !py-0 active:(ring ring-accent);
+}
+
+.ant-dropdown-menu-title-content,
+.ant-menu-title-content {
+  @apply !py-0;
+}
+
+.ant-dropdown-menu-submenu-title{
+  @apply !pr-2;
 }

@@ -142,7 +142,7 @@ watch(
       <a-typography-title class="ml-4 select-none" type="secondary" :level="5">SETTINGS</a-typography-title>
       <a-button type="text" class="!rounded-md border-none -mt-1.5 -mr-1" @click="vModel = false">
         <template #icon>
-          <MdiCloseIcon class="cursor-pointer mt-1" />
+          <MdiCloseIcon class="cursor-pointer mt-1 nc-modal-close" />
         </template>
       </a-button>
     </div>

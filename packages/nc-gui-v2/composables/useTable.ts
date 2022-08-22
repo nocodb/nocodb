@@ -1,16 +1,15 @@
 import { Modal, message } from 'ant-design-vue'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { useProject } from './useProject'
-import { TabType } from '~/composables/useTabs'
-import { extractSdkResponseErrorMsg } from '~/utils'
 import { useNuxtApp } from '#app'
+import { TabType } from '~/composables/useTabs'
+import { SYSTEM_COLUMNS, extractSdkResponseErrorMsg, useProject } from '#imports'
 
 export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
-    columns: ['id', 'title', 'created_at', 'updated_at'],
+    columns: SYSTEM_COLUMNS,
   })
 
   const { $e, $api } = useNuxtApp()

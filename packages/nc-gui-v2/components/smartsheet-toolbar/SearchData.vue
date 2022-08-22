@@ -24,7 +24,7 @@ function onPressEnter() {
 <template>
   <a-input v-model:value="search.query" size="small" class="max-w-[200px]" placeholder="Filter query" @press-enter="onPressEnter">
     <template #addonBefore>
-      <div class="flex align-center relative" @click="isDropdownOpen = true">
+      <div class="flex items-center relative" @click="isDropdownOpen = true">
         <MdiMagnify class="text-grey" />
         <MdiMenuDown class="text-grey" />
 

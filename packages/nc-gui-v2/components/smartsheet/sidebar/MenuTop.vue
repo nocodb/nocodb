@@ -137,6 +137,10 @@ onMounted(() => menuRef && initSortable(menuRef.$el))
 /** Navigate to view by changing url param */
 function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
   router.push({ params: { viewTitle: view.title || '' } })
+  if (view.type === 1 && selected.value[0] === view.id) {
+    // reload the page if the same form view is clicked
+    router.go(0)
+  }
 }
 
 /** Rename a view */
@@ -170,9 +174,7 @@ function onDeleted() {
 </script>
 
 <template>
-  <h3 class="pt-3 px-3 text-xs text-gray-500 font-semibold">{{ $t('objects.views') }}</h3>
-
-  <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu" :selected-keys="selected">
+  <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
     <RenameableMenuItem
       v-for="view of views"
       :id="view.id"
@@ -180,11 +182,11 @@ function onDeleted() {
       :view="view"
       :on-validate="validate"
       class="transition-all ease-in duration-300"
-      :class="[
-        isMarked === view.id ? 'bg-gray-200' : '',
-        route.params.viewTitle && route.params.viewTitle.includes(view.title) ? 'active' : '',
-        `nc-view-item nc-${view.type}-view-item`,
-      ]"
+      :class="{
+        'bg-gray-100': isMarked === view.id,
+        'active': route.params.viewTitle && route.params.viewTitle === view.title,
+        [`nc-view-item nc-${view.type}-view-item`]: true,
+      }"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="onDelete"
@@ -197,7 +199,7 @@ function onDeleted() {
 
 <style lang="scss">
 .nc-views-menu {
-  @apply flex-1 max-h-[30vh] overflow-y-scroll scrollbar-thin-dull;
+  @apply flex-1 min-h-[100px] overflow-y-scroll scrollbar-thin-dull;
 
   .ghost,
   .ghost > * {
@@ -219,11 +221,11 @@ function onDeleted() {
   }
 
   .sortable-chosen {
-    @apply !bg-primary/25 text-primary;
+    @apply !bg-primary bg-opacity-25 text-primary;
   }
 
   .active {
-    @apply bg-primary/20 text-primary font-medium;
+    @apply bg-primary bg-opacity-25 text-primary font-medium;
   }
 }
 </style>

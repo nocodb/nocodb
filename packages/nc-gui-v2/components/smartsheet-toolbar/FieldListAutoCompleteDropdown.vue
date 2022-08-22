@@ -86,7 +86,7 @@ const filterOption = (input: string, option: any) => {
     :filter-option="filterOption"
   >
     <a-select-option v-for="option in options" :key="option.value" :value="option.value">
-      <div class="flex gap-2 items-center align-center h-full">
+      <div class="flex gap-2 items-center items-center h-full">
         <component :is="option.icon" class="min-w-5 !mx-0" />
         <span class="min-w-0"> {{ option.label }}</span>
       </div>

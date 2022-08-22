@@ -40,6 +40,7 @@ function onPressEnter() {
         size="small"
         :dropdown-match-select-width="false"
         :options="columns"
+        dropdown-class-name="!py-0 !rounded"
         class="!absolute top-0 left-0 w-full h-full z-10 !text-xs opacity-0"
       >
       </a-select>

@@ -25,8 +25,11 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             cy.fileHook();
             mainPage.tabReset();
-            cy.get(".mdi-close").click();
-            mainPage.navigationDraw(mainPage.TEAM_N_AUTH).click();
+            settingsPage.openMenu(settingsPage.TEAM_N_AUTH)
+        });
+
+        beforeEach(() => {
+            cy.fileHook();
         });
 
         const addUser = (user) => {
@@ -34,10 +37,10 @@ export const genTest = (apiType, dbType) => {
                 // for first project, users need to be added explicitly using "New User" button
                 // for subsequent projects, they will be required to just add to this project
                 // using ROW count to identify if its former or latter scenario
-                // 5 users (owner, creator, editor, viewer, commenter) + row header = 6
-                cy.get(`tr`).then((obj) => {
+                // 5 users (owner, creator, editor, viewer, commenter)  = 5
+                cy.get(`.nc-user-row`).then((obj) => {
                     cy.log(obj.length);
-                    if (obj.length == 6) {
+                    if (obj.length == 5) {
                         mainPage.addExistingUserToProject(
                             user.credentials.username,
                             user.name
@@ -76,13 +79,16 @@ export const genTest = (apiType, dbType) => {
 
             // disable table & view access
             //
-            disableTableAccess("language", "editor");
-            disableTableAccess("language", "commenter");
-            disableTableAccess("language", "viewer");
+            disableTableAccess("Language", "editor");
+            disableTableAccess("Language", "commenter");
+            disableTableAccess("Language", "viewer");
 
-            disableTableAccess("customerlist", "editor");
-            disableTableAccess("customerlist", "commenter");
-            disableTableAccess("customerlist", "viewer");
+            disableTableAccess("CustomerList", "editor");
+            disableTableAccess("CustomerList", "commenter");
+            disableTableAccess("CustomerList", "viewer");
+
+            cy.get("button.nc-acl-save").click({ force: true });
+            cy.toastWait("Updated UI ACL for tables successfully");
 
             mainPage.closeMetaTab();
         });
@@ -93,6 +99,10 @@ export const genTest = (apiType, dbType) => {
             before(() => {
                 cy.fileHook();
             })
+
+            beforeEach(() => {
+                cy.fileHook();
+            });
 
             if (roleType != "owner") {
                 it(`[${roles[roleType].name}] SignIn, Open project`, () => {
@@ -112,7 +122,8 @@ export const genTest = (apiType, dbType) => {
                     );
                     cy.get('button:contains("SIGN")').click();
 
-                    cy.url({ timeout: 6000 }).should("contain", "#/project");
+                    // cy.url({ timeout: 6000 }).should("contain", "#/project");
+                    cy.get('nc-project-page-title').contains("My Projects").should("be.visible");
 
                     if (dbType === "xcdb") {
                         if ("rest" == apiType)
@@ -184,7 +195,7 @@ export const genTest = (apiType, dbType) => {
                 //      Viewer: only allowed to read
                 //      Everyone else: read &/ update
                 //
-                if (roleType != "viewer") _editComment(roleType, false);
+                _editComment(roleType, false);
             });
 
             it(`[${roles[roleType].name}] Right navigation menu, share view`, () => {
@@ -202,41 +213,37 @@ export const genTest = (apiType, dbType) => {
             });
 
             it(`[${roles[roleType].name}] Download files`, () => {
-                // ncv2@fixme
                 // viewer & commenter doesn't contain hideField option in ncv2
-                if (roleType != "viewer" && roleType != "commenter") {
-                    // #ID, City, LastUpdate, City => Address, Country <= City, +
-                    mainPage.hideField("LastUpdate");
+                // #ID, City, LastUpdate, City => Address, Country <= City, +
+                mainPage.hideField("LastUpdate");
 
-                    const verifyCsv = (retrievedRecords) => {
-                        // expected output, statically configured
-                        let storedRecords = [
-                            `City,Address List,Country`,
-                            `A Corua (La Corua),939 Probolinggo Loop,Spain`,
-                            `Abha,733 Mandaluyong Place,Saudi Arabia`,
-                            `Abu Dhabi,535 Ahmadnagar Manor,United Arab Emirates`,
-                            `Acua,1789 Saint-Denis Parkway,Mexico`,
-                        ];
+                const verifyCsv = (retrievedRecords) => {
+                    // expected output, statically configured
+                    let storedRecords = [
+                        `City,Address List,Country`,
+                        `A Corua (La Corua),939 Probolinggo Loop,Spain`,
+                        `Abha,733 Mandaluyong Place,Saudi Arabia`,
+                        `Abu Dhabi,535 Ahmadnagar Manor,United Arab Emirates`,
+                        `Acua,1789 Saint-Denis Parkway,Mexico`,
+                    ];
 
-                        // ncv2@fixme
-                        // skip if xcdb
-                        if (!isXcdb()) {
-                            for (let i = 0; i < storedRecords.length; i++) {
-                                // cy.log(retrievedRecords[i])
-                                expect(retrievedRecords[i]).to.be.equal(
-                                    storedRecords[i]
-                                );
-                            }
+                    // skip if xcdb
+                    if (!isXcdb()) {
+                        for (let i = 0; i < storedRecords.length; i++) {
+                            // cy.log(retrievedRecords[i])
+                            expect(retrievedRecords[i]).to.be.equal(
+                                storedRecords[i]
+                            );
                         }
-                    };
+                    }
+                };
 
-                    // download & verify
-                    mainPage.downloadAndVerifyCsv(
-                        `City_exported_1.csv`,
-                        verifyCsv
-                    );
-                    mainPage.unhideField("LastUpdate");
-                }
+                // download & verify
+                mainPage.downloadAndVerifyCsv(
+                    `City_exported_1.csv`,
+                    verifyCsv
+                );
+                mainPage.unhideField("LastUpdate");
             });
         });
     };

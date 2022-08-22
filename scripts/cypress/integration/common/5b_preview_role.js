@@ -3,11 +3,11 @@
 //      sakilaDb database created already
 
 import { loginPage, projectsPage } from "../../support/page_objects/navigation";
-import { mainPage } from "../../support/page_objects/mainPage";
+import { mainPage, settingsPage } from "../../support/page_objects/mainPage";
 import {
     isPostgres,
     isTestSuiteActive,
-    isXcdb,
+    isXcdb, roles
 } from "../../support/page_objects/projectConstants";
 import {
     _advSettings,
@@ -32,11 +32,17 @@ export const genTest = (apiType, dbType, roleType) => {
             cy.fileHook();
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.openTableTab("City", 25);
-            cy.get(".nc-btn-preview").click();
-            cy.getActiveMenu()
-                .find(".nc-preview-editor")
-                .should("exist")
-                .click();
+
+            settingsPage.openProjectMenu();
+            cy.getActiveMenu().find(`[data-submenu-id="preview-as"]`).should('exist').click()
+            cy.wait(1000)
+            cy.get('.ant-dropdown-menu-submenu').eq(3).find(`[data-menu-id="editor"]`).should('exist').click()
+
+            cy.wait(10000)
+        });
+
+        beforeEach(() => {
+            cy.fileHook();
         });
 
         after(() => {
@@ -82,7 +88,11 @@ export const genTest = (apiType, dbType, roleType) => {
 
         const genTestSub = (roleType) => {
             it(`Role preview: ${roleType}: Enable preview`, () => {
-                cy.get(`.nc-floating-preview-${roleType}`).click();
+                cy.get(".nc-floating-preview-btn", {timeout: 30000}).should("exist");
+                cy.get('.nc-floating-preview-btn')
+                  .find(`[type="radio"][value="${roleType}"]`)
+                  .should('exist')
+                  .click();
             });
 
             it(`Role preview: ${roleType}: Advance settings`, () => {

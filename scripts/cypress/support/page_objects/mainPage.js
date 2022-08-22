@@ -42,7 +42,11 @@ export class _settingsPage {
     }
 
     closeMenu() {
-        cy.getActiveModal().find('.ant-modal-close-x').click({ force: true });
+        cy.getActiveModal().find('.nc-modal-close').click({ force: true });
+    }
+
+    openProjectMenu() {
+        cy.get('.nc-project-menu').should('exist').click()
     }
 }
 
@@ -84,11 +88,8 @@ export class _mainPage {
 
     navigationDraw(item) {
         // open settings tab
-        cy.get(".nc-team-settings").should("exist").click();
-        // if (item == this.ROLE_VIEW)
-        //     return cy.get('.nc-nav-drawer').find('.v-list').last()
-        // else
-        //     return cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').eq(item)
+        cy.get('.nc-project-menu').should('exist').click()
+        cy.getActiveMenu().find(`[data-menu-id="teamAndSettings"]`).should('exist').click()
 
         switch (item) {
             case this.AUDIT:
@@ -99,17 +100,9 @@ export class _mainPage {
                 return cy.get(".nc-settings-teamauth:visible").should("exist");
             case this.PROJ_METADATA:
                 return cy.get(".nc-settings-projmeta:visible").should("exist");
-            case this.ROLE_VIEW_EDITOR:
-                return cy.get(".nc-preview-editor:visible").should("exist");
-            case this.ROLE_VIEW_COMMENTER:
-                return cy.get(".nc-preview-commenter:visible").should("exist");
-            case this.ROLE_VIEW_VIEWER:
-                return cy.get(".nc-preview-viewer:visible").should("exist");
-            case this.ROLE_VIEW_RESET:
-                return cy.get(".nc-preview-reset:visible").should("exist");
         }
     }
-
+    
     // add new user to specified role
     //
     addNewUserToProject = (userCred, roleType) => {
@@ -186,7 +179,7 @@ export class _mainPage {
     };
 
     addColumn = (colName, tableName) => {
-        cy.get(".nc-grid  tr > th:last .nc-icon").click({
+        cy.get(".nc-column-add").click({
             force: true,
         });
 
@@ -200,7 +193,7 @@ export class _mainPage {
     };
 
     addColumnWithType = (colName, colType, tableName) => {
-        cy.get(".nc-grid  tr > th:last .nc-icon").click({
+        cy.get(".nc-column-add").click({
             force: true,
         });
 

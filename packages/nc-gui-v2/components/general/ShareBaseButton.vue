@@ -20,12 +20,13 @@ const { isUIAllowed } = useUIPermission()
       "
       @click="showUserModal = true"
     >
-      <div class="flex items-center space-x-1">
+      <div class="text-white flex items-center space-x-1">
         <MdiAccountPlusOutline class="mr-1 nc-share-base" />
         <!-- todo: i18n       <div>{{ $t('activity.share') }}</div> -->
         <div>{{ $t('activity.inviteTeam') }}</div>
       </div>
     </div>
+
     <TabsAuthUserManagementUsersModal :key="showUserModal" :show="showUserModal" @closed="showUserModal = false" />
   </div>
 </template>

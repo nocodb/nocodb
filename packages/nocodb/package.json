@@ -160,7 +160,7 @@
     "nc-lib-gui-2": "0.0.4",
     "nc-plugin": "0.1.2",
     "ncp": "^2.0.0",
-    "nocodb-sdk-daily": "0.92.4-0.92.4-guiv2-test",
+    "nocodb-sdk": "0.92.4",
     "nodemailer": "^6.4.10",
     "object-hash": "^3.0.0",
     "ora": "^4.0.4",

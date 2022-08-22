@@ -30,12 +30,12 @@ const { isOpen } = useSidebar()
 
     <div class="flex-1" />
 
-    <SmartsheetToolbarReload class="mx-1" />
-    <SmartsheetToolbarAddRow class="mx-1" />
+    <SmartsheetToolbarReload v-if="!isPublic" class="mx-1" />
+    <SmartsheetToolbarAddRow v-if="!isPublic" class="mx-1" />
 
     <SmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mr-2 ml-2" />
 
-    <ToggleDrawer v-if="!isOpen" class="mr-2" />
+    <ToggleDrawer v-if="!isOpen && !isPublic" class="mr-2" />
   </div>
 </template>
 

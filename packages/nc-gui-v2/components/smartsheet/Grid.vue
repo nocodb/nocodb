@@ -382,7 +382,7 @@ const onNavigate = (dir: NavigateDir) => {
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
                     <div class="items-center flex gap-1 min-w-[55px]">
                       <div
-                        v-if="!readOnly && !isLocked"
+                        v-if="!readOnly || !isLocked"
                         class="nc-row-no text-xs text-gray-500"
                         :class="{ hidden: row.rowMeta.selected }"
                       >

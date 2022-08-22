@@ -36,7 +36,7 @@ const openSwaggerLink = () => {
       <!-- todo: i18n -->
       <a-typography-title :level="4" class="!mb-6 !text-gray-500">Help center</a-typography-title>
 
-      <GeneralSocialCard show-swagger-link class="!w-full nc-social-card">
+      <GeneralSocialCard class="!w-full nc-social-card">
         <template #before>
           <a-list-item v-if="project">
             <nuxt-link

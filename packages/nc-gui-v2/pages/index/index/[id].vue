@@ -56,8 +56,6 @@ const renameProject = async () => {
 
 // select and focus title field on load
 onMounted(async () => {
-  await getProject()
-
   await nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
@@ -69,34 +67,39 @@ onMounted(async () => {
     }, 500)
   })
 })
+
+await getProject()
 </script>
 
 <template>
   <div
-    class="overflow-auto md:bg-primary bg-opacity-5 pb-4 update-project h-full min-h-[600px] flex flex-col justify-center items-end"
+    class="update-project bg-white relative flex-auto flex flex-col justify-center gap-2 p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
   >
+    <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+
     <div
-      class="bg-white mt-65px relative flex flex-col justify-center gap-2 w-full max-w-[500px] !mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full bg-white cursor-pointer"
+      @click="navigateTo('/')"
     >
-      <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
-
-      <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.editProject') }}</h1>
-
-      <a-form ref="form" :model="formState" name="basic" layout="vertical" no-style autocomplete="off" @finish="renameProject">
-        <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules">
-          <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
-        </a-form-item>
-
-        <div class="text-center">
-          <button type="submit" class="submit">
-            <span class="flex items-center gap-2">
-              <MaterialSymbolsRocketLaunchOutline />
-              {{ $t('general.edit') }}
-            </span>
-          </button>
-        </div>
-      </a-form>
+      <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
     </div>
+
+    <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.editProject') }}</h1>
+
+    <a-form ref="form" :model="formState" name="basic" layout="vertical" no-style autocomplete="off" @finish="renameProject">
+      <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules">
+        <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+      </a-form-item>
+
+      <div class="text-center">
+        <button type="submit" class="submit">
+          <span class="flex items-center gap-2">
+            <MaterialSymbolsRocketLaunchOutline />
+            {{ $t('general.edit') }}
+          </span>
+        </button>
+      </div>
+    </a-form>
   </div>
 </template>
 
@@ -105,12 +108,6 @@ onMounted(async () => {
   .ant-input-affix-wrapper,
   .ant-input {
     @apply !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
-  }
-
-  .password {
-    input {
-      @apply !border-none;
-    }
   }
 
   .submit {

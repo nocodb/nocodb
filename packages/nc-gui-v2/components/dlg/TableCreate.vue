@@ -58,7 +58,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" @keydown.esc="dialogShow = false">
+  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" centered @keydown.esc="dialogShow = false">
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
 

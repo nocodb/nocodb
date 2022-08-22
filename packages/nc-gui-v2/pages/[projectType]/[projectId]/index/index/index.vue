@@ -3,6 +3,7 @@ import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
 import { ref, useDialog, useDropZone, useFileDialog, useNuxtApp, useProject, watch } from '#imports'
 import DlgQuickImport from '~/components/dlg/QuickImport.vue'
+import DlgTableCreate from '~/components/dlg/TableCreate.vue'
 
 const dropZone = ref<HTMLDivElement>()
 
@@ -105,6 +106,36 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
     reset()
   }
 }
+
+function openCreateTable() {
+  $e('a:table:open')
+
+  const isOpen = ref(true)
+  const { close } = useDialog(DlgTableCreate, {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+
+    reset()
+  }
+}
+
+function onDropZoneClick(e: MouseEvent) {
+  const elements = document.elementsFromPoint(e.clientX, e.clientY)
+  const isCreateTableBtnClicked = elements.some((element) => element.classList.contains('create-table-btn'))
+
+  if (isCreateTableBtnClicked) {
+    openCreateTable()
+    return
+  }
+
+  open()
+}
 </script>
 
 <template>
@@ -119,7 +150,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
         inline
         style="top: 20%; left: 20%; right: 20%; bottom: 20%"
         class="text-3xl flex items-center justify-center gap-2 border-1 border-dashed rounded hover:border-primary"
-        @click="open"
+        @click="onDropZoneClick"
       >
         <template v-if="isOverDropZone"> <MaterialSymbolsFileCopyOutline class="text-accent" /> Drop here </template>
       </general-overlay>
@@ -128,11 +159,13 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
         <div class="text-3xl">Welcome to NocoDB!</div>
 
         <div class="flex items-center flex-wrap justify-center gap-2 prose-lg leading-8">
-          To get started, either drop a <span class="flex items-center gap-2"><PhFileCsv /> CSV</span>,
+          To get started, either drop a <span class="flex items-center gap-2"><PhFileCsv /> CSV,</span>
           <span class="flex items-center gap-2"><BiFiletypeJson /> JSON</span> or
-          <span class="flex items-center gap-2"><BiFiletypeXlsx /> Excel</span> file here or click the button in the top-left of
-          this page.
+          <span class="flex items-center gap-2"><BiFiletypeXlsx /> Excel file here or</span>
         </div>
+        <a-button type="primary" ghost class="create-table-btn">
+          <span class="prose text-[1rem] text-primary z-50" @click.stop="openCreateTable">Create new table</span>
+        </a-button>
       </div>
     </div>
   </div>

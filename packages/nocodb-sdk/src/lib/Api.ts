@@ -121,6 +121,7 @@ export interface TableType {
   columns?: ColumnType[];
   columnsById?: object;
   slug?: string;
+  project_id?: string;
 }
 
 export interface ViewType {
@@ -169,7 +170,7 @@ export interface TableReqType {
   deleted?: boolean;
   order?: number;
   mm?: boolean;
-  columns?: ColumnType[];
+  columns: ColumnType[];
 }
 
 export interface TableListType {

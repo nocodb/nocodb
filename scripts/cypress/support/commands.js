@@ -240,6 +240,12 @@ Cypress.Commands.add("restoreLocalStorage", () => {
     });
 });
 
+Cypress.Commands.add("deleteLocalStorage", () => {
+    Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
+        localStorage.removeItem(key);
+    });
+});
+
 Cypress.Commands.add("getActiveModal", () => {
     return cy.get(".ant-modal-content:visible").last()
 });

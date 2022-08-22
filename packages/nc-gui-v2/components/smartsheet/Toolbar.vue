@@ -4,7 +4,6 @@ import ToggleDrawer from '~/components/smartsheet/sidebar/toolbar/ToggleDrawer.v
 
 const { isGrid, isForm, isGallery } = useSmartsheetStoreOrThrow()
 const isPublic = inject(IsPublicInj, ref(false))
-const { allowCSVDownload } = useSharedView()
 const { isUIAllowed } = useUIPermission()
 
 const { isOpen } = useSidebar()
@@ -16,10 +15,12 @@ const { isOpen } = useSidebar()
     style="z-index: 7"
   >
     <SmartsheetToolbarViewActions
-      v-if="(isGrid && !isPublic) || (isGrid && isPublic && allowCSVDownload)"
+      v-if="isGrid && !isPublic && isUIAllowed('dataInsert')"
       :show-system-fields="false"
       class="ml-1"
     />
+
+    <SmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
 
     <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery" :show-system-fields="false" class="ml-1" />
 
@@ -29,6 +30,7 @@ const { isOpen } = useSidebar()
 
     <SmartsheetToolbarShareView v-if="(isForm || isGrid) && !isPublic" />
 
+    <SmartsheetToolbarExport v-if="!isUIAllowed('dataInsert')" />
     <div class="flex-1" />
 
     <SmartsheetToolbarReload class="mx-1" />

@@ -231,8 +231,8 @@ function openTableCreateDialog() {
 
         <div class="flex-1">
           <div
-            class="group flex items-center gap-2 pl-5 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             v-if="isUIAllowed('table-create')"
+            class="group flex items-center gap-2 pl-5 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             @click="openTableCreateDialog"
           >
             <MdiPlus />
@@ -366,15 +366,9 @@ function openTableCreateDialog() {
             </div>
           </div>
 
-          <a-card v-else class="mt-4 mx-4 !bg-gray-50">
-            <div class="flex flex-col items-center">
-              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
-
-              <a-button type="primary" @click.stop="openTableCreateDialog">
-                {{ $t('tooltip.addTable') }}
-              </a-button>
-            </div>
-          </a-card>
+          <div v-else class="mt-0.5 pt-16 mx-3 flex flex-col items-center border-t-1 border-gray-50">
+            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+          </div>
         </div>
       </div>
 

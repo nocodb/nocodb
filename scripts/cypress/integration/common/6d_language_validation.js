@@ -8,7 +8,11 @@ export const genTest = (apiType, dbType) => {
     describe(`Language support`, () => {
         before(() => {
             cy.fileHook();
-            loginPage.signIn(roles.owner.credentials)
+            cy.visit("/")
+        });
+
+        beforeEach(() => {
+            cy.fileHook();
         });
 
         const langVerification = (idx, lang) => {
@@ -17,8 +21,8 @@ export const genTest = (apiType, dbType) => {
                 let json = require(`../../../../packages/nc-gui-v2/lang/${lang}`);
 
                 // toggle menu as per index
-                cy.get(".nc-menu-translate").click();
-                cy.getActiveMenu().find(".v-list-item").eq(idx).click();
+                cy.get(".nc-menu-translate").should('exist').last().click();
+                cy.getActiveMenu().find(".ant-dropdown-menu-item").eq(idx).click();
 
                 // basic validations
                 // 1. Page title: "My Projects"

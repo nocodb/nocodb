@@ -59,7 +59,7 @@ hooks.hook('page:finish', () => {
 
         <GeneralReleaseInfo />
 
-        <GeneralShareBaseButton v-if="!isSharedBase" class="pr-4 font-semibold text-white" />
+        <GeneralShareBaseButton v-if="!isSharedBase" class="pr-4 font-semibold" />
 
         <a-tooltip placement="bottom" :mouse-enter-delay="1">
           <template #title> Switch language</template>

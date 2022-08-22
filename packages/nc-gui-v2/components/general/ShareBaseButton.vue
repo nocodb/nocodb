@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRoute } from '#imports'
+import { useRoute, useUIPermission } from '#imports'
 
 const route = useRoute()
 

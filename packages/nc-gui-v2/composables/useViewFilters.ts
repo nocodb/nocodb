@@ -120,7 +120,7 @@ export function useViewFilters(
     // if shared or sync permission not allowed simply remove it from array
     if (nestedMode.value) {
       filters.value.splice(i, 1)
-
+      filters.value = [...filters.value]
       reloadData?.()
     } else {
       if (filter.id) {

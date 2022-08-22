@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import { useI18n } from 'vue-i18n'
 import AuditTab from './AuditTab.vue'
 import AppStore from './AppStore.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Misc from './Misc.vue'
+import { useI18n, useUIPermission, useVModel, watch } from '#imports'
 import ApiTokenManagement from '~/components/tabs/auth/ApiTokenManagement.vue'
 import UserManagement from '~/components/tabs/auth/UserManagement.vue'
 import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
 import NootbookOutline from '~icons/mdi/notebook-outline'
-import { useUIPermission, useVModel, watch } from '#imports'
-import MdiCloseIcon from '~icons/mdi/close'
 
 interface Props {
   modelValue: boolean
@@ -142,20 +140,24 @@ watch(
       <a-typography-title class="ml-4 select-none" type="secondary" :level="5">SETTINGS</a-typography-title>
       <a-button type="text" class="!rounded-md border-none -mt-1.5 -mr-1" @click="vModel = false">
         <template #icon>
-          <MdiCloseIcon class="cursor-pointer mt-1 nc-modal-close" />
+          <MdiClose class="cursor-pointer mt-1 nc-modal-close" />
         </template>
       </a-button>
     </div>
 
-    <a-layout class="mt-3 modal-body flex">
+    <a-layout class="mt-3 h-[75vh] overflow-y-auto flex">
       <!-- Side tabs -->
-      <a-layout-sider theme="light">
-        <a-menu v-model:selected-keys="selectedTabKeys" class="h-full" mode="inline" :open-keys="[]">
-          <a-menu-item v-for="(tab, key) of tabsInfo" :key="key">
-            <div class="flex flex-row items-center space-x-2">
-              <component :is="tab.icon" class="flex" />
+      <a-layout-sider>
+        <a-menu v-model:selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
+          <a-menu-item
+            v-for="(tab, key) of tabsInfo"
+            :key="key"
+            class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
+          >
+            <div class="flex items-center space-x-2">
+              <component :is="tab.icon" class="group-hover:text-accent" />
 
-              <div class="flex select-none">
+              <div class="select-none">
                 {{ tab.title }}
               </div>
             </div>
@@ -177,9 +179,10 @@ watch(
   </a-modal>
 </template>
 
-<style scoped>
-.modal-body {
-  @apply h-[75vh];
-  @apply overflow-y-auto;
+<style lang="scss" scoped>
+.tabs-menu {
+  :deep(.ant-menu-item-selected) {
+    @apply border-r-3 border-primary bg-primary !bg-opacity-25;
+  }
 }
 </style>

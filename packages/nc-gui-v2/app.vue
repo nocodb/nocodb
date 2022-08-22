@@ -5,12 +5,14 @@ const route = useRoute()
 
 const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || route.path.startsWith('/nc/form'))
 
-provideTheme()
+const { theme } = provideTheme()
 </script>
 
 <template>
   <a-config-provider>
     <NuxtLayout :name="disableBaseLayout ? false : 'base'">
+      <GeneralLoadingIndicator :color="theme.accentColor" />
+
       <NuxtPage />
     </NuxtLayout>
   </a-config-provider>

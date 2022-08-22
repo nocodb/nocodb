@@ -85,7 +85,7 @@ a {
 }
 
 // for highlighting toolbar menu item
-.nc-active-btn > .ant-btn{
+.nc-active-btn > .ant-btn {
   @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);
 }
 
@@ -239,6 +239,6 @@ a {
   @apply !py-0;
 }
 
-.ant-dropdown-menu-submenu-title{
+.ant-dropdown-menu-submenu-title {
   @apply !pr-2;
 }

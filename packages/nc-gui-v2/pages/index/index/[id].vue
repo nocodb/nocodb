@@ -86,7 +86,16 @@ await getProject()
 
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.editProject') }}</h1>
 
-    <a-form ref="form" :model="formState" name="basic" layout="vertical" no-style autocomplete="off" @finish="renameProject">
+    <a-form
+      ref="form"
+      :model="formState"
+      name="basic"
+      layout="vertical"
+      class="lg:max-w-3/4 w-full !mx-auto"
+      no-style
+      autocomplete="off"
+      @finish="renameProject"
+    >
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules">
         <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>

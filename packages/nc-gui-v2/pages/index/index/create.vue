@@ -77,8 +77,17 @@ onMounted(async () => {
 
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
 
-    <a-form ref="form" :model="formState" name="basic" layout="vertical" no-style autocomplete="off" @finish="createProject">
-      <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="my-10 mx-10">
+    <a-form
+      ref="form"
+      :model="formState"
+      name="basic"
+      layout="vertical"
+      class="lg:max-w-3/4 w-full !mx-auto"
+      no-style
+      autocomplete="off"
+      @finish="createProject"
+    >
+      <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="m-10">
         <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>
 

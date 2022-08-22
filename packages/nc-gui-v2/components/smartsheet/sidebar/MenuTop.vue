@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import type { ViewType, ViewTypes } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
@@ -17,6 +18,12 @@ interface Emits {
 }
 
 const emits = defineEmits<Emits>()
+
+const viewTypeAlias = {
+  [ViewTypes.GRID as any]: 'grid',
+  [ViewTypes.FORM as any]: 'form',
+  [ViewTypes.GALLERY as any]: 'gallery',
+}
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -176,7 +183,7 @@ function onDeleted() {
 <template>
   <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
     <RenameableMenuItem
-      v-for="view of views"
+      v-for="(view, index) of views"
       :id="view.id"
       :key="view.id"
       :view="view"
@@ -184,8 +191,9 @@ function onDeleted() {
       class="transition-all ease-in duration-300"
       :class="{
         'bg-gray-100': isMarked === view.id,
-        'active': route.params.viewTitle && route.params.viewTitle === view.title,
-        [`nc-view-item nc-${view.type}-view-item`]: true,
+        'active':
+          (route.params.viewTitle && route.params.viewTitle === view.title) || (route.params.viewTitle === '' && index === 0),
+        [`nc-view-item nc-${viewTypeAlias[view.type] || view.type}-view-item`]: true,
       }"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"

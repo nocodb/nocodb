@@ -14,6 +14,22 @@ on:
         options:
           - DEV
           - PROD
+  # Triggered by release-nocodb.yml / release-nightly-dev.yml / release-pr.yml
+  workflow_call:
+    inputs:
+      tag:
+        description: "Tag"
+        required: true
+        type: string
+      targetEnv:
+        description: "Target Environment"
+        required: true
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: true
+#       GITHUB_TOKEN:
+#         required: true
 
 jobs:
   release:

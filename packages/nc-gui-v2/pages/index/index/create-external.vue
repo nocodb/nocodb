@@ -253,11 +253,11 @@ onMounted(() => {
       :label-col="{ span: 10 }"
     >
       <a-form-item :label="$t('placeholder.projName')" v-bind="validateInfos.title">
-        <a-input v-model:value="formState.title" size="small" class="nc-extdb-proj-name" />
+        <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
       </a-form-item>
 
       <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
-        <a-select v-model:value="formState.dataSource.client" size="small" class="nc-extdb-db-type" @change="onClientChange">
+        <a-select v-model:value="formState.dataSource.client" class="nc-extdb-db-type" @change="onClientChange">
           <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
             >{{ client.text }}
           </a-select-option>
@@ -270,32 +270,28 @@ onMounted(() => {
         :label="$t('labels.sqliteFile')"
         v-bind="validateInfos['dataSource.connection.connection.filename']"
       >
-        <a-input v-model:value="formState.dataSource.connection.connection.filename" size="small" />
+        <a-input v-model:value="formState.dataSource.connection.connection.filename" />
       </a-form-item>
 
       <template v-else>
         <!-- Host Address -->
         <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
-          <a-input v-model:value="formState.dataSource.connection.host" size="small" class="nc-extdb-host-address" />
+          <a-input v-model:value="formState.dataSource.connection.host" class="nc-extdb-host-address" />
         </a-form-item>
 
         <!-- Port Number -->
         <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
-          <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full nc-extdb-host-port" size="small" />
+          <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full nc-extdb-host-port" />
         </a-form-item>
 
         <!-- Username -->
         <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
-          <a-input v-model:value="formState.dataSource.connection.user" size="small" class="nc-extdb-host-user" />
+          <a-input v-model:value="formState.dataSource.connection.user" class="nc-extdb-host-user" />
         </a-form-item>
 
         <!-- Password -->
         <a-form-item :label="$t('labels.password')">
-          <a-input-password
-            v-model:value="formState.dataSource.connection.password"
-            size="small"
-            class="nc-extdb-host-password"
-          />
+          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
         </a-form-item>
 
         <!-- Database -->
@@ -304,7 +300,6 @@ onMounted(() => {
           <a-input
             v-model:value="formState.dataSource.connection.database"
             :placeholder="$t('labels.dbCreateIfNotExists')"
-            size="small"
             class="nc-extdb-host-database"
           />
         </a-form-item>
@@ -315,14 +310,14 @@ onMounted(() => {
           :label="$t('labels.schemaName')"
           v-bind="validateInfos['dataSource.searchPath.0']"
         >
-          <a-input v-model:value="formState.dataSource.searchPath[0]" size="small" />
+          <a-input v-model:value="formState.dataSource.searchPath[0]" />
         </a-form-item>
 
         <a-collapse ghost expand-icon-position="right" class="!mt-6">
           <a-collapse-panel key="1" :header="$t('title.advancedParameters')">
             <!--            todo:  add in i18n -->
             <a-form-item label="SSL mode">
-              <a-select v-model:value="formState.sslUse" size="small" @change="onClientChange">
+              <a-select v-model:value="formState.sslUse" @change="onClientChange">
                 <a-select-option v-for="opt in sslUsage" :key="opt" :value="opt">{{ opt }}</a-select-option>
               </a-select>
             </a-form-item>
@@ -335,7 +330,7 @@ onMounted(() => {
                     <span>{{ $t('tooltip.clientCert') }}</span>
                   </template>
 
-                  <a-button :disabled="!sslFilesRequired" size="small" class="shadow" @click="certFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput.click()">
                     {{ $t('labels.clientCert') }}
                   </a-button>
                 </a-tooltip>
@@ -345,7 +340,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientKey') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" size="small" class="shadow" @click="keyFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput.click()">
                     {{ $t('labels.clientKey') }}
                   </a-button>
                 </a-tooltip>
@@ -356,7 +351,7 @@ onMounted(() => {
                     <span>{{ $t('tooltip.clientCA') }}</span>
                   </template>
 
-                  <a-button :disabled="!sslFilesRequired" size="small" class="shadow" @click="caFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput.click()">
                     {{ $t('labels.serverCA') }}
                   </a-button>
                 </a-tooltip>
@@ -370,13 +365,13 @@ onMounted(() => {
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect('key', keyFileInput)" />
 
             <a-form-item :label="$t('labels.inflection.tableName')">
-              <a-select v-model:value="formState.inflection.inflectionTable" size="small" @change="onClientChange">
+              <a-select v-model:value="formState.inflection.inflectionTable" @change="onClientChange">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
 
             <a-form-item :label="$t('labels.inflection.columnName')">
-              <a-select v-model:value="formState.inflection.inflectionColumn" size="small" @change="onClientChange">
+              <a-select v-model:value="formState.inflection.inflectionColumn" @change="onClientChange">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
@@ -439,12 +434,12 @@ onMounted(() => {
   :deep(.ant-input-affix-wrapper),
   :deep(.ant-input),
   :deep(.ant-select) {
-    @apply !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+    @apply !appearance-none border-1 border-solid border-primary/50 rounded;
   }
 
-  .nc-extdb-host-password {
+  :deep(.ant-input-password) {
     input {
-      @apply !border-none;
+      @apply !border-none my-0;
     }
   }
 }

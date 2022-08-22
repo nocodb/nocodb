@@ -403,9 +403,12 @@ const onMenuClose = (visible: boolean) => {
         <DashboardTreeView v-show="isOpen" />
       </a-layout-sider>
     </template>
+
     <div :key="$route.fullPath">
       <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
+
       <NuxtPage />
+
       <GeneralPreviewAs float />
     </div>
   </NuxtLayout>

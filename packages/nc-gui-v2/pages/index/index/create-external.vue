@@ -250,7 +250,7 @@ onMounted(() => {
       name="external-project-create-form"
       layout="horizontal"
       no-style
-      :label-col="{ span: 10 }"
+      :label-col="{ span: 8 }"
     >
       <a-form-item :label="$t('placeholder.projName')" v-bind="validateInfos.title">
         <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />

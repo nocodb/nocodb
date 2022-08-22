@@ -138,6 +138,7 @@ watch(
   >
     <div class="flex flex-row justify-between w-full items-center mb-1">
       <a-typography-title class="ml-4 select-none" type="secondary" :level="5">SETTINGS</a-typography-title>
+
       <a-button type="text" class="!rounded-md border-none -mt-1.5 -mr-1" @click="vModel = false">
         <template #icon>
           <MdiClose class="cursor-pointer mt-1 nc-modal-close" />
@@ -168,7 +169,7 @@ watch(
       <!-- Sub Tabs -->
       <a-layout-content class="h-auto px-4 scrollbar-thumb-gray-500">
         <a-menu v-model:selectedKeys="selectedSubTabKeys" :open-keys="[]" mode="horizontal">
-          <a-menu-item v-for="(tab, key) of selectedTab.subTabs" :key="key" class="select-none">
+          <a-menu-item v-for="(tab, key) of selectedTab.subTabs" :key="key" class="active:(!ring-0) select-none">
             {{ tab.title }}
           </a-menu-item>
         </a-menu>

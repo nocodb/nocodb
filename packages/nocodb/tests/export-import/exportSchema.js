@@ -1,5 +1,5 @@
-const Api = require('nocodb-sdk-daily').Api;
-const { UITypes } = require('nocodb-sdk-daily');
+const Api = require('nocodb-sdk').Api;
+const { UITypes } = require('nocodb-sdk');
 const jsonfile = require('jsonfile');
 
 const GRID = 3, GALLERY = 2, FORM = 1;

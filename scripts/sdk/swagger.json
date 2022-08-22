@@ -6053,6 +6053,9 @@
           },
           "slug": {
             "type": "string"
+          },
+          "project_id": {
+            "type": "string"
           }
         },
         "required": [

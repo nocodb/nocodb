@@ -144,7 +144,7 @@ const onMenuClose = (visible: boolean) => {
 </script>
 
 <template>
-  <NuxtLayout id="content" class="flex">
+  <NuxtLayout id="content">
     <template #sidebar>
       <a-layout-sider
         ref="sidebar"
@@ -212,7 +212,7 @@ const onMenuClose = (visible: boolean) => {
             </div>
 
             <template #overlay>
-              <a-menu class="ml-6 !w-[300px] !text-sm !p-0 !rounded">
+              <a-menu class="!ml-1 !w-[300px] !text-sm">
                 <a-menu-item-group>
                   <template #title>
                     <div class="group select-none flex items-center gap-4 py-1">

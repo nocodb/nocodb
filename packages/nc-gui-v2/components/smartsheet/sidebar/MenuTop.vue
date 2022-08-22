@@ -7,9 +7,20 @@ import { message } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
 import RenameableMenuItem from './RenameableMenuItem.vue'
-import { inject, onMounted, ref, useApi, useRoute, useRouter, watch } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
-import { ActiveViewInj, ViewListInj } from '~/context'
+import {
+  ActiveViewInj,
+  ViewListInj,
+  extractSdkResponseErrorMsg,
+  inject,
+  onMounted,
+  ref,
+  useApi,
+  useDialog,
+  useRoute,
+  useRouter,
+  watch,
+} from '#imports'
+import DlgViewDelete from '~/components/dlg/ViewDelete.vue'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
@@ -40,11 +51,6 @@ const selected = ref<string[]>([])
 
 /** dragging renamable view items */
 let dragging = $ref(false)
-
-let deleteModalVisible = $ref(false)
-
-/** view to delete for modal */
-let toDelete = $ref<Record<string, any> | undefined>()
 
 const menuRef = $ref<typeof AntMenu>()
 
@@ -165,18 +171,27 @@ async function onRename(view: ViewType) {
 }
 
 /** Open delete modal */
-async function onDelete(view: Record<string, any>) {
-  toDelete = view
-  deleteModalVisible = true
-}
+function openDeleteDialog(view: Record<string, any>) {
+  const isOpen = ref(true)
 
-/** View was deleted, trigger reload */
-function onDeleted() {
-  emits('deleted')
-  toDelete = undefined
-  deleteModalVisible = false
-  // return to the default view
-  activeView.value = views.value[0]
+  const { close } = useDialog(DlgViewDelete, {
+    'modelValue': isOpen,
+    'view': view,
+    'onUpdate:modelValue': closeDialog,
+    'onDeleted': () => {
+      closeDialog()
+
+      emits('deleted')
+      // return to the default view
+      activeView.value = views.value[0]
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 </script>
 
@@ -197,12 +212,10 @@ function onDeleted() {
       }"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
-      @delete="onDelete"
+      @delete="openDeleteDialog(view)"
       @rename="onRename"
     />
   </a-menu>
-
-  <dlg-view-delete v-model="deleteModalVisible" :view="toDelete" @deleted="onDeleted" />
 </template>
 
 <style lang="scss">
@@ -225,7 +238,7 @@ function onDeleted() {
   }
 
   .ant-menu-item:not(.sortable-chosen) {
-    @apply color-transition hover:!bg-transparent;
+    @apply color-transition;
   }
 
   .sortable-chosen {

@@ -401,10 +401,10 @@ function openTableCreateDialog() {
 
     <a-divider class="!my-0" />
 
-    <div class="flex items-start flex-col justify-start px-4 py-3 gap-2">
-      <GeneralShareBaseButton class="py-1 px-2 text-primary font-bold cursor-pointer select-none" />
+    <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
+      <GeneralShareBaseButton class="py-1.5 px-2 text-primary font-bold cursor-pointer select-none" />
 
-      <GeneralHelpAndSupport class="py-1 px-2 text-gray-500 cursor-pointer select-none" />
+      <GeneralHelpAndSupport class="px-2 text-gray-500 cursor-pointer select-none" />
 
       <DashboardGithubStarButton class="ml-2 py-1" />
     </div>

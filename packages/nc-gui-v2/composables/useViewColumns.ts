@@ -19,6 +19,10 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
 
   const { isSharedBase } = useProject()
 
+  const isLocalMode = computed(
+    () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
+  )
+
   const loadViewColumns = async () => {
     if (!meta || !view) return
 
@@ -52,7 +56,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   }
 
   const showAll = async (ignoreIds?: any) => {
-    if (isPublic.value || isSharedBase.value) {
+    if (isLocalMode.value) {
       fields.value = fields.value?.map((field: Field) => ({
         ...field,
         show: true,
@@ -75,7 +79,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     reloadData?.()
   }
   const hideAll = async (ignoreIds?: any) => {
-    if (isPublic.value || isSharedBase.value) {
+    if (isLocalMode.value) {
       fields.value = fields.value?.map((field: Field) => ({
         ...field,
         show: false,
@@ -144,7 +148,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     },
     set(v: boolean) {
       if (view?.value?.id) {
-        if (!isPublic.value && !isSharedBase.value) {
+        if (!isLocalMode.value) {
           $api.dbView
             .update(view.value.id, {
               show_system_fields: v,

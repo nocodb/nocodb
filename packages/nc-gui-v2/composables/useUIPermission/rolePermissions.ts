@@ -8,6 +8,7 @@ const rolePermissions = {
     column: true,
     tableAttachment: true,
     tableRowUpdate: true,
+    dataInsert: true,
     rowComments: true,
     gridViewOptions: true,
     sortSync: true,

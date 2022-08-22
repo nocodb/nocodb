@@ -46,6 +46,16 @@ const formState = $ref<ProjectCreateForm>({
   sslUse: 'No',
 })
 
+const customFormState = ref<ProjectCreateForm>({
+  title: '',
+  dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
+  inflection: {
+    inflectionColumn: 'camelize',
+    inflectionTable: 'camelize',
+  },
+  sslUse: 'No',
+})
+
 const validators = computed(() => {
   return {
     'title': [
@@ -214,6 +224,16 @@ const testConnection = async () => {
   }
 }
 
+const handleEditJSON = () => {
+  customFormState.value = { ...formState }
+  configEditDlg.value = true
+}
+
+const handleOk = () => {
+  formState.dataSource = { ...customFormState.value.dataSource }
+  configEditDlg.value = false
+}
+
 // reset test status on config change
 watch(
   () => formState.dataSource,
@@ -240,14 +260,7 @@ onMounted(() => {
   >
     <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
 
-    <div
-      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full bg-white cursor-pointer"
-      @click="navigateTo('/')"
-    >
-      <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
-    </div>
-
-    <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
+    <h3 class="text-3xl text-center font-semibold mt-8 mb-4">{{ $t('activity.createProject') }}</h3>
 
     <a-form
       ref="form"
@@ -369,6 +382,8 @@ onMounted(() => {
 
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect('key', keyFileInput)" />
 
+            <a-divider />
+
             <a-form-item :label="$t('labels.inflection.tableName')">
               <a-select v-model:value="formState.inflection.inflectionTable" @change="onClientChange">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
@@ -382,7 +397,7 @@ onMounted(() => {
             </a-form-item>
 
             <div class="flex justify-end">
-              <a-button class="!shadow-md" @click="configEditDlg = true">
+              <a-button class="!shadow-md" @click="handleEditJSON()">
                 <!-- Edit connection JSON -->
                 {{ $t('activity.editConnJson') }}
               </a-button>
@@ -404,13 +419,9 @@ onMounted(() => {
       </a-form-item>
     </a-form>
 
-    <!-- todo: needs replacement
-      <v-dialog v-model="configEditDlg">
-        <a-card>
-          <MonacoEditor v-if="configEditDlg" v-model="formState" class="h-[400px] w-[600px]" />
-        </a-card>
-      </v-dialog>
-       -->
+    <a-modal v-model:visible="configEditDlg" :title="$t('activity.editConnJson')" width="600px" @ok="handleOk">
+      <MonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
+    </a-modal>
   </div>
 </template>
 

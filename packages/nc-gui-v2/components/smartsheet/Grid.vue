@@ -3,6 +3,19 @@ import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import {
+  ActiveViewInj,
+  ChangePageInj,
+  FieldsInj,
+  IsFormInj,
+  IsGridInj,
+  IsLockedInj,
+  IsPublicInj,
+  MetaInj,
+  OpenNewRecordFormHookInj,
+  PaginationDataInj,
+  ReadonlyInj,
+  ReloadViewDataHookInj,
+  enumColor,
   inject,
   onClickOutside,
   onMounted,
@@ -12,25 +25,12 @@ import {
   useEventListener,
   useGridViewColumnWidth,
   useSmartsheetStoreOrThrow,
+  useUIPermission,
   useViewData,
   watch,
 } from '#imports'
 import type { Row } from '~/composables'
-import {
-  ActiveViewInj,
-  ChangePageInj,
-  FieldsInj,
-  IsFormInj,
-  IsGridInj,
-  IsLockedInj,
-  IsPublicInj,
-  MetaInj,
-  PaginationDataInj,
-  ReadonlyInj,
-  ReloadViewDataHookInj,
-} from '~/context'
 import { NavigateDir } from '~/lib'
-import { enumColor } from '~/utils'
 
 const meta = inject(MetaInj)
 
@@ -42,7 +42,7 @@ const isPublicView = inject(IsPublicInj, ref(false))
 // fields menu and get used in grid and gallery
 const fields = inject(FieldsInj, ref([]))
 const readOnly = inject(ReadonlyInj, false)
-const isLocked = inject(IsLockedInj, false)
+const isLocked = inject(IsLockedInj, ref(false))
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj)
@@ -487,28 +487,32 @@ const onNavigate = (dir: NavigateDir) => {
             </tr>
           </tbody>
         </table>
+
         <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
-          <a-menu class="bg-white shadow" @click="contextMenu = false">
-            <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)"
-              ><span class="text-xs">
+          <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
+            <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
+              <div class="nc-project-menu-item">
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
-              </span></a-menu-item
-            >
-            <a-menu-item @click="deleteSelectedRows"
-              ><span class="text-xs">
+              </div>
+            </a-menu-item>
+
+            <a-menu-item @click="deleteSelectedRows">
+              <div class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
-              </span></a-menu-item
-            >
-            <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)"
-              ><span class="text-xs">Clear cell</span>
+              </div>
             </a-menu-item>
+
+            <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)">
+              <div class="nc-project-menu-item">Clear cell</div>
+            </a-menu-item>
+
             <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              <span class="text-xs">
+              <div class="nc-project-menu-item">
                 <!-- Insert New Row -->
                 {{ $t('activity.insertRow') }}
-              </span>
+              </div>
             </a-menu-item>
           </a-menu>
         </template>

@@ -9,7 +9,7 @@
     "test": "vitest -c test/vite.config.ts",
     "test:ui": "vitest -c test/vite.config.ts --ui",
     "coverage": "vitest -c test/vite.config.ts run --coverage",
-    "build:copy:publish": "npm run generate; rm -rf ../nc-lib-gui-2/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui-2/lib/dist/ ; npm publish ../nc-lib-gui-2"
+    "build:copy:publish": "npm run generate; rm -rf ../nc-lib-gui-v2/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui-v2/lib/dist/ ; npm publish ../nc-lib-gui-v2"
 
   },
   "dependencies": {

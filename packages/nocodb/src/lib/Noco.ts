@@ -11,7 +11,7 @@ import * as express from 'express';
 import { Router } from 'express';
 import importFresh from 'import-fresh';
 import morgan from 'morgan';
-import NcToolGui from 'nc-lib-gui-2';
+import NcToolGui from 'nc-lib-gui-v2';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
 

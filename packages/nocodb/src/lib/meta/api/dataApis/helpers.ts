@@ -5,7 +5,7 @@ import { NcError } from '../../helpers/catchError';
 import { Request } from 'express';
 import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
-import { isSystemColumn, UITypes } from 'nocodb-sdk-daily';
+import { isSystemColumn, UITypes } from 'nocodb-sdk';
 
 import { nocoExecute } from 'nc-help';
 import * as XLSX from 'xlsx';

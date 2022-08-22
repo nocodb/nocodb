@@ -1,4 +1,4 @@
-import { XcActionType, XcType } from 'nocodb-sdk-daily';
+import { XcActionType, XcType } from 'nocodb-sdk';
 import { XcPluginConfig } from 'nc-plugin';
 
 import MattermostPlugin from './MattermostPlugin';

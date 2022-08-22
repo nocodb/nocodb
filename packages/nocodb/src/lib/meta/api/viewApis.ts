@@ -4,7 +4,7 @@ import Model from '../../models/Model';
 // @ts-ignore
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 // @ts-ignore
-import { Table, TableReq, ViewList } from 'nocodb-sdk-daily';
+import { Table, TableReq, ViewList } from 'nocodb-sdk';
 // @ts-ignore
 import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 // @ts-ignore

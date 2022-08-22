@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk-daily';
+import { UITypes } from 'nocodb-sdk';
 import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
 import SwaggerTypes from '../../../../db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Column from '../../../../models/Column';

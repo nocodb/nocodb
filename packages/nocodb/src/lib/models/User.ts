@@ -1,4 +1,4 @@
-import { UserType } from 'nocodb-sdk-daily';
+import { UserType } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import extractProps from '../meta/helpers/extractProps';

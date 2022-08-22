@@ -1,4 +1,4 @@
-import { HookType } from 'nocodb-sdk-daily';
+import { HookType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,

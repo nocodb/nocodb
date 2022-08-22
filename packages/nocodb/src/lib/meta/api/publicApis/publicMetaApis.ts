@@ -7,7 +7,7 @@ import {
   LinkToAnotherRecordType,
   RelationTypes,
   UITypes,
-} from 'nocodb-sdk-daily';
+} from 'nocodb-sdk';
 import Column from '../../../models/Column';
 import Base from '../../../models/Base';
 import Project from '../../../models/Project';

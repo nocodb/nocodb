@@ -1,5 +1,5 @@
 import View from '../../../../../models/View';
-import { isSystemColumn, UITypes } from 'nocodb-sdk-daily';
+import { isSystemColumn, UITypes } from 'nocodb-sdk';
 import Model from '../../../../../models/Model';
 import LinkToAnotherRecordColumn from '../../../../../models/LinkToAnotherRecordColumn';
 

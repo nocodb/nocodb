@@ -5,7 +5,7 @@ import Column from '../../models/Column';
 import Hook from '../../models/Hook';
 import Filter from '../../models/Filter';
 import HookLog from '../../models/HookLog';
-import { HookLogType } from 'nocodb-sdk-daily';
+import { HookLogType } from 'nocodb-sdk';
 
 export function parseBody(template: string, data: any): string {
   if (!template) {

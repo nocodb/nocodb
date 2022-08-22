@@ -6,7 +6,7 @@ import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import { nocoExecute } from 'nc-help';
 import papaparse from 'papaparse';
-import { ErrorMessages, isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk-daily';
+import { ErrorMessages, isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
 import Column from '../../../models/Column';
 import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../models/LookupColumn';

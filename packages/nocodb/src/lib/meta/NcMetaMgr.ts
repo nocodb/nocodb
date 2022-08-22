@@ -40,7 +40,7 @@ import { promisify } from 'util';
 import NcTemplateParser from '../v1-legacy/templates/NcTemplateParser';
 import { defaultConnectionConfig } from '../utils/NcConfigFactory';
 import xcMetaDiff from './handlers/xcMetaDiff';
-import { UITypes } from 'nocodb-sdk-daily';
+import { UITypes } from 'nocodb-sdk';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 

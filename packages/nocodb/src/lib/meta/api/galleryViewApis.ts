@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { GalleryType, ViewTypes } from 'nocodb-sdk-daily';
+import { GalleryType, ViewTypes } from 'nocodb-sdk';
 import View from '../../models/View';
 import GalleryView from '../../models/GalleryView';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';

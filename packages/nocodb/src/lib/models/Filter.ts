@@ -8,7 +8,7 @@ import {
   MetaTable,
 } from '../utils/globals';
 import View from './View';
-import { FilterType, UITypes } from 'nocodb-sdk-daily';
+import { FilterType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 
 export default class Filter {

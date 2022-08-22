@@ -1,4 +1,4 @@
-import { ModelTypes, UITypes } from 'nocodb-sdk-daily';
+import { ModelTypes, UITypes } from 'nocodb-sdk';
 import {
   columnNameParam,
   columnNameQueryParam,

@@ -8,7 +8,7 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import RollupColumn from '../../../../models/RollupColumn';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../../models/FormulaColumn';
-import { RelationTypes, UITypes } from 'nocodb-sdk-daily';
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 // import LookupColumn from '../../../models/LookupColumn';
 import { sanitize } from './helpers/sanitize';
 

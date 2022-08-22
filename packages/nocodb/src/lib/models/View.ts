@@ -13,7 +13,7 @@ import GalleryView from './GalleryView';
 import GridViewColumn from './GridViewColumn';
 import Sort from './Sort';
 import Filter from './Filter';
-import { isSystemColumn, ViewType, ViewTypes } from 'nocodb-sdk-daily';
+import { isSystemColumn, ViewType, ViewTypes } from 'nocodb-sdk';
 import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
 import Column from './Column';

@@ -37,7 +37,6 @@
   "dependencies": {
     "express": "^4.18.1",
     "mysql2": "^2.3.3",
-    "nocodb-sdk-daily": "0.92.4-0.92.4-guiv2-test",
     "pg": "^8.7.3",
     "sqlite3": "^5.0.2"
   }

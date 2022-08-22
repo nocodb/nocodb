@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRoute } from '#imports'
+import { useRoute, useUIPermission } from '#imports'
 
 const route = useRoute()
 
@@ -14,8 +14,8 @@ const { isUIAllowed } = useUIPermission()
       v-if="
         isUIAllowed('newUser') &&
         route.name !== 'index' &&
-        route.name !== 'project-index-create' &&
-        route.name !== 'project-index-create-external' &&
+        route.name !== 'index-index-create' &&
+        route.name !== 'index-index-create-external' &&
         route.name !== 'index-user-index'
       "
       @click="showUserModal = true"
@@ -23,9 +23,11 @@ const { isUIAllowed } = useUIPermission()
       <div class="flex items-center space-x-1">
         <MdiAccountPlusOutline class="mr-1 nc-share-base" />
         <!-- todo: i18n       <div>{{ $t('activity.share') }}</div> -->
+
         <div>{{ $t('activity.inviteTeam') }}</div>
       </div>
     </div>
+
     <TabsAuthUserManagementUsersModal :key="showUserModal" :show="showUserModal" @closed="showUserModal = false" />
   </div>
 </template>

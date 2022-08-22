@@ -107,9 +107,7 @@ function onCreate(view: ViewType) {
     <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
       <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
 
-      <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="px-3">
-        <div class="!my-3 w-full border-b-1 border-dashed" />
-      </div>
+      <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="!my-3 w-full border-b-1" />
 
       <MenuBottom @open-modal="openModal" />
     </div>

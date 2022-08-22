@@ -77,8 +77,13 @@ const validators = computed(() => {
 
 const { validate, validateInfos } = useForm(formState, validators)
 
+const populateName = (v: string) => {
+  formState.dataSource.connection.database = `${v?.trim()}_noco`
+}
+
 const onClientChange = () => {
   formState.dataSource = { ...getDefaultConnectionConfig(formState.dataSource.client) }
+  populateName(formState.title)
 }
 
 const inflectionTypes = ['camelize', 'none']
@@ -87,7 +92,7 @@ const configEditDlg = ref(false)
 // populate database name based on title
 watch(
   () => formState.title,
-  (v) => (formState.dataSource.connection.database = `${v?.trim()}_noco`),
+  (v) => populateName(v),
 )
 
 // generate a random project title

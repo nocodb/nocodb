@@ -4,7 +4,7 @@ import type { TableType } from 'nocodb-sdk'
 
 import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadViewDataHookInj } from '~/context'
 
-const { sharedView, meta } = useSharedView()
+const { sharedView, meta, sorts, nestedFilters } = useSharedView()
 
 const reloadEventHook = createEventHook<void>()
 provide(ReloadViewDataHookInj, reloadEventHook)
@@ -14,7 +14,7 @@ provide(ActiveViewInj, sharedView)
 provide(FieldsInj, ref(meta.value.columns as any[]))
 provide(IsPublicInj, ref(true))
 
-useProvideSmartsheetStore(sharedView as Ref<TableType>, meta)
+useProvideSmartsheetStore(sharedView as Ref<TableType>, meta, true, sorts, nestedFilters)
 </script>
 
 <template>

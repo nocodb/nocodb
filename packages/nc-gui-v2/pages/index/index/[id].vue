@@ -107,7 +107,7 @@ await getProject()
 .update-project {
   .ant-input-affix-wrapper,
   .ant-input {
-    @apply !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+    @apply !appearance-none my-1 border-1 border-solid rounded;
   }
 
   .submit {

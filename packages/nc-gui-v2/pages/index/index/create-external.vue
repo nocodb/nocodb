@@ -434,7 +434,7 @@ onMounted(() => {
   :deep(.ant-input-affix-wrapper),
   :deep(.ant-input),
   :deep(.ant-select) {
-    @apply !appearance-none border-1 border-solid border-primary/50 rounded;
+    @apply !appearance-none border-1 border-solid rounded;
   }
 
   :deep(.ant-input-password) {

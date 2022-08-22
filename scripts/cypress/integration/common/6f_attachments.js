@@ -37,17 +37,15 @@ export const genTest = (apiType, dbType) => {
         it(`Add column of type attachments`, () => {
             mainPage.addColumnWithType("testAttach", "Attachment", "Country");
 
-            for (let i = 1; i <= 2; i++) {
+            for (let i = 4; i <= 6; i++) {
                 let filepath = `sampleFiles/${i}.json`;
-                mainPage
-                    .getCell("testAttach", i)
-                    .click()
-                    .find('input[type="file"]')
-                    .attachFile(filepath);
-                mainPage
-                    .getCell("testAttach", i)
-                    .find(".mdi-file")
-                    .should("exist");
+                cy.get('.nc-attachment-cell')
+                  .eq(i)
+                  .attachFile(filepath, { subjectType: 'drag-n-drop' });
+                cy.get('.nc-attachment-cell')
+                  .eq(i)
+                  .find(".nc-attachment")
+                  .should("exist");
             }
         });
 
@@ -62,11 +60,6 @@ export const genTest = (apiType, dbType) => {
                 .contains("Country1")
                 .click();
 
-            // cy.get(".v-navigation-drawer__content > .container")
-            //   .should("exist")
-            //   .find(".v-list > .v-list-item")
-            //   .contains("Share View")
-            //   .click();
             mainPage.shareView().click({ force: true });
 
             cy.wait(5000);

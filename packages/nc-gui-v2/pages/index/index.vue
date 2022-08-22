@@ -9,11 +9,11 @@ const route = useRoute()
     <div
       class="min-h-[calc(100vh_-_var(--header-height))] h-auto bg-primary bg-opacity-5 flex flex-col lg:flex-row flex-wrap gap-6 py-6 px-12 pt-65px"
     >
-      <div class="hidden xl:(block)">
+      <div class="flex-1 justify-end hidden xl:(flex)">
         <GeneralSponsors />
       </div>
 
-      <div class="min-w-2/4 xl:max-w-2/4 w-full flex-auto mx-auto">
+      <div class="min-w-2/4 xl:max-w-2/4 w-full mx-auto">
         <NuxtPage />
       </div>
 

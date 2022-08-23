@@ -121,6 +121,7 @@ export interface TableType {
   columns?: ColumnType[];
   columnsById?: object;
   slug?: string;
+  project_id?: string;
 }
 
 export interface ViewType {
@@ -169,7 +170,7 @@ export interface TableReqType {
   deleted?: boolean;
   order?: number;
   mm?: boolean;
-  columns?: ColumnType[];
+  columns: ColumnType[];
 }
 
 export interface TableListType {
@@ -1487,7 +1488,7 @@ export class Api<
      */
     update: (
       tableId: string,
-      data: { title?: string },
+      data: { table_name?: string; project_id?: string },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

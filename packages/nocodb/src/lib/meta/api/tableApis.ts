@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import Model from '../../models/Model';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { Tele } from 'nc-help';
+import DOMPurify from 'isomorphic-dompurify';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
@@ -101,6 +102,8 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
       req.body.table_name = `${project.prefix}_${req.body.table_name}`;
     }
   }
+
+  req.body.table_name = DOMPurify.sanitize(req.body.table_name);
 
   // validate table name
   if (/^\s+|\s+$/.test(req.body.table_name)) {
@@ -217,18 +220,86 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 export async function tableUpdate(req: Request<any, any>, res) {
   const model = await Model.get(req.params.tableId);
 
+  const project = await Project.getWithInfo(req.body.project_id);
+  const base = project.bases[0];
+
+  if (!req.body.table_name) {
+    NcError.badRequest(
+      'Missing table name `table_name` property in request body'
+    );
+  }
+
+  if (project.prefix) {
+    if (!req.body.table_name.startsWith(project.prefix)) {
+      req.body.table_name = `${project.prefix}${req.body.table_name}`;
+    }
+  }
+
+  req.body.table_name = DOMPurify.sanitize(req.body.table_name);
+
+  // validate table name
+  if (/^\s+|\s+$/.test(req.body.table_name)) {
+    NcError.badRequest(
+      'Leading or trailing whitespace not allowed in table names'
+    );
+  }
+
   if (
-    !(await Model.checkAliasAvailable({
-      title: req.body.title,
-      project_id: model.project_id,
-      base_id: model.base_id,
-      exclude_id: req.params.tableId,
+    !(await Model.checkTitleAvailable({
+      table_name: req.body.table_name,
+      project_id: project.id,
+      base_id: base.id,
     }))
   ) {
     NcError.badRequest('Duplicate table name');
   }
 
-  await Model.updateAlias(req.params.tableId, req.body.title);
+  if (!req.body.title) {
+    req.body.title = getTableNameAlias(
+      req.body.table_name,
+      project.prefix,
+      base
+    );
+  }
+
+  if (
+    !(await Model.checkAliasAvailable({
+      title: req.body.title,
+      project_id: project.id,
+      base_id: base.id,
+    }))
+  ) {
+    NcError.badRequest('Duplicate table alias');
+  }
+
+  const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
+  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+
+  let tableNameLengthLimit = 255;
+  const sqlClientType = sqlClient.clientType;
+  if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+    tableNameLengthLimit = 64;
+  } else if (sqlClientType === 'pg') {
+    tableNameLengthLimit = 63;
+  } else if (sqlClientType === 'mssql') {
+    tableNameLengthLimit = 128;
+  }
+
+  if (req.body.table_name.length > tableNameLengthLimit) {
+    NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
+  }
+
+  await Model.updateAliasAndTableName(
+    req.params.tableId,
+    req.body.title,
+    req.body.table_name
+  );
+
+  await sqlMgr.sqlOpPlus(base, 'tableRename', {
+    ...req.body,
+    tn: req.body.table_name,
+    tn_old: model.table_name,
+  });
 
   Tele.emit('evt', { evt_type: 'table:updated' });
 

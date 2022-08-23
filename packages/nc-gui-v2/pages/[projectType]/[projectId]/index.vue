@@ -144,7 +144,7 @@ const onMenuClose = (visible: boolean) => {
 </script>
 
 <template>
-  <NuxtLayout id="content" class="flex">
+  <NuxtLayout id="content">
     <template #sidebar>
       <a-layout-sider
         ref="sidebar"
@@ -212,7 +212,7 @@ const onMenuClose = (visible: boolean) => {
             </div>
 
             <template #overlay>
-              <a-menu class="ml-6 !w-[300px] !text-sm !p-0 !rounded">
+              <a-menu class="!ml-1 !w-[300px] !text-sm">
                 <a-menu-item-group>
                   <template #title>
                     <div class="group select-none flex items-center gap-4 py-1">
@@ -362,6 +362,8 @@ const onMenuClose = (visible: boolean) => {
                       </div>
                     </template>
 
+                    <template #expandIcon></template>
+
                     <a-menu-item>
                       <div class="nc-project-menu-item group" @click.stop="openColorPicker('primary')">
                         <ClarityColorPickerSolid class="group-hover:text-accent" />
@@ -403,9 +405,12 @@ const onMenuClose = (visible: boolean) => {
         <DashboardTreeView v-show="isOpen" />
       </a-layout-sider>
     </template>
+
     <div :key="$route.fullPath">
       <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
+
       <NuxtPage />
+
       <GeneralPreviewAs float />
     </div>
   </NuxtLayout>

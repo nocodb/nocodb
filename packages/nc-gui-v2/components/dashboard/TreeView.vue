@@ -2,6 +2,7 @@
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { Empty } from 'ant-design-vue'
+import GithubButton from 'vue-github-button'
 import {
   computed,
   inject,
@@ -401,12 +402,22 @@ function openTableCreateDialog() {
 
     <a-divider class="!my-0" />
 
-    <div class="flex items-start flex-col justify-start px-4 py-3 gap-2">
-      <GeneralShareBaseButton class="py-1 px-2 text-primary font-bold cursor-pointer select-none" />
+    <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
+      <GeneralShareBaseButton
+        class="color-transition py-1.5 px-2 text-primary font-bold cursor-pointer select-none hover:text-accent"
+      />
 
-      <GeneralHelpAndSupport class="py-1 px-2 text-gray-500 cursor-pointer select-none" />
+      <GeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
-      <DashboardGithubStarButton class="ml-2 py-1" />
+      <GithubButton
+        class="ml-2 py-1"
+        href="https://github.com/nocodb/nocodb"
+        data-icon="octicon-star"
+        data-show-count="true"
+        data-size="large"
+      >
+        Star
+      </GithubButton>
     </div>
   </div>
 </template>

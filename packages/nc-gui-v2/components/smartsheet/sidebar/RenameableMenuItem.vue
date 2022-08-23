@@ -146,14 +146,14 @@ function onStopEdit() {
 
 <template>
   <a-menu-item
-    class="select-none group !flex !items-center !my-0"
+    class="select-none group !flex !items-center !my-0 hover:(bg-primary !bg-opacity-5)"
     @dblclick.stop="isUIAllowed('virtualViewsCreateOrEdit') && onDblClick()"
     @click.stop="onClick"
   >
     <div v-t="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
       <div class="flex w-auto">
         <MdiDrag
-          class="nc-drag-icon hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
+          class="nc-drag-icon hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 !cursor-move"
           @click.stop.prevent
         />
 

@@ -1,11 +1,6 @@
 <script lang="ts" setup>
-import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
-import { navigateTo } from '#app'
-import { extractSdkResponseErrorMsg } from '~/utils'
-import { reactive, ref, useApi, useGlobal } from '#imports'
-import MaterialSymbolsWarning from '~icons/material-symbols/warning'
-import MdiKeyChange from '~icons/mdi/key-change'
+import { extractSdkResponseErrorMsg, navigateTo, reactive, ref, useApi, useGlobal, useI18n } from '#imports'
 
 const { api } = useApi()
 
@@ -81,7 +76,10 @@ const resetError = () => {
 
         <Transition name="layout">
           <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
-            <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
+            <div class="flex items-center gap-2 justify-center">
+              <MaterialSymbolsWarning />
+              {{ error }}
+            </div>
           </div>
         </Transition>
 
@@ -117,7 +115,10 @@ const resetError = () => {
 
         <div class="flex flex-wrap gap-4 items-center mt-4 md:justify-between w-full">
           <button class="submit" type="submit">
-            <span class="flex items-center gap-2"><MdiKeyChange /> {{ $t('activity.changePwd') }}</span>
+            <span class="flex items-center gap-2">
+              <MdiKeyChange />
+              {{ $t('activity.changePwd') }}
+            </span>
           </button>
         </div>
       </div>

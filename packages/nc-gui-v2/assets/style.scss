@@ -210,6 +210,10 @@ a {
   }
 }
 
+.ant-dropdown-menu {
+  @apply !p-0 !rounded;
+}
+
 .ant-dropdown-menu-submenu-popup {
   @apply scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !shadow !rounded;
 }

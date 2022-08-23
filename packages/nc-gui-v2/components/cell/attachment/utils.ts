@@ -23,10 +23,11 @@ import MdiFilePowerpointBox from '~icons/mdi/file-powerpoint-box'
 import MdiFileExcelOutline from '~icons/mdi/file-excel-outline'
 import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 
-interface AttachmentProps {
+interface AttachmentProps extends File {
   data?: any
   file: File
   title: string
+  mimetype: string
 }
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
@@ -44,11 +45,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const editEnabled = inject(EditModeInj, ref(false))
 
-    /** keep user selected files data (in base encoded string format) and meta details */
-    const storedFilesData = ref<{ title: string; file: File }[]>([])
-
     /** keep user selected File object */
-    const storedFiles = ref<{ title: string; file: File }[]>([])
+    const storedFiles = ref<AttachmentProps[]>([])
 
     const attachments = ref<File[]>([])
 
@@ -60,15 +58,14 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { api, isLoading } = useApi()
 
-    const { files, open, reset } = useFileDialog()
+    const { files, open } = useFileDialog()
 
     /** remove a file from our stored attachments (either locally stored or saved ones) */
     function removeFile(i: number) {
       if (isPublic.value) {
-        storedFilesData.value.splice(i, 1)
         storedFiles.value.splice(i, 1)
 
-        updateModelValue(storedFilesData.value.map((storedFile) => storedFile.file))
+        updateModelValue(storedFiles.value.map((stored) => stored.file))
       } else {
         attachments.value.splice(i, 1)
 
@@ -86,9 +83,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
             Array.from(selectedFiles).map(
               (file) =>
                 new Promise<AttachmentProps>((resolve) => {
-                  const res: any = { ...file, file, title: file.name }
+                  const res: AttachmentProps = { ...file, file, title: file.name, mimetype: file.type }
 
-                  console.log(res)
                   if (isImage(file.name, (<any>file).mimetype ?? file.type)) {
                     const reader = new FileReader()
 
@@ -111,9 +107,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           )),
         )
 
-        reset()
-
-        return updateModelValue(storedFiles.value.map((next) => next.file))
+        return updateModelValue(storedFiles.value.map((stored) => stored.file))
       }
 
       const newAttachments = []
@@ -135,8 +129,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           message.error(e.message || 'Some internal error occurred')
         }
       }
-
-      reset()
 
       updateModelValue([...attachments.value, ...newAttachments])
     }
@@ -176,7 +168,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     return {
       attachments,
-      storedFilesData,
       visibleItems,
       isPublic,
       isPublicGrid,

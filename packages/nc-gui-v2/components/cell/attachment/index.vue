@@ -18,7 +18,7 @@ import {
 } from '#imports'
 
 interface Props {
-  modelValue: string | Record<string, any>[] | null
+  modelValue?: string | Record<string, any>[] | null
   rowIndex?: number
 }
 
@@ -50,10 +50,16 @@ const {
   selectedImage,
   isReadonly,
   storedFiles,
-} = useProvideAttachmentCell(updateModelValue)
+} = useProvideAttachmentCell((val) => {
+  console.log(val)
+
+  updateModelValue(val)
+})
 
 const currentCellRef = computed(() =>
-  isForm.value ? attachmentCellRef.value : cellRefs.value.find((cell) => cell.dataset.key === `${rowIndex}${column.value.id}`),
+  !rowIndex && isForm.value
+    ? attachmentCellRef.value
+    : cellRefs.value.find((cell) => cell.dataset.key === `${rowIndex}${column.value.id}`),
 )
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)

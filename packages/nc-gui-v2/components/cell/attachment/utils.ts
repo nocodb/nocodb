@@ -36,9 +36,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const isPublic = inject(IsPublicInj, ref(false))
 
-    // todo: replace placeholder var
-    const isPublicGrid = $ref(false)
-
     const meta = inject(MetaInj)!
 
     const column = inject(ColumnInj)!
@@ -75,7 +72,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     /** save a file on select / drop, either locally (in-memory) or in the db */
     async function onFileSelect(selectedFiles: FileList | File[]) {
-      if (!selectedFiles.length || isPublicGrid) return
+      if (!selectedFiles.length) return
 
       if (isPublic.value) {
         storedFiles.value.push(
@@ -170,7 +167,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       attachments,
       visibleItems,
       isPublic,
-      isPublicGrid,
       isReadonly,
       meta,
       column,

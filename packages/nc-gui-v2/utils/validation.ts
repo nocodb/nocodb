@@ -129,15 +129,17 @@ export const importExcelUrlValidator = {
 }
 
 export const extraParameterValidator = {
-  validator: (rule: any, value: any, callback: (errMsg?: string) => void) => {
-    for (const param of value) {
-      if (param.key === '') {
-        callback('Parameter key cannot be empty')
+  validator: (rule: any, value: any) => {
+    return new Promise((resolve, reject) => {
+      for (const param of value) {
+        if (param.key === '') {
+          return reject(new Error('Parameter key cannot be empty'))
+        }
+        if (value.filter((el: any) => el.key === param.key).length !== 1) {
+          return reject(new Error('Duplicate parameter keys are not allowed'))
+        }
       }
-      if (value.filter((el: any) => el.key === param.key).length !== 1) {
-        callback('Duplicate parameter keys are not allowed')
-      }
-    }
-    callback()
+      return resolve(true)
+    })
   },
 }

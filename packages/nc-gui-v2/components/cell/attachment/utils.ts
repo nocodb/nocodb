@@ -48,7 +48,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const storedFilesData = ref<{ title: string; file: File }[]>([])
 
     /** keep user selected File object */
-    const storedFiles = ref<File[]>([])
+    const storedFiles = ref<{ title: string; file: File }[]>([])
 
     const attachments = ref<File[]>([])
 
@@ -60,7 +60,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { api, isLoading } = useApi()
 
-    const { files, open } = useFileDialog()
+    const { files, open, reset } = useFileDialog()
 
     /** remove a file from our stored attachments (either locally stored or saved ones) */
     function removeFile(i: number) {
@@ -81,22 +81,27 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       if (!selectedFiles.length || isPublicGrid) return
 
       if (isPublic.value) {
-        storedFiles.value.push(...selectedFiles)
-        storedFilesData.value.push(
+        storedFiles.value.push(
           ...(await Promise.all<AttachmentProps>(
             Array.from(selectedFiles).map(
               (file) =>
                 new Promise<AttachmentProps>((resolve) => {
-                  const res: AttachmentProps = { file, title: file.name }
-                  if (isImage(file.name, (file as any).mimetype)) {
+                  const res: any = { ...file, file, title: file.name }
+
+                  console.log(res)
+                  if (isImage(file.name, (<any>file).mimetype ?? file.type)) {
                     const reader = new FileReader()
-                    reader.onload = (e: any) => {
+
+                    reader.onload = (e) => {
                       res.data = e.target?.result
+
                       resolve(res)
                     }
+
                     reader.onerror = () => {
                       resolve(res)
                     }
+
                     reader.readAsDataURL(file)
                   } else {
                     resolve(res)
@@ -106,7 +111,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           )),
         )
 
-        return updateModelValue(storedFilesData.value.map((storedFile) => storedFile.file))
+        reset()
+
+        return updateModelValue(storedFiles.value.map((next) => next.file))
       }
 
       const newAttachments = []
@@ -128,6 +135,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           message.error(e.message || 'Some internal error occurred')
         }
       }
+
+      reset()
 
       updateModelValue([...attachments.value, ...newAttachments])
     }
@@ -161,7 +170,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** our currently visible items, either the locally stored or the ones from db, depending on isPublicForm status */
-    const visibleItems = computed<any[]>(() => [...attachments.value, ...storedFiles.value])
+    const visibleItems = computed<any[]>(() => (isPublic.value ? storedFiles.value : attachments.value))
 
     watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles))
 

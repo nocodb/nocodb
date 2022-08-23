@@ -29,33 +29,32 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
     >
   }
 
-  return required || (columnObj && columnObj.rqd && !columnObj.cdf)
+  return !!(required || (columnObj && columnObj.rqd && !columnObj.cdf))
 }
 </script>
 
 <template>
-  <div class="bg-primary !h-[100vh] overflow-auto w-full flex flex-col">
-    <div>
-      <img src="~/assets/img/icons/512x512-trans.png" width="30" class="mx-4 mt-2" />
-    </div>
+  <div class="!h-[100vh] overflow-auto w-full flex flex-col">
     <div class="m-4 mt-2 bg-white rounded p-2 flex-1">
       <a-alert v-if="notFound" type="warning" class="mx-auto mt-10 max-w-[300px]" message="Not found"> </a-alert>
 
       <template v-else-if="submitted">
         <div class="flex justify-center">
           <div v-if="sharedFormView" style="min-width: 350px" class="mt-3">
-            <a-alert type="success" outlined :message="sharedFormView.success_msg || 'Successfully submitted form data'">
-            </a-alert>
+            <a-alert type="success" outlined :message="sharedFormView.success_msg || 'Successfully submitted form data'" />
+
             <p v-if="sharedFormView.show_blank_form" class="text-xs text-gray-500 text-center my-4">
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
+
             <div v-if="sharedFormView.submit_another_form" class="text-center">
               <a-button type="primary" @click="submitted = false"> Submit Another Form</a-button>
             </div>
           </div>
         </div>
       </template>
-      <div v-else-if="sharedFormView" class="">
+
+      <div v-else-if="sharedFormView">
         <a-row class="justify-center">
           <a-col :md="20">
             <div>
@@ -81,6 +80,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                     <div class="text-lg text-left mx-4 py-2 px-1 text-gray-500">
                       {{ sharedFormView.subheading }}
                     </div>
+
                     <div class="h-full">
                       <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col mt-4 px-4 space-y-2">
                         <div class="flex">
@@ -90,6 +90,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                             :required="isRequired(field, field.required)"
                             :hide-menu="true"
                           />
+
                           <SmartsheetHeaderCell
                             v-else
                             :column="{ ...field, title: field.label || field.title }"

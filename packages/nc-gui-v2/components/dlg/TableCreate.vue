@@ -19,7 +19,7 @@ const inputEl = ref<HTMLInputElement>()
 
 const { addTab } = useTabs()
 
-const { loadTables } = useProject()
+const { loadTables, isMysql, isMssql, isPg } = useProject()
 
 const { table, createTable, generateUniqueTitle, tables, project } = useTable(async (table) => {
   await loadTables()
@@ -39,7 +39,29 @@ const validateDuplicateAlias = (v: string) => (tables.value || []).every((t) => 
 
 const validators = computed(() => {
   return {
-    title: [validateTableName, validateDuplicateAlias],
+    title: [
+      validateTableName,
+      validateDuplicateAlias,
+      {
+        validator: (rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            let tableNameLengthLimit = 255
+            if (isMysql) {
+              tableNameLengthLimit = 64
+            } else if (isPg) {
+              tableNameLengthLimit = 63
+            } else if (isMssql) {
+              tableNameLengthLimit = 128
+            }
+            const projectPrefix = project?.value?.prefix || ''
+            if ((projectPrefix + value).length > tableNameLengthLimit) {
+              return reject(new Error(`Table name exceeds ${tableNameLengthLimit} characters`))
+            }
+            resolve()
+          })
+        },
+      },
+    ],
     table_name: [validateTableName],
   }
 })

@@ -24,8 +24,7 @@ const dialogShow = computed({
 })
 
 const { updateTab } = useTabs()
-const { loadTables } = useProject()
-const { tables } = useProject()
+const { loadTables, tables, project, isMysql, isMssql, isPg } = useProject()
 
 const inputEl = $ref<any>()
 let loading = $ref(false)
@@ -38,18 +37,39 @@ const validators = computed(() => {
     title: [
       validateTableName,
       {
-        validator: (rule: any, value: any, callback: (errMsg?: string) => void) => {
-          if (/^\s+|\s+$/.test(value)) {
-            callback('Leading or trailing whitespace not allowed in table name')
-          }
-          if (
-            !(tables?.value || []).every(
-              (t) => t.id === tableMeta.id || t.table_name.toLowerCase() !== (value || '').toLowerCase(),
-            )
-          ) {
-            callback('Duplicate table alias')
-          }
-          callback()
+        validator: (rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            let tableNameLengthLimit = 255
+            if (isMysql) {
+              tableNameLengthLimit = 64
+            } else if (isPg) {
+              tableNameLengthLimit = 63
+            } else if (isMssql) {
+              tableNameLengthLimit = 128
+            }
+            const projectPrefix = project?.value?.prefix || ''
+            if ((projectPrefix + value).length > tableNameLengthLimit) {
+              return reject(new Error(`Table name exceeds ${tableNameLengthLimit} characters`))
+            }
+            resolve()
+          })
+        },
+      },
+      {
+        validator: (rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            if (/^\s+|\s+$/.test(value)) {
+              return reject(new Error('Leading or trailing whitespace not allowed in table name'))
+            }
+            if (
+              !(tables?.value || []).every(
+                (t) => t.id === tableMeta.id || t.table_name.toLowerCase() !== (value || '').toLowerCase(),
+              )
+            ) {
+              return reject(new Error('Duplicate table alias'))
+            }
+            resolve()
+          })
         },
       },
     ],
@@ -71,7 +91,8 @@ const renameTable = async () => {
   loading = true
   try {
     await $api.dbTable.update(tableMeta?.id as string, {
-      title: formState.title,
+      project_id: tableMeta?.project_id,
+      table_name: formState.title,
     })
     dialogShow.value = false
     loadTables()

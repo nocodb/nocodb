@@ -23,6 +23,7 @@ interface Props {
   column: ColumnType
   modelValue: any
   editEnabled: boolean
+  readOnly?: boolean
   rowIndex?: number
   active?: boolean
   virtual?: boolean
@@ -38,11 +39,17 @@ const active = toRef(props, 'active', false)
 
 const virtual = toRef(props, 'virtual', false)
 
+const readOnly = toRef(props, 'readOnly', undefined)
+
 provide(ColumnInj, column)
 
 provide(EditModeInj, useVModel(props, 'editEnabled', emit))
 
 provide(ActiveCellInj, active)
+
+if (readOnly?.value) {
+  provide(ReadonlyInj, readOnly.value)
+}
 
 const isForm = inject(IsFormInj, ref(false))
 

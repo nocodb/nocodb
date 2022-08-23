@@ -53,14 +53,13 @@ jobs:
           cat packages/nc-gui-v2/package.json
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
           cd packages/nocodb-sdk &&
-          npm install && npm run build && npm publish &&
+          npm ci && npm run build && npm publish &&
           cd ../.. &&
           sleep 60
-          cat packages/nc-gui-v2/package.json
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk2.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/bumpNcGuiVersion.js &&
           cd packages/nc-gui-v2 &&
-          npm install &&
+          npm ci &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy:publish &&
           cd ../.. &&
           sleep 60 &&

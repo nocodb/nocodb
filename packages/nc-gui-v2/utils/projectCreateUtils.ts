@@ -11,7 +11,7 @@ export interface ProjectCreateForm {
           user: string
           password: string
           port: number | string
-          ssl?: Record<string, string> | string
+          ssl?: Record<'ca' | 'cert' | 'key', string> | string
         }
       | {
           client?: ClientType.SQLITE
@@ -27,7 +27,7 @@ export interface ProjectCreateForm {
     inflectionColumn?: string
     inflectionTable?: string
   }
-  sslUse?: any
+  sslUse?: 'No' | 'Allowed' | string
   extraParameters: Record<string, string>[]
 }
 

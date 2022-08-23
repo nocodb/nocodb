@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Form, Modal, message } from 'ant-design-vue'
+import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import {
   clientTypes,
   computed,
@@ -27,6 +28,8 @@ import type { ProjectCreateForm } from '~/utils'
 const useForm = Form.useForm
 
 const testSuccess = ref(false)
+
+const form = ref<typeof Form>()
 
 const { api, isLoading } = useApi()
 
@@ -91,7 +94,7 @@ const validators = computed(() => {
 const { validate, validateInfos } = useForm(formState, validators)
 
 const populateName = (v: string) => {
-  formState.dataSource.connection.database = `${v?.trim()}_noco`
+  formState.dataSource.connection.database = `${v.trim()}_noco`
 }
 
 const onClientChange = () => {
@@ -99,23 +102,25 @@ const onClientChange = () => {
   populateName(formState.title)
 }
 
-const onSSLModeChange = (v: any) => {
-  switch (v) {
-    case 'No':
-      delete formState.dataSource.connection.ssl
-      break
-    case 'Allowed':
-      formState.dataSource.connection.ssl = 'true'
-      break
-    default:
-      formState.dataSource.connection.ssl = {
-        ca: '',
-        cert: '',
-        key: '',
-      }
-      break
+const onSSLModeChange = ((mode: 'No' | 'Allow' | string) => {
+  if ('ssl' in formState.dataSource.connection) {
+    switch (mode) {
+      case 'No':
+        delete formState.dataSource.connection.ssl
+        break
+      case 'Allowed':
+        formState.dataSource.connection.ssl = 'true'
+        break
+      default:
+        formState.dataSource.connection.ssl = {
+          ca: '',
+          cert: '',
+          key: '',
+        }
+        break
+    }
   }
-}
+}) as unknown as SelectHandler
 
 const addNewParam = () => {
   formState.extraParameters.push({ key: '', value: '' })
@@ -132,25 +137,19 @@ const caFileInput = ref<HTMLInputElement>()
 const keyFileInput = ref<HTMLInputElement>()
 const certFileInput = ref<HTMLInputElement>()
 
-const onFileSelect = (key: 'ca' | 'cert' | 'key', el: HTMLInputElement) => {
+const onFileSelect = (key: 'ca' | 'cert' | 'key', el?: HTMLInputElement) => {
+  if (!el) return
+
   readFile(el, (content) => {
-    if ('ssl' in formState.dataSource.connection && formState.dataSource.connection.ssl)
+    if ('ssl' in formState.dataSource.connection && typeof formState.dataSource.connection.ssl === 'object')
       formState.dataSource.connection.ssl[key] = content ?? ''
   })
 }
 
-const sslFilesRequired = computed<boolean>(() => {
-  return formState?.sslUse && formState.sslUse !== 'No' && formState.sslUse !== 'Allowed'
-})
+const sslFilesRequired = computed(() => !!formState.sslUse && formState.sslUse !== 'No' && formState.sslUse !== 'Allowed')
 
 function getConnectionConfig() {
-  const extraParameters = Object.fromEntries(
-    new Map(
-      formState.extraParameters.map((object) => {
-        return [object.key, object.value]
-      }),
-    ),
-  )
+  const extraParameters = Object.fromEntries(new Map(formState.extraParameters.map((object) => [object.key, object.value])))
 
   const connection = {
     ...formState.dataSource.connection,
@@ -165,9 +164,8 @@ function getConnectionConfig() {
   return connection
 }
 
-const form = ref<any>()
 const focusInvalidInput = () => {
-  form?.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
+  form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
 const createProject = async () => {
@@ -393,7 +391,7 @@ onMounted(() => {
                     <span>{{ $t('tooltip.clientCert') }}</span>
                   </template>
 
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
                     {{ $t('labels.clientCert') }}
                   </a-button>
                 </a-tooltip>
@@ -403,7 +401,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientKey') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
                     {{ $t('labels.clientKey') }}
                   </a-button>
                 </a-tooltip>
@@ -414,7 +412,7 @@ onMounted(() => {
                     <span>{{ $t('tooltip.clientCA') }}</span>
                   </template>
 
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
                     {{ $t('labels.serverCA') }}
                   </a-button>
                 </a-tooltip>
@@ -434,8 +432,11 @@ onMounted(() => {
                 <div v-for="(item, index) of formState.extraParameters" :key="index">
                   <div class="flex py-1 items-center gap-1">
                     <a-input v-model:value="item.key" />
+
                     <span>:</span>
+
                     <a-input v-model:value="item.value" />
+
                     <MdiClose :style="{ 'font-size': '1.5em', 'color': 'red' }" @click="removeParam(index)" />
                   </div>
                 </div>

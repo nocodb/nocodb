@@ -77,7 +77,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   })
 
   const appInfo = ref<AppInfo>({
-    ncSiteUrl: 'http://localhost:8080',
+    ncSiteUrl: process.env.NC_BACKEND_URL || (process.env.NODE_ENV === 'production' ? '..' : 'http://localhost:8080'),
     authType: 'jwt',
     connectToExternalDB: false,
     defaultLimit: 0,

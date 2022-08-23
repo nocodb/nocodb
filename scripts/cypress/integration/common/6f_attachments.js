@@ -9,6 +9,14 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             cy.fileHook();
             loginPage.loginAndOpenProject(apiType, dbType);
+
+            // kludge: wait for page load to finish
+            cy.wait(3000);
+            // close team & auth tab
+            cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            cy.wait(1000);
+
+
             cy.openTableTab("Country", 25);
         });
 
@@ -23,13 +31,13 @@ export const genTest = (apiType, dbType) => {
 
             // wait for page rendering to complete
             cy.get(".nc-grid-row").should("have.length", 10);
-            mainPage
-                .getRow(10)
-                .find(".mdi-checkbox-blank-outline")
-                .click({ force: true });
+            // mainPage
+            //     .getRow(10)
+            //     .find(".mdi-checkbox-blank-outline")
+            //     .click({ force: true });
 
             mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu().contains("Delete Selected Row").click();
+            cy.getActiveMenu().contains("Delete Row").click();
 
             cy.closeTableTab("Country");
         });
@@ -50,17 +58,17 @@ export const genTest = (apiType, dbType) => {
         });
 
         it(`Form view with Attachment field- Submit & verify`, () => {
+
+            // open right navbar
+            cy.get('.nc-toggle-right-navbar').should('exist').click();
+
             // create form-view
-            cy.get(`.nc-create-form-view`).click();
+            cy.get(`.nc-create-1-view`).click();
             cy.getActiveModal().find("button:contains(Submit)").click();
 
             cy.toastWait("View created successfully");
 
-            cy.get(`.nc-view-item.nc-form-view-item`)
-                .contains("Country1")
-                .click();
-
-            mainPage.shareView().click({ force: true });
+            mainPage.shareView().click();
 
             cy.wait(5000);
 
@@ -68,6 +76,7 @@ export const genTest = (apiType, dbType) => {
             cy.getActiveModal()
                 .find(".share-link-box")
                 .contains("/nc/form/", { timeout: 10000 })
+                .should('exist')
                 .then(($obj) => {
                     let linkText = $obj.text().trim();
                     cy.log(linkText);
@@ -77,24 +86,36 @@ export const genTest = (apiType, dbType) => {
                     cy.wait(5000);
 
                     // wait for share view page to load!
+                    cy.get(".nc-form").should("exist");
 
-                    cy.get("#data-table-form-Country")
-                        .should("exist")
-                        .type("_abc");
-                    cy.get("#data-table-form-LastUpdate").click();
-                    cy.getActiveModal().find("button").contains("19").click();
-                    cy.getActiveModal().find("button").contains("OK").click();
+                    // fill form
+                    // 0: Country
+                    // 1: LastUpdate
+                    cy.get(".nc-input").eq(0).type("_abc");
+                    cy.get(".nc-input").eq(1).click();
+                    cy.get('.ant-picker-dropdown').find(".ant-picker-now-btn").click();
+                    cy.get('.ant-picker-dropdown').find("button.ant-btn-primary").click();
 
-                    cy.get(".nc-field-editables")
-                        .last()
-                        .find('input[type="file"]')
-                        .attachFile(`sampleFiles/1.json`);
+
+                    cy.get('.nc-attachment-cell')
+                      .attachFile(`sampleFiles/1.json`, { subjectType: 'drag-n-drop' });
+                    // cy.get(".nc-field-editables")
+                    //   .last()
+                    //   .find('input[type="file"]')
+                    //   .attachFile(`sampleFiles/1.json`);
 
                     // submit button & validate
-                    cy.get(".nc-form")
-                        .find("button")
-                        .contains("Submit")
-                        .click();
+                    cy.get(".nc-form").find("button").contains("Submit").click();
+
+                    cy.get(".ant-alert-message")
+                      .contains("Successfully submitted form data")
+                      .should("exist");
+
+                    // // submit button & validate
+                    // cy.get(".nc-form")
+                    //     .find("button")
+                    //     .contains("Submit")
+                    //     .click();
                     cy.toastWait("Saved successfully");
                 });
         });
@@ -102,6 +123,13 @@ export const genTest = (apiType, dbType) => {
         it(`Filter column which contain only attachments, download CSV`, () => {
             // come back to main window
             loginPage.loginAndOpenProject(apiType, dbType);
+
+            // kludge: wait for page load to finish
+            cy.wait(3000);
+            // close team & auth tab
+            cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            cy.wait(1000);
+
             cy.openTableTab("Country", 25);
 
             mainPage.filterField("testAttach", "is not null", null);

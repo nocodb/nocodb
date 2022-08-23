@@ -103,6 +103,13 @@ const readPluginDetails = async () => {
     const emptyParsedInput = formDetails.array ? [{}] : {}
     const parsedInput = res.input ? JSON.parse(res.input) : emptyParsedInput
 
+    // the type of 'secure' was XcType.SingleLineText in 0.0.1
+    // and it has been changed to XcType.Checkbox, since 0.0.2
+    // hence, change the text value to boolean here
+    if ('secure' in parsedInput && typeof parsedInput.secure === 'string') {
+      parsedInput.secure = !!parsedInput.secure
+    }
+
     plugin = { ...res, formDetails, parsedInput }
     pluginFormData = plugin.parsedInput
   } catch (e) {

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Form, Modal, message } from 'ant-design-vue'
+import type { RawValueType } from 'ant-design-vue'
 import {
   clientTypes,
   computed,
@@ -96,6 +97,24 @@ const onClientChange = () => {
   populateName(formState.title)
 }
 
+const onSSLModeChange = (v: RawValueType) => {
+  switch (v) {
+    case 'No':
+      delete formState.dataSource.connection.ssl
+      break
+    case 'Allowed':
+      formState.dataSource.connection.ssl = true
+      break
+    default:
+      formState.dataSource.connection.ssl = {
+        ca: '',
+        cert: '',
+        key: '',
+      }
+      break
+  }
+}
+
 const inflectionTypes = ['camelize', 'none']
 const configEditDlg = ref(false)
 
@@ -120,7 +139,7 @@ const onFileSelect = (key: 'ca' | 'cert' | 'key', el: HTMLInputElement) => {
 }
 
 const sslFilesRequired = computed<boolean>(() => {
-  return formState?.sslUse && formState.sslUse !== 'No'
+  return formState?.sslUse && formState.sslUse !== 'No' && formState.sslUse !== 'Allowed'
 })
 
 function getConnectionConfig() {
@@ -335,7 +354,7 @@ onMounted(() => {
           <a-collapse-panel key="1" :header="$t('title.advancedParameters')">
             <!--            todo:  add in i18n -->
             <a-form-item label="SSL mode">
-              <a-select v-model:value="formState.sslUse" @change="onClientChange">
+              <a-select v-model:value="formState.sslUse" @select="onSSLModeChange">
                 <a-select-option v-for="opt in sslUsage" :key="opt" :value="opt">{{ opt }}</a-select-option>
               </a-select>
             </a-form-item>
@@ -385,13 +404,13 @@ onMounted(() => {
             <a-divider />
 
             <a-form-item :label="$t('labels.inflection.tableName')">
-              <a-select v-model:value="formState.inflection.inflectionTable" @change="onClientChange">
+              <a-select v-model:value="formState.inflection.inflectionTable">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
 
             <a-form-item :label="$t('labels.inflection.columnName')">
-              <a-select v-model:value="formState.inflection.inflectionColumn" @change="onClientChange">
+              <a-select v-model:value="formState.inflection.inflectionColumn">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>

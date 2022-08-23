@@ -11,7 +11,7 @@ export interface ProjectCreateForm {
           user: string
           password: string
           port: number | string
-          ssl?: Record<string, string>
+          ssl?: Record<string, string> | string
         }
       | {
           client?: ClientType.SQLITE
@@ -73,11 +73,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'postgres',
     password: 'password',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
   },
   [ClientType.MYSQL]: {
     host: defaultHost,
@@ -85,11 +80,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'root',
     password: 'password',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
   },
   [ClientType.VITESS]: {
     host: defaultHost,
@@ -97,11 +87,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'root',
     password: 'password',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
   },
   [ClientType.MSSQL]: {
     host: defaultHost,
@@ -109,11 +94,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'sa',
     password: 'Password123.',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
   },
   [ClientType.SQLITE]: {
     client: ClientType.SQLITE,
@@ -129,11 +109,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'root',
     password: '',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
   },
   yugabyte: {
     host: defaultHost,
@@ -141,11 +116,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'postgres',
     password: '',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
   },
   citusdb: {
     host: defaultHost,
@@ -153,11 +123,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'postgres',
     password: '',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
   },
   cockroachdb: {
     host: defaultHost,
@@ -165,11 +130,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'postgres',
     password: '',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
   },
   greenplum: {
     host: defaultHost,
@@ -177,11 +137,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'postgres',
     password: '',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
   },
   oracledb: {
     host: defaultHost,
@@ -189,11 +144,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'system',
     password: 'Oracle18',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
   },
 }
 
@@ -209,4 +159,4 @@ export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateFor
   }
 }
 
-export const sslUsage = ['No', 'Preferred', 'Required', 'Required-CA', 'Required-IDENTITY']
+export const sslUsage = ['No', 'Allowed', 'Preferred', 'Required', 'Required-CA', 'Required-IDENTITY']

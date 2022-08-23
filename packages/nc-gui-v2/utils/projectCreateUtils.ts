@@ -28,6 +28,7 @@ export interface ProjectCreateForm {
     inflectionTable?: string
   }
   sslUse?: any
+  extraParameters: Record<string, string>[]
 }
 
 const defaultHost = 'localhost'

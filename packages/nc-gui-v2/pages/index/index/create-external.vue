@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { Form, Modal, message } from 'ant-design-vue'
-import type { RawValueType } from 'ant-design-vue'
 import {
   clientTypes,
   computed,
@@ -45,6 +44,7 @@ const formState = $ref<ProjectCreateForm>({
     inflectionTable: 'camelize',
   },
   sslUse: 'No',
+  extraParameters: [],
 })
 
 const customFormState = ref<ProjectCreateForm>({
@@ -55,6 +55,7 @@ const customFormState = ref<ProjectCreateForm>({
     inflectionTable: 'camelize',
   },
   sslUse: 'No',
+  extraParameters: [],
 })
 
 const validators = computed(() => {
@@ -66,6 +67,7 @@ const validators = computed(() => {
       },
       projectTitleValidator,
     ],
+    'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator],
     ...(formState.dataSource.client === ClientType.SQLITE
       ? {
@@ -97,13 +99,13 @@ const onClientChange = () => {
   populateName(formState.title)
 }
 
-const onSSLModeChange = (v: RawValueType) => {
+const onSSLModeChange = (v: any) => {
   switch (v) {
     case 'No':
       delete formState.dataSource.connection.ssl
       break
     case 'Allowed':
-      formState.dataSource.connection.ssl = true
+      formState.dataSource.connection.ssl = 'true'
       break
     default:
       formState.dataSource.connection.ssl = {
@@ -115,17 +117,16 @@ const onSSLModeChange = (v: RawValueType) => {
   }
 }
 
+const addNewParam = () => {
+  formState.extraParameters.push({ key: '', value: '' })
+}
+
+const removeParam = (index: number) => {
+  formState.extraParameters.splice(index, 1)
+}
+
 const inflectionTypes = ['camelize', 'none']
 const configEditDlg = ref(false)
-
-// populate database name based on title
-watch(
-  () => formState.title,
-  (v) => populateName(v),
-)
-
-// generate a random project title
-formState.title = generateUniqueName()
 
 const caFileInput = ref<HTMLInputElement>()
 const keyFileInput = ref<HTMLInputElement>()
@@ -143,12 +144,23 @@ const sslFilesRequired = computed<boolean>(() => {
 })
 
 function getConnectionConfig() {
+  const extraParameters = Object.fromEntries(
+    new Map(
+      formState.extraParameters.map((object) => {
+        return [object.key, object.value]
+      }),
+    ),
+  )
+
   const connection = {
     ...formState.dataSource.connection,
+    ...extraParameters,
   }
 
-  if ('ssl' in connection && connection.ssl && (!sslFilesRequired || Object.values(connection.ssl).every((v) => !v))) {
-    delete connection.ssl
+  if ('ssl' in connection && connection.ssl) {
+    if (formState.sslUse === 'No' || (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => !v))) {
+      delete connection.ssl
+    }
   }
   return connection
 }
@@ -260,8 +272,15 @@ watch(
   { deep: true },
 )
 
+// populate database name based on title
+watch(
+  () => formState.title,
+  (v) => populateName(v),
+)
+
 // select and focus title field on load
 onMounted(() => {
+  formState.title = generateUniqueName()
   nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
@@ -400,6 +419,24 @@ onMounted(() => {
             <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect('cert', certFileInput)" />
 
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect('key', keyFileInput)" />
+
+            <a-divider />
+
+            <a-form-item class="mb-2" label="Extra connection parameters" v-bind="validateInfos.extraParameters">
+              <a-card>
+                <div v-for="(item, index) of formState.extraParameters" :key="index">
+                  <div class="flex py-1 items-center gap-1">
+                    <a-input v-model:value="item.key" />
+                    <span>:</span>
+                    <a-input v-model:value="item.value" />
+                    <MdiClose :style="{ 'font-size': '1.5em', 'color': 'red' }" @click="removeParam(index)" />
+                  </div>
+                </div>
+                <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
+                  <div class="flex items-center justify-center"><MdiPlus /></div>
+                </a-button>
+              </a-card>
+            </a-form-item>
 
             <a-divider />
 

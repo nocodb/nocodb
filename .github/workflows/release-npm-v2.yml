@@ -55,7 +55,8 @@ jobs:
           cd packages/nocodb-sdk &&
           npm install && npm run build && npm publish &&
           cd ../.. &&
-          sleep 60 &&
+          sleep 60
+          cat packages/nc-gui-v2/package.json
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk2.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/bumpNcGuiVersion.js &&
           cd packages/nc-gui-v2 &&

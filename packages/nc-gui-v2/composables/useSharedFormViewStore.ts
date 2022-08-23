@@ -134,9 +134,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       /** find attachments in form data */
       for (const col of metas.value?.[sharedView.value?.fk_model_id as string]?.columns) {
         if (col.uidt === UITypes.Attachment) {
-          console.log(data[col.title!])
-
-          attachment[`_${col.title}`] = data[col.title].map((item: { file: File }) => item.file)
+          if (data[col.title]) {
+            attachment[`_${col.title}`] = data[col.title].map((item: { file: File }) => item.file)
+          }
         }
       }
 

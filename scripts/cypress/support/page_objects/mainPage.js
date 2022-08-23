@@ -102,7 +102,7 @@ export class _mainPage {
                 return cy.get(".nc-settings-projmeta:visible").should("exist");
         }
     }
-    
+
     // add new user to specified role
     //
     addNewUserToProject = (userCred, roleType) => {
@@ -254,7 +254,7 @@ export class _mainPage {
     };
 
     shareView = () => {
-        return cy.get(".nc-btn-share-view");
+        return cy.get(".nc-btn-share-view").should("exist");
     };
 
     shareViewList = () => {
@@ -378,10 +378,9 @@ export class _mainPage {
     //
     downloadAndVerifyCsv = (filename, verifyCsv) => {
         cy.get(".nc-actions-menu-btn").click();
-        cy.getActiveMenu().find('.nc-menu-item').contains('Download as CSV').click();
-        // cy.get(
-        //     `.menuable__content__active .v-list-item span:contains("Download as CSV")`
-        // ).click();
+        cy.getActiveMenu().find('.nc-project-menu-item').contains('Download').click();
+        cy.wait(1000);
+        cy.get('.nc-project-menu-item').contains('Download as CSV').should('exist').click();
 
         cy.toastWait("Successfully exported all table data").then(() => {
             // download folder path, read from config file

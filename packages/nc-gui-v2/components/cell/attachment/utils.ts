@@ -1,9 +1,22 @@
 import { message } from 'ant-design-vue'
 import FileSaver from 'file-saver'
-import { computed, inject, ref, useApi, useFileDialog, useInjectionState, useProject, watch } from '#imports'
-import { ColumnInj, EditModeInj, IsPublicInj, MetaInj, ReadonlyInj } from '~/context'
-import { isImage } from '~/utils'
-import { NOCO } from '~/lib'
+import {
+  ColumnInj,
+  EditModeInj,
+  IsPublicInj,
+  MetaInj,
+  NOCO,
+  ReadonlyInj,
+  computed,
+  inject,
+  isImage,
+  ref,
+  useApi,
+  useFileDialog,
+  useInjectionState,
+  useProject,
+  watch,
+} from '#imports'
 import MdiPdfBox from '~icons/mdi/pdf-box'
 import MdiFileWordOutline from '~icons/mdi/file-word-outline'
 import MdiFilePowerpointBox from '~icons/mdi/file-powerpoint-box'
@@ -21,8 +34,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const isReadonly = inject(ReadonlyInj, false)
 
     const isPublic = inject(IsPublicInj, ref(false))
-
-    const isForm = inject('isForm', false)
 
     // todo: replace placeholder var
     const isPublicGrid = $ref(false)
@@ -60,6 +71,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         updateModelValue(storedFilesData.value.map((storedFile) => storedFile.file))
       } else {
         attachments.value.splice(i, 1)
+
         updateModelValue(attachments.value)
       }
     }
@@ -149,7 +161,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** our currently visible items, either the locally stored or the ones from db, depending on isPublicForm status */
-    const visibleItems = computed<any[]>(() => (isPublic.value ? storedFilesData.value : attachments.value) || ([] as any[]))
+    const visibleItems = computed<any[]>(() => [...attachments.value, ...storedFiles.value])
 
     watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles))
 
@@ -158,7 +170,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       storedFilesData,
       visibleItems,
       isPublic,
-      isForm,
       isPublicGrid,
       isReadonly,
       meta,

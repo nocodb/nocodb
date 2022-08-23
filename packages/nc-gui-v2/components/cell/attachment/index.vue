@@ -61,7 +61,8 @@ watch(
     if (nextModel) {
       try {
         attachments.value = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
-      } catch {
+      } catch (e) {
+        console.error(e)
         attachments.value = []
       }
     }
@@ -124,6 +125,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
         </div>
       </a-tooltip>
     </div>
+    <div v-else class="flex" />
 
     <template v-if="visibleItems.length">
       <div

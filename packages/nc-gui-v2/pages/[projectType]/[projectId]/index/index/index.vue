@@ -12,6 +12,7 @@ const { isOverDropZone } = useDropZone(dropZone, onDrop)
 const { files, open, reset } = useFileDialog()
 
 const { isSharedBase } = useProject()
+const { isUIAllowed } = useUIPermission()
 
 const { $e } = useNuxtApp()
 
@@ -140,8 +141,12 @@ function onDropZoneClick(e: MouseEvent) {
 
 <template>
   <div class="h-full w-full text-gray-600 flex items-center justify-center relative">
-    <div v-if="isSharedBase" class="flex flex-col gap-6 items-center justify-center mx-auto text-center">
+    <div
+      v-if="isSharedBase || !isUIAllowed('dataInsert')"
+      class="flex flex-col gap-6 items-center justify-center mx-auto text-center text-gray-500 border-gray-300 border-1 w-3/5 h-1/2 rounded-md"
+    >
       <div class="text-3xl">Welcome to NocoDB!</div>
+      <div class="prose-lg leading-8">To get started, click on a table in the left pane</div>
     </div>
     <div v-else ref="dropZone">
       <general-overlay

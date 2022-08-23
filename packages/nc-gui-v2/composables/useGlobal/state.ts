@@ -77,7 +77,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   })
 
   const appInfo = ref<AppInfo>({
-    ncSiteUrl: 'localhost:8080',
+    ncSiteUrl: 'http://localhost:8080',
     authType: 'jwt',
     connectToExternalDB: false,
     defaultLimit: 0,

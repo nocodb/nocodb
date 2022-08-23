@@ -3,12 +3,14 @@ import { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { CreateApiOptions, UseApiProps, UseApiReturn } from './types'
 import { addAxiosInterceptors } from './interceptors'
-import { createEventHook, ref, unref, useCounter, useNuxtApp } from '#imports'
+import { createEventHook, ref, unref, useCounter, useGlobal, useNuxtApp } from '#imports'
 
 export function createApiInstance<SecurityDataType = any>(options: CreateApiOptions = {}): Api<SecurityDataType> {
+  const { appInfo } = $(useGlobal())
+
   return addAxiosInterceptors(
     new Api<SecurityDataType>({
-      baseURL: options.baseURL ?? 'http://localhost:8080',
+      baseURL: options.baseURL ?? appInfo.ncSiteUrl,
     }),
   )
 }

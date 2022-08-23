@@ -50,11 +50,7 @@ const {
   selectedImage,
   isReadonly,
   storedFiles,
-} = useProvideAttachmentCell((val) => {
-  console.log(val)
-
-  updateModelValue(val)
-})
+} = useProvideAttachmentCell(updateModelValue)
 
 const currentCellRef = computed(() =>
   !rowIndex && isForm.value

@@ -298,7 +298,14 @@ onMounted(() => {
   >
     <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
 
-    <h3 class="text-3xl text-center font-semibold mt-8 mb-4">{{ $t('activity.createProject') }}</h3>
+    <div
+      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full bg-white cursor-pointer"
+      @click="navigateTo('/')"
+    >
+      <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
+    </div>
+
+    <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.createProject') }}</h1>
 
     <a-form
       ref="form"

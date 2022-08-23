@@ -166,13 +166,13 @@ export const genTest = (apiType, dbType) => {
             it(`[${roles[roleType].name}] Left navigation menu, New User add`, () => {
                 // project configuration settings
                 //
-                _advSettings(roleType, false);
+                _advSettings(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Access control`, () => {
                 // Access control validation
                 //
-                _accessControl(roleType, false);
+                _accessControl(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, () => {
@@ -180,14 +180,14 @@ export const genTest = (apiType, dbType) => {
                 //  - Add/delete table
                 //  - Add/Update/delete column
                 //
-                _editSchema(roleType, false);
+                _editSchema(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, () => {
                 // Table data related validations
                 //  - Add/delete/modify row
                 //
-                _editData(roleType, false);
+                _editData(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Comments: view/add`, () => {
@@ -195,21 +195,21 @@ export const genTest = (apiType, dbType) => {
                 //      Viewer: only allowed to read
                 //      Everyone else: read &/ update
                 //
-                _editComment(roleType, false);
+                _editComment(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Right navigation menu, share view`, () => {
                 // right navigation menu bar
                 //      Editor/Viewer/Commenter : can only view 'existing' views
                 //      Rest: can create/edit
-                _viewMenu(roleType, false, 2);
+                _viewMenu(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Top Right Menu bar`, () => {
                 // Share button is conditional
                 // Rest are static/ mandatory
                 //
-                _topRightMenu(roleType, false);
+                _topRightMenu(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Download files`, () => {

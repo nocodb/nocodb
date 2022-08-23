@@ -98,20 +98,20 @@ export const genTest = (apiType, dbType, roleType) => {
             it(`Role preview: ${roleType}: Advance settings`, () => {
                 // project configuration settings
                 //
-                _advSettings(roleType, true);
+                _advSettings(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Access control`, () => {
                 // Access control validation
                 //
-                _accessControl(roleType, false);
+                _accessControl(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Edit data`, () => {
                 // Table data related validations
                 //  - Add/delete/modify row
                 //
-                _editData(roleType, true);
+                _editData(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Edit comment`, () => {
@@ -119,21 +119,21 @@ export const genTest = (apiType, dbType, roleType) => {
                 //      Viewer: not allowed to read
                 //      Everyone else: read &/ update
                 //
-                _editComment(roleType, true);
+                _editComment(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Preview menu`, () => {
                 // right navigation menu bar
                 //      Editor/Viewer/Commenter : can only view 'existing' views
                 //      Rest: can create/edit
-                _viewMenu(roleType, true, 2);
+                _viewMenu(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Top Right Menu bar`, () => {
                 // Share button is conditional
                 // Rest are static/ mandatory
                 //
-                _topRightMenu(roleType, false);
+                _topRightMenu(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Edit Schema`, () => {
@@ -141,7 +141,7 @@ export const genTest = (apiType, dbType, roleType) => {
                 //  - Add/delete table
                 //  - Add/Update/delete column
                 //
-                _editSchema(roleType, true);
+                _editSchema(roleType, "preview");
             });
         };
 

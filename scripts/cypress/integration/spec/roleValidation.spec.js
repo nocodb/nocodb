@@ -6,8 +6,13 @@ import { roles } from "../../support/page_objects/projectConstants";
 //  2. Advance settings menu
 //  3. Preview mode menu
 //
-export function _advSettings(roleType, previewMode) {
-    cy.log(roleType, previewMode);
+export function _advSettings(roleType, mode) {
+    cy.log(roleType, mode);
+
+    if(mode === 'baseShare') {
+        cy.get('.nc-project-menu').should('not.exist')
+        return;
+    }
 
     let validationString =
         true == roles[roleType].validations.advSettings ? "exist" : "not.exist";
@@ -31,7 +36,7 @@ export function _advSettings(roleType, previewMode) {
     }
 
     // float menu in preview mode
-    if (true === previewMode) {
+    if ("preview" === mode) {
         cy.get(".nc-floating-preview-btn").should("exist");
         cy.get('.nc-floating-preview-btn')
             .find(`[type="radio"][value="${roles[roleType].name}"]`)
@@ -41,14 +46,12 @@ export function _advSettings(roleType, previewMode) {
     // cy.get("body").click("bottomRight");
 }
 
-export function _editSchema(roleType, previewMode) {
+export function _editSchema(roleType, mode) {
     let columnName = "City";
     let validationString =
         true == roles[roleType].validations.editSchema ? "exist" : "not.exist";
 
-    if (false == previewMode) {
-        cy.openTableTab(columnName, 25);
-    }
+    cy.openTableTab(columnName, 25);
 
     // create table
     cy.get(`.nc-add-import-btn`).should(validationString);
@@ -56,6 +59,7 @@ export function _editSchema(roleType, previewMode) {
     // delete table option
     cy.get(`.nc-project-tree-tbl-City`).should("exist").rightclick();
     cy.get(".ant-dropdown-content:visible").should(validationString);
+
     if(validationString === "exist"){
         cy.getActiveMenu().find('[role="menuitem"]').contains("Delete").should("exist");
         cy.getActiveMenu().find('[role="menuitem"]').contains("Rename").should("exist");
@@ -71,16 +75,20 @@ export function _editSchema(roleType, previewMode) {
     cy.get('.nc-ui-dt-dropdown').should(validationString)
 }
 
-export function _editData(roleType, previewMode) {
+export function _editData(roleType, mode) {
     let columnName = "City";
     let validationString =
-        true == roles[roleType].validations.editData ? "exist" : "not.exist";
+        true === roles[roleType].validations.editData ? "exist" : "not.exist";
 
     cy.openTableTab(columnName, 25);
 
     // add row
-    cy.get('.nc-sidebar-add-row').should(validationString);
-    cy.get('.nc-grid-add-new-cell').should(validationString);
+    cy.get('.nc-add-row:visible').should(validationString);
+
+    mainPage.getCell(columnName, 25).scrollIntoView();
+    // cy.get('.nc-grid-add-new-cell').scrollIntoView();
+
+    cy.get('.nc-grid-add-new-cell:visible').should(validationString);
 
     // update row option (right click)
     //
@@ -117,11 +125,6 @@ export function _editData(roleType, previewMode) {
     } else {
         // update cell contents option using row expander should be disabled
         //
-        mainPage
-          .getRow(1)
-          .find('.nc-row-no').should('exist')
-          .eq(0)
-          .trigger('mouseover', { force: true })
         cy.get(".nc-row-expand")
           .should("exist")
           .eq(10)
@@ -142,7 +145,7 @@ export function _editData(roleType, previewMode) {
 //      Viewer: only allowed to read
 //      Everyone else: read &/ update
 //
-export function _editComment(roleType, previewMode) {
+export function _editComment(roleType, mode) {
     let columnName = "City";
     let validationString =
         true === roles[roleType].validations.editComment
@@ -194,11 +197,10 @@ export function _editComment(roleType, previewMode) {
 // right navigation menu bar
 //      Editor/Viewer/Commenter : can only view 'existing' views
 //      Rest: can create/edit
-export function _viewMenu(roleType, previewMode, navDrawListCnt) {
+export function _viewMenu(roleType, mode) {
     let columnName = "City";
-    // let navDrawListCnt = 2;
 
-    // Download CSV
+    // Download CSV, Excel
     let actionsMenuItemsCnt = 2;
 
     cy.openTableTab(columnName, 25);
@@ -206,24 +208,18 @@ export function _viewMenu(roleType, previewMode, navDrawListCnt) {
     cy.wait(1000);
 
     // temporary!
-    cy.get('.nc-right-sidebar-toggle').click();
+    cy.get('.nc-toggle-right-navbar').click();
     cy.wait(1000);
 
     let validationString =
         true === roles[roleType].validations.shareView ? "exist" : "not.exist";
-
-    // validate if Share button is visible at header tool bar
-    cy.get("header.v-toolbar")
-        .eq(0)
-        .find('button:contains("Share")')
-        .should(validationString);
 
     if (roleType === "owner" || roleType === "creator") {
         // Download CSV / Download XLSX / Upload CSV / Shared View List / Webhook
         actionsMenuItemsCnt = 5;
     } else if (roleType == "editor") {
         // Download CSV / Upload CSV / Download XLSX
-        actionsMenuItemsCnt = 3;
+        actionsMenuItemsCnt = 2;
     }
 
     // view list field (default GRID view)
@@ -235,19 +231,19 @@ export function _viewMenu(roleType, previewMode, navDrawListCnt) {
     cy.get(`.nc-create-3-view`).should(validationString);
 
     // share view & automations, exists only for owner/creator
-    cy.get(".nc-btn-share-view").should(validationString);
-    cy.get(`.nc-webhook-btn`).should(validationString);
+    // cy.get(".nc-btn-share-view").should(validationString);
+    // cy.get(`.nc-webhook-btn`).should(validationString);
 
     // share view permissions are role specific
 
     // actions menu (more), only download csv should be visible for non-previlaged users
     cy.get(".nc-actions-menu-btn").click();
     cy.getActiveMenu()
-        .find('.nc-menu-item')
+        .find('.nc-project-menu-item')
         .should("have.length", actionsMenuItemsCnt);
 }
 
-export function _topRightMenu(roleType, previewMode) {
+export function _topRightMenu(roleType, mode) {
     // kludge; download csv menu persists until clicked
     let columnName = "City";
     cy.closeTableTab(columnName);

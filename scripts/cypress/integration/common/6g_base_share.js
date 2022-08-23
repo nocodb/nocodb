@@ -11,6 +11,7 @@ import {
     _topRightMenu,
 } from "../spec/roleValidation.spec";
 
+// fix me
 let linkText = "";
 
 export const genTest = (apiType, dbType) => {
@@ -25,54 +26,62 @@ export const genTest = (apiType, dbType) => {
                 baseUrl: null,
             });
             cy.wait(5000);
-
-            projectsPage.waitHomePageLoad();
-
-            cy.closeTableTab("Actor");
         });
 
         it(`${roleType}: Validate access permissions: advance menu`, () => {
-            _advSettings(roleType, false);
+            _advSettings(roleType, "baseShare");
         });
 
         it(`${roleType}: Validate access permissions: edit schema`, () => {
-            _editSchema(roleType, false);
+            _editSchema(roleType, "baseShare");
         });
 
         it(`${roleType}: Validate access permissions: edit data`, () => {
-            _editData(roleType, false);
+            _editData(roleType, "baseShare");
         });
 
         it(`${roleType}: Validate access permissions: edit comments`, () => {
-            _editComment(roleType, false);
+            _editComment(roleType, "baseShare");
         });
 
         it(`${roleType}: Validate access permissions: view's menu`, () => {
-            _viewMenu(roleType, false, 1);
+            _viewMenu(roleType, "baseShare");
         });
     };
 
     describe(`${apiType.toUpperCase()} Base VIEW share`, () => {
         before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
+            // kludge: wait for page load to finish
+            cy.wait(3000);
+            // close team & auth tab
+            cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            cy.wait(1000);
+
+            cy.openTableTab("Country", 25);
         });
+
+        beforeEach(() => {
+            cy.fileHook();
+        })
 
         it(`Generate base share URL`, () => {
             // click SHARE
-            cy.get(".nc-topright-menu").find(".nc-menu-share").click();
-
-            cy.snipActiveModal("Modal_BaseShare");
+            cy.get(".nc-share-base:visible").should('exist').click();
 
             // Click on readonly base text
             cy.getActiveModal().find(".nc-disable-shared-base").click();
 
-            // Select 'Readonly link'
-            cy.snipActiveMenu("Menu_ShareLink");
             cy.getActiveMenu()
-                .find(".caption")
+                .find(".ant-dropdown-menu-title-content")
                 .contains("Anyone with the link")
                 .click();
+
+            cy.getActiveModal().find(".nc-shared-base-role").click();
+
+            cy.getActiveSelection()
+              .find('.ant-select-item')
+              .eq(1)
+              .click();
 
             // Copy URL
             cy.getActiveModal()
@@ -110,13 +119,13 @@ style="background: transparent; "></iframe>
             loginPage.loginAndOpenProject(apiType, dbType);
 
             // click SHARE
-            cy.get(".nc-topright-menu").find(".nc-menu-share").click();
+            cy.get(".nc-share-base:visible").should('exist').click();
 
             cy.getActiveModal().find(".nc-shared-base-role").click();
 
-            cy.getActiveMenu()
-                .find('[role="menuitem"]')
-                .contains("Editor")
+            cy.getActiveSelection()
+                .find('.ant-select-item')
+                .eq(0)
                 .click();
         });
 
@@ -129,12 +138,10 @@ style="background: transparent; "></iframe>
             // wait for iFrame to load
             cy.frameLoaded(".nc-embed");
 
-            // for GQL- additionally close GQL Client window
-            if (apiType === "graphql") {
-                cy.iframe()
-                    .find(`[title="Graphql Client"] > button.mdi-close`)
-                    .click();
-            }
+            // cy.openTableTab("Country", 25);
+            cy.iframe().find(`.nc-project-tree-tbl-Actor`, { timeout: 10000 }).should("exist")
+              .first()
+              .click({ force: true });
 
             // validation for base menu opitons
             cy.iframe().find(".nc-project-tree").should("exist");
@@ -144,14 +151,17 @@ style="background: transparent; "></iframe>
             cy.iframe().find(".nc-actions-menu-btn").should("exist");
 
             // validate data (row-1)
-            mainPage
-                .getIFrameCell("FirstName", 1)
-                .contains("PENELOPE")
-                .should("exist");
-            mainPage
-                .getIFrameCell("LastName", 1)
-                .contains("GUINESS")
-                .should("exist");
+            cy.iframe().find(`.nc-grid-cell`).eq(1).contains("PENELOPE").should("exist");
+            cy.iframe().find(`.nc-grid-cell`).eq(2).contains("GUINESS").should("exist");
+
+            // mainPage
+            //     .getIFrameCell("FirstName", 1)
+            //     .contains("PENELOPE")
+            //     .should("exist");
+            // mainPage
+            //     .getIFrameCell("LastName", 1)
+            //     .contains("GUINESS")
+            //     .should("exist");
         });
     });
 };

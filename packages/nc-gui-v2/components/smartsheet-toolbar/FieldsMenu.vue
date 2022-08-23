@@ -64,7 +64,7 @@ watch(
   { immediate: true },
 )
 
-const isAnyFieldHidden = computed(() => fields.value?.some((field) => !(!showSystemFields && field.system) && !field.show))
+const isAnyFieldHidden = computed(() => filteredFieldList.value?.some((field) => !field.show))
 
 const onMove = (event: { moved: { newIndex: number } }) => {
   // todo : sync with server
@@ -130,7 +130,7 @@ const getIcon = (c: ColumnType) =>
         <a-divider class="!my-2" />
 
         <div v-if="!isPublic" class="p-2 py-1 flex" @click.stop>
-          <a-checkbox v-model:checked="showSystemFields">
+          <a-checkbox v-model:checked="showSystemFields" class="!items-center">
             <span class="text-xs"> {{ $t('activity.showSystemFields') }}</span>
           </a-checkbox>
         </div>

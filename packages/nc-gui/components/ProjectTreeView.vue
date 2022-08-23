@@ -2,7 +2,7 @@
   <div style="height: 100%" class="nc-tree-view" @mouseenter="onMiniHoverEnter" @mouseleave="onMiniHoverLeave">
     <!--    :expand-on-hover="mini"-->
     <div class="primary nc-project-title theme--dark" :class="{ shared: sharedBase }">
-      <img v-if="sharedBase" src="favicon-32.png" height="18" class="ml-2" />
+      <img v-if="sharedBase" src="~/public/favicon-32.png" height="18" class="ml-2" />
       <h3 v-if="sharedBase" class="nc-project-title white--text text-capitalize">
         {{ $store.getters['project/GtrProjectName'] }}
       </h3>

@@ -13,11 +13,14 @@ import {
   useProvideSharedFormStore,
   useProvideSmartsheetStore,
   useRoute,
+  useSidebar,
 } from '#imports'
 
 definePageMeta({
   public: true,
 })
+
+useSidebar({ hasSidebar: false })
 
 const route = useRoute()
 

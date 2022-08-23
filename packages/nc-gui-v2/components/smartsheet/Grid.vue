@@ -15,6 +15,7 @@ import {
   PaginationDataInj,
   ReadonlyInj,
   ReloadViewDataHookInj,
+  createEventHook,
   enumColor,
   inject,
   onClickOutside,
@@ -44,8 +45,8 @@ const fields = inject(FieldsInj, ref([]))
 const readOnly = inject(ReadonlyInj, false)
 const isLocked = inject(IsLockedInj, ref(false))
 
-const reloadViewDataHook = inject(ReloadViewDataHookInj)
-const openNewRecordFormHook = inject(OpenNewRecordFormHookInj)
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const { isUIAllowed } = useUIPermission()
 

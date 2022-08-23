@@ -1,12 +1,21 @@
 import useVuelidate from '@vuelidate/core'
 import { minLength, required } from '@vuelidate/validators'
+import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import type { ColumnType, FormType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import type { Ref } from 'vue'
-import { SharedViewPasswordInj } from '~/context'
-import { extractSdkResponseErrorMsg } from '~/utils'
-import { useInjectionState, useMetas } from '#imports'
+import {
+  SharedViewPasswordInj,
+  computed,
+  extractSdkResponseErrorMsg,
+  provide,
+  ref,
+  useApi,
+  useInjectionState,
+  useMetas,
+  useProvideSmartsheetRowStore,
+  watch,
+} from '#imports'
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)
@@ -23,8 +32,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const meta = ref<TableType>()
   const columns = ref<(ColumnType & { required?: boolean; show?: boolean })[]>()
 
-  const { $api } = useNuxtApp()
+  const { api, isLoading } = useApi()
+
   const { metas, setMeta } = useMetas()
+
   const formState = ref({})
 
   const { state: additionalState } = useProvideSmartsheetRowStore(
@@ -37,11 +48,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   )
 
   const formColumns = computed(() =>
-    columns?.value?.filter((c) => c.show)?.filter((col) => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord),
+    columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord),
   )
   const loadSharedView = async () => {
     try {
-      const viewMeta = await $api.public.sharedViewMetaGet(sharedViewId, {
+      const viewMeta: Record<string, any> = await api.public.sharedViewMetaGet(sharedViewId, {
         headers: {
           'xc-password': password.value,
         },
@@ -54,9 +65,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       meta.value = viewMeta.model
       columns.value = viewMeta.model?.columns
 
-      setMeta(viewMeta.model)
+      await setMeta(viewMeta.model)
 
       const relatedMetas = { ...viewMeta.relatedMetas }
+
       Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
     } catch (e: any) {
       if (e.response && e.response.status === 404) {
@@ -68,11 +80,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   const validators = computed(() => {
-    const obj: any = {
+    const obj: Record<string, Record<string, any>> = {
       localState: {},
       virtual: {},
     }
-    for (const column of formColumns?.value ?? []) {
+
+    if (!formColumns.value) return obj
+
+    for (const column of formColumns.value) {
       if (
         !isVirtualCol(column) &&
         ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || (column as any).required)
@@ -103,7 +118,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const v$ = useVuelidate(
     validators,
-    computed(() => ({ localState: formState?.value, virtual: additionalState?.value })),
+    computed(() => ({ localState: formState.value, virtual: additionalState.value })),
   )
 
   const submitForm = async () => {
@@ -113,18 +128,20 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
 
       progress.value = true
-      const data: Record<string, any> = { ...(formState?.value ?? {}), ...(additionalState?.value || {}) }
+      const data: Record<string, any> = { ...formState.value, ...additionalState.value }
       const attachment: Record<string, any> = {}
 
-      for (const col of metas?.value?.[sharedView?.value?.fk_model_id as string]?.columns ?? []) {
+      /** find attachments in form data */
+      for (const col of metas.value?.[sharedView.value?.fk_model_id as string]?.columns) {
         if (col.uidt === UITypes.Attachment) {
-          attachment[`_${col.title}`] = data[col.title!]
-          delete data[col.title!]
+          if (data[col.title]) {
+            attachment[`_${col.title}`] = data[col.title].map((item: { file: File }) => item.file)
+          }
         }
       }
 
-      await $api.public.dataCreate(
-        sharedView?.value?.uuid as string,
+      await api.public.dataCreate(
+        (sharedView.value as any)?.uuid as string,
         {
           data,
           ...attachment,
@@ -139,7 +156,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       submitted.value = true
       progress.value = false
 
-      await message.success(sharedFormView.value?.success_msg || 'Saved successfully.')
+      await message.success(sharedFormView.value?.sucess_msg || 'Saved successfully.')
     } catch (e: any) {
       console.log(e)
       await message.error(await extractSdkResponseErrorMsg(e))
@@ -148,13 +165,15 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   /** reset form if show_blank_form is true */
-  watch(submitted, (nextVal: boolean) => {
-    if (nextVal && sharedFormView.value?.show_blank_form) {
+  watch(submitted, (nextVal) => {
+    if (nextVal && (sharedFormView.value as any)?.show_blank_form) {
       secondsRemain.value = 5
       const intvl = setInterval(() => {
         secondsRemain.value = secondsRemain.value - 1
+
         if (secondsRemain.value < 0) {
           submitted.value = false
+
           clearInterval(intvl)
         }
       }, 1000)
@@ -185,6 +204,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     submitted,
     secondsRemain,
     passwordDlg,
+    isLoading,
   }
 }, 'expanded-form-store')
 
@@ -192,6 +212,8 @@ export { useProvideSharedFormStore }
 
 export function useSharedFormStoreOrThrow() {
   const sharedFormStore = useSharedFormStore()
+
   if (sharedFormStore == null) throw new Error('Please call `useProvideSharedFormStore` on the appropriate parent component')
+
   return sharedFormStore
 }

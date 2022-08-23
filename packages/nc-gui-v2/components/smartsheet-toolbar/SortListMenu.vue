@@ -1,27 +1,34 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
-import { getSortDirectionOptions } from '~/utils/sortUtils'
-import { computed, inject, useViewSorts } from '#imports'
-import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-import MdiMenuDownIcon from '~icons/mdi/menu-down'
-import MdiSortIcon from '~icons/mdi/sort'
-import MdiDeleteIcon from '~icons/mdi/close-box'
-import MdiAddIcon from '~icons/mdi/plus'
+import {
+  ActiveViewInj,
+  IsLockedInj,
+  MetaInj,
+  ReloadViewDataHookInj,
+  computed,
+  getSortDirectionOptions,
+  inject,
+  ref,
+  useViewSorts,
+  watch,
+} from '#imports'
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
-const isLocked = inject(IsLockedInj)
+const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
 const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const columns = computed(() => meta?.value?.columns || [])
-const columnByID = computed<Record<string, ColumnType>>(() =>
-  columns?.value?.reduce((obj: any, col: any) => {
-    obj[col.id] = col
+
+const columnByID = computed(() =>
+  columns.value.reduce((obj, col) => {
+    obj[col.id!] = col
+
     return obj
-  }, {}),
+  }, {} as Record<string, ColumnType>),
 )
 
 watch(
@@ -38,10 +45,10 @@ watch(
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-t="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
         ><div class="flex items-center gap-1">
-          <MdiSortIcon />
+          <MdiSort />
           <!-- Sort -->
           <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
-          <MdiMenuDownIcon class="text-grey" />
+          <MdiMenuDown class="text-grey" />
         </div>
       </a-button>
     </div>
@@ -49,7 +56,7 @@ watch(
       <div class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto !border">
         <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
           <template v-for="(sort, i) in sorts || []" :key="i">
-            <MdiDeleteIcon class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
+            <MdiCloseBox class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
 
             <FieldListAutoCompleteDropdown
               v-model="sort.fk_column_id"
@@ -79,7 +86,7 @@ watch(
         </div>
         <a-button class="text-capitalize mb-1 mt-4" type="primary" ghost @click.stop="addSort">
           <div class="flex gap-1 items-center">
-            <MdiAddIcon />
+            <MdiPlus />
             <!-- Add Sort Option -->
             {{ $t('activity.addSort') }}
           </div>

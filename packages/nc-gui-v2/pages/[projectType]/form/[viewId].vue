@@ -1,23 +1,35 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import type { TableType } from 'nocodb-sdk/build/main'
-import { useProvideSharedFormStore } from '~/composables/useSharedFormViewStore'
-import { IsFormInj, IsPublicInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-import { createEventHook, definePageMeta, provide, ref, useProvideSmartsheetStore, useRoute } from '#imports'
+import type { TableType } from 'nocodb-sdk'
+import {
+  IsFormInj,
+  IsPublicInj,
+  MetaInj,
+  ReloadViewDataHookInj,
+  createEventHook,
+  definePageMeta,
+  provide,
+  ref,
+  useProvideSharedFormStore,
+  useProvideSmartsheetStore,
+  useRoute,
+  useSidebar,
+} from '#imports'
 
 definePageMeta({
   public: true,
 })
 
-const route = useRoute()
+useSidebar({ hasSidebar: false })
 
-const reloadEventHook = createEventHook<void>()
+const route = useRoute()
 
 const { loadSharedView, sharedView, meta, notFound } = useProvideSharedFormStore(route.params.viewId as string)
 
 await loadSharedView()
+
 if (!notFound.value) {
-  provide(ReloadViewDataHookInj, reloadEventHook)
+  provide(ReloadViewDataHookInj, createEventHook())
   provide(MetaInj, meta)
   provide(IsPublicInj, ref(true))
   provide(IsFormInj, ref(true))
@@ -27,5 +39,7 @@ if (!notFound.value) {
 </script>
 
 <template>
-  <SharedViewForm />
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>

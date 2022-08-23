@@ -1,19 +1,33 @@
 import { message } from 'ant-design-vue'
 import FileSaver from 'file-saver'
-import { computed, inject, ref, useApi, useFileDialog, useInjectionState, useProject, watch } from '#imports'
-import { ColumnInj, EditModeInj, IsPublicInj, MetaInj, ReadonlyInj } from '~/context'
-import { isImage } from '~/utils'
-import { NOCO } from '~/lib'
+import {
+  ColumnInj,
+  EditModeInj,
+  IsPublicInj,
+  MetaInj,
+  NOCO,
+  ReadonlyInj,
+  computed,
+  inject,
+  isImage,
+  ref,
+  useApi,
+  useFileDialog,
+  useInjectionState,
+  useProject,
+  watch,
+} from '#imports'
 import MdiPdfBox from '~icons/mdi/pdf-box'
 import MdiFileWordOutline from '~icons/mdi/file-word-outline'
 import MdiFilePowerpointBox from '~icons/mdi/file-powerpoint-box'
 import MdiFileExcelOutline from '~icons/mdi/file-excel-outline'
 import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 
-interface AttachmentProps {
+interface AttachmentProps extends File {
   data?: any
   file: File
   title: string
+  mimetype: string
 }
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
@@ -22,22 +36,14 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const isPublic = inject(IsPublicInj, ref(false))
 
-    const isForm = inject('isForm', false)
-
-    // todo: replace placeholder var
-    const isPublicGrid = $ref(false)
-
     const meta = inject(MetaInj)!
 
     const column = inject(ColumnInj)!
 
     const editEnabled = inject(EditModeInj, ref(false))
 
-    /** keep user selected files data (in base encoded string format) and meta details */
-    const storedFilesData = ref<{ title: string; file: File }[]>([])
-
     /** keep user selected File object */
-    const storedFiles = ref<File[]>([])
+    const storedFiles = ref<AttachmentProps[]>([])
 
     const attachments = ref<File[]>([])
 
@@ -54,37 +60,41 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** remove a file from our stored attachments (either locally stored or saved ones) */
     function removeFile(i: number) {
       if (isPublic.value) {
-        storedFilesData.value.splice(i, 1)
         storedFiles.value.splice(i, 1)
 
-        updateModelValue(storedFilesData.value.map((storedFile) => storedFile.file))
+        updateModelValue(storedFiles.value.map((stored) => stored.file))
       } else {
         attachments.value.splice(i, 1)
+
         updateModelValue(attachments.value)
       }
     }
 
     /** save a file on select / drop, either locally (in-memory) or in the db */
     async function onFileSelect(selectedFiles: FileList | File[]) {
-      if (!selectedFiles.length || isPublicGrid) return
+      if (!selectedFiles.length) return
 
       if (isPublic.value) {
-        storedFiles.value.push(...selectedFiles)
-        storedFilesData.value.push(
+        storedFiles.value.push(
           ...(await Promise.all<AttachmentProps>(
             Array.from(selectedFiles).map(
               (file) =>
                 new Promise<AttachmentProps>((resolve) => {
-                  const res: AttachmentProps = { file, title: file.name }
-                  if (isImage(file.name, (file as any).mimetype)) {
+                  const res: AttachmentProps = { ...file, file, title: file.name, mimetype: file.type }
+
+                  if (isImage(file.name, (<any>file).mimetype ?? file.type)) {
                     const reader = new FileReader()
-                    reader.onload = (e: any) => {
+
+                    reader.onload = (e) => {
                       res.data = e.target?.result
+
                       resolve(res)
                     }
+
                     reader.onerror = () => {
                       resolve(res)
                     }
+
                     reader.readAsDataURL(file)
                   } else {
                     resolve(res)
@@ -94,7 +104,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           )),
         )
 
-        return updateModelValue(storedFilesData.value.map((storedFile) => storedFile.file))
+        return updateModelValue(storedFiles.value.map((stored) => stored.file))
       }
 
       const newAttachments = []
@@ -149,17 +159,14 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** our currently visible items, either the locally stored or the ones from db, depending on isPublicForm status */
-    const visibleItems = computed<any[]>(() => (isPublic.value ? storedFilesData.value : attachments.value) || ([] as any[]))
+    const visibleItems = computed<any[]>(() => (isPublic.value ? storedFiles.value : attachments.value))
 
     watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles))
 
     return {
       attachments,
-      storedFilesData,
       visibleItems,
       isPublic,
-      isForm,
-      isPublicGrid,
       isReadonly,
       meta,
       column,

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { inject } from '#imports'
-import { EditModeInj } from '~/context'
+import { EditModeInj, inject, useVModel } from '#imports'
 
 interface Props {
-  modelValue: string | null | undefined
+  modelValue?: string | null
 }
 
 const props = defineProps<Props>()

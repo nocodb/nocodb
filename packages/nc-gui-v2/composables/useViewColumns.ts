@@ -51,6 +51,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
           [curr.fk_column_id]: curr,
         }
       }, {})
+
       fields.value = meta.value?.columns
         ?.map((column: ColumnType) => {
           const currentColumnField = fieldById[column.id!] || {}

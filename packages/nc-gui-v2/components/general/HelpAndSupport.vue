@@ -25,6 +25,7 @@ const openSwaggerLink = () => {
   </div>
 
   <a-drawer
+    v-bind="$attrs"
     v-model:visible="showDrawer"
     class="h-full relative"
     placement="right"

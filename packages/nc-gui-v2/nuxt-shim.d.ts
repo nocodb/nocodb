@@ -30,5 +30,6 @@ declare module 'vue-router' {
     requiresAuth?: boolean
     public?: boolean
     hideHeader?: boolean
+    title?: string
   }
 }

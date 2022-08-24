@@ -92,7 +92,7 @@ const data = reactive<{ title: string | null; name: string; tables: (TableType &
 
 const validators = computed(() =>
   data.tables.reduce<Record<string, [typeof fieldRequiredValidator]>>((acc, table, tableIdx) => {
-    acc[`tables.${tableIdx}.table_name`] = [fieldRequiredValidator]
+    acc[`tables.${tableIdx}.ref_table_name`] = [fieldRequiredValidator]
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
@@ -425,8 +425,8 @@ async function importTemplate() {
           }
         }
         const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
-          table_name: table.table_name,
-          // leave title empty to get a generated one based on table_name
+          table_name: table.ref_table_name,
+          // leave title empty to get a generated one based on ref_table_name
           title: '',
           columns: table.columns,
         })
@@ -581,9 +581,9 @@ onMounted(() => {
         >
           <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
             <template #header>
-              <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
+              <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.ref_table_name`]" no-style>
                 <a-input
-                  v-model:value="table.table_name"
+                  v-model:value="table.ref_table_name"
                   class="max-w-xs"
                   size="large"
                   hide-details
@@ -595,7 +595,7 @@ onMounted(() => {
 
               <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
                 <mdi-table class="text-primary" />
-                {{ table.table_name }}
+                {{ table.ref_table_name }}
               </span>
             </template>
 

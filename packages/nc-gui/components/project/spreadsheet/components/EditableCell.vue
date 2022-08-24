@@ -170,8 +170,8 @@ export default {
       },
       set(val) {
         if (val !== this.value) {
-          this.changed = true
-          this.$emit('input', val === '' ? null : val)
+          this.changed = true;
+          this.$emit('input', val === '' ? null : val);
           if (this.isAutoSaved) {
             this.syncDataDebounce(this);
           } else if (!this.isManualSaved) {

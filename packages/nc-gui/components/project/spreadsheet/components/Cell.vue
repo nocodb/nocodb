@@ -21,7 +21,7 @@
   <rating-cell v-else-if="isRating" :value="value" read-only />
   <currency-cell v-else-if="isCurrency" :value="value" :column="column" />
 
-  <span v-else :class="{'long-text-cell' : isTextArea, 'max-100px' : true}" :title="title">{{ value }}</span>
+  <span v-else :class="{ 'long-text-cell': isTextArea, 'max-100px': true }" :title="title">{{ value }}</span>
 </template>
 
 <script>

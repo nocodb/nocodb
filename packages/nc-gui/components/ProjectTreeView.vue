@@ -1,16 +1,16 @@
 <template>
   <div style="height: 100%" class="nc-tree-view" @mouseenter="onMiniHoverEnter" @mouseleave="onMiniHoverLeave">
     <!--    :expand-on-hover="mini"-->
-    <div
-      class="headerBg nc-project-title"
-      :class="{ shared: sharedBase }"
-    >
-      <v-img v-if="sharedBase" :src="logo" :max-height="`${headerHeight}px`" :max-width="`${headerHeight}px`" class="ml-2" />
-      <h3
+    <div class="headerBg nc-project-title" :class="{ shared: sharedBase }">
+      <v-img
         v-if="sharedBase"
-        class="nc-project-title white--text text-capitalize"
-      >
-        {{ $store.getters["project/GtrProjectName"] }}
+        :src="logo"
+        :max-height="`${headerHeight}px`"
+        :max-width="`${headerHeight}px`"
+        class="ml-2"
+      />
+      <h3 v-if="sharedBase" class="nc-project-title white--text text-capitalize">
+        {{ $store.getters['project/GtrProjectName'] }}
       </h3>
     </div>
     <v-navigation-drawer
@@ -302,11 +302,13 @@
                                       </span>
                                     </v-list-item-title>
                                   </v-list-item>
-                                  <v-list-item v-if="_isUIAllowed('table-delete')" dense @click="checkAndDeleteTable(child)">
+                                  <v-list-item
+                                    v-if="_isUIAllowed('table-delete')"
+                                    dense
+                                    @click="checkAndDeleteTable(child)"
+                                  >
                                     <v-list-item-icon>
-                                      <v-icon x-small color="red">
-                                        mdi-delete-outline
-                                      </v-icon>
+                                      <v-icon x-small color="red"> mdi-delete-outline </v-icon>
                                     </v-list-item-icon>
                                     <v-list-item-title>
                                       <span classs="caption" style="color: red">Delete</span>
@@ -616,13 +618,7 @@
       :dialog-show="dialogDeleteTable.dialogShow"
       :heading="dialogDeleteTable.heading + ' ' + dialogDeleteTable.nodes.table_name"
     />
-    <quick-import
-      ref="quickImport"
-      v-model="quickImportDialog"
-      hide-label
-      import-to-project
-      @success="onQuickImport"
-    />
+    <quick-import ref="quickImport" v-model="quickImportDialog" hide-label import-to-project @success="onQuickImport" />
     <quick-import ref="quickImport" v-model="quickImportDialog" hide-label import-to-project @success="onQuickImport" />
   </div>
 </template>
@@ -637,18 +633,18 @@ import rightClickOptions from '../helpers/rightClickOptions';
 import rightClickOptionsSub from '../helpers/rightClickOptionsSub';
 import icons from '../helpers/treeViewIcons';
 
-import textDlgSubmitCancel from "./utils/DlgTextSubmitCancel";
-import dlgLabelSubmitCancel from "./utils/DlgLabelSubmitCancel";
-import {copyTextToClipboard} from "../helpers/xutils";
-import DlgTableCreate from "~/components/utils/DlgTableCreate";
-import DlgViewCreate from "~/components/utils/DlgViewCreate";
-import {validateTableName} from "~/helpers";
-import QuickImport from "~/components/import/QuickImport";
+import textDlgSubmitCancel from './utils/DlgTextSubmitCancel';
+import dlgLabelSubmitCancel from './utils/DlgLabelSubmitCancel';
+import { copyTextToClipboard } from '../helpers/xutils';
+import DlgTableCreate from '~/components/utils/DlgTableCreate';
+import DlgViewCreate from '~/components/utils/DlgViewCreate';
+import { validateTableName } from '~/helpers';
+import QuickImport from '~/components/import/QuickImport';
 
-import draggable from "vuedraggable";
-import SettingsModal from "~/components/settings/SettingsModal";
-import Language from "~/components/utils/Language";
-import { headerHeight } from '~/config/constants'
+import draggable from 'vuedraggable';
+import SettingsModal from '~/components/settings/SettingsModal';
+import Language from '~/components/utils/Language';
+import { headerHeight } from '~/config/constants';
 
 export default {
   components: {
@@ -758,12 +754,14 @@ export default {
     },
     dialogDeleteTable: {
       dialogShow: false,
-      heading: 'Delete Table'
+      heading: 'Delete Table',
     },
   }),
   computed: {
     logo() {
-      return this.$store.state.settings.darkTheme ? require('~/assets/img/brand/finn-white.svg') : require('~/assets/img/brand/finn.svg')
+      return this.$store.state.settings.darkTheme
+        ? require('~/assets/img/brand/finn-white.svg')
+        : require('~/assets/img/brand/finn.svg');
     },
     apiLink() {
       return new URL(
@@ -917,29 +915,33 @@ export default {
       this.$e('c:table:delete');
     },
     async checkAndDeleteTable(table) {
-      const tableMeta = this.$store.state.meta.metas[table.table_name] || await this.loadTableSchema(table);
-      if(tableMeta.columns.some((col) => col.uidt === "LinkToAnotherRecord")) {
-        this.$toast.error(`drop table ${table.table_name} - cannot drop table ${table.table_name} because other objects depend on it`).goAway(3000);
+      const tableMeta = this.$store.state.meta.metas[table.table_name] || (await this.loadTableSchema(table));
+      if (tableMeta.columns.some(col => col.uidt === 'LinkToAnotherRecord')) {
+        this.$toast
+          .error(
+            `drop table ${table.table_name} - cannot drop table ${table.table_name} because other objects depend on it`
+          )
+          .goAway(3000);
         return;
       }
-      this.dialogDeleteTable.nodes = table._nodes
-      this.deleteTable("showDialog", table.id);
-      this.$e("c:table:delete");
+      this.dialogDeleteTable.nodes = table._nodes;
+      this.deleteTable('showDialog', table.id);
+      this.$e('c:table:delete');
     },
     async loadTableSchema(table) {
       return await this.$store.dispatch('meta/ActLoadMeta', {
         env: table._nodes.env,
         dbAlias: table._nodes.dbAlias,
-        table_name: table.table_name
-      })
+        table_name: table.table_name,
+      });
     },
-    async deleteTable(action = "", id) {
+    async deleteTable(action = '', id) {
       if (id) {
         this.dialogDeleteTable.deleteId = id;
       }
-      if (action === "showDialog") {
+      if (action === 'showDialog') {
         this.dialogDeleteTable.dialogShow = true;
-      } else if (action === "hideDialog") {
+      } else if (action === 'hideDialog') {
         this.dialogDeleteTable.dialogShow = false;
       } else {
         // todo : check relations and triggers
@@ -958,11 +960,11 @@ export default {
             },
           });
 
-          this.$store.commit("meta/MutMeta", {
+          this.$store.commit('meta/MutMeta', {
             key: this.dialogDeleteTable.nodes.table_name,
             value: null,
           });
-          this.$store.commit("meta/MutMeta", {
+          this.$store.commit('meta/MutMeta', {
             key: this.dialogDeleteTable.deleteId,
             value: null,
           });
@@ -971,7 +973,7 @@ export default {
           this.$toast.error(msg).goAway(3000);
         }
         this.dialogDeleteTable.dialogShow = false;
-        this.$e("a:table:delete");
+        this.$e('a:table:delete');
       }
     },
     // async deleteTable(action = '', nodes=null) {
@@ -1153,15 +1155,13 @@ export default {
       changeActiveTab: 'tabs/changeActiveTab',
       // instantiateSqlMgr: "sqlMgr/instantiateSqlMgr",
       removeTableTab: 'tabs/removeTableTab',
-      loadDefaultTabs: "tabs/loadDefaultTabs",
-      loadTablesFromParentTreeNode: "project/loadTablesFromParentTreeNode",
-      loadViewsFromParentTreeNode: "project/loadViewsFromParentTreeNode",
-      loadFunctionsFromParentTreeNode:
-        "project/loadFunctionsFromParentTreeNode",
-      loadProceduresFromParentTreeNode:
-        "project/loadProceduresFromParentTreeNode",
-      removeTabsByName: "tabs/removeTabsByName",
-      clearProjects: "project/clearProjects",
+      loadDefaultTabs: 'tabs/loadDefaultTabs',
+      loadTablesFromParentTreeNode: 'project/loadTablesFromParentTreeNode',
+      loadViewsFromParentTreeNode: 'project/loadViewsFromParentTreeNode',
+      loadFunctionsFromParentTreeNode: 'project/loadFunctionsFromParentTreeNode',
+      loadProceduresFromParentTreeNode: 'project/loadProceduresFromParentTreeNode',
+      removeTabsByName: 'tabs/removeTabsByName',
+      clearProjects: 'project/clearProjects',
     }),
     async addTab(item, open, leaf) {
       // console.log("addtab item", item, open, leaf);

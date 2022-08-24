@@ -18,7 +18,8 @@
             dense
           >
             <template #item="{ item }">
-              <span class="caption"><span class="font-weight-bold">{{ item.column.title }}</span>
+              <span class="caption"
+                ><span class="font-weight-bold">{{ item.column.title }}</span>
                 <small>({{ relationNames[item.col.type] }} {{ item.title || item.table_name }}) </small></span
               >
             </template>
@@ -102,12 +103,19 @@ export default {
       this.tables = result.list;
     },
     checkLookupExist(v) {
-      return (this.lookup.table && (this.meta.v || []).every(c => !(
-        c.lk &&
-        c.lk.type === this.lookup.table.type &&
-        c.lk._ltn === this.lookup.table._ltn &&
-        c.lk.lcn === v.lcn
-      ))) || 'Lookup already exist'
+      return (
+        (this.lookup.table &&
+          (this.meta.v || []).every(
+            c =>
+              !(
+                c.lk &&
+                c.lk.type === this.lookup.table.type &&
+                c.lk._ltn === this.lookup.table._ltn &&
+                c.lk.lcn === v.lcn
+              )
+          )) ||
+        'Lookup already exist'
+      );
     },
     async onTableChange() {
       this.loadingColumns = true;

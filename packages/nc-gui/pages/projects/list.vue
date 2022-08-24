@@ -105,8 +105,8 @@
 </template>
 
 <script>
-import colors from '~/mixins/colors'
-import CreateNewProjectBtn from '~/components/projectList/CreateNewProjectBtn'
+import colors from '~/mixins/colors';
+import CreateNewProjectBtn from '~/components/projectList/CreateNewProjectBtn';
 
 export default {
   name: 'List',

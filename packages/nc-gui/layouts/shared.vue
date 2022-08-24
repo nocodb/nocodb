@@ -24,12 +24,10 @@ export default {
 </script>
 
 <style lang="scss">
-@import "assets/style/themes/finn.scss";
+@import 'assets/style/themes/finn.scss';
 </style>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 
 <!--
 /**

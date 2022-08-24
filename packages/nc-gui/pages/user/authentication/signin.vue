@@ -258,14 +258,15 @@ export default {
       return this.$store.state.project.appInfo && this.$store.state.project.appInfo.googleAuthEnabled;
     },
     githubAuthEnabled() {
-      return (
-        this.$store.state.project.appInfo &&
-        this.$store.state.project.appInfo.githubAuthEnabled
-      )
+      return this.$store.state.project.appInfo && this.$store.state.project.appInfo.githubAuthEnabled;
     },
     signUpEnabled() {
-      return !(this.$store.state.project && this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.noSignUp)
-    }
+      return !(
+        this.$store.state.project &&
+        this.$store.state.project.projectInfo &&
+        this.$store.state.project.projectInfo.noSignUp
+      );
+    },
   },
   watch: {},
   async created() {

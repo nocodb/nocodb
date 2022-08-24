@@ -7,14 +7,11 @@
     :color="isDark ? '' : 'primary lighten-5'"
     @click="!readonly && active && $emit('edit', item)"
   >
-    <slot><span class="name" :title="value">{{ value }}</span></slot>
+    <slot
+      ><span class="name" :title="value">{{ value }}</span></slot
+    >
     <div v-show="active" v-if="!readonly && _isUIAllowed('xcDatatableEditable')" class="mr-n1 ml-2">
-      <x-icon
-        :color="['text' , 'textLight']"
-        x-small
-        icon.class="unlink-icon"
-        @click.stop="$emit('unlink',item)"
-      >
+      <x-icon :color="['text', 'textLight']" x-small icon.class="unlink-icon" @click.stop="$emit('unlink', item)">
         mdi-close-thick
       </x-icon>
     </div>

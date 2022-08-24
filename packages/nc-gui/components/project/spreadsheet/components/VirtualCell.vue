@@ -174,13 +174,13 @@ export default {
     },
     senitizeValue(value) {
       if (value && Object.keys(value).length > 0) {
-        return value
+        return value;
       }
 
-      return null
-    }
-  }
-}
+      return null;
+    },
+  },
+};
 </script>
 
 <style scoped>

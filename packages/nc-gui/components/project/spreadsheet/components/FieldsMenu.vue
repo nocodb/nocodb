@@ -21,14 +21,7 @@
         </v-btn>
       </v-badge>
     </template>
-    <v-list
-      dense
-      class="pt-0"
-      min-width="280"
-      max-height="600"
-      style="overflow-y: auto"
-      @click.stop
-    >
+    <v-list dense class="pt-0" min-width="280" max-height="600" style="overflow-y: auto" @click.stop>
       <template v-if="isGallery && _isUIAllowed('updateCoverImage')">
         <div class="pa-2">
           <v-select

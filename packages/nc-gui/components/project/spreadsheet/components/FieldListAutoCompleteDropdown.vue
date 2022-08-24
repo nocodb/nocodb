@@ -39,8 +39,8 @@ export default {
   },
   data() {
     return {
-      icons: []
-    }
+      icons: [],
+    };
   },
   computed: {
     localValue: {
@@ -53,9 +53,12 @@ export default {
     },
   },
   mounted() {
-    const autocompleteInput = this.$refs.field.$refs.input
-    autocompleteInput.addEventListener('focus', this.onFocus, true)
-    this.icons = this.columns.reduce((acc, { icon, id }) => { acc[id] = icon; return acc })
+    const autocompleteInput = this.$refs.field.$refs.input;
+    autocompleteInput.addEventListener('focus', this.onFocus, true);
+    this.icons = this.columns.reduce((acc, { icon, id }) => {
+      acc[id] = icon;
+      return acc;
+    });
   },
   methods: {
     onFocus(e) {

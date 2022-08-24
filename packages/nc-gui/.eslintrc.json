@@ -9,7 +9,8 @@
   ],
   "extends": [
     "@nuxtjs",
-    "plugin:@intlify/vue-i18n/recommended"
+    "plugin:@intlify/vue-i18n/recommended",
+    "prettier"
   ],
   "rules": {
     "no-console": "off",

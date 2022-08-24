@@ -262,15 +262,13 @@ Cypress.Commands.add("getActiveSelection", () => {
     return cy.get(".ant-select-dropdown:visible").last();
 })
 
-Cypress.Commands.add("getActiveContentModal", () => {
-    return cy.get(".v-dialog__content--active").last();
-});
-
 Cypress.Commands.add("createTable", (name) => {
     // cy.get(".nc-btn-tbl-add").click();
 
-    cy.get(`[data-menu-id="addORImport"]`).click();
-    cy.getActivePopUp().contains("Add new table").should('exist').click();
+    // cy.get(`[data-menu-id="addORImport"]`).click();
+    // cy.getActivePopUp().contains("Add new table").should('exist').click();
+
+    cy.get('.nc-add-new-table').should('exist').click();
 
     cy.getActiveModal().find(`input[type="text"]:visible`)
       .click()

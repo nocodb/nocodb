@@ -6,36 +6,62 @@ import { loginPage } from "../../support/page_objects/navigation";
 let hookPath = "http://localhost:9090/hook";
 
 function createWebhook(hook, test) {
-    cy.get(".nc-btn-webhook").should("exist").click();
+    cy.get('.nc-actions-menu-btn').should('exist').click();
+    cy.getActiveMenu().find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
+
+    // cy.get(".nc-btn-webhook").should("exist").click();
     cy.get(".nc-btn-create-webhook").should("exist").click();
 
     // hardcode "Content-type: application/json"
-    cy.get(".nc-tab-hook-header").click({ force: true });
+    cy.get(".ant-tabs-tab-btn").contains("Headers").should("exist").click();
+
+    // kludge : as neither scrollIntoView nor scrollTo didn't yield any results
+    // cy.getActiveSelection().find('.ant-select-item').contains('Content-Type).scrollIntoView();
+    // cy.getActiveSelection().find('.rc-virtual-list').scrollTo('center');
+    // cy.getActiveSelection().select('Content-Type', { force: true });
+
     cy.get(".nc-input-hook-header-key")
+      .should("exist")
+      .click()
+      .type('{downarrow}')
+      .type('{downarrow}')
+      .type('{downarrow}')
+      .type('{downarrow}')
+      .type('{downarrow}')
+      .type('{downarrow}')
+      .type('{downarrow}')
+      .type('{downarrow}')
+      .type('{downarrow}')
+      .type('{downarrow}')
+      .type('{downarrow}')
+      .type('{downarrow}')
+
+    cy.getActiveSelection().find('.ant-select-item-option-content').contains('Content-Type').should('exist').click();
+
+    cy.get("input.nc-input-hook-header-value")
         .should("exist")
-        .find("input")
-        .eq(0)
-        .clear({ force: true })
-        .type("Content-Type", { force: true });
-    cy.get(".nc-input-hook-header-value")
-        .should("exist")
-        .find("input")
-        .eq(0)
         .clear({ force: true })
         .type("application/json", { force: true });
+
+    cy.get('.nc-hook-header-tab-checkbox').find('input.ant-checkbox-input').should('exist').click();
 
     // common routine for both create & modify to configure hook
     configureWebhook(hook, test);
 }
 
 function deleteWebhook(index) {
-    cy.get(".nc-btn-webhook").should("exist").click();
+    cy.get('.nc-actions-menu-btn').should('exist').click();
+    cy.getActiveMenu().find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
+
     cy.get(".nc-hook-delete-icon").eq(index).click({ force: true });
+    cy.toastWait("Hook deleted successfully");
     cy.get("body").type("{esc}");
 }
 
 function openWebhook(index) {
-    cy.get(".nc-btn-webhook").should("exist").click();
+    cy.get('.nc-actions-menu-btn').should('exist').click();
+    cy.getActiveMenu().find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
+
     cy.get(".nc-hook").eq(index).click({ force: true });
 }
 
@@ -46,15 +72,14 @@ function configureWebhook(hook, test) {
     if (hook?.title) {
         cy.get(".nc-text-field-hook-title")
             .should("exist")
-            .find("input")
             .clear()
             .type(hook.title);
     }
 
     if (hook?.event) {
         cy.get(".nc-text-field-hook-event").should("exist").click();
-        cy.getActiveMenu()
-            .find(`[role="option"]`)
+        cy.getActiveSelection()
+            .find(`.ant-select-item`)
             .contains(hook.event)
             .should("exist")
             .click();
@@ -63,7 +88,6 @@ function configureWebhook(hook, test) {
     if (hook?.url?.path) {
         cy.get(".nc-text-field-hook-url-path")
             .should("exist")
-            .find("input")
             .clear()
             .type(hook.url.path);
     }
@@ -86,36 +110,37 @@ function configureWebhook(hook, test) {
             .should("exist")
             .last()
             .click()
-            .type(hook.condition.column);
-
-        cy.getActiveMenu()
-            .find(`.nc-fld-${hook.condition.column}`)
-            .should("exist")
+        cy.get('.ant-select-dropdown:visible')
+            .should('exist')
+            .find(`.ant-select-item`)
+            .contains(new RegExp("^" + hook.condition.column + "$", "g"))
+            .should('exist')
             .click();
+        cy.wait(1000);
+
         cy.get(".nc-filter-operation-select").should("exist").last().click();
-
-        cy.getActiveMenu()
-            .find(`.v-list-item:contains(${hook.condition.operator})`)
+        cy.get('.ant-select-dropdown:visible')
+            .should('exist')
+            .find(`.ant-select-item`)
+            .contains(hook.condition.operator)
+            .should('exist')
             .click();
-        if (
-            hook.condition.operator != "is null" &&
-            hook.condition.operator != "is not null"
-        ) {
-            cy.get(".nc-filter-value-select input:text")
-                .should("exist")
-                .last()
-                .type(`${hook.condition.value}`);
+        if (hook.condition.operator != "is null" && hook.condition.operator != "is not null") {
+            cy.get(".nc-filter-value-select")
+              .should("exist")
+              .last()
+              .type(hook.condition.value);
             cy.get(".nc-filter-operation-select").last().click();
         }
     }
 
     if (test) {
         cy.get(".nc-btn-webhook-test").should("exist").click();
-        cy.toastWait("some text");
+        cy.toastWait("Webhook tested successfully");
     }
 
     cy.get(".nc-btn-webhook-save").should("exist").click();
-    cy.toastWait("some text");
+    cy.toastWait("Webhook details updated successfully");
     cy.get(".nc-icon-hook-navigate-left").should("exist").click();
     cy.get("body").type("{esc}");
 }
@@ -132,27 +157,41 @@ function clearServerData() {
 }
 
 function addNewRow(index, cellValue) {
-    cy.get(".nc-add-new-row-btn:visible").should("exist");
-    cy.get(".nc-add-new-row-btn").click({ force: true });
-    cy.get("#data-table-form-Title > input").first().type(cellValue);
+    cy.get(".nc-add-row:visible").should("exist");
+    cy.get(".nc-add-row").click();
+    cy.wait(1000);
+    cy.get(".nc-expand-col-Title").find(".nc-cell > input").first().type(cellValue);
     cy.getActiveModal()
-        .find("button")
-        .contains("Save row")
-        .click({ force: true });
+        .find(".ant-btn-primary")
+        .click();
 
     cy.toastWait("updated successfully");
+    cy.getActiveModal()
+      .find(".ant-btn")
+      .contains("Cancel")
+      .click();
     mainPage.getCell("Title", index).contains(cellValue).should("exist");
 }
 
 function updateRow(index, cellValue) {
-    mainPage.getRow(index).find(".nc-row-expand-icon").click({ force: true });
-    cy.get("#data-table-form-Title > input").first().clear().type(cellValue);
-    cy.getActiveModal()
-        .find("button")
-        .contains("Save row")
-        .click({ force: true });
+    cy.get(".nc-row-expand")
+      .eq(index-1)
+      .click({ force: true });
 
+    cy.get(".nc-expand-col-Title").find(".nc-cell > input")
+      .should("exist")
+      .first()
+      .clear()
+      .type(cellValue);
+
+    cy.getActiveModal()
+      .find("button")
+      .contains("Save row")
+      .click({ force: true });
+
+    // partial toast message
     cy.toastWait("updated successfully");
+    cy.get("body").type("{esc}");
 }
 
 function verifyHookTrigger(count, lastValue) {
@@ -169,13 +208,15 @@ function verifyHookTrigger(count, lastValue) {
 }
 
 function deleteRow(index) {
-    mainPage.getCell("Title", index).rightclick({ force: true });
+    mainPage
+      .getCell("Title", 1)
+      .rightclick();
 
     // delete row
     cy.getActiveMenu()
-        .find('.v-list-item:contains("Delete Row")')
-        .first()
-        .click({ force: true });
+      .find('.ant-dropdown-menu-item:contains("Delete Row")')
+      .first()
+      .click({ force: true });
 }
 
 export const genTest = (apiType, dbType) => {

@@ -52,7 +52,7 @@ jobs:
               npm run start:web-v2
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress-v2/integration/test/restTableOps.js"
-            wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/entry.mjs"
+            wait-on: "http://localhost:8080"
             wait-on-timeout: 1200
             config-file: scripts/cypress-v2/cypress.json
         - name: Upload screenshots
@@ -96,7 +96,7 @@ jobs:
               npm run start:web-v2
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress-v2/integration/test/restViews.js"
-            wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/entry.mjs"
+            wait-on: "http://localhost:8080"
             wait-on-timeout: 1200
             config-file: scripts/cypress-v2/cypress.json
         - name: Upload screenshots
@@ -140,7 +140,7 @@ jobs:
               npm run start:web-v2
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress-v2/integration/test/restRoles.js"
-            wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/entry.mjs"
+            wait-on: "http://localhost:8080"
             wait-on-timeout: 1200
             config-file: scripts/cypress-v2/cypress.json
         - name: Upload screenshots
@@ -184,7 +184,7 @@ jobs:
               npm run start:web-v2
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress-v2/integration/test/restMisc.js"
-            wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/entry.mjs"
+            wait-on: "http://localhost:8080"
             wait-on-timeout: 1200
             config-file: scripts/cypress-v2/cypress.json
         - name: Upload screenshots

@@ -636,7 +636,7 @@ export default class NcConfigFactory implements NcConfig {
     }
   }
 
-  public static extractXcUrlFromJdbc(url: string) {
+  public static extractXcUrlFromJdbc(url: string, rtConfig: boolean = false) {
     // drop the jdbc prefix
     if (url.startsWith('jdbc:')) {
       url = url.substring(5);
@@ -655,9 +655,20 @@ export default class NcConfigFactory implements NcConfig {
     }
 
     if (!parsedConfig?.port) parsedConfig.port = defaultClientPortMapping[parsedConfig.driver];
+    
+    if (rtConfig) {
+      const { driver, ...connectionConfig } = parsedConfig;
+
+      return {
+        client: driverClientMapping[driver] || driver,
+        connection: {
+          ...connectionConfig
+        }
+      } as any;
+    }
 
     const { driver, host, port, database, user, password, ...extra } = parsedConfig;
-    
+
     const extraParams = [];
 
     for (const [key, value] of Object.entries(extra)) {

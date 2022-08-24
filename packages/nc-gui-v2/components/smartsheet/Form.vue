@@ -489,7 +489,7 @@ onMounted(async () => {
             <a-form-item v-if="isEditable" class="m-0 gap-0 p-0">
               <a-input
                 v-model:value="formViewData.heading"
-                class="w-full text-bold text-h3"
+                class="w-full !font-bold !text-4xl"
                 size="large"
                 hide-details
                 placeholder="Form Title"

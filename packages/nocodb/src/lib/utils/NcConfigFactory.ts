@@ -654,7 +654,7 @@ export default class NcConfigFactory implements NcConfig {
       }
     }
 
-    if (!parsedConfig?.port) parsedConfig.port = defaultClientPortMapping[parsedConfig.driver];
+    if (!parsedConfig?.port) parsedConfig.port = defaultClientPortMapping[driverClientMapping[parsedConfig.driver] || parsedConfig.driver];
     
     if (rtConfig) {
       const { driver, ...connectionConfig } = parsedConfig;

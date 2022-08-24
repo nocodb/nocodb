@@ -22,8 +22,6 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const isForm = inject(IsFormInj)
-
 const { views, loadViews } = useViews(meta)
 
 const { isUIAllowed } = useUIPermission()

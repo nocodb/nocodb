@@ -532,67 +532,94 @@ onMounted(async () => {
             >
               <template #item="{ element, index }">
                 <div
-                  class="nc-editable item cursor-pointer hover:(bg-primary bg-opacity-10) p-3"
-                  :class="`nc-form-drag-${element.title.replaceAll(' ', '')}`"
+                  class="nc-editable item cursor-pointer hover:(bg-primary bg-opacity-10) p-3 my-2 relative"
+                  :class="[
+                    `nc-form-drag-${element.title.replaceAll(' ', '')}`,
+                    {
+                      'border-1': activeRow === element.title,
+                    },
+                  ]"
                   @click="activeRow = element.title"
                 >
-
-
-                  <div class="flex">
-                    <div class="flex flex-1">
-                      <div class="flex flex-row">
-                        <mdi-drag-vertical class="flex flex-1" />
-                      </div>
-                      <SmartsheetHeaderVirtualCell
-                        v-if="isVirtualCol(element)"
-                        :column="{ ...element, title: element.label || element.title }"
-                        :required="isRequired(element, element.required)"
-                        :hide-menu="true"
-                      />
-                      <SmartsheetHeaderCell
-                        v-else
-                        :column="{ ...element, title: element.label || element.title }"
-                        :required="isRequired(element, element.required)"
-                        :hide-menu="true"
-                      />
-                    </div>
-                    <div v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)" class="flex">
-                      <mdi-eye-off-outline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
-                    </div>
+                  <div
+                    v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)"
+                    class="absolute flex top-2 right-2"
+                  >
+                    <mdi-eye-off-outline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
                   </div>
-
-                  <div v-if="activeRow === element.title" class="mt-2">
-                    <a-form-item class="my-0 w-1/2 !mb-1">
-                      <a-input
-                        v-model:value="element.label"
-                        size="small"
-                        class="form-meta-input !bg-[#dbdbdb] nc-form-input-label"
-                        :placeholder="$t('msg.info.formInput')"
-                        @change="updateColMeta(element)"
+                  <template v-if="activeRow === element.title">
+                    <div class="flex">
+                      <div
+                        class="flex flex-1 opacity-0 align-center gap-2"
+                        :class="{ 'opacity-100': activeRow === element.title }"
                       >
-                      </a-input>
-                    </a-form-item>
+                        <div class="flex flex-row">
+                          <mdi-drag-vertical class="flex flex-1" />
+                        </div>
+                        <div class="items-center flex">
+                          <span
+                            class="text-xs text-gray-500 mr-2 nc-form-input-required"
+                            @click="
+                              () => {
+                                element.required = !element.required
+                                updateColMeta(element)
+                              }
+                            "
+                          >
+                            {{ $t('general.required') }}
+                          </span>
 
-                    <a-form-item class="mt-2 mb-0 w-1/2  !mb-1">
-                      <a-input
-                        v-model:value="element.description"
-                        size="small"
-                        class="form-meta-input !bg-[#dbdbdb] text-sm nc-form-input-help-text"
-                        :placeholder="$t('msg.info.formHelpText')"
-                        @change="updateColMeta(element)"
-                      />
-                    </a-form-item>
-
-                    <div class="items-center flex">
-                      <span class="text-sm text-gray-500 mr-2 nc-form-input-required">{{ $t('general.required') }}</span>
-
-                      <a-switch v-model:checked="element.required" size="small" class="my-2" @change="updateColMeta(element)" />
+                          <a-switch
+                            v-model:checked="element.required"
+                            size="small"
+                            class="ml-2"
+                            @change="updateColMeta(element)"
+                          />
+                        </div>
+                      </div>
                     </div>
+
+                    <div class="my-3">
+                      <a-form-item class="my-0 w-1/2 !mb-1">
+                        <a-input
+                          v-model:value="element.label"
+                          size="small"
+                          class="form-meta-input !bg-[#dbdbdb] nc-form-input-label"
+                          :placeholder="$t('msg.info.formInput')"
+                          @change="updateColMeta(element)"
+                        >
+                        </a-input>
+                      </a-form-item>
+
+                      <a-form-item class="mt-2 mb-0 w-1/2 !mb-1">
+                        <a-input
+                          v-model:value="element.description"
+                          size="small"
+                          class="form-meta-input !bg-[#dbdbdb] text-sm nc-form-input-help-text"
+                          :placeholder="$t('msg.info.formHelpText')"
+                          @change="updateColMeta(element)"
+                        />
+                      </a-form-item>
+                    </div>
+                  </template>
+                  <div>
+                    <SmartsheetHeaderVirtualCell
+                      v-if="isVirtualCol(element)"
+                      :column="{ ...element, title: element.label || element.title }"
+                      :required="isRequired(element, element.required)"
+                      :hide-menu="true"
+                    />
+                    <SmartsheetHeaderCell
+                      v-else
+                      :column="{ ...element, title: element.label || element.title }"
+                      :required="isRequired(element, element.required)"
+                      :hide-menu="true"
+                    />
                   </div>
 
                   <a-form-item
                     v-if="isVirtualCol(element)"
-                    class="m-0 gap-0 p-0"
+                    class="!m-0 gap-0 p-0"
                     :name="element.title"
                     :rules="[{ required: element.required, message: `${element.title} is required` }]"
                   >
@@ -607,7 +634,7 @@ onMounted(async () => {
 
                   <a-form-item
                     v-else
-                    class="m-0 gap-0 p-0"
+                    class="!m-0 gap-0 p-0"
                     :name="element.title"
                     :rules="[{ required: element.required, message: `${element.title} is required` }]"
                   >
@@ -621,8 +648,7 @@ onMounted(async () => {
                     />
                   </a-form-item>
 
-
-                  <span class="text-gray-500">{{ element.description }}</span>
+                  <span class="text-gray-500 text-xs">{{ element.description }}</span>
                 </div>
               </template>
 
@@ -637,12 +663,7 @@ onMounted(async () => {
             </Draggable>
 
             <div class="justify-center flex mt-10">
-              <a-button
-                type="primary"
-                class="flex items-center gap-2  nc-form-submit"
-                size="large"
-                @click="submitForm"
-              >
+              <a-button type="primary" class="flex items-center gap-2 nc-form-submit" size="large" @click="submitForm">
                 <!-- Submit -->
                 {{ $t('general.submit') }}
               </a-button>
@@ -725,5 +746,12 @@ onMounted(async () => {
 
 .form-meta-input::placeholder {
   @apply text-[#3d3d3d] italic;
+}
+
+.nc-form-input-label,
+.nc-form-input-help-text {
+  &::placeholder {
+    @apply !text-gray-500 !text-xs;
+  }
 }
 </style>

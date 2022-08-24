@@ -3,9 +3,6 @@ import ExportCache from './ExportCache.vue'
 import DeleteCache from './DeleteCache.vue'
 import DebugMeta from './DebugMeta.vue'
 import ToggleDrawer from './ToggleDrawer.vue'
-import { IsFormInj } from '#imports'
-
-const isForm = inject(IsFormInj)
 
 const debug = $ref(false)
 
@@ -14,7 +11,6 @@ const clickCount = $ref(0)
 
 <template>
   <div
-    v-if="!isForm"
     class="flex gap-2 justify-start"
     @click="
       () => {
@@ -41,9 +37,6 @@ const clickCount = $ref(0)
     </template>
 
     <slot name="end" />
-  </div>
-  <div v-else>
-    <slot name="start" />
   </div>
 </template>
 

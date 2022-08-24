@@ -425,8 +425,6 @@ onMounted(() => {
 
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect('key', keyFileInput)" />
 
-            <a-divider />
-
             <a-form-item class="mb-2" label="Extra connection parameters" v-bind="validateInfos.extraParameters">
               <a-card>
                 <div v-for="(item, index) of formState.extraParameters" :key="index">
@@ -445,6 +443,12 @@ onMounted(() => {
                 </a-button>
               </a-card>
             </a-form-item>
+            <div class="flex justify-end">
+              <a-button class="!shadow-md" @click="handleEditJSON()">
+                <!-- Edit connection JSON -->
+                {{ $t('activity.editConnJson') }}
+              </a-button>
+            </div>
 
             <a-divider />
 
@@ -460,12 +464,6 @@ onMounted(() => {
               </a-select>
             </a-form-item>
 
-            <div class="flex justify-end">
-              <a-button class="!shadow-md" @click="handleEditJSON()">
-                <!-- Edit connection JSON -->
-                {{ $t('activity.editConnJson') }}
-              </a-button>
-            </div>
           </a-collapse-panel>
         </a-collapse>
       </template>

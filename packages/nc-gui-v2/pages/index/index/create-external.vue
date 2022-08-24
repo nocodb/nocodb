@@ -103,7 +103,6 @@ const onClientChange = () => {
 }
 
 const onSSLModeChange = ((mode: 'No' | 'Allow' | string) => {
-  if ('ssl' in formState.dataSource.connection) {
     switch (mode) {
       case 'No':
         delete formState.dataSource.connection.ssl
@@ -119,7 +118,6 @@ const onSSLModeChange = ((mode: 'No' | 'Allow' | string) => {
         }
         break
     }
-  }
 }) as unknown as SelectHandler
 
 const addNewParam = () => {

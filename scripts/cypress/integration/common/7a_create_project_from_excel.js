@@ -21,9 +21,9 @@ let filepath = `sampleFiles/simple.xlsx`;
 // let UrlFilePath = `sampleFiles/Financial Sample.xlsx`
 
 let expectedData = {
-    0: ["number", "Number"],
-    1: ["float", "Decimal"],
-    2: ["text", "SingleLineText"],
+    0: ["number", "Number", "Number"],
+    1: ["float", "Decimal", "Float"],
+    2: ["text", "SingleLineText", "Text"],
 };
 
 // column names with spaces will be converted to include _
@@ -89,14 +89,20 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("File Upload: Upload excel as template", () => {
+
+            cy.get('.nc-add-new-table').should('exist').trigger('mouseover')
+            cy.get('.nc-import-menu').should('exist').click()
+            cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Microsoft Excel').click()
+
             // trigger import
-            cy.get(`[data-menu-id="addORImport"]`).click();
-            cy.getActivePopUp().contains("Microsoft Excel").should('exist').click();
+            // cy.get(`[data-menu-id="addORImport"]`).click();
+            // cy.getActivePopUp().contains("Microsoft Excel").should('exist').click();
 
             cy.get(".nc-input-import").should('exist').find('input').attachFile(filepath);
+            cy.toastWait("Uploaded file simple.xlsx successfully");
             cy.get(".nc-btn-import").should('exist').click();
 
-            cy.toastWait("Uploaded file simple.xlsx successfully")
+            // cy.toastWait("Uploaded file simple.xlsx successfully")
         });
 
         it("File Upload: Verify pre-load template page", () => {
@@ -124,14 +130,15 @@ export const genTest = (apiType, dbType) => {
                                 .then((rows) => {
                                     // cy.log(rows)
                                     for (let j = 0; j < rows.length; j++) {
-                                        cy.wrap(rows[j]).find(".ant-table-cell").then((cells) => {
-                                            // cy.log(cells)
-                                            for (let k = 0; k < 2; k++) {
-                                                cy.wrap(cells[k]).find("input").then((input) => {
-                                                    // cy.log(input)
-                                                    expect(input.val()).to.equal(expectedData[j][k])
-                                                })
-                                            }
+                                        cy.wrap(rows[j]).find(".ant-table-cell")
+                                          .then((cells) => {
+                                            cy.wrap(cells[0]).find("input")
+                                              .then((input) => {
+                                                expect(input.val()).to.equal(expectedData[j][0])
+                                            })
+                                            cy.wrap(cells[1]).find(".ant-select-selection-item")
+                                              .contains(expectedData[j][1])
+                                              .should("exist")
                                         })
                                     }
                               })
@@ -145,61 +152,48 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("File Upload: Verify loaded data", () => {
-            // create rest/ gql project
-            cy.get(".nc-btn-use-template", { timeout: 120000 }).click();
-            // if (type == 'rest') {
-            //     cy.getActiveMenu().find('[role="menuitem"]').contains('REST').click()
-            // } else {
-            //     cy.getActiveMenu().find('[role="menuitem"]').contains('GQL').click()
-            // }
 
-            // wait for loading to be completed
-            projectsPage.waitHomePageLoad();
-
-            // open sheet & validate contents
-            // sheetData contains data read from excel in format
-            // 0: { float: 1.1, number: 1, text: "abc" }
-            // 1: { float: 1.2, number: 0, text: "def" }
-
-            cy.openTableTab("Sheet2", 2);
+            cy.openTableTab("Sheet1", 2);
             for (const [key, value] of Object.entries(expectedData)) {
                 mainPage
-                    .getCell(value[0], 1)
+                    .getCell(value[2], 1)
                     .contains(sheetData[0][value[0]])
                     .should("exist");
                 mainPage
-                    .getCell(value[0], 2)
+                    .getCell(value[2], 2)
                     .contains(sheetData[1][value[0]])
                     .should("exist");
             }
-            cy.closeTableTab("Sheet2");
+            cy.closeTableTab("Sheet1");
 
             cy.openTableTab("Sheet3", 2);
             for (const [key, value] of Object.entries(expectedData)) {
                 mainPage
-                    .getCell(value[0], 1)
+                    .getCell(value[2], 1)
                     .contains(sheetData[0][value[0]])
                     .should("exist");
                 mainPage
-                    .getCell(value[0], 2)
+                    .getCell(value[2], 2)
                     .contains(sheetData[1][value[0]])
                     .should("exist");
             }
             cy.closeTableTab("Sheet3");
 
-            // delete project once all operations are completed
-            mainPage.toolBarTopLeft(mainPage.HOME).click();
-            cy.get(`.nc-${apiType}-project-row .mdi-delete-circle-outline`, {
-                timeout: 10000,
-            })
-                .should("exist")
-                .last()
-                .invoke("show")
-                .click();
-            cy.contains("Submit").closest("button").click();
+            // // delete project once all operations are completed
+            // cy.get('.nc-noco-brand-icon').click();
+            //
+            // cy.get(`.nc-action-btn`)
+            //   .should("exist")
+            //   .last()
+            //   .click();
+            //
+            // cy.getActiveModal()
+            //   .find(".ant-btn-dangerous")
+            //   .should("exist")
+            //   .click();
         });
 
-        it("URL: Upload excel as template", () => {
+        it.skip("URL: Upload excel as template", () => {
             // trigger import
             cy.get(`[data-menu-id="addORImport"]`).click();
             cy.getActivePopUp().contains("Microsoft Excel").should('exist').click();
@@ -213,7 +207,7 @@ export const genTest = (apiType, dbType) => {
             cy.get(".nc-btn-primary").should('exist').click();
         });
 
-        it("URL: Verify pre-load template page", () => {
+        it.skip("URL: Verify pre-load template page", () => {
             cy.getActiveModal()
               .find(".ant-collapse-item")
               .then((sheets) => {
@@ -252,7 +246,7 @@ export const genTest = (apiType, dbType) => {
             cy.getActiveModal().find(".ant-btn-primary").click();
         })
 
-        it("URL: Verify loaded data", () => {
+        it.skip("URL: Verify loaded data", () => {
 
             // wait for loading to be completed
             projectsPage.waitHomePageLoad();
@@ -276,8 +270,20 @@ export const genTest = (apiType, dbType) => {
 
         after(() => {
             // delete project once all operations are completed
-            mainPage.toolBarTopLeft(mainPage.HOME).click();
-            projectsPage.deleteProject("importSample");
+            // mainPage.toolBarTopLeft(mainPage.HOME).click();
+            // projectsPage.deleteProject("importSample");
+
+            cy.get('.nc-noco-brand-icon').click();
+
+            cy.get(`.nc-action-btn`)
+              .should("exist")
+              .last()
+              .click();
+
+            cy.getActiveModal()
+              .find(".ant-btn-dangerous")
+              .should("exist")
+              .click();
         });
     });
 };

@@ -11,71 +11,17 @@ export const genTest = (apiType, dbType) => {
             loginPage.signIn(roles.owner.credentials);
         });
 
-        it.skip("Stop Project", () => {
-            //cy.visit('./#/projects')
-            cy.get(`.nc-${apiType}-project-row .mdi-stop-circle-outline`, {
-                timeout: 10000,
-            })
-                .should("exist")
-                .last()
-                .invoke("show")
-                .click();
-            cy.snipActiveModal("Modal_StopProject");
-            cy.contains("Submit").closest("button").click();
-
-            cy.toastWait("stopped successfully");
-        });
-
-        it.skip("Start Project", () => {
-            //cy.visit('./#/projects')
-            cy.get(`.nc-${apiType}-project-row .mdi-play-circle-outline`, {
-                timeout: 10000,
-            })
-                .should("exist")
-                .last()
-                .invoke("show")
-                .click();
-            cy.snipActiveModal("Modal_StartProject");
-
-            cy.contains("Submit").closest("button").click();
-
-            cy.toastWait("started successfully");
-        });
-
-        it.skip("Restart Project", () => {
-            if (!isXcdb()) {
-                //cy.visit('./#/projects')
-                cy.get(`.nc-${apiType}-project-row .mdi-restart`, {
-                    timeout: 10000,
-                })
-                    .should("exist")
-                    .last()
-                    .invoke("show")
-                    .click();
-                cy.snipActiveModal("Modal_RestartProject");
-
-                cy.contains("Submit").closest("button").click();
-
-                cy.toastWait("restarted successfully");
-            }
-        });
-
         it("Delete Project", () => {
-            //cy.visit('./#/projects')
-            cy.get(`.mdi-delete-outline`, {
-                timeout: 10000,
-            })
+
+            cy.get(`.nc-action-btn`)
                 .should("exist")
                 .last()
                 .click();
-            cy.snipActiveModal("Modal_DeleteProject");
 
             cy.getActiveModal()
-                .find("button")
-                .contains("Submit")
+                .find(".ant-btn-dangerous")
                 .should("exist")
                 .click();
-            cy.toastWait("deleted successfully");
         });
     });
 };

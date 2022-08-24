@@ -476,7 +476,7 @@ onMounted(async () => {
         <!-- for future implementation of cover image -->
       </div>
       <a-card
-        class="h-full m-0 rounded-b-0 p-4 border-none"
+        class="m-0 rounded-b-0 p-4 border-none"
         :body-style="{
           maxWidth: '700px',
           margin: '0 auto',

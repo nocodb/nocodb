@@ -452,6 +452,7 @@ onMounted(() => {
 
             <a-divider />
 
+
             <a-form-item :label="$t('labels.inflection.tableName')">
               <a-select v-model:value="formState.inflection.inflectionTable">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>

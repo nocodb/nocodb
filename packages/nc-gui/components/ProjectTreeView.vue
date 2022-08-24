@@ -327,8 +327,8 @@
                 <v-list-item
                   v-else-if="
                     (item.type !== 'sqlClientDir' || showSqlClient) &&
-                    (item.type !== 'migrationsDir' || _isUIAllowed('audit'))
-                  "
+                    (item.type !== 'migrationsDir' || _isUIAllowed('audit')) &&
+                    (item.type !== 'viewDir')"
                   :key="item.key"
                   :selectable="false"
                   :value="`${(item._nodes && item._nodes).type || ''}||${(item._nodes && item._nodes.dbAlias) || ''}||${
@@ -1251,7 +1251,7 @@ export default {
     showNode(item) {
       return (
         !(this.$store.getters['project/GtrProjectPrefix'] && ['functionDir', 'procedureDir'].includes(item.type)) &&
-        (['tableDir', 'viewDir'].includes(item.type) || this._isUIAllowed('advanced'))
+        (['tableDir'].includes(item.type) || this._isUIAllowed('advanced')) && !['viewDir'].includes(item.type)
       );
     },
     showCTXMenu(e, item, open, leaf) {

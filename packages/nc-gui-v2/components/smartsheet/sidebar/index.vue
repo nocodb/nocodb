@@ -5,7 +5,6 @@ import MenuBottom from './MenuBottom.vue'
 import Toolbar from './toolbar/index.vue'
 import {
   ActiveViewInj,
-  IsFormInj,
   MetaInj,
   ViewListInj,
   computed,

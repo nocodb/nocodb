@@ -4,30 +4,14 @@ export interface ProjectCreateForm {
   title: string
   dataSource: {
     client: ClientType
-    connection:
-      | {
-          host: string
-          database: string
-          user: string
-          password: string
-          port: number | string
-          ssl?: Record<'ca' | 'cert' | 'key', string> | string
-        }
-      | {
-          client?: ClientType.SQLITE
-          database: string
-          connection?: {
-            filename?: string
-          }
-          useNullAsDefault?: boolean
-        }
+    connection: Record<string, any>
     searchPath?: string[]
   }
   inflection: {
     inflectionColumn?: string
     inflectionTable?: string
   }
-  sslUse?: 'No' | 'Allowed' | string
+  sslUse?: sslUsage
   extraParameters: Record<string, string>[]
 }
 
@@ -160,4 +144,19 @@ export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateFor
   }
 }
 
-export const sslUsage = ['No', 'Allowed', 'Preferred', 'Required', 'Required-CA', 'Required-IDENTITY']
+enum sslUsage {
+  No = 'No',
+  Allowed = 'Allowed',
+  Preferred = 'Preferred',
+  Required = 'Required',
+  RequiredWithCa = 'Required-CA',
+  RequiredWithIdentity = 'Required-Identity',
+}
+
+enum certTypes {
+  ca = 'ca',
+  cert = 'cert',
+  key = 'key',
+}
+
+export { sslUsage, certTypes }

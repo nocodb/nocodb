@@ -861,7 +861,7 @@ export default class Column<T = any> implements ColumnType {
       o = { ...o, ...updateObj };
       // set cache
       await NocoCache.set(key, o);
-    }    
+    }
     // set meta
     await ncMeta.metaUpdate(
       null,

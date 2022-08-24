@@ -11,6 +11,7 @@ import {
   onBeforeUnmount,
   onMounted,
   ref,
+  useGlobal,
   useNuxtApp,
   useProject,
   watch,
@@ -24,8 +25,9 @@ const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-// TODO: handle baseURL
-const baseURL = 'http://localhost:8080' // this.$axios.defaults.baseURL
+const { appInfo } = $(useGlobal())
+
+const baseURL = appInfo.ncSiteUrl
 
 const { $state } = useNuxtApp()
 

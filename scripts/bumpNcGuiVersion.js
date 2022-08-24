@@ -1,11 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'packages', 'nocodb-sdk', 'package.json'), 'utf8'))
-const version = packageJson.version
-  .replace(/\.(\d+)$/, (_, v) => {
-    return `.${++v}`
-  })
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'packages', 'nc-lib-gui-v2', 'package.json'), 'utf8'))
 
 if (process.env.targetEnv === 'DEV') {
     // nightly build
@@ -17,4 +13,4 @@ if (process.env.targetEnv === 'DEV') {
 } else {
     packageJson.version = process.env.targetVersion
 }
-fs.writeFileSync(path.join(__dirname, '..', 'packages', 'nocodb-sdk', 'package.json'), JSON.stringify(packageJson, 0, 2))
+fs.writeFileSync(path.join(__dirname, '..', 'packages', 'nc-lib-gui-v2', 'package.json'), JSON.stringify(packageJson, 0, 2))

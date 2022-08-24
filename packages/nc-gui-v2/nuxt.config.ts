@@ -11,8 +11,11 @@ import monacoEditorPlugin from 'vite-plugin-monaco-editor'
 export default defineNuxtConfig({
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge'],
 
-  ssr: false,
 
+  ssr: false,
+  app: {
+    baseURL: '/dashboard/',
+  },
   css: [
     'virtual:windi.css',
     'virtual:windi-devtools',
@@ -47,9 +50,11 @@ export default defineNuxtConfig({
   vite: {
     // todo: minifiy again
     build: {
+
       minify: false,
       rollupOptions: {
         external: 'httpsnippet',
+
       },
     },
     plugins: [
@@ -93,7 +98,6 @@ export default defineNuxtConfig({
   image: {
     dir: 'assets/',
   },
-
   autoImports: {
     dirs: ['./context', './utils', './lib'],
     imports: [{ name: 'useI18n', from: 'vue-i18n' }],

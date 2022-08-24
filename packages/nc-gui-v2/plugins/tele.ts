@@ -6,7 +6,10 @@ import type { UseGlobalReturn } from '~/composables/useGlobal/types'
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {
   const router = useRouter()
+
   const route = useRoute()
+
+  const { appInfo } = $(useGlobal())
 
   let socket: Socket
 
@@ -14,8 +17,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     try {
       if (socket) socket.disconnect()
 
-      // todo: extract base url
-      const url = 'http://localhost:8080' // new URL($axios.defaults.baseURL, window.location.href.split(/[?#]/)[0]).href
+      const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
+
       socket = io(url, {
         extraHeaders: { 'xc-auth': token },
       })

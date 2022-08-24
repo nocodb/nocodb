@@ -39,7 +39,7 @@ useSidebar({ hasSidebar: false })
 
 const { t } = useI18n()
 
-const formState = $ref<ProjectCreateForm>({
+let formState = $ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
@@ -119,6 +119,18 @@ const onSSLModeChange = ((mode: 'No' | 'Allow' | string) => {
       break
   }
 }) as unknown as SelectHandler
+
+const updateSSLUse = () => {
+  if (formState?.dataSource?.connection?.ssl) {
+    if (typeof formState.dataSource.connection.ssl === 'string') {
+      formState.sslUse = 'Allowed'
+    } else {
+      formState.sslUse = 'Preferred'
+    }
+  } else {
+    formState.sslUse = 'No'
+  }
+}
 
 const addNewParam = () => {
   formState.extraParameters.push({ key: '', value: '' })
@@ -265,6 +277,7 @@ const handleImportURL = async () => {
     message.error('Invalid URL')
   }
   importURLDlg.value = false
+  updateSSLUse()
 }
 
 const handleEditJSON = () => {
@@ -273,20 +286,21 @@ const handleEditJSON = () => {
 }
 
 const handleOk = () => {
-  formState.dataSource = { ...customFormState.value.dataSource }
+  formState = { ...customFormState.value }
   configEditDlg.value = false
+  updateSSLUse()
 }
 
 // reset test status on config change
 watch(
-  () => formState.dataSource,
+  () => formState?.dataSource,
   () => (testSuccess.value = false),
   { deep: true },
 )
 
 // populate database name based on title
 watch(
-  () => formState.title,
+  () => formState?.title,
   (v) => populateName(v),
 )
 

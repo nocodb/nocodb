@@ -103,21 +103,21 @@ const onClientChange = () => {
 }
 
 const onSSLModeChange = ((mode: 'No' | 'Allow' | string) => {
-    switch (mode) {
-      case 'No':
-        delete formState.dataSource.connection.ssl
-        break
-      case 'Allowed':
-        formState.dataSource.connection.ssl = 'true'
-        break
-      default:
-        formState.dataSource.connection.ssl = {
-          ca: '',
-          cert: '',
-          key: '',
-        }
-        break
-    }
+  switch (mode) {
+    case 'No':
+      delete formState.dataSource.connection.ssl
+      break
+    case 'Allowed':
+      formState.dataSource.connection.ssl = 'true'
+      break
+    default:
+      formState.dataSource.connection.ssl = {
+        ca: '',
+        cert: '',
+        key: '',
+      }
+      break
+  }
 }) as unknown as SelectHandler
 
 const addNewParam = () => {
@@ -129,7 +129,9 @@ const removeParam = (index: number) => {
 }
 
 const inflectionTypes = ['camelize', 'none']
+const importURL = ref('')
 const configEditDlg = ref(false)
+const importURLDlg = ref(false)
 
 const caFileInput = ref<HTMLInputElement>()
 const keyFileInput = ref<HTMLInputElement>()
@@ -249,6 +251,20 @@ const testConnection = async () => {
 
     message.error(await extractSdkResponseErrorMsg(e))
   }
+}
+
+const handleImportURL = async () => {
+  if (!importURL.value || importURL.value === '') return
+
+  const connectionConfig = await api.utils.urlToConfig({ url: importURL.value })
+
+  if (connectionConfig) {
+    formState.dataSource.client = connectionConfig.client
+    formState.dataSource.connection = { ...connectionConfig.connection }
+  } else {
+    message.error('Invalid URL')
+  }
+  importURLDlg.value = false
 }
 
 const handleEditJSON = () => {
@@ -373,7 +389,15 @@ onMounted(() => {
         </a-form-item>
 
         <a-collapse ghost expand-icon-position="right" class="!mt-6">
-          <a-collapse-panel key="1" :header="$t('title.advancedParameters')">
+          <a-collapse-panel key="1">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <a-button type="default" class="nc-extdb-btn-import-url" @click.stop="importURLDlg = true">
+                  Use Connection URL
+                </a-button>
+                <span>{{ $t('title.advancedParameters') }}</span>
+              </div>
+            </template>
             <!--            todo:  add in i18n -->
             <a-form-item label="SSL mode">
               <a-select v-model:value="formState.sslUse" @select="onSSLModeChange">
@@ -423,6 +447,8 @@ onMounted(() => {
 
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect('key', keyFileInput)" />
 
+            <a-divider />
+
             <a-form-item class="mb-2" label="Extra connection parameters" v-bind="validateInfos.extraParameters">
               <a-card>
                 <div v-for="(item, index) of formState.extraParameters" :key="index">
@@ -441,15 +467,8 @@ onMounted(() => {
                 </a-button>
               </a-card>
             </a-form-item>
-            <div class="flex justify-end">
-              <a-button class="!shadow-md" @click="handleEditJSON()">
-                <!-- Edit connection JSON -->
-                {{ $t('activity.editConnJson') }}
-              </a-button>
-            </div>
 
             <a-divider />
-
 
             <a-form-item :label="$t('labels.inflection.tableName')">
               <a-select v-model:value="formState.inflection.inflectionTable">
@@ -463,6 +482,12 @@ onMounted(() => {
               </a-select>
             </a-form-item>
 
+            <div class="flex justify-end">
+              <a-button class="!shadow-md" @click="handleEditJSON()">
+                <!-- Edit connection JSON -->
+                {{ $t('activity.editConnJson') }}
+              </a-button>
+            </div>
           </a-collapse-panel>
         </a-collapse>
       </template>
@@ -482,6 +507,10 @@ onMounted(() => {
 
     <a-modal v-model:visible="configEditDlg" :title="$t('activity.editConnJson')" width="600px" @ok="handleOk">
       <MonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
+    </a-modal>
+
+    <a-modal v-model:visible="importURLDlg" title="Use Connection URL" width="600px" @ok="handleImportURL">
+      <a-input v-model:value="importURL" />
     </a-modal>
   </div>
 </template>

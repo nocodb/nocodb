@@ -220,10 +220,11 @@ function onNotTypeChange(reset = false) {
   }
 
   if (hook.notification.type === 'URL') {
-    hook.notification.payload.body = '{{ json data }}'
-    hook.notification.payload.parameters = [{}]
-    hook.notification.payload.headers = [{}]
-    hook.notification.payload.method = 'POST'
+    hook.notification.payload.body = hook.notification.payload.body || '{{ json data }}'
+    hook.notification.payload.parameters = hook.notification.payload.parameters || [{}]
+    hook.notification.payload.headers = hook.notification.payload.headers || [{}]
+    hook.notification.payload.method = hook.notification.payload.method || 'POST'
+    hook.notification.payload.auth = hook.notification.payload.auth || ''
   }
 }
 
@@ -413,14 +414,24 @@ onMounted(async () => {
       <a-row type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos.title">
-            <a-input v-model:value="hook.title" size="large" :placeholder="$t('general.title')" class="nc-text-field-hook-title" />
+            <a-input
+              v-model:value="hook.title"
+              size="large"
+              :placeholder="$t('general.title')"
+              class="nc-text-field-hook-title"
+            />
           </a-form-item>
         </a-col>
       </a-row>
       <a-row type="flex" :gutter="[16, 16]">
         <a-col :span="12">
           <a-form-item v-bind="validateInfos.eventOperation">
-            <a-select v-model:value="hook.eventOperation" size="large" :placeholder="$t('general.event')" class="nc-text-field-hook-event">
+            <a-select
+              v-model:value="hook.eventOperation"
+              size="large"
+              :placeholder="$t('general.event')"
+              class="nc-text-field-hook-event"
+            >
               <a-select-option v-for="(event, i) in eventList" :key="i" :value="event.value.join(' ')">
                 {{ event.text.join(' ') }}
               </a-select-option>
@@ -471,7 +482,12 @@ onMounted(async () => {
 
         <a-col :span="18">
           <a-form-item v-bind="validateInfos['notification.payload.path']">
-            <a-input v-model:value="hook.notification.payload.path" size="large" placeholder="http://example.com" class="nc-text-field-hook-url-path" />
+            <a-input
+              v-model:value="hook.notification.payload.path"
+              size="large"
+              placeholder="http://example.com"
+              class="nc-text-field-hook-url-path"
+            />
           </a-form-item>
         </a-col>
 

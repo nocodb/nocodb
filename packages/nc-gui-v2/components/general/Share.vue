@@ -108,7 +108,14 @@ const openUrl = (url: string) => {
       class="px-2"
       @click.prevent="openUrl(`https://www.reddit.com/submit?url=${shareUrl}&title=${encodedSummary}`)"
     >
-      <img src="~/public/social/reddit.png" class="img-responsive" alt="Reddit" :width="width" :style="css" title="Social Media Share" />
+      <img
+        src="~/public/social/reddit.png"
+        class="img-responsive"
+        alt="Reddit"
+        :width="width"
+        :style="css"
+        title="Social Media Share"
+      />
     </a>
 
     <a
@@ -263,7 +270,14 @@ const openUrl = (url: string) => {
         openUrl(`https://vk.com/share.php?url=${shareUrl})&title=${encodedTitle}&description=${encodedSummary}&noparse=true`)
       "
     >
-      <img src="~/public/social/png/vk.png" class="img-responsive" alt="VK" :width="width" :style="css" title="Social Media Share" />
+      <img
+        src="~/public/social/png/vk.png"
+        class="img-responsive"
+        alt="VK"
+        :width="width"
+        :style="css"
+        title="Social Media Share"
+      />
     </a>
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('wykop')"

@@ -11,7 +11,6 @@ import monacoEditorPlugin from 'vite-plugin-monaco-editor'
 export default defineNuxtConfig({
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge'],
 
-
   ssr: false,
   app: {
     baseURL: '/dashboard/',
@@ -50,11 +49,9 @@ export default defineNuxtConfig({
   vite: {
     // todo: minifiy again
     build: {
-
       minify: false,
       rollupOptions: {
         external: 'httpsnippet',
-
       },
     },
     plugins: [

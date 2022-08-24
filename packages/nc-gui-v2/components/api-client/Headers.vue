@@ -80,7 +80,7 @@ const deleteHeaderRow = (idx: number) => vModel.value.splice(idx, 1)
       </thead>
       <tbody>
         <tr v-for="(headerRow, idx) in vModel" :key="idx">
-          <td class="px-2">
+          <td class="px-2 nc-hook-header-tab-checkbox">
             <a-form-item>
               <a-checkbox v-model:checked="headerRow.enabled" />
             </a-form-item>

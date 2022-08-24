@@ -386,19 +386,19 @@ onMounted(async () => {
   <div class="flex">
     <div class="flex-1">
       <div class="flex items-center mt-2">
-        <MdiArrowLeftBold class="mr-3 text-xl cursor-pointer" @click="emit('backToList')" />
+        <MdiArrowLeftBold class="mr-3 text-xl cursor-pointer nc-icon-hook-navigate-left" @click="emit('backToList')" />
         <span class="inline text-xl font-bold">{{ meta.title }} : {{ hook.title || 'Webhooks' }} </span>
       </div>
     </div>
     <div>
-      <a-button class="mr-3" size="large" @click="testWebhook">
+      <a-button class="mr-3 nc-btn-webhook-test" size="large" @click="testWebhook">
         <div class="flex items-center">
           <MdiGestureDoubleTap class="mr-2" />
           <!-- TODO: i18n -->
           Test Webhook
         </div>
       </a-button>
-      <a-button type="primary" size="large" @click.prevent="saveHooks">
+      <a-button class="nc-btn-webhook-save" type="primary" size="large" @click.prevent="saveHooks">
         <div class="flex items-center">
           <MdiContentSave class="mr-2" />
           <!-- Save -->

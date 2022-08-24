@@ -60,7 +60,7 @@ onMounted(() => {
     <div v-if="hooks.length" class="">
       <a-list item-layout="horizontal" :data-source="hooks" class="cursor-pointer scrollbar-thin-primary">
         <template #renderItem="{ item, index }">
-          <a-list-item class="p-2" @click="emit('edit', item)">
+          <a-list-item class="p-2 nc-hook" @click="emit('edit', item)">
             <a-list-item-meta>
               <template #description>
                 <span class="uppercase"> {{ item.event }} {{ item.operation }}</span>
@@ -81,7 +81,7 @@ onMounted(() => {
                 <!-- Notify Via -->
                 <div class="mr-2">{{ $t('labels.notifyVia') }} : {{ item?.notification?.type }}</div>
                 <div class="float-right pt-2 pr-1">
-                  <MdiDeleteOutline class="text-xl" @click.stop="deleteHook(item, index)" />
+                  <MdiDeleteOutline class="text-xl nc-hook-delete-icon" @click.stop="deleteHook(item, index)" />
                 </div>
               </div>
             </template>

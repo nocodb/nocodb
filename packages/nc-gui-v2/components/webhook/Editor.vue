@@ -220,10 +220,11 @@ function onNotTypeChange(reset = false) {
   }
 
   if (hook.notification.type === 'URL') {
-    hook.notification.payload.body = '{{ json data }}'
-    hook.notification.payload.parameters = [{}]
-    hook.notification.payload.headers = [{}]
-    hook.notification.payload.method = 'POST'
+    hook.notification.payload.body = hook.notification.payload.body || '{{ json data }}'
+    hook.notification.payload.parameters = hook.notification.payload.parameters || [{}]
+    hook.notification.payload.headers = hook.notification.payload.headers || [{}]
+    hook.notification.payload.method = hook.notification.payload.method || 'POST'
+    hook.notification.payload.auth = hook.notification.payload.auth || ''
   }
 }
 

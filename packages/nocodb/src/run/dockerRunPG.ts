@@ -6,7 +6,8 @@ process.env.NC_VERSION = '0009044';
 
 const server = express();
 server.enable('trust proxy');
-
+server.disable('etag');
+server.disable('x-powered-by');
 server.use(
   cors({
     exposedHeaders: 'xc-db-response',
@@ -25,7 +26,7 @@ process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}`;
 // process.env[`NC_TRY`] = 'true';
 // process.env[`NC_DASHBOARD_URL`] = '/test';
 
-process.env[`DEBUG`] = 'xc*';
+// process.env[`DEBUG`] = 'xc*';
 
 (async () => {
   const httpServer = server.listen(process.env.PORT || 8080, () => {

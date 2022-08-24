@@ -2,27 +2,41 @@ import { message } from 'ant-design-vue'
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RelationTypes, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import type { MaybeRef } from '@vueuse/core'
 import type { Row } from './useViewData'
-import { useInjectionState, useMetas, useNuxtApp, useProject, useVirtualCell } from '#imports'
-import { NOCO } from '~/lib'
-import { deepCompare, extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
+import {
+  NOCO,
+  computed,
+  deepCompare,
+  extractPkFromRow,
+  extractSdkResponseErrorMsg,
+  ref,
+  unref,
+  useInjectionState,
+  useMetas,
+  useNuxtApp,
+  useProject,
+  useVirtualCell,
+} from '#imports'
 
-const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
+const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState((meta: Ref<TableType>, row: MaybeRef<Row>) => {
   const { $api } = useNuxtApp()
+
   const { project } = useProject()
+
   const { metas } = useMetas()
 
   // state
   const state = ref<Record<string, Record<string, any> | Record<string, any>[] | null>>({})
 
   // getters
-  const isNew = computed(() => row.value?.rowMeta?.new ?? false)
+  const isNew = computed(() => unref(row).rowMeta?.new ?? false)
 
   // actions
   const addLTARRef = async (value: Record<string, any>, column: ColumnType) => {
     const { isHm, isMm, isBt } = $(useVirtualCell(ref(column)))
     if (isHm || isMm) {
-      state.value[column.title!] = state.value[column.title!] || []
+      if (!state.value[column.title!]) state.value[column.title!] = []
 
       if (state.value[column.title!]!.find((ln: Record<string, any>) => deepCompare(ln, value))) {
         return message.info('This value is already in the list')
@@ -106,6 +120,8 @@ export { useProvideSmartsheetRowStore }
 
 export function useSmartsheetRowStoreOrThrow() {
   const smartsheetRowStore = useSmartsheetRowStore()
+
   if (smartsheetRowStore == null) throw new Error('Please call `useSmartsheetRowStore` on the appropriate parent component')
+
   return smartsheetRowStore
 }

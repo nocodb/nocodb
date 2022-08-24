@@ -5,7 +5,9 @@ import { useSortable } from './sort'
 import Modal from './Modal.vue'
 import Carousel from './Carousel.vue'
 import {
+  IsFormInj,
   computed,
+  inject,
   isImage,
   openLink,
   ref,
@@ -16,8 +18,8 @@ import {
 } from '#imports'
 
 interface Props {
-  modelValue: string | Record<string, any>[] | null
-  rowIndex: number
+  modelValue?: string | Record<string, any>[] | null
+  rowIndex?: number
 }
 
 interface Emits {
@@ -27,6 +29,10 @@ interface Emits {
 const { modelValue, rowIndex } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
+
+const isForm = inject(IsFormInj, ref(false))
+
+const attachmentCellRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
@@ -46,7 +52,11 @@ const {
   storedFiles,
 } = useProvideAttachmentCell(updateModelValue)
 
-const currentCellRef = computed(() => cellRefs.value.find((cell) => cell.dataset.key === `${rowIndex}${column.value.id}`))
+const currentCellRef = computed(() =>
+  !rowIndex && isForm.value
+    ? attachmentCellRef.value
+    : cellRefs.value.find((cell) => cell.dataset.key === `${rowIndex}${column.value.id}`),
+)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
 
@@ -61,7 +71,8 @@ watch(
     if (nextModel) {
       try {
         attachments.value = ((typeof nextModel === 'string' ? JSON.parse(nextModel) : nextModel) || []).filter(Boolean)
-      } catch {
+      } catch (e) {
+        console.error(e)
         attachments.value = []
       }
     }
@@ -92,7 +103,10 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
 </script>
 
 <template>
-  <div class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1">
+  <div
+    ref="attachmentCellRef"
+    class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1"
+  >
     <Carousel />
 
     <template v-if="isSharedForm || (!isReadonly && !dragging && !!currentCellRef)">
@@ -124,6 +138,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
         </div>
       </a-tooltip>
     </div>
+    <div v-else class="flex" />
 
     <template v-if="visibleItems.length">
       <div
@@ -133,9 +148,8 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
       >
         <div
           v-for="(item, i) of visibleItems"
-          :id="item.url"
           :key="item.url || item.title"
-          :class="isImage(item.title, item.mimetype) ? '' : 'border-1 rounded'"
+          :class="isImage(item.title, item.mimetype ?? item.type) ? '' : 'border-1 rounded'"
           class="nc-attachment flex items-center justify-center min-h-[50px]"
         >
           <a-tooltip placement="bottom">
@@ -144,7 +158,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
             </template>
 
             <nuxt-img
-              v-if="isImage(item.title, item.mimetype)"
+              v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)"
               quality="75"
               placeholder
               :alt="item.title || `#${i}`"

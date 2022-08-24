@@ -19,12 +19,13 @@ const openSwaggerLink = () => {
     class="flex items-center space-x-1 w-full cursor-pointer pl-3 py-1.5 hover:(text-primary bg-primary bg-opacity-5)"
     @click="showDrawer = true"
   >
-    <MdiCommentTextOutline class="mr-1 nc-share-base" />
+    <MdiCommentTextOutline class="mr-1" />
     <!-- todo: i18n -->
     <div>APIs & Support</div>
   </div>
 
   <a-drawer
+    v-bind="$attrs"
     v-model:visible="showDrawer"
     class="h-full relative"
     placement="right"

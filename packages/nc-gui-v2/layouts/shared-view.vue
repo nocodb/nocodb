@@ -19,11 +19,11 @@ export default {
         </div>
         <div>
           <div class="flex justify-center items-center">
-            <div class="flex items-center gap-2 ml-3">
+            <div class="flex items-center gap-2 ml-3 text-white">
               <template v-if="isLoading">
-                {{ $t('general.loading') }}
+                <span class="text-white">{{ $t('general.loading') }}</span>
 
-                <MdiReload :class="{ 'animate-infinite animate-spin': isLoading }" />
+                <MdiReload :class="{ 'animate-infinite animate-spin ': isLoading }" />
               </template>
               <div v-else class="text-xl font-semibold truncate text-white">
                 {{ sharedView?.title }}

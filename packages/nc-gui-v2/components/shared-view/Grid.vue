@@ -26,7 +26,8 @@ useProvideSmartsheetStore(sharedView as Ref<TableType>, meta, true, sorts, neste
 
 <style scoped>
 .nc-container {
-  height: calc(100% - var(--header-height));
+  height: 100%;
+  padding-bottom: 0.5rem;
   flex: 1 1 100%;
 }
 </style>

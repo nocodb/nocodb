@@ -202,6 +202,7 @@ declare module '@vue/runtime-core' {
     MdiSearch: typeof import('~icons/mdi/search')['default']
     MdiShieldLockOutline: typeof import('~icons/mdi/shield-lock-outline')['default']
     MdiSlack: typeof import('~icons/mdi/slack')['default']
+    MdiSort: typeof import('~icons/mdi/sort')['default']
     MdiStar: typeof import('~icons/mdi/star')['default']
     MdiStarOutline: typeof import('~icons/mdi/star-outline')['default']
     MdiStore: typeof import('~icons/mdi/store')['default']

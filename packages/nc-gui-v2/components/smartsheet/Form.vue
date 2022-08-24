@@ -152,9 +152,8 @@ function onMoveCallback(event: any) {
 
 function onMove(event: any) {
   const { newIndex, element, oldIndex } = event.added || event.moved || event.removed
-  console.log(event)
+
   if (shouldSkipColumn(element)) {
-    console.log('SKIPPED')
     return
   }
 
@@ -408,7 +407,14 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <Draggable :list="hiddenColumns" draggable=".item" group="form-inputs" @start="drag = true" @end="drag = false">
+      <Draggable
+        :list="hiddenColumns"
+        item-key="id"
+        draggable=".item"
+        group="form-inputs"
+        @start="drag = true"
+        @end="drag = false"
+      >
         <template #item="{ element }">
           <a-card
             size="small"

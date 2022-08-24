@@ -87,7 +87,7 @@ const deleteHeaderRow = (idx: number) => vModel.value.splice(idx, 1)
           </td>
           <td class="px-2 w-min-[400px]">
             <a-form-item>
-              <a-select v-model:value="headerRow.name" size="large" placeholder="Key">
+              <a-select v-model:value="headerRow.name" size="large" placeholder="Key" class="nc-input-hook-header-key">
                 <a-select-option v-for="(header, i) in headerList" :key="i" :value="header">
                   {{ header }}
                 </a-select-option>
@@ -96,7 +96,7 @@ const deleteHeaderRow = (idx: number) => vModel.value.splice(idx, 1)
           </td>
           <td class="px-2 w-min-[400px]">
             <a-form-item>
-              <a-input v-model:value="headerRow.value" size="large" placeholder="Value" />
+              <a-input v-model:value="headerRow.value" size="large" placeholder="Value" class="nc-input-hook-header-value" />
             </a-form-item>
           </td>
           <td class="relative">

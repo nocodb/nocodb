@@ -413,14 +413,14 @@ onMounted(async () => {
       <a-row type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos.title">
-            <a-input v-model:value="hook.title" size="large" :placeholder="$t('general.title')" />
+            <a-input v-model:value="hook.title" size="large" :placeholder="$t('general.title')" class="nc-text-field-hook-title" />
           </a-form-item>
         </a-col>
       </a-row>
       <a-row type="flex" :gutter="[16, 16]">
         <a-col :span="12">
           <a-form-item v-bind="validateInfos.eventOperation">
-            <a-select v-model:value="hook.eventOperation" size="large" :placeholder="$t('general.event')">
+            <a-select v-model:value="hook.eventOperation" size="large" :placeholder="$t('general.event')" class="nc-text-field-hook-event">
               <a-select-option v-for="(event, i) in eventList" :key="i" :value="event.value.join(' ')">
                 {{ event.text.join(' ') }}
               </a-select-option>
@@ -432,6 +432,7 @@ onMounted(async () => {
             <a-select
               v-model:value="hook.notification.type"
               size="large"
+              class="nc-select-hook-notification-type"
               :placeholder="$t('general.notification')"
               @change="onNotTypeChange(true)"
             >
@@ -470,7 +471,7 @@ onMounted(async () => {
 
         <a-col :span="18">
           <a-form-item v-bind="validateInfos['notification.payload.path']">
-            <a-input v-model:value="hook.notification.payload.path" size="large" placeholder="http://example.com" />
+            <a-input v-model:value="hook.notification.payload.path" size="large" placeholder="http://example.com" class="nc-text-field-hook-url-path" />
           </a-form-item>
         </a-col>
 
@@ -482,7 +483,7 @@ onMounted(async () => {
             <a-tab-pane key="params" tab="Params" force-render>
               <ApiClientParams v-model="hook.notification.payload.parameters" />
             </a-tab-pane>
-            <a-tab-pane key="headers" tab="Headers">
+            <a-tab-pane key="headers" tab="Headers" class="nc-tab-headers">
               <ApiClientHeaders v-model="hook.notification.payload.headers" />
             </a-tab-pane>
             <a-tab-pane key="auth" tab="Auth">
@@ -566,7 +567,7 @@ onMounted(async () => {
       <a-row class="mb-5" type="flex">
         <a-col :span="24">
           <a-card>
-            <a-checkbox v-model:checked="hook.condition">On Condition</a-checkbox>
+            <a-checkbox v-model:checked="hook.condition" class="nc-check-box-hook-condition">On Condition</a-checkbox>
             <SmartsheetToolbarColumnFilter v-if="hook.condition" ref="filterRef" :auto-save="false" :hook-id="hook.id" />
           </a-card>
         </a-col>

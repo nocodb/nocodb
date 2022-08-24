@@ -15,6 +15,7 @@ import {
   PaginationDataInj,
   ReadonlyInj,
   ReloadViewDataHookInj,
+  createEventHook,
   enumColor,
   inject,
   onClickOutside,
@@ -44,8 +45,8 @@ const fields = inject(FieldsInj, ref([]))
 const readOnly = inject(ReadonlyInj, false)
 const isLocked = inject(IsLockedInj, ref(false))
 
-const reloadViewDataHook = inject(ReloadViewDataHookInj)
-const openNewRecordFormHook = inject(OpenNewRecordFormHookInj)
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const { isUIAllowed } = useUIPermission()
 
@@ -382,7 +383,7 @@ const onNavigate = (dir: NavigateDir) => {
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
                     <div class="items-center flex gap-1 min-w-[55px]">
                       <div
-                        v-if="!readOnly && !isLocked"
+                        v-if="!readOnly || !isLocked"
                         class="nc-row-no text-xs text-gray-500"
                         :class="{ hidden: row.rowMeta.selected }"
                       >

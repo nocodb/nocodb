@@ -72,7 +72,7 @@ await loadProjects()
 
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
       <!-- My Projects -->
-      <span class="text-4xl">{{ $t('title.myProject') }}</span>
+      <span class="text-4xl nc-project-page-title">{{ $t('title.myProject') }}</span>
 
       <a-tooltip title="Reload projects">
         <span

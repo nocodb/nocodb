@@ -19,6 +19,22 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
 
   const { isSharedBase } = useProject()
 
+  const isLocalMode = computed(
+    () => isPublic.value || !isUIAllowed('hideAllColumns') || !isUIAllowed('showAllColumns') || isSharedBase.value,
+  )
+
+  const metaColumnById = computed<Record<string, ColumnType>>(() => {
+    if (!meta.value?.columns) return {}
+
+    return meta.value?.columns?.reduce(
+      (acc: ColumnType, curr: ColumnType) => ({
+        ...acc,
+        [curr.id!]: curr,
+      }),
+      {} as any,
+    )
+  })
+
   const loadViewColumns = async () => {
     if (!meta || !view) return
 
@@ -35,6 +51,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
           [curr.fk_column_id]: curr,
         }
       }, {})
+
       fields.value = meta.value?.columns
         ?.map((column: ColumnType) => {
           const currentColumnField = fieldById[column.id!] || {}
@@ -44,7 +61,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
             fk_column_id: column.id,
             ...currentColumnField,
             order: currentColumnField.order || order++,
-            system: isSystemColumn(currentColumnField.type || false),
+            system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
           }
         })
         .sort((a: Field, b: Field) => a.order - b.order)
@@ -52,7 +69,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   }
 
   const showAll = async (ignoreIds?: any) => {
-    if (isPublic.value || isSharedBase.value) {
+    if (isLocalMode.value) {
       fields.value = fields.value?.map((field: Field) => ({
         ...field,
         show: true,
@@ -75,7 +92,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     reloadData?.()
   }
   const hideAll = async (ignoreIds?: any) => {
-    if (isPublic.value || isSharedBase.value) {
+    if (isLocalMode.value) {
       fields.value = fields.value?.map((field: Field) => ({
         ...field,
         show: false,
@@ -125,18 +142,6 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     reloadData?.()
   }
 
-  const metaColumnById = computed<Record<string, ColumnType>>(() => {
-    if (!meta.value?.columns) return {}
-
-    return meta.value?.columns?.reduce(
-      (acc: ColumnType, curr: ColumnType) => ({
-        ...acc,
-        [curr.id!]: curr,
-      }),
-      {} as any,
-    )
-  })
-
   const showSystemFields = computed({
     get() {
       // todo: show_system_fields missing from ViewType
@@ -144,7 +149,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     },
     set(v: boolean) {
       if (view?.value?.id) {
-        if (!isPublic.value && !isSharedBase.value) {
+        if (!isLocalMode.value) {
           $api.dbView
             .update(view.value.id, {
               show_system_fields: v,

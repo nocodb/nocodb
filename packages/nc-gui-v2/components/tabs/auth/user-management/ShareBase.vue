@@ -143,7 +143,7 @@ onMounted(() => {
       <div class="text-xs">{{ $t('activity.shareBase.link') }}</div>
     </div>
     <div v-if="base?.uuid" class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm w-full justify-between">
-      <span class="flex text-xs overflow-x-hidden overflow-ellipsis text-gray-700 pl-2">{{ url }}</span>
+      <span class="flex text-xs overflow-x-hidden overflow-ellipsis text-gray-700 pl-2 nc-url">{{ url }}</span>
       <div class="flex border-l-1 pt-1 pl-1">
         <a-tooltip placement="bottom">
           <template #title>
@@ -191,7 +191,7 @@ onMounted(() => {
     <div class="mt-4 flex flex-row justify-between mx-1">
       <a-dropdown v-model="showEditBaseDropdown" class="flex">
         <a-button>
-          <div class="flex flex-row items-center space-x-2">
+          <div class="flex flex-row items-center space-x-2 nc-disable-shared-base">
             <div v-if="base?.uuid">{{ $t('activity.shareBase.enable') }}</div>
             <div v-else>{{ $t('activity.shareBase.disable') }}</div>
             <IcRoundKeyboardArrowDown class="h-[1rem]" />
@@ -208,7 +208,7 @@ onMounted(() => {
         </template>
       </a-dropdown>
 
-      <a-select v-if="base?.uuid" v-model:value="base.role" class="flex">
+      <a-select v-if="base?.uuid" v-model:value="base.role" class="flex nc-shared-base-role">
         <template #suffixIcon>
           <div class="flex flex-row">
             <IcRoundKeyboardArrowDown class="text-black -mt-0.5 h-[1rem]" />

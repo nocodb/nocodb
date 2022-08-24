@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { useI18n } from 'vue-i18n'
-import { useHead, useRoute } from '#imports'
+import { useTitle } from '@vueuse/core'
+import { useI18n, useRoute, useSidebar } from '#imports'
 
 const route = useRoute()
 
 const { te, t } = useI18n()
 
-useHead({
-  title: route.meta?.title && te(route.meta.title as string) ? `${t(route.meta.title as string)} | NocoDB` : 'NocoDB',
-})
+const { hasSidebar } = useSidebar()
+
+useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)} | NocoDB` : 'NocoDB')
 </script>
 
 <script lang="ts">
@@ -19,7 +19,7 @@ export default {
 
 <template>
   <div class="w-full h-full">
-    <Teleport to="#nc-sidebar-left">
+    <Teleport :to="hasSidebar ? '#nc-sidebar-left' : null" :disabled="!hasSidebar">
       <slot name="sidebar" />
     </Teleport>
 

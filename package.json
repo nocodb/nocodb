@@ -25,6 +25,7 @@
     "start:web-v2": "npm run build:common ; cd ./packages/nc-gui-v2; npm install ../nocodb-sdk; npm install; npm run dev",
     "cypress:run": "cypress run --config-file ./scripts/cypress/cypress.json",
     "cypress:open": "cypress open --config-file ./scripts/cypress/cypress.json",
+    "cypress-v2:run": "cypress run --config-file ./scripts/cypress-v2/cypress.json",
     "cypress-v2:open": "cypress open --config-file ./scripts/cypress-v2/cypress.json",
     "cypress:clear": "cypress cache clear",
     "test:travis": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna run test:travis --since",

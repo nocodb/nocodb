@@ -109,7 +109,7 @@ await loadProjects()
         <template #overlay>
           <a-menu class="!py-0 rounded">
             <a-menu-item>
-              <div v-t="['c:project:create:xcdb']" class="nc-project-menu-item group" @click="navigateTo('/create')">
+              <div v-t="['c:project:create:xcdb']" class="nc-project-menu-item group nc-create-xc-db-project" @click="navigateTo('/create')">
                 <MdiPlusOutline class="group-hover:text-accent" />
 
                 <div>{{ $t('activity.createProject') }}</div>

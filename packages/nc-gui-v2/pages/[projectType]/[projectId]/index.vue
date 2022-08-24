@@ -163,7 +163,7 @@ const onMenuClose = (visible: boolean) => {
         >
           <div
             v-if="isOpen && !isSharedBase"
-            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
+            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
             @click="navigateTo('/')"
           >
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />

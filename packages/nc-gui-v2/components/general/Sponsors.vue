@@ -9,7 +9,7 @@ const { nav = false } = defineProps<Props>()
 <template>
   <a-card class="w-[300px] shadow-sm !rounded-lg">
     <template #cover>
-      <img class="max-h-[180px] !rounded-t-lg" alt="cover" src="~/public/ants-leaf-cutter.jpeg" />
+      <img class="max-h-[180px] !rounded-t-lg" alt="cover" src="~/assets/img/ants-leaf-cutter.jpeg" />
     </template>
 
     <a-card-meta>

@@ -306,6 +306,7 @@ export default {
       );
     },
     ...mapGetters({
+      brandName: 'plugins/brandName',
       projects: 'project/list',
       tabs: 'tabs/list',
       sqldMgr: 'sqlMgr/sqlMgr',

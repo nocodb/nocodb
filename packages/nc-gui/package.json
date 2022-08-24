@@ -73,6 +73,7 @@
     "babel-eslint": "^10.1.0",
     "cross-env": "^7.0.3",
     "eslint": "^7.31.0",
+    "eslint-config-prettier": "^8.5.0",
     "monaco-editor-webpack-plugin": "^1.9.1",
     "sass": "~1.32.12",
     "vue-eslint-parser": "^7.9.0"

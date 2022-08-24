@@ -257,7 +257,7 @@ export default {
 
       try {
         while (!isNaN(offset) && offset > -1) {
-          const res = await this.getExportData({ offset, exportType: ExportTypes.CSV, responseType: 'blob' })
+          const res = await this.getExportData({ offset, exportType: ExportTypes.CSV, responseType: 'blob' });
           const { data } = res;
 
           offset = +res.headers['nc-export-offset'];

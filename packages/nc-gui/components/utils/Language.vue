@@ -2,9 +2,7 @@
   <div>
     <v-menu top offset-y>
       <template #activator="{ on }">
-        <v-icon size="20" class="ml-2 nc-menu-translate" v-on="on">
-          mdi-translate
-        </v-icon>
+        <v-icon size="20" class="ml-2 nc-menu-translate" v-on="on"> mdi-translate </v-icon>
       </template>
       <v-list dense class="nc-language-list">
         <v-list-item-group v-model="language">
@@ -71,78 +69,78 @@ export default {
       vi: 'Tiếng Việt',
       zh_CN: '大陆简体',
       zh_HK: '香港繁體',
-      zh_TW: '臺灣正體'
-    }
+      zh_TW: '臺灣正體',
+    },
   }),
   computed: {
     languages() {
-      return ((this.$i18n && this.$i18n.availableLocales) || ['en']).sort()
+      return ((this.$i18n && this.$i18n.availableLocales) || ['en']).sort();
     },
     language: {
       get() {
-        return this.$store.state.settings.language
+        return this.$store.state.settings.language;
       },
       set(val) {
-        this.$store.commit('settings/MutLanguage', val)
-        this.applyDirection()
-      }
-    }
+        this.$store.commit('settings/MutLanguage', val);
+        this.applyDirection();
+      },
+    },
   },
   mounted() {
-    this.applyDirection()
+    this.applyDirection();
   },
   methods: {
     applyDirection() {
-      const targetDirection = this.isRtlLang() ? 'rtl' : 'ltr'
-      const oppositeDirection = targetDirection == 'ltr' ? 'rtl' : 'ltr'
-      document.body.classList.remove(oppositeDirection)
-      document.body.classList.add(targetDirection)
-      document.body.style.direction = targetDirection
+      const targetDirection = this.isRtlLang() ? 'rtl' : 'ltr';
+      const oppositeDirection = targetDirection == 'ltr' ? 'rtl' : 'ltr';
+      document.body.classList.remove(oppositeDirection);
+      document.body.classList.add(targetDirection);
+      document.body.style.direction = targetDirection;
     },
     isRtlLang() {
-      return ['fa', 'ar'].includes(this.language)
+      return ['fa', 'ar'].includes(this.language);
     },
     changeLan(lan) {
-      this.language = lan
-      const count = 200
+      this.language = lan;
+      const count = 200;
       const defaults = {
-        origin: { y: 0.7 }
-      }
+        origin: { y: 0.7 },
+      };
 
       function fire(particleRatio, opts) {
         window.confetti(
           Object.assign({}, defaults, opts, {
-            particleCount: Math.floor(count * particleRatio)
+            particleCount: Math.floor(count * particleRatio),
           })
-        )
+        );
       }
 
       fire(0.25, {
         spread: 26,
-        startVelocity: 55
-      })
+        startVelocity: 55,
+      });
       fire(0.2, {
-        spread: 60
-      })
+        spread: 60,
+      });
       fire(0.35, {
         spread: 100,
         decay: 0.91,
-        scalar: 0.8
-      })
+        scalar: 0.8,
+      });
       fire(0.1, {
         spread: 120,
         startVelocity: 25,
         decay: 0.92,
-        scalar: 1.2
-      })
+        scalar: 1.2,
+      });
       fire(0.1, {
         spread: 120,
-        startVelocity: 45
-      })
-      this.$e('c:navbar:lang', { lang: lan })
-    }
-  }
-}
+        startVelocity: 45,
+      });
+      this.$e('c:navbar:lang', { lang: lan });
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">

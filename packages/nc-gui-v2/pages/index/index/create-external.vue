@@ -2,6 +2,7 @@
 import { Form, Modal, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import {
+  certTypes,
   clientTypes,
   computed,
   extractSdkResponseErrorMsg,
@@ -46,7 +47,7 @@ let formState = $ref<ProjectCreateForm>({
     inflectionColumn: 'camelize',
     inflectionTable: 'camelize',
   },
-  sslUse: 'No',
+  sslUse: sslUsage.No,
   extraParameters: [],
 })
 
@@ -57,7 +58,7 @@ const customFormState = ref<ProjectCreateForm>({
     inflectionColumn: 'camelize',
     inflectionTable: 'camelize',
   },
-  sslUse: 'No',
+  sslUse: sslUsage.No,
   extraParameters: [],
 })
 
@@ -102,12 +103,12 @@ const onClientChange = () => {
   populateName(formState.title)
 }
 
-const onSSLModeChange = ((mode: 'No' | 'Allow' | string) => {
+const onSSLModeChange = ((mode: sslUsage) => {
   switch (mode) {
-    case 'No':
+    case sslUsage.No:
       delete formState.dataSource.connection.ssl
       break
-    case 'Allowed':
+    case sslUsage.Allowed:
       formState.dataSource.connection.ssl = 'true'
       break
     default:
@@ -118,17 +119,17 @@ const onSSLModeChange = ((mode: 'No' | 'Allow' | string) => {
       }
       break
   }
-}) as unknown as SelectHandler
+}) as SelectHandler
 
 const updateSSLUse = () => {
-  if (formState?.dataSource?.connection?.ssl) {
+  if (formState.dataSource.connection.ssl) {
     if (typeof formState.dataSource.connection.ssl === 'string') {
-      formState.sslUse = 'Allowed'
+      formState.sslUse = sslUsage.Allowed
     } else {
-      formState.sslUse = 'Preferred'
+      formState.sslUse = sslUsage.Preferred
     }
   } else {
-    formState.sslUse = 'No'
+    formState.sslUse = sslUsage.No
   }
 }
 
@@ -149,7 +150,7 @@ const caFileInput = ref<HTMLInputElement>()
 const keyFileInput = ref<HTMLInputElement>()
 const certFileInput = ref<HTMLInputElement>()
 
-const onFileSelect = (key: 'ca' | 'cert' | 'key', el?: HTMLInputElement) => {
+const onFileSelect = (key: certTypes, el?: HTMLInputElement) => {
   if (!el) return
 
   readFile(el, (content) => {
@@ -158,7 +159,9 @@ const onFileSelect = (key: 'ca' | 'cert' | 'key', el?: HTMLInputElement) => {
   })
 }
 
-const sslFilesRequired = computed(() => !!formState.sslUse && formState.sslUse !== 'No' && formState.sslUse !== 'Allowed')
+const sslFilesRequired = computed(
+  () => !!formState.sslUse && formState.sslUse !== sslUsage.No && formState.sslUse !== sslUsage.Allowed,
+)
 
 function getConnectionConfig() {
   const extraParameters = Object.fromEntries(new Map(formState.extraParameters.map((object) => [object.key, object.value])))
@@ -169,7 +172,10 @@ function getConnectionConfig() {
   }
 
   if ('ssl' in connection && connection.ssl) {
-    if (formState.sslUse === 'No' || (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => !v))) {
+    if (
+      formState.sslUse === sslUsage.No ||
+      (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => !v))
+    ) {
       delete connection.ssl
     }
   }
@@ -293,14 +299,14 @@ const handleOk = () => {
 
 // reset test status on config change
 watch(
-  () => formState?.dataSource,
+  () => formState.dataSource,
   () => (testSuccess.value = false),
   { deep: true },
 )
 
 // populate database name based on title
 watch(
-  () => formState?.title,
+  () => formState.title,
   (v) => populateName(v),
 )
 
@@ -415,7 +421,7 @@ onMounted(() => {
             <!--            todo:  add in i18n -->
             <a-form-item label="SSL mode">
               <a-select v-model:value="formState.sslUse" @select="onSSLModeChange">
-                <a-select-option v-for="opt in sslUsage" :key="opt" :value="opt">{{ opt }}</a-select-option>
+                <a-select-option v-for="opt in Object.values(sslUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
               </a-select>
             </a-form-item>
 
@@ -455,11 +461,11 @@ onMounted(() => {
               </div>
             </a-form-item>
 
-            <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect('ca', caFileInput)" />
+            <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect(certTypes.ca, caFileInput)" />
 
-            <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect('cert', certFileInput)" />
+            <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect(certTypes.cert, certFileInput)" />
 
-            <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect('key', keyFileInput)" />
+            <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect(certTypes.key, keyFileInput)" />
 
             <a-divider />
 

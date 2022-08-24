@@ -31,7 +31,6 @@ const readonly = inject(ReadonlyInj, false)
 
 const {
   childrenList,
-  meta,
   deleteRelatedRow,
   loadChildrenList,
   childrenListPagination,
@@ -85,13 +84,12 @@ const expandedFormRow = ref()
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
         <div class="flex-1" />
-
         <MdiReload v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
 
         <a-button v-if="!readonly" type="primary" ghost class="!text-xs" size="small" @click="emit('attachRecord')">
           <div class="flex items-center gap-1">
             <MdiLinkVariantRemove class="text-xs" type="primary" @click="unlinkRow(row)" />
-            Link to '{{ meta.title }}'
+            Link to '{{ relatedTableMeta.title }}'
           </div>
         </a-button>
       </div>

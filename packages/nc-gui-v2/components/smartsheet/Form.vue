@@ -648,7 +648,7 @@ onMounted(async () => {
                     />
                   </a-form-item>
 
-                  <span class="text-gray-500 text-xs">{{ element.description }}</span>
+                  <span class="text-gray-500 text-xs -mt-1 block">{{ element.description }}</span>
                 </div>
               </template>
 

@@ -62,7 +62,7 @@ jobs:
           with:
             name: cypress-pg-restTableOps-run-cache-snapshots
             path: scripts/cypress-v2/screenshots
-              retention-days: 2
+            retention-days: 2
     cypress-pg-restViews-run-cache:
       runs-on: ubuntu-20.04
       steps:

@@ -644,7 +644,7 @@ export default class NcConfigFactory implements NcConfig {
 
     const config = parseDbUrl(url);
 
-    const parsedConfig: { driver?: string, host?: string, port?: string, database?: string, user?:string, password?: string  } = {}
+    const parsedConfig: { driver?: string, host?: string, port?: string, database?: string, user?:string, password?: string, ssl?: string } = {}
     for (const [key, value] of Object.entries(config)) {
       const fnd = knownQueryParams.find((param) => param.parameter === key || param.aliases.includes(key))
       if (fnd) {
@@ -655,12 +655,20 @@ export default class NcConfigFactory implements NcConfig {
     }
 
     if (!parsedConfig?.port) parsedConfig.port = defaultClientPortMapping[driverClientMapping[parsedConfig.driver] || parsedConfig.driver];
-    
+
     if (rtConfig) {
       const { driver, ...connectionConfig } = parsedConfig;
+      
+      const client = driverClientMapping[driver] || driver;
+      
+      const avoidSSL = ['localhost', '127.0.0.1', 'host.docker.internal', '172.17. 0.1']
+
+      if (client === 'pg' && !connectionConfig?.ssl && !avoidSSL.includes(connectionConfig.host)) {
+        connectionConfig.ssl = 'true';
+      }
 
       return {
-        client: driverClientMapping[driver] || driver,
+        client: client,
         connection: {
           ...connectionConfig
         }

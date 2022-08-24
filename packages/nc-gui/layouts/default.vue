@@ -25,16 +25,12 @@
             </template>
             <!-- Home -->
             {{ $t('general.home') }}
-            <span
-              class="caption font-weight-light pointer"
-            >(v{{
-              $store.state.project.appInfo &&
-                $store.state.project.appInfo.version
-            }})</span>
+            <span class="caption font-weight-light pointer"
+              >(v{{ $store.state.project.appInfo && $store.state.project.appInfo.version }})</span
+            >
           </v-tooltip>
 
-          <span v-if="!!brandName" class="body-1 ml-n1" @click="$router.push('/projects')">
-            {{ brandName }}</span>
+          <span v-if="!!brandName" class="body-1 ml-n1" @click="$router.push('/projects')"> {{ brandName }}</span>
         </v-toolbar-title>
 
         <!--        <v-toolbar-items  />-->
@@ -233,18 +229,18 @@
 </template>
 
 <script>
-import { mapGetters, mapActions, mapMutations } from 'vuex'
-import ReleaseInfo from '~/components/ReleaseInfo'
-import 'splitpanes/dist/splitpanes.css'
-import XBtn from '../components/global/XBtn'
-import dlgUnexpectedError from '../components/utils/DlgUnexpectedError'
-import settings from '../components/Settings'
-import { copyTextToClipboard } from '@/helpers/xutils'
-import Language from '~/components/utils/Language'
-import Loader from '~/components/Loader'
-import PreviewAs from '~/components/PreviewAs'
-import ShareOrInviteModal from '~/components/auth/ShareOrInviteModal'
-import { headerHeight } from '~/config/constants'
+import { mapGetters, mapActions, mapMutations } from 'vuex';
+import ReleaseInfo from '~/components/ReleaseInfo';
+import 'splitpanes/dist/splitpanes.css';
+import XBtn from '../components/global/XBtn';
+import dlgUnexpectedError from '../components/utils/DlgUnexpectedError';
+import settings from '../components/Settings';
+import { copyTextToClipboard } from '@/helpers/xutils';
+import Language from '~/components/utils/Language';
+import Loader from '~/components/Loader';
+import PreviewAs from '~/components/PreviewAs';
+import ShareOrInviteModal from '~/components/auth/ShareOrInviteModal';
+import { headerHeight } from '~/config/constants';
 
 export default {
   components: {
@@ -293,7 +289,9 @@ export default {
   }),
   computed: {
     logo() {
-      return this.$store.state.settings.darkTheme ? require('~/assets/img/brand/finn-white.svg') : require('~/assets/img/brand/finn.svg')
+      return this.$store.state.settings.darkTheme
+        ? require('~/assets/img/brand/finn-white.svg')
+        : require('~/assets/img/brand/finn.svg');
     },
     swaggerLink() {
       return new URL(
@@ -649,7 +647,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "assets/style/themes/finn.scss";
+@import 'assets/style/themes/finn.scss';
 </style>
 
 <style scoped>

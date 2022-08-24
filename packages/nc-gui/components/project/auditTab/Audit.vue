@@ -54,7 +54,7 @@
             <!--          </td>-->
             <td class="caption">
               <v-tooltip bottom>
-                <template #activator="{on}">
+                <template #activator="{ on }">
                   <span v-on="on">{{ formatDateToLocal(audit.created_at) }}</span>
                 </template>
                 <span class="caption">{{ calculateDiff(audit.created_at) }}</span>
@@ -69,7 +69,7 @@
 </template>
 
 <script>
-import { formatDateToLocal, calculateDiff } from '~/helpers'
+import { formatDateToLocal, calculateDiff } from '~/helpers';
 
 export default {
   name: 'Audit',
@@ -97,9 +97,9 @@ export default {
       this.count = pageInfo.totalRows;
     },
     formatDateToLocal,
-    calculateDiff
-  }
-}
+    calculateDiff,
+  },
+};
 </script>
 
 <style scoped></style>

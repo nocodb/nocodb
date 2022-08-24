@@ -1,5 +1,5 @@
 <template>
-  <pre class="text-left caption" style="max-height: 100px;overflow: auto;">{{ value }}</pre>
+  <pre class="text-left caption" style="max-height: 100px; overflow: auto">{{ value }}</pre>
 </template>
 
 <script>

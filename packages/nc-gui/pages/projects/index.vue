@@ -55,7 +55,10 @@
                   </template>
                   <v-list dense>
                     <span v-if="canCreateProjectWithoutExternalDB">
-                      <v-list-item class="create-xc-db-project nc-create-xc-db-project" @click="onCreateProject('xcdb')">
+                      <v-list-item
+                        class="create-xc-db-project nc-create-xc-db-project"
+                        @click="onCreateProject('xcdb')"
+                      >
                         <v-list-item-icon class="mr-2">
                           <v-icon small> mdi-plus </v-icon>
                         </v-list-item-icon>
@@ -233,13 +236,7 @@
       </v-col>
     </v-row>
 
-    <input
-      v-show="false"
-      ref="importFile"
-      type="file"
-      accept=".zip"
-      @change="importMetaZip"
-    >
+    <input v-show="false" ref="importFile" type="file" accept=".zip" @change="importMetaZip" />
 
     <dlg-label-submit-cancel
       v-if="dialogShow"
@@ -253,14 +250,14 @@
 </template>
 
 <script>
-import dlgLabelSubmitCancel from '../../components/utils/DlgLabelSubmitCancel.vue'
-import colors from '~/mixins/colors'
-import TemplatesModal from '~/components/templates/TemplatesModal'
+import dlgLabelSubmitCancel from '../../components/utils/DlgLabelSubmitCancel.vue';
+import colors from '~/mixins/colors';
+import TemplatesModal from '~/components/templates/TemplatesModal';
 
 export default {
   components: {
     TemplatesModal,
-    dlgLabelSubmitCancel
+    dlgLabelSubmitCancel,
   },
   mixins: [colors],
   $_veeValidate: {
@@ -356,15 +353,15 @@ export default {
         this.$store.state.project &&
         this.$store.state.project.appInfo &&
         this.$store.state.project.appInfo.connectToExternalDB
-      )
+      );
     },
     canCreateProjectWithoutExternalDB() {
       return (
         this.$store.state.project &&
         this.$store.state.project.appInfo &&
         this.$store.state.project.appInfo.canCreateProjectWithoutExternalDB
-      )
-    }
+      );
+    },
   },
   watch: {
     name() {
@@ -379,7 +376,7 @@ export default {
     await this.$store.dispatch('users/ActGetUserDetails');
   },
   async mounted() {
-    await this.projectsLoad()
+    await this.projectsLoad();
   },
   methods: {
     async stopProject(project) {
@@ -538,39 +535,33 @@ export default {
       });
     },
     async importMetaZip() {
-      const projectId = this.project_id
-      if (
-        this.$refs.importFile &&
-        this.$refs.importFile.files &&
-        this.$refs.importFile.files[0]
-      ) {
-        const zipFile = this.$refs.importFile.files[0]
-        this.loading = 'import-zip'
+      const projectId = this.project_id;
+      if (this.$refs.importFile && this.$refs.importFile.files && this.$refs.importFile.files[0]) {
+        const zipFile = this.$refs.importFile.files[0];
+        this.loading = 'import-zip';
         try {
-          this.$refs.importFile.value = ''
+          this.$refs.importFile.value = '';
           await this.$store.dispatch('sqlMgr/ActUploadOld', [
             {
               // dbAlias: 'db',
               project_id: projectId,
-              env: '_noco'
+              env: '_noco',
             },
             'xcMetaTablesImportZipToLocalFsAndDb',
             {},
-            zipFile
-          ])
+            zipFile,
+          ]);
           // this.$toast.success('Successfully imported metadata').goAway(3000)
-          this.$toast
-            .success(`${this.$t('msg.toast.importMetadata')}`)
-            .goAway(3000)
-          await this.projectsLoad()
+          this.$toast.success(`${this.$t('msg.toast.importMetadata')}`).goAway(3000);
+          await this.projectsLoad();
         } catch (e) {
-          console.log(e)
-          this.$toast.error(e.message).goAway(3000)
+          console.log(e);
+          this.$toast.error(e.message).goAway(3000);
         }
-        this.dialogShow = false
-        this.loading = null
+        this.dialogShow = false;
+        this.loading = null;
       }
-    }
+    },
   },
 };
 </script>

@@ -128,7 +128,8 @@
                 v-show="!rowMeta || !rowMeta.selected"
                 class="ml-2 grey--text"
                 :class="{ 'row-no': !isPublicView }"
-              >{{ row + 1 }}</span>
+                >{{ row + 1 }}</span
+              >
 
               <template v-if="!isPublicView">
                 <v-checkbox
@@ -296,14 +297,14 @@ import HeaderCell from '../components/HeaderCell';
 import EditableCell from '../components/EditableCell';
 import EditColumn from '../components/EditColumn';
 // import columnStyling from '../helpers/columnStyling'
-import VirtualCell from '../components/VirtualCell'
-import VirtualHeaderCell from '../components/VirtualHeaderCell'
-import colors from '@/mixins/colors'
-import TableCell from '~/components/project/spreadsheet/components/Cell'
-import DynamicStyle from '~/components/DynamicStyle'
-import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
-import { copyTextToClipboard } from '~/helpers/xutils'
-import { isColumnLocked } from '~/helpers/isColumnLocked'
+import VirtualCell from '../components/VirtualCell';
+import VirtualHeaderCell from '../components/VirtualHeaderCell';
+import colors from '@/mixins/colors';
+import TableCell from '~/components/project/spreadsheet/components/Cell';
+import DynamicStyle from '~/components/DynamicStyle';
+import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes';
+import { copyTextToClipboard } from '~/helpers/xutils';
+import { isColumnLocked } from '~/helpers/isColumnLocked';
 
 export default {
   name: 'XcGridView',
@@ -462,7 +463,7 @@ export default {
   },
   methods: {
     isColumnLocked(col) {
-      return isColumnLocked(this.isLocked, col)
+      return isColumnLocked(this.isLocked, col);
     },
     async loadGridViewCols() {
       if (!this.viewId) {
@@ -655,9 +656,9 @@ export default {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
-                this.$toast.info('Copied to clipboard').goAway(2000)
-                copyTextToClipboard(rowObj[columnObj.title] || '')
-                break
+                this.$toast.info('Copied to clipboard').goAway(2000);
+                copyTextToClipboard(rowObj[columnObj.title] || '');
+                break;
               // // paste ctrl/cmd + v
               // case 86: {
               //   const text = await navigator.clipboard.readText()

@@ -248,26 +248,21 @@
 </template>
 
 <script>
-import dayjs from 'dayjs'
-import {
-  AuditOperationSubTypes,
-  AuditOperationTypes, isSystemColumn,
-  isVirtualCol,
-  UITypes
-} from 'nocodb-sdk'
-import form from '../mixins/form'
-import HeaderCell from '~/components/project/spreadsheet/components/HeaderCell'
-import EditableCell from '~/components/project/spreadsheet/components/EditableCell'
-import colors from '@/mixins/colors'
-import VirtualCell from '~/components/project/spreadsheet/components/VirtualCell'
-import VirtualHeaderCell from '~/components/project/spreadsheet/components/VirtualHeaderCell'
-import getPlainText from '~/components/project/spreadsheet/helpers/getPlainText'
-import { formatDateToLocal } from '~/helpers'
+import dayjs from 'dayjs';
+import { AuditOperationSubTypes, AuditOperationTypes, isSystemColumn, isVirtualCol, UITypes } from 'nocodb-sdk';
+import form from '../mixins/form';
+import HeaderCell from '~/components/project/spreadsheet/components/HeaderCell';
+import EditableCell from '~/components/project/spreadsheet/components/EditableCell';
+import colors from '@/mixins/colors';
+import VirtualCell from '~/components/project/spreadsheet/components/VirtualCell';
+import VirtualHeaderCell from '~/components/project/spreadsheet/components/VirtualHeaderCell';
+import getPlainText from '~/components/project/spreadsheet/helpers/getPlainText';
+import { formatDateToLocal } from '~/helpers';
 
-const relativeTime = require('dayjs/plugin/relativeTime')
-const utc = require('dayjs/plugin/utc')
-dayjs.extend(utc)
-dayjs.extend(relativeTime)
+const relativeTime = require('dayjs/plugin/relativeTime');
+const utc = require('dayjs/plugin/utc');
+dayjs.extend(utc);
+dayjs.extend(relativeTime);
 export default {
   name: 'ExpandedForm',
   components: {

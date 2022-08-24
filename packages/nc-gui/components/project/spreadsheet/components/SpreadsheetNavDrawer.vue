@@ -344,14 +344,14 @@
 </template>
 
 <script>
-import draggable from 'vuedraggable'
-import { ViewTypes } from 'nocodb-sdk'
-import CreateViewDialog from '~/components/project/spreadsheet/dialog/CreateViewDialog'
-import viewIcons from '~/helpers/viewIcons'
-import { copyTextToClipboard } from '~/helpers/xutils'
-import CodeSnippet from '~/components/project/spreadsheet/components/CodeSnippet'
-import WebhookSlider from '~/components/project/tableTabs/webhook/WebhookSlider'
-import FlipCard from '~/components/project/spreadsheet/components/FlipCard'
+import draggable from 'vuedraggable';
+import { ViewTypes } from 'nocodb-sdk';
+import CreateViewDialog from '~/components/project/spreadsheet/dialog/CreateViewDialog';
+import viewIcons from '~/helpers/viewIcons';
+import { copyTextToClipboard } from '~/helpers/xutils';
+import CodeSnippet from '~/components/project/spreadsheet/components/CodeSnippet';
+import WebhookSlider from '~/components/project/tableTabs/webhook/WebhookSlider';
+import FlipCard from '~/components/project/spreadsheet/components/FlipCard';
 
 export default {
   name: 'SpreadsheetNavDrawer',

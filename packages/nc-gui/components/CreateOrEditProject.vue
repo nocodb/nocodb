@@ -716,8 +716,8 @@ export default {
                   },
                   inflection: {
                     table_name: 'none',
-                    column_name: 'none'
-                  }
+                    column_name: 'none',
+                  },
                 },
                 ui: {
                   setup: -1,
@@ -1285,7 +1285,7 @@ export default {
                 dbAlias: 'db',
                 inflection: {
                   table_name: 'none',
-                  column_name: 'none'
+                  column_name: 'none',
                 },
                 api: {
                   type: '',
@@ -1331,7 +1331,7 @@ export default {
           dbAlias,
           inflection: {
             table_name: 'none',
-            column_name: 'none'
+            column_name: 'none',
           },
           api: {
             type: '',

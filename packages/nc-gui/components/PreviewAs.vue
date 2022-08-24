@@ -6,8 +6,10 @@
           v-show="isDashboard && _isUIAllowed('previewAs')"
           small
           class="nc-btn-preview"
-          :class="{ 'white--text': !!$store.state.settings.darkThemeAppBar,
-                    'overlay': !!$store.state.settings.darkThemeAppBar || !!$store.state.settings.darkTheme }"
+          :class="{
+            'white--text': !!$store.state.settings.darkThemeAppBar,
+            overlay: !!$store.state.settings.darkThemeAppBar || !!$store.state.settings.darkTheme,
+          }"
           v-on="on"
         >
           <v-icon small class="mr-1"> mdi-play-circle </v-icon>

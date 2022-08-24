@@ -862,7 +862,7 @@ export default {
         tn: this.table,
         force: true,
       });
-      if (this.selectedView && this.selectedView.show_as === "kanban") {
+      if (this.selectedView && this.selectedView.show_as === 'kanban') {
         await this.loadKanbanData();
       } else {
         await this.loadTableData(ignoreLoader);
@@ -883,26 +883,23 @@ export default {
       if (this.nodes.newTable && !this.nodes.tableCreated) {
         const columns = this.sqlUi
           .getNewTableColumns()
-          .filter((col) => {
+          .filter(col => {
             if (col.column_name === 'id' && this.nodes.newTable.columns.includes('id_ag')) {
-              Object.assign(col, this.sqlUi.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
+              Object.assign(col, this.sqlUi.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'));
 
-              col.dtxp = this.sqlUi.getDefaultLengthForDatatype(
-                col.dt
-              )
-              col.dtxs = this.sqlUi.getDefaultScaleForDatatype(
-                col.dt
-              )
+              col.dtxp = this.sqlUi.getDefaultLengthForDatatype(col.dt);
+              col.dtxs = this.sqlUi.getDefaultScaleForDatatype(col.dt);
 
-              return true
+              return true;
             }
-            return this.nodes.newTable.columns.includes(col.column_name)
-          }).map((col) => {
-            if (this.nodes.dbConnection.inflection_column === 'none') {
-              col.title = col.column_name
-            }
-            return col
+            return this.nodes.newTable.columns.includes(col.column_name);
           })
+          .map(col => {
+            if (this.nodes.dbConnection.inflection_column === 'none') {
+              col.title = col.column_name;
+            }
+            return col;
+          });
         await this.$api.dbTable.create(this.projectId, {
           table_name: this.nodes.table_name,
           title: this.nodes.title,
@@ -1065,7 +1062,7 @@ export default {
             }
           );
 
-          this.$set(this.data[row], 'row', { ...rowObj, ...newData })
+          this.$set(this.data[row], 'row', { ...rowObj, ...newData });
 
           this.$set(oldRow, column.title, rowObj[column.title]);
           /*    this.$toast.success(`${rowObj[this.primaryValueColumn] ? `${rowObj[this.primaryValueColumn]}'s c` : 'C'}olumn '${column.column_name}' updated successfully.`, {

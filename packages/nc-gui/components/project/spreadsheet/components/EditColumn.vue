@@ -140,16 +140,11 @@
                 <v-col v-else-if="isCheckbox" cols="12">
                   <checkbox-options v-model="newColumn.meta" :column="newColumn" :meta="meta" />
                 </v-col>
-                <currency-options
-                  v-else-if="isCurrency"
-                  v-model="newColumn.meta"
-                  :column="newColumn"
-                  :meta="meta"
-                />
+                <currency-options v-else-if="isCurrency" v-model="newColumn.meta" :column="newColumn" :meta="meta" />
 
                 <v-col v-if="isAttachment" cols="12">
                   <v-tooltip bottom z-index="99999">
-                    <template #activator="{on}">
+                    <template #activator="{ on }">
                       <div v-on="on">
                         <v-checkbox
                           v-model="newColumn.public"
@@ -168,12 +163,7 @@
                     <span>Only works if S3 plugin is enabled.</span>
                   </v-tooltip>
                 </v-col>
-                <v-col
-                  v-if="accordion"
-                  cols="12"
-                  class="pt-0"
-                  :class="{ 'pb-0': advanceOptions }"
-                >
+                <v-col v-if="accordion" cols="12" class="pt-0" :class="{ 'pb-0': advanceOptions }">
                   <div
                     class="pointer grey--text text-right caption nc-more-options"
                     @click="advanceOptions = !advanceOptions"
@@ -613,10 +603,10 @@ export default {
       return this.isLinkToAnotherRecord || this.isLookup || this.isRollup;
     },
     isCurrency() {
-      return this.newColumn && this.newColumn.uidt === UITypes.Currency
+      return this.newColumn && this.newColumn.uidt === UITypes.Currency;
     },
     isAttachment() {
-      return this.newColumn && this.newColumn.uidt === 'Attachment'
+      return this.newColumn && this.newColumn.uidt === 'Attachment';
     },
     isDate() {
       return this.newColumn && this.newColumn.uidt === UITypes.Date;

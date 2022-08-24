@@ -154,6 +154,8 @@ export class _projectsPage {
             cy.get('.nc-extdb-proj-name').should('exist');
             cy.get('.nc-extdb-btn-test-connection').should('exist');
 
+            // CY goes too fast at times, so wait for the page to load
+            cy.wait(1000);
 
             cy.get('.nc-extdb-proj-name').clear().type(projectName);
 

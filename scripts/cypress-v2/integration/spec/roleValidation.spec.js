@@ -83,7 +83,7 @@ export function _editData(roleType, mode) {
     cy.openTableTab(columnName, 25);
 
     // add row
-    cy.get('.nc-add-row:visible').should(validationString);
+    cy.get('.nc-add-new-row-btn:visible').should(validationString);
 
     mainPage.getCell(columnName, 25).scrollIntoView();
     // cy.get('.nc-grid-add-new-cell').scrollIntoView();

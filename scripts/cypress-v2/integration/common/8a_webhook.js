@@ -157,8 +157,8 @@ function clearServerData() {
 }
 
 function addNewRow(index, cellValue) {
-    cy.get(".nc-add-row:visible").should("exist");
-    cy.get(".nc-add-row").click();
+    cy.get(".nc-add-new-row-btn:visible").should("exist");
+    cy.get(".nc-add-new-row-btn").click();
     cy.wait(1000);
     cy.get(".nc-expand-col-Title").find(".nc-cell > input").first().type(cellValue);
     cy.getActiveModal()

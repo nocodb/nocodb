@@ -536,6 +536,8 @@ onMounted(async () => {
                   :class="`nc-form-drag-${element.title.replaceAll(' ', '')}`"
                   @click="activeRow = element.title"
                 >
+
+
                   <div class="flex">
                     <div class="flex flex-1">
                       <div class="flex flex-row">
@@ -556,6 +558,35 @@ onMounted(async () => {
                     </div>
                     <div v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)" class="flex">
                       <mdi-eye-off-outline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
+                    </div>
+                  </div>
+
+                  <div v-if="activeRow === element.title" class="mt-2">
+                    <a-form-item class="my-0 w-1/2 !mb-1">
+                      <a-input
+                        v-model:value="element.label"
+                        size="small"
+                        class="form-meta-input !bg-[#dbdbdb] nc-form-input-label"
+                        :placeholder="$t('msg.info.formInput')"
+                        @change="updateColMeta(element)"
+                      >
+                      </a-input>
+                    </a-form-item>
+
+                    <a-form-item class="mt-2 mb-0 w-1/2  !mb-1">
+                      <a-input
+                        v-model:value="element.description"
+                        size="small"
+                        class="form-meta-input !bg-[#dbdbdb] text-sm nc-form-input-help-text"
+                        :placeholder="$t('msg.info.formHelpText')"
+                        @change="updateColMeta(element)"
+                      />
+                    </a-form-item>
+
+                    <div class="items-center flex">
+                      <span class="text-sm text-gray-500 mr-2 nc-form-input-required">{{ $t('general.required') }}</span>
+
+                      <a-switch v-model:checked="element.required" size="small" class="my-2" @change="updateColMeta(element)" />
                     </div>
                   </div>
 
@@ -590,34 +621,6 @@ onMounted(async () => {
                     />
                   </a-form-item>
 
-                  <div v-if="activeRow === element.title">
-                    <a-form-item class="my-0 w-1/2">
-                      <a-input
-                        v-model:value="element.label"
-                        size="small"
-                        class="form-meta-input !bg-[#dbdbdb] nc-form-input-label"
-                        :placeholder="$t('msg.info.formInput')"
-                        @change="updateColMeta(element)"
-                      >
-                      </a-input>
-                    </a-form-item>
-
-                    <a-form-item class="mt-2 mb-0 w-1/2">
-                      <a-input
-                        v-model:value="element.description"
-                        size="small"
-                        class="form-meta-input !bg-[#dbdbdb] text-sm nc-form-input-help-text"
-                        :placeholder="$t('msg.info.formHelpText')"
-                        @change="updateColMeta(element)"
-                      />
-                    </a-form-item>
-
-                    <div class="items-center flex">
-                      <span class="text-sm text-gray-500 mr-2 nc-form-input-required">{{ $t('general.required') }}</span>
-
-                      <a-switch v-model:checked="element.required" size="small" class="my-2" @change="updateColMeta(element)" />
-                    </div>
-                  </div>
 
                   <span class="text-gray-500">{{ element.description }}</span>
                 </div>
@@ -635,7 +638,8 @@ onMounted(async () => {
 
             <div class="justify-center flex mt-10">
               <a-button
-                class="flex items-center gap-2 !bg-primary text-white rounded nc-form-submit"
+                type="primary"
+                class="flex items-center gap-2  nc-form-submit"
                 size="large"
                 @click="submitForm"
               >

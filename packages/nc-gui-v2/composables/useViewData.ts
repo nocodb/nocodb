@@ -2,7 +2,15 @@ import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, 
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
-import { IsPublicInj, NOCO, extractPkFromRow, extractSdkResponseErrorMsg, useProject, useUIPermission } from '#imports'
+import {
+  IsPublicInj,
+  NOCO,
+  ReloadViewDataHookInj,
+  extractPkFromRow,
+  extractSdkResponseErrorMsg,
+  useProject,
+  useUIPermission,
+} from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -39,6 +47,7 @@ export function useViewData(
   const formattedData = ref<Row[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
+  const reloadHook = inject(ReloadViewDataHookInj)!
   const { project, isSharedBase } = useProject()
   const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
   const { $api } = useNuxtApp()
@@ -205,6 +214,7 @@ export function useViewData(
     } else {
       await updateRowProperty(row.row, property)
     }
+    reloadHook.trigger()
   }
   const changePage = async (page: number) => {
     paginationData.value.page = page

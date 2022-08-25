@@ -96,8 +96,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       comment.value = ''
 
-      message.success('Comment added successfully')
-
       await loadCommentsAndLogs()
     } catch (e: any) {
       message.error(e.message)

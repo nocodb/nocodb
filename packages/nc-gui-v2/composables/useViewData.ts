@@ -11,6 +11,7 @@ import {
   useProject,
   useUIPermission,
 } from '#imports'
+import { getHTMLEncodedText } from '~/utils'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -166,43 +167,41 @@ export function useViewData(
     }
   }
 
-  const updateRowProperty = async (row: Record<string, any>, property: string) => {
+  const updateRowProperty = async (row: Row, property: string) => {
     try {
       const id = meta?.value?.columns
         ?.filter((c) => c.pk)
-        .map((c) => row[c.title as string])
+        .map((c) => row.row[c.title as string])
         .join('___') as string
 
-      return await $api.dbViewRow.update(
+      const updatedRowData = await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
         meta?.value.id as string,
         viewMeta?.value?.id as string,
         id,
         {
-          [property]: row[property],
+          [property]: row.row[property],
         },
         // todo:
         // {
         //   query: { ignoreWebhook: !saved }
         // }
       )
+      // audit
+      $api.utils
+        .auditRowUpdate(id, {
+          fk_model_id: meta?.value.id as string,
+          column_name: property,
+          row_id: id,
+          value: getHTMLEncodedText(row.row[property]),
+          prev_value: getHTMLEncodedText(row.oldRow[property]),
+        })
+        .catch(() => {})
 
-      /*
-
-          todo: audit
-
-          // audit
-            this.$api.utils
-              .auditRowUpdate(id, {
-                fk_model_id: this.meta.id,
-                column_name: column.title,
-                row_id: id,
-                value: getPlainText(rowObj[column.title]),
-                prev_value: getPlainText(oldRow[column.title])
-              })
-              .then(() => {})
-          */
+      /** update row data(to sync formula and other related columns) */
+      Object.assign(row.row, updatedRowData)
+      Object.assign(row.oldRow, updatedRowData)
     } catch (e: any) {
       message.error(`Row update failed ${await extractSdkResponseErrorMsg(e)}`)
     }
@@ -212,9 +211,8 @@ export function useViewData(
     if (row.rowMeta.new) {
       await insertRow(row.row, formattedData.value.indexOf(row))
     } else {
-      await updateRowProperty(row.row, property)
+      await updateRowProperty(row, property)
     }
-    reloadHook.trigger()
   }
   const changePage = async (page: number) => {
     paginationData.value.page = page

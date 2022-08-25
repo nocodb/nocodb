@@ -205,10 +205,3 @@ export function useExpandedFormStoreOrThrow() {
   if (expandedFormStore == null) throw new Error('Please call `useExpandedFormStore` on the appropriate parent component')
   return expandedFormStore
 }
-
-// todo: move to utils
-function getPlainText(htmlString: string) {
-  const div = document.createElement('div')
-  div.textContent = htmlString || ''
-  return div.innerHTML
-}

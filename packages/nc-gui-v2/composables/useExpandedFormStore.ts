@@ -148,7 +148,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               prev_value: getHTMLEncodedText(row.value.oldRow[key]),
             })
             .then(async () => {
-              /** load latest comments/audit if right drawer is open*/
+              /** load latest comments/audit if right drawer is open */
               if (commentsDrawer.value) {
                 await loadCommentsAndLogs()
               }

@@ -167,10 +167,7 @@ export function useViewData(
 
   const updateRowProperty = async (toUpdate: Row, property: string) => {
     try {
-      const id = meta?.value?.columns
-        ?.filter((c) => c.pk)
-        .map((c) => toUpdate.row[c.title as string])
-        .join('___') as string
+      const id = extractPkFromRow(toUpdate.row, meta.value.columns as ColumnType[])
 
       const updatedRowData = await $api.dbViewRow.update(
         NOCO,
@@ -195,7 +192,7 @@ export function useViewData(
           value: getHTMLEncodedText(toUpdate.row[property]),
           prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
         })
-        .catch(() => {})
+        .then(() => {})
 
       /** update row data(to sync formula and other related columns) */
       Object.assign(toUpdate.row, updatedRowData)

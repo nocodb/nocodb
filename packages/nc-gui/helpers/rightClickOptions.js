@@ -60,8 +60,8 @@ export default {
     ...(process.env.NODE_ENV === 'dev' ? { 'Show _Nodes Info': 'SHOW_NODES' } : {})
   },
   table: {
-    'Table Rename': 'ENV_DB_TABLES_RENAME',
-    "Table Delete": "ENV_DB_TABLES_DELETE",
+    // 'Table Rename': 'ENV_DB_TABLES_RENAME',
+    // "Table Delete": "ENV_DB_TABLES_DELETE",
     // d1: null,
     // "Send to SQL Editor": {
     // 'Copy To Clipboard': {

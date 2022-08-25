@@ -33,8 +33,8 @@ const { isOpen } = useSidebar()
     <SmartsheetToolbarExport v-if="!isUIAllowed('dataInsert')" />
     <div class="flex-1" />
 
-    <SmartsheetToolbarReload v-if="!isPublic" class="mx-1" />
-    <SmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert') && !isPublic" class="mx-1" />
+    <SmartsheetToolbarReload v-if="!isPublic && !isForm" class="mx-1" />
+    <SmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert') && !isPublic && !isForm" class="mx-1" />
 
     <SmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mr-2 ml-2" />
 

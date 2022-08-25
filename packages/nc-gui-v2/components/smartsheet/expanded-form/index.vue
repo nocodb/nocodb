@@ -105,7 +105,7 @@ export default {
 </script>
 
 <template>
-  <a-modal v-model:visible="isExpanded" :footer="null" width="min(90vw,1000px)" :body-style="{ padding: 0 }" :closable="false">
+  <a-drawer v-model:visible="isExpanded" :footer="null" width="min(90vw,1000px)" :body-style="{ padding: 0 }" :closable="false">
     <Header @cancel="onClose" />
     <div class="!bg-gray-100 rounded">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[70vh]">
@@ -138,7 +138,7 @@ export default {
         </div>
       </div>
     </div>
-  </a-modal>
+  </a-drawer>
 </template>
 
 <style scoped lang="scss">
@@ -160,7 +160,7 @@ export default {
 }
 
 .nc-form-wrapper {
-  max-height: max(calc(90vh - 150px), 600px);
+  max-height: max(calc(100vh - 65px), 600px);
   height: max-content !important;
 }
 </style>

@@ -5,7 +5,6 @@ import MenuBottom from './MenuBottom.vue'
 import Toolbar from './toolbar/index.vue'
 import {
   ActiveViewInj,
-  IsFormInj,
   MetaInj,
   ViewListInj,
   computed,
@@ -21,8 +20,6 @@ import {
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
-
-const isForm = inject(IsFormInj)
 
 const { views, loadViews } = useViews(meta)
 
@@ -101,8 +98,7 @@ function onCreate(view: ViewType) {
   >
     <Toolbar
       v-if="isOpen"
-      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)]"
-      :class="{ 'flex items-center py-3 px-3 justify-between border-b-1': !isForm }"
+      class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     />
     <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
       <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />

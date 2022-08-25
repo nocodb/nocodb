@@ -311,6 +311,7 @@ Cypress.Commands.add("createTable", (name) => {
       .type(name)
     cy.getActiveModal().find("button").contains("Submit").click();
     cy.get('.xc-row-table.nc-grid').should('exist');
+    cy.wait(500);
     cy.get('.ant-tabs-tab-active > .ant-tabs-tab-btn').contains(name).should("exist");
     cy.url().should("contain", `table/${name}`);
     cy.get(`.nc-project-tree-tbl-${name}`).should("exist");

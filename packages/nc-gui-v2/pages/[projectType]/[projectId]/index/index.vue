@@ -7,10 +7,19 @@ import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
 
 const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
+const { getMeta } = useMetas()
 
 const { isLoading } = useGlobal()
 
 provide(TabMetaInj, activeTab)
+
+watch(
+  () => activeTab?.value?.id,
+  async () => {
+    await getMeta(activeTab?.value?.id as string, true)
+  },
+  { immediate: true },
+)
 
 const icon = (tab: TabItem) => {
   switch (tab.type) {

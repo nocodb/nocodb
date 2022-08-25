@@ -129,7 +129,7 @@ export const importExcelUrlValidator = {
 }
 
 export const extraParameterValidator = {
-  validator: (_: unknown, value: any) => {
+  validator: (_: unknown, value: { key: string; value: string }[]) => {
     return new Promise((resolve, reject) => {
       for (const param of value) {
         if (param.key === '') {

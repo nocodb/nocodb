@@ -12,7 +12,7 @@ export interface ProjectCreateForm {
     inflectionTable?: string
   }
   sslUse?: SSLUsage
-  extraParameters: Record<string, string>[]
+  extraParameters: { key: string; value: string }[]
 }
 
 export interface DefaultConnection {

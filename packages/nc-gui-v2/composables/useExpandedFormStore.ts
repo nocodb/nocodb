@@ -14,6 +14,7 @@ import {
   useProvideSmartsheetRowStore,
 } from '#imports'
 import type { Row } from '~/composables'
+import { getHTMLEncodedText } from '~/utils'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
@@ -156,8 +157,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               fk_model_id: meta.value.id,
               column_name: key,
               row_id: id,
-              value: getPlainText(updateOrInsertObj[key]),
-              prev_value: getPlainText(row.value.oldRow[key]),
+              value: getHTMLEncodedText(updateOrInsertObj[key]),
+              prev_value: getHTMLEncodedText(row.value.oldRow[key]),
             })
             .then(() => {})
         }

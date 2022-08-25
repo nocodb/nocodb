@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { Form } from 'ant-design-vue'
-import type { ProjectType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import {
   extractSdkResponseErrorMsg,
@@ -15,11 +14,15 @@ import {
   useSidebar,
 } from '#imports'
 
-const { api, isLoading } = useApi()
+const { isLoading } = useApi()
 
 useSidebar({ hasSidebar: false })
 
 const route = useRoute()
+
+const { project, loadProject, updateProject } = useProject(route.params.id as string)
+
+await loadProject()
 
 const nameValidationRules = [
   {
@@ -35,18 +38,9 @@ const formState = reactive({
   title: '',
 })
 
-const getProject = async () => {
-  try {
-    const result: ProjectType = await api.project.read(route.params.id as string)
-    formState.title = result.title as string
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
 const renameProject = async () => {
   try {
-    await api.project.update(route.params.id as string, formState)
+    await updateProject(formState)
 
     navigateTo(`/nc/${route.params.id}`)
   } catch (e: any) {
@@ -56,6 +50,7 @@ const renameProject = async () => {
 
 // select and focus title field on load
 onMounted(async () => {
+  formState.title = project.value.title as string
   await nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
@@ -67,8 +62,6 @@ onMounted(async () => {
     }, 500)
   })
 })
-
-await getProject()
 </script>
 
 <template>

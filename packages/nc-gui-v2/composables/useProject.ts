@@ -76,11 +76,24 @@ export function useProject(projectId?: MaybeRef<string>) {
     await loadTables()
   }
 
+  async function updateProject(data: Partial<ProjectType>) {
+    if (unref(projectId)) {
+      _projectId = unref(projectId)!
+    } else if (projectType === 'base') {
+      return
+    } else {
+      _projectId = route.params.projectId as string
+    }
+
+    await $api.project.update(_projectId, data)
+  }
+
   return {
     project,
     tables,
     loadProjectRoles,
     loadProject,
+    updateProject,
     loadTables,
     isMysql,
     isMssql,

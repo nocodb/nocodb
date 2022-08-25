@@ -54,7 +54,7 @@ RUN mkdir -p ./packages/nocodb-sdk
 COPY ./packages/nc-gui-v2/ ./packages/nc-gui-v2
 COPY ./packages/nocodb-sdk/ ./packages/nocodb-sdk
 
-RUN cd ./packages/nc-gui-v2/ && npm i && npm cache clean --force && npm run build
+RUN cd ./packages/nc-gui-v2/ && npm i && npm cache clean --force && export NODE_OPTIONS=--max_old_space_size=8192 && npm run build
 
 ##########
 # Runner NocoDB

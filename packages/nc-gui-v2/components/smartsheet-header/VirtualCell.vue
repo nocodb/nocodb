@@ -15,7 +15,7 @@ import {
   useVirtualCell,
 } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required?: boolean }>()
+const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required?: boolean | number }>()
 
 const column = toRef(props, 'column')
 

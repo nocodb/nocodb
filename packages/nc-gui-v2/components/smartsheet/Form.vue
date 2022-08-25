@@ -58,7 +58,7 @@ reloadEventHook.on(async () => {
 
 const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, async () => reloadEventHook.trigger())
 
-const { syncLTARRefs } = useProvideSmartsheetRowStore(
+const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   meta,
   ref({
     row: formState,
@@ -150,7 +150,7 @@ function isDbRequired(column: Record<string, any>) {
 }
 
 function onMoveCallback(event: any) {
-  if (shouldSkipColumn(event.draggedContext.element)) {
+  if (event.from !== event.to && shouldSkipColumn(event.draggedContext.element)) {
     return false
   }
 }
@@ -630,6 +630,7 @@ onMounted(async () => {
                   >
                     <SmartsheetVirtualCell
                       v-model="formState[element.title]"
+                      :row="row"
                       class="nc-input"
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"

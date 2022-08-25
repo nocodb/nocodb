@@ -120,8 +120,8 @@ export function _editData(roleType, mode) {
           .should("exist")
           .eq(10)
           .click({ force: true });
-        cy.getActiveModal().find("button").contains("Save row").should("exist");
-        cy.getActiveModal().find("button").contains("Cancel").should("exist").click();
+        cy.getActiveDrawer().find("button").contains("Save row").should("exist");
+        cy.getActiveDrawer().find("button").contains("Cancel").should("exist").click();
     } else {
         // update cell contents option using row expander should be disabled
         //
@@ -129,8 +129,8 @@ export function _editData(roleType, mode) {
           .should("exist")
           .eq(10)
           .click({ force: true });
-        cy.getActiveModal().find("button:disabled").contains("Save row").should("exist");
-        cy.getActiveModal().find("button").contains("Cancel").should("exist").click();
+        cy.getActiveDrawer().find("button:disabled").contains("Save row").should("exist");
+        cy.getActiveDrawer().find("button").contains("Cancel").should("exist").click();
     }
 
     // double click cell entries to edit
@@ -171,23 +171,23 @@ export function _editComment(roleType, mode) {
     cy.wait(3000);
 
     if ("viewer" === roleType) {
-        cy.getActiveModal()
+        cy.getActiveDrawer()
             .should('exist')
             .find(".nc-toggle-comments")
             .should("not.exist");
     } else {
-        cy.getActiveModal()
+        cy.getActiveDrawer()
             .should('exist')
             .find(".nc-toggle-comments")
             .should("exist")
             .click();
 
-        cy.getActiveModal().find(".nc-comment-box").should('exist').type("Comment-1{enter}");
+        cy.getActiveDrawer().find(".nc-comment-box").should('exist').type("Comment-1{enter}");
         cy.toastWait('Comment added successfully')
-        cy.getActiveModal().find(".nc-toggle-comments").click();
+        cy.getActiveDrawer().find(".nc-toggle-comments").click();
     }
 
-    cy.getActiveModal()
+    cy.getActiveDrawer()
         .find("button")
         .contains("Cancel")
         .should("exist")

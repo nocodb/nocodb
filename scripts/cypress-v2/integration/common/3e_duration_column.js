@@ -20,6 +20,13 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             cy.fileHook();
             mainPage.tabReset();
+
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             cy.createTable(tableName);
         });
 
@@ -97,14 +104,21 @@ export const genTest = (apiType, dbType) => {
                 cy.wait(500)
                 cy.get(".nc-add-new-row-btn").click();
             } else {
-                mainPage.getRow(index).find(".nc-row-expand-icon").click({ force: true });
+                // mainPage.getRow(index).find(".nc-row-expand-icon").click({ force: true });
+                cy.get(".nc-row-expand")
+                    .eq(index-1)
+                    .click({ force: true });
             }
             cy.get(".duration-cell-wrapper > input").first().should('exist').type(cellValue);
-            cy.getActiveModal().find("button").contains("Save row").click({ force: true });
+            cy.getActiveDrawer().find("button").contains("Save row").click({ force: true });
             cy.toastWait("Row updated successfully");
-            mainPage.getCell(colName, index).find('input').then(($e) => {
-                expect($e[0].value).to.equal(expectedValue)
-            })
+            cy.getActiveDrawer().find("button").contains("Cancel").click({ force: true });
+            // mainPage.getCell(colName, index).find('input').then(($e) => {
+            //     expect($e[0].value).to.equal(expectedValue)
+            // })
+            mainPage.getCell(colName, index)
+                .contains(expectedValue)
+                .should("exist");
         }
 
         ///////////////////////////////////////////////////

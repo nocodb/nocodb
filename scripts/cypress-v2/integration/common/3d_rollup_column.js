@@ -9,6 +9,7 @@ export const genTest = (apiType, dbType) => {
         //
         const fetchParentFromLabel = (label) => {
             cy.get("label").contains(label).parents(".ant-row").click();
+            cy.wait(500);
         };
 
         // Run once before test- create project (rest/graphql)
@@ -16,6 +17,13 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             cy.fileHook();
             mainPage.tabReset();
+
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
@@ -31,7 +39,7 @@ export const genTest = (apiType, dbType) => {
 
         // Routine to create a new look up column
         //
-        const addLookUpColumn = (
+        const addRollUpColumn = (
             columnName,
             childTable,
             childCol,
@@ -45,8 +53,8 @@ export const genTest = (apiType, dbType) => {
             cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
               .should('exist')
               .clear()
-              .type(childCol);
-            cy.get(".nc-column-type-input").last().click().type("Rollup");
+              .type(columnName);
+            cy.get(".nc-column-type-input").last().click().type("RollUp");
             cy.getActiveSelection().find('.ant-select-item-option').contains("Rollup").click();
 
             // Configure Child table & column names
@@ -62,7 +70,7 @@ export const genTest = (apiType, dbType) => {
             cy.get(".ant-btn-primary").contains("Save").should('exist').click();
             cy.toastWait(`Column created`);
 
-            cy.get(`th[data-title="${childCol}"]`).should("exist");
+            cy.get(`th[data-title="${columnName}"]`).should("exist");
         };
 
         // routine to delete column
@@ -98,20 +106,20 @@ export const genTest = (apiType, dbType) => {
         // Test case
 
         it("Add Rollup column (City, City, count) & Delete", () => {
-            addLookUpColumn("RollUpCol_2", "City", "City", "count");
+            addRollUpColumn("RollUpCol", "City", "City", "count");
 
             // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
             // intentionally verifying 4th item, as initial items are being masked out by list scroll down
-            mainPage.getCell("RollUpCol_2", 4)
+            mainPage.getCell("RollUpCol", 4)
               .contains("2")
               .should("exist");
 
             // editColumnByName("RollUpCol_2", "RollUpCol_New");
-            deleteColumnByName("RollUpCol_2");
+            deleteColumnByName("RollUpCol");
         });
 
         it.skip("Add Rollup column (City, CountryId, count) & Delete", () => {
-            addLookUpColumn("RollUpCol_1", "City", "CountryId", "count");
+            addRollUpColumn("RollUpCol_1", "City", "CountryId", "count");
 
             // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
             cy.get(`tbody > :nth-child(4) > [data-col="RollUpCol_1"]`)

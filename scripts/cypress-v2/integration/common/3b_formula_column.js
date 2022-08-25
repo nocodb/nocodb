@@ -15,6 +15,13 @@ export const genTest = (apiType, dbType) => {
             mainPage.tabReset();
             // open a table to work on views
             //
+
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             cy.openTableTab("City", 25);
         });
 
@@ -88,9 +95,9 @@ export const genTest = (apiType, dbType) => {
               .clear()
               .type(newName);
 
-            cy.get('textarea.nc-formula-input').click().clear().type(newFormula);
+            cy.get('textarea.nc-formula-input').click().clear().type(newFormula, { parseSpecialCharSequences: false });
             cy.get(".ant-btn-primary").contains("Save").should('exist').click();
-            cy.toastWait(`Column created`);
+            // cy.toastWait(`Column created`);
             cy.get(`th[data-title="${oldName}"]`).should("not.exist");
             cy.get(`th[data-title="${newName}"]`).should("exist");
         };

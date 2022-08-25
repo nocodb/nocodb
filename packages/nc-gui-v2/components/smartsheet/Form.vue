@@ -149,6 +149,7 @@ function isDbRequired(column: Record<string, any>) {
   return isRequired
 }
 
+/** Block user from drag n drop required column to hidden fields */
 function onMoveCallback(event: any) {
   if (event.from !== event.to && shouldSkipColumn(event.draggedContext.element)) {
     return false

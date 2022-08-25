@@ -4,15 +4,33 @@ export interface ProjectCreateForm {
   title: string
   dataSource: {
     client: ClientType
-    connection: Record<string, any>
+    connection: DefaultConnection | SQLiteConnection
     searchPath?: string[]
   }
   inflection: {
     inflectionColumn?: string
     inflectionTable?: string
   }
-  sslUse?: sslUsage
+  sslUse?: SSLUsage
   extraParameters: Record<string, string>[]
+}
+
+export interface DefaultConnection {
+  host: string
+  database: string
+  user: string
+  password: string
+  port: number | string
+  ssl?: Record<CertTypes, string> | 'true'
+}
+
+export interface SQLiteConnection {
+  client: ClientType.SQLITE
+  database: string
+  connection: {
+    filename?: string
+  }
+  useNullAsDefault?: boolean
 }
 
 const defaultHost = 'localhost'
@@ -58,28 +76,28 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'postgres',
     password: 'password',
     database: '_test',
-  },
+  } as DefaultConnection,
   [ClientType.MYSQL]: {
     host: defaultHost,
     port: '3306',
     user: 'root',
     password: 'password',
     database: '_test',
-  },
+  } as DefaultConnection,
   [ClientType.VITESS]: {
     host: defaultHost,
     port: '15306',
     user: 'root',
     password: 'password',
     database: '_test',
-  },
+  } as DefaultConnection,
   [ClientType.MSSQL]: {
     host: defaultHost,
     port: 1433,
     user: 'sa',
     password: 'Password123.',
     database: '_test',
-  },
+  } as DefaultConnection,
   [ClientType.SQLITE]: {
     client: ClientType.SQLITE,
     database: homeDir,
@@ -94,42 +112,42 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'root',
     password: '',
     database: '_test',
-  },
+  } as DefaultConnection,
   yugabyte: {
     host: defaultHost,
     port: '5432',
     user: 'postgres',
     password: '',
     database: '_test',
-  },
+  } as DefaultConnection,
   citusdb: {
     host: defaultHost,
     port: '5432',
     user: 'postgres',
     password: '',
     database: '_test',
-  },
+  } as DefaultConnection,
   cockroachdb: {
     host: defaultHost,
     port: '5432',
     user: 'postgres',
     password: '',
     database: '_test',
-  },
+  } as DefaultConnection,
   greenplum: {
     host: defaultHost,
     port: '5432',
     user: 'postgres',
     password: '',
     database: '_test',
-  },
+  } as DefaultConnection,
   oracledb: {
     host: defaultHost,
     port: '1521',
     user: 'system',
     password: 'Oracle18',
     database: '_test',
-  },
+  } as DefaultConnection,
 }
 
 export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateForm['dataSource'] => {
@@ -144,7 +162,7 @@ export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateFor
   }
 }
 
-enum sslUsage {
+enum SSLUsage {
   No = 'No',
   Allowed = 'Allowed',
   Preferred = 'Preferred',
@@ -153,10 +171,10 @@ enum sslUsage {
   RequiredWithIdentity = 'Required-Identity',
 }
 
-enum certTypes {
+enum CertTypes {
   ca = 'ca',
   cert = 'cert',
   key = 'key',
 }
 
-export { sslUsage, certTypes }
+export { SSLUsage, CertTypes }

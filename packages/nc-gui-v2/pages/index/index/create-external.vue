@@ -2,7 +2,8 @@
 import { Form, Modal, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import {
-  certTypes,
+  CertTypes,
+  SSLUsage,
   clientTypes,
   computed,
   extractSdkResponseErrorMsg,
@@ -16,7 +17,6 @@ import {
   projectTitleValidator,
   readFile,
   ref,
-  sslUsage,
   useApi,
   useI18n,
   useNuxtApp,
@@ -24,6 +24,7 @@ import {
   watch,
 } from '#imports'
 import { ClientType } from '~/lib'
+import { DefaultConnection, SQLiteConnection } from '~/utils'
 import type { ProjectCreateForm } from '~/utils'
 
 const useForm = Form.useForm
@@ -47,7 +48,7 @@ let formState = $ref<ProjectCreateForm>({
     inflectionColumn: 'camelize',
     inflectionTable: 'camelize',
   },
-  sslUse: sslUsage.No,
+  sslUse: SSLUsage.No,
   extraParameters: [],
 })
 
@@ -58,7 +59,7 @@ const customFormState = ref<ProjectCreateForm>({
     inflectionColumn: 'camelize',
     inflectionTable: 'camelize',
   },
-  sslUse: sslUsage.No,
+  sslUse: SSLUsage.No,
   extraParameters: [],
 })
 
@@ -103,33 +104,39 @@ const onClientChange = () => {
   populateName(formState.title)
 }
 
-const onSSLModeChange = ((mode: sslUsage) => {
-  switch (mode) {
-    case sslUsage.No:
-      delete formState.dataSource.connection.ssl
-      break
-    case sslUsage.Allowed:
-      formState.dataSource.connection.ssl = 'true'
-      break
-    default:
-      formState.dataSource.connection.ssl = {
-        ca: '',
-        cert: '',
-        key: '',
-      }
-      break
+const onSSLModeChange = ((mode: SSLUsage) => {
+  if (formState.dataSource.client !== ClientType.SQLITE) {
+    const connection = formState.dataSource.connection as DefaultConnection
+    switch (mode) {
+      case SSLUsage.No:
+        delete connection.ssl
+        break
+      case SSLUsage.Allowed:
+        connection.ssl = 'true'
+        break
+      default:
+        connection.ssl = {
+          ca: '',
+          cert: '',
+          key: '',
+        }
+        break
+    }
   }
 }) as SelectHandler
 
 const updateSSLUse = () => {
-  if (formState.dataSource.connection.ssl) {
-    if (typeof formState.dataSource.connection.ssl === 'string') {
-      formState.sslUse = sslUsage.Allowed
+  if (formState.dataSource.client !== ClientType.SQLITE) {
+    const connection = formState.dataSource.connection as DefaultConnection
+    if (connection.ssl) {
+      if (typeof connection.ssl === 'string') {
+        formState.sslUse = SSLUsage.Allowed
+      } else {
+        formState.sslUse = SSLUsage.Preferred
+      }
     } else {
-      formState.sslUse = sslUsage.Preferred
+      formState.sslUse = SSLUsage.No
     }
-  } else {
-    formState.sslUse = sslUsage.No
   }
 }
 
@@ -150,7 +157,7 @@ const caFileInput = ref<HTMLInputElement>()
 const keyFileInput = ref<HTMLInputElement>()
 const certFileInput = ref<HTMLInputElement>()
 
-const onFileSelect = (key: certTypes, el?: HTMLInputElement) => {
+const onFileSelect = (key: CertTypes, el?: HTMLInputElement) => {
   if (!el) return
 
   readFile(el, (content) => {
@@ -160,7 +167,7 @@ const onFileSelect = (key: certTypes, el?: HTMLInputElement) => {
 }
 
 const sslFilesRequired = computed(
-  () => !!formState.sslUse && formState.sslUse !== sslUsage.No && formState.sslUse !== sslUsage.Allowed,
+  () => !!formState.sslUse && formState.sslUse !== SSLUsage.No && formState.sslUse !== SSLUsage.Allowed,
 )
 
 function getConnectionConfig() {
@@ -173,7 +180,7 @@ function getConnectionConfig() {
 
   if ('ssl' in connection && connection.ssl) {
     if (
-      formState.sslUse === sslUsage.No ||
+      formState.sslUse === SSLUsage.No ||
       (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => !v))
     ) {
       delete connection.ssl
@@ -365,28 +372,34 @@ onMounted(() => {
         :label="$t('labels.sqliteFile')"
         v-bind="validateInfos['dataSource.connection.connection.filename']"
       >
-        <a-input v-model:value="formState.dataSource.connection.connection.filename" />
+        <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
       </a-form-item>
 
       <template v-else>
         <!-- Host Address -->
         <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
-          <a-input v-model:value="formState.dataSource.connection.host" class="nc-extdb-host-address" />
+          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).host" class="nc-extdb-host-address" />
         </a-form-item>
 
         <!-- Port Number -->
         <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
-          <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full nc-extdb-host-port" />
+          <a-input-number
+            v-model:value="(formState.dataSource.connection as DefaultConnection).port"
+            class="!w-full nc-extdb-host-port"
+          />
         </a-form-item>
 
         <!-- Username -->
         <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
-          <a-input v-model:value="formState.dataSource.connection.user" class="nc-extdb-host-user" />
+          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).user" class="nc-extdb-host-user" />
         </a-form-item>
 
         <!-- Password -->
         <a-form-item :label="$t('labels.password')">
-          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
+          <a-input-password
+            v-model:value="(formState.dataSource.connection as DefaultConnection).password"
+            class="nc-extdb-host-password"
+          />
         </a-form-item>
 
         <!-- Database -->
@@ -421,7 +434,7 @@ onMounted(() => {
             <!--            todo:  add in i18n -->
             <a-form-item label="SSL mode">
               <a-select v-model:value="formState.sslUse" @select="onSSLModeChange">
-                <a-select-option v-for="opt in Object.values(sslUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
+                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
               </a-select>
             </a-form-item>
 
@@ -461,11 +474,11 @@ onMounted(() => {
               </div>
             </a-form-item>
 
-            <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect(certTypes.ca, caFileInput)" />
+            <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.ca, caFileInput)" />
 
-            <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect(certTypes.cert, certFileInput)" />
+            <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.cert, certFileInput)" />
 
-            <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect(certTypes.key, keyFileInput)" />
+            <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.key, keyFileInput)" />
 
             <a-divider />
 

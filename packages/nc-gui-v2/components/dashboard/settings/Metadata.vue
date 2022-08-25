@@ -90,7 +90,7 @@ const columns = [
           size="small"
           :custom-row="
             (record) => ({
-              class: `nc-metasync-row nc-metasync-row-${record.title}`,
+              class: `nc-metasync-row nc-metasync-row-${record.table_name}`,
             })
           "
           :data-source="metadiff ?? []"

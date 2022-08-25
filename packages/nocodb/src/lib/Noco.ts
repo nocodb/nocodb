@@ -11,7 +11,6 @@ import * as express from 'express';
 import { Router } from 'express';
 import importFresh from 'import-fresh';
 import morgan from 'morgan';
-import NcToolGui from 'nc-lib-gui-v2';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -94,7 +93,6 @@ export default class Noco {
 
   public projectBuilders: Array<NcProjectBuilderCE | NcProjectBuilderEE> = [];
   private apiBuilders: Array<RestApiBuilder | GqlApiBuilder> = [];
-  private ncToolApi;
   private config: NcConfig;
   private requestContext: any;
 
@@ -248,13 +246,6 @@ export default class Noco {
     await NcPluginMgrv2.init(Noco.ncMeta);
     registerMetaApis(this.router, server);
 
-    // this.router.use(
-    //   this.config.dashboardPath,
-    //   await this.ncToolApi.expressMiddleware()
-    // );
-    this.router.use(NcToolGui.expressMiddleware(
-      this.config.dashboardPath,
-    ));
     this.router.get('/', (_req, res) =>
       res.redirect(this.config.dashboardPath)
     );
@@ -370,8 +361,6 @@ export default class Noco {
               NODE_ENV: (this.env = this.config.workingEnv),
             });
             this.router.stack.splice(0, this.router.stack.length);
-            this.ncToolApi.destroy();
-            this.ncToolApi.reInitialize(this.config);
             // await this.init({progressCallback});
           } catch (e) {
             console.log(e);

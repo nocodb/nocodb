@@ -69,35 +69,45 @@ export const clientTypes = [
 ]
 
 const homeDir = ''
-const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataSource']['connection']> = {
+
+type ConnectionClientType =
+  | Exclude<ClientType, ClientType.SQLITE>
+  | 'tidb'
+  | 'yugabyte'
+  | 'citusdb'
+  | 'cockroachdb'
+  | 'oracledb'
+  | 'greenplum'
+
+const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection } & { [ClientType.SQLITE]: SQLiteConnection } = {
   [ClientType.PG]: {
     host: defaultHost,
     port: '5432',
     user: 'postgres',
     password: 'password',
     database: '_test',
-  } as DefaultConnection,
+  },
   [ClientType.MYSQL]: {
     host: defaultHost,
     port: '3306',
     user: 'root',
     password: 'password',
     database: '_test',
-  } as DefaultConnection,
+  },
   [ClientType.VITESS]: {
     host: defaultHost,
     port: '15306',
     user: 'root',
     password: 'password',
     database: '_test',
-  } as DefaultConnection,
+  },
   [ClientType.MSSQL]: {
     host: defaultHost,
     port: 1433,
     user: 'sa',
     password: 'Password123.',
     database: '_test',
-  } as DefaultConnection,
+  },
   [ClientType.SQLITE]: {
     client: ClientType.SQLITE,
     database: homeDir,
@@ -112,42 +122,42 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'root',
     password: '',
     database: '_test',
-  } as DefaultConnection,
+  },
   yugabyte: {
     host: defaultHost,
     port: '5432',
     user: 'postgres',
     password: '',
     database: '_test',
-  } as DefaultConnection,
+  },
   citusdb: {
     host: defaultHost,
     port: '5432',
     user: 'postgres',
     password: '',
     database: '_test',
-  } as DefaultConnection,
+  },
   cockroachdb: {
     host: defaultHost,
     port: '5432',
     user: 'postgres',
     password: '',
     database: '_test',
-  } as DefaultConnection,
+  },
   greenplum: {
     host: defaultHost,
     port: '5432',
     user: 'postgres',
     password: '',
     database: '_test',
-  } as DefaultConnection,
+  },
   oracledb: {
     host: defaultHost,
     port: '1521',
     user: 'system',
     password: 'Oracle18',
     database: '_test',
-  } as DefaultConnection,
+  },
 }
 
 export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateForm['dataSource'] => {

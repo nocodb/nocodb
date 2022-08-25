@@ -5,7 +5,6 @@ import { useNuxtApp } from '#app'
 import {
   IsPublicInj,
   NOCO,
-  ReloadViewDataHookInj,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   useProject,
@@ -48,7 +47,6 @@ export function useViewData(
   const formattedData = ref<Row[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
-  const reloadHook = inject(ReloadViewDataHookInj)!
   const { project, isSharedBase } = useProject()
   const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
   const { $api } = useNuxtApp()

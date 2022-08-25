@@ -8,6 +8,13 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             cy.fileHook();
             mainPage.tabReset();
+
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             // open country table
             cy.openTableTab("Country", 25);
         });
@@ -46,15 +53,26 @@ export const genTest = (apiType, dbType) => {
 
             // create new row using + button in header
             //
-            it.skip("Add row using tool header button", () => {
+            it("Add row using tool header button", () => {
                 // add a row to end of Country table
                 cy.get(".nc-add-new-row-btn").click();
-                cy.get("#data-table-form-Country > input")
-                    .first()
-                    .type("Test Country");
-                cy.contains("Save row").filter("button").click();
+                cy.wait(1000);
+                cy.get(".nc-expand-col-Country").find(".nc-cell > input").first().type("Test Country");
+                cy.getActiveDrawer()
+                    .find(".ant-btn-primary")
+                    .contains("Save row")
+                    .click();
+
+                // cy.get("#data-table-form-Country > input")
+                //     .first()
+                //     .type("Test Country");
+                // cy.contains("Save row").filter("button").click();
 
                 cy.toastWait("updated successfully");
+                cy.getActiveDrawer()
+                    .find(".ant-btn")
+                    .contains("Cancel")
+                    .click();
 
                 // verify
                 mainPage.getPagination(5).click();
@@ -68,7 +86,7 @@ export const genTest = (apiType, dbType) => {
 
             // delete single row
             //
-            it.skip("Delete Row", () => {
+            it("Delete Row", () => {
                 // delete row added in previous step
                 mainPage.getCell("Country", 10).rightclick();
                 cy.getActiveMenu().contains("Delete Row").click();
@@ -76,18 +94,18 @@ export const genTest = (apiType, dbType) => {
                 // cy.toastWait('Deleted row successfully')
 
                 // verify
-                mainPage.getCell("Country", 10).should("not.exist");
+                cy.get(`:nth-child(10) > [data-title="Country"]`).should("not.exist");
             });
 
             // create new row using right click menu option
             //
-            it("Add row using rightclick menu option", () => {
+            it.skip("Add row using rightclick menu option", () => {
                 // Temporary
                 mainPage.getPagination(5).click();
 
                 mainPage.getCell("Country", 9).rightclick({ force: true });
                 cy.getActiveMenu()
-                    .contains("Insert new row")
+                    .contains("Insert New Row")
                     .click({ force: true });
                 mainPage
                     .getCell("Country", 10)
@@ -97,7 +115,7 @@ export const genTest = (apiType, dbType) => {
 
                 mainPage.getCell("Country", 10).rightclick({ force: true });
                 cy.getActiveMenu()
-                    .contains("Insert new row")
+                    .contains("Insert New Row")
                     .click({ force: true });
                 mainPage
                     .getCell("Country", 11)
@@ -107,7 +125,7 @@ export const genTest = (apiType, dbType) => {
 
                 // GUI-v2 Kludge:
                 // to move cursor away from input field; enter key is not recognized
-                mainPage.getCell("Country", 10).click()
+                // mainPage.getCell("Country", 10).click()
 
                 // verify
                 mainPage
@@ -122,7 +140,7 @@ export const genTest = (apiType, dbType) => {
 
             // delete selected rows (multiple)
             //
-            it("Delete Selected", () => {
+            it.skip("Delete Selected", () => {
                 cy.get(".ant-checkbox").should('exist')
                   .eq(10).click({ force: true });
                 cy.get(".ant-checkbox").should('exist')
@@ -147,22 +165,21 @@ export const genTest = (apiType, dbType) => {
             });
         });
 
-        // GUI-v2 Kludge: Disable sort isn't disappearing after clear
-        // describe(`Sort operations`, () => {
-        //     beforeEach(() => {
-        //         cy.fileHook();
-        //     })
-        //
-        //     it("Enable sort", () => {
-        //         mainPage.sortField("Country", "Z → A");
-        //         cy.contains("Zambia").should("exist");
-        //     });
-        //
-        //     it("Disable sort", () => {
-        //         mainPage.clearSort();
-        //         cy.contains("Zambia").should("not.exist");
-        //     });
-        // });
+        describe(`Sort operations`, () => {
+            beforeEach(() => {
+                cy.fileHook();
+            })
+
+            it("Enable sort", () => {
+                mainPage.sortField("Country", "Z → A");
+                cy.contains("Zambia").should("exist");
+            });
+
+            it("Disable sort", () => {
+                mainPage.clearSort();
+                cy.contains("Zambia").should("not.exist");
+            });
+        });
 
         describe("Field Operation", () => {
             beforeEach(() => {

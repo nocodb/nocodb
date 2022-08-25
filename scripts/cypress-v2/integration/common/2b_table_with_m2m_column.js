@@ -8,6 +8,13 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             cy.fileHook();
             mainPage.tabReset();
+
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             cy.openTableTab("Actor", 25);
         });
 
@@ -57,31 +64,34 @@ export const genTest = (apiType, dbType) => {
                 .should("exist");
         });
 
-        // GUI-v2 Kludge:
-        it.skip('Expand "Link to" record, validate', () => {
+        it('Expand "Link to" record, validate', () => {
             cy.getActiveModal()
                 .find("button:contains(Link to 'Film')")
                 .click()
                 .then(() => {
-                    cy.snipActiveModal("Modal_M2M_LinkToRecord");
                     // Link record form validation
                     cy.getActiveModal().contains("Link Record").should("exist");
                     cy.getActiveModal()
-                        .find("button.mdi-reload")
+                        .find(".nc-reload")
                         .should("exist");
                     cy.getActiveModal()
-                        .find('button:contains("New Record")')
+                        .find('button:contains("Add new record")')
                         .should("exist");
                     cy.getActiveModal()
-                        .find(".child-card")
+                        .find(".ant-card")
                         .eq(0)
                         .contains("ACE GOLDFINGER")
                         .should("exist");
-                    cy.get("body").type("{esc}");
+                    cy.getActiveModal().find("button.ant-modal-close").click();
                 });
         });
 
         it("Expand first linked card, validate", () => {
+
+            // expand first row
+            mainPage.getCell("Film List", 1).should("exist").trigger("mouseover").click();
+            cy.get('.nc-action-icon').eq(0).should('exist').click({ force: true });
+
             cy.getActiveModal()
                 .find(".ant-card")
                 .eq(0)
@@ -91,18 +101,18 @@ export const genTest = (apiType, dbType) => {
                     // wait to ensure pop up appears before we proceed further
                     cy.wait(1000)
                     // Link card validation
-                    cy.getActiveModal()
+                    cy.getActiveDrawer()
                         .find(".text-lg")
                         .contains("ACADEMY DINOSAUR")
                         .should("exist");
-                    cy.getActiveModal()
+                    cy.getActiveDrawer()
                         .find('button:contains("Save row")')
                         .should("exist");
-                    cy.getActiveModal()
+                    cy.getActiveDrawer()
                         .find('button:contains("Cancel")')
                         .should("exist");
 
-                    cy.getActiveModal()
+                    cy.getActiveDrawer()
                         .find('button:contains("Cancel")')
                         .click();
                     cy.getActiveModal().find("button.ant-modal-close").click();

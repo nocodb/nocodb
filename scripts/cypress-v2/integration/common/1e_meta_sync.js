@@ -34,7 +34,7 @@ export const genTest = (apiType, dbType) => {
         });
 
         after(() => {
-            mainPage.closeMetaTab();
+            // mainPage.closeMetaTab();
         });
 
         it(`Create table`, () => {

@@ -8,6 +8,13 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             cy.fileHook();
             mainPage.tabReset();
+            //
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             cy.openTableTab("Country", 25);
         });
 
@@ -51,35 +58,34 @@ export const genTest = (apiType, dbType) => {
             cy.get('.nc-action-icon').eq(0).should('exist').click({ force: true });
         });
 
-        it.skip("Expand Link record, validate", () => {
+        it("Expand Link record, validate", () => {
             cy.getActiveModal()
                 .find("button:contains(Link to 'City')")
                 .click()
                 .then(() => {
-                    cy.snipActiveModal("Modal_BT_LinkRecord");
 
                     // Link record form validation
                     cy.getActiveModal().contains("Link Record").should("exist");
                     cy.getActiveModal()
-                        .find("button.mdi-reload")
+                        .find(".nc-reload")
                         .should("exist");
                     cy.getActiveModal()
-                        .find('button:contains("New Record")')
+                        .find('button:contains("Add new record")')
                         .should("exist");
                     cy.getActiveModal()
-                        .find(".child-card")
+                        .find(".ant-card")
                         .eq(0)
                         .contains("A Corua (La Corua)")
                         .should("exist");
 
                     cy.getActiveModal()
-                        .find("button.mdi-close")
-                        .click()
-                        .then(() => {
-                            cy.getActiveModal()
-                                .find("button.mdi-close")
-                                .click();
-                        });
+                        .find("button.ant-modal-close")
+                        .click();
+                        // .then(() => {
+                        //     cy.getActiveModal()
+                        //         .find("button.ant-modal-close")
+                        //         .click();
+                        // });
                 });
         });
 
@@ -97,7 +103,6 @@ export const genTest = (apiType, dbType) => {
             .find('.nc-virtual-cell > .chips-wrapper > .chips > .group > .name')
             .contains("Saudi Arabia")
             .should('exist');
-
         })
     });
 };

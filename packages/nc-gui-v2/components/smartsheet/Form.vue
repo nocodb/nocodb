@@ -340,11 +340,16 @@ watch(submitted, (v) => {
   }
 })
 
-function handleMouseUp(col: Record<string, any>) {
+function handleMouseUp(col: Record<string, any>, hiddenColIndex: number) {
   if (!moved.value) {
     const index = localColumns.value.length
     col.order = (index ? localColumns.value[index - 1].order : 0) + 1
     col.show = true
+
+    /** remove column from hiddenColumns and add to localColumns */
+    localColumns.value.push(col)
+    hiddenColumns.value.splice(hiddenColIndex, 1)
+
     saveOrUpdate(col, index)
   }
 }
@@ -421,13 +426,13 @@ onMounted(async () => {
         @start="drag = true"
         @end="drag = false"
       >
-        <template #item="{ element }">
+        <template #item="{ element, index }">
           <a-card
             size="small"
             class="m-0 p-0 cursor-pointer item mb-2"
             @mousedown="moved = false"
             @mousemove="moved = false"
-            @mouseup="handleMouseUp(element)"
+            @mouseup="handleMouseUp(element, index)"
           >
             <div class="flex">
               <div class="flex flex-row flex-1">

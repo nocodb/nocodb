@@ -7,10 +7,10 @@ import {
   NOCO,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
+  getHTMLEncodedText,
   useProject,
   useUIPermission,
 } from '#imports'
-import { getHTMLEncodedText } from '~/utils'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -165,11 +165,11 @@ export function useViewData(
     }
   }
 
-  const updateRowProperty = async (row: Row, property: string) => {
+  const updateRowProperty = async (toUpdate: Row, property: string) => {
     try {
       const id = meta?.value?.columns
         ?.filter((c) => c.pk)
-        .map((c) => row.row[c.title as string])
+        .map((c) => toUpdate.row[c.title as string])
         .join('___') as string
 
       const updatedRowData = await $api.dbViewRow.update(
@@ -179,7 +179,7 @@ export function useViewData(
         viewMeta?.value?.id as string,
         id,
         {
-          [property]: row.row[property],
+          [property]: toUpdate.row[property],
         },
         // todo:
         // {
@@ -192,14 +192,14 @@ export function useViewData(
           fk_model_id: meta?.value.id as string,
           column_name: property,
           row_id: id,
-          value: getHTMLEncodedText(row.row[property]),
-          prev_value: getHTMLEncodedText(row.oldRow[property]),
+          value: getHTMLEncodedText(toUpdate.row[property]),
+          prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
         })
         .catch(() => {})
 
       /** update row data(to sync formula and other related columns) */
-      Object.assign(row.row, updatedRowData)
-      Object.assign(row.oldRow, updatedRowData)
+      Object.assign(toUpdate.row, updatedRowData)
+      Object.assign(toUpdate.oldRow, updatedRowData)
     } catch (e: any) {
       message.error(`Row update failed ${await extractSdkResponseErrorMsg(e)}`)
     }

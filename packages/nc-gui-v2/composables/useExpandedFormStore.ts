@@ -7,6 +7,7 @@ import {
   NOCO,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
+  getHTMLEncodedText,
   useApi,
   useInjectionState,
   useNuxtApp,
@@ -14,7 +15,6 @@ import {
   useProvideSmartsheetRowStore,
 } from '#imports'
 import type { Row } from '~/composables'
-import { getHTMLEncodedText } from '~/utils'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()

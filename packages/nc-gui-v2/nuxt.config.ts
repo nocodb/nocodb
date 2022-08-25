@@ -13,7 +13,7 @@ export default defineNuxtConfig({
 
   ssr: false,
   app: {
-    baseURL: '/dashboard/',
+    // baseURL: '/dashboard/',
   },
   css: [
     'virtual:windi.css',

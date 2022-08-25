@@ -68,7 +68,7 @@ export const genTest = (apiType, dbType) => {
 
             // delete single row
             //
-            it.skip("Delete row", () => {
+            it.skip("Delete Row", () => {
                 // delete row added in previous step
                 mainPage.getCell("Country", 10).rightclick();
                 cy.getActiveMenu().contains("Delete Row").click();
@@ -130,7 +130,7 @@ export const genTest = (apiType, dbType) => {
 
                 mainPage.getCell("Country", 10).rightclick({ force: true });
                 cy.getActiveMenu()
-                    .contains("Delete all selected rows")
+                    .contains("Delete Selected Rows")
                     .click({ force: true });
 
                 // verify

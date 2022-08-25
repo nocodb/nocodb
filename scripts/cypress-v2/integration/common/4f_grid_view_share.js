@@ -427,7 +427,7 @@ export const genTest = (apiType, dbType) => {
 
         it(`Generate default Shared GRID view URL`, () => {
             // add row
-            cy.get(".nc-add-new-row-btn").click({ force: true });
+            cy.get(".nc-add-new-row-btn").click();
             cy.get("#data-table-form-Country > input")
                 .first()
                 .click()

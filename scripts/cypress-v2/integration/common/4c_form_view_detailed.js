@@ -424,7 +424,7 @@ export const genTest = (apiType, dbType) => {
 
                 mainPage.getCell("Country", 10).rightclick({ force: true });
                 cy.getActiveMenu()
-                  .contains("Delete all selected rows")
+                  .contains("Delete Selected Rows")
                   .click({ force: true });
 
                 // mainPage

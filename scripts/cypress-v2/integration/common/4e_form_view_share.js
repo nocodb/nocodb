@@ -212,7 +212,7 @@ export const genTest = (apiType, dbType) => {
                 cy.get(".ant-checkbox").should('exist').eq(1).click({ force: true });
                 mainPage.getCell("Country", 1).rightclick({ force: true });
                 cy.getActiveMenu()
-                  .contains("Delete all selected rows")
+                  .contains("Delete Selected Rows")
                   .click({ force: true });
             });
         };

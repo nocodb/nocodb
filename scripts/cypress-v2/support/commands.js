@@ -262,6 +262,10 @@ Cypress.Commands.add("getActiveSelection", () => {
     return cy.get(".ant-select-dropdown:visible").last();
 })
 
+Cypress.Commands.add("getActiveDrawer", () => {
+    return cy.get(".ant-drawer-content:visible").last();
+}); 
+
 Cypress.Commands.add("createTable", (name) => {
     // cy.get(".nc-btn-tbl-add").click();
 

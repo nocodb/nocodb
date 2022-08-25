@@ -28,6 +28,7 @@ export default {
     exportCsv: true,
 
     viewList: true,
+    viewUpdate: true,
     columnList: true,
     viewColumnUpdate: true,
 
@@ -146,6 +147,8 @@ export default {
 
     //table
     tableGet: true,
+    //view
+    viewUpdate: true,
     // sort & filter
     sortList: true,
     viewList: true,
@@ -208,6 +211,8 @@ export default {
     commentsCount: true,
     exportCsv: true,
 
+    //view
+    viewUpdate: true,
     // sort & filter
     sortList: true,
     projectInfoGet: true,

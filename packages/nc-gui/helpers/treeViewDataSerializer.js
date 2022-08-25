@@ -85,7 +85,6 @@ function dbparser(data, envKey, env) {
 
     json.children.push(tableParser(db.tables, dbKey, env, db.meta.dbAlias, db));
     // enable extra
-    json.children.push(viewsParser(db.views, dbKey, env, db.meta.dbAlias, db));
 
     // if (db.client !== 'sqlite3')
     //   json.children.push(functionsParser(db.functions, dbKey, env, db.meta.dbAlias, db));

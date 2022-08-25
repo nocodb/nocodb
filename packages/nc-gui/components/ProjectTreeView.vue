@@ -740,7 +740,7 @@ export default {
     },
     dialogRenameTable: {
       dialogShow: false,
-      heading: 'Rename Table',
+      heading: 'Rename Table (UI and Database)',
       field: 'Table Name',
       cookie: null,
       defaultValue: null,
@@ -1530,7 +1530,7 @@ export default {
         _nodes: {
           env: this.menuItem._nodes.env,
           dbAlias: this.menuItem._nodes.dbAlias,
-          table_name: this.menuItem._nodes.table_name,
+          table_name: title,
           title: title,
           dbConnection: this.menuItem._nodes.dbConnection,
           type: 'table',

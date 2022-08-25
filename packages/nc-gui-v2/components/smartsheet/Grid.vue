@@ -218,8 +218,10 @@ const onKeyDown = async (e: KeyboardEvent) => {
       break
     /** on delete key press clear cell */
     case 'Delete':
-      e.preventDefault()
-      await clearCell(selected as { row: number; col: number })
+      if (!editEnabled) {
+        e.preventDefault()
+        await clearCell(selected as { row: number; col: number })
+      }
       break
     /** on arrow key press navigate through cells */
     case 'ArrowRight':
@@ -243,7 +245,7 @@ const onKeyDown = async (e: KeyboardEvent) => {
         const rowObj = data.value[selected.row]
         const columnObj = fields.value[selected.col]
 
-        if (e.metaKey || e.ctrlKey) {
+        if ((!editEnabled && e.metaKey) || e.ctrlKey) {
           switch (e.keyCode) {
             // copy - ctrl/cmd +c
             case 67:
@@ -467,9 +469,9 @@ const onNavigate = (dir: NavigateDir) => {
             </SmartsheetRow>
 
             <!--
-              TODO: add relationType !== 'bt' ?
-              v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
-            -->
+          TODO: add relationType !== 'bt' ?
+          v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
+        -->
             <tr v-if="!isView && !isLocked && !isPublicView && isUIAllowed('xcDatatableEditable')">
               <td
                 v-t="['c:row:add:grid-bottom']"
@@ -596,10 +598,12 @@ const onNavigate = (dir: NavigateDir) => {
   .nc-row-expand-and-checkbox {
     @apply w-full items-center justify-between;
   }
+
   .nc-expand {
     &:not(.nc-comment) {
       @apply hidden;
     }
+
     &.nc-comment {
       display: flex;
     }

@@ -105,10 +105,16 @@ export default {
 </script>
 
 <template>
-  <a-drawer v-model:visible="isExpanded" :footer="null" width="min(90vw,1000px)" :body-style="{ padding: 0 }" :closable="false">
+  <a-drawer
+    v-model:visible="isExpanded"
+    :footer="null"
+    width="min(90vw,1000px)"
+    :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
+    :closable="false"
+  >
     <Header @cancel="onClose" />
-    <div class="!bg-gray-100 rounded">
-      <div class="flex h-full nc-form-wrapper items-stretch min-h-[70vh]">
+    <div class="!bg-gray-100 rounded flex-1">
+      <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-primary">
           <div class="w-[500px] mx-auto">
             <div v-for="col of fields" :key="col.title" class="mt-2 py-2" :class="`nc-expand-col-${col.title}`">

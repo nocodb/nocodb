@@ -7,4 +7,7 @@ then
   tar -xzf /usr/src/appEntry/app.tar.gz -C /usr/src/app/
 fi
 
-node docker/main.js
+# TODO: relocate
+node docker/main.js &
+node .output/server/index.mjs &
+wait

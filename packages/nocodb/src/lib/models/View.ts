@@ -907,6 +907,8 @@ export default class View implements ViewType {
 
     // insert or update view column
     for (const col of columns) {
+      if (ignoreColdIds?.includes(col.id)) continue;
+
       const colIndex = availableColumnsInView.indexOf(col.id);
       if (colIndex > -1) {
         await this.updateColumn(

@@ -32,11 +32,9 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 </script>
 
 <template>
-  <div
-    class="nc-form-view md:bg-primary bg-opacity-5 h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
-  >
+  <div class="nc-form-view md:bg-primary bg-opacity-5 min-h-full flex flex-col nc-form-signin py-15">
     <div
-      class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full lg:max-w-1/2 max-w-500px mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+      class="bg-white relative flex flex-col justify-center gap-2 w-full lg:max-w-1/2 max-w-500px m-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
     >
       <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
 

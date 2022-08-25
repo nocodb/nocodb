@@ -5204,6 +5204,24 @@
         "description": ""
       }
     },
+    "/api/v1/url_to_config": {
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "utils-url-to-config",
+        "tags": [
+          "Utils"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "description": ""
+      }
+    },
     "/api/v1/db/meta/nocodb/info": {
       "parameters": [],
       "get": {

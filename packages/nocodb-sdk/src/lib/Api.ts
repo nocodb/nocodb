@@ -3214,6 +3214,22 @@ export class Api<
      * No description
      *
      * @tags Utils
+     * @name UrlToConfig
+     * @request POST:/api/v1/url_to_config
+     */
+    urlToConfig: (data: any, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/url_to_config`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Utils
      * @name AppInfo
      * @request GET:/api/v1/db/meta/nocodb/info
      * @response `200` `any` OK

@@ -20,9 +20,9 @@ export const genTest = (apiType, dbType) => {
         //   .find(".v-list > .v-list-item")
         //   .contains("Share View")
         //   .click();
-        mainPage.shareView().click({ force: true });
+        mainPage.shareView().click();
 
-        cy.wait(5000);
+        cy.wait(1000);
 
         // wait, as URL initially will be /undefined
         cy.getActiveModal()
@@ -47,9 +47,17 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             cy.fileHook();
             mainPage.tabReset();
+
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             // open a table to work on views
             //
             cy.openTableTab("Address", 25);
+            mainPage.toggleRightSidebar();
 
             cy.saveLocalStorage();
         });
@@ -122,7 +130,7 @@ export const genTest = (apiType, dbType) => {
                     .its("length")
                     .should("eq", 1)
                     .then(() => {
-                        cy.get('button.ant-modal-close').click();
+                        cy.get('button.ant-modal-close:visible').click();
                         // cy.get(".v-overlay--active > .v-overlay__scrim").click({
                         //     force: true,
                         // });
@@ -140,8 +148,7 @@ export const genTest = (apiType, dbType) => {
                 cy.get(".nc-grid-row").should("have.length", 18);
 
                 // verify title
-                // GUI-v2: fix me
-                cy.get("div.model-name").contains("Address1").should("exist");
+                cy.get(".nc-shared-view-title").contains("Grid-1").should("exist");
             });
 
             it(`Share ${viewType.toUpperCase()} view : verify fields hidden/open`, () => {
@@ -190,7 +197,7 @@ export const genTest = (apiType, dbType) => {
                 };
 
                 // download & verify
-                mainPage.downloadAndVerifyCsv(
+                mainPage.downloadAndVerifyCsvFromSharedView(
                     `Address_exported_1.csv`,
                     verifyCsv
                 );
@@ -249,7 +256,7 @@ export const genTest = (apiType, dbType) => {
                     //     }
                     // }
                 };
-                mainPage.downloadAndVerifyCsv(
+                mainPage.downloadAndVerifyCsvFromSharedView(
                     `Address_exported_1.csv`,
                     verifyCsv
                 );
@@ -283,27 +290,28 @@ export const genTest = (apiType, dbType) => {
                     .click()
                     .find(".nc-icon.nc-action-icon.nc-plus")
                     .should("not.exist");
-                mainPage
-                    .getCell("Customer List", 3)
-                    .click()
-                    .find(".nc-icon.nc-action-icon.nc-arrow-expand")
-                    .click();
 
-                cy.getActiveModal().find(".nc-icon.nc-reload").should("exist");
-                cy.getActiveModal()
-                    .find("button")
-                    .contains("Link to")
-                    .should("not.exist");
-                cy.getActiveModal()
-                    .find(".ant-card")
-                    .contains("2")
-                    .should("exist");
-                cy.getActiveModal()
-                    .find(".ant-card")
-                    .find("button")
-                    .should("not.exist");
-                cy.get('button.ant-modal-close').click();
-                // cy.get("body").type("{esc}");
+                // to be fixed
+                // mainPage
+                //     .getCell("Customer List", 3)
+                //     .click()
+                //     .find(".nc-icon.nc-action-icon.nc-arrow-expand")
+                //     .click();
+
+                // cy.getActiveModal().find(".nc-icon.nc-reload").should("exist");
+                // cy.getActiveModal()
+                //     .find("button")
+                //     .contains("Link to")
+                //     .should("not.exist");
+                // cy.getActiveModal()
+                //     .find(".ant-card")
+                //     .contains("2")
+                //     .should("exist");
+                // cy.getActiveModal()
+                //     .find(".ant-card")
+                //     .find("button")
+                //     .should("not.exist");
+                // cy.get('button.ant-modal-close').click();
             });
 
             it(`Share GRID view : Virtual column validation > belongs to`, () => {
@@ -313,16 +321,18 @@ export const genTest = (apiType, dbType) => {
                     .click()
                     .find(".nc-icon.nc-unlink-icon")
                     .should("not.exist");
-                mainPage
-                    .getCell("City", 1)
-                    .click()
-                    .find(".nc-icon.nc-action-icon.nc-arrow-expand")
-                    .should("not.exist");
-                mainPage
-                    .getCell("City", 1)
-                    .find(".chips")
-                    .contains("Kanchrapara")
-                    .should("exist");
+
+                // to be fixed
+                // mainPage
+                //     .getCell("City", 1)
+                //     .click()
+                //     .find(".nc-icon.nc-action-icon.nc-arrow-expand")
+                //     .should("not.exist");
+                // mainPage
+                //     .getCell("City", 1)
+                //     .find(".chips")
+                //     .contains("Kanchrapara")
+                //     .should("exist");
             });
 
             it(`Share GRID view : Virtual column validation > many to many`, () => {
@@ -337,18 +347,20 @@ export const genTest = (apiType, dbType) => {
                     .click()
                     .find(".nc-icon.nc-action-icon.nc-plus")
                     .should("not.exist");
-                mainPage
-                    .getCell("Staff List", 1)
-                    .click()
-                    .find(".nc-icon.nc-action-icon.nc-arrow-expand")
-                    .click();
 
-                cy.getActiveModal().find(".nc-icon.nc-reload").should("exist");
-                cy.getActiveModal()
-                    .find("button")
-                    .contains("Link to")
-                    .should("not.exist");
-                cy.get("body").type("{esc}");
+                // to be fixed
+                // mainPage
+                //     .getCell("Staff List", 1)
+                //     .click()
+                //     .find(".nc-icon.nc-action-icon.nc-arrow-expand")
+                //     .click();
+
+                // cy.getActiveModal().find(".nc-icon.nc-reload").should("exist");
+                // cy.getActiveModal()
+                //     .find("button")
+                //     .contains("Link to")
+                //     .should("not.exist");
+                // cy.get("body").type("{esc}");
             });
 
             it(`Delete ${viewType.toUpperCase()} view`, () => {
@@ -363,6 +375,7 @@ export const genTest = (apiType, dbType) => {
                 cy.get(".nc-view-item").its("length").should("eq", 2);
 
                 cy.get(".nc-view-delete-icon").eq(0).click({ force: true });
+                cy.getActiveModal().find(".ant-btn-dangerous").click();
                 cy.toastWait("View deleted successfully");
 
                 // confirm if the number of veiw entries is reduced by 1
@@ -377,8 +390,17 @@ export const genTest = (apiType, dbType) => {
     describe(`${apiType.toUpperCase()} api - Grid view/ row-column update verification`, () => {
         before(() => {
             cy.fileHook();
+
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             // Address table has belongs to, has many & many-to-many
             cy.openTableTab("Country", 25);
+
+            mainPage.toggleRightSidebar();
 
             cy.saveLocalStorage();
             // store base URL- to re-visit and delete form view later
@@ -403,21 +425,28 @@ export const genTest = (apiType, dbType) => {
 
             // wait for page rendering to complete
             cy.get(".nc-grid-row").should("have.length", 10);
-            mainPage
-                .getRow(10)
-                .find(".mdi-checkbox-blank-outline")
-                .click({ force: true });
+            // mainPage
+            //     .getRow(10)
+            //     .find(".mdi-checkbox-blank-outline")
+            //     .click({ force: true });
+            // mainPage.getCell("Country", 10).rightclick();
+            // cy.getActiveMenu().contains("Delete Selected Row").click();
+
             mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu().contains("Delete selected row").click();
+            cy.getActiveMenu()
+                .find('.ant-dropdown-menu-item:contains("Delete Row")')
+                .first()
+                .click();
 
             // delete column
-            cy.get(`th:contains('dummy') .nc-ui-dt-dropdown`)
-                .trigger("mouseover")
-                .click();
-            cy.get(".nc-column-delete").click();
-            cy.get("button:contains(Confirm)").click();
-
-            cy.toastWait("Update table successful");
+            mainPage.deleteColumn("dummy");
+            // cy.get(`th:contains('dummy') .nc-ui-dt-dropdown`)
+            //     .trigger("mouseover")
+            //     .click();
+            // cy.get(".nc-column-delete").click();
+            // cy.get("button:contains(Confirm)").click();
+            //
+            // cy.toastWait("Update table successful");
 
             mainPage.deleteCreatedViews();
 
@@ -428,13 +457,26 @@ export const genTest = (apiType, dbType) => {
         it(`Generate default Shared GRID view URL`, () => {
             // add row
             cy.get(".nc-add-new-row-btn").click();
-            cy.get("#data-table-form-Country > input")
+            // cy.get("#data-table-form-Country > input")
+            //     .first()
+            //     .click()
+            //     .type("a");
+            // cy.contains("Save row").filter("button").click({ force: true });
+            // cy.toastWait("updated successfully");
+            cy.get(".nc-expand-col-Country").find(".nc-cell > input")
+                .should("exist")
                 .first()
-                .click()
+                .clear({ force: true })
                 .type("a");
-            cy.contains("Save row").filter("button").click({ force: true });
+            cy.getActiveDrawer()
+                .find("button")
+                .contains("Save row")
+                .click();
             cy.toastWait("updated successfully");
-
+            cy.getActiveDrawer()
+                .find("button")
+                .contains("Cancel")
+                .click();
             // add column
             mainPage.addColumn("dummy", "Country");
 
@@ -454,15 +496,16 @@ export const genTest = (apiType, dbType) => {
 
         it(`Share GRID view : new row visible`, () => {
             // verify row
-            cy.get(`.v-pagination > li:contains('5') button`).click();
+            // cy.get(`.v-pagination > li:contains('5') button`).click();
+            cy.get(`.nc-pagination > .ant-pagination-item.ant-pagination-item-5`).click();
             // wait for page rendering to complete
             cy.get(".nc-grid-row").should("have.length", 10);
             mainPage.getCell("Country", 10).contains("a").should("exist");
         });
 
-        it.skip(`Share GRID view : new column visible`, () => {
+        it(`Share GRID view : new column visible`, () => {
             // verify column headers
-            cy.get('[data-col="dummy"]').should("exist");
+            cy.get('[data-title="dummy"]').should("exist");
         });
     });
 };

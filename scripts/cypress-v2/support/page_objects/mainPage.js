@@ -401,6 +401,25 @@ export class _mainPage {
         });
     };
 
+    downloadAndVerifyCsvFromSharedView = (filename, verifyCsv) => {
+        cy.get(".nc-actions-menu-btn").click();
+        cy.get('.nc-project-menu-item').contains('Download as CSV').should('exist').click();
+
+        cy.toastWait("Successfully exported all table data").then(() => {
+            // download folder path, read from config file
+            const downloadsFolder = Cypress.config("downloadsFolder");
+            let filePath = path.join(downloadsFolder, filename);
+
+            // append download folder path with filename to generate full file path, retrieve file
+            cy.readFile(filePath).then((fileData) => {
+                // from CSV, split into records (rows)
+                const rows = fileData.replace(/\r\n/g, "\n").split("\n");
+                verifyCsv(rows);
+                deleteDownloadsFolder();
+            });
+        });
+    };
+
     getIFrameCell = (columnHeader, cellNumber) => {
         return cy
             .iframe()

@@ -60,7 +60,7 @@ const sharedViewUrl = (view: SharedViewType) => {
     default:
       viewType = 'view'
   }
-  return `/nc/${viewType}/${view.uuid}`
+  return `nc/${viewType}/${view.uuid}`
 }
 
 const renderAllowCSVDownload = (view: SharedViewType) => {

@@ -7,6 +7,7 @@ import {
   NOCO,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
+  getHTMLEncodedText,
   useApi,
   useInjectionState,
   useNuxtApp,
@@ -156,8 +157,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               fk_model_id: meta.value.id,
               column_name: key,
               row_id: id,
-              value: getPlainText(updateOrInsertObj[key]),
-              prev_value: getPlainText(row.value.oldRow[key]),
+              value: getHTMLEncodedText(updateOrInsertObj[key]),
+              prev_value: getHTMLEncodedText(row.value.oldRow[key]),
             })
             .then(() => {})
         }
@@ -204,11 +205,4 @@ export function useExpandedFormStoreOrThrow() {
   const expandedFormStore = useExpandedFormStore()
   if (expandedFormStore == null) throw new Error('Please call `useExpandedFormStore` on the appropriate parent component')
   return expandedFormStore
-}
-
-// todo: move to utils
-function getPlainText(htmlString: string) {
-  const div = document.createElement('div')
-  div.textContent = htmlString || ''
-  return div.innerHTML
 }

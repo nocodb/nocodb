@@ -13,7 +13,7 @@ const generateLinkWithPwd = () => {
       cy.getActiveModal().find('.ant-checkbox-input').should('exist').first().then(($el) => {
         if (!$el.prop("checked")) {
             cy.wrap($el).click({ force: true });
-            cy.getActiveModal().find('input[type="password"]').type("1");
+            cy.getActiveModal().find('input[type="password"]').clear().type("1");
             cy.getActiveModal().find('button:contains("Save password")').click();
             cy.toastWait("Successfully updated");
         }
@@ -37,6 +37,13 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             cy.fileHook();
             mainPage.tabReset();
+
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             cy.openTableTab("City", 25);
 
             // store base URL- to re-visit and delete form view later
@@ -56,7 +63,7 @@ export const genTest = (apiType, dbType) => {
             cy.saveLocalStorage();
         });
 
-        it.skip("Share view with incorrect password", () => {
+        it("Share view with incorrect password", () => {
             cy.visit(linkText, {
                 baseUrl: null,
             });
@@ -64,7 +71,7 @@ export const genTest = (apiType, dbType) => {
             cy.getActiveModal().should("exist");
 
             // feed password
-            cy.getActiveModal().find('input[type="password"]').type("a");
+            cy.getActiveModal().find('input[type="password"]').clear().type("a");
             cy.getActiveModal().find('button:contains("Unlock")').click();
 
             // if pwd is incorrect, active modal requesting to feed in password again will persist
@@ -72,7 +79,7 @@ export const genTest = (apiType, dbType) => {
         });
 
         // fallover test- use previously opened view & continue verification instead of opening again
-        it.skip("Share view with correct password", () => {
+        it("Share view with correct password", () => {
 
             // feed password
             cy.getActiveModal()

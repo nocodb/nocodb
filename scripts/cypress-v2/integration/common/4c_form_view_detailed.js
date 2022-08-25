@@ -49,6 +49,13 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             cy.fileHook();
             mainPage.tabReset();
+
+            // kludge: wait for page load to finish
+            cy.wait(1000);
+            // close team & auth tab
+            cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            cy.wait(1000);
+
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
@@ -451,8 +458,7 @@ export const genTest = (apiType, dbType) => {
         };
 
         // below scenario's will be invoked twice, once for rest & then for graphql
-        // viewTest("form");
-        viewTest("1");
+        viewTest("form");
     });
 };
 

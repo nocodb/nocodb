@@ -259,27 +259,27 @@ export class _mainPage {
 
     shareViewList = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('.nc-menu-item').contains('Shared View List');
+        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Shared View List');
     };
 
     downloadCsv = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('.nc-menu-item').contains('Download as CSV');
+        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Download as CSV');
     };
 
     downloadExcel = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('.nc-menu-item').contains('Download as XLSX');
+        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Download as XLSX');
     };
 
     uploadCsv = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('.nc-menu-item').contains('Upload CSV');
+        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Upload CSV');
     };
 
     automations = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('.nc-menu-item').contains('Webhooks');
+        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Webhooks');
     };
 
     hideField = (field) => {
@@ -464,7 +464,7 @@ export class _mainPage {
     }
 
     toggleRightSidebar() {
-        cy.get(".nc-right-sidebar-toggle").should("exist").click();
+        cy.get(".nc-toggle-right-navbar").should("exist").click();
     }
 }
 

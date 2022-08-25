@@ -1,7 +1,11 @@
 import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
-let viewTypeString = ["", "Form", "Gallery", "Grid"];
+// let viewTypeString = ["", "Form", "Gallery", "Grid"];
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
 export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
@@ -14,9 +18,18 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             cy.fileHook();
             mainPage.tabReset();
+
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
+
+            cy.get('.nc-toggle-right-navbar').should('exist').click();
         });
 
         beforeEach(() => {
@@ -40,13 +53,16 @@ export const genTest = (apiType, dbType) => {
                 cy.getActiveModal().find(".ant-btn-primary").click();
                 cy.toastWait("View created successfully");
 
+                // kludge: right navbar closes abruptly. force it open again
+                window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
+
                 // validate if view was created && contains default name 'Country1'
                 cy.get(`.nc-${viewType}-view-item`)
-                    .contains(`${viewTypeString[viewType]}-1`)
+                    .contains(`${capitalizeFirstLetter(viewType)}-1`)
                     .should("exist");
             });
 
-            it.skip(`Edit ${viewType} view name`, () => {
+            it(`Edit ${viewType} view name`, () => {
                 // click on edit-icon (becomes visible on hovering mouse)
                 // cy.get(".nc-view-edit-icon").last().click({
                 //     force: true,
@@ -55,10 +71,13 @@ export const genTest = (apiType, dbType) => {
                 cy.get(`.nc-${viewType}-view-item`).last().dblclick();
 
                 // feed new name
-                cy.get(`.nc-${viewType}-view-item input`).type(
-                    `${viewType}View-1{enter}`
-                );
+                cy.get(`.nc-${viewType}-view-item input`)
+                    .clear()
+                    .type(`${viewType}View-1{enter}`);
                 cy.toastWait("View renamed successfully");
+
+                // kludge: right navbar closes abruptly. force it open again
+                window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
 
                 // validate
                 cy.get(`.nc-${viewType}-view-item`)
@@ -70,11 +89,18 @@ export const genTest = (apiType, dbType) => {
                 // number of view entries should be 2 before we delete
                 cy.get(".nc-view-item").its("length").should("eq", 2);
 
+                cy.get(`.nc-${viewType}-view-item`).last().click();
+                cy.wait(3000);
+
                 // click on delete icon (becomes visible on hovering mouse)
-                cy.get(`.nc-${viewType}-view-item`).last().trigger("mouseover").click();
-                cy.get(".nc-view-delete-icon").should('exist').click({ force: true });
-                cy.getActiveModal().find(".ant-btn-dangerous").click();
-                cy.toastWait("View deleted successfully");
+                cy.get(`.nc-${viewType}-view-item`).last().trigger("mouseover").then(() => {
+                    cy.get(".nc-view-delete-icon").should('exist').click({force: true});
+                    cy.getActiveModal().find(".ant-btn-dangerous").click();
+                    cy.toastWait("View deleted successfully");
+                })
+
+                // kludge: right navbar closes abruptly. force it open again
+                window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
 
                 // confirm if the number of veiw entries is reduced by 1
                 cy.get(".nc-view-item").its("length").should("eq", 1);
@@ -82,9 +108,9 @@ export const genTest = (apiType, dbType) => {
         };
 
         // below four scenario's will be invoked twice, once for rest & then for graphql
-        viewTest("3");  // grid view
-        viewTest("2");  // gallery view
-        viewTest("1");  // form view
+        viewTest("grid");  // grid view
+        viewTest("gallery");  // gallery view
+        viewTest("form");  // form view
     });
 };
 

@@ -78,7 +78,7 @@ async function changeLockType(type: LockType) {
             :style="{ color: viewIcons[selectedView?.type].color }"
           />
           <span class="!text-sm font-weight-normal">{{ selectedView?.title }}</span>
-          <component :is="Icon" class="text-gray-500" />
+          <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
           <MdiMenuDown class="text-grey" />
         </div>
       </a-button>

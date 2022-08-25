@@ -46,12 +46,14 @@ export async function projectUpdate(
   req: Request<any, any, any>,
   res: Response<ProjectListType>
 ) {
+  const project = await Project.getWithInfo(req.params.projectId);
+
   // only support updating title at this moment
   const data: any = {
     title: DOMPurify.sanitize(req?.body?.title),
   };
 
-  if (await Project.getByTitle(data.title)) {
+  if (await Project.getByTitle(data.title) && project.title !== data.title) {
     NcError.badRequest('Project title already in use');
   }
 

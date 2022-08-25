@@ -50,11 +50,11 @@ export const genTest = (apiType, dbType) => {
             cy.fileHook();
             mainPage.tabReset();
 
-            // kludge: wait for page load to finish
-            cy.wait(1000);
-            // close team & auth tab
-            cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            cy.wait(1000);
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
 
             // open a table to work on views
             //

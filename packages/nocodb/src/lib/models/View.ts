@@ -18,7 +18,7 @@ import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
 import Column from './Column';
 import NocoCache from '../cache/NocoCache';
-import extractProps from '../meta/helpers/extractProps';
+import { extractProps } from '../meta/helpers/extractProps';
 
 const { v4: uuidv4 } = require('uuid');
 export default class View implements ViewType {

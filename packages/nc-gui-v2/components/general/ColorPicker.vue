@@ -50,11 +50,11 @@ watch(picked, (n, _o) => {
         v-for="(color, i) of colors.slice((colId - 1) * rowSize, colId * rowSize)"
         :key="`color-${colId}-${i}`"
         class="color-selector"
-        :class="compare(picked, color) ? 'selected' : ''"
+        :class="compare(picked as string, color) ? 'selected' : ''"
         :style="{ 'background-color': `${color}` }"
         @click="selectColor(color)"
       >
-        {{ compare(picked, color) ? '&#10003;' : '' }}
+        {{ compare(picked as string, color) ? '&#10003;' : '' }}
       </button>
     </div>
     <a-card v-if="props.advanced" class="w-full mt-2" :body-style="{ padding: '0px' }" :bordered="false">

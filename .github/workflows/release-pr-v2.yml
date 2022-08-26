@@ -43,7 +43,7 @@ jobs:
   # Build docker image and push to docker hub
   release-docker:
     if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' }}
-    needs: [release-npm, set-tag]
+    needs: [set-tag]
     uses: ./.github/workflows/release-docker-v2.yml
     with:
       currentVersion: ${{ needs.set-tag.outputs.current_version }}

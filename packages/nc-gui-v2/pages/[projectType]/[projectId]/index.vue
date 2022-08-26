@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { Chrome } from '@ckpack/vue-color'
 import { message } from 'ant-design-vue'
+import { Chrome } from '@ckpack/vue-color'
+import tinycolor from 'tinycolor2'
 import {
   computed,
   definePageMeta,
+  enumColor,
   navigateTo,
   onKeyStroke,
   openLink,
@@ -53,22 +55,9 @@ const dropdownOpen = ref(false)
 /** Sidebar ref */
 const sidebar = ref()
 
-const pickedColor = ref<any>('#ffffff')
-
-let pickerActive = $ref<boolean | 'primary' | 'accent'>(false)
-
 const email = computed(() => user.value?.email ?? '---')
 
 const { saveTheme, theme } = useTheme()
-
-watch(pickedColor, (nextColor) => {
-  if (pickerActive && nextColor.hex) {
-    saveTheme({
-      primaryColor: pickerActive === 'primary' ? nextColor.hex : theme.value.primaryColor,
-      accentColor: pickerActive === 'accent' ? nextColor.hex : theme.value.accentColor,
-    })
-  }
-})
 
 const logout = () => {
   signOut()
@@ -93,6 +82,31 @@ function toggleDialog(value?: boolean, key?: string) {
 await loadProject()
 
 await loadTables()
+
+const themePrimaryColor = ref<any>(theme.value.primaryColor)
+
+const themeAccentColor = ref<any>(theme.value.accentColor)
+
+// Chrome provides object so if custom picker used we only edit primary otherwise use analogous as accent
+watch(themePrimaryColor, (nextColor) => {
+  const hexColor = nextColor.hex ? nextColor.hex : nextColor
+  const tcolor = tinycolor(hexColor)
+  if (tcolor) {
+    const analogous = tcolor.complement()
+    saveTheme({
+      primaryColor: hexColor,
+      accentColor: nextColor.hex ? theme.value.accentColor : analogous.toHexString(),
+    })
+  }
+})
+
+watch(themeAccentColor, (nextColor) => {
+  const hexColor = nextColor.hex ? nextColor.hex : nextColor
+  saveTheme({
+    primaryColor: theme.value.primaryColor,
+    accentColor: hexColor,
+  })
+})
 
 if (!route.params.type && isUIAllowed('teamAndAuth')) {
   addTab({ type: TabType.AUTH, title: 'Team & Auth' })
@@ -123,22 +137,6 @@ const copyAuthToken = async () => {
   } catch (e: any) {
     console.log(e)
     message.error(e.message)
-  }
-}
-
-const openColorPicker = (type: 'primary' | 'accent') => {
-  if (!pickerActive || pickerActive !== type) {
-    pickedColor.value = type === 'primary' ? theme.value.primaryColor : theme.value.accentColor
-    pickerActive = type
-  } else {
-    pickerActive = false
-  }
-}
-
-const onMenuClose = (visible: boolean) => {
-  if (!visible) {
-    pickedColor.value = '#ffffff'
-    pickerActive = false
   }
 }
 </script>
@@ -188,7 +186,7 @@ const onMenuClose = (visible: boolean) => {
             </template>
           </div>
 
-          <a-dropdown v-else class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom" @visible-change="onMenuClose">
+          <a-dropdown v-else class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
@@ -272,6 +270,63 @@ const onMenuClose = (visible: boolean) => {
                     </div>
                   </a-menu-item>
 
+                  <template v-if="isUIAllowed('projectTheme')">
+                    <a-sub-menu key="theme">
+                      <template #title>
+                        <div class="nc-project-menu-item group">
+                          <ClarityImageLine class="group-hover:text-accent" />
+                          Project Theme
+
+                          <div class="flex-1" />
+
+                          <MaterialSymbolsChevronRightRounded
+                            class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                          />
+                        </div>
+                      </template>
+
+                      <template #expandIcon></template>
+
+                      <GeneralColorPicker v-model="themePrimaryColor" :colors="enumColor.dark" :row-size="5" :advanced="false" />
+                      <a-sub-menu key="theme-2">
+                        <template #title>
+                          <div class="nc-project-menu-item group">
+                            Custom Theme
+
+                            <div class="flex-1" />
+
+                            <MaterialSymbolsChevronRightRounded
+                              class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                            />
+                          </div>
+                        </template>
+
+                        <template #expandIcon></template>
+                        <a-sub-menu key="pick-primary">
+                          <template #title>
+                            <div class="nc-project-menu-item group">
+                              <ClarityColorPickerSolid class="group-hover:text-accent" />
+                              Primary Color
+                            </div>
+                          </template>
+                          <template #expandIcon></template>
+                          <Chrome v-model="themePrimaryColor" />
+                        </a-sub-menu>
+
+                        <a-sub-menu key="pick-accent">
+                          <template #title>
+                            <div class="nc-project-menu-item group">
+                              <ClarityColorPickerSolid class="group-hover:text-accent" />
+                              Accent Color
+                            </div>
+                          </template>
+                          <template #expandIcon></template>
+                          <Chrome v-model="themeAccentColor" />
+                        </a-sub-menu>
+                      </a-sub-menu>
+                    </a-sub-menu>
+                  </template>
+
                   <a-menu-divider />
 
                   <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
@@ -349,47 +404,6 @@ const onMenuClose = (visible: boolean) => {
                       </a-menu-item>
                     </a-sub-menu>
                   </template>
-
-                  <a-menu-divider />
-
-                  <a-sub-menu v-if="isUIAllowed('projectTheme')">
-                    <template #title>
-                      <div class="nc-project-menu-item group">
-                        <ClarityImageLine class="group-hover:text-accent" />
-                        Theme
-
-                        <div class="flex-1" />
-
-                        <MaterialSymbolsChevronRightRounded
-                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                        />
-                      </div>
-                    </template>
-
-                    <template #expandIcon></template>
-
-                    <a-menu-item>
-                      <div class="nc-project-menu-item group" @click.stop="openColorPicker('primary')">
-                        <ClarityColorPickerSolid class="group-hover:text-accent" />
-                        Primary Color
-                      </div>
-                    </a-menu-item>
-
-                    <a-menu-item>
-                      <div class="nc-project-menu-item group" @click.stop="openColorPicker('accent')">
-                        <ClarityColorPickerSolid class="group-hover:text-accent" />
-                        Accent Color
-                      </div>
-                    </a-menu-item>
-                  </a-sub-menu>
-
-                  <Chrome
-                    v-if="pickerActive"
-                    v-model="pickedColor"
-                    class="z-99 absolute right-[-225px]"
-                    @click.stop
-                    @blur="onMenuClose(false)"
-                  />
                 </a-menu-item-group>
               </a-menu>
             </template>

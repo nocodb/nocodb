@@ -293,7 +293,11 @@ const onMenuClose = (visible: boolean) => {
                     <GeneralPreviewAs />
                   </a-sub-menu>
 
-                  <a-sub-menu key="language" class="lang-menu scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0">
+                  <a-sub-menu
+                    key="language"
+                    class="lang-menu !py-0"
+                    popup-class-name="scrollbar-thin-dull min-w-50 max-h-90vh !overflow-auto"
+                  >
                     <template #title>
                       <div class="nc-project-menu-item group">
                         <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />

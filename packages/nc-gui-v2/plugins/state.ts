@@ -1,3 +1,4 @@
+import { message } from 'ant-design-vue'
 import { defineNuxtPlugin, useApi, useGlobal } from '#imports'
 
 /**
@@ -13,6 +14,10 @@ import { defineNuxtPlugin, useApi, useGlobal } from '#imports'
  * ```
  */
 export default defineNuxtPlugin(async (nuxtApp) => {
+  message.config({
+    duration: 0.5,
+  })
+
   const state = useGlobal()
 
   const { api } = useApi()

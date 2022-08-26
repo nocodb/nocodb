@@ -94,7 +94,7 @@ const expandedFormRow = ref()
         </a-button>
       </div>
       <template v-if="(isNew && state?.[column?.title]?.length) || childrenList?.pageInfo?.totalRows">
-        <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12">
+        <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12 cursor-pointer">
           <a-card
             v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
             :key="i"

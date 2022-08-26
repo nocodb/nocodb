@@ -60,9 +60,11 @@ const { $api } = useNuxtApp()
 if (props.loadRow) {
   const { project } = useProject()
 
+  const { sharedView } = useSharedView() as Record<string, any>
+
   row.value.row = await $api.dbTableRow.read(
     NOCO,
-    project.value.id as string,
+    (project?.value?.id || sharedView.value.view.project_id) as string,
     meta.value.title,
     extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]),
   )

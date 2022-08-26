@@ -46,6 +46,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const colOptions = $computed(() => column?.value.colOptions as LinkToAnotherRecordType)
 
+    const { sharedView } = useSharedView() as Record<string, any>
+
+    const projectId = project?.value?.id || sharedView.value.view.project_id
+
     // getters
     const meta = computed(() => metas?.value?.[column?.value?.fk_model_id as string])
     const relatedTableMeta = computed<TableType>(() => {
@@ -109,7 +113,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else if (isNewRow?.value) {
           childrenExcludedList.value = await $api.dbTableRow.list(
             NOCO,
-            project.value.id as string,
+            projectId,
             relatedTableMeta?.value?.id as string,
             {
               limit: childrenExcludedListPagination.size,
@@ -123,7 +127,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else {
           childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
             NOCO,
-            project.value.id as string,
+            projectId,
             meta.value.id,
             rowId.value,
             colOptions.type as 'mm' | 'hm',
@@ -149,7 +153,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         childrenList.value = await $api.dbTableRow.nestedList(
           NOCO,
-          project.value.id as string,
+          (project?.value?.id || sharedView?.value?.view?.project_id) as string,
           meta.value.id,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
@@ -172,7 +176,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         onOk: async () => {
           const id = getRelatedTableRowId(row)
           try {
-            $api.dbTableRow.delete(NOCO, project.value.id as string, relatedTableMeta.value.id as string, id as string)
+            $api.dbTableRow.delete(NOCO, projectId, relatedTableMeta.value.id as string, id as string)
             reloadData?.()
 
             /** reload child list if not a new row */

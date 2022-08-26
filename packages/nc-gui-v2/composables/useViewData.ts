@@ -38,6 +38,8 @@ export function useViewData(
     throw new Error('Table meta is not available')
   }
 
+  const loading = ref(false)
+  const error = ref<any>()
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
   const galleryData = ref<GalleryType>()
@@ -113,20 +115,27 @@ export function useViewData(
   }
 
   const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
-    if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
+    try {
+      if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
+      loading.value = true
+      error.value = null
+      const response = !isPublic.value
+        ? await $api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
+            ...params,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            where: where?.value,
+          })
+        : await fetchSharedViewData()
+      formattedData.value = formatData(response.list)
+      paginationData.value = response.pageInfo
 
-    const response = !isPublic.value
-      ? await $api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
-          ...params,
-          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          where: where?.value,
-        })
-      : await fetchSharedViewData()
-    formattedData.value = formatData(response.list)
-    paginationData.value = response.pageInfo
-
-    await loadAggCommentsCount()
+      await loadAggCommentsCount()
+    } catch (e: any) {
+      error.value = e
+    } finally {
+      loading.value = false
+    }
   }
 
   const loadGalleryData = async () => {
@@ -351,6 +360,8 @@ export function useViewData(
   }
 
   return {
+    error,
+    loading,
     loadData,
     paginationData,
     queryParams,

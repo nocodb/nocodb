@@ -12,16 +12,6 @@ RUN git clone https://github.com/benbjohnson/litestream.git litestream
 RUN cd litestream ; go install ./cmd/litestream
 RUN cp $GOPATH/bin/litestream /usr/src/lt
 
-############################################################
-# Builder - NocoDB SDK (nocodb-sdk)
-############################################################
-FROM node:12 as nocodb-sdk-builder
-WORKDIR /usr/src/app
-COPY ./packages/nocodb-sdk ./packages/nocodb-sdk
-
-# TODO: use npm one?
-# RUN cd /usr/src/app/packages/nocodb-sdk && npm i && npm build
-
 
 ############################################################
 # Builder - NocoDB Backend (nocodb)
@@ -35,11 +25,8 @@ WORKDIR /usr/src/app
 
 # Create directories
 RUN mkdir -p ./packages/nocodb
-RUN mkdir -p ./packages/nocodb-sdk
 
 COPY ./packages/nocodb/package*.json ./packages/nocodb/
-# Copy nocodb sdk as backend uses it locally
-COPY --from=nocodb-sdk-builder /usr/src/app/packages/nocodb-sdk ./packages/nocodb-sdk
 
 # main.js is generated after
 # npm run build
@@ -67,11 +54,8 @@ WORKDIR /usr/src/app
 RUN mkdir -p /usr/src/app
 # Create directories
 RUN mkdir -p ./packages/nc-gui-v2
-RUN mkdir -p ./packages/nocodb-sdk
 
 COPY ./packages/nc-gui-v2/ ./packages/nc-gui-v2
-# Copy nocodb sdk as frontend uses it locally
-COPY --from=nocodb-sdk-builder /usr/src/app/packages/nocodb-sdk ./packages/nocodb-sdk
 
 RUN cd ./packages/nc-gui-v2/ && npm i && npm cache clean --force && export NODE_OPTIONS=--max_old_space_size=8192 npm run build
 
@@ -101,7 +85,6 @@ COPY --from=lt-builder /usr/src/lt /usr/src/appEntry/litestream
 
 # Copy packaged production code & main entry file
 COPY --from=nocodb-builder /usr/src/appEntry/ /usr/src/appEntry/
-COPY --from=nocodb-sdk-builder /usr/src/app/packages/nocodb-sdk /usr/src/nocodb-sdk
 
 ############################################################
 # Start NocoDB

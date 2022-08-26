@@ -43,7 +43,8 @@ jobs:
   buildx:
     runs-on: ubuntu-latest
     env:
-      working-directory: ./packages/nocodb
+      root-directory: .
+      backend-directory: ./packages/nocodb
     steps:
       - name: Get Docker Repository
         id: get-docker-repository
@@ -81,17 +82,16 @@ jobs:
         run: |
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
           cd packages/nocodb-sdk
-          npm install && npm run build
-
-      - uses: bahmutov/npm-install@v1
-        with:
-          working-directory: ${{ env.working-directory }}
+          npm install && npm run build && npm publish
+          cd ../..
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk2.js
 
       - name: Build nocodb and docker files
         run: |
+          npm ci
           npm run build
           npm run docker:build
-        working-directory: ${{ env.working-directory }}
+        working-directory: ${{ env.backend-directory }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -117,7 +117,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
-          context: ${{ env.working-directory }}
+          context: ${{ env.root-directory }}
           build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           cache-from: type=local,src=/tmp/.buildx-cache

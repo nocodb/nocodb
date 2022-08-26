@@ -73,6 +73,7 @@
             :field-list="[...realFieldList, ...formulaFieldList]"
             dense
             :view-id="selectedViewId"
+            :sql-ui="sqlUi"
             @updated="loadTableData(false)"
           />
           <sort-list

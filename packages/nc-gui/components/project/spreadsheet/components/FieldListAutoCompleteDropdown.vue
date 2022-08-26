@@ -20,7 +20,7 @@
       </v-icon>
     </template>
     <template #item="{ item }">
-      <span :class="`caption font-weight-regular nc-fld-${item.title}`">
+      <span :class="`caption font-weight-regular nc-fld-${item.title.split(' ').join('')}`">
         <v-icon color="grey" small class="mr-1">
           {{ item.icon }}
         </v-icon>

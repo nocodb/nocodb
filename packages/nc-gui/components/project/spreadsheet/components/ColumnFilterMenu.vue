@@ -24,6 +24,7 @@
     <column-filter
       ref="filter"
       v-model="filters"
+      :sqlUi="sqlUi"
       :shared="shared"
       :view-id="viewId"
       :field-list="fieldList"
@@ -63,7 +64,7 @@ import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilt
 export default {
   name: 'ColumnFilterMenu',
   components: { ColumnFilter },
-  props: ['fieldList', 'isLocked', 'value', 'meta', 'viewId', 'shared'],
+  props: ['fieldList', 'isLocked', 'value', 'meta', 'viewId', 'shared', 'sqlUi'],
   data: () => ({
     filters: [],
   }),

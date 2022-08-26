@@ -53,6 +53,7 @@
               :shared="shared"
               :web-hook="webHook"
               :hook-id="hookId"
+              :sql-ui="sqlUi"
               @updated="$emit('updated')"
               @input="$emit('input', filters)"
             />
@@ -96,7 +97,7 @@
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
-              @change="saveOrUpdate(filter, i)"
+              @input="filter.value = null"
             />
 
             <v-select
@@ -122,25 +123,13 @@
             </v-select>
             <span v-else :key="i + '_8'" />
             <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="i + '_5'" />
-            <v-checkbox
-              v-else-if="types[filter.field] === 'boolean'"
-              :key="i + '_9'"
-              v-model="filter.value"
-              dense
-              :disabled="filter.readOnly"
-              @change="saveOrUpdate(filter, i)"
-            />
-            <v-text-field
+            <filter-value-input
               v-else-if="filter && filter.fk_column_id"
               :key="i + '_9'"
               v-model="filter.value"
-              solo
-              flat
-              hide-details
-              dense
-              class="caption nc-filter-value-select"
-              :disabled="filter.readOnly"
-              @click.stop
+              class="backgroundColorDefault d-flex align-center justify-center"
+              :column="columnsById[filter.fk_column_id]"
+              :sql-ui="sqlUi"
               @input="saveOrUpdate(filter, i)"
             />
             <span v-else :key="i + '_9'" />
@@ -166,11 +155,13 @@
 <script>
 import { getUIDTIcon, UITypes } from '~/components/project/spreadsheet/helpers/uiTypes';
 import FieldListAutoCompleteDropdown from '~/components/project/spreadsheet/components/FieldListAutoCompleteDropdown';
+import FilterValueInput from '~/components/project/spreadsheet/components/filterValueInput/FilterValueInput';
 
 export default {
   name: 'ColumnFilter',
   components: {
     FieldListAutoCompleteDropdown,
+    FilterValueInput,
   },
   props: {
     fieldList: [Array],
@@ -181,6 +172,7 @@ export default {
     shared: Boolean,
     webHook: Boolean,
     hookId: String,
+    sqlUi: [Object, Function],
   },
   data: () => ({
     filters: [],
@@ -447,6 +439,10 @@ export default {
       });
     },
     async saveOrUpdate(filter, i) {
+      if (!filter.is_group && (filter.value == null || filter.value === '')) {
+        return;
+      }
+
       if (this.shared || !this._isUIAllowed('filterSync')) {
         // this.$emit('input', this.filters.filter(f => f.fk_column_id && f.comparison_op))
         this.$emit('updated');

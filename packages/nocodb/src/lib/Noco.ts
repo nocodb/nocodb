@@ -66,6 +66,11 @@ export default class Noco {
     return `${siteUrl}${Noco._this?.config?.dashboardPath}`;
   }
 
+  public static async forceInit(): Promise<Router> {
+    Noco._this = new Noco();
+    return Noco._this.init();
+  }
+
   public static async init(
     args?: {
       progressCallback?: Function;

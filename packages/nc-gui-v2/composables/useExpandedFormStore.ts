@@ -7,6 +7,7 @@ import {
   NOCO,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
+  getHTMLEncodedText,
   useApi,
   useInjectionState,
   useNuxtApp,
@@ -95,8 +96,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       comment.value = ''
 
-      message.success('Comment added successfully')
-
       await loadCommentsAndLogs()
     } catch (e: any) {
       message.error(e.message)
@@ -124,24 +123,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       if (row.value.rowMeta?.new) {
         data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, updateOrInsertObj)
 
-        /* todo:
-           // save hasmany and manytomany relations from local state
-            if (this.$refs.virtual && Array.isArray(this.$refs.virtual)) {
-              for (const vcell of this.$refs.virtual) {
-                if (vcell.save) {
-                  await vcell.save(this.localState);
-                }
-              }
-            } */
-
         Object.assign(row.value, {
           row: data,
           rowMeta: {},
           oldRow: { ...data },
         })
-
-        /// todo:
-        // await this.reload();
       } else if (Object.keys(updateOrInsertObj).length) {
         const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
@@ -156,10 +142,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               fk_model_id: meta.value.id,
               column_name: key,
               row_id: id,
-              value: getPlainText(updateOrInsertObj[key]),
-              prev_value: getPlainText(row.value.oldRow[key]),
+              value: getHTMLEncodedText(updateOrInsertObj[key]),
+              prev_value: getHTMLEncodedText(row.value.oldRow[key]),
             })
-            .then(() => {})
+            .then(async () => {
+              /** load latest comments/audit if right drawer is open */
+              if (commentsDrawer.value) {
+                await loadCommentsAndLogs()
+              }
+            })
         }
       } else {
         return message.info('No columns to update')
@@ -204,11 +195,4 @@ export function useExpandedFormStoreOrThrow() {
   const expandedFormStore = useExpandedFormStore()
   if (expandedFormStore == null) throw new Error('Please call `useExpandedFormStore` on the appropriate parent component')
   return expandedFormStore
-}
-
-// todo: move to utils
-function getPlainText(htmlString: string) {
-  const div = document.createElement('div')
-  div.textContent = htmlString || ''
-  return div.innerHTML
 }

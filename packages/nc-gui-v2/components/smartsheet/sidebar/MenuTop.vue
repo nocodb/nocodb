@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import type { ViewType } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
+import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
@@ -18,6 +17,7 @@ import {
   useDialog,
   useRoute,
   useRouter,
+  viewTypeAlias,
   watch,
 } from '#imports'
 import DlgViewDelete from '~/components/dlg/ViewDelete.vue'
@@ -29,12 +29,6 @@ interface Emits {
 }
 
 const emits = defineEmits<Emits>()
-
-const viewTypeAlias = {
-  [ViewTypes.GRID as any]: 'grid',
-  [ViewTypes.FORM as any]: 'form',
-  [ViewTypes.GALLERY as any]: 'gallery',
-}
 
 const activeView = inject(ActiveViewInj, ref())
 

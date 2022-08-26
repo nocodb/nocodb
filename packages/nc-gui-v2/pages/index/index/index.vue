@@ -121,7 +121,11 @@ await loadProjects()
             </a-menu-item>
 
             <a-menu-item>
-              <div v-t="['c:project:create:extdb']" class="nc-project-menu-item group" @click="navigateTo('/create-external')">
+              <div
+                v-t="['c:project:create:extdb']"
+                class="nc-project-menu-item group nc-create-external-db-project"
+                @click="navigateTo('/create-external')"
+              >
                 <MdiDatabaseOutline class="group-hover:text-accent" />
 
                 <div v-html="$t('activity.createProjectExtended.extDB')" />

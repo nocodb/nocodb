@@ -26,7 +26,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
       <a-menu-item
         key="grid"
-        class="group !flex !items-center !my-0 !h-[30px] nc-create-3-view"
+        class="group !flex !items-center !my-0 !h-[30px] nc-create-grid-view"
         @click="onOpenModal(ViewTypes.GRID)"
       >
         <a-tooltip :mouse-enter-delay="1" placement="left">
@@ -46,7 +46,11 @@ function onOpenModal(type: ViewTypes, title = '') {
         </a-tooltip>
       </a-menu-item>
 
-      <a-menu-item key="gallery" class="group !flex !items-center !my-0 nc-create-2-view" @click="onOpenModal(ViewTypes.GALLERY)">
+      <a-menu-item
+        key="gallery"
+        class="group !flex !items-center !my-0 nc-create-gallery-view"
+        @click="onOpenModal(ViewTypes.GALLERY)"
+      >
         <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.gallery') }}
@@ -67,7 +71,7 @@ function onOpenModal(type: ViewTypes, title = '') {
       <a-menu-item
         v-if="!isView"
         key="form"
-        class="group !flex !items-center !my-0 !h-[30px] nc-create-1-view"
+        class="group !flex !items-center !my-0 !h-[30px] nc-create-form-view"
         @click="onOpenModal(ViewTypes.FORM)"
       >
         <a-tooltip :mouse-enter-delay="1" placement="left">

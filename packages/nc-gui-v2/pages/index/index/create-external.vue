@@ -1,6 +1,9 @@
 <script lang="ts" setup>
 import { Form, Modal, message } from 'ant-design-vue'
+import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import {
+  CertTypes,
+  SSLUsage,
   clientTypes,
   computed,
   extractSdkResponseErrorMsg,
@@ -14,7 +17,6 @@ import {
   projectTitleValidator,
   readFile,
   ref,
-  sslUsage,
   useApi,
   useI18n,
   useNuxtApp,
@@ -22,11 +24,14 @@ import {
   watch,
 } from '#imports'
 import { ClientType } from '~/lib'
+import { DefaultConnection, SQLiteConnection } from '~/utils'
 import type { ProjectCreateForm } from '~/utils'
 
 const useForm = Form.useForm
 
 const testSuccess = ref(false)
+
+const form = ref<typeof Form>()
 
 const { api, isLoading } = useApi()
 
@@ -36,14 +41,26 @@ useSidebar({ hasSidebar: false })
 
 const { t } = useI18n()
 
-const formState = $ref<ProjectCreateForm>({
+let formState = $ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
     inflectionColumn: 'camelize',
     inflectionTable: 'camelize',
   },
-  sslUse: 'No',
+  sslUse: SSLUsage.No,
+  extraParameters: [],
+})
+
+const customFormState = ref<ProjectCreateForm>({
+  title: '',
+  dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
+  inflection: {
+    inflectionColumn: 'camelize',
+    inflectionTable: 'camelize',
+  },
+  sslUse: SSLUsage.No,
+  extraParameters: [],
 })
 
 const validators = computed(() => {
@@ -55,6 +72,7 @@ const validators = computed(() => {
       },
       projectTitleValidator,
     ],
+    'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator],
     ...(formState.dataSource.client === ClientType.SQLITE
       ? {
@@ -77,51 +95,102 @@ const validators = computed(() => {
 
 const { validate, validateInfos } = useForm(formState, validators)
 
+const populateName = (v: string) => {
+  formState.dataSource.connection.database = `${v.trim()}_noco`
+}
+
 const onClientChange = () => {
   formState.dataSource = { ...getDefaultConnectionConfig(formState.dataSource.client) }
+  populateName(formState.title)
+}
+
+const onSSLModeChange = ((mode: SSLUsage) => {
+  if (formState.dataSource.client !== ClientType.SQLITE) {
+    const connection = formState.dataSource.connection as DefaultConnection
+    switch (mode) {
+      case SSLUsage.No:
+        delete connection.ssl
+        break
+      case SSLUsage.Allowed:
+        connection.ssl = 'true'
+        break
+      default:
+        connection.ssl = {
+          ca: '',
+          cert: '',
+          key: '',
+        }
+        break
+    }
+  }
+}) as SelectHandler
+
+const updateSSLUse = () => {
+  if (formState.dataSource.client !== ClientType.SQLITE) {
+    const connection = formState.dataSource.connection as DefaultConnection
+    if (connection.ssl) {
+      if (typeof connection.ssl === 'string') {
+        formState.sslUse = SSLUsage.Allowed
+      } else {
+        formState.sslUse = SSLUsage.Preferred
+      }
+    } else {
+      formState.sslUse = SSLUsage.No
+    }
+  }
+}
+
+const addNewParam = () => {
+  formState.extraParameters.push({ key: '', value: '' })
+}
+
+const removeParam = (index: number) => {
+  formState.extraParameters.splice(index, 1)
 }
 
 const inflectionTypes = ['camelize', 'none']
+const importURL = ref('')
 const configEditDlg = ref(false)
-
-// populate database name based on title
-watch(
-  () => formState.title,
-  (v) => (formState.dataSource.connection.database = `${v?.trim()}_noco`),
-)
-
-// generate a random project title
-formState.title = generateUniqueName()
+const importURLDlg = ref(false)
 
 const caFileInput = ref<HTMLInputElement>()
 const keyFileInput = ref<HTMLInputElement>()
 const certFileInput = ref<HTMLInputElement>()
 
-const onFileSelect = (key: 'ca' | 'cert' | 'key', el: HTMLInputElement) => {
+const onFileSelect = (key: CertTypes, el?: HTMLInputElement) => {
+  if (!el) return
+
   readFile(el, (content) => {
-    if ('ssl' in formState.dataSource.connection && formState.dataSource.connection.ssl)
+    if ('ssl' in formState.dataSource.connection && typeof formState.dataSource.connection.ssl === 'object')
       formState.dataSource.connection.ssl[key] = content ?? ''
   })
 }
 
-const sslFilesRequired = computed<boolean>(() => {
-  return formState?.sslUse && formState.sslUse !== 'No'
-})
+const sslFilesRequired = computed(
+  () => !!formState.sslUse && formState.sslUse !== SSLUsage.No && formState.sslUse !== SSLUsage.Allowed,
+)
 
 function getConnectionConfig() {
+  const extraParameters = Object.fromEntries(new Map(formState.extraParameters.map((object) => [object.key, object.value])))
+
   const connection = {
     ...formState.dataSource.connection,
+    ...extraParameters,
   }
 
-  if ('ssl' in connection && connection.ssl && (!sslFilesRequired || Object.values(connection.ssl).every((v) => !v))) {
-    delete connection.ssl
+  if ('ssl' in connection && connection.ssl) {
+    if (
+      formState.sslUse === SSLUsage.No ||
+      (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => !v))
+    ) {
+      delete connection.ssl
+    }
   }
   return connection
 }
 
-const form = ref<any>()
 const focusInvalidInput = () => {
-  form?.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
+  form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
 const createProject = async () => {
@@ -209,6 +278,32 @@ const testConnection = async () => {
   }
 }
 
+const handleImportURL = async () => {
+  if (!importURL.value || importURL.value === '') return
+
+  const connectionConfig = await api.utils.urlToConfig({ url: importURL.value })
+
+  if (connectionConfig) {
+    formState.dataSource.client = connectionConfig.client
+    formState.dataSource.connection = { ...connectionConfig.connection }
+  } else {
+    message.error('Invalid URL')
+  }
+  importURLDlg.value = false
+  updateSSLUse()
+}
+
+const handleEditJSON = () => {
+  customFormState.value = { ...formState }
+  configEditDlg.value = true
+}
+
+const handleOk = () => {
+  formState = { ...customFormState.value }
+  configEditDlg.value = false
+  updateSSLUse()
+}
+
 // reset test status on config change
 watch(
   () => formState.dataSource,
@@ -216,8 +311,15 @@ watch(
   { deep: true },
 )
 
+// populate database name based on title
+watch(
+  () => formState.title,
+  (v) => populateName(v),
+)
+
 // select and focus title field on load
 onMounted(() => {
+  formState.title = generateUniqueName()
   nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
@@ -270,28 +372,34 @@ onMounted(() => {
         :label="$t('labels.sqliteFile')"
         v-bind="validateInfos['dataSource.connection.connection.filename']"
       >
-        <a-input v-model:value="formState.dataSource.connection.connection.filename" />
+        <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
       </a-form-item>
 
       <template v-else>
         <!-- Host Address -->
         <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
-          <a-input v-model:value="formState.dataSource.connection.host" class="nc-extdb-host-address" />
+          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).host" class="nc-extdb-host-address" />
         </a-form-item>
 
         <!-- Port Number -->
         <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
-          <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full nc-extdb-host-port" />
+          <a-input-number
+            v-model:value="(formState.dataSource.connection as DefaultConnection).port"
+            class="!w-full nc-extdb-host-port"
+          />
         </a-form-item>
 
         <!-- Username -->
         <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
-          <a-input v-model:value="formState.dataSource.connection.user" class="nc-extdb-host-user" />
+          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).user" class="nc-extdb-host-user" />
         </a-form-item>
 
         <!-- Password -->
         <a-form-item :label="$t('labels.password')">
-          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
+          <a-input-password
+            v-model:value="(formState.dataSource.connection as DefaultConnection).password"
+            class="nc-extdb-host-password"
+          />
         </a-form-item>
 
         <!-- Database -->
@@ -314,11 +422,19 @@ onMounted(() => {
         </a-form-item>
 
         <a-collapse ghost expand-icon-position="right" class="!mt-6">
-          <a-collapse-panel key="1" :header="$t('title.advancedParameters')">
+          <a-collapse-panel key="1">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <a-button type="default" class="nc-extdb-btn-import-url" @click.stop="importURLDlg = true">
+                  Use Connection URL
+                </a-button>
+                <span>{{ $t('title.advancedParameters') }}</span>
+              </div>
+            </template>
             <!--            todo:  add in i18n -->
             <a-form-item label="SSL mode">
-              <a-select v-model:value="formState.sslUse" @change="onClientChange">
-                <a-select-option v-for="opt in sslUsage" :key="opt" :value="opt">{{ opt }}</a-select-option>
+              <a-select v-model:value="formState.sslUse" @select="onSSLModeChange">
+                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
               </a-select>
             </a-form-item>
 
@@ -330,7 +446,7 @@ onMounted(() => {
                     <span>{{ $t('tooltip.clientCert') }}</span>
                   </template>
 
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
                     {{ $t('labels.clientCert') }}
                   </a-button>
                 </a-tooltip>
@@ -340,7 +456,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientKey') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
                     {{ $t('labels.clientKey') }}
                   </a-button>
                 </a-tooltip>
@@ -351,33 +467,56 @@ onMounted(() => {
                     <span>{{ $t('tooltip.clientCA') }}</span>
                   </template>
 
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
                     {{ $t('labels.serverCA') }}
                   </a-button>
                 </a-tooltip>
               </div>
             </a-form-item>
 
-            <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect('ca', caFileInput)" />
+            <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.ca, caFileInput)" />
 
-            <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect('cert', certFileInput)" />
+            <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.cert, certFileInput)" />
 
-            <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect('key', keyFileInput)" />
+            <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.key, keyFileInput)" />
+
+            <a-divider />
+
+            <a-form-item class="mb-2" label="Extra connection parameters" v-bind="validateInfos.extraParameters">
+              <a-card>
+                <div v-for="(item, index) of formState.extraParameters" :key="index">
+                  <div class="flex py-1 items-center gap-1">
+                    <a-input v-model:value="item.key" />
+
+                    <span>:</span>
+
+                    <a-input v-model:value="item.value" />
+
+                    <MdiClose :style="{ 'font-size': '1.5em', 'color': 'red' }" @click="removeParam(index)" />
+                  </div>
+                </div>
+                <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
+                  <div class="flex items-center justify-center"><MdiPlus /></div>
+                </a-button>
+              </a-card>
+            </a-form-item>
+
+            <a-divider />
 
             <a-form-item :label="$t('labels.inflection.tableName')">
-              <a-select v-model:value="formState.inflection.inflectionTable" @change="onClientChange">
+              <a-select v-model:value="formState.inflection.inflectionTable">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
 
             <a-form-item :label="$t('labels.inflection.columnName')">
-              <a-select v-model:value="formState.inflection.inflectionColumn" @change="onClientChange">
+              <a-select v-model:value="formState.inflection.inflectionColumn">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
 
             <div class="flex justify-end">
-              <a-button class="!shadow-md" @click="configEditDlg = true">
+              <a-button class="!shadow-md" @click="handleEditJSON()">
                 <!-- Edit connection JSON -->
                 {{ $t('activity.editConnJson') }}
               </a-button>
@@ -399,13 +538,13 @@ onMounted(() => {
       </a-form-item>
     </a-form>
 
-    <!-- todo: needs replacement
-      <v-dialog v-model="configEditDlg">
-        <a-card>
-          <MonacoEditor v-if="configEditDlg" v-model="formState" class="h-[400px] w-[600px]" />
-        </a-card>
-      </v-dialog>
-       -->
+    <a-modal v-model:visible="configEditDlg" :title="$t('activity.editConnJson')" width="600px" @ok="handleOk">
+      <MonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
+    </a-modal>
+
+    <a-modal v-model:visible="importURLDlg" title="Use Connection URL" width="600px" @ok="handleImportURL">
+      <a-input v-model:value="importURL" />
+    </a-modal>
   </div>
 </template>
 

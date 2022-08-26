@@ -5,9 +5,9 @@ import { useNuxtApp } from '#app'
 import {
   IsPublicInj,
   NOCO,
-  ReloadViewDataHookInj,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
+  getHTMLEncodedText,
   useProject,
   useUIPermission,
 } from '#imports'
@@ -47,7 +47,6 @@ export function useViewData(
   const formattedData = ref<Row[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
-  const reloadHook = inject(ReloadViewDataHookInj)!
   const { project, isSharedBase } = useProject()
   const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
   const { $api } = useNuxtApp()
@@ -166,43 +165,38 @@ export function useViewData(
     }
   }
 
-  const updateRowProperty = async (row: Record<string, any>, property: string) => {
+  const updateRowProperty = async (toUpdate: Row, property: string) => {
     try {
-      const id = meta?.value?.columns
-        ?.filter((c) => c.pk)
-        .map((c) => row[c.title as string])
-        .join('___') as string
+      const id = extractPkFromRow(toUpdate.row, meta.value.columns as ColumnType[])
 
-      return await $api.dbViewRow.update(
+      const updatedRowData = await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
         meta?.value.id as string,
         viewMeta?.value?.id as string,
         id,
         {
-          [property]: row[property],
+          [property]: toUpdate.row[property],
         },
         // todo:
         // {
         //   query: { ignoreWebhook: !saved }
         // }
       )
+      // audit
+      $api.utils
+        .auditRowUpdate(id, {
+          fk_model_id: meta?.value.id as string,
+          column_name: property,
+          row_id: id,
+          value: getHTMLEncodedText(toUpdate.row[property]),
+          prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
+        })
+        .then(() => {})
 
-      /*
-
-          todo: audit
-
-          // audit
-            this.$api.utils
-              .auditRowUpdate(id, {
-                fk_model_id: this.meta.id,
-                column_name: column.title,
-                row_id: id,
-                value: getPlainText(rowObj[column.title]),
-                prev_value: getPlainText(oldRow[column.title])
-              })
-              .then(() => {})
-          */
+      /** update row data(to sync formula and other related columns) */
+      Object.assign(toUpdate.row, updatedRowData)
+      Object.assign(toUpdate.oldRow, updatedRowData)
     } catch (e: any) {
       message.error(`Row update failed ${await extractSdkResponseErrorMsg(e)}`)
     }
@@ -212,9 +206,8 @@ export function useViewData(
     if (row.rowMeta.new) {
       await insertRow(row.row, formattedData.value.indexOf(row))
     } else {
-      await updateRowProperty(row.row, property)
+      await updateRowProperty(row, property)
     }
-    reloadHook.trigger()
   }
   const changePage = async (page: number) => {
     paginationData.value.page = page

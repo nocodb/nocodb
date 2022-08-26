@@ -127,3 +127,19 @@ export const importExcelUrlValidator = {
     })
   },
 }
+
+export const extraParameterValidator = {
+  validator: (_: unknown, value: { key: string; value: string }[]) => {
+    return new Promise((resolve, reject) => {
+      for (const param of value) {
+        if (param.key === '') {
+          return reject(new Error('Parameter key cannot be empty'))
+        }
+        if (value.filter((el: any) => el.key === param.key).length !== 1) {
+          return reject(new Error('Duplicate parameter keys are not allowed'))
+        }
+      }
+      return resolve(true)
+    })
+  },
+}

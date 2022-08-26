@@ -60,7 +60,7 @@ const sharedViewUrl = (view: SharedViewType) => {
     default:
       viewType = 'view'
   }
-  return `nc/${viewType}/${view.uuid}`
+  return `/nc/${viewType}/${view.uuid}`
 }
 
 const renderAllowCSVDownload = (view: SharedViewType) => {
@@ -73,7 +73,7 @@ const renderAllowCSVDownload = (view: SharedViewType) => {
 }
 
 const copyLink = (view: SharedViewType) => {
-  copy(`${dashboardUrl?.value as string}/${sharedViewUrl(view)}`)
+  copy(`${dashboardUrl?.value as string}${sharedViewUrl(view)}`)
   message.success('Copied to clipboard')
 }
 
@@ -103,7 +103,7 @@ const deleteLink = async (id: string) => {
       <a-table-column key="title" :title="$t('labels.viewLink')" data-index="title">
         <template #default="{ record }">
           <nuxt-link :to="sharedViewUrl(record)" class="text-xs">
-            {{ `${dashboardUrl}/${sharedViewUrl(record)}` }}
+            {{ `${dashboardUrl}${sharedViewUrl(record)}` }}
           </nuxt-link>
         </template>
       </a-table-column>

@@ -240,8 +240,16 @@ export async function tableUpdate(req: Request<any, any>, res) {
   ) {
     NcError.badRequest('Duplicate table name');
   }
+  const project = await Project.getWithInfo(model.project_id);
 
-  await Model.updateAlias(req.params.tableId, req.body.title);
+  const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
+
+  await sqlMgr.sqlOpPlus(project.bases[0], 'tableRename', {
+    tn_old: model.table_name,
+    tn: req.body.title,
+  });
+
+  await Model.updateTableNameAndAlias(req.params.tableId, req.body.title);
 
   Tele.emit('evt', { evt_type: 'table:updated' });
 
@@ -319,6 +327,7 @@ router.post(
   metaApiMetrics,
   ncMetaAclMw(tableCreate, 'tableCreate')
 );
+
 router.get(
   '/api/v1/db/meta/tables/:tableId',
   metaApiMetrics,

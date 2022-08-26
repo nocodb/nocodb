@@ -1,5 +1,6 @@
 import { ConfigProvider } from 'ant-design-vue'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
+import tinycolor from 'tinycolor2'
 import { hexToRGB, themeV2Colors, useCssVar, useInjectionState, useProject } from '#imports'
 
 interface ThemeConfig extends AntTheme {
@@ -50,14 +51,22 @@ const [setup, use] = useInjectionState((config?: Partial<ThemeConfig>) => {
 
   /** set theme (persists in localstorage) */
   function setTheme(theme: Partial<ThemeConfig>) {
-    // convert hex colors to rgb values
-    if (theme.primaryColor) primaryColor.value = hexToRGB(theme.primaryColor)
-    if (theme.accentColor) accentColor.value = hexToRGB(theme.accentColor)
+    const themePrimary = tinycolor(theme.primaryColor)
+    const themeAccent = tinycolor(theme.accentColor)
 
-    currentTheme.value = theme as ThemeConfig
+    // convert hex colors to rgb values
+    primaryColor.value = themePrimary.isValid()
+      ? hexToRGB(themePrimary.toHex8String())
+      : hexToRGB(themeV2Colors['royal-blue'].DEFAULT)
+    accentColor.value = themeAccent.isValid() ? hexToRGB(themeAccent.toHex8String()) : hexToRGB(themeV2Colors.pink['500'])
+
+    currentTheme.value = {
+      primaryColor: themePrimary.toHex8String().toUpperCase(),
+      accentColor: themeAccent.toHex8String().toUpperCase(),
+    }
 
     ConfigProvider.config({
-      theme,
+      theme: { ...currentTheme.value },
     })
   }
 

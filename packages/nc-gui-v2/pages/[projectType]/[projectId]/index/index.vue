@@ -12,7 +12,6 @@ const { isLoading } = useGlobal()
 
 provide(TabMetaInj, activeTab)
 
-
 const icon = (tab: TabItem) => {
   switch (tab.type) {
     case TabType.TABLE:

@@ -10,6 +10,7 @@ import {
   getHTMLEncodedText,
   useProject,
   useUIPermission,
+  useApi
 } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
@@ -38,8 +39,7 @@ export function useViewData(
     throw new Error('Table meta is not available')
   }
 
-  const loading = ref(false)
-  const error = ref<any>()
+  const { api, isLoading, error } = useApi()
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
   const galleryData = ref<GalleryType>()
@@ -115,27 +115,19 @@ export function useViewData(
   }
 
   const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
-    try {
-      if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
-      loading.value = true
-      error.value = null
-      const response = !isPublic.value
-        ? await $api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
-            ...params,
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-            where: where?.value,
-          })
-        : await fetchSharedViewData()
-      formattedData.value = formatData(response.list)
-      paginationData.value = response.pageInfo
+    if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
+    const response = !isPublic.value
+      ? await api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
+        ...params,
+        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+        where: where?.value,
+      })
+      : await fetchSharedViewData()
+    formattedData.value = formatData(response.list)
+    paginationData.value = response.pageInfo
 
-      await loadAggCommentsCount()
-    } catch (e: any) {
-      error.value = e
-    } finally {
-      loading.value = false
-    }
+    await loadAggCommentsCount()
   }
 
   const loadGalleryData = async () => {
@@ -201,7 +193,8 @@ export function useViewData(
           value: getHTMLEncodedText(toUpdate.row[property]),
           prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
         })
-        .then(() => {})
+        .then(() => {
+        })
 
       /** update row data(to sync formula and other related columns) */
       Object.assign(toUpdate.row, updatedRowData)
@@ -243,7 +236,7 @@ export function useViewData(
 
   const deleteRowById = async (id: string) => {
     if (!id) {
-      throw new Error("Delete not allowed for table which doesn't have primary Key")
+      throw new Error('Delete not allowed for table which doesn\'t have primary Key')
     }
 
     const res: any = await $api.dbViewRow.delete(
@@ -361,7 +354,7 @@ export function useViewData(
 
   return {
     error,
-    loading,
+    isLoading,
     loadData,
     paginationData,
     queryParams,

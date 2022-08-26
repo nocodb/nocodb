@@ -79,7 +79,7 @@ const expandedFormRowState = ref<Record<string, any>>()
 const visibleColLength = $computed(() => fields.value?.length)
 
 const {
-  loading,
+  isLoading,
   loadData,
   paginationData,
   formattedData: data,
@@ -312,7 +312,7 @@ const onNavigate = (dir: NavigateDir) => {
 
 <template>
   <div class="flex flex-col h-full min-h-0 w-full">
-    <div v-if="loading" class="flex items-center justify-center h-full w-full">
+    <div v-if="isLoading" class="flex items-center justify-center h-full w-full">
       <a-spin size="large" />
     </div>
     <div v-else class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">

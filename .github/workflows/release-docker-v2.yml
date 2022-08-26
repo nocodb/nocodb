@@ -82,7 +82,7 @@ jobs:
         run: |
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
           cd packages/nocodb-sdk
-          npm install && npm run build && npm publish
+          npm install && npm run build
           cd ../..
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk2.js
 

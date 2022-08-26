@@ -154,15 +154,18 @@ Cypress.Commands.add("refreshTableTab", () => {
 // rc: row count. validate row count if rc!=0
 Cypress.Commands.add("openTableTab", (tn, rc) => {
     cy.task("log", `[openTableTab] ${tn} ${rc}`);
-    cy.get(`.nc-project-tree-tbl-${tn}`, { timeout: 10000 }).should("exist")
+
+    cy.get(`.nc-project-tree-tbl-${tn}`)
+      .should("exist")
       .first()
-      .click({ force: true });
+      .click();
 
     // kludge to make new tab active
     cy.get('.ant-tabs-tab-btn')
       .contains(tn)
       .should('exist')
-      .click({ force: true });
+      .click();
+
     cy.get('.xc-row-table.nc-grid').should('exist');
 
     // wait for page rendering to complete
@@ -264,7 +267,11 @@ Cypress.Commands.add("getActiveSelection", () => {
 
 Cypress.Commands.add("getActiveDrawer", () => {
     return cy.get(".ant-drawer-content:visible").last();
-}); 
+});
+
+Cypress.Commands.add("getActivePicker", () => {
+    return cy.get(".ant-picker-dropdown :visible").last();
+});
 
 Cypress.Commands.add("createTable", (name) => {
     // cy.get(".nc-btn-tbl-add").click();

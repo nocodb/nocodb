@@ -238,10 +238,11 @@ export class _mainPage {
         cy.getActiveModal().find('#form_item_from').should('exist').clear().type(from)
         cy.getActiveModal().find('#form_item_host').should('exist').clear().type(host)
         cy.getActiveModal().find('#form_item_port').should('exist').clear().type(port)
-        cy.getActiveModal().find('#form_item_secure').should('exist').clear().type(secure)
+        // cy.getActiveModal().find('#form_item_secure').should('exist').clear().type(secure)
         cy.getActiveModal().find("button").contains("Save").click();
 
         cy.toastWait('Successfully installed and email notification will use SMTP configuration');
+        settingsPage.closeMenu()
     };
 
     resetSMTP = () => {
@@ -251,6 +252,7 @@ export class _mainPage {
         cy.getActiveModal().find("button").contains("Confirm").click();
 
         cy.toastWait("Plugin uninstalled successfully");
+        settingsPage.closeMenu()
     };
 
     shareView = () => {
@@ -365,7 +367,7 @@ export class _mainPage {
                 // one of the row would contain seggregation header ('other views)
                 if (5 == $tableRow[0].childElementCount) {
                     cy.wrap($tableRow).find(".nc-icon").last().click();
-                    cy.wait(1000);
+                    cy.wait(100);
                 }
             })
             .then(() => {

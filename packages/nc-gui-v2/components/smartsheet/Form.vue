@@ -215,7 +215,7 @@ async function addAllColumns() {
 }
 
 function shouldSkipColumn(col: Record<string, any>) {
-  return isDbRequired(col) || !!col.required || !!col.rqd
+  return isDbRequired(col) || !!col.required || (!!col.rqd && !col.cdf)
 }
 
 async function removeAllColumns() {

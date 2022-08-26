@@ -146,7 +146,11 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
   router.push({ params: { viewTitle: view.title || '' } })
   if (view.type === 1 && selected.value[0] === view.id) {
     // reload the page if the same form view is clicked
-    router.go(0)
+    // router.go(0)
+    // fix me: router.go(0) reloads entire page. need to reload only the form view
+    router.replace({ query: { reload: 'true' } }).then(() => {
+      router.replace({ query: {} })
+    })
   }
 }
 

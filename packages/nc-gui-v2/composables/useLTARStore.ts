@@ -150,7 +150,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const loadChildrenList = async () => {
       try {
         if (colOptions.type === 'bt') return
-        // console.log(sharedView.value.view.project_id)
+
         childrenList.value = await $api.dbTableRow.nestedList(
           NOCO,
           (project?.value?.id || sharedView?.value?.view?.project_id) as string,

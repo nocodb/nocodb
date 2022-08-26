@@ -88,6 +88,14 @@ export function useProject(projectId?: MaybeRef<string>) {
     await $api.project.update(_projectId, data)
   }
 
+  function getProjectMeta() {
+    try {
+      return typeof project.value.meta === 'string' ? JSON.parse(project.value.meta) : project.value.meta
+    } catch (e) {
+      return {}
+    }
+  }
+
   return {
     project,
     tables,
@@ -102,5 +110,6 @@ export function useProject(projectId?: MaybeRef<string>) {
     isSharedBase,
     loadProjectMetaInfo,
     projectMetaInfo,
+    getProjectMeta,
   }
 }

@@ -54,7 +54,7 @@ export async function projectUpdate(
     'meta',
   ]);
 
-  if (await Project.getByTitle(data.title) && project.title !== data.title) {
+  if (data?.title && project.title !== data.title && await Project.getByTitle(data.title)) {
     NcError.badRequest('Project title already in use');
   }
 

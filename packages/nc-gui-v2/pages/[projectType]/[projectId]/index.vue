@@ -59,11 +59,11 @@ let pickerActive = $ref<boolean | 'primary' | 'accent'>(false)
 
 const email = computed(() => user.value?.email ?? '---')
 
-const { setTheme, theme } = useTheme()
+const { saveTheme, theme } = useTheme()
 
 watch(pickedColor, (nextColor) => {
   if (pickerActive && nextColor.hex) {
-    setTheme({
+    saveTheme({
       primaryColor: pickerActive === 'primary' ? nextColor.hex : theme.value.primaryColor,
       accentColor: pickerActive === 'accent' ? nextColor.hex : theme.value.accentColor,
     })
@@ -348,7 +348,7 @@ const onMenuClose = (visible: boolean) => {
 
                   <a-menu-divider />
 
-                  <a-sub-menu>
+                  <a-sub-menu v-if="isUIAllowed('projectTheme')">
                     <template #title>
                       <div class="nc-project-menu-item group">
                         <ClarityImageLine class="group-hover:text-accent" />

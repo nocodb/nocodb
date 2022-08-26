@@ -1,7 +1,6 @@
 import { ConfigProvider } from 'ant-design-vue'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
-import { useStorage } from '@vueuse/core'
-import { NOCO, hexToRGB, themeV2Colors, useCssVar, useInjectionState } from '#imports'
+import { hexToRGB, themeV2Colors, useCssVar, useInjectionState, useProject } from '#imports'
 
 interface ThemeConfig extends AntTheme {
   primaryColor: string
@@ -12,16 +11,39 @@ const [setup, use] = useInjectionState((config?: Partial<ThemeConfig>) => {
   const primaryColor = useCssVar('--color-primary', typeof document !== 'undefined' ? document.documentElement : null)
   const accentColor = useCssVar('--color-accent', typeof document !== 'undefined' ? document.documentElement : null)
 
-  /** current theme config */
-  const currentTheme = useStorage<ThemeConfig>(
-    `${NOCO}db-theme`,
-    {
+  const { project, getProjectMeta, updateProject } = useProject()
+
+  const route = useRoute()
+
+  // set theme based on active project
+  watch(project, () => {
+    setTheme({
       primaryColor: themeV2Colors['royal-blue'].DEFAULT,
       accentColor: themeV2Colors.pink['500'],
+      ...getProjectMeta()?.theme,
+    })
+  })
+
+  // set default theme for routes out of project
+  watch(
+    () => route,
+    (v) => {
+      if (!v.params?.projectId) {
+        setTheme({
+          primaryColor: themeV2Colors['royal-blue'].DEFAULT,
+          accentColor: themeV2Colors.pink['500'],
+        })
+      }
     },
-    localStorage,
-    { mergeDefaults: true },
+    { deep: true },
   )
+
+  /** current theme config */
+  const currentTheme = ref({
+    primaryColor: themeV2Colors['royal-blue'].DEFAULT,
+    accentColor: themeV2Colors.pink['500'],
+    ...getProjectMeta()?.theme,
+  })
 
   /** set initial config */
   setTheme(config ?? currentTheme.value)
@@ -39,9 +61,23 @@ const [setup, use] = useInjectionState((config?: Partial<ThemeConfig>) => {
     })
   }
 
+  async function saveTheme(theme: Partial<ThemeConfig>) {
+    const meta = getProjectMeta()
+    await updateProject({
+      meta: JSON.stringify({
+        ...meta,
+        theme: {
+          ...theme,
+        },
+      }),
+    })
+    setTheme(theme)
+  }
+
   return {
     theme: currentTheme,
     setTheme,
+    saveTheme,
   }
 }, 'theme')
 

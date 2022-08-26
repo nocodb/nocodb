@@ -468,7 +468,7 @@ export default class View implements ViewType {
   static async getColumns(
     viewId: string,
     ncMeta = Noco.ncMeta
-  ): Promise<Array<GridViewColumn | any>> {
+  ): Promise<Array<GridViewColumn | FormViewColumn | GalleryViewColumn>> {
     let columns: Array<GridViewColumn | any> = [];
     const view = await this.get(viewId, ncMeta);
 
@@ -497,8 +497,8 @@ export default class View implements ViewType {
     viewId: string,
     colId: string,
     colData: {
-      order: number;
-      show: boolean;
+      order?: number;
+      show?: boolean;
     },
     ncMeta = Noco.ncMeta
   ): Promise<Array<GridViewColumn | any>> {
@@ -524,10 +524,7 @@ export default class View implements ViewType {
         cacheScope = CacheScope.FORM_VIEW_COLUMN;
         break;
     }
-    const updateObj = {
-      order: colData.order,
-      show: colData.show,
-    };
+    const updateObj = extractProps(colData, ['order', 'show']);
     // get existing cache
     const key = `${cacheScope}:${colId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -886,6 +883,15 @@ export default class View implements ViewType {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
     const scope = this.extractViewColumnsTableNameScope(view);
+
+    const columns = await view
+      .getModel(ncMeta)
+      .then((meta) => meta.getColumns());
+    const viewColumns = await this.getColumns(viewId, ncMeta);
+    const availableColumnsInView = viewColumns.map(
+      (column) => column.fk_column_id
+    );
+
     // get existing cache
     const dataList = await NocoCache.getList(scope, [viewId]);
     if (dataList?.length) {
@@ -898,24 +904,52 @@ export default class View implements ViewType {
         }
       }
     }
-    return await ncMeta.metaUpdate(
-      null,
-      null,
-      table,
-      { show: true },
-      {
-        fk_view_id: viewId,
-      },
-      ignoreColdIds?.length
-        ? {
-            _not: {
-              fk_column_id: {
-                in: ignoreColdIds,
-              },
-            },
-          }
-        : null
-    );
+
+    // insert or update view column
+    for (const col of columns) {
+      if (ignoreColdIds?.includes(col.id)) continue;
+
+      const colIndex = availableColumnsInView.indexOf(col.id);
+      if (colIndex > -1) {
+        await this.updateColumn(
+          viewId,
+          viewColumns[colIndex].id,
+          { show: true },
+          ncMeta
+        );
+      } else {
+        await this.insertColumn(
+          {
+            view_id: viewId,
+            order: await ncMeta.metaGetNextOrder(table, {
+              fk_view_id: viewId,
+            }),
+            show: true,
+            fk_column_id: col.id,
+          },
+          ncMeta
+        );
+      }
+
+      // return await ncMeta.metaUpdate(
+      //   null,
+      //   null,
+      //   table,
+      //   { show: true },
+      //   {
+      //     fk_view_id: viewId,
+      //   },
+      //   ignoreColdIds?.length
+      //     ? {
+      //         _not: {
+      //           fk_column_id: {
+      //             in: ignoreColdIds,
+      //           },
+      //         },
+      //       }
+      //     : null
+      // );
+    }
   }
 
   static async hideAllColumns(

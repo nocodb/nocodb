@@ -2,7 +2,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { ColumnInj, IsFormInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; required?: boolean; hideMenu?: boolean }>()
+const props = defineProps<{ column: ColumnType & { meta: any }; required?: boolean | number; hideMenu?: boolean }>()
 
 const hideMenu = toRef(props, 'hideMenu')
 

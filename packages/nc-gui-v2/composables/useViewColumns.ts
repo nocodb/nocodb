@@ -135,7 +135,12 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
       if (field.id && view?.value?.id) {
         await $api.dbViewColumn.update(view.value.id, field.id, field)
       } else if (view?.value?.id) {
-        if (fields.value) fields.value[index] = (await $api.dbViewColumn.create(view.value.id, field)) as any
+        const insertedField = (await $api.dbViewColumn.create(view.value.id, field)) as any
+
+        /** update the field in fields if defined */
+        if (fields.value) fields.value[index] = insertedField
+
+        return insertedField
       }
     }
 

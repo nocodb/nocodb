@@ -94,7 +94,6 @@ function updateView() {
     message.error('Data too long for Form Description')
     return
   }
-
   updateFormView(formViewData.value)
 }
 
@@ -250,21 +249,14 @@ function setFormData() {
     show_blank_form: !!((formViewData?.value as any)?.show_blank_form ?? 0),
   } as any
 
-  {
-    // email me
-    let data: Record<string, boolean> = {}
-    try {
-      data = JSON.parse(formViewData.value?.email || '') || {}
-    } catch (e) {
-      // noop
-    }
+  // email me
+  let data: Record<string, boolean> = {}
+  try {
+    data = JSON.parse(formViewData.value?.email || '') || {}
+  } catch (e) {}
 
-    data[state.user.value?.email as string] = emailMe.value
-
-    formViewData.value!.email = JSON.stringify(data)
-
-    checkSMTPStatus()
-  }
+  emailMe.value = data[state.user.value?.email as string]
+  checkSMTPStatus()
 
   localColumns.value = col
     .filter(
@@ -307,9 +299,18 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   return required || (columnObj && columnObj.rqd && !columnObj.cdf)
 }
 
+function updateEmail() {
+  try {
+    const data = JSON.parse(formViewData.value?.email) || {}
+    data[state.user.value?.email as string] = emailMe.value
+    formViewData.value!.email = JSON.stringify(data)
+    checkSMTPStatus()
+  } catch (e) {}
+}
+
 function onEmailChange() {
+  updateEmail()
   updateView()
-  checkSMTPStatus()
 }
 
 async function submitCallback() {

@@ -158,6 +158,12 @@ async function onRename(view: ViewType) {
       order: String(view.order),
     })
 
+    await router.replace({
+      params: {
+        viewTitle: view.title,
+      },
+    })
+
     message.success('View renamed successfully')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

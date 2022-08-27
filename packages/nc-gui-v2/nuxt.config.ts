@@ -13,7 +13,7 @@ export default defineNuxtConfig({
 
   ssr: false,
   app: {
-    baseURL: '/dashboard/',
+    baseURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
   },
   css: [
     'virtual:windi.css',

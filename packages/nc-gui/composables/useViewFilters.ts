@@ -37,7 +37,7 @@ export function useViewFilters(
 
   const _filters = ref<Filter[]>([])
 
-  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync' || !isUIAllowed('filterChildrenRead')))
+  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 
   const filters = computed<Filter[]>({
     get: () => (nestedMode.value ? currentFilters! : _filters.value),

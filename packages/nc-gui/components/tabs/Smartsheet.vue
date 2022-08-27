@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -37,7 +37,7 @@ const meta = computed<TableType | undefined>(() => activeTab.value && metas.valu
 
 const reloadEventHook = createEventHook()
 
-const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetStore(activeView, meta)
+const { isGallery, isGrid, isForm, isKanban, isLocked, nestedFilters } = useProvideSmartsheetStore(activeView, meta)
 
 const openNewRecordFormHook = createEventHook()
 
@@ -55,6 +55,15 @@ provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
+
+watch(nestedFilters, (newFilters) => {
+  activeTab.value.state = activeTab.value.state || {}
+  activeTab.value.state[activeView.value.id] = newFilters
+})
+
+watch(activeView, (newView: ViewType) => {
+  nestedFilters.value = activeTab.value.state?.[newView.id!]
+})
 </script>
 
 <template>

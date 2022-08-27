@@ -49,6 +49,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const { isUIAllowed } = useUIPermission()
+const hasEditPermission = isUIAllowed('xcDatatableEditable')
 
 // todo: get from parent ( inject or use prop )
 const isView = false
@@ -65,7 +66,7 @@ const _contextMenu = ref(false)
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
-    if (!readOnly) {
+    if (hasEditPermission) {
       _contextMenu.value = val
     }
   },
@@ -102,7 +103,7 @@ provide(PaginationDataInj, paginationData)
 
 provide(ChangePageInj, changePage)
 
-provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
+provide(ReadonlyInj, !hasEditPermission)
 
 reloadViewDataHook?.on(async () => {
   await loadData()
@@ -170,7 +171,7 @@ const clearCell = async (ctx: { row: number; col: number }) => {
 const { copy } = useClipboard()
 
 const makeEditable = (row: Row, col: ColumnType) => {
-  if (isPublicView.value || editEnabled || isView) {
+  if (!hasEditPermission || editEnabled || isView) {
     return
   }
   if (!isPkAvail.value && !row.rowMeta.new) {
@@ -426,7 +427,7 @@ const onNavigate = (dir: NavigateDir) => {
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
-                      active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
+                      active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex,
                     }"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
@@ -472,7 +473,7 @@ const onNavigate = (dir: NavigateDir) => {
           TODO: add relationType !== 'bt' ?
           v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
         -->
-            <tr v-if="!isView && !isLocked && !isPublicView && isUIAllowed('xcDatatableEditable')">
+            <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable')">
               <td
                 v-t="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"

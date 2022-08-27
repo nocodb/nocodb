@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
 import type { TableType } from 'nocodb-sdk'
+import { message } from 'ant-design-vue'
 
 import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadViewDataHookInj } from '~/context'
 
 const { sharedView, meta, sorts, nestedFilters } = useSharedView()
+const { isAuthenticated } = useGlobal()
+const { loadProject } = useProject(meta?.value.project_id)
 
 const reloadEventHook = createEventHook<void>()
 provide(ReloadViewDataHookInj, reloadEventHook)
@@ -15,6 +18,15 @@ provide(FieldsInj, ref(meta.value.columns as any[]))
 provide(IsPublicInj, ref(true))
 
 useProvideSmartsheetStore(sharedView as Ref<TableType>, meta, true, sorts, nestedFilters)
+
+if (isAuthenticated) {
+  try {
+    await loadProject()
+  } catch (e: any) {
+    console.error(e)
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>

@@ -382,11 +382,17 @@ export class _mainPage {
     //      wait for a while & check in configured download folder for the intended file
     //      if it exists, verify it against 'expectedRecords' passed in as parameter
     //
-    downloadAndVerifyCsv = (filename, verifyCsv) => {
-        cy.get(".nc-actions-menu-btn").click();
-        cy.getActiveMenu().find('.nc-project-menu-item').contains('Download').click();
-        cy.wait(1000);
-        cy.get('.nc-project-menu-item').contains('Download as CSV').should('exist').click();
+    downloadAndVerifyCsv = (filename, verifyCsv, role) => {
+
+        if(role === 'commenter' || role === 'viewer') {
+            cy.get(".nc-actions-menu-btn").click();
+            cy.getActiveMenu().find('.nc-project-menu-item').contains('Download as CSV').click();
+        } else {
+            cy.get(".nc-actions-menu-btn").click();
+            cy.getActiveMenu().find('.nc-project-menu-item').contains('Download').click();
+            cy.wait(1000);
+            cy.get('.nc-project-menu-item').contains('Download as CSV').should('exist').click();
+        }
 
         cy.toastWait("Successfully exported all table data").then(() => {
             // download folder path, read from config file

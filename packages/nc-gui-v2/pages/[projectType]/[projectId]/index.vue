@@ -397,7 +397,7 @@ const copyAuthToken = async () => {
                         <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
                           <MdiLogout class="group-hover:(!text-accent)" />&nbsp;
 
-                          <span class="prose-sm">
+                          <span class="prose-sm nc-user-menu-signout">
                             {{ $t('general.signOut') }}
                           </span>
                         </div>

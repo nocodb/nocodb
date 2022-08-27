@@ -161,10 +161,11 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
       .click();
 
     // kludge to make new tab active
-    cy.get('.ant-tabs-tab-btn')
-      .contains(tn)
-      .should('exist')
-      .click();
+    // cy.get('.ant-tabs-tab-btn')
+    //   .contains(tn)
+    //   .should('exist')
+    //   .click();
+    cy.wait(3000);
 
     cy.get('.xc-row-table.nc-grid').should('exist');
 
@@ -230,14 +231,32 @@ Cypress.Commands.add("openOrCreateGqlProject", (_args) => {
 });
 
 let LOCAL_STORAGE_MEMORY = {};
+let LOCAL_STORAGE_MEMORY_v2 = {};
 
-Cypress.Commands.add("saveLocalStorage", () => {
+Cypress.Commands.add("saveLocalStorage", (name) => {
+    if(name) {
+        cy.task('log', `[saveLocalStorage] ${name}`);
+        LOCAL_STORAGE_MEMORY_v2[name] = {}
+        Object.keys(localStorage).forEach((key) => {
+            LOCAL_STORAGE_MEMORY_v2[name][key] = localStorage[key];
+        });
+        return;
+    }
+
     Object.keys(localStorage).forEach((key) => {
         LOCAL_STORAGE_MEMORY[key] = localStorage[key];
     });
 });
 
-Cypress.Commands.add("restoreLocalStorage", () => {
+Cypress.Commands.add("restoreLocalStorage", (name) => {
+    if(name) {
+        cy.task('log', `[restoreLocalStorage] ${name}`);
+        Object.keys(LOCAL_STORAGE_MEMORY_v2[name]).forEach((key) => {
+            localStorage.setItem(key, LOCAL_STORAGE_MEMORY_v2[name][key]);
+        });
+        return;
+    }
+
     Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
         localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key]);
     });
@@ -248,6 +267,11 @@ Cypress.Commands.add("deleteLocalStorage", () => {
         localStorage.removeItem(key);
     });
 });
+
+Cypress.Commands.add('printLocalStorage', () => {
+    cy.task('log', `[printLocalStorage]`);
+    cy.task('log', JSON.stringify(localStorage, null, 2));
+})
 
 Cypress.Commands.add("getActiveModal", () => {
     return cy.get(".ant-modal-content:visible").last()

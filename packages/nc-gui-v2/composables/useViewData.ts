@@ -8,9 +8,9 @@ import {
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   getHTMLEncodedText,
+  useApi,
   useProject,
   useUIPermission,
-  useApi
 } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
@@ -118,11 +118,11 @@ export function useViewData(
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
     const response = !isPublic.value
       ? await api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
-        ...params,
-        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-        where: where?.value,
-      })
+          ...params,
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          where: where?.value,
+        })
       : await fetchSharedViewData()
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
@@ -193,8 +193,7 @@ export function useViewData(
           value: getHTMLEncodedText(toUpdate.row[property]),
           prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
         })
-        .then(() => {
-        })
+        .then(() => {})
 
       /** update row data(to sync formula and other related columns) */
       Object.assign(toUpdate.row, updatedRowData)
@@ -236,7 +235,7 @@ export function useViewData(
 
   const deleteRowById = async (id: string) => {
     if (!id) {
-      throw new Error('Delete not allowed for table which doesn\'t have primary Key')
+      throw new Error("Delete not allowed for table which doesn't have primary Key")
     }
 
     const res: any = await $api.dbViewRow.delete(

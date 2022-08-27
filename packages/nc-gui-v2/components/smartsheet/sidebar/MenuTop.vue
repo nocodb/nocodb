@@ -24,7 +24,9 @@ import DlgViewDelete from '~/components/dlg/ViewDelete.vue'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
+
   (event: 'deleted'): void
+
   (event: 'sorted'): void
 }
 
@@ -186,8 +188,14 @@ function openDeleteDialog(view: Record<string, any>) {
       closeDialog()
 
       emits('deleted')
-      // return to the default view
-      activeView.value = views.value[0]
+      if (activeView.value === view) {
+        // return to the default view
+        router.replace({
+          params: {
+            viewTitle: views.value[0].title,
+          },
+        })
+      }
     },
   })
 

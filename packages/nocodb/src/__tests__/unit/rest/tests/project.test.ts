@@ -70,6 +70,16 @@ function projectTest() {
       });
   });
 
+  it('Create projects with existing title', function (done) {
+    request(app)
+      .post(`/api/v1/db/meta/projects/`)
+      .set('xc-auth', token)
+      .send({
+        title: project.title,
+      })
+      .expect(400, done);
+  });
+
   // todo: fix passport user role popluation bug
   // it('Delete project', async (done) => {
   //   const toBeDeletedProject = await createProject(app, token, {
@@ -94,26 +104,51 @@ function projectTest() {
   //     });
   // });
 
-  it('Update projects', function (done) {
+  it('Read project', (done) => {
     request(app)
-      .patch(`/api/v1/db/meta/projects/${project.id}`)
+      .get(`/api/v1/db/meta/projects/${project.id}`)
       .set('xc-auth', token)
-      .send({
-        title: 'NewTitle',
-      })
-      .expect(200, async (err) => {
-        if (err) {
-          done(err);
-          return;
-        }
-        const newProject = await Project.getByTitleOrId(project.id);
-        if (newProject.title !== 'NewTitle') {
-          done('Project not updated');
-          return;
-        }
+      .send()
+      .expect(200, (err, res) => {
+        if (err) return done(err);
+
+        if (res.body.id !== project.id) return done('Got the wrong project');
 
         done();
       });
+  });
+
+  // it('Update projects', function (done) {
+  //   request(app)
+  //     .patch(`/api/v1/db/meta/projects/${project.id}`)
+  //     .set('xc-auth', token)
+  //     .send({
+  //       title: 'NewTitle',
+  //     })
+  //     .expect(200, async (err) => {
+  //       if (err) {
+  //         done(err);
+  //         return;
+  //       }
+  //       const newProject = await Project.getByTitleOrId(project.id);
+  //       if (newProject.title !== 'NewTitle') {
+  //         done('Project not updated');
+  //         return;
+  //       }
+
+  //       done();
+  //     });
+  // });
+
+  it('Update projects with existing title', async function () {
+    const newProject = await createProject(app, token, { title: 'NewTitle1' });
+    return await request(app)
+      .patch(`/api/v1/db/meta/projects/${project.id}`)
+      .set('xc-auth', token)
+      .send({
+        title: newProject.title,
+      })
+      .expect(400);
   });
 }
 

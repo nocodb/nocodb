@@ -17,6 +17,7 @@ export function useProject(projectId?: MaybeRef<string>) {
   const projectMetaInfo = useState<ProjectMetaInfo | undefined>('projectMetaInfo')
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
+  const isLoaded = ref(false)
 
   const projectBaseType = $computed(() => project.value?.bases?.[0]?.type || '')
   const isMysql = computed(() => ['mysql', 'mysql2'].includes(projectBaseType))
@@ -71,6 +72,7 @@ export function useProject(projectId?: MaybeRef<string>) {
     } else {
       _projectId = route.params.projectId as string
     }
+    isLoaded.value = true
     project.value = await $api.project.read(_projectId!)
     await loadProjectRoles()
     await loadTables()
@@ -94,7 +96,16 @@ export function useProject(projectId?: MaybeRef<string>) {
     } catch (e) {
       return {}
     }
+  })
+
+  onScopeDispose(() => {
+    if (isLoaded.value === true) {
+      project.value = {}
+      tables.value = []
+      projectMetaInfo.value = undefined
+      projectRoles.value = {}
   }
+  })
 
   return {
     project,

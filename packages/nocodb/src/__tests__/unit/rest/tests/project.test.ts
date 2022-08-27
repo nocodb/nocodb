@@ -270,6 +270,33 @@ function projectTest() {
         done();
       });
   });
+
+  // todo: Do compare api test
+
+  it('Meta diff sync', (done) => {
+    request(app)
+      .get(`/api/v1/db/meta/projects/${project.id}/meta-diff`)
+      .set('xc-auth', token)
+      .send()
+      .expect(200, done);
+  });
+
+  it('Meta diff sync', (done) => {
+    request(app)
+      .post(`/api/v1/db/meta/projects/${project.id}/meta-diff`)
+      .set('xc-auth', token)
+      .send()
+      .expect(200, done);
+  });
+
+  // todo: improve test. Check whether the all the actions are present in the response and correct as well
+  it('Meta diff sync', (done) => {
+    request(app)
+      .get(`/api/v1/db/meta/projects/${project.id}/audits`)
+      .set('xc-auth', token)
+      .send()
+      .expect(200, done);
+  });
 }
 
 export default function () {

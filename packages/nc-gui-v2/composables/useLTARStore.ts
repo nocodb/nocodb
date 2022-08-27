@@ -47,8 +47,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const colOptions = $computed(() => column?.value.colOptions as LinkToAnotherRecordType)
 
     const { sharedView } = useSharedView() as Record<string, any>
-
-    const projectId = project?.value?.id || sharedView.value.view.project_id
+    const projectId = project?.value?.id || sharedView.value?.view?.project_id
 
     // getters
     const meta = computed(() => metas?.value?.[column?.value?.fk_model_id as string])

@@ -75,7 +75,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     get: () => storage.value.token || '',
     set: (val) => (storage.value.token = val),
   })
-  const isAuthenticated = !!token.value
 
   const appInfo = ref<AppInfo>({
     ncSiteUrl: process.env.NC_BACKEND_URL || (process.env.NODE_ENV === 'production' ? location.origin : 'http://localhost:8080'),
@@ -106,7 +105,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     ...toRefs(storage.value),
     storage,
     token,
-    isAuthenticated,
     jwtPayload: payload,
     timestamp,
     runningRequests,

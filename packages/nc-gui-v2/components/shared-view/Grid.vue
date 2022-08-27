@@ -6,7 +6,7 @@ import { message } from 'ant-design-vue'
 import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadViewDataHookInj } from '~/context'
 
 const { sharedView, meta, sorts, nestedFilters } = useSharedView()
-const { isAuthenticated } = useGlobal()
+const { signedIn } = useGlobal()
 const { loadProject } = useProject(meta?.value.project_id)
 
 const reloadEventHook = createEventHook<void>()
@@ -19,7 +19,7 @@ provide(IsPublicInj, ref(true))
 
 useProvideSmartsheetStore(sharedView as Ref<TableType>, meta, true, sorts, nestedFilters)
 
-if (isAuthenticated) {
+if (signedIn.value) {
   try {
     await loadProject()
   } catch (e: any) {

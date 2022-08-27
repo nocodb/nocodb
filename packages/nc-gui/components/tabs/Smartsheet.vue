@@ -37,13 +37,34 @@ const meta = computed<TableType | undefined>(() => activeTab.value && metas.valu
 
 const reloadEventHook = createEventHook()
 
-const { isGallery, isGrid, isForm, isKanban, isLocked, nestedFilters } = useProvideSmartsheetStore(activeView, meta)
+const { isGallery, isGrid, isForm, isKanban, isLocked, nestedFilters, sorts } = useProvideSmartsheetStore(activeView, meta)
 
 const openNewRecordFormHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook()
 
 useProvideKanbanViewStore(meta, activeView)
+
+
+/** keep view level state in tabMeta and restore on view change */
+watch(nestedFilters, (newFilters) => {
+  activeTab.value.state = activeTab.value.state || {}
+  activeTab.value.state[activeView.value.id] = activeTab.value.state[activeView.value.id] || {}
+  activeTab.value.state[activeView.value.id].filters = newFilters
+})
+
+watch(sorts, (newSorts) => {
+  activeTab.value.state = activeTab.value.state || {}
+  activeTab.value.state[activeView.value.id] = activeTab.value.state[activeView.value.id] || {}
+  activeTab.value.state[activeView.value.id].sorts = newSorts
+})
+
+watch(activeView, (newView: ViewType) => {
+  if (activeTab.value.state?.[newView.id!]?.filters)
+    nestedFilters.value = activeTab.value.state?.[newView.id!]?.filters || []
+  if (activeTab.value.state?.[newView.id!]?.sorts)
+    sorts.value = activeTab.value.state?.[newView.id!]?.sorts || []
+})
 
 // todo: move to store
 provide(MetaInj, meta)

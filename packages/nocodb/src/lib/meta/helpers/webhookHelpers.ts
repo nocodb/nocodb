@@ -1,7 +1,6 @@
 import Handlebars from 'handlebars';
 import Model from '../../models/Model';
 import NcPluginMgrv2 from './NcPluginMgrv2';
-import Column from '../../models/Column';
 import Hook from '../../models/Hook';
 import Filter from '../../models/Filter';
 import HookLog from '../../models/HookLog';
@@ -268,16 +267,11 @@ export function _transformSubmittedFormDataForEmail(
   // @ts-ignore
   formView,
   // @ts-ignore
-  columns: Column[]
+  columns: Record<string, any>[]
 ) {
   const transformedData = { ...data };
 
   for (const col of columns) {
-    if (!formView.query_params?.showFields?.[col.title]) {
-      delete transformedData[col.title];
-      continue;
-    }
-
     if (col.uidt === 'Attachment') {
       if (typeof transformedData[col.title] === 'string') {
         transformedData[col.title] = JSON.parse(transformedData[col.title]);
@@ -301,6 +295,7 @@ export function _transformSubmittedFormDataForEmail(
       transformedData[col.title] = JSON.stringify(transformedData[col.title]);
     }
   }
+  return transformedData;
 }
 
 function parseHrtimeToMilliSeconds(hrtime) {

@@ -118,27 +118,27 @@ function projectTest() {
       });
   });
 
-  // it('Update projects', function (done) {
-  //   request(app)
-  //     .patch(`/api/v1/db/meta/projects/${project.id}`)
-  //     .set('xc-auth', token)
-  //     .send({
-  //       title: 'NewTitle',
-  //     })
-  //     .expect(200, async (err) => {
-  //       if (err) {
-  //         done(err);
-  //         return;
-  //       }
-  //       const newProject = await Project.getByTitleOrId(project.id);
-  //       if (newProject.title !== 'NewTitle') {
-  //         done('Project not updated');
-  //         return;
-  //       }
+  it('Update projects', function (done) {
+    request(app)
+      .patch(`/api/v1/db/meta/projects/${project.id}`)
+      .set('xc-auth', token)
+      .send({
+        title: 'NewTitle',
+      })
+      .expect(200, async (err) => {
+        if (err) {
+          done(err);
+          return;
+        }
+        const newProject = await Project.getByTitleOrId(project.id);
+        if (newProject.title !== 'NewTitle') {
+          done('Project not updated');
+          return;
+        }
 
-  //       done();
-  //     });
-  // });
+        done();
+      });
+  });
 
   it('Update projects with existing title', async function () {
     const newProject = await createProject(app, token, { title: 'NewTitle1' });
@@ -149,6 +149,126 @@ function projectTest() {
         title: newProject.title,
       })
       .expect(400);
+  });
+
+  it('Create project shared base', (done) => {
+    request(app)
+      .post(`/api/v1/db/meta/projects/${project.id}/shared`)
+      .set('xc-auth', token)
+      .send({
+        roles: 'viewer',
+        password: 'test',
+      })
+      .expect(200, async (err) => {
+        if (err) return done(err);
+
+        const updatedProject = await Project.getByTitleOrId(project.id);
+
+        if (
+          !updatedProject.uuid ||
+          updatedProject.roles !== 'viewer' ||
+          updatedProject.password !== 'test'
+        ) {
+          return done('Shared base not configured properly');
+        }
+
+        done();
+      });
+  });
+
+  it('Created project shared base should have only editor or viewer role', (done) => {
+    request(app)
+      .post(`/api/v1/db/meta/projects/${project.id}/shared`)
+      .set('xc-auth', token)
+      .send({
+        roles: 'commenter',
+        password: 'test',
+      })
+      .expect(200, async (err) => {
+        if (err) return done(err);
+
+        const updatedProject = await Project.getByTitleOrId(project.id);
+
+        if (updatedProject.roles === 'commenter') {
+          return done('Shared base not configured properly');
+        }
+
+        done();
+      });
+  });
+
+  it('Updated project shared base should have only editor or viewer role', (done) => {
+    request(app)
+      .patch(`/api/v1/db/meta/projects/${project.id}/shared`)
+      .set('xc-auth', token)
+      .send({
+        roles: 'commenter',
+        password: 'test',
+      })
+      .expect(200, async (err) => {
+        if (err) return done(err);
+
+        const updatedProject = await Project.getByTitleOrId(project.id);
+
+        if (updatedProject.roles === 'commenter') {
+          return done('Shared base not updated properly');
+        }
+
+        done();
+      });
+  });
+
+  it('Updated project shared base', (done) => {
+    request(app)
+      .patch(`/api/v1/db/meta/projects/${project.id}/shared`)
+      .set('xc-auth', token)
+      .send({
+        roles: 'editor',
+        password: 'test',
+      })
+      .expect(200, async (err) => {
+        if (err) return done(err);
+
+        const updatedProject = await Project.getByTitleOrId(project.id);
+
+        if (updatedProject.roles !== 'editor') {
+          return done('Shared base not updated properly');
+        }
+
+        done();
+      });
+  });
+
+  it('Get project shared base', (done) => {
+    request(app)
+      .get(`/api/v1/db/meta/projects/${project.id}/shared`)
+      .set('xc-auth', token)
+      .send()
+      .expect(200, async (err) => {
+        if (err) return done(err);
+
+        const updatedProject = await Project.getByTitleOrId(project.id);
+        if (!updatedProject.uuid) {
+          return done('Shared base not created');
+        }
+        done();
+      });
+  });
+
+  it('Delete project shared base', (done) => {
+    request(app)
+      .delete(`/api/v1/db/meta/projects/${project.id}/shared`)
+      .set('xc-auth', token)
+      .send()
+      .expect(200, async (err) => {
+        if (err) return done(err);
+
+        const updatedProject = await Project.getByTitleOrId(project.id);
+        if (updatedProject.uuid) {
+          return done('Shared base not delete');
+        }
+        done();
+      });
   });
 }
 

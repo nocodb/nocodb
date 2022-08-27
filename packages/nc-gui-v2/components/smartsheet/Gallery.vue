@@ -3,7 +3,17 @@ import { isVirtualCol } from 'nocodb-sdk'
 import { inject, provide, useViewData } from '#imports'
 import Row from '~/components/smartsheet/Row.vue'
 import type { Row as RowType } from '~/composables'
-import { ActiveViewInj, ChangePageInj, FieldsInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj, ReadonlyInj } from '~/context'
+import {
+  ActiveViewInj,
+  ChangePageInj,
+  FieldsInj,
+  IsFormInj,
+  IsGridInj,
+  MetaInj,
+  OpenNewRecordFormHookInj,
+  PaginationDataInj,
+  ReadonlyInj,
+} from '~/context'
 import ImageIcon from '~icons/mdi/file-image-box'
 
 interface Attachment {
@@ -13,12 +23,21 @@ interface Attachment {
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
+const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-const { loadData, paginationData, formattedData: data, loadGalleryData, galleryData, changePage } = useViewData(meta, view as any)
+const {
+  loadData,
+  paginationData,
+  formattedData: data,
+  loadGalleryData,
+  galleryData,
+  changePage,
+  addEmptyRow,
+} = useViewData(meta, view as any)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -68,6 +87,11 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
   expandedFormRowState.value = state
   expandedFormDlg.value = true
 }
+
+openNewRecordFormHook?.on(async () => {
+  const newRow = await addEmptyRow()
+  expandForm(newRow)
+})
 </script>
 
 <template>

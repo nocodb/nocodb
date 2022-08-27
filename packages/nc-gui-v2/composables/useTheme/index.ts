@@ -12,38 +12,22 @@ const [setup, use] = useInjectionState((config?: Partial<ThemeConfig>) => {
   const primaryColor = useCssVar('--color-primary', typeof document !== 'undefined' ? document.documentElement : null)
   const accentColor = useCssVar('--color-accent', typeof document !== 'undefined' ? document.documentElement : null)
 
-  const { project, getProjectMeta, updateProject } = useProject()
-
-  const route = useRoute()
+  const { project, projectMeta, updateProject } = useProject()
 
   // set theme based on active project
   watch(project, () => {
     setTheme({
       primaryColor: themeV2Colors['royal-blue'].DEFAULT,
       accentColor: themeV2Colors.pink['500'],
-      ...getProjectMeta()?.theme,
+      ...projectMeta.value?.theme,
     })
   })
-
-  // set default theme for routes out of project
-  watch(
-    () => route,
-    (v) => {
-      if (!v.params?.projectId) {
-        setTheme({
-          primaryColor: themeV2Colors['royal-blue'].DEFAULT,
-          accentColor: themeV2Colors.pink['500'],
-        })
-      }
-    },
-    { deep: true },
-  )
 
   /** current theme config */
   const currentTheme = ref({
     primaryColor: themeV2Colors['royal-blue'].DEFAULT,
     accentColor: themeV2Colors.pink['500'],
-    ...getProjectMeta()?.theme,
+    ...projectMeta.value?.theme,
   })
 
   /** set initial config */
@@ -66,18 +50,15 @@ const [setup, use] = useInjectionState((config?: Partial<ThemeConfig>) => {
     }
 
     ConfigProvider.config({
-      theme: { ...currentTheme.value },
+      theme: currentTheme.value,
     })
   }
 
   async function saveTheme(theme: Partial<ThemeConfig>) {
-    const meta = getProjectMeta()
     await updateProject({
       meta: JSON.stringify({
-        ...meta,
-        theme: {
-          ...theme,
-        },
+        ...projectMeta.value,
+        theme,
       }),
     })
     setTheme(theme)

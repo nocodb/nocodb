@@ -90,7 +90,7 @@ export function useProject(projectId?: MaybeRef<string>) {
     await $api.project.update(_projectId, data)
   }
 
-  function getProjectMeta() {
+  const projectMeta = computed(() => {
     try {
       return typeof project.value.meta === 'string' ? JSON.parse(project.value.meta) : project.value.meta
     } catch (e) {
@@ -104,7 +104,7 @@ export function useProject(projectId?: MaybeRef<string>) {
       tables.value = []
       projectMetaInfo.value = undefined
       projectRoles.value = {}
-  }
+    }
   })
 
   return {
@@ -121,6 +121,6 @@ export function useProject(projectId?: MaybeRef<string>) {
     isSharedBase,
     loadProjectMetaInfo,
     projectMetaInfo,
-    getProjectMeta,
+    projectMeta,
   }
 }

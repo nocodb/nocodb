@@ -4,11 +4,11 @@ const defaultProjectValue = {
   title: 'Title',
 };
 
-const createProject = async (app, token) => {
+const createProject = async (app, token, projectArgs = defaultProjectValue) => {
   const response = await request(app)
     .post('/api/v1/db/meta/projects/')
     .set('xc-auth', token)
-    .send(defaultProjectValue);
+    .send(projectArgs);
 
   const project = response.body;
   return project;

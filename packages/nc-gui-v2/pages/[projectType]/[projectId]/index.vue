@@ -31,7 +31,7 @@ const route = useRoute()
 
 const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
-const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo } = useProject()
+const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme } = useProject()
 
 const { addTab, clearTabs } = useTabs()
 
@@ -57,7 +57,7 @@ const sidebar = ref()
 
 const email = computed(() => user.value?.email ?? '---')
 
-const { saveTheme, theme } = useTheme()
+const { theme } = useTheme()
 
 const logout = () => {
   signOut()

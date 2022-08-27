@@ -4,6 +4,7 @@ import type { MaybeRef } from '@vueuse/core'
 import { useNuxtApp, useRoute, useState } from '#app'
 import type { ProjectMetaInfo } from '~/lib'
 import { USER_PROJECT_ROLES } from '~/lib'
+import type { ThemeConfig } from '@/composables/useTheme'
 
 export function useProject(projectId?: MaybeRef<string>) {
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
@@ -14,6 +15,7 @@ export function useProject(projectId?: MaybeRef<string>) {
   const tables = useState<TableType[]>('tables', () => [] as TableType[])
   const route = useRoute()
   const { includeM2M } = useGlobal()
+  const { setTheme } = useTheme()
   const projectMetaInfo = useState<ProjectMetaInfo | undefined>('projectMetaInfo')
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
@@ -27,6 +29,14 @@ export function useProject(projectId?: MaybeRef<string>) {
     () => SqlUiFactory.create({ client: projectBaseType }) as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>,
   )
   const isSharedBase = computed(() => projectType === 'base')
+
+  const projectMeta = computed(() => {
+    try {
+      return typeof project.value.meta === 'string' ? JSON.parse(project.value.meta) : project.value.meta
+    } catch (e) {
+      return {}
+    }
+  })
 
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
@@ -76,6 +86,7 @@ export function useProject(projectId?: MaybeRef<string>) {
     project.value = await $api.project.read(_projectId!)
     await loadProjectRoles()
     await loadTables()
+    setTheme(projectMeta.value?.theme)
   }
 
   async function updateProject(data: Partial<ProjectType>) {
@@ -90,13 +101,15 @@ export function useProject(projectId?: MaybeRef<string>) {
     await $api.project.update(_projectId, data)
   }
 
-  const projectMeta = computed(() => {
-    try {
-      return typeof project.value.meta === 'string' ? JSON.parse(project.value.meta) : project.value.meta
-    } catch (e) {
-      return {}
-    }
-  })
+  async function saveTheme(theme: Partial<ThemeConfig>) {
+    await updateProject({
+      meta: JSON.stringify({
+        ...projectMeta.value,
+        theme,
+      }),
+    })
+    setTheme(theme)
+  }
 
   onScopeDispose(() => {
     if (isLoaded.value === true) {
@@ -104,6 +117,7 @@ export function useProject(projectId?: MaybeRef<string>) {
       tables.value = []
       projectMetaInfo.value = undefined
       projectRoles.value = {}
+      setTheme({})
     }
   })
 
@@ -122,5 +136,6 @@ export function useProject(projectId?: MaybeRef<string>) {
     loadProjectMetaInfo,
     projectMetaInfo,
     projectMeta,
+    saveTheme,
   }
 }

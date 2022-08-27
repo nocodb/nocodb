@@ -52,6 +52,7 @@ export async function projectUpdate(
   const data: Partial<Project> = extractPropsAndSanitize(req?.body, [
     'title',
     'meta',
+    'color',
   ]);
 
   if (data?.title && project.title !== data.title && await Project.getByTitle(data.title)) {

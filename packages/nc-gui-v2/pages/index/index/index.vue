@@ -158,9 +158,13 @@ await loadProjects()
       >
         <!-- Title -->
         <a-table-column key="title" :title="$t('general.title')" data-index="title">
-          <template #default="{ text }">
+          <template #default="{ text, record }">
             <div
-              class="capitalize color-transition group-hover:text-primary !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap"
+              class="capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2"
+              :class="{ 'border-l-4': record.color }"
+              :style="{
+                'border-color': record.color,
+              }"
             >
               {{ text }}
             </div>

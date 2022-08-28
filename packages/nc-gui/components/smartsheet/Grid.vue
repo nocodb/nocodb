@@ -5,6 +5,7 @@ import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
+  CellUrlDisableOverlayInj,
   ChangePageInj,
   FieldsInj,
   IsFormInj,
@@ -109,6 +110,9 @@ provide(ChangePageInj, changePage)
 
 provide(ReadonlyInj, !hasEditPermission)
 
+const disableUrlOverlay = ref(false)
+provide(CellUrlDisableOverlayInj, disableUrlOverlay)
+
 reloadViewDataHook?.on(async () => {
   await loadData()
 })
@@ -198,6 +202,10 @@ const makeEditable = (row: Row, col: ColumnType) => {
 
 /** handle keypress events */
 const onKeyDown = async (e: KeyboardEvent) => {
+  if (e.key === 'Alt') {
+    disableUrlOverlay.value = true
+    return
+  }
   if (selected.row === null || selected.col === null) return
   /** on tab key press navigate through cells */
   switch (e.key) {
@@ -281,8 +289,14 @@ const onKeyDown = async (e: KeyboardEvent) => {
       break
   }
 }
+const onKeyUp = async (e: KeyboardEvent) => {
+  if (e.key === 'Alt') {
+    disableUrlOverlay.value = false
+  }
+}
 
 useEventListener(document, 'keydown', onKeyDown)
+useEventListener(document, 'keyup', onKeyUp)
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)

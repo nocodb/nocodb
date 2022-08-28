@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import {
+  CellUrlConfigInj,
   ReadonlyInj,
   ReloadViewDataHookInj,
   createEventHook,
@@ -23,6 +24,25 @@ const route = useRoute()
 const reloadEventHook = createEventHook<void>()
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(ReadonlyInj, true)
+
+const parseUrlRules = (serialized: string | undefined) => {
+  if (!serialized) return undefined
+  try {
+    const rules: Array<[RegExp, {}]> = Object.entries(JSON.parse(serialized)).map(([key, value]) => [
+      new RegExp(key),
+      value as {},
+    ])
+    return rules
+  } catch (err) {
+    console.error(err)
+    return undefined
+  }
+}
+provide(CellUrlConfigInj, {
+  behavior: route.query.url_behavior as string,
+  overlay: route.query.url_overlay as string,
+  rules: parseUrlRules(route.query.url_rules as string),
+})
 
 const { loadSharedView } = useSharedView()
 const showPassword = ref(false)

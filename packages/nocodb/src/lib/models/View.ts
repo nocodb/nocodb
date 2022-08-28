@@ -337,8 +337,19 @@ export default class View implements ViewType {
     }
     {
       let order = 1;
+      let galleryShowLimit = 0;
       for (const vCol of columns) {
         let show = 'show' in vCol ? vCol.show : true;
+
+        if (view.type === ViewTypes.GALLERY) {
+          const galleryView = await GalleryView.get(view_id, ncMeta);
+          if (vCol.id === galleryView.fk_cover_image_col_id || vCol.pv || galleryShowLimit < 3) {
+            show = true;
+            galleryShowLimit++;
+          } else {
+            show = false;
+          }
+        }
 
         // if columns is list of virtual columns then get the parent column
         const col = vCol.fk_column_id

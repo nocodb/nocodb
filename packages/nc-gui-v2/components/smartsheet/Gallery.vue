@@ -49,6 +49,8 @@ provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
+const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id))
+
 const coverImageColumn: any = $(
   computed(() =>
     meta?.value.columnsById
@@ -102,7 +104,7 @@ openNewRecordFormHook?.on(async () => {
 
 <template>
   <div class="flex flex-col h-full w-full overflow-auto">
-    <div class="nc-gallery-container grid w-full min-h-0 flex-1 gap-x-2 my-4 px-3">
+    <div class="nc-gallery-container grid w-full min-h-0 flex-1 gap-2 my-4 px-3">
       <div v-for="(record, recordIndex) in data" :key="recordIndex" class="flex flex-col" @click="expandForm(record)">
         <Row :row="record">
           <a-card hoverable class="!rounded-lg h-full overflow-hidden break-all">
@@ -113,7 +115,11 @@ openNewRecordFormHook?.on(async () => {
               <ImageIcon v-else class="w-full h-48 my-4 text-cool-gray-200" />
             </template>
 
-            <div v-for="col in fields" :key="col.id" class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full">
+            <div
+              v-for="col in fieldsWithoutCover"
+              :key="col.id"
+              class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
+            >
               <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
                 <div class="w-full text-gray-600">
                   <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />

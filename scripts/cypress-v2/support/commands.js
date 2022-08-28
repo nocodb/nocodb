@@ -298,22 +298,22 @@ Cypress.Commands.add("getActivePicker", () => {
 });
 
 Cypress.Commands.add("createTable", (name) => {
-    // cy.get(".nc-btn-tbl-add").click();
-
-    // cy.get(`[data-menu-id="addORImport"]`).click();
-    // cy.getActivePopUp().contains("Add new table").should('exist').click();
-
+    cy.task("log", `[createTableTab] ${name}`);
+    cy.wait(1000);
     cy.get('.nc-add-new-table').should('exist').click();
-
+    cy.wait(1000);
     cy.getActiveModal().find(`input[type="text"]:visible`)
       .click()
       .clear()
       .type(name)
-    cy.getActiveModal().find("button").contains("Submit").click();
+    // submit button
+    cy.getActiveModal().find("button.ant-btn-primary:visible").click();
+    cy.wait(1000)
     cy.get('.xc-row-table.nc-grid').should('exist');
-    cy.get('.ant-tabs-tab-active > .ant-tabs-tab-btn').contains(name).should("exist");
+    // cy.get('.ant-tabs-tab-active > .ant-tabs-tab-btn').contains(name).should("exist");
     cy.url().should("contain", `table/${name}`);
     cy.get(`.nc-project-tree-tbl-${name}`).should("exist");
+    cy.wait(1000)
 });
 
 Cypress.Commands.add("deleteTable", (name, dbType) => {

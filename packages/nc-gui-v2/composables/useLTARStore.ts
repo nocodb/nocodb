@@ -130,7 +130,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             meta.value.id,
             rowId.value,
             colOptions.type as 'mm' | 'hm',
-            column?.value?.title,
+            encodeURIComponent(column?.value?.title),
             {
               limit: String(childrenExcludedListPagination.size),
               offset: String(childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1)),
@@ -156,7 +156,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           meta.value.id,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
-          column?.value?.title,
+          encodeURIComponent(column?.value?.title),
           {
             limit: String(childrenListPagination.size),
             offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
@@ -212,7 +212,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           meta.value.title,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
-          column?.value?.title,
+          encodeURIComponent(column?.value?.title),
           getRelatedTableRowId(row) as string,
         )
       } catch (e: any) {
@@ -247,7 +247,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           meta.value.title as string,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
-          column?.value?.title,
+          encodeURIComponent(column?.value?.title),
           getRelatedTableRowId(row) as string,
         )
         await loadChildrenList()

@@ -30,8 +30,6 @@ export class _settingsPage {
 
     openMenu(menuId) {
         // open settings tab
-        // cy.get('.nc-team-settings').should('exist').click()
-        // cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
         cy.get('.nc-project-menu').should('exist').click()
         cy.getActiveMenu().find(`[data-menu-id="teamAndSettings"]`).should('exist').click()
         cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
@@ -110,9 +108,12 @@ export class _mainPage {
         let roleIndex = ["creator", "editor", "commenter", "viewer"].indexOf(roleType)
 
         // click on New User button, feed details
-        cy.get('button.nc-invite-team').click();
+        cy.getActiveModal().find('.nc-invite-team:visible').last().click()
+        cy.wait(1000)
+        // cy.get('button.nc-invite-team').click();
 
         cy.get('input[placeholder="E-mail"]')
+            .should("exist")
             .type(userCred.username)
 
         cy.get('.ant-select.nc-user-roles').click();

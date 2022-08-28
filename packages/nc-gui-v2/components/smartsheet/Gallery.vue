@@ -49,7 +49,13 @@ provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
-const coverImageColumn = $(computed(() => fields.value.find((col) => col.id === galleryData.value?.fk_cover_image_col_id)))
+const coverImageColumn: any = $(
+  computed(() =>
+    meta?.value.columnsById
+      ? meta.value.columnsById[galleryData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
+      : {},
+  ),
+)
 
 watch(
   [meta, view],
@@ -71,7 +77,7 @@ const isRowEmpty = (record: any, col: any) => {
 
 const attachments = (record: any): Array<Attachment> => {
   try {
-    return JSON.parse(record.row[coverImageColumn?.title]) ?? []
+    return coverImageColumn?.title ? JSON.parse(record.row[coverImageColumn.title]) : []
   } catch (e) {
     return []
   }

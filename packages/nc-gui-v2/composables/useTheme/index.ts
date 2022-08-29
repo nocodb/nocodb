@@ -22,7 +22,7 @@ const [setup, use] = useInjectionState((config?: Partial<ThemeConfig>) => {
   setTheme(config ?? currentTheme.value)
 
   /** set theme (persists in localstorage) */
-  function setTheme(theme: Partial<ThemeConfig>) {
+  function setTheme(theme?: Partial<ThemeConfig>) {
     const themePrimary = theme?.primaryColor ? tinycolor(theme.primaryColor) : tinycolor(themeV2Colors['royal-blue'].DEFAULT)
     const themeAccent = theme?.accentColor ? tinycolor(theme.accentColor) : tinycolor(themeV2Colors.pink['500'])
 

@@ -112,7 +112,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     () => route.params,
     (v) => {
       if (!v?.projectId) {
-        setTheme({})
+        setTheme()
       }
     },
   )

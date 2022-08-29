@@ -21,7 +21,7 @@ useSidebar({ hasSidebar: false })
 
 const route = useRoute()
 
-const { project, loadProject, updateProject } = useProject(route.params.id as string)
+const { project, loadProject, updateProject } = useProject(route.params.projectId as string)
 
 await loadProject()
 
@@ -43,7 +43,7 @@ const renameProject = async () => {
   try {
     await updateProject(formState)
 
-    navigateTo(`/nc/${route.params.id}`)
+    navigateTo(`/nc/${route.params.projectId}`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

@@ -81,7 +81,8 @@ export const genTest = (apiType, dbType, testMode) => {
         }
 
         before(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
+
             if( testMode === 'CY_QUICK') {
                 // cy.task("copyFile")
                 loginPage.signIn(roles.owner.credentials);
@@ -102,7 +103,20 @@ export const genTest = (apiType, dbType, testMode) => {
             cy.restoreLocalStorage();
         })
 
-        after(() => {});
+        // afterEach(() => {
+        //     cy.saveLocalStorage();
+        // })
+
+        after(() => {
+            // sign out
+            cy.visit(`/`);
+            cy.wait(5000);
+            cy.get('.nc-menu-accounts').should('exist').click();
+            cy.getActiveMenu().find('.ant-dropdown-menu-item').eq(1).click();
+
+            cy.wait(5000);
+            cy.get('button:contains("SIGN")').should('exist')
+        });
 
         it("Verify Schema", () => {
             cy.openTableTab("Film", 3)
@@ -221,8 +235,10 @@ export const genTest = (apiType, dbType, testMode) => {
         it("Verify Views & Shared base", () => {
             cy.openTableTab("Film", 3);
             mainPage.toggleRightSidebar();
-            cy.get('.nc-form-view-item').eq(0)
-              .click({ force: true })
+            cy.get('.nc-form-view-item:visible')
+                .should('exist')
+                .eq(0)
+                .click({ force: true })
 
             // Header & description should exist
             // cy.get(".nc-form")
@@ -345,29 +361,38 @@ export const genTest = (apiType, dbType, testMode) => {
             mainPage.getPagination(">").click();
             mainPage
               .getPagination(2)
-              .should("have.class", "v-pagination__item--active");
+              .should("have.class", "ant-pagination-item-active");
 
             // verify < pagination option
             mainPage.getPagination("<").click();
             mainPage
               .getPagination(1)
-              .should("have.class", "v-pagination__item--active");
+              .should("have.class", "ant-pagination-item-active");
 
             cy.closeTableTab("Actor");
         });
 
         it("Verify Fields, Filter & Sort", () => {
             cy.openTableTab("Actor", 25);
+            mainPage.toggleRightSidebar();
+
             cy.get(".nc-grid-view-item").eq(1).click()
 
-            cy.get(".nc-grid-header-cell").contains('Name').should("be.visible");
-            cy.get(".nc-grid-header-cell").contains('Notes').should("be.visible");
-            // fix me!
-            if(testMode !== 'AT_IMPORT') cy.get(".nc-grid-header-cell").contains('Attachments').should("not.be.visible");
-            cy.get(".nc-grid-header-cell").contains('Status').should("be.visible");
-            cy.get(".nc-grid-header-cell").contains('Film').should("be.visible");
+            cy.get(".nc-grid-header").find(`th[data-title="Name"]`).should("be.visible");
+            cy.get(".nc-grid-header").find(`th[data-title="Notes"]`).should("be.visible");
+            cy.get(".nc-grid-header").find(`th[data-title="Attachments"]`).should("not.exist");
+            cy.get(".nc-grid-header").find(`th[data-title="Status"]`).should("be.visible");
+            cy.get(".nc-grid-header").find(`th[data-title="Film"]`).should("be.visible");
 
-            cy.get(".nc-fields-menu-btn").click();
+            // cy.get(".nc-grid-header").contains('Notes').should("be.visible");
+            // fix me!
+            // if(testMode !== 'AT_IMPORT') cy.get(".nc-grid-header-cell").contains('Attachments').should("not.be.visible");
+            // cy.get(".nc-grid-header-cell").contains('Status').should("be.visible");
+            // cy.get(".nc-grid-header-cell").contains('Film').should("be.visible");
+
+            cy.wait(2000);
+            cy.get(".nc-fields-menu-btn").click()
+
             cy.getActiveMenu().find(`[type="checkbox"]`).eq(0).should('be.checked')
             cy.getActiveMenu().find(`[type="checkbox"]`).eq(1).should('be.checked')
             cy.getActiveMenu().find(`[type="checkbox"]`).eq(2).should('not.be.checked')
@@ -407,15 +432,18 @@ export const genTest = (apiType, dbType, testMode) => {
             if( testMode === 'CY_QUICK') {
 
                 cy.openTableTab("Producer", 3)
+                mainPage.toggleRightSidebar();
+
                 cy.get('.nc-grid-view-item').should('have.length', 4)
                 cy.get('.nc-form-view-item').should('have.length', 4)
                 cy.get('.nc-gallery-view-item').should('have.length', 3)
 
                 // LinkToAnotherRecord hm relation
                 mainPage.getCell("FilmRead", 1).scrollIntoView();
-                cy.get(
-                  ':nth-child(1) > [data-col="FilmRead"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(1) > .v-chip__content > .name'
-                )
+                cy.get('[data-title="FilmRead"] > .h-full > .nc-virtual-cell > .w-full > .chips > .chip > .name')
+                // cy.get(
+                //   ':nth-child(1) > [data-col="FilmRead"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(1) > .v-chip__content > .name'
+                // )
                   .contains('Movie-1')
                   .should("exist");
 

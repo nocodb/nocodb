@@ -137,6 +137,8 @@ export class _projectsPage {
             cy.get(".nc-metadb-project-name").should("exist");
             cy.contains("button", "Create").should("exist");
 
+            cy.wait(1000)
+
             // feed project name
             cy.get(".nc-metadb-project-name", { timeout: 20000 }).clear().type(
                 projectName

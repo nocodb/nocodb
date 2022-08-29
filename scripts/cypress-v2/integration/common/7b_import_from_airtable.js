@@ -13,7 +13,6 @@ export const genTest = (apiType, dbType) => {
 
   describe(`Import from airtable`, () => {
     before(() => {
-      cy.fileHook();
       apiKey = Cypress.env("airtable").apiKey;
       sharedBase = Cypress.env("airtable").sharedBase;
 
@@ -21,14 +20,17 @@ export const genTest = (apiType, dbType) => {
       projectsPage.createProject({ dbType: "none", apiType: "REST", name: "importSample" }, {})
     });
 
-    after(() => {});
+    after(() => {
+      cy.saveLocalStorage();
+    });
 
     it("Import", () => {
       cy.log(apiKey, sharedBase);
 
       // trigger import
-      cy.get(`[data-menu-id="addORImport"]`).click();
-      cy.getActivePopUp().contains("Airtable").should('exist').click();
+      cy.get('.nc-add-new-table').should('exist').trigger('mouseover')
+      cy.get('.nc-import-menu').should('exist').click()
+      cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Airtable').click()
 
       cy.getActiveModal().find(".nc-input-api-key").should('exist').clear().type(apiKey)
       cy.getActiveModal().find(".nc-input-shared-base").should('exist').clear().type(sharedBase)

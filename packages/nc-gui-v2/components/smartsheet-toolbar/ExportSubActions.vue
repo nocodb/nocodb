@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx'
 import { message } from 'ant-design-vue'
 
 const isPublicView = inject(IsPublicInj, ref(false))
+
 const fields = inject(FieldsInj, ref([]))
 
 const { project } = useProject()
@@ -14,6 +15,8 @@ const { $api } = useNuxtApp()
 const meta = inject(MetaInj)
 
 const selectedView = inject(ActiveViewInj)
+
+const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
 const exportFile = async (exportType: ExportTypes) => {
   let offset = 0
@@ -36,7 +39,10 @@ const exportFile = async (exportType: ExportTypes) => {
           {
             responseType,
             query: {
+              fields: fields.value.map((field) => field.title),
               offset,
+              sortArrJson: JSON.stringify(sorts.value),
+              filterArrJson: JSON.stringify(nestedFilters.value),
             },
           } as any,
         )

@@ -210,7 +210,7 @@ watch(themePrimaryColors, async (nextColors) => {
               <div @click.stop>
                 <a-menu class="!border-0 !m-0 !p-0" trigger-sub-menu-action="click">
                   <template v-if="isUIAllowed('projectTheme')">
-                    <a-sub-menu key="theme">
+                    <a-sub-menu key="theme" popup-class-name="custom-color">
                       <template #title>
                         <div
                           class="color-selector"
@@ -232,7 +232,7 @@ watch(themePrimaryColors, async (nextColors) => {
                       />
                       <a-sub-menu key="pick-primary">
                         <template #title>
-                          <div class="nc-project-menu-item group">
+                          <div class="nc-project-menu-item group !py-0">
                             <ClarityColorPickerSolid class="group-hover:text-accent" />
                             Custom Color
                           </div>
@@ -305,5 +305,11 @@ watch(themePrimaryColors, async (nextColors) => {
 
 :deep(.ant-menu-submenu-title) {
   @apply !p-0 !mr-1 !my-0 !h-5;
+}
+</style>
+
+<style>
+.custom-color .ant-menu-submenu-title {
+  height: auto !important;
 }
 </style>

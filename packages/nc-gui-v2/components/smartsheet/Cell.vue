@@ -170,6 +170,6 @@ const syncAndNavigate = (dir: NavigateDir) => {
     <CellText v-else-if="isString" v-model="vModel" />
     <CellJson v-else-if="isJSON" v-model="vModel" />
     <CellText v-else v-model="vModel" />
-    <div v-if="(isLocked || (isPublic && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
+    <div v-if="(isLocked || (isPublic && readOnly && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
   </div>
 </template>

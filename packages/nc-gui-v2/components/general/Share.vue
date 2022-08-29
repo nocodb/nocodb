@@ -52,7 +52,7 @@ const openUrl = (url: string) => {
       @click.prevent="openUrl(`https://twitter.com/intent/tweet?url=${shareUrl}&text=${encodedSummary}&hashtags=${hashTags}`)"
     >
       <img
-        src="~/public/social/twitter.png"
+        src="~/assets/img/social/twitter.png"
         class="img-responsive"
         alt="Twitter"
         :width="width"
@@ -71,7 +71,7 @@ const openUrl = (url: string) => {
       "
     >
       <img
-        src="~/public/social/linkedin.png"
+        src="~/assets/img/social/linkedin.png"
         class="img-responsive"
         alt="Linkedin"
         :width="width"
@@ -92,7 +92,7 @@ const openUrl = (url: string) => {
       "
     >
       <img
-        src="~/public/social/facebook.png"
+        src="~/assets/img/social/facebook.png"
         class="img-responsive"
         alt="Facebook"
         :width="width"
@@ -109,7 +109,7 @@ const openUrl = (url: string) => {
       @click.prevent="openUrl(`https://www.reddit.com/submit?url=${shareUrl}&title=${encodedSummary}`)"
     >
       <img
-        src="~/public/social/reddit.png"
+        src="~/assets/img/social/reddit.png"
         class="img-responsive"
         alt="Reddit"
         :width="width"
@@ -126,7 +126,7 @@ const openUrl = (url: string) => {
       @click.prevent="openUrl(`https://pinterest.com/pin/create/button/?url=${shareUrl}&description==${encodedSummary}`)"
     >
       <img
-        src="~/public/social/pinterest.png"
+        src="~/assets/img/social/pinterest.png"
         class="img-responsive"
         alt="Printrest"
         :width="width"
@@ -143,7 +143,7 @@ const openUrl = (url: string) => {
       @click.prevent="openUrl(`https://api.whatsapp.com/send?text=${encodedSummary}%0D%0A${shareUrl}`)"
     >
       <img
-        src="~/public/social/whatsapp.png"
+        src="~/assets/img/social/whatsapp.png"
         class="img-responsive"
         alt="Whatsapp"
         :width="width"
@@ -159,7 +159,7 @@ const openUrl = (url: string) => {
       @click.prevent="openUrl(`https://telegram.me/share/url?url=${shareUrl}&text=${encodedSummary}`)"
     >
       <img
-        src="~/public/social/png/telegram.png"
+        src="~/assets/img/social/png/telegram.png"
         class="img-responsive"
         alt="Telegram"
         :width="width"
@@ -174,7 +174,7 @@ const openUrl = (url: string) => {
       @click.prevent="openUrl(`https://www.addtoany.com/add_to/wechat?linkurl=${shareUrl}&linkname=${encodedTitle}`)"
     >
       <img
-        src="~/public/social/png/wechat.png"
+        src="~/assets/img/social/png/wechat.png"
         class="img-responsive"
         alt="Wechat"
         :width="width"
@@ -184,7 +184,7 @@ const openUrl = (url: string) => {
     </a>
     <a v-if="!socialMedias || !socialMedias.length || socialMedias.includes('line')" href="#" :class="iconClass" class="px-2">
       <img
-        src="~/public/social/png/line.png"
+        src="~/assets/img/social/png/line.png"
         class="img-responsive"
         alt="Line"
         :width="width"
@@ -200,7 +200,7 @@ const openUrl = (url: string) => {
       class="px-2"
     >
       <img
-        src="~/public/social/png/odnoklassniki.png"
+        src="~/assets/img/social/png/odnoklassniki.png"
         class="img-responsive"
         alt="Odnoklassniki"
         :width="width"
@@ -219,7 +219,7 @@ const openUrl = (url: string) => {
       @click.prevent="openUrl(`http://service.weibo.com/share/share.php?url=${shareUrl})&title=${encodedTitle}`)"
     >
       <img
-        src="~/public/social/png/weibo.png"
+        src="~/assets/img/social/png/weibo.png"
         class="img-responsive"
         alt="Weibo"
         :width="width"
@@ -238,7 +238,7 @@ const openUrl = (url: string) => {
       "
     >
       <img
-        src="~/public/social/png/renren.png"
+        src="~/assets/img/social/png/renren.png"
         class="img-responsive"
         alt="Renren"
         :width="width"
@@ -253,7 +253,7 @@ const openUrl = (url: string) => {
       @click.prevent="openUrl(`http://www.douban.com/recommend/?url=${shareUrl}&title=${encodedTitle}`)"
     >
       <img
-        src="~/public/social/png/douban.png"
+        src="~/assets/img/social/png/douban.png"
         class="img-responsive"
         alt="Douban"
         :width="width"
@@ -271,7 +271,7 @@ const openUrl = (url: string) => {
       "
     >
       <img
-        src="~/public/social/png/vk.png"
+        src="~/assets/img/social/png/vk.png"
         class="img-responsive"
         alt="VK"
         :width="width"
@@ -286,7 +286,7 @@ const openUrl = (url: string) => {
       @click.prevent="openUrl(`https://www.addtoany.com/add_to/wykop?linkurl=${shareUrl}&linkname=${encodedTitle}`)"
     >
       <img
-        src="~/public/social/png/wykop.jpg"
+        src="~/assets/img/social/png/wykop.jpg"
         class="img-responsive"
         alt="Wykop"
         :width="width"

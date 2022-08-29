@@ -60,6 +60,8 @@
               }||${tab.name}`"
               :hide-log-windows.sync="hideLogWindows"
               :nodes="tab._nodes"
+              :last-opened-view-map="lastOpenedViewMap"
+              @setLastOpenedView="setLastOpenedView"
             />
           </div>
           <div v-else-if="tab._nodes.type === 'view'" style="height: 100%">
@@ -369,6 +371,7 @@ export default {
   },
   data() {
     return {
+      lastOpenedViewMap: {},
       dragOver: false,
       dialogCreateTableShow: false,
       test: '',
@@ -382,6 +385,9 @@ export default {
     };
   },
   methods: {
+    setLastOpenedView(table, id) {
+      this.lastOpenedViewMap[table] = id;
+    },
     dialogCreateTableShowMethod() {
       this.dialogCreateTableShow = true;
       this.$e('c:table:create:navbar');

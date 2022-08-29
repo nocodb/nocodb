@@ -1,5 +1,5 @@
 import { mainPage } from "../../support/page_objects/mainPage";
-import { loginPage } from "../../support/page_objects/navigation";
+import {loginPage, projectsPage} from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
@@ -7,39 +7,42 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} Columns of type attachment`, () => {
         before(() => {
-            cy.fileHook();
             loginPage.loginAndOpenProject(apiType, dbType);
-
-            // kludge: wait for page load to finish
-            cy.wait(3000);
-            // close team & auth tab
-            cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            cy.openTableTab("Country", 25);
             cy.wait(1000);
 
+            cy.saveLocalStorage();
+            cy.wait(1000);
+        });
 
-            cy.openTableTab("Country", 25);
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         after(() => {
-            mainPage.deleteColumn("testAttach");
+            // cy.restoreLocalStorage();
+            // cy.wait(1000);
 
-            // clean up newly added rows into Country table operations
-            // this auto verifies successfull addition of rows to table as well
-            mainPage.getPagination(5).click();
-            // kludge: flicker on load
-            cy.wait(3000)
-
-            // wait for page rendering to complete
-            cy.get(".nc-grid-row").should("have.length", 10);
-            // mainPage
-            //     .getRow(10)
-            //     .find(".mdi-checkbox-blank-outline")
-            //     .click({ force: true });
-
-            mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu().contains("Delete Row").click();
-
-            cy.closeTableTab("Country");
+            // mainPage.deleteColumn("testAttach");
+            //
+            // // clean up newly added rows into Country table operations
+            // // this auto verifies successfull addition of rows to table as well
+            // mainPage.getPagination(5).click();
+            // // kludge: flicker on load
+            // cy.wait(3000)
+            //
+            // // wait for page rendering to complete
+            // cy.get(".nc-grid-row").should("have.length", 10);
+            // // mainPage
+            // //     .getRow(10)
+            // //     .find(".mdi-checkbox-blank-outline")
+            // //     .click({ force: true });
+            //
+            // mainPage.getCell("Country", 10).rightclick();
+            // cy.getActiveMenu().contains("Delete Row").click();
+            //
+            // cy.closeTableTab("Country");
         });
 
         it(`Add column of type attachments`, () => {
@@ -63,7 +66,7 @@ export const genTest = (apiType, dbType) => {
             cy.get('.nc-toggle-right-navbar').should('exist').click();
 
             // create form-view
-            cy.get(`.nc-create-1-view`).click();
+            cy.get(`.nc-create-form-view`).click();
             cy.getActiveModal().find("button:contains(Submit)").click();
 
             cy.toastWait("View created successfully");
@@ -122,15 +125,13 @@ export const genTest = (apiType, dbType) => {
 
         it(`Filter column which contain only attachments, download CSV`, () => {
             // come back to main window
-            loginPage.loginAndOpenProject(apiType, dbType);
+            // loginPage.loginAndOpenProject(apiType, dbType);
+            cy.visit('/')
+            cy.wait(5000)
 
-            // kludge: wait for page load to finish
-            cy.wait(3000);
-            // close team & auth tab
-            cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            cy.wait(1000);
-
+            projectsPage.openConfiguredProject(apiType, dbType);
             cy.openTableTab("Country", 25);
+            cy.wait(1000);
 
             mainPage.filterField("testAttach", "is not null", null);
             mainPage.hideField("LastUpdate");
@@ -157,6 +158,29 @@ export const genTest = (apiType, dbType) => {
             mainPage.downloadAndVerifyCsv(`Country_exported_1.csv`, verifyCsv);
             mainPage.unhideField("LastUpdate");
             mainPage.filterReset();
+
+
+            // clean up
+            mainPage.deleteColumn("testAttach");
+
+            // clean up newly added rows into Country table operations
+            // this auto verifies successfull addition of rows to table as well
+            mainPage.getPagination(5).click();
+            // kludge: flicker on load
+            cy.wait(3000)
+
+            // wait for page rendering to complete
+            cy.get(".nc-grid-row").should("have.length", 10);
+            // mainPage
+            //     .getRow(10)
+            //     .find(".mdi-checkbox-blank-outline")
+            //     .click({ force: true });
+
+            mainPage.getCell("Country", 10).rightclick();
+            cy.getActiveMenu().contains("Delete Row").click();
+
+            cy.closeTableTab("Country");
+
         });
     });
 };

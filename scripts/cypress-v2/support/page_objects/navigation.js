@@ -21,7 +21,7 @@ export class _loginPage {
     // visit SignIn URL, enter credentials passed as parameters
     //
     signIn(userCredentials) {
-        this.go(urlPool.ncUrlSignIn);
+        this.go(urlPool.ncUrlBase);
 
         cy.get('input[type="text"]', { timeout: 20000 }).type(
             userCredentials.username
@@ -68,24 +68,21 @@ export class _loginPage {
     // standard pre-project activity
     //
     loginAndOpenProject(apiType, dbType) {
-        cy.restoreLocalStorage();
-        cy.wait(1000);
-
         loginPage.signIn(roles.owner.credentials);
-
-        if (dbType === "mysql") {
-            projectsPage.openProject(staticProjects.externalREST.basic.name);
-        } else if (dbType === "xcdb") {
-            projectsPage.openProject(staticProjects.sampleREST.basic.name);
-        } else if (dbType === "postgres") {
-            projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
-        }
-
-        // kludge: wait for page load to finish
-        cy.wait(2000);
-        // close team & auth tab
-        cy.get('button.ant-tabs-tab-remove').should('exist').click();
-        cy.wait(1000);
+        projectsPage.openConfiguredProject(apiType, dbType);
+        // if (dbType === "mysql") {
+        //     projectsPage.openProject(staticProjects.externalREST.basic.name);
+        // } else if (dbType === "xcdb") {
+        //     projectsPage.openProject(staticProjects.sampleREST.basic.name);
+        // } else if (dbType === "postgres") {
+        //     projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
+        // }
+        //
+        // // kludge: wait for page load to finish
+        // cy.wait(2000);
+        // // close team & auth tab
+        // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+        // cy.wait(1000);
     }
 }
 
@@ -98,6 +95,24 @@ export class _projectsPage {
 
     // {dbType, apiType, name}
     // for external database, {databaseType, hostAddress, portNumber, username, password, databaseName}
+
+    openConfiguredProject(apiType, dbType) {
+
+        if (dbType === "mysql") {
+            projectsPage.openProject(staticProjects.externalREST.basic.name);
+        } else if (dbType === "xcdb") {
+            projectsPage.openProject(staticProjects.sampleREST.basic.name);
+        } else if (dbType === "postgres") {
+            projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
+        }
+
+        // kludge: wait for page load to finish
+        cy.wait(4000);
+        // close team & auth tab
+        cy.get('button.ant-tabs-tab-remove').should('exist').click();
+        cy.wait(1000);
+    }
+
 
     // Open existing project
     //

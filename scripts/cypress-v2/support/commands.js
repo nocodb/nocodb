@@ -260,6 +260,8 @@ Cypress.Commands.add("restoreLocalStorage", (name) => {
     Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
         localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key]);
     });
+
+    cy.printLocalStorage();
 });
 
 Cypress.Commands.add("deleteLocalStorage", () => {
@@ -472,6 +474,16 @@ Cypress.Commands.add("fileHook", () => {
     window.localStorage.setItem('vueuse-color-scheme', 'light')
 });
 
+Cypress.Commands.add("signOut", () => {
+    // sign out
+    cy.visit(`/`);
+    cy.wait(5000);
+    cy.get('.nc-menu-accounts').should('exist').click();
+    cy.getActiveMenu().find('.ant-dropdown-menu-item').eq(1).click();
+
+    cy.wait(5000);
+    cy.get('button:contains("SIGN")').should('exist')
+});
 
 
 // Drag n Drop

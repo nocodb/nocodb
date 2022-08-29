@@ -10,13 +10,29 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} Upload/ Download CSV`, () => {
         before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
+
+            // kludge: wait for page load to finish
+            cy.wait(2000);
+            // close team & auth tab
+            cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            cy.wait(1000);
+
             cy.openTableTab("Country", 25);
+            cy.wait(1000);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
+        });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         after(() => {
             cy.closeTableTab("Country");
+            cy.saveLocalStorage();
+            cy.wait(1000);
         });
 
         it("Download verification- base view, default columns", () => {

@@ -7,22 +7,40 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Language support`, () => {
         before(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             cy.visit("/")
+            cy.wait(5000);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
         });
 
         beforeEach(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
+
+        after(() => {
+            cy.get('.nc-menu-accounts').should('exist').click();
+            cy.getActiveMenu().find('.ant-dropdown-menu-item').eq(1).click();
+
+            cy.wait(5000);
+            cy.get('button:contains("SIGN")').should('exist')
+        })
 
         const langVerification = (idx, lang) => {
             // pick json from the file specified
             it(`Language verification: ${lang} > Projects page`, () => {
                 let json = require(`../../../../packages/nc-gui-v2/lang/${lang}`);
 
+                cy.wait(500);
                 // toggle menu as per index
                 cy.get(".nc-menu-translate").should('exist').last().click();
+                cy.wait(500);
                 cy.getActiveMenu().find(".ant-dropdown-menu-item").eq(idx).click();
+                cy.wait(200);
 
                 // basic validations
                 // 1. Page title: "My Projects"
@@ -74,6 +92,9 @@ export const genTest = (apiType, dbType) => {
         // Index is the order in which menu options appear
         for (let i = 0; i < langMenu.length; i++)
             langVerification(i, langMenu[i]);
+
+        // reset to English
+        langVerification(2, langMenu[2]);
     });
 };
 

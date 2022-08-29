@@ -226,13 +226,22 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Webhook`, () => {
         before(() => {
-            cy.fileHook();
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.createTable("Temp");
+            cy.wait(1000);
+
+            cy.saveLocalStorage();
+        });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         after(() => {
             cy.deleteTable("Temp");
+            cy.saveLocalStorage();
+            cy.wait(1000);
         });
 
         it("Create: 'After Insert' event", () => {

@@ -68,7 +68,10 @@ export const genTest = (apiType, dbType) => {
 
     describe(`Import from excel`, () => {
         before(() => {
-            cy.fileHook();
+
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             cy.task("readSheetList", {
                 file: `./scripts/cypress/fixtures/${filepath}`,
             }).then((rows) => {
@@ -84,8 +87,14 @@ export const genTest = (apiType, dbType) => {
                 sheetData = rows;
             });
 
-            loginPage.signIn(roles.owner.credentials);
+            // loginPage.signIn(roles.owner.credentials);
             projectsPage.createProject({ dbType: "none", apiType: "REST", name: "importSample" }, {})
+            cy.wait(4000);
+        });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         it("File Upload: Upload excel as template", () => {
@@ -111,7 +120,7 @@ export const genTest = (apiType, dbType) => {
                 .then((sheets) => {
 
                     // hardcoded. fix me.
-                    let sheetList = ["Sheet1", "Sheet3", "Sheet4"];
+                    let sheetList = ["Sheet2", "Sheet3", "Sheet4"];
 
                     for (let i = 0; i < sheets.length; i++) {
                         cy.wrap(sheets[i])
@@ -153,7 +162,7 @@ export const genTest = (apiType, dbType) => {
 
         it("File Upload: Verify loaded data", () => {
 
-            cy.openTableTab("Sheet1", 2);
+            cy.openTableTab("Sheet2", 2);
             for (const [key, value] of Object.entries(expectedData)) {
                 mainPage
                     .getCell(value[2], 1)
@@ -164,7 +173,7 @@ export const genTest = (apiType, dbType) => {
                     .contains(sheetData[1][value[0]])
                     .should("exist");
             }
-            cy.closeTableTab("Sheet1");
+            cy.closeTableTab("Sheet2");
 
             cy.openTableTab("Sheet3", 2);
             for (const [key, value] of Object.entries(expectedData)) {
@@ -273,17 +282,17 @@ export const genTest = (apiType, dbType) => {
             // mainPage.toolBarTopLeft(mainPage.HOME).click();
             // projectsPage.deleteProject("importSample");
 
-            cy.get('.nc-noco-brand-icon').click();
-
-            cy.get(`.nc-action-btn`)
-              .should("exist")
-              .last()
-              .click();
-
-            cy.getActiveModal()
-              .find(".ant-btn-dangerous")
-              .should("exist")
-              .click();
+            // cy.get('.nc-noco-brand-icon').click();
+            //
+            // cy.get(`.nc-action-btn`)
+            //   .should("exist")
+            //   .last()
+            //   .click();
+            //
+            // cy.getActiveModal()
+            //   .find(".ant-btn-dangerous")
+            //   .should("exist")
+            //   .click();
         });
     });
 };

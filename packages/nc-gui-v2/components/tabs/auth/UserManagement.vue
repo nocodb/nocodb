@@ -137,7 +137,7 @@ const resendInvite = async (user: User) => {
 const copyInviteUrl = (user: User) => {
   if (!user.invite_token) return
 
-  copy(`${dashboardUrl}/signup/${user.invite_token}`)
+  copy(`${dashboardUrl}#/signup/${user.invite_token}`)
 
   message.success('Invite url copied to clipboard')
 }

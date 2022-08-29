@@ -11,10 +11,16 @@ const filePath = path.join(__dirname, '..', 'node_modules', 'nuxt', 'dist', 'pag
 const content = fs.readFileSync(filePath, 'utf8')
 
 /** Replace `createWebHistory` with `createWebHashHistory` */
-const updatedContent = content.replace(
-  /createRouter(\s*,\s*)createWebHistory(\s*,\s*)createMemoryHistory/,
-  `createRouter$1createWebHashHistory as createWebHistory$2createMemoryHistory`,
-)
+const updatedContent = content
+  .replace(
+    /createRouter(\s*,\s*)createWebHistory(\s*,\s*)createMemoryHistory/,
+    `createRouter$1createWebHashHistory as createWebHistory$2createMemoryHistory`,
+  )
+  /** Replace initial Handle initial routing based on hash path */
+  .replace(
+    `const { pathname, search, hash } = location;`,
+    `const { pathname, search, hash } = new URL((location.hash || '').replace(/^#/, ''), location.origin);`,
+  )
 
 /** Update file content with updated code */
 fs.writeFileSync(filePath, updatedContent, 'utf8')

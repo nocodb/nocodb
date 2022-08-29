@@ -215,7 +215,7 @@ watch(themePrimaryColors, async (nextColors) => {
                         <div
                           class="color-selector"
                           :style="{
-                            'background-color': themePrimaryColors[record.id],
+                            'background-color': themePrimaryColors[record.id].hex8 || themePrimaryColors[record.id],
                             'width': '8px',
                             'height': '100%',
                           }"

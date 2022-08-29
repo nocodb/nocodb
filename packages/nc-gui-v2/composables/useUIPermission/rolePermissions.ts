@@ -1,4 +1,5 @@
 const rolePermissions = {
+  super: '*',
   creator: '*',
   owner: '*',
   guest: {},

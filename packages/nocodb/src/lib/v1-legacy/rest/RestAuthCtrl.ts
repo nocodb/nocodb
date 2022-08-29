@@ -1497,7 +1497,7 @@ export default class RestAuthCtrl {
           to: email,
           subject: 'Verify email',
           html: ejs.render(template, {
-            signupLink: `${req.ncSiteUrl}${this.config?.dashboardPath}#/user/authentication/signup/${token}`,
+            signupLink: `${req.ncSiteUrl}${this.config?.dashboardPath}#/signup/${token}`,
             projectName: req.body?.projectName,
             roles: (req.body?.roles || '')
               .split(',')

@@ -103,7 +103,7 @@ const saveUser = async () => {
   }
 }
 
-const inviteUrl = $computed(() => (usersData.invitationToken ? `${dashboardUrl}/signup/${usersData.invitationToken}` : null))
+const inviteUrl = $computed(() => (usersData.invitationToken ? `${dashboardUrl}#/signup/${usersData.invitationToken}` : null))
 
 const copyUrl = async () => {
   if (!inviteUrl) return

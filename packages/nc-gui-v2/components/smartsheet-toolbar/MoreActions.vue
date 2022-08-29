@@ -33,6 +33,8 @@ const fields = inject(FieldsInj, ref([]))
 
 const selectedView = inject(ActiveViewInj)
 
+const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+
 const isLocked = inject(IsLockedInj)
 
 const showWebhookDrawer = ref(false)
@@ -62,7 +64,10 @@ const exportFile = async (exportType: ExportTypes) => {
           {
             responseType,
             query: {
+              fields: fields.value.map((field) => field.title),
               offset,
+              sortArrJson: JSON.stringify(sorts.value),
+              filterArrJson: JSON.stringify(nestedFilters.value),
             },
           } as any,
         )

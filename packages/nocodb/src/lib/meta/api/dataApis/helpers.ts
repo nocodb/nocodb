@@ -65,6 +65,7 @@ export async function extractXlsxData(view: View, req: Request) {
 
 export async function extractCsvData(view: View, req: Request) {
   const base = await Base.get(view.base_id);
+  const fields = req.query.fields;
 
   await view.getModelWithInfo();
   await view.getColumns();
@@ -87,7 +88,17 @@ export async function extractCsvData(view: View, req: Request) {
 
   const data = papaparse.unparse(
     {
-      fields: view.model.columns.map((c) => c.title),
+      fields: view.model.columns
+        .sort((c1, c2) =>
+          Array.isArray(fields)
+            ? fields.indexOf(c1.title as any) - fields.indexOf(c2.title as any)
+            : 0
+        )
+        .filter(
+          (c) =>
+            !fields || !Array.isArray(fields) || fields.includes(c.title as any)
+        )
+        .map((c) => c.title),
       data: dbRows,
     },
     {
@@ -107,6 +118,14 @@ async function getDbRows(baseModel, view: View, req: Request) {
   const startTime = process.hrtime();
   let elapsed, temp;
 
+  const listArgs: any = { ...req.query };
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+    try {
+      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+    } catch (e) {}
+
   for (
     elapsed = 0;
     elapsed < timeout;
@@ -121,7 +140,7 @@ async function getDbRows(baseModel, view: View, req: Request) {
         model: view.model,
         view,
       }),
-      await baseModel.list({ ...req.query, offset, limit }),
+      await baseModel.list({ ...listArgs, offset, limit }),
       {},
       req.query
     );

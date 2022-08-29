@@ -84,6 +84,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     }
     await loadProjectRoles()
     await loadTables()
+    setTheme(projectMeta.value?.theme)
   }
 
   async function updateProject(data: Partial<ProjectType>) {
@@ -104,10 +105,6 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     setTheme(theme)
   }
 
-  watch(project, () => {
-    setTheme(projectMeta.value?.theme || {})
-  })
-
   watch(
     () => route.params,
     (v) => {
@@ -117,6 +114,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     },
   )
 
+  // TODO useProject should only called inside a project for now this doesn't work
   onScopeDispose(() => {
     project.value = {}
     tables.value = []

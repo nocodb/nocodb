@@ -12,8 +12,8 @@ const content = fs.readFileSync(filePath, 'utf8')
 
 /** Replace `createWebHistory` with `createWebHashHistory` */
 const updatedContent = content.replace(
-  /createWebHistory(\s*,\s*)createMemoryHistory/,
-  `createWebHashHistory as createWebHistory$1createMemoryHistory`,
+  /createRouter(\s*,\s*)createWebHistory(\s*,\s*)createMemoryHistory/,
+  `createRouter$1createWebHashHistory as createWebHistory$2createMemoryHistory`,
 )
 
 /** Update file content with updated code */

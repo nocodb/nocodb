@@ -60,7 +60,6 @@ const sharedViewUrl = computed(() => {
       viewType = 'view'
   }
 
-  // todo: get dashboard url
   return `${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}`
 })
 

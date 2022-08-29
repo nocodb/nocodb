@@ -66,11 +66,6 @@ export default class Noco {
     return `${siteUrl}${Noco._this?.config?.dashboardPath}`;
   }
 
-  public static async forceInit(): Promise<Router> {
-    Noco._this = new Noco();
-    return Noco._this.init();
-  }
-
   public static async init(
     args?: {
       progressCallback?: Function;
@@ -86,10 +81,12 @@ export default class Noco {
       return Noco._this.router;
     }
     Noco._this = new Noco();
+    Noco.initialized = true;
     return Noco._this.init(args, server, app);
   }
 
   private static config: NcConfig;
+  public static initialized: boolean;
   public readonly router: express.Router;
   public readonly projectRouter: express.Router;
   public static _ncMeta: NcMetaIO;

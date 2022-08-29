@@ -4,13 +4,14 @@ import server from '../server';
 import Project from '../../../../lib/models/Project';
 import { createProject } from './helpers/project';
 import { createUser } from './helpers/user';
+import { beforeEach } from 'mocha';
 
 function projectTest() {
   let app;
   let token;
   let project;
 
-  before(async function () {
+  beforeEach(async function () {
     app = await server();
     const response = await createUser(app, { roles: 'editor' });
     token = response.token;

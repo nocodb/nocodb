@@ -6,7 +6,7 @@ process.env[`DATABASE_URL`] = `mysql2://root:password@localhost:3306/${dbName}`;
 const dbConfig = NcConfigFactory.urlToDbConfig(
   NcConfigFactory.extractXcUrlFromJdbc(process.env[`DATABASE_URL`])
 );
-dbConfig.connection.database = 'sakila';
+dbConfig.connection.database = dbName;
 dbConfig.meta = {
   tn: 'nc_evolutions',
   dbAlias: 'db',

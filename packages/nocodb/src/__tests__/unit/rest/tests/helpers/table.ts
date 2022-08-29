@@ -3,7 +3,7 @@ import { defaultColumns } from './column';
 
 const defaultTableValue = {
   table_name: 'Table1',
-  title: 'Table1 Title',
+  title: 'Table1_Title',
   columns: defaultColumns,
 };
 

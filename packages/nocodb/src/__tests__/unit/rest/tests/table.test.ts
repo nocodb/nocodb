@@ -216,6 +216,44 @@ function tableTest() {
         done();
       });
   });
+
+  it('Delete table', function (done) {
+    request(app)
+      .delete(`/api/v1/db/meta/tables/${table.id}`)
+      .set('xc-auth', token)
+      .send({})
+      .expect(200, async (err) => {
+        if (err) return done(err);
+
+        const tables = await Model.list({
+          project_id: project.id,
+          base_id: project.bases[0].id,
+        });
+
+        if (tables.length !== 0) {
+          return done('Table is not deleted');
+        }
+
+        done();
+      });
+  });
+
+  // todo: Check the condtion where the table being deleted is being refered by multiple tables
+  // todo: Check the if views are also deleted
+
+  it.only('Get table', function (done) {
+    request(app)
+      .get(`/api/v1/db/meta/tables/${table.id}`)
+      .set('xc-auth', token)
+      .send({})
+      .expect(200, async (err, res) => {
+        if (err) return done(err);
+
+        if (res.body.id !== table.id) done('Wrong table');
+
+        done();
+      });
+  });
 }
 
 export default function () {

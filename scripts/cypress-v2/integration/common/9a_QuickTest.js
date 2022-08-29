@@ -87,16 +87,15 @@ export const genTest = (apiType, dbType, testMode) => {
                 // cy.task("copyFile")
                 loginPage.signIn(roles.owner.credentials);
                 projectsPage.openProject("sample");
+
+                // kludge: wait for page load to finish
+                cy.wait(2000);
+                // close team & auth tab
+                cy.get('button.ant-tabs-tab-remove').should('exist').click();
+                cy.wait(1000);
+
+                cy.saveLocalStorage();
             }
-
-            // kludge: wait for page load to finish
-            cy.wait(2000);
-            // close team & auth tab
-            cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            cy.wait(1000);
-
-            cy.saveLocalStorage();
-
         });
 
         beforeEach(() => {
@@ -108,6 +107,8 @@ export const genTest = (apiType, dbType, testMode) => {
         // })
 
         after(() => {
+            cy.restoreLocalStorage();
+
             // sign out
             cy.visit(`/`);
             cy.wait(5000);
@@ -150,10 +151,6 @@ export const genTest = (apiType, dbType, testMode) => {
             // date
 
             // duration
-            // mainPage.getCell("Duration", cellIdx).find('input').then(($e) => {
-            //     expect($e[0].value).to.equal(records2.Duration)
-            // })
-
             mainPage.getCell("Duration", cellIdx).contains(records2.Duration).should("exist");
 
             // rating
@@ -167,66 +164,34 @@ export const genTest = (apiType, dbType, testMode) => {
             // for SQLite: its Actor1, Actor2
             // LinkToAnotherRecord
             mainPage.getCell("Actor", cellIdx).scrollIntoView();
-            cy.get(
-                `[data-title="Actor"] > :nth-child(${cellIdx}) > .nc-virtual-cell > .w-full > .chips > :nth-child(1) > .name`
-            )
+            cy.get(`:nth-child(${cellIdx}) > [data-title="Actor"]`)
+                .find('.chip')
+                .eq(0)
                 .contains(records2.Actor[0])
                 .should("exist");
 
-            // cy.get(
-            //     `:nth-child(${cellIdx}) > [data-col="Actor"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(2) > .v-chip__content > .name`
-            // )
-            //     .contains(records2.Actor[1])
-            //     .should("exist");
-
             // lookup
             mainPage.getCell("Status (from Actor)", cellIdx).scrollIntoView();
-            // cy.get(
-            //     `:nth-child(${cellIdx}) > [data-col="Status (from Actor)"] > .nc-virtual-cell > .v-lazy > .d-flex > :nth-child(1) > .v-chip__content > div > .set-item`
-            // )
-            //     .contains(records2["Status (from Actor)"][0])
-            //     .should("exist");
-            cy.get(`[data-title="Status (from Actor)"] > :nth-child(${cellIdx}) > .nc-virtual-cell > .flex > :nth-child(1) > .nc-cell > .ant-select > .ant-select-selector > .ant-select-selection-item > .ant-tag`)
+            cy.get(`:nth-child(${cellIdx}) > [data-title="Status (from Actor)"]`)
+                .find('.nc-cell')
+                .eq(0)
                 .contains(records2["Status (from Actor)"][0])
                 .should("exist");
-            // cy.get(
-            //     `:nth-child(${cellIdx}) > [data-col="Status (from Actor)"] > .nc-virtual-cell > .v-lazy > .d-flex > :nth-child(2) > .v-chip__content > div > .set-item`
-            // )
-            //     .contains(records2["Status (from Actor)"][1])
-            //     .should("exist");
 
             // rollup
             if( testMode === 'CY_QUICK') {
 
                 mainPage.getCell("RollUp", cellIdx).scrollIntoView();
                 mainPage.getCell("RollUp", cellIdx).contains(records2.RollUp).should("exist");
-                // cy.get(`:nth-child(${cellIdx}) > [data-title="RollUp"] > .nc-virtual-cell`)
-                //   .contains(records2.RollUp)
-                //   .should("exist");
 
                 // formula
                 mainPage.getCell("Computation", cellIdx).scrollIntoView();
                 mainPage.getCell("Computation", cellIdx).contains(records2.Computation).should("exist");
-                // cy.get(
-                //   `:nth-child(${cellIdx}) > [data-title="Computation"] > .nc-virtual-cell`
-                // )
-                //   .contains(records2.Computation)
-                //   .should("exist");
 
                 // ltar hm relation
                 mainPage.getCell("Producer", cellIdx).scrollIntoView();
                 mainPage.getCell("Producer", cellIdx).find('.chip').eq(0).contains(records2.Producer[0]).should('exist')
                 mainPage.getCell("Producer", cellIdx).find('.chip').eq(1).contains(records2.Producer[1]).should('exist')
-                // cy.get(
-                //   `:nth-child(${cellIdx}) > [data-title="Producer"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(1) > .v-chip__content > .name`
-                // )
-                //   .contains(records2.Producer[0])
-                //   .should("exist");
-                // cy.get(
-                //   `:nth-child(${cellIdx}) > [data-title="Producer"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(2) > .v-chip__content > .name`
-                // )
-                //   .contains(records2.Producer[1])
-                //   .should("exist");
             }
 
             cy.closeTableTab("Film");
@@ -378,17 +343,13 @@ export const genTest = (apiType, dbType, testMode) => {
 
             cy.get(".nc-grid-view-item").eq(1).click()
 
+            cy.wait(3000)
+
             cy.get(".nc-grid-header").find(`th[data-title="Name"]`).should("be.visible");
             cy.get(".nc-grid-header").find(`th[data-title="Notes"]`).should("be.visible");
             cy.get(".nc-grid-header").find(`th[data-title="Attachments"]`).should("not.exist");
             cy.get(".nc-grid-header").find(`th[data-title="Status"]`).should("be.visible");
             cy.get(".nc-grid-header").find(`th[data-title="Film"]`).should("be.visible");
-
-            // cy.get(".nc-grid-header").contains('Notes').should("be.visible");
-            // fix me!
-            // if(testMode !== 'AT_IMPORT') cy.get(".nc-grid-header-cell").contains('Attachments').should("not.be.visible");
-            // cy.get(".nc-grid-header-cell").contains('Status').should("be.visible");
-            // cy.get(".nc-grid-header-cell").contains('Film').should("be.visible");
 
             cy.wait(2000);
             cy.get(".nc-fields-menu-btn").click()
@@ -451,7 +412,7 @@ export const genTest = (apiType, dbType, testMode) => {
             }
         })
 
-        it("Delete Project", () => {
+        it.skip("Delete Project", () => {
             if( testMode === 'AT_IMPORT') {
                 mainPage.toolBarTopLeft(mainPage.HOME).click({force:true})
                 cy.get(`.mdi-delete-outline`, {

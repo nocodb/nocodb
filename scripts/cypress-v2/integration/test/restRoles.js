@@ -11,7 +11,7 @@ const nocoTestSuite = (apiType, dbType) => {
     t01.genTest(apiType, dbType);
 
     t5a.genTest(apiType, dbType);
-    t5b.genTest(apiType, dbType);
+    // t5b.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "mysql");

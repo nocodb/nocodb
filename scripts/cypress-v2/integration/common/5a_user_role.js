@@ -57,20 +57,26 @@ export const genTest = (apiType, dbType) => {
                 // for subsequent projects, they will be required to just add to this project
                 // using ROW count to identify if its former or latter scenario
                 // 5 users (owner, creator, editor, viewer, commenter)  = 5
-                cy.get(`.nc-user-row`).then((obj) => {
-                    cy.log(obj.length);
-                    if (obj.length == 5) {
-                        mainPage.addExistingUserToProject(
-                            user.credentials.username,
-                            user.name
-                        );
-                    } else {
-                        mainPage.addNewUserToProject(
-                            user.credentials,
-                            user.name
-                        );
-                    }
-                });
+                // cy.get(`.nc-user-row`).then((obj) => {
+                //     cy.log(obj.length);
+                //     if (obj.length == 5) {
+                //         mainPage.addExistingUserToProject(
+                //             user.credentials.username,
+                //             user.name
+                //         );
+                //     } else {
+                //         mainPage.addNewUserToProject(
+                //             user.credentials,
+                //             user.name
+                //         );
+                //     }
+                // });
+
+                cy.get(`.nc-user-row`).should('exist')
+                mainPage.addNewUserToProject(
+                    user.credentials,
+                    user.name
+                );
             });
         };
 
@@ -79,7 +85,7 @@ export const genTest = (apiType, dbType) => {
         addUser(roles.commenter);
         addUser(roles.viewer);
 
-        // Access contrl list- configuration
+        // Access control list- configuration
         //
         it(`Access control list- configuration`, () => {
             mainPage.closeMetaTab();

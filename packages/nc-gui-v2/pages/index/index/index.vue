@@ -94,7 +94,7 @@ watch(themePrimaryColors, async (nextColors) => {
     const hexColor = nextColor.hex8 ? nextColor.hex8 : nextColor
     const tcolor = tinycolor(hexColor)
     if (tcolor) {
-      const analogous = tcolor.complement()
+      const complement = tcolor.complement()
       const project: ProjectType = await $api.project.read(projectId)
       const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
       await $api.project.update(projectId, {
@@ -103,7 +103,7 @@ watch(themePrimaryColors, async (nextColors) => {
           ...meta,
           theme: {
             primaryColor: hexColor,
-            analogousColor: analogous.toHexString(),
+            accentColor: complement.toHex8String(),
           },
         }),
       })

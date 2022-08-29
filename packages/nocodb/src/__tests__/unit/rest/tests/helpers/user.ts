@@ -15,4 +15,4 @@ const createUser = async (app, userArgs = {}) => {
   return { token: response.body.token, user };
 };
 
-export { createUser };
+export { createUser, defaultUserArgs };

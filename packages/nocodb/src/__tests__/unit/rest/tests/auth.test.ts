@@ -2,22 +2,22 @@ import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
 import server from '../server';
-
-const EMAIL_ID = 'abc@g.com';
-const VALID_PASSWORD = 'Abc@1234';
+import { createUser, defaultUserArgs } from './helpers/user';
 
 function authTests() {
   let app;
   let token;
 
-  before(async function () {
+  beforeEach(async function () {
     app = await server();
+    const response = await createUser(app);
+    token = response.token;
   });
 
   it('Signup with valid email', function (done) {
     request(app)
       .post('/api/v1/auth/user/signup')
-      .send({ email: EMAIL_ID, password: VALID_PASSWORD })
+      .send({ email: 'new@example.com', password: defaultUserArgs.password })
       .expect(200, (err, res) => {
         if (err) {
           expect(res.status).to.equal(400);
@@ -32,21 +32,24 @@ function authTests() {
   it('Signup with invalid email', (done) => {
     request(app)
       .post('/api/v1/auth/user/signup')
-      .send({ email: 'test', password: VALID_PASSWORD })
+      .send({ email: 'test', password: defaultUserArgs.password })
       .expect(400, done);
   });
 
   it('Signup with invalid passsword', (done) => {
     request(app)
       .post('/api/v1/auth/user/signup')
-      .send({ email: EMAIL_ID, password: 'weakpass' })
+      .send({ email: defaultUserArgs.email, password: 'weakpass' })
       .expect(400, done);
   });
 
   it('Signin with valid credentials', function (done) {
     request(app)
       .post('/api/v1/auth/user/signin')
-      .send({ email: EMAIL_ID, password: VALID_PASSWORD })
+      .send({
+        email: defaultUserArgs.email,
+        password: defaultUserArgs.password,
+      })
       .expect(200, async function (err, res) {
         if (err) {
           console.log(res.error);
@@ -70,14 +73,14 @@ function authTests() {
   it('Signin with invalid credentials', function (done) {
     request(app)
       .post('/api/v1/auth/user/signin')
-      .send({ email: 'abc@abc.com', password: VALID_PASSWORD })
+      .send({ email: 'abc@abc.com', password: defaultUserArgs.password })
       .expect(400, done);
   });
 
   it('Signin with invalid password', function (done) {
     request(app)
       .post('/api/v1/auth/user/signin')
-      .send({ email: EMAIL_ID, password: 'wrongPassword' })
+      .send({ email: defaultUserArgs.email, password: 'wrongPassword' })
       .expect(400, done);
   });
 
@@ -110,7 +113,7 @@ function authTests() {
           return done(err);
         }
         const email = res.body.email;
-        expect(email).to.equal(EMAIL_ID);
+        expect(email).to.equal(defaultUserArgs.email);
         done();
       });
   });
@@ -130,8 +133,8 @@ function authTests() {
       .post('/api/v1/auth/password/change')
       .set('xc-auth', token)
       .send({
-        currentPassword: VALID_PASSWORD,
-        newPassword: 'NEW' + VALID_PASSWORD,
+        currentPassword: defaultUserArgs.password,
+        newPassword: 'NEW' + defaultUserArgs.password,
       })
       .expect(200, done);
   });
@@ -141,8 +144,8 @@ function authTests() {
       .post('/api/v1/auth/password/change')
       .unset('xc-auth')
       .send({
-        currentPassword: VALID_PASSWORD,
-        newPassword: 'NEW' + VALID_PASSWORD,
+        currentPassword: defaultUserArgs.password,
+        newPassword: 'NEW' + defaultUserArgs.password,
       })
       .expect(500, function (_err, _res) {
         done();
@@ -153,14 +156,14 @@ function authTests() {
   it('Reset Password with an invalid token', function (done) {
     request(app)
       .post('/api/v1/auth/password/reset/someRandomValue')
-      .send({ email: EMAIL_ID })
+      .send({ email: defaultUserArgs.email })
       .expect(400, done);
   });
 
   it('Email validate with an invalid token', function (done) {
     request(app)
       .post('/api/v1/auth/email/validate/someRandomValue')
-      .send({ email: EMAIL_ID })
+      .send({ email: defaultUserArgs.email })
       .expect(400, done);
   });
 

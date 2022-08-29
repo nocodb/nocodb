@@ -39,30 +39,31 @@ let cn = [ "Name", "Notes", "Status", "Tags", "Done", "Date", "Phone",
     "Actor", "Status (from Actor)", "RollUp", "Computation", "Producer" ]
 
 function openWebhook(index) {
-    cy.get(".nc-btn-webhook").should("exist").click();
-    cy.get(".nc-hook").eq(index).click({ force: true });
+    cy.get('.nc-actions-menu-btn').should('exist').click();
+    cy.getActiveMenu().find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
+
+    cy.get(".nc-hook").eq(index).click();
 }
 
 // to be invoked after open
 function verifyWebhook(config) {
-    cy.get(".nc-text-field-hook-title")
-      .find('input').then(($element) => {
+    cy.get(".nc-text-field-hook-title").then(($element) => {
         expect($element[0].value).to.have.string(config.title)
     })
     cy.get(".nc-text-field-hook-event")
-      .find('.v-select__selection')
+      .find('.ant-select-selection-item')
       .contains(config.event)
       .should('exist')
-    cy.get(".nc-text-field-hook-notification-type")
-      .find('.v-select__selection')
+    cy.get(".nc-select-hook-notification-type")
+      .find('.ant-select-selection-item')
       .contains(config.notification)
       .should('exist')
     cy.get('.nc-select-hook-url-method')
-      .find('.v-select__selection')
+      .find('.ant-select-selection-item')
       .contains(config.type)
       .should('exist')
     cy.get(".nc-text-field-hook-url-path")
-      .find('input').then(($element) => {
+      .then(($element) => {
         expect($element[0].value).to.have.string(config.url)
     })
     cy.get(".nc-icon-hook-navigate-left").click({force:true})

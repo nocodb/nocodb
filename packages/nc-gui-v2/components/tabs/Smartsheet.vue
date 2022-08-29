@@ -10,7 +10,6 @@ import {
   MetaInj,
   OpenNewRecordFormHookInj,
   ReloadViewDataHookInj,
-  TabMetaInj,
   computed,
   inject,
   provide,
@@ -18,12 +17,11 @@ import {
   useMetas,
   useProvideSmartsheetStore,
   watch,
-  watchEffect,
 } from '#imports'
 
 import type { TabItem } from '~/composables'
 
-const { getMeta, metas } = useMetas()
+const { metas } = useMetas()
 
 const activeView = ref()
 
@@ -35,12 +33,7 @@ const tabMeta = inject(
   TabMetaInj,
   computed(() => ({} as TabItem)),
 )
-
 const meta = computed<TableType>(() => metas.value?.[tabMeta?.value?.id as string])
-
-watchEffect(async () => {
-  await getMeta(tabMeta?.value?.id as string)
-})
 
 const reloadEventHook = createEventHook<void>()
 const openNewRecordFormHook = createEventHook<void>()
@@ -52,7 +45,6 @@ provideSidebar({ storageKey: 'nc-right-sidebar' })
 
 // todo: move to store
 provide(MetaInj, meta)
-provide(TabMetaInj, tabMeta)
 provide(ActiveViewInj, activeView)
 provide(IsLockedInj, isLocked)
 provide(ReloadViewDataHookInj, reloadEventHook)
@@ -61,10 +53,6 @@ provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 
 const treeViewIsLockedInj = inject('TreeViewIsLockedInj', ref(false))
-
-watch(tabMeta, async (newTabMeta, oldTabMeta) => {
-  if (newTabMeta !== oldTabMeta && newTabMeta?.id) await getMeta(newTabMeta.id)
-})
 
 watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immediate: true })
 </script>

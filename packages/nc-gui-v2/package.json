@@ -10,8 +10,8 @@
     "test:ui": "vitest -c test/vite.config.ts --ui",
     "coverage": "vitest -c test/vite.config.ts run --coverage",
     "build:copy": "npm run generate; rm -rf ../nc-lib-gui-v2/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui-v2/lib/dist/",
-    "build:copy:publish": "npm run generate; rm -rf ../nc-lib-gui-v2/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui-v2/lib/dist/; npm publish ../nc-lib-gui-v2"
-
+    "build:copy:publish": "npm run generate; rm -rf ../nc-lib-gui-v2/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui-v2/lib/dist/; npm publish ../nc-lib-gui-v2",
+    "postinstall": "node scripts/updateNuxtRouting.js"
   },
   "dependencies": {
     "@ckpack/vue-color": "^1.2.0",
@@ -32,6 +32,7 @@
     "papaparse": "^5.3.2",
     "socket.io-client": "^4.5.1",
     "sortablejs": "^1.15.0",
+    "tinycolor2": "^1.4.2",
     "unique-names-generator": "^4.7.1",
     "vue-dompurify-html": "^3.0.0",
     "vue-github-button": "^3.0.3",
@@ -59,6 +60,7 @@
     "@types/file-saver": "^2.0.5",
     "@types/papaparse": "^5.3.2",
     "@types/sortablejs": "^1.13.0",
+    "@types/tinycolor2": "^1.4.3",
     "@vitest/ui": "^0.18.0",
     "@vue/compiler-sfc": "^3.2.37",
     "@vue/test-utils": "^2.0.2",

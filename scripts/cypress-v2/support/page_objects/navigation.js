@@ -68,6 +68,9 @@ export class _loginPage {
     // standard pre-project activity
     //
     loginAndOpenProject(apiType, dbType) {
+        cy.restoreLocalStorage();
+        cy.wait(1000);
+
         loginPage.signIn(roles.owner.credentials);
 
         if (dbType === "mysql") {
@@ -77,6 +80,12 @@ export class _loginPage {
         } else if (dbType === "postgres") {
             projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
         }
+
+        // kludge: wait for page load to finish
+        cy.wait(2000);
+        // close team & auth tab
+        cy.get('button.ant-tabs-tab-remove').should('exist').click();
+        cy.wait(1000);
     }
 }
 
@@ -127,6 +136,8 @@ export class _projectsPage {
             // wait for page load by verifying required elements
             cy.get(".nc-metadb-project-name").should("exist");
             cy.contains("button", "Create").should("exist");
+
+            cy.wait(1000)
 
             // feed project name
             cy.get(".nc-metadb-project-name", { timeout: 20000 }).clear().type(

@@ -29,20 +29,23 @@ export const genTest = (apiType, dbType, roleType) => {
     describe("Role preview validations", () => {
         // Sign in/ open project
         before(() => {
-            cy.fileHook();
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.openTableTab("City", 25);
+
+            cy.wait(3000);
 
             settingsPage.openProjectMenu();
             cy.getActiveMenu().find(`[data-submenu-id="preview-as"]`).should('exist').click()
             cy.wait(1000)
-            cy.get('.ant-dropdown-menu-submenu').eq(3).find(`[data-menu-id="editor"]`).should('exist').click()
+            cy.get('.ant-dropdown-menu-submenu').eq(4).find(`[data-menu-id="editor"]`).should('exist').click()
 
             cy.wait(10000)
+
+            cy.saveLocalStorage();
         });
 
         beforeEach(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
         });
 
         after(() => {
@@ -93,6 +96,9 @@ export const genTest = (apiType, dbType, roleType) => {
                   .find(`[type="radio"][value="${roleType}"]`)
                   .should('exist')
                   .click();
+
+                cy.wait(5000)
+                cy.saveLocalStorage();
             });
 
             it(`Role preview: ${roleType}: Advance settings`, () => {

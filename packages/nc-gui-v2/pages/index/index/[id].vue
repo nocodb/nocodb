@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { Form } from 'ant-design-vue'
-import type { ProjectType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
+import type { ProjectType } from 'nocodb-sdk'
+import tinycolor from 'tinycolor2'
 import {
   extractSdkResponseErrorMsg,
   navigateTo,
@@ -15,11 +16,15 @@ import {
   useSidebar,
 } from '#imports'
 
-const { api, isLoading } = useApi()
+const { isLoading } = useApi()
 
 useSidebar({ hasSidebar: false })
 
 const route = useRoute()
+
+const { project, loadProject, updateProject } = useProject(route.params.id as string)
+
+await loadProject()
 
 const nameValidationRules = [
   {
@@ -31,22 +36,15 @@ const nameValidationRules = [
 
 const form = ref<typeof Form>()
 
-const formState = reactive({
+const formState = reactive<Partial<ProjectType>>({
   title: '',
+  color: '#FFFFFF00',
 })
 
-const getProject = async () => {
-  try {
-    const result: ProjectType = await api.project.read(route.params.id as string)
-    formState.title = result.title as string
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
 const renameProject = async () => {
+  formState.color = formState.color === '#FFFFFF00' ? '' : formState.color
   try {
-    await api.project.update(route.params.id as string, formState)
+    await updateProject(formState)
 
     navigateTo(`/nc/${route.params.id}`)
   } catch (e: any) {
@@ -56,6 +54,8 @@ const renameProject = async () => {
 
 // select and focus title field on load
 onMounted(async () => {
+  formState.title = project.value.title as string
+  formState.color = project.value.color && tinycolor(project.value.color).isValid() ? project.value.color : '#FFFFFF00'
   await nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
@@ -67,8 +67,6 @@ onMounted(async () => {
     }, 500)
   })
 })
-
-await getProject()
 </script>
 
 <template>
@@ -100,6 +98,27 @@ await getProject()
         <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>
 
+      <div class="flex items-center">
+        <span>Project color: </span>
+        <a-menu class="!border-0 !m-0 !p-0">
+          <a-sub-menu key="project-color">
+            <template #title>
+              <button type="button" class="color-selector" :style="{ 'background-color': formState.color }">
+                <MdiNull v-if="formState.color === '#FFFFFF00'" />
+              </button>
+            </template>
+            <template #expandIcon></template>
+            <GeneralColorPicker v-model="formState.color" name="color" class="nc-metadb-project-color" />
+          </a-sub-menu>
+        </a-menu>
+        <MdiClose
+          v-show="formState.color !== '#FFFFFF00'"
+          class="cursor-pointer"
+          :style="{ color: 'red' }"
+          @click="formState.color = '#FFFFFF00'"
+        />
+      </div>
+
       <div class="text-center">
         <button type="submit" class="submit">
           <span class="flex items-center gap-2">
@@ -112,7 +131,7 @@ await getProject()
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .update-project {
   .ant-input-affix-wrapper,
   .ant-input {
@@ -136,5 +155,24 @@ await getProject()
       @apply ring ring-accent;
     }
   }
+}
+
+:deep(.ant-menu-submenu-title) {
+  @apply !p-0 !mx-2;
+}
+
+.color-selector {
+  position: relative;
+  height: 32px;
+  width: 32px;
+  border-radius: 5px;
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: white;
+  @apply flex text-gray-500 border-4 items-center justify-center;
+}
+
+.color-selector:hover {
+  filter: brightness(90%);
+  -webkit-filter: brightness(90%);
 }
 </style>

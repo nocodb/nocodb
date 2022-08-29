@@ -475,7 +475,7 @@ onMounted(async () => {
 
       <a-row v-if="hook.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 0]">
         <a-col :span="6">
-          <a-select v-model:value="hook.notification.payload.method" size="large">
+          <a-select v-model:value="hook.notification.payload.method" size="large" class="nc-select-hook-url-method">
             <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">{{ method.title }}</a-select-option>
           </a-select>
         </a-col>

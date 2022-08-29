@@ -47,8 +47,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const colOptions = $computed(() => column?.value.colOptions as LinkToAnotherRecordType)
 
     const { sharedView } = useSharedView() as Record<string, any>
-
-    const projectId = project?.value?.id || sharedView.value.view.project_id
+    const projectId = project?.value?.id || sharedView.value?.view?.project_id
 
     // getters
     const meta = computed(() => metas?.value?.[column?.value?.fk_model_id as string])
@@ -131,7 +130,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             meta.value.id,
             rowId.value,
             colOptions.type as 'mm' | 'hm',
-            column?.value?.title,
+            encodeURIComponent(column?.value?.title),
             {
               limit: String(childrenExcludedListPagination.size),
               offset: String(childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1)),
@@ -157,7 +156,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           meta.value.id,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
-          column?.value?.title,
+          encodeURIComponent(column?.value?.title),
           {
             limit: String(childrenListPagination.size),
             offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
@@ -213,7 +212,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           meta.value.title,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
-          column?.value?.title,
+          encodeURIComponent(column?.value?.title),
           getRelatedTableRowId(row) as string,
         )
       } catch (e: any) {
@@ -248,7 +247,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           meta.value.title as string,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
-          column?.value?.title,
+          encodeURIComponent(column?.value?.title),
           getRelatedTableRowId(row) as string,
         )
         await loadChildrenList()

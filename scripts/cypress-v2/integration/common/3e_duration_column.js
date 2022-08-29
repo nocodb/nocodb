@@ -18,7 +18,6 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create table
         //
         before(() => {
-            cy.fileHook();
             mainPage.tabReset();
 
             // // kludge: wait for page load to finish
@@ -31,7 +30,6 @@ export const genTest = (apiType, dbType) => {
         });
 
         beforeEach(() => {
-            cy.fileHook();
         });
 
         after(() => {

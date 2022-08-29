@@ -238,10 +238,11 @@ export class _mainPage {
         cy.getActiveModal().find('#form_item_from').should('exist').clear().type(from)
         cy.getActiveModal().find('#form_item_host').should('exist').clear().type(host)
         cy.getActiveModal().find('#form_item_port').should('exist').clear().type(port)
-        cy.getActiveModal().find('#form_item_secure').should('exist').clear().type(secure)
+        // cy.getActiveModal().find('#form_item_secure').should('exist').clear().type(secure)
         cy.getActiveModal().find("button").contains("Save").click();
 
         cy.toastWait('Successfully installed and email notification will use SMTP configuration');
+        settingsPage.closeMenu()
     };
 
     resetSMTP = () => {
@@ -251,6 +252,7 @@ export class _mainPage {
         cy.getActiveModal().find("button").contains("Confirm").click();
 
         cy.toastWait("Plugin uninstalled successfully");
+        settingsPage.closeMenu()
     };
 
     shareView = () => {
@@ -365,7 +367,7 @@ export class _mainPage {
                 // one of the row would contain seggregation header ('other views)
                 if (5 == $tableRow[0].childElementCount) {
                     cy.wrap($tableRow).find(".nc-icon").last().click();
-                    cy.wait(1000);
+                    cy.wait(100);
                 }
             })
             .then(() => {
@@ -380,11 +382,17 @@ export class _mainPage {
     //      wait for a while & check in configured download folder for the intended file
     //      if it exists, verify it against 'expectedRecords' passed in as parameter
     //
-    downloadAndVerifyCsv = (filename, verifyCsv) => {
-        cy.get(".nc-actions-menu-btn").click();
-        cy.getActiveMenu().find('.nc-project-menu-item').contains('Download').click();
-        cy.wait(1000);
-        cy.get('.nc-project-menu-item').contains('Download as CSV').should('exist').click();
+    downloadAndVerifyCsv = (filename, verifyCsv, role) => {
+
+        if(role === 'commenter' || role === 'viewer') {
+            cy.get(".nc-actions-menu-btn").click();
+            cy.getActiveMenu().find('.nc-project-menu-item').contains('Download as CSV').click();
+        } else {
+            cy.get(".nc-actions-menu-btn").click();
+            cy.getActiveMenu().find('.nc-project-menu-item').contains('Download').click();
+            cy.wait(1000);
+            cy.get('.nc-project-menu-item').contains('Download as CSV').should('exist').click();
+        }
 
         cy.toastWait("Successfully exported all table data").then(() => {
             // download folder path, read from config file

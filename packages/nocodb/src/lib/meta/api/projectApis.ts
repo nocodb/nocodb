@@ -23,6 +23,7 @@ import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { extractAndGenerateManyToManyRelations } from './metaDiffApis';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { extractPropsAndSanitize } from '../helpers/extractProps';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -46,12 +47,15 @@ export async function projectUpdate(
   req: Request<any, any, any>,
   res: Response<ProjectListType>
 ) {
-  // only support updating title at this moment
-  const data: any = {
-    title: DOMPurify.sanitize(req?.body?.title),
-  };
+  const project = await Project.getWithInfo(req.params.projectId);
 
-  if (await Project.getByTitle(data.title)) {
+  const data: Partial<Project> = extractPropsAndSanitize(req?.body, [
+    'title',
+    'meta',
+    'color',
+  ]);
+
+  if (data?.title && project.title !== data.title && await Project.getByTitle(data.title)) {
     NcError.badRequest('Project title already in use');
   }
 

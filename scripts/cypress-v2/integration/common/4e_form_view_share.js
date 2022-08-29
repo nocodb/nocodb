@@ -12,7 +12,6 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            cy.fileHook();
             mainPage.tabReset();
             // open a table to work on views
             //
@@ -29,7 +28,6 @@ export const genTest = (apiType, dbType) => {
         });
 
         beforeEach(() => {
-            cy.fileHook();
             cy.restoreLocalStorage();
         });
 
@@ -107,12 +105,12 @@ export const genTest = (apiType, dbType) => {
                     .contains("Form-1")
                     .click();
 
-                mainPage.shareView().click({ force: true });
-
-                cy.wait(5000);
+                cy.wait(2000);
+                mainPage.shareView().click();
 
                 // copy link text, visit URL
                 cy.getActiveModal()
+                    .should('exist')
                     .find(".share-link-box")
                     .contains("/nc/form/", { timeout: 10000 })
                     .should("exist")
@@ -199,13 +197,15 @@ export const genTest = (apiType, dbType) => {
                 cy.visit(storedURL, {
                     baseUrl: null,
                 });
-                cy.wait(5000);
+                cy.wait(2000);
 
                 // number of view entries should be 2 before we delete
                 cy.get(".nc-view-item").its("length").should("eq", 2);
 
                 // click on delete icon (becomes visible on hovering mouse)
                 cy.get(".nc-view-delete-icon").click({ force: true });
+                cy.wait(1000);
+                cy.getActiveModal().find('.ant-btn-dangerous').should('exist').click();
                 cy.toastWait("View deleted successfully");
 
                 // confirm if the number of veiw entries is reduced by 1

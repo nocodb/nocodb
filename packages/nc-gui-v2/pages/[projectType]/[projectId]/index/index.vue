@@ -92,6 +92,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
     .ant-tabs-nav-add {
       @apply !hidden;
     }
+
     .ant-tabs-nav-more {
       @apply text-white;
     }

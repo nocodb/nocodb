@@ -1,5 +1,6 @@
 import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import {loginPage} from "../../support/page_objects/navigation";
 
 let storedURL = "";
 let linkText = "";
@@ -35,32 +36,20 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            cy.fileHook();
             mainPage.tabReset();
-
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
-
             cy.openTableTab("City", 25);
 
             // store base URL- to re-visit and delete form view later
             cy.url().then((url) => {
                 storedURL = url;
             });
-
             generateLinkWithPwd();
         });
 
         beforeEach(() => {
-            cy.fileHook();
-            cy.restoreLocalStorage();
         });
 
         afterEach(() => {
-            cy.saveLocalStorage();
         });
 
         it("Share view with incorrect password", () => {
@@ -89,17 +78,22 @@ export const genTest = (apiType, dbType) => {
             cy.getActiveModal().find('button:contains("Unlock")').click();
 
             // if pwd is incorrect, active modal requesting to feed in password again will persist
-            cy.getActiveModal().find('button:contains("Unlock")').should('not.exist');
+            // cy.getActiveModal().find('button:contains("Unlock")').should('not.exist');
+            cy.get(".ant-modal-content:visible").should("not.exist")
 
             // Verify Download as CSV is here
             mainPage.downloadCsv().should("exist");
             mainPage.downloadExcel().should("exist");
         });
 
-        it("Delete view", () => {
-            cy.visit(storedURL, {
-                baseUrl: null,
-            });
+        it("Delete view",  () => {
+            // issue with restore local storage- need to refresh page to get new URL
+
+            loginPage.loginAndOpenProject(apiType, dbType);
+            // cy.restoreLocalStorage();
+            // cy.visit(storedURL, { baseUrl: null });
+
+            cy.openTableTab("City", 25);
 
             // wait for page load to complete
             cy.get(".nc-grid-row").should("have.length", 25);

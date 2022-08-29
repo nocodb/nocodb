@@ -8,6 +8,7 @@ import {
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   getHTMLEncodedText,
+  useApi,
   useProject,
   useUIPermission,
 } from '#imports'
@@ -38,6 +39,7 @@ export function useViewData(
     throw new Error('Table meta is not available')
   }
 
+  const { api, isLoading, error } = useApi()
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
   const galleryData = ref<GalleryType>()
@@ -114,9 +116,8 @@ export function useViewData(
 
   const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
-
     const response = !isPublic.value
-      ? await $api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
+      ? await api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
@@ -351,6 +352,8 @@ export function useViewData(
   }
 
   return {
+    error,
+    isLoading,
     loadData,
     paginationData,
     queryParams,

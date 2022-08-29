@@ -1,5 +1,6 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 import { mainPage, settingsPage } from "../../support/page_objects/mainPage";
+import {loginPage} from "../../support/page_objects/navigation";
 
 let formViewURL;
 
@@ -11,14 +12,24 @@ function verifyFormDrawerFieldLocation(fieldName, position) {
 }
 
 function verifyFormDrawerHideObjectCount(count) {
-    cy.get(".nc-form")
-      .find(".nc-field-remove-icon")
-      .its("length")
-      .should("eq", count);
+    if(count) {
+        cy.get(".nc-form")
+            .find(".nc-field-remove-icon")
+            .its("length")
+            .should("eq", count);
+    } else {
+        cy.get(".nc-form")
+            .find(".nc-field-remove-icon")
+            .should("not.exist");
+    }
 }
 
 function verifyFormMenuDrawerCardCount(cardCount) {
-    cy.get('.nc-form-left-drawer').find('.ant-card').should('have.length', cardCount);
+    if(cardCount) {
+        cy.get('.nc-form-left-drawer').find('.ant-card').should('have.length', cardCount);
+    } else {
+        cy.get('.nc-form-left-drawer').find('.ant-card').should('not.exist');
+    }
 }
 
 function validateFormHeader() {
@@ -47,14 +58,14 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            cy.fileHook();
             mainPage.tabReset();
+            // loginPage.loginAndOpenProject(apiType, dbType);
 
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
+            // kludge: wait for page load to finish
+            cy.wait(2000);
+            // close team & auth tab
+            cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            cy.wait(1000);
 
             // open a table to work on views
             //
@@ -63,12 +74,11 @@ export const genTest = (apiType, dbType) => {
         });
 
         beforeEach(() => {
-            cy.fileHook();
-            cy.restoreLocalStorage();
+            // fix me!
+            window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
         });
 
         afterEach(() => {
-            cy.saveLocalStorage();
         });
 
         after(() => {
@@ -103,6 +113,7 @@ export const genTest = (apiType, dbType) => {
                 cy.get(".nc-form-drag-LastUpdate").drag(
                     ".nc-form-drag-Country"
                 );
+                cy.wait(1000);
 
                 // Verify if order is: LastUpdate, Country, Country => City
                 verifyFormDrawerFieldLocation("LastUpdate", 0);
@@ -197,8 +208,8 @@ export const genTest = (apiType, dbType) => {
                 // fill up mandatory fields
                 cy.get(".nc-form-input-Country").type("_abc");
                 cy.get(".nc-form-input-LastUpdate").click();
-                cy.getActiveModal().find("button").contains("19").click();
-                cy.getActiveModal().find("button").contains("OK").click();
+                cy.get(".ant-picker-now-btn:visible").contains("Now").click();
+                cy.get(".ant-btn-primary:visible").contains("Ok").click();
 
                 // default message, no update
 
@@ -214,18 +225,15 @@ export const genTest = (apiType, dbType) => {
 
             it(`Validate ${viewType}: Submit default, with valid Show message entry`, () => {
                 // clicking again on view name shows blank still. work around- toggling between two views
-                // cy.get(`.nc-view-item.nc-grid-view-item`)
-                //     .contains("Country")
-                //     .click();
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
                     .contains("Form-1")
                     .click();
 
                 // fill up mandatory fields
-                cy.get(".nc-form-input-Country").type("_abc");
+                cy.get(".nc-form-input-Country").should('exist').type("_abc");
                 cy.get(".nc-form-input-LastUpdate").click();
-                cy.getActiveModal().find("button").contains("19").click();
-                cy.getActiveModal().find("button").contains("OK").click();
+                cy.get(".ant-picker-now-btn:visible").contains("Now").click();
+                cy.get(".ant-btn-primary:visible").contains("Ok").click();
 
                 // add message
                 cy.get("textarea.nc-form-after-submit-msg")
@@ -240,9 +248,6 @@ export const genTest = (apiType, dbType) => {
 
             it(`Validate ${viewType}: Submit default, Enable checkbox "Submit another form`, () => {
                 // clicking again on view name shows blank still. work around- toggling between two views
-                // cy.get(`.nc-view-item.nc-grid-view-item`)
-                //     .contains("Country")
-                //     .click();
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
                     .contains("Form-1")
                     .click();
@@ -250,8 +255,8 @@ export const genTest = (apiType, dbType) => {
                 // fill up mandatory fields
                 cy.get(".nc-form-input-Country").type("_abc");
                 cy.get(".nc-form-input-LastUpdate").click();
-                cy.getActiveModal().find("button").contains("19").click();
-                cy.getActiveModal().find("button").contains("OK").click();
+                cy.get(".ant-picker-now-btn:visible").contains("Now").click();
+                cy.get(".ant-btn-primary:visible").contains("Ok").click();
 
                 // enable "Submit another form" check box
                 cy.get("button.nc-form-checkbox-submit-another-form").click();
@@ -274,8 +279,8 @@ export const genTest = (apiType, dbType) => {
 
                 cy.get(".nc-form-input-Country").type("_abc");
                 cy.get(".nc-form-input-LastUpdate").click();
-                cy.getActiveModal().find("button").contains("19").click();
-                cy.getActiveModal().find("button").contains("OK").click();
+                cy.get(".ant-picker-now-btn:visible").contains("Now").click();
+                cy.get(".ant-btn-primary:visible").contains("Ok").click();
 
                 // enable "New form after 5 seconds" button
                 cy.get("button.nc-form-checkbox-submit-another-form")
@@ -303,10 +308,11 @@ export const genTest = (apiType, dbType) => {
                     .click();
 
                 // validate if form has appeared again
+                cy.wait(1000);
                 validateFormHeader();
+                cy.get(".nc-form-remove-all").click();
 
-                cy.get("button.nc-form-checkbox-send-email")
-                    .click();
+                cy.get(".nc-form-checkbox-send-email").click();
                 // validate if toaster pops up requesting to activate SMTP
                 cy.toastWait(
                     "Please activate SMTP plugin in App store for enabling email notification"
@@ -335,13 +341,17 @@ export const genTest = (apiType, dbType) => {
                 // validate if form has appeared again
                 validateFormHeader();
 
-                cy.get("button.nc-form-checkbox-send-email")
+                cy.get(".nc-form-checkbox-send-email")
                     .click();
+
+                cy.toastWait(
+                    "Please activate SMTP plugin in App store for enabling email notification"
+                );
 
                 settingsPage.openMenu(settingsPage.APPSTORE)
                 mainPage.resetSMTP();
 
-                cy.wait(3000);
+                cy.wait(300);
 
                 cy.openTableTab("Country", 25);
             });
@@ -350,30 +360,22 @@ export const genTest = (apiType, dbType) => {
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
                     .contains("Form-1")
                     .click();
+                cy.get(".nc-form-add-all").click();
 
-                cy.wait(3000);
+                cy.wait(300);
 
                 // validate if form has appeared again
                 validateFormHeader();
 
                 cy.get(".nc-form-input-LastUpdate").should("exist");
                 // remove "LastUpdate field"
-                cy.get(".nc-form").find(".nc-field-remove-icon").eq(2).click();
+                cy.get(".nc-form").find(".nc-field-remove-icon").eq(1).click();
                 cy.get(".nc-form-input-LastUpdate").should("not.exist");
-                // cy.get(".col-md-4")
-                //     .find(".pointer.item")
-                //     .contains("LastUpdate")
-                //     .should("exist");
 
-                // add it back
-                // cy.get(".col-md-4")
-                //     .find(".pointer.item")
-                //     .contains("LastUpdate")
-                //     .click();
                 cy.get('.nc-form-left-drawer').find('.ant-card').contains('LastUpdate').should('exist').click();
                 cy.get(".nc-form-input-LastUpdate").should("exist");
 
-                cy.wait(3000);
+                cy.wait(300);
             });
 
             it(`Validate ${viewType}: URL verification`, () => {
@@ -391,27 +393,33 @@ export const genTest = (apiType, dbType) => {
                     formViewURL = url;
                 });
 
-                cy.wait(3000);
+                // cy.saveLocalStorage();
+                cy.wait(300);
             });
 
-            it(`Validate ${viewType}: URL validation after re-access`, () => {
+            it.skip(`Validate ${viewType}: URL validation after re-access`, () => {
                 // visit URL
                 cy.log(formViewURL);
+                // cy.restoreLocalStorage();
+
                 cy.visit(formViewURL, {
                     baseUrl: null,
                 });
-                cy.wait(5000);
 
                 // New form appeared? Header & description should exist
                 validateFormHeader();
             });
 
             it(`Delete ${viewType} view`, () => {
+                // cy.restoreLocalStorage();
+
                 // number of view entries should be 2 before we delete
                 cy.get(".nc-view-item").its("length").should("eq", 2);
 
                 // click on delete icon (becomes visible on hovering mouse)
                 cy.get(".nc-view-delete-icon").click({ force: true });
+                cy.wait(1000)
+                cy.getActiveModal().find('.ant-btn-dangerous').click();
                 cy.toastWait("View deleted successfully");
 
                 // confirm if the number of veiw entries is reduced by 1
@@ -420,8 +428,6 @@ export const genTest = (apiType, dbType) => {
                 // clean up newly added rows into Country table operations
                 // this auto verifies successfull addition of rows to table as well
                 mainPage.getPagination(5).click();
-                // kludge: flicker on load
-                // cy.wait(3000)
 
                 cy.get(".nc-grid-row").should("have.length", 13);
                 cy.get(".ant-checkbox").should('exist').eq(10).click({ force: true });
@@ -433,27 +439,6 @@ export const genTest = (apiType, dbType) => {
                 cy.getActiveMenu()
                   .contains("Delete Selected Rows")
                   .click({ force: true });
-
-                // mainPage
-                //     .getRow(10)
-                //     .find(".mdi-checkbox-blank-outline")
-                //     .click({ force: true });
-                // mainPage
-                //     .getRow(11)
-                //     .find(".mdi-checkbox-blank-outline")
-                //     .click({ force: true });
-                // mainPage
-                //     .getRow(12)
-                //     .find(".mdi-checkbox-blank-outline")
-                //     .click({ force: true });
-                // mainPage
-                //     .getRow(13)
-                //     .find(".mdi-checkbox-blank-outline")
-                //     .click({ force: true });
-                //
-                // mainPage.getCell("Country", 10).rightclick();
-                // cy.getActiveMenu().contains("Delete Selected Row").click();
-                // cy.toastWait('Deleted selected rows successfully')
             });
         };
 

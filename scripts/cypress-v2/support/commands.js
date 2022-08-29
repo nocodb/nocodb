@@ -154,15 +154,19 @@ Cypress.Commands.add("refreshTableTab", () => {
 // rc: row count. validate row count if rc!=0
 Cypress.Commands.add("openTableTab", (tn, rc) => {
     cy.task("log", `[openTableTab] ${tn} ${rc}`);
-    cy.get(`.nc-project-tree-tbl-${tn}`, { timeout: 10000 }).should("exist")
+
+    cy.get(`.nc-project-tree-tbl-${tn}`)
+      .should("exist")
       .first()
-      .click({ force: true });
+      .click();
 
     // kludge to make new tab active
-    cy.get('.ant-tabs-tab-btn')
-      .contains(tn)
-      .should('exist')
-      .click({ force: true });
+    // cy.get('.ant-tabs-tab-btn')
+    //   .contains(tn)
+    //   .should('exist')
+    //   .click();
+    cy.wait(3000);
+
     cy.get('.xc-row-table.nc-grid').should('exist');
 
     // wait for page rendering to complete
@@ -227,14 +231,32 @@ Cypress.Commands.add("openOrCreateGqlProject", (_args) => {
 });
 
 let LOCAL_STORAGE_MEMORY = {};
+let LOCAL_STORAGE_MEMORY_v2 = {};
 
-Cypress.Commands.add("saveLocalStorage", () => {
+Cypress.Commands.add("saveLocalStorage", (name) => {
+    if(name) {
+        cy.task('log', `[saveLocalStorage] ${name}`);
+        LOCAL_STORAGE_MEMORY_v2[name] = {}
+        Object.keys(localStorage).forEach((key) => {
+            LOCAL_STORAGE_MEMORY_v2[name][key] = localStorage[key];
+        });
+        return;
+    }
+
     Object.keys(localStorage).forEach((key) => {
         LOCAL_STORAGE_MEMORY[key] = localStorage[key];
     });
 });
 
-Cypress.Commands.add("restoreLocalStorage", () => {
+Cypress.Commands.add("restoreLocalStorage", (name) => {
+    if(name) {
+        cy.task('log', `[restoreLocalStorage] ${name}`);
+        Object.keys(LOCAL_STORAGE_MEMORY_v2[name]).forEach((key) => {
+            localStorage.setItem(key, LOCAL_STORAGE_MEMORY_v2[name][key]);
+        });
+        return;
+    }
+
     Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
         localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key]);
     });
@@ -245,6 +267,11 @@ Cypress.Commands.add("deleteLocalStorage", () => {
         localStorage.removeItem(key);
     });
 });
+
+Cypress.Commands.add('printLocalStorage', () => {
+    cy.task('log', `[printLocalStorage]`);
+    cy.task('log', JSON.stringify(localStorage, null, 2));
+})
 
 Cypress.Commands.add("getActiveModal", () => {
     return cy.get(".ant-modal-content:visible").last()
@@ -264,25 +291,29 @@ Cypress.Commands.add("getActiveSelection", () => {
 
 Cypress.Commands.add("getActiveDrawer", () => {
     return cy.get(".ant-drawer-content:visible").last();
-}); 
+});
+
+Cypress.Commands.add("getActivePicker", () => {
+    return cy.get(".ant-picker-dropdown :visible").last();
+});
 
 Cypress.Commands.add("createTable", (name) => {
-    // cy.get(".nc-btn-tbl-add").click();
-
-    // cy.get(`[data-menu-id="addORImport"]`).click();
-    // cy.getActivePopUp().contains("Add new table").should('exist').click();
-
+    cy.task("log", `[createTableTab] ${name}`);
+    cy.wait(1000);
     cy.get('.nc-add-new-table').should('exist').click();
-
+    cy.wait(1000);
     cy.getActiveModal().find(`input[type="text"]:visible`)
       .click()
       .clear()
       .type(name)
-    cy.getActiveModal().find("button").contains("Submit").click();
+    // submit button
+    cy.getActiveModal().find("button.ant-btn-primary:visible").click();
+    cy.wait(1000)
     cy.get('.xc-row-table.nc-grid').should('exist');
-    cy.get('.ant-tabs-tab-active > .ant-tabs-tab-btn').contains(name).should("exist");
+    // cy.get('.ant-tabs-tab-active > .ant-tabs-tab-btn').contains(name).should("exist");
     cy.url().should("contain", `table/${name}`);
     cy.get(`.nc-project-tree-tbl-${name}`).should("exist");
+    cy.wait(1000)
 });
 
 Cypress.Commands.add("deleteTable", (name, dbType) => {

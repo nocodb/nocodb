@@ -23,22 +23,22 @@ const emit = defineEmits(['update:modelValue'])
 const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
-    emit('update:modelValue', val.hex ? val.hex : val || null)
+    emit('update:modelValue', val.hex8 ? val.hex8 : val || null)
   },
 })
 
 const picked = ref<string | Record<string, any>>(props.modelValue || enumColor.light[0])
 
 const selectColor = (color: string | Record<string, any>) => {
-  picked.value = typeof color === 'string' ? color : color.hex ? color.hex : color
-  vModel.value = typeof color === 'string' ? color : color.hex ? color.hex : color
+  picked.value = typeof color === 'string' ? color : color.hex8 ? color.hex8 : color
+  vModel.value = typeof color === 'string' ? color : color.hex8 ? color.hex8 : color
 }
 
 const compare = (colorA: string, colorB: string) => colorA.toLowerCase() === colorB.toLowerCase()
 
 watch(picked, (n, _o) => {
   if (!props.pickButton) {
-    vModel.value = typeof n === 'string' ? n : n.hex ? n.hex : n
+    vModel.value = typeof n === 'string' ? n : n.hex8 ? n.hex8 : n
   }
 })
 </script>
@@ -50,11 +50,11 @@ watch(picked, (n, _o) => {
         v-for="(color, i) of colors.slice((colId - 1) * rowSize, colId * rowSize)"
         :key="`color-${colId}-${i}`"
         class="color-selector"
-        :class="compare(picked, color) ? 'selected' : ''"
+        :class="compare(typeof picked === 'string' ? picked : picked.hex8, color) ? 'selected' : ''"
         :style="{ 'background-color': `${color}` }"
         @click="selectColor(color)"
       >
-        {{ compare(picked, color) ? '&#10003;' : '' }}
+        {{ compare(typeof picked === 'string' ? picked : picked.hex8, color) ? '&#10003;' : '' }}
       </button>
     </div>
     <a-card v-if="props.advanced" class="w-full mt-2" :body-style="{ padding: '0px' }" :bordered="false">

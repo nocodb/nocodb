@@ -49,12 +49,12 @@ export function _advSettings(roleType, mode) {
 export function _editSchema(roleType, mode) {
     let columnName = "City";
     let validationString =
-        true == roles[roleType].validations.editSchema ? "exist" : "not.exist";
+        true === roles[roleType].validations.editSchema ? "exist" : "not.exist";
 
     cy.openTableTab(columnName, 25);
 
     // create table
-    cy.get(`.nc-add-import-btn`).should(validationString);
+    cy.get(`.nc-add-new-table`).should(validationString);
 
     // delete table option
     cy.get(`.nc-project-tree-tbl-City`).should("exist").rightclick();
@@ -64,7 +64,8 @@ export function _editSchema(roleType, mode) {
         cy.getActiveMenu().find('[role="menuitem"]').contains("Delete").should("exist");
         cy.getActiveMenu().find('[role="menuitem"]').contains("Rename").should("exist");
 
-        mainPage.getCell(columnName, 1).click();
+        // click on a cell to close table context menu
+        mainPage.getCell(columnName, 3).click();
     }
 
     // add new column option
@@ -73,6 +74,15 @@ export function _editSchema(roleType, mode) {
 
     // update column (edit/ delete menu)
     cy.get('.nc-ui-dt-dropdown').should(validationString)
+
+    if(validationString === "exist"){
+        cy.get('.nc-import-menu').should('exist').click();
+        cy.getActiveMenu().should('exist')
+        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Airtable')
+        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('CSV file')
+        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('JSON file')
+        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Microsoft Excel')
+    }
 }
 
 export function _editData(roleType, mode) {
@@ -82,20 +92,17 @@ export function _editData(roleType, mode) {
 
     cy.openTableTab(columnName, 25);
 
-    // add row
+    // add row button
     cy.get('.nc-add-new-row-btn:visible').should(validationString);
 
+    // add button at bottom of page
     mainPage.getCell(columnName, 25).scrollIntoView();
-    // cy.get('.nc-grid-add-new-cell').scrollIntoView();
-
     cy.get('.nc-grid-add-new-cell:visible').should(validationString);
 
     // update row option (right click)
     //
     mainPage.getCell("City", 5).rightclick();
-
-    cy.wait(1000);
-
+    cy.wait(100);
     cy.get(".ant-dropdown-content:visible").should(validationString);
 
     if (validationString === "exist") {
@@ -183,7 +190,7 @@ export function _editComment(roleType, mode) {
             .click();
 
         cy.getActiveDrawer().find(".nc-comment-box").should('exist').type("Comment-1{enter}");
-        cy.toastWait('Comment added successfully')
+        // cy.toastWait('Comment added successfully')
         cy.getActiveDrawer().find(".nc-toggle-comments").click();
     }
 
@@ -200,54 +207,61 @@ export function _editComment(roleType, mode) {
 export function _viewMenu(roleType, mode) {
     let columnName = "City";
 
-    // Download CSV, Excel
-    let actionsMenuItemsCnt = 2;
+    // Lock, Download, Upload
+    let menuWithSubmenuCount = 3;
+
+    // share view list, webhook
+    let menuWithoutSubmenuCount = 2;
 
     cy.openTableTab(columnName, 25);
 
-    cy.wait(1000);
-
-    // temporary!
     cy.get('.nc-toggle-right-navbar').click();
     cy.wait(1000);
+
+    // hard-wire
+    // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
+
 
     let validationString =
         true === roles[roleType].validations.shareView ? "exist" : "not.exist";
 
-    if (roleType === "owner" || roleType === "creator") {
-        // Download CSV / Download XLSX / Upload CSV / Shared View List / Webhook
-        actionsMenuItemsCnt = 5;
-    } else if (roleType == "editor") {
-        // Download CSV / Upload CSV / Download XLSX
-        actionsMenuItemsCnt = 2;
+    if (roleType === "editor") {
+        // Download / Upload CSV
+        menuWithSubmenuCount = 2;
+        menuWithoutSubmenuCount = 0
+    } else if (roleType === "commenter" || roleType === "viewer") {
+        // Download CSV & Download excel
+        menuWithSubmenuCount = 0;
+        menuWithoutSubmenuCount = 2
     }
 
     // view list field (default GRID view)
     cy.get(`.nc-view-item`).should("exist");
 
     // view create option, exists only for owner/ creator
-    cy.get(`.nc-create-1-view`).should(validationString);
-    cy.get(`.nc-create-2-view`).should(validationString);
-    cy.get(`.nc-create-3-view`).should(validationString);
-
-    // share view & automations, exists only for owner/creator
-    // cy.get(".nc-btn-share-view").should(validationString);
-    // cy.get(`.nc-webhook-btn`).should(validationString);
+    cy.get(`.nc-create-grid-view`).should(validationString);
+    cy.get(`.nc-create-gallery-view`).should(validationString);
+    cy.get(`.nc-create-form-view`).should(validationString);
 
     // share view permissions are role specific
 
     // actions menu (more), only download csv should be visible for non-previlaged users
     cy.get(".nc-actions-menu-btn").click();
     cy.getActiveMenu()
-        .find('.nc-project-menu-item')
-        .should("have.length", actionsMenuItemsCnt);
+        .find('.ant-dropdown-menu-submenu:visible')
+        .should("have.length", menuWithSubmenuCount);
+    cy.getActiveMenu()
+        .find('.ant-dropdown-menu-item:visible')
+        .should("have.length", menuWithoutSubmenuCount);
+    // click again to close menu
+    cy.get(".nc-actions-menu-btn").click();
 }
 
 export function _topRightMenu(roleType, mode) {
     // kludge; download csv menu persists until clicked
     let columnName = "City";
-    cy.closeTableTab(columnName);
-    cy.openTableTab(columnName, 25);
+    // cy.closeTableTab(columnName);
+    // cy.openTableTab(columnName, 25);
 
     let validationString =
         true == roles[roleType].validations.shareView ? "exist" : "not.exist";

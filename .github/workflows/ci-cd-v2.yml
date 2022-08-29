@@ -713,7 +713,7 @@ jobs:
             start: |
               docker-compose -f ./scripts/cypress-v2/docker-compose-pg-cy-quick.yml up -d
               npm run start:api:cache:pg:cyquick  
-              npm run start:web
+              npm run start:web-v2
             spec: "./scripts/cypress-v2/integration/test/quickTest.js"
             wait-on: "http://localhost:8080"
             wait-on-timeout: 1200

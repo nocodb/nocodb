@@ -2,9 +2,10 @@ import 'mocha';
 import request from 'supertest';
 import server from '../server';
 import Project from '../../../../lib/models/Project';
-import { createProject } from './helpers/project';
+import { createProject, createSharedBase } from './helpers/project';
 import { createUser } from './helpers/user';
 import { beforeEach } from 'mocha';
+import { Exception } from 'handlebars';
 
 function projectTest() {
   let app;
@@ -198,78 +199,69 @@ function projectTest() {
       });
   });
 
-  it('Updated project shared base should have only editor or viewer role', (done) => {
-    request(app)
+  it('Updated project shared base should have only editor or viewer role', async () => {
+    await createSharedBase(app, token, project);
+
+    await request(app)
       .patch(`/api/v1/db/meta/projects/${project.id}/shared`)
       .set('xc-auth', token)
       .send({
         roles: 'commenter',
         password: 'test',
       })
-      .expect(200, async (err) => {
-        if (err) return done(err);
+      .expect(200);
+    const updatedProject = await Project.getByTitleOrId(project.id);
 
-        const updatedProject = await Project.getByTitleOrId(project.id);
-
-        if (updatedProject.roles === 'commenter') {
-          return done('Shared base not updated properly');
-        }
-
-        done();
-      });
+    if (updatedProject.roles === 'commenter') {
+      throw new Exception('Shared base not updated properly');
+    }
   });
 
-  it('Updated project shared base', (done) => {
-    request(app)
+  it('Updated project shared base', async () => {
+    await createSharedBase(app, token, project);
+
+    await request(app)
       .patch(`/api/v1/db/meta/projects/${project.id}/shared`)
       .set('xc-auth', token)
       .send({
         roles: 'editor',
         password: 'test',
       })
-      .expect(200, async (err) => {
-        if (err) return done(err);
+      .expect(200);
+    const updatedProject = await Project.getByTitleOrId(project.id);
 
-        const updatedProject = await Project.getByTitleOrId(project.id);
-
-        if (updatedProject.roles !== 'editor') {
-          return done('Shared base not updated properly');
-        }
-
-        done();
-      });
+    if (updatedProject.roles !== 'editor') {
+      throw new Exception('Shared base not updated properly');
+    }
   });
 
-  it('Get project shared base', (done) => {
-    request(app)
+  it('Get project shared base', async () => {
+    await createSharedBase(app, token, project);
+
+    await request(app)
       .get(`/api/v1/db/meta/projects/${project.id}/shared`)
       .set('xc-auth', token)
       .send()
-      .expect(200, async (err) => {
-        if (err) return done(err);
+      .expect(200);
 
-        const updatedProject = await Project.getByTitleOrId(project.id);
-        if (!updatedProject.uuid) {
-          return done('Shared base not created');
-        }
-        done();
-      });
+    const updatedProject = await Project.getByTitleOrId(project.id);
+    if (!updatedProject.uuid) {
+      throw new Exception('Shared base not created');
+    }
   });
 
-  it('Delete project shared base', (done) => {
-    request(app)
+  it('Delete project shared base', async () => {
+    await createSharedBase(app, token, project);
+
+    await request(app)
       .delete(`/api/v1/db/meta/projects/${project.id}/shared`)
       .set('xc-auth', token)
       .send()
-      .expect(200, async (err) => {
-        if (err) return done(err);
-
-        const updatedProject = await Project.getByTitleOrId(project.id);
-        if (updatedProject.uuid) {
-          return done('Shared base not delete');
-        }
-        done();
-      });
+      .expect(200);
+    const updatedProject = await Project.getByTitleOrId(project.id);
+    if (updatedProject.uuid) {
+      throw new Exception('Shared base not deleted');
+    }
   });
 
   // todo: Do compare api test

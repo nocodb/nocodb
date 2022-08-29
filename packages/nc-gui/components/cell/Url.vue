@@ -81,7 +81,7 @@ watch(
     </nuxt-link>
     <nuxt-link
       v-else-if="isValid && !disableOverlay && urlOptions?.overlay"
-      class="z-3 url-overlay hover:opacity-75"
+      class="z-3 w-full h-full text-center !no-underline hover:opacity-75"
       :to="url"
       :target="urlOptions?.behavior === 'replace' ? undefined : '_blank'"
       >{{ urlOptions.overlay }}
@@ -99,15 +99,6 @@ watch(
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.url-overlay {
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  text-decoration-line: none !important;
-}
-</style>
 
 <!--
 /**

@@ -1,22 +1,20 @@
-import type { EffectScope, InjectionKey } from 'vue'
-import { getCurrentScope } from 'vue'
-
-type ExtendedScope<T> = { [key: symbol]: T } & EffectScope
+import type { InjectionKey } from 'vue'
+import { inject, provide, tryOnScopeDispose } from '#imports'
 
 export function useInjectionState<Arguments extends any[], Return>(
   composable: (...args: Arguments) => Return,
   keyName = 'InjectionState',
 ): readonly [useInjectionState: (...args: Arguments) => Return, useInjectedState: () => Return | undefined] {
-  const keySymbol = Symbol(keyName)
-  const key: string | InjectionKey<Return> = keySymbol
+  const key: string | InjectionKey<Return> = Symbol(keyName)
+
+  let providableState: Return | undefined
 
   const useProvidingState = (...args: Arguments) => {
     const providedState = composable(...args)
 
-    const currentScope = getCurrentScope() as ExtendedScope<Return>
-    currentScope[keySymbol] = providedState
-
     provide(key, providedState)
+
+    providableState = providedState
 
     return providedState
   }
@@ -25,12 +23,15 @@ export function useInjectionState<Arguments extends any[], Return>(
     let injection = inject(key, undefined)
 
     if (typeof injection === 'undefined') {
-      const currentScope = getCurrentScope() as ExtendedScope<Return>
-      injection = currentScope[keySymbol]
+      injection = providableState
     }
 
     return injection
   }
+
+  tryOnScopeDispose(() => {
+    providableState = undefined
+  })
 
   return [useProvidingState, useInjectedState]
 }

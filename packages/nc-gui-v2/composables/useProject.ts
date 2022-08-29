@@ -103,6 +103,7 @@ export function useProject(projectId?: MaybeRef<string>) {
 
   async function saveTheme(theme: Partial<ThemeConfig>) {
     await updateProject({
+      color: theme.primaryColor,
       meta: JSON.stringify({
         ...projectMeta.value,
         theme,

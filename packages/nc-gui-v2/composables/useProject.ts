@@ -91,16 +91,20 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     if (projectType === 'base') {
       return
     }
-    await $api.project.update(projectId.value, data)
+    if (data.meta && typeof data.meta === 'string') {
+      await $api.project.update(projectId.value, data)
+    } else {
+      await $api.project.update(projectId.value, { ...data, meta: JSON.stringify(data.meta) })
+    }
   }
 
   async function saveTheme(theme: Partial<ThemeConfig>) {
     await updateProject({
       color: theme.primaryColor,
-      meta: JSON.stringify({
+      meta: {
         ...projectMeta.value,
         theme,
-      }),
+      },
     })
     setTheme(theme)
   }

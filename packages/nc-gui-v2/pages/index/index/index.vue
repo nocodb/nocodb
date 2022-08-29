@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
+import { Chrome } from '@ckpack/vue-color'
+import tinycolor from 'tinycolor2'
 import {
   computed,
   definePageMeta,
@@ -17,7 +19,7 @@ definePageMeta({
   title: 'title.myProject',
 })
 
-const { $e } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { api, isLoading } = useApi()
 
@@ -64,6 +66,51 @@ const deleteProject = (project: ProjectType) => {
 }
 
 await loadProjects()
+
+const themePrimaryColors = $ref(
+  (() => {
+    const colors: Record<string, any> = {}
+    for (const project of projects?.value || []) {
+      if (project?.id) {
+        try {
+          const projectMeta = typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta
+          colors[project.id] = tinycolor(projectMeta?.theme?.primaryColor).isValid()
+            ? projectMeta?.theme?.primaryColor
+            : themeV2Colors['royal-blue'].DEFAULT
+        } catch (e) {
+          colors[project.id] = themeV2Colors['royal-blue'].DEFAULT
+        }
+      }
+    }
+    return colors
+  })(),
+)
+
+const oldPrimaryColors = ref({ ...themePrimaryColors })
+
+watch(themePrimaryColors, async (nextColors) => {
+  for (const [projectId, nextColor] of Object.entries(nextColors)) {
+    if (oldPrimaryColors.value[projectId] === nextColor) continue
+    const hexColor = nextColor.hex8 ? nextColor.hex8 : nextColor
+    const tcolor = tinycolor(hexColor)
+    if (tcolor) {
+      const analogous = tcolor.complement()
+      const project: ProjectType = await $api.project.read(projectId)
+      const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+      await $api.project.update(projectId, {
+        color: hexColor,
+        meta: JSON.stringify({
+          ...meta,
+          theme: {
+            primaryColor: hexColor,
+            analogousColor: analogous.toHexString(),
+          },
+        }),
+      })
+    }
+  }
+  oldPrimaryColors.value = { ...themePrimaryColors }
+})
 </script>
 
 <template>
@@ -159,13 +206,49 @@ await loadProjects()
         <!-- Title -->
         <a-table-column key="title" :title="$t('general.title')" data-index="title">
           <template #default="{ text, record }">
-            <div
-              class="capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2 border-l-4"
-              :style="{
-                'border-color': record.color || themeV2Colors['royal-blue'].DEFAULT,
-              }"
-            >
-              {{ text }}
+            <div class="flex items-center">
+              <div @click.stop>
+                <a-menu class="!border-0 !m-0 !p-0" trigger-sub-menu-action="click">
+                  <template v-if="isUIAllowed('projectTheme')">
+                    <a-sub-menu key="theme">
+                      <template #title>
+                        <div
+                          class="color-selector"
+                          :style="{
+                            'background-color': themePrimaryColors[record.id],
+                            'width': '8px',
+                            'height': '100%',
+                          }"
+                        />
+                      </template>
+
+                      <template #expandIcon></template>
+
+                      <GeneralColorPicker
+                        v-model="themePrimaryColors[record.id]"
+                        :colors="enumColor.dark"
+                        :row-size="5"
+                        :advanced="false"
+                      />
+                      <a-sub-menu key="pick-primary">
+                        <template #title>
+                          <div class="nc-project-menu-item group">
+                            <ClarityColorPickerSolid class="group-hover:text-accent" />
+                            Custom Color
+                          </div>
+                        </template>
+                        <template #expandIcon></template>
+                        <Chrome v-model="themePrimaryColors[record.id]" />
+                      </a-sub-menu>
+                    </a-sub-menu>
+                  </template>
+                </a-menu>
+              </div>
+              <div
+                class="capitalize color-transition group-hover:text-primary !w-[400px] h-full overflow-hidden overflow-ellipsis whitespace-nowrap pl-2"
+              >
+                {{ text }}
+              </div>
             </div>
           </template>
         </a-table-column>
@@ -218,5 +301,9 @@ await loadProjects()
 
 :deep(.ant-table) {
   @apply min-h-[428px];
+}
+
+:deep(.ant-menu-submenu-title) {
+  @apply !p-0 !mr-1 !my-0 !h-5;
 }
 </style>

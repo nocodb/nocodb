@@ -89,19 +89,19 @@ const themeAccentColor = ref<any>(theme.value.accentColor)
 
 // Chrome provides object so if custom picker used we only edit primary otherwise use analogous as accent
 watch(themePrimaryColor, (nextColor) => {
-  const hexColor = nextColor.hex ? nextColor.hex : nextColor
+  const hexColor = nextColor.hex8 ? nextColor.hex8 : nextColor
   const tcolor = tinycolor(hexColor)
   if (tcolor) {
     const analogous = tcolor.complement()
     saveTheme({
       primaryColor: hexColor,
-      accentColor: nextColor.hex ? theme.value.accentColor : analogous.toHexString(),
+      accentColor: nextColor.hex8 ? theme.value.accentColor : analogous.toHexString(),
     })
   }
 })
 
 watch(themeAccentColor, (nextColor) => {
-  const hexColor = nextColor.hex ? nextColor.hex : nextColor
+  const hexColor = nextColor.hex8 ? nextColor.hex8 : nextColor
   saveTheme({
     primaryColor: theme.value.primaryColor,
     accentColor: hexColor,

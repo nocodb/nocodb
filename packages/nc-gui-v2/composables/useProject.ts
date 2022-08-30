@@ -1,34 +1,25 @@
+import type { MaybeRef } from '@vueuse/core'
 import { SqlUiFactory } from 'nocodb-sdk'
 import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
-import type { MaybeRef } from '@vueuse/core'
-import { useNuxtApp, useRoute, useState } from '#app'
+import { useNuxtApp, useRoute } from '#app'
 import type { ProjectMetaInfo } from '~/lib'
-import { USER_PROJECT_ROLES } from '~/lib'
 import type { ThemeConfig } from '@/composables/useTheme'
+import { useInjectionState } from '#imports'
 
-export function useProject(projectId?: MaybeRef<string>) {
-  const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
+const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   const { $api } = useNuxtApp()
-  let _projectId = $ref('')
-
-  const project = useState<ProjectType>('project')
-  const tables = useState<TableType[]>('tables', () => [] as TableType[])
   const route = useRoute()
   const { includeM2M } = useGlobal()
   const { setTheme } = useTheme()
-  const projectMetaInfo = useState<ProjectMetaInfo | undefined>('projectMetaInfo')
+
+  const projectId = computed(() => (_projectId ? unref(_projectId) : (route.params.projectId as string)))
+  const project = ref<ProjectType>({})
+  const tables = ref<TableType[]>([])
+  const projectRoles = ref<Record<string, boolean>>({})
+  const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
+
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
-  const isLoaded = ref(false)
-
-  const projectBaseType = $computed(() => project.value?.bases?.[0]?.type || '')
-  const isMysql = computed(() => ['mysql', 'mysql2'].includes(projectBaseType))
-  const isMssql = computed(() => projectBaseType === 'mssql')
-  const isPg = computed(() => projectBaseType === 'pg')
-  const sqlUi = computed(
-    () => SqlUiFactory.create({ client: projectBaseType }) as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>,
-  )
-  const isSharedBase = computed(() => projectType === 'base')
 
   const projectMeta = computed(() => {
     try {
@@ -37,6 +28,17 @@ export function useProject(projectId?: MaybeRef<string>) {
       return {}
     }
   })
+
+  const projectBaseType = $computed(() => project.value?.bases?.[0]?.type || '')
+
+  const sqlUi = computed(
+    () => SqlUiFactory.create({ client: projectBaseType }) as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>,
+  )
+
+  const isMysql = computed(() => ['mysql', 'mysql2'].includes(projectBaseType))
+  const isMssql = computed(() => projectBaseType === 'mssql')
+  const isPg = computed(() => projectBaseType === 'pg')
+  const isSharedBase = computed(() => projectType === 'base')
 
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
@@ -74,51 +76,54 @@ export function useProject(projectId?: MaybeRef<string>) {
   }
 
   async function loadProject() {
-    if (unref(projectId)) {
-      _projectId = unref(projectId)!
-    } else if (projectType === 'base') {
+    if (projectType === 'base') {
       const baseData = await $api.public.sharedBaseGet(route.params.projectId as string)
-      _projectId = baseData.project_id!
+      project.value = await $api.project.read(baseData.project_id!)
     } else {
-      _projectId = route.params.projectId as string
+      project.value = await $api.project.read(projectId.value)
     }
-    isLoaded.value = true
-    project.value = await $api.project.read(_projectId!)
     await loadProjectRoles()
     await loadTables()
     setTheme(projectMeta.value?.theme)
   }
 
   async function updateProject(data: Partial<ProjectType>) {
-    if (unref(projectId)) {
-      _projectId = unref(projectId)!
-    } else if (projectType === 'base') {
+    if (projectType === 'base') {
       return
-    } else {
-      _projectId = route.params.projectId as string
     }
-
-    await $api.project.update(_projectId, data)
+    if (data.meta && typeof data.meta === 'string') {
+      await $api.project.update(projectId.value, data)
+    } else {
+      await $api.project.update(projectId.value, { ...data, meta: JSON.stringify(data.meta) })
+    }
   }
 
   async function saveTheme(theme: Partial<ThemeConfig>) {
     await updateProject({
-      meta: JSON.stringify({
+      color: theme.primaryColor,
+      meta: {
         ...projectMeta.value,
         theme,
-      }),
+      },
     })
     setTheme(theme)
   }
 
+  watch(
+    () => route.params,
+    (v) => {
+      if (!v?.projectId) {
+        setTheme()
+      }
+    },
+  )
+
+  // TODO useProject should only called inside a project for now this doesn't work
   onScopeDispose(() => {
-    if (isLoaded.value === true) {
-      project.value = {}
-      tables.value = []
-      projectMetaInfo.value = undefined
-      projectRoles.value = {}
-      setTheme({})
-    }
+    project.value = {}
+    tables.value = []
+    projectMetaInfo.value = undefined
+    projectRoles.value = {}
   })
 
   return {
@@ -138,4 +143,16 @@ export function useProject(projectId?: MaybeRef<string>) {
     projectMeta,
     saveTheme,
   }
+}, 'useProject')
+
+export const provideProject = setup
+
+export function useProject(projectId?: MaybeRef<string>) {
+  const state = use()
+
+  if (!state) {
+    return setup(projectId)
+  }
+
+  return state
 }

@@ -306,6 +306,10 @@ watch(themePrimaryColors, async (nextColors) => {
 :deep(.ant-menu-submenu-title) {
   @apply !p-0 !mr-1 !my-0 !h-5;
 }
+
+.color-selector:hover {
+  filter: brightness(1.5);
+}
 </style>
 
 <style>

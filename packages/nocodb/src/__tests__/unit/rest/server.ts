@@ -1,37 +1,30 @@
 import { Noco } from '../../../lib';
 import express from 'express';
-import { dbConfig, dbName } from './dbConfig';
-import Model from '../../../lib/models/Model';
-import Project from '../../../lib/models/Project';
+import { dbConfig, dbName, sakilaDbName, sakilaTableNames } from './dbConfig';
 import { orderedMetaTables } from '../../../lib/utils/globals';
 
 const knex = require('knex');
 
 const clearAllMetaTables = async (knexClient) => {
-  const projects = await Project.list({});
-  const userCreatedTableNames = [];
-  await Promise.all(
-    projects.map(async (project) => {
-      await project.getBases();
-      const base = project.bases && project.bases[0];
-      if (!base) return;
-
-      const models = await Model.list({
-        project_id: project.id,
-        base_id: base.id,
-      });
-      models.forEach((model) => {
-        userCreatedTableNames.push(model.table_name);
-      });
-    })
+  await knexClient.raw(`use ${sakilaDbName}`);
+  const tablesInSakilaQueryRes = await knexClient.raw(`SHOW TABLES;`);
+  const tablesInSakila = tablesInSakilaQueryRes[0].map(
+    (table) => Object.values(table)[0]
   );
 
   await Promise.all(
-    userCreatedTableNames.map(async (tableName) => {
-      await knexClient.raw(`DROP TABLE ${tableName}`);
-    })
+    tablesInSakila
+      .filter((tableName) => !sakilaTableNames.includes(tableName))
+      .map(async (tableName) => {
+        try {
+          await knexClient.raw(`DROP TABLE ${sakilaDbName}.${tableName}`);
+        } catch (e) {
+          console.error(e);
+        }
+      })
   );
 
+  await knexClient.raw(`use ${dbName}`);
   await knexClient.raw('SET FOREIGN_KEY_CHECKS = 0');
   for (const tableName of orderedMetaTables) {
     try {

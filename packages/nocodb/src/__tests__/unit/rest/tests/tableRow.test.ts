@@ -4,11 +4,12 @@ import request from 'supertest';
 import server from '../server';
 import { createUser } from './helpers/user';
 import { createTable } from './helpers/table';
-import { createProject } from './helpers/project';
+import { createExternalProject } from './helpers/project';
 import { createRow } from './helpers/row';
 import { createColumn } from './helpers/column';
 import { ColumnType, isSystemColumn } from 'nocodb-sdk';
 import Column from '../../../../lib/models/Column';
+import Model from '../../../../lib/models/Model';
 
 function tableTest() {
   let app;
@@ -32,7 +33,7 @@ function tableTest() {
     const response = await createUser(app, { roles: 'editor' });
     token = response.token;
 
-    project = await createProject(app, token);
+    project = await createExternalProject(app, token);
     table = await createTable(app, token, project);
     const columnsData = [
       {
@@ -173,6 +174,15 @@ function tableTest() {
     ) {
       throw new Error('Wrong sort');
     }
+  });
+
+  it('Get actors', async () => {
+    const actorTable = await Model.getByIdOrName({
+      project_id: project.id,
+      base_id: project.bases[0].id,
+      table_name: 'actor',
+    });
+    console.log(actorTable);
   });
 }
 

@@ -1,6 +1,33 @@
 import NcConfigFactory from '../../../lib/utils/NcConfigFactory';
 
-const dbName = `test_meta`;
+const sakilaTableNames = [
+  'actor',
+  'address',
+  'category',
+  'city',
+  'country',
+  'customer',
+  'film',
+  'film_actor',
+  'film_category',
+  'film_text',
+  'inventory',
+  'language',
+  'payment',
+  'rental',
+  'staff',
+  'store',
+  'actor_info',
+  'customer_list',
+  'film_list',
+  'nicer_but_slower_film_list',
+  'sales_by_film_category',
+  'sales_by_store',
+  'staff_list',
+];
+
+const dbName = 'test_meta';
+const sakilaDbName = 'sakila';
 process.env[`DATABASE_URL`] = `mysql2://root:password@localhost:3306/${dbName}`;
 
 const dbConfig = NcConfigFactory.urlToDbConfig(
@@ -21,4 +48,4 @@ dbConfig.meta = {
   },
 } as any;
 
-export { dbConfig, dbName };
+export { dbConfig, dbName, sakilaTableNames, sakilaDbName };

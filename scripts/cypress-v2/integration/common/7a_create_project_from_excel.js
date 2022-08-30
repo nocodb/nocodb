@@ -73,14 +73,14 @@ export const genTest = (apiType, dbType) => {
             cy.wait(1000);
 
             cy.task("readSheetList", {
-                file: `./scripts/cypress/fixtures/${filepath}`,
+                file: `./scripts/cypress-v2/fixtures/${filepath}`,
             }).then((rows) => {
                 cy.log(rows);
                 sheetList = rows;
             });
 
             cy.task("readXlsx", {
-                file: `./scripts/cypress/fixtures/${filepath}`,
+                file: `./scripts/cypress-v2/fixtures/${filepath}`,
                 sheet: "Sheet2",
             }).then((rows) => {
                 cy.log(rows);
@@ -90,6 +90,9 @@ export const genTest = (apiType, dbType) => {
             // loginPage.signIn(roles.owner.credentials);
             projectsPage.createProject({ dbType: "none", apiType: "REST", name: "importSample" }, {})
             cy.wait(4000);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
         });
 
         beforeEach(() => {
@@ -161,6 +164,8 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("File Upload: Verify loaded data", () => {
+            // wait for page to get loaded (issue observed in CICD)
+            cy.wait(5000);
 
             cy.openTableTab("Sheet2", 2);
             for (const [key, value] of Object.entries(expectedData)) {

@@ -21,28 +21,29 @@ export const genTest = (apiType, dbType) => {
         });
 
         after(() => {
-            // cy.restoreLocalStorage();
-            // cy.wait(1000);
+            cy.restoreLocalStorage();
+            cy.wait(1000);
 
-            // mainPage.deleteColumn("testAttach");
-            //
-            // // clean up newly added rows into Country table operations
-            // // this auto verifies successfull addition of rows to table as well
-            // mainPage.getPagination(5).click();
-            // // kludge: flicker on load
-            // cy.wait(3000)
-            //
-            // // wait for page rendering to complete
-            // cy.get(".nc-grid-row").should("have.length", 10);
-            // // mainPage
-            // //     .getRow(10)
-            // //     .find(".mdi-checkbox-blank-outline")
-            // //     .click({ force: true });
-            //
-            // mainPage.getCell("Country", 10).rightclick();
-            // cy.getActiveMenu().contains("Delete Row").click();
-            //
-            // cy.closeTableTab("Country");
+            // clean up
+            mainPage.deleteColumn("testAttach");
+
+            // clean up newly added rows into Country table operations
+            // this auto verifies successfull addition of rows to table as well
+            mainPage.getPagination(5).click();
+            // kludge: flicker on load
+            cy.wait(3000)
+
+            // wait for page rendering to complete
+            cy.get(".nc-grid-row").should("have.length", 10);
+            // mainPage
+            //     .getRow(10)
+            //     .find(".mdi-checkbox-blank-outline")
+            //     .click({ force: true });
+
+            mainPage.getCell("Country", 10).rightclick();
+            cy.getActiveMenu().contains("Delete Row").click();
+
+            cy.closeTableTab("Country");
         });
 
         it(`Add column of type attachments`, () => {
@@ -83,6 +84,7 @@ export const genTest = (apiType, dbType) => {
                 .then(($obj) => {
                     let linkText = $obj.text().trim();
                     cy.log(linkText);
+
                     cy.visit(linkText, {
                         baseUrl: null,
                     });
@@ -102,23 +104,13 @@ export const genTest = (apiType, dbType) => {
 
                     cy.get('.nc-attachment-cell')
                       .attachFile(`sampleFiles/1.json`, { subjectType: 'drag-n-drop' });
-                    // cy.get(".nc-field-editables")
-                    //   .last()
-                    //   .find('input[type="file"]')
-                    //   .attachFile(`sampleFiles/1.json`);
 
-                    // submit button & validate
                     cy.get(".nc-form").find("button").contains("Submit").click();
 
                     cy.get(".ant-alert-message")
                       .contains("Successfully submitted form data")
                       .should("exist");
 
-                    // // submit button & validate
-                    // cy.get(".nc-form")
-                    //     .find("button")
-                    //     .contains("Submit")
-                    //     .click();
                     cy.toastWait("Saved successfully");
                 });
         });
@@ -158,29 +150,6 @@ export const genTest = (apiType, dbType) => {
             mainPage.downloadAndVerifyCsv(`Country_exported_1.csv`, verifyCsv);
             mainPage.unhideField("LastUpdate");
             mainPage.filterReset();
-
-
-            // clean up
-            mainPage.deleteColumn("testAttach");
-
-            // clean up newly added rows into Country table operations
-            // this auto verifies successfull addition of rows to table as well
-            mainPage.getPagination(5).click();
-            // kludge: flicker on load
-            cy.wait(3000)
-
-            // wait for page rendering to complete
-            cy.get(".nc-grid-row").should("have.length", 10);
-            // mainPage
-            //     .getRow(10)
-            //     .find(".mdi-checkbox-blank-outline")
-            //     .click({ force: true });
-
-            mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu().contains("Delete Row").click();
-
-            cy.closeTableTab("Country");
-
         });
     });
 };

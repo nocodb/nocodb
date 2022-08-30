@@ -226,8 +226,7 @@ export class _mainPage {
         cy.get(".ant-btn-dangerous:visible").contains("Delete").click();
         cy.wait(500)
 
-        // fix me!
-        // cy.get(`th:contains(${colName})`).should("not.exist");
+        cy.get(`th:contains(${colName})`).should("not.exist");
     };
 
     getAuthToken = () => {

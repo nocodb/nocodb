@@ -8,7 +8,8 @@ export function useColumn(column: Ref<ColumnType>) {
 
   const uiDatatype: ComputedRef<UITypes> = computed(() => column?.value?.uidt as UITypes)
   const abstractType = computed(() =>
-    isVirtualCol(column?.value)
+    // kludge: CY test hack; column.value is being received NULL during attach cell delete operation
+    isVirtualCol(column?.value) || !column?.value
       ? null
       : SqlUiFactory.create(project.value?.bases?.[0]?.config || { client: 'mysql2' }).getAbstractType(column?.value),
   )

@@ -16,27 +16,19 @@ const {
     setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
 
-// use 0 as mode to execute individual files (debug mode, skip pre-configs)
-// use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
-const executionMode = 1;
-
 const nocoTestSuite = (apiType, dbType) => {
     setCurrentMode(apiType, dbType);
-    if (0 == executionMode) {
-        t0.genTest(apiType, dbType);
-    } else {
-        t01.genTest(apiType, dbType);
-    }
+    t01.genTest(apiType, dbType);
 
     t1a.genTest(apiType, dbType);
     t1b.genTest(apiType, dbType);
     t1c.genTest(apiType, dbType);
-    // ncv2@fixme t1d.genTest(apiType, dbType);
+    // NcGUI v2 t1d.genTest(apiType, dbType);
     t1e.genTest(apiType, dbType);
     t2a.genTest(apiType, dbType);
     t2b.genTest(apiType, dbType);
     t3a.genTest(apiType, dbType);
-    // t3b.genTest(apiType, dbType);
+    t3b.genTest(apiType, dbType);
     t3c.genTest(apiType, dbType);
     t3d.genTest(apiType, dbType);
     t3e.genTest(apiType, dbType);

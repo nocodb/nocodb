@@ -10,6 +10,7 @@ import {
     _viewMenu,
     _topRightMenu,
 } from "../spec/roleValidation.spec";
+import {linkSync} from "fs";
 
 // fix me
 let linkText = "";
@@ -26,51 +27,36 @@ export const genTest = (apiType, dbType) => {
                 baseUrl: null,
             });
             cy.wait(5000);
-
-            cy.saveLocalStorage();
-            cy.wait(1000);
-            cy.printLocalStorage();
-        });
+         });
 
         it(`${roleType}: Validate access permissions: advance menu`, () => {
-            cy.restoreLocalStorage();
+            // cy.restoreLocalStorage();
             _advSettings(roleType, "baseShare");
         });
 
         it(`${roleType}: Validate access permissions: edit schema`, () => {
-            cy.restoreLocalStorage();
+            // cy.restoreLocalStorage();
             _editSchema(roleType, "baseShare");
         });
 
         it(`${roleType}: Validate access permissions: edit data`, () => {
-            cy.restoreLocalStorage();
+            // cy.restoreLocalStorage();
             _editData(roleType, "baseShare");
         });
 
         it(`${roleType}: Validate access permissions: edit comments`, () => {
-            cy.restoreLocalStorage();
+            // cy.restoreLocalStorage();
             _editComment(roleType, "baseShare");
         });
 
-        // fix me
-        // it(`${roleType}: Validate access permissions: view's menu`, () => {
-        //     cy.restoreLocalStorage();
-        //     _viewMenu(roleType, "baseShare");
-        // });
+        it(`${roleType}: Validate access permissions: view's menu`, () => {
+            // cy.restoreLocalStorage();
+            _viewMenu(roleType, "baseShare");
+        });
     };
 
     describe(`${apiType.toUpperCase()} Base VIEW share`, () => {
         before(() => {
-
-            // cy.restoreLocalStorage();
-            // cy.wait(1000);
-            //
-            // cy.visit("/");
-            // cy.wait(5000);
-            //
-            // // // kludge: wait for page load to finish
-            // projectsPage.openConfiguredProject(apiType, dbType);
-
             loginPage.loginAndOpenProject(apiType, dbType);
 
             cy.openTableTab("Country", 25);
@@ -164,35 +150,37 @@ style="background: transparent; "></iframe>
         });
 
         permissionValidation("editor");
-
-        // https://docs.cypress.io/api/commands/visit#Prefixes
-        it.skip("Generate & verify embed HTML IFrame", {baseUrl: null}, () => {
-
-                let filePath = "scripts/cypress-v2/fixtures/sampleFiles/iFrame.html";
-                cy.log(filePath);
-                cy.visit(filePath, {baseUrl: null});
-
-               // wait for iFrame to load
-                cy.frameLoaded(".nc-embed");
-
-                // cy.openTableTab("Country", 25);
-                cy.iframe().find(`.nc-project-tree-tbl-Actor`, {timeout: 10000}).should("exist")
-                    .first()
-                    .click({force: true});
-
-                // validation for base menu opitons
-                cy.iframe().find(".nc-project-tree").should("exist");
-                cy.iframe().find(".nc-fields-menu-btn").should("exist");
-                cy.iframe().find(".nc-sort-menu-btn").should("exist");
-                cy.iframe().find(".nc-filter-menu-btn").should("exist");
-                cy.iframe().find(".nc-actions-menu-btn").should("exist");
-
-                // validate data (row-1)
-                cy.iframe().find(`.nc-grid-cell`).eq(1).contains("PENELOPE").should("exist");
-                cy.iframe().find(`.nc-grid-cell`).eq(2).contains("GUINESS").should("exist");
-
-            });
     });
+
+    describe(`${apiType.toUpperCase()} iFrame Test`, () => {
+        // https://docs.cypress.io/api/commands/visit#Prefixes
+        it("Generate & verify embed HTML IFrame", {baseUrl: null}, () => {
+
+            let filePath = "scripts/cypress-v2/fixtures/sampleFiles/iFrame.html";
+            cy.log(filePath);
+            cy.visit(filePath, {baseUrl: null});
+
+            // wait for iFrame to load
+            cy.frameLoaded(".nc-embed");
+
+            // cy.openTableTab("Country", 25);
+            cy.iframe().find(`.nc-project-tree-tbl-Actor`, {timeout: 10000}).should("exist")
+                .first()
+                .click({force: true});
+
+            // validation for base menu opitons
+            cy.iframe().find(".nc-project-tree").should("exist");
+            cy.iframe().find(".nc-fields-menu-btn").should("exist");
+            cy.iframe().find(".nc-sort-menu-btn").should("exist");
+            cy.iframe().find(".nc-filter-menu-btn").should("exist");
+            cy.iframe().find(".nc-actions-menu-btn").should("exist");
+
+            // validate data (row-1)
+            cy.iframe().find(`.nc-grid-cell`).eq(1).contains("PENELOPE").should("exist");
+            cy.iframe().find(`.nc-grid-cell`).eq(2).contains("GUINESS").should("exist");
+
+        });
+    })
 }
 
 /**

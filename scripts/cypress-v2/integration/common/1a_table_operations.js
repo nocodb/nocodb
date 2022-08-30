@@ -8,16 +8,16 @@ export const genTest = (apiType, dbType) => {
         dbType === "xcdb" ? "Meta - " : ""
     }${apiType.toUpperCase()} api - Table`, () => {
         before(() => {
-            cy.fileHook();
-            // cy.get(".mdi-close").click({ multiple: true });
+            cy.saveLocalStorage();
+            cy.wait(1000);
         });
 
         beforeEach(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         after(() => {
-            // cy.get(".mdi-close").click({ multiple: true, force: true });
         });
 
         const name = "tablex";
@@ -42,6 +42,8 @@ export const genTest = (apiType, dbType) => {
             // wait for column headers to appear
             //
             cy.get("thead > tr > th.ant-table-cell").should("have.length", 5);
+
+            cy.wait(3000)
 
             // Audit table entries
             //  [Header] Operation Type, Operation Sub Type, Description, User, Created

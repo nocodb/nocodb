@@ -126,7 +126,6 @@ export function useViewData(
       : await fetchSharedViewData()
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
-
     await loadAggCommentsCount()
   }
 
@@ -308,6 +307,34 @@ export function useViewData(
     }
 
     await syncCount()
+    await syncPagination()
+  }
+
+  const syncPagination = async () => {
+    // total records in the current table
+    const count = paginationData.value?.totalRows ?? Infinity
+    // the number of rows in a page
+    const size = paginationData.value?.pageSize ?? 25
+    // the current page number
+    const currentPage = paginationData.value?.page ?? 1
+    // the maximum possible page given the current count and the size
+    const mxPage = Math.ceil(count / size)
+    // calculate targetPage where 1 <= targetPage <= mxPage
+    const targetPage = Math.max(1, Math.min(mxPage, currentPage))
+    // if the current page is greater than targetPage,
+    // then the page should be changed instead of showing an empty page
+    // e.g. deleting all records in the last page N should return N - 1 page
+    if (currentPage > targetPage) {
+      // change to target page and load data of that page
+      changePage?.(targetPage)
+    } else {
+      // the current page is same as target page
+      // reload it to avoid empty row in this page
+      await loadData({
+        offset: (targetPage - 1) * size,
+        where: where?.value,
+      } as any)
+    }
   }
 
   const loadFormView = async () => {

@@ -50,7 +50,7 @@ export default defineNuxtConfig({
   vite: {
     // todo: minifiy again
     build: {
-      minify: false
+      minify: false,
     },
     plugins: [
       vueI18n({
@@ -79,8 +79,7 @@ export default defineNuxtConfig({
     ],
     define: {
       'process.env.DEBUG': 'false',
-      'process.nextTick': () => {
-      },
+      'process.nextTick': () => {},
     },
     server: {
       watch: {
@@ -100,9 +99,7 @@ export default defineNuxtConfig({
           global: 'globalThis',
         },
         // Enable esbuild polyfill plugins
-        plugins: [
-          NodeModulesPolyfillPlugin(),
-        ],
+        plugins: [NodeModulesPolyfillPlugin()],
       },
     },
   },

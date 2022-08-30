@@ -127,7 +127,6 @@ const afterVisibleChange = (visible: boolean) => {
 watch($$(activeLang), (newLang) => {
   selectedClient = newLang?.clients?.[0]
 })
-
 </script>
 
 <template>
@@ -158,7 +157,7 @@ watch($$(activeLang), (newLang) => {
             :disable-deep-compare="true"
             hide-minimap
           />
-          <div class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase" v-if="activeLang.clients">
+          <div v-if="activeLang.clients" class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
             <a-select v-if="activeLang" v-model:value="selectedClient" style="width: 6rem">
               <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full uppercase" :value="client">
                 {{ client }}
@@ -191,8 +190,9 @@ watch($$(activeLang), (newLang) => {
     </div>
   </a-drawer>
 </template>
+
 <style scoped>
-:deep(.ant-tabs-tab+.ant-tabs-tab){
-  @apply !ml-7
+:deep(.ant-tabs-tab + .ant-tabs-tab) {
+  @apply !ml-7;
 }
 </style>

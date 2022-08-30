@@ -9,7 +9,6 @@ import {
   IsFormInj,
   IsGridInj,
   IsLockedInj,
-  IsPublicInj,
   MetaInj,
   OpenNewRecordFormHookInj,
   PaginationDataInj,
@@ -36,8 +35,6 @@ import { NavigateDir } from '~/lib'
 const meta = inject(MetaInj)
 
 const view = inject(ActiveViewInj)
-
-const isPublicView = inject(IsPublicInj, ref(false))
 
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery

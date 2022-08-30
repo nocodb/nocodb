@@ -119,9 +119,9 @@ openNewRecordFormHook?.on(async () => {
 <template>
   <div class="flex flex-col h-full w-full overflow-auto">
     <div class="nc-gallery-container grid w-full min-h-0 flex-1 gap-2 my-4 px-3">
-      <div v-for="record in data" :key="`record-${record.row.id}`" class="flex flex-col" @click="expandFormClick($event, record)">
+      <div v-for="record in data" :key="`record-${record.row.id}`" class="flex flex-col">
         <Row :row="record">
-          <a-card hoverable class="!rounded-lg overflow-hidden break-all">
+          <a-card hoverable class="!rounded-lg overflow-hidden break-all" @click="expandFormClick($event, record)">
             <template #cover>
               <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay>
                 <img

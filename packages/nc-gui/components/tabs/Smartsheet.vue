@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { Ref } from 'vue'
+import { useUIPermission } from '#imports'
+import SmartsheetGrid from '../smartsheet/Grid.vue'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -45,25 +48,38 @@ const reloadViewMetaEventHook = createEventHook()
 
 useProvideKanbanViewStore(meta, activeView)
 
+const { isUIAllowed } = useUIPermission()
 
 /** keep view level state in tabMeta and restore on view change */
 watch(nestedFilters, (newFilters) => {
-  activeTab.value.state = activeTab.value.state || {}
-  activeTab.value.state[activeView.value.id] = activeTab.value.state[activeView.value.id] || {}
-  activeTab.value.state[activeView.value.id].filters = newFilters
+  activeTab.value.state = activeTab.value.state || new Map()
+  if (!activeTab.value.state.has(activeView.value.id)) {
+    activeTab.value.state.set(activeView.value.id, new Map())
+  }
+  activeTab.value.state.get(activeView.value.id)!.set('filters', newFilters)
 })
 
 watch(sorts, (newSorts) => {
-  activeTab.value.state = activeTab.value.state || {}
-  activeTab.value.state[activeView.value.id] = activeTab.value.state[activeView.value.id] || {}
-  activeTab.value.state[activeView.value.id].sorts = newSorts
+  activeTab.value.state = activeTab.value.state || new Map()
+  if (!activeTab.value.state.has(activeView.value.id)) {
+    activeTab.value.state.set(activeView.value.id, new Map())
+  }
+  activeTab.value.state.get(activeView.value.id)!.set('sorts', newSorts)
 })
 
 watch(activeView, (newView: ViewType) => {
-  if (activeTab.value.state?.[newView.id!]?.filters)
-    nestedFilters.value = activeTab.value.state?.[newView.id!]?.filters || []
-  if (activeTab.value.state?.[newView.id!]?.sorts)
-    sorts.value = activeTab.value.state?.[newView.id!]?.sorts || []
+  if(!newView || !activeTab.value?.state?.get(newView.id as string)) return
+
+  if (
+    activeTab.value?.state?.get(newView.id as string)?.has('filters') &&
+    !isUIAllowed('filterSync') &&
+    !isUIAllowed('filterChildrenRead')
+  ) {
+    nestedFilters.value = activeTab.value?.state?.get(newView.id as string)?.get('filters') || []
+  }
+  if (activeTab.value?.state?.get(newView.id as string)?.has('sorts') && !isUIAllowed('sortSync')) {
+    nestedFilters.value = activeTab.value?.state?.get(newView.id as string)?.get('sorts') || []
+  }
 })
 
 // todo: move to store

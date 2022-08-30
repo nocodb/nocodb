@@ -38,6 +38,7 @@ const [setup, use] = useInjectionState(() => {
         let index = tabs.value.findIndex((t) => t.id === tab.id)
 
         if (index === -1) {
+          tab.state = tab.state || new Map()
           tabs.value.push(tab)
           index = tabs.value.length - 1
         }

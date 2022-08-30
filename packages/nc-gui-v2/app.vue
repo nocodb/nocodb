@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import '@purge-icons/generated'
+
 import { computed, provideTheme, useRoute } from '#imports'
 
 const route = useRoute()

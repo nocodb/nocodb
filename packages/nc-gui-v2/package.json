@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@ckpack/vue-color": "^1.2.0",
+    "@iconify/iconify": "^2.2.1",
     "@vuelidate/core": "^2.0.0-alpha.44",
     "@vuelidate/validators": "^2.0.0-alpha.31",
     "@vueuse/core": "^9.0.2",
@@ -56,6 +57,7 @@
     "@iconify-json/mi": "^1.1.2",
     "@iconify-json/ph": "^1.1.2",
     "@iconify-json/ri": "^1.1.3",
+    "@iconify/json": "^2.1.100",
     "@intlify/vite-plugin-vue-i18n": "^6.0.1",
     "@nuxt/image-edge": "^1.0.0-27657146.da85542",
     "@types/axios": "^0.14.0",
@@ -81,6 +83,7 @@
     "unplugin-icons": "^0.14.7",
     "unplugin-vue-components": "^0.22.4",
     "vite-plugin-monaco-editor": "^1.1.0",
+    "vite-plugin-purge-icons": "^0.9.0",
     "vitest": "^0.18.0",
     "windicss": "^3.5.6"
   }

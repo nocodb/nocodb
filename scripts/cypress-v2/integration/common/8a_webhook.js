@@ -212,7 +212,7 @@ function verifyHookTrigger(count, lastValue) {
 
 function deleteRow(index) {
     mainPage
-      .getCell("Title", 1)
+      .getCell("Title", index)
       .rightclick();
 
     // delete row

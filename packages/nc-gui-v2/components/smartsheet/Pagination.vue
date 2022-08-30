@@ -11,7 +11,25 @@ const count = computed(() => paginatedData.value?.totalRows ?? Infinity)
 const size = computed(() => paginatedData.value?.pageSize ?? 25)
 
 const page = computed({
-  get: () => paginatedData?.value?.page ?? 1,
+  get: () => {
+    // if current page is undefined, then show page 1 by default
+    if (!paginatedData?.value?.page) return 1
+    console.log("count=" + count.value)
+    console.log("size=" + size.value)
+    console.log("paginatedData.value.page=" + paginatedData.value.page)
+    
+    // the maximum possible page given the current count and the size
+    const mxPage = Math.ceil(count.value / size.value)
+    // calculate targetPage where 1 <= targetPage <= mxPage 
+    const targetPage = Math.max(1, Math.min(mxPage, paginatedData.value.page))
+    // if the current page is greater than targetPage,
+    // then the page should be changed instead of showing an empty page
+    // e.g. deleting all records in the last page N should return N - 1 page
+    if (paginatedData.value.page > targetPage) {
+      changePage?.(targetPage)
+    }
+    return targetPage
+  },
   set: (p) => changePage?.(p),
 })
 </script>
@@ -23,6 +41,10 @@ const page = computed({
     </span>
 
     <div class="flex-1" />
+
+    count : {{ count }}
+    page: {{ page }}
+    size: {{ size }}
 
     <a-pagination
       v-if="count !== Infinity"

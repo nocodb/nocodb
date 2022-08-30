@@ -171,7 +171,7 @@
             :key="row + columnObj.title"
             class="cell pointer nc-grid-cell"
             :class="{
-              active: (!isPublicView && selected.col === col && selected.row === row && isEditable) || selectedRange(row, col),
+              active: !isPublicView && selected.col === col && selected.row === row && isEditable,
               'primary-column': primaryValueColumn === columnObj.title,
               'text-center': isCentrallyAligned(columnObj),
               required: isRequired(columnObj, rowObj),
@@ -179,8 +179,6 @@
             :data-col="columnObj.title"
             @dblclick="makeEditable(col, row, columnObj.ai, rowMeta)"
             @click="makeSelected(col, row)"
-            @mousedown="preventSelectText(col, row)"
-            @mouseenter="selectBlock(col, row)"
             @contextmenu="showRowContextMenu($event, rowObj, rowMeta, row, col, columnObj)"
           >
             <virtual-cell
@@ -357,13 +355,6 @@ export default {
       row: null,
       col: null,
     },
-    selectedRows:{
-      "startcol":-1,
-      "endcol":-1,
-      "startrow":-1,
-      "endrow":-1
-    },
-    isSelectedBlock: false,
     editEnabled: {
       row: null,
       col: null,
@@ -450,10 +441,7 @@ export default {
     },
   },
   mounted() {
-    document.addEventListener('mouseup', (e)=>{
-      e.preventDefault();
-      this.isSelectedBlock = false;
-    })
+    // this.calculateColumnWidth()
   },
   created() {
     document.addEventListener('keydown', this.onKeyDown);
@@ -567,9 +555,7 @@ export default {
     },
 
     async onKeyDown(e) {
-      let tds = document.querySelectorAll('table td.active')
-      
-      if (this.isLocked || tds.length == 0) {
+      if (this.selected.col === null || this.selected.row === null || this.isLocked) {
         return;
       }
 
@@ -659,13 +645,14 @@ export default {
             return;
           }
 
-          //const rowObj = this.data[this.selected.row].row;
-          //const columnObj = this.availableColumns[this.selected.col];
+          const rowObj = this.data[this.selected.row].row;
+          const columnObj = this.availableColumns[this.selected.col];
+
           if (e.metaKey || e.ctrlKey) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
-                copyTextToClipboard(this.selectedBlockToText(tds))
+                copyTextToClipboard(rowObj[columnObj.title] || '');
                 break;
               // // paste ctrl/cmd + v
               // case 86: {
@@ -704,10 +691,6 @@ export default {
       this.selected.row = null;
       this.editEnabled.col = null;
       this.editEnabled.row = null;
-      this.selectedRows.startcol = -1;
-      this.selectedRows.endcol = -1;
-      this.selectedRows.startrow = -1;
-      this.selectedRows.endrow = -1;
     },
     onNewColCreation(col, oldCol) {
       this.addNewColMenu = false;
@@ -745,42 +728,6 @@ export default {
         };
         this.editEnabled = {};
       }
-    },
-    selectBlock(col, row) {
-      if(this.isSelectedBlock){
-        this.selectedRows.endcol = col;
-        this.selectedRows.endrow = row;
-      }
-    },
-    selectedRange(row, col){
-        if(this.selectedRows.startrow > -1 && this.selectedRows.startcol > -1 && this.selectedRows.endrow > -1 && this.selectedRows.endcol > -1){
-          const rangerows={
-            "minrow":this.selectedRows.startrow > this.selectedRows.endrow ? this.selectedRows.endrow : this.selectedRows.startrow,
-            "maxrow":this.selectedRows.startrow < this.selectedRows.endrow ? this.selectedRows.endrow : this.selectedRows.startrow,
-            "mincol":this.selectedRows.startcol > this.selectedRows.endcol ? this.selectedRows.endcol : this.selectedRows.startcol,
-            "maxcol":this.selectedRows.startcol < this.selectedRows.endcol ? this.selectedRows.endcol : this.selectedRows.startcol
-          }
-          return (col>=rangerows.mincol && col<=rangerows.maxcol) && (row>=rangerows.minrow && row<=rangerows.maxrow);
-        }else{
-          return false
-        }
-    },
-    debugSelectBlocks(){
-      console.log(this.selectedRows)
-    },
-    preventSelectText(col, row){
-      this.isSelectedBlock = true
-      this.selected.row = null
-      this.selected.col = null
-      this.selectedRows.startcol = -1;
-      this.selectedRows.endcol = -1;
-      this.selectedRows.startrow = -1;
-      this.selectedRows.endrow = -1;
-      document.addEventListener('selectstart', function(event) {
-          event.preventDefault();
-      }, false);
-      this.selectedRows.startcol = col;
-      this.selectedRows.startrow = row;
     },
     makeEditable(col, row, _, rowMeta) {
       if (this.isPublicView || !this.isEditable || this.isView) {
@@ -838,27 +785,6 @@ export default {
     log(e, s) {
       console.log(e.target, s);
     },
-    selectedBlockToText(tds){
-      const res = {
-        "attr":[],
-        "clipboard":""
-      };
-      let cptext = null;
-      tds.forEach(function(t) {
-        if(!res.attr.includes(t.getAttribute('data-col'))){
-          res.attr.push(t.getAttribute('data-col'))		
-          cptext = cptext == null ? t.textContent: cptext+'\t'+t.textContent;
-        }else{
-          if(t.getAttribute('data-col') == res.attr[0]){
-            res.clipboard = res.clipboard + cptext+'\n';
-            cptext = t.textContent;
-          }else{
-            cptext = cptext+'\t'+t.textContent;
-          }
-        }
-      });
-      return res.clipboard + cptext
-    }
   },
 };
 </script>

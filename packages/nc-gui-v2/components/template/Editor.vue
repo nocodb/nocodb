@@ -332,7 +332,8 @@ async function importTemplate() {
 
       const tableName = meta.value.title
 
-      const data = importData[tableName]
+      // only one file is allowed currently
+      const data = importData[Object.keys(importData)[0]]
 
       const projectName = project.value.title!
 

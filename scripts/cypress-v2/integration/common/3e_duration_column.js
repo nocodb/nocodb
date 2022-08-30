@@ -13,6 +13,7 @@ export const genTest = (apiType, dbType) => {
         //
         const fetchParentFromLabel = (label) => {
             cy.get("label").contains(label).parents(".ant-row").first().click();
+            cy.wait(500)
         };
 
         // Run once before test- create table
@@ -54,7 +55,6 @@ export const genTest = (apiType, dbType) => {
             // Configure Duration format
             fetchParentFromLabel("Duration Format");
             cy.getActiveSelection().find('.ant-select-item-option').contains(durationFormat).click();
-            // cy.getActiveMenu().contains(durationFormat).click();
 
             cy.get(".ant-btn-primary").contains("Save").should('exist').click();
             cy.toastWait(`Column created`);
@@ -77,6 +77,7 @@ export const genTest = (apiType, dbType) => {
               .click({ force: true });
 
             cy.get(".nc-column-edit").click();
+            cy.wait(500)
             cy.get(".nc-column-edit").should("not.be.visible");
 
             // rename column and verify

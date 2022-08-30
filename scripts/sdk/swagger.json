@@ -6183,6 +6183,22 @@
               "locked",
               "personal"
             ]
+          },
+          "type": {
+            "type": "number"
+          },
+          "view": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Form"
+              },
+              {
+                "$ref": "#/components/schemas/Grid"
+              },
+              {
+                "$ref": "#/components/schemas/Gallery"
+              }
+            ]
           }
         }
       },

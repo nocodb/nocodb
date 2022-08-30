@@ -105,7 +105,7 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
 
 const expandFormClick = async (e: MouseEvent, row: RowType) => {
   const target = e.target as HTMLElement
-  if (target && !target.closest('.slick-dots')) {
+  if (target && !target.closest('.gallery-carousel')) {
     expandForm(row)
   }
 }
@@ -123,11 +123,17 @@ openNewRecordFormHook?.on(async () => {
         <Row :row="record">
           <a-card hoverable class="!rounded-lg h-full overflow-hidden break-all" @click="expandFormClick($event, record)">
             <template #cover>
-              <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay class="gallery-carousel">
+              <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay class="gallery-carousel" arrows>
                 <template #customPaging>
                   <a>
                     <div class="pt-[12px]"><div></div></div>
                   </a>
+                </template>
+                <template #prevArrow>
+                  <div style="z-index: 1"></div>
+                </template>
+                <template #nextArrow>
+                  <div style="z-index: 1"></div>
                 </template>
                 <img
                   v-for="(attachment, index) in attachments(record).filter((attachment) => attachment.url)"
@@ -205,5 +211,17 @@ openNewRecordFormHook?.on(async () => {
 }
 .ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
   opacity: 1;
+}
+.ant-carousel.gallery-carousel :deep(.slick-prev) {
+  left: 0;
+  height: 100%;
+  top: 12px;
+  width: 50%;
+}
+.ant-carousel.gallery-carousel :deep(.slick-next) {
+  right: 0;
+  height: 100%;
+  top: 12px;
+  width: 50%;
 }
 </style>

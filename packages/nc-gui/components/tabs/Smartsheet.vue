@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
-import { useUIPermission } from '#imports'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import SmartsheetGrid from '../smartsheet/Grid.vue'
 import {
   ActiveViewInj,
@@ -21,6 +19,8 @@ import {
   useMetas,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
+  useUIPermission,
+  watch,
 } from '#imports'
 import type { TabItem } from '~/lib'
 
@@ -44,43 +44,10 @@ const { isGallery, isGrid, isForm, isKanban, isLocked, nestedFilters, sorts } = 
 
 const openNewRecordFormHook = createEventHook()
 
-const reloadViewMetaEventHook = createEventHook()
+const reloadEventHook = createEventHook<void | boolean>()
+const openNewRecordFormHook = createEventHook<void>()
 
-useProvideKanbanViewStore(meta, activeView)
-
-const { isUIAllowed } = useUIPermission()
-
-/** keep view level state in tabMeta and restore on view change */
-watch(nestedFilters, (newFilters) => {
-  activeTab.value.state = activeTab.value.state || new Map()
-  if (!activeTab.value.state.has(activeView.value.id)) {
-    activeTab.value.state.set(activeView.value.id, new Map())
-  }
-  activeTab.value.state.get(activeView.value.id)!.set('filters', newFilters)
-})
-
-watch(sorts, (newSorts) => {
-  activeTab.value.state = activeTab.value.state || new Map()
-  if (!activeTab.value.state.has(activeView.value.id)) {
-    activeTab.value.state.set(activeView.value.id, new Map())
-  }
-  activeTab.value.state.get(activeView.value.id)!.set('sorts', newSorts)
-})
-
-watch(activeView, (newView: ViewType) => {
-  if(!newView || !activeTab.value?.state?.get(newView.id as string)) return
-
-  if (
-    activeTab.value?.state?.get(newView.id as string)?.has('filters') &&
-    !isUIAllowed('filterSync') &&
-    !isUIAllowed('filterChildrenRead')
-  ) {
-    nestedFilters.value = activeTab.value?.state?.get(newView.id as string)?.get('filters') || []
-  }
-  if (activeTab.value?.state?.get(newView.id as string)?.has('sorts') && !isUIAllowed('sortSync')) {
-    nestedFilters.value = activeTab.value?.state?.get(newView.id as string)?.get('sorts') || []
-  }
-})
+const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
 // todo: move to store
 provide(MetaInj, meta)

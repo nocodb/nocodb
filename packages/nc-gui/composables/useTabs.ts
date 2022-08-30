@@ -38,7 +38,8 @@ const [setup, use] = useInjectionState(() => {
         let index = tabs.value.findIndex((t) => t.id === tab.id)
 
         if (index === -1) {
-          tab.state = tab.state || new Map()
+          tab.sortsState = tab.sortsState || new Map()
+          tab.filterState = tab.filterState || new Map()
           tabs.value.push(tab)
           index = tabs.value.length - 1
         }
@@ -71,6 +72,8 @@ const [setup, use] = useInjectionState(() => {
   const activeTab = computed(() => tabs.value?.[activeTabIndex.value])
 
   const addTab = (tabMeta: TabItem) => {
+    tabMeta.sortsState = tabMeta.sortsState || new Map()
+    tabMeta.filterState = tabMeta.filterState || new Map()
     const tabIndex = tabs.value.findIndex((tab) => tab.id === tabMeta.id)
     // if tab already found make it active
     if (tabIndex > -1) {

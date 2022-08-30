@@ -29,8 +29,8 @@ const { $e } = useNuxtApp()
 const { nestedFilters } = useSmartsheetStoreOrThrow()
 
 // todo: avoid duplicate api call by keeping a filter store
-const { nonDeletedFilters, loadFilters } = useViewFilters(
-  activeView,
+const { activeView, nonDeletedFilters, loadFilters } = useViewFilters(
+  activeView!,
   undefined,
   computed(() => true),
   () => false,

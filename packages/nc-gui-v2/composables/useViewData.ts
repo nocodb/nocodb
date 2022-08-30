@@ -394,6 +394,7 @@ export function useViewData(
     updateOrSaveRow,
     selectedAllRecords,
     syncCount,
+    syncPagination,
     galleryData,
     loadGalleryData,
     loadFormView,

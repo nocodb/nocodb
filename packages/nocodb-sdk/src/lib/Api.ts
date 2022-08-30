@@ -512,7 +512,7 @@ export interface PluginType {
   tags?: string;
   category?: string;
   input_schema?: string;
-  input?: string;
+  input?: string | null;
   creator?: string;
   creator_website?: string;
   price?: string;

@@ -30,7 +30,7 @@ const fetchPluginApps = async () => {
 const resetPlugin = async () => {
   try {
     await $api.plugin.update(pluginApp.id, {
-      input: undefined,
+      input: null,
       active: false,
     })
     message.success('Plugin uninstalled successfully')

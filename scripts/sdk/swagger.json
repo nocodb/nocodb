@@ -7718,7 +7718,7 @@
             "type": "string"
           },
           "input": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "creator": {
             "type": "string"

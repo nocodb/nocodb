@@ -1,10 +1,12 @@
 import Handlebars from 'handlebars';
 import Model from '../../models/Model';
 import NcPluginMgrv2 from './NcPluginMgrv2';
+import Column from '../../models/Column';
 import Hook from '../../models/Hook';
 import Filter from '../../models/Filter';
 import HookLog from '../../models/HookLog';
 import { HookLogType } from 'nocodb-sdk';
+import FormView from '../../models/FormView';
 
 export function parseBody(template: string, data: any): string {
   if (!template) {
@@ -267,7 +269,7 @@ export function _transformSubmittedFormDataForEmail(
   // @ts-ignore
   formView,
   // @ts-ignore
-  columns: Record<string, any>[]
+  columns: (Column<any> & FormView<any>)[]
 ) {
   const transformedData = { ...data };
 

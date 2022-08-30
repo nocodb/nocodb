@@ -6,6 +6,7 @@ import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import monacoEditorPlugin from 'vite-plugin-monaco-editor'
+import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -49,10 +50,7 @@ export default defineNuxtConfig({
   vite: {
     // todo: minifiy again
     build: {
-      minify: false,
-      rollupOptions: {
-        external: 'httpsnippet',
-      },
+      minify: false
     },
     plugins: [
       vueI18n({
@@ -81,10 +79,30 @@ export default defineNuxtConfig({
     ],
     define: {
       'process.env.DEBUG': 'false',
+      'process.nextTick': () => {
+      },
     },
     server: {
       watch: {
         usePolling: true,
+      },
+    },
+    resolve: {
+      alias: {
+        querystring: 'rollup-plugin-node-polyfills/polyfills/qs',
+        util: 'rollup-plugin-node-polyfills/polyfills/util',
+        url: 'rollup-plugin-node-polyfills/polyfills/url',
+      },
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        define: {
+          global: 'globalThis',
+        },
+        // Enable esbuild polyfill plugins
+        plugins: [
+          NodeModulesPolyfillPlugin(),
+        ],
       },
     },
   },

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
+import { useProject, useSmartsheetStoreOrThrow } from '~/composables'
 import { LockType } from '~/lib'
 import { viewIcons } from '~/utils'
 import {
@@ -30,9 +31,13 @@ const isLocked = inject(IsLockedInj)
 
 const showWebhookDrawer = ref(false)
 
+const showApiSnippetDrawer = ref(false)
+
 const quickImportDialog = ref(false)
 
 const { isUIAllowed } = useUIPermission()
+
+const { isSharedBase } = useProject()
 
 const Icon = computed(() => {
   switch ((selectedView?.value as any)?.lock_type) {
@@ -183,6 +188,18 @@ async function changeLockType(type: LockType) {
                 {{ $t('objects.webhooks') }}
               </div>
             </a-menu-item>
+            <a-menu-item>
+              <div
+                v-if="!isSharedBase && !isPublicView"
+                v-t="['c:snippet:open']"
+                class="py-2 flex gap-2 items-center"
+                @click="showApiSnippetDrawer = true"
+              >
+                <MdiXml class="text-gray-500" />
+                <!-- todo: i18n translation -->
+                Get API Snippet
+              </div>
+            </a-menu-item>
           </a-menu-item-group>
         </a-menu>
       </template>
@@ -195,6 +212,7 @@ async function changeLockType(type: LockType) {
     <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="max(900px,60vw)" :footer="null">
       <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
     </a-modal>
+    <SmartsheetApiSnippet v-model="showApiSnippetDrawer" />
   </div>
 </template>
 

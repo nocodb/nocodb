@@ -224,7 +224,7 @@ jobs:
 #          uses: cypress-io/github-action@v2
 #          with:
 #            start: |
-#              npm run start:xcdb-api:cache
+#              npm run start:xcdb-api:cache-v2
 #              npm run start:web-v2
 #              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
 #            spec: "./scripts/cypress-v2/integration/test/xcdb-restTableOps.js"
@@ -268,7 +268,7 @@ jobs:
 #          uses: cypress-io/github-action@v2
 #          with:
 #            start: |
-#              npm run start:xcdb-api:cache
+#              npm run start:xcdb-api:cache-v2
 #              npm run start:web-v2
 #              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
 #            spec: "./scripts/cypress-v2/integration/test/xcdb-restViews.js"
@@ -312,7 +312,7 @@ jobs:
           uses: cypress-io/github-action@v2
           with:
             start: |
-              npm run start:xcdb-api:cache
+              npm run start:xcdb-api:cache-v2
               npm run start:web-v2
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress-v2/integration/test/xcdb-restRoles.js"
@@ -356,7 +356,7 @@ jobs:
           uses: cypress-io/github-action@v2
           with:
             start: |
-              npm run start:xcdb-api:cache
+              npm run start:xcdb-api:cache-v2
               npm run start:web-v2
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress-v2/integration/test/xcdb-restMisc.js"

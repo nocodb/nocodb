@@ -64,7 +64,7 @@ const langs = [
   },
 ]
 
-const selectedClient = $ref<string | undefined>(langs[0].clients && langs[0].clients[0])
+let selectedClient = $ref<string | undefined>(langs[0].clients && langs[0].clients[0])
 
 const selectedLangName = $ref(langs[0].name)
 
@@ -123,6 +123,11 @@ const onCopyToClipboard = () => {
 const afterVisibleChange = (visible: boolean) => {
   vModel = visible
 }
+
+watch($$(activeLang), (newLang) => {
+  selectedClient = newLang?.clients?.[0]
+})
+
 </script>
 
 <template>
@@ -153,7 +158,7 @@ const afterVisibleChange = (visible: boolean) => {
             :disable-deep-compare="true"
             hide-minimap
           />
-          <div class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
+          <div class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase" v-if="activeLang.clients">
             <a-select v-if="activeLang" v-model:value="selectedClient" style="width: 6rem">
               <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full uppercase" :value="client">
                 {{ client }}

@@ -151,6 +151,7 @@ const afterVisibleChange = (visible: boolean) => {
             lang="typescript"
             :validate="false"
             :disable-deep-compare="true"
+            hide-minimap
           />
           <div class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
             <a-select v-if="activeLang" v-model:value="selectedClient" style="width: 6rem">

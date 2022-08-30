@@ -123,7 +123,12 @@ openNewRecordFormHook?.on(async () => {
         <Row :row="record">
           <a-card hoverable class="!rounded-lg h-full overflow-hidden break-all" @click="expandFormClick($event, record)">
             <template #cover>
-              <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay>
+              <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay class="gallery-carousel">
+                <template #customPaging>
+                  <a>
+                    <div class="pt-[12px]"><div></div></div>
+                  </a>
+                </template>
                 <img
                   v-for="(attachment, index) in attachments(record).filter((attachment) => attachment.url)"
                   :key="`carousel-${record.row.id}-${index}`"
@@ -174,5 +179,31 @@ openNewRecordFormHook?.on(async () => {
 .nc-gallery-container {
   grid-auto-rows: 1fr;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+:depp(.slick-dots li button) {
+  background-color: black;
+}
+.ant-carousel.gallery-carousel :deep(.slick-dots) {
+  position: relative;
+  height: auto;
+  bottom: 0px;
+}
+.ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
+  background: #000;
+  border: 0;
+  border-radius: 1px;
+  color: transparent;
+  cursor: pointer;
+  display: block;
+  font-size: 0;
+  height: 3px;
+  opacity: .3;
+  outline: none;
+  padding: 0;
+  transition: all .5s;
+  width: 100%;
+}
+.ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
+  opacity: 1;
 }
 </style>

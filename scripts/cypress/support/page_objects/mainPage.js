@@ -222,7 +222,8 @@ export class _mainPage {
             .click()
             .type(host);
         cy.getActiveModal().find('[placeholder="Port"]').click().type(port);
-        cy.getActiveModal().find('[placeholder="Secure"]').click().type(secure);
+        // TODO: in v2, it would be a button
+        // if (secure) cy.getActiveModal().find('[placeholder="Secure"]').click();
         cy.getActiveModal().find("button").contains("Save").click();
         cy.toastWait(
             "Successfully installed and email notification will use SMTP configuration"
@@ -251,22 +252,27 @@ export class _mainPage {
 
     shareViewList = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(2);
+        return cy.getActiveMenu().find('[role="menuitem"]').contains("Shared View List");
     };
 
     downloadCsv = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(0);
+        return cy.getActiveMenu().find('[role="menuitem"]').contains("Download as CSV");
+    };
+
+    downloadExcel = () => {
+        cy.get(".nc-actions-menu-btn").click();
+        return cy.getActiveMenu().find('[role="menuitem"]').contains("Download as XLSX");
     };
 
     uploadCsv = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(1);
+        return cy.getActiveMenu().find('[role="menuitem"]').contains("Upload CSV");
     };
 
     automations = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(3);
+        return cy.getActiveMenu().find('[role="menuitem"]').contains("Webhooks");
     };
 
     hideField = (field) => {

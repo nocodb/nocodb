@@ -471,6 +471,21 @@ const formulas = {
       'URL("https://github.com/nocodb/nocodb")',
       'URL({column1})'
     ]
+  },
+  WEEKDAY: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      }
+    },
+    description: 'Returns the day of the week as an integer between 0 and 6 inclusive starting from Monday by default',
+    syntax: 'WEEKDAY(date, [startDayOfWeek])',
+    examples: [
+      'WEEKDAY("2021-06-09")',
+      'WEEKDAY(NOW(), "sunday")'
+    ]
   }
 }
 

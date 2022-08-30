@@ -1,27 +1,30 @@
-<template>
-  <div class="">
-<!--    <div class="topbar">-->
-<!--    </div>-->
-<!--    <div class="sidebar">-->
-<!--    </div>-->
-<!--    <div class="content">-->
+<script lang="ts" setup>
+import { useTitle } from '@vueuse/core'
+import { useI18n, useRoute, useSidebar } from '#imports'
 
+const route = useRoute()
 
-    <v-layout>
-      <v-app-bar color=""></v-app-bar>
-<slot></slot>
-    </v-layout>
+const { te, t } = useI18n()
 
-<!--    </div>-->
-  </div>
-</template>
+const { hasSidebar } = useSidebar()
 
-<script>
+useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)} | NocoDB` : 'NocoDB')
+</script>
+
+<script lang="ts">
 export default {
-  name: "default"
+  name: 'DefaultLayout',
 }
 </script>
 
-<style scoped>
+<template>
+  <div class="w-full h-full">
+    <Teleport :to="hasSidebar ? '#nc-sidebar-left' : null" :disabled="!hasSidebar">
+      <slot name="sidebar" />
+    </Teleport>
 
-</style>
+    <a-layout-content>
+      <slot />
+    </a-layout-content>
+  </div>
+</template>

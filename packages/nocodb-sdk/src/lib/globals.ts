@@ -12,6 +12,7 @@ export enum RelationTypes {
 }
 
 export enum ExportTypes {
+  EXCEL = 'excel',
   CSV = 'csv',
 }
 

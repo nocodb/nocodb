@@ -1431,7 +1431,8 @@ export default {
       let item = cookie;
       try {
         await this.$api.dbTable.update(item.id, {
-          title,
+          project_id: this.projectId,
+          table_name: title,
         });
       } catch (e) {
         this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000);

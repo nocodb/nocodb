@@ -889,7 +889,7 @@ export default {
       this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
-        tn: this.table,
+        table_name: this.table,
         force: true,
       });
       if (this.selectedView && this.selectedView.show_as === 'kanban') {

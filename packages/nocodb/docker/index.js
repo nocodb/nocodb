@@ -2,6 +2,7 @@ const Noco = require("../build/main/lib/Noco").default;
 const express = require('express');
 const cors = require('cors');
 const server = express();
+server.enable('trust proxy');
 server.use(cors());
 
 

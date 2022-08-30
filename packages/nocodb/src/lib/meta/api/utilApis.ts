@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import { packageVersion } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2';
-import { defaultConnectionConfig } from '../../utils/NcConfigFactory';
+import NcConfigFactory, { defaultConnectionConfig } from '../../utils/NcConfigFactory';
 import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
@@ -147,6 +147,17 @@ export async function axiosRequestMake(req: Request, res: Response) {
   return await _axiosRequestMake(req, res);
 }
 
+export async function urlToDbConfig(req: Request, res: Response) {
+  const { url } = req.body;
+  try {
+    let connectionConfig;
+    connectionConfig = NcConfigFactory.extractXcUrlFromJdbc(url, true);
+    return res.json(connectionConfig);
+  } catch (error) {
+    return res.sendStatus(500)
+  }
+}
+
 export default (router) => {
   router.post(
     '/api/v1/db/meta/connection/test',
@@ -157,4 +168,5 @@ export default (router) => {
   router.get('/api/v1/version', catchError(versionInfo));
   router.get('/api/v1/health', catchError(appHealth));
   router.get('/api/v1/feedback_form', catchError(feedbackFormGet));
+  router.post('/api/v1/url_to_config', catchError(urlToDbConfig));
 };

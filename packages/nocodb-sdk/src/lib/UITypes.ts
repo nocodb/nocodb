@@ -46,10 +46,12 @@ export function isVirtualCol(
     | ColumnType
 ) {
   return [
+    UITypes.SpecificDBType,
     UITypes.LinkToAnotherRecord,
     UITypes.Formula,
     UITypes.Rollup,
     UITypes.Lookup,
+    // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
 

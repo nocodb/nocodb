@@ -176,17 +176,7 @@ const copyAuthToken = async () => {
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </a>
 
-          <div v-if="isSharedBase">
-            <template v-if="isOpen">
-              <div class="text-xl font-semibold truncate">{{ project.title }}</div>
-            </template>
-
-            <template v-else>
-              <MdiFolder class="text-primary cursor-pointer transform hover:scale-105 text-2xl" />
-            </template>
-          </div>
-
-          <a-dropdown v-else class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom">
+          <a-dropdown class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
@@ -219,7 +209,7 @@ const copyAuthToken = async () => {
                       <div class="flex flex-col">
                         <div class="text-lg group-hover:(!text-primary) font-semibold truncate">{{ project.title }}</div>
 
-                        <div class="flex items-center gap-1">
+                        <div v-if="!isSharedBase" class="flex items-center gap-1">
                           <div class="group-hover:(!text-primary)">ID:</div>
 
                           <div class="text-xs group-hover:text-accent truncate font-italic">{{ project.id }}</div>
@@ -227,55 +217,118 @@ const copyAuthToken = async () => {
                       </div>
                     </div>
                   </template>
+                  <template v-if="!isSharedBase">
+                    <a-menu-item key="copy">
+                      <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">
+                        <MdiContentCopy class="group-hover:text-accent" />
+                        Copy Project Info
+                      </div>
+                    </a-menu-item>
 
-                  <a-menu-item key="copy">
-                    <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">
-                      <MdiContentCopy class="group-hover:text-accent" />
-                      Copy Project Info
-                    </div>
-                  </a-menu-item>
+                    <a-menu-divider />
 
-                  <a-menu-divider />
+                    <a-menu-item key="api">
+                      <div
+                        v-if="isUIAllowed('apiDocs')"
+                        v-t="['e:api-docs']"
+                        class="nc-project-menu-item group"
+                        @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
+                      >
+                        <MdiApi class="group-hover:text-accent" />
+                        Swagger: Rest APIs
+                      </div>
+                    </a-menu-item>
 
-                  <a-menu-item key="api">
-                    <div
-                      v-if="isUIAllowed('apiDocs')"
-                      v-t="['e:api-docs']"
-                      class="nc-project-menu-item group"
-                      @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
-                    >
-                      <MdiApi class="group-hover:text-accent" />
-                      Swagger: Rest APIs
-                    </div>
-                  </a-menu-item>
+                    <a-menu-item key="copy">
+                      <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                        <MdiScriptTextKeyOutline class="group-hover:text-accent" />
+                        Copy Auth Token
+                      </div>
+                    </a-menu-item>
 
-                  <a-menu-item key="copy">
-                    <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
-                      <MdiScriptTextKeyOutline class="group-hover:text-accent" />
-                      Copy Auth Token
-                    </div>
-                  </a-menu-item>
+                    <a-menu-divider />
 
-                  <a-menu-divider />
+                    <a-menu-item key="teamAndSettings">
+                      <div
+                        v-if="isUIAllowed('settings')"
+                        v-t="['c:navdraw:project-settings']"
+                        class="nc-project-menu-item group"
+                        @click="toggleDialog(true, 'teamAndAuth')"
+                      >
+                        <MdiCog class="group-hover:text-accent" />
+                        Team & Settings
+                      </div>
+                    </a-menu-item>
 
-                  <a-menu-item key="teamAndSettings">
-                    <div
-                      v-if="isUIAllowed('settings')"
-                      v-t="['c:navdraw:project-settings']"
-                      class="nc-project-menu-item group"
-                      @click="toggleDialog(true, 'teamAndAuth')"
-                    >
-                      <MdiCog class="group-hover:text-accent" />
-                      Team & Settings
-                    </div>
-                  </a-menu-item>
+                    <template v-if="isUIAllowed('projectTheme')">
+                      <a-sub-menu key="theme">
+                        <template #title>
+                          <div class="nc-project-menu-item group">
+                            <ClarityImageLine class="group-hover:text-accent" />
+                            Project Theme
 
-                  <template v-if="isUIAllowed('projectTheme')">
-                    <a-sub-menu key="theme">
+                            <div class="flex-1" />
+
+                            <MaterialSymbolsChevronRightRounded
+                              class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                            />
+                          </div>
+                        </template>
+
+                        <template #expandIcon></template>
+
+                        <GeneralColorPicker
+                          v-model="themePrimaryColor"
+                          :colors="enumColor.dark"
+                          :row-size="5"
+                          :advanced="false"
+                        />
+                        <a-sub-menu key="theme-2">
+                          <template #title>
+                            <div class="nc-project-menu-item group">
+                              Custom Theme
+
+                              <div class="flex-1" />
+
+                              <MaterialSymbolsChevronRightRounded
+                                class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
+                              />
+                            </div>
+                          </template>
+
+                          <template #expandIcon></template>
+                          <a-sub-menu key="pick-primary">
+                            <template #title>
+                              <div class="nc-project-menu-item group">
+                                <ClarityColorPickerSolid class="group-hover:text-accent" />
+                                Primary Color
+                              </div>
+                            </template>
+                            <template #expandIcon></template>
+                            <Chrome v-model="themePrimaryColor" />
+                          </a-sub-menu>
+
+                          <a-sub-menu key="pick-accent">
+                            <template #title>
+                              <div class="nc-project-menu-item group">
+                                <ClarityColorPickerSolid class="group-hover:text-accent" />
+                                Accent Color
+                              </div>
+                            </template>
+                            <template #expandIcon></template>
+                            <Chrome v-model="themeAccentColor" />
+                          </a-sub-menu>
+                        </a-sub-menu>
+                      </a-sub-menu>
+                    </template>
+
+                    <a-menu-divider />
+
+                    <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
                       <template #title>
-                        <div class="nc-project-menu-item group">
-                          <ClarityImageLine class="group-hover:text-accent" />
-                          Project Theme
+                        <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                          <MdiFileEyeOutline class="group-hover:text-accent" />
+                          Preview Project As
 
                           <div class="flex-1" />
 
@@ -287,67 +340,9 @@ const copyAuthToken = async () => {
 
                       <template #expandIcon></template>
 
-                      <GeneralColorPicker v-model="themePrimaryColor" :colors="enumColor.dark" :row-size="5" :advanced="false" />
-                      <a-sub-menu key="theme-2">
-                        <template #title>
-                          <div class="nc-project-menu-item group">
-                            Custom Theme
-
-                            <div class="flex-1" />
-
-                            <MaterialSymbolsChevronRightRounded
-                              class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                            />
-                          </div>
-                        </template>
-
-                        <template #expandIcon></template>
-                        <a-sub-menu key="pick-primary">
-                          <template #title>
-                            <div class="nc-project-menu-item group">
-                              <ClarityColorPickerSolid class="group-hover:text-accent" />
-                              Primary Color
-                            </div>
-                          </template>
-                          <template #expandIcon></template>
-                          <Chrome v-model="themePrimaryColor" />
-                        </a-sub-menu>
-
-                        <a-sub-menu key="pick-accent">
-                          <template #title>
-                            <div class="nc-project-menu-item group">
-                              <ClarityColorPickerSolid class="group-hover:text-accent" />
-                              Accent Color
-                            </div>
-                          </template>
-                          <template #expandIcon></template>
-                          <Chrome v-model="themeAccentColor" />
-                        </a-sub-menu>
-                      </a-sub-menu>
+                      <GeneralPreviewAs />
                     </a-sub-menu>
                   </template>
-
-                  <a-menu-divider />
-
-                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
-                    <template #title>
-                      <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
-                        <MdiFileEyeOutline class="group-hover:text-accent" />
-                        Preview Project As
-
-                        <div class="flex-1" />
-
-                        <MaterialSymbolsChevronRightRounded
-                          class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                        />
-                      </div>
-                    </template>
-
-                    <template #expandIcon></template>
-
-                    <GeneralPreviewAs />
-                  </a-sub-menu>
-
                   <a-sub-menu
                     key="language"
                     class="lang-menu !py-0"

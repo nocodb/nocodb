@@ -118,10 +118,10 @@ openNewRecordFormHook?.on(async () => {
 
 <template>
   <div class="flex flex-col h-full w-full overflow-auto">
-    <div class="nc-gallery-container grid w-full min-h-0 flex-1 gap-2 my-4 px-3">
-      <div v-for="record in data" :key="`record-${record.row.id}`" class="flex flex-col">
+    <div class="nc-gallery-container grid w-full min-h-0 gap-2 my-4 px-3">
+      <div v-for="record in data" :key="`record-${record.row.id}`">
         <Row :row="record">
-          <a-card hoverable class="!rounded-lg overflow-hidden break-all" @click="expandFormClick($event, record)">
+          <a-card hoverable class="!rounded-lg h-full overflow-hidden break-all" @click="expandFormClick($event, record)">
             <template #cover>
               <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay>
                 <img
@@ -158,6 +158,7 @@ openNewRecordFormHook?.on(async () => {
         </Row>
       </div>
     </div>
+    <div class="flex-1" />
     <SmartsheetPagination />
     <SmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"
@@ -171,6 +172,7 @@ openNewRecordFormHook?.on(async () => {
 
 <style scoped>
 .nc-gallery-container {
+  grid-auto-rows: 1fr;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 }
 </style>

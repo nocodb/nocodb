@@ -1,49 +1,43 @@
 import 'mocha';
 import request from 'supertest';
-import server from '../server';
 import Project from '../../../../lib/models/Project';
 import { createProject, createSharedBase } from './helpers/project';
-import { createUser } from './helpers/user';
 import { beforeEach } from 'mocha';
 import { Exception } from 'handlebars';
+import init from '../init/index';
 
 function projectTest() {
-  let app;
-  let token;
+  let context;
   let project;
 
   beforeEach(async function () {
-    app = await server();
-    const response = await createUser(app, { roles: 'editor' });
-    token = response.token;
-    project = await createProject(app, token);
+    context = await init();
+
+    project = await createProject(context);
   });
 
   it('Get project info', function (done) {
-    request(app)
+    request(context.app)
       .get(`/api/v1/db/meta/projects/${project.id}/info`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({})
       .expect(200, done);
   });
 
   // todo: Test by creating models under project and check if the UCL is working
   it('UI ACL', (done) => {
-    request(app)
+    request(context.app)
       .get(`/api/v1/db/meta/projects/${project.id}/visibility-rules`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({})
-      .expect(200, (_, res) => {
-        console.log('UI ACL Respinse:', res.body);
-        done();
-      });
+      .expect(200, done);
   });
   // todo: Test creating visibility set
 
   it('List projects', function (done) {
-    request(app)
+    request(context.app)
       .get('/api/v1/db/meta/projects/')
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({})
       .expect(200, (err, res) => {
         if (err) done(err);
@@ -56,9 +50,9 @@ function projectTest() {
   });
 
   it('Create project', function (done) {
-    request(app)
+    request(context.app)
       .post('/api/v1/db/meta/projects/')
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         title: 'Title1',
       })
@@ -73,9 +67,9 @@ function projectTest() {
   });
 
   it('Create projects with existing title', function (done) {
-    request(app)
+    request(context.app)
       .post(`/api/v1/db/meta/projects/`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         title: project.title,
       })
@@ -107,9 +101,9 @@ function projectTest() {
   // });
 
   it('Read project', (done) => {
-    request(app)
+    request(context.app)
       .get(`/api/v1/db/meta/projects/${project.id}`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send()
       .expect(200, (err, res) => {
         if (err) return done(err);
@@ -121,9 +115,9 @@ function projectTest() {
   });
 
   it('Update projects', function (done) {
-    request(app)
+    request(context.app)
       .patch(`/api/v1/db/meta/projects/${project.id}`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         title: 'NewTitle',
       })
@@ -143,10 +137,12 @@ function projectTest() {
   });
 
   it('Update projects with existing title', async function () {
-    const newProject = await createProject(app, token, { title: 'NewTitle1' });
-    return await request(app)
+    const newProject = await createProject(context, {
+      title: 'NewTitle1',
+    });
+    return await request(context.app)
       .patch(`/api/v1/db/meta/projects/${project.id}`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         title: newProject.title,
       })
@@ -154,9 +150,9 @@ function projectTest() {
   });
 
   it('Create project shared base', (done) => {
-    request(app)
+    request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/shared`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         roles: 'viewer',
         password: 'test',
@@ -179,9 +175,9 @@ function projectTest() {
   });
 
   it('Created project shared base should have only editor or viewer role', (done) => {
-    request(app)
+    request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/shared`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         roles: 'commenter',
         password: 'test',
@@ -200,11 +196,11 @@ function projectTest() {
   });
 
   it('Updated project shared base should have only editor or viewer role', async () => {
-    await createSharedBase(app, token, project);
+    await createSharedBase(context.app, context.token, project);
 
-    await request(app)
+    await request(context.app)
       .patch(`/api/v1/db/meta/projects/${project.id}/shared`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         roles: 'commenter',
         password: 'test',
@@ -218,11 +214,11 @@ function projectTest() {
   });
 
   it('Updated project shared base', async () => {
-    await createSharedBase(app, token, project);
+    await createSharedBase(context.app, context.token, project);
 
-    await request(app)
+    await request(context.app)
       .patch(`/api/v1/db/meta/projects/${project.id}/shared`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         roles: 'editor',
         password: 'test',
@@ -236,11 +232,11 @@ function projectTest() {
   });
 
   it('Get project shared base', async () => {
-    await createSharedBase(app, token, project);
+    await createSharedBase(context.app, context.token, project);
 
-    await request(app)
+    await request(context.app)
       .get(`/api/v1/db/meta/projects/${project.id}/shared`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send()
       .expect(200);
 
@@ -251,11 +247,11 @@ function projectTest() {
   });
 
   it('Delete project shared base', async () => {
-    await createSharedBase(app, token, project);
+    await createSharedBase(context.app, context.token, project);
 
-    await request(app)
+    await request(context.app)
       .delete(`/api/v1/db/meta/projects/${project.id}/shared`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send()
       .expect(200);
     const updatedProject = await Project.getByTitleOrId(project.id);
@@ -267,26 +263,26 @@ function projectTest() {
   // todo: Do compare api test
 
   it('Meta diff sync', (done) => {
-    request(app)
+    request(context.app)
       .get(`/api/v1/db/meta/projects/${project.id}/meta-diff`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send()
       .expect(200, done);
   });
 
   it('Meta diff sync', (done) => {
-    request(app)
+    request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/meta-diff`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send()
       .expect(200, done);
   });
 
   // todo: improve test. Check whether the all the actions are present in the response and correct as well
   it('Meta diff sync', (done) => {
-    request(app)
+    request(context.app)
       .get(`/api/v1/db/meta/projects/${project.id}/audits`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send()
       .expect(200, done);
   });

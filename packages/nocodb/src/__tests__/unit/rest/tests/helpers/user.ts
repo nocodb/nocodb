@@ -6,9 +6,9 @@ const defaultUserArgs = {
   password: 'A1234abh2@dsad',
 };
 
-const createUser = async (app, userArgs = {}) => {
+const createUser = async (context, userArgs = {}) => {
   const args = { ...defaultUserArgs, ...userArgs };
-  const response = await request(app)
+  const response = await request(context.app)
     .post('/api/v1/auth/user/signup')
     .send(args);
   const user = User.getByEmail(args.email);

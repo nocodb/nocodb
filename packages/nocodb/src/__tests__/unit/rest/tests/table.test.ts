@@ -1,32 +1,28 @@
 // import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
-import server from '../server';
-import { createUser } from './helpers/user';
 import { createTable } from './helpers/table';
 import { createProject } from './helpers/project';
 import Model from '../../../../lib/models/Model';
 import { defaultColumns } from './helpers/column';
+import init from '../init';
 
 function tableTest() {
-  let app;
-  let token;
+  let context;
   let project;
   let table;
 
   beforeEach(async function () {
-    app = await server();
-    const response = await createUser(app, { roles: 'editor' });
-    token = response.token;
+    context = await init();
 
-    project = await createProject(app, token);
-    table = await createTable(app, token, project);
+    project = await createProject(context);
+    table = await createTable(context, project);
   });
 
   it('Get table list', function (done) {
-    request(app)
+    request(context.app)
       .get(`/api/v1/db/meta/projects/${project.id}/tables`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({})
       .expect(200, (err, res) => {
         if (err) return done(err);
@@ -38,9 +34,9 @@ function tableTest() {
   });
 
   it('Create table', function (done) {
-    request(app)
+    request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         table_name: 'table2',
         title: 'new_title_2',
@@ -74,9 +70,9 @@ function tableTest() {
   });
 
   it('Create table with no table name', function (done) {
-    request(app)
+    request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         table_name: undefined,
         title: 'new_title',
@@ -110,9 +106,9 @@ function tableTest() {
   });
 
   it('Create table with same table name', function (done) {
-    request(app)
+    request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         table_name: table.table_name,
         title: 'New_title',
@@ -139,9 +135,9 @@ function tableTest() {
   });
 
   it('Create table with same title', function (done) {
-    request(app)
+    request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         table_name: 'New_table_name',
         title: table.title,
@@ -168,9 +164,9 @@ function tableTest() {
   });
 
   it('Create table with title length more than the limit', function (done) {
-    request(app)
+    request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         table_name: 'a'.repeat(256),
         title: 'new_title',
@@ -197,9 +193,9 @@ function tableTest() {
   });
 
   it('Create table with title having leading white space', function (done) {
-    request(app)
+    request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         table_name: 'table_name_with_whitespace ',
         title: 'new_title',
@@ -230,9 +226,9 @@ function tableTest() {
   });
 
   it('Update table', function (done) {
-    request(app)
+    request(context.app)
       .patch(`/api/v1/db/meta/tables/${table.id}`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         project_id: project.id,
         table_name: 'new_title',
@@ -251,9 +247,9 @@ function tableTest() {
   });
 
   it('Delete table', function (done) {
-    request(app)
+    request(context.app)
       .delete(`/api/v1/db/meta/tables/${table.id}`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({})
       .expect(200, async (err) => {
         if (err) return done(err);
@@ -275,9 +271,9 @@ function tableTest() {
   // todo: Check the if views are also deleted
 
   it('Get table', function (done) {
-    request(app)
+    request(context.app)
       .get(`/api/v1/db/meta/tables/${table.id}`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({})
       .expect(200, async (err, res) => {
         if (err) return done(err);
@@ -291,9 +287,9 @@ function tableTest() {
   // todo: flaky test, order condition is sometimes not met
   it('Reorder table', function (done) {
     const newOrder = table.order === 0 ? 1 : 0;
-    request(app)
+    request(context.app)
       .post(`/api/v1/db/meta/tables/${table.id}/reorder`)
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         order: newOrder,
       })

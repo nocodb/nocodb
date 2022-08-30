@@ -7,10 +7,10 @@ const defaultTableValue = {
   columns: defaultColumns,
 };
 
-const createTable = async (app, token, project, args = {}) => {
-  const response = await request(app)
+const createTable = async (context, project, args = {}) => {
+  const response = await request(context.app)
     .post(`/api/v1/db/meta/projects/${project.id}/tables`)
-    .set('xc-auth', token)
+    .set('xc-auth', context.token)
     .send({ ...defaultTableValue, ...args });
 
   const table = response.body;

@@ -1,21 +1,18 @@
 import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
-import server from '../server';
-import { createUser, defaultUserArgs } from './helpers/user';
+import init from '../init';
+import { defaultUserArgs } from './helpers/user';
 
 function authTests() {
-  let app;
-  let token;
+  let context;
 
   beforeEach(async function () {
-    app = await server();
-    const response = await createUser(app);
-    token = response.token;
+    context = await init();
   });
 
   it('Signup with valid email', function (done) {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/user/signup')
       .send({ email: 'new@example.com', password: defaultUserArgs.password })
       .expect(200, (err, res) => {
@@ -30,21 +27,21 @@ function authTests() {
   });
 
   it('Signup with invalid email', (done) => {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/user/signup')
       .send({ email: 'test', password: defaultUserArgs.password })
       .expect(400, done);
   });
 
   it('Signup with invalid passsword', (done) => {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/user/signup')
       .send({ email: defaultUserArgs.email, password: 'weakpass' })
       .expect(400, done);
   });
 
   it('Signin with valid credentials', function (done) {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/user/signin')
       .send({
         email: defaultUserArgs.email,
@@ -55,7 +52,7 @@ function authTests() {
           console.log(res.error);
           return done(err);
         }
-        token = res.body.token;
+        const token = res.body.token;
         expect(token).to.be.a('string');
         // todo: Verify token
         done();
@@ -63,7 +60,7 @@ function authTests() {
   });
 
   it('Signup without email and password', (done) => {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/user/signin')
       // pass empty data in request
       .send({})
@@ -71,21 +68,21 @@ function authTests() {
   });
 
   it('Signin with invalid credentials', function (done) {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/user/signin')
       .send({ email: 'abc@abc.com', password: defaultUserArgs.password })
       .expect(400, done);
   });
 
   it('Signin with invalid password', function (done) {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/user/signin')
       .send({ email: defaultUserArgs.email, password: 'wrongPassword' })
       .expect(400, done);
   });
 
   it('me without token', function (done) {
-    request(app)
+    request(context.app)
       .get('/api/v1/auth/user/me')
       .unset('xc-auth')
       .expect(200, (err, res) => {
@@ -105,9 +102,9 @@ function authTests() {
   });
 
   it('me with token', function (done) {
-    request(app)
+    request(context.app)
       .get('/api/v1/auth/user/me')
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .expect(200, function (err, res) {
         if (err) {
           return done(err);
@@ -119,7 +116,7 @@ function authTests() {
   });
 
   it('Forgot password with a non-existing email id', function (done) {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/password/forgot')
       .send({ email: 'nonexisting@email.com' })
       .expect(400, done);
@@ -129,9 +126,9 @@ function authTests() {
   // it('Forgot password with an existing email id', function () {});
 
   it('Change password', function (done) {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/password/change')
-      .set('xc-auth', token)
+      .set('xc-auth', context.token)
       .send({
         currentPassword: defaultUserArgs.password,
         newPassword: 'NEW' + defaultUserArgs.password,
@@ -140,7 +137,7 @@ function authTests() {
   });
 
   it('Change password - after logout', function (done) {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/password/change')
       .unset('xc-auth')
       .send({
@@ -154,14 +151,14 @@ function authTests() {
 
   // todo:
   it('Reset Password with an invalid token', function (done) {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/password/reset/someRandomValue')
       .send({ email: defaultUserArgs.email })
       .expect(400, done);
   });
 
   it('Email validate with an invalid token', function (done) {
-    request(app)
+    request(context.app)
       .post('/api/v1/auth/email/validate/someRandomValue')
       .send({ email: defaultUserArgs.email })
       .expect(400, done);
@@ -169,7 +166,7 @@ function authTests() {
 
   // todo:
   // it('Email validate with a valid token', function (done) {
-  //   // request(app)
+  //   // request(context.app)
   //   //   .post('/auth/email/validate/someRandomValue')
   //   //   .send({email: EMAIL_ID})
   //   //   .expect(500, done);
@@ -177,7 +174,7 @@ function authTests() {
 
   // todo:
   // it('Forgot password validate with a valid token', function (done) {
-  //   // request(app)
+  //   // request(context.app)
   //   //   .post('/auth/token/validate/someRandomValue')
   //   //   .send({email: EMAIL_ID})
   //   //   .expect(500, done);
@@ -185,7 +182,7 @@ function authTests() {
 
   // todo:
   // it('Reset Password with an valid token', function (done) {
-  //   // request(app)
+  //   // request(context.app)
   //   //   .post('/auth/password/reset/someRandomValue')
   //   //   .send({password: 'anewpassword'})
   //   //   .expect(500, done);

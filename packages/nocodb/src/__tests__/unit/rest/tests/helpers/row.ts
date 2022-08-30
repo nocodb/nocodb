@@ -17,8 +17,7 @@ const rowValue = (column: ColumnType, index: number) => {
 };
 
 const createRow = async (
-  app,
-  token,
+  context,
   project,
   table,
   columns: ColumnType[],
@@ -29,9 +28,9 @@ const createRow = async (
     return acc;
   }, {});
 
-  const response = await request(app)
+  const response = await request(context.app)
     .post(`/api/v1/db/data/noco/${project.id}/${table.id}`)
-    .set('xc-auth', token)
+    .set('xc-auth', context.token)
     .send(rowData);
 
   return response.body;

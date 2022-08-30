@@ -157,10 +157,10 @@ const defaultColumns = [
 //   }
 // };
 
-const createColumn = async (app, token, table, columnAttr) => {
-  const response = await request(app)
+const createColumn = async (context, table, columnAttr) => {
+  const response = await request(context.app)
     .post(`/api/v1/db/meta/tables/${table.id}/columns`)
-    .set('xc-auth', token)
+    .set('xc-auth', context.token)
     .send({
       ...columnAttr,
     });

@@ -42,20 +42,20 @@ const createSharedBase = async (app, token, project, sharedBaseArgs = {}) => {
     });
 };
 
-const createExternalProject = async (app, token) => {
-  const response = await request(app)
+const createExternalProject = async (context) => {
+  const response = await request(context.app)
     .post('/api/v1/db/meta/projects/')
-    .set('xc-auth', token)
+    .set('xc-auth', context.token)
     .send(externalProjectConfig);
 
   const project = response.body;
   return project;
 };
 
-const createProject = async (app, token, projectArgs = defaultProjectValue) => {
-  const response = await request(app)
+const createProject = async (context, projectArgs = defaultProjectValue) => {
+  const response = await request(context.app)
     .post('/api/v1/db/meta/projects/')
-    .set('xc-auth', token)
+    .set('xc-auth', context.token)
     .send(projectArgs);
 
   const project = response.body;

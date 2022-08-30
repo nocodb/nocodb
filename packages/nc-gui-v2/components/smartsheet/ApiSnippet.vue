@@ -140,7 +140,7 @@ const afterVisibleChange = (visible: boolean) => {
       <a-tabs v-model:activeKey="selectedLangName" class="!h-full">
         <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
           <template #tab>
-            <div class="capitalize select-none">
+            <div class="uppercase !text-xs select-none">
               {{ item.name }}
             </div>
           </template>
@@ -186,3 +186,8 @@ const afterVisibleChange = (visible: boolean) => {
     </div>
   </a-drawer>
 </template>
+<style scoped>
+:deep(.ant-tabs-tab+.ant-tabs-tab){
+  @apply !ml-7
+}
+</style>

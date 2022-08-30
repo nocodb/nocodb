@@ -96,6 +96,13 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
   expandedFormDlg.value = true
 }
 
+const expandFormClick = async (e: MouseEvent, row: RowType) => {
+  const target = e.target as HTMLElement
+  if (target && !target.closest('.slick-dots')) {
+    expandForm(row)
+  }
+}
+
 openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
@@ -105,7 +112,7 @@ openNewRecordFormHook?.on(async () => {
 <template>
   <div class="flex flex-col h-full w-full overflow-auto">
     <div class="nc-gallery-container grid w-full min-h-0 flex-1 gap-2 my-4 px-3">
-      <div v-for="record in data" :key="`record-${record.row.id}`" class="flex flex-col" @click="expandForm(record)">
+      <div v-for="record in data" :key="`record-${record.row.id}`" class="flex flex-col" @click="expandFormClick($event, record)">
         <Row :row="record">
           <a-card hoverable class="!rounded-lg overflow-hidden break-all">
             <template #cover>

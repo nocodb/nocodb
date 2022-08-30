@@ -15,7 +15,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   const projectId = computed(() => (_projectId ? unref(_projectId) : (route.params.projectId as string)))
   const project = ref<ProjectType>({})
   const tables = ref<TableType[]>([])
-  const projectRoles = ref<Record<string, boolean>>({})
+  const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
 
   // todo: refactor path param name and variable name
@@ -49,7 +49,6 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
 
   async function loadProjectRoles() {
     projectRoles.value = {}
-
     if (isSharedBase.value) {
       const user = await $api.auth.me(
         {},

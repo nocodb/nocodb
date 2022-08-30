@@ -79,7 +79,7 @@ const isRowEmpty = (record: any, col: any) => {
 
 const attachments = (record: any): Array<Attachment> => {
   try {
-    return coverImageColumn?.title ? JSON.parse(record.row[coverImageColumn.title]) : []
+    return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
   } catch (e) {
     return []
   }
@@ -105,19 +105,24 @@ openNewRecordFormHook?.on(async () => {
 <template>
   <div class="flex flex-col h-full w-full overflow-auto">
     <div class="nc-gallery-container grid w-full min-h-0 flex-1 gap-2 my-4 px-3">
-      <div v-for="(record, recordIndex) in data" :key="recordIndex" class="flex flex-col" @click="expandForm(record)">
+      <div v-for="record in data" :key="`record-${record.row.id}`" class="flex flex-col" @click="expandForm(record)">
         <Row :row="record">
-          <a-card hoverable class="!rounded-lg h-full overflow-hidden break-all">
+          <a-card hoverable class="!rounded-lg overflow-hidden break-all">
             <template #cover>
-              <a-carousel v-if="attachments(record).length !== 0" autoplay>
-                <img v-for="(attachment, index) in attachments(record)" :key="index" class="h-52" :src="attachment.url" />
+              <a-carousel v-if="attachments(record).length" autoplay>
+                <img
+                  v-for="(attachment, index) in attachments(record).filter((attachment) => attachment.url)"
+                  :key="`carousel-${record.row.id}-${index}`"
+                  class="h-52"
+                  :src="attachment.url"
+                />
               </a-carousel>
               <ImageIcon v-else class="w-full h-48 my-4 text-cool-gray-200" />
             </template>
 
             <div
               v-for="col in fieldsWithoutCover"
-              :key="col.id"
+              :key="`record-${record.row.id}-${col.id}`"
               class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
             >
               <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">

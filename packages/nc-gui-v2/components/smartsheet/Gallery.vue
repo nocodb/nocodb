@@ -85,8 +85,15 @@ const attachments = (record: any): Array<Attachment> => {
   }
 }
 
+const reloadAttachments = ref(false)
+
 reloadViewDataHook?.on(async () => {
   await loadData()
+  await loadGalleryData()
+  reloadAttachments.value = true
+  nextTick(() => {
+    reloadAttachments.value = false
+  })
 })
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
@@ -116,7 +123,7 @@ openNewRecordFormHook?.on(async () => {
         <Row :row="record">
           <a-card hoverable class="!rounded-lg overflow-hidden break-all">
             <template #cover>
-              <a-carousel v-if="attachments(record).length" autoplay>
+              <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay>
                 <img
                   v-for="(attachment, index) in attachments(record).filter((attachment) => attachment.url)"
                   :key="`carousel-${record.row.id}-${index}`"

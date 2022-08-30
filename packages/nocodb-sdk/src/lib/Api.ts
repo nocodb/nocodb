@@ -134,6 +134,8 @@ export interface ViewType {
   uuid?: string;
   show_system_fields?: boolean;
   lock_type?: 'collaborative' | 'locked' | 'personal';
+  type?: number;
+  view?: FormType | GridType | GalleryType;
 }
 
 export interface TableInfoType {

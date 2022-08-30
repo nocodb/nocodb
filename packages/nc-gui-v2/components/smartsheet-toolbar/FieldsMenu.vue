@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
-import { isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType, GalleryType } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+import type { SelectProps } from 'ant-design-vue'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -31,7 +32,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { $e } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const {
   showSystemFields,
@@ -82,6 +83,32 @@ const onMove = (event: { moved: { newIndex: number } }) => {
   $e('a:fields:reorder')
 }
 
+const coverImageColumnId = computed({
+  get: () =>
+    activeView.value?.type === ViewTypes.GALLERY ? (activeView.value?.view as GalleryType).fk_cover_image_col_id : undefined,
+  set: async (val) => {
+    if (val && activeView.value.type === ViewTypes.GALLERY && activeView.value.id && activeView.value.view) {
+      await $api.dbView.galleryUpdate(activeView.value.id, {
+        ...activeView.value.view,
+        fk_cover_image_col_id: val,
+      })
+      ;(activeView.value?.view as GalleryType).fk_cover_image_col_id = val
+      reloadDataHook.trigger()
+    }
+  },
+})
+
+const coverOptions = computed<SelectProps['options']>(() => {
+  return fields.value
+    ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
+    .map((field) => {
+      return {
+        value: field.fk_column_id,
+        label: field.title,
+      }
+    })
+})
+
 const getIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? VirtualCellIcon : CellIcon, {
     columnMeta: c,
@@ -107,6 +134,9 @@ const getIcon = (c: ColumnType) =>
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
         @click.stop
       >
+        <a-card v-if="activeView.type === ViewTypes.GALLERY" size="small" title="Cover image">
+          <a-select v-model:value="coverImageColumnId" class="w-full" :options="coverOptions" @click.stop></a-select>
+        </a-card>
         <div class="p-1" @click.stop>
           <a-input v-model:value="filterQuery" size="small" :placeholder="$t('placeholder.searchFields')" />
         </div>

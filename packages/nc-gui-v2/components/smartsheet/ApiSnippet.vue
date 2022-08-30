@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// import HTTPSnippet from 'httpsnippet'
+import HTTPSnippet from 'httpsnippet'
 import { useClipboard } from '@vueuse/core'
 import { message } from 'ant-design-vue'
 import { ActiveViewInj, MetaInj } from '~/context'
@@ -64,7 +64,7 @@ const langs = [
   },
 ]
 
-const selectedClient = $ref<string | undefined>(langs[0].clients && langs[0].clients[0])
+let selectedClient = $ref<string | undefined>(langs[0].clients && langs[0].clients[0])
 
 const selectedLangName = $ref(langs[0].name)
 
@@ -73,7 +73,20 @@ const apiUrl = $computed(
     new URL(`/api/v1/db/data/noco/${project.id}/${meta.title}/views/${view.title}`, (appInfo && appInfo.ncSiteUrl) || '/').href,
 )
 
-const snippet = $computed(() => '')
+const snippet = $computed(
+  () =>
+    new HTTPSnippet({
+      method: 'GET',
+      headers: [{ name: 'xc-auth', value: token, comment: 'JWT Auth token' }],
+      url: apiUrl,
+      queryString: Object.entries(queryParams || {}).map(([name, value]) => {
+        return {
+          name,
+          value: String(value),
+        }
+      }),
+    }),
+)
 
 const activeLang = $computed(() => langs.find((lang) => lang.name === selectedLangName))
 
@@ -110,6 +123,10 @@ const onCopyToClipboard = () => {
 const afterVisibleChange = (visible: boolean) => {
   vModel = visible
 }
+
+watch($$(activeLang), (newLang) => {
+  selectedClient = newLang?.clients?.[0]
+})
 </script>
 
 <template>
@@ -127,7 +144,7 @@ const afterVisibleChange = (visible: boolean) => {
       <a-tabs v-model:activeKey="selectedLangName" class="!h-full">
         <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
           <template #tab>
-            <div class="capitalize select-none">
+            <div class="uppercase !text-xs select-none">
               {{ item.name }}
             </div>
           </template>
@@ -138,8 +155,9 @@ const afterVisibleChange = (visible: boolean) => {
             lang="typescript"
             :validate="false"
             :disable-deep-compare="true"
+            hide-minimap
           />
-          <div class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
+          <div v-if="activeLang.clients" class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
             <a-select v-if="activeLang" v-model:value="selectedClient" style="width: 6rem">
               <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full uppercase" :value="client">
                 {{ client }}
@@ -152,8 +170,8 @@ const afterVisibleChange = (visible: boolean) => {
               ]"
               type="primary"
               @click="onCopyToClipboard"
-              >Copy to clipboard</a-button
-            >
+              >Copy to clipboard
+            </a-button>
           </div>
 
           <div class="absolute bottom-4 flex flex-row justify-center w-[95%]">
@@ -172,3 +190,9 @@ const afterVisibleChange = (visible: boolean) => {
     </div>
   </a-drawer>
 </template>
+
+<style scoped>
+:deep(.ant-tabs-tab + .ant-tabs-tab) {
+  @apply !ml-7;
+}
+</style>

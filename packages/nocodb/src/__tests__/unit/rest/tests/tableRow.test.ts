@@ -113,8 +113,6 @@ function tableTest() {
       })
       .expect(200);
 
-    console.log(response.body.list);
-
     if (response.body.list.length !== rowCount) {
       throw new Error('Wrong number of rows');
     }
@@ -153,8 +151,6 @@ function tableTest() {
         sortArrJson: JSON.stringify(sortInfo),
       })
       .expect(200);
-
-    console.log(response.body.list);
 
     if (response.body.list.length !== rowCount) {
       throw new Error('Wrong number of rows');

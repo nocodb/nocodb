@@ -31,7 +31,7 @@ const nocoTestSuite = (apiType, dbType) => {
     t3b.genTest(apiType, dbType);
     t3c.genTest(apiType, dbType);
     t3d.genTest(apiType, dbType);
-    t3e.genTest(apiType, dbType);
+    // NcGUI v2 t3e.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "mysql");

@@ -8,6 +8,9 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.restoreLocalStorage();
+            cy.wait(500);
+
             mainPage.tabReset();
 
             // open a table to work on views
@@ -16,9 +19,13 @@ export const genTest = (apiType, dbType) => {
         });
 
         beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(500);
         });
 
         after(() => {
+            cy.restoreLocalStorage();
+            cy.wait(500)
             cy.closeTableTab("Country");
         });
 

@@ -36,6 +36,9 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             mainPage.tabReset();
             cy.openTableTab("City", 25);
 
@@ -44,6 +47,8 @@ export const genTest = (apiType, dbType) => {
                 storedURL = url;
             });
             generateLinkWithPwd();
+
+            cy.signOut();
         });
 
         beforeEach(() => {
@@ -87,13 +92,14 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("Delete view",  () => {
-            // issue with restore local storage- need to refresh page to get new URL
-
             loginPage.loginAndOpenProject(apiType, dbType);
-            // cy.restoreLocalStorage();
-            // cy.visit(storedURL, { baseUrl: null });
-
             cy.openTableTab("City", 25);
+            cy.wait(500);
+            mainPage.toggleRightSidebar();
+            cy.wait(500);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
 
             // wait for page load to complete
             cy.get(".nc-grid-row").should("have.length", 25);
@@ -101,6 +107,9 @@ export const genTest = (apiType, dbType) => {
         });
 
         after(() => {
+            cy.restoreLocalStorage();
+            cy.wait(500);
+
             cy.closeTableTab("City");
         });
     });

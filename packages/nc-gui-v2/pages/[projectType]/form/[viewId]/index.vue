@@ -69,7 +69,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
         <div class="nc-form-wrapper">
           <div class="nc-form h-full max-w-3/4 mx-auto">
             <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col my-6 gap-2">
-              <div class="flex">
+              <div class="flex nc-form-column-label">
                 <SmartsheetHeaderVirtualCell
                   v-if="isVirtualCol(field)"
                   :column="{ ...field, title: field.label || field.title }"
@@ -86,7 +86,11 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
               </div>
 
               <div v-if="isVirtualCol(field)" class="mt-0">
-                <SmartsheetVirtualCell class="mt-0 nc-input" :column="field" />
+                <SmartsheetVirtualCell
+                  class="mt-0 nc-input"
+                  :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+                  :column="field"
+                />
 
                 <div v-if="field.description" class="text-gray-500 text-[10px] mb-2 ml-1">{{ field.description }}</div>
 
@@ -98,7 +102,13 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
               </div>
 
               <div v-else class="mt-0">
-                <SmartsheetCell v-model="formState[field.title]" class="nc-input" :column="field" :edit-enabled="true" />
+                <SmartsheetCell
+                  v-model="formState[field.title]"
+                  class="nc-input"
+                  :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+                  :column="field"
+                  :edit-enabled="true"
+                />
 
                 <div v-if="field.description" class="text-gray-500 text-[10px] mb-2 ml-1">{{ field.description }}</div>
 

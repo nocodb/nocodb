@@ -14,6 +14,9 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             mainPage.tabReset();
 
             // open a table to work on views
@@ -21,10 +24,12 @@ export const genTest = (apiType, dbType) => {
             cy.openTableTab("Country", 25);
 
             // toggle right navbar (open)
-            cy.get('.nc-toggle-right-navbar').should('exist').click();
+            // cy.get('.nc-toggle-right-navbar').should('exist').click();
         });
 
         beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         after(() => {
@@ -44,7 +49,7 @@ export const genTest = (apiType, dbType) => {
                 cy.toastWait("View created successfully");
 
                 // kludge: right navbar closes abruptly. force it open again
-                window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
+                // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
 
                 // validate if view was created && contains default name 'Country1'
                 cy.get(`.nc-${viewType}-view-item`)
@@ -63,7 +68,7 @@ export const genTest = (apiType, dbType) => {
                 cy.toastWait("View renamed successfully");
 
                 // kludge: right navbar closes abruptly. force it open again
-                window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
+                // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
 
                 // validate
                 cy.get(`.nc-${viewType}-view-item`)
@@ -82,7 +87,7 @@ export const genTest = (apiType, dbType) => {
                 cy.toastWait("View deleted successfully");
 
                 // kludge: right navbar closes abruptly. force it open again
-                window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
+                // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
 
                 // confirm if the number of veiw entries is reduced by 1
                 cy.get(".nc-view-item").its("length").should("eq", 1);

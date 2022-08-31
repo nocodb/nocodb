@@ -200,6 +200,7 @@ export class _projectsPage {
             // Create project
             cy.contains("Ok & Save Project", { timeout: 20000 }).click();
 
+            cy.wait(5000)
             // takes a while to load project
             this.waitHomePageLoad();
 

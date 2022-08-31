@@ -71,11 +71,16 @@ export const genTest = (apiType, dbType) => {
             //
             cy.openTableTab("Country", 25);
             mainPage.toggleRightSidebar();
+
+            cy.saveLocalStorage();
+            cy.wait(500);
         });
 
         beforeEach(() => {
             // fix me!
-            window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
+            // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
+            cy.restoreLocalStorage();
+            cy.wait(500);
         });
 
         afterEach(() => {
@@ -331,7 +336,6 @@ export const genTest = (apiType, dbType) => {
 
                 // open form view & enable "email me" option
                 cy.openTableTab("Country", 25);
-
                 cy.wait(1000);
 
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
@@ -344,15 +348,10 @@ export const genTest = (apiType, dbType) => {
                 cy.get(".nc-form-checkbox-send-email")
                     .click();
 
-                cy.toastWait(
-                    "Please activate SMTP plugin in App store for enabling email notification"
-                );
-
                 settingsPage.openMenu(settingsPage.APPSTORE)
                 mainPage.resetSMTP();
 
                 cy.wait(300);
-
                 cy.openTableTab("Country", 25);
             });
 
@@ -393,14 +392,12 @@ export const genTest = (apiType, dbType) => {
                     formViewURL = url;
                 });
 
-                // cy.saveLocalStorage();
                 cy.wait(300);
             });
 
             it.skip(`Validate ${viewType}: URL validation after re-access`, () => {
                 // visit URL
                 cy.log(formViewURL);
-                // cy.restoreLocalStorage();
 
                 cy.visit(formViewURL, {
                     baseUrl: null,
@@ -411,7 +408,10 @@ export const genTest = (apiType, dbType) => {
             });
 
             it(`Delete ${viewType} view`, () => {
-                // cy.restoreLocalStorage();
+                // cy.visit("/");
+                // cy.wait(5000);
+                // projectsPage.openConfiguredProject(apiType, dbType);
+                // cy.openTableTab("Country", 25);
 
                 // number of view entries should be 2 before we delete
                 cy.get(".nc-view-item").its("length").should("eq", 2);

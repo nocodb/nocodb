@@ -291,30 +291,41 @@ export class _mainPage {
     hideField = (field) => {
         cy.get(`th[data-title="${field}"]`).should("be.visible");
         cy.get(".nc-fields-menu-btn").click();
+        cy.wait(500)
         cy.getActiveMenu().find(`.nc-fields-list label:contains(${field}):visible`).click();
+        cy.wait(500)
         cy.get(".nc-fields-menu-btn").click();
+        cy.wait(500)
         cy.get(`th[data-title="${field}"]`).should("not.exist");
     };
 
     unhideField = (field) => {
         cy.get(`th[data-title="${field}"]`).should("not.exist");
         cy.get(".nc-fields-menu-btn").click();
+        cy.wait(500)
         cy.getActiveMenu().find(`.nc-fields-list label:contains(${field}):visible`).click();
+        cy.wait(500)
         cy.get(".nc-fields-menu-btn").click();
+        cy.wait(500)
         cy.get(`th[data-title="${field}"]`).should("be.visible");
     };
 
     sortField = (field, criteria) => {
         cy.get(".nc-sort-menu-btn").click();
+        cy.wait(500)
         cy.getActiveMenu().contains("Add Sort Option").click();
+        cy.wait(500)
         // cy.get(".nc-sort-field-select div").first().click().type(field);
         cy.get(".nc-sort-field-select div").first().click();
         cy.wait(500)
         cy.get('.ant-select-dropdown:visible').find(`.ant-select-item`).contains(new RegExp("^" + field + "$", "g")).should('exist').click();
+        cy.wait(500)
         cy.get(".nc-sort-dir-select div").first().click();
         cy.wait(500)
         cy.get('.ant-select-dropdown:visible').find(`.ant-select-item`).contains(criteria).should('exist').click();
+        cy.wait(500)
         cy.get(".nc-sort-menu-btn").click();
+        cy.wait(500)
     };
 
     clearSort = () => {
@@ -324,11 +335,15 @@ export class _mainPage {
         cy.wait(500)
         cy.get(".nc-sort-item-remove-btn:visible").should("not.exist");
         cy.get(".nc-sort-menu-btn").click();
+        cy.wait(500)
+
     };
 
     filterField = (field, operation, value) => {
         cy.get(".nc-filter-menu-btn").click();
+        cy.wait(500)
         cy.contains("Add Filter").click();
+        cy.wait(500)
         // cy.get(".nc-filter-field-select").should("exist").last().click().type(field);
         cy.get(".nc-filter-field-select").should("exist").last().click();
         cy.wait(500)
@@ -337,21 +352,27 @@ export class _mainPage {
         cy.get(".nc-filter-operation-select").should("exist").last().click();
         cy.wait(500)
         cy.get('.ant-select-dropdown:visible').should('exist').find(`.ant-select-item`).contains(operation).should('exist').click();
+        cy.wait(500)
         if (operation != "is null" && operation != "is not null") {
             cy.get(".nc-filter-value-select")
                 .should("exist")
                 .last()
                 .type(value);
             cy.get(".nc-filter-operation-select").last().click();
+            cy.wait(500)
         }
         cy.get(".nc-filter-menu-btn").click();
+        cy.wait(500)
     };
 
     filterReset = () => {
         cy.get(".nc-filter-menu-btn").click();
+        cy.wait(500)
         cy.get(".nc-filter-item-remove-btn").click();
+        cy.wait(500)
         cy.get(".nc-filter-item-remove-btn").should("not.exist");
         cy.get(".nc-filter-menu-btn").click();
+        cy.wait(500)
     };
 
     // delete created views

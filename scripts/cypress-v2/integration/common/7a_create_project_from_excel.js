@@ -69,6 +69,8 @@ export const genTest = (apiType, dbType) => {
     describe(`Import from excel`, () => {
         before(() => {
 
+            // loginPage.signIn(roles.owner.credentials);
+
             cy.restoreLocalStorage();
             cy.wait(1000);
 
@@ -106,15 +108,9 @@ export const genTest = (apiType, dbType) => {
             cy.get('.nc-import-menu').should('exist').click()
             cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Microsoft Excel').click()
 
-            // trigger import
-            // cy.get(`[data-menu-id="addORImport"]`).click();
-            // cy.getActivePopUp().contains("Microsoft Excel").should('exist').click();
-
             cy.get(".nc-input-import").should('exist').find('input').attachFile(filepath);
             cy.toastWait("Uploaded file simple.xlsx successfully");
             cy.get(".nc-btn-import").should('exist').click();
-
-            // cy.toastWait("Uploaded file simple.xlsx successfully")
         });
 
         it("File Upload: Verify pre-load template page", () => {
@@ -161,11 +157,12 @@ export const genTest = (apiType, dbType) => {
                     }
                 });
             cy.getActiveModal().find(".ant-btn-primary").click();
+
+            // wait for page to get loaded (issue observed in CI-CD)
+            cy.wait(5000);
         });
 
         it("File Upload: Verify loaded data", () => {
-            // wait for page to get loaded (issue observed in CICD)
-            cy.wait(5000);
 
             cy.openTableTab("Sheet2", 2);
             for (const [key, value] of Object.entries(expectedData)) {
@@ -192,19 +189,6 @@ export const genTest = (apiType, dbType) => {
                     .should("exist");
             }
             cy.closeTableTab("Sheet3");
-
-            // // delete project once all operations are completed
-            // cy.get('.nc-noco-brand-icon').click();
-            //
-            // cy.get(`.nc-action-btn`)
-            //   .should("exist")
-            //   .last()
-            //   .click();
-            //
-            // cy.getActiveModal()
-            //   .find(".ant-btn-dangerous")
-            //   .should("exist")
-            //   .click();
         });
 
         it.skip("URL: Upload excel as template", () => {
@@ -301,42 +285,6 @@ export const genTest = (apiType, dbType) => {
         });
     });
 };
-
-// if (typeof require !== 'undefined') XLSX = require('xlsx');
-
-// let workbook
-
-// const getSheetList = (wb) => {
-//     return wb.SheetNames
-// }
-
-// const getRow = (sheet, rowIdx) => {
-//     let sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheet], {
-//         header: 1,
-//         blankrows: false
-//     });
-
-//     return sheetData[rowIdx]
-// }
-
-// // https://stackoverflow.com/questions/40630606/how-to-read-only-column-a-value-from-excel-using-nodejs
-// const getColumn = (sheet, colIdx) => {
-//     let columnA = []
-//     const worksheet = workbook.Sheets[sheet];
-//         for (let z in worksheet) {
-//             if (z.toString()[0] === colIdx) {
-//                 columnA.push(worksheet[z].v);
-//         }
-//     }
-//     return columnA
-// }
-
-// const getCell = (sheet, cellIdx) => {
-//     const worksheet = workbook.Sheets[sheet];
-//     var desired_cell = worksheet[cellIdx];
-//     desired_value = (desired_cell ? desired_cell.v : undefined);
-//     return desired_value
-// }
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

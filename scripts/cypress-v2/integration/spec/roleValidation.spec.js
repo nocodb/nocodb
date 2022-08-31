@@ -10,7 +10,8 @@ export function _advSettings(roleType, mode) {
     cy.log(roleType, mode);
 
     if(mode === 'baseShare') {
-        cy.get('.nc-project-menu').should('not.exist')
+        cy.get('.nc-project-menu').should('exist').click()
+        cy.getActiveMenu().find(`[data-menu-id="language"]`).should('exist')
         return;
     }
 
@@ -230,6 +231,7 @@ export function _viewMenu(roleType, mode) {
         menuWithSubmenuCount = 2;
         // Get API Snippet
         menuWithoutSubmenuCount = 1
+        if(mode === 'baseShare') menuWithoutSubmenuCount = 0
     } else if (roleType === "commenter" || roleType === "viewer") {
         // Download CSV & Download excel
         menuWithSubmenuCount = 0;

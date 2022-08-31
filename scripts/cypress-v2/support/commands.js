@@ -243,9 +243,12 @@ Cypress.Commands.add("saveLocalStorage", (name) => {
         return;
     }
 
+    LOCAL_STORAGE_MEMORY = {};
     Object.keys(localStorage).forEach((key) => {
         LOCAL_STORAGE_MEMORY[key] = localStorage[key];
     });
+    cy.printLocalStorage();
+
 });
 
 Cypress.Commands.add("restoreLocalStorage", (name) => {
@@ -257,11 +260,13 @@ Cypress.Commands.add("restoreLocalStorage", (name) => {
         return;
     }
 
-    Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
-        localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key]);
-    });
+    cy.deleteLocalStorage().then(() => {
+        Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
+            localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key]);
+        });
 
-    cy.printLocalStorage();
+        cy.printLocalStorage();
+    });
 });
 
 Cypress.Commands.add("deleteLocalStorage", () => {
@@ -273,6 +278,7 @@ Cypress.Commands.add("deleteLocalStorage", () => {
 Cypress.Commands.add('printLocalStorage', () => {
     cy.task('log', `[printLocalStorage]`);
     cy.task('log', JSON.stringify(localStorage, null, 2));
+    cy.task('log', JSON.stringify(LOCAL_STORAGE_MEMORY, null, 2));
 })
 
 Cypress.Commands.add("getActiveModal", () => {

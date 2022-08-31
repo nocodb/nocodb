@@ -103,13 +103,13 @@ curl http://get.nocodb.com/linux-arm64 -o nocodb -L \
 ##### Windows (x64)
 
 ```bash
-iwp http://get.nocodb.com/win-x64
+iwr http://get.nocodb.com/win-x64.exe
 .\Noco-win-x64.exe
 ```
 ##### Windows (arm64)
 
 ```bash
-iwp http://get.nocodb.com/win-arm64
+iwr http://get.nocodb.com/win-arm64.exe
 .\Noco-win-arm64.exe
 ```
 

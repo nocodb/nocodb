@@ -108,7 +108,7 @@ jobs:
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ./scripts/pkg-executable/dist/Noco-win-arm64.exe
-          asset_name: Noco-win-arm64
+          asset_name: Noco-win-arm64.exe
           asset_content_type: application/octet-stream
 
       - name: Upload win-x64 build to asset
@@ -118,7 +118,7 @@ jobs:
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ./scripts/pkg-executable/dist/Noco-win-x64.exe
-          asset_name: Noco-win-x64
+          asset_name: Noco-win-x64.exe
           asset_content_type: application/octet-stream
 
       - name: Upload linux-arm64 build to asset

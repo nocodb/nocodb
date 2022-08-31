@@ -2,23 +2,25 @@ import Model from '../../../../lib/models/Model';
 import Project from '../../../../lib/models/Project';
 import { orderedMetaTables } from '../../../../lib/utils/globals';
 
-const dropTablesAllProjects = async (knexClient) => {
+const dropTablesAllNonExternalProjects = async (knexClient) => {
   const projects = await Project.list({});
   const userCreatedTableNames = [];
   await Promise.all(
-    projects.map(async (project) => {
-      await project.getBases();
-      const base = project.bases && project.bases[0];
-      if (!base) return;
+    projects
+      .filter((project) => project.is_meta)
+      .map(async (project) => {
+        await project.getBases();
+        const base = project.bases && project.bases[0];
+        if (!base) return;
 
-      const models = await Model.list({
-        project_id: project.id,
-        base_id: base.id,
-      });
-      models.forEach((model) => {
-        userCreatedTableNames.push(model.table_name);
-      });
-    })
+        const models = await Model.list({
+          project_id: project.id,
+          base_id: base.id,
+        });
+        models.forEach((model) => {
+          userCreatedTableNames.push(model.table_name);
+        });
+      })
   );
 
   await Promise.all(
@@ -40,7 +42,7 @@ const cleanupMetaTables = async (knexClient) => {
 
 export default async function (knexClient) {
   try {
-    await dropTablesAllProjects(knexClient);
+    await dropTablesAllNonExternalProjects(knexClient);
     await cleanupMetaTables(knexClient);
   } catch (e) {
     console.error('cleanupMeta', e);

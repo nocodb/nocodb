@@ -42,7 +42,7 @@ const createSharedBase = async (app, token, project, sharedBaseArgs = {}) => {
     });
 };
 
-const createExternalProject = async (context) => {
+const createSakilaProject = async (context) => {
   const response = await request(context.app)
     .post('/api/v1/db/meta/projects/')
     .set('xc-auth', context.token)
@@ -62,4 +62,4 @@ const createProject = async (context, projectArgs = defaultProjectValue) => {
   return project;
 };
 
-export { createProject, createSharedBase, createExternalProject };
+export { createProject, createSharedBase, createSakilaProject };

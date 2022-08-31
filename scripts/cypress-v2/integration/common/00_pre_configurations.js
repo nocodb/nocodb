@@ -193,6 +193,7 @@ export const genTest = (apiType, dbType) => {
                         }
                     } else {
                         projectsPage.createProject(proj.basic, proj.config);
+                        cy.wait(5000);
                         if (dbType === "xcdb") {
                             // store base URL- to re-visit and delete form view later
                             let projId;

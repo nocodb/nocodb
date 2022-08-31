@@ -287,7 +287,7 @@ export class _projectsPage {
     // }
 
     waitHomePageLoad() {
-        // cy.url({ timeout: 50000 }).should("contain", "&dbalias=");
+        cy.url({ timeout: 50000 }).should("contain", "/#/nc/p_");
     }
 }
 

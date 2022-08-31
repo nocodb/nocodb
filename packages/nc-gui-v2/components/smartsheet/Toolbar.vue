@@ -37,8 +37,11 @@ const { isOpen } = useSidebar()
     <SmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert') && !isPublic && !isForm" class="mx-1" />
 
     <SmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mr-2 ml-2" />
-
-    <ToggleDrawer v-if="!isOpen && !isPublic" class="mr-2" />
+    <template v-if="!isOpen && !isPublic">
+      <div class="border-l-1 pl-3">
+        <ToggleDrawer class="mr-2" />
+      </div>
+    </template>
   </div>
 </template>
 

@@ -117,7 +117,7 @@ export default {
     <Header @cancel="onClose" />
     <div class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
-        <div class="flex-1 overflow-auto scrollbar-thin-primary">
+        <div class="flex-1 overflow-auto scrollbar-thin-dull">
           <div class="w-[500px] mx-auto">
             <div v-for="col of fields" :key="col.title" class="mt-2 py-2" :class="`nc-expand-col-${col.title}`">
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />

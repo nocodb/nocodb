@@ -8,8 +8,8 @@ import { roles, staticProjects, defaultDbParams } from "./projectConstants";
 //
 const urlPool = {
     ncUrlBase: "/",
-    ncUrlSignUp: "/signup",
-    ncUrlSignIn: "/signin",
+    ncUrlSignUp: "#/signup",
+    ncUrlSignIn: "#/signin",
 };
 
 export class _loginPage {

@@ -488,11 +488,12 @@ export class _mainPage {
     metaSyncValidate(tbl, msg) {
         cy.get(".nc-btn-metasync-reload")
             .should("exist")
-            .click({ force: true });
+            .click();
+        cy.wait(2000);
         cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("exist");
         cy.get(".nc-btn-metasync-sync-now")
             .should("exist")
-            .click({ force: true })
+            .click()
             .then(() => {
                 cy.toastWait(`Table metadata recreated successfully`);
             });

@@ -175,48 +175,101 @@ const createRollupColumn = async (
     project,
     title,
     rollupFunction,
-    parentTable,
-    childTableName,
-    childTableColumnTitle,
+    table,
+    relatedTableName,
+    relatedTableColumnTitle,
   }: {
     project: any;
     title: string;
     rollupFunction: string;
-    parentTable: Model;
-    childTableName: string;
-    childTableColumnTitle: string;
+    table: Model;
+    relatedTableName: string;
+    relatedTableColumnTitle: string;
   }
 ) => {
   const childTable = await Model.getByIdOrName({
     project_id: project.id,
     base_id: project.bases[0].id,
-    table_name: childTableName,
+    table_name: relatedTableName,
   });
   const childTableColumns = await childTable.getColumns();
   const childTableColumn = await childTableColumns.find(
-    (column) => column.title === childTableColumnTitle
+    (column) => column.title === relatedTableColumnTitle
   );
 
-  const ltarColumn = (await parentTable.getColumns()).find(
+  const ltarColumn = (await table.getColumns()).find(
     (column) =>
       column.uidt === UITypes.LinkToAnotherRecord &&
       column.colOptions?.fk_related_model_id === childTable.id
   );
-  await createColumn(context, parentTable, {
+  await createColumn(context, table, {
     title: title,
     uidt: UITypes.Rollup,
     fk_relation_column_id: ltarColumn?.id,
     fk_rollup_column_id: childTableColumn?.id,
     rollup_function: rollupFunction,
-    table_name: parentTable.table_name,
+    table_name: table.table_name,
     column_name: title,
   });
 
-  const rollupColumn = (await parentTable.getColumns()).find(
+  const rollupColumn = (await table.getColumns()).find(
     (column) => column.title === title
-  );
+  )!;
 
   return rollupColumn;
 };
 
-export { defaultColumns, createColumn, createRollupColumn };
+const createLookupColumn = async (
+  context,
+  {
+    project,
+    title,
+    table,
+    relatedTableName,
+    relatedTableColumnTitle,
+  }: {
+    project: any;
+    title: string;
+    table: Model;
+    relatedTableName: string;
+    relatedTableColumnTitle: string;
+  }
+) => {
+  const childTable = await Model.getByIdOrName({
+    project_id: project.id,
+    base_id: project.bases[0].id,
+    table_name: relatedTableName,
+  });
+  const childTableColumns = await childTable.getColumns();
+  const childTableColumn = await childTableColumns.find(
+    (column) => column.title === relatedTableColumnTitle
+  );
+
+  if (!childTableColumn) {
+    throw new Error(
+      `Could not find column ${relatedTableColumnTitle} in ${relatedTableName}`
+    );
+  }
+
+  const ltarColumn = (await table.getColumns()).find(
+    (column) =>
+      column.uidt === UITypes.LinkToAnotherRecord &&
+      column.colOptions?.fk_related_model_id === childTable.id
+  );
+  await createColumn(context, table, {
+    title: title,
+    uidt: UITypes.Lookup,
+    fk_relation_column_id: ltarColumn?.id,
+    fk_lookup_column_id: childTableColumn?.id,
+    table_name: table.table_name,
+    column_name: title,
+  });
+
+  const lookupColumn = (await table.getColumns()).find(
+    (column) => column.title === title
+  )!;
+
+  return lookupColumn;
+};
+
+export { defaultColumns, createColumn, createRollupColumn, createLookupColumn };

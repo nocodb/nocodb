@@ -4,7 +4,7 @@ import Model from '../../../../lib/models/Model';
 import init from '../init';
 import request from 'supertest';
 import { ColumnType } from 'nocodb-sdk';
-import { createRollupColumn } from './helpers/column';
+import { createLookupColumn, createRollupColumn } from './helpers/column';
 
 const isColumnsCorrectInResponse = (response, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(response.body.list[0])
@@ -182,15 +182,13 @@ function tableTest() {
   });
 
   it('Get sorted table data list with a rollup column', async function () {
-    const rollupColumnName = 'Number of rentals';
-
     const rollupColumn = await createRollupColumn(context, {
       project,
-      title: rollupColumnName,
+      title: 'Number of rentals',
       rollupFunction: 'count',
-      parentTable: customerTable,
-      childTableName: 'rental',
-      childTableColumnTitle: 'RentalDate',
+      table: customerTable,
+      relatedTableName: 'rental',
+      relatedTableColumnTitle: 'RentalDate',
     });
 
     const ascResponse = await request(context.app)
@@ -215,6 +213,47 @@ function tableTest() {
       })
       .expect(200);
     if (descResponse.body.list[0]['FirstName'] !== 'ELEANOR')
+      throw new Error('Wrong sort');
+  });
+
+  it('Get sorted table data list with a lookup column', async function () {
+    const rentalTable = await Model.getByIdOrName({
+      project_id: project.id,
+      base_id: project.bases[0].id,
+      table_name: 'rental',
+    });
+
+    const lookupColumn = await createLookupColumn(context, {
+      project,
+      title: 'Lookup',
+      table: rentalTable,
+      relatedTableName: customerTable.table_name,
+      relatedTableColumnTitle: 'FirstName',
+    });
+
+    const ascResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        sortArrJson: JSON.stringify([
+          { fk_column_id: lookupColumn?.id, direction: 'asc' },
+        ]),
+      })
+      .expect(200);
+
+    if (ascResponse.body.list[0][lookupColumn.title] !== 'AARON')
+      throw new Error('Wrong sort');
+
+    const descResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        sortArrJson: JSON.stringify([
+          { fk_column_id: lookupColumn?.id, direction: 'desc' },
+        ]),
+      })
+      .expect(200);
+    if (descResponse.body.list[0][lookupColumn.title] !== 'ZACHARY')
       throw new Error('Wrong sort');
   });
 }

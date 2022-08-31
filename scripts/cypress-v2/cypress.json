@@ -19,9 +19,9 @@
     "pageLoadTimeout": 600000,
     "viewportWidth": 1980,
     "viewportHeight": 1000,
-    "video": false,
+    "video": true,
     "retries": 0,
-    "screenshotOnRunFailure": false,
+    "screenshotOnRunFailure": true,
     "numTestsKeptInMemory": 0,
     "experimentalInteractiveRunEvents": true,
     "env": {

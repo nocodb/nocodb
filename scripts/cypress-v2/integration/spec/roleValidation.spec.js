@@ -211,7 +211,7 @@ export function _viewMenu(roleType, mode) {
     let menuWithSubmenuCount = 3;
 
     // share view list, webhook
-    let menuWithoutSubmenuCount = 2;
+    let menuWithoutSubmenuCount = 3;
 
     cy.openTableTab(columnName, 25);
 
@@ -228,7 +228,8 @@ export function _viewMenu(roleType, mode) {
     if (roleType === "editor") {
         // Download / Upload CSV
         menuWithSubmenuCount = 2;
-        menuWithoutSubmenuCount = 0
+        // Get API Snippet
+        menuWithoutSubmenuCount = 1
     } else if (roleType === "commenter" || roleType === "viewer") {
         // Download CSV & Download excel
         menuWithSubmenuCount = 0;

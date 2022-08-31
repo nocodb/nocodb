@@ -45,6 +45,8 @@ declare module '@vue/runtime-core' {
     AMenuItem: typeof import('ant-design-vue/es')['MenuItem']
     AMenuItemGroup: typeof import('ant-design-vue/es')['MenuItemGroup']
     AModal: typeof import('ant-design-vue/es')['Modal']
+    AntDesignMenuFoldOutlined: typeof import('~icons/ant-design/menu-fold-outlined')['default']
+    AntDesignMenuUnfoldOutlined: typeof import('~icons/ant-design/menu-unfold-outlined')['default']
     APagination: typeof import('ant-design-vue/es')['Pagination']
     ARadio: typeof import('ant-design-vue/es')['Radio']
     ARadioGroup: typeof import('ant-design-vue/es')['RadioGroup']

@@ -1,13 +1,5 @@
 <script lang="ts" setup>
-import {
-  computed,
-  useExpandedFormStoreOrThrow,
-  useSmartsheetRowStoreOrThrow,
-  useSmartsheetStoreOrThrow,
-  useUIPermission,
-} from '#imports'
-import MdiDoorOpen from '~icons/mdi/door-open'
-import MdiDoorClosed from '~icons/mdi/door-closed'
+import { useExpandedFormStoreOrThrow, useSmartsheetRowStoreOrThrow, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
 
 const emit = defineEmits(['cancel'])
 
@@ -27,8 +19,6 @@ const save = async () => {
     await _save()
   }
 }
-
-const drawerToggleIcon = computed(() => (commentsDrawer.value ? MdiDoorOpen : MdiDoorClosed))
 
 // todo: accept as a prop / inject
 const iconColor = '#1890ff'
@@ -56,16 +46,15 @@ const iconColor = '#1890ff'
       <template #title>
         <div class="text-center w-full">Reload</div>
       </template>
-      <mdi-reload class="cursor-pointer select-none" />
+      <mdi-reload class="cursor-pointer select-none text-gray-500" />
     </a-tooltip>
     <a-tooltip placement="bottom">
       <template #title>
         <div class="text-center w-full">Toggle comments draw</div>
       </template>
-      <component
-        :is="drawerToggleIcon"
+      <MdiCommentTextOutline
         v-if="isUIAllowed('rowComments') && !isNew"
-        class="cursor-pointer select-none nc-toggle-comments"
+        class="cursor-pointer select-none nc-toggle-comments text-gray-500"
         @click="commentsDrawer = !commentsDrawer"
       />
     </a-tooltip>

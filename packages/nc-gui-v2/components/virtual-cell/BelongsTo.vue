@@ -34,6 +34,8 @@ const active = inject(ActiveCellInj)!
 
 const readOnly = inject(ReadonlyInj, false)
 
+const isForm = inject(IsFormInj, ref(false))
+
 const isLocked = inject(IsLockedInj)
 
 const { isUIAllowed } = useUIPermission()
@@ -79,7 +81,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
       </template>
     </div>
     <div
-      v-if="!readOnly && !isLocked && isUIAllowed('xcDatatableEditable')"
+      v-if="!readOnly && !isLocked && (isUIAllowed('xcDatatableEditable') || isForm)"
       class="flex justify-end gap-1 min-h-[30px] items-center"
     >
       <component

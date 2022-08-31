@@ -323,8 +323,6 @@ Cypress.Commands.add("deleteTable", (name, dbType) => {
     cy.getActiveMenu().find('[role="menuitem"]').contains("Delete").click();
     cy.getActiveModal().find("button").contains("Yes").click();
 
-    // only for postgre project
-    if (dbType === "postgres") cy.toastWait(`Delete trigger successful`);
     cy.toastWait(`Deleted table ${name} successfully`);
 });
 

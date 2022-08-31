@@ -1,4 +1,5 @@
 import { mainPage } from "../../support/page_objects/mainPage";
+import { loginPage } from "../../support/page_objects/navigation";
 import {
     isTestSuiteActive,
     isXcdb,
@@ -11,7 +12,8 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            cy.fileHook();
+            // loginPage.loginAndOpenProject(apiType, dbType)
+
             mainPage.tabReset();
             // open a table to work on views
             //
@@ -26,7 +28,6 @@ export const genTest = (apiType, dbType) => {
         });
 
         beforeEach(() => {
-            cy.fileHook();
         });
 
         after(() => {
@@ -174,7 +175,7 @@ export const genTest = (apiType, dbType) => {
             rowValidation("NC_MATH_0", RESULT_MATH_0);
         });
 
-        it("Formula: WEEKDAY", () => {
+        it.skip("Formula: WEEKDAY", () => {
             editColumnByName(
                 "NC_MATH_0",
                 "NC_WEEKDAY_0",
@@ -192,7 +193,8 @@ export const genTest = (apiType, dbType) => {
 
         it("Formula: CONCAT, LOWER, UPPER, TRIM", () => {
             editColumnByName(
-                "NC_WEEKDAY_1",
+                // "NC_WEEKDAY_1",
+                "NC_MATH_0",
                 "NC_STR_1",
                 `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`
             );
@@ -209,7 +211,8 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("Formula: LOG, EXP, POWER, SQRT", () => {
-            if (!isXcdb()) {
+            // if (!isXcdb()) {
+            if(dbType === "mysql") {
                 // SQLITE doesnt support LOG, EXP, POWER SQRT construct
                 editColumnByName(
                     "NC_MATH_1",
@@ -221,7 +224,8 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("Formula: NOW, EDIT & Delete column", () => {
-            if (!isXcdb()) editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
+            // if (!isXcdb()) editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
+            if (dbType === 'mysql') editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
             else editColumnByName("NC_MATH_1", "NC_NOW", `NOW()`);
             deleteColumnByName("NC_NOW");
         });

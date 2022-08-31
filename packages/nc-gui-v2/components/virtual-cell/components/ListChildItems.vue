@@ -101,6 +101,7 @@ const expandedFormRow = ref()
             class="!my-4 hover:(!bg-gray-200/50 shadow-md)"
             @click="
               () => {
+                if (readonly) return
                 expandedFormRow = row
                 expandedFormDlg = true
               }

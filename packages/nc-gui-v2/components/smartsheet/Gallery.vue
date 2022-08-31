@@ -203,10 +203,10 @@ openNewRecordFormHook?.on(async () => {
   display: block;
   font-size: 0;
   height: 3px;
-  opacity: .3;
+  opacity: 0.3;
   outline: none;
   padding: 0;
-  transition: all .5s;
+  transition: all 0.5s;
   width: 100%;
 }
 .ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {

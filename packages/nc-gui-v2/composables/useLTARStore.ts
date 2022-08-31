@@ -159,10 +159,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               limit: String(childrenListPagination.size),
               offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
-              where: childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
+              where:
+                childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
             } as any,
           )
-        }else{
+        } else {
           childrenList.value = await $api.dbTableRow.nestedList(
             NOCO,
             (project?.value?.id || sharedView?.value?.view?.project_id) as string,
@@ -173,7 +174,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               limit: String(childrenListPagination.size),
               offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
-              where: childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
+              where:
+                childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
             } as any,
           )
         }

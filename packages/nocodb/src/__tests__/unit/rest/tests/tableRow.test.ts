@@ -4,6 +4,7 @@ import Model from '../../../../lib/models/Model';
 import init from '../init';
 import request from 'supertest';
 import { ColumnType } from 'nocodb-sdk';
+import { createRollupColumn } from './helpers/column';
 
 const isColumnsCorrectInResponse = (response, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(response.body.list[0])
@@ -42,8 +43,9 @@ function tableTest() {
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
+    const pageInfo = response.body.pageInfo;
 
-    if (response.body.list.length !== 25) {
+    if (response.body.list.length !== pageInfo.pageSize) {
       throw new Error('Wrong number of rows');
     }
 
@@ -62,8 +64,9 @@ function tableTest() {
         fields: requiredColumns.map((c) => c.title),
       })
       .expect(200);
+    const pageInfo = response.body.pageInfo;
 
-    if (response.body.list.length !== 25) {
+    if (response.body.list.length !== pageInfo.pageSize) {
       throw new Error('Wrong number of rows');
     }
 
@@ -89,7 +92,7 @@ function tableTest() {
       .expect(200);
     const pageInfo = response.body.pageInfo;
 
-    if (response.body.list.length !== 25) {
+    if (response.body.list.length !== pageInfo.pageSize) {
       throw new Error('Wrong number of rows');
     }
 
@@ -142,7 +145,7 @@ function tableTest() {
       .expect(200);
     const pageInfo = response.body.pageInfo;
 
-    if (response.body.list.length !== 25) {
+    if (response.body.list.length !== pageInfo.pageSize) {
       throw new Error('Wrong number of rows');
     }
 
@@ -176,6 +179,43 @@ function tableTest() {
       console.log(lastPageOffset, lastPageResponse.body.list);
       throw new Error('Wrong sort on last page');
     }
+  });
+
+  it('Get sorted table data list with a rollup column', async function () {
+    const rollupColumnName = 'Number of rentals';
+
+    const rollupColumn = await createRollupColumn(context, {
+      project,
+      title: rollupColumnName,
+      rollupFunction: 'count',
+      parentTable: customerTable,
+      childTableName: 'rental',
+      childTableColumnTitle: 'RentalDate',
+    });
+
+    const ascResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        sortArrJson: JSON.stringify([
+          { fk_column_id: rollupColumn?.id, direction: 'asc' },
+        ]),
+      })
+      .expect(200);
+    if (ascResponse.body.list[0]['FirstName'] !== 'BRIAN')
+      throw new Error('Wrong sort');
+
+    const descResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        sortArrJson: JSON.stringify([
+          { fk_column_id: rollupColumn?.id, direction: 'desc' },
+        ]),
+      })
+      .expect(200);
+    if (descResponse.body.list[0]['FirstName'] !== 'ELEANOR')
+      throw new Error('Wrong sort');
   });
 }
 

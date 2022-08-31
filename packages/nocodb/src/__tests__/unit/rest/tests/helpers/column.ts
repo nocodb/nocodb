@@ -1,5 +1,7 @@
 // import { OracleUi, SqlUiFactory, UITypes } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
+import Model from '../../../../../lib/models/Model';
 // import { dbConfig } from '../../dbConfig';
 
 const defaultColumns = [
@@ -167,4 +169,54 @@ const createColumn = async (context, table, columnAttr) => {
   return response.body;
 };
 
-export { defaultColumns, createColumn };
+const createRollupColumn = async (
+  context,
+  {
+    project,
+    title,
+    rollupFunction,
+    parentTable,
+    childTableName,
+    childTableColumnTitle,
+  }: {
+    project: any;
+    title: string;
+    rollupFunction: string;
+    parentTable: Model;
+    childTableName: string;
+    childTableColumnTitle: string;
+  }
+) => {
+  const childTable = await Model.getByIdOrName({
+    project_id: project.id,
+    base_id: project.bases[0].id,
+    table_name: childTableName,
+  });
+  const childTableColumns = await childTable.getColumns();
+  const childTableColumn = await childTableColumns.find(
+    (column) => column.title === childTableColumnTitle
+  );
+
+  const ltarColumn = (await parentTable.getColumns()).find(
+    (column) =>
+      column.uidt === UITypes.LinkToAnotherRecord &&
+      column.colOptions?.fk_related_model_id === childTable.id
+  );
+  await createColumn(context, parentTable, {
+    title: title,
+    uidt: UITypes.Rollup,
+    fk_relation_column_id: ltarColumn?.id,
+    fk_rollup_column_id: childTableColumn?.id,
+    rollup_function: rollupFunction,
+    table_name: parentTable.table_name,
+    column_name: title,
+  });
+
+  const rollupColumn = (await parentTable.getColumns()).find(
+    (column) => column.title === title
+  );
+
+  return rollupColumn;
+};
+
+export { defaultColumns, createColumn, createRollupColumn };

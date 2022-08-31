@@ -150,19 +150,33 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       try {
         if (colOptions.type === 'bt') return
 
-        childrenList.value = await $api.dbTableRow.nestedList(
-          NOCO,
-          (project?.value?.id || sharedView?.value?.view?.project_id) as string,
-          meta.value.id,
-          rowId.value,
-          colOptions.type as 'mm' | 'hm',
-          encodeURIComponent(column?.value?.title),
-          {
-            limit: String(childrenListPagination.size),
-            offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
-            where: childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
-          } as any,
-        )
+        if (isPublic) {
+          childrenList.value = await $api.public.dataNestedList(
+            sharedView.value?.uuid as string,
+            rowId.value,
+            colOptions.type as 'mm' | 'hm',
+            encodeURIComponent(column?.value?.id),
+            {
+              limit: String(childrenListPagination.size),
+              offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
+              where: childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
+            } as any,
+          )
+        }else{
+          childrenList.value = await $api.dbTableRow.nestedList(
+            NOCO,
+            (project?.value?.id || sharedView?.value?.view?.project_id) as string,
+            meta.value.id,
+            rowId.value,
+            colOptions.type as 'mm' | 'hm',
+            encodeURIComponent(column?.value?.title),
+            {
+              limit: String(childrenListPagination.size),
+              offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
+              where: childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
+            } as any,
+          )
+        }
       } catch (e: any) {
         message.error(`Failed to load children list: ${await extractSdkResponseErrorMsg(e)}`)
       }

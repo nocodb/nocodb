@@ -94,14 +94,14 @@ const unlinkRef = async (rec: Record<string, any>) => {
         </template>
       </div>
 
-      <div v-if="!isLocked && isUIAllowed('xcDatatableEditable')" class="flex justify-end gap-1 min-h-[30px] items-center">
+      <div v-if="!isLocked" class="flex justify-end gap-1 min-h-[30px] items-center">
         <MdiArrowExpand
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click="childListDlg = true"
         />
 
         <MdiPlus
-          v-if="!readOnly"
+          v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
           @click="listItemsDlg = true"
         />

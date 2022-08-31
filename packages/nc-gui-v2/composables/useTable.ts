@@ -90,7 +90,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
 
           await $api.dbTable.delete(table?.id as string)
 
-          closeTab({
+          await closeTab({
             type: TabType.TABLE,
             id: table.id,
             title: table.title,

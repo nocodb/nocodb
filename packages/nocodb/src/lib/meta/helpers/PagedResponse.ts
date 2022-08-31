@@ -5,21 +5,31 @@ const config: any = {
   limitMin: Math.max(+process.env.DB_QUERY_LIMIT_MIN || 1, 1),
   limitMax: Math.max(+process.env.DB_QUERY_LIMIT_MAX || 1000, 1),
 };
+
 export class PagedResponseImpl<T> {
   constructor(
     list: T[],
-    args: { limit?: number; offset?: number; count?: number, l?: number, o?: number } = {}
+    args: {
+      limit?: number;
+      offset?: number;
+      count?: number | string;
+      l?: number;
+      o?: number;
+    } = {}
   ) {
     const limit = Math.max(
-      Math.min(
-        args.limit || args.l || config.limitDefault,
-        config.limitMax
-      ),
+      Math.min(args.limit || args.l || config.limitDefault, config.limitMax),
       config.limitMin
     );
+
     const offset = Math.max(+(args.offset || args.o) || 0, 0);
-    const count = args.count ?? null;
+
+    let count = args.count ?? null;
+
+    if (count !== null) count = +count;
+
     this.list = list;
+
     if (count !== null) {
       this.pageInfo = { totalRows: +count };
       this.pageInfo.page = offset ? offset / limit + 1 : 1;

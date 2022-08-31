@@ -229,3 +229,18 @@ export async function serializeCellValue({
       return value;
   }
 }
+
+
+export async function getColumnByIdOrName(columnNameOrId: string, model: Model) {
+  const column = (await model.getColumns()).find(
+    (c) =>
+      c.title === columnNameOrId ||
+      c.id === columnNameOrId ||
+      c.column_name === columnNameOrId
+  );
+
+  if (!column)
+    NcError.notFound(`Column with id/name '${columnNameOrId}' is not found`);
+
+  return column;
+}

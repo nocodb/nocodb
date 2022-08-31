@@ -4,7 +4,7 @@ import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
-import { getViewAndModelFromRequestByAliasOrId } from './helpers';
+import { getColumnByIdOrName, getViewAndModelFromRequestByAliasOrId } from './helpers'
 import { NcError } from '../../helpers/catchError';
 import apiMetrics from '../../helpers/apiMetrics';
 
@@ -240,19 +240,6 @@ async function relationDataAdd(req, res) {
   res.json({ msg: 'success' });
 }
 
-async function getColumnByIdOrName(columnNameOrId: string, model: Model) {
-  const column = (await model.getColumns()).find(
-    (c) =>
-      c.title === columnNameOrId ||
-      c.id === columnNameOrId ||
-      c.column_name === columnNameOrId
-  );
-
-  if (!column)
-    NcError.notFound(`Column with id/name '${columnNameOrId}' is not found`);
-
-  return column;
-}
 
 const router = Router({ mergeParams: true });
 

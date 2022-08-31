@@ -232,20 +232,33 @@ export default class Column<T = any> implements ColumnType {
       }
       case UITypes.MultiSelect: {
         if (!column.colOptions?.options) {
-          const selectColors = [ '#cfdffe', '#d0f1fd', '#c2f5e8', '#ffdaf6', '#ffdce5', '#fee2d5', '#ffeab6', '#d1f7c4', '#ede2fe', '#eeeeee', ];
-          for (const [i, option] of column.dtxp?.split(',').entries() || [].entries()) {
+          const selectColors = [
+            '#cfdffe',
+            '#d0f1fd',
+            '#c2f5e8',
+            '#ffdaf6',
+            '#ffdce5',
+            '#fee2d5',
+            '#ffeab6',
+            '#d1f7c4',
+            '#ede2fe',
+            '#eeeeee',
+          ];
+          for (const [i, option] of column.dtxp?.split(',').entries() ||
+            [].entries()) {
             await SelectOption.insert(
               {
                 fk_column_id: colId,
                 title: option.replace(/^'/, '').replace(/'$/, ''),
                 order: i + 1,
-                color: selectColors[i % selectColors.length]
+                color: selectColors[i % selectColors.length],
               },
               ncMeta
             );
           }
         } else {
-          for (const [i, option] of column.colOptions.options.entries() || [].entries()) {
+          for (const [i, option] of column.colOptions.options.entries() ||
+            [].entries()) {
             // Trim end of enum/set
             if (column.dt === 'enum' || column.dt === 'set') {
               option.title = option.title.trimEnd();
@@ -254,7 +267,7 @@ export default class Column<T = any> implements ColumnType {
               {
                 ...option,
                 fk_column_id: colId,
-                order: i + 1
+                order: i + 1,
               },
               ncMeta
             );
@@ -264,20 +277,33 @@ export default class Column<T = any> implements ColumnType {
       }
       case UITypes.SingleSelect: {
         if (!column.colOptions?.options) {
-          const selectColors = [ '#cfdffe', '#d0f1fd', '#c2f5e8', '#ffdaf6', '#ffdce5', '#fee2d5', '#ffeab6', '#d1f7c4', '#ede2fe', '#eeeeee', ];
-          for (const [i, option] of column.dtxp?.split(',').entries() || [].entries()) {
+          const selectColors = [
+            '#cfdffe',
+            '#d0f1fd',
+            '#c2f5e8',
+            '#ffdaf6',
+            '#ffdce5',
+            '#fee2d5',
+            '#ffeab6',
+            '#d1f7c4',
+            '#ede2fe',
+            '#eeeeee',
+          ];
+          for (const [i, option] of column.dtxp?.split(',').entries() ||
+            [].entries()) {
             await SelectOption.insert(
               {
                 fk_column_id: colId,
                 title: option.replace(/^'/, '').replace(/'$/, ''),
                 order: i + 1,
-                color: selectColors[i % selectColors.length]
+                color: selectColors[i % selectColors.length],
               },
               ncMeta
             );
           }
         } else {
-          for (const [i, option] of column.colOptions.options.entries() || [].entries()) {
+          for (const [i, option] of column.colOptions.options.entries() ||
+            [].entries()) {
             // Trim end of enum/set
             if (column.dt === 'enum' || column.dt === 'set') {
               option.title = option.title.trimEnd();
@@ -286,7 +312,7 @@ export default class Column<T = any> implements ColumnType {
               {
                 ...option,
                 fk_column_id: colId,
-                order: i + 1
+                order: i + 1,
               },
               ncMeta
             );
@@ -507,12 +533,14 @@ export default class Column<T = any> implements ColumnType {
         MetaTable.COLUMNS,
         colId
       );
-      try {
-        colData.meta = JSON.parse(colData.meta);
-      } catch {
-        colData.meta = {};
+      if (colData) {
+        try {
+          colData.meta = JSON.parse(colData.meta);
+        } catch {
+          colData.meta = {};
+        }
+        await NocoCache.set(`${CacheScope.COLUMN}:${colId}`, colData);
       }
-      await NocoCache.set(`${CacheScope.COLUMN}:${colId}`, colData);
     }
     if (colData) {
       const column = new Column(colData);

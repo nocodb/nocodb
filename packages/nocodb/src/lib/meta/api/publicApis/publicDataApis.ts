@@ -17,6 +17,7 @@ import { mimeIcons } from '../../../utils/mimeTypes';
 import slash from 'slash';
 import { sanitizeUrlPath } from '../attachmentApis';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
+import { getColumnByIdOrName } from '../dataApis/helpers';
 
 export async function dataList(req: Request, res: Response) {
   try {
@@ -219,7 +220,10 @@ export async function publicMmList(req: Request, res: Response) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
   }
 
-  const column = await Column.get({ colId: req.params.colId });
+  const column = await getColumnByIdOrName(
+    req.params.colId,
+    await view.getModel()
+  );
 
   if (column.fk_model_id !== view.fk_model_id)
     NcError.badRequest("Column doesn't belongs to the model");
@@ -275,7 +279,10 @@ export async function publicHmList(req: Request, res: Response) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
   }
 
-  const column = await Column.get({ colId: req.params.colId });
+  const column = await getColumnByIdOrName(
+    req.params.colId,
+    await view.getModel()
+  );
 
   if (column.fk_model_id !== view.fk_model_id)
     NcError.badRequest("Column doesn't belongs to the model");
@@ -317,11 +324,7 @@ export async function publicHmList(req: Request, res: Response) {
     id: req.params.rowId,
   });
 
-  res.json(
-    new PagedResponseImpl(data, {
-      totalRows: count,
-    } as any)
-  );
+  res.json(new PagedResponseImpl(data, { ...req.query, count }));
 }
 
 const router = Router({ mergeParams: true });

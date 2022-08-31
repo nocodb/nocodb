@@ -220,8 +220,22 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
 export async function tableUpdate(req: Request<any, any>, res) {
   const model = await Model.get(req.params.tableId);
 
-  const project = await Project.getWithInfo(req.body.project_id);
+  const project = await Project.getWithInfo(
+    req.body.project_id || (req as any).ncProjectId
+  );
   const base = project.bases[0];
+
+  // if meta present update meta and return
+  // todo: allow user to update meta  and other prop in single api call
+  if('meta' in req.body) {
+    await Model.updateMeta(
+      req.params.tableId,
+      req.body
+    )
+
+    return res.json({ msg: 'success' });
+  }
+
 
   if (!req.body.table_name) {
     NcError.badRequest(

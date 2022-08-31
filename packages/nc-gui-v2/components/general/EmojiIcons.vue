@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+const emit = defineEmits(['selectIcon'])
 const search = $ref('')
+
 // todo: move to utils
 const icons = [
   '1st-place-medal',
@@ -1837,17 +1839,19 @@ const icons = [
   'zipper-mouth-face',
   'zzz',
 ]
+
 const filteredIcons = computed(() => {
-  return icons.filter((icon) => !search || icon.toLowerCase().indexOf(search.toLowerCase()) > -1)
+  return icons.filter((icon) => !search || icon.toLowerCase().includes(search.toLowerCase()))
 })
 </script>
 
 <template>
-  <a-card class="max-w-80 max-h-80 overflow-y-auto !m-4">
-    <a-input-search v-model:value="search" class="max-w-80 max-h-80 overflow-y-auto !m-4"
-                    placeholder="Search"></a-input-search>
-    <div class="flex gap-4 flex-wrap">
-      <span v-for="icon of filteredIcons" :key="`emojione:${icon}`" class="iconify" :data-icon="icon"></span>
+  <a-card class="overflow-y-auto">
+    <a-input-search v-model:value="search" class="w-full overflow-y-auto !m-4" placeholder="Search"></a-input-search>
+    <div class="flex gap-4 flex-wrap w-full m-4 max-w-80 max-h-40">
+      <div v-for="icon of filteredIcons" :key="icon" @click="emit('selectIcon', `emojione:${icon}`)">
+        <span class="iconify cursor-pointer active:ring" :data-icon="`emojione:${icon}`"></span>
+      </div>
     </div>
   </a-card>
 </template>

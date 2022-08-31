@@ -1314,6 +1314,8 @@
                   },
                   "project_id": {
                     "type": "string"
+                  },
+                  "meta": {
                   }
                 }
               }
@@ -6060,6 +6062,8 @@
           "order": {
             "type": "number"
           },
+          "meta": {
+           },
           "columns": {
             "type": "array",
             "items": {
@@ -6386,6 +6390,8 @@
           },
           "mm": {
             "type": "boolean"
+          },
+          "meta": {
           },
           "columns": {
             "type": "array",
@@ -7718,7 +7724,10 @@
             "type": "string"
           },
           "input": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "creator": {
             "type": "string"

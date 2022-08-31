@@ -118,6 +118,7 @@ export interface TableType {
   pinned?: boolean;
   deleted?: boolean;
   order?: number;
+  meta?: any;
   columns?: ColumnType[];
   columnsById?: object;
   slug?: string;
@@ -170,6 +171,7 @@ export interface TableReqType {
   deleted?: boolean;
   order?: number;
   mm?: boolean;
+  meta?: any;
   columns: ColumnType[];
 }
 
@@ -1488,7 +1490,7 @@ export class Api<
      */
     update: (
       tableId: string,
-      data: { table_name?: string; project_id?: string },
+      data: { table_name?: string; project_id?: string; meta?: any },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

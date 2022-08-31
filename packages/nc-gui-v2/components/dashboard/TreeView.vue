@@ -216,6 +216,18 @@ function openTableCreateDialog() {
     close(1000)
   }
 }
+
+const setIcon = (icon: string, table: TableType) => {
+  table.meta = {
+    // ...table.meta || {},
+    icon,
+  }
+  $api.dbTable.update(table.id as string, {
+    meta: {
+      icon,
+    },
+  })
+}
 </script>
 
 <template>
@@ -316,27 +328,37 @@ function openTableCreateDialog() {
                   { hidden: !filteredTables?.includes(table), active: activeTable === table.title },
                   `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
                 ]"
-                class="nc-tree-item pl-5 pr-3 py-2 text-sm cursor-pointer group"
+                class="nc-tree-item pl-5 pr-3 py-2 text-sm cursor-pointer group1"
                 :data-order="table.order"
                 :data-id="table.id"
                 @click="addTableTab(table)"
               >
                 <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                   <div class="flex w-auto">
-                    <MdiDrag
-                      v-if="isUIAllowed('treeview-drag-n-drop')"
-                      :class="`nc-child-draggable-icon-${table.title}`"
-                      class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
-                      @click.stop.prevent
-                    />
+                    <a-popover trigger="click" @click.stop>
+                      <div>
+                        <MdiDrag
+                          v-if="isUIAllowed('treeview-drag-n-drop')"
+                          :class="`nc-child-draggable-icon-${table.title}`"
+                          class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
+                          @click.stop.prevent
+                        />
 
-                    <component
-                      :is="icon(table)"
-                      class="nc-view-icon text-xs"
-                      :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
-                    />
+
+                        <span v-if="table.meta?.icon" class="iconify cursor-pointer" :data-icon="table.meta?.icon"></span>
+
+                        <component
+                          v-else
+                          :is="icon(table)"
+                          class="nc-view-icon text-xs"
+                          :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                        />
+                      </div>
+                      <template #content>
+                        <GeneralEmojiIcons @selectIcon="setIcon($event, table)" />
+                      </template>
+                    </a-popover>
                   </div>
-
                   <div class="nc-tbl-title flex-1">{{ table.title }}</div>
 
                   <a-dropdown

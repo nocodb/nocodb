@@ -120,20 +120,6 @@ watch(themePrimaryColors, async (nextColors) => {
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
       <!-- My Projects -->
       <span class="text-4xl nc-project-page-title">{{ $t('title.myProject') }}</span>
-
-      <a-tooltip title="Reload projects">
-        <span
-          class="transition-all duration-200 h-full flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
-          :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
-        >
-          <MdiRefresh
-            v-t="['a:project:refresh']"
-            class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
-            :class="isLoading ? '!text-primary' : ''"
-            @click="loadProjects"
-          />
-        </span>
-      </a-tooltip>
     </h1>
 
     <div class="flex mb-6">

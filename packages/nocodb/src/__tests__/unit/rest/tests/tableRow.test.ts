@@ -411,6 +411,124 @@ function tableTest() {
     if (descResponse.body.list[0][lookupColumn.title] !== 'ZACHARY')
       throw new Error('Wrong filter');
   });
+
+  it('Get nested sorted filtered table data list with a rollup column in customer table', async function () {
+    const rollupColumn = await createRollupColumn(context, {
+      project,
+      title: 'Number of rentals',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: 'rental',
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const paymentListColumn = (await customerTable.getColumns()).find(
+      (c) => c.title === 'Payment List'
+    );
+
+    const activeColumn = (await customerTable.getColumns()).find(
+      (c) => c.title === 'Active'
+    );
+
+    const nestedFilter = [
+      {
+        fk_column_id: rollupColumn?.id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'gte',
+        value: '25',
+      },
+      {
+        is_group: true,
+        status: 'create',
+        logical_op: 'or',
+        children: [
+          {
+            fk_column_id: rollupColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'lte',
+            value: '30',
+          },
+          {
+            fk_column_id: paymentListColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'notempty',
+          },
+          {
+            is_group: true,
+            status: 'create',
+            logical_op: 'and',
+            children: [
+              {
+                logical_op: 'and',
+                fk_column_id: activeColumn?.id,
+                status: 'create',
+                comparison_op: 'notempty',
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+      })
+      .expect(200);
+
+    if (response.body.pageInfo.totalRows !== 594)
+      throw new Error('Wrong number of rows');
+
+    if (response.body.list[0][rollupColumn.title] !== 32)
+      throw new Error('Wrong filter');
+
+    const ascResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: rollupColumn?.id,
+            direction: 'asc',
+          },
+        ]),
+      })
+      .expect(200);
+
+    if (ascResponse.body.pageInfo.totalRows !== 594)
+      throw new Error('Wrong number of rows');
+
+    if (ascResponse.body.list[0][rollupColumn.title] !== 12) {
+      console.log(ascResponse.body.list[0][rollupColumn.title]);
+      throw new Error('Wrong filter');
+    }
+
+    const descResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: rollupColumn?.id,
+            direction: 'desc',
+          },
+        ]),
+      })
+      .expect(200);
+
+    if (descResponse.body.pageInfo.totalRows !== 594)
+      throw new Error('Wrong number of rows');
+
+    if (descResponse.body.list[0][rollupColumn.title] !== 46)
+      throw new Error('Wrong filter');
+  });
 }
 
 export default function () {

@@ -46,7 +46,8 @@ export function isVirtualCol(
     | ColumnType
 ) {
   return [
-    UITypes.SpecificDBType,
+    // Shouldn't be treated as virtual column (Issue with SQL View column data display)
+    // UITypes.SpecificDBType,
     UITypes.LinkToAnotherRecord,
     UITypes.Formula,
     UITypes.Rollup,

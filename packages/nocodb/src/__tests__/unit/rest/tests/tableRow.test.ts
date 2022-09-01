@@ -11,10 +11,8 @@ import {
 } from './factory/column';
 import { createTable } from './factory/table';
 
-const isColumnsCorrectInResponse = (response, columns: ColumnType[]) => {
-  const responseColumnsListStr = Object.keys(response.body.list[0])
-    .sort()
-    .join(',');
+const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
+  const responseColumnsListStr = Object.keys(row).sort().join(',');
   const customerColumnsListStr = columns
     .map((c) => c.title)
     .sort()
@@ -56,7 +54,7 @@ function tableTest() {
       throw new Error('Wrong number of rows');
     }
 
-    if (!isColumnsCorrectInResponse(response, customerColumns)) {
+    if (!isColumnsCorrectInResponse(response.body.list[0], customerColumns)) {
       throw new Error('Wrong columns');
     }
   });
@@ -77,7 +75,7 @@ function tableTest() {
       throw new Error('Wrong number of rows');
     }
 
-    if (!isColumnsCorrectInResponse(response, requiredColumns)) {
+    if (!isColumnsCorrectInResponse(response.body.list[0], requiredColumns)) {
       throw new Error('Wrong columns');
     }
   });
@@ -103,7 +101,7 @@ function tableTest() {
       throw new Error('Wrong number of rows');
     }
 
-    if (!isColumnsCorrectInResponse(response, visibleColumns)) {
+    if (!isColumnsCorrectInResponse(response.body.list[0], visibleColumns)) {
       console.log(response.body.list);
       throw new Error('Wrong columns');
     }
@@ -156,7 +154,7 @@ function tableTest() {
       throw new Error('Wrong number of rows');
     }
 
-    if (!isColumnsCorrectInResponse(response, visibleColumns)) {
+    if (!isColumnsCorrectInResponse(response.body.list[0], visibleColumns)) {
       console.log(response.body.list);
       throw new Error('Wrong columns');
     }
@@ -780,6 +778,94 @@ function tableTest() {
 
     if (response.body.msg !== 'Table not found')
       throw new Error('Wrong error message');
+  });
+
+  it('Find one sorted table data list with required columns', async function () {
+    const firstNameColumn = customerColumns.find(
+      (col) => col.title === 'FirstName'
+    );
+    const visibleColumns = [firstNameColumn];
+
+    let response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: '-FirstName',
+      })
+      .expect(200);
+
+    if (!isColumnsCorrectInResponse(response.body, visibleColumns)) {
+      console.log(response.body.list);
+      throw new Error('Wrong columns');
+    }
+
+    if (response.body[firstNameColumn.title] !== 'ZACHARY') {
+      console.log(response.body);
+      throw new Error('Wrong sort');
+    }
+
+    response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: 'FirstName',
+      })
+      .expect(200);
+
+    if (!isColumnsCorrectInResponse(response.body, visibleColumns)) {
+      console.log(response.body.list);
+      throw new Error('Wrong columns');
+    }
+
+    if (response.body[firstNameColumn.title] !== 'AARON') {
+      console.log(response.body);
+      throw new Error('Wrong sort');
+    }
+  });
+
+  it('Find one desc sorted and with rollup table data  list with required columns', async function () {
+    const firstNameColumn = customerColumns.find(
+      (col) => col.title === 'FirstName'
+    );
+
+    const rollupColumn = await createRollupColumn(context, {
+      project: sakilaProject,
+      title: 'Rollup',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: 'rental',
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const visibleColumns = [firstNameColumn];
+    const sortInfo = `-FirstName, +${rollupColumn.title}`;
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/find-one`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: sortInfo,
+      })
+      .expect(200);
+
+    if (!isColumnsCorrectInResponse(response.body, visibleColumns)) {
+      console.log(response.body.list);
+      throw new Error('Wrong columns');
+    }
+
+    if (response.body[firstNameColumn.title] !== 'ZACHARY') {
+      console.log(response.body);
+      throw new Error('Wrong sort');
+    }
   });
 }
 

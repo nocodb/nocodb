@@ -87,8 +87,8 @@ watch(picked, (n, _o) => {
 }
 .color-selector {
   position: relative;
-  height: 32px;
-  width: 32px;
+  height: 25px;
+  width: 25px;
   margin: 10px 5px;
   border-radius: 5px;
   -webkit-text-stroke-width: 1px;

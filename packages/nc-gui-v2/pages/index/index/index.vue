@@ -8,6 +8,7 @@ import {
   definePageMeta,
   extractSdkResponseErrorMsg,
   navigateTo,
+  projectThemeColors,
   ref,
   useApi,
   useNuxtApp,
@@ -226,8 +227,8 @@ watch(themePrimaryColors, async (nextColors) => {
 
                       <GeneralColorPicker
                         v-model="themePrimaryColors[record.id]"
-                        :colors="enumColor.dark"
-                        :row-size="5"
+                        :colors="projectThemeColors"
+                        :row-size="9"
                         :advanced="false"
                       />
                       <a-sub-menu key="pick-primary">

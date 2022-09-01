@@ -61,7 +61,7 @@ function onDrop(droppedFiles: File[] | null) {
 
     if (isAllowed) {
       const ext = droppedFiles[0].name.split('.').pop()
-      fileType = (ext === 'csv' || ext === 'json') ? ext : 'excel' as QuickImportTypes
+      fileType = ext === 'csv' || ext === 'json' ? ext : ('excel' as QuickImportTypes)
     }
 
     return isAllowed

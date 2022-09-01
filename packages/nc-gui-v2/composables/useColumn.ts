@@ -11,7 +11,9 @@ export function useColumn(column: Ref<ColumnType>) {
     // kludge: CY test hack; column.value is being received NULL during attach cell delete operation
     isVirtualCol(column?.value) || !column?.value
       ? null
-      : SqlUiFactory.create(project.value?.bases?.[0]?.config || { client: 'mysql2' }).getAbstractType(column?.value),
+      : SqlUiFactory.create(
+          project.value?.bases?.[0]?.config ? { client: project.value.bases[0].config.type } : { client: 'mysql2' },
+        ).getAbstractType(column?.value),
   )
 
   const dataTypeLow = computed(() => column?.value?.dt?.toLowerCase())

@@ -20,13 +20,18 @@ type QuickImportTypes = 'excel' | 'json' | 'csv'
 
 const allowedQuickImportTypes = [
   // Excel
-  '.xls, .xlsx, .xlsm, .ods, .ots',
+  'application/vnd.ms-excel', // .xls
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+  'application/vnd.ms-excel.sheet.macroenabled.12', // .xlsm
+  'application/vnd.oasis.opendocument.spreadsheet', // .ods
+  'application/vnd.oasis.opendocument.spreadsheet-template', // .ots
 
   // CSV
-  '.csv',
+  'text/csv',
 
   // JSON
-  '.json',
+  'application/json',
+  'text/json',
 ]
 
 watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles), { flush: 'post' })
@@ -52,10 +57,11 @@ function onDrop(droppedFiles: File[] | null) {
 
   let fileType: QuickImportTypes | null = null
   const isValid = allowedQuickImportTypes.some((type) => {
-    const isAllowed = droppedFiles[0].type.replace('/', '.').endsWith(type)
+    const isAllowed = droppedFiles[0].type === type
 
     if (isAllowed) {
-      fileType = type.replace('.', '') as QuickImportTypes
+      const ext = droppedFiles[0].name.split('.').pop()
+      fileType = (ext === 'csv' || ext === 'json') ? ext : 'excel' as QuickImportTypes
     }
 
     return isAllowed

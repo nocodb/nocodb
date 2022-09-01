@@ -3,7 +3,7 @@ import CloseIcon from '~icons/material-symbols/close-rounded'
 
 const { feedbackForm } = useGlobal()
 const showForm = ref(false)
-setTimeout(() => (showForm.value = true), 6000)
+setTimeout(() => (showForm.value = true), 60000)
 </script>
 
 <template>

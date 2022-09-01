@@ -12,7 +12,7 @@ export function useColumn(column: Ref<ColumnType>) {
     return isVirtualCol(column?.value) || !column?.value
       ? null
       : SqlUiFactory.create(
-          project.value?.bases?.[0]?.config ? { client: project.value.bases[0].type } : { client: 'mysql2' },
+          project.value?.bases?.[0]?.type ? { client: project.value.bases[0].type } : { client: 'mysql2' },
         ).getAbstractType(column?.value)
   })
 

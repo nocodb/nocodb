@@ -258,7 +258,7 @@ function tableTest() {
       throw new Error('Wrong sort');
   });
 
-  it('Get sorted filtered table data list with a lookup column', async function () {
+  it('Get filtered table data list with a lookup column', async function () {
     const rentalTable = await Model.getByIdOrName({
       project_id: project.id,
       base_id: project.bases[0].id,
@@ -295,6 +295,121 @@ function tableTest() {
     response.body.list.forEach((row) => {
       if (row[lookupColumn.title] !== 'AARON') throw new Error('Wrong filter');
     });
+  });
+
+  it('Get nested sorted filtered table data list with a lookup column', async function () {
+    const rentalTable = await Model.getByIdOrName({
+      project_id: project.id,
+      base_id: project.bases[0].id,
+      table_name: 'rental',
+    });
+
+    const lookupColumn = await createLookupColumn(context, {
+      project,
+      title: 'Lookup',
+      table: rentalTable,
+      relatedTableName: customerTable.table_name,
+      relatedTableColumnTitle: 'FirstName',
+    });
+
+    const paymentListColumn = (await rentalTable.getColumns()).find(
+      (c) => c.title === 'Payment List'
+    );
+
+    const returnDateColumn = (await rentalTable.getColumns()).find(
+      (c) => c.title === 'ReturnDate'
+    );
+
+    const nestedFilter = {
+      is_group: true,
+      status: 'create',
+      logical_op: 'and',
+      children: [
+        {
+          fk_column_id: lookupColumn?.id,
+          status: 'create',
+          logical_op: 'and',
+          comparison_op: 'like',
+          value: '%a%',
+        },
+        {
+          fk_column_id: paymentListColumn?.id,
+          status: 'create',
+          logical_op: 'and',
+          comparison_op: 'notempty',
+        },
+        {
+          is_group: true,
+          status: 'create',
+          logical_op: 'and',
+          children: [
+            {
+              logical_op: 'and',
+              fk_column_id: returnDateColumn?.id,
+              status: 'create',
+              comparison_op: 'gte',
+              value: '2005-06-02 04:33',
+            },
+          ],
+        },
+      ],
+    };
+
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+      })
+      .expect(200);
+
+    if (response.body.pageInfo.totalRows !== 9133)
+      throw new Error('Wrong number of rows');
+
+    if (response.body.list[0][lookupColumn.title] !== 'ANDREW')
+      throw new Error('Wrong filter');
+
+    const ascResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: lookupColumn?.id,
+            direction: 'asc',
+          },
+        ]),
+      })
+      .expect(200);
+
+    if (ascResponse.body.pageInfo.totalRows !== 9133)
+      throw new Error('Wrong number of rows');
+
+    if (ascResponse.body.list[0][lookupColumn.title] !== 'AARON') {
+      console.log(ascResponse.body.list[0][lookupColumn.title]);
+      throw new Error('Wrong filter');
+    }
+
+    const descResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: lookupColumn?.id,
+            direction: 'desc',
+          },
+        ]),
+      })
+      .expect(200);
+
+    if (descResponse.body.pageInfo.totalRows !== 9133)
+      throw new Error('Wrong number of rows');
+
+    if (descResponse.body.list[0][lookupColumn.title] !== 'ZACHARY')
+      throw new Error('Wrong filter');
   });
 }
 

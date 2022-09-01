@@ -75,7 +75,31 @@ export function useViewData(
     },
   })
 
-  const syncCount = async () => {
+  const queryParams = computed(() => ({
+    offset: (paginationData.value?.page ?? 0) - 1,
+    limit: paginationData.value?.pageSize ?? 25,
+    where: where?.value ?? '',
+  }))
+
+  function addEmptyRow(addAfter = formattedData.value.length) {
+    formattedData.value.splice(addAfter, 0, {
+      row: {},
+      oldRow: {},
+      rowMeta: { new: true },
+    })
+
+    return formattedData.value[addAfter]
+  }
+
+  function removeLastEmptyRow() {
+    const lastRow = formattedData.value[formattedData.value.length - 1]
+
+    if (lastRow.rowMeta.new) {
+      formattedData.value.pop()
+    }
+  }
+
+  async function syncCount() {
     const { count } = await $api.dbViewRow.count(
       NOCO,
       project?.value?.title as string,
@@ -85,14 +109,35 @@ export function useViewData(
     paginationData.value.totalRows = count
   }
 
-  const queryParams = computed(() => ({
-    offset: (paginationData.value?.page ?? 0) - 1,
-    limit: paginationData.value?.pageSize ?? 25,
-    where: where?.value ?? '',
-  }))
+  async function syncPagination() {
+    // total records in the current table
+    const count = paginationData.value?.totalRows ?? Infinity
+    // the number of rows in a page
+    const size = paginationData.value?.pageSize ?? 25
+    // the current page number
+    const currentPage = paginationData.value?.page ?? 1
+    // the maximum possible page given the current count and the size
+    const mxPage = Math.ceil(count / size)
+    // calculate targetPage where 1 <= targetPage <= mxPage
+    const targetPage = Math.max(1, Math.min(mxPage, currentPage))
+    // if the current page is greater than targetPage,
+    // then the page should be changed instead of showing an empty page
+    // e.g. deleting all records in the last page N should return N - 1 page
+    if (currentPage > targetPage) {
+      // change to target page and load data of that page
+      changePage?.(targetPage)
+    } else {
+      // the current page is same as target page
+      // reload it to avoid empty row in this page
+      await loadData({
+        offset: (targetPage - 1) * size,
+        where: where?.value,
+      } as any)
+    }
+  }
 
   /** load row comments count */
-  const loadAggCommentsCount = async () => {
+  async function loadAggCommentsCount() {
     if (isPublic.value || isSharedBase.value) return
 
     const ids = formattedData.value
@@ -105,7 +150,7 @@ export function useViewData(
 
     aggCommentCount.value = await $api.utils.commentCount({
       ids,
-      fk_model_id: meta.value.id as string,
+      fk_model_id: meta?.value.id as string,
     })
 
     for (const row of formattedData.value) {
@@ -114,10 +159,10 @@ export function useViewData(
     }
   }
 
-  const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
+  async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
     const response = !isPublic.value
-      ? await api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
+      ? await api.dbViewRow.list('noco', project.value.id!, meta?.value.id!, viewMeta!.value.id, {
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
@@ -126,17 +171,16 @@ export function useViewData(
       : await fetchSharedViewData()
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
-
     await loadAggCommentsCount()
   }
 
-  const loadGalleryData = async () => {
+  async function loadGalleryData() {
     if (!viewMeta?.value?.id) return
 
     galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
   }
 
-  const insertRow = async (row: Record<string, any>, rowIndex = formattedData.value?.length) => {
+  async function insertRow(row: Record<string, any>, rowIndex = formattedData.value?.length) {
     try {
       const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
         if (!col.ai && row?.[col.title as string] !== null) {
@@ -166,9 +210,9 @@ export function useViewData(
     }
   }
 
-  const updateRowProperty = async (toUpdate: Row, property: string) => {
+  async function updateRowProperty(toUpdate: Row, property: string) {
     try {
-      const id = extractPkFromRow(toUpdate.row, meta.value.columns as ColumnType[])
+      const id = extractPkFromRow(toUpdate.row, meta?.value.columns as ColumnType[])
 
       const updatedRowData = await $api.dbViewRow.update(
         NOCO,
@@ -203,37 +247,20 @@ export function useViewData(
     }
   }
 
-  const updateOrSaveRow = async (row: Row, property: string) => {
+  async function updateOrSaveRow(row: Row, property: string) {
     if (row.rowMeta.new) {
       await insertRow(row.row, formattedData.value.indexOf(row))
     } else {
       await updateRowProperty(row, property)
     }
   }
-  const changePage = async (page: number) => {
+
+  async function changePage(page: number) {
     paginationData.value.page = page
     await loadData({ offset: (page - 1) * (paginationData.value.pageSize || 25), where: where?.value } as any)
   }
 
-  const addEmptyRow = (addAfter = formattedData.value.length) => {
-    formattedData.value.splice(addAfter, 0, {
-      row: {},
-      oldRow: {},
-      rowMeta: { new: true },
-    })
-
-    return formattedData.value[addAfter]
-  }
-
-  const removeLastEmptyRow = () => {
-    const lastRow = formattedData.value[formattedData.value.length - 1]
-
-    if (lastRow.rowMeta.new) {
-      formattedData.value.pop()
-    }
-  }
-
-  const deleteRowById = async (id: string) => {
+  async function deleteRowById(id: string) {
     if (!id) {
       throw new Error("Delete not allowed for table which doesn't have primary Key")
     }
@@ -259,7 +286,7 @@ export function useViewData(
     return true
   }
 
-  const deleteRow = async (rowIndex: number) => {
+  async function deleteRow(rowIndex: number) {
     try {
       const row = formattedData.value[rowIndex]
       if (!row.rowMeta.new) {
@@ -282,7 +309,7 @@ export function useViewData(
     }
   }
 
-  const deleteSelectedRows = async () => {
+  async function deleteSelectedRows() {
     let row = formattedData.value.length
     while (row--) {
       try {
@@ -308,9 +335,10 @@ export function useViewData(
     }
 
     await syncCount()
+    await syncPagination()
   }
 
-  const loadFormView = async () => {
+  async function loadFormView() {
     if (!viewMeta?.value?.id) return
     try {
       const { columns, ...view } = (await $api.dbView.formRead(viewMeta.value.id)) as Record<string, any>
@@ -342,7 +370,7 @@ export function useViewData(
     }
   }
 
-  const updateFormView = async (view: FormType | undefined) => {
+  async function updateFormView(view: FormType | undefined) {
     try {
       if (!viewMeta?.value?.id || !view) return
       await $api.dbView.formUpdate(viewMeta.value.id, view)
@@ -367,6 +395,7 @@ export function useViewData(
     updateOrSaveRow,
     selectedAllRecords,
     syncCount,
+    syncPagination,
     galleryData,
     loadGalleryData,
     loadFormView,

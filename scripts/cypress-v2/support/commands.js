@@ -481,8 +481,8 @@ Cypress.Commands.add("fileHook", () => {
 Cypress.Commands.add("signOut", () => {
     // sign out
     cy.visit(`/`);
-    cy.wait(5000);
-    cy.get('.nc-menu-accounts').should('exist').click();
+    cy.get('.nc-project-page-title', {timeout: 30000}).contains("My Projects").should("be.visible");
+    cy.get('.nc-menu-accounts', {timeout: 30000}).should('exist').click();
     cy.getActiveMenu().find('.ant-dropdown-menu-item').eq(1).click();
 
     cy.wait(5000);

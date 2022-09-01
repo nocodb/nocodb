@@ -110,13 +110,7 @@ export const genTest = (apiType, dbType, testMode) => {
             cy.restoreLocalStorage();
 
             // sign out
-            cy.visit(`/`);
-            cy.wait(5000);
-            cy.get('.nc-menu-accounts').should('exist').click();
-            cy.getActiveMenu().find('.ant-dropdown-menu-item').eq(1).click();
-
-            cy.wait(5000);
-            cy.get('button:contains("SIGN")').should('exist')
+            cy.signOut();
         });
 
         it("Verify Schema", () => {

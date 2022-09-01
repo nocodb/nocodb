@@ -6,10 +6,6 @@ const {
     setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
 
-// use 0 as mode to execute individual files (debug mode, skip pre-configs)
-// use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
-const executionMode = 1;
-
 const nocoTestSuite = (apiType, dbType) => {
     setCurrentMode(apiType, dbType);
     t01.genTest(apiType, dbType);

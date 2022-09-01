@@ -205,7 +205,6 @@ class BaseModelSqlv2 {
             is_group: true,
             logical_op: 'and',
           }),
-          ...(args.filterArr || []),
         ],
         qb,
         this.dbDriver
@@ -230,7 +229,6 @@ class BaseModelSqlv2 {
             is_group: true,
             logical_op: 'and',
           }),
-          ...(args.filterArr || []),
         ],
         qb,
         this.dbDriver

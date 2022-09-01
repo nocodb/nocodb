@@ -286,7 +286,7 @@ Cypress.Commands.add("getActiveModal", () => {
 });
 
 Cypress.Commands.add("getActiveMenu", () => {
-    return cy.get(".ant-dropdown-content:visible").last();
+    return cy.get(".ant-dropdown-content:visible", {timeout: 10000}).should('exist').last();
 });
 
 Cypress.Commands.add("getActivePopUp", () => {

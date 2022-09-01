@@ -3,7 +3,7 @@ import { Noco } from '../../../../lib';
 import express from 'express';
 import cleanupMeta from './cleanupMeta';
 import cleanUpSakila from './cleanupSakila';
-import { createUser } from '../tests/helpers/user';
+import { createUser } from '../tests/factory/user';
 import knex from 'knex';
 
 const knexClient = knex(dbConfig);

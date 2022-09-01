@@ -1,5 +1,5 @@
 import 'mocha';
-import { createSakilaProject } from './helpers/project';
+import { createSakilaProject } from './factory/project';
 import Model from '../../../../lib/models/Model';
 import init from '../init';
 import request from 'supertest';
@@ -8,7 +8,7 @@ import {
   createColumn,
   createLookupColumn,
   createRollupColumn,
-} from './helpers/column';
+} from './factory/column';
 
 const isColumnsCorrectInResponse = (response, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(response.body.list[0])

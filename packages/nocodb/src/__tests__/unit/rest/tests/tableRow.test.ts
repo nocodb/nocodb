@@ -3,8 +3,12 @@ import { createSakilaProject } from './helpers/project';
 import Model from '../../../../lib/models/Model';
 import init from '../init';
 import request from 'supertest';
-import { ColumnType } from 'nocodb-sdk';
-import { createLookupColumn, createRollupColumn } from './helpers/column';
+import { ColumnType, UITypes } from 'nocodb-sdk';
+import {
+  createColumn,
+  createLookupColumn,
+  createRollupColumn,
+} from './helpers/column';
 
 const isColumnsCorrectInResponse = (response, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(response.body.list[0])
@@ -656,8 +660,38 @@ function tableTest() {
       throw new Error('Wrong nested fields');
     }
   });
+
+  it('Formula column on rollup customer table', async function () {
+    const rollupColumn = await createRollupColumn(context, {
+      project,
+      title: 'Number of rentals',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: 'rental',
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    await createColumn(context, customerTable, {
+      uidt: UITypes.Formula,
+      title: 'Formula',
+      formula: `ADD({${rollupColumn.title}}, 10)`,
+    });
+
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if (
+      (response.body.list as Array<any>).every(
+        (row) => row['Formula'] !== row[rollupColumn.title] + 10
+      )
+    ) {
+      throw new Error('Wrong formula');
+    }
+  });
 }
 
 export default function () {
-  describe.only('TableRow', tableTest);
+  describe('TableRow', tableTest);
 }

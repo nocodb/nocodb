@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useI18n } from 'vue-i18n'
 import { onUnmounted, useEventListener, useGlobal, useState, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
@@ -13,7 +14,13 @@ const position = useState('preview-as-position', () => ({
   x: `${window.innerWidth / 2 - 250}px`,
 }))
 
-const roleList = [{ title: 'editor' }, { title: 'commenter' }, { title: 'viewer' }]
+const { t } = useI18n()
+
+const roleList = [
+  { value: 'editor', label: t('objects.roleType.editor') },
+  { value: 'commenter', label: t('objects.roleType.commenter') },
+  { value: 'viewer', label: t('objects.roleType.viewer') },
+]
 
 const { previewAs } = useGlobal()
 
@@ -62,28 +69,29 @@ watch(previewAs, () => window.location.reload())
       <span>{{ $t('activity.previewAs') }}</span>
 
       <a-radio-group v-model:value="previewAs" name="radioGroup">
-        <a-radio v-for="role of roleList" :key="role.title" class="capitalize !text-white" :value="role.title"
-          >{{ role.title }}
+        <a-radio v-for="role of roleList" :key="role.value" class="capitalize !text-white" :value="role.value"
+          >{{ role.label }}
         </a-radio>
       </a-radio-group>
 
       <div class="divider -ml-4" />
 
+      <!-- Close -->
       <div class="flex items-center gap-2 cursor-pointer" @click="previewAs = null">
         <MdiExitToApp />
-        Exit
+        {{ $t('general.close') }}
       </div>
     </div>
   </div>
 
   <template v-else>
-    <template v-for="role of roleList" :key="role.title">
-      <a-menu-item @click="previewAs = role.title">
+    <template v-for="role of roleList" :key="role.value">
+      <a-menu-item @click="previewAs = role.value">
         <div class="nc-project-menu-item group">
-          <component :is="roleIcon[role.title]" class="group-hover:text-accent" />
+          <component :is="roleIcon[role.value]" class="group-hover:text-accent" />
 
-          <span class="capitalize" :class="{ 'x-active--text': role.title === previewAs }">
-            {{ role.title }}
+          <span class="capitalize" :class="{ 'x-active--text': role.value === previewAs }">
+            {{ role.label }}
           </span>
         </div>
       </a-menu-item>

@@ -10,8 +10,13 @@ export function _advSettings(roleType, mode) {
     cy.log(roleType, mode);
 
     if(mode === 'baseShare') {
+
+        // open modal
         cy.get('.nc-project-menu').should('exist').click()
         cy.getActiveMenu().find(`[data-menu-id="language"]`).should('exist')
+
+        // click again to close modal
+        cy.get('.nc-project-menu').should('exist').click()
         return;
     }
 

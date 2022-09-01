@@ -113,7 +113,7 @@ export const staticProjects = {
         config: defaultDbParams,
     },
     pgExternalREST: {
-        basic: { dbType: "external", apiType: "REST", name: "pgExternalREST" },
+        basic: { dbType: "external", apiType: "REST", name: "pgExtREST" },
         config: defaultPgDbParams,
     },
     pgExternalGQL: {

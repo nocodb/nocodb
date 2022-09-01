@@ -691,7 +691,7 @@ export class SqliteUi {
   }
 
   static getAbstractType(col): any {
-    switch ((col.dt || col.dt).toLowerCase()) {
+    switch (col.dt?.replace(/\(\d+\)$/).toLowerCase()) {
       case 'date':
         return 'date';
       case 'datetime':

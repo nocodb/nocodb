@@ -661,7 +661,7 @@ function tableTest() {
     }
   });
 
-  it('Formula column on rollup customer table', async function () {
+  it('Sorted Formula column on rollup customer table', async function () {
     const rollupColumn = await createRollupColumn(context, {
       project,
       title: 'Number of rentals',
@@ -671,7 +671,7 @@ function tableTest() {
       relatedTableColumnTitle: 'RentalDate',
     });
 
-    await createColumn(context, customerTable, {
+    const formulaColumn = await createColumn(context, customerTable, {
       uidt: UITypes.Formula,
       title: 'Formula',
       formula: `ADD({${rollupColumn.title}}, 10)`,
@@ -680,7 +680,18 @@ function tableTest() {
     const response = await request(context.app)
       .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
+      .query({
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: formulaColumn?.id,
+            direction: 'asc',
+          },
+        ]),
+      })
       .expect(200);
+
+    if (response.body.list[0][formulaColumn.title] !== 22)
+      throw new Error('Wrong sorting');
 
     if (
       (response.body.list as Array<any>).every(
@@ -690,8 +701,55 @@ function tableTest() {
       throw new Error('Wrong formula');
     }
   });
+
+  // it.only('Get nested sorted filtered table with nested fields data list with a formula > lookup > rollup column in customer table', async function () {
+  //   const rentalTable = await Model.getByIdOrName({
+  //     project_id: project.id,
+  //     base_id: project.bases[0].id,
+  //     table_name: 'rental',
+  //   });
+
+  //   const rollupColumn = await createRollupColumn(context, {
+  //     project,
+  //     title: 'Number of rentals',
+  //     rollupFunction: 'count',
+  //     table: customerTable,
+  //     relatedTableName: 'rental',
+  //     relatedTableColumnTitle: 'RentalDate',
+  //   });
+
+  //   const lookupColumn = await createLookupColumn(context, {
+  //     project,
+  //     title: 'Lookup',
+  //     table: rentalTable,
+  //     relatedTableName: customerTable.table_name,
+  //     relatedTableColumnTitle: rollupColumn.title,
+  //   });
+
+  //   const formulaColumn = await createColumn(context, rentalTable, {
+  //     uidt: UITypes.Formula,
+  //     title: 'Formula',
+  //     formula: `ADD({${lookupColumn.title}}, 10)`,
+  //   });
+  //   console.log(formulaColumn);
+
+  //   const response = await request(context.app)
+  //     .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+  //     .set('xc-auth', context.token)
+  //     .query({
+  //       sortArrJson: JSON.stringify([
+  //         {
+  //           fk_column_id: formulaColumn?.id,
+  //           direction: 'asc',
+  //         },
+  //       ]),
+  //     })
+  //     .expect(200);
+
+  //   console.log(response.body);
+  // });
 }
 
 export default function () {
-  describe('TableRow', tableTest);
+  describe.only('TableRow', tableTest);
 }

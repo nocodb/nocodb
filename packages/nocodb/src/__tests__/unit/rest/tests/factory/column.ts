@@ -1,8 +1,6 @@
-// import { OracleUi, SqlUiFactory, UITypes } from 'nocodb-sdk';
-import { UITypes } from 'nocodb-sdk';
+import { ColumnType, UITypes } from 'nocodb-sdk';
 import request from 'supertest';
 import Model from '../../../../../lib/models/Model';
-// import { dbConfig } from '../../dbConfig';
 
 const defaultColumns = [
   {
@@ -99,74 +97,18 @@ const defaultColumns = [
   },
 ];
 
-// const sqlUI = SqlUiFactory.create({ client: dbConfig.client }) as Exclude<
-//   ReturnType<typeof SqlUiFactory['create']>,
-//   typeof OracleUi
-// >;
-
-// const defaultColumn = async (name, type: UITypes) => {
-//   // const defaultColumnAttr = {
-//   //   ai: false,
-//   //   altered: 1,
-//   //   cdf: null,
-//   //   ck: false,
-//   //   dt: sqlUI.getDataTypeForUiType({ uidt: type }),
-//   //   dtxp: sqlUI.getDefaultLengthForDatatype(type),
-//   //   dtxs: sqlUI.getDefaultScaleForDatatype(type),
-//   //   clen: null,
-//   //   nrqd: true,
-//   //   np: null,
-//   //   ns: null,
-//   //   pk: false,
-//   //   rqd: false,
-//   //   uip: '',
-//   //   un: false,
-//   //   uicn: '',
-//   // };
-//   switch (type) {
-//     case UITypes.Number:
-//       return {
-//         // ...defaultColumnAttr,
-//         column_name: name,
-//         ct: 'int(11)',
-//         dtx: 'integer',
-//         np: 11,
-//         ns: 0,
-//         title: 'Id',
-//         uidt: type,
-//       };
-//     case UITypes.SingleLineText:
-//       return {
-//         // ...defaultColumnAttr,
-//         // clen: 45,
-//         column_name: 'title',
-//         // ct: 'varchar(45)',
-//         // dtx: 'specificType',
-//         title: 'Title',
-//         uidt: 'SingleLineText',
-//       };
-//     case UITypes.Date:
-//       return {
-//         ck: false,
-//         clen: 45,
-//         column_name: 'date',
-//         ct: 'varchar(45)',
-//         dtx: 'specificType',
-//         title: 'Date',
-//         uidt: 'DateTime',
-//         un: false,
-//       };
-//   }
-// };
-
 const createColumn = async (context, table, columnAttr) => {
-  const response = await request(context.app)
+  await request(context.app)
     .post(`/api/v1/db/meta/tables/${table.id}/columns`)
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
     });
-  return response.body;
+
+  const column: ColumnType = (await table.getColumns()).find(
+    (column) => column.title === columnAttr.title
+  );
+  return column;
 };
 
 const createRollupColumn = async (
@@ -202,7 +144,8 @@ const createRollupColumn = async (
       column.uidt === UITypes.LinkToAnotherRecord &&
       column.colOptions?.fk_related_model_id === childTable.id
   );
-  await createColumn(context, table, {
+
+  const rollupColumn = await createColumn(context, table, {
     title: title,
     uidt: UITypes.Rollup,
     fk_relation_column_id: ltarColumn?.id,
@@ -211,11 +154,6 @@ const createRollupColumn = async (
     table_name: table.table_name,
     column_name: title,
   });
-
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const rollupColumn = (await table.getColumns()).find(
-    (column) => column.title === title
-  )!;
 
   return rollupColumn;
 };
@@ -257,7 +195,7 @@ const createLookupColumn = async (
       column.uidt === UITypes.LinkToAnotherRecord &&
       column.colOptions?.fk_related_model_id === childTable.id
   );
-  await createColumn(context, table, {
+  const lookupColumn = await createColumn(context, table, {
     title: title,
     uidt: UITypes.Lookup,
     fk_relation_column_id: ltarColumn?.id,
@@ -265,11 +203,6 @@ const createLookupColumn = async (
     table_name: table.table_name,
     column_name: title,
   });
-
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const lookupColumn = (await table.getColumns()).find(
-    (column) => column.title === title
-  )!;
 
   return lookupColumn;
 };

@@ -9,6 +9,7 @@ import {
   createLookupColumn,
   createRollupColumn,
 } from './factory/column';
+import { createTable } from './factory/table';
 
 const isColumnsCorrectInResponse = (response, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(response.body.list[0])
@@ -752,6 +753,34 @@ function tableTest() {
 
   //   console.log(response.body);
   // });
+
+  it('Create table row', async function () {
+    const table = await createTable(context, project);
+
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${project.id}/${table.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        title: 'Test',
+      })
+      .expect(200);
+
+    const row = response.body;
+    if (row['Title'] !== 'Test') throw new Error('Wrong row title');
+  });
+
+  it('Create table row with wrong table id', async function () {
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${project.id}/wrong-table-id`)
+      .set('xc-auth', context.token)
+      .send({
+        title: 'Test',
+      })
+      .expect(404);
+
+    if (response.body.msg !== 'Table not found')
+      throw new Error('Wrong error message');
+  });
 }
 
 export default function () {

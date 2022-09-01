@@ -11,6 +11,7 @@ const {
 const executionMode = 1;
 
 const nocoTestSuite = (apiType, dbType) => {
+    setCurrentMode(apiType, dbType);
     t01.genTest(apiType, dbType);
 
     t5a.genTest(apiType, dbType);

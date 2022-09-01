@@ -212,6 +212,7 @@ const createRollupColumn = async (
     column_name: title,
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const rollupColumn = (await table.getColumns()).find(
     (column) => column.title === title
   )!;
@@ -265,6 +266,7 @@ const createLookupColumn = async (
     column_name: title,
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const lookupColumn = (await table.getColumns()).find(
     (column) => column.title === title
   )!;

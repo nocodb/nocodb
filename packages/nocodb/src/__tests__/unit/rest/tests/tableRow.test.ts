@@ -5,6 +5,7 @@ import init from '../init';
 import request from 'supertest';
 import { ColumnType } from 'nocodb-sdk';
 import { createLookupColumn, createRollupColumn } from './helpers/column';
+import Filter from '../../../../lib/models/Filter';
 
 const isColumnsCorrectInResponse = (response, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(response.body.list[0])
@@ -255,6 +256,45 @@ function tableTest() {
       .expect(200);
     if (descResponse.body.list[0][lookupColumn.title] !== 'ZACHARY')
       throw new Error('Wrong sort');
+  });
+
+  it('Get sorted filtered table data list with a lookup column', async function () {
+    const rentalTable = await Model.getByIdOrName({
+      project_id: project.id,
+      base_id: project.bases[0].id,
+      table_name: 'rental',
+    });
+
+    const lookupColumn = await createLookupColumn(context, {
+      project,
+      title: 'Lookup',
+      table: rentalTable,
+      relatedTableName: customerTable.table_name,
+      relatedTableColumnTitle: 'FirstName',
+    });
+
+    const filter = {
+      fk_column_id: lookupColumn?.id,
+      status: 'create',
+      logical_op: 'and',
+      comparison_op: 'eq',
+      value: 'AARON',
+    };
+
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([filter]),
+      })
+      .expect(200);
+
+    if (response.body.pageInfo.totalRows !== 24)
+      throw new Error('Wrong number of rows');
+
+    response.body.list.forEach((row) => {
+      if (row[lookupColumn.title] !== 'AARON') throw new Error('Wrong filter');
+    });
   });
 }
 

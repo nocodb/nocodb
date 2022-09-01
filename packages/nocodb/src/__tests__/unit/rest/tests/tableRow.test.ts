@@ -662,18 +662,20 @@ function tableTest() {
   });
 
   it('Sorted Formula column on rollup customer table', async function () {
+    const rollupColumnTitle = 'Number of rentals';
     const rollupColumn = await createRollupColumn(context, {
       project,
-      title: 'Number of rentals',
+      title: rollupColumnTitle,
       rollupFunction: 'count',
       table: customerTable,
       relatedTableName: 'rental',
       relatedTableColumnTitle: 'RentalDate',
     });
 
+    const formulaColumnTitle = 'Formula';
     const formulaColumn = await createColumn(context, customerTable, {
       uidt: UITypes.Formula,
-      title: 'Formula',
+      title: formulaColumnTitle,
       formula: `ADD({${rollupColumn.title}}, 10)`,
     });
 
@@ -690,19 +692,19 @@ function tableTest() {
       })
       .expect(200);
 
-    if (response.body.list[0][formulaColumn.title] !== 22)
+    if (response.body.list[0][formulaColumnTitle] !== 22)
       throw new Error('Wrong sorting');
 
     if (
       (response.body.list as Array<any>).every(
-        (row) => row['Formula'] !== row[rollupColumn.title] + 10
+        (row) => row['Formula'] !== row[rollupColumnTitle] + 10
       )
     ) {
       throw new Error('Wrong formula');
     }
   });
 
-  // it.only('Get nested sorted filtered table with nested fields data list with a formula > lookup > rollup column in customer table', async function () {
+  // it('Get nested sorted filtered table with nested fields data list with a formula > lookup > rollup column in customer table', async function () {
   //   const rentalTable = await Model.getByIdOrName({
   //     project_id: project.id,
   //     base_id: project.bases[0].id,
@@ -751,5 +753,5 @@ function tableTest() {
 }
 
 export default function () {
-  describe.only('TableRow', tableTest);
+  describe('TableRow', tableTest);
 }

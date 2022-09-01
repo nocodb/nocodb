@@ -83,3 +83,24 @@ export const hexToRGB = (hex: string) => {
 
   return `${r}, ${g}, ${b}`
 }
+
+export const projectThemeColors = [
+  '#2D7FF9',
+  '#18BFFF',
+  '#60DAD5',
+  '#EC2CBD',
+  '#F82B60',
+  '#F57134',
+  '#1BAF2C',
+  '#8B46FF',
+  '#666666',
+  '#1B51A2',
+  '#146C8E',
+  '#24716E',
+  '#8A2170',
+  '#941737',
+  '#B94915',
+  '#0E4C15',
+  '#381475',
+  '#333333',
+]

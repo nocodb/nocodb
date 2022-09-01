@@ -5,10 +5,10 @@ import tinycolor from 'tinycolor2'
 import {
   computed,
   definePageMeta,
-  enumColor,
   navigateTo,
   onKeyStroke,
   openLink,
+  projectThemeColors,
   provide,
   provideSidebar,
   ref,
@@ -279,8 +279,8 @@ const copyAuthToken = async () => {
 
                         <GeneralColorPicker
                           v-model="themePrimaryColor"
-                          :colors="enumColor.dark"
-                          :row-size="5"
+                          :colors="projectThemeColors"
+                          :row-size="9"
                           :advanced="false"
                         />
                         <a-sub-menu key="theme-2">

@@ -13,7 +13,6 @@
     "edit": "Edit",
     "remove": "Remove",
     "save": "Save",
-    "confirm": "Confirm",
     "cancel": "Cancel",
     "submit": "Submit",
     "create": "Create",
@@ -55,7 +54,8 @@
     "search": "Search",
     "notification": "Notification",
     "reference": "Reference",
-    "function": "Function"
+    "function": "Function",
+    "confirm": "Confirm"
   },
   "objects": {
     "project": "Project",
@@ -240,7 +240,12 @@
     "childTable": "Child table",
     "childColumn": "Child column",
     "onUpdate": "On Update",
-    "onDelete": "On Delete"
+    "onDelete": "On Delete",
+    "account": "Account",
+    "language": "Language",
+    "primaryColor": "Primary Color",
+    "accentColor": "Accent Color",
+    "customTheme": "Custom Theme"
   },
   "activity": {
     "createProject": "Create Project",
@@ -267,7 +272,7 @@
     "translate": "Help translate",
     "account": {
       "authToken": "Copy Auth Token",
-      "swagger": "Swagger APIs Doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Copy Project Info",
       "themes": "Themes"
     },
@@ -415,7 +420,7 @@
       "deleteProject": "Do you want to delete the project?",
       "shareBasePrivate": "Generate publicly shareable readonly base",
       "shareBasePublic": "Anyone on the internet with this link can view",
-      "userInviteNoSMTP": "Looks like you have not configured mailer yet!\nPlease copy above invite link and send it to",
+      "userInviteNoSMTP": "Looks like you have not configured mailer yet! Please copy above invite link and send it to",
       "dragDropHide": "Drag and drop fields here to hide",
       "formInput": "Enter form input label",
       "formHelpText": "Add some help text",

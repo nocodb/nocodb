@@ -54,7 +54,8 @@
     "search": "搜尋",
     "notification": "通知",
     "reference": "參考",
-    "function": "功能"
+    "function": "功能",
+    "confirm": "確認"
   },
   "objects": {
     "project": "項目",
@@ -193,6 +194,7 @@
     "username": "使用者名稱",
     "password": "密碼",
     "schemaName": "Schema name",
+    "database": "數據庫",
     "action": "行動",
     "actions": "行動",
     "operation": "操作",
@@ -238,7 +240,12 @@
     "childTable": "子表格",
     "childColumn": "子欄",
     "onUpdate": "更新",
-    "onDelete": "在刪除"
+    "onDelete": "在刪除",
+    "account": "帳戶",
+    "language": "語",
+    "primaryColor": "原色",
+    "accentColor": "口音顏色",
+    "customTheme": "自定義主題"
   },
   "activity": {
     "createProject": "建立專案",
@@ -265,7 +272,7 @@
     "translate": "幫助翻譯",
     "account": {
       "authToken": "複製驗證權杖",
-      "swagger": "Swagger Api 說明文件",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "複製專案資訊",
       "themes": "主題"
     },
@@ -497,7 +504,8 @@
         "emailReqd": "電子信箱地址為必填",
         "emailInvalid": "電子信箱地址格式錯誤",
         "passwdRequired": "密碼為必填",
-        "passwdLength": "您的密碼應至少有 8 個字元"
+        "passwdLength": "您的密碼應至少有 8 個字元",
+        "passwdMismatch": "密碼不匹配"
       }
     },
     "toast": {

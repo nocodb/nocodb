@@ -54,7 +54,8 @@
     "search": "Mencari",
     "notification": "Pemberitahuan",
     "reference": "Referensi",
-    "function": "Fungsi"
+    "function": "Fungsi",
+    "confirm": "Mengonfirmasi"
   },
   "objects": {
     "project": "Proyek",
@@ -193,6 +194,7 @@
     "username": "Nama pengguna",
     "password": "Kata sandi",
     "schemaName": "Schema name",
+    "database": "Database",
     "action": "Tindakan",
     "actions": "Tindakan",
     "operation": "Operasi",
@@ -238,7 +240,12 @@
     "childTable": "Tabel Anak",
     "childColumn": "Kolom anak.",
     "onUpdate": "Pada pembaruan",
-    "onDelete": "Hapus"
+    "onDelete": "Hapus",
+    "account": "Akun",
+    "language": "Bahasa",
+    "primaryColor": "Warna utama",
+    "accentColor": "Aksen warna",
+    "customTheme": "Tema khusus"
   },
   "activity": {
     "createProject": "Buat Proyek",
@@ -265,7 +272,7 @@
     "translate": "Bantu Terjemahkan.",
     "account": {
       "authToken": "Salin token auth.",
-      "swagger": "Swagger apis doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Salin info proyek",
       "themes": "Tema"
     },
@@ -309,7 +316,7 @@
     "importExcel": "Impor Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Unduh sebagai CSV.",
-    "downloadExcel": "Unduh sebagai XLSX.",
+    "downloadExcel": "Unduh sebagai XLSX",
     "uploadCSV": "Unggah CSV.",
     "import": "Impor",
     "importMetadata": "Impor Metadata.",
@@ -413,7 +420,7 @@
       "deleteProject": "Apakah Anda ingin menghapus proyek?",
       "shareBasePrivate": "Menghasilkan basis readonly yang dapat dibagikan secara publik",
       "shareBasePublic": "Siapa pun di Internet dengan tautan ini dapat dilihat",
-      "userInviteNoSMTP": "Sepertinya Anda belum mengonfigurasi mailer!\nHarap salin tautan undangan di atas dan kirimkan ke",
+      "userInviteNoSMTP": "Sepertinya Anda belum mengonfigurasi mailer! Harap salin tautan undangan di atas dan kirimkan ke",
       "dragDropHide": "Seret dan jatuhkan bidang di sini untuk bersembunyi",
       "formInput": "Masukkan label input formulir",
       "formHelpText": "Tambahkan beberapa teks bantuan",
@@ -497,7 +504,8 @@
         "emailReqd": "E-mail diperlukan",
         "emailInvalid": "E-mail harus valid",
         "passwdRequired": "katakunci dibutuhkan",
-        "passwdLength": "Kata sandi Anda harus minimal 8 karakter"
+        "passwdLength": "Kata sandi Anda harus minimal 8 karakter",
+        "passwdMismatch": "Sandi tidak cocok"
       }
     },
     "toast": {

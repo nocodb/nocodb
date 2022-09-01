@@ -54,7 +54,8 @@
     "search": "Procurar",
     "notification": "Notificação",
     "reference": "Referência",
-    "function": "Função"
+    "function": "Função",
+    "confirm": "confirme"
   },
   "objects": {
     "project": "Projeto",
@@ -193,6 +194,7 @@
     "username": "Usuário",
     "password": "Senha",
     "schemaName": "Schema name",
+    "database": "Base de dados",
     "action": "Açao",
     "actions": "Ações",
     "operation": "Operação",
@@ -238,7 +240,12 @@
     "childTable": "Mesa de criança",
     "childColumn": "Coluna de criança",
     "onUpdate": "Na atualização",
-    "onDelete": "Em excluir"
+    "onDelete": "Em excluir",
+    "account": "Conta",
+    "language": "Linguagem",
+    "primaryColor": "Cor primária",
+    "accentColor": "Cor de destaque",
+    "customTheme": "Tema personalizado"
   },
   "activity": {
     "createProject": "Criar Projeto",
@@ -265,7 +272,7 @@
     "translate": "Ajude a traduzir.",
     "account": {
       "authToken": "Copie o token de autenticação",
-      "swagger": "APIAS DE SWAGROS DOC.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Copiar informações do projeto",
       "themes": "Temas"
     },
@@ -309,7 +316,7 @@
     "importExcel": "Importar Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Baixe como CSV.",
-    "downloadExcel": "Baixe como XLSX.",
+    "downloadExcel": "Baixe como XLSX",
     "uploadCSV": "Carregar CSV.",
     "import": "Importar",
     "importMetadata": "Importar Metadados",
@@ -413,7 +420,7 @@
       "deleteProject": "Você quer excluir o projeto?",
       "shareBasePrivate": "Gerar base readonly compartilhável publicamente",
       "shareBasePublic": "Qualquer pessoa na internet com este link pode ver",
-      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer!\npor favor copie o link acima do convite e envie-o para",
+      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer! por favor copie o link acima do convite e envie-o para",
       "dragDropHide": "Arraste e solte os campos aqui para se esconder",
       "formInput": "Digite a etiqueta de entrada do formulário",
       "formHelpText": "Adicione um texto de ajuda",
@@ -497,7 +504,8 @@
         "emailReqd": "O Email é obrigatório",
         "emailInvalid": "O Email deve ser válido",
         "passwdRequired": "A Palavra-passe é obrigatória",
-        "passwdLength": "A sua palavra-passe deve conter pelo menos 8 caracteres"
+        "passwdLength": "A sua palavra-passe deve conter pelo menos 8 caracteres",
+        "passwdMismatch": "As senhas não coincidem"
       }
     },
     "toast": {

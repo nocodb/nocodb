@@ -54,7 +54,8 @@
     "search": "Zoeken",
     "notification": "Melding",
     "reference": "Verwijzing",
-    "function": "Functie"
+    "function": "Functie",
+    "confirm": "Bevestigen"
   },
   "objects": {
     "project": "Project",
@@ -193,6 +194,7 @@
     "username": "Gebruikersnaam",
     "password": "Wachtwoord",
     "schemaName": "Schema name",
+    "database": "Database",
     "action": "Actie",
     "actions": "Acties",
     "operation": "Operatie",
@@ -238,7 +240,12 @@
     "childTable": "Child Tabel",
     "childColumn": "Child Kolom",
     "onUpdate": "Bij update",
-    "onDelete": "Bij verwijdering"
+    "onDelete": "Bij verwijdering",
+    "account": "Account",
+    "language": "Taal",
+    "primaryColor": "Primaire kleur",
+    "accentColor": "Accent kleur",
+    "customTheme": "Aangepast thema"
   },
   "activity": {
     "createProject": "Maak project",
@@ -265,7 +272,7 @@
     "translate": "Help met vertaling",
     "account": {
       "authToken": "Kopieer Auth-token",
-      "swagger": "Swagger APIs Doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopieer projectinformatie",
       "themes": "Thema's"
     },
@@ -413,7 +420,7 @@
       "deleteProject": "Wilt u het project verwijderen?",
       "shareBasePrivate": "Genereer openbaar deelbare alleen-lezen database",
       "shareBasePublic": "Iedereen op het internet met deze link kan bekijken",
-      "userInviteNoSMTP": "Het lijkt erop dat je nog geen mailer hebt geconfigureerd! \\n Kopieer de bovenstaande uitnodigingslink en verstuur deze zelf naar de ontvanger",
+      "userInviteNoSMTP": "Het lijkt erop dat je nog geen mailer hebt geconfigureerd! Kopieer de bovenstaande uitnodigingslink en verstuur deze zelf naar de ontvanger",
       "dragDropHide": "Versleep de velden naar hier om ze te verbergen",
       "formInput": "Voer formulier invoerlabel in",
       "formHelpText": "Voeg wat hulptekst toe",
@@ -447,7 +454,7 @@
       "importZip": "Import project meta zip-bestand en start opnieuw op.",
       "importText": "Import NocoDB-project door het uploaden van het metadata zip-bestand",
       "metaNoChange": "Geen verandering gevonden",
-      "sqlMigration": "Schem-migraties worden automatisch gemaakt. Maak een tabel en vernieuw deze pagina.",
+      "sqlMigration": "Schema-migraties worden automatisch gemaakt. Maak een tabel en vernieuw deze pagina.",
       "dbConnectionStatus": "Omgeving gevalideerd",
       "dbConnected": "Succesvolle verbinding",
       "notifications": {
@@ -497,7 +504,8 @@
         "emailReqd": "E-mail is vereist",
         "emailInvalid": "E-mail moet geldig zijn",
         "passwdRequired": "Wachtwoord is verplicht",
-        "passwdLength": "Je wachtwoord moet ten minste 8 tekens hebben"
+        "passwdLength": "Je wachtwoord moet ten minste 8 tekens hebben",
+        "passwdMismatch": "Wachtwoorden komen niet overeen"
       }
     },
     "toast": {

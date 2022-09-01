@@ -54,7 +54,8 @@
     "search": "搜索",
     "notification": "通知",
     "reference": "參考",
-    "function": "功能"
+    "function": "功能",
+    "confirm": "確認"
   },
   "objects": {
     "project": "項目",
@@ -193,6 +194,7 @@
     "username": "用戶名稱",
     "password": "密碼",
     "schemaName": "Schema name",
+    "database": "數據庫",
     "action": "行動",
     "actions": "行動",
     "operation": "操作",
@@ -238,7 +240,12 @@
     "childTable": "兒童表",
     "childColumn": "兒童專欄",
     "onUpdate": "更新",
-    "onDelete": "在刪除"
+    "onDelete": "在刪除",
+    "account": "帳戶",
+    "language": "語",
+    "primaryColor": "原色",
+    "accentColor": "口音顏色",
+    "customTheme": "自定義主題"
   },
   "activity": {
     "createProject": "開新Project",
@@ -265,7 +272,7 @@
     "translate": "幫助翻譯",
     "account": {
       "authToken": "複製auth令牌",
-      "swagger": "Swagger Apis Doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "複製項目信息",
       "themes": "主題"
     },
@@ -309,7 +316,7 @@
     "importExcel": "導入Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "下載為CSV.",
-    "downloadExcel": "下載為XLSX.",
+    "downloadExcel": "下載為XLSX",
     "uploadCSV": "上傳CSV.",
     "import": "導出去file",
     "importMetadata": "import metadata",
@@ -497,7 +504,8 @@
         "emailReqd": "E-mail 必須填",
         "emailInvalid": "E-mail 唔valid",
         "passwdRequired": "密碼必須填",
-        "passwdLength": "你嗰密碼至少要8個字"
+        "passwdLength": "你嗰密碼至少要8個字",
+        "passwdMismatch": "密碼不匹配"
       }
     },
     "toast": {

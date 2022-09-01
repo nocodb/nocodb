@@ -12,7 +12,7 @@
     "add": "Agregar",
     "edit": "Editar",
     "remove": "Eliminar",
-    "save": "Guardar",
+    "save": "Salvar",
     "cancel": "Cancelar",
     "submit": "Enviar",
     "create": "Crear",
@@ -54,7 +54,8 @@
     "search": "Buscar",
     "notification": "Notificación",
     "reference": "Referencia",
-    "function": "Función"
+    "function": "Función",
+    "confirm": "Confirmar"
   },
   "objects": {
     "project": "Proyecto",
@@ -193,6 +194,7 @@
     "username": "Usuario",
     "password": "Contraseña",
     "schemaName": "Schema name",
+    "database": "Base de datos",
     "action": "Acción",
     "actions": "Acciones",
     "operation": "Operación",
@@ -238,7 +240,12 @@
     "childTable": "Tabla hija",
     "childColumn": "Columna hija",
     "onUpdate": "En actualización",
-    "onDelete": "En eliminar"
+    "onDelete": "En eliminar",
+    "account": "Cuenta",
+    "language": "Idioma",
+    "primaryColor": "Color primario",
+    "accentColor": "Acentuar el color",
+    "customTheme": "Tema personalizado"
   },
   "activity": {
     "createProject": "Crear proyecto",
@@ -265,7 +272,7 @@
     "translate": "Ayudar a traducir",
     "account": {
       "authToken": "Copiar token de autenticación",
-      "swagger": "Doc APIs Swagger",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Copiar información del proyecto",
       "themes": "Temas"
     },
@@ -413,7 +420,7 @@
       "deleteProject": "¿Quieres eliminar el proyecto?",
       "shareBasePrivate": "Generar una base de sólo lectura compartible públicamente",
       "shareBasePublic": "Cualquier persona en Internet con este enlace puede ver",
-      "userInviteNoSMTP": "¡Parece que aún no has configurado Mailer!\nPor favor, copia el link de invitación de arriba y envíalo a",
+      "userInviteNoSMTP": "¡Parece que aún no has configurado Mailer! Por favor, copia el link de invitación de arriba y envíalo a",
       "dragDropHide": "Arrastra y suelta los campos a ocultar aquí",
       "formInput": "Ingrese la etiqueta de entrada del formulario",
       "formHelpText": "Añade algo de texto de ayuda",
@@ -497,7 +504,8 @@
         "emailReqd": "E-mail requerido",
         "emailInvalid": "E-mail debe ser correcto",
         "passwdRequired": "Contraseña requerida",
-        "passwdLength": "Tu contraseña debe tener al menos 8 carácteres"
+        "passwdLength": "Tu contraseña debe tener al menos 8 carácteres",
+        "passwdMismatch": "Las contraseñas no coinciden"
       }
     },
     "toast": {

@@ -54,7 +54,8 @@
     "search": "搜索",
     "notification": "通知",
     "reference": "参考",
-    "function": "功能"
+    "function": "功能",
+    "confirm": "确认"
   },
   "objects": {
     "project": "项目",
@@ -193,6 +194,7 @@
     "username": "用户名",
     "password": "密码",
     "schemaName": "架构名称",
+    "database": "数据库",
     "action": "行动",
     "actions": "行动",
     "operation": "操作",
@@ -238,7 +240,12 @@
     "childTable": "子表",
     "childColumn": "子列",
     "onUpdate": "更新",
-    "onDelete": "删除"
+    "onDelete": "删除",
+    "account": "帐户",
+    "language": "语",
+    "primaryColor": "原色",
+    "accentColor": "口音颜色",
+    "customTheme": "自定义主题"
   },
   "activity": {
     "createProject": "创建项目",
@@ -265,7 +272,7 @@
     "translate": "帮助翻译",
     "account": {
       "authToken": "复制auth令牌",
-      "swagger": "Swagger Apis 文档",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "复制项目信息",
       "themes": "主题"
     },
@@ -497,7 +504,8 @@
         "emailReqd": "邮箱必填",
         "emailInvalid": "邮箱格式无效",
         "passwdRequired": "密码必填",
-        "passwdLength": "您的密码必须至少为8个字符"
+        "passwdLength": "您的密码必须至少为8个字符",
+        "passwdMismatch": "密码不匹配"
       }
     },
     "toast": {

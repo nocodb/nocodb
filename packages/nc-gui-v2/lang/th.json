@@ -54,7 +54,8 @@
     "search": "ค้นหา",
     "notification": "การแจ้ง",
     "reference": "อ้างอิง",
-    "function": "การทำงาน"
+    "function": "การทำงาน",
+    "confirm": "ยืนยัน"
   },
   "objects": {
     "project": "โครงการ",
@@ -193,6 +194,7 @@
     "username": "ชื่อผู้ใช้",
     "password": "รหัสผ่าน",
     "schemaName": "Schema name",
+    "database": "ฐานข้อมูล",
     "action": "หนังบู๊",
     "actions": "การกระทำ",
     "operation": "การดำเนินการ",
@@ -238,7 +240,12 @@
     "childTable": "โต๊ะเด็ก",
     "childColumn": "คอลัมน์เด็ก",
     "onUpdate": "เมื่ออัปเดต",
-    "onDelete": "ในการลบ"
+    "onDelete": "ในการลบ",
+    "account": "บัญชี",
+    "language": "ภาษา",
+    "primaryColor": "สีหลัก",
+    "accentColor": "สีเน้น",
+    "customTheme": "ธีมที่กำหนดเอง"
   },
   "activity": {
     "createProject": "สร้างโครงการ",
@@ -265,7 +272,7 @@
     "translate": "ช่วยแปล",
     "account": {
       "authToken": "คัดลอกโทเค็นรับรองความถูกต้อง",
-      "swagger": "Swagger API Doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "คัดลอกข้อมูลโครงการ",
       "themes": "ธีม"
     },
@@ -413,7 +420,7 @@
       "deleteProject": "คุณต้องการลบโครงการหรือไม่",
       "shareBasePrivate": "สร้างฐาน Readonly ที่ใช้ร่วมกันได้อย่างเปิดเผย",
       "shareBasePublic": "ทุกคนบนอินเทอร์เน็ตด้วยลิงค์นี้สามารถดูได้",
-      "userInviteNoSMTP": "ดูเหมือนว่าคุณยังไม่ได้กำหนดค่าเมล!\nโปรดคัดลอกลิงก์เชิญด้านบนและส่งไปที่",
+      "userInviteNoSMTP": "ดูเหมือนว่าคุณยังไม่ได้กำหนดค่าเมล! โปรดคัดลอกลิงก์เชิญด้านบนและส่งไปที่",
       "dragDropHide": "ลากและวางฟิลด์ที่นี่เพื่อซ่อน",
       "formInput": "ป้อนป้ายชื่ออินพุตแบบฟอร์ม",
       "formHelpText": "เพิ่มข้อความช่วยเหลือบางอย่าง",
@@ -497,7 +504,8 @@
         "emailReqd": "จำเป็นต้องใช้อีเมล",
         "emailInvalid": "อีเมลจะต้องถูกต้อง",
         "passwdRequired": "ต้องการรหัสผ่าน",
-        "passwdLength": "รหัสผ่านของคุณต้องมีอักขระอย่างน้อย 8 ตัว"
+        "passwdLength": "รหัสผ่านของคุณต้องมีอักขระอย่างน้อย 8 ตัว",
+        "passwdMismatch": "รหัสผ่านไม่ตรงกัน"
       }
     },
     "toast": {

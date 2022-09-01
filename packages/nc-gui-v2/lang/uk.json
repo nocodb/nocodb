@@ -54,7 +54,8 @@
     "search": "Пошук",
     "notification": "Сповіщення",
     "reference": "Довідник",
-    "function": "Функція"
+    "function": "Функція",
+    "confirm": "Підтверджувати"
   },
   "objects": {
     "project": "Проект",
@@ -193,6 +194,7 @@
     "username": "Ім'я користувача",
     "password": "Пароль",
     "schemaName": "Schema name",
+    "database": "База даних",
     "action": "Дія",
     "actions": "Акції",
     "operation": "Операція",
@@ -238,7 +240,12 @@
     "childTable": "Дитячий стіл",
     "childColumn": "Дитяча колонка",
     "onUpdate": "На оновлення",
-    "onDelete": "На видалі"
+    "onDelete": "На видалі",
+    "account": "Рахунок",
+    "language": "Мову",
+    "primaryColor": "Первинний колір",
+    "accentColor": "Акцентний колір",
+    "customTheme": "Спеціальна тема"
   },
   "activity": {
     "createProject": "Створити проект",
@@ -265,7 +272,7 @@
     "translate": "Допомогти перекласти",
     "account": {
       "authToken": "Копіювати auth token",
-      "swagger": "Swagger Apis Doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Копіювання інформації про проект",
       "themes": "Теми"
     },
@@ -413,7 +420,7 @@
       "deleteProject": "Ви хочете видалити проект?",
       "shareBasePrivate": "Генерувати загальнодоступну групою",
       "shareBasePublic": "Будь-хто в Інтернеті за допомогою цього посилання може переглядати",
-      "userInviteNoSMTP": "Схоже, ви ще не налаштували Mailer!\nБудь ласка, скопіюйте вище посилання на запрошення і надішліть його",
+      "userInviteNoSMTP": "Схоже, ви ще не налаштували Mailer! Будь ласка, скопіюйте вище посилання на запрошення і надішліть його",
       "dragDropHide": "Перетягніть поля тут, щоб приховати",
       "formInput": "Введіть етикетку введення форми",
       "formHelpText": "Додайте деякий текст довідки",
@@ -497,7 +504,8 @@
         "emailReqd": "Потрібна електронна пошта",
         "emailInvalid": "Електронна пошта повинна бути дійсним",
         "passwdRequired": "Необхідний пароль",
-        "passwdLength": "Пароль повинен бути принаймні 8 символів"
+        "passwdLength": "Пароль повинен бути принаймні 8 символів",
+        "passwdMismatch": "Паролі не співпадають"
       }
     },
     "toast": {

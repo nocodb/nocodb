@@ -54,7 +54,8 @@
     "search": "検索",
     "notification": "通知",
     "reference": "リファレンス",
-    "function": "関数"
+    "function": "関数",
+    "confirm": "確認"
   },
   "objects": {
     "project": "プロジェクト",
@@ -193,6 +194,7 @@
     "username": "ユーザー名",
     "password": "パスワード",
     "schemaName": "Schema name",
+    "database": "データベース",
     "action": "アクション",
     "actions": "アクション",
     "operation": "操作",
@@ -238,7 +240,12 @@
     "childTable": "子テーブル",
     "childColumn": "子カラム",
     "onUpdate": "更新中",
-    "onDelete": "削除中"
+    "onDelete": "削除中",
+    "account": "アカウント",
+    "language": "言語",
+    "primaryColor": "原色",
+    "accentColor": "アクセントの色",
+    "customTheme": "カスタムテーマ"
   },
   "activity": {
     "createProject": "プロジェクトを作成",
@@ -265,7 +272,7 @@
     "translate": "翻訳に協力する",
     "account": {
       "authToken": "Auth Tokenをコピー",
-      "swagger": "Swagger API Doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "プロジェクト情報をコピー",
       "themes": "テーマ"
     },
@@ -497,7 +504,8 @@
         "emailReqd": "メールアドレスが必要です",
         "emailInvalid": "有効なメールアドレスを入力してください",
         "passwdRequired": "パスワードが必要です",
-        "passwdLength": "パスワードは8文字以上にしてください"
+        "passwdLength": "パスワードは8文字以上にしてください",
+        "passwdMismatch": "パスワードが一致していません"
       }
     },
     "toast": {

@@ -54,7 +54,8 @@
     "search": "חפש",
     "notification": "הוֹדָעָה",
     "reference": "התייחסות",
-    "function": "פוּנקצִיָה"
+    "function": "פוּנקצִיָה",
+    "confirm": "לְאַשֵׁר"
   },
   "objects": {
     "project": "פּרוֹיֶקט",
@@ -151,7 +152,7 @@
     "lockedView": "תצוגה נעולה",
     "personalView": "תצוגה אישית",
     "appStore": "חנות אפליקציות",
-    "teamAndAuth": "צוות & auth.",
+    "teamAndAuth": "Team & Auth",
     "rolesUserMgmt": "תפקידים & ניהול משתמשים",
     "userMgmt": "ניהול משתמשים",
     "apiTokenMgmt": "API Tokens Management",
@@ -162,14 +163,14 @@
     "exportImportMeta": "Export/ Import Metadata",
     "uiACL": "בקרת גישה לממשק UI.",
     "metaOperations": "פעולות מטא נתונים",
-    "audit": "בְּדִיקָה",
-    "auditLogs": "יומן ביקורת",
-    "sqlMigrations": "SQL הגבלות",
-    "dbCredentials": "אישורי מסד נתונים",
-    "advancedParameters": "SSL & פרמטרים מתקדמים",
-    "headCreateProject": "יצירת פרויקט נוקודב",
-    "headLogin": "התחבר | נוקודב",
-    "resetPassword": "לאפס את הסיסמה שלך",
+    "audit": "Audit",
+    "auditLogs": "Audit Log",
+    "sqlMigrations": "SQL Migrations",
+    "dbCredentials": "Database Credentials",
+    "advancedParameters": "SSL & Advanced parameters",
+    "headCreateProject": "יצירת פרויקט",
+    "headLogin": "התחבר",
+    "resetPassword": "איפוס סיסמא",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
     "importFromAirtable": "Import From Airtable"
@@ -193,6 +194,7 @@
     "username": "שם משתמש",
     "password": "סיסמה",
     "schemaName": "Schema name",
+    "database": "מאגר מידע",
     "action": "פעולה",
     "actions": "פעולות",
     "operation": "מבצע",
@@ -238,7 +240,12 @@
     "childTable": "טבלת ילדים",
     "childColumn": "טור ילדים",
     "onUpdate": "על עדכון",
-    "onDelete": "על מחיקה"
+    "onDelete": "על מחיקה",
+    "account": "חֶשְׁבּוֹן",
+    "language": "שפה",
+    "primaryColor": "צבע יסוד",
+    "accentColor": "צבע הדגשה",
+    "customTheme": "נושא מותאם אישית"
   },
   "activity": {
     "createProject": "צור פרויקט",
@@ -265,7 +272,7 @@
     "translate": "עזור לתרגם",
     "account": {
       "authToken": "העתק טוקן Auth",
-      "swagger": "Swagger APIs Doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "העתק את פרטי הפרויקט",
       "themes": "ערכות נושא"
     },
@@ -413,7 +420,7 @@
       "deleteProject": "האם ברצונך למחוק את הפרויקט?",
       "shareBasePrivate": "ליצור בסיס שיתוף פעולה לציבור",
       "shareBasePublic": "כל אחד באינטרנט עם קישור זה יכול להציג",
-      "userInviteNoSMTP": "נראה כאילו לא הגדרת מיילר עדיין!\nאנא העתק מעל הזמנת קישור ולשלוח אותו",
+      "userInviteNoSMTP": "נראה כאילו לא הגדרת מיילר עדיין! \\ N אנא העתק מעל הזמנת קישור ולשלוח אותו",
       "dragDropHide": "גרור ושחרר שדות כאן כדי להסתיר",
       "formInput": "הזן תווית קלט טופס",
       "formHelpText": "הוסף טקסט עזרה",
@@ -497,7 +504,8 @@
         "emailReqd": "דואר אלקטרוני נדרש",
         "emailInvalid": "דואר אלקטרוני חייב להיות תקף",
         "passwdRequired": "דרושה סיסמא",
-        "passwdLength": "הסיסמה שלך חייבת להיות atleast 8 תווים"
+        "passwdLength": "הסיסמה שלך חייבת להיות atleast 8 תווים",
+        "passwdMismatch": "סיסמאות לא תואמות"
       }
     },
     "toast": {

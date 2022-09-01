@@ -54,7 +54,8 @@
     "search": "Sök",
     "notification": "Underrättelse",
     "reference": "Referens",
-    "function": "Fungera"
+    "function": "Fungera",
+    "confirm": "Bekräfta"
   },
   "objects": {
     "project": "Projekt",
@@ -193,6 +194,7 @@
     "username": "Användarnamn",
     "password": "Lösenord",
     "schemaName": "Schema name",
+    "database": "Databas",
     "action": "Handling",
     "actions": "Handlingar",
     "operation": "Drift",
@@ -238,7 +240,12 @@
     "childTable": "Barnbord",
     "childColumn": "Barnkolonn",
     "onUpdate": "Vid uppdatering",
-    "onDelete": "På radera"
+    "onDelete": "På radera",
+    "account": "konto",
+    "language": "Språk",
+    "primaryColor": "Grundfärg",
+    "accentColor": "Accentfärg",
+    "customTheme": "Anpassad tema"
   },
   "activity": {
     "createProject": "Skapa projekt",
@@ -265,7 +272,7 @@
     "translate": "Hjälp översätt",
     "account": {
       "authToken": "Kopiera authoken",
-      "swagger": "Swagger apis doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopiera projektinfo",
       "themes": "Teman"
     },
@@ -413,7 +420,7 @@
       "deleteProject": "Vill du radera projektet?",
       "shareBasePrivate": "Generera offentligt delbar readonly base",
       "shareBasePublic": "Någon på internet med den här länken kan visa",
-      "userInviteNoSMTP": "Det verkar som om du inte har konfigurerat Mailer än!\nVänligen kopiera ovanför bjudningslänk och skicka den till",
+      "userInviteNoSMTP": "Det verkar som om du inte har konfigurerat Mailer än! Vänligen kopiera ovanför bjudningslänk och skicka den till",
       "dragDropHide": "Dra och släpp fält här för att dölja",
       "formInput": "Ange formulärinmatningslabel",
       "formHelpText": "Lägg till lite hjälptext",
@@ -497,7 +504,8 @@
         "emailReqd": "E-post krävs",
         "emailInvalid": "Email måste vara giltig",
         "passwdRequired": "lösenord krävs",
-        "passwdLength": "Du lösenord måste vara minst 8 tecken"
+        "passwdLength": "Du lösenord måste vara minst 8 tecken",
+        "passwdMismatch": "Lösenorden matchar inte"
       }
     },
     "toast": {

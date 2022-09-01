@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { ref, useUIPermission, viewIcons } from '#imports'
+import { useSmartsheetStoreOrThrow, useUIPermission, viewIcons } from '#imports'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void
@@ -10,7 +10,7 @@ const emits = defineEmits<Emits>()
 
 const { isUIAllowed } = useUIPermission()
 
-const isView = ref(false)
+const { isSqlView } = useSmartsheetStoreOrThrow()
 
 function onOpenModal(type: ViewTypes, title = '') {
   emits('openModal', { type, title })
@@ -69,7 +69,7 @@ function onOpenModal(type: ViewTypes, title = '') {
       </a-menu-item>
 
       <a-menu-item
-        v-if="!isView"
+        v-if="!isSqlView"
         key="form"
         class="group !flex !items-center !my-0 !h-[30px] nc-create-form-view"
         @click="onOpenModal(ViewTypes.FORM)"

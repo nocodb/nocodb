@@ -55,7 +55,7 @@ const selected = reactive<{ row: number | null; col: number | null }>({ row: nul
 
 let editEnabled = $ref(false)
 
-const { xWhere, isPkAvail, cellRefs } = useSmartsheetStoreOrThrow()
+const { xWhere, isPkAvail, cellRefs, isSqlView } = useSmartsheetStoreOrThrow()
 
 const addColumnDropdown = ref(false)
 
@@ -69,7 +69,7 @@ const contextMenu = computed({
   },
 })
 
-const contextMenuTarget = ref(false)
+const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
@@ -149,7 +149,7 @@ defineExpose({
 // reset context menu target on hide
 watch(contextMenu, () => {
   if (!contextMenu.value) {
-    contextMenuTarget.value = false
+    contextMenuTarget.value = null
   }
 })
 
@@ -306,6 +306,14 @@ const onNavigate = (dir: NavigateDir) => {
       break
   }
 }
+
+const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
+  if (isSqlView.value) return
+  e.preventDefault()
+  if (target) {
+    contextMenuTarget.value = target
+  }
+}
 </script>
 
 <template>
@@ -314,11 +322,11 @@ const onNavigate = (dir: NavigateDir) => {
       <a-spin size="large" />
     </div>
     <div v-else class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
-      <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
-        <table
+      <a-dropdown v-model:visible="contextMenu" :trigger="isSqlView ? [] : ['contextmenu']">
+        <tablex
           ref="smartTable"
           class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
-          @contextmenu.prevent="contextMenu = true"
+          @contextmenu="showContextMenu"
         >
           <thead>
             <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
@@ -357,7 +365,7 @@ const onNavigate = (dir: NavigateDir) => {
                 </div>
               </th>
               <th
-                v-if="!readOnly && !isLocked && isUIAllowed('add-column')"
+                v-if="!readOnly && !isLocked && isUIAllowed('add-column') && !isSqlView"
                 v-t="['c:column:add']"
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
@@ -435,7 +443,7 @@ const onNavigate = (dir: NavigateDir) => {
                     :data-title="columnObj.title"
                     @click="selectCell(rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
-                    @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"
+                    @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
                     <div class="w-full h-full">
                       <SmartsheetVirtualCell
@@ -471,10 +479,10 @@ const onNavigate = (dir: NavigateDir) => {
             </SmartsheetRow>
 
             <!--
-          TODO: add relationType !== 'bt' ?
-          v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
-        -->
-            <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable')">
+      TODO: add relationType !== 'bt' ?
+      v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
+    -->
+            <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable') && !isSqlView">
               <td
                 v-t="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
@@ -491,7 +499,7 @@ const onNavigate = (dir: NavigateDir) => {
               </td>
             </tr>
           </tbody>
-        </table>
+        </tablex>
 
         <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">

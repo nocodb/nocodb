@@ -2,7 +2,7 @@
 import { IsPublicInj, useSmartsheetStoreOrThrow } from '#imports'
 import ToggleDrawer from '~/components/smartsheet/sidebar/toolbar/ToggleDrawer.vue'
 
-const { isGrid, isForm, isGallery } = useSmartsheetStoreOrThrow()
+const { isGrid, isForm, isGallery, isSqlView } = useSmartsheetStoreOrThrow()
 const isPublic = inject(IsPublicInj, ref(false))
 const { isUIAllowed } = useUIPermission()
 
@@ -34,7 +34,7 @@ const { isOpen } = useSidebar()
     <div class="flex-1" />
 
     <SmartsheetToolbarReload v-if="!isPublic && !isForm" class="mx-1" />
-    <SmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert') && !isPublic && !isForm" class="mx-1" />
+    <SmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert') && !isPublic && !isForm && !isSqlView" class="mx-1" />
 
     <SmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mr-2 ml-2" />
     <template v-if="!isOpen && !isPublic">

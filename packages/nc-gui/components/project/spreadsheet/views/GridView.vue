@@ -363,6 +363,7 @@ export default {
       "startrow":-1,
       "endrow":-1
     },
+    rangerows:{},
     isSelectedBlock: false,
     editEnabled: {
       row: null,
@@ -567,12 +568,11 @@ export default {
     },
 
     async onKeyDown(e) {
-      let tds = document.querySelectorAll('table td.active')
-      
-      if (this.isLocked || tds.length == 0) {
-        return;
+      if(this.selectedRows.startrow == -1 && this.selectedRows.startcol == -1 && this.selectedRows.endrow == -1 && this.selectedRows.endcol == -1){
+        if (this.selected.col === null || this.selected.row === null || this.isLocked) {
+          return;
+        }
       }
-
       switch (e.keyCode) {
         // tab
         case 9:
@@ -658,14 +658,28 @@ export default {
           if (this.editEnabled.col != null && this.editEnabled.row != null) {
             return;
           }
-
-          //const rowObj = this.data[this.selected.row].row;
-          //const columnObj = this.availableColumns[this.selected.col];
+          let cptext = "";
+          if(this.rangerows.minrow !== undefined && this.rangerows.minrow !== undefined){
+            const cprows = this.data.slice(this.rangerows.minrow, this.rangerows.maxrow+1);
+            const cpcols = this.availableColumns.slice(this.rangerows.mincol, this.rangerows.maxcol+1);
+            cprows.forEach((row)=>{
+              cpcols.forEach((col)=>{
+                cptext = cptext + row.row[col.title]+'\t';
+              })
+              cptext = cptext+'\n'
+            })
+          }else{
+            const rowObj = this.data[this.selected.row].row;
+            const columnObj = this.availableColumns[this.selected.col];
+            cptext = rowObj[columnObj.title] || ''
+          }
+          
           if (e.metaKey || e.ctrlKey) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
-              case 67:
-                copyTextToClipboard(this.selectedBlockToText(tds))
+              case 67:   
+              
+                copyTextToClipboard(cptext.trim())
                 break;
               // // paste ctrl/cmd + v
               // case 86: {
@@ -743,6 +757,7 @@ export default {
           col,
           row,
         };
+        this.rangerows = {}
         this.editEnabled = {};
       }
     },
@@ -754,19 +769,14 @@ export default {
     },
     selectedRange(row, col){
         if(this.selectedRows.startrow > -1 && this.selectedRows.startcol > -1 && this.selectedRows.endrow > -1 && this.selectedRows.endcol > -1){
-          const rangerows={
-            "minrow":this.selectedRows.startrow > this.selectedRows.endrow ? this.selectedRows.endrow : this.selectedRows.startrow,
-            "maxrow":this.selectedRows.startrow < this.selectedRows.endrow ? this.selectedRows.endrow : this.selectedRows.startrow,
-            "mincol":this.selectedRows.startcol > this.selectedRows.endcol ? this.selectedRows.endcol : this.selectedRows.startcol,
-            "maxcol":this.selectedRows.startcol < this.selectedRows.endcol ? this.selectedRows.endcol : this.selectedRows.startcol
-          }
-          return (col>=rangerows.mincol && col<=rangerows.maxcol) && (row>=rangerows.minrow && row<=rangerows.maxrow);
+          this.rangerows.minrow=this.selectedRows.startrow > this.selectedRows.endrow ? this.selectedRows.endrow : this.selectedRows.startrow,
+          this.rangerows.maxrow=this.selectedRows.startrow < this.selectedRows.endrow ? this.selectedRows.endrow : this.selectedRows.startrow,
+          this.rangerows.mincol=this.selectedRows.startcol > this.selectedRows.endcol ? this.selectedRows.endcol : this.selectedRows.startcol,
+          this.rangerows.maxcol=this.selectedRows.startcol < this.selectedRows.endcol ? this.selectedRows.endcol : this.selectedRows.startcol
+          return (col>=this.rangerows.mincol && col<=this.rangerows.maxcol) && (row>=this.rangerows.minrow && row<=this.rangerows.maxrow);
         }else{
           return false
         }
-    },
-    debugSelectBlocks(){
-      console.log(this.selectedRows)
     },
     preventSelectText(col, row){
       this.isSelectedBlock = true
@@ -837,27 +847,6 @@ export default {
     },
     log(e, s) {
       console.log(e.target, s);
-    },
-    selectedBlockToText(tds){
-      const res = {
-        "attr":[],
-        "clipboard":""
-      };
-      let cptext = null;
-      tds.forEach(function(t) {
-        if(!res.attr.includes(t.getAttribute('data-col'))){
-          res.attr.push(t.getAttribute('data-col'))		
-          cptext = cptext == null ? t.textContent: cptext+'\t'+t.textContent;
-        }else{
-          if(t.getAttribute('data-col') == res.attr[0]){
-            res.clipboard = res.clipboard + cptext+'\n';
-            cptext = t.textContent;
-          }else{
-            cptext = cptext+'\t'+t.textContent;
-          }
-        }
-      });
-      return res.clipboard + cptext
     }
   },
 };

@@ -55,11 +55,6 @@ const openSwaggerLink = () => {
           </a-list-item>
         </template>
       </GeneralSocialCard>
-
-      <div class="flex-1 my-2"></div>
-
-      <GeneralSponsors class="!w-full" />
-
       <div class="min-h-10 w-full" />
     </div>
   </a-drawer>

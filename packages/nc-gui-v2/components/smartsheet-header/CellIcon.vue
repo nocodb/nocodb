@@ -25,6 +25,7 @@ import EmailIcon from '~icons/mdi/email'
 import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
 import PercentIcon from '~icons/mdi/percent-outline'
 import DecimalIcon from '~icons/mdi/decimal'
+import SpecificDBTypeIcon from '~icons/mdi/database-settings'
 
 const props = defineProps<{ columnMeta?: ColumnType }>()
 
@@ -78,6 +79,8 @@ const icon = computed(() => {
     return NumericIcon
   } else if (additionalColMeta.isString.value) {
     return StringIcon
+  } else if (additionalColMeta.isSpecificDBType.value) {
+    return SpecificDBTypeIcon
   } else {
     return GenericIcon
   }

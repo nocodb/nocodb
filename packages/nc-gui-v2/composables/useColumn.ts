@@ -19,7 +19,7 @@ export function useColumn(column: Ref<ColumnType>) {
   const isString = computed(() => uiDatatype.value === UITypes.SingleLineText || abstractType.value === 'string')
   const isTextArea = computed(() => uiDatatype.value === UITypes.LongText)
   const isInt = computed(() => abstractType.value === 'integer')
-  const isFloat = computed(() => abstractType.value === 'float')
+  const isFloat = computed(() => abstractType.value === 'float' || abstractType.value === UITypes.Number)
   const isDate = computed(() => abstractType.value === 'date' || uiDatatype.value === UITypes.Date)
   const isYear = computed(() => abstractType.value === 'year' || uiDatatype.value === UITypes.Year)
   const isTime = computed(() => abstractType.value === 'time' || uiDatatype.value === UITypes.Time)
@@ -38,6 +38,7 @@ export function useColumn(column: Ref<ColumnType>) {
   const isDecimal = computed(() => uiDatatype.value === UITypes.Decimal)
   const isDuration = computed(() => uiDatatype.value === UITypes.Duration)
   const isPercent = computed(() => uiDatatype.value === UITypes.Percent)
+  const isSpecificDBType = computed(() => uiDatatype.value === UITypes.SpecificDBType)
   const isAutoSaved = computed(() =>
     [
       UITypes.SingleLineText,
@@ -90,5 +91,6 @@ export function useColumn(column: Ref<ColumnType>) {
     isMultiSelect,
     isPercent,
     isPhoneNumber,
+    isSpecificDBType
   }
 }

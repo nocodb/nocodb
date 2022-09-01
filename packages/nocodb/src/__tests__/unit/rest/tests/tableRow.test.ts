@@ -1,5 +1,5 @@
 import 'mocha';
-import { createSakilaProject } from './factory/project';
+import { createProject, createSakilaProject } from './factory/project';
 import Model from '../../../../lib/models/Model';
 import init from '../init';
 import request from 'supertest';
@@ -25,17 +25,19 @@ const isColumnsCorrectInResponse = (response, columns: ColumnType[]) => {
 function tableTest() {
   let context;
   let project;
+  let sakilaProject;
   let customerTable: Model;
   let customerColumns;
 
   beforeEach(async function () {
     context = await init();
 
-    project = await createSakilaProject(context);
+    sakilaProject = await createSakilaProject(context);
+    project = await createProject(context);
 
     customerTable = await Model.getByIdOrName({
-      project_id: project.id,
-      base_id: project.bases[0].id,
+      project_id: sakilaProject.id,
+      base_id: sakilaProject.bases[0].id,
       table_name: 'customer',
     });
     customerColumns = await customerTable.getColumns();
@@ -43,7 +45,7 @@ function tableTest() {
 
   it('Get table data list', async function () {
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200);
@@ -62,7 +64,7 @@ function tableTest() {
     const requiredColumns = customerColumns.filter((_, index) => index < 3);
 
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         fields: requiredColumns.map((c) => c.title),
@@ -87,7 +89,7 @@ function tableTest() {
     const sortInfo = [{ fk_column_id: firstNameColumn.id, direction: 'desc' }];
 
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         fields: visibleColumns.map((c) => c.title),
@@ -113,7 +115,7 @@ function tableTest() {
     const lastPageOffset =
       Math.trunc(pageInfo.totalRows / pageInfo.pageSize) * pageInfo.pageSize;
     const lastPageResponse = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         fields: visibleColumns.map((c) => c.title),
@@ -140,7 +142,7 @@ function tableTest() {
     const sortInfo = [{ fk_column_id: firstNameColumn.id, direction: 'asc' }];
 
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         fields: visibleColumns.map((c) => c.title),
@@ -166,7 +168,7 @@ function tableTest() {
     const lastPageOffset =
       Math.trunc(pageInfo.totalRows / pageInfo.pageSize) * pageInfo.pageSize;
     const lastPageResponse = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         fields: visibleColumns.map((c) => c.title),
@@ -187,7 +189,7 @@ function tableTest() {
 
   it('Get sorted table data list with a rollup column', async function () {
     const rollupColumn = await createRollupColumn(context, {
-      project,
+      project: sakilaProject,
       title: 'Number of rentals',
       rollupFunction: 'count',
       table: customerTable,
@@ -196,7 +198,7 @@ function tableTest() {
     });
 
     const ascResponse = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         sortArrJson: JSON.stringify([
@@ -208,7 +210,7 @@ function tableTest() {
       throw new Error('Wrong sort');
 
     const descResponse = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         sortArrJson: JSON.stringify([
@@ -222,13 +224,13 @@ function tableTest() {
 
   it('Get sorted table data list with a lookup column', async function () {
     const rentalTable = await Model.getByIdOrName({
-      project_id: project.id,
-      base_id: project.bases[0].id,
+      project_id: sakilaProject.id,
+      base_id: sakilaProject.bases[0].id,
       table_name: 'rental',
     });
 
     const lookupColumn = await createLookupColumn(context, {
-      project,
+      project: sakilaProject,
       title: 'Lookup',
       table: rentalTable,
       relatedTableName: customerTable.table_name,
@@ -236,7 +238,7 @@ function tableTest() {
     });
 
     const ascResponse = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         sortArrJson: JSON.stringify([
@@ -249,7 +251,7 @@ function tableTest() {
       throw new Error('Wrong sort');
 
     const descResponse = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         sortArrJson: JSON.stringify([
@@ -263,13 +265,13 @@ function tableTest() {
 
   it('Get filtered table data list with a lookup column', async function () {
     const rentalTable = await Model.getByIdOrName({
-      project_id: project.id,
-      base_id: project.bases[0].id,
+      project_id: sakilaProject.id,
+      base_id: sakilaProject.bases[0].id,
       table_name: 'rental',
     });
 
     const lookupColumn = await createLookupColumn(context, {
-      project,
+      project: sakilaProject,
       title: 'Lookup',
       table: rentalTable,
       relatedTableName: customerTable.table_name,
@@ -285,7 +287,7 @@ function tableTest() {
     };
 
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([filter]),
@@ -302,7 +304,7 @@ function tableTest() {
 
   it('Get filtered table data list with a (hm)lookup column', async function () {
     const lookupColumn = await createLookupColumn(context, {
-      project,
+      project: sakilaProject,
       title: 'Lookup',
       table: customerTable,
       relatedTableName: 'rental',
@@ -318,7 +320,7 @@ function tableTest() {
     };
 
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([filter]),
@@ -331,13 +333,13 @@ function tableTest() {
 
   it('Get nested sorted filtered table data list with a lookup column', async function () {
     const rentalTable = await Model.getByIdOrName({
-      project_id: project.id,
-      base_id: project.bases[0].id,
+      project_id: sakilaProject.id,
+      base_id: sakilaProject.bases[0].id,
       table_name: 'rental',
     });
 
     const lookupColumn = await createLookupColumn(context, {
-      project,
+      project: sakilaProject,
       title: 'Lookup',
       table: rentalTable,
       relatedTableName: customerTable.table_name,
@@ -388,7 +390,7 @@ function tableTest() {
     };
 
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -402,7 +404,7 @@ function tableTest() {
       throw new Error('Wrong filter');
 
     const ascResponse = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -424,7 +426,7 @@ function tableTest() {
     }
 
     const descResponse = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${rentalTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -446,7 +448,7 @@ function tableTest() {
 
   it('Get nested sorted filtered table data list with a rollup column in customer table', async function () {
     const rollupColumn = await createRollupColumn(context, {
-      project,
+      project: sakilaProject,
       title: 'Number of rentals',
       rollupFunction: 'count',
       table: customerTable,
@@ -506,7 +508,7 @@ function tableTest() {
     ];
 
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -520,7 +522,7 @@ function tableTest() {
       throw new Error('Wrong filter');
 
     const ascResponse = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -542,7 +544,7 @@ function tableTest() {
     }
 
     const descResponse = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         filterArrJson: JSON.stringify([nestedFilter]),
@@ -564,7 +566,7 @@ function tableTest() {
 
   it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table', async function () {
     const rollupColumn = await createRollupColumn(context, {
-      project,
+      project: sakilaProject,
       title: 'Number of rentals',
       rollupFunction: 'count',
       table: customerTable,
@@ -628,7 +630,7 @@ function tableTest() {
     ];
 
     const ascResponse = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         nested: nestedFields,
@@ -664,7 +666,7 @@ function tableTest() {
   it('Sorted Formula column on rollup customer table', async function () {
     const rollupColumnTitle = 'Number of rentals';
     const rollupColumn = await createRollupColumn(context, {
-      project,
+      project: sakilaProject,
       title: rollupColumnTitle,
       rollupFunction: 'count',
       table: customerTable,
@@ -680,7 +682,7 @@ function tableTest() {
     });
 
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
       .set('xc-auth', context.token)
       .query({
         sortArrJson: JSON.stringify([
@@ -706,13 +708,13 @@ function tableTest() {
 
   // it('Get nested sorted filtered table with nested fields data list with a formula > lookup > rollup column in customer table', async function () {
   //   const rentalTable = await Model.getByIdOrName({
-  //     project_id: project.id,
-  //     base_id: project.bases[0].id,
+  //     project_id: sakilaProject.id,
+  //     base_id: sakilaProject.bases[0].id,
   //     table_name: 'rental',
   //   });
 
   //   const rollupColumn = await createRollupColumn(context, {
-  //     project,
+  //     sakilaProject,
   //     title: 'Number of rentals',
   //     rollupFunction: 'count',
   //     table: customerTable,
@@ -721,7 +723,7 @@ function tableTest() {
   //   });
 
   //   const lookupColumn = await createLookupColumn(context, {
-  //     project,
+  //     sakilaProject,
   //     title: 'Lookup',
   //     table: rentalTable,
   //     relatedTableName: customerTable.table_name,
@@ -736,7 +738,7 @@ function tableTest() {
   //   console.log(formulaColumn);
 
   //   const response = await request(context.app)
-  //     .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+  //     .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
   //     .set('xc-auth', context.token)
   //     .query({
   //       sortArrJson: JSON.stringify([

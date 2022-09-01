@@ -93,9 +93,10 @@ watch(themePrimaryColor, (nextColor) => {
   const tcolor = tinycolor(hexColor)
   if (tcolor) {
     const complement = tcolor.complement()
+    themeAccentColor.value = nextColor.hex8 ? theme.value.accentColor : complement.toHex8String()
     saveTheme({
       primaryColor: hexColor,
-      accentColor: nextColor.hex8 ? theme.value.accentColor : complement.toHex8String(),
+      accentColor: themeAccentColor.value,
     })
   }
 })

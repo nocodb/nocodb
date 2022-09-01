@@ -116,6 +116,7 @@ class BaseModelSqlv2 {
     return !!(await qb.where(_wherePk(pks, id)).first());
   }
 
+  // todo: add support for sortArrJson
   public async findOne(
     args: {
       where?: string;

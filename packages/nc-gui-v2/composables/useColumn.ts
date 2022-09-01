@@ -33,7 +33,7 @@ export function useColumn(column: Ref<ColumnType>) {
   const isEmail = computed(() => uiDatatype.value === UITypes.Email)
   const isAttachment = computed(() => uiDatatype.value === UITypes.Attachment)
   const isRating = computed(() => uiDatatype.value === UITypes.Rating)
-  const isCurrency = computed(() => uiDatatype.value === 'Currency')
+  const isCurrency = computed(() => uiDatatype.value === UITypes.Currency)
   const isPhoneNumber = computed(() => uiDatatype.value === UITypes.PhoneNumber)
   const isDecimal = computed(() => uiDatatype.value === UITypes.Decimal)
   const isDuration = computed(() => uiDatatype.value === UITypes.Duration)
@@ -91,6 +91,6 @@ export function useColumn(column: Ref<ColumnType>) {
     isMultiSelect,
     isPercent,
     isPhoneNumber,
-    isSpecificDBType
+    isSpecificDBType,
   }
 }

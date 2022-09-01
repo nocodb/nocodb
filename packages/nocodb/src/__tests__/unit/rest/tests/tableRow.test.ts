@@ -5,7 +5,6 @@ import init from '../init';
 import request from 'supertest';
 import { ColumnType } from 'nocodb-sdk';
 import { createLookupColumn, createRollupColumn } from './helpers/column';
-import Filter from '../../../../lib/models/Filter';
 
 const isColumnsCorrectInResponse = (response, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(response.body.list[0])
@@ -297,6 +296,35 @@ function tableTest() {
     });
   });
 
+  it('Get filtered table data list with a (hm)lookup column', async function () {
+    const lookupColumn = await createLookupColumn(context, {
+      project,
+      title: 'Lookup',
+      table: customerTable,
+      relatedTableName: 'rental',
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const filter = {
+      fk_column_id: lookupColumn?.id,
+      status: 'create',
+      logical_op: 'and',
+      comparison_op: 'gte',
+      value: '2006-02-12 15:30',
+    };
+
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([filter]),
+      })
+      .expect(200);
+
+    if (response.body.pageInfo.totalRows !== 158)
+      throw new Error('Wrong number of rows');
+  });
+
   it('Get nested sorted filtered table data list with a lookup column', async function () {
     const rentalTable = await Model.getByIdOrName({
       project_id: project.id,
@@ -529,8 +557,107 @@ function tableTest() {
     if (descResponse.body.list[0][rollupColumn.title] !== 46)
       throw new Error('Wrong filter');
   });
+
+  it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table', async function () {
+    const rollupColumn = await createRollupColumn(context, {
+      project,
+      title: 'Number of rentals',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: 'rental',
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const paymentListColumn = (await customerTable.getColumns()).find(
+      (c) => c.title === 'Payment List'
+    );
+
+    const activeColumn = (await customerTable.getColumns()).find(
+      (c) => c.title === 'Active'
+    );
+
+    const nestedFields = {
+      'Rental List': ['RentalDate', 'ReturnDate'],
+    };
+
+    const nestedFilter = [
+      {
+        fk_column_id: rollupColumn?.id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'gte',
+        value: '25',
+      },
+      {
+        is_group: true,
+        status: 'create',
+        logical_op: 'or',
+        children: [
+          {
+            fk_column_id: rollupColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'lte',
+            value: '30',
+          },
+          {
+            fk_column_id: paymentListColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'notempty',
+          },
+          {
+            is_group: true,
+            status: 'create',
+            logical_op: 'and',
+            children: [
+              {
+                logical_op: 'and',
+                fk_column_id: activeColumn?.id,
+                status: 'create',
+                comparison_op: 'notempty',
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    const ascResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${project.id}/${customerTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        nested: nestedFields,
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: rollupColumn?.id,
+            direction: 'asc',
+          },
+        ]),
+      })
+      .expect(200);
+
+    if (ascResponse.body.pageInfo.totalRows !== 594)
+      throw new Error('Wrong number of rows');
+
+    if (ascResponse.body.list[0][rollupColumn.title] !== 12) {
+      throw new Error('Wrong filter');
+    }
+
+    const nestedRentalResponse = Object.keys(
+      ascResponse.body.list[0]['Rental List']
+    );
+    if (
+      nestedRentalResponse.includes('RentalId') &&
+      nestedRentalResponse.includes('RentalDate') &&
+      nestedRentalResponse.length === 2
+    ) {
+      throw new Error('Wrong nested fields');
+    }
+  });
 }
 
 export default function () {
-  describe('TableRow', tableTest);
+  describe.only('TableRow', tableTest);
 }

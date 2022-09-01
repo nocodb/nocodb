@@ -30,6 +30,8 @@
               :new-table="newTableCopy"
               :mtd-new-table-update="mtdNewTableUpdate"
               :is-meta-table="isMetaTable"
+              :last-opened-view-map="lastOpenedViewMap"
+              @setLastOpenedView="setLastOpenedView"
             />
           </v-tab-item>
         </template>
@@ -67,6 +69,9 @@ export default {
     };
   },
   methods: {
+    setLastOpenedView(table, id) {
+      this.$emit('setLastOpenedView', table, id)
+    },
     async handleKeyDown(event) {
       const activeTabEleKey = `tabs${this.active}`;
       if (this.$refs[activeTabEleKey] && this.$refs[activeTabEleKey].handleKeyDown) {
@@ -93,6 +98,7 @@ export default {
     this.onTabChange();
   },
   props: {
+    lastOpenedViewMap: Object,
     nodes: Object,
     hideLogWindows: Boolean,
     tabId: String,

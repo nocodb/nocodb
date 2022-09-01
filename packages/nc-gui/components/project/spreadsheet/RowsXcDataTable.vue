@@ -427,11 +427,13 @@
         :show-system-fields.sync="showSystemFields"
         :extra-view-params.sync="extraViewParams"
         :views.sync="meta.views"
+        :last-opened-view-map="lastOpenedViewMap"
         @rerender="viewKey++"
         @generateNewViewKey="generateNewViewKey"
         @mapFieldsAndShowFields="mapFieldsAndShowFields"
         @loadTableData="loadTableData(false)"
         @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
+        @setLastOpenedView="setLastOpenedView"
       >
         <!--        <v-tooltip bottom>
           <template #activator="{on}">
@@ -669,6 +671,7 @@ export default {
   },
   mixins: [spreadsheet],
   props: {
+    lastOpenedViewMap: Object,
     isView: Boolean,
     isActive: Boolean,
     tabId: String,
@@ -683,10 +686,10 @@ export default {
     showTabs: [Boolean, Number],
   },
   data: () => ({
-    syncDataDebounce: debounce(async function (self) {
+    syncDataDebounce: debounce(async function(self) {
       await self.syncData();
     }, 500),
-    loadTableDataDeb: debounce(async function (self, ignoreLoader) {
+    loadTableDataDeb: debounce(async function(self, ignoreLoader) {
       await self.loadTableDataFn(ignoreLoader);
     }, 200),
     viewKey: 0,
@@ -831,6 +834,9 @@ export default {
     this.searchField = this.primaryValueColumn;
   },
   methods: {
+    setLastOpenedView(table, id) {
+      this.$emit('setLastOpenedView', table, id)
+    },
     clickAddNewIcon() {
       this.insertNewRow(true, true);
       this.$e('c:row:add:grid-top');

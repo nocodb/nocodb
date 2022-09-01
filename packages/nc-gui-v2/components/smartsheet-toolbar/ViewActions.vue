@@ -9,6 +9,7 @@ import {
   ref,
   useNuxtApp,
   useProject,
+  useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
 import { LockType } from '~/lib'
@@ -70,6 +71,8 @@ async function changeLockType(type: LockType) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const { isSqlView } = useSmartsheetStoreOrThrow()
 </script>
 
 <template>
@@ -134,7 +137,7 @@ async function changeLockType(type: LockType) {
               <template #expandIcon></template>
               <SmartsheetToolbarExportSubActions />
             </a-sub-menu>
-            <template v-if="isUIAllowed('csvImport') && !isView && !isPublicView">
+            <template v-if="isUIAllowed('csvImport') && !isView && !isPublicView && !isSqlView">
               <a-sub-menu key="upload">
                 <template #title>
                   <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
@@ -177,7 +180,7 @@ async function changeLockType(type: LockType) {
                 {{ $t('activity.listSharedView') }}
               </div>
             </a-menu-item>
-            <a-menu-item>
+            <a-menu-item v-if="!isSqlView">
               <div
                 v-if="isUIAllowed('webhook') && !isView && !isPublicView"
                 v-t="['c:actions:webhook']"

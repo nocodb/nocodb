@@ -43,6 +43,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       }
       return where
     })
+
+    const isSqlView = computed(() => meta?.value?.type === 'view')
+
     const sorts = initalSorts ?? ref<SortType[]>([])
     const nestedFilters: Ref<FilterType[]> = initialFilters ?? ref<FilterType[]>([])
 
@@ -61,6 +64,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isSharedForm,
       sorts,
       nestedFilters,
+      isSqlView,
     }
   },
   'smartsheet-store',

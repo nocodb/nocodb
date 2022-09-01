@@ -3,7 +3,7 @@ import { useExpandedFormStoreOrThrow, useSmartsheetRowStoreOrThrow, useSmartshee
 
 const emit = defineEmits(['cancel'])
 
-const { meta } = useSmartsheetStoreOrThrow()
+const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
 const { commentsDrawer, primaryValue, save: _save } = useExpandedFormStoreOrThrow()
 
@@ -48,7 +48,7 @@ const iconColor = '#1890ff'
       </template>
       <mdi-reload class="cursor-pointer select-none text-gray-500" />
     </a-tooltip>
-    <a-tooltip placement="bottom">
+    <a-tooltip v-if="!isSqlView" placement="bottom">
       <template #title>
         <div class="text-center w-full">Toggle comments draw</div>
       </template>

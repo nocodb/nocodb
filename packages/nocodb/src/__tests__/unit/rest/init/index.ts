@@ -4,8 +4,21 @@ import express from 'express';
 import cleanupMeta from './cleanupMeta';
 import cleanUpSakila from './cleanupSakila';
 import { createUser } from '../tests/helpers/user';
+import knex from 'knex';
 
-const knex = require('knex');
+const knexClient = knex(dbConfig);
+
+const sakilaKnexClient = knex({
+  client: 'mysql2',
+  connection: {
+    host: 'localhost',
+    port: 3306,
+    user: 'root',
+    password: 'password',
+    database: sakilaDbName,
+  },
+  pool: { min: 0, max: 2 },
+});
 
 const serverInit = async () => {
   const server = express();
@@ -14,7 +27,7 @@ const serverInit = async () => {
   return server;
 };
 
-const resetDatabase = async (knexClient) => {
+const resetDatabase = async () => {
   try {
     if (!Noco.initialized) {
       try {
@@ -27,39 +40,25 @@ const resetDatabase = async (knexClient) => {
   }
 };
 
-const cleanupAllTables = async (knexClient) => {
-  const sakilaKnexClient = knex({
-    client: 'mysql2',
-    connection: {
-      host: 'localhost',
-      port: '3306',
-      user: 'root',
-      password: 'password',
-      database: sakilaDbName,
-    },
-  });
-
+const cleanupAllTables = async () => {
   try {
     await cleanUpSakila(sakilaKnexClient);
-
-    await sakilaKnexClient.destroy();
 
     await cleanupMeta(knexClient);
   } catch (e) {
     console.error('cleanupAllTables', e);
-    sakilaKnexClient.destroy();
   }
 };
 
 export default async function () {
-  const knexClient = knex(dbConfig);
-  await resetDatabase(knexClient);
+  await knexClient.raw(`USE ${dbName}`);
+  await sakilaKnexClient.raw(`USE ${sakilaDbName}`);
+
+  await resetDatabase();
 
   const server = await serverInit();
 
-  await cleanupAllTables(knexClient);
-
-  await knexClient.destroy();
+  await cleanupAllTables();
 
   const { token } = await createUser({ app: server }, { roles: 'editor' });
 

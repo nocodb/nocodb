@@ -1,5 +1,7 @@
+import Base from '../../../../lib/models/Base';
 import Model from '../../../../lib/models/Model';
 import Project from '../../../../lib/models/Project';
+import NcConnectionMgrv2 from '../../../../lib/utils/common/NcConnectionMgrv2';
 import { orderedMetaTables } from '../../../../lib/utils/globals';
 
 const dropTablesAllNonExternalProjects = async (knexClient) => {
@@ -42,6 +44,8 @@ const cleanupMetaTables = async (knexClient) => {
 
 export default async function (knexClient) {
   try {
+    await NcConnectionMgrv2.destroyAll();
+
     await dropTablesAllNonExternalProjects(knexClient);
     await cleanupMetaTables(knexClient);
   } catch (e) {

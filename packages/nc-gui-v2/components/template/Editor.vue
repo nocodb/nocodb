@@ -524,7 +524,7 @@ function handleEditableTnChange(idx: number) {
     data.tables[idx].ref_table_name = oldValue
   } else {
     prevEditableTn.value[idx] = newValue
-    if (oldValue != newValue) {
+    if (oldValue !== newValue) {
       // update the key name of importData
       delete Object.assign(importData, { [newValue]: importData[oldValue] })[oldValue]
     }

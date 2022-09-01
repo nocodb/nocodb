@@ -84,7 +84,9 @@ export const genTest = (apiType, dbType) => {
 
             // if pwd is incorrect, active modal requesting to feed in password again will persist
             // cy.getActiveModal().find('button:contains("Unlock")').should('not.exist');
-            cy.get(".ant-modal-content:visible").should("not.exist")
+            // cy.get(".ant-modal-content:visible").should("not.exist")
+
+            cy.wait(1000);
 
             // Verify Download as CSV is here
             mainPage.downloadCsv().should("exist");

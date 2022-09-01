@@ -264,27 +264,27 @@ export class _mainPage {
     };
 
     shareViewList = () => {
-        cy.get(".nc-actions-menu-btn").click();
+        cy.get(".nc-actions-menu-btn").should('exist').click();
         return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Shared View List');
     };
 
     downloadCsv = () => {
-        cy.get(".nc-actions-menu-btn").click();
+        cy.get(".nc-actions-menu-btn").should('exist').click();
         return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Download as CSV');
     };
 
     downloadExcel = () => {
-        cy.get(".nc-actions-menu-btn").click();
+        cy.get(".nc-actions-menu-btn").should('exist').click();
         return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Download as XLSX');
     };
 
     uploadCsv = () => {
-        cy.get(".nc-actions-menu-btn").click();
+        cy.get(".nc-actions-menu-btn").should('exist').click();
         return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Upload CSV');
     };
 
     automations = () => {
-        cy.get(".nc-actions-menu-btn").click();
+        cy.get(".nc-actions-menu-btn").should('exist').click();
         return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Webhooks');
     };
 

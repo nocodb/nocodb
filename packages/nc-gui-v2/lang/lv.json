@@ -54,7 +54,8 @@
     "search": "Meklēt",
     "notification": "Paziņojums",
     "reference": "Atsauce",
-    "function": "Funkcija"
+    "function": "Funkcija",
+    "confirm": "Apstiprināt"
   },
   "objects": {
     "project": "Projekts",
@@ -193,6 +194,7 @@
     "username": "Lietotājvārds",
     "password": "Parole",
     "schemaName": "Schema name",
+    "database": "Datu bāze",
     "action": "Darbība",
     "actions": "Darbības",
     "operation": "Operācija",
@@ -238,7 +240,12 @@
     "childTable": "Apakštabula",
     "childColumn": "Apakškolonna",
     "onUpdate": "Atjaunojot",
-    "onDelete": "Dzēšot"
+    "onDelete": "Dzēšot",
+    "account": "Konts",
+    "language": "Valoda",
+    "primaryColor": "Primārā krāsa",
+    "accentColor": "Akcents",
+    "customTheme": "Pielāgota tēma"
   },
   "activity": {
     "createProject": "Izveidot projektu",
@@ -265,7 +272,7 @@
     "translate": "Palīdzi ar tulkojumu",
     "account": {
       "authToken": "Kopēt pieslēgšanās talonu",
-      "swagger": "Swagger APIs Doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopēt projekta informāciju",
       "themes": "Tēmas"
     },
@@ -413,7 +420,7 @@
       "deleteProject": "Vai tu vēlies dzēst projektu?",
       "shareBasePrivate": "Izveidot koplietojamu saiti",
       "shareBasePublic": "Jebkurš ar šo saiti varēs skatīt",
-      "userInviteNoSMTP": "E-pasta nosūtītājs vēl nav konfigurēts! \\n Lūdzu kopējiet uzaicinājuma saiti augstāk un nosūtiet to",
+      "userInviteNoSMTP": "E-pasta nosūtītājs vēl nav konfigurēts! Lūdzu kopējiet uzaicinājuma saiti augstāk un nosūtiet to",
       "dragDropHide": "Vilkt un nomest laukus šeit lai noņemtu",
       "formInput": "Ievadiet formas ievades lauka birku",
       "formHelpText": "Pievienot norādījumus",
@@ -497,7 +504,8 @@
         "emailReqd": "E-pasts ir obligāts",
         "emailInvalid": "E-pastam ir jābūt korektam",
         "passwdRequired": "Parole ir obligāta",
-        "passwdLength": "Parolei jābūt vismaz 8 simboli"
+        "passwdLength": "Parolei jābūt vismaz 8 simboli",
+        "passwdMismatch": "Paroles nesakrīt"
       }
     },
     "toast": {

@@ -54,7 +54,8 @@
     "search": "Rechercher",
     "notification": "Notification",
     "reference": "Référence",
-    "function": "Fonction"
+    "function": "Fonction",
+    "confirm": "Confirmer"
   },
   "objects": {
     "project": "Projet",
@@ -193,6 +194,7 @@
     "username": "Utilisateur",
     "password": "Mot de passe",
     "schemaName": "Nom du schéma",
+    "database": "Base de données",
     "action": "Action",
     "actions": "Actions",
     "operation": "Opération",
@@ -238,7 +240,12 @@
     "childTable": "Table enfant",
     "childColumn": "Colonne enfant",
     "onUpdate": "Mise à jour en cours",
-    "onDelete": "Suppression en cours"
+    "onDelete": "Suppression en cours",
+    "account": "Compte",
+    "language": "Langue",
+    "primaryColor": "Couleur primaire",
+    "accentColor": "Couleur accent",
+    "customTheme": "Thème personnalisé"
   },
   "activity": {
     "createProject": "Créer un projet",
@@ -265,7 +272,7 @@
     "translate": "Aider à la traduction",
     "account": {
       "authToken": "Copier le jeton d'authentification",
-      "swagger": "Doc Swagger de l'API",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Copier les informations du projet",
       "themes": "Thèmes"
     },
@@ -413,7 +420,7 @@
       "deleteProject": "Voulez-vous supprimer le projet ?",
       "shareBasePrivate": "Générer une base partagée en lecture seule",
       "shareBasePublic": "Toute personne avec ce lien peut consulter",
-      "userInviteNoSMTP": "On dirait que vous n'avez pas encore configuré Mailer! \\ n Merci de copier-coller le lien d'invitation ci-dessous et l'envoyer à",
+      "userInviteNoSMTP": "On dirait que vous n'avez pas encore configuré Mailer! Merci de copier-coller le lien d'invitation ci-dessous et l'envoyer à",
       "dragDropHide": "Glisser et déposer des champs ici pour les masquer",
       "formInput": "Entrer le libellé du formulaire",
       "formHelpText": "Ajouter un texte d'aide",
@@ -497,7 +504,8 @@
         "emailReqd": "Adresse mail requise",
         "emailInvalid": "L'adresse mail doit être valide",
         "passwdRequired": "Mot de passe requis",
-        "passwdLength": "Votre mot de passe doit contenir au moins 8 caractères"
+        "passwdLength": "Votre mot de passe doit contenir au moins 8 caractères",
+        "passwdMismatch": "Les mots de passe ne correspondent pas"
       }
     },
     "toast": {

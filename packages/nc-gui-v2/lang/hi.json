@@ -54,7 +54,8 @@
     "search": "खोजे",
     "notification": "सूचित करी",
     "reference": "संदर्भ",
-    "function": "समारोह"
+    "function": "समारोह",
+    "confirm": "पुष्टि करें"
   },
   "objects": {
     "project": "परियोजना",
@@ -193,6 +194,7 @@
     "username": "उपयोगकर्ता नाम",
     "password": "पासवर्ड",
     "schemaName": "Schema name",
+    "database": "डेटाबेस",
     "action": "गतिविधि",
     "actions": "कार्रवाई",
     "operation": "संचालन",
@@ -213,7 +215,6 @@
     "sqlOutput": "SQL आउटपुट",
     "addOption": "विकल्प जोड़े",
     "aggregateFunction": "कुल समारोह",
-    "database": "डेटाबेस",
     "dbCreateIfNotExists": "डेटाबेस: बनाएं यदि मौजूद नहीं है",
     "clientKey": "ग्राहक कुंजी",
     "clientCert": "ग्राहक प्रमाण पत्र",
@@ -239,7 +240,12 @@
     "childTable": "Child table",
     "childColumn": "Child column",
     "onUpdate": "On Update",
-    "onDelete": "On Delete"
+    "onDelete": "On Delete",
+    "account": "खाता",
+    "language": "भाषा",
+    "primaryColor": "प्राथमिक रंग",
+    "accentColor": "स्वरोंका रंग",
+    "customTheme": "कस्टम थीम"
   },
   "activity": {
     "createProject": "प्रोजेक्ट बनाएं",
@@ -266,7 +272,7 @@
     "translate": "अनुवाद करने में मदद करें",
     "account": {
       "authToken": "कॉपी प्रामाणिक टोकन",
-      "swagger": "स्वैगर एपीआईएस डॉक",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "कॉपी प्रोजेक्ट जानकारी",
       "themes": "विषयों"
     },
@@ -310,6 +316,7 @@
     "importExcel": "आयात एक्सेल",
     "importCSV": "Import CSV",
     "downloadCSV": "CSV के रूप में डाउनलोड करें",
+    "downloadExcel": "XLSX के रूप में डाउनलोड करें",
     "uploadCSV": "CSV अपलोड करें",
     "import": "आयात",
     "importMetadata": "आयात मेटाडेटा",

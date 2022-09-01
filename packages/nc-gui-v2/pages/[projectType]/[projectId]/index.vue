@@ -218,15 +218,18 @@ const copyAuthToken = async () => {
                     </div>
                   </template>
                   <template v-if="!isSharedBase">
+
+                    <!-- Copy Project Info -->
                     <a-menu-item key="copy">
                       <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">
                         <MdiContentCopy class="group-hover:text-accent" />
-                        Copy Project Info
+                        {{ $t('activity.account.projInfo') }}
                       </div>
                     </a-menu-item>
 
                     <a-menu-divider />
 
+                    <!-- Swagger: Rest APIs -->
                     <a-menu-item key="api">
                       <div
                         v-if="isUIAllowed('apiDocs')"
@@ -235,19 +238,21 @@ const copyAuthToken = async () => {
                         @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                       >
                         <MdiApi class="group-hover:text-accent" />
-                        Swagger: Rest APIs
+                        {{ $t('activity.account.swagger') }}
                       </div>
                     </a-menu-item>
 
+                    <!-- Copy Auth Token -->
                     <a-menu-item key="copy">
                       <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
                         <MdiScriptTextKeyOutline class="group-hover:text-accent" />
-                        Copy Auth Token
+                        {{ $t('activity.account.authToken') }}
                       </div>
                     </a-menu-item>
 
                     <a-menu-divider />
 
+                    <!-- Team & Settings -->
                     <a-menu-item key="teamAndSettings">
                       <div
                         v-if="isUIAllowed('settings')"
@@ -256,16 +261,17 @@ const copyAuthToken = async () => {
                         @click="toggleDialog(true, 'teamAndAuth')"
                       >
                         <MdiCog class="group-hover:text-accent" />
-                        Team & Settings
+                        {{ $t('title.teamAndSettings') }}
                       </div>
                     </a-menu-item>
 
+                    <!-- Theme -->
                     <template v-if="isUIAllowed('projectTheme')">
                       <a-sub-menu key="theme">
                         <template #title>
                           <div class="nc-project-menu-item group">
                             <ClarityImageLine class="group-hover:text-accent" />
-                            Project Theme
+                            {{ $t('activity.account.themes') }}
 
                             <div class="flex-1" />
 
@@ -283,10 +289,12 @@ const copyAuthToken = async () => {
                           :row-size="9"
                           :advanced="false"
                         />
+
+                        <!-- Custom Theme -->
                         <a-sub-menu key="theme-2">
                           <template #title>
                             <div class="nc-project-menu-item group">
-                              Custom Theme
+                              {{ $t('labels.customTheme') }}
 
                               <div class="flex-1" />
 
@@ -296,23 +304,25 @@ const copyAuthToken = async () => {
                             </div>
                           </template>
 
+                          <!-- Primary Color -->
                           <template #expandIcon></template>
                           <a-sub-menu key="pick-primary">
                             <template #title>
                               <div class="nc-project-menu-item group">
                                 <ClarityColorPickerSolid class="group-hover:text-accent" />
-                                Primary Color
+                                {{ $t('labels.primaryColor') }}
                               </div>
                             </template>
                             <template #expandIcon></template>
                             <Chrome v-model="themePrimaryColor" />
                           </a-sub-menu>
 
+                          <!-- Accent Color -->
                           <a-sub-menu key="pick-accent">
                             <template #title>
                               <div class="nc-project-menu-item group">
                                 <ClarityColorPickerSolid class="group-hover:text-accent" />
-                                Accent Color
+                                {{ $t('labels.accentColor') }}
                               </div>
                             </template>
                             <template #expandIcon></template>
@@ -324,11 +334,12 @@ const copyAuthToken = async () => {
 
                     <a-menu-divider />
 
+                    <!-- Preview As -->
                     <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
                       <template #title>
                         <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                           <MdiFileEyeOutline class="group-hover:text-accent" />
-                          Preview Project As
+                          {{ $t('activity.previewAs') }}
 
                           <div class="flex-1" />
 
@@ -343,6 +354,7 @@ const copyAuthToken = async () => {
                       <GeneralPreviewAs />
                     </a-sub-menu>
                   </template>
+                  <!-- Language -->
                   <a-sub-menu
                     key="language"
                     class="lang-menu !py-0"
@@ -351,7 +363,7 @@ const copyAuthToken = async () => {
                     <template #title>
                       <div class="nc-project-menu-item group">
                         <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />
-                        Language
+                        {{ $t('labels.language') }}
                         <div class="flex-1" />
 
                         <MaterialSymbolsChevronRightRounded
@@ -364,12 +376,13 @@ const copyAuthToken = async () => {
                     <GeneralLanguageMenu />
                   </a-sub-menu>
 
+                  <!-- Account -->
                   <template v-if="signedIn && !isSharedBase">
                     <a-sub-menu key="account">
                       <template #title>
                         <div class="nc-project-menu-item group">
                           <MdiAccount class="group-hover:text-accent" />
-                          Account
+                          {{ $t('labels.account') }}
                           <div class="flex-1" />
 
                           <MaterialSymbolsChevronRightRounded

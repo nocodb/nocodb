@@ -54,7 +54,8 @@
     "search": "Iskanje",
     "notification": "Obvestilo",
     "reference": "Referenca",
-    "function": "Funkcija"
+    "function": "Funkcija",
+    "confirm": "Potrdite"
   },
   "objects": {
     "project": "Project.",
@@ -193,6 +194,7 @@
     "username": "Uporabniško ime",
     "password": "Geslo",
     "schemaName": "Schema name",
+    "database": "Baza podatkov",
     "action": "Akcija",
     "actions": "Akcijah",
     "operation": "Operacija",
@@ -238,7 +240,12 @@
     "childTable": "Otroška miza",
     "childColumn": "Otroška stolpec",
     "onUpdate": "Na posodobitvi",
-    "onDelete": "Na izbrisu"
+    "onDelete": "Na izbrisu",
+    "account": "račun",
+    "language": "Jezik",
+    "primaryColor": "Primarna barva",
+    "accentColor": "Naglasna barva",
+    "customTheme": "Tema po meri"
   },
   "activity": {
     "createProject": "Ustvari projek",
@@ -265,7 +272,7 @@
     "translate": "Pomoč Prevedi",
     "account": {
       "authToken": "Kopiraj auth token.",
-      "swagger": "Sragge apis doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopiraj projekt Info.",
       "themes": "Teme"
     },
@@ -309,7 +316,7 @@
     "importExcel": "Uvoz Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Prenesite kot CSV.",
-    "downloadExcel": "Prenesite kot XLSX.",
+    "downloadExcel": "Prenesite kot XLSX",
     "uploadCSV": "Upload CSV.",
     "import": "Uvozi",
     "importMetadata": "Uvozi metapodatkov",
@@ -413,7 +420,7 @@
       "deleteProject": "Želite izbrisati projekt?",
       "shareBasePrivate": "Ustvarite javno rasno redno osnovo",
       "shareBasePublic": "Vsak na internetu s to povezavo lahko prikaže",
-      "userInviteNoSMTP": "Izgleda, da še niste konfigurirali pošiljatelja! n Prosimo, kopirajte zgornjo povezavo in jo pošljite",
+      "userInviteNoSMTP": "Izgleda, da še niste konfigurirali pošiljatelja! Prosimo, kopirajte zgornjo povezavo in jo pošljite",
       "dragDropHide": "Povlecite in spustite polja, da se skrijete",
       "formInput": "Vnesite nalepko vnosa obrazca",
       "formHelpText": "Dodajte nekaj besedila pomoči",
@@ -497,7 +504,8 @@
         "emailReqd": "Potrebna je e-pošta",
         "emailInvalid": "E-pošta mora biti veljavna",
         "passwdRequired": "zahtevano je geslo",
-        "passwdLength": "Geslo mora biti vsaj 8 znakov"
+        "passwdLength": "Geslo mora biti vsaj 8 znakov",
+        "passwdMismatch": "geslo se ne ujema"
       }
     },
     "toast": {

@@ -54,7 +54,8 @@
     "search": "Søg",
     "notification": "Notifikation",
     "reference": "Reference",
-    "function": "Fungere"
+    "function": "Fungere",
+    "confirm": "Bekræfte"
   },
   "objects": {
     "project": "Projekt",
@@ -193,6 +194,7 @@
     "username": "Brugernavn.",
     "password": "Adgangskode",
     "schemaName": "Schema name",
+    "database": "Database",
     "action": "Handling",
     "actions": "Handlinger",
     "operation": "Operation",
@@ -238,7 +240,12 @@
     "childTable": "Børnebord",
     "childColumn": "Barn kolonne",
     "onUpdate": "På opdatering",
-    "onDelete": "På Delete."
+    "onDelete": "På Delete.",
+    "account": "Konto",
+    "language": "Sprog",
+    "primaryColor": "Primær farve",
+    "accentColor": "Accentfarve",
+    "customTheme": "Brugerdefineret tema"
   },
   "activity": {
     "createProject": "Opret projekt",
@@ -265,7 +272,7 @@
     "translate": "Hjælp Translate",
     "account": {
       "authToken": "Kopier Auth Token",
-      "swagger": "Swagger Apis DOC.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopier projekt info.",
       "themes": "Temaer."
     },
@@ -309,7 +316,7 @@
     "importExcel": "Import Excel.",
     "importCSV": "Import CSV.",
     "downloadCSV": "Download som CSV.",
-    "downloadExcel": "Download som XLSX.",
+    "downloadExcel": "Download som XLSX",
     "uploadCSV": "Upload CSV.",
     "import": "Importere",
     "importMetadata": "Import metadata.",
@@ -413,7 +420,7 @@
       "deleteProject": "Ønsker du at slette projektet?",
       "shareBasePrivate": "Generer offentligt delbart readonly base",
       "shareBasePublic": "Enhver på internettet med dette link kan se",
-      "userInviteNoSMTP": "Ser ud som om du ikke har konfigureret mailer endnu!\nKopier venligst ovenstående invitation link og send det til",
+      "userInviteNoSMTP": "Ser ud som om du ikke har konfigureret mailer endnu! Kopier venligst ovenstående invitation link og send det til",
       "dragDropHide": "Træk og slip felter her for at skjule",
       "formInput": "Indtast formularindgangsmærke",
       "formHelpText": "Tilføj nogle hjælpetekst",
@@ -497,7 +504,8 @@
         "emailReqd": "E-mail er påkrævet",
         "emailInvalid": "E-mail skal være gyldig",
         "passwdRequired": "adgangskode er påkrævet",
-        "passwdLength": "Din adgangskode skal være mindst 8 tegn"
+        "passwdLength": "Din adgangskode skal være mindst 8 tegn",
+        "passwdMismatch": "Kodeordene er ikke ens"
       }
     },
     "toast": {

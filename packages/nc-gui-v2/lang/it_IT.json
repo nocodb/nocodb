@@ -54,7 +54,8 @@
     "search": "Cerca",
     "notification": "Notifica",
     "reference": "Riferimento",
-    "function": "Funzione"
+    "function": "Funzione",
+    "confirm": "Confermare"
   },
   "objects": {
     "project": "Progetto",
@@ -193,6 +194,7 @@
     "username": "Nome utente",
     "password": "Password",
     "schemaName": "Nome schema",
+    "database": "Banca dati",
     "action": "Azione",
     "actions": "Azioni",
     "operation": "Operazione",
@@ -238,7 +240,12 @@
     "childTable": "Sottotabella",
     "childColumn": "Sottocolonna",
     "onUpdate": "All'aggiornamento",
-    "onDelete": "All'eliminazione"
+    "onDelete": "All'eliminazione",
+    "account": "Account",
+    "language": "Lingua",
+    "primaryColor": "Colore primario",
+    "accentColor": "Colore accento",
+    "customTheme": "Tema personalizzato"
   },
   "activity": {
     "createProject": "Crea progetto",
@@ -265,7 +272,7 @@
     "translate": "Aiuta a tradurre.",
     "account": {
       "authToken": "Copia il token dell'auth.",
-      "swagger": "Swagger Apis Doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Copia le informazioni del progetto",
       "themes": "Temi"
     },
@@ -309,7 +316,7 @@
     "importExcel": "Importa Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Scarica come CSV.",
-    "downloadExcel": "Scarica come XLSX.",
+    "downloadExcel": "Scarica come XLSX",
     "uploadCSV": "Carica CSV.",
     "import": "Importa",
     "importMetadata": "Importa metadati",
@@ -413,7 +420,7 @@
       "deleteProject": "Vuoi cancellare il progetto?",
       "shareBasePrivate": "Genera base readonly condivisibile pubblicamente",
       "shareBasePublic": "Chiunque su Internet con questo link può visualizzare",
-      "userInviteNoSMTP": "Sembra che non abbia ancora configurato il mailer! \\n Manda il link d'invito sopra a",
+      "userInviteNoSMTP": "Sembra che non abbia ancora configurato il mailer! Manda il link d'invito sopra a",
       "dragDropHide": "Rilascia qui i campi da nascondere",
       "formInput": "Inserisci l'etichetta di input del modulo",
       "formHelpText": "Aggiungi testo di aiuto",
@@ -497,7 +504,8 @@
         "emailReqd": "L'e-mail è richiesta",
         "emailInvalid": "L'email deve essere valida",
         "passwdRequired": "È richiesta la password",
-        "passwdLength": "La tua password deve essere di almeno 8 caratteri"
+        "passwdLength": "La tua password deve essere di almeno 8 caratteri",
+        "passwdMismatch": "le passwords non corrispondono"
       }
     },
     "toast": {

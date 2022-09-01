@@ -54,7 +54,8 @@
     "search": "Search",
     "notification": "বিজ্ঞপ্তি",
     "reference": "প্রসঙ্গ",
-    "function": "নির্দিষ্ট কর্ম"
+    "function": "নির্দিষ্ট কর্ম",
+    "confirm": "নিশ্চিত করুন"
   },
   "objects": {
     "project": "প্রকল্প",
@@ -193,6 +194,7 @@
     "username": "ব্যবহারকারীর নাম",
     "password": "পাসওয়ার্ড",
     "schemaName": "স্কিমার নাম",
+    "database": "তথ্যশালা",
     "action": "কর্ম",
     "actions": "ক্রিয়া",
     "operation": "অপারেশন",
@@ -213,7 +215,6 @@
     "sqlOutput": "এসকিউএল আউটপুট",
     "addOption": "বিকল্প যোগ করুন",
     "aggregateFunction": "সামগ্রিক ফাংশন",
-    "database": "তথ্যশালা",
     "dbCreateIfNotExists": "ডাটাবেস: উপস্থিত না থাকলে তৈরি করুন",
     "clientKey": "ক্লায়েন্ট কী",
     "clientCert": "ক্লায়েন্ট সার্ট",
@@ -239,7 +240,12 @@
     "childTable": "Child table",
     "childColumn": "Child column",
     "onUpdate": "আপডেটে",
-    "onDelete": "ডিলিটএ"
+    "onDelete": "ডিলিটএ",
+    "account": "অ্যাকাউন্ট",
+    "language": "ভাষা",
+    "primaryColor": "মৌলিক রঙ",
+    "accentColor": "সুরের ধাপের রঙ",
+    "customTheme": "কাস্টম থিম"
   },
   "activity": {
     "createProject": "প্রকল্প তৈরি করুন",
@@ -266,7 +272,7 @@
     "translate": "অনুবাদ করতে সহায়তা করুন",
     "account": {
       "authToken": "অনুলিপি আথ টোকেন",
-      "swagger": "সোয়াগার এপিস ডক",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "প্রকল্পের তথ্য অনুলিপি করুন",
       "themes": "থিম"
     },
@@ -310,6 +316,7 @@
     "importExcel": "এক্সেল আমদানি করুন",
     "importCSV": "Import CSV",
     "downloadCSV": "সিএসভি হিসাবে ডাউনলোড করুন",
+    "downloadExcel": "সিএসভি হিসাবে ডাউনলোড করুন",
     "uploadCSV": "সিএসভি আপলোড করুন",
     "import": "আমদানি",
     "importMetadata": "আমদানি মেটাডেটা",

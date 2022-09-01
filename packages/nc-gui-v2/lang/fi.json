@@ -54,7 +54,8 @@
     "search": "Hae",
     "notification": "Ilmoitus",
     "reference": "Viite",
-    "function": "Toiminto"
+    "function": "Toiminto",
+    "confirm": "Vahvistaa"
   },
   "objects": {
     "project": "Hanke",
@@ -193,6 +194,7 @@
     "username": "Käyttäjätunnus",
     "password": "Salasana",
     "schemaName": "Schema name",
+    "database": "Tietokanta",
     "action": "Toiminta",
     "actions": "Toiminnot",
     "operation": "Operaatio",
@@ -238,7 +240,12 @@
     "childTable": "Lapsipöytä",
     "childColumn": "Lapsipylväs",
     "onUpdate": "Päivitys",
-    "onDelete": "Poista"
+    "onDelete": "Poista",
+    "account": "Tili",
+    "language": "Kieli",
+    "primaryColor": "Pääväri",
+    "accentColor": "Korostusväri",
+    "customTheme": "Mukautettu teema"
   },
   "activity": {
     "createProject": "Luo projekti",
@@ -265,7 +272,7 @@
     "translate": "Ohje Käännä",
     "account": {
       "authToken": "Kopioi Auth Token",
-      "swagger": "Swagger APIS DOC",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopioi projektitiedot",
       "themes": "Teemat"
     },
@@ -309,7 +316,7 @@
     "importExcel": "Tuonti excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Lataa CSV",
-    "downloadXLSX": "Lataa XLSX",
+    "downloadExcel": "Lataa XLSX",
     "uploadCSV": "Lataa CSV",
     "import": "Tuonti",
     "importMetadata": "Tuo metatieto",
@@ -413,7 +420,7 @@
       "deleteProject": "Haluatko poistaa projektin?",
       "shareBasePrivate": "Luo julkisesti jakattava Readonly Base",
       "shareBasePublic": "Jokainen Internetissä tällä linkillä voi tarkastella",
-      "userInviteNoSMTP": "Näyttää siltä, ​​ettet ole määrittänyt sähköpostia!\nKopioi yllä kutsun linkki ja lähetä se",
+      "userInviteNoSMTP": "Näyttää siltä, ​​ettet ole määrittänyt sähköpostia! Kopioi yllä kutsun linkki ja lähetä se",
       "dragDropHide": "Vedä ja pudota kentät täällä piiloutumaan",
       "formInput": "Anna lomakkeen syöttömerkki",
       "formHelpText": "Lisää joitain ohjeita",
@@ -497,7 +504,8 @@
         "emailReqd": "Sähköposti vaaditaan",
         "emailInvalid": "Sähköpostin on oltava voimassa",
         "passwdRequired": "salasana tarvitaan",
-        "passwdLength": "Salasanan on oltava vähintään 8 merkkiä"
+        "passwdLength": "Salasanan on oltava vähintään 8 merkkiä",
+        "passwdMismatch": "Salasanat eivät täsmää"
       }
     },
     "toast": {

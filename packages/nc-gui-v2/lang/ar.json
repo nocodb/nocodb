@@ -54,7 +54,8 @@
     "search": "البحث",
     "notification": "إشعار",
     "reference": "مرجع",
-    "function": "وظيفة"
+    "function": "وظيفة",
+    "confirm": "يتأكد"
   },
   "objects": {
     "project": "مشروع",
@@ -193,6 +194,7 @@
     "username": "اسم المستخدم",
     "password": "كلمة المرور",
     "schemaName": "اسم المخطط",
+    "database": "قاعدة البيانات",
     "action": "إجراء",
     "actions": "إجراءات",
     "operation": "عملية",
@@ -213,7 +215,6 @@
     "sqlOutput": "إخراج SQL",
     "addOption": "إضافة خيار",
     "aggregateFunction": "وظيفة التجميع",
-    "database": "قاعدة البيانات",
     "dbCreateIfNotExists": "قاعدة البيانات: إنشاء إذا لم يكن موجودا",
     "clientKey": "مفتاح العميل",
     "clientCert": "شهادة العميل",
@@ -239,7 +240,12 @@
     "childTable": "جدول فرعي",
     "childColumn": "عمود فرعي",
     "onUpdate": "عند التحديث",
-    "onDelete": "عند الحذف"
+    "onDelete": "عند الحذف",
+    "account": "الحساب",
+    "language": "لغة",
+    "primaryColor": "لون أصلي",
+    "accentColor": "لون لهجة",
+    "customTheme": "موضوع مخصص"
   },
   "activity": {
     "createProject": "إنشاء مشروع",
@@ -266,7 +272,7 @@
     "translate": "مساعدة ترجمة",
     "account": {
       "authToken": "نسخ Auth Token",
-      "swagger": "مستند Swagger APIs",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "نسخ معلومات المشروع",
       "themes": "مظاهر"
     },
@@ -310,6 +316,7 @@
     "importExcel": "استيراد Excel",
     "importCSV": "استيراد CSV",
     "downloadCSV": "تحميل كـ CSV",
+    "downloadExcel": "تحميل كـ XLSX",
     "uploadCSV": "رفع كـ CSV",
     "import": "استيراد",
     "importMetadata": "استيراد البيانات الوصفية",

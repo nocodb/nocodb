@@ -54,7 +54,8 @@
     "search": "검색",
     "notification": "알림",
     "reference": "참조",
-    "function": "기능"
+    "function": "기능",
+    "confirm": "확인하다"
   },
   "objects": {
     "project": "프로젝트",
@@ -193,6 +194,7 @@
     "username": "사용자 이름",
     "password": "비밀번호",
     "schemaName": "스키마 이름",
+    "database": "데이터 베이스",
     "action": "동작",
     "actions": "행위",
     "operation": "작업",
@@ -238,7 +240,12 @@
     "childTable": "자식 테이블",
     "childColumn": "자식 컬럼",
     "onUpdate": "업데이트 시 ",
-    "onDelete": "삭제 시"
+    "onDelete": "삭제 시",
+    "account": "계정",
+    "language": "언어",
+    "primaryColor": "원색",
+    "accentColor": "악센트 색상",
+    "customTheme": "맞춤 테마"
   },
   "activity": {
     "createProject": "프로젝트 생성",
@@ -265,7 +272,7 @@
     "translate": "도움말 번역",
     "account": {
       "authToken": "인증 토큰 복사",
-      "swagger": "Swagger API Doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "프로젝트 정보 복사",
       "themes": "테마"
     },
@@ -413,7 +420,7 @@
       "deleteProject": "프로젝트를 삭제 하시겠습니까?",
       "shareBasePrivate": "공개적으로 공유 할 수있는 ReadOnly Base를 생성합니다",
       "shareBasePublic": "이 링크가있는 인터넷의 모든 사람은 볼 수 있습니다",
-      "userInviteNoSMTP": "아직 메일러를 구성하지 않은 것처럼 보입니다! \\ n 초대장 링크를 복사하여 보냅니다.",
+      "userInviteNoSMTP": "아직 메일러를 구성하지 않은 것처럼 보입니다! 초대장 링크를 복사하여 보냅니다.",
       "dragDropHide": "여기에서 필드를 드래그 앤 드롭하십시오",
       "formInput": "양식 입력 레이블 입력",
       "formHelpText": "도움말 텍스트 추가",
@@ -497,7 +504,8 @@
         "emailReqd": "이메일이 필요합니다.",
         "emailInvalid": "이메일이 유효해야합니다.",
         "passwdRequired": "비밀번호가 필요합니다.",
-        "passwdLength": "비밀번호는 8자 이상이어야 합니다."
+        "passwdLength": "비밀번호는 8자 이상이어야 합니다.",
+        "passwdMismatch": "비밀번호가 일치하지 않습니다"
       }
     },
     "toast": {

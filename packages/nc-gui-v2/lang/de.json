@@ -54,7 +54,8 @@
     "search": "Suche",
     "notification": "Benachrichtigung",
     "reference": "Referenz",
-    "function": "Funktion"
+    "function": "Funktion",
+    "confirm": "Bestätigen"
   },
   "objects": {
     "project": "Projekt",
@@ -193,6 +194,7 @@
     "username": "Benutzername",
     "password": "Passwort",
     "schemaName": "Name des Schemas",
+    "database": "Datenbank",
     "action": "Aktion",
     "actions": "Aktionen",
     "operation": "Vorgang",
@@ -238,7 +240,12 @@
     "childTable": "Child-Tabelle",
     "childColumn": "Child-Spalte",
     "onUpdate": "Update",
-    "onDelete": "Löschen"
+    "onDelete": "Löschen",
+    "account": "Konto",
+    "language": "Sprache",
+    "primaryColor": "Primärfarbe",
+    "accentColor": "Akzentfarbe",
+    "customTheme": "Benutzerdefiniertes Thema"
   },
   "activity": {
     "createProject": "Projekt erstellen",
@@ -265,7 +272,7 @@
     "translate": "Übersetzen helfen",
     "account": {
       "authToken": "Auth-Token kopieren",
-      "swagger": "Swagger Apis Doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Projektinfo kopieren",
       "themes": "Themen"
     },
@@ -413,7 +420,7 @@
       "deleteProject": "Möchten Sie das Projekt löschen?",
       "shareBasePrivate": "Öffentlich freigegebene Nur-Lese-Datenbank generieren",
       "shareBasePublic": "Für Jeden im Internet mit diesem Link sichtbar",
-      "userInviteNoSMTP": "Es sieht so aus, als hätten Sie den Mailer noch nicht konfiguriert! \\ n Bitte kopieren Sie den obigen Einladungs-Link und senden Sie ihn an",
+      "userInviteNoSMTP": "Es sieht so aus, als hätten Sie den Mailer noch nicht konfiguriert! Bitte kopieren Sie den obigen Einladungs-Link und senden Sie ihn an",
       "dragDropHide": "Ziehen Sie die Felder hierher, um sie zu verstecken",
       "formInput": "Formularbezeichnung eingeben",
       "formHelpText": "Einen Hilfs-Text hinzufügen",
@@ -497,7 +504,8 @@
         "emailReqd": "E-Mail ist erforderlich",
         "emailInvalid": "Email muß gültig sein",
         "passwdRequired": "Passwort ist erforderlich",
-        "passwdLength": "Ihr Passwort muß mindestens 8 Zeichen haben"
+        "passwdLength": "Ihr Passwort muß mindestens 8 Zeichen haben",
+        "passwdMismatch": "Passwörter stimmen nicht überein"
       }
     },
     "toast": {

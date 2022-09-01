@@ -54,7 +54,8 @@
     "search": "Поиск",
     "notification": "Уведомление",
     "reference": "Ссылка",
-    "function": "Функция"
+    "function": "Функция",
+    "confirm": "Подтверждать"
   },
   "objects": {
     "project": "Проект",
@@ -193,6 +194,7 @@
     "username": "Имя пользователя",
     "password": "Пароль",
     "schemaName": "Schema name",
+    "database": "База данных",
     "action": "Действие",
     "actions": "Действия",
     "operation": "Операция",
@@ -229,6 +231,7 @@
       "bookDemo": "Забронировать бесплатное демо",
       "getAnswered": "Получите ответы на ваши вопросы",
       "joinDiscord": "Присоединиться к",
+      "joinCommunity": "Join NocoDB Community",
       "joinReddit": "Присоединиться /r/NocoDB",
       "followNocodb": "Следите за NocoDB"
     },
@@ -237,7 +240,12 @@
     "childTable": "Дочерняя таблица",
     "childColumn": "Дочерний столбец",
     "onUpdate": "При обновлении",
-    "onDelete": "При удалении"
+    "onDelete": "При удалении",
+    "account": "Счет",
+    "language": "Язык",
+    "primaryColor": "Основной цвет",
+    "accentColor": "Акцентный цвет",
+    "customTheme": "Пользовательская тема"
   },
   "activity": {
     "createProject": "Создать проект",
@@ -264,7 +272,7 @@
     "translate": "Помочь перевести",
     "account": {
       "authToken": "Скопировать токен авторизации",
-      "swagger": "Документация Swagger API",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Скопировать информацию о проекте",
       "themes": "Темы"
     },
@@ -308,7 +316,7 @@
     "importExcel": "Импорт из Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Скачать как CSV.",
-    "downloadExcel": "Скачать как XLSX.",
+    "downloadExcel": "Скачать как XLSX",
     "uploadCSV": "Загрузить CSV.",
     "import": "Импортировать",
     "importMetadata": "Импорт метаданных",
@@ -496,7 +504,8 @@
         "emailReqd": "Требуется E-mail",
         "emailInvalid": "Электронная почта должна быть действительной",
         "passwdRequired": "необходим пароль",
-        "passwdLength": "Ваш пароль должен быть не короче 8 символов"
+        "passwdLength": "Ваш пароль должен быть не короче 8 символов",
+        "passwdMismatch": "Пароли не совпадают"
       }
     },
     "toast": {

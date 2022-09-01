@@ -54,7 +54,8 @@
     "search": "Tìm kiếm",
     "notification": "Thông báo",
     "reference": "Thẩm quyền giải quyết",
-    "function": "Chức năng"
+    "function": "Chức năng",
+    "confirm": "Xác nhận"
   },
   "objects": {
     "project": "Dự định",
@@ -193,6 +194,7 @@
     "username": "tên tài khoản",
     "password": "Mật khẩu",
     "schemaName": "Schema name",
+    "database": "Cơ sở dữ liệu",
     "action": "Hoạt động",
     "actions": "Hành động",
     "operation": "Hoạt động",
@@ -238,7 +240,12 @@
     "childTable": "Bảng con",
     "childColumn": "Cột trẻ con.",
     "onUpdate": "Trên bản cập nhật",
-    "onDelete": "Trên xóa"
+    "onDelete": "Trên xóa",
+    "account": "Tài khoản",
+    "language": "Ngôn ngữ",
+    "primaryColor": "Màu chính",
+    "accentColor": "Màu nhấn",
+    "customTheme": "Chủ đề tùy chỉnh"
   },
   "activity": {
     "createProject": "Tạo dự án",
@@ -265,7 +272,7 @@
     "translate": "Trợ giúp dịch",
     "account": {
       "authToken": "Sao chép xác thực Token.",
-      "swagger": "Swagger apis doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Sao chép thông tin dự án",
       "themes": "Chủ đề"
     },
@@ -309,7 +316,7 @@
     "importExcel": "Nhập Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Tải về dưới dạng CSV.",
-    "downloadExcel": "Tải về dưới dạng XLSX.",
+    "downloadExcel": "Tải về dưới dạng XLSX",
     "uploadCSV": "Tải lên CSV.",
     "import": "Nhập khẩu",
     "importMetadata": "Nhập siêu dữ liệu",
@@ -413,7 +420,7 @@
       "deleteProject": "Bạn có muốn xóa dự án?",
       "shareBasePrivate": "Tạo cơ sở chỉ đọc chia sẻ công khai",
       "shareBasePublic": "Bất cứ ai trên Internet với liên kết này có thể xem",
-      "userInviteNoSMTP": "Có vẻ như bạn chưa định cấu hình Mailer!\nVui lòng sao chép liên kết mời trên và gửi nó đến",
+      "userInviteNoSMTP": "Có vẻ như bạn chưa định cấu hình Mailer! Vui lòng sao chép liên kết mời trên và gửi nó đến",
       "dragDropHide": "Kéo và thả các trường ở đây để ẩn",
       "formInput": "Nhập nhãn đầu vào Mẫu",
       "formHelpText": "Thêm một số văn bản trợ giúp",
@@ -497,7 +504,8 @@
         "emailReqd": "Email thì cần thiết",
         "emailInvalid": "Email phải hợp lệ",
         "passwdRequired": "Mật khẩu là bắt buộc",
-        "passwdLength": "Mật khẩu của bạn phải có ít nhất 8 ký tự"
+        "passwdLength": "Mật khẩu của bạn phải có ít nhất 8 ký tự",
+        "passwdMismatch": "mất khẩu không hợp lệ"
       }
     },
     "toast": {

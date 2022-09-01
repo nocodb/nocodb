@@ -54,7 +54,8 @@
     "search": "جست‌و‌جو کردن",
     "notification": "اعلان",
     "reference": "ارجاع",
-    "function": "تابع"
+    "function": "تابع",
+    "confirm": "تایید"
   },
   "objects": {
     "project": "پروژه",
@@ -193,6 +194,7 @@
     "username": "نام کاربری",
     "password": "کلمه عبور",
     "schemaName": "Schema name",
+    "database": "بخش پایگاه داده",
     "action": "اقدام",
     "actions": "اقدامات",
     "operation": "عملیات",
@@ -238,7 +240,12 @@
     "childTable": "جدول فرزند",
     "childColumn": "ستون فرزند",
     "onUpdate": "هنگام به روز رسانی",
-    "onDelete": "هنگام حذف"
+    "onDelete": "هنگام حذف",
+    "account": "حساب",
+    "language": "زبان",
+    "primaryColor": "رنگ اصلی",
+    "accentColor": "رنگ لهجه",
+    "customTheme": "تم سفارشی"
   },
   "activity": {
     "createProject": "ایجاد پروژه",
@@ -265,7 +272,7 @@
     "translate": "کمک به ترجمه",
     "account": {
       "authToken": "کپی توکن اعتبارسنجی",
-      "swagger": "مستندات API های Swagger",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "کپی‌کردن اطلاعات پروژه",
       "themes": "قالب‌ها"
     },
@@ -309,7 +316,7 @@
     "importExcel": "وارد کردن فایل Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "دانلود به‌عنوان CSV",
-    "downloadXLSX": "دانلود به‌عنوان XLSX",
+    "downloadExcel": "دانلود به‌عنوان XLSX",
     "uploadCSV": "بارگذاری CSV",
     "import": "وارد کردن",
     "importMetadata": "وارد کردن فراداده",
@@ -497,7 +504,8 @@
         "emailReqd": "پست الکترونیکی مورد نیاز است",
         "emailInvalid": "پست الکترونیکی باید معتبر باشد",
         "passwdRequired": "کلمه عبور مورد نیاز است",
-        "passwdLength": "کلمه عبور شما باید حداقل 8 کاراکتر داشته باشد"
+        "passwdLength": "کلمه عبور شما باید حداقل 8 کاراکتر داشته باشد",
+        "passwdMismatch": "رمزهای ورود مطابقت ندارند"
       }
     },
     "toast": {

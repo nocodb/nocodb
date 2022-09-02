@@ -583,6 +583,35 @@
       "collabView": "Uspešno prehod na skupni pogled",
       "lockedView": "Uspešno prehod na zaklenjen pogled",
       "futureRelease": "Prihaja kmalu!"
+    },
+    "success": {
+      "updatedUIACL": "Posodobljen uporabniški vmesnik ACL za mize uspešno",
+      "pluginUninstalled": "Vtičnik uspešno odstranjen",
+      "pluginSettingsSaved": "Nastavitve vtičnika uspešno shranjene",
+      "pluginTested": "Uspešno preizkušene nastavitve vtičnikov",
+      "tableRenamed": "Tabela uspešno preimenovana",
+      "viewDeleted": "Pogled uspešno izbriše",
+      "primaryColumnUpdated": "Uspešno posodobljen kot primarni stolpec",
+      "tableDataExported": "Uspešno izvozil vse podatke tabele",
+      "updated": "Uspešno posodobljen",
+      "sharedViewDeleted": "Uspešno izbrisani pogled",
+      "viewRenamed": "Pogled na uspešno preimenovano",
+      "tokenGenerated": "Žeton uspešno ustvarjen",
+      "tokenDeleted": "Žeton je uspešno izbrisal",
+      "userAddedToProject": "Uspešno dodal uporabnika v projekt",
+      "userDeletedFromProject": "Uspešno izbrisan uporabnika iz projekta",
+      "inviteEmailSent": "Povabite e -poštno sporočilo, poslano",
+      "inviteURLCopied": "Povabi URL, kopirano na odložišče",
+      "shareableURLCopied": "Kopirano osnovnega URL -ja za odložišče!",
+      "embeddableHTMLCodeCopied": "Kopirana vdelana koda HTML!",
+      "userDetailsUpdated": "Uspešno posodobili podatke o uporabniku",
+      "tableDataImported": "Uspešno uvoženi podatki tabele",
+      "webhookUpdated": "Podrobnosti o spletnih straneh uspešno posodobljene",
+      "webhookDeleted": "Kavelj uspešno izbrisan",
+      "webhookTested": "Webhook je uspešno preizkusil",
+      "columnUpdated": "Stolpec posodobljen",
+      "columnCreated": "Ustvarjen stolpec",
+      "passwordChanged": "Geslo se je uspešno spremenilo. Prosimo, prijavite se še enkrat."
     }
   }
 }

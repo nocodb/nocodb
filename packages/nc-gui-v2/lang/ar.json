@@ -583,6 +583,35 @@
       "collabView": "تحولت بنجاح إلى عرض تعاوني",
       "lockedView": "تم التبديل بنجاح إلى العرض المقفل",
       "futureRelease": "قريبا!"
+    },
+    "success": {
+      "updatedUIACL": "تحديث واجهة المستخدم ACL للجداول بنجاح",
+      "pluginUninstalled": "إلغاء تثبيت البرنامج المساعد بنجاح",
+      "pluginSettingsSaved": "تم حفظ إعدادات البرنامج المساعد بنجاح",
+      "pluginTested": "إعدادات البرنامج المساعد الذي تم اختباره بنجاح",
+      "tableRenamed": "الجدول أعيد تسميته بنجاح",
+      "viewDeleted": "عرض الحذف بنجاح",
+      "primaryColumnUpdated": "تم تحديثه بنجاح كعمود أساسي",
+      "tableDataExported": "تم تصدير جميع بيانات الجدول بنجاح",
+      "updated": "تم التحديث بنجاح",
+      "sharedViewDeleted": "تم حذف العرض المشترك بنجاح",
+      "viewRenamed": "عرض إعادة تسمية بنجاح",
+      "tokenGenerated": "تم توليد الرمز المميز بنجاح",
+      "tokenDeleted": "تم حذف الرمز المميز بنجاح",
+      "userAddedToProject": "أضاف المستخدم بنجاح إلى المشروع",
+      "userDeletedFromProject": "تم حذف المستخدم بنجاح من المشروع",
+      "inviteEmailSent": "دعوة البريد الإلكتروني المرسلة بنجاح",
+      "inviteURLCopied": "دعوة URL نسخ إلى الحافظة",
+      "shareableURLCopied": "نسخ عنوان URL القابل للمشاركة إلى الحافظة!",
+      "embeddableHTMLCodeCopied": "كود HTML قابلة للنسخ!",
+      "userDetailsUpdated": "تم تحديث تفاصيل المستخدم بنجاح",
+      "tableDataImported": "بيانات الجدول المستوردة بنجاح",
+      "webhookUpdated": "تم تحديث تفاصيل webhook بنجاح",
+      "webhookDeleted": "تم حذف الخطاف بنجاح",
+      "webhookTested": "تم اختبار Webhook بنجاح",
+      "columnUpdated": "تحديث العمود",
+      "columnCreated": "تم إنشاء العمود",
+      "passwordChanged": "تم تغيير الرقم السري بنجاح. الرجاد الدخول على الحساب من جديد."
     }
   }
 }

@@ -583,6 +583,35 @@
       "collabView": "با موفقیت به نمایش مشارکتی تغییر یافت",
       "lockedView": "با موفقیت به نمایش قفل‌شده تغییر یافت",
       "futureRelease": "به زودی!"
+    },
+    "success": {
+      "updatedUIACL": "UI ACL به روز شده برای جداول با موفقیت",
+      "pluginUninstalled": "افزونه با موفقیت حذف شد",
+      "pluginSettingsSaved": "تنظیمات افزونه با موفقیت ذخیره شد",
+      "pluginTested": "تنظیمات پلاگین با موفقیت آزمایش شده",
+      "tableRenamed": "جدول با موفقیت تغییر نام داد",
+      "viewDeleted": "مشاهده با موفقیت حذف شده",
+      "primaryColumnUpdated": "با موفقیت به عنوان ستون اصلی به روز شد",
+      "tableDataExported": "با موفقیت تمام داده های جدول را صادر کرد",
+      "updated": "با موفقیت به روز شد",
+      "sharedViewDeleted": "نمای مشترک را با موفقیت حذف کرد",
+      "viewRenamed": "مشاهده با موفقیت تغییر نام داد",
+      "tokenGenerated": "توکن با موفقیت تولید شد",
+      "tokenDeleted": "توکن با موفقیت حذف شد",
+      "userAddedToProject": "کاربر با موفقیت به پروژه اضافه شد",
+      "userDeletedFromProject": "کاربر را با موفقیت از پروژه حذف کرد",
+      "inviteEmailSent": "دعوت نامه الکترونیکی ارسال شده با موفقیت",
+      "inviteURLCopied": "URL کپی شده در کلیپ بورد را دعوت کنید",
+      "shareableURLCopied": "URL پایه اشتراکی را به کلیپ بورد کپی کرد!",
+      "embeddableHTMLCodeCopied": "کپی شده کد HTML تعبیه شده!",
+      "userDetailsUpdated": "جزئیات کاربر را با موفقیت به روز کرد",
+      "tableDataImported": "داده های جدول با موفقیت وارداتی",
+      "webhookUpdated": "جزئیات Webhook با موفقیت به روز شد",
+      "webhookDeleted": "هوک با موفقیت حذف شد",
+      "webhookTested": "Webhook با موفقیت آزمایش شد",
+      "columnUpdated": "ستون به روز شده",
+      "columnCreated": "ستون ایجاد شده",
+      "passwordChanged": "رمز عبور با موفقیت تغییر کرد. لطفا دوباره وارد شوید."
     }
   }
 }

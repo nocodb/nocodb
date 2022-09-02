@@ -3,6 +3,9 @@ import { ExportTypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
@@ -60,7 +63,8 @@ const exportFile = async (exportType: ExportTypes) => {
         // Downloading more files
         message.info(t('msg.info.downloadingMoreFiles'))
       } else {
-        message.success('Successfully exported all table data')
+        // Successfully exported all table data
+        message.success(t('msg.success.tableDataExported'))
       }
     }
   } catch (e: any) {

@@ -583,6 +583,35 @@
       "collabView": "Veiksmīgi pārslēgts uz sadarbības skatu",
       "lockedView": "Veiksmīgi pārslēgts uz aizslēgto skatu",
       "futureRelease": "Drīzumā!"
+    },
+    "success": {
+      "updatedUIACL": "Veiksmīgi atjaunināts UI ACL tabulām",
+      "pluginUninstalled": "Spraudnis veiksmīgi atinstalēts",
+      "pluginSettingsSaved": "Spraudņa iestatījumi veiksmīgi saglabāti",
+      "pluginTested": "Veiksmīgi pārbaudīti spraudņu iestatījumi",
+      "tableRenamed": "Galds veiksmīgi pārdēvēts",
+      "viewDeleted": "Skats veiksmīgi izdzēsts",
+      "primaryColumnUpdated": "Veiksmīgi atjaunināta kā galvenā kolonna",
+      "tableDataExported": "Veiksmīgi eksportēja visus tabulas datus",
+      "updated": "Veiksmīgi atjaunināts",
+      "sharedViewDeleted": "Veiksmīgi izdzēstu kopīgu skatu",
+      "viewRenamed": "Skats veiksmīgi pārdēvēts",
+      "tokenGenerated": "Marķieris veiksmīgi ģenerēts",
+      "tokenDeleted": "Marķieris veiksmīgi izdzēsts",
+      "userAddedToProject": "Veiksmīgi pievienots lietotājs projektam",
+      "userDeletedFromProject": "Veiksmīgi izdzēsts lietotājs no projekta",
+      "inviteEmailSent": "Uzaiciniet veiksmīgi nosūtītu e -pastu",
+      "inviteURLCopied": "Uzaiciniet URL, kas kopēts uz starpliktuvi",
+      "shareableURLCopied": "Kopēts koplietojamā bāzes URL starpliktuvē!",
+      "embeddableHTMLCodeCopied": "Kopēts iegultais HTML kods!",
+      "userDetailsUpdated": "Veiksmīgi atjaunināja lietotāja informāciju",
+      "tableDataImported": "Veiksmīgi importēti tabulas dati",
+      "webhookUpdated": "WebHook informācija veiksmīgi atjaunināta",
+      "webhookDeleted": "Āķis veiksmīgi izdzēsts",
+      "webhookTested": "WebHook veiksmīgi pārbaudīts",
+      "columnUpdated": "Atjaunināta kolonna",
+      "columnCreated": "Izveidota kolonna",
+      "passwordChanged": "Parole veiksmīgi mainīta. Lūdzu, piesakieties vēlreiz."
     }
   }
 }

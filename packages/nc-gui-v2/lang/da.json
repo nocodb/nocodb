@@ -583,6 +583,35 @@
       "collabView": "Succesfuldt skiftet til samarbejdsvisning",
       "lockedView": "Succesfuldt skiftet til låst visning",
       "futureRelease": "Kommer snart!"
+    },
+    "success": {
+      "updatedUIACL": "Opdateret UI ACL til tabeller med succes",
+      "pluginUninstalled": "Plugin -afinstalleret med succes",
+      "pluginSettingsSaved": "Plugin -indstillinger gemt med succes",
+      "pluginTested": "Med succes testede pluginindstillinger",
+      "tableRenamed": "Bord omdøbt med succes",
+      "viewDeleted": "Se slettet med succes",
+      "primaryColumnUpdated": "Med succes opdateret som primær kolonne",
+      "tableDataExported": "Med succes eksporteret alle tabeldata",
+      "updated": "Med succes opdateret",
+      "sharedViewDeleted": "Slettet delt synspunkt med succes",
+      "viewRenamed": "Se omdøbt med succes",
+      "tokenGenerated": "Token genereres med succes",
+      "tokenDeleted": "Token slettes med succes",
+      "userAddedToProject": "Tilføjet bruger til at projicere",
+      "userDeletedFromProject": "Sletteret bruger med succes fra projektet",
+      "inviteEmailSent": "Inviter e -mail sendt med succes",
+      "inviteURLCopied": "Inviter URL -kopieret til udklipsholder",
+      "shareableURLCopied": "Kopieret delbar base -URL til udklipsholder!",
+      "embeddableHTMLCodeCopied": "Kopieret integreret HTML -kode!",
+      "userDetailsUpdated": "Opdateret brugeroplysningerne med succes",
+      "tableDataImported": "Med succes importerede tabeldata",
+      "webhookUpdated": "Webhook detaljer opdateres med succes",
+      "webhookDeleted": "Hook slettede med succes",
+      "webhookTested": "Webhook testede med succes",
+      "columnUpdated": "Kolonne opdateret",
+      "columnCreated": "Kolonne oprettet",
+      "passwordChanged": "Adgangskode ændrede sig med succes. Log ind igen."
     }
   }
 }

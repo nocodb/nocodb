@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { Empty, message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { extractSdkResponseErrorMsg, viewIcons } from '~/utils'
 import { computed, h, useNuxtApp, useProject } from '#imports'
+
+const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
@@ -49,7 +52,8 @@ async function saveUIAcl() {
       project.value.id,
       tables.filter((t) => t.edited),
     )
-    message.success('Updated UI ACL for tables successfully')
+    // Updated UI ACL for tables successfully
+    message.success(t('msg.success.updatedUIACL'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

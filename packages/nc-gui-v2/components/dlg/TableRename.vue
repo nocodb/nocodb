@@ -2,17 +2,19 @@
 import { watchEffect } from '@vue/runtime-core'
 import { Form, message } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
+import { useI18n } from 'vue-i18n'
 import { useProject, useTabs } from '#imports'
 import { extractSdkResponseErrorMsg, validateTableName } from '~/utils'
 import { useNuxtApp } from '#app'
 
+const { modelValue = false, tableMeta } = defineProps<Props>()
+const emit = defineEmits(['update:modelValue', 'updated'])
+const { t } = useI18n()
 interface Props {
   modelValue?: boolean
   tableMeta: TableType
 }
 
-const { modelValue = false, tableMeta } = defineProps<Props>()
-const emit = defineEmits(['update:modelValue', 'updated'])
 const { $e, $api } = useNuxtApp()
 const dialogShow = computed({
   get() {
@@ -97,7 +99,8 @@ const renameTable = async () => {
     dialogShow.value = false
     loadTables()
     updateTab({ id: tableMeta?.id }, { title: formState.title })
-    message.success('Table renamed successfully')
+    // Table renamed successfully
+    message.success(t('msg.success.tableRenamed'))
     $e('a:table:rename')
     dialogShow.value = false
   } catch (e: any) {

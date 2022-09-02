@@ -53,7 +53,8 @@ const passwordChange = async () => {
       currentPassword: form.currentPassword,
       newPassword: form.password,
     })
-    message.success('Password changed successfully. Please login again.')
+    // Password changed successfully. Please login again.
+    message.success(t('msg.success.passwordChanged'))
     signOut()
     navigateTo('/signin')
   } catch (e: any) {

@@ -583,6 +583,35 @@
       "collabView": "Cambiado con éxito a la vista colaborativa",
       "lockedView": "Cambiado con éxito a la vista bloqueada",
       "futureRelease": "¡Próximamente!"
+    },
+    "success": {
+      "updatedUIACL": "ACL de interfaz de usuario actualizado para tablas con éxito",
+      "pluginUninstalled": "Complemento desinstalado con éxito",
+      "pluginSettingsSaved": "Configuración del complemento Guardada correctamente",
+      "pluginTested": "Configuración de complementos probada con éxito",
+      "tableRenamed": "Tabla renombrada con éxito",
+      "viewDeleted": "Ver eliminado con éxito",
+      "primaryColumnUpdated": "Actualizado con éxito como columna principal",
+      "tableDataExported": "Exportó con éxito todos los datos de la tabla",
+      "updated": "Actualizado exitosamente",
+      "sharedViewDeleted": "Vista compartida eliminada con éxito",
+      "viewRenamed": "Vista renombrada con éxito",
+      "tokenGenerated": "Token generado con éxito",
+      "tokenDeleted": "Token eliminado con éxito",
+      "userAddedToProject": "Se agregó con éxito el usuario al proyecto",
+      "userDeletedFromProject": "El usuario eliminado con éxito del proyecto",
+      "inviteEmailSent": "Invitar correo electrónico enviado correctamente",
+      "inviteURLCopied": "Invitar URL copiado al portapapeles",
+      "shareableURLCopied": "¡URL base compitible compartible al portapapeles!",
+      "embeddableHTMLCodeCopied": "¡Código HTML incrustable copiado!",
+      "userDetailsUpdated": "Actualizó con éxito los detalles del usuario",
+      "tableDataImported": "Datos de tabla importados con éxito",
+      "webhookUpdated": "Detalles de Webhook actualizados con éxito",
+      "webhookDeleted": "Gancho eliminado con éxito",
+      "webhookTested": "Webhook probado con éxito",
+      "columnUpdated": "Columna actualizada",
+      "columnCreated": "Columna creada",
+      "passwordChanged": "Contraseña cambiada con éxito. Inicie sesión nuevamente."
     }
   }
 }

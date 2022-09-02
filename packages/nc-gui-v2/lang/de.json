@@ -583,6 +583,35 @@
       "collabView": "Erfolgreich auf die kollaborative Ansicht gewechselt",
       "lockedView": "Erfolgreich auf gesperrte Ansicht gewechselt",
       "futureRelease": "Kommt bald!"
+    },
+    "success": {
+      "updatedUIACL": "Die UI -ACL für Tabellen erfolgreich aktualisiert",
+      "pluginUninstalled": "Das Plugin ist erfolgreich deinstalliert",
+      "pluginSettingsSaved": "Plugin -Einstellungen erfolgreich gespeichert",
+      "pluginTested": "Erfolgreich getestete Plugin -Einstellungen",
+      "tableRenamed": "Tabelle erfolgreich umbenannt",
+      "viewDeleted": "Ansicht erfolgreich gelöscht",
+      "primaryColumnUpdated": "Erfolgreich als primäre Spalte aktualisiert",
+      "tableDataExported": "Erfolgreich alle Tabellendaten exportiert",
+      "updated": "Erfolgreich aktualisiert",
+      "sharedViewDeleted": "Gelöschte gemeinsame Ansicht erfolgreich gelöscht",
+      "viewRenamed": "View erfolgreich umbenannt",
+      "tokenGenerated": "Token erzeugt erfolgreich",
+      "tokenDeleted": "Token wurde erfolgreich gelöscht",
+      "userAddedToProject": "Erfolgreich Benutzer zum Projekt hinzugefügt",
+      "userDeletedFromProject": "Erfolgreich gelöschte Benutzer vom Projekt",
+      "inviteEmailSent": "Laden Sie die E -Mail erfolgreich gesendet ein",
+      "inviteURLCopied": "Laden Sie die URL ein, die in die Zwischenablage kopiert wurde",
+      "shareableURLCopied": "Kopierte gemeinsame Basis -URL in die Zwischenablage!",
+      "embeddableHTMLCodeCopied": "Kopierter einbettbarer HTML -Code!",
+      "userDetailsUpdated": "Erfolgreich aktualisiert die Benutzerdetails",
+      "tableDataImported": "Erfolgreich importierte Tabellendaten",
+      "webhookUpdated": "Webhook -Details erfolgreich aktualisiert",
+      "webhookDeleted": "Haken erfolgreich gelöscht",
+      "webhookTested": "Webhook wurde erfolgreich getestet",
+      "columnUpdated": "Spalte aktualisiert",
+      "columnCreated": "Spalte erstellt",
+      "passwordChanged": "Das Passwort wurde erfolgreich geändert. Bitte melden Sie sich erneut an."
     }
   }
 }

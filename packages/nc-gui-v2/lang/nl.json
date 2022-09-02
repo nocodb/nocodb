@@ -583,6 +583,35 @@
       "collabView": "Met succes geschakeld naar een samenwerkingsweergave",
       "lockedView": "Met succes geschakeld naar vergrendelde weergave",
       "futureRelease": "Binnenkort beschikbaar!"
+    },
+    "success": {
+      "updatedUIACL": "Bijgewerkte UI ACL voor tabellen succesvol",
+      "pluginUninstalled": "Plug -in met succes verwijderd",
+      "pluginSettingsSaved": "Plug -in -instellingen met succes opgeslagen",
+      "pluginTested": "Succesvol geteste plug -in -instellingen",
+      "tableRenamed": "Tabel met succes hernoemd",
+      "viewDeleted": "Bekijk met succes verwijderd",
+      "primaryColumnUpdated": "Succesvol bijgewerkt als primaire kolom",
+      "tableDataExported": "Met succes alle tabelgegevens geëxporteerd",
+      "updated": "Succesvol geüpdatet",
+      "sharedViewDeleted": "De gedeelde weergave gedeeld met succes",
+      "viewRenamed": "Bekijk met succes omgedoopt",
+      "tokenGenerated": "Token met succes gegenereerd",
+      "tokenDeleted": "Token met succes verwijderd",
+      "userAddedToProject": "Met succes toegevoegde gebruiker aan het project",
+      "userDeletedFromProject": "Met succes verwijderd gebruiker van het project",
+      "inviteEmailSent": "Uitnodigen e -mail met succes verzonden",
+      "inviteURLCopied": "Uitnodigen URL gekopieerd naar klembord",
+      "shareableURLCopied": "Gekopieerde deelbare basis -URL naar klembord!",
+      "embeddableHTMLCodeCopied": "Gekopieerde Embeddable HTML -code!",
+      "userDetailsUpdated": "De gebruikersgegevens met succes bijgewerkt",
+      "tableDataImported": "Succesvol geïmporteerde tabelgegevens",
+      "webhookUpdated": "Webhook -details met succes bijgewerkt",
+      "webhookDeleted": "Hook verwijderd met succes",
+      "webhookTested": "Webhook heeft met succes getest",
+      "columnUpdated": "Kolom bijgewerkt",
+      "columnCreated": "Gekozen kolom",
+      "passwordChanged": "Wachtwoord succesvol veranderd. Log alsjeblieft nogmaals in."
     }
   }
 }

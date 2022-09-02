@@ -583,6 +583,35 @@
       "collabView": "Uspješno prebačen na suradnički prikaz",
       "lockedView": "Uspješno prebačen na zaključani prikaz",
       "futureRelease": "Dolazi uskoro!"
+    },
+    "success": {
+      "updatedUIACL": "Ažurirani sučelje ACL za tablice uspješno",
+      "pluginUninstalled": "Dodatak se uspješno deinstalirao",
+      "pluginSettingsSaved": "Postavke dodataka uspješno su spremljene",
+      "pluginTested": "Uspješno testirane postavke dodataka",
+      "tableRenamed": "Tablica je uspješno preimenovala",
+      "viewDeleted": "Pogledajte uspješno izbrisani",
+      "primaryColumnUpdated": "Uspješno ažurirano kao primarni stupac",
+      "tableDataExported": "Uspješno izveo sve podatke o tablici",
+      "updated": "Uspješno ažurirano",
+      "sharedViewDeleted": "Izbrisani zajednički pogled uspješno",
+      "viewRenamed": "View preimenovano uspješno",
+      "tokenGenerated": "Token je uspješno generirao",
+      "tokenDeleted": "Token se uspješno izbrisao",
+      "userAddedToProject": "Uspješno je dodao korisnik za projekt",
+      "userDeletedFromProject": "Uspješno izbrisani korisnik iz projekta",
+      "inviteEmailSent": "Pozovite e -poštu poslanu uspješno",
+      "inviteURLCopied": "Pozovite URL kopirani u međuspremnik",
+      "shareableURLCopied": "Kopirao je url za dijeljenje baze u međuspremnik!",
+      "embeddableHTMLCodeCopied": "Kopirani ugrađeni HTML kod!",
+      "userDetailsUpdated": "Uspješno ažurirao detalje korisnika",
+      "tableDataImported": "Uspješno uvezeni podaci o tablici",
+      "webhookUpdated": "Pojedinosti o webhooku uspješno su ažurirane",
+      "webhookDeleted": "Kuka je uspješno izbrisana",
+      "webhookTested": "Webhook je uspješno testirao",
+      "columnUpdated": "Ažurirano stupac",
+      "columnCreated": "Stvoren stupac",
+      "passwordChanged": "Lozinka se uspješno promijenila. Molimo prijavite se ponovo."
     }
   }
 }

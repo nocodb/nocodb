@@ -87,7 +87,8 @@ const exportFile = async (exportType: ExportTypes) => {
         // Downloading more files
         message.info(t('msg.info.downloadingMoreFiles'))
       } else {
-        message.success('Successfully exported all table data')
+        // Successfully exported all table data
+        message.success(t('msg.success.tableDataExported'))
       }
     }
   } catch (e: any) {

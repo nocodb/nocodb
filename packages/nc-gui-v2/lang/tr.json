@@ -583,6 +583,35 @@
       "collabView": "Başarıyla partner görünümüne geçildi",
       "lockedView": "Başarıyla kilitli görünümüne geçildi",
       "futureRelease": "Çok yakında!"
+    },
+    "success": {
+      "updatedUIACL": "Tablolar için UI ACL güncellendi başarıyla",
+      "pluginUninstalled": "Eklenti Başarıyla Kaldırıldı",
+      "pluginSettingsSaved": "Eklenti ayarları başarıyla kaydedildi",
+      "pluginTested": "Başarılı bir şekilde test edilmiş eklenti ayarları",
+      "tableRenamed": "Masa başarıyla yeniden adlandırıldı",
+      "viewDeleted": "Silindi başarılı bir şekilde görüntüle",
+      "primaryColumnUpdated": "Birincil sütun olarak başarıyla güncellendi",
+      "tableDataExported": "Tüm tablo verilerini başarıyla dışa aktardı",
+      "updated": "Başarıyla güncellendi",
+      "sharedViewDeleted": "Silinmiş paylaşılan görünüm başarıyla",
+      "viewRenamed": "Yeniden Adlandırılmış Görüntüle Başarılı Bir",
+      "tokenGenerated": "Token başarıyla üretildi",
+      "tokenDeleted": "Token başarıyla silindi",
+      "userAddedToProject": "Projeye başarılı bir şekilde kullanıcı eklendi",
+      "userDeletedFromProject": "Projeden başarıyla silinmiş kullanıcı",
+      "inviteEmailSent": "Başarılı bir şekilde gönderilen e -postayı davet edin",
+      "inviteURLCopied": "Panoya kopyalanan URL'yi davet edin",
+      "shareableURLCopied": "Panoya kopyalanabilir taban URL'sini kopyalanabilir!",
+      "embeddableHTMLCodeCopied": "Kopyalandı EmedDable HTML Kodu!",
+      "userDetailsUpdated": "Kullanıcı ayrıntılarını başarıyla güncelledi",
+      "tableDataImported": "Başarılı bir şekilde ithal edilen tablo verileri",
+      "webhookUpdated": "Webhook ayrıntıları başarıyla güncellendi",
+      "webhookDeleted": "Kanca başarıyla silindi",
+      "webhookTested": "Webhook başarıyla test edildi",
+      "columnUpdated": "Sütun güncellendi",
+      "columnCreated": "Sütun Oluşturuldu",
+      "passwordChanged": "Parola başarıyla değiştirildi. Lütfen tekrar giriş yapın."
     }
   }
 }

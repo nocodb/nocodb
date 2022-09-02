@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { MetaInj } from '~/context'
 import { inject, onMounted, ref, useNuxtApp } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
 const emit = defineEmits(['edit', 'add'])
+
+const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
@@ -32,7 +35,9 @@ async function deleteHook(item: Record<string, any>, index: number) {
     } else {
       hooks.value.splice(index, 1)
     }
-    message.success('Hook deleted successfully')
+
+    // Hook deleted successfully
+    message.success(t('msg.success.webhookDeleted'))
     if (!hooks.value.length) {
       hooks.value = []
     }

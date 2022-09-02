@@ -583,6 +583,35 @@
       "collabView": "Vellykket byttet til samarbeidsvisning",
       "lockedView": "Vellykket byttet til låst visning",
       "futureRelease": "Kommer snart!"
+    },
+    "success": {
+      "updatedUIACL": "Oppdatert UI ACL for tabeller vellykket",
+      "pluginUninstalled": "Plugin avinstallert vellykket",
+      "pluginSettingsSaved": "Plugin -innstillinger lagret vellykket",
+      "pluginTested": "Vellykket testede plugin -innstillinger",
+      "tableRenamed": "Tabell omdøpt vellykket",
+      "viewDeleted": "Vis slettet vellykket",
+      "primaryColumnUpdated": "Vellykket oppdatert som primærkolonne",
+      "tableDataExported": "Vellykket eksportert alle tabelldata",
+      "updated": "Vellykket oppdatert",
+      "sharedViewDeleted": "Slettet delt vis",
+      "viewRenamed": "Se omdøpt med hell",
+      "tokenGenerated": "Token genererte vellykket",
+      "tokenDeleted": "Token slettet vellykket",
+      "userAddedToProject": "Vellykket lagt til bruker til prosjekt",
+      "userDeletedFromProject": "Vellykket slettet bruker fra prosjektet",
+      "inviteEmailSent": "Inviter e -post sendt vellykket",
+      "inviteURLCopied": "Inviter url kopiert til utklippstavlen",
+      "shareableURLCopied": "Kopiert delbar base -URL til utklippstavlen!",
+      "embeddableHTMLCodeCopied": "Kopiert innebygd HTML -kode!",
+      "userDetailsUpdated": "Vellykket oppdatert brukerdetaljene",
+      "tableDataImported": "Vellykket importerte tabelldata",
+      "webhookUpdated": "Webhook -detaljer oppdatert vellykket",
+      "webhookDeleted": "Krok slettet vellykket",
+      "webhookTested": "Webhook testet vellykket",
+      "columnUpdated": "Kolonne oppdatert",
+      "columnCreated": "Kolonne opprettet",
+      "passwordChanged": "Passordet ble endret. Vennligst logg inn igjen."
     }
   }
 }

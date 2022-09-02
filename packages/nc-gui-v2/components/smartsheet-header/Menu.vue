@@ -41,7 +41,8 @@ const setAsPrimaryValue = async () => {
 
     await getMeta(meta?.value?.id as string, true)
 
-    message.success('Successfully updated as primary column')
+    // Successfully updated as primary column
+    message.success(t('msg.success.primaryColumnUpdated'))
 
     $e('a:column:set-primary')
   } catch (e) {

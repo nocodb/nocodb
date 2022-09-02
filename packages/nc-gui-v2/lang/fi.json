@@ -583,6 +583,35 @@
       "collabView": "Onnistuneesti siirtynyt yhteistyöhön",
       "lockedView": "Onnistuneesti kytketty lukittuun näkymään",
       "futureRelease": "Tulossa pian!"
+    },
+    "success": {
+      "updatedUIACL": "Päivitetty käyttöliittymä ACL taulukoihin onnistuneesti",
+      "pluginUninstalled": "Laajennus asennettiin onnistuneesti",
+      "pluginSettingsSaved": "Laajennusasetukset tallennetaan onnistuneesti",
+      "pluginTested": "Onnistuneesti testatut laajennusasetukset",
+      "tableRenamed": "Pöytä nimettiin uudelleen onnistuneesti",
+      "viewDeleted": "Näkymä poistetaan onnistuneesti",
+      "primaryColumnUpdated": "Onnistuneesti päivitetty ensisijaisena sarakkeena",
+      "tableDataExported": "Vienti kaikki taulukkotiedot onnistuneesti",
+      "updated": "Päivitetty onnistuneesti",
+      "sharedViewDeleted": "Poistettu jaettu näkymä onnistuneesti",
+      "viewRenamed": "Näkymä nimetty uudelleen onnistuneesti",
+      "tokenGenerated": "Token syntyi onnistuneesti",
+      "tokenDeleted": "Token poistettiin onnistuneesti",
+      "userAddedToProject": "Lisätty käyttäjä onnistuneesti projektiin",
+      "userDeletedFromProject": "Projektin onnistuneesti poistettu käyttäjä",
+      "inviteEmailSent": "Kutsu sähköposti lähetetty onnistuneesti",
+      "inviteURLCopied": "Kutsu leikepöydälle kopioitu URL -osoite",
+      "shareableURLCopied": "Kopioitu jaettava perus -URL -osoite leikepöydälle!",
+      "embeddableHTMLCodeCopied": "Kopioitu upotettava HTML -koodi!",
+      "userDetailsUpdated": "Päivitti käyttäjän yksityiskohdat onnistuneesti",
+      "tableDataImported": "Tuota taulukkotiedot onnistuneesti",
+      "webhookUpdated": "Webhook -yksityiskohdat päivitettiin onnistuneesti",
+      "webhookDeleted": "Koukku poistettu onnistuneesti",
+      "webhookTested": "Webhook testattiin onnistuneesti",
+      "columnUpdated": "Sarake päivitetty",
+      "columnCreated": "Sarake luotu",
+      "passwordChanged": "Salasana vaihdettu onnistuneesti. Kirjaudu uudelleen."
     }
   }
 }

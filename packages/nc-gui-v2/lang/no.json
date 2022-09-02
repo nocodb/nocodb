@@ -55,7 +55,19 @@
     "notification": "Melding",
     "reference": "Referanse",
     "function": "Funksjon",
-    "confirm": "Bekrefte"
+    "confirm": "Bekrefte",
+    "generate": "generere",
+    "copy": "Kopiere",
+    "misc": "Diverse",
+    "lock": "Låse",
+    "unlock": "Låse opp",
+    "credentials": "Legitimasjon",
+    "help": "Hjelp",
+    "questions": "Spørsmål",
+    "reachOut": "Nå ut hit",
+    "betaNote": "Denne funksjonen er for tiden i beta.",
+    "moreInfo": "Mer informasjon finner du her",
+    "logs": "Tømmerstokker"
   },
   "objects": {
     "project": "Prosjekt",
@@ -173,7 +185,14 @@
     "resetPassword": "Tilbakestill passordet ditt",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Generere token",
+    "APIsAndSupport": "APIer og støtte",
+    "helpCenter": "Hjelpesenter",
+    "swaggerDocumentation": "Swagger -dokumentasjon",
+    "quickImportFrom": "Rask import fra",
+    "quickImport": "Rask import",
+    "advancedSettings": "Avanserte innstillinger"
   },
   "labels": {
     "notifyVia": "Varsle Via.",
@@ -245,7 +264,19 @@
     "language": "Språk",
     "primaryColor": "Primærfarge",
     "accentColor": "Aksentfarge",
-    "customTheme": "Tilpasset tema"
+    "customTheme": "Tilpasset tema",
+    "requestDataSource": "Be om en datakilde du trenger?",
+    "apiKey": "API -nøkkel",
+    "sharedBase": "Delt base",
+    "importData": "Importere data",
+    "importSecondaryViews": "Importer sekundære visninger",
+    "importRollupColumns": "Importer rollup -kolonner",
+    "importLookupColumns": "Importer oppslagskolonner",
+    "importAttachmentColumns": "Importer vedleggskolonner",
+    "importFormulaColumns": "Importer formel kolonner",
+    "noData": "Ingen data",
+    "goToDashboard": "Gå til Dashboard",
+    "importing": "Import"
   },
   "activity": {
     "createProject": "Opprett prosjekt",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Fjern databasen fra miljøet",
     "editConnJson": "Rediger tilkoblings-JSON",
     "sponsorUs": "Sponsor oss",
-    "sendEmail": "SEND E-POST"
+    "sendEmail": "SEND E-POST",
+    "addUserToProject": "Legg til brukeren i prosjektet",
+    "getApiSnippet": "Få API -utdrag",
+    "clearCell": "Klar celle"
   },
   "tooltip": {
     "saveChanges": "Lagre endringer",
@@ -398,7 +432,8 @@
     "searchModels": "Søk modeller",
     "noItemsFound": "ingen objekter funnet",
     "defaultValue": "Standardverdi",
-    "filterByEmail": "Filtrer via e-post"
+    "filterByEmail": "Filtrer via e-post",
+    "filterQuery": "Filterforespørsel"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Du kan legge til flere komma (,) separerte e-poster",
       "enterTableName": "Skriv inn tabellnavn",
       "addDefaultColumns": "Legg til standard kolonner",
-      "tableNameInDb": "Tabellnavn som lagret i databasen"
+      "tableNameInDb": "Tabellnavn som lagret i databasen",
+      "airtable": {
+        "credentials": "Hvor finner jeg dette?"
+      }
     },
     "error": {
       "searchProject": "Søket ditt etter {søk} fant ingen resultater",

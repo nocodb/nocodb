@@ -55,7 +55,19 @@
     "notification": "Ilmoitus",
     "reference": "Viite",
     "function": "Toiminto",
-    "confirm": "Vahvistaa"
+    "confirm": "Vahvistaa",
+    "generate": "Tuottaa",
+    "copy": "Kopio",
+    "misc": "Sekalainen",
+    "lock": "Lukko",
+    "unlock": "Avata",
+    "credentials": "Valtakirjat",
+    "help": "auta",
+    "questions": "Kysymykset",
+    "reachOut": "Päästä tänne",
+    "betaNote": "Tämä ominaisuus on tällä hetkellä beetaversiossa.",
+    "moreInfo": "Lisätietoja löytyy täältä",
+    "logs": "Lokit"
   },
   "objects": {
     "project": "Hanke",
@@ -173,7 +185,14 @@
     "resetPassword": "Nollaa salasana",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Tuottaa merkintää",
+    "APIsAndSupport": "Sovellusliittymät ja tuki",
+    "helpCenter": "Avustuskeskus",
+    "swaggerDocumentation": "Swagger -dokumentaatio",
+    "quickImportFrom": "Nopea tuonti",
+    "quickImport": "Tuonti",
+    "advancedSettings": "Lisäasetukset"
   },
   "labels": {
     "notifyVia": "Ilmoittaa kautta",
@@ -245,7 +264,19 @@
     "language": "Kieli",
     "primaryColor": "Pääväri",
     "accentColor": "Korostusväri",
-    "customTheme": "Mukautettu teema"
+    "customTheme": "Mukautettu teema",
+    "requestDataSource": "Pyydä tarvitsemasi tietolähde?",
+    "apiKey": "API -avain",
+    "sharedBase": "Jaettu tukikohta",
+    "importData": "Tuontitiedot",
+    "importSecondaryViews": "Tuo toissijaiset näkymät",
+    "importRollupColumns": "Tuo rullaussarakkeet",
+    "importLookupColumns": "Tuo haku -sarakkeet",
+    "importAttachmentColumns": "Tuo liite -sarakkeet",
+    "importFormulaColumns": "Tuo kaava -sarakkeet",
+    "noData": "Ei dataa",
+    "goToDashboard": "Siirtyä kojelautaan",
+    "importing": "Tuonti"
   },
   "activity": {
     "createProject": "Luo projekti",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Poista tietokanta ympäristöstä",
     "editConnJson": "Muokkaa yhteyttä JSON",
     "sponsorUs": "Sponsoroida meitä",
-    "sendEmail": "LÄHETTÄÄ SÄHKÖPOSTIA"
+    "sendEmail": "LÄHETTÄÄ SÄHKÖPOSTIA",
+    "addUserToProject": "Lisää käyttäjä projektiin",
+    "getApiSnippet": "Hanki API -katkelma",
+    "clearCell": "Selkeä solu"
   },
   "tooltip": {
     "saveChanges": "Tallenna muutokset",
@@ -398,7 +432,8 @@
     "searchModels": "Haku malleja",
     "noItemsFound": "kohteita ei löytynyt",
     "defaultValue": "Oletusarvo",
-    "filterByEmail": "Suodata sähköpostitse"
+    "filterByEmail": "Suodata sähköpostitse",
+    "filterQuery": "Suodatinkysely"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Voit lisätä useita pilkuja (,) erotettuja sähköposteja",
       "enterTableName": "Anna taulukon nimi",
       "addDefaultColumns": "Lisää oletuspylväät",
-      "tableNameInDb": "Taulukon nimi tallennetaan tietokantaan"
+      "tableNameInDb": "Taulukon nimi tallennetaan tietokantaan",
+      "airtable": {
+        "credentials": "Mistä löytää tämä?"
+      }
     },
     "error": {
       "searchProject": "Hakusi {haku} ei löytänyt tuloksia",

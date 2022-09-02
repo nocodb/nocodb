@@ -55,7 +55,19 @@
     "notification": "Obavijest",
     "reference": "Referenca",
     "function": "Funkcija",
-    "confirm": "Potvrditi"
+    "confirm": "Potvrditi",
+    "generate": "Generirati",
+    "copy": "Kopirati",
+    "misc": "Razni",
+    "lock": "Zaključati",
+    "unlock": "Otključati",
+    "credentials": "Vjerodajnice",
+    "help": "Pomozite",
+    "questions": "Pitanja",
+    "reachOut": "Dosegnite ovdje",
+    "betaNote": "Ova je značajka trenutno u beta verziji.",
+    "moreInfo": "Više informacija možete pronaći ovdje",
+    "logs": "Zapisnici"
   },
   "objects": {
     "project": "Projekt",
@@ -173,7 +185,14 @@
     "resetPassword": "Vraćanje izvorne lozinke",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Generirati token",
+    "APIsAndSupport": "APIS i podrška",
+    "helpCenter": "Centar za pomoć",
+    "swaggerDocumentation": "Dokumentacija Swaggera",
+    "quickImportFrom": "Brzo uvoz iz",
+    "quickImport": "Brzi uvoz",
+    "advancedSettings": "Napredne postavke"
   },
   "labels": {
     "notifyVia": "Obavijestiti putem",
@@ -245,7 +264,19 @@
     "language": "Jezik",
     "primaryColor": "Primarna boja",
     "accentColor": "Akcentna boja",
-    "customTheme": "Prilagođena tema"
+    "customTheme": "Prilagođena tema",
+    "requestDataSource": "Zatražite izvor podataka koji vam je potreban?",
+    "apiKey": "API ključ",
+    "sharedBase": "Zajednička baza",
+    "importData": "Uvoz podataka",
+    "importSecondaryViews": "Uvezite sekundarne poglede",
+    "importRollupColumns": "Uvoz stupaca Rollup",
+    "importLookupColumns": "Uvoz stupaca za pretraživanje",
+    "importAttachmentColumns": "Uvoz stupaca privitka",
+    "importFormulaColumns": "Uvoz Formula stupaca",
+    "noData": "Nema podataka",
+    "goToDashboard": "Idite na nadzornu ploču",
+    "importing": "Uvoz"
   },
   "activity": {
     "createProject": "Stvoriti projekt",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Uklonite bazu podataka iz okruženja",
     "editConnJson": "Uredi priključak JSON",
     "sponsorUs": "Sponzorira nas",
-    "sendEmail": "POŠALJI E-MAIL"
+    "sendEmail": "POŠALJI E-MAIL",
+    "addUserToProject": "Dodajte korisnika u projekt",
+    "getApiSnippet": "Nabavite isječak API -ja",
+    "clearCell": "Bistra ćelija"
   },
   "tooltip": {
     "saveChanges": "Spremi promjene",
@@ -398,7 +432,8 @@
     "searchModels": "Modeli pretraživanja",
     "noItemsFound": "Nema pronađenih stavki",
     "defaultValue": "Zadana vrijednost",
-    "filterByEmail": "Filtar putem e-maila"
+    "filterByEmail": "Filtar putem e-maila",
+    "filterQuery": "Upit za filtriranje"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Možete dodati više zareza (,) razdvojenih poruka e-pošte",
       "enterTableName": "Unesite naziv tablice",
       "addDefaultColumns": "Dodajte zadane stupce",
-      "tableNameInDb": "Ime tablice kao spremljene u bazi podataka"
+      "tableNameInDb": "Ime tablice kao spremljene u bazi podataka",
+      "airtable": {
+        "credentials": "Gdje ovo pronaći?"
+      }
     },
     "error": {
       "searchProject": "Vaša potraga za {Search} nije pronašla rezultate",

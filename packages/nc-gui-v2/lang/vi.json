@@ -55,7 +55,19 @@
     "notification": "Thông báo",
     "reference": "Thẩm quyền giải quyết",
     "function": "Chức năng",
-    "confirm": "Xác nhận"
+    "confirm": "Xác nhận",
+    "generate": "Phát ra",
+    "copy": "Sao chép",
+    "misc": "Điều khoản khác",
+    "lock": "Khóa",
+    "unlock": "Mở khóa",
+    "credentials": "Thông tin xác thực",
+    "help": "Cứu giúp",
+    "questions": "Câu hỏi",
+    "reachOut": "Tiếp cận ra đây",
+    "betaNote": "Tính năng này hiện đang ở phiên bản beta.",
+    "moreInfo": "Tìm thêm thông tin tại đây",
+    "logs": "Nhật ký"
   },
   "objects": {
     "project": "Dự định",
@@ -173,7 +185,14 @@
     "resetPassword": "Đặt lại mật khẩu của bạn",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Tạo mã thông báo",
+    "APIsAndSupport": "API & Hỗ trợ",
+    "helpCenter": "Trung tâm trợ giúp",
+    "swaggerDocumentation": "Tài liệu vênh vang",
+    "quickImportFrom": "Nhập nhanh từ",
+    "quickImport": "Nhập nhanh",
+    "advancedSettings": "Cài đặt nâng cao"
   },
   "labels": {
     "notifyVia": "Thông báo qua",
@@ -245,7 +264,19 @@
     "language": "Ngôn ngữ",
     "primaryColor": "Màu chính",
     "accentColor": "Màu nhấn",
-    "customTheme": "Chủ đề tùy chỉnh"
+    "customTheme": "Chủ đề tùy chỉnh",
+    "requestDataSource": "Yêu cầu một nguồn dữ liệu bạn cần?",
+    "apiKey": "Mã API",
+    "sharedBase": "Cơ sở chia sẻ",
+    "importData": "Nhập dữ liệu",
+    "importSecondaryViews": "Nhập quan điểm thứ cấp",
+    "importRollupColumns": "Nhập cột cuộn",
+    "importLookupColumns": "Nhập cột tra cứu",
+    "importAttachmentColumns": "Nhập cột đính kèm",
+    "importFormulaColumns": "Nhập các cột công thức",
+    "noData": "Không có dữ liệu",
+    "goToDashboard": "Đi đến bảng điều khiển",
+    "importing": "Nhập khẩu"
   },
   "activity": {
     "createProject": "Tạo dự án",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Xóa cơ sở dữ liệu khỏi môi trường",
     "editConnJson": "Chỉnh sửa kết nối JSON.",
     "sponsorUs": "Tài trợ cho chúng tôi.",
-    "sendEmail": "GỬI EMAIL"
+    "sendEmail": "GỬI EMAIL",
+    "addUserToProject": "Thêm người dùng vào dự án",
+    "getApiSnippet": "Nhận đoạn trích API",
+    "clearCell": "Tế bào rõ ràng"
   },
   "tooltip": {
     "saveChanges": "Lưu thay đổi",
@@ -398,7 +432,8 @@
     "searchModels": "Mô hình tìm kiếm",
     "noItemsFound": "không tìm thấy vật nào",
     "defaultValue": "Giá trị mặc định",
-    "filterByEmail": "Lọc bằng e-mail"
+    "filterByEmail": "Lọc bằng e-mail",
+    "filterQuery": "Truy vấn lọc"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Bạn có thể thêm nhiều email được phân tách bằng dấu phẩy (,)",
       "enterTableName": "Nhập tên bảng",
       "addDefaultColumns": "Thêm cột mặc định",
-      "tableNameInDb": "Tên bảng như đã lưu trong cơ sở dữ liệu"
+      "tableNameInDb": "Tên bảng như đã lưu trong cơ sở dữ liệu",
+      "airtable": {
+        "credentials": "Tìm cái này ở đâu?"
+      }
     },
     "error": {
       "searchProject": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả",

@@ -55,7 +55,19 @@
     "notification": "إشعار",
     "reference": "مرجع",
     "function": "وظيفة",
-    "confirm": "يتأكد"
+    "confirm": "يتأكد",
+    "generate": "يولد",
+    "copy": "ينسخ",
+    "misc": "متفرقات",
+    "lock": "قفل",
+    "unlock": "الغاء القفل",
+    "credentials": "أوراق اعتماد",
+    "help": "مساعدة",
+    "questions": "أسئلة",
+    "reachOut": "الوصول إلى هنا",
+    "betaNote": "هذه الميزة حاليا في بيتا.",
+    "moreInfo": "ويمكن الاطلاع على مزيد من المعلومات هنا",
+    "logs": "السجلات"
   },
   "objects": {
     "project": "مشروع",
@@ -173,7 +185,14 @@
     "resetPassword": "إعادة تعيين كلمة المرور",
     "teamAndSettings": "الفريق والإعدادات",
     "apiDocs": "مستندات API",
-    "importFromAirtable": "استيراد من Airtable"
+    "importFromAirtable": "استيراد من Airtable",
+    "generateToken": "توليد الرمز المميز",
+    "APIsAndSupport": "واجهات برمجة التطبيقات والدعم",
+    "helpCenter": "مركز المساعدة",
+    "swaggerDocumentation": "الوثائق Swagger",
+    "quickImportFrom": "استيراد سريع من",
+    "quickImport": "استيراد سريع",
+    "advancedSettings": "إعدادات متقدمة"
   },
   "labels": {
     "notifyVia": "إعلام عبر",
@@ -245,7 +264,19 @@
     "language": "لغة",
     "primaryColor": "لون أصلي",
     "accentColor": "لون لهجة",
-    "customTheme": "موضوع مخصص"
+    "customTheme": "موضوع مخصص",
+    "requestDataSource": "طلب مصدر بيانات تحتاجه؟",
+    "apiKey": "مفتاح API",
+    "sharedBase": "قاعدة مشتركة",
+    "importData": "بيانات الاستيراد",
+    "importSecondaryViews": "استيراد وجهات النظر الثانوية",
+    "importRollupColumns": "استيراد أعمدة Rollup",
+    "importLookupColumns": "استيراد أعمدة البحث",
+    "importAttachmentColumns": "استيراد أعمدة المرفق",
+    "importFormulaColumns": "استيراد أعمدة الصيغة",
+    "noData": "لايوجد بيانات",
+    "goToDashboard": "الذهاب إلى لوحة القيادة",
+    "importing": "الاستيراد"
   },
   "activity": {
     "createProject": "إنشاء مشروع",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "إزالة قاعدة البيانات من البيئة",
     "editConnJson": "تحرير اتصال جسون",
     "sponsorUs": "ادعمنا",
-    "sendEmail": "ارسل بريد الكتروني"
+    "sendEmail": "ارسل بريد الكتروني",
+    "addUserToProject": "أضف المستخدم إلى المشروع",
+    "getApiSnippet": "الحصول على مقتطف API",
+    "clearCell": "خلية واضحة"
   },
   "tooltip": {
     "saveChanges": "حفظ التغييرات",
@@ -398,7 +432,8 @@
     "searchModels": "نماذج البحث",
     "noItemsFound": "لم يتم العثور على عناصر",
     "defaultValue": "القيمة الافتراضية",
-    "filterByEmail": "تصفية عن طريق البريد الإلكتروني"
+    "filterByEmail": "تصفية عن طريق البريد الإلكتروني",
+    "filterQuery": "مرشح الاستعلام"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "يمكنك إضافة أكثر من فاصلة (,) لفصل الإيميلات",
       "enterTableName": "أدخل اسم الجدول",
       "addDefaultColumns": "إضافة الأعمدة الافتراضية",
-      "tableNameInDb": "اسم الجدول كما تم حفظه في قاعدة البيانات"
+      "tableNameInDb": "اسم الجدول كما تم حفظه في قاعدة البيانات",
+      "airtable": {
+        "credentials": "أين تجد هذا؟"
+      }
     },
     "error": {
       "searchProject": "البحث عن {بحث} لم يتم العثور على نتائج",

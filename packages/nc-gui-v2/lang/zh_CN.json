@@ -55,7 +55,19 @@
     "notification": "通知",
     "reference": "参考",
     "function": "功能",
-    "confirm": "确认"
+    "confirm": "确认",
+    "generate": "产生",
+    "copy": "复制",
+    "misc": "各种各样的",
+    "lock": "锁",
+    "unlock": "开锁",
+    "credentials": "证书",
+    "help": "帮助",
+    "questions": "问题",
+    "reachOut": "在这里伸出援手",
+    "betaNote": "此功能当前在Beta中。",
+    "moreInfo": "更多信息可以在这里找到",
+    "logs": "日志"
   },
   "objects": {
     "project": "项目",
@@ -173,7 +185,14 @@
     "resetPassword": "重置密码",
     "teamAndSettings": "团队和设置",
     "apiDocs": "API 文档",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "产生令牌",
+    "APIsAndSupport": "API和支持",
+    "helpCenter": "帮助中心",
+    "swaggerDocumentation": "炫耀文档",
+    "quickImportFrom": "快速导入",
+    "quickImport": "快速导入",
+    "advancedSettings": "高级设置"
   },
   "labels": {
     "notifyVia": "通知通过",
@@ -242,10 +261,22 @@
     "onUpdate": "更新",
     "onDelete": "删除",
     "account": "帐户",
-    "language": "语",
-    "primaryColor": "原色",
-    "accentColor": "口音颜色",
-    "customTheme": "自定义主题"
+    "language": "语言",
+    "primaryColor": "强调色",
+    "accentColor": "主色调",
+    "customTheme": "自定义主题",
+    "requestDataSource": "请求您需要的数据源？",
+    "apiKey": "API键",
+    "sharedBase": "共享基础",
+    "importData": "导入数据",
+    "importSecondaryViews": "导入次要视图",
+    "importRollupColumns": "导入汇总列",
+    "importLookupColumns": "导入查找列",
+    "importAttachmentColumns": "导入附件列",
+    "importFormulaColumns": "导入公式列",
+    "noData": "没有数据",
+    "goToDashboard": "去仪表板",
+    "importing": "输入"
   },
   "activity": {
     "createProject": "创建项目",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "从环境中删除数据库",
     "editConnJson": "编辑链接JSON",
     "sponsorUs": "赞助我们",
-    "sendEmail": "发送邮件"
+    "sendEmail": "发送邮件",
+    "addUserToProject": "将用户添加到项目",
+    "getApiSnippet": "获取API片段",
+    "clearCell": "透明细胞"
   },
   "tooltip": {
     "saveChanges": "保存更改",
@@ -398,7 +432,8 @@
     "searchModels": "搜索模型",
     "noItemsFound": "未找到任何项目",
     "defaultValue": "默认值",
-    "filterByEmail": "通过电子邮件过滤"
+    "filterByEmail": "通过电子邮件过滤",
+    "filterQuery": "过滤器查询"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "您可以添加多个逗号（，）分隔的电子邮件",
       "enterTableName": "输入表名",
       "addDefaultColumns": "添加默认列",
-      "tableNameInDb": "数据库中保存的表名"
+      "tableNameInDb": "数据库中保存的表名",
+      "airtable": {
+        "credentials": "在哪里可以找到这个？"
+      }
     },
     "error": {
       "searchProject": "搜索： {search} 没有发现匹配的结果",

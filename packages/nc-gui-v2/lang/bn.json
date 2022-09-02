@@ -55,7 +55,19 @@
     "notification": "বিজ্ঞপ্তি",
     "reference": "প্রসঙ্গ",
     "function": "নির্দিষ্ট কর্ম",
-    "confirm": "নিশ্চিত করুন"
+    "confirm": "নিশ্চিত করুন",
+    "generate": "উত্পন্ন",
+    "copy": "অনুলিপি",
+    "misc": "বিবিধ",
+    "lock": "লক",
+    "unlock": "আনলক করুন",
+    "credentials": "শংসাপত্র",
+    "help": "সাহায্য",
+    "questions": "প্রশ্ন",
+    "reachOut": "এখানে পৌঁছান",
+    "betaNote": "এই বৈশিষ্ট্যটি বর্তমানে বিটাতে রয়েছে।",
+    "moreInfo": "আরো তথ্য পাওয়া যাবে এখানে",
+    "logs": "লগ"
   },
   "objects": {
     "project": "প্রকল্প",
@@ -173,7 +185,14 @@
     "resetPassword": "আপনার পাসওয়ার্ড পুনরায় সেট করুন",
     "teamAndSettings": "দল এবং সেটিংস",
     "apiDocs": "API Docs",
-    "importFromAirtable": "এয়ারটেবল থেকে আমদানি করুন"
+    "importFromAirtable": "এয়ারটেবল থেকে আমদানি করুন",
+    "generateToken": "টোকেন উত্পন্ন করুন",
+    "APIsAndSupport": "এপিআই এবং সমর্থন",
+    "helpCenter": "সাহায্য কেন্দ্র",
+    "swaggerDocumentation": "সোয়াগার ডকুমেন্টেশন",
+    "quickImportFrom": "থেকে দ্রুত আমদানি",
+    "quickImport": "দ্রুত আমদানি",
+    "advancedSettings": "উন্নত সেটিংস"
   },
   "labels": {
     "notifyVia": "এর মাধ্যমে অবহিত করুন",
@@ -245,7 +264,19 @@
     "language": "ভাষা",
     "primaryColor": "মৌলিক রঙ",
     "accentColor": "সুরের ধাপের রঙ",
-    "customTheme": "কাস্টম থিম"
+    "customTheme": "কাস্টম থিম",
+    "requestDataSource": "আপনার প্রয়োজনীয় ডেটা উত্সের অনুরোধ?",
+    "apiKey": "এপিআই কী",
+    "sharedBase": "ভাগ করা বেস",
+    "importData": "তথ্য আমদানি",
+    "importSecondaryViews": "মাধ্যমিক দর্শন আমদানি করুন",
+    "importRollupColumns": "রোলআপ কলামগুলি আমদানি করুন",
+    "importLookupColumns": "আমদানি চেহারা কলাম",
+    "importAttachmentColumns": "সংযুক্তি কলামগুলি আমদানি করুন",
+    "importFormulaColumns": "ফর্মুলা কলামগুলি আমদানি করুন",
+    "noData": "কোনও ডেটা নেই",
+    "goToDashboard": "ড্যাশবোর্ড এ যান",
+    "importing": "আমদানি"
   },
   "activity": {
     "createProject": "প্রকল্প তৈরি করুন",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "পরিবেশ থেকে ডাটাবেস সরান",
     "editConnJson": "সংযোগ json সম্পাদনা",
     "sponsorUs": "আমাদের স্পনসর",
-    "sendEmail": "ইমেইল পাঠান"
+    "sendEmail": "ইমেইল পাঠান",
+    "addUserToProject": "প্রকল্পে ব্যবহারকারী যুক্ত করুন",
+    "getApiSnippet": "এপিআই স্নিপেট পান",
+    "clearCell": "ক্লিয়ার সেল"
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -398,7 +432,8 @@
     "searchModels": "অনুসন্ধান মডেল",
     "noItemsFound": "কোনও আইটেম পাওয়া যায় নি",
     "defaultValue": "ডিফল্ট মান",
-    "filterByEmail": "ই-মেইল দ্বারা ফিল্টার"
+    "filterByEmail": "ই-মেইল দ্বারা ফিল্টার",
+    "filterQuery": "ফিল্টার ক্যোয়ারী"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "आप एकाधिक COMMA (,) द्वारा अलग ईमेल जोड़ सकते है",
       "enterTableName": "টেবিলের নাম লিখুন",
       "addDefaultColumns": "ডিফল্ট কলাম যোগ করুন",
-      "tableNameInDb": "ডাটাবেসে সংরক্ষিত টেবিলের নাম"
+      "tableNameInDb": "ডাটাবেসে সংরক্ষিত টেবিলের নাম",
+      "airtable": {
+        "credentials": "এই কোথায় পাবেন?"
+      }
     },
     "error": {
       "searchProject": "আপনার অনুসন্ধান {search} এর জন্য কোনও ফলাফল পাওয়া যায় নি",

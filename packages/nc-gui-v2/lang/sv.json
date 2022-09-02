@@ -55,7 +55,19 @@
     "notification": "Underrättelse",
     "reference": "Referens",
     "function": "Fungera",
-    "confirm": "Bekräfta"
+    "confirm": "Bekräfta",
+    "generate": "Generera",
+    "copy": "Kopiera",
+    "misc": "Diverse",
+    "lock": "Låsa",
+    "unlock": "Låsa upp",
+    "credentials": "Referenser",
+    "help": "Hjälp",
+    "questions": "Frågor",
+    "reachOut": "Nå här",
+    "betaNote": "Denna funktion är för närvarande i beta.",
+    "moreInfo": "Mer information finns här",
+    "logs": "Stockar"
   },
   "objects": {
     "project": "Projekt",
@@ -173,7 +185,14 @@
     "resetPassword": "Återställ ditt lösenord",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Generera token",
+    "APIsAndSupport": "API: er och stöd",
+    "helpCenter": "Hjälpcenter",
+    "swaggerDocumentation": "Swaggerdokumentation",
+    "quickImportFrom": "Snabb import från",
+    "quickImport": "Snabb import",
+    "advancedSettings": "Avancerade inställningar"
   },
   "labels": {
     "notifyVia": "Meddela via",
@@ -245,7 +264,19 @@
     "language": "Språk",
     "primaryColor": "Grundfärg",
     "accentColor": "Accentfärg",
-    "customTheme": "Anpassad tema"
+    "customTheme": "Anpassad tema",
+    "requestDataSource": "Begär en datakälla du behöver?",
+    "apiKey": "API -nyckel",
+    "sharedBase": "Delad bas",
+    "importData": "Importera data",
+    "importSecondaryViews": "Importera sekundärvyer",
+    "importRollupColumns": "Importera samlingskolumner",
+    "importLookupColumns": "Importera uppslagskolumner",
+    "importAttachmentColumns": "Importfäste kolumner",
+    "importFormulaColumns": "Importera formelkolumner",
+    "noData": "Inga data",
+    "goToDashboard": "Gå till instrumentpanelen",
+    "importing": "Importerande"
   },
   "activity": {
     "createProject": "Skapa projekt",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Ta bort databasen från miljö",
     "editConnJson": "Redigera anslutning JSON",
     "sponsorUs": "Sponsra oss",
-    "sendEmail": "SKICKA EPOST"
+    "sendEmail": "SKICKA EPOST",
+    "addUserToProject": "Lägg till användare i projektet",
+    "getApiSnippet": "Få API -utdrag",
+    "clearCell": "Klart cell"
   },
   "tooltip": {
     "saveChanges": "Spara ändringar",
@@ -398,7 +432,8 @@
     "searchModels": "Sökmodeller",
     "noItemsFound": "Inga föremål hittades",
     "defaultValue": "Standardvärde",
-    "filterByEmail": "Filtrera via e-post"
+    "filterByEmail": "Filtrera via e-post",
+    "filterQuery": "Filterfråga"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Du kan lägga till flera kommatecken (,) separerade e-postmeddelanden",
       "enterTableName": "Ange tabellnamn",
       "addDefaultColumns": "Lägg till standardkolumner",
-      "tableNameInDb": "Tabellnamn som sparats i databasen"
+      "tableNameInDb": "Tabellnamn som sparats i databasen",
+      "airtable": {
+        "credentials": "Var hittar man det här?"
+      }
     },
     "error": {
       "searchProject": "Din sökning efter {Sök} har inga resultat",

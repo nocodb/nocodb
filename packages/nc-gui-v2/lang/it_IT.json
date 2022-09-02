@@ -55,7 +55,19 @@
     "notification": "Notifica",
     "reference": "Riferimento",
     "function": "Funzione",
-    "confirm": "Confermare"
+    "confirm": "Confermare",
+    "generate": "creare",
+    "copy": "copia",
+    "misc": "Varie",
+    "lock": "Serratura",
+    "unlock": "Sbloccare",
+    "credentials": "Credenziali",
+    "help": "Aiuto",
+    "questions": "Domande",
+    "reachOut": "Allungarsi qui",
+    "betaNote": "Questa funzione è attualmente in beta.",
+    "moreInfo": "Ulteriori informazioni possono essere trovate qui",
+    "logs": "Tronchi"
   },
   "objects": {
     "project": "Progetto",
@@ -173,7 +185,14 @@
     "resetPassword": "Reimposta la tua password",
     "teamAndSettings": "Team e Impostazioni",
     "apiDocs": "Documentazione API",
-    "importFromAirtable": "Importa da Airtable"
+    "importFromAirtable": "Importa da Airtable",
+    "generateToken": "Generare token",
+    "APIsAndSupport": "API e supporto",
+    "helpCenter": "Centro assistenza",
+    "swaggerDocumentation": "Documentazione di spavalderia",
+    "quickImportFrom": "Importazione rapida da",
+    "quickImport": "Importazione rapida",
+    "advancedSettings": "Impostazioni avanzate"
   },
   "labels": {
     "notifyVia": "Notifica tramite",
@@ -245,7 +264,19 @@
     "language": "Lingua",
     "primaryColor": "Colore primario",
     "accentColor": "Colore accento",
-    "customTheme": "Tema personalizzato"
+    "customTheme": "Tema personalizzato",
+    "requestDataSource": "Richiedi un'origine dati di cui hai bisogno?",
+    "apiKey": "Chiave API",
+    "sharedBase": "Base condivisa",
+    "importData": "Importa dati",
+    "importSecondaryViews": "Importa visualizzazioni secondarie",
+    "importRollupColumns": "Importa colonne di rollup",
+    "importLookupColumns": "Colonne di ricerca importazione",
+    "importAttachmentColumns": "Colonne di allegato di importazione",
+    "importFormulaColumns": "Colonne di formula di importazione",
+    "noData": "Nessun dato",
+    "goToDashboard": "Vai a CRUSCOTTO",
+    "importing": "Importazione"
   },
   "activity": {
     "createProject": "Crea progetto",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Rimuovi il database dall'ambiente",
     "editConnJson": "Modifica JSON della connessione",
     "sponsorUs": "Sponsorizzaci",
-    "sendEmail": "INVIA EMAIL"
+    "sendEmail": "INVIA EMAIL",
+    "addUserToProject": "Aggiungi l'utente al progetto",
+    "getApiSnippet": "Ottieni snippet API",
+    "clearCell": "Cella chiara"
   },
   "tooltip": {
     "saveChanges": "Salva le modifiche",
@@ -398,7 +432,8 @@
     "searchModels": "Modelli di ricerca",
     "noItemsFound": "Nessun elemento trovato",
     "defaultValue": "Valore di default",
-    "filterByEmail": "Filtra per e-mail"
+    "filterByEmail": "Filtra per e-mail",
+    "filterQuery": "Filtro query"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Puoi aggiungere più e-mail separate da virgole(,)",
       "enterTableName": "Inserisci il nome della tabella",
       "addDefaultColumns": "Aggiungi colonne predefinite",
-      "tableNameInDb": "Nome della tabella come salvato nel database"
+      "tableNameInDb": "Nome della tabella come salvato nel database",
+      "airtable": {
+        "credentials": "Dove trovarlo?"
+      }
     },
     "error": {
       "searchProject": "La tua ricerca di {search} non ha trovato risultati",

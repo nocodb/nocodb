@@ -55,7 +55,19 @@
     "notification": "Уведомление",
     "reference": "Ссылка",
     "function": "Функция",
-    "confirm": "Подтверждать"
+    "confirm": "Подтверждать",
+    "generate": "Генерировать",
+    "copy": "Копия",
+    "misc": "Разнообразный",
+    "lock": "Замок",
+    "unlock": "Разблокировать",
+    "credentials": "Реквизиты для входа",
+    "help": "Помощь",
+    "questions": "Вопросы",
+    "reachOut": "Протяните здесь",
+    "betaNote": "Эта функция в настоящее время в бета -версии.",
+    "moreInfo": "Более подробную информацию можно найти здесь",
+    "logs": "Журналы"
   },
   "objects": {
     "project": "Проект",
@@ -173,7 +185,14 @@
     "resetPassword": "Сбросить пароль",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Генерировать токен",
+    "APIsAndSupport": "APIS и поддержка",
+    "helpCenter": "Центр помощи",
+    "swaggerDocumentation": "Документация Swagger",
+    "quickImportFrom": "Быстрый импорт из",
+    "quickImport": "Быстрый импорт",
+    "advancedSettings": "Расширенные настройки"
   },
   "labels": {
     "notifyVia": "Уведомлять через",
@@ -245,7 +264,19 @@
     "language": "Язык",
     "primaryColor": "Основной цвет",
     "accentColor": "Акцентный цвет",
-    "customTheme": "Пользовательская тема"
+    "customTheme": "Пользовательская тема",
+    "requestDataSource": "Запросить источник данных, который вам нужен?",
+    "apiKey": "API -ключ",
+    "sharedBase": "Общая база",
+    "importData": "Импортные данные",
+    "importSecondaryViews": "Импорт второстепенных взглядов",
+    "importRollupColumns": "Импорт ROLLUP COLLONS",
+    "importLookupColumns": "Столбцы импорта",
+    "importAttachmentColumns": "Импорт столбцов вложения",
+    "importFormulaColumns": "Импорт Формулы столбцы",
+    "noData": "Нет данных",
+    "goToDashboard": "Перейти к приборной панели",
+    "importing": "Импорт"
   },
   "activity": {
     "createProject": "Создать проект",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Удалить базу данных из среды",
     "editConnJson": "Редактировать соединение JSON",
     "sponsorUs": "Спонсируйте нас",
-    "sendEmail": "Отправить письмо"
+    "sendEmail": "Отправить письмо",
+    "addUserToProject": "Добавить пользователя в проект",
+    "getApiSnippet": "Получите фрагмент API",
+    "clearCell": "Чистая ячейка"
   },
   "tooltip": {
     "saveChanges": "Сохранить изменения",
@@ -398,7 +432,8 @@
     "searchModels": "Модели поиска",
     "noItemsFound": "Ничего не найдено",
     "defaultValue": "Значение по умолчанию",
-    "filterByEmail": "Фильтр по электронной почте"
+    "filterByEmail": "Фильтр по электронной почте",
+    "filterQuery": "Фильтр запрос"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Вы можете разделять запятыми электронные почты",
       "enterTableName": "Введите имя таблицы",
       "addDefaultColumns": "Добавьте столбцы по умолчанию",
-      "tableNameInDb": "Название таблицы как сохранено в базе данных"
+      "tableNameInDb": "Название таблицы как сохранено в базе данных",
+      "airtable": {
+        "credentials": "Где это найти?"
+      }
     },
     "error": {
       "searchProject": "Ваш поиск {поиск} не дал результатов",

@@ -55,7 +55,19 @@
     "notification": "הוֹדָעָה",
     "reference": "התייחסות",
     "function": "פוּנקצִיָה",
-    "confirm": "לְאַשֵׁר"
+    "confirm": "לְאַשֵׁר",
+    "generate": "לִיצוֹר",
+    "copy": "עותק",
+    "misc": "שונות",
+    "lock": "לנעול",
+    "unlock": "לבטל נעילה",
+    "credentials": "אישורים",
+    "help": "עֶזרָה",
+    "questions": "שאלות",
+    "reachOut": "הושיט יד כאן",
+    "betaNote": "תכונה זו נמצאת כרגע בבטא.",
+    "moreInfo": "מידע נוסף ניתן למצוא כאן",
+    "logs": "יומנים"
   },
   "objects": {
     "project": "פּרוֹיֶקט",
@@ -173,7 +185,14 @@
     "resetPassword": "איפוס סיסמא",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "ליצור אסימון",
+    "APIsAndSupport": "ממשקי API ותמיכה",
+    "helpCenter": "מרכז עזרה",
+    "swaggerDocumentation": "תיעוד SWAGGER",
+    "quickImportFrom": "יבוא מהיר מ",
+    "quickImport": "יבוא מהיר",
+    "advancedSettings": "הגדרות מתקדמות"
   },
   "labels": {
     "notifyVia": "תודיע דרך",
@@ -245,7 +264,19 @@
     "language": "שפה",
     "primaryColor": "צבע יסוד",
     "accentColor": "צבע הדגשה",
-    "customTheme": "נושא מותאם אישית"
+    "customTheme": "נושא מותאם אישית",
+    "requestDataSource": "בקש מקור נתונים שאתה צריך?",
+    "apiKey": "מפתח API",
+    "sharedBase": "בסיס משותף",
+    "importData": "יבוא נתונים",
+    "importSecondaryViews": "יבוא תצוגות משניות",
+    "importRollupColumns": "יבוא עמודות אולץ",
+    "importLookupColumns": "יבוא עמודות בדיקה",
+    "importAttachmentColumns": "יבוא עמודות קובץ מצורף",
+    "importFormulaColumns": "ייבא עמודות נוסחה",
+    "noData": "אין מידע",
+    "goToDashboard": "עבור אל לוח המחוונים",
+    "importing": "יבוא"
   },
   "activity": {
     "createProject": "צור פרויקט",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "הסר מסד נתונים מסביבה",
     "editConnJson": "ערוך חיבור JSON.",
     "sponsorUs": "חסות ארה\"ב",
-    "sendEmail": "שלח אימייל"
+    "sendEmail": "שלח אימייל",
+    "addUserToProject": "הוסף משתמש לפרויקט",
+    "getApiSnippet": "קבל קטע API",
+    "clearCell": "תא ברור"
   },
   "tooltip": {
     "saveChanges": "שמור שינויים",
@@ -398,7 +432,8 @@
     "searchModels": "מודלים לחיפוש",
     "noItemsFound": "לא נמצאו פריטים",
     "defaultValue": "ערך ברירת מחדל",
-    "filterByEmail": "מסנן בדואר אלקטרוני"
+    "filterByEmail": "מסנן בדואר אלקטרוני",
+    "filterQuery": "שאילתת סנן"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "ניתן להוסיף אימיילים מופרדים מרובים (,)",
       "enterTableName": "הזן שם טבלה",
       "addDefaultColumns": "הוסף עמודות ברירת מחדל.",
-      "tableNameInDb": "שם לוח שנשמר במסד הנתונים"
+      "tableNameInDb": "שם לוח שנשמר במסד הנתונים",
+      "airtable": {
+        "credentials": "איפה למצוא את זה?"
+      }
     },
     "error": {
       "searchProject": "החיפוש שלך {חיפוש} לא נמצא תוצאות",

@@ -55,7 +55,19 @@
     "notification": "Bildirim",
     "reference": "Referans",
     "function": "Fonksiyon",
-    "confirm": "Onaylamak"
+    "confirm": "Onaylamak",
+    "generate": "Üretmek",
+    "copy": "Kopya",
+    "misc": "Çeşitli",
+    "lock": "Kilit",
+    "unlock": "Kilidini aç",
+    "credentials": "Kimlik bilgileri",
+    "help": "Yardım",
+    "questions": "Soru",
+    "reachOut": "Buraya uzan",
+    "betaNote": "Bu özellik şu anda Beta'da.",
+    "moreInfo": "Daha fazla bilgi burada bulunabilir",
+    "logs": "Kütükler"
   },
   "objects": {
     "project": "Proje",
@@ -173,7 +185,14 @@
     "resetPassword": "Şifrenizi sıfırlayın",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Jeton Olun",
+    "APIsAndSupport": "API'ler ve Destek",
+    "helpCenter": "Yardım Merkezi",
+    "swaggerDocumentation": "Swagger belgeleri",
+    "quickImportFrom": "Hızlı ithalat",
+    "quickImport": "Hızlı İthalat",
+    "advancedSettings": "Gelişmiş Ayarlar"
   },
   "labels": {
     "notifyVia": "Aracılığıyla Bildir",
@@ -245,7 +264,19 @@
     "language": "Dil",
     "primaryColor": "Ana renk",
     "accentColor": "Aksan rengi",
-    "customTheme": "Özel tema"
+    "customTheme": "Özel tema",
+    "requestDataSource": "İhtiyacınız olan bir veri kaynağı mı istiyorsunuz?",
+    "apiKey": "API Anahtarı",
+    "sharedBase": "Ortak taban",
+    "importData": "Verileri İçe Aktar",
+    "importSecondaryViews": "İkincil görünümleri içe aktarın",
+    "importRollupColumns": "Rulo Sütunlarını İçe Aktar",
+    "importLookupColumns": "İçe Aktarma Sütunları",
+    "importAttachmentColumns": "Ekleme Sütunlarını İçe Aktar",
+    "importFormulaColumns": "Formül sütunlarını içe aktarın",
+    "noData": "Veri yok",
+    "goToDashboard": "Gösterge Tablosuna Git",
+    "importing": "İthalat"
   },
   "activity": {
     "createProject": "Proje Oluştur",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Veritabanını Kaldır",
     "editConnJson": "JSON bağlantısını düzenle",
     "sponsorUs": "Bizi Destekle",
-    "sendEmail": "E-POSTA GÖNDER"
+    "sendEmail": "E-POSTA GÖNDER",
+    "addUserToProject": "Projeye Kullanıcı Ekle",
+    "getApiSnippet": "API snippet'i alın",
+    "clearCell": "Temiz hücre"
   },
   "tooltip": {
     "saveChanges": "Değişiklikleri Kaydet",
@@ -398,7 +432,8 @@
     "searchModels": "Modellerde ara",
     "noItemsFound": "Hiç bir öğe bulunamadı",
     "defaultValue": "Varsayılan değer",
-    "filterByEmail": "E-posta ile filtrele"
+    "filterByEmail": "E-posta ile filtrele",
+    "filterQuery": "Filtre sorgusu"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Birden çok virgül(,) ile ayrılmış e-posta ekleyebilirsin",
       "enterTableName": "Tablo adı gir",
       "addDefaultColumns": "Varsayılan kolonları ekle",
-      "tableNameInDb": "Veritabanında kayıt edildiği şekilde tablo adları"
+      "tableNameInDb": "Veritabanında kayıt edildiği şekilde tablo adları",
+      "airtable": {
+        "credentials": "Bunu nerede bulabilirim?"
+      }
     },
     "error": {
       "searchProject": "{search} için aramanız hiç bir sonuç bulamadı",

@@ -16,7 +16,7 @@ const tabsInfo: Tab[] = [
   },
   {
     title: 'API Token Management',
-    label: t('title.userMgmt'),
+    label: t('title.apiTokenMgmt'),
     body: () => ApiTokenManagement,
   },
 ]

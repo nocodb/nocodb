@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
 import { h, useNuxtApp, useProject } from '#imports'
 import MdiReload from '~icons/mdi/reload'
@@ -55,20 +56,23 @@ onMounted(async () => {
 })
 
 const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gray-500' }, label)
-
+const { t } = useI18n()
 const columns = [
   {
-    title: tableHeaderRenderer('Models'),
+    // Models
+    title: tableHeaderRenderer(t('labels.models')),
     key: 'table_name',
     customRender: ({ record }: { record: { table_name: string; title?: string } }) =>
       h('div', {}, record.title || record.table_name),
   },
   {
-    title: tableHeaderRenderer('Sync State'),
+    // Sync state
+    title: tableHeaderRenderer(t('labels.syncState')),
     dataIndex: 'syncState',
     key: 'syncState',
+    // No change identified
     customRender: (value: { text: string }) =>
-      h('div', { style: { color: value.text ? 'red' : 'gray' } }, value.text || 'No change identified'),
+      h('div', { style: { color: value.text ? 'red' : 'gray' } }, value.text || t('msg.info.metaNoChange')),
   },
 ]
 </script>
@@ -77,10 +81,11 @@ const columns = [
   <div class="flex flex-row w-full">
     <div class="flex flex-col w-3/5">
       <div class="flex flex-row justify-end items-center w-full mb-4">
+        <!--        Reload -->
         <a-button class="self-start nc-btn-metasync-reload" @click="loadMetaDiff">
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
-            Reload
+            {{ $t('general.reload') }}
           </div>
         </a-button>
       </div>
@@ -102,16 +107,18 @@ const columns = [
       </div>
     </div>
     <div class="flex place-content-center w-2/5">
+      <!--      Sync Now -->
       <div v-if="isDifferent">
         <a-button v-t="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
           <div class="flex items-center gap-2">
             <MdiDatabaseSync />
-            Sync Now
+            {{ $t('activity.metaSync') }}
           </div>
         </a-button>
       </div>
       <div v-else>
-        <span><a-alert message="Tables metadata is in sync" type="success" show-icon /></span>
+        <!--        Tables metadata is in sync -->
+        <span><a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon /></span>
       </div>
     </div>
   </div>

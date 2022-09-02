@@ -295,7 +295,7 @@ function openTableCreateDialog() {
                     >
                       <MdiOpenInNew class="group-hover:text-accent" />
                       <!-- Request a data source you need? -->
-                      {{ $t('label.requestDataSource') }}
+                      {{ $t('labels.requestDataSource') }}
                     </a>
                   </a-menu-item>
                 </a-menu>

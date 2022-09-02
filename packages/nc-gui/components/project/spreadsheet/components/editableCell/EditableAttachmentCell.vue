@@ -28,7 +28,7 @@
                 v-if="isImage(item.title, item.mimetype)"
                 lazy-src="https://via.placeholder.com/60.png?text=Loading..."
                 alt="#"
-                max-height="99px"
+                max-height="96px"
                 contain
                 :src="item.url || item.data"
                 v-on="on"
@@ -391,10 +391,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.img-container {
-  margin: 0 -2px;
-}
-
 .no-overflow {
   overflow: hidden;
 }
@@ -412,15 +408,15 @@ export default {
 }
 
 .thumbnail {
-  height: 99px;
-  width: 99px;
+  height: 96px;
+  width: 96px;
   margin: 2px;
   border-radius: 4px;
 }
 
 .thumbnail img {
   /*max-height: 33px;*/
-  max-width: 99px;
+  max-width: 96px;
 }
 
 .main {

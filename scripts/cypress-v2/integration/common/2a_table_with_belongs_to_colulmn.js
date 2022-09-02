@@ -65,7 +65,7 @@ export const genTest = (apiType, dbType) => {
                 .then(() => {
 
                     // Link record form validation
-                    cy.getActiveModal().contains("Link Record").should("exist");
+                    cy.getActiveModal().contains("Link record").should("exist");
                     cy.getActiveModal()
                         .find(".nc-reload")
                         .should("exist");

@@ -64,7 +64,7 @@ export const genTest = (apiType, dbType) => {
                 .then(() => {
                     cy.snipActiveModal("Modal_M2M_LinkToRecord");
                     // Link record form validation
-                    cy.getActiveModal().contains("Link Record").should("exist");
+                    cy.getActiveModal().contains("Link record").should("exist");
                     cy.getActiveModal()
                         .find("button.mdi-reload")
                         .should("exist");

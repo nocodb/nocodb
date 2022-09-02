@@ -583,6 +583,35 @@
       "collabView": "העבר בהצלחה לתצוגת שיתופית",
       "lockedView": "הפעל בהצלחה לתצוגה נעולה",
       "futureRelease": "בקרוב!"
+    },
+    "success": {
+      "updatedUIACL": "מעודכן ממשק משתמש ACL לטבלאות בהצלחה",
+      "pluginUninstalled": "תוסף הסר את ההתקנה בהצלחה",
+      "pluginSettingsSaved": "הגדרות התוסף שנשמרו בהצלחה",
+      "pluginTested": "הגדרות תוסף שנבדקו בהצלחה",
+      "tableRenamed": "שמו של הטבלה שונה בהצלחה",
+      "viewDeleted": "צפה שנמחקת בהצלחה",
+      "primaryColumnUpdated": "עודכן בהצלחה כעמודה ראשונית",
+      "tableDataExported": "ייצא בהצלחה את כל נתוני הטבלה",
+      "updated": "עודכן בהצלחה",
+      "sharedViewDeleted": "מבט משותף שנמחק בהצלחה",
+      "viewRenamed": "צפה בשם שונה בהצלחה",
+      "tokenGenerated": "אסימון נוצר בהצלחה",
+      "tokenDeleted": "אסימון נמחק בהצלחה",
+      "userAddedToProject": "הוסיף משתמש בהצלחה לפרויקט",
+      "userDeletedFromProject": "המשתמש מחק בהצלחה מהפרויקט",
+      "inviteEmailSent": "הזמן דוא\"ל שנשלח בהצלחה",
+      "inviteURLCopied": "הזמינו כתובת אתר שהועתקו ללוח",
+      "shareableURLCopied": "הועתק כתובת בסיס הניתנת לשיתוף ללוח!",
+      "embeddableHTMLCodeCopied": "הועתק קוד HTML הניתן להטמעה!",
+      "userDetailsUpdated": "עדכן בהצלחה את פרטי המשתמש",
+      "tableDataImported": "נתוני טבלה מיובאים בהצלחה",
+      "webhookUpdated": "פרטי WebHook עודכנו בהצלחה",
+      "webhookDeleted": "הוק נמחק בהצלחה",
+      "webhookTested": "WebHook נבדק בהצלחה",
+      "columnUpdated": "מעודכן בעמודה",
+      "columnCreated": "העמודה נוצרה",
+      "passwordChanged": "סיסמה שונתה בהצלחה. אנא התחבר שוב."
     }
   }
 }

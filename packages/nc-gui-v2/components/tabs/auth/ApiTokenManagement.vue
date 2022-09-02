@@ -59,7 +59,8 @@ const generateToken = async () => {
 
     await $api.apiToken.create(project.id, selectedTokenData)
     showNewTokenModal = false
-    message.success('Token generated successfully')
+    // Token generated successfully
+    message.success(t('msg.success.tokenGenerated'))
     selectedTokenData = {}
     await loadApiTokens()
   } catch (e: any) {
@@ -75,7 +76,8 @@ const deleteToken = async () => {
 
     await $api.apiToken.delete(project.id, selectedTokenData.token)
 
-    message.success('Token deleted successfully')
+    // Token deleted successfully
+    message.success(t('msg.success.tokenDeleted'))
     await loadApiTokens()
     showDeleteTokenModal = false
   } catch (e: any) {

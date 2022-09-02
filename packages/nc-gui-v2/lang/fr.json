@@ -583,6 +583,35 @@
       "collabView": "Vous êtes bien dans la vue collaborative",
       "lockedView": "Vous êtes bien dans la vue vérouillée",
       "futureRelease": "Bientôt disponible !"
+    },
+    "success": {
+      "updatedUIACL": "ACL d'interface utilisateur mis à jour pour les tables avec succès",
+      "pluginUninstalled": "Plugin désinstallé avec succès",
+      "pluginSettingsSaved": "Paramètres du plugin enregistrés avec succès",
+      "pluginTested": "Paramètres du plugin testés avec succès",
+      "tableRenamed": "Tableau renommé avec succès",
+      "viewDeleted": "Voir supprimé avec succès",
+      "primaryColumnUpdated": "Mis à jour avec succès comme colonne principale",
+      "tableDataExported": "Exporté avec succès toutes les données de table",
+      "updated": "Mise à jour réussie",
+      "sharedViewDeleted": "Vue partagée supprimée avec succès",
+      "viewRenamed": "Voir renommé avec succès",
+      "tokenGenerated": "Jeton généré avec succès",
+      "tokenDeleted": "Jeton supprimé avec succès",
+      "userAddedToProject": "Utilisateur ajouté avec succès au projet",
+      "userDeletedFromProject": "Utilisateur supprimé avec succès du projet",
+      "inviteEmailSent": "Inviter le courrier électronique envoyé avec succès",
+      "inviteURLCopied": "Inviter l'URL copiée dans le presse-papiers",
+      "shareableURLCopied": "URL de base partageable copiée dans le presse-papiers!",
+      "embeddableHTMLCodeCopied": "Code HTML copiable!",
+      "userDetailsUpdated": "Mis à jour avec succès les détails de l'utilisateur",
+      "tableDataImported": "Données de table importées avec succès",
+      "webhookUpdated": "Détails de webhook mis à jour avec succès",
+      "webhookDeleted": "Crochet supprimé avec succès",
+      "webhookTested": "Webhook a testé avec succès",
+      "columnUpdated": "Colonne mise à jour",
+      "columnCreated": "Colonne créée",
+      "passwordChanged": "Le mot de passe a été changé avec succès. Veuillez vous connecter à nouveau."
     }
   }
 }

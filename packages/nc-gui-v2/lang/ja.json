@@ -583,6 +583,35 @@
       "collabView": "共同ビューに正常に切り替わりました",
       "lockedView": "ロックビューに正常に切り替わりました",
       "futureRelease": "近日公開！"
+    },
+    "success": {
+      "updatedUIACL": "テーブル用のUI ACLを正常に更新しました",
+      "pluginUninstalled": "プラグインが正常にアンインストールされました",
+      "pluginSettingsSaved": "プラグインの設定が正常に保存されました",
+      "pluginTested": "プラグインの設定を正常にテストしました",
+      "tableRenamed": "テーブルの名前が正常に変更されました",
+      "viewDeleted": "削除された表示を正常に表示します",
+      "primaryColumnUpdated": "プライマリ列として正常に更新されました",
+      "tableDataExported": "すべてのテーブルデータを正常にエクスポートしました",
+      "updated": "正常に更新されました",
+      "sharedViewDeleted": "共有ビューを正常に削除しました",
+      "viewRenamed": "変更された変更を正常に表示します",
+      "tokenGenerated": "トークンは正常に生成されました",
+      "tokenDeleted": "トークンは正常に削除されました",
+      "userAddedToProject": "プロジェクトにユーザーを正常に追加しました",
+      "userDeletedFromProject": "プロジェクトからユーザーを正常に削除しました",
+      "inviteEmailSent": "正常に送信されるメールを招待します",
+      "inviteURLCopied": "ClipboardにコピーされたURLを招待します",
+      "shareableURLCopied": "Clipboardに共有可能なベースURLをコピーしました！",
+      "embeddableHTMLCodeCopied": "埋め込み可能なHTMLコードをコピーしました！",
+      "userDetailsUpdated": "ユーザーの詳細を正常に更新しました",
+      "tableDataImported": "テーブルデータを正常にインポートしました",
+      "webhookUpdated": "WebHookの詳細は、正常に更新されました",
+      "webhookDeleted": "フックは正常に削除されました",
+      "webhookTested": "WebHookは正常にテストされました",
+      "columnUpdated": "列が更新されました",
+      "columnCreated": "作成された列",
+      "passwordChanged": "パスワードは正常に変更されました。もう一度ログインしてください。"
     }
   }
 }

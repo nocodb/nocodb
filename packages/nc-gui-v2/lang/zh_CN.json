@@ -583,6 +583,35 @@
       "collabView": "成功转换为协作视图",
       "lockedView": "成功转换为锁定视图",
       "futureRelease": "即将推出！"
+    },
+    "success": {
+      "updatedUIACL": "成功更新了桌子的UI ACL",
+      "pluginUninstalled": "插件成功卸载",
+      "pluginSettingsSaved": "插件设置成功保存了",
+      "pluginTested": "成功测试的插件设置",
+      "tableRenamed": "餐桌成功地重命名",
+      "viewDeleted": "查看成功删除",
+      "primaryColumnUpdated": "成功更新为主要列",
+      "tableDataExported": "成功导出了所有表数据",
+      "updated": "成功更新",
+      "sharedViewDeleted": "成功删除共享视图成功",
+      "viewRenamed": "查看成功地重命名",
+      "tokenGenerated": "令牌成功产生",
+      "tokenDeleted": "代币成功删除了",
+      "userAddedToProject": "成功添加用户到项目",
+      "userDeletedFromProject": "成功从项目中删除用户",
+      "inviteEmailSent": "邀请电子邮件成功发送",
+      "inviteURLCopied": "邀请将URL复制到剪贴板",
+      "shareableURLCopied": "将可共享的基本URL复制到剪贴板！",
+      "embeddableHTMLCodeCopied": "复制的嵌入式HTML代码！",
+      "userDetailsUpdated": "成功更新了用户详细信息",
+      "tableDataImported": "成功导入的表数据",
+      "webhookUpdated": "Webhook详细信息成功更新了",
+      "webhookDeleted": "钩成功删除了",
+      "webhookTested": "Webhook成功测试了",
+      "columnUpdated": "列更新",
+      "columnCreated": "创建列",
+      "passwordChanged": "密码修改成功。请再次登录。"
     }
   }
 }

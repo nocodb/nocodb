@@ -583,6 +583,35 @@
       "collabView": "Framgångsrikt bytte till collaborative view",
       "lockedView": "Bytte framgångsrikt till låst vy",
       "futureRelease": "Kommer snart!"
+    },
+    "success": {
+      "updatedUIACL": "Uppdaterad UI ACL för tabeller framgångsrikt",
+      "pluginUninstalled": "Plugin avinstalleras framgångsrikt",
+      "pluginSettingsSaved": "Plugininställningar sparade framgångsrikt",
+      "pluginTested": "Framgångsrikt testade plugininställningar",
+      "tableRenamed": "Table byt namn till framgångsrikt",
+      "viewDeleted": "Visa borttagna framgångsrikt",
+      "primaryColumnUpdated": "Framgångsrikt uppdaterad som primär kolumn",
+      "tableDataExported": "Exporteras framgångsrikt alla tabelldata",
+      "updated": "Framgångsrikt uppdaterad",
+      "sharedViewDeleted": "Raderad delad vy framgångsrikt",
+      "viewRenamed": "Visa namnet framgångsrikt",
+      "tokenGenerated": "Token genererade framgångsrikt",
+      "tokenDeleted": "Token raderades framgångsrikt",
+      "userAddedToProject": "Framgångsrikt tillagd användare till projektet",
+      "userDeletedFromProject": "Raderas framgångsrikt användare från projektet",
+      "inviteEmailSent": "Bjud in e -post skickas framgångsrikt",
+      "inviteURLCopied": "Bjud in URL som kopieras till Urklipp",
+      "shareableURLCopied": "Kopierad delbar bas -URL till Urklipp!",
+      "embeddableHTMLCodeCopied": "Kopierad inbäddningsbar HTML -kod!",
+      "userDetailsUpdated": "Uppdaterade framgångsrikt användarinformationen",
+      "tableDataImported": "Framgångsrikt importerade tabelldata",
+      "webhookUpdated": "WebHook -information uppdateras framgångsrikt",
+      "webhookDeleted": "Hook raderade framgångsrikt",
+      "webhookTested": "Webhook testade framgångsrikt",
+      "columnUpdated": "Kolumnuppdaterad",
+      "columnCreated": "Kolumn skapad",
+      "passwordChanged": "Lösenordet har ändrats. Logga in igen."
     }
   }
 }

@@ -583,6 +583,35 @@
       "collabView": "공동 작업 뷰로 성공적으로 전환했습니다",
       "lockedView": "잠긴 뷰로 성공적으로 전환되었습니다",
       "futureRelease": "Coming soon!"
+    },
+    "success": {
+      "updatedUIACL": "테이블에 대해 UI ACL을 성공적으로 업데이트했습니다",
+      "pluginUninstalled": "플러그인이 성공적으로 제거되었습니다",
+      "pluginSettingsSaved": "플러그인 설정이 성공적으로 저장되었습니다",
+      "pluginTested": "플러그인 설정을 성공적으로 테스트했습니다",
+      "tableRenamed": "테이블이 성공적으로 바뀌 었습니다",
+      "viewDeleted": "삭제 된보기를 성공적으로 봅니다",
+      "primaryColumnUpdated": "기본 열로 성공적으로 업데이트되었습니다",
+      "tableDataExported": "모든 테이블 데이터를 성공적으로 내보냈습니다",
+      "updated": "성공적으로 업데이트되었습니다",
+      "sharedViewDeleted": "공유보기가 성공적으로 삭제되었습니다",
+      "viewRenamed": "이름이 성공적으로 바뀌 었습니다",
+      "tokenGenerated": "토큰이 성공적으로 생성되었습니다",
+      "tokenDeleted": "토큰이 성공적으로 삭제되었습니다",
+      "userAddedToProject": "프로젝트에 사용자를 성공적으로 추가했습니다",
+      "userDeletedFromProject": "프로젝트에서 사용자를 성공적으로 삭제했습니다",
+      "inviteEmailSent": "성공적으로 전송 된 이메일을 초대하십시오",
+      "inviteURLCopied": "클립 보드에 복사 한 URL을 초대하십시오",
+      "shareableURLCopied": "공유 가능한 기본 URL을 클립 보드에 복사하십시오!",
+      "embeddableHTMLCodeCopied": "임베디 가능한 HTML 코드를 복사하십시오!",
+      "userDetailsUpdated": "사용자 세부 정보를 성공적으로 업데이트했습니다",
+      "tableDataImported": "테이블 데이터를 성공적으로 가져 왔습니다",
+      "webhookUpdated": "WebHook 세부 사항이 성공적으로 업데이트되었습니다",
+      "webhookDeleted": "후크가 성공적으로 삭제되었습니다",
+      "webhookTested": "Webhook은 성공적으로 테스트했습니다",
+      "columnUpdated": "열 업데이트",
+      "columnCreated": "열이 생성되었습니다",
+      "passwordChanged": "암호가 성공적으로 변경되었습니다. 다시 로그인하십시오."
     }
   }
 }

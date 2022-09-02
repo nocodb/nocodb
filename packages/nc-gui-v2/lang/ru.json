@@ -583,6 +583,35 @@
       "collabView": "Успешно перешел на совместное представление",
       "lockedView": "Успешно переключен на заблокированное представление",
       "futureRelease": "Скоро!"
+    },
+    "success": {
+      "updatedUIACL": "Обновленный UI ACL для таблиц успешно",
+      "pluginUninstalled": "Плагин удален успешно",
+      "pluginSettingsSaved": "Настройки плагина успешно сохранились",
+      "pluginTested": "Успешно протестированные настройки плагина",
+      "tableRenamed": "Стол переименован успешно",
+      "viewDeleted": "Просмотреть удаленные успешно",
+      "primaryColumnUpdated": "Успешно обновлено как основной столбец",
+      "tableDataExported": "Успешно экспортировал все данные таблицы",
+      "updated": "Успешно обновлено",
+      "sharedViewDeleted": "Успешный общий вид успешно",
+      "viewRenamed": "Посмотреть переименовано успешно",
+      "tokenGenerated": "Токен сгенерирован успешно",
+      "tokenDeleted": "Токен удален успешно",
+      "userAddedToProject": "Успешно добавил пользователя к проекту",
+      "userDeletedFromProject": "Успешно удалил пользователя из проекта",
+      "inviteEmailSent": "Пригласить электронную почту успешно",
+      "inviteURLCopied": "Пригласить URL, скопированный в буфер обмена",
+      "shareableURLCopied": "Скопированный общий базовый URL в буфер обмена!",
+      "embeddableHTMLCodeCopied": "Скопированный встроенный HTML -код!",
+      "userDetailsUpdated": "Успешно обновил данные пользователя",
+      "tableDataImported": "Успешно импортированные данные таблицы",
+      "webhookUpdated": "Детали Webhook успешно обновлены",
+      "webhookDeleted": "Крюк удален успешно",
+      "webhookTested": "Webhook успешно протестировался",
+      "columnUpdated": "Столбец обновлен",
+      "columnCreated": "Колонка создана",
+      "passwordChanged": "Пароль успешно изменен. Пожалуйста, войдите снова."
     }
   }
 }

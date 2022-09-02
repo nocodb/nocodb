@@ -583,6 +583,35 @@
       "collabView": "Chuyển thành công thành quan điểm cộng tác",
       "lockedView": "Chuyển thành công thành chế độ xem bị khóa",
       "futureRelease": "Sắp có!"
+    },
+    "success": {
+      "updatedUIACL": "Đã cập nhật UI ACL cho các bảng thành công",
+      "pluginUninstalled": "Plugin gỡ cài đặt thành công",
+      "pluginSettingsSaved": "Cài đặt plugin được lưu thành công",
+      "pluginTested": "Cài đặt plugin được kiểm tra thành công",
+      "tableRenamed": "Bảng đổi tên thành công",
+      "viewDeleted": "Xem đã xóa thành công",
+      "primaryColumnUpdated": "Được cập nhật thành công làm cột chính",
+      "tableDataExported": "Đã xuất thành công tất cả dữ liệu bảng",
+      "updated": "Cập nhật thành công",
+      "sharedViewDeleted": "Đã xóa chế độ xem được chia sẻ thành công",
+      "viewRenamed": "Xem đổi tên thành công",
+      "tokenGenerated": "Mã thông báo tạo thành công",
+      "tokenDeleted": "Mã thông báo đã xóa thành công",
+      "userAddedToProject": "Người dùng thêm thành công vào dự án",
+      "userDeletedFromProject": "Người dùng đã xóa thành công khỏi dự án",
+      "inviteEmailSent": "Mời email được gửi thành công",
+      "inviteURLCopied": "Mời URL sao chép vào bảng tạm",
+      "shareableURLCopied": "Đã sao chép URL cơ sở chia sẻ để clipboard!",
+      "embeddableHTMLCodeCopied": "Đã sao chép mã HTML có thể nhúng!",
+      "userDetailsUpdated": "Cập nhật thành công các chi tiết người dùng",
+      "tableDataImported": "Dữ liệu bảng được nhập thành công",
+      "webhookUpdated": "Chi tiết webhook được cập nhật thành công",
+      "webhookDeleted": "Hook đã xóa thành công",
+      "webhookTested": "Webhook đã kiểm tra thành công",
+      "columnUpdated": "Cập nhật cột",
+      "columnCreated": "Cột được tạo",
+      "passwordChanged": "Mật khẩu đã thay đổi thành công. Xin vui lòng đăng nhập lại."
     }
   }
 }

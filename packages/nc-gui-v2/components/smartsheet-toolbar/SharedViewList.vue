@@ -2,12 +2,15 @@
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { Empty, message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { onMounted, useSmartsheetStoreOrThrow } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MdiVisibilityOnIcon from '~icons/mdi/visibility'
 import MdiVisibilityOffIcon from '~icons/mdi/visibility-off'
 import MdiCopyIcon from '~icons/mdi/content-copy'
 import MdiDeleteIcon from '~icons/mdi/delete-outline'
+
+const { t } = useI18n()
 
 interface SharedViewType {
   password: string
@@ -74,13 +77,15 @@ const renderAllowCSVDownload = (view: SharedViewType) => {
 
 const copyLink = (view: SharedViewType) => {
   copy(`${dashboardUrl?.value as string}/${sharedViewUrl(view)}`)
-  message.success('Copied to clipboard')
+  // Copied to clipboard
+  message.success(t('msg.info.copiedToClipboard'))
 }
 
 const deleteLink = async (id: string) => {
   try {
     await $api.dbViewShare.delete(id)
-    message.success('Deleted shared view successfully')
+    // Deleted shared view successfully
+    message.success(t('msg.success.sharedViewDeleted'))
     await loadSharedViewsList()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

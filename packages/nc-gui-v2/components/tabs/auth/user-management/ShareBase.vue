@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { onMounted, useClipboard, useNuxtApp, useProject } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
+
+const { t } = useI18n()
 
 interface ShareBase {
   uuid?: string
@@ -99,7 +102,8 @@ const copyUrl = async () => {
 
   await copy(url)
 
-  message.success('Copied shareable base url to clipboard!')
+  // Copied shareable base url to clipboard!
+  message.success(t('msg.success.shareableURLCopied'))
 
   $e('c:shared-base:copy-url')
 }
@@ -123,7 +127,8 @@ width="100%"
 height="700"
 style="background: transparent; border: 1px solid #ddd"></iframe>`)
 
-  message.success('Copied embeddable html code!')
+  // Copied embeddable html code!
+  message.success(t('msg.success.embeddableHTMLCodeCopied'))
 
   $e('c:shared-base:copy-embed-frame')
 }

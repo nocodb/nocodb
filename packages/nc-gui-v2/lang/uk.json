@@ -583,6 +583,35 @@
       "collabView": "Успішно переключено на спільне вигляд",
       "lockedView": "Успішно переключено на заблокований вигляд",
       "futureRelease": "Незабаром!"
+    },
+    "success": {
+      "updatedUIACL": "Оновлений інтерфейс ACL для таблиць успішно",
+      "pluginUninstalled": "Плагін успішно видалити",
+      "pluginSettingsSaved": "Налаштування плагіна успішно збереглися",
+      "pluginTested": "Успішно протестовані налаштування плагіна",
+      "tableRenamed": "Таблиця перейменовано успішно",
+      "viewDeleted": "Переглянути успішно видалено",
+      "primaryColumnUpdated": "Успішно оновлено як первинний стовпець",
+      "tableDataExported": "Успішно експортували всі дані таблиці",
+      "updated": "Успішно оновлено",
+      "sharedViewDeleted": "Успішно видалено спільний перегляд",
+      "viewRenamed": "Переглянути перейменовано успішно",
+      "tokenGenerated": "Маркер успішно генерується",
+      "tokenDeleted": "Маркер успішно видалено",
+      "userAddedToProject": "Успішно додав користувача до проекту",
+      "userDeletedFromProject": "Успішно видалений користувач з проекту",
+      "inviteEmailSent": "Запросіть електронну пошту успішно надіслано",
+      "inviteURLCopied": "Запросіть URL -адресу, скопійовану в буфер обміну",
+      "shareableURLCopied": "Копедується базова URL -адреса для обміну обміном!",
+      "embeddableHTMLCodeCopied": "Копізований код HTML Embeddable!",
+      "userDetailsUpdated": "Успішно оновив деталі користувача",
+      "tableDataImported": "Успішно імпортовані дані таблиці",
+      "webhookUpdated": "Деталі Webhook успішно оновлюються",
+      "webhookDeleted": "Гачок успішно видалено",
+      "webhookTested": "Webhook успішно тестувався",
+      "columnUpdated": "Стовпчик оновлений",
+      "columnCreated": "Створена колонка",
+      "passwordChanged": "Пароль успішно змінився. Будь ласка, увійдіть ще раз."
     }
   }
 }

@@ -583,6 +583,35 @@
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",
       "futureRelease": "Coming soon!"
+    },
+    "success": {
+      "updatedUIACL": "Updated UI ACL for tables successfully",
+      "pluginUninstalled": "Plugin uninstalled successfully",
+      "pluginSettingsSaved": "Plugin settings saved successfully",
+      "pluginTested": "Successfully tested plugin settings",
+      "tableRenamed": "Table renamed successfully",
+      "viewDeleted": "View deleted successfully",
+      "primaryColumnUpdated": "Successfully updated as primary column",
+      "tableDataExported": "Successfully exported all table data",
+      "updated": "Successfully updated",
+      "sharedViewDeleted": "Deleted shared view successfully",
+      "viewRenamed": "View renamed successfully",
+      "tokenGenerated": "Token generated successfully",
+      "tokenDeleted": "Token deleted successfully",
+      "userAddedToProject": "Successfully added user to project",
+      "userDeletedFromProject": "Successfully deleted user from project",
+      "inviteEmailSent": "Invite Email sent successfully",
+      "inviteURLCopied": "Invite URL copied to clipboard",
+      "shareableURLCopied": "Copied shareable base URL to clipboard!",
+      "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
+      "userDetailsUpdated": "Successfully updated the user details",
+      "tableDataImported": "Successfully imported table data",
+      "webhookUpdated": "Webhook details updated successfully",
+      "webhookDeleted": "Hook deleted successfully",
+      "webhookTested": "Webhook tested successfully",
+      "columnUpdated": "Column updated",
+      "columnCreated": "Column created",
+      "passwordChanged": "Password changed successfully. Please login again."
     }
   }
 }

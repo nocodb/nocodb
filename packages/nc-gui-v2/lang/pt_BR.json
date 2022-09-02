@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Clique ou arraste o arquivo para esta área para fazer upload"
-      }
+      },
+      "metaDataRecreated": "Metadados da tabela recriados com sucesso",
+      "invalidCredentials": "Credenciais inválidas",
+      "downloadingMoreFiles": "Baixando mais arquivos",
+      "copiedToClipboard": "Copiado para a área de transferência",
+      "requriedFieldsCantBeMoved": "O campo necessário não pode ser movido",
+      "updateNotAllowedWithoutPK": "Atualização não permitida para a tabela, que não possui chave primária",
+      "autoIncFieldNotEditable": "O campo de incremento automático não é editável",
+      "editingPKnotSupported": "Editando a chave primária não suportada",
+      "deletedCache": "Cache excluído com sucesso",
+      "cacheEmpty": "O cache está vazio",
+      "exportedCache": "Cache exportado com sucesso",
+      "valueAlreadyInList": "Este valor já está na lista",
+      "noColumnsToUpdate": "Sem colunas para atualizar",
+      "tableDeleted": "Tabela excluída com sucesso"
     },
     "error": {
       "searchProject": "A sua pesquisa por {search} não encontrou resultados",
@@ -569,6 +583,35 @@
       "collabView": "Com sucesso mudou para a visão colaborativa",
       "lockedView": "Mudou com sucesso para vista bloqueada",
       "futureRelease": "Em breve!"
+    },
+    "success": {
+      "updatedUIACL": "UI atualizada ACL para tabelas com sucesso",
+      "pluginUninstalled": "O plug -in desinstalou com sucesso",
+      "pluginSettingsSaved": "Configurações do plug -in salvas com sucesso",
+      "pluginTested": "Configurações de plug -in testadas com sucesso",
+      "tableRenamed": "Tabela renomeada com sucesso",
+      "viewDeleted": "Ver excluído com sucesso",
+      "primaryColumnUpdated": "Atualizado com sucesso como coluna primária",
+      "tableDataExported": "Exportou com sucesso todos os dados da tabela",
+      "updated": "Atualizado com sucesso",
+      "sharedViewDeleted": "Excluída Vista compartilhada com sucesso",
+      "viewRenamed": "Veja renomeado com sucesso",
+      "tokenGenerated": "Token gerado com sucesso",
+      "tokenDeleted": "Token excluído com sucesso",
+      "userAddedToProject": "Adicionado com sucesso o usuário ao projeto",
+      "userDeletedFromProject": "Excluído com sucesso do projeto do projeto",
+      "inviteEmailSent": "Convide e -mail enviado com sucesso",
+      "inviteURLCopied": "Convide URL copiado para a área de transferência",
+      "shareableURLCopied": "Copiado URL da base compartilhável para a área de transferência!",
+      "embeddableHTMLCodeCopied": "Código HTML incorporável copiado!",
+      "userDetailsUpdated": "Atualizou com sucesso os detalhes do usuário",
+      "tableDataImported": "Dados da tabela importados com sucesso",
+      "webhookUpdated": "Detalhes da webhook atualizados com sucesso",
+      "webhookDeleted": "Gancho excluído com sucesso",
+      "webhookTested": "Webhook testou com sucesso",
+      "columnUpdated": "Coluna atualizada",
+      "columnCreated": "Coluna criada",
+      "passwordChanged": "Senha alterada com sucesso. Por favor faça login novamente."
     }
   }
 }

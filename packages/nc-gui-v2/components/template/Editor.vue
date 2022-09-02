@@ -2,6 +2,7 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { Empty, Form, message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   MetaInj,
@@ -23,6 +24,12 @@ import {
 } from '#imports'
 import { TabType } from '~/composables'
 
+const { quickImportType, projectTemplate, importData, importColumns, importOnly, maxRowsToParse } = defineProps<Props>()
+
+const emit = defineEmits(['import'])
+
+const { t } = useI18n()
+
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
   projectTemplate: Record<string, any>
@@ -36,10 +43,6 @@ interface Option {
   label: string
   value: string
 }
-
-const { quickImportType, projectTemplate, importData, importColumns, importOnly, maxRowsToParse } = defineProps<Props>()
-
-const emit = defineEmits(['import'])
 
 const meta = inject(MetaInj, ref({} as TableType))
 
@@ -388,7 +391,8 @@ async function importTemplate() {
       // reload table
       reloadHook.trigger()
 
-      message.success('Successfully imported table data')
+      // Successfully imported table data
+      message.success(t('msg.success.tableDataImported'))
     } catch (e: any) {
       message.error(e.message)
     } finally {

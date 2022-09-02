@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex align-center" :class="{ 'justify-center': !isForm, 'nc-cell-hover-show': !localState }">
+  <div class="d-flex align-center overflow-hidden" :class="{ 'justify-center': !isForm, 'nc-cell-hover-show': !localState }">
     <v-icon small :color="checkboxMeta.color" @click="toggle">
       {{ localState ? checkedIcon : uncheckedIcon }}
     </v-icon>

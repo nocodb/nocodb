@@ -1,6 +1,8 @@
 import { defineNuxtPlugin } from 'nuxt/app'
 import { createI18n } from 'vue-i18n'
 
+let i18n: ReturnType<typeof createI18n>
+
 export const createI18nPlugin = async () =>
   createI18n({
     locale: 'en', // Set the initial locale
@@ -44,9 +46,11 @@ export const createI18nPlugin = async () =>
   })
 
 export default defineNuxtPlugin(async (nuxtApp) => {
-  const i18n = await createI18nPlugin()
+  i18n = (await createI18nPlugin()) as any
 
   nuxtApp.vueApp.i18n = i18n.global as any
 
   nuxtApp.vueApp.use(i18n)
 })
+
+export const getI18n = () => i18n

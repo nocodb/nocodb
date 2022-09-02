@@ -378,7 +378,7 @@ Cypress.Commands.add("createColumn", (table, columnName) => {
 });
 
 Cypress.Commands.add("toastWait", (msg) => {
-    cy.get('.ant-message-notice-content:visible', { timout: 30000 }).should('exist')
+    // cy.get('.ant-message-notice-content:visible', { timout: 30000 }).should('exist')
     cy.get('.ant-message-notice-content:visible', { timout: 12000 }).contains(msg).should('exist')
     cy.get('.ant-message-notice-content:visible', { timout: 12000 }).should('not.exist')
 });

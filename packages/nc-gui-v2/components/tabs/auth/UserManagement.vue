@@ -223,8 +223,12 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </div>
 
         <div class="flex w-1/6 justify-center flex-wrap ml-4">
-          <div class="rounded-full px-2 py-1 nc-user-role" :style="{ backgroundColor: projectRoleTagColors[user.roles] }">
-            {{ user.roles }}
+          <div
+            v-if="user.roles"
+            class="rounded-full px-2 py-1 nc-user-role"
+            :style="{ backgroundColor: projectRoleTagColors[user.roles] }"
+          >
+            {{ $t(`objects.roleType.${user.roles}`) }}
           </div>
         </div>
         <div class="flex w-1/6 flex-wrap justify-end">

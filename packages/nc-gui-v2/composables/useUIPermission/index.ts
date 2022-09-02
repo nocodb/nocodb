@@ -17,7 +17,6 @@ export function useUIPermission() {
         return acc
       }, {})
     }
-
     // merge user role and project specific user roles
     const roles = {
       ...userRoles,

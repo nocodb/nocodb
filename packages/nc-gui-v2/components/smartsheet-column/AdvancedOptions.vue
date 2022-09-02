@@ -27,7 +27,7 @@ vModel.value.au = !!vModel.value.au
 
 <template>
   <div class="p-4 border-[2px] radius-1 border-grey w-full flex flex-col gap-2">
-    <div class="flex justify-space-between">
+    <div class="flex justify-between w-full gap-1">
       <a-form-item label="NN">
         <a-checkbox
           v-model:checked="vModel.rqd"

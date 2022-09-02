@@ -281,9 +281,9 @@ defineExpose({
       <a-button class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex items-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
+          <!--          Add Filter Group -->
           <MdiPlus />
-          Add Filter Group
-          <!--     todo: add i18n {{ $t('activity.addFilterGroup') }} -->
+          {{ $t('activity.addFilterGroup') }}
         </div>
       </a-button>
     </div>

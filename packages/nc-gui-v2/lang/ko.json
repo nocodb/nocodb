@@ -280,7 +280,11 @@
     "importing": "가져 오기",
     "flattenNested": "평평하게 중첩",
     "downloadAllowed": "다운로드 허용",
-    "weAreHiring": "직원 모집합니다!"
+    "weAreHiring": "직원 모집합니다!",
+    "primaryKey": "기본 키",
+    "hasMany": "많이있다",
+    "belongsTo": "속한다",
+    "manyToMany": "많은 관계가 있습니다"
   },
   "activity": {
     "createProject": "프로젝트 생성",
@@ -390,7 +394,10 @@
     "sendEmail": "이메일 보내기",
     "addUserToProject": "프로젝트에 사용자를 추가하십시오",
     "getApiSnippet": "API 스 니펫을 얻으십시오",
-    "clearCell": "클리어 셀"
+    "clearCell": "클리어 셀",
+    "addFilterGroup": "필터 그룹을 추가하십시오",
+    "linkRecord": "링크 레코드",
+    "addNewRecord": "새로운 레코드를 추가하십시오"
   },
   "tooltip": {
     "saveChanges": "변경 사항 저장",
@@ -437,7 +444,8 @@
     "noItemsFound": "제품을 찾지 못했습니다",
     "defaultValue": "기본값",
     "filterByEmail": "전자 메일로 필터링",
-    "filterQuery": "필터 쿼리"
+    "filterQuery": "필터 쿼리",
+    "selectField": "필드를 선택하십시오"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "캐시를 성공적으로 내보냈습니다",
       "valueAlreadyInList": "이 값은 이미 목록에 있습니다",
       "noColumnsToUpdate": "업데이트 할 열이 없습니다",
-      "tableDeleted": "삭제 된 테이블이 성공적으로 삭제되었습니다"
+      "tableDeleted": "삭제 된 테이블이 성공적으로 삭제되었습니다",
+      "generatePublicShareableReadonlyBase": "공개적으로 공유 할 수있는 기지를 생성합니다",
+      "deleteViewConfirmation": "이 뷰를 삭제 하시겠습니까?",
+      "deleteTableConfirmation": "테이블을 삭제 하시겠습니까?",
+      "showM2mTables": "M2M 테이블을 보여줍니다"
     },
     "error": {
       "searchProject": "검색 결과가 없습니다",

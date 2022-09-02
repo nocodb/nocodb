@@ -181,7 +181,7 @@ const clickInviteMore = () => {
         <div v-else class="flex flex-col pb-4">
           <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
             <MdiAccountOutline />
-            <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? 'Edit User' : 'Invite Team' }}</div>
+            <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? $t('activity.editUser') : $t('activity.inviteTeam') }}</div>
           </div>
           <div class="border-1 py-3 px-4 rounded-md mt-1">
             <a-form
@@ -199,7 +199,7 @@ const clickInviteMore = () => {
                     name="emails"
                     :rules="[{ required: true, message: 'Please input email' }]"
                   >
-                    <div class="ml-1 mb-1 text-xs text-gray-500">Email:</div>
+                    <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
                     <a-input
                       v-model:value="usersData.emails"
                       validate-trigger="onBlur"

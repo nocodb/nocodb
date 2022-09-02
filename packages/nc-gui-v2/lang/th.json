@@ -280,7 +280,11 @@
     "importing": "การนำเข้า",
     "flattenNested": "ซ้อนกัน",
     "downloadAllowed": "ดาวน์โหลดได้รับอนุญาต",
-    "weAreHiring": "เรากำลังจ้าง!"
+    "weAreHiring": "เรากำลังจ้าง!",
+    "primaryKey": "คีย์หลัก",
+    "hasMany": "มีมากมาย",
+    "belongsTo": "เป็นของ",
+    "manyToMany": "มีความสัมพันธ์มากมายกับหลาย ๆ"
   },
   "activity": {
     "createProject": "สร้างโครงการ",
@@ -390,7 +394,10 @@
     "sendEmail": "ส่งอีเมล",
     "addUserToProject": "เพิ่มผู้ใช้ในโครงการ",
     "getApiSnippet": "รับตัวอย่าง API",
-    "clearCell": "ล้างเซลล์"
+    "clearCell": "ล้างเซลล์",
+    "addFilterGroup": "เพิ่มกลุ่มตัวกรอง",
+    "linkRecord": "บันทึกลิงก์",
+    "addNewRecord": "เพิ่มบันทึกใหม่"
   },
   "tooltip": {
     "saveChanges": "บันทึกการเปลี่ยนแปลง",
@@ -437,7 +444,8 @@
     "noItemsFound": "ไม่พบรายการ",
     "defaultValue": "ค่าเริ่มต้น",
     "filterByEmail": "กรองทางอีเมล",
-    "filterQuery": "ตัวกรองแบบสอบถาม"
+    "filterQuery": "ตัวกรองแบบสอบถาม",
+    "selectField": "เลือกฟิลด์"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "แคชส่งออกสำเร็จ",
       "valueAlreadyInList": "ค่านี้อยู่ในรายการแล้ว",
       "noColumnsToUpdate": "ไม่มีคอลัมน์ที่จะอัปเดต",
-      "tableDeleted": "ตารางที่ถูกลบสำเร็จ"
+      "tableDeleted": "ตารางที่ถูกลบสำเร็จ",
+      "generatePublicShareableReadonlyBase": "สร้างฐานที่เปิดเผยต่อสาธารณะอย่างเดียว",
+      "deleteViewConfirmation": "แน่ใจหรือว่าต้องการลบมุมมองนี้?",
+      "deleteTableConfirmation": "คุณต้องการลบตาราง",
+      "showM2mTables": "แสดงตาราง M2M"
     },
     "error": {
       "searchProject": "การค้นหาของคุณสำหรับ {search} ไม่พบผลลัพธ์",

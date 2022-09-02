@@ -280,7 +280,11 @@
     "importing": "Імпорт",
     "flattenNested": "Вкладений вкладений",
     "downloadAllowed": "Завантажити дозволено",
-    "weAreHiring": "Ми наймаємо!"
+    "weAreHiring": "Ми наймаємо!",
+    "primaryKey": "Первинний ключ",
+    "hasMany": "має багато",
+    "belongsTo": "належить",
+    "manyToMany": "мають багато стосунків"
   },
   "activity": {
     "createProject": "Створити проект",
@@ -390,7 +394,10 @@
     "sendEmail": "ВІДПРАВИТИ ЛИСТ",
     "addUserToProject": "Додайте користувача до проекту",
     "getApiSnippet": "Отримайте фрагмент API",
-    "clearCell": "Прозора клітина"
+    "clearCell": "Прозора клітина",
+    "addFilterGroup": "Додайте групу фільтрів",
+    "linkRecord": "Запис посилань",
+    "addNewRecord": "Додайте новий запис"
   },
   "tooltip": {
     "saveChanges": "Зберегти зміни",
@@ -437,7 +444,8 @@
     "noItemsFound": "Не знайдено жодних елементів",
     "defaultValue": "Значення за замовчуванням",
     "filterByEmail": "Фільтр по електронній пошті",
-    "filterQuery": "Запит фільтру"
+    "filterQuery": "Запит фільтру",
+    "selectField": "Виберіть поле"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Експортований кеш успішно",
       "valueAlreadyInList": "Це значення вже в списку",
       "noColumnsToUpdate": "Немає стовпців для оновлення",
-      "tableDeleted": "Успішно видалений таблиця"
+      "tableDeleted": "Успішно видалений таблиця",
+      "generatePublicShareableReadonlyBase": "Генерувати загальнодоступну базу для читання",
+      "deleteViewConfirmation": "Ви впевнені, що хочете видалити цей вигляд?",
+      "deleteTableConfirmation": "Ви хочете видалити стіл",
+      "showM2mTables": "Показати таблиці M2M"
     },
     "error": {
       "searchProject": "Ваш пошук {пошук} не знайдено жодних результатів",

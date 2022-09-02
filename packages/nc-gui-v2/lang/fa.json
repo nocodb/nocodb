@@ -280,7 +280,11 @@
     "importing": "وارد کننده",
     "flattenNested": "مسطح تو در تو",
     "downloadAllowed": "بارگیری مجاز",
-    "weAreHiring": "ما در حال استخدام هستیم!"
+    "weAreHiring": "ما در حال استخدام هستیم!",
+    "primaryKey": "کلید اصلی",
+    "hasMany": "بسیاری دارد",
+    "belongsTo": "متعلق به",
+    "manyToMany": "با بسیاری از ارتباطات داشته باشید"
   },
   "activity": {
     "createProject": "ایجاد پروژه",
@@ -390,7 +394,10 @@
     "sendEmail": "ارسال پست الکترونیکی",
     "addUserToProject": "کاربر را به پروژه اضافه کنید",
     "getApiSnippet": "قطعه API را دریافت کنید",
-    "clearCell": "سلول پاک"
+    "clearCell": "سلول پاک",
+    "addFilterGroup": "گروه فیلتر را اضافه کنید",
+    "linkRecord": "رکورد",
+    "addNewRecord": "رکورد جدید اضافه کنید"
   },
   "tooltip": {
     "saveChanges": "ذخیره تغییرات",
@@ -437,7 +444,8 @@
     "noItemsFound": "مواردی یافت نشد",
     "defaultValue": "مقدار پیش‌فرض",
     "filterByEmail": "فیلترکردن بر مبنای پست الکترونیکی",
-    "filterQuery": "پرس و جو"
+    "filterQuery": "پرس و جو",
+    "selectField": "فیلد را انتخاب کنید"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "حافظه نهان صادر شده با موفقیت",
       "valueAlreadyInList": "این مقدار در حال حاضر در لیست است",
       "noColumnsToUpdate": "هیچ ستون برای به روزرسانی وجود ندارد",
-      "tableDeleted": "جدول حذف شده با موفقیت"
+      "tableDeleted": "جدول حذف شده با موفقیت",
+      "generatePublicShareableReadonlyBase": "پایه readonly قابل اشتراکی عمومی ایجاد کنید",
+      "deleteViewConfirmation": "آیا مطمئن هستید که می خواهید این نمای را حذف کنید؟",
+      "deleteTableConfirmation": "آیا می خواهید جدول را حذف کنید",
+      "showM2mTables": "جداول M2M را نشان دهید"
     },
     "error": {
       "searchProject": "جست‌وجوی شما برای {search} نتیجه‌ای نداشت",

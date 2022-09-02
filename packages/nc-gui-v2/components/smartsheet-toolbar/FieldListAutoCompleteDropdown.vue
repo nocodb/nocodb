@@ -82,7 +82,7 @@ const filterOption = (input: string, option: any) => {
     v-model:value="localValue"
     :dropdown-match-select-width="false"
     show-search
-    placeholder="Select a field"
+    :placeholder="$t('placeholder.selectField')"
     :filter-option="filterOption"
   >
     <a-select-option v-for="option in options" :key="option.value" :value="option.value">

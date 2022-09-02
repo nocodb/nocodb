@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
+import { useI18n } from 'vue-i18n'
 import {
   ColumnInj,
   IsFormInj,
@@ -16,6 +17,8 @@ import {
 } from '#imports'
 
 const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required?: boolean | number }>()
+
+const { t } = useI18n()
 
 const column = toRef(props, 'column')
 
@@ -73,11 +76,11 @@ const tooltipMsg = computed(() => {
     return ''
   }
   if (isHm.value) {
-    return `'${tableTile}' has many '${relatedTableTitle}'`
+    return `'${tableTile}' ${t(labels.hasMany)} '${relatedTableTitle}'`
   } else if (isMm.value) {
-    return `'${tableTile}' & '${relatedTableTitle}' have many to many relation`
+    return `'${tableTile}' & '${relatedTableTitle}' ${t(labels.manyToMany)}`
   } else if (isBt.value) {
-    return `'${column?.value?.title}' belongs to '${relatedTableTitle}'`
+    return `'${column?.value?.title}' ${t(labels.belongsTo)} '${relatedTableTitle}'`
   } else if (isLookup.value) {
     return `'${childColumn.title}' from '${relatedTableTitle}' (${childColumn.uidt})`
   } else if (isFormula.value) {

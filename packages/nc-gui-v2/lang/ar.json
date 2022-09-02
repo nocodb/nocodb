@@ -280,7 +280,11 @@
     "importing": "الاستيراد",
     "flattenNested": "تسطح متداخلة",
     "downloadAllowed": "تحميل مسموح به",
-    "weAreHiring": "نحن نوظف!"
+    "weAreHiring": "نحن نوظف!",
+    "primaryKey": "المفتاح الأساسي",
+    "hasMany": "لديه الكثير",
+    "belongsTo": "ينتمي إلى",
+    "manyToMany": "لديك الكثير من العلاقات"
   },
   "activity": {
     "createProject": "إنشاء مشروع",
@@ -390,7 +394,10 @@
     "sendEmail": "ارسل بريد الكتروني",
     "addUserToProject": "أضف المستخدم إلى المشروع",
     "getApiSnippet": "الحصول على مقتطف API",
-    "clearCell": "خلية واضحة"
+    "clearCell": "خلية واضحة",
+    "addFilterGroup": "إضافة مجموعة المرشح",
+    "linkRecord": "سجل الرابط",
+    "addNewRecord": "أضف سجلًا جديدًا"
   },
   "tooltip": {
     "saveChanges": "حفظ التغييرات",
@@ -437,7 +444,8 @@
     "noItemsFound": "لم يتم العثور على عناصر",
     "defaultValue": "القيمة الافتراضية",
     "filterByEmail": "تصفية عن طريق البريد الإلكتروني",
-    "filterQuery": "مرشح الاستعلام"
+    "filterQuery": "مرشح الاستعلام",
+    "selectField": "حدد الحقل"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "تصدير ذاكرة التخزين المؤقت بنجاح",
       "valueAlreadyInList": "هذه القيمة موجودة بالفعل في القائمة",
       "noColumnsToUpdate": "لا توجد أعمدة للتحديث",
-      "tableDeleted": "تم حذف الجدول بنجاح"
+      "tableDeleted": "تم حذف الجدول بنجاح",
+      "generatePublicShareableReadonlyBase": "توليد قاعدة قابلة للمشاركة بشكل عام",
+      "deleteViewConfirmation": "هل أنت متأكد من أنك تريد حذف هذا العرض؟",
+      "deleteTableConfirmation": "هل تريد حذف الجدول",
+      "showM2mTables": "إظهار الجداول M2M"
     },
     "error": {
       "searchProject": "البحث عن {بحث} لم يتم العثور على نتائج",

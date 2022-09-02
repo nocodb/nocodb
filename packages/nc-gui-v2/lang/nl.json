@@ -280,7 +280,11 @@
     "importing": "Importeren",
     "flattenNested": "Flatten genest",
     "downloadAllowed": "Download toegestaan",
-    "weAreHiring": "We zijn aan het huren!"
+    "weAreHiring": "We zijn aan het huren!",
+    "primaryKey": "Hoofdsleutel",
+    "hasMany": "heeft veel",
+    "belongsTo": "hoort bij",
+    "manyToMany": "hebben veel te veel relatie"
   },
   "activity": {
     "createProject": "Maak project",
@@ -390,7 +394,10 @@
     "sendEmail": "STUUR E-MAIL",
     "addUserToProject": "Voeg gebruiker toe aan project",
     "getApiSnippet": "Krijg API -fragment",
-    "clearCell": "Duidelijke cel"
+    "clearCell": "Duidelijke cel",
+    "addFilterGroup": "Voeg filtergroep toe",
+    "linkRecord": "Link Record",
+    "addNewRecord": "Nieuw record toevoegen"
   },
   "tooltip": {
     "saveChanges": "Wijzigingen opslaan",
@@ -437,7 +444,8 @@
     "noItemsFound": "Geen items gevonden",
     "defaultValue": "Standaardwaarde",
     "filterByEmail": "Filteren per e-mail",
-    "filterQuery": "Filterquery"
+    "filterQuery": "Filterquery",
+    "selectField": "Selecteer veld"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Met succes geëxporteerd cache",
       "valueAlreadyInList": "Deze waarde staat al in de lijst",
       "noColumnsToUpdate": "Geen kolommen om bij te werken",
-      "tableDeleted": "Met succes verwijderde tabel"
+      "tableDeleted": "Met succes verwijderde tabel",
+      "generatePublicShareableReadonlyBase": "Genereer publiekelijk deelbare readonly -basis",
+      "deleteViewConfirmation": "Weet u zeker dat u deze weergave wilt verwijderen?",
+      "deleteTableConfirmation": "Wilt u de tabel verwijderen",
+      "showM2mTables": "Toon M2M -tafels"
     },
     "error": {
       "searchProject": "Uw zoekopdracht voor {search} heeft geen resultaten opgeleverd",

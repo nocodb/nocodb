@@ -280,7 +280,11 @@
     "importing": "İthalat",
     "flattenNested": "İç içe düzleştirmek",
     "downloadAllowed": "İzine İzin Ver",
-    "weAreHiring": "İşe alıyoruz!"
+    "weAreHiring": "İşe alıyoruz!",
+    "primaryKey": "Birincil anahtar",
+    "hasMany": "Birçok vardır",
+    "belongsTo": "ait olmak",
+    "manyToMany": "Birçok ilişkiye sahip olmak"
   },
   "activity": {
     "createProject": "Proje Oluştur",
@@ -390,7 +394,10 @@
     "sendEmail": "E-POSTA GÖNDER",
     "addUserToProject": "Projeye Kullanıcı Ekle",
     "getApiSnippet": "API snippet'i alın",
-    "clearCell": "Temiz hücre"
+    "clearCell": "Temiz hücre",
+    "addFilterGroup": "Filtre Grubu Ekle",
+    "linkRecord": "Bağlantı kaydı",
+    "addNewRecord": "Yeni kayıt ekle"
   },
   "tooltip": {
     "saveChanges": "Değişiklikleri Kaydet",
@@ -437,7 +444,8 @@
     "noItemsFound": "Hiç bir öğe bulunamadı",
     "defaultValue": "Varsayılan değer",
     "filterByEmail": "E-posta ile filtrele",
-    "filterQuery": "Filtre sorgusu"
+    "filterQuery": "Filtre sorgusu",
+    "selectField": "Alanı seçin"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Önbellek başarıyla dışa aktarıldı",
       "valueAlreadyInList": "Bu değer zaten listede",
       "noColumnsToUpdate": "Güncellenecek sütun yok",
-      "tableDeleted": "Silinmiş tablo başarıyla"
+      "tableDeleted": "Silinmiş tablo başarıyla",
+      "generatePublicShareableReadonlyBase": "Herkese açık olarak paylaşılabilir okunabilir taban oluşturun",
+      "deleteViewConfirmation": "Bu görünümü silmek istediğinizden emin misiniz?",
+      "deleteTableConfirmation": "Masayı silmek ister misin",
+      "showM2mTables": "M2M tablolarını göster"
     },
     "error": {
       "searchProject": "{search} için aramanız hiç bir sonuç bulamadı",

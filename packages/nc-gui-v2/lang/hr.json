@@ -280,7 +280,11 @@
     "importing": "Uvoz",
     "flattenNested": "Spljošteno ugniježđen",
     "downloadAllowed": "Preuzmi dopušteno",
-    "weAreHiring": "Mi se zapošljavamo!"
+    "weAreHiring": "Mi se zapošljavamo!",
+    "primaryKey": "Glavni ključ",
+    "hasMany": "ima mnogo",
+    "belongsTo": "pripada",
+    "manyToMany": "imaju mnogo do mnogih odnosa"
   },
   "activity": {
     "createProject": "Stvoriti projekt",
@@ -390,7 +394,10 @@
     "sendEmail": "POŠALJI E-MAIL",
     "addUserToProject": "Dodajte korisnika u projekt",
     "getApiSnippet": "Nabavite isječak API -ja",
-    "clearCell": "Bistra ćelija"
+    "clearCell": "Bistra ćelija",
+    "addFilterGroup": "Dodajte filtersku grupu",
+    "linkRecord": "Link zapisnik",
+    "addNewRecord": "Dodajte novi zapis"
   },
   "tooltip": {
     "saveChanges": "Spremi promjene",
@@ -437,7 +444,8 @@
     "noItemsFound": "Nema pronađenih stavki",
     "defaultValue": "Zadana vrijednost",
     "filterByEmail": "Filtar putem e-maila",
-    "filterQuery": "Upit za filtriranje"
+    "filterQuery": "Upit za filtriranje",
+    "selectField": "Odaberite polje"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Uspješno izvozila predmemoriju",
       "valueAlreadyInList": "Ova je vrijednost već na popisu",
       "noColumnsToUpdate": "Nema stupaca za ažuriranje",
-      "tableDeleted": "Uspješno izbrisana tablica"
+      "tableDeleted": "Uspješno izbrisana tablica",
+      "generatePublicShareableReadonlyBase": "Generirajte javno podijeljene samo za čitanje",
+      "deleteViewConfirmation": "Jeste li sigurni da želite izbrisati ovaj pogled?",
+      "deleteTableConfirmation": "Želite li izbrisati stol",
+      "showM2mTables": "Prikaži M2M stolove"
     },
     "error": {
       "searchProject": "Vaša potraga za {Search} nije pronašla rezultate",

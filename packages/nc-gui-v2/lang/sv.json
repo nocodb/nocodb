@@ -280,7 +280,11 @@
     "importing": "Importerande",
     "flattenNested": "Platta kapslad",
     "downloadAllowed": "Nedladdning tillåtet",
-    "weAreHiring": "Vi hyr!"
+    "weAreHiring": "Vi hyr!",
+    "primaryKey": "Primärnyckel",
+    "hasMany": "har många",
+    "belongsTo": "tillhör",
+    "manyToMany": "har många till många relationer"
   },
   "activity": {
     "createProject": "Skapa projekt",
@@ -390,7 +394,10 @@
     "sendEmail": "SKICKA EPOST",
     "addUserToProject": "Lägg till användare i projektet",
     "getApiSnippet": "Få API -utdrag",
-    "clearCell": "Klart cell"
+    "clearCell": "Klart cell",
+    "addFilterGroup": "Lägg till filtergrupp",
+    "linkRecord": "Länkpost",
+    "addNewRecord": "Lägg till ny post"
   },
   "tooltip": {
     "saveChanges": "Spara ändringar",
@@ -437,7 +444,8 @@
     "noItemsFound": "Inga föremål hittades",
     "defaultValue": "Standardvärde",
     "filterByEmail": "Filtrera via e-post",
-    "filterQuery": "Filterfråga"
+    "filterQuery": "Filterfråga",
+    "selectField": "Välj fält"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Exporterad cache framgångsrikt",
       "valueAlreadyInList": "Detta värde finns redan i listan",
       "noColumnsToUpdate": "Inga kolumner att uppdatera",
-      "tableDeleted": "Borttagna tabellen framgångsrikt"
+      "tableDeleted": "Borttagna tabellen framgångsrikt",
+      "generatePublicShareableReadonlyBase": "Generera offentligt delbar readonly bas",
+      "deleteViewConfirmation": "Är du säker på att du vill ta bort den här vyn?",
+      "deleteTableConfirmation": "Vill du ta bort tabellen",
+      "showM2mTables": "Visa M2M -tabeller"
     },
     "error": {
       "searchProject": "Din sökning efter {Sök} har inga resultat",

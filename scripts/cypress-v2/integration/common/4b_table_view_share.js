@@ -90,7 +90,10 @@ export const genTest = (apiType, dbType) => {
 
             // Verify Download as CSV is here
             mainPage.downloadCsv().should("exist");
+            cy.get(".nc-actions-menu-btn").should('exist').click();
+
             mainPage.downloadExcel().should("exist");
+            cy.get(".nc-actions-menu-btn").should('exist').click();
         });
 
         it("Delete view",  () => {

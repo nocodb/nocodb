@@ -54,7 +54,7 @@ const pg = {
           : fn(pt.arguments[0])
       }) - 1 - ${getWeekdayByText(
         pt?.arguments[1]?.value
-      )} % 7 + 7) % 7 ${colAlias}`
+      )} % 7 + 7) ::INTEGER % 7 ${colAlias}`
     );
   },
 };

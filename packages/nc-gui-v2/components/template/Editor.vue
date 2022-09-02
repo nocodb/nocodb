@@ -128,8 +128,15 @@ const isValid = computed(() => {
   return true
 })
 
+const prevEditableTn = ref<string[]>([])
+
 onMounted(() => {
   parseAndLoadTemplate()
+
+  // used to record the previous EditableTn values
+  // for checking the table duplication in current import
+  // and updating the key in importData
+  prevEditableTn.value = data.tables.map((t) => t.ref_table_name)
 
   nextTick(() => {
     inputRefs.value[0]?.focus()
@@ -508,6 +515,22 @@ onMounted(() => {
     mapDefaultColumns()
   }
 })
+
+function handleEditableTnChange(idx: number) {
+  const oldValue = prevEditableTn.value[idx]
+  const newValue = data.tables[idx].ref_table_name
+  if (data.tables.filter((t) => t.ref_table_name === newValue).length > 1) {
+    message.warn('Duplicate Table Name')
+    data.tables[idx].ref_table_name = oldValue
+  } else {
+    prevEditableTn.value[idx] = newValue
+    if (oldValue !== newValue) {
+      // update the key name of importData
+      delete Object.assign(importData, { [newValue]: importData[oldValue] })[oldValue]
+    }
+  }
+  setEditableTn(idx, false)
+}
 </script>
 
 <template>
@@ -589,8 +612,8 @@ onMounted(() => {
                   size="large"
                   hide-details
                   @click="$event.stopPropagation()"
-                  @blur="setEditableTn(tableIdx, false)"
-                  @keydown.enter="setEditableTn(tableIdx, false)"
+                  @blur="handleEditableTnChange(tableIdx)"
+                  @keydown.enter="handleEditableTnChange(tableIdx)"
                 />
               </a-form-item>
 

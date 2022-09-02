@@ -102,7 +102,7 @@ const newRowState = computed(() => {
       <div class="flex mb-4 items-center gap-2 px-12">
         <a-input
           v-model:value="childrenExcludedListPagination.query"
-          placeholder="Filter query"
+          :placeholder="$t('palceholder.filterQuery')"
           class="max-w-[200px]"
           size="small"
         ></a-input>

@@ -49,7 +49,7 @@ function onPressEnter() {
       v-model:value="search.query"
       size="small"
       class="max-w-[200px]"
-      placeholder="Filter query"
+      :placeholder="$t('palceholder.filterQuery')"
       :bordered="false"
       @press-enter="onPressEnter"
     >

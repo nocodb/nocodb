@@ -22,8 +22,6 @@ const { isUIAllowed } = useUIPermission()
     >
       <div class="flex items-center space-x-1">
         <MdiAccountPlusOutline class="mr-1 nc-share-base" />
-        <!-- todo: i18n       <div>{{ $t('activity.share') }}</div> -->
-
         <div>{{ $t('activity.inviteTeam') }}</div>
       </div>
     </div>

@@ -13,17 +13,17 @@ const types = {
   [LockType.Personal]: {
     title: 'title.personalView',
     icon: MdiAccountIcon,
-    subtitle: 'Only you can edit the view configuration. Other collaborators’ personal views are hidden by default.',
+    subtitle: 'msg.info.collabView',
   },
   [LockType.Collaborative]: {
     title: 'title.collabView',
     icon: MdiAccountGroupIcon,
-    subtitle: 'Collaborators with edit permissions or higher can change the view configuration.',
+    subtitle: 'msg.info.lockedView',
   },
   [LockType.Locked]: {
     title: 'title.lockedView',
     icon: MdiLockOutlineIcon,
-    subtitle: 'No one can edit the view configuration until it is unlocked.',
+    subtitle: 'msg.info.personalView',
   },
 }
 
@@ -41,7 +41,7 @@ const selectedView = inject(ActiveViewInj)
         <component :is="types[type].icon" class="text-gray-500" />
         {{ $t(types[type].title) }}
         <div class="nc-subtitle whitespace-normal">
-          {{ types[type].subtitle }}
+          {{ $t(types[type].subtitle) }}
         </div>
       </div>
     </div>

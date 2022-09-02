@@ -7,10 +7,11 @@ import { ColumnType, UITypes } from 'nocodb-sdk';
 import {
   createColumn,
   createLookupColumn,
+  createLtarColumn,
   createRollupColumn,
 } from './factory/column';
 import { createTable } from './factory/table';
-import { createRow, getRow } from './factory/row';
+import { createRelation, createRow, getRow } from './factory/row';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -1087,8 +1088,7 @@ function tableTest() {
 
   it('Update table row', async function () {
     const table = await createTable(context, project);
-    const columns = await table.getColumns();
-    const row = await createRow(context, project, table, columns, 0);
+    const row = await createRow(context, { project, table });
 
     const updateResponse = await request(context.app)
       .patch(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
@@ -1113,8 +1113,7 @@ function tableTest() {
         validate: true,
       },
     });
-    const columns = await table.getColumns();
-    const row = await createRow(context, project, table, columns, 0);
+    const row = await createRow(context, { project, table });
 
     await request(context.app)
       .patch(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
@@ -1138,8 +1137,7 @@ function tableTest() {
         validate: true,
       },
     });
-    const columns = await table.getColumns();
-    const row = await createRow(context, project, table, columns, 0);
+    const row = await createRow(context, { project, table });
 
     const response = await request(context.app)
       .patch(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
@@ -1162,8 +1160,7 @@ function tableTest() {
 
   it('Delete table row', async function () {
     const table = await createTable(context, project);
-    const columns = await table.getColumns();
-    const row = await createRow(context, project, table, columns, 0);
+    const row = await createRow(context, { project, table });
 
     await request(context.app)
       .delete(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
@@ -1174,6 +1171,65 @@ function tableTest() {
     if (deleteRow && Object.keys(deleteRow).length > 0) {
       console.log(deleteRow);
       throw new Error('Wrong delete');
+    }
+  });
+
+  it('Delete table row', async function () {
+    const table = await createTable(context, project);
+    const row = await createRow(context, { project, table });
+
+    await request(context.app)
+      .delete(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    const deleteRow = await getRow(context, project, table, row['Id']);
+    if (deleteRow && Object.keys(deleteRow).length > 0) {
+      console.log(deleteRow);
+      throw new Error('Wrong delete');
+    }
+  });
+
+  it('Delete table row with foreign key contraint', async function () {
+    const table = await createTable(context, project);
+    const relatedTable = await createTable(context, project, {
+      table_name: 'Table2',
+      title: 'Table2_Title',
+    });
+    const ltarColumn = await createLtarColumn(context, {
+      title: 'Ltar',
+      parentTable: table,
+      childTable: relatedTable,
+      type: 'hm',
+    });
+
+    const row = await createRow(context, { project, table });
+
+    await createRelation(context, {
+      project,
+      table,
+      childTable: relatedTable,
+      column: ltarColumn,
+      type: 'hm',
+      rowId: row['Id'],
+    });
+
+    const response = await request(context.app)
+      .delete(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    const deleteRow = await getRow(context, project, table, row['Id']);
+    if (!deleteRow) {
+      throw new Error('Should not delete');
+    }
+
+    if (
+      !(response.body.message[0] as string).includes(
+        'is a LinkToAnotherRecord of'
+      )
+    ) {
+      throw new Error('Should give ltar foreign key error');
     }
   });
 }

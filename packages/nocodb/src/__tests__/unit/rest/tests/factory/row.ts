@@ -1,5 +1,9 @@
+import console from 'console';
 import { ColumnType, UITypes } from 'nocodb-sdk';
 import request from 'supertest';
+import Column from '../../../../../lib/models/Column';
+import Model from '../../../../../lib/models/Model';
+import Project from '../../../../../lib/models/Project';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {
@@ -30,12 +34,24 @@ const getRow = async (context, project, table, id) => {
 
 const createRow = async (
   context,
-  project,
-  table,
-  columns: ColumnType[],
-  index
+  {
+    project,
+    table,
+    index = 0,
+  }: {
+    project: Project;
+    table: Model;
+    index?: number;
+  }
 ) => {
+  const columns = await table.getColumns();
   const rowData = columns.reduce((acc, column) => {
+    if (
+      column.uidt === UITypes.LinkToAnotherRecord ||
+      column.uidt === UITypes.ForeignKey
+    ) {
+      return acc;
+    }
     acc[column.column_name] = rowValue(column, index);
     return acc;
   }, {});
@@ -48,4 +64,42 @@ const createRow = async (
   return response.body;
 };
 
-export { createRow, getRow };
+// Links 2 table rows together. Will create rows if ids are not provided
+const createRelation = async (
+  context,
+  {
+    project,
+    table,
+    childTable,
+    column,
+    rowId,
+    childRowId,
+    type,
+  }: {
+    project: Project;
+    table: Model;
+    childTable: Model;
+    column: Column;
+    rowId?: string;
+    childRowId?: string;
+    type: string;
+  }
+) => {
+  if (!rowId) {
+    const row = await createRow(context, { project, table });
+    rowId = row['Id'];
+  }
+
+  if (!childRowId) {
+    const row = await createRow(context, { table: childTable, project });
+    childRowId = row['Id'];
+  }
+
+  await request(context.app)
+    .post(
+      `/api/v1/db/data/noco/${project.id}/${table.id}/${rowId}/${type}/${column.title}/${childRowId}`
+    )
+    .set('xc-auth', context.token);
+};
+
+export { createRow, getRow, createRelation };

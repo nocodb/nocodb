@@ -1,5 +1,6 @@
 import { ColumnType, UITypes } from 'nocodb-sdk';
 import request from 'supertest';
+import Column from '../../../../../lib/models/Column';
 import Model from '../../../../../lib/models/Model';
 
 const defaultColumns = [
@@ -105,7 +106,7 @@ const createColumn = async (context, table, columnAttr) => {
       ...columnAttr,
     });
 
-  const column: ColumnType = (await table.getColumns()).find(
+  const column: Column = (await table.getColumns()).find(
     (column) => column.title === columnAttr.title
   );
   return column;
@@ -207,4 +208,36 @@ const createLookupColumn = async (
   return lookupColumn;
 };
 
-export { defaultColumns, createColumn, createRollupColumn, createLookupColumn };
+const createLtarColumn = async (
+  context,
+  {
+    title,
+    parentTable,
+    childTable,
+    type,
+  }: {
+    title: string;
+    parentTable: Model;
+    childTable: Model;
+    type: string;
+  }
+) => {
+  const ltarColumn = await createColumn(context, parentTable, {
+    title: title,
+    column_name: title,
+    uidt: UITypes.LinkToAnotherRecord,
+    parentId: parentTable.id,
+    childId: childTable.id,
+    type: type,
+  });
+
+  return ltarColumn;
+};
+
+export {
+  defaultColumns,
+  createColumn,
+  createRollupColumn,
+  createLookupColumn,
+  createLtarColumn,
+};

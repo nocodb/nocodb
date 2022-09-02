@@ -81,6 +81,8 @@ async function dataDelete(req: Request, res: Response) {
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
   });
+
+  // todo: Should have error http status code
   const message = await baseModel.hasLTARData(req.params.rowId, model);
   if (message.length) {
     res.json({ message });

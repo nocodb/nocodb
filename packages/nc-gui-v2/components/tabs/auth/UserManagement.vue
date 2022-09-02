@@ -278,13 +278,13 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
               <a-menu>
                 <a-menu-item>
                   <!--                  Resend invite Email -->
-                  <div class="flex flex-row items-center py-1" @click="resendInvite(user)">
+                  <div class="flex flex-row items-center py-3" @click="resendInvite(user)">
                     <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
                     <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
                   </div>
                 </a-menu-item>
                 <a-menu-item>
-                  <div class="flex flex-row items-center py-1" @click="copyInviteUrl(user)">
+                  <div class="flex flex-row items-center py-3" @click="copyInviteUrl(user)">
                     <MdiContentCopy class="flex h-[1rem] text-gray-500" />
                     <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
                   </div>

@@ -87,4 +87,8 @@ watch(
   </a-time-picker>
 </template>
 
-<style scoped></style>
+<style scoped>
+:deep(.ant-picker-input > input[disabled]) {
+  @apply !text-current;
+}
+</style>

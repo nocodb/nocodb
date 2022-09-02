@@ -463,6 +463,10 @@ function tableTest() {
       (c) => c.title === 'Active'
     );
 
+    const addressColumn = (await customerTable.getColumns()).find(
+      (c) => c.title === 'Address'
+    );
+
     const nestedFilter = [
       {
         fk_column_id: rollupColumn?.id,
@@ -530,6 +534,10 @@ function tableTest() {
             fk_column_id: rollupColumn?.id,
             direction: 'asc',
           },
+          {
+            fk_column_id: addressColumn?.id,
+            direction: 'asc',
+          },
         ]),
       })
       .expect(200);
@@ -539,6 +547,14 @@ function tableTest() {
 
     if (ascResponse.body.list[0][rollupColumn.title] !== 12) {
       console.log(ascResponse.body.list[0][rollupColumn.title]);
+      throw new Error('Wrong filter');
+    }
+
+    if (
+      ascResponse.body.list[1][addressColumn.title]['Address'] !==
+      '1308 Sumy Loop'
+    ) {
+      console.log(ascResponse.body.list[1]);
       throw new Error('Wrong filter');
     }
 
@@ -552,6 +568,10 @@ function tableTest() {
             fk_column_id: rollupColumn?.id,
             direction: 'desc',
           },
+          {
+            fk_column_id: addressColumn?.id,
+            direction: 'desc',
+          },
         ]),
       })
       .expect(200);
@@ -561,6 +581,14 @@ function tableTest() {
 
     if (descResponse.body.list[0][rollupColumn.title] !== 46)
       throw new Error('Wrong filter');
+
+    if (
+      descResponse.body.list[2][addressColumn.title]['Address'] !==
+      '1479 Rustenburg Boulevard'
+    ) {
+      console.log(descResponse.body.list[2]);
+      throw new Error('Wrong filter');
+    }
   });
 
   it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table', async function () {

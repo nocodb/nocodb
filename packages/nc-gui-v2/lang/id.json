@@ -280,7 +280,11 @@
     "importing": "Pengimporan",
     "flattenNested": "Ratakan bersarang",
     "downloadAllowed": "Unduh diizinkan",
-    "weAreHiring": "Kami sedang merekrut!"
+    "weAreHiring": "Kami sedang merekrut!",
+    "primaryKey": "Kunci utama",
+    "hasMany": "memiliki banyak",
+    "belongsTo": "Milik",
+    "manyToMany": "memiliki banyak hubungan"
   },
   "activity": {
     "createProject": "Buat Proyek",
@@ -390,7 +394,10 @@
     "sendEmail": "MENGIRIM EMAIL",
     "addUserToProject": "Tambahkan Pengguna ke Proyeksi",
     "getApiSnippet": "Dapatkan cuplikan API",
-    "clearCell": "Sel bening"
+    "clearCell": "Sel bening",
+    "addFilterGroup": "Tambahkan grup filter",
+    "linkRecord": "Rekaman Tautan",
+    "addNewRecord": "Tambahkan catatan baru"
   },
   "tooltip": {
     "saveChanges": "Simpan perubahan",
@@ -437,7 +444,8 @@
     "noItemsFound": "Tidak ditemukan item",
     "defaultValue": "Nilai default.",
     "filterByEmail": "Saring melalui email",
-    "filterQuery": "Kueri filter"
+    "filterQuery": "Kueri filter",
+    "selectField": "Pilih bidang"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Berhasil diekspor cache",
       "valueAlreadyInList": "Nilai ini sudah ada dalam daftar",
       "noColumnsToUpdate": "Tidak ada kolom untuk diperbarui",
-      "tableDeleted": "Tabel yang dihapus berhasil"
+      "tableDeleted": "Tabel yang dihapus berhasil",
+      "generatePublicShareableReadonlyBase": "Hasilkan basis readonly yang dapat dibagikan secara publik",
+      "deleteViewConfirmation": "Anda yakin ingin menghapus tampilan ini?",
+      "deleteTableConfirmation": "Apakah Anda ingin menghapus tabel",
+      "showM2mTables": "Tunjukkan tabel M2M"
     },
     "error": {
       "searchProject": "Pencarian Anda untuk {Search} tidak menemukan hasil",
@@ -583,6 +595,35 @@
       "collabView": "Berhasil beralih ke tampilan kolaboratif",
       "lockedView": "Berhasil beralih ke tampilan yang dikunci",
       "futureRelease": "Segera akan datang!"
+    },
+    "success": {
+      "updatedUIACL": "UI ACL yang diperbarui untuk tabel berhasil",
+      "pluginUninstalled": "Plugin berhasil dihapus",
+      "pluginSettingsSaved": "Pengaturan plugin berhasil disimpan",
+      "pluginTested": "Pengaturan plugin yang berhasil diuji",
+      "tableRenamed": "Table berhasil dinamai dengan sukses",
+      "viewDeleted": "Lihat dengan sukses",
+      "primaryColumnUpdated": "Berhasil diperbarui sebagai kolom utama",
+      "tableDataExported": "Berhasil mengekspor semua data tabel",
+      "updated": "Berhasil diperbarui",
+      "sharedViewDeleted": "Berhasil dibagikan dengan sukses",
+      "viewRenamed": "Lihat Berganti nama dengan sukses",
+      "tokenGenerated": "Token berhasil dihasilkan",
+      "tokenDeleted": "Token berhasil dihapus",
+      "userAddedToProject": "Berhasil Menambahkan Pengguna ke Proyeksi",
+      "userDeletedFromProject": "Berhasil menghapus pengguna dari proyek",
+      "inviteEmailSent": "Undang email yang berhasil dikirim",
+      "inviteURLCopied": "Undang URL yang disalin ke clipboard",
+      "shareableURLCopied": "Disalin URL dasar yang dapat dibagikan ke clipboard!",
+      "embeddableHTMLCodeCopied": "Disalin kode HTML yang dapat disalurkan!",
+      "userDetailsUpdated": "Berhasil memperbarui detail pengguna",
+      "tableDataImported": "Data tabel yang berhasil diimpor",
+      "webhookUpdated": "Detail webhook berhasil diperbarui",
+      "webhookDeleted": "Hook berhasil dihapus",
+      "webhookTested": "Webhook berhasil diuji",
+      "columnUpdated": "Kolom diperbarui",
+      "columnCreated": "Kolom dibuat",
+      "passwordChanged": "Kata sandi berhasil diubah. Harap masuk lagi."
     }
   }
 }

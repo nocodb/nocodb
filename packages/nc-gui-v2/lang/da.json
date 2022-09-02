@@ -280,7 +280,11 @@
     "importing": "Import",
     "flattenNested": "Flad nestede",
     "downloadAllowed": "Download tilladt",
-    "weAreHiring": "Vi ansætter!"
+    "weAreHiring": "Vi ansætter!",
+    "primaryKey": "Primærnøgle",
+    "hasMany": "har mange",
+    "belongsTo": "tilhører",
+    "manyToMany": "har mange til mange forhold"
   },
   "activity": {
     "createProject": "Opret projekt",
@@ -390,7 +394,10 @@
     "sendEmail": "SEND E-MAIL",
     "addUserToProject": "Tilføj bruger til projektet",
     "getApiSnippet": "Få API -uddrag",
-    "clearCell": "Klar celle"
+    "clearCell": "Klar celle",
+    "addFilterGroup": "Tilføj filtergruppe",
+    "linkRecord": "Linkrekord",
+    "addNewRecord": "Tilføj ny rekord"
   },
   "tooltip": {
     "saveChanges": "Gem ændringer",
@@ -437,7 +444,8 @@
     "noItemsFound": "Ingen varer fundet",
     "defaultValue": "Standard værdi",
     "filterByEmail": "Filtrer efter e-mail",
-    "filterQuery": "Filterforespørgsel"
+    "filterQuery": "Filterforespørgsel",
+    "selectField": "Vælg felt"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Eksporteret cache med succes",
       "valueAlreadyInList": "Denne værdi er allerede på listen",
       "noColumnsToUpdate": "Ingen kolonner at opdatere",
-      "tableDeleted": "Slettet tabel med succes"
+      "tableDeleted": "Slettet tabel med succes",
+      "generatePublicShareableReadonlyBase": "Generer offentligt delbar readonly base",
+      "deleteViewConfirmation": "Er du sikker på, at du vil slette dette synspunkt?",
+      "deleteTableConfirmation": "Vil du slette bordet",
+      "showM2mTables": "Vis M2M -tabeller"
     },
     "error": {
       "searchProject": "Din søgning efter {Søg} viste ingen resultater",
@@ -583,6 +595,35 @@
       "collabView": "Succesfuldt skiftet til samarbejdsvisning",
       "lockedView": "Succesfuldt skiftet til låst visning",
       "futureRelease": "Kommer snart!"
+    },
+    "success": {
+      "updatedUIACL": "Opdateret UI ACL til tabeller med succes",
+      "pluginUninstalled": "Plugin -afinstalleret med succes",
+      "pluginSettingsSaved": "Plugin -indstillinger gemt med succes",
+      "pluginTested": "Med succes testede pluginindstillinger",
+      "tableRenamed": "Bord omdøbt med succes",
+      "viewDeleted": "Se slettet med succes",
+      "primaryColumnUpdated": "Med succes opdateret som primær kolonne",
+      "tableDataExported": "Med succes eksporteret alle tabeldata",
+      "updated": "Med succes opdateret",
+      "sharedViewDeleted": "Slettet delt synspunkt med succes",
+      "viewRenamed": "Se omdøbt med succes",
+      "tokenGenerated": "Token genereres med succes",
+      "tokenDeleted": "Token slettes med succes",
+      "userAddedToProject": "Tilføjet bruger til at projicere",
+      "userDeletedFromProject": "Sletteret bruger med succes fra projektet",
+      "inviteEmailSent": "Inviter e -mail sendt med succes",
+      "inviteURLCopied": "Inviter URL -kopieret til udklipsholder",
+      "shareableURLCopied": "Kopieret delbar base -URL til udklipsholder!",
+      "embeddableHTMLCodeCopied": "Kopieret integreret HTML -kode!",
+      "userDetailsUpdated": "Opdateret brugeroplysningerne med succes",
+      "tableDataImported": "Med succes importerede tabeldata",
+      "webhookUpdated": "Webhook detaljer opdateres med succes",
+      "webhookDeleted": "Hook slettede med succes",
+      "webhookTested": "Webhook testede med succes",
+      "columnUpdated": "Kolonne opdateret",
+      "columnCreated": "Kolonne oprettet",
+      "passwordChanged": "Adgangskode ændrede sig med succes. Log ind igen."
     }
   }
 }

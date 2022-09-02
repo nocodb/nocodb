@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
+
+const { hook } = defineProps<Props>()
+
+const { t } = useI18n()
 
 interface Props {
   hook: Record<string, any>
 }
-
-const { hook } = defineProps<Props>()
 
 const { $api } = useNuxtApp()
 
@@ -39,7 +42,8 @@ async function testWebhook() {
       payload: sampleData.value,
     })
 
-    message.success('Webhook tested successfully')
+    // Webhook tested successfully
+    message.success(t('msg.success.webhookTested'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

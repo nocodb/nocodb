@@ -280,7 +280,11 @@
     "importing": "आयात कर रहा है",
     "flattenNested": "चपटा नेस्टेड",
     "downloadAllowed": "डाउनलोड की अनुमति",
-    "weAreHiring": "हम भर्ती कर रहे हैं!"
+    "weAreHiring": "हम भर्ती कर रहे हैं!",
+    "primaryKey": "प्राथमिक कुंजी",
+    "hasMany": "कई हैं",
+    "belongsTo": "का है",
+    "manyToMany": "कई संबंधों के लिए कई हैं"
   },
   "activity": {
     "createProject": "प्रोजेक्ट बनाएं",
@@ -390,7 +394,10 @@
     "sendEmail": "ईमेल भेजें",
     "addUserToProject": "प्रोजेक्ट में उपयोगकर्ता जोड़ें",
     "getApiSnippet": "एपीआई स्निपेट प्राप्त करें",
-    "clearCell": "स्पष्ट कोशिका"
+    "clearCell": "स्पष्ट कोशिका",
+    "addFilterGroup": "फ़िल्टर समूह जोड़ें",
+    "linkRecord": "लिंक अभिलेख",
+    "addNewRecord": "नया रिकॉर्ड जोड़ें"
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -437,7 +444,8 @@
     "noItemsFound": "कुछ नहीं मिला",
     "defaultValue": "डिफ़ॉल्ट मान",
     "filterByEmail": "ई-मेल द्वारा फ़िल्टर",
-    "filterQuery": "फ़िल्टर क्वेरी"
+    "filterQuery": "फ़िल्टर क्वेरी",
+    "selectField": "फ़ील्ड का चयन करें"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "निर्यात किया गया कैश सफलतापूर्वक",
       "valueAlreadyInList": "यह मान पहले से ही सूची में है",
       "noColumnsToUpdate": "अपडेट करने के लिए कोई कॉलम नहीं",
-      "tableDeleted": "हटाए गए तालिका सफलतापूर्वक"
+      "tableDeleted": "हटाए गए तालिका सफलतापूर्वक",
+      "generatePublicShareableReadonlyBase": "सार्वजनिक रूप से साझा करने योग्य रीडोनली बेस उत्पन्न करें",
+      "deleteViewConfirmation": "क्या आप सुनिश्चित हैं कि आप इस दृश्य को हटाना चाहते हैं?",
+      "deleteTableConfirmation": "क्या आप टेबल को हटाना चाहते हैं",
+      "showM2mTables": "M2M टेबल दिखाएं"
     },
     "error": {
       "searchProject": "{search} के लिए आपकी खोज कोई परिणाम नहीं मिला",
@@ -583,6 +595,35 @@
       "collabView": "सफलतापूर्वक सहयोगी दृश्य पर स्विच किया गया",
       "lockedView": "सफलतापूर्वक लॉक किए गए दृश्य पर स्विच किया गया",
       "futureRelease": "जल्द आ रहा है!"
+    },
+    "success": {
+      "updatedUIACL": "टेबल के लिए सफलतापूर्वक UI ACL अपडेट किया गया",
+      "pluginUninstalled": "प्लगइन सफलतापूर्वक अनइंस्टॉल किया गया",
+      "pluginSettingsSaved": "प्लगइन सेटिंग्स सफलतापूर्वक सहेजीं",
+      "pluginTested": "सफलतापूर्वक परीक्षण प्लगइन सेटिंग्स",
+      "tableRenamed": "टेबल का नाम बदलकर सफलतापूर्वक रखा गया",
+      "viewDeleted": "सफलतापूर्वक हटाए गए देखें",
+      "primaryColumnUpdated": "प्राथमिक कॉलम के रूप में सफलतापूर्वक अपडेट किया गया",
+      "tableDataExported": "सफलतापूर्वक सभी तालिका डेटा निर्यात किया गया",
+      "updated": "सफलतापूर्वक उत्परिवर्तित",
+      "sharedViewDeleted": "साझा किए गए दृश्य को सफलतापूर्वक हटा दिया गया",
+      "viewRenamed": "सफलतापूर्वक नाम दिया गया",
+      "tokenGenerated": "टोकन सफलतापूर्वक उत्पन्न हुआ",
+      "tokenDeleted": "टोकन सफलतापूर्वक हटा दिया गया",
+      "userAddedToProject": "परियोजना के लिए सफलतापूर्वक जोड़ा गया उपयोगकर्ता",
+      "userDeletedFromProject": "परियोजना से सफलतापूर्वक उपयोगकर्ता को हटा दिया गया",
+      "inviteEmailSent": "ईमेल को सफलतापूर्वक भेजा गया",
+      "inviteURLCopied": "क्लिपबोर्ड के लिए कॉपी किए गए URL को आमंत्रित करें",
+      "shareableURLCopied": "क्लिपबोर्ड के लिए शार्प करने योग्य आधार URL कॉपी किया गया!",
+      "embeddableHTMLCodeCopied": "कॉपी किए गए एम्बेडेबल HTML कोड!",
+      "userDetailsUpdated": "उपयोगकर्ता विवरण को सफलतापूर्वक अपडेट किया",
+      "tableDataImported": "सफलतापूर्वक आयातित तालिका डेटा",
+      "webhookUpdated": "वेबहूक विवरण सफलतापूर्वक अपडेट किया गया",
+      "webhookDeleted": "हुक सफलतापूर्वक हटा दिया गया",
+      "webhookTested": "वेबहूक ने सफलतापूर्वक परीक्षण किया",
+      "columnUpdated": "स्तंभ अद्यतन",
+      "columnCreated": "स्तंभ बनाया गया",
+      "passwordChanged": "पासवर्ड सफलतापूर्वक बदला गया। कृपया फिर भाग लें।"
     }
   }
 }

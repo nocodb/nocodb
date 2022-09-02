@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form, message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import ShareBase from './ShareBase.vue'
 import {
   computed,
@@ -16,6 +17,12 @@ import {
 import type { User } from '~/lib'
 import { ProjectRole } from '~/lib'
 
+const { show, selectedUser } = defineProps<Props>()
+
+const emit = defineEmits(['closed', 'reload'])
+
+const { t } = useI18n()
+
 interface Props {
   show: boolean
   selectedUser?: User
@@ -26,10 +33,6 @@ interface Users {
   role: ProjectRole
   invitationToken?: string
 }
-
-const { show, selectedUser } = defineProps<Props>()
-
-const emit = defineEmits(['closed', 'reload'])
 
 const { project } = useProject()
 const { $api, $e } = useNuxtApp()
@@ -96,7 +99,9 @@ const saveUser = async () => {
       usersData.invitationToken = res.invite_token
     }
     emit('reload')
-    message.success('Successfully updated the user details')
+
+    // Successfully updated the user details
+    message.success(t('msg.success.userDetailsUpdated'))
   } catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
@@ -110,7 +115,8 @@ const copyUrl = async () => {
 
   await copy(inviteUrl)
 
-  message.success('Copied shareable base url to clipboard!')
+  // Copied shareable base url to clipboard!
+  message.success(t('msg.success.shareableURLCopied'))
 
   $e('c:shared-base:copy-url')
 }
@@ -175,7 +181,7 @@ const clickInviteMore = () => {
         <div v-else class="flex flex-col pb-4">
           <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
             <MdiAccountOutline />
-            <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? 'Edit User' : 'Invite Team' }}</div>
+            <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? $t('activity.editUser') : $t('activity.inviteTeam') }}</div>
           </div>
           <div class="border-1 py-3 px-4 rounded-md mt-1">
             <a-form
@@ -193,7 +199,7 @@ const clickInviteMore = () => {
                     name="emails"
                     :rules="[{ required: true, message: 'Please input email' }]"
                   >
-                    <div class="ml-1 mb-1 text-xs text-gray-500">Email:</div>
+                    <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
                     <a-input
                       v-model:value="usersData.emails"
                       validate-trigger="onBlur"

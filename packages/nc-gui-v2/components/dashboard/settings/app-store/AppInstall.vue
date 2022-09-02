@@ -52,7 +52,8 @@ const saveSettings = async () => {
     })
 
     emits('saved')
-    message.success(plugin?.formDetails.msgOnInstall || 'Plugin settings saved successfully')
+    // Plugin settings saved successfully
+    message.success(plugin?.formDetails.msgOnInstall || t('msg.success.pluginSettingsSaved'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -72,7 +73,8 @@ const testSettings = async () => {
     })
 
     if (res) {
-      message.success('Successfully tested plugin settings')
+      // Successfully tested plugin settings
+      message.success(t('msg.success.pluginTested'))
     } else {
       // Invalid credentials
       message.info(t('msg.info.invalidCredentials'))

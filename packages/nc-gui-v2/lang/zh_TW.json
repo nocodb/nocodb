@@ -280,7 +280,11 @@
     "importing": "輸入",
     "flattenNested": "扁平的嵌套",
     "downloadAllowed": "下載允許",
-    "weAreHiring": "我們正在招聘！"
+    "weAreHiring": "我們正在招聘！",
+    "primaryKey": "首要的關鍵",
+    "hasMany": "有很多",
+    "belongsTo": "屬於",
+    "manyToMany": "有很多關係"
   },
   "activity": {
     "createProject": "建立專案",
@@ -390,7 +394,10 @@
     "sendEmail": "傳送電子郵件",
     "addUserToProject": "將用戶添加到項目",
     "getApiSnippet": "獲取API片段",
-    "clearCell": "透明細胞"
+    "clearCell": "透明細胞",
+    "addFilterGroup": "添加過濾器組",
+    "linkRecord": "鏈接記錄",
+    "addNewRecord": "添加新記錄"
   },
   "tooltip": {
     "saveChanges": "儲存更動",
@@ -437,7 +444,8 @@
     "noItemsFound": "未找到任何項目",
     "defaultValue": "預設值",
     "filterByEmail": "通過電子郵件過濾",
-    "filterQuery": "過濾器查詢"
+    "filterQuery": "過濾器查詢",
+    "selectField": "選擇字段"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "成功導出緩存",
       "valueAlreadyInList": "此值已經在列表中",
       "noColumnsToUpdate": "沒有列更新",
-      "tableDeleted": "成功刪除表"
+      "tableDeleted": "成功刪除表",
+      "generatePublicShareableReadonlyBase": "產生可公開共享的可讀基礎",
+      "deleteViewConfirmation": "您確定要刪除此視圖嗎？",
+      "deleteTableConfirmation": "您想刪除表格嗎",
+      "showM2mTables": "顯示M2M表"
     },
     "error": {
       "searchProject": "您的搜尋 {search} 找不到結果",
@@ -583,6 +595,35 @@
       "collabView": "成功轉換為協作視圖",
       "lockedView": "成功轉換為鎖定視圖",
       "futureRelease": "即將推出！"
+    },
+    "success": {
+      "updatedUIACL": "成功更新了桌子的UI ACL",
+      "pluginUninstalled": "插件成功卸載",
+      "pluginSettingsSaved": "插件設置成功保存了",
+      "pluginTested": "成功測試的插件設置",
+      "tableRenamed": "餐桌成功地重命名",
+      "viewDeleted": "查看成功刪除",
+      "primaryColumnUpdated": "成功更新為主要列",
+      "tableDataExported": "成功導出了所有表數據",
+      "updated": "成功更新",
+      "sharedViewDeleted": "成功刪除共享視圖成功",
+      "viewRenamed": "查看成功地重命名",
+      "tokenGenerated": "令牌成功產生",
+      "tokenDeleted": "代幣成功刪除了",
+      "userAddedToProject": "成功添加用戶到項目",
+      "userDeletedFromProject": "成功從項目中刪除用戶",
+      "inviteEmailSent": "邀請電子郵件成功發送",
+      "inviteURLCopied": "邀請將URL複製到剪貼板",
+      "shareableURLCopied": "將可共享的基本URL複製到剪貼板！",
+      "embeddableHTMLCodeCopied": "複製的嵌入式HTML代碼！",
+      "userDetailsUpdated": "成功更新了用戶詳細信息",
+      "tableDataImported": "成功導入的表數據",
+      "webhookUpdated": "Webhook詳細信息成功更新了",
+      "webhookDeleted": "鉤成功刪除了",
+      "webhookTested": "Webhook成功測試了",
+      "columnUpdated": "列更新",
+      "columnCreated": "創建列",
+      "passwordChanged": "密碼修改成功。請再次登錄。"
     }
   }
 }

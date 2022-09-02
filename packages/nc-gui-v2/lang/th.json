@@ -280,7 +280,11 @@
     "importing": "การนำเข้า",
     "flattenNested": "ซ้อนกัน",
     "downloadAllowed": "ดาวน์โหลดได้รับอนุญาต",
-    "weAreHiring": "เรากำลังจ้าง!"
+    "weAreHiring": "เรากำลังจ้าง!",
+    "primaryKey": "คีย์หลัก",
+    "hasMany": "มีมากมาย",
+    "belongsTo": "เป็นของ",
+    "manyToMany": "มีความสัมพันธ์มากมายกับหลาย ๆ"
   },
   "activity": {
     "createProject": "สร้างโครงการ",
@@ -390,7 +394,10 @@
     "sendEmail": "ส่งอีเมล",
     "addUserToProject": "เพิ่มผู้ใช้ในโครงการ",
     "getApiSnippet": "รับตัวอย่าง API",
-    "clearCell": "ล้างเซลล์"
+    "clearCell": "ล้างเซลล์",
+    "addFilterGroup": "เพิ่มกลุ่มตัวกรอง",
+    "linkRecord": "บันทึกลิงก์",
+    "addNewRecord": "เพิ่มบันทึกใหม่"
   },
   "tooltip": {
     "saveChanges": "บันทึกการเปลี่ยนแปลง",
@@ -437,7 +444,8 @@
     "noItemsFound": "ไม่พบรายการ",
     "defaultValue": "ค่าเริ่มต้น",
     "filterByEmail": "กรองทางอีเมล",
-    "filterQuery": "ตัวกรองแบบสอบถาม"
+    "filterQuery": "ตัวกรองแบบสอบถาม",
+    "selectField": "เลือกฟิลด์"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "แคชส่งออกสำเร็จ",
       "valueAlreadyInList": "ค่านี้อยู่ในรายการแล้ว",
       "noColumnsToUpdate": "ไม่มีคอลัมน์ที่จะอัปเดต",
-      "tableDeleted": "ตารางที่ถูกลบสำเร็จ"
+      "tableDeleted": "ตารางที่ถูกลบสำเร็จ",
+      "generatePublicShareableReadonlyBase": "สร้างฐานที่เปิดเผยต่อสาธารณะอย่างเดียว",
+      "deleteViewConfirmation": "แน่ใจหรือว่าต้องการลบมุมมองนี้?",
+      "deleteTableConfirmation": "คุณต้องการลบตาราง",
+      "showM2mTables": "แสดงตาราง M2M"
     },
     "error": {
       "searchProject": "การค้นหาของคุณสำหรับ {search} ไม่พบผลลัพธ์",
@@ -583,6 +595,35 @@
       "collabView": "เปลี่ยนไปใช้มุมมองร่วมกันสำเร็จแล้ว",
       "lockedView": "เปลี่ยนเป็นมุมมองที่ล็อคเรียบร้อยแล้ว",
       "futureRelease": "เร็ว ๆ นี้!"
+    },
+    "success": {
+      "updatedUIACL": "อัปเดต UI ACL สำหรับตารางสำเร็จ",
+      "pluginUninstalled": "ปลั๊กอินถอนการติดตั้งสำเร็จ",
+      "pluginSettingsSaved": "การตั้งค่าปลั๊กอินบันทึกสำเร็จ",
+      "pluginTested": "ทดสอบการตั้งค่าปลั๊กอินที่ประสบความสำเร็จ",
+      "tableRenamed": "การเปลี่ยนชื่อตารางสำเร็จ",
+      "viewDeleted": "ดูการลบได้สำเร็จ",
+      "primaryColumnUpdated": "อัปเดตเป็นคอลัมน์หลักสำเร็จ",
+      "tableDataExported": "ส่งออกข้อมูลตารางทั้งหมดสำเร็จ",
+      "updated": "อัปเดตสำเร็จ",
+      "sharedViewDeleted": "ลบมุมมองที่ใช้ร่วมกันสำเร็จ",
+      "viewRenamed": "ดูการเปลี่ยนชื่อได้สำเร็จ",
+      "tokenGenerated": "โทเค็นสร้างได้สำเร็จ",
+      "tokenDeleted": "โทเค็นถูกลบสำเร็จ",
+      "userAddedToProject": "เพิ่มผู้ใช้ในโครงการสำเร็จ",
+      "userDeletedFromProject": "ถูกลบผู้ใช้สำเร็จจากโครงการ",
+      "inviteEmailSent": "เชิญอีเมลที่ส่งสำเร็จ",
+      "inviteURLCopied": "เชิญ URL ที่คัดลอกไปยังคลิปบอร์ด",
+      "shareableURLCopied": "คัดลอก URL ฐานที่แชร์ได้ไปยังคลิปบอร์ด!",
+      "embeddableHTMLCodeCopied": "คัดลอกรหัส HTML ที่ฝังได้!",
+      "userDetailsUpdated": "อัปเดตรายละเอียดของผู้ใช้สำเร็จ",
+      "tableDataImported": "ข้อมูลตารางนำเข้าสำเร็จ",
+      "webhookUpdated": "รายละเอียด WebHook ได้รับการอัปเดตเรียบร้อยแล้ว",
+      "webhookDeleted": "เบ็ดลบสำเร็จ",
+      "webhookTested": "การทดสอบ webhook ประสบความสำเร็จ",
+      "columnUpdated": "อัปเดตคอลัมน์",
+      "columnCreated": "สร้างคอลัมน์",
+      "passwordChanged": "เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบอีกครั้ง"
     }
   }
 }

@@ -97,18 +97,21 @@ const newRowState = computed(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" :footer="null" title="Link Record" :body-style="{ padding: 0 }">
+  <a-modal v-model:visible="vModel" :footer="null" :title="$t('activity.linkRecord')" :body-style="{ padding: 0 }">
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
         <a-input
           v-model:value="childrenExcludedListPagination.query"
-          :placeholder="$t('palceholder.filterQuery')"
+          :placeholder="$t('placeholder.filterQuery')"
           class="max-w-[200px]"
           size="small"
         ></a-input>
         <div class="flex-1" />
         <MdiReload class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
-        <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">Add new record</a-button>
+        <!--        Add new record -->
+        <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">{{
+          $t('activity.addNewRecord')
+        }}</a-button>
       </div>
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12">
@@ -120,7 +123,7 @@ const newRowState = computed(() => {
           >
             {{ refRow[relatedTablePrimaryValueProp]
             }}<span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1"
-              >(Primary key : {{ getRelatedTableRowId(refRow) }})</span
+              >({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})</span
             >
           </a-card>
         </div>

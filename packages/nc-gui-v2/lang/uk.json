@@ -280,7 +280,11 @@
     "importing": "Імпорт",
     "flattenNested": "Вкладений вкладений",
     "downloadAllowed": "Завантажити дозволено",
-    "weAreHiring": "Ми наймаємо!"
+    "weAreHiring": "Ми наймаємо!",
+    "primaryKey": "Первинний ключ",
+    "hasMany": "має багато",
+    "belongsTo": "належить",
+    "manyToMany": "мають багато стосунків"
   },
   "activity": {
     "createProject": "Створити проект",
@@ -390,7 +394,10 @@
     "sendEmail": "ВІДПРАВИТИ ЛИСТ",
     "addUserToProject": "Додайте користувача до проекту",
     "getApiSnippet": "Отримайте фрагмент API",
-    "clearCell": "Прозора клітина"
+    "clearCell": "Прозора клітина",
+    "addFilterGroup": "Додайте групу фільтрів",
+    "linkRecord": "Запис посилань",
+    "addNewRecord": "Додайте новий запис"
   },
   "tooltip": {
     "saveChanges": "Зберегти зміни",
@@ -437,7 +444,8 @@
     "noItemsFound": "Не знайдено жодних елементів",
     "defaultValue": "Значення за замовчуванням",
     "filterByEmail": "Фільтр по електронній пошті",
-    "filterQuery": "Запит фільтру"
+    "filterQuery": "Запит фільтру",
+    "selectField": "Виберіть поле"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Експортований кеш успішно",
       "valueAlreadyInList": "Це значення вже в списку",
       "noColumnsToUpdate": "Немає стовпців для оновлення",
-      "tableDeleted": "Успішно видалений таблиця"
+      "tableDeleted": "Успішно видалений таблиця",
+      "generatePublicShareableReadonlyBase": "Генерувати загальнодоступну базу для читання",
+      "deleteViewConfirmation": "Ви впевнені, що хочете видалити цей вигляд?",
+      "deleteTableConfirmation": "Ви хочете видалити стіл",
+      "showM2mTables": "Показати таблиці M2M"
     },
     "error": {
       "searchProject": "Ваш пошук {пошук} не знайдено жодних результатів",
@@ -583,6 +595,35 @@
       "collabView": "Успішно переключено на спільне вигляд",
       "lockedView": "Успішно переключено на заблокований вигляд",
       "futureRelease": "Незабаром!"
+    },
+    "success": {
+      "updatedUIACL": "Оновлений інтерфейс ACL для таблиць успішно",
+      "pluginUninstalled": "Плагін успішно видалити",
+      "pluginSettingsSaved": "Налаштування плагіна успішно збереглися",
+      "pluginTested": "Успішно протестовані налаштування плагіна",
+      "tableRenamed": "Таблиця перейменовано успішно",
+      "viewDeleted": "Переглянути успішно видалено",
+      "primaryColumnUpdated": "Успішно оновлено як первинний стовпець",
+      "tableDataExported": "Успішно експортували всі дані таблиці",
+      "updated": "Успішно оновлено",
+      "sharedViewDeleted": "Успішно видалено спільний перегляд",
+      "viewRenamed": "Переглянути перейменовано успішно",
+      "tokenGenerated": "Маркер успішно генерується",
+      "tokenDeleted": "Маркер успішно видалено",
+      "userAddedToProject": "Успішно додав користувача до проекту",
+      "userDeletedFromProject": "Успішно видалений користувач з проекту",
+      "inviteEmailSent": "Запросіть електронну пошту успішно надіслано",
+      "inviteURLCopied": "Запросіть URL -адресу, скопійовану в буфер обміну",
+      "shareableURLCopied": "Копедується базова URL -адреса для обміну обміном!",
+      "embeddableHTMLCodeCopied": "Копізований код HTML Embeddable!",
+      "userDetailsUpdated": "Успішно оновив деталі користувача",
+      "tableDataImported": "Успішно імпортовані дані таблиці",
+      "webhookUpdated": "Деталі Webhook успішно оновлюються",
+      "webhookDeleted": "Гачок успішно видалено",
+      "webhookTested": "Webhook успішно тестувався",
+      "columnUpdated": "Стовпчик оновлений",
+      "columnCreated": "Створена колонка",
+      "passwordChanged": "Пароль успішно змінився. Будь ласка, увійдіть ще раз."
     }
   }
 }

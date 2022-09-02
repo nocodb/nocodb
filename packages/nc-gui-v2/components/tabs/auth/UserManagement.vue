@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import UsersModal from './user-management/UsersModal.vue'
 import FeedbackForm from './user-management/FeedbackForm.vue'
 import {
@@ -16,6 +17,8 @@ import {
   watchDebounced,
 } from '#imports'
 import type { User } from '~/lib'
+
+const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
@@ -75,7 +78,8 @@ const inviteUser = async (user: User) => {
 
     await api.auth.projectUserAdd(project.value.id, user)
 
-    message.success('Successfully added user to project')
+    // Successfully added user to project
+    message.success(t('msg.success.userAddedToProject'))
     await loadUsers()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -90,7 +94,8 @@ const deleteUser = async () => {
 
     await api.auth.projectUserRemove(project.value.id, selectedUser.id)
 
-    message.success('Successfully deleted user from project')
+    // Successfully deleted user from project
+    message.success(t('msg.success.userDeletedFromProject'))
 
     await loadUsers()
 
@@ -125,7 +130,8 @@ const resendInvite = async (user: User) => {
   try {
     await api.auth.projectUserResendInvite(project.value.id, user.id, null)
 
-    message.success('Invite email sent successfully')
+    // Invite email sent successfully
+    message.success(t('msg.success.inviteEmailSent'))
     await loadUsers()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -139,7 +145,8 @@ const copyInviteUrl = (user: User) => {
 
   copy(`${dashboardUrl}#/signup/${user.invite_token}`)
 
-  message.success('Invite url copied to clipboard')
+  // Invite URL copied to clipboard
+  message.success(t('msg.success.inviteURLCopied'))
 }
 
 onMounted(() => {

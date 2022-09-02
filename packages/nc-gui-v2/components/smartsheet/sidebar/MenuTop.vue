@@ -5,6 +5,7 @@ import type { Menu as AntMenu } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
+import { useI18n } from 'vue-i18n'
 import RenameableMenuItem from './RenameableMenuItem.vue'
 import {
   ActiveViewInj,
@@ -22,6 +23,10 @@ import {
 } from '#imports'
 import DlgViewDelete from '~/components/dlg/ViewDelete.vue'
 
+const emits = defineEmits<Emits>()
+
+const { t } = useI18n()
+
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
 
@@ -29,8 +34,6 @@ interface Emits {
 
   (event: 'sorted'): void
 }
-
-const emits = defineEmits<Emits>()
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -170,7 +173,8 @@ async function onRename(view: ViewType) {
       },
     })
 
-    message.success('View renamed successfully')
+    // View renamed successfully
+    message.success(t('msg.success.viewRenamed'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

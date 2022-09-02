@@ -280,7 +280,11 @@
     "importing": "Importazione",
     "flattenNested": "Appiattire nidificato",
     "downloadAllowed": "Scarica consentito",
-    "weAreHiring": "Stiamo assumendo!"
+    "weAreHiring": "Stiamo assumendo!",
+    "primaryKey": "Chiave primaria",
+    "hasMany": "ha molti",
+    "belongsTo": "appartiene a",
+    "manyToMany": "avere molte per molte relazioni"
   },
   "activity": {
     "createProject": "Crea progetto",
@@ -390,7 +394,10 @@
     "sendEmail": "INVIA EMAIL",
     "addUserToProject": "Aggiungi l'utente al progetto",
     "getApiSnippet": "Ottieni snippet API",
-    "clearCell": "Cella chiara"
+    "clearCell": "Cella chiara",
+    "addFilterGroup": "Aggiungi gruppo di filtri",
+    "linkRecord": "Record di collegamento",
+    "addNewRecord": "Aggiungi nuovo record"
   },
   "tooltip": {
     "saveChanges": "Salva le modifiche",
@@ -437,7 +444,8 @@
     "noItemsFound": "Nessun elemento trovato",
     "defaultValue": "Valore di default",
     "filterByEmail": "Filtra per e-mail",
-    "filterQuery": "Filtro query"
+    "filterQuery": "Filtro query",
+    "selectField": "Seleziona campo"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Cache esportata con successo",
       "valueAlreadyInList": "Questo valore è già nell'elenco",
       "noColumnsToUpdate": "Nessuna colonna da aggiornare",
-      "tableDeleted": "Tabella cancellata con successo"
+      "tableDeleted": "Tabella cancellata con successo",
+      "generatePublicShareableReadonlyBase": "Generare base readonly condivisibile pubblicamente",
+      "deleteViewConfirmation": "Sei sicuro di voler eliminare questa vista?",
+      "deleteTableConfirmation": "Vuoi eliminare il tavolo",
+      "showM2mTables": "Mostra le tabelle M2M"
     },
     "error": {
       "searchProject": "La tua ricerca di {search} non ha trovato risultati",
@@ -583,6 +595,35 @@
       "collabView": "Passato correttamente alla vista collaborativa",
       "lockedView": "Passato correttamente alla vista bloccata",
       "futureRelease": "Prossimamente!"
+    },
+    "success": {
+      "updatedUIACL": "UI ACL aggiornato per le tabelle correttamente",
+      "pluginUninstalled": "Plugin disinstallato con successo",
+      "pluginSettingsSaved": "Impostazioni del plugin salvate correttamente",
+      "pluginTested": "Impostazioni del plug -in testate con successo",
+      "tableRenamed": "La tabella ha rinominato con successo",
+      "viewDeleted": "Visualizza eliminata correttamente",
+      "primaryColumnUpdated": "Aggiornato correttamente come colonna primaria",
+      "tableDataExported": "Esportati con successo tutti i dati della tabella",
+      "updated": "Aggiornato con successo",
+      "sharedViewDeleted": "Vista condivisa eliminata correttamente",
+      "viewRenamed": "Visualizza rinominata con successo",
+      "tokenGenerated": "Token ha generato con successo",
+      "tokenDeleted": "Token eliminato con successo",
+      "userAddedToProject": "Aggiunto correttamente l'utente al progetto",
+      "userDeletedFromProject": "Eliminato correttamente l'utente dal progetto",
+      "inviteEmailSent": "Invita l'email inviata con successo",
+      "inviteURLCopied": "Invita l'URL copiato negli appunti",
+      "shareableURLCopied": "URL di base condivisibile copiato negli appunti!",
+      "embeddableHTMLCodeCopied": "Copied Codice HTML incorporabile!",
+      "userDetailsUpdated": "Aggiornato correttamente i dettagli dell'utente",
+      "tableDataImported": "Dati della tabella importati correttamente",
+      "webhookUpdated": "Dettagli Webhook aggiornati correttamente",
+      "webhookDeleted": "Hook eliminato con successo",
+      "webhookTested": "Webhook testato con successo",
+      "columnUpdated": "Colonna aggiornata",
+      "columnCreated": "Colonna creata",
+      "passwordChanged": "Password cambiata con successo. Per favore esegui l'accesso di nuovo."
     }
   }
 }

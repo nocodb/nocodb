@@ -93,7 +93,8 @@ onMounted(() => {
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
 
         <!-- hint="Enter table name" -->
-        <div class="mb-2">Table Name</div>
+        <!--        Table name -->
+        <div class="mb-2">{{ $t('labels.tableName') }}</div>
 
         <a-form-item v-bind="validateInfos.title">
           <a-input
@@ -107,7 +108,7 @@ onMounted(() => {
 
         <div class="flex justify-end items-center">
           <div class="pointer flex flex-row items-center gap-x-1" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
-            {{ isAdvanceOptVisible ? 'Hide' : 'Show' }} more
+            {{ isAdvanceOptVisible ? $t('general.hideAll') : $t('general.showMore') }}
 
             <MdiMinusCircleOutline v-if="isAdvanceOptVisible" class="text-gray-500" />
             <MdiPlusCircleOutline v-else class="text-gray-500" />

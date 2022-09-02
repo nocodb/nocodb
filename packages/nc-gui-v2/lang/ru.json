@@ -280,7 +280,11 @@
     "importing": "Импорт",
     "flattenNested": "Сгладить вложенные",
     "downloadAllowed": "Загрузка разрешена",
-    "weAreHiring": "Мы нанимаем!"
+    "weAreHiring": "Мы нанимаем!",
+    "primaryKey": "Первичный ключ",
+    "hasMany": "имеет много",
+    "belongsTo": "принадлежит",
+    "manyToMany": "иметь много ко многим отношениям"
   },
   "activity": {
     "createProject": "Создать проект",
@@ -390,7 +394,10 @@
     "sendEmail": "Отправить письмо",
     "addUserToProject": "Добавить пользователя в проект",
     "getApiSnippet": "Получите фрагмент API",
-    "clearCell": "Чистая ячейка"
+    "clearCell": "Чистая ячейка",
+    "addFilterGroup": "Добавить группу фильтров",
+    "linkRecord": "Ссылка записи",
+    "addNewRecord": "Добавить новую запись"
   },
   "tooltip": {
     "saveChanges": "Сохранить изменения",
@@ -437,7 +444,8 @@
     "noItemsFound": "Ничего не найдено",
     "defaultValue": "Значение по умолчанию",
     "filterByEmail": "Фильтр по электронной почте",
-    "filterQuery": "Фильтр запрос"
+    "filterQuery": "Фильтр запрос",
+    "selectField": "Выберите поле"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Экспортированный кэш успешно",
       "valueAlreadyInList": "Это значение уже в списке",
       "noColumnsToUpdate": "Нет столбцов для обновления",
-      "tableDeleted": "Удаленная таблица успешно"
+      "tableDeleted": "Удаленная таблица успешно",
+      "generatePublicShareableReadonlyBase": "Генерировать общедоступную базу Readonly",
+      "deleteViewConfirmation": "Вы уверены, что хотите удалить эту точку зрения?",
+      "deleteTableConfirmation": "Вы хотите удалить таблицу",
+      "showM2mTables": "Показать таблицы M2M"
     },
     "error": {
       "searchProject": "Ваш поиск {поиск} не дал результатов",
@@ -583,6 +595,35 @@
       "collabView": "Успешно перешел на совместное представление",
       "lockedView": "Успешно переключен на заблокированное представление",
       "futureRelease": "Скоро!"
+    },
+    "success": {
+      "updatedUIACL": "Обновленный UI ACL для таблиц успешно",
+      "pluginUninstalled": "Плагин удален успешно",
+      "pluginSettingsSaved": "Настройки плагина успешно сохранились",
+      "pluginTested": "Успешно протестированные настройки плагина",
+      "tableRenamed": "Стол переименован успешно",
+      "viewDeleted": "Просмотреть удаленные успешно",
+      "primaryColumnUpdated": "Успешно обновлено как основной столбец",
+      "tableDataExported": "Успешно экспортировал все данные таблицы",
+      "updated": "Успешно обновлено",
+      "sharedViewDeleted": "Успешный общий вид успешно",
+      "viewRenamed": "Посмотреть переименовано успешно",
+      "tokenGenerated": "Токен сгенерирован успешно",
+      "tokenDeleted": "Токен удален успешно",
+      "userAddedToProject": "Успешно добавил пользователя к проекту",
+      "userDeletedFromProject": "Успешно удалил пользователя из проекта",
+      "inviteEmailSent": "Пригласить электронную почту успешно",
+      "inviteURLCopied": "Пригласить URL, скопированный в буфер обмена",
+      "shareableURLCopied": "Скопированный общий базовый URL в буфер обмена!",
+      "embeddableHTMLCodeCopied": "Скопированный встроенный HTML -код!",
+      "userDetailsUpdated": "Успешно обновил данные пользователя",
+      "tableDataImported": "Успешно импортированные данные таблицы",
+      "webhookUpdated": "Детали Webhook успешно обновлены",
+      "webhookDeleted": "Крюк удален успешно",
+      "webhookTested": "Webhook успешно протестировался",
+      "columnUpdated": "Столбец обновлен",
+      "columnCreated": "Колонка создана",
+      "passwordChanged": "Пароль успешно изменен. Пожалуйста, войдите снова."
     }
   }
 }

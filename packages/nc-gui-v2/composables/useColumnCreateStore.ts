@@ -3,6 +3,7 @@ import { Form, message } from 'ant-design-vue'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useColumn } from './useColumn'
 import { computed, createInjectionState, extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 
@@ -15,6 +16,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const { sqlUi } = useProject()
     const { $api } = useNuxtApp()
     const { getMeta } = useMetas()
+    const { t } = useI18n()
 
     const isEdit = computed(() => !!column?.value?.id)
 
@@ -178,7 +180,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         // formState.value.title = formState.value.column_name
         if (column?.value) {
           await $api.dbTableColumn.update(column?.value?.id as string, formState.value)
-          message.success('Column updated')
+          // Column updated
+          message.success(t('msg.success.columnUpdated'))
         } else {
           // todo : set additional meta for auto generated string id
           if (formState.value.uidt === UITypes.ID) {
@@ -196,7 +199,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             getMeta(formState.value.childId, true).then(() => {})
           }
 
-          message.success('Column created')
+          // Column created
+          message.success(t('msg.success.columnCreated'))
         }
         onSuccess?.()
       } catch (e: any) {

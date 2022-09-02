@@ -280,7 +280,11 @@
     "importing": "インポート",
     "flattenNested": "ネストされた平ら",
     "downloadAllowed": "ダウンロード許可",
-    "weAreHiring": "私達は雇っています！"
+    "weAreHiring": "私達は雇っています！",
+    "primaryKey": "主キー",
+    "hasMany": "多くを持っています",
+    "belongsTo": "属する",
+    "manyToMany": "多くの関係があります"
   },
   "activity": {
     "createProject": "プロジェクトを作成",
@@ -390,7 +394,10 @@
     "sendEmail": "メールを送信",
     "addUserToProject": "プロジェクトにユーザーを追加します",
     "getApiSnippet": "APIスニペットを取得します",
-    "clearCell": "クリアセル"
+    "clearCell": "クリアセル",
+    "addFilterGroup": "フィルターグループを追加します",
+    "linkRecord": "リンクレコード",
+    "addNewRecord": "新しいレコードを追加します"
   },
   "tooltip": {
     "saveChanges": "変更を保存",
@@ -437,7 +444,8 @@
     "noItemsFound": "項目は見つかりませんでした",
     "defaultValue": "デフォルト値",
     "filterByEmail": "メールアドレスでフィルタ",
-    "filterQuery": "フィルタークエリ"
+    "filterQuery": "フィルタークエリ",
+    "selectField": "フィールドを選択します"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "キャッシュを正常にエクスポートしました",
       "valueAlreadyInList": "この値はすでにリストに載っています",
       "noColumnsToUpdate": "更新する列はありません",
-      "tableDeleted": "テーブルを正常に削除しました"
+      "tableDeleted": "テーブルを正常に削除しました",
+      "generatePublicShareableReadonlyBase": "公的に共有可能な読み取りベースを生成します",
+      "deleteViewConfirmation": "このビューを削除したいですか？",
+      "deleteTableConfirmation": "テーブルを削除しますか？",
+      "showM2mTables": "M2Mテーブルを表示します"
     },
     "error": {
       "searchProject": "{search} の検索結果が見つかりませんでした",
@@ -583,6 +595,35 @@
       "collabView": "共同ビューに正常に切り替わりました",
       "lockedView": "ロックビューに正常に切り替わりました",
       "futureRelease": "近日公開！"
+    },
+    "success": {
+      "updatedUIACL": "テーブル用のUI ACLを正常に更新しました",
+      "pluginUninstalled": "プラグインが正常にアンインストールされました",
+      "pluginSettingsSaved": "プラグインの設定が正常に保存されました",
+      "pluginTested": "プラグインの設定を正常にテストしました",
+      "tableRenamed": "テーブルの名前が正常に変更されました",
+      "viewDeleted": "削除された表示を正常に表示します",
+      "primaryColumnUpdated": "プライマリ列として正常に更新されました",
+      "tableDataExported": "すべてのテーブルデータを正常にエクスポートしました",
+      "updated": "正常に更新されました",
+      "sharedViewDeleted": "共有ビューを正常に削除しました",
+      "viewRenamed": "変更された変更を正常に表示します",
+      "tokenGenerated": "トークンは正常に生成されました",
+      "tokenDeleted": "トークンは正常に削除されました",
+      "userAddedToProject": "プロジェクトにユーザーを正常に追加しました",
+      "userDeletedFromProject": "プロジェクトからユーザーを正常に削除しました",
+      "inviteEmailSent": "正常に送信されるメールを招待します",
+      "inviteURLCopied": "ClipboardにコピーされたURLを招待します",
+      "shareableURLCopied": "Clipboardに共有可能なベースURLをコピーしました！",
+      "embeddableHTMLCodeCopied": "埋め込み可能なHTMLコードをコピーしました！",
+      "userDetailsUpdated": "ユーザーの詳細を正常に更新しました",
+      "tableDataImported": "テーブルデータを正常にインポートしました",
+      "webhookUpdated": "WebHookの詳細は、正常に更新されました",
+      "webhookDeleted": "フックは正常に削除されました",
+      "webhookTested": "WebHookは正常にテストされました",
+      "columnUpdated": "列が更新されました",
+      "columnCreated": "作成された列",
+      "passwordChanged": "パスワードは正常に変更されました。もう一度ログインしてください。"
     }
   }
 }

@@ -2,9 +2,12 @@
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { computed, extractSdkResponseErrorMsg, useNuxtApp, useProject, useSmartsheetStoreOrThrow } from '#imports'
 import MdiOpenInNewIcon from '~icons/mdi/open-in-new'
 import MdiCopyIcon from '~icons/mdi/content-copy'
+
+const { t } = useI18n()
 
 const { view, $api } = useSmartsheetStoreOrThrow()
 
@@ -70,7 +73,8 @@ async function saveAllowCSVDownload() {
     await $api.dbViewShare.update(shared.value.id, {
       meta,
     } as any)
-    message.success('Successfully updated')
+    // Successfully updated
+    message.success(t('msg.success.updated'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -86,7 +90,8 @@ const saveShareLinkPassword = async () => {
     await $api.dbViewShare.update(shared.value.id, {
       password: shared.value.password,
     })
-    message.success('Successfully updated')
+    // Successfully updated
+    message.success(t('msg.success.updated'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -96,7 +101,8 @@ const saveShareLinkPassword = async () => {
 
 const copyLink = () => {
   copy(sharedViewUrl?.value as string)
-  message.success('Copied to clipboard')
+  // Copied to clipboard
+  message.success(t('msg.info.copiedToClipboard'))
 }
 
 watch(

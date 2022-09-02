@@ -280,7 +280,11 @@
     "importing": "יבוא",
     "flattenNested": "משטחים מקוננים",
     "downloadAllowed": "הורד מותר",
-    "weAreHiring": "אנחנו מחפשים עובדים!"
+    "weAreHiring": "אנחנו מחפשים עובדים!",
+    "primaryKey": "מפתח ראשי",
+    "hasMany": "יש לו הרבה",
+    "belongsTo": "שייך ל",
+    "manyToMany": "יש הרבה קשר עד הרבה"
   },
   "activity": {
     "createProject": "צור פרויקט",
@@ -390,7 +394,10 @@
     "sendEmail": "שלח אימייל",
     "addUserToProject": "הוסף משתמש לפרויקט",
     "getApiSnippet": "קבל קטע API",
-    "clearCell": "תא ברור"
+    "clearCell": "תא ברור",
+    "addFilterGroup": "הוסף קבוצת פילטר",
+    "linkRecord": "רשומת קישור",
+    "addNewRecord": "הוסף רשומה חדשה"
   },
   "tooltip": {
     "saveChanges": "שמור שינויים",
@@ -437,7 +444,8 @@
     "noItemsFound": "לא נמצאו פריטים",
     "defaultValue": "ערך ברירת מחדל",
     "filterByEmail": "מסנן בדואר אלקטרוני",
-    "filterQuery": "שאילתת סנן"
+    "filterQuery": "שאילתת סנן",
+    "selectField": "בחר שדה"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "מטמון מיוצא בהצלחה",
       "valueAlreadyInList": "ערך זה כבר נמצא ברשימה",
       "noColumnsToUpdate": "אין עמודות לעדכון",
-      "tableDeleted": "שולחן נמחק בהצלחה"
+      "tableDeleted": "שולחן נמחק בהצלחה",
+      "generatePublicShareableReadonlyBase": "לייצר בסיס קריאה הניתן לשיתוף בפומבי",
+      "deleteViewConfirmation": "האם אתה בטוח שאתה רוצה למחוק את התצוגה הזו?",
+      "deleteTableConfirmation": "האם ברצונך למחוק את הטבלה",
+      "showM2mTables": "הצג שולחנות M2M"
     },
     "error": {
       "searchProject": "החיפוש שלך {חיפוש} לא נמצא תוצאות",
@@ -583,6 +595,35 @@
       "collabView": "העבר בהצלחה לתצוגת שיתופית",
       "lockedView": "הפעל בהצלחה לתצוגה נעולה",
       "futureRelease": "בקרוב!"
+    },
+    "success": {
+      "updatedUIACL": "מעודכן ממשק משתמש ACL לטבלאות בהצלחה",
+      "pluginUninstalled": "תוסף הסר את ההתקנה בהצלחה",
+      "pluginSettingsSaved": "הגדרות התוסף שנשמרו בהצלחה",
+      "pluginTested": "הגדרות תוסף שנבדקו בהצלחה",
+      "tableRenamed": "שמו של הטבלה שונה בהצלחה",
+      "viewDeleted": "צפה שנמחקת בהצלחה",
+      "primaryColumnUpdated": "עודכן בהצלחה כעמודה ראשונית",
+      "tableDataExported": "ייצא בהצלחה את כל נתוני הטבלה",
+      "updated": "עודכן בהצלחה",
+      "sharedViewDeleted": "מבט משותף שנמחק בהצלחה",
+      "viewRenamed": "צפה בשם שונה בהצלחה",
+      "tokenGenerated": "אסימון נוצר בהצלחה",
+      "tokenDeleted": "אסימון נמחק בהצלחה",
+      "userAddedToProject": "הוסיף משתמש בהצלחה לפרויקט",
+      "userDeletedFromProject": "המשתמש מחק בהצלחה מהפרויקט",
+      "inviteEmailSent": "הזמן דוא\"ל שנשלח בהצלחה",
+      "inviteURLCopied": "הזמינו כתובת אתר שהועתקו ללוח",
+      "shareableURLCopied": "הועתק כתובת בסיס הניתנת לשיתוף ללוח!",
+      "embeddableHTMLCodeCopied": "הועתק קוד HTML הניתן להטמעה!",
+      "userDetailsUpdated": "עדכן בהצלחה את פרטי המשתמש",
+      "tableDataImported": "נתוני טבלה מיובאים בהצלחה",
+      "webhookUpdated": "פרטי WebHook עודכנו בהצלחה",
+      "webhookDeleted": "הוק נמחק בהצלחה",
+      "webhookTested": "WebHook נבדק בהצלחה",
+      "columnUpdated": "מעודכן בעמודה",
+      "columnCreated": "העמודה נוצרה",
+      "passwordChanged": "סיסמה שונתה בהצלחה. אנא התחבר שוב."
     }
   }
 }

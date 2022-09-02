@@ -280,7 +280,11 @@
     "importing": "আমদানি",
     "flattenNested": "ফ্ল্যাটেন বাসা",
     "downloadAllowed": "ডাউনলোড অনুমোদিত",
-    "weAreHiring": "আমরা ভাড়া নিচ্ছি!"
+    "weAreHiring": "আমরা ভাড়া নিচ্ছি!",
+    "primaryKey": "প্রাথমিক কী",
+    "hasMany": "প্রচুর আছে",
+    "belongsTo": "অন্তর্গত",
+    "manyToMany": "অনেক সম্পর্ক আছে"
   },
   "activity": {
     "createProject": "প্রকল্প তৈরি করুন",
@@ -390,7 +394,10 @@
     "sendEmail": "ইমেইল পাঠান",
     "addUserToProject": "প্রকল্পে ব্যবহারকারী যুক্ত করুন",
     "getApiSnippet": "এপিআই স্নিপেট পান",
-    "clearCell": "ক্লিয়ার সেল"
+    "clearCell": "ক্লিয়ার সেল",
+    "addFilterGroup": "ফিল্টার গ্রুপ যুক্ত করুন",
+    "linkRecord": "লিঙ্ক রেকর্ড",
+    "addNewRecord": "নতুন রেকর্ড যুক্ত করুন"
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -437,7 +444,8 @@
     "noItemsFound": "কোনও আইটেম পাওয়া যায় নি",
     "defaultValue": "ডিফল্ট মান",
     "filterByEmail": "ই-মেইল দ্বারা ফিল্টার",
-    "filterQuery": "ফিল্টার ক্যোয়ারী"
+    "filterQuery": "ফিল্টার ক্যোয়ারী",
+    "selectField": "ক্ষেত্র নির্বাচন করুন"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "সফলভাবে ক্যাশে রফতানি করা হয়েছে",
       "valueAlreadyInList": "এই মানটি ইতিমধ্যে তালিকায় রয়েছে",
       "noColumnsToUpdate": "আপডেট করার জন্য কোনও কলাম নেই",
-      "tableDeleted": "সফলভাবে টেবিল মুছে ফেলা হয়েছে"
+      "tableDeleted": "সফলভাবে টেবিল মুছে ফেলা হয়েছে",
+      "generatePublicShareableReadonlyBase": "সর্বজনীনভাবে ভাগযোগ্য পঠনযোগ্য বেস উত্পন্ন করুন",
+      "deleteViewConfirmation": "আপনি কি নিশ্চিত যে আপনি এই দৃশ্যটি মুছতে চান?",
+      "deleteTableConfirmation": "আপনি কি টেবিলটি মুছতে চান?",
+      "showM2mTables": "এম 2 এম টেবিলগুলি দেখান"
     },
     "error": {
       "searchProject": "আপনার অনুসন্ধান {search} এর জন্য কোনও ফলাফল পাওয়া যায় নি",
@@ -583,6 +595,35 @@
       "collabView": "সফলভাবে সহযোগী ভিউতে স্যুইচ করা",
       "lockedView": "সফলভাবে লক ভিউতে স্যুইচ করা",
       "futureRelease": "শীঘ্রই আসছে!"
+    },
+    "success": {
+      "updatedUIACL": "সারণীগুলির জন্য সফলভাবে ইউআই এসিএল আপডেট হয়েছে",
+      "pluginUninstalled": "প্লাগইন সফলভাবে আনইনস্টল করা",
+      "pluginSettingsSaved": "প্লাগইন সেটিংস সফলভাবে সংরক্ষণ করেছে",
+      "pluginTested": "সফলভাবে পরীক্ষিত প্লাগইন সেটিংস",
+      "tableRenamed": "টেবিল সফলভাবে নামকরণ করা হয়েছে",
+      "viewDeleted": "সফলভাবে মুছে ফেলা দেখুন",
+      "primaryColumnUpdated": "প্রাথমিক কলাম হিসাবে সফলভাবে আপডেট হয়েছে",
+      "tableDataExported": "সফলভাবে সমস্ত টেবিল ডেটা রফতানি",
+      "updated": "সফলভাবে আপডেট",
+      "sharedViewDeleted": "সফলভাবে ভাগ করা দৃশ্য মুছে ফেলা হয়েছে",
+      "viewRenamed": "সফলভাবে নামকরণ দেখুন",
+      "tokenGenerated": "টোকেন সফলভাবে উত্পন্ন",
+      "tokenDeleted": "টোকেন সফলভাবে মুছে ফেলা হয়েছে",
+      "userAddedToProject": "সাফল্যের সাথে প্রকল্পে ব্যবহারকারী যুক্ত করেছেন",
+      "userDeletedFromProject": "প্রকল্প থেকে সফলভাবে ব্যবহারকারী মুছে ফেলা",
+      "inviteEmailSent": "সফলভাবে প্রেরিত ইমেল আমন্ত্রণ",
+      "inviteURLCopied": "ক্লিপবোর্ডে অনুলিপি করা ইউআরএলকে আমন্ত্রণ জানান",
+      "shareableURLCopied": "ক্লিপবোর্ডে শেয়ারযোগ্য বেস ইউআরএল অনুলিপি!",
+      "embeddableHTMLCodeCopied": "এম্বেডডেবল এইচটিএমএল কোড অনুলিপি!",
+      "userDetailsUpdated": "সফলভাবে ব্যবহারকারীর বিশদ আপডেট করেছেন",
+      "tableDataImported": "সাফল্যের সাথে টেবিল ডেটা আমদানি করা",
+      "webhookUpdated": "ওয়েবহুকের বিবরণ সফলভাবে আপডেট হয়েছে",
+      "webhookDeleted": "হুক সফলভাবে মুছে ফেলা হয়েছে",
+      "webhookTested": "ওয়েবহুক সফলভাবে পরীক্ষা করেছে",
+      "columnUpdated": "কলাম আপডেট হয়েছে",
+      "columnCreated": "কলাম তৈরি",
+      "passwordChanged": "পাসওয়ার্ড সফলভাবে পরিবর্তন. অনুগ্রহ পূর্বক আরো একবার প্রবেশ করুন."
     }
   }
 }

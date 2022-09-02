@@ -280,7 +280,11 @@
     "importing": "Tuonti",
     "flattenNested": "Litisteinen sisäkkäinen",
     "downloadAllowed": "Lataa sallittua",
-    "weAreHiring": "Palkkaamme!"
+    "weAreHiring": "Palkkaamme!",
+    "primaryKey": "Pääavain",
+    "hasMany": "on monta",
+    "belongsTo": "kuuluu",
+    "manyToMany": "on monia suhteita"
   },
   "activity": {
     "createProject": "Luo projekti",
@@ -390,7 +394,10 @@
     "sendEmail": "LÄHETTÄÄ SÄHKÖPOSTIA",
     "addUserToProject": "Lisää käyttäjä projektiin",
     "getApiSnippet": "Hanki API -katkelma",
-    "clearCell": "Selkeä solu"
+    "clearCell": "Selkeä solu",
+    "addFilterGroup": "Lisää suodatinryhmä",
+    "linkRecord": "Linkkitietue",
+    "addNewRecord": "Lisää uusi levy"
   },
   "tooltip": {
     "saveChanges": "Tallenna muutokset",
@@ -437,7 +444,8 @@
     "noItemsFound": "kohteita ei löytynyt",
     "defaultValue": "Oletusarvo",
     "filterByEmail": "Suodata sähköpostitse",
-    "filterQuery": "Suodatinkysely"
+    "filterQuery": "Suodatinkysely",
+    "selectField": "Valitse kenttä"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Vie välimuisti onnistuneesti",
       "valueAlreadyInList": "Tämä arvo on jo luettelossa",
       "noColumnsToUpdate": "Ei päivitettävissä olevia sarakkeita",
-      "tableDeleted": "Poistettu taulukko onnistuneesti"
+      "tableDeleted": "Poistettu taulukko onnistuneesti",
+      "generatePublicShareableReadonlyBase": "Luo julkisesti jaettavissa olevaa perustaa",
+      "deleteViewConfirmation": "Haluatko varmasti poistaa tämän kuvan?",
+      "deleteTableConfirmation": "Haluatko poistaa taulukon",
+      "showM2mTables": "Näytä M2M -taulukot"
     },
     "error": {
       "searchProject": "Hakusi {haku} ei löytänyt tuloksia",
@@ -583,6 +595,35 @@
       "collabView": "Onnistuneesti siirtynyt yhteistyöhön",
       "lockedView": "Onnistuneesti kytketty lukittuun näkymään",
       "futureRelease": "Tulossa pian!"
+    },
+    "success": {
+      "updatedUIACL": "Päivitetty käyttöliittymä ACL taulukoihin onnistuneesti",
+      "pluginUninstalled": "Laajennus asennettiin onnistuneesti",
+      "pluginSettingsSaved": "Laajennusasetukset tallennetaan onnistuneesti",
+      "pluginTested": "Onnistuneesti testatut laajennusasetukset",
+      "tableRenamed": "Pöytä nimettiin uudelleen onnistuneesti",
+      "viewDeleted": "Näkymä poistetaan onnistuneesti",
+      "primaryColumnUpdated": "Onnistuneesti päivitetty ensisijaisena sarakkeena",
+      "tableDataExported": "Vienti kaikki taulukkotiedot onnistuneesti",
+      "updated": "Päivitetty onnistuneesti",
+      "sharedViewDeleted": "Poistettu jaettu näkymä onnistuneesti",
+      "viewRenamed": "Näkymä nimetty uudelleen onnistuneesti",
+      "tokenGenerated": "Token syntyi onnistuneesti",
+      "tokenDeleted": "Token poistettiin onnistuneesti",
+      "userAddedToProject": "Lisätty käyttäjä onnistuneesti projektiin",
+      "userDeletedFromProject": "Projektin onnistuneesti poistettu käyttäjä",
+      "inviteEmailSent": "Kutsu sähköposti lähetetty onnistuneesti",
+      "inviteURLCopied": "Kutsu leikepöydälle kopioitu URL -osoite",
+      "shareableURLCopied": "Kopioitu jaettava perus -URL -osoite leikepöydälle!",
+      "embeddableHTMLCodeCopied": "Kopioitu upotettava HTML -koodi!",
+      "userDetailsUpdated": "Päivitti käyttäjän yksityiskohdat onnistuneesti",
+      "tableDataImported": "Tuota taulukkotiedot onnistuneesti",
+      "webhookUpdated": "Webhook -yksityiskohdat päivitettiin onnistuneesti",
+      "webhookDeleted": "Koukku poistettu onnistuneesti",
+      "webhookTested": "Webhook testattiin onnistuneesti",
+      "columnUpdated": "Sarake päivitetty",
+      "columnCreated": "Sarake luotu",
+      "passwordChanged": "Salasana vaihdettu onnistuneesti. Kirjaudu uudelleen."
     }
   }
 }

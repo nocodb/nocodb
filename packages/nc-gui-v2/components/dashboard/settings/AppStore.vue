@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import AppInstall from './app-store/AppInstall.vue'
 import MdiEditIcon from '~icons/ic/round-edit'
 import MdiCloseCircleIcon from '~icons/mdi/close-circle-outline'
 import MdiPlusIcon from '~icons/mdi/plus'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
+const { t } = useI18n()
 const { $api, $e } = useNuxtApp()
 
 let apps = $ref<null | Array<any>>(null)
@@ -33,7 +35,8 @@ const resetPlugin = async () => {
       input: null,
       active: false,
     })
-    message.success('Plugin uninstalled successfully')
+    // Plugin uninstalled successfully
+    message.success(t('msg.success.pluginUninstalled'))
     showPluginUninstallModal = false
     await fetchPluginApps()
   } catch (e: any) {

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
+import { useI18n } from 'vue-i18n'
 import { navigateTo } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
@@ -8,6 +9,8 @@ import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 import MdiFolderOutline from '~icons/mdi/folder-outline'
+
+const { t } = useI18n()
 
 const navDrawerOptions = [
   {
@@ -38,7 +41,7 @@ const projects = $ref(response.list)
 const activePage = $ref(navDrawerOptions[0].title)
 const deleteProject = (project: ProjectType) => {
   Modal.confirm({
-    title: 'Do you want to delete the project?',
+    title: t('msg.info.deleteProject'),
     // icon: createVNode(ExclamationCircleOutlined),
     content: 'Some descriptions',
     okText: 'Yes',

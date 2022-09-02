@@ -280,7 +280,11 @@
     "importing": "Importing",
     "flattenNested": "Flatten Nested",
     "downloadAllowed": "Download allowed",
-    "weAreHiring": "We are Hiring!"
+    "weAreHiring": "We are Hiring!",
+    "primaryKey": "Primary key",
+    "hasMany": "has many",
+    "belongsTo": "belongs to",
+    "manyToMany": "have many to many relation"
   },
   "activity": {
     "createProject": "Create Project",
@@ -390,7 +394,10 @@
     "sendEmail": "SEND EMAIL",
     "addUserToProject": "Add user to project",
     "getApiSnippet": "Get API Snippet",
-    "clearCell": "Clear cell"
+    "clearCell": "Clear cell",
+    "addFilterGroup": "Add Filter Group",
+    "linkRecord": "Link record",
+    "addNewRecord": "Add new record"
   },
   "tooltip": {
     "saveChanges": "Save changes",
@@ -437,7 +444,8 @@
     "noItemsFound": "No items found",
     "defaultValue": "Default value",
     "filterByEmail": "Filter by E-mail",
-    "filterQuery": "Filter query"
+    "filterQuery": "Filter query",
+    "selectField": "Select field"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Exported Cache Successfully",
       "valueAlreadyInList": "This value is already in the list",
       "noColumnsToUpdate": "No columns to update",
-      "tableDeleted": "Deleted table successfully"
+      "tableDeleted": "Deleted table successfully",
+      "generatePublicShareableReadonlyBase": "Generate publicly shareable readonly base",
+      "deleteViewConfirmation": "Are you sure you want to delete this view?",
+      "deleteTableConfirmation": "Do you want to delete the table",
+      "showM2mTables": "Show M2M Tables"
     },
     "error": {
       "searchProject": "Your search for {search} found no results",
@@ -583,6 +595,35 @@
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",
       "futureRelease": "Coming soon!"
+    },
+    "success": {
+      "updatedUIACL": "Updated UI ACL for tables successfully",
+      "pluginUninstalled": "Plugin uninstalled successfully",
+      "pluginSettingsSaved": "Plugin settings saved successfully",
+      "pluginTested": "Successfully tested plugin settings",
+      "tableRenamed": "Table renamed successfully",
+      "viewDeleted": "View deleted successfully",
+      "primaryColumnUpdated": "Successfully updated as primary column",
+      "tableDataExported": "Successfully exported all table data",
+      "updated": "Successfully updated",
+      "sharedViewDeleted": "Deleted shared view successfully",
+      "viewRenamed": "View renamed successfully",
+      "tokenGenerated": "Token generated successfully",
+      "tokenDeleted": "Token deleted successfully",
+      "userAddedToProject": "Successfully added user to project",
+      "userDeletedFromProject": "Successfully deleted user from project",
+      "inviteEmailSent": "Invite Email sent successfully",
+      "inviteURLCopied": "Invite URL copied to clipboard",
+      "shareableURLCopied": "Copied shareable base URL to clipboard!",
+      "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
+      "userDetailsUpdated": "Successfully updated the user details",
+      "tableDataImported": "Successfully imported table data",
+      "webhookUpdated": "Webhook details updated successfully",
+      "webhookDeleted": "Hook deleted successfully",
+      "webhookTested": "Webhook tested successfully",
+      "columnUpdated": "Column updated",
+      "columnCreated": "Column created",
+      "passwordChanged": "Password changed successfully. Please login again."
     }
   }
 }

@@ -280,7 +280,11 @@
     "importing": "Importowanie",
     "flattenNested": "Spłaszcz zagnieżdżony",
     "downloadAllowed": "Pobierz dozwolony",
-    "weAreHiring": "Zatrudniamy!"
+    "weAreHiring": "Zatrudniamy!",
+    "primaryKey": "Główny klucz",
+    "hasMany": "ma wiele",
+    "belongsTo": "należy do",
+    "manyToMany": "mieć wiele do wielu relacji"
   },
   "activity": {
     "createProject": "Utwórz projekt",
@@ -390,7 +394,10 @@
     "sendEmail": "WYSŁAĆ EMAIL",
     "addUserToProject": "Dodaj użytkownika do projektu",
     "getApiSnippet": "Zdobądź fragment API",
-    "clearCell": "Jasna komórka"
+    "clearCell": "Jasna komórka",
+    "addFilterGroup": "Dodaj grupę filtrów",
+    "linkRecord": "Rekord linku",
+    "addNewRecord": "Dodaj nowy rekord"
   },
   "tooltip": {
     "saveChanges": "Zapisz zmiany",
@@ -437,7 +444,8 @@
     "noItemsFound": "Nie znaleziono przedmiotów",
     "defaultValue": "Domyślna wartość",
     "filterByEmail": "Filtruj e-mailem",
-    "filterQuery": "Filtr zapytanie"
+    "filterQuery": "Filtr zapytanie",
+    "selectField": "Wybierz pole"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Z powodzeniem wyeksportowana pamięć podręczna",
       "valueAlreadyInList": "Ta wartość jest już na liście",
       "noColumnsToUpdate": "Brak kolumn do aktualizacji",
-      "tableDeleted": "Usunięta tabela pomyślnie"
+      "tableDeleted": "Usunięta tabela pomyślnie",
+      "generatePublicShareableReadonlyBase": "Generować publicznie udostępnialną bazę odczytującą",
+      "deleteViewConfirmation": "Czy na pewno chcesz usunąć ten widok?",
+      "deleteTableConfirmation": "Chcesz usunąć tabelę",
+      "showM2mTables": "Pokaż tabele M2M"
     },
     "error": {
       "searchProject": "Twoje wyszukiwanie dla {search}, nie znaleziono żadnych wyników",
@@ -583,6 +595,35 @@
       "collabView": "Pomyślnie przełączony na widok współpracy",
       "lockedView": "Pomyślnie przełączony na zablokowany widok",
       "futureRelease": "Wkrótce!"
+    },
+    "success": {
+      "updatedUIACL": "Pomyślnie zaktualizowany interfejs użytkownika ACL dla tabel",
+      "pluginUninstalled": "Wtyczka odinstalowana pomyślnie",
+      "pluginSettingsSaved": "Ustawienia wtyczek zapisane pomyślnie",
+      "pluginTested": "Pomyślnie przetestowane ustawienia wtyczek",
+      "tableRenamed": "Z powodzeniem przemianowany na tabeli",
+      "viewDeleted": "Zobacz pomyślnie usunięty",
+      "primaryColumnUpdated": "Pomyślnie zaktualizowane jako kolumna podstawowa",
+      "tableDataExported": "Pomyślnie wyeksportował wszystkie dane tabeli",
+      "updated": "Pomyślnie zaktualizowane",
+      "sharedViewDeleted": "Usunięty udostępniony widok pomyślnie",
+      "viewRenamed": "Zobacz nazwę pomyślnie",
+      "tokenGenerated": "Token generował pomyślnie",
+      "tokenDeleted": "Token pomyślnie usunął",
+      "userAddedToProject": "Pomyślnie dodał użytkownika do projektu",
+      "userDeletedFromProject": "Pomyślnie usunięty użytkownik z projektu",
+      "inviteEmailSent": "Zaproś wiadomość e -mail wysłaną pomyślnie",
+      "inviteURLCopied": "Zaproś adres URL skopiowany do schowka",
+      "shareableURLCopied": "Skopiowany adres URL podstawowego udostępniania do schowka!",
+      "embeddableHTMLCodeCopied": "Skopiowany kod HTML EmbedDable!",
+      "userDetailsUpdated": "Pomyślnie zaktualizował dane użytkownika",
+      "tableDataImported": "Pomyślnie zaimportowane dane tabeli",
+      "webhookUpdated": "Szczegóły WebHook zostały pomyślnie zaktualizowane",
+      "webhookDeleted": "Hook pomyślnie usunął",
+      "webhookTested": "Webhook przetestował pomyślnie",
+      "columnUpdated": "Zaktualizowano kolumnę",
+      "columnCreated": "Utworzona kolumna",
+      "passwordChanged": "Hasło zmieniło się pomyślnie. Proszę, zaloguj się ponownie."
     }
   }
 }

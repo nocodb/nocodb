@@ -280,7 +280,11 @@
     "importing": "Uvoz",
     "flattenNested": "Spljošteno ugniježđen",
     "downloadAllowed": "Preuzmi dopušteno",
-    "weAreHiring": "Mi se zapošljavamo!"
+    "weAreHiring": "Mi se zapošljavamo!",
+    "primaryKey": "Glavni ključ",
+    "hasMany": "ima mnogo",
+    "belongsTo": "pripada",
+    "manyToMany": "imaju mnogo do mnogih odnosa"
   },
   "activity": {
     "createProject": "Stvoriti projekt",
@@ -390,7 +394,10 @@
     "sendEmail": "POŠALJI E-MAIL",
     "addUserToProject": "Dodajte korisnika u projekt",
     "getApiSnippet": "Nabavite isječak API -ja",
-    "clearCell": "Bistra ćelija"
+    "clearCell": "Bistra ćelija",
+    "addFilterGroup": "Dodajte filtersku grupu",
+    "linkRecord": "Link zapisnik",
+    "addNewRecord": "Dodajte novi zapis"
   },
   "tooltip": {
     "saveChanges": "Spremi promjene",
@@ -437,7 +444,8 @@
     "noItemsFound": "Nema pronađenih stavki",
     "defaultValue": "Zadana vrijednost",
     "filterByEmail": "Filtar putem e-maila",
-    "filterQuery": "Upit za filtriranje"
+    "filterQuery": "Upit za filtriranje",
+    "selectField": "Odaberite polje"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Uspješno izvozila predmemoriju",
       "valueAlreadyInList": "Ova je vrijednost već na popisu",
       "noColumnsToUpdate": "Nema stupaca za ažuriranje",
-      "tableDeleted": "Uspješno izbrisana tablica"
+      "tableDeleted": "Uspješno izbrisana tablica",
+      "generatePublicShareableReadonlyBase": "Generirajte javno podijeljene samo za čitanje",
+      "deleteViewConfirmation": "Jeste li sigurni da želite izbrisati ovaj pogled?",
+      "deleteTableConfirmation": "Želite li izbrisati stol",
+      "showM2mTables": "Prikaži M2M stolove"
     },
     "error": {
       "searchProject": "Vaša potraga za {Search} nije pronašla rezultate",
@@ -583,6 +595,35 @@
       "collabView": "Uspješno prebačen na suradnički prikaz",
       "lockedView": "Uspješno prebačen na zaključani prikaz",
       "futureRelease": "Dolazi uskoro!"
+    },
+    "success": {
+      "updatedUIACL": "Ažurirani sučelje ACL za tablice uspješno",
+      "pluginUninstalled": "Dodatak se uspješno deinstalirao",
+      "pluginSettingsSaved": "Postavke dodataka uspješno su spremljene",
+      "pluginTested": "Uspješno testirane postavke dodataka",
+      "tableRenamed": "Tablica je uspješno preimenovala",
+      "viewDeleted": "Pogledajte uspješno izbrisani",
+      "primaryColumnUpdated": "Uspješno ažurirano kao primarni stupac",
+      "tableDataExported": "Uspješno izveo sve podatke o tablici",
+      "updated": "Uspješno ažurirano",
+      "sharedViewDeleted": "Izbrisani zajednički pogled uspješno",
+      "viewRenamed": "View preimenovano uspješno",
+      "tokenGenerated": "Token je uspješno generirao",
+      "tokenDeleted": "Token se uspješno izbrisao",
+      "userAddedToProject": "Uspješno je dodao korisnik za projekt",
+      "userDeletedFromProject": "Uspješno izbrisani korisnik iz projekta",
+      "inviteEmailSent": "Pozovite e -poštu poslanu uspješno",
+      "inviteURLCopied": "Pozovite URL kopirani u međuspremnik",
+      "shareableURLCopied": "Kopirao je url za dijeljenje baze u međuspremnik!",
+      "embeddableHTMLCodeCopied": "Kopirani ugrađeni HTML kod!",
+      "userDetailsUpdated": "Uspješno ažurirao detalje korisnika",
+      "tableDataImported": "Uspješno uvezeni podaci o tablici",
+      "webhookUpdated": "Pojedinosti o webhooku uspješno su ažurirane",
+      "webhookDeleted": "Kuka je uspješno izbrisana",
+      "webhookTested": "Webhook je uspješno testirao",
+      "columnUpdated": "Ažurirano stupac",
+      "columnCreated": "Stvoren stupac",
+      "passwordChanged": "Lozinka se uspješno promijenila. Molimo prijavite se ponovo."
     }
   }
 }

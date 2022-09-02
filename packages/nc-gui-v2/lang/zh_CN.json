@@ -280,7 +280,11 @@
     "importing": "输入",
     "flattenNested": "扁平的嵌套",
     "downloadAllowed": "下载允许",
-    "weAreHiring": "我们正在招聘！"
+    "weAreHiring": "我们正在招聘！",
+    "primaryKey": "首要的关键",
+    "hasMany": "有很多",
+    "belongsTo": "属于",
+    "manyToMany": "有很多关系"
   },
   "activity": {
     "createProject": "创建项目",
@@ -390,7 +394,10 @@
     "sendEmail": "发送邮件",
     "addUserToProject": "将用户添加到项目",
     "getApiSnippet": "获取API片段",
-    "clearCell": "透明细胞"
+    "clearCell": "透明细胞",
+    "addFilterGroup": "添加过滤器组",
+    "linkRecord": "链接记录",
+    "addNewRecord": "添加新记录"
   },
   "tooltip": {
     "saveChanges": "保存更改",
@@ -437,7 +444,8 @@
     "noItemsFound": "未找到任何项目",
     "defaultValue": "默认值",
     "filterByEmail": "通过电子邮件过滤",
-    "filterQuery": "过滤器查询"
+    "filterQuery": "过滤器查询",
+    "selectField": "选择字段"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "成功导出缓存",
       "valueAlreadyInList": "此值已经在列表中",
       "noColumnsToUpdate": "没有列更新",
-      "tableDeleted": "成功删除表"
+      "tableDeleted": "成功删除表",
+      "generatePublicShareableReadonlyBase": "产生可公开共享的可读基础",
+      "deleteViewConfirmation": "您确定要删除此视图吗？",
+      "deleteTableConfirmation": "您想删除表格吗",
+      "showM2mTables": "显示M2M表"
     },
     "error": {
       "searchProject": "搜索： {search} 没有发现匹配的结果",
@@ -583,6 +595,35 @@
       "collabView": "成功转换为协作视图",
       "lockedView": "成功转换为锁定视图",
       "futureRelease": "即将推出！"
+    },
+    "success": {
+      "updatedUIACL": "成功更新了桌子的UI ACL",
+      "pluginUninstalled": "插件成功卸载",
+      "pluginSettingsSaved": "插件设置成功保存了",
+      "pluginTested": "成功测试的插件设置",
+      "tableRenamed": "餐桌成功地重命名",
+      "viewDeleted": "查看成功删除",
+      "primaryColumnUpdated": "成功更新为主要列",
+      "tableDataExported": "成功导出了所有表数据",
+      "updated": "成功更新",
+      "sharedViewDeleted": "成功删除共享视图成功",
+      "viewRenamed": "查看成功地重命名",
+      "tokenGenerated": "令牌成功产生",
+      "tokenDeleted": "代币成功删除了",
+      "userAddedToProject": "成功添加用户到项目",
+      "userDeletedFromProject": "成功从项目中删除用户",
+      "inviteEmailSent": "邀请电子邮件成功发送",
+      "inviteURLCopied": "邀请将URL复制到剪贴板",
+      "shareableURLCopied": "将可共享的基本URL复制到剪贴板！",
+      "embeddableHTMLCodeCopied": "复制的嵌入式HTML代码！",
+      "userDetailsUpdated": "成功更新了用户详细信息",
+      "tableDataImported": "成功导入的表数据",
+      "webhookUpdated": "Webhook详细信息成功更新了",
+      "webhookDeleted": "钩成功删除了",
+      "webhookTested": "Webhook成功测试了",
+      "columnUpdated": "列更新",
+      "columnCreated": "创建列",
+      "passwordChanged": "密码修改成功。请再次登录。"
     }
   }
 }

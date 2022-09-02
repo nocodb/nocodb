@@ -64,5 +64,5 @@ export default async function () {
 
   const { token } = await createUser({ app: server }, { roles: 'editor' });
 
-  return { app: server, token };
+  return { app: server, token, dbConfig };
 }

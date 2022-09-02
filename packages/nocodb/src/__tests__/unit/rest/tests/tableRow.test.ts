@@ -11,7 +11,15 @@ import {
   createRollupColumn,
 } from './factory/column';
 import { createTable } from './factory/table';
-import { createRelation, createRow, getOneRow, getRow } from './factory/row';
+import {
+  createRelation,
+  createRow,
+  generateDefaultRowAttributes,
+  getOneRow,
+  getRow,
+  listRow,
+} from './factory/row';
+import { isMysql, isSqlite } from '../init/db';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -1261,6 +1269,130 @@ function tableTest() {
 
     if (response.body) {
       throw new Error('Should not exist');
+    }
+  });
+
+  it('Bulk insert', async function () {
+    const table = await createTable(context, project);
+    const columns = await table.getColumns();
+
+    const rowAttributes = Array(99)
+      .fill(0)
+      .map((index) => generateDefaultRowAttributes({ columns, index }));
+
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}`)
+      .set('xc-auth', context.token)
+      .send(rowAttributes)
+      .expect(200);
+
+    const rows = await listRow({ project, table });
+    console.log(rows.length);
+    // Mysql will not return the batched inserted rows
+    if (!isMysql(context)) {
+      if (
+        !isSqlite(context) &&
+        response.body.length !== rowAttributes.length &&
+        rows.length !== rowAttributes.length
+      ) {
+        throw new Error('Wrong number of rows inserted');
+      }
+
+      // Max 10 rows will be inserted in sqlite
+      if (isSqlite(context) && response.body.length !== 10) {
+        throw new Error('Wrong number of rows inserted');
+      }
+    } else {
+      if (rows.length !== rowAttributes.length) {
+        throw new Error('Wrong number of rows inserted');
+      }
+    }
+  });
+
+  it('Bulk insert 400 records', async function () {
+    const table = await createTable(context, project);
+    const columns = await table.getColumns();
+
+    const rowAttributes = Array(400)
+      .fill(0)
+      .map((index) => generateDefaultRowAttributes({ columns, index }));
+
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}`)
+      .set('xc-auth', context.token)
+      .send(rowAttributes)
+      .expect(200);
+
+    const rows = await listRow({ project, table });
+
+    // Mysql will not return the batched inserted rows
+    if (!isMysql(context)) {
+      if (
+        !isSqlite(context) &&
+        response.body.length !== rowAttributes.length &&
+        rows.length !== rowAttributes.length
+      ) {
+        throw new Error('Wrong number of rows inserted');
+      }
+
+      // Max 10 rows will be inserted in sqlite
+      if (isSqlite(context) && response.body.length !== 10) {
+        throw new Error('Wrong number of rows inserted');
+      }
+    } else {
+      if (rows.length !== rowAttributes.length) {
+        throw new Error('Wrong number of rows inserted');
+      }
+    }
+  });
+
+  it('Bulk update', async function () {
+    const table = await createTable(context, project);
+
+    const arr = Array(120)
+      .fill(0)
+      .map((_, index) => index);
+    for (const index of arr) {
+      await createRow(context, { project, table, index });
+    }
+
+    const rows = await listRow({ project, table });
+
+    await request(context.app)
+      .patch(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}`)
+      .set('xc-auth', context.token)
+      .send(
+        rows.map((row) => ({ title: `new-${row['Title']}`, id: row['Id'] }))
+      )
+      .expect(200);
+
+    const updatedRows: Array<any> = await listRow({ project, table });
+    if (!updatedRows.every((row) => row['Title'].startsWith('new-'))) {
+      throw new Error('Wrong number of rows updated');
+    }
+  });
+
+  it('Bulk delete', async function () {
+    const table = await createTable(context, project);
+
+    const arr = Array(120)
+      .fill(0)
+      .map((_, index) => index);
+    for (const index of arr) {
+      await createRow(context, { project, table, index });
+    }
+
+    const rows = await listRow({ project, table });
+
+    await request(context.app)
+      .delete(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}`)
+      .set('xc-auth', context.token)
+      .send(rows.map((row) => ({ id: row['Id'] })))
+      .expect(200);
+
+    const updatedRows: Array<any> = await listRow({ project, table });
+    if (updatedRows.length !== 0) {
+      throw new Error('Wrong number of rows delete');
     }
   });
 }

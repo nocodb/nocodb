@@ -1,13 +1,14 @@
 import { ColumnType, UITypes } from 'nocodb-sdk';
 import request from 'supertest';
 import Column from '../../../../../lib/models/Column';
+import Filter from '../../../../../lib/models/Filter';
 import Model from '../../../../../lib/models/Model';
 import Project from '../../../../../lib/models/Project';
+import Sort from '../../../../../lib/models/Sort';
+import NcConnectionMgrv2 from '../../../../../lib/utils/common/NcConnectionMgrv2';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {
-    case UITypes.ID:
-      return index;
     case UITypes.Number:
       return index;
     case UITypes.SingleLineText:
@@ -31,6 +32,30 @@ const getRow = async (context, project, table, id) => {
   return response.body;
 };
 
+const listRow = async ({
+  project,
+  table,
+  options,
+}: {
+  project: Project;
+  table: Model;
+  options?: {
+    limit?: any;
+    offset?: any;
+    filterArr?: Filter[];
+    sortArr?: Sort[];
+  };
+}) => {
+  const baseModel = await Model.getBaseModelSQL({
+    id: table.id,
+    dbDriver: NcConnectionMgrv2.get(project.bases[0]),
+  });
+
+  const ignorePagination = !options;
+
+  return await baseModel.list(options, ignorePagination);
+};
+
 const getOneRow = async (
   context,
   { project, table }: { project: Project; table: Model }
@@ -41,6 +66,25 @@ const getOneRow = async (
 
   return response.body;
 };
+
+const generateDefaultRowAttributes = ({
+  columns,
+  index,
+}: {
+  columns: ColumnType[];
+  index: number;
+}) =>
+  columns.reduce((acc, column) => {
+    if (
+      column.uidt === UITypes.LinkToAnotherRecord ||
+      column.uidt === UITypes.ForeignKey ||
+      column.uidt === UITypes.ID
+    ) {
+      return acc;
+    }
+    acc[column.column_name] = rowValue(column, index);
+    return acc;
+  }, {});
 
 const createRow = async (
   context,
@@ -55,16 +99,7 @@ const createRow = async (
   }
 ) => {
   const columns = await table.getColumns();
-  const rowData = columns.reduce((acc, column) => {
-    if (
-      column.uidt === UITypes.LinkToAnotherRecord ||
-      column.uidt === UITypes.ForeignKey
-    ) {
-      return acc;
-    }
-    acc[column.column_name] = rowValue(column, index);
-    return acc;
-  }, {});
+  const rowData = generateDefaultRowAttributes({ columns, index });
 
   const response = await request(context.app)
     .post(`/api/v1/db/data/noco/${project.id}/${table.id}`)
@@ -112,4 +147,11 @@ const createRelation = async (
     .set('xc-auth', context.token);
 };
 
-export { createRow, getRow, createRelation, getOneRow };
+export {
+  createRow,
+  getRow,
+  createRelation,
+  getOneRow,
+  listRow,
+  generateDefaultRowAttributes,
+};

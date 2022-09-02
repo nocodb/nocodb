@@ -1,21 +1,25 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import FileSaver from 'file-saver'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const { api } = useApi()
 
 async function exportCache() {
   try {
     const data = await api.utils.cacheGet()
     if (!data) {
-      message.info('Cache is empty')
+      // Cache is empty
+      message.info(t('msg.info.cacheEmpty'))
       return
     }
     const blob = new Blob([JSON.stringify(data)], {
       type: 'text/plain;charset=utf-8',
     })
     FileSaver.saveAs(blob, 'cache_exported.json')
-    message.info('Exported Cache Successfully')
+    // Exported Cache Successfully
+    message.info(t('msg.info.exportedCache'))
   } catch (e: any) {
     message.error(e.message)
   }

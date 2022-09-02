@@ -3,6 +3,7 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
+import { useI18n } from 'vue-i18n'
 import {
   NOCO,
   extractPkFromRow,
@@ -19,6 +20,7 @@ import type { Row } from '~/composables'
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
   const { api, isLoading: isCommentsLoading, error: commentsError } = useApi()
+  const { t } = useI18n()
 
   const commentsOnly = ref(false)
   const commentsAndLogs = ref<any[]>([])
@@ -153,7 +155,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             })
         }
       } else {
-        return message.info('No columns to update')
+        // No columns to update
+        return message.info(t('msg.info.noColumnsToUpdate'))
       }
 
       // this.$emit('update:oldRow', { ...this.localState });

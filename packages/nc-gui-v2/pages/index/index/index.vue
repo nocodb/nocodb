@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Modal, message } from 'ant-design-vue'
+import { Empty, Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { Chrome } from '@ckpack/vue-color'
 import tinycolor from 'tinycolor2'
@@ -204,6 +204,9 @@ watch(themePrimaryColors, async (nextColors) => {
         :data-source="filteredProjects"
         :pagination="{ position: ['bottomCenter'] }"
       >
+        <template #emptyText>
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+        </template>
         <!-- Title -->
         <a-table-column key="title" :title="$t('general.title')" data-index="title">
           <template #default="{ text, record }">

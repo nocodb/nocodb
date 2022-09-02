@@ -19,7 +19,7 @@ const page = computed({
 <template>
   <div class="flex items-center mb-1">
     <span v-if="count !== null && count !== Infinity" class="caption ml-5 text-gray-500">
-      {{ count }} record{{ count !== 1 ? 's' : '' }}
+      {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
     </span>
 
     <div class="flex-1" />

@@ -2,6 +2,7 @@
 import HTTPSnippet from 'httpsnippet'
 import { useClipboard } from '@vueuse/core'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { ActiveViewInj, MetaInj } from '~/context'
 import { inject, useGlobal, useProject, useSmartsheetStoreOrThrow, useVModel, useViewData } from '#imports'
 
@@ -12,6 +13,8 @@ const emits = defineEmits(['update:modelValue'])
 interface Props {
   modelValue: boolean
 }
+
+const { t } = useI18n()
 
 const { project } = $(useProject())
 
@@ -117,7 +120,8 @@ api.dbViewRow.list(
 
 const onCopyToClipboard = () => {
   copy(code)
-  message.info('Copied to clipboard')
+  // Copied to clipboard
+  message.info(t('msg.info.copiedToClipboard'))
 }
 
 const afterVisibleChange = (visible: boolean) => {
@@ -140,7 +144,8 @@ watch($$(activeLang), (newLang) => {
     @after-visible-change="afterVisibleChange"
   >
     <div class="flex flex-col w-full h-full p-4">
-      <a-typography-title :level="4" class="pb-1">Code Snippet</a-typography-title>
+      <!--      Code Snippet -->
+      <a-typography-title :level="4" class="pb-1">{{ $t('title.codeSnippet') }}</a-typography-title>
       <a-tabs v-model:activeKey="selectedLangName" class="!h-full">
         <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
           <template #tab>
@@ -170,7 +175,7 @@ watch($$(activeLang), (newLang) => {
               ]"
               type="primary"
               @click="onCopyToClipboard"
-              >Copy to clipboard
+              >{{ $t('general.copy') }}
             </a-button>
           </div>
 
@@ -182,7 +187,7 @@ watch($$(activeLang), (newLang) => {
               target="_blank"
               @click.stop
             >
-              🚀 We are Hiring! 🚀
+              🚀 {{ $t('labels.weAreHiring') }}! 🚀
             </a>
           </div>
         </a-tab-pane>

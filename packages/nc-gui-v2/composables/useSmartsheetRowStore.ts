@@ -3,6 +3,7 @@ import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RelationTypes, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 import type { Row } from './useViewData'
 import {
   NOCO,
@@ -22,6 +23,8 @@ import {
 const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState((meta: Ref<TableType>, row: MaybeRef<Row>) => {
   const { $api } = useNuxtApp()
 
+  const { t } = useI18n()
+
   const { project } = useProject()
 
   const { metas } = useMetas()
@@ -39,7 +42,8 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       if (!state.value[column.title!]) state.value[column.title!] = []
 
       if (state.value[column.title!]!.find((ln: Record<string, any>) => deepCompare(ln, value))) {
-        return message.info('This value is already in the list')
+        // This value is already in the list
+        return message.info(t('msg.info.valueAlreadyInList'))
       }
 
       state.value[column.title!]!.push(value)

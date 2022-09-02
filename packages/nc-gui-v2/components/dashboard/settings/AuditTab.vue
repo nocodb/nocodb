@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Tooltip as ATooltip } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
+import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/dateTimeUtils'
 import { h, useNuxtApp, useProject } from '#imports'
@@ -7,6 +8,7 @@ import MdiReload from '~icons/mdi/reload'
 
 const { $api } = useNuxtApp()
 const { project } = useProject()
+const { t } = useI18n()
 
 let isLoading = $ref(false)
 
@@ -47,28 +49,33 @@ const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gra
 
 const columns = [
   {
-    title: tableHeaderRenderer('Operation Type'),
+    // Operation Type
+    title: tableHeaderRenderer(t('labels.operationType')),
     dataIndex: 'op_type',
     key: 'op_type',
   },
   {
-    title: tableHeaderRenderer('Operation sub-type'),
+    // Operation sub-type
+    title: tableHeaderRenderer(t('labels.operationSubType')),
     dataIndex: 'op_sub_type',
     key: 'op_sub_type',
   },
   {
-    title: tableHeaderRenderer('Description'),
+    // Description
+    title: tableHeaderRenderer(t('labels.description')),
     dataIndex: 'description',
     key: 'description',
   },
   {
-    title: tableHeaderRenderer('User'),
+    // User
+    title: tableHeaderRenderer(t('objects.user')),
     dataIndex: 'user',
     key: 'user',
     customRender: (value: { text: string }) => h('div', {}, value.text || 'Shared base'),
   },
   {
-    title: tableHeaderRenderer('Created'),
+    // Created
+    title: tableHeaderRenderer(t('labels.created')),
     dataIndex: 'created_at',
     key: 'created_at',
     sort: 'desc',
@@ -82,9 +89,10 @@ const columns = [
   <div class="flex flex-col gap-4 w-full">
     <div class="flex flex-row justify-between items-center">
       <a-button class="self-start" @click="loadAudits">
+        <!--        Reload -->
         <div class="flex items-center gap-2 text-gray-600 font-light">
           <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
-          Reload
+          {{ $t('general.reload') }}
         </div>
       </a-button>
       <a-pagination
@@ -96,13 +104,10 @@ const columns = [
       />
     </div>
 
-    <a-table
-      class="w-full"
-      size="small"
-      :data-source="audits ?? []"
-      :columns="columns"
-      :pagination="false"
-      :loading="isLoading"
-    />
+    <a-table class="w-full" size="small" :data-source="audits ?? []" :columns="columns" :pagination="false" :loading="isLoading">
+      <template #emptyText>
+        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+      </template>
+    </a-table>
   </div>
 </template>

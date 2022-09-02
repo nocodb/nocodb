@@ -54,7 +54,20 @@
     "search": "traži",
     "notification": "Obavijest",
     "reference": "Referenca",
-    "function": "Funkcija"
+    "function": "Funkcija",
+    "confirm": "Potvrditi",
+    "generate": "Generirati",
+    "copy": "Kopirati",
+    "misc": "Razni",
+    "lock": "Zaključati",
+    "unlock": "Otključati",
+    "credentials": "Vjerodajnice",
+    "help": "Pomozite",
+    "questions": "Pitanja",
+    "reachOut": "Dosegnite ovdje",
+    "betaNote": "Ova je značajka trenutno u beta verziji.",
+    "moreInfo": "Više informacija možete pronaći ovdje",
+    "logs": "Zapisnici"
   },
   "objects": {
     "project": "Projekt",
@@ -172,7 +185,15 @@
     "resetPassword": "Vraćanje izvorne lozinke",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Generirati token",
+    "APIsAndSupport": "APIS i podrška",
+    "helpCenter": "Centar za pomoć",
+    "swaggerDocumentation": "Dokumentacija Swaggera",
+    "quickImportFrom": "Brzo uvoz iz",
+    "quickImport": "Brzi uvoz",
+    "advancedSettings": "Napredne postavke",
+    "codeSnippet": "Isječak koda"
   },
   "labels": {
     "notifyVia": "Obavijestiti putem",
@@ -193,6 +214,7 @@
     "username": "Korisničko ime",
     "password": "Lozinka",
     "schemaName": "Schema name",
+    "database": "Baza podataka",
     "action": "Akcijski",
     "actions": "Akcije",
     "operation": "Operacija",
@@ -238,7 +260,27 @@
     "childTable": "Dječji stol",
     "childColumn": "Dječji stupac",
     "onUpdate": "Na ažuriranje",
-    "onDelete": "Na brisanje"
+    "onDelete": "Na brisanje",
+    "account": "Račun",
+    "language": "Jezik",
+    "primaryColor": "Primarna boja",
+    "accentColor": "Akcentna boja",
+    "customTheme": "Prilagođena tema",
+    "requestDataSource": "Zatražite izvor podataka koji vam je potreban?",
+    "apiKey": "API ključ",
+    "sharedBase": "Zajednička baza",
+    "importData": "Uvoz podataka",
+    "importSecondaryViews": "Uvezite sekundarne poglede",
+    "importRollupColumns": "Uvoz stupaca Rollup",
+    "importLookupColumns": "Uvoz stupaca za pretraživanje",
+    "importAttachmentColumns": "Uvoz stupaca privitka",
+    "importFormulaColumns": "Uvoz Formula stupaca",
+    "noData": "Nema podataka",
+    "goToDashboard": "Idite na nadzornu ploču",
+    "importing": "Uvoz",
+    "flattenNested": "Spljošteno ugniježđen",
+    "downloadAllowed": "Preuzmi dopušteno",
+    "weAreHiring": "Mi se zapošljavamo!"
   },
   "activity": {
     "createProject": "Stvoriti projekt",
@@ -265,7 +307,7 @@
     "translate": "Pomoć Prevedi",
     "account": {
       "authToken": "Kopirajte auth token",
-      "swagger": "Swagger API DOC",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopirajte informacije o projektu",
       "themes": "Teme"
     },
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "Uklonite bazu podataka iz okruženja",
     "editConnJson": "Uredi priključak JSON",
     "sponsorUs": "Sponzorira nas",
-    "sendEmail": "POŠALJI E-MAIL"
+    "sendEmail": "POŠALJI E-MAIL",
+    "addUserToProject": "Dodajte korisnika u projekt",
+    "getApiSnippet": "Nabavite isječak API -ja",
+    "clearCell": "Bistra ćelija"
   },
   "tooltip": {
     "saveChanges": "Spremi promjene",
@@ -391,7 +436,8 @@
     "searchModels": "Modeli pretraživanja",
     "noItemsFound": "Nema pronađenih stavki",
     "defaultValue": "Zadana vrijednost",
-    "filterByEmail": "Filtar putem e-maila"
+    "filterByEmail": "Filtar putem e-maila",
+    "filterQuery": "Upit za filtriranje"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "ili povucite i ispustite datoteku",
       "excelSupport": "Podržani: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Unesite URL Excel datoteka",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Unesite URL CSV datoteka",
       "footMsg": "# redaka za analizu da biste zaključili datatype",
       "excelImport": "limovi (i) dostupni su za uvoz",
       "exportMetadata": "Želite li izvesti metapodatke iz meta stolova?",
@@ -413,7 +459,7 @@
       "deleteProject": "Želite li izbrisati projekt?",
       "shareBasePrivate": "Generirajte javno zajedničko upravljanje",
       "shareBasePublic": "Svatko na internetu s ovom linkom može vidjeti",
-      "userInviteNoSMTP": "Izgleda da još niste konfigurirali mailer! n Molimo kopirajte iznad poziva veze i pošaljite ga na",
+      "userInviteNoSMTP": "Izgleda da još niste konfigurirali mailer! Molimo kopirajte iznad poziva veze i pošaljite ga na",
       "dragDropHide": "Povucite i ispustite polja za skrivanje",
       "formInput": "Unesite oznaku ulazne obrasce",
       "formHelpText": "Dodajte neki tekst pomoći",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "Možete dodati više zareza (,) razdvojenih poruka e-pošte",
       "enterTableName": "Unesite naziv tablice",
       "addDefaultColumns": "Dodajte zadane stupce",
-      "tableNameInDb": "Ime tablice kao spremljene u bazi podataka"
+      "tableNameInDb": "Ime tablice kao spremljene u bazi podataka",
+      "airtable": {
+        "credentials": "Gdje ovo pronaći?"
+      },
+      "import": {
+        "clickOrDrag": "Kliknite ili povucite datoteku na ovo područje za prijenos"
+      },
+      "metaDataRecreated": "Metapodaci stola uspješno su se rekreirali",
+      "invalidCredentials": "Nevažeće vjerodajnice",
+      "downloadingMoreFiles": "Preuzimanje više datoteka",
+      "copiedToClipboard": "Kopiran u međuspremnik",
+      "requriedFieldsCantBeMoved": "Potrebno polje ne može se premjestiti",
+      "updateNotAllowedWithoutPK": "Ažuriranje nije dopušteno za tablicu koja nema primarni ključ",
+      "autoIncFieldNotEditable": "Polje automatskog povećanja ne može se uređivati",
+      "editingPKnotSupported": "Uređivanje primarnog ključa nije podržano",
+      "deletedCache": "Uspješno izbrisana predmemorija",
+      "cacheEmpty": "Cache je prazna",
+      "exportedCache": "Uspješno izvozila predmemoriju",
+      "valueAlreadyInList": "Ova je vrijednost već na popisu",
+      "noColumnsToUpdate": "Nema stupaca za ažuriranje",
+      "tableDeleted": "Uspješno izbrisana tablica"
     },
     "error": {
       "searchProject": "Vaša potraga za {Search} nije pronašla rezultate",
@@ -497,7 +563,8 @@
         "emailReqd": "Potrebna je e-pošta",
         "emailInvalid": "E-pošta mora biti valjana",
         "passwdRequired": "potrebna je lozinka",
-        "passwdLength": "Vi lozinka mora biti najmanje 8 znakova"
+        "passwdLength": "Vi lozinka mora biti najmanje 8 znakova",
+        "passwdMismatch": "Lozinke se ne podudaraju"
       }
     },
     "toast": {

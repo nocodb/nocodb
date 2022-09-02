@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
+import { Empty, message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg, viewIcons } from '~/utils'
 import { computed, h, useNuxtApp, useProject } from '#imports'
 
@@ -133,6 +133,9 @@ const columns = [
             })
           "
         >
+          <template #emptyText>
+            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+          </template>
           <template #bodyCell="{ record, column }">
             <div v-if="column.name === 'table_name'">{{ record._ptn }}</div>
             <div v-if="column.name === 'view_name'">

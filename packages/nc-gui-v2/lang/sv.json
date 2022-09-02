@@ -54,7 +54,20 @@
     "search": "Sök",
     "notification": "Underrättelse",
     "reference": "Referens",
-    "function": "Fungera"
+    "function": "Fungera",
+    "confirm": "Bekräfta",
+    "generate": "Generera",
+    "copy": "Kopiera",
+    "misc": "Diverse",
+    "lock": "Låsa",
+    "unlock": "Låsa upp",
+    "credentials": "Referenser",
+    "help": "Hjälp",
+    "questions": "Frågor",
+    "reachOut": "Nå här",
+    "betaNote": "Denna funktion är för närvarande i beta.",
+    "moreInfo": "Mer information finns här",
+    "logs": "Stockar"
   },
   "objects": {
     "project": "Projekt",
@@ -172,7 +185,15 @@
     "resetPassword": "Återställ ditt lösenord",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Generera token",
+    "APIsAndSupport": "API: er och stöd",
+    "helpCenter": "Hjälpcenter",
+    "swaggerDocumentation": "Swaggerdokumentation",
+    "quickImportFrom": "Snabb import från",
+    "quickImport": "Snabb import",
+    "advancedSettings": "Avancerade inställningar",
+    "codeSnippet": "Kodavsnitt"
   },
   "labels": {
     "notifyVia": "Meddela via",
@@ -193,6 +214,7 @@
     "username": "Användarnamn",
     "password": "Lösenord",
     "schemaName": "Schema name",
+    "database": "Databas",
     "action": "Handling",
     "actions": "Handlingar",
     "operation": "Drift",
@@ -238,7 +260,27 @@
     "childTable": "Barnbord",
     "childColumn": "Barnkolonn",
     "onUpdate": "Vid uppdatering",
-    "onDelete": "På radera"
+    "onDelete": "På radera",
+    "account": "konto",
+    "language": "Språk",
+    "primaryColor": "Grundfärg",
+    "accentColor": "Accentfärg",
+    "customTheme": "Anpassad tema",
+    "requestDataSource": "Begär en datakälla du behöver?",
+    "apiKey": "API -nyckel",
+    "sharedBase": "Delad bas",
+    "importData": "Importera data",
+    "importSecondaryViews": "Importera sekundärvyer",
+    "importRollupColumns": "Importera samlingskolumner",
+    "importLookupColumns": "Importera uppslagskolumner",
+    "importAttachmentColumns": "Importfäste kolumner",
+    "importFormulaColumns": "Importera formelkolumner",
+    "noData": "Inga data",
+    "goToDashboard": "Gå till instrumentpanelen",
+    "importing": "Importerande",
+    "flattenNested": "Platta kapslad",
+    "downloadAllowed": "Nedladdning tillåtet",
+    "weAreHiring": "Vi hyr!"
   },
   "activity": {
     "createProject": "Skapa projekt",
@@ -265,7 +307,7 @@
     "translate": "Hjälp översätt",
     "account": {
       "authToken": "Kopiera authoken",
-      "swagger": "Swagger apis doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopiera projektinfo",
       "themes": "Teman"
     },
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "Ta bort databasen från miljö",
     "editConnJson": "Redigera anslutning JSON",
     "sponsorUs": "Sponsra oss",
-    "sendEmail": "SKICKA EPOST"
+    "sendEmail": "SKICKA EPOST",
+    "addUserToProject": "Lägg till användare i projektet",
+    "getApiSnippet": "Få API -utdrag",
+    "clearCell": "Klart cell"
   },
   "tooltip": {
     "saveChanges": "Spara ändringar",
@@ -391,7 +436,8 @@
     "searchModels": "Sökmodeller",
     "noItemsFound": "Inga föremål hittades",
     "defaultValue": "Standardvärde",
-    "filterByEmail": "Filtrera via e-post"
+    "filterByEmail": "Filtrera via e-post",
+    "filterQuery": "Filterfråga"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "eller dra och släpp filen",
       "excelSupport": "Stöds: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Ange Excel-filadressen",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Ange CSV-filadressen",
       "footMsg": "# av rader att analysera att avleda datatyp",
       "excelImport": "ark (er) är tillgängliga för import",
       "exportMetadata": "Vill du exportera metadata från meta bord?",
@@ -413,7 +459,7 @@
       "deleteProject": "Vill du radera projektet?",
       "shareBasePrivate": "Generera offentligt delbar readonly base",
       "shareBasePublic": "Någon på internet med den här länken kan visa",
-      "userInviteNoSMTP": "Det verkar som om du inte har konfigurerat Mailer än!\nVänligen kopiera ovanför bjudningslänk och skicka den till",
+      "userInviteNoSMTP": "Det verkar som om du inte har konfigurerat Mailer än! Vänligen kopiera ovanför bjudningslänk och skicka den till",
       "dragDropHide": "Dra och släpp fält här för att dölja",
       "formInput": "Ange formulärinmatningslabel",
       "formHelpText": "Lägg till lite hjälptext",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "Du kan lägga till flera kommatecken (,) separerade e-postmeddelanden",
       "enterTableName": "Ange tabellnamn",
       "addDefaultColumns": "Lägg till standardkolumner",
-      "tableNameInDb": "Tabellnamn som sparats i databasen"
+      "tableNameInDb": "Tabellnamn som sparats i databasen",
+      "airtable": {
+        "credentials": "Var hittar man det här?"
+      },
+      "import": {
+        "clickOrDrag": "Klicka eller dra fil till detta område för att ladda upp"
+      },
+      "metaDataRecreated": "Tabellmetadata återskapade framgångsrikt",
+      "invalidCredentials": "Ogiltiga uppgifter",
+      "downloadingMoreFiles": "Ladda ner fler filer",
+      "copiedToClipboard": "Kopierad till urklipp",
+      "requriedFieldsCantBeMoved": "Obligatoriskt fält kan inte flyttas",
+      "updateNotAllowedWithoutPK": "Uppdatera inte tillåtet för tabell som inte har primär nyckel",
+      "autoIncFieldNotEditable": "Auto Increment Field är inte redigerbart",
+      "editingPKnotSupported": "Redigera primärnyckel stöds inte",
+      "deletedCache": "Raderad cache framgångsrikt",
+      "cacheEmpty": "Cache är tom",
+      "exportedCache": "Exporterad cache framgångsrikt",
+      "valueAlreadyInList": "Detta värde finns redan i listan",
+      "noColumnsToUpdate": "Inga kolumner att uppdatera",
+      "tableDeleted": "Borttagna tabellen framgångsrikt"
     },
     "error": {
       "searchProject": "Din sökning efter {Sök} har inga resultat",
@@ -497,7 +563,8 @@
         "emailReqd": "E-post krävs",
         "emailInvalid": "Email måste vara giltig",
         "passwdRequired": "lösenord krävs",
-        "passwdLength": "Du lösenord måste vara minst 8 tecken"
+        "passwdLength": "Du lösenord måste vara minst 8 tecken",
+        "passwdMismatch": "Lösenorden matchar inte"
       }
     },
     "toast": {

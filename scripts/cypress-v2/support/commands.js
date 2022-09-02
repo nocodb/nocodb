@@ -329,7 +329,7 @@ Cypress.Commands.add("deleteTable", (name, dbType) => {
     cy.getActiveMenu().find('[role="menuitem"]').contains("Delete").click();
     cy.getActiveModal().find("button").contains("Yes").click();
 
-    cy.toastWait(`Deleted table ${name} successfully`);
+    cy.toastWait(`Deleted table successfully`);
 });
 
 Cypress.Commands.add("renameTable", (oldName, newName) => {
@@ -378,8 +378,8 @@ Cypress.Commands.add("createColumn", (table, columnName) => {
 });
 
 Cypress.Commands.add("toastWait", (msg) => {
-    cy.get('.ant-message-notice-content:visible', { timout: 30000 }).should('exist')
-    cy.get('.ant-message-notice-content:visible', { timout: 12000 }).contains(msg).should('exist')
+    // cy.get('.ant-message-notice-content:visible', { timout: 30000 }).should('exist')
+    cy.get('.ant-message-notice-content:visible', { timout: 30000 }).contains(msg).should('exist')
     cy.get('.ant-message-notice-content:visible', { timout: 12000 }).should('not.exist')
 });
 

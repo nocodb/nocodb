@@ -54,7 +54,20 @@
     "search": "搜索",
     "notification": "通知",
     "reference": "參考",
-    "function": "功能"
+    "function": "功能",
+    "confirm": "確認",
+    "generate": "產生",
+    "copy": "複製",
+    "misc": "各種各樣的",
+    "lock": "鎖",
+    "unlock": "開鎖",
+    "credentials": "證書",
+    "help": "幫助",
+    "questions": "問題",
+    "reachOut": "在這裡伸出援手",
+    "betaNote": "此功能當前在Beta中。",
+    "moreInfo": "更多信息可以在這裡找到",
+    "logs": "日誌"
   },
   "objects": {
     "project": "項目",
@@ -172,7 +185,15 @@
     "resetPassword": "reset你嗰密碼",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "產生令牌",
+    "APIsAndSupport": "API和支持",
+    "helpCenter": "幫助中心",
+    "swaggerDocumentation": "炫耀文檔",
+    "quickImportFrom": "快速導入",
+    "quickImport": "快速導入",
+    "advancedSettings": "高級設置",
+    "codeSnippet": "代碼段"
   },
   "labels": {
     "notifyVia": "通知Via",
@@ -193,6 +214,7 @@
     "username": "用戶名稱",
     "password": "密碼",
     "schemaName": "Schema name",
+    "database": "數據庫",
     "action": "行動",
     "actions": "行動",
     "operation": "操作",
@@ -235,10 +257,30 @@
     },
     "docReference": "文件參考文獻",
     "selectUserRole": "選擇用戶角色",
-    "childTable": "兒童表",
-    "childColumn": "兒童專欄",
+    "childTable": "子表",
+    "childColumn": "子列",
     "onUpdate": "更新",
-    "onDelete": "在刪除"
+    "onDelete": "在刪除",
+    "account": "帳戶",
+    "language": "語言",
+    "primaryColor": "強調色",
+    "accentColor": "主色調",
+    "customTheme": "自定義主題",
+    "requestDataSource": "請求您需要的數據源？",
+    "apiKey": "API鍵",
+    "sharedBase": "共享基礎",
+    "importData": "導入數據",
+    "importSecondaryViews": "導入次要視圖",
+    "importRollupColumns": "導入匯總列",
+    "importLookupColumns": "導入查找列",
+    "importAttachmentColumns": "導入附件列",
+    "importFormulaColumns": "導入公式列",
+    "noData": "沒有數據",
+    "goToDashboard": "去儀表板",
+    "importing": "輸入",
+    "flattenNested": "扁平的嵌套",
+    "downloadAllowed": "下載允許",
+    "weAreHiring": "我們正在招聘！"
   },
   "activity": {
     "createProject": "開新Project",
@@ -265,7 +307,7 @@
     "translate": "幫助翻譯",
     "account": {
       "authToken": "複製auth令牌",
-      "swagger": "Swagger Apis Doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "複製項目信息",
       "themes": "主題"
     },
@@ -309,7 +351,7 @@
     "importExcel": "導入Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "下載為CSV.",
-    "downloadExcel": "下載為XLSX.",
+    "downloadExcel": "下載為XLSX",
     "uploadCSV": "上傳CSV.",
     "import": "導出去file",
     "importMetadata": "import metadata",
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "從環境中delete DB",
     "editConnJson": "編輯連接 JSON.",
     "sponsorUs": "贊助我地",
-    "sendEmail": "發電子郵件"
+    "sendEmail": "發電子郵件",
+    "addUserToProject": "將用戶添加到項目",
+    "getApiSnippet": "獲取API片段",
+    "clearCell": "透明細胞"
   },
   "tooltip": {
     "saveChanges": "保存更改",
@@ -391,7 +436,8 @@
     "searchModels": "搜索模型",
     "noItemsFound": "未找到任何項目",
     "defaultValue": "默認值",
-    "filterByEmail": "通過電子郵件過濾"
+    "filterByEmail": "通過電子郵件過濾",
+    "filterQuery": "過濾器查詢"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "或拖放文件",
       "excelSupport": "支持：.xls，.xlsx，.xlsm，.ods，.ots",
       "excelURL": "輸入Excel文件URL",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "輸入CSV文件URL",
       "footMsg": "要解析為推斷數據類型的行數",
       "excelImport": "板材可用於進口",
       "exportMetadata": "您想從元表導出元數據嗎？",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "您可以添加多個逗號（，）分隔的電子郵件",
       "enterTableName": "輸入表名",
       "addDefaultColumns": "添加默認列",
-      "tableNameInDb": "數據庫中保存的表名"
+      "tableNameInDb": "數據庫中保存的表名",
+      "airtable": {
+        "credentials": "在哪裡可以找到這個？"
+      },
+      "import": {
+        "clickOrDrag": "單擊或將文件拖到此區域上傳"
+      },
+      "metaDataRecreated": "表元數據成功重新創建",
+      "invalidCredentials": "無效證件",
+      "downloadingMoreFiles": "下載更多文件",
+      "copiedToClipboard": "複製到剪貼板",
+      "requriedFieldsCantBeMoved": "所需的字段無法移動",
+      "updateNotAllowedWithoutPK": "不允許使用沒有主鍵的表",
+      "autoIncFieldNotEditable": "自動增量字段不是可編輯的",
+      "editingPKnotSupported": "編輯主鍵不支持",
+      "deletedCache": "成功刪除了緩存",
+      "cacheEmpty": "緩存為空",
+      "exportedCache": "成功導出緩存",
+      "valueAlreadyInList": "此值已經在列表中",
+      "noColumnsToUpdate": "沒有列更新",
+      "tableDeleted": "成功刪除表"
     },
     "error": {
       "searchProject": "搵唔到有關 {search}",
@@ -497,7 +563,8 @@
         "emailReqd": "E-mail 必須填",
         "emailInvalid": "E-mail 唔valid",
         "passwdRequired": "密碼必須填",
-        "passwdLength": "你嗰密碼至少要8個字"
+        "passwdLength": "你嗰密碼至少要8個字",
+        "passwdMismatch": "密碼不匹配"
       }
     },
     "toast": {

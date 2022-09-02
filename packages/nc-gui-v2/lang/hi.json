@@ -54,7 +54,20 @@
     "search": "खोजे",
     "notification": "सूचित करी",
     "reference": "संदर्भ",
-    "function": "समारोह"
+    "function": "समारोह",
+    "confirm": "पुष्टि करें",
+    "generate": "बनाना",
+    "copy": "प्रतिलिपि",
+    "misc": "विविध",
+    "lock": "ताला",
+    "unlock": "अनलॉक",
+    "credentials": "साख",
+    "help": "मदद करना",
+    "questions": "प्रशन",
+    "reachOut": "यहां पहुंचें",
+    "betaNote": "यह विशेषता अभी बीटा संस्करण में है।",
+    "moreInfo": "अधिक जानकारी यहां पाई जा सकती है",
+    "logs": "लॉग्स"
   },
   "objects": {
     "project": "परियोजना",
@@ -172,7 +185,15 @@
     "resetPassword": "अपना पासवर्ड रीसेट करें",
     "teamAndSettings": "दल एवं सेटिंग्स",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "टोकन उत्पन्न करें",
+    "APIsAndSupport": "एपीआई और समर्थन",
+    "helpCenter": "सहायता केंद्र",
+    "swaggerDocumentation": "स्वैगर प्रलेखन",
+    "quickImportFrom": "से त्वरित आयात",
+    "quickImport": "त्वरित आयात",
+    "advancedSettings": "एडवांस सेटिंग",
+    "codeSnippet": "सांकेतिक टुकड़ा"
   },
   "labels": {
     "notifyVia": "Notify Via",
@@ -193,6 +214,7 @@
     "username": "उपयोगकर्ता नाम",
     "password": "पासवर्ड",
     "schemaName": "Schema name",
+    "database": "डेटाबेस",
     "action": "गतिविधि",
     "actions": "कार्रवाई",
     "operation": "संचालन",
@@ -213,7 +235,6 @@
     "sqlOutput": "SQL आउटपुट",
     "addOption": "विकल्प जोड़े",
     "aggregateFunction": "कुल समारोह",
-    "database": "डेटाबेस",
     "dbCreateIfNotExists": "डेटाबेस: बनाएं यदि मौजूद नहीं है",
     "clientKey": "ग्राहक कुंजी",
     "clientCert": "ग्राहक प्रमाण पत्र",
@@ -239,7 +260,27 @@
     "childTable": "Child table",
     "childColumn": "Child column",
     "onUpdate": "On Update",
-    "onDelete": "On Delete"
+    "onDelete": "On Delete",
+    "account": "खाता",
+    "language": "भाषा",
+    "primaryColor": "प्राथमिक रंग",
+    "accentColor": "स्वरोंका रंग",
+    "customTheme": "कस्टम थीम",
+    "requestDataSource": "एक डेटा स्रोत का अनुरोध करें जिसकी आपको आवश्यकता है?",
+    "apiKey": "एपीआई कुंजी",
+    "sharedBase": "साझा आधार",
+    "importData": "आयात आंकड़ा",
+    "importSecondaryViews": "द्वितीयक विचार आयात करें",
+    "importRollupColumns": "आयात रोलअप कॉलम",
+    "importLookupColumns": "आयात लुकअप कॉलम",
+    "importAttachmentColumns": "आयात अनुलग्नक स्तंभ",
+    "importFormulaColumns": "आयात सूत्र स्तंभ",
+    "noData": "कोई डेटा नहीं",
+    "goToDashboard": "डैशबोर्ड पर जाएं",
+    "importing": "आयात कर रहा है",
+    "flattenNested": "चपटा नेस्टेड",
+    "downloadAllowed": "डाउनलोड की अनुमति",
+    "weAreHiring": "हम भर्ती कर रहे हैं!"
   },
   "activity": {
     "createProject": "प्रोजेक्ट बनाएं",
@@ -266,7 +307,7 @@
     "translate": "अनुवाद करने में मदद करें",
     "account": {
       "authToken": "कॉपी प्रामाणिक टोकन",
-      "swagger": "स्वैगर एपीआईएस डॉक",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "कॉपी प्रोजेक्ट जानकारी",
       "themes": "विषयों"
     },
@@ -310,6 +351,7 @@
     "importExcel": "आयात एक्सेल",
     "importCSV": "Import CSV",
     "downloadCSV": "CSV के रूप में डाउनलोड करें",
+    "downloadExcel": "XLSX के रूप में डाउनलोड करें",
     "uploadCSV": "CSV अपलोड करें",
     "import": "आयात",
     "importMetadata": "आयात मेटाडेटा",
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "पर्यावरण से डेटाबेस निकालें",
     "editConnJson": "कनेक्शन JSON संपादित करें",
     "sponsorUs": "हमें प्रायोजित करें",
-    "sendEmail": "ईमेल भेजें"
+    "sendEmail": "ईमेल भेजें",
+    "addUserToProject": "प्रोजेक्ट में उपयोगकर्ता जोड़ें",
+    "getApiSnippet": "एपीआई स्निपेट प्राप्त करें",
+    "clearCell": "स्पष्ट कोशिका"
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -391,7 +436,8 @@
     "searchModels": "खोज मॉडल",
     "noItemsFound": "कुछ नहीं मिला",
     "defaultValue": "डिफ़ॉल्ट मान",
-    "filterByEmail": "ई-मेल द्वारा फ़िल्टर"
+    "filterByEmail": "ई-मेल द्वारा फ़िल्टर",
+    "filterQuery": "फ़िल्टर क्वेरी"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "या ड्रैग एंड ड्रॉप फाइल",
       "excelSupport": "समर्थित: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Excel फ़ाइल URL दर्ज करें",
-      "csvURL": "csv फाइल का url दर्ज करे",
+      "csvURL": "CSV फ़ाइल URL दर्ज करें",
       "footMsg": "# पंक्तियों को हीन डेटाटाइप करने के लिए पार्स करने के लिए",
       "excelImport": "शीट आयात के लिए उपलब्ध हैं",
       "exportMetadata": "क्या आप मेटा टेबल से मेटाडेटा निर्यात करना चाहते हैं?",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "आप एकाधिक COMMA (,) द्वारा अलग ईमेल जोड़ सकते है",
       "enterTableName": "टेबल का नाम लिखे",
       "addDefaultColumns": "डिफ़ॉल्ट कॉलम जोड़े",
-      "tableNameInDb": "डेटाबेस में टेबल का नाम बचाया गया है"
+      "tableNameInDb": "डेटाबेस में टेबल का नाम बचाया गया है",
+      "airtable": {
+        "credentials": "यह कहां से मिले?"
+      },
+      "import": {
+        "clickOrDrag": "अपलोड करने के लिए इस क्षेत्र में फ़ाइल पर क्लिक या खींचें"
+      },
+      "metaDataRecreated": "टेबल मेटाडेटा सफलतापूर्वक फिर से बनाया गया",
+      "invalidCredentials": "अवैध प्रत्यय पत्र",
+      "downloadingMoreFiles": "अधिक फ़ाइलें डाउनलोड करना",
+      "copiedToClipboard": "क्लिपबोर्ड पर नकल",
+      "requriedFieldsCantBeMoved": "आवश्यक क्षेत्र को स्थानांतरित नहीं किया जा सकता है",
+      "updateNotAllowedWithoutPK": "अद्यतन तालिका के लिए अनुमति नहीं है जिसमें प्राथमिक कुंजी नहीं है",
+      "autoIncFieldNotEditable": "ऑटो वेतन वृद्धि क्षेत्र संपादन योग्य नहीं है",
+      "editingPKnotSupported": "संपादन प्राथमिक कुंजी समर्थित नहीं है",
+      "deletedCache": "कैश को सफलतापूर्वक हटा दिया गया",
+      "cacheEmpty": "कैश खाली है",
+      "exportedCache": "निर्यात किया गया कैश सफलतापूर्वक",
+      "valueAlreadyInList": "यह मान पहले से ही सूची में है",
+      "noColumnsToUpdate": "अपडेट करने के लिए कोई कॉलम नहीं",
+      "tableDeleted": "हटाए गए तालिका सफलतापूर्वक"
     },
     "error": {
       "searchProject": "{search} के लिए आपकी खोज कोई परिणाम नहीं मिला",

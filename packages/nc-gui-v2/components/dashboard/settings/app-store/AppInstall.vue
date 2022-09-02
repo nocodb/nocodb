@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import type { PluginType } from 'nocodb-sdk'
+import { useI18n } from 'vue-i18n'
 import { extractSdkResponseErrorMsg, ref, useNuxtApp } from '#imports'
 
 interface Props {
@@ -24,6 +25,8 @@ enum Action {
 const { $api } = useNuxtApp()
 
 const formRef = ref()
+
+const { t } = useI18n()
 
 let plugin = $ref<Plugin | null>(null)
 let pluginFormData = $ref<Record<string, any>>({})
@@ -71,7 +74,8 @@ const testSettings = async () => {
     if (res) {
       message.success('Successfully tested plugin settings')
     } else {
-      message.info('Invalid credentials')
+      // Invalid credentials
+      message.info(t('msg.info.invalidCredentials'))
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

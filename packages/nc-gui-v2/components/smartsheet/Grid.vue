@@ -2,6 +2,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
   ChangePageInj,
@@ -31,6 +32,8 @@ import {
 } from '#imports'
 import type { Row } from '~/composables'
 import { NavigateDir } from '~/lib'
+
+const { t } = useI18n()
 
 const meta = inject(MetaInj)
 
@@ -173,15 +176,18 @@ const makeEditable = (row: Row, col: ColumnType) => {
     return
   }
   if (!isPkAvail.value && !row.rowMeta.new) {
-    message.info("Update not allowed for table which doesn't have primary Key")
+    // Update not allowed for table which doesn't have primary Key
+    message.info(t('msg.info.updateNotAllowedWithoutPK'))
     return
   }
   if (col.ai) {
-    message.info('Auto Increment field is not editable')
+    // Auto Increment field is not editable
+    message.info(t('msg.info.autoIncFieldNotEditable'))
     return
   }
   if (col.pk && !row.rowMeta.new) {
-    message.info('Editing primary key not supported')
+    // Editing primary key not supported
+    message.info(t('msg.info.editingPKnotSupported'))
     return
   }
   return (editEnabled = true)
@@ -260,7 +266,8 @@ const onKeyDown = async (e: KeyboardEvent) => {
         /** on letter key press make cell editable and empty */
         if (e?.key?.length === 1) {
           if (!isPkAvail && !rowObj.rowMeta.new) {
-            return message.info("Update not allowed for table which doesn't have primary Key")
+            // Update not allowed for table which doesn't have primary Key
+            return message.info(t('msg.info.updateNotAllowedWithoutPK'))
           }
           if (makeEditable(rowObj, columnObj)) {
             rowObj.row[columnObj.title] = ''
@@ -517,8 +524,9 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
               </div>
             </a-menu-item>
 
+            <!--            Clear cell -->
             <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)">
-              <div class="nc-project-menu-item">Clear cell</div>
+              <div class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
             <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">

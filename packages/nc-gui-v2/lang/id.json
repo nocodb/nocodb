@@ -54,7 +54,20 @@
     "search": "Mencari",
     "notification": "Pemberitahuan",
     "reference": "Referensi",
-    "function": "Fungsi"
+    "function": "Fungsi",
+    "confirm": "Mengonfirmasi",
+    "generate": "Menghasilkan",
+    "copy": "Salinan",
+    "misc": "Aneka ragam",
+    "lock": "Kunci",
+    "unlock": "Membuka kunci",
+    "credentials": "Kredensial",
+    "help": "Membantu",
+    "questions": "Pertanyaan",
+    "reachOut": "Jangkau di sini",
+    "betaNote": "Fitur ini saat ini dalam beta.",
+    "moreInfo": "Informasi lebih lanjut dapat ditemukan di sini",
+    "logs": "Log"
   },
   "objects": {
     "project": "Proyek",
@@ -172,7 +185,15 @@
     "resetPassword": "Mereset password Anda",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Menghasilkan token",
+    "APIsAndSupport": "API & Dukungan",
+    "helpCenter": "Pusat Bantuan",
+    "swaggerDocumentation": "Dokumentasi Swagger",
+    "quickImportFrom": "Impor cepat dari",
+    "quickImport": "Impor cepat",
+    "advancedSettings": "Pengaturan lanjutan",
+    "codeSnippet": "Cuplikan kode"
   },
   "labels": {
     "notifyVia": "Beri tahu VIA.",
@@ -193,6 +214,7 @@
     "username": "Nama pengguna",
     "password": "Kata sandi",
     "schemaName": "Schema name",
+    "database": "Database",
     "action": "Tindakan",
     "actions": "Tindakan",
     "operation": "Operasi",
@@ -238,7 +260,27 @@
     "childTable": "Tabel Anak",
     "childColumn": "Kolom anak.",
     "onUpdate": "Pada pembaruan",
-    "onDelete": "Hapus"
+    "onDelete": "Hapus",
+    "account": "Akun",
+    "language": "Bahasa",
+    "primaryColor": "Warna utama",
+    "accentColor": "Aksen warna",
+    "customTheme": "Tema khusus",
+    "requestDataSource": "Meminta sumber data yang Anda butuhkan?",
+    "apiKey": "kunci API",
+    "sharedBase": "Basis bersama",
+    "importData": "Impor data",
+    "importSecondaryViews": "Impor tampilan sekunder",
+    "importRollupColumns": "Impor kolom rollup",
+    "importLookupColumns": "Impor kolom pencarian",
+    "importAttachmentColumns": "Impor kolom lampiran",
+    "importFormulaColumns": "Impor kolom formula",
+    "noData": "Tidak ada data",
+    "goToDashboard": "Pergi ke dasbor",
+    "importing": "Pengimporan",
+    "flattenNested": "Ratakan bersarang",
+    "downloadAllowed": "Unduh diizinkan",
+    "weAreHiring": "Kami sedang merekrut!"
   },
   "activity": {
     "createProject": "Buat Proyek",
@@ -265,7 +307,7 @@
     "translate": "Bantu Terjemahkan.",
     "account": {
       "authToken": "Salin token auth.",
-      "swagger": "Swagger apis doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Salin info proyek",
       "themes": "Tema"
     },
@@ -309,7 +351,7 @@
     "importExcel": "Impor Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Unduh sebagai CSV.",
-    "downloadExcel": "Unduh sebagai XLSX.",
+    "downloadExcel": "Unduh sebagai XLSX",
     "uploadCSV": "Unggah CSV.",
     "import": "Impor",
     "importMetadata": "Impor Metadata.",
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "Hapus basis data dari lingkungan",
     "editConnJson": "Edit koneksi JSON.",
     "sponsorUs": "Mensponsori kami",
-    "sendEmail": "MENGIRIM EMAIL"
+    "sendEmail": "MENGIRIM EMAIL",
+    "addUserToProject": "Tambahkan Pengguna ke Proyeksi",
+    "getApiSnippet": "Dapatkan cuplikan API",
+    "clearCell": "Sel bening"
   },
   "tooltip": {
     "saveChanges": "Simpan perubahan",
@@ -391,7 +436,8 @@
     "searchModels": "Model pencarian",
     "noItemsFound": "Tidak ditemukan item",
     "defaultValue": "Nilai default.",
-    "filterByEmail": "Saring melalui email"
+    "filterByEmail": "Saring melalui email",
+    "filterQuery": "Kueri filter"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "atau seret dan jatuhkan file",
       "excelSupport": "Didukung: .xls, .xlsx, .xlsm, .ots, .ots",
       "excelURL": "Masukkan URL File Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Masukkan URL File CSV",
       "footMsg": "# dari baris untuk menguraikan untuk menyimpulkan datatype",
       "excelImport": "Lembar tersedia untuk impor",
       "exportMetadata": "Apakah Anda ingin mengekspor metadata dari Meta Tables?",
@@ -413,7 +459,7 @@
       "deleteProject": "Apakah Anda ingin menghapus proyek?",
       "shareBasePrivate": "Menghasilkan basis readonly yang dapat dibagikan secara publik",
       "shareBasePublic": "Siapa pun di Internet dengan tautan ini dapat dilihat",
-      "userInviteNoSMTP": "Sepertinya Anda belum mengonfigurasi mailer!\nHarap salin tautan undangan di atas dan kirimkan ke",
+      "userInviteNoSMTP": "Sepertinya Anda belum mengonfigurasi mailer! Harap salin tautan undangan di atas dan kirimkan ke",
       "dragDropHide": "Seret dan jatuhkan bidang di sini untuk bersembunyi",
       "formInput": "Masukkan label input formulir",
       "formHelpText": "Tambahkan beberapa teks bantuan",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "Anda dapat menambahkan beberapa email terpisah koma (,)",
       "enterTableName": "Masukkan nama tabel",
       "addDefaultColumns": "Tambahkan kolom default.",
-      "tableNameInDb": "Nama tabel sebagaimana disimpan dalam basis data"
+      "tableNameInDb": "Nama tabel sebagaimana disimpan dalam basis data",
+      "airtable": {
+        "credentials": "Di mana menemukan ini?"
+      },
+      "import": {
+        "clickOrDrag": "Klik atau seret file ke area ini untuk diunggah"
+      },
+      "metaDataRecreated": "Metadata Table berhasil diciptakan kembali",
+      "invalidCredentials": "Kredensial tidak valid",
+      "downloadingMoreFiles": "Mengunduh lebih banyak file",
+      "copiedToClipboard": "Disalin ke clipboard",
+      "requriedFieldsCantBeMoved": "Lapangan yang diperlukan tidak dapat dipindahkan",
+      "updateNotAllowedWithoutPK": "Pembaruan tidak diizinkan untuk tabel yang tidak memiliki kunci utama",
+      "autoIncFieldNotEditable": "Bidang Penambahan Otomatis tidak dapat diedit",
+      "editingPKnotSupported": "Mengedit kunci utama tidak didukung",
+      "deletedCache": "Berhasil menghapus cache",
+      "cacheEmpty": "Cache kosong",
+      "exportedCache": "Berhasil diekspor cache",
+      "valueAlreadyInList": "Nilai ini sudah ada dalam daftar",
+      "noColumnsToUpdate": "Tidak ada kolom untuk diperbarui",
+      "tableDeleted": "Tabel yang dihapus berhasil"
     },
     "error": {
       "searchProject": "Pencarian Anda untuk {Search} tidak menemukan hasil",
@@ -497,7 +563,8 @@
         "emailReqd": "E-mail diperlukan",
         "emailInvalid": "E-mail harus valid",
         "passwdRequired": "katakunci dibutuhkan",
-        "passwdLength": "Kata sandi Anda harus minimal 8 karakter"
+        "passwdLength": "Kata sandi Anda harus minimal 8 karakter",
+        "passwdMismatch": "Sandi tidak cocok"
       }
     },
     "toast": {

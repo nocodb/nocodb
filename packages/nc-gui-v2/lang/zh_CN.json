@@ -54,7 +54,20 @@
     "search": "搜索",
     "notification": "通知",
     "reference": "参考",
-    "function": "功能"
+    "function": "功能",
+    "confirm": "确认",
+    "generate": "产生",
+    "copy": "复制",
+    "misc": "各种各样的",
+    "lock": "锁",
+    "unlock": "开锁",
+    "credentials": "证书",
+    "help": "帮助",
+    "questions": "问题",
+    "reachOut": "在这里伸出援手",
+    "betaNote": "此功能当前在Beta中。",
+    "moreInfo": "更多信息可以在这里找到",
+    "logs": "日志"
   },
   "objects": {
     "project": "项目",
@@ -172,7 +185,15 @@
     "resetPassword": "重置密码",
     "teamAndSettings": "团队和设置",
     "apiDocs": "API 文档",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "产生令牌",
+    "APIsAndSupport": "API和支持",
+    "helpCenter": "帮助中心",
+    "swaggerDocumentation": "炫耀文档",
+    "quickImportFrom": "快速导入",
+    "quickImport": "快速导入",
+    "advancedSettings": "高级设置",
+    "codeSnippet": "代码段"
   },
   "labels": {
     "notifyVia": "通知通过",
@@ -193,6 +214,7 @@
     "username": "用户名",
     "password": "密码",
     "schemaName": "架构名称",
+    "database": "数据库",
     "action": "行动",
     "actions": "行动",
     "operation": "操作",
@@ -238,7 +260,27 @@
     "childTable": "子表",
     "childColumn": "子列",
     "onUpdate": "更新",
-    "onDelete": "删除"
+    "onDelete": "删除",
+    "account": "帐户",
+    "language": "语言",
+    "primaryColor": "强调色",
+    "accentColor": "主色调",
+    "customTheme": "自定义主题",
+    "requestDataSource": "请求您需要的数据源？",
+    "apiKey": "API键",
+    "sharedBase": "共享基础",
+    "importData": "导入数据",
+    "importSecondaryViews": "导入次要视图",
+    "importRollupColumns": "导入汇总列",
+    "importLookupColumns": "导入查找列",
+    "importAttachmentColumns": "导入附件列",
+    "importFormulaColumns": "导入公式列",
+    "noData": "没有数据",
+    "goToDashboard": "去仪表板",
+    "importing": "输入",
+    "flattenNested": "扁平的嵌套",
+    "downloadAllowed": "下载允许",
+    "weAreHiring": "我们正在招聘！"
   },
   "activity": {
     "createProject": "创建项目",
@@ -265,7 +307,7 @@
     "translate": "帮助翻译",
     "account": {
       "authToken": "复制auth令牌",
-      "swagger": "Swagger Apis 文档",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "复制项目信息",
       "themes": "主题"
     },
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "从环境中删除数据库",
     "editConnJson": "编辑链接JSON",
     "sponsorUs": "赞助我们",
-    "sendEmail": "发送邮件"
+    "sendEmail": "发送邮件",
+    "addUserToProject": "将用户添加到项目",
+    "getApiSnippet": "获取API片段",
+    "clearCell": "透明细胞"
   },
   "tooltip": {
     "saveChanges": "保存更改",
@@ -391,7 +436,8 @@
     "searchModels": "搜索模型",
     "noItemsFound": "未找到任何项目",
     "defaultValue": "默认值",
-    "filterByEmail": "通过电子邮件过滤"
+    "filterByEmail": "通过电子邮件过滤",
+    "filterQuery": "过滤器查询"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "或拖放文件",
       "excelSupport": "支持：.xls，.xlsx，.xlsm，.ods，.ots",
       "excelURL": "输入Excel文件URL",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "输入CSV文件URL",
       "footMsg": "要解析为推断数据类型的行数",
       "excelImport": "可用于导入的表格",
       "exportMetadata": "您想从元表导出元数据吗？",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "您可以添加多个逗号（，）分隔的电子邮件",
       "enterTableName": "输入表名",
       "addDefaultColumns": "添加默认列",
-      "tableNameInDb": "数据库中保存的表名"
+      "tableNameInDb": "数据库中保存的表名",
+      "airtable": {
+        "credentials": "在哪里可以找到这个？"
+      },
+      "import": {
+        "clickOrDrag": "单击或将文件拖到此区域上传"
+      },
+      "metaDataRecreated": "表元数据成功重新创建",
+      "invalidCredentials": "无效证件",
+      "downloadingMoreFiles": "下载更多文件",
+      "copiedToClipboard": "复制到剪贴板",
+      "requriedFieldsCantBeMoved": "所需的字段无法移动",
+      "updateNotAllowedWithoutPK": "不允许使用没有主键的表",
+      "autoIncFieldNotEditable": "自动增量字段不是可编辑的",
+      "editingPKnotSupported": "编辑主键不支持",
+      "deletedCache": "成功删除了缓存",
+      "cacheEmpty": "缓存为空",
+      "exportedCache": "成功导出缓存",
+      "valueAlreadyInList": "此值已经在列表中",
+      "noColumnsToUpdate": "没有列更新",
+      "tableDeleted": "成功删除表"
     },
     "error": {
       "searchProject": "搜索： {search} 没有发现匹配的结果",
@@ -497,7 +563,8 @@
         "emailReqd": "邮箱必填",
         "emailInvalid": "邮箱格式无效",
         "passwdRequired": "密码必填",
-        "passwdLength": "您的密码必须至少为8个字符"
+        "passwdLength": "您的密码必须至少为8个字符",
+        "passwdMismatch": "密码不匹配"
       }
     },
     "toast": {

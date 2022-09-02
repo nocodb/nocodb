@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
+import { Empty, message } from 'ant-design-vue'
 import { onMounted, useSmartsheetStoreOrThrow } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MdiVisibilityOnIcon from '~icons/mdi/visibility'
@@ -90,7 +90,18 @@ const deleteLink = async (id: string) => {
 
 <template>
   <div class="w-full">
-    <a-table class="" size="small" :data-source="sharedViewList" :pagination="{ position: ['bottomCenter'] }">
+    <a-table
+      class=""
+      size="small"
+      :data-source="sharedViewList"
+      :pagination="{ position: ['bottomCenter'] }"
+      :locale="{
+        emptyText: $t('labels.noData'),
+      }"
+    >
+      <template #emptyText>
+        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+      </template>
       <!-- View name -->
       <a-table-column key="title" :title="$t('labels.viewName')" data-index="title">
         <template #default="{ text }">
@@ -121,8 +132,7 @@ const deleteLink = async (id: string) => {
           </div>
         </template>
       </a-table-column>
-      <!-- Todo: i18n  -->
-      <a-table-column key="meta" title="Download allowed" data-index="title">
+      <a-table-column key="meta" :title="$t('labels.downloadAllowed')" data-index="title">
         <template #default="{ record }">
           <template v-if="'meta' in record">
             <div class="text-center">{{ renderAllowCSVDownload(record) }}</div>

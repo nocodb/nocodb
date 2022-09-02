@@ -54,7 +54,20 @@
     "search": "Tìm kiếm",
     "notification": "Thông báo",
     "reference": "Thẩm quyền giải quyết",
-    "function": "Chức năng"
+    "function": "Chức năng",
+    "confirm": "Xác nhận",
+    "generate": "Phát ra",
+    "copy": "Sao chép",
+    "misc": "Điều khoản khác",
+    "lock": "Khóa",
+    "unlock": "Mở khóa",
+    "credentials": "Thông tin xác thực",
+    "help": "Cứu giúp",
+    "questions": "Câu hỏi",
+    "reachOut": "Tiếp cận ra đây",
+    "betaNote": "Tính năng này hiện đang ở phiên bản beta.",
+    "moreInfo": "Tìm thêm thông tin tại đây",
+    "logs": "Nhật ký"
   },
   "objects": {
     "project": "Dự định",
@@ -172,7 +185,15 @@
     "resetPassword": "Đặt lại mật khẩu của bạn",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Tạo mã thông báo",
+    "APIsAndSupport": "API & Hỗ trợ",
+    "helpCenter": "Trung tâm trợ giúp",
+    "swaggerDocumentation": "Tài liệu vênh vang",
+    "quickImportFrom": "Nhập nhanh từ",
+    "quickImport": "Nhập nhanh",
+    "advancedSettings": "Cài đặt nâng cao",
+    "codeSnippet": "Mã mã"
   },
   "labels": {
     "notifyVia": "Thông báo qua",
@@ -193,6 +214,7 @@
     "username": "tên tài khoản",
     "password": "Mật khẩu",
     "schemaName": "Schema name",
+    "database": "Cơ sở dữ liệu",
     "action": "Hoạt động",
     "actions": "Hành động",
     "operation": "Hoạt động",
@@ -238,7 +260,27 @@
     "childTable": "Bảng con",
     "childColumn": "Cột trẻ con.",
     "onUpdate": "Trên bản cập nhật",
-    "onDelete": "Trên xóa"
+    "onDelete": "Trên xóa",
+    "account": "Tài khoản",
+    "language": "Ngôn ngữ",
+    "primaryColor": "Màu chính",
+    "accentColor": "Màu nhấn",
+    "customTheme": "Chủ đề tùy chỉnh",
+    "requestDataSource": "Yêu cầu một nguồn dữ liệu bạn cần?",
+    "apiKey": "Mã API",
+    "sharedBase": "Cơ sở chia sẻ",
+    "importData": "Nhập dữ liệu",
+    "importSecondaryViews": "Nhập quan điểm thứ cấp",
+    "importRollupColumns": "Nhập cột cuộn",
+    "importLookupColumns": "Nhập cột tra cứu",
+    "importAttachmentColumns": "Nhập cột đính kèm",
+    "importFormulaColumns": "Nhập các cột công thức",
+    "noData": "Không có dữ liệu",
+    "goToDashboard": "Đi đến bảng điều khiển",
+    "importing": "Nhập khẩu",
+    "flattenNested": "Làm phẳng lồng nhau",
+    "downloadAllowed": "Tải xuống cho phép",
+    "weAreHiring": "Chúng tôi đang thuê!"
   },
   "activity": {
     "createProject": "Tạo dự án",
@@ -265,7 +307,7 @@
     "translate": "Trợ giúp dịch",
     "account": {
       "authToken": "Sao chép xác thực Token.",
-      "swagger": "Swagger apis doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Sao chép thông tin dự án",
       "themes": "Chủ đề"
     },
@@ -309,7 +351,7 @@
     "importExcel": "Nhập Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Tải về dưới dạng CSV.",
-    "downloadExcel": "Tải về dưới dạng XLSX.",
+    "downloadExcel": "Tải về dưới dạng XLSX",
     "uploadCSV": "Tải lên CSV.",
     "import": "Nhập khẩu",
     "importMetadata": "Nhập siêu dữ liệu",
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "Xóa cơ sở dữ liệu khỏi môi trường",
     "editConnJson": "Chỉnh sửa kết nối JSON.",
     "sponsorUs": "Tài trợ cho chúng tôi.",
-    "sendEmail": "GỬI EMAIL"
+    "sendEmail": "GỬI EMAIL",
+    "addUserToProject": "Thêm người dùng vào dự án",
+    "getApiSnippet": "Nhận đoạn trích API",
+    "clearCell": "Tế bào rõ ràng"
   },
   "tooltip": {
     "saveChanges": "Lưu thay đổi",
@@ -391,7 +436,8 @@
     "searchModels": "Mô hình tìm kiếm",
     "noItemsFound": "không tìm thấy vật nào",
     "defaultValue": "Giá trị mặc định",
-    "filterByEmail": "Lọc bằng e-mail"
+    "filterByEmail": "Lọc bằng e-mail",
+    "filterQuery": "Truy vấn lọc"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "hoặc kéo và thả tập tin",
       "excelSupport": "Được hỗ trợ: .xls, .xlsx, .xlsm, .ods,.",
       "excelURL": "Nhập URL tệp Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Nhập URL tệp CSV",
       "footMsg": "# các hàng để phân tích để suy ra kiểu dữ liệu",
       "excelImport": "(các) tấm có sẵn để nhập khẩu",
       "exportMetadata": "Bạn có muốn xuất siêu dữ liệu từ bảng meta?",
@@ -413,7 +459,7 @@
       "deleteProject": "Bạn có muốn xóa dự án?",
       "shareBasePrivate": "Tạo cơ sở chỉ đọc chia sẻ công khai",
       "shareBasePublic": "Bất cứ ai trên Internet với liên kết này có thể xem",
-      "userInviteNoSMTP": "Có vẻ như bạn chưa định cấu hình Mailer!\nVui lòng sao chép liên kết mời trên và gửi nó đến",
+      "userInviteNoSMTP": "Có vẻ như bạn chưa định cấu hình Mailer! Vui lòng sao chép liên kết mời trên và gửi nó đến",
       "dragDropHide": "Kéo và thả các trường ở đây để ẩn",
       "formInput": "Nhập nhãn đầu vào Mẫu",
       "formHelpText": "Thêm một số văn bản trợ giúp",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "Bạn có thể thêm nhiều email được phân tách bằng dấu phẩy (,)",
       "enterTableName": "Nhập tên bảng",
       "addDefaultColumns": "Thêm cột mặc định",
-      "tableNameInDb": "Tên bảng như đã lưu trong cơ sở dữ liệu"
+      "tableNameInDb": "Tên bảng như đã lưu trong cơ sở dữ liệu",
+      "airtable": {
+        "credentials": "Tìm cái này ở đâu?"
+      },
+      "import": {
+        "clickOrDrag": "Nhấp hoặc kéo tệp đến khu vực này để tải lên"
+      },
+      "metaDataRecreated": "Siêu dữ liệu bảng được tạo lại thành công",
+      "invalidCredentials": "Thông tin không hợp lệ",
+      "downloadingMoreFiles": "Tải xuống thêm các tập tin",
+      "copiedToClipboard": "Sao chép vào clipboard",
+      "requriedFieldsCantBeMoved": "Không thể di chuyển trường bắt buộc",
+      "updateNotAllowedWithoutPK": "Cập nhật không được phép cho bảng không có khóa chính",
+      "autoIncFieldNotEditable": "Trường tăng tự động không thể chỉnh sửa",
+      "editingPKnotSupported": "Chỉnh sửa khóa chính không được hỗ trợ",
+      "deletedCache": "Đã xóa bộ đệm thành công",
+      "cacheEmpty": "Bộ nhớ cache trống",
+      "exportedCache": "Xuất bộ nhớ cache thành công",
+      "valueAlreadyInList": "Giá trị này đã có trong danh sách",
+      "noColumnsToUpdate": "Không có cột để cập nhật",
+      "tableDeleted": "Xóa bảng thành công"
     },
     "error": {
       "searchProject": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả",
@@ -497,7 +563,8 @@
         "emailReqd": "Email thì cần thiết",
         "emailInvalid": "Email phải hợp lệ",
         "passwdRequired": "Mật khẩu là bắt buộc",
-        "passwdLength": "Mật khẩu của bạn phải có ít nhất 8 ký tự"
+        "passwdLength": "Mật khẩu của bạn phải có ít nhất 8 ký tự",
+        "passwdMismatch": "mất khẩu không hợp lệ"
       }
     },
     "toast": {

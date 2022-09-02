@@ -13,7 +13,6 @@
     "edit": "Edit",
     "remove": "Remove",
     "save": "Save",
-    "confirm": "Confirm",
     "cancel": "Cancel",
     "submit": "Submit",
     "create": "Create",
@@ -55,7 +54,20 @@
     "search": "Search",
     "notification": "Notification",
     "reference": "Reference",
-    "function": "Function"
+    "function": "Function",
+    "confirm": "Confirm",
+    "generate": "Generate",
+    "copy": "Copy",
+    "misc": "Miscellaneous",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "credentials": "Credentials",
+    "help": "Help",
+    "questions": "Questions",
+    "reachOut": "Reach out here",
+    "betaNote": "This feature is currently in beta.",
+    "moreInfo": "More information can be found here",
+    "logs": "Logs"
   },
   "objects": {
     "project": "Project",
@@ -68,8 +80,8 @@
     "columns": "Columns",
     "page": "Page",
     "pages": "Pages",
-    "record": "Record",
-    "records": "Records",
+    "record": "record",
+    "records": "records",
     "webhook": "Webhook",
     "webhooks": "Webhooks",
     "view": "View",
@@ -154,7 +166,7 @@
     "appStore": "App Store",
     "teamAndAuth": "Team & Auth",
     "rolesUserMgmt": "Roles & Users Management",
-    "userMgmt": "Users management",
+    "userMgmt": "Users Management",
     "apiTokenMgmt": "API Tokens Management",
     "rolesMgmt": "Roles Management",
     "projMeta": "Project Metadata",
@@ -173,7 +185,15 @@
     "resetPassword": "Reset your password",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Generate Token",
+    "APIsAndSupport": "APIs & Support",
+    "helpCenter": "Help center",
+    "swaggerDocumentation": "Swagger Documentation",
+    "quickImportFrom": "Quick Import From",
+    "quickImport": "Quick Import",
+    "advancedSettings": "Advanced Settings",
+    "codeSnippet": "Code Snippet"
   },
   "labels": {
     "notifyVia": "Notify Via",
@@ -240,7 +260,27 @@
     "childTable": "Child table",
     "childColumn": "Child column",
     "onUpdate": "On Update",
-    "onDelete": "On Delete"
+    "onDelete": "On Delete",
+    "account": "Account",
+    "language": "Language",
+    "primaryColor": "Primary Color",
+    "accentColor": "Accent Color",
+    "customTheme": "Custom Theme",
+    "requestDataSource": "Request a data source you need?",
+    "apiKey": "API Key",
+    "sharedBase": "Shared Base",
+    "importData": "Import Data",
+    "importSecondaryViews": "Import Secondary Views",
+    "importRollupColumns": "Import Rollup Columns",
+    "importLookupColumns": "Import Lookup Columns",
+    "importAttachmentColumns": "Import Attachment Columns",
+    "importFormulaColumns": "Import Formula Columns",
+    "noData": "No Data",
+    "goToDashboard": "Go to Dashboard",
+    "importing": "Importing",
+    "flattenNested": "Flatten Nested",
+    "downloadAllowed": "Download allowed",
+    "weAreHiring": "We are Hiring!"
   },
   "activity": {
     "createProject": "Create Project",
@@ -267,7 +307,7 @@
     "translate": "Help translate",
     "account": {
       "authToken": "Copy Auth Token",
-      "swagger": "Swagger APIs Doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Copy Project Info",
       "themes": "Themes"
     },
@@ -347,7 +387,10 @@
     "removeDbFromEnv": "Remove Database from environment",
     "editConnJson": "Edit connection JSON",
     "sponsorUs": "Sponsor Us",
-    "sendEmail": "SEND EMAIL"
+    "sendEmail": "SEND EMAIL",
+    "addUserToProject": "Add user to project",
+    "getApiSnippet": "Get API Snippet",
+    "clearCell": "Clear cell"
   },
   "tooltip": {
     "saveChanges": "Save changes",
@@ -393,7 +436,8 @@
     "searchModels": "Search models",
     "noItemsFound": "No items found",
     "defaultValue": "Default value",
-    "filterByEmail": "Filter by E-mail"
+    "filterByEmail": "Filter by E-mail",
+    "filterQuery": "Filter query"
   },
   "msg": {
     "info": {
@@ -415,7 +459,7 @@
       "deleteProject": "Do you want to delete the project?",
       "shareBasePrivate": "Generate publicly shareable readonly base",
       "shareBasePublic": "Anyone on the internet with this link can view",
-      "userInviteNoSMTP": "Looks like you have not configured mailer yet!\nPlease copy above invite link and send it to",
+      "userInviteNoSMTP": "Looks like you have not configured mailer yet! Please copy above invite link and send it to",
       "dragDropHide": "Drag and drop fields here to hide",
       "formInput": "Enter form input label",
       "formHelpText": "Add some help text",
@@ -485,7 +529,27 @@
       "addMultipleUsers": "You can add multiple comma(,) separated emails",
       "enterTableName": "Enter table name",
       "addDefaultColumns": "Add default columns",
-      "tableNameInDb": "Table name as saved in database"
+      "tableNameInDb": "Table name as saved in database",
+      "airtable": {
+        "credentials": "Where to find this?"
+      },
+      "import": {
+        "clickOrDrag": "Click or drag file to this area to upload"
+      },
+      "metaDataRecreated": "Table metadata recreated successfully",
+      "invalidCredentials": "Invalid credentials",
+      "downloadingMoreFiles": "Downloading more files",
+      "copiedToClipboard": "Copied to clipboard",
+      "requriedFieldsCantBeMoved": "Required field can't be moved",
+      "updateNotAllowedWithoutPK": "Update not allowed for table which doesn't have primary key",
+      "autoIncFieldNotEditable": "Auto increment field is not editable",
+      "editingPKnotSupported": "Editing primary key not supported",
+      "deletedCache": "Deleted cache successfully",
+      "cacheEmpty": "Cache is empty",
+      "exportedCache": "Exported Cache Successfully",
+      "valueAlreadyInList": "This value is already in the list",
+      "noColumnsToUpdate": "No columns to update",
+      "tableDeleted": "Deleted table successfully"
     },
     "error": {
       "searchProject": "Your search for {search} found no results",

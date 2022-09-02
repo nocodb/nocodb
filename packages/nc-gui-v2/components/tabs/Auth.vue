@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import UserManagement from './auth/UserManagement.vue'
 import ApiTokenManagement from './auth/ApiTokenManagement.vue'
 
@@ -6,14 +7,16 @@ interface Tab {
   title: string
   body: any
 }
-
+const { t } = useI18n()
 const tabsInfo: Tab[] = [
   {
     title: 'Users Management',
+    label: t('title.userMgmt'),
     body: () => UserManagement,
   },
   {
     title: 'API Token Management',
+    label: t('title.apiTokenMgmt'),
     body: () => ApiTokenManagement,
   },
 ]
@@ -30,7 +33,7 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKey])
       <a-tab-pane v-for="(tab, key) of tabsInfo" :key="key" class="select-none">
         <template #tab>
           <span>
-            {{ tab.title }}
+            {{ tab.label }}
           </span>
         </template>
       </a-tab-pane>

@@ -54,7 +54,20 @@
     "search": "Zoeken",
     "notification": "Melding",
     "reference": "Verwijzing",
-    "function": "Functie"
+    "function": "Functie",
+    "confirm": "Bevestigen",
+    "generate": "Genereren",
+    "copy": "Kopiëren",
+    "misc": "Diversen",
+    "lock": "Op slot doen",
+    "unlock": "Ontgrendelen",
+    "credentials": "Inloggegevens",
+    "help": "Helpen",
+    "questions": "Vragen",
+    "reachOut": "Reik hier",
+    "betaNote": "Deze functie is momenteel in bèta.",
+    "moreInfo": "Meer informatie is hier te vinden",
+    "logs": "Houtblokken"
   },
   "objects": {
     "project": "Project",
@@ -172,7 +185,15 @@
     "resetPassword": "Stel je wachtwoord opnieuw in",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Genereer token",
+    "APIsAndSupport": "API's en ondersteuning",
+    "helpCenter": "Helpcentrum",
+    "swaggerDocumentation": "Swagger -documentatie",
+    "quickImportFrom": "Snel import van",
+    "quickImport": "Snel import",
+    "advancedSettings": "Geavanceerde instellingen",
+    "codeSnippet": "Codefragment"
   },
   "labels": {
     "notifyVia": "Melding via",
@@ -193,6 +214,7 @@
     "username": "Gebruikersnaam",
     "password": "Wachtwoord",
     "schemaName": "Schema name",
+    "database": "Database",
     "action": "Actie",
     "actions": "Acties",
     "operation": "Operatie",
@@ -238,7 +260,27 @@
     "childTable": "Child Tabel",
     "childColumn": "Child Kolom",
     "onUpdate": "Bij update",
-    "onDelete": "Bij verwijdering"
+    "onDelete": "Bij verwijdering",
+    "account": "Account",
+    "language": "Taal",
+    "primaryColor": "Primaire kleur",
+    "accentColor": "Accent kleur",
+    "customTheme": "Aangepast thema",
+    "requestDataSource": "Een gegevensbron aanvragen die u nodig hebt?",
+    "apiKey": "API sleutel",
+    "sharedBase": "Gedeelde basis",
+    "importData": "Data importeren",
+    "importSecondaryViews": "Importeren secundaire weergaven",
+    "importRollupColumns": "Rollup -kolommen importeren",
+    "importLookupColumns": "Importeer opzoekkolommen",
+    "importAttachmentColumns": "Import bijlage kolommen",
+    "importFormulaColumns": "Formulekolommen importeren",
+    "noData": "Geen gegevens",
+    "goToDashboard": "Ga naar het dashboard",
+    "importing": "Importeren",
+    "flattenNested": "Flatten genest",
+    "downloadAllowed": "Download toegestaan",
+    "weAreHiring": "We zijn aan het huren!"
   },
   "activity": {
     "createProject": "Maak project",
@@ -265,7 +307,7 @@
     "translate": "Help met vertaling",
     "account": {
       "authToken": "Kopieer Auth-token",
-      "swagger": "Swagger APIs Doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopieer projectinformatie",
       "themes": "Thema's"
     },
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "Verwijder de database uit de omgeving",
     "editConnJson": "Bewerk verbinding JSON",
     "sponsorUs": "Sponsor Ons",
-    "sendEmail": "STUUR E-MAIL"
+    "sendEmail": "STUUR E-MAIL",
+    "addUserToProject": "Voeg gebruiker toe aan project",
+    "getApiSnippet": "Krijg API -fragment",
+    "clearCell": "Duidelijke cel"
   },
   "tooltip": {
     "saveChanges": "Wijzigingen opslaan",
@@ -391,7 +436,8 @@
     "searchModels": "Zoekmodellen",
     "noItemsFound": "Geen items gevonden",
     "defaultValue": "Standaardwaarde",
-    "filterByEmail": "Filteren per e-mail"
+    "filterByEmail": "Filteren per e-mail",
+    "filterQuery": "Filterquery"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "of sleep het bestand naar hier",
       "excelSupport": "Ondersteunt: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Voer Excel-bestandslink in",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Voer CSV-bestandslink in",
       "footMsg": "# rijen om te parseren om datatype af te leiden",
       "excelImport": "blad(en) zijn beschikbaar om te importeren",
       "exportMetadata": "Wilt u metadata uit metatabellen exporteren?",
@@ -413,7 +459,7 @@
       "deleteProject": "Wilt u het project verwijderen?",
       "shareBasePrivate": "Genereer openbaar deelbare alleen-lezen database",
       "shareBasePublic": "Iedereen op het internet met deze link kan bekijken",
-      "userInviteNoSMTP": "Het lijkt erop dat je nog geen mailer hebt geconfigureerd! \\n Kopieer de bovenstaande uitnodigingslink en verstuur deze zelf naar de ontvanger",
+      "userInviteNoSMTP": "Het lijkt erop dat je nog geen mailer hebt geconfigureerd! Kopieer de bovenstaande uitnodigingslink en verstuur deze zelf naar de ontvanger",
       "dragDropHide": "Versleep de velden naar hier om ze te verbergen",
       "formInput": "Voer formulier invoerlabel in",
       "formHelpText": "Voeg wat hulptekst toe",
@@ -447,7 +493,7 @@
       "importZip": "Import project meta zip-bestand en start opnieuw op.",
       "importText": "Import NocoDB-project door het uploaden van het metadata zip-bestand",
       "metaNoChange": "Geen verandering gevonden",
-      "sqlMigration": "Schem-migraties worden automatisch gemaakt. Maak een tabel en vernieuw deze pagina.",
+      "sqlMigration": "Schema-migraties worden automatisch gemaakt. Maak een tabel en vernieuw deze pagina.",
       "dbConnectionStatus": "Omgeving gevalideerd",
       "dbConnected": "Succesvolle verbinding",
       "notifications": {
@@ -483,7 +529,27 @@
       "addMultipleUsers": "U kunt meerdere komma (,) gescheiden e-mails toevoegen",
       "enterTableName": "Voer de tabelnaam in",
       "addDefaultColumns": "Voeg standaardkolommen toe",
-      "tableNameInDb": "Tabelnaam zoals opgeslagen in de database"
+      "tableNameInDb": "Tabelnaam zoals opgeslagen in de database",
+      "airtable": {
+        "credentials": "Waar te vinden dit?"
+      },
+      "import": {
+        "clickOrDrag": "Klik of sleep het bestand naar dit gebied om te uploaden"
+      },
+      "metaDataRecreated": "Tafelmetadata heeft succesvol nagebootst",
+      "invalidCredentials": "Ongeldige referenties",
+      "downloadingMoreFiles": "Meer bestanden downloaden",
+      "copiedToClipboard": "Gekopieerd naar het klembord",
+      "requriedFieldsCantBeMoved": "Vereist veld kan niet worden verplaatst",
+      "updateNotAllowedWithoutPK": "Update niet toegestaan ​​voor tabel die geen primaire sleutel heeft",
+      "autoIncFieldNotEditable": "Auto -increment veld is niet bewerkbaar",
+      "editingPKnotSupported": "Het bewerken van primaire sleutel niet ondersteund",
+      "deletedCache": "Met succes verwijderd cache",
+      "cacheEmpty": "Cache is leeg",
+      "exportedCache": "Met succes geëxporteerd cache",
+      "valueAlreadyInList": "Deze waarde staat al in de lijst",
+      "noColumnsToUpdate": "Geen kolommen om bij te werken",
+      "tableDeleted": "Met succes verwijderde tabel"
     },
     "error": {
       "searchProject": "Uw zoekopdracht voor {search} heeft geen resultaten opgeleverd",
@@ -497,7 +563,8 @@
         "emailReqd": "E-mail is vereist",
         "emailInvalid": "E-mail moet geldig zijn",
         "passwdRequired": "Wachtwoord is verplicht",
-        "passwdLength": "Je wachtwoord moet ten minste 8 tekens hebben"
+        "passwdLength": "Je wachtwoord moet ten minste 8 tekens hebben",
+        "passwdMismatch": "Wachtwoorden komen niet overeen"
       }
     },
     "toast": {

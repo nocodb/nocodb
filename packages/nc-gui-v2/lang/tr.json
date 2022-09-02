@@ -54,7 +54,20 @@
     "search": "Ara",
     "notification": "Bildirim",
     "reference": "Referans",
-    "function": "Fonksiyon"
+    "function": "Fonksiyon",
+    "confirm": "Onaylamak",
+    "generate": "Üretmek",
+    "copy": "Kopya",
+    "misc": "Çeşitli",
+    "lock": "Kilit",
+    "unlock": "Kilidini aç",
+    "credentials": "Kimlik bilgileri",
+    "help": "Yardım",
+    "questions": "Soru",
+    "reachOut": "Buraya uzan",
+    "betaNote": "Bu özellik şu anda Beta'da.",
+    "moreInfo": "Daha fazla bilgi burada bulunabilir",
+    "logs": "Kütükler"
   },
   "objects": {
     "project": "Proje",
@@ -172,7 +185,15 @@
     "resetPassword": "Şifrenizi sıfırlayın",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Jeton Olun",
+    "APIsAndSupport": "API'ler ve Destek",
+    "helpCenter": "Yardım Merkezi",
+    "swaggerDocumentation": "Swagger belgeleri",
+    "quickImportFrom": "Hızlı ithalat",
+    "quickImport": "Hızlı İthalat",
+    "advancedSettings": "Gelişmiş Ayarlar",
+    "codeSnippet": "Kod snippet"
   },
   "labels": {
     "notifyVia": "Aracılığıyla Bildir",
@@ -193,6 +214,7 @@
     "username": "Kullanıcı Adı",
     "password": "Şifre",
     "schemaName": "Schema name",
+    "database": "Veri tabanı",
     "action": "Aksiyon",
     "actions": "Aksiyonlar",
     "operation": "Operasyon",
@@ -238,7 +260,27 @@
     "childTable": "Alt tablo",
     "childColumn": "Alt sütun",
     "onUpdate": "Güncellenince",
-    "onDelete": "Silinince"
+    "onDelete": "Silinince",
+    "account": "Hesap",
+    "language": "Dil",
+    "primaryColor": "Ana renk",
+    "accentColor": "Aksan rengi",
+    "customTheme": "Özel tema",
+    "requestDataSource": "İhtiyacınız olan bir veri kaynağı mı istiyorsunuz?",
+    "apiKey": "API Anahtarı",
+    "sharedBase": "Ortak taban",
+    "importData": "Verileri İçe Aktar",
+    "importSecondaryViews": "İkincil görünümleri içe aktarın",
+    "importRollupColumns": "Rulo Sütunlarını İçe Aktar",
+    "importLookupColumns": "İçe Aktarma Sütunları",
+    "importAttachmentColumns": "Ekleme Sütunlarını İçe Aktar",
+    "importFormulaColumns": "Formül sütunlarını içe aktarın",
+    "noData": "Veri yok",
+    "goToDashboard": "Gösterge Tablosuna Git",
+    "importing": "İthalat",
+    "flattenNested": "İç içe düzleştirmek",
+    "downloadAllowed": "İzine İzin Ver",
+    "weAreHiring": "İşe alıyoruz!"
   },
   "activity": {
     "createProject": "Proje Oluştur",
@@ -265,7 +307,7 @@
     "translate": "Çeviriye katkı",
     "account": {
       "authToken": "Yetki Token'ını Kopyala",
-      "swagger": "Swagger API Dokümantasyonu",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Proje Bilgisini Kopyala",
       "themes": "Temalar"
     },
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "Veritabanını Kaldır",
     "editConnJson": "JSON bağlantısını düzenle",
     "sponsorUs": "Bizi Destekle",
-    "sendEmail": "E-POSTA GÖNDER"
+    "sendEmail": "E-POSTA GÖNDER",
+    "addUserToProject": "Projeye Kullanıcı Ekle",
+    "getApiSnippet": "API snippet'i alın",
+    "clearCell": "Temiz hücre"
   },
   "tooltip": {
     "saveChanges": "Değişiklikleri Kaydet",
@@ -391,7 +436,8 @@
     "searchModels": "Modellerde ara",
     "noItemsFound": "Hiç bir öğe bulunamadı",
     "defaultValue": "Varsayılan değer",
-    "filterByEmail": "E-posta ile filtrele"
+    "filterByEmail": "E-posta ile filtrele",
+    "filterQuery": "Filtre sorgusu"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "veya dosyayı sürükleyip bırakın",
       "excelSupport": "Desteklenen: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Excel dosyası linkini girin",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "CSV dosyası linkini girin",
       "footMsg": "Veri türünü bulmak için ayrıştırılacak satır sayısı #",
       "excelImport": "sayfa(lar) içe aktarılabilir",
       "exportMetadata": "Meta verileri meta tablolarından dışa aktarmak ister misiniz?",
@@ -413,7 +459,7 @@
       "deleteProject": "Projeyi silmek istediğinize emin misiniz?",
       "shareBasePrivate": "Herkese açık paylaşılabilir salt-okunur bağlantı",
       "shareBasePublic": "Bu link ile internetteki herkes görüntüleyebilir",
-      "userInviteNoSMTP": "Henüz mail ayarları yapılmamış gibi görünüyor! \\n Lütfen yukarıdaki davet linkini kopyalayın ve gönderin",
+      "userInviteNoSMTP": "Henüz mail ayarları yapılmamış gibi görünüyor! Lütfen yukarıdaki davet linkini kopyalayın ve gönderin",
       "dragDropHide": "Gizlemek için sütunları buraya sürükleyip bırakın",
       "formInput": "Form girdi etiketini girin",
       "formHelpText": "Yardım metni ekleyin",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "Birden çok virgül(,) ile ayrılmış e-posta ekleyebilirsin",
       "enterTableName": "Tablo adı gir",
       "addDefaultColumns": "Varsayılan kolonları ekle",
-      "tableNameInDb": "Veritabanında kayıt edildiği şekilde tablo adları"
+      "tableNameInDb": "Veritabanında kayıt edildiği şekilde tablo adları",
+      "airtable": {
+        "credentials": "Bunu nerede bulabilirim?"
+      },
+      "import": {
+        "clickOrDrag": "Yüklemek için bu alana dosyayı tıklayın veya sürükleyin"
+      },
+      "metaDataRecreated": "Masa meta verileri başarıyla yeniden yaratıldı",
+      "invalidCredentials": "Geçersiz kimlik bilgileri",
+      "downloadingMoreFiles": "Daha fazla dosya indirme",
+      "copiedToClipboard": "Panoya kopyalandı",
+      "requriedFieldsCantBeMoved": "Gerekli alan taşınamaz",
+      "updateNotAllowedWithoutPK": "Birincil anahtarı olmayan tablo için güncellemeye izin verilmiyor",
+      "autoIncFieldNotEditable": "Otomatik artış alanı düzenlenemez değil",
+      "editingPKnotSupported": "Birincil anahtarı düzenleme desteklenmiyor",
+      "deletedCache": "Önbellek başarıyla silinmiş",
+      "cacheEmpty": "Önbellek boş",
+      "exportedCache": "Önbellek başarıyla dışa aktarıldı",
+      "valueAlreadyInList": "Bu değer zaten listede",
+      "noColumnsToUpdate": "Güncellenecek sütun yok",
+      "tableDeleted": "Silinmiş tablo başarıyla"
     },
     "error": {
       "searchProject": "{search} için aramanız hiç bir sonuç bulamadı",
@@ -497,7 +563,8 @@
         "emailReqd": "E-posta gerekli",
         "emailInvalid": "E-posta geçerli olmalı",
         "passwdRequired": "Şifre gerekli",
-        "passwdLength": "Şifreniz en az 8 karakter olmalıdır"
+        "passwdLength": "Şifreniz en az 8 karakter olmalıdır",
+        "passwdMismatch": "Parolalar uyuşmuyor"
       }
     },
     "toast": {

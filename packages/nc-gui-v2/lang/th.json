@@ -54,7 +54,20 @@
     "search": "ค้นหา",
     "notification": "การแจ้ง",
     "reference": "อ้างอิง",
-    "function": "การทำงาน"
+    "function": "การทำงาน",
+    "confirm": "ยืนยัน",
+    "generate": "สร้าง",
+    "copy": "สำเนา",
+    "misc": "เบ็ดเตล็ด",
+    "lock": "ล็อค",
+    "unlock": "ปลดล็อค",
+    "credentials": "ข้อมูลรับรอง",
+    "help": "ช่วย",
+    "questions": "คำถาม",
+    "reachOut": "เอื้อมมือออกไปที่นี่",
+    "betaNote": "ฟีเจอร์นี้อยู่ในช่วงเบต้า",
+    "moreInfo": "ข้อมูลเพิ่มเติมสามารถดูได้ที่นี่",
+    "logs": "ท่อนไม้"
   },
   "objects": {
     "project": "โครงการ",
@@ -172,7 +185,15 @@
     "resetPassword": "รีเซ็ตรหัสผ่านของคุณ",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "สร้างโทเค็น",
+    "APIsAndSupport": "APIs & Support",
+    "helpCenter": "ศูนย์ช่วยเหลือ",
+    "swaggerDocumentation": "เอกสาร Swagger",
+    "quickImportFrom": "นำเข้าอย่างรวดเร็วจาก",
+    "quickImport": "นำเข้าอย่างรวดเร็ว",
+    "advancedSettings": "ตั้งค่าขั้นสูง",
+    "codeSnippet": "รหัสตัวอย่าง"
   },
   "labels": {
     "notifyVia": "แจ้งเตือนผ่าน",
@@ -193,6 +214,7 @@
     "username": "ชื่อผู้ใช้",
     "password": "รหัสผ่าน",
     "schemaName": "Schema name",
+    "database": "ฐานข้อมูล",
     "action": "หนังบู๊",
     "actions": "การกระทำ",
     "operation": "การดำเนินการ",
@@ -238,7 +260,27 @@
     "childTable": "โต๊ะเด็ก",
     "childColumn": "คอลัมน์เด็ก",
     "onUpdate": "เมื่ออัปเดต",
-    "onDelete": "ในการลบ"
+    "onDelete": "ในการลบ",
+    "account": "บัญชี",
+    "language": "ภาษา",
+    "primaryColor": "สีหลัก",
+    "accentColor": "สีเน้น",
+    "customTheme": "ธีมที่กำหนดเอง",
+    "requestDataSource": "ขอแหล่งข้อมูลที่คุณต้องการ?",
+    "apiKey": "คีย์ API",
+    "sharedBase": "ฐานที่ใช้ร่วมกัน",
+    "importData": "นำเข้าข้อมูล",
+    "importSecondaryViews": "นำเข้ามุมมองรอง",
+    "importRollupColumns": "นำเข้าคอลัมน์นำเข้า",
+    "importLookupColumns": "นำเข้าคอลัมน์การค้นหา",
+    "importAttachmentColumns": "คอลัมน์นำเข้าคอลัมน์",
+    "importFormulaColumns": "คอลัมน์นำเข้าคอลัมน์",
+    "noData": "ไม่มีข้อมูล",
+    "goToDashboard": "ไปที่แผงควบคุม",
+    "importing": "การนำเข้า",
+    "flattenNested": "ซ้อนกัน",
+    "downloadAllowed": "ดาวน์โหลดได้รับอนุญาต",
+    "weAreHiring": "เรากำลังจ้าง!"
   },
   "activity": {
     "createProject": "สร้างโครงการ",
@@ -265,7 +307,7 @@
     "translate": "ช่วยแปล",
     "account": {
       "authToken": "คัดลอกโทเค็นรับรองความถูกต้อง",
-      "swagger": "Swagger API Doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "คัดลอกข้อมูลโครงการ",
       "themes": "ธีม"
     },
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "ลบฐานข้อมูลออกจากสภาพแวดล้อม",
     "editConnJson": "แก้ไขการเชื่อมต่อ JSON",
     "sponsorUs": "สปอนเซอร์สหรัฐฯ",
-    "sendEmail": "ส่งอีเมล"
+    "sendEmail": "ส่งอีเมล",
+    "addUserToProject": "เพิ่มผู้ใช้ในโครงการ",
+    "getApiSnippet": "รับตัวอย่าง API",
+    "clearCell": "ล้างเซลล์"
   },
   "tooltip": {
     "saveChanges": "บันทึกการเปลี่ยนแปลง",
@@ -391,7 +436,8 @@
     "searchModels": "ค้นหาแบบจำลอง",
     "noItemsFound": "ไม่พบรายการ",
     "defaultValue": "ค่าเริ่มต้น",
-    "filterByEmail": "กรองทางอีเมล"
+    "filterByEmail": "กรองทางอีเมล",
+    "filterQuery": "ตัวกรองแบบสอบถาม"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "หรือลากและวางไฟล์",
       "excelSupport": "รองรับ:. xls, .xlsx,. xlsm, .ods, .ots",
       "excelURL": "ป้อน URL ไฟล์ Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "ป้อน URL ไฟล์ CSV",
       "footMsg": "# ของแถวที่จะแยกวิเคราะห์กับ DataType",
       "excelImport": "มีแผ่นงานสำหรับนำเข้า",
       "exportMetadata": "คุณต้องการส่งออกข้อมูลเมตาจากตาราง Meta หรือไม่?",
@@ -413,7 +459,7 @@
       "deleteProject": "คุณต้องการลบโครงการหรือไม่",
       "shareBasePrivate": "สร้างฐาน Readonly ที่ใช้ร่วมกันได้อย่างเปิดเผย",
       "shareBasePublic": "ทุกคนบนอินเทอร์เน็ตด้วยลิงค์นี้สามารถดูได้",
-      "userInviteNoSMTP": "ดูเหมือนว่าคุณยังไม่ได้กำหนดค่าเมล!\nโปรดคัดลอกลิงก์เชิญด้านบนและส่งไปที่",
+      "userInviteNoSMTP": "ดูเหมือนว่าคุณยังไม่ได้กำหนดค่าเมล! โปรดคัดลอกลิงก์เชิญด้านบนและส่งไปที่",
       "dragDropHide": "ลากและวางฟิลด์ที่นี่เพื่อซ่อน",
       "formInput": "ป้อนป้ายชื่ออินพุตแบบฟอร์ม",
       "formHelpText": "เพิ่มข้อความช่วยเหลือบางอย่าง",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "คุณสามารถเพิ่มอีเมลคั่นด้วยเครื่องหมายจุลภาค (,) หลายรายการ",
       "enterTableName": "ป้อนชื่อตาราง",
       "addDefaultColumns": "เพิ่มคอลัมน์เริ่มต้น",
-      "tableNameInDb": "ชื่อตารางตามที่บันทึกไว้ในฐานข้อมูล"
+      "tableNameInDb": "ชื่อตารางตามที่บันทึกไว้ในฐานข้อมูล",
+      "airtable": {
+        "credentials": "จะหาสิ่งนี้ได้ที่ไหน?"
+      },
+      "import": {
+        "clickOrDrag": "คลิกหรือลากไฟล์ไปยังพื้นที่นี้เพื่ออัปโหลด"
+      },
+      "metaDataRecreated": "เมทาดาทาตารางสร้างขึ้นใหม่ได้สำเร็จ",
+      "invalidCredentials": "ข้อมูลประจำตัวที่ไม่ถูกต้อง",
+      "downloadingMoreFiles": "ดาวน์โหลดไฟล์เพิ่มเติม",
+      "copiedToClipboard": "คัดลอกไปยังคลิปบอร์ด",
+      "requriedFieldsCantBeMoved": "ไม่สามารถย้ายฟิลด์ที่จำเป็นได้",
+      "updateNotAllowedWithoutPK": "ไม่อนุญาตให้อัปเดตสำหรับตารางที่ไม่มีคีย์หลัก",
+      "autoIncFieldNotEditable": "ฟิลด์การเพิ่มอัตโนมัติไม่สามารถแก้ไขได้",
+      "editingPKnotSupported": "การแก้ไขคีย์หลักไม่รองรับ",
+      "deletedCache": "แคชที่ถูกลบสำเร็จ",
+      "cacheEmpty": "แคชว่างเปล่า",
+      "exportedCache": "แคชส่งออกสำเร็จ",
+      "valueAlreadyInList": "ค่านี้อยู่ในรายการแล้ว",
+      "noColumnsToUpdate": "ไม่มีคอลัมน์ที่จะอัปเดต",
+      "tableDeleted": "ตารางที่ถูกลบสำเร็จ"
     },
     "error": {
       "searchProject": "การค้นหาของคุณสำหรับ {search} ไม่พบผลลัพธ์",
@@ -497,7 +563,8 @@
         "emailReqd": "จำเป็นต้องใช้อีเมล",
         "emailInvalid": "อีเมลจะต้องถูกต้อง",
         "passwdRequired": "ต้องการรหัสผ่าน",
-        "passwdLength": "รหัสผ่านของคุณต้องมีอักขระอย่างน้อย 8 ตัว"
+        "passwdLength": "รหัสผ่านของคุณต้องมีอักขระอย่างน้อย 8 ตัว",
+        "passwdMismatch": "รหัสผ่านไม่ตรงกัน"
       }
     },
     "toast": {

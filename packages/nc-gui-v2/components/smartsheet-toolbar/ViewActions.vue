@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
   IsLockedInj,
@@ -17,6 +18,8 @@ import { viewIcons } from '~/utils'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
+
+const { t } = useI18n()
 
 const sharedViewListDlg = ref(false)
 
@@ -58,7 +61,8 @@ async function changeLockType(type: LockType) {
   if (!selectedView?.value) return
 
   if (type === 'personal') {
-    return message.info('Coming soon')
+    // Coming soon
+    return message.info(t('msg.toast.futureRelease'))
   }
   try {
     ;(selectedView.value as any).lock_type = type
@@ -123,9 +127,10 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
             <a-menu-divider />
             <a-sub-menu key="download">
               <template #title>
+                <!--                Download -->
                 <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                   <MdiDownload class="group-hover:text-accent text-gray-500" />
-                  Download
+                  {{ $t('general.download') }}
                   <div class="flex-1" />
 
                   <MaterialSymbolsChevronRightRounded
@@ -139,10 +144,11 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
             </a-sub-menu>
             <template v-if="isUIAllowed('csvImport') && !isView && !isPublicView && !isSqlView">
               <a-sub-menu key="upload">
+                <!--                Upload -->
                 <template #title>
                   <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                     <MdiUpload class="group-hover:text-accent text-gray-500" />
-                    Upload
+                    {{ $t('general.upload') }}
                     <div class="flex-1" />
 
                     <MaterialSymbolsChevronRightRounded
@@ -199,8 +205,8 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
                 @click="showApiSnippetDrawer = true"
               >
                 <MdiXml class="text-gray-500" />
-                <!-- todo: i18n translation -->
-                Get API Snippet
+                <!-- Get API Snippet -->
+                {{ $t('activity.getApiSnippet') }}
               </div>
             </a-menu-item>
           </a-menu-item-group>
@@ -212,7 +218,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
-    <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="max(900px,60vw)" :footer="null">
+    <a-modal v-model:visible="sharedViewListDlg" :title="$t('activity.listSharedView')" width="max(900px,60vw)" :footer="null">
       <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
     </a-modal>
     <SmartsheetApiSnippet v-model="showApiSnippetDrawer" />

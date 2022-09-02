@@ -54,7 +54,20 @@
     "search": "Поиск",
     "notification": "Уведомление",
     "reference": "Ссылка",
-    "function": "Функция"
+    "function": "Функция",
+    "confirm": "Подтверждать",
+    "generate": "Генерировать",
+    "copy": "Копия",
+    "misc": "Разнообразный",
+    "lock": "Замок",
+    "unlock": "Разблокировать",
+    "credentials": "Реквизиты для входа",
+    "help": "Помощь",
+    "questions": "Вопросы",
+    "reachOut": "Протяните здесь",
+    "betaNote": "Эта функция в настоящее время в бета -версии.",
+    "moreInfo": "Более подробную информацию можно найти здесь",
+    "logs": "Журналы"
   },
   "objects": {
     "project": "Проект",
@@ -172,7 +185,15 @@
     "resetPassword": "Сбросить пароль",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Генерировать токен",
+    "APIsAndSupport": "APIS и поддержка",
+    "helpCenter": "Центр помощи",
+    "swaggerDocumentation": "Документация Swagger",
+    "quickImportFrom": "Быстрый импорт из",
+    "quickImport": "Быстрый импорт",
+    "advancedSettings": "Расширенные настройки",
+    "codeSnippet": "Код фрагмент"
   },
   "labels": {
     "notifyVia": "Уведомлять через",
@@ -193,6 +214,7 @@
     "username": "Имя пользователя",
     "password": "Пароль",
     "schemaName": "Schema name",
+    "database": "База данных",
     "action": "Действие",
     "actions": "Действия",
     "operation": "Операция",
@@ -229,6 +251,7 @@
       "bookDemo": "Забронировать бесплатное демо",
       "getAnswered": "Получите ответы на ваши вопросы",
       "joinDiscord": "Присоединиться к",
+      "joinCommunity": "Join NocoDB Community",
       "joinReddit": "Присоединиться /r/NocoDB",
       "followNocodb": "Следите за NocoDB"
     },
@@ -237,7 +260,27 @@
     "childTable": "Дочерняя таблица",
     "childColumn": "Дочерний столбец",
     "onUpdate": "При обновлении",
-    "onDelete": "При удалении"
+    "onDelete": "При удалении",
+    "account": "Счет",
+    "language": "Язык",
+    "primaryColor": "Основной цвет",
+    "accentColor": "Акцентный цвет",
+    "customTheme": "Пользовательская тема",
+    "requestDataSource": "Запросить источник данных, который вам нужен?",
+    "apiKey": "API -ключ",
+    "sharedBase": "Общая база",
+    "importData": "Импортные данные",
+    "importSecondaryViews": "Импорт второстепенных взглядов",
+    "importRollupColumns": "Импорт ROLLUP COLLONS",
+    "importLookupColumns": "Столбцы импорта",
+    "importAttachmentColumns": "Импорт столбцов вложения",
+    "importFormulaColumns": "Импорт Формулы столбцы",
+    "noData": "Нет данных",
+    "goToDashboard": "Перейти к приборной панели",
+    "importing": "Импорт",
+    "flattenNested": "Сгладить вложенные",
+    "downloadAllowed": "Загрузка разрешена",
+    "weAreHiring": "Мы нанимаем!"
   },
   "activity": {
     "createProject": "Создать проект",
@@ -264,7 +307,7 @@
     "translate": "Помочь перевести",
     "account": {
       "authToken": "Скопировать токен авторизации",
-      "swagger": "Документация Swagger API",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Скопировать информацию о проекте",
       "themes": "Темы"
     },
@@ -308,7 +351,7 @@
     "importExcel": "Импорт из Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Скачать как CSV.",
-    "downloadExcel": "Скачать как XLSX.",
+    "downloadExcel": "Скачать как XLSX",
     "uploadCSV": "Загрузить CSV.",
     "import": "Импортировать",
     "importMetadata": "Импорт метаданных",
@@ -344,7 +387,10 @@
     "removeDbFromEnv": "Удалить базу данных из среды",
     "editConnJson": "Редактировать соединение JSON",
     "sponsorUs": "Спонсируйте нас",
-    "sendEmail": "Отправить письмо"
+    "sendEmail": "Отправить письмо",
+    "addUserToProject": "Добавить пользователя в проект",
+    "getApiSnippet": "Получите фрагмент API",
+    "clearCell": "Чистая ячейка"
   },
   "tooltip": {
     "saveChanges": "Сохранить изменения",
@@ -390,7 +436,8 @@
     "searchModels": "Модели поиска",
     "noItemsFound": "Ничего не найдено",
     "defaultValue": "Значение по умолчанию",
-    "filterByEmail": "Фильтр по электронной почте"
+    "filterByEmail": "Фильтр по электронной почте",
+    "filterQuery": "Фильтр запрос"
   },
   "msg": {
     "info": {
@@ -399,7 +446,7 @@
       "upload_sub": "или перетащите файл",
       "excelSupport": "Поддерживаются: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Введите URL-адрес файла Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Введите URL-адрес файла CSV",
       "footMsg": "Количество рядов на анализ вывода данных",
       "excelImport": "Листы доступны для импорта",
       "exportMetadata": "Вы хотите экспортировать метаданные из металоги?",
@@ -482,7 +529,27 @@
       "addMultipleUsers": "Вы можете разделять запятыми электронные почты",
       "enterTableName": "Введите имя таблицы",
       "addDefaultColumns": "Добавьте столбцы по умолчанию",
-      "tableNameInDb": "Название таблицы как сохранено в базе данных"
+      "tableNameInDb": "Название таблицы как сохранено в базе данных",
+      "airtable": {
+        "credentials": "Где это найти?"
+      },
+      "import": {
+        "clickOrDrag": "Нажмите или перетащите файл в эту область, чтобы загрузить"
+      },
+      "metaDataRecreated": "Столовые метаданные воссозданы успешно",
+      "invalidCredentials": "Неверные полномочия",
+      "downloadingMoreFiles": "Загрузка больше файлов",
+      "copiedToClipboard": "Скопировано в буфер обмена",
+      "requriedFieldsCantBeMoved": "Требуемое поле не может быть перемещено",
+      "updateNotAllowedWithoutPK": "Обновление не разрешено для таблицы, которая не имеет первичного ключа",
+      "autoIncFieldNotEditable": "Поле автоматического приращения не редактируется",
+      "editingPKnotSupported": "Редактирование первичного ключа не поддерживается",
+      "deletedCache": "Удаленный кэш успешно",
+      "cacheEmpty": "Кэш пуст",
+      "exportedCache": "Экспортированный кэш успешно",
+      "valueAlreadyInList": "Это значение уже в списке",
+      "noColumnsToUpdate": "Нет столбцов для обновления",
+      "tableDeleted": "Удаленная таблица успешно"
     },
     "error": {
       "searchProject": "Ваш поиск {поиск} не дал результатов",
@@ -496,7 +563,8 @@
         "emailReqd": "Требуется E-mail",
         "emailInvalid": "Электронная почта должна быть действительной",
         "passwdRequired": "необходим пароль",
-        "passwdLength": "Ваш пароль должен быть не короче 8 символов"
+        "passwdLength": "Ваш пароль должен быть не короче 8 символов",
+        "passwdMismatch": "Пароли не совпадают"
       }
     },
     "toast": {

@@ -97,7 +97,9 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
         <nuxt-link v-t="['e:hiring']" class="!no-underline !text-current" target="_blank" to="http://careers.nocodb.com">
           <div class="flex items-center text-sm">
             <!--            todo:  i18n -->
-            <div class="ml-3">🚀 <span class="ml-3">We are Hiring!!!</span></div>
+            <div class="ml-3">
+              🚀 <span class="ml-3">{{ $t('labels.weAreHiring') }}!!!</span>
+            </div>
           </div>
         </nuxt-link>
       </a-list-item>

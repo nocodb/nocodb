@@ -54,7 +54,20 @@
     "search": "Procurar",
     "notification": "Notificação",
     "reference": "Referência",
-    "function": "Função"
+    "function": "Função",
+    "confirm": "confirme",
+    "generate": "Gerar",
+    "copy": "cópia de",
+    "misc": "Diversos",
+    "lock": "Trancar",
+    "unlock": "Desbloquear",
+    "credentials": "Credenciais",
+    "help": "Ajuda",
+    "questions": "Perguntas",
+    "reachOut": "Alcançar aqui",
+    "betaNote": "Esse recurso está atualmente na versão beta.",
+    "moreInfo": "Mais informações podem ser encontradas aqui",
+    "logs": "Histórico"
   },
   "objects": {
     "project": "Projeto",
@@ -172,7 +185,15 @@
     "resetPassword": "Redefina a sua senha",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Gerar token",
+    "APIsAndSupport": "APIs e suporte",
+    "helpCenter": "Centro de ajuda",
+    "swaggerDocumentation": "Documentação de Swagger",
+    "quickImportFrom": "Importação rápida de",
+    "quickImport": "Importação rápida",
+    "advancedSettings": "Configurações avançadas",
+    "codeSnippet": "Fragmento de código"
   },
   "labels": {
     "notifyVia": "Notificar via.",
@@ -193,6 +214,7 @@
     "username": "Usuário",
     "password": "Senha",
     "schemaName": "Schema name",
+    "database": "Base de dados",
     "action": "Açao",
     "actions": "Ações",
     "operation": "Operação",
@@ -238,7 +260,27 @@
     "childTable": "Mesa de criança",
     "childColumn": "Coluna de criança",
     "onUpdate": "Na atualização",
-    "onDelete": "Em excluir"
+    "onDelete": "Em excluir",
+    "account": "Conta",
+    "language": "Linguagem",
+    "primaryColor": "Cor primária",
+    "accentColor": "Cor de destaque",
+    "customTheme": "Tema personalizado",
+    "requestDataSource": "Solicitar uma fonte de dados que você precisa?",
+    "apiKey": "Chave API",
+    "sharedBase": "Base compartilhada",
+    "importData": "Importar dados",
+    "importSecondaryViews": "Importar visualizações secundárias",
+    "importRollupColumns": "Importar colunas de rollup",
+    "importLookupColumns": "Importar colunas de pesquisa",
+    "importAttachmentColumns": "Importar colunas de anexo",
+    "importFormulaColumns": "Importar colunas de fórmula",
+    "noData": "Sem dados",
+    "goToDashboard": "Ir para a dashboard",
+    "importing": "Importação",
+    "flattenNested": "Achatado aninhado",
+    "downloadAllowed": "Download permitido",
+    "weAreHiring": "Estamos contratando!"
   },
   "activity": {
     "createProject": "Criar Projeto",
@@ -265,7 +307,7 @@
     "translate": "Ajude a traduzir.",
     "account": {
       "authToken": "Copie o token de autenticação",
-      "swagger": "APIAS DE SWAGROS DOC.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Copiar informações do projeto",
       "themes": "Temas"
     },
@@ -309,7 +351,7 @@
     "importExcel": "Importar Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Baixe como CSV.",
-    "downloadExcel": "Baixe como XLSX.",
+    "downloadExcel": "Baixe como XLSX",
     "uploadCSV": "Carregar CSV.",
     "import": "Importar",
     "importMetadata": "Importar Metadados",
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "Remover Base de Dados do ambiente",
     "editConnJson": "Editar conexão JSON",
     "sponsorUs": "Patrocinando-nos",
-    "sendEmail": "ENVIAR EMAIL"
+    "sendEmail": "ENVIAR EMAIL",
+    "addUserToProject": "Adicionar usuário ao projeto",
+    "getApiSnippet": "Obtenha snippet da API",
+    "clearCell": "Célula transparente"
   },
   "tooltip": {
     "saveChanges": "Salvar alterações",
@@ -391,7 +436,8 @@
     "searchModels": "Modelos de pesquisa.",
     "noItemsFound": "Nenhum item encontrado",
     "defaultValue": "Valor padrão",
-    "filterByEmail": "Filtrar por e-mail"
+    "filterByEmail": "Filtrar por e-mail",
+    "filterQuery": "Consulta de filtro"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "ou arrastar e soltar arquivo",
       "excelSupport": "Suportado: .xls, .xlsx, .xlsm, .ods,.",
       "excelURL": "Digite o URL do arquivo do Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Digite o URL do arquivo do CSV",
       "footMsg": "# de linhas para analisar para inferir datatype",
       "excelImport": "Sheet (s) estão disponíveis para importação",
       "exportMetadata": "Você quer exportar metadados de meta tabelas?",
@@ -413,7 +459,7 @@
       "deleteProject": "Você quer excluir o projeto?",
       "shareBasePrivate": "Gerar base readonly compartilhável publicamente",
       "shareBasePublic": "Qualquer pessoa na internet com este link pode ver",
-      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer!\npor favor copie o link acima do convite e envie-o para",
+      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer! por favor copie o link acima do convite e envie-o para",
       "dragDropHide": "Arraste e solte os campos aqui para se esconder",
       "formInput": "Digite a etiqueta de entrada do formulário",
       "formHelpText": "Adicione um texto de ajuda",
@@ -483,7 +529,13 @@
       "addMultipleUsers": "Você pode adicionar vários e-mails separados (,)",
       "enterTableName": "Digite o nome da tabela.",
       "addDefaultColumns": "Adicionar colunas padrão",
-      "tableNameInDb": "Nome da tabela como salvo no banco de dados"
+      "tableNameInDb": "Nome da tabela como salvo no banco de dados",
+      "airtable": {
+        "credentials": "Onde encontrar isso?"
+      },
+      "import": {
+        "clickOrDrag": "Clique ou arraste o arquivo para esta área para fazer upload"
+      }
     },
     "error": {
       "searchProject": "A sua pesquisa por {search} não encontrou resultados",
@@ -497,7 +549,8 @@
         "emailReqd": "O Email é obrigatório",
         "emailInvalid": "O Email deve ser válido",
         "passwdRequired": "A Palavra-passe é obrigatória",
-        "passwdLength": "A sua palavra-passe deve conter pelo menos 8 caracteres"
+        "passwdLength": "A sua palavra-passe deve conter pelo menos 8 caracteres",
+        "passwdMismatch": "As senhas não coincidem"
       }
     },
     "toast": {

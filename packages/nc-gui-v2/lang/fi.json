@@ -54,7 +54,20 @@
     "search": "Hae",
     "notification": "Ilmoitus",
     "reference": "Viite",
-    "function": "Toiminto"
+    "function": "Toiminto",
+    "confirm": "Vahvistaa",
+    "generate": "Tuottaa",
+    "copy": "Kopio",
+    "misc": "Sekalainen",
+    "lock": "Lukko",
+    "unlock": "Avata",
+    "credentials": "Valtakirjat",
+    "help": "auta",
+    "questions": "Kysymykset",
+    "reachOut": "Päästä tänne",
+    "betaNote": "Tämä ominaisuus on tällä hetkellä beetaversiossa.",
+    "moreInfo": "Lisätietoja löytyy täältä",
+    "logs": "Lokit"
   },
   "objects": {
     "project": "Hanke",
@@ -172,7 +185,15 @@
     "resetPassword": "Nollaa salasana",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Tuottaa merkintää",
+    "APIsAndSupport": "Sovellusliittymät ja tuki",
+    "helpCenter": "Avustuskeskus",
+    "swaggerDocumentation": "Swagger -dokumentaatio",
+    "quickImportFrom": "Nopea tuonti",
+    "quickImport": "Tuonti",
+    "advancedSettings": "Lisäasetukset",
+    "codeSnippet": "Koodinpätkä"
   },
   "labels": {
     "notifyVia": "Ilmoittaa kautta",
@@ -193,6 +214,7 @@
     "username": "Käyttäjätunnus",
     "password": "Salasana",
     "schemaName": "Schema name",
+    "database": "Tietokanta",
     "action": "Toiminta",
     "actions": "Toiminnot",
     "operation": "Operaatio",
@@ -238,7 +260,27 @@
     "childTable": "Lapsipöytä",
     "childColumn": "Lapsipylväs",
     "onUpdate": "Päivitys",
-    "onDelete": "Poista"
+    "onDelete": "Poista",
+    "account": "Tili",
+    "language": "Kieli",
+    "primaryColor": "Pääväri",
+    "accentColor": "Korostusväri",
+    "customTheme": "Mukautettu teema",
+    "requestDataSource": "Pyydä tarvitsemasi tietolähde?",
+    "apiKey": "API -avain",
+    "sharedBase": "Jaettu tukikohta",
+    "importData": "Tuontitiedot",
+    "importSecondaryViews": "Tuo toissijaiset näkymät",
+    "importRollupColumns": "Tuo rullaussarakkeet",
+    "importLookupColumns": "Tuo haku -sarakkeet",
+    "importAttachmentColumns": "Tuo liite -sarakkeet",
+    "importFormulaColumns": "Tuo kaava -sarakkeet",
+    "noData": "Ei dataa",
+    "goToDashboard": "Siirtyä kojelautaan",
+    "importing": "Tuonti",
+    "flattenNested": "Litisteinen sisäkkäinen",
+    "downloadAllowed": "Lataa sallittua",
+    "weAreHiring": "Palkkaamme!"
   },
   "activity": {
     "createProject": "Luo projekti",
@@ -265,7 +307,7 @@
     "translate": "Ohje Käännä",
     "account": {
       "authToken": "Kopioi Auth Token",
-      "swagger": "Swagger APIS DOC",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopioi projektitiedot",
       "themes": "Teemat"
     },
@@ -309,7 +351,7 @@
     "importExcel": "Tuonti excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Lataa CSV",
-    "downloadXLSX": "Lataa XLSX",
+    "downloadExcel": "Lataa XLSX",
     "uploadCSV": "Lataa CSV",
     "import": "Tuonti",
     "importMetadata": "Tuo metatieto",
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "Poista tietokanta ympäristöstä",
     "editConnJson": "Muokkaa yhteyttä JSON",
     "sponsorUs": "Sponsoroida meitä",
-    "sendEmail": "LÄHETTÄÄ SÄHKÖPOSTIA"
+    "sendEmail": "LÄHETTÄÄ SÄHKÖPOSTIA",
+    "addUserToProject": "Lisää käyttäjä projektiin",
+    "getApiSnippet": "Hanki API -katkelma",
+    "clearCell": "Selkeä solu"
   },
   "tooltip": {
     "saveChanges": "Tallenna muutokset",
@@ -391,7 +436,8 @@
     "searchModels": "Haku malleja",
     "noItemsFound": "kohteita ei löytynyt",
     "defaultValue": "Oletusarvo",
-    "filterByEmail": "Suodata sähköpostitse"
+    "filterByEmail": "Suodata sähköpostitse",
+    "filterQuery": "Suodatinkysely"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "tai vedä ja pudota tiedosto",
       "excelSupport": "Tuetut: .xls, .xlsx, .xlsm, .odit,.",
       "excelURL": "Anna Excel-tiedoston URL-osoite",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Anna CSV-tiedoston URL-osoite",
       "footMsg": "# rivien jäsentää tietotekniikkaa",
       "excelImport": "arkki (t) on saatavilla tuonti",
       "exportMetadata": "Haluatko viedä metatietoja metapöydistä?",
@@ -413,7 +459,7 @@
       "deleteProject": "Haluatko poistaa projektin?",
       "shareBasePrivate": "Luo julkisesti jakattava Readonly Base",
       "shareBasePublic": "Jokainen Internetissä tällä linkillä voi tarkastella",
-      "userInviteNoSMTP": "Näyttää siltä, ​​ettet ole määrittänyt sähköpostia!\nKopioi yllä kutsun linkki ja lähetä se",
+      "userInviteNoSMTP": "Näyttää siltä, ​​ettet ole määrittänyt sähköpostia! Kopioi yllä kutsun linkki ja lähetä se",
       "dragDropHide": "Vedä ja pudota kentät täällä piiloutumaan",
       "formInput": "Anna lomakkeen syöttömerkki",
       "formHelpText": "Lisää joitain ohjeita",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "Voit lisätä useita pilkuja (,) erotettuja sähköposteja",
       "enterTableName": "Anna taulukon nimi",
       "addDefaultColumns": "Lisää oletuspylväät",
-      "tableNameInDb": "Taulukon nimi tallennetaan tietokantaan"
+      "tableNameInDb": "Taulukon nimi tallennetaan tietokantaan",
+      "airtable": {
+        "credentials": "Mistä löytää tämä?"
+      },
+      "import": {
+        "clickOrDrag": "Napsauta tai vedä tiedostoa tälle alueelle ladataksesi"
+      },
+      "metaDataRecreated": "Pöytämetatiedot luotiin uudelleen onnistuneesti",
+      "invalidCredentials": "Virheelliset valtakirjat",
+      "downloadingMoreFiles": "Lataamalla lisää tiedostoja",
+      "copiedToClipboard": "Kopioitu leikepöydälle",
+      "requriedFieldsCantBeMoved": "Vaadittua kenttää ei voida siirtää",
+      "updateNotAllowedWithoutPK": "Päivitys ei sallita taulukosta, jolla ei ole ensisijaista avainta",
+      "autoIncFieldNotEditable": "Automaattinen lisäyskenttä ei ole muokattavissa",
+      "editingPKnotSupported": "Ensisijaisen avaimen muokkaaminen ei tueta",
+      "deletedCache": "Poistettu välimuisti onnistuneesti",
+      "cacheEmpty": "Välimuisti on tyhjä",
+      "exportedCache": "Vie välimuisti onnistuneesti",
+      "valueAlreadyInList": "Tämä arvo on jo luettelossa",
+      "noColumnsToUpdate": "Ei päivitettävissä olevia sarakkeita",
+      "tableDeleted": "Poistettu taulukko onnistuneesti"
     },
     "error": {
       "searchProject": "Hakusi {haku} ei löytänyt tuloksia",
@@ -497,7 +563,8 @@
         "emailReqd": "Sähköposti vaaditaan",
         "emailInvalid": "Sähköpostin on oltava voimassa",
         "passwdRequired": "salasana tarvitaan",
-        "passwdLength": "Salasanan on oltava vähintään 8 merkkiä"
+        "passwdLength": "Salasanan on oltava vähintään 8 merkkiä",
+        "passwdMismatch": "Salasanat eivät täsmää"
       }
     },
     "toast": {

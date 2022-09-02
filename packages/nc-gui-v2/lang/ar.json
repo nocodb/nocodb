@@ -54,7 +54,20 @@
     "search": "البحث",
     "notification": "إشعار",
     "reference": "مرجع",
-    "function": "وظيفة"
+    "function": "وظيفة",
+    "confirm": "يتأكد",
+    "generate": "يولد",
+    "copy": "ينسخ",
+    "misc": "متفرقات",
+    "lock": "قفل",
+    "unlock": "الغاء القفل",
+    "credentials": "أوراق اعتماد",
+    "help": "مساعدة",
+    "questions": "أسئلة",
+    "reachOut": "الوصول إلى هنا",
+    "betaNote": "هذه الميزة حاليا في بيتا.",
+    "moreInfo": "ويمكن الاطلاع على مزيد من المعلومات هنا",
+    "logs": "السجلات"
   },
   "objects": {
     "project": "مشروع",
@@ -172,7 +185,15 @@
     "resetPassword": "إعادة تعيين كلمة المرور",
     "teamAndSettings": "الفريق والإعدادات",
     "apiDocs": "مستندات API",
-    "importFromAirtable": "استيراد من Airtable"
+    "importFromAirtable": "استيراد من Airtable",
+    "generateToken": "توليد الرمز المميز",
+    "APIsAndSupport": "واجهات برمجة التطبيقات والدعم",
+    "helpCenter": "مركز المساعدة",
+    "swaggerDocumentation": "الوثائق Swagger",
+    "quickImportFrom": "استيراد سريع من",
+    "quickImport": "استيراد سريع",
+    "advancedSettings": "إعدادات متقدمة",
+    "codeSnippet": "رمز مقتطف"
   },
   "labels": {
     "notifyVia": "إعلام عبر",
@@ -193,6 +214,7 @@
     "username": "اسم المستخدم",
     "password": "كلمة المرور",
     "schemaName": "اسم المخطط",
+    "database": "قاعدة البيانات",
     "action": "إجراء",
     "actions": "إجراءات",
     "operation": "عملية",
@@ -213,7 +235,6 @@
     "sqlOutput": "إخراج SQL",
     "addOption": "إضافة خيار",
     "aggregateFunction": "وظيفة التجميع",
-    "database": "قاعدة البيانات",
     "dbCreateIfNotExists": "قاعدة البيانات: إنشاء إذا لم يكن موجودا",
     "clientKey": "مفتاح العميل",
     "clientCert": "شهادة العميل",
@@ -239,7 +260,27 @@
     "childTable": "جدول فرعي",
     "childColumn": "عمود فرعي",
     "onUpdate": "عند التحديث",
-    "onDelete": "عند الحذف"
+    "onDelete": "عند الحذف",
+    "account": "الحساب",
+    "language": "لغة",
+    "primaryColor": "لون أصلي",
+    "accentColor": "لون لهجة",
+    "customTheme": "موضوع مخصص",
+    "requestDataSource": "طلب مصدر بيانات تحتاجه؟",
+    "apiKey": "مفتاح API",
+    "sharedBase": "قاعدة مشتركة",
+    "importData": "بيانات الاستيراد",
+    "importSecondaryViews": "استيراد وجهات النظر الثانوية",
+    "importRollupColumns": "استيراد أعمدة Rollup",
+    "importLookupColumns": "استيراد أعمدة البحث",
+    "importAttachmentColumns": "استيراد أعمدة المرفق",
+    "importFormulaColumns": "استيراد أعمدة الصيغة",
+    "noData": "لايوجد بيانات",
+    "goToDashboard": "الذهاب إلى لوحة القيادة",
+    "importing": "الاستيراد",
+    "flattenNested": "تسطح متداخلة",
+    "downloadAllowed": "تحميل مسموح به",
+    "weAreHiring": "نحن نوظف!"
   },
   "activity": {
     "createProject": "إنشاء مشروع",
@@ -266,7 +307,7 @@
     "translate": "مساعدة ترجمة",
     "account": {
       "authToken": "نسخ Auth Token",
-      "swagger": "مستند Swagger APIs",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "نسخ معلومات المشروع",
       "themes": "مظاهر"
     },
@@ -310,6 +351,7 @@
     "importExcel": "استيراد Excel",
     "importCSV": "استيراد CSV",
     "downloadCSV": "تحميل كـ CSV",
+    "downloadExcel": "تحميل كـ XLSX",
     "uploadCSV": "رفع كـ CSV",
     "import": "استيراد",
     "importMetadata": "استيراد البيانات الوصفية",
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "إزالة قاعدة البيانات من البيئة",
     "editConnJson": "تحرير اتصال جسون",
     "sponsorUs": "ادعمنا",
-    "sendEmail": "ارسل بريد الكتروني"
+    "sendEmail": "ارسل بريد الكتروني",
+    "addUserToProject": "أضف المستخدم إلى المشروع",
+    "getApiSnippet": "الحصول على مقتطف API",
+    "clearCell": "خلية واضحة"
   },
   "tooltip": {
     "saveChanges": "حفظ التغييرات",
@@ -391,7 +436,8 @@
     "searchModels": "نماذج البحث",
     "noItemsFound": "لم يتم العثور على عناصر",
     "defaultValue": "القيمة الافتراضية",
-    "filterByEmail": "تصفية عن طريق البريد الإلكتروني"
+    "filterByEmail": "تصفية عن طريق البريد الإلكتروني",
+    "filterQuery": "مرشح الاستعلام"
   },
   "msg": {
     "info": {
@@ -483,7 +529,27 @@
       "addMultipleUsers": "يمكنك إضافة أكثر من فاصلة (,) لفصل الإيميلات",
       "enterTableName": "أدخل اسم الجدول",
       "addDefaultColumns": "إضافة الأعمدة الافتراضية",
-      "tableNameInDb": "اسم الجدول كما تم حفظه في قاعدة البيانات"
+      "tableNameInDb": "اسم الجدول كما تم حفظه في قاعدة البيانات",
+      "airtable": {
+        "credentials": "أين تجد هذا؟"
+      },
+      "import": {
+        "clickOrDrag": "انقر أو اسحب الملف إلى هذه المنطقة للتحميل"
+      },
+      "metaDataRecreated": "تم إعادة إنشاء بيانات بيانات التعريف بنجاح",
+      "invalidCredentials": "بيانات الاعتماد غير صالحة",
+      "downloadingMoreFiles": "تنزيل المزيد من الملفات",
+      "copiedToClipboard": "نسخ إلى الحافظة",
+      "requriedFieldsCantBeMoved": "لا يمكن نقل الحقل المطلوب",
+      "updateNotAllowedWithoutPK": "التحديث غير مسموح للجدول الذي لا يحتوي على مفتاح أساسي",
+      "autoIncFieldNotEditable": "مجال زيادة السيارات غير قابلة للتحرير",
+      "editingPKnotSupported": "تحرير المفتاح الأساسي غير مدعوم",
+      "deletedCache": "ذاكرة التخزين المؤقت المحذوفة بنجاح",
+      "cacheEmpty": "ذاكرة التخزين المؤقت فارغة",
+      "exportedCache": "تصدير ذاكرة التخزين المؤقت بنجاح",
+      "valueAlreadyInList": "هذه القيمة موجودة بالفعل في القائمة",
+      "noColumnsToUpdate": "لا توجد أعمدة للتحديث",
+      "tableDeleted": "تم حذف الجدول بنجاح"
     },
     "error": {
       "searchProject": "البحث عن {بحث} لم يتم العثور على نتائج",

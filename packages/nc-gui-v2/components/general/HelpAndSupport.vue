@@ -20,8 +20,8 @@ const openSwaggerLink = () => {
     @click="showDrawer = true"
   >
     <MdiCommentTextOutline class="mr-1" />
-    <!-- todo: i18n -->
-    <div>APIs & Support</div>
+    <!-- APIs & Support -->
+    <div>{{ $t('title.APIsAndSupport') }}</div>
   </div>
 
   <a-drawer
@@ -34,8 +34,8 @@ const openSwaggerLink = () => {
     :body-style="{ padding: '12px 24px 0 24px', background: '#fafafa' }"
   >
     <div class="flex flex-col w-full h-full p-4 pb-0">
-      <!-- todo: i18n -->
-      <a-typography-title :level="4" class="!mb-6 !text-gray-500">Help center</a-typography-title>
+      <!-- Help center -->
+      <a-typography-title :level="4" class="!mb-6 !text-gray-500">{{ $t('title.helpCenter') }}</a-typography-title>
 
       <GeneralSocialCard class="!w-full nc-social-card">
         <template #before>
@@ -48,8 +48,8 @@ const openSwaggerLink = () => {
             >
               <div class="ml-3 flex items-center text-sm">
                 <LogosSwagger />
-                <!--            todo:  i18n -->
-                <span class="ml-3">{{ project.title }} : Swagger Documentation</span>
+                <!--            Swagger Documentation -->
+                <span class="ml-3">{{ project.title }} : {{ $t('title.swaggerDocumentation') }}</span>
               </div>
             </nuxt-link>
           </a-list-item>

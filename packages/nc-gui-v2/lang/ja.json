@@ -54,7 +54,20 @@
     "search": "検索",
     "notification": "通知",
     "reference": "リファレンス",
-    "function": "関数"
+    "function": "関数",
+    "confirm": "確認",
+    "generate": "生成",
+    "copy": "コピー",
+    "misc": "その他",
+    "lock": "ロック",
+    "unlock": "ロックを解除します",
+    "credentials": "資格",
+    "help": "ヘルプ",
+    "questions": "質問",
+    "reachOut": "ここに到達してください",
+    "betaNote": "この機能は現在ベータ版です。",
+    "moreInfo": "詳細については、こちらをご覧ください",
+    "logs": "ログ"
   },
   "objects": {
     "project": "プロジェクト",
@@ -172,7 +185,15 @@
     "resetPassword": "パスワードをリセットする",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "トークンを生成します",
+    "APIsAndSupport": "APIとサポート",
+    "helpCenter": "ヘルプセンター",
+    "swaggerDocumentation": "スワッガードキュメント",
+    "quickImportFrom": "からのクイックインポート",
+    "quickImport": "クイックインポート",
+    "advancedSettings": "高度な設定",
+    "codeSnippet": "コードスニペット"
   },
   "labels": {
     "notifyVia": "次で通知する",
@@ -193,6 +214,7 @@
     "username": "ユーザー名",
     "password": "パスワード",
     "schemaName": "Schema name",
+    "database": "データベース",
     "action": "アクション",
     "actions": "アクション",
     "operation": "操作",
@@ -238,7 +260,27 @@
     "childTable": "子テーブル",
     "childColumn": "子カラム",
     "onUpdate": "更新中",
-    "onDelete": "削除中"
+    "onDelete": "削除中",
+    "account": "アカウント",
+    "language": "言語",
+    "primaryColor": "原色",
+    "accentColor": "アクセントの色",
+    "customTheme": "カスタムテーマ",
+    "requestDataSource": "必要なデータソースをリクエストしますか？",
+    "apiKey": "APIキー",
+    "sharedBase": "共有ベース",
+    "importData": "データをインポートします",
+    "importSecondaryViews": "二次ビューをインポートします",
+    "importRollupColumns": "ロールアップ列をインポートします",
+    "importLookupColumns": "ルックアップ列をインポートします",
+    "importAttachmentColumns": "添付列をインポートします",
+    "importFormulaColumns": "式列をインポートします",
+    "noData": "データなし",
+    "goToDashboard": "ダッシュボードに進め",
+    "importing": "インポート",
+    "flattenNested": "ネストされた平ら",
+    "downloadAllowed": "ダウンロード許可",
+    "weAreHiring": "私達は雇っています！"
   },
   "activity": {
     "createProject": "プロジェクトを作成",
@@ -265,7 +307,7 @@
     "translate": "翻訳に協力する",
     "account": {
       "authToken": "Auth Tokenをコピー",
-      "swagger": "Swagger API Doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "プロジェクト情報をコピー",
       "themes": "テーマ"
     },
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "環境からデータベースを削除",
     "editConnJson": "コネクション JSON を編集",
     "sponsorUs": "スポンサーになる",
-    "sendEmail": "メールを送信"
+    "sendEmail": "メールを送信",
+    "addUserToProject": "プロジェクトにユーザーを追加します",
+    "getApiSnippet": "APIスニペットを取得します",
+    "clearCell": "クリアセル"
   },
   "tooltip": {
     "saveChanges": "変更を保存",
@@ -391,7 +436,8 @@
     "searchModels": "モデルを検索",
     "noItemsFound": "項目は見つかりませんでした",
     "defaultValue": "デフォルト値",
-    "filterByEmail": "メールアドレスでフィルタ"
+    "filterByEmail": "メールアドレスでフィルタ",
+    "filterQuery": "フィルタークエリ"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "またはファイルをドラッグ & ドロップ",
       "excelSupport": "サポートしているファイル形式：.xls、.xlsx、.xlsm、.ods、.ots",
       "excelURL": "ExcelファイルのURLを入力してください",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "CSVファイルのURLを入力してください",
       "footMsg": "# データ型を推測するために解析する行数",
       "excelImport": "シートはインポート可能です",
       "exportMetadata": "メタテーブルからメタデータをエクスポートしますか？",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "カンマ（,）区切りで入力すると複数のEメールを追加できます",
       "enterTableName": "テーブル名を入力してください",
       "addDefaultColumns": "デフォルトの列を追加",
-      "tableNameInDb": "データベースに保存されているテーブル名"
+      "tableNameInDb": "データベースに保存されているテーブル名",
+      "airtable": {
+        "credentials": "これをどこで見つけるのですか？"
+      },
+      "import": {
+        "clickOrDrag": "[ファイル]をクリックまたはドラッグこのエリアにドラッグしてアップロードします"
+      },
+      "metaDataRecreated": "テーブルメタデータは正常に再現されました",
+      "invalidCredentials": "無効な資格情報",
+      "downloadingMoreFiles": "より多くのファイルをダウンロードします",
+      "copiedToClipboard": "クリップボードにコピーされました",
+      "requriedFieldsCantBeMoved": "必要なフィールドは移動できません",
+      "updateNotAllowedWithoutPK": "プライマリキーを持たないテーブルの更新が許可されていません",
+      "autoIncFieldNotEditable": "自動増分フィールドは編集できません",
+      "editingPKnotSupported": "サポートされていないプライマリキーの編集",
+      "deletedCache": "キャッシュを正常に削除しました",
+      "cacheEmpty": "キャッシュは空です",
+      "exportedCache": "キャッシュを正常にエクスポートしました",
+      "valueAlreadyInList": "この値はすでにリストに載っています",
+      "noColumnsToUpdate": "更新する列はありません",
+      "tableDeleted": "テーブルを正常に削除しました"
     },
     "error": {
       "searchProject": "{search} の検索結果が見つかりませんでした",
@@ -497,7 +563,8 @@
         "emailReqd": "メールアドレスが必要です",
         "emailInvalid": "有効なメールアドレスを入力してください",
         "passwdRequired": "パスワードが必要です",
-        "passwdLength": "パスワードは8文字以上にしてください"
+        "passwdLength": "パスワードは8文字以上にしてください",
+        "passwdMismatch": "パスワードが一致していません"
       }
     },
     "toast": {

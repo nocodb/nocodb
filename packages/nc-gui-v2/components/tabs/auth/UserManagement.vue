@@ -178,7 +178,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
     </a-modal>
     <div class="flex flex-row mb-4 mx-4 justify-between pb-2">
       <div class="flex w-1/3">
-        <a-input v-model:value="searchText" placeholder="Filter by email">
+        <a-input v-model:value="searchText" :placeholder="$t('placeholder.filterByEmail')">
           <template #prefix>
             <IcRoundSearch class="text-gray-400" />
           </template>
@@ -189,7 +189,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         <a-button size="middle" type="text" @click="loadUsers()">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiReload class="text-gray-500" />
-            <div class="text-gray-500">Reload</div>
+            <div class="text-gray-500">{{ $t('general.reload') }}</div>
           </div>
         </a-button>
         <a-button v-if="isUIAllowed('newUser')" size="middle" type="primary" ghost class="nc-invite-team" @click="onInvite">
@@ -223,8 +223,12 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </div>
 
         <div class="flex w-1/6 justify-center flex-wrap ml-4">
-          <div class="rounded-full px-2 py-1 nc-user-role" :style="{ backgroundColor: projectRoleTagColors[user.roles] }">
-            {{ user.roles }}
+          <div
+            v-if="user.roles"
+            class="rounded-full px-2 py-1 nc-user-role"
+            :style="{ backgroundColor: projectRoleTagColors[user.roles] }"
+          >
+            {{ $t(`objects.roleType.${user.roles}`) }}
           </div>
         </div>
         <div class="flex w-1/6 flex-wrap justify-end">
@@ -238,9 +242,10 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
               </template>
             </a-button>
           </a-tooltip>
+          <!--          Add user to project -->
           <a-tooltip v-if="!user.project_id" placement="bottom">
             <template #title>
-              <span>Add user to the project</span>
+              <span>{{ $t('activity.addUserToProject') }}</span>
             </template>
             <a-button type="text" class="!rounded-md nc-user-invite" @click="inviteUser(user)">
               <template #icon>
@@ -249,9 +254,10 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             </a-button>
           </a-tooltip>
 
+          <!--          Remove user from the project -->
           <a-tooltip v-else placement="bottom">
             <template #title>
-              <span>Remove user from the project</span>
+              <span>{{ $t('activity.deleteUser') }}</span>
             </template>
             <a-button type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
               <template #icon>
@@ -271,13 +277,14 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <template #overlay>
               <a-menu>
                 <a-menu-item>
-                  <div class="flex flex-row items-center py-1" @click="resendInvite(user)">
+                  <!--                  Resend invite Email -->
+                  <div class="flex flex-row items-center py-3" @click="resendInvite(user)">
                     <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
-                    <div class="text-xs pl-2">Resend invite email</div>
+                    <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
                   </div>
                 </a-menu-item>
                 <a-menu-item>
-                  <div class="flex flex-row items-center py-1" @click="copyInviteUrl(user)">
+                  <div class="flex flex-row items-center py-3" @click="copyInviteUrl(user)">
                     <MdiContentCopy class="flex h-[1rem] text-gray-500" />
                     <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
                   </div>

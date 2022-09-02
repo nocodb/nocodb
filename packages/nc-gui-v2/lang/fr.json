@@ -54,7 +54,20 @@
     "search": "Rechercher",
     "notification": "Notification",
     "reference": "Référence",
-    "function": "Fonction"
+    "function": "Fonction",
+    "confirm": "Confirmer",
+    "generate": "Générer",
+    "copy": "Copie",
+    "misc": "Divers",
+    "lock": "Bloquer",
+    "unlock": "Ouvrir",
+    "credentials": "Identifiants",
+    "help": "Aider",
+    "questions": "Des questions",
+    "reachOut": "Tendre la main ici",
+    "betaNote": "Cette fonctionnalité est actuellement en version bêta.",
+    "moreInfo": "Plus d'informations peuvent être trouvées ici",
+    "logs": "Bûches"
   },
   "objects": {
     "project": "Projet",
@@ -172,7 +185,15 @@
     "resetPassword": "Réinitialiser le mot de passe",
     "teamAndSettings": "Équipe & paramètres",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Importer depuis Airtable"
+    "importFromAirtable": "Importer depuis Airtable",
+    "generateToken": "Générer un jeton",
+    "APIsAndSupport": "API et support",
+    "helpCenter": "Centre d'aide",
+    "swaggerDocumentation": "Documentation de fanfaronnade",
+    "quickImportFrom": "Importation rapide de",
+    "quickImport": "Importation rapide",
+    "advancedSettings": "Réglages avancés",
+    "codeSnippet": "Extrait de code"
   },
   "labels": {
     "notifyVia": "Notifier via",
@@ -193,6 +214,7 @@
     "username": "Utilisateur",
     "password": "Mot de passe",
     "schemaName": "Nom du schéma",
+    "database": "Base de données",
     "action": "Action",
     "actions": "Actions",
     "operation": "Opération",
@@ -238,7 +260,27 @@
     "childTable": "Table enfant",
     "childColumn": "Colonne enfant",
     "onUpdate": "Mise à jour en cours",
-    "onDelete": "Suppression en cours"
+    "onDelete": "Suppression en cours",
+    "account": "Compte",
+    "language": "Langue",
+    "primaryColor": "Couleur primaire",
+    "accentColor": "Couleur accent",
+    "customTheme": "Thème personnalisé",
+    "requestDataSource": "Demander une source de données dont vous avez besoin?",
+    "apiKey": "clé API",
+    "sharedBase": "Base partagée",
+    "importData": "Importer des données",
+    "importSecondaryViews": "Importer des vues secondaires",
+    "importRollupColumns": "Importer des colonnes Rollup",
+    "importLookupColumns": "Importer des colonnes de recherche",
+    "importAttachmentColumns": "Colonnes d'importation",
+    "importFormulaColumns": "Importer des colonnes de formule",
+    "noData": "Pas de données",
+    "goToDashboard": "Aller au tableau de bord",
+    "importing": "Importation",
+    "flattenNested": "Aplatir imbriqué",
+    "downloadAllowed": "Téléchargement autorisé",
+    "weAreHiring": "Nous recrutons!"
   },
   "activity": {
     "createProject": "Créer un projet",
@@ -265,7 +307,7 @@
     "translate": "Aider à la traduction",
     "account": {
       "authToken": "Copier le jeton d'authentification",
-      "swagger": "Doc Swagger de l'API",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Copier les informations du projet",
       "themes": "Thèmes"
     },
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "Supprimer la base de données de l'environnement",
     "editConnJson": "Éditer le JSON de connexion",
     "sponsorUs": "Nous Parrainer",
-    "sendEmail": "ENVOYER UN EMAIL"
+    "sendEmail": "ENVOYER UN EMAIL",
+    "addUserToProject": "Ajouter un utilisateur au projet",
+    "getApiSnippet": "Obtenez un extrait de l'API",
+    "clearCell": "Cellule claire"
   },
   "tooltip": {
     "saveChanges": "Sauvegarder les modifications",
@@ -391,7 +436,8 @@
     "searchModels": "Chercher un modèle",
     "noItemsFound": "Aucun élément trouvé",
     "defaultValue": "Valeur par défaut",
-    "filterByEmail": "Filtrer par courriel"
+    "filterByEmail": "Filtrer par courriel",
+    "filterQuery": "Requête de filtre"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "ou glisser-déposer un fichier",
       "excelSupport": "Pris en charge: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Définir l'URL du fichier Excel",
-      "csvURL": "Définir l'URL du CSV",
+      "csvURL": "Définir l'URL du fichier CSV",
       "footMsg": "Nombre de lignes à analyser pour déduire le type de données",
       "excelImport": "Les tableaux sont disponibles pour l'import",
       "exportMetadata": "Voulez-vous exporter des métadonnées des méta-tables?",
@@ -413,7 +459,7 @@
       "deleteProject": "Voulez-vous supprimer le projet ?",
       "shareBasePrivate": "Générer une base partagée en lecture seule",
       "shareBasePublic": "Toute personne avec ce lien peut consulter",
-      "userInviteNoSMTP": "On dirait que vous n'avez pas encore configuré Mailer! \\ n Merci de copier-coller le lien d'invitation ci-dessous et l'envoyer à",
+      "userInviteNoSMTP": "On dirait que vous n'avez pas encore configuré Mailer! Merci de copier-coller le lien d'invitation ci-dessous et l'envoyer à",
       "dragDropHide": "Glisser et déposer des champs ici pour les masquer",
       "formInput": "Entrer le libellé du formulaire",
       "formHelpText": "Ajouter un texte d'aide",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "Vous pouvez ajouter plusieurs courriels séparés par des virgules (,)",
       "enterTableName": "Entrer le nom de la table",
       "addDefaultColumns": "Ajouter des colonnes par défaut",
-      "tableNameInDb": "Nom de la table tel qu'enregistré dans la base de données"
+      "tableNameInDb": "Nom de la table tel qu'enregistré dans la base de données",
+      "airtable": {
+        "credentials": "Où trouver cela?"
+      },
+      "import": {
+        "clickOrDrag": "Cliquez sur ou faites glisser le fichier vers cette zone pour télécharger"
+      },
+      "metaDataRecreated": "Les métadonnées de table ont recréé avec succès",
+      "invalidCredentials": "les informations d'identification invalides",
+      "downloadingMoreFiles": "Télécharger plus de fichiers",
+      "copiedToClipboard": "Copié dans le presse-papier",
+      "requriedFieldsCantBeMoved": "Le champ requis ne peut pas être déplacé",
+      "updateNotAllowedWithoutPK": "Mise à jour non autorisée pour la table qui n'a pas la clé primaire",
+      "autoIncFieldNotEditable": "Le champ d'incrément automatique n'est pas modifiable",
+      "editingPKnotSupported": "Édition de clé primaire non prise en charge",
+      "deletedCache": "Cache supprimée avec succès",
+      "cacheEmpty": "Le cache est vide",
+      "exportedCache": "Cache exportée avec succès",
+      "valueAlreadyInList": "Cette valeur est déjà dans la liste",
+      "noColumnsToUpdate": "Aucune colonne à mettre à jour",
+      "tableDeleted": "Table supprimée avec succès"
     },
     "error": {
       "searchProject": "Votre recherche pour {search} n'a renvoyé aucun résultat",
@@ -497,7 +563,8 @@
         "emailReqd": "Adresse mail requise",
         "emailInvalid": "L'adresse mail doit être valide",
         "passwdRequired": "Mot de passe requis",
-        "passwdLength": "Votre mot de passe doit contenir au moins 8 caractères"
+        "passwdLength": "Votre mot de passe doit contenir au moins 8 caractères",
+        "passwdMismatch": "Les mots de passe ne correspondent pas"
       }
     },
     "toast": {

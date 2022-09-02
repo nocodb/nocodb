@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import { Form, message } from 'ant-design-vue'
+import { Empty, Form, message } from 'ant-design-vue'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   MetaInj,
@@ -560,6 +560,9 @@ function handleEditableTnChange(idx: number) {
             :columns="srcDestMappingColumns"
             :pagination="false"
           >
+            <template #emptyText>
+              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+            </template>
             <template #headerCell="{ column }">
               <span v-if="column.key === 'source_column' || column.key === 'destination_column'">
                 {{ column.name }}
@@ -641,6 +644,9 @@ function handleEditableTnChange(idx: number) {
               :columns="tableColumns"
               :pagination="false"
             >
+              <template #emptyText>
+                <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+              </template>
               <template #headerCell="{ column }">
                 <template v-if="column.key === 'column_name'">
                   <span>

@@ -54,7 +54,20 @@
     "search": "검색",
     "notification": "알림",
     "reference": "참조",
-    "function": "기능"
+    "function": "기능",
+    "confirm": "확인하다",
+    "generate": "생성하다",
+    "copy": "복사",
+    "misc": "여러 가지 잡다한",
+    "lock": "자물쇠",
+    "unlock": "터놓다",
+    "credentials": "신임장",
+    "help": "돕다",
+    "questions": "질문",
+    "reachOut": "여기에 연락하십시오",
+    "betaNote": "이 기능은 현재 베타 버전입니다.",
+    "moreInfo": "자세한 내용은 여기를 참조하십시오",
+    "logs": "로그"
   },
   "objects": {
     "project": "프로젝트",
@@ -172,7 +185,15 @@
     "resetPassword": "비밀번호 재설정",
     "teamAndSettings": "팀 & 설정",
     "apiDocs": "API 문서",
-    "importFromAirtable": "Airtable에서 불러오기"
+    "importFromAirtable": "Airtable에서 불러오기",
+    "generateToken": "토큰을 생성하십시오",
+    "APIsAndSupport": "API 및 지원",
+    "helpCenter": "지원 센터",
+    "swaggerDocumentation": "Swagger 문서",
+    "quickImportFrom": "빠른 수입",
+    "quickImport": "빠른 수입",
+    "advancedSettings": "고급 설정",
+    "codeSnippet": "코드 스 니펫"
   },
   "labels": {
     "notifyVia": "공지",
@@ -193,6 +214,7 @@
     "username": "사용자 이름",
     "password": "비밀번호",
     "schemaName": "스키마 이름",
+    "database": "데이터 베이스",
     "action": "동작",
     "actions": "행위",
     "operation": "작업",
@@ -238,7 +260,27 @@
     "childTable": "자식 테이블",
     "childColumn": "자식 컬럼",
     "onUpdate": "업데이트 시 ",
-    "onDelete": "삭제 시"
+    "onDelete": "삭제 시",
+    "account": "계정",
+    "language": "언어",
+    "primaryColor": "원색",
+    "accentColor": "악센트 색상",
+    "customTheme": "맞춤 테마",
+    "requestDataSource": "필요한 데이터 소스를 요청 하시겠습니까?",
+    "apiKey": "API 키",
+    "sharedBase": "공유 기지",
+    "importData": "수입 데이터",
+    "importSecondaryViews": "보조 조회수를 가져옵니다",
+    "importRollupColumns": "롤업 열을 가져옵니다",
+    "importLookupColumns": "조회 열을 가져옵니다",
+    "importAttachmentColumns": "첨부 열을 가져옵니다",
+    "importFormulaColumns": "포뮬러 열을 가져옵니다",
+    "noData": "데이터가 없습니다",
+    "goToDashboard": "대시 보드로 이동",
+    "importing": "가져 오기",
+    "flattenNested": "평평하게 중첩",
+    "downloadAllowed": "다운로드 허용",
+    "weAreHiring": "직원 모집합니다!"
   },
   "activity": {
     "createProject": "프로젝트 생성",
@@ -265,7 +307,7 @@
     "translate": "도움말 번역",
     "account": {
       "authToken": "인증 토큰 복사",
-      "swagger": "Swagger API Doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "프로젝트 정보 복사",
       "themes": "테마"
     },
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "환경에서 데이터베이스 제거",
     "editConnJson": "연결 JSON 편집",
     "sponsorUs": "후원",
-    "sendEmail": "이메일 보내기"
+    "sendEmail": "이메일 보내기",
+    "addUserToProject": "프로젝트에 사용자를 추가하십시오",
+    "getApiSnippet": "API 스 니펫을 얻으십시오",
+    "clearCell": "클리어 셀"
   },
   "tooltip": {
     "saveChanges": "변경 사항 저장",
@@ -391,7 +436,8 @@
     "searchModels": "모델 검색",
     "noItemsFound": "제품을 찾지 못했습니다",
     "defaultValue": "기본값",
-    "filterByEmail": "전자 메일로 필터링"
+    "filterByEmail": "전자 메일로 필터링",
+    "filterQuery": "필터 쿼리"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "또는 끌어서 놓기 파일",
       "excelSupport": "지원 : .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Excel 파일 URL을 입력하십시오",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "CSV 파일 URL을 입력하십시오",
       "footMsg": "파싱 ​​할 행의 # DataType을 추론합니다",
       "excelImport": "시트는 수입 가능합니다",
       "exportMetadata": "메타 테이블에서 메타 데이터를 내보내려면 원하십니까?",
@@ -413,7 +459,7 @@
       "deleteProject": "프로젝트를 삭제 하시겠습니까?",
       "shareBasePrivate": "공개적으로 공유 할 수있는 ReadOnly Base를 생성합니다",
       "shareBasePublic": "이 링크가있는 인터넷의 모든 사람은 볼 수 있습니다",
-      "userInviteNoSMTP": "아직 메일러를 구성하지 않은 것처럼 보입니다! \\ n 초대장 링크를 복사하여 보냅니다.",
+      "userInviteNoSMTP": "아직 메일러를 구성하지 않은 것처럼 보입니다! 초대장 링크를 복사하여 보냅니다.",
       "dragDropHide": "여기에서 필드를 드래그 앤 드롭하십시오",
       "formInput": "양식 입력 레이블 입력",
       "formHelpText": "도움말 텍스트 추가",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "쉼표로 분리된 이메일을 여러 개 추가할 수 있습니다.",
       "enterTableName": "테이블 이름을 입력하십시오",
       "addDefaultColumns": "기본 열 추가",
-      "tableNameInDb": "테이블 이름은 데이터베이스에 저장된 것입니다"
+      "tableNameInDb": "테이블 이름은 데이터베이스에 저장된 것입니다",
+      "airtable": {
+        "credentials": "이것을 어디서 찾을 수 있습니까?"
+      },
+      "import": {
+        "clickOrDrag": "이 영역으로 파일을 클릭하거나 드래그하여 업로드하십시오"
+      },
+      "metaDataRecreated": "테이블 메타 데이터가 성공적으로 재현되었습니다",
+      "invalidCredentials": "잘못된 자격 증명",
+      "downloadingMoreFiles": "더 많은 파일 다운로드",
+      "copiedToClipboard": "클립 보드에 복사",
+      "requriedFieldsCantBeMoved": "필수 필드는 이동할 수 없습니다",
+      "updateNotAllowedWithoutPK": "기본 키가없는 테이블에 대한 업데이트가 허용되지 않습니다.",
+      "autoIncFieldNotEditable": "자동 증분 필드는 편집 할 수 없습니다",
+      "editingPKnotSupported": "기본 키 편집 지원되지 않습니다",
+      "deletedCache": "캐시를 성공적으로 삭제했습니다",
+      "cacheEmpty": "캐시가 비어 있습니다",
+      "exportedCache": "캐시를 성공적으로 내보냈습니다",
+      "valueAlreadyInList": "이 값은 이미 목록에 있습니다",
+      "noColumnsToUpdate": "업데이트 할 열이 없습니다",
+      "tableDeleted": "삭제 된 테이블이 성공적으로 삭제되었습니다"
     },
     "error": {
       "searchProject": "검색 결과가 없습니다",
@@ -497,7 +563,8 @@
         "emailReqd": "이메일이 필요합니다.",
         "emailInvalid": "이메일이 유효해야합니다.",
         "passwdRequired": "비밀번호가 필요합니다.",
-        "passwdLength": "비밀번호는 8자 이상이어야 합니다."
+        "passwdLength": "비밀번호는 8자 이상이어야 합니다.",
+        "passwdMismatch": "비밀번호가 일치하지 않습니다"
       }
     },
     "toast": {

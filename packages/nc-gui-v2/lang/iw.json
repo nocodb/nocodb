@@ -54,7 +54,20 @@
     "search": "חפש",
     "notification": "הוֹדָעָה",
     "reference": "התייחסות",
-    "function": "פוּנקצִיָה"
+    "function": "פוּנקצִיָה",
+    "confirm": "לְאַשֵׁר",
+    "generate": "לִיצוֹר",
+    "copy": "עותק",
+    "misc": "שונות",
+    "lock": "לנעול",
+    "unlock": "לבטל נעילה",
+    "credentials": "אישורים",
+    "help": "עֶזרָה",
+    "questions": "שאלות",
+    "reachOut": "הושיט יד כאן",
+    "betaNote": "תכונה זו נמצאת כרגע בבטא.",
+    "moreInfo": "מידע נוסף ניתן למצוא כאן",
+    "logs": "יומנים"
   },
   "objects": {
     "project": "פּרוֹיֶקט",
@@ -151,7 +164,7 @@
     "lockedView": "תצוגה נעולה",
     "personalView": "תצוגה אישית",
     "appStore": "חנות אפליקציות",
-    "teamAndAuth": "צוות & auth.",
+    "teamAndAuth": "Team & Auth",
     "rolesUserMgmt": "תפקידים & ניהול משתמשים",
     "userMgmt": "ניהול משתמשים",
     "apiTokenMgmt": "API Tokens Management",
@@ -162,17 +175,25 @@
     "exportImportMeta": "Export/ Import Metadata",
     "uiACL": "בקרת גישה לממשק UI.",
     "metaOperations": "פעולות מטא נתונים",
-    "audit": "בְּדִיקָה",
-    "auditLogs": "יומן ביקורת",
-    "sqlMigrations": "SQL הגבלות",
-    "dbCredentials": "אישורי מסד נתונים",
-    "advancedParameters": "SSL & פרמטרים מתקדמים",
-    "headCreateProject": "יצירת פרויקט נוקודב",
-    "headLogin": "התחבר | נוקודב",
-    "resetPassword": "לאפס את הסיסמה שלך",
+    "audit": "Audit",
+    "auditLogs": "Audit Log",
+    "sqlMigrations": "SQL Migrations",
+    "dbCredentials": "Database Credentials",
+    "advancedParameters": "SSL & Advanced parameters",
+    "headCreateProject": "יצירת פרויקט",
+    "headLogin": "התחבר",
+    "resetPassword": "איפוס סיסמא",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "ליצור אסימון",
+    "APIsAndSupport": "ממשקי API ותמיכה",
+    "helpCenter": "מרכז עזרה",
+    "swaggerDocumentation": "תיעוד SWAGGER",
+    "quickImportFrom": "יבוא מהיר מ",
+    "quickImport": "יבוא מהיר",
+    "advancedSettings": "הגדרות מתקדמות",
+    "codeSnippet": "קטע קוד"
   },
   "labels": {
     "notifyVia": "תודיע דרך",
@@ -193,6 +214,7 @@
     "username": "שם משתמש",
     "password": "סיסמה",
     "schemaName": "Schema name",
+    "database": "מאגר מידע",
     "action": "פעולה",
     "actions": "פעולות",
     "operation": "מבצע",
@@ -238,7 +260,27 @@
     "childTable": "טבלת ילדים",
     "childColumn": "טור ילדים",
     "onUpdate": "על עדכון",
-    "onDelete": "על מחיקה"
+    "onDelete": "על מחיקה",
+    "account": "חֶשְׁבּוֹן",
+    "language": "שפה",
+    "primaryColor": "צבע יסוד",
+    "accentColor": "צבע הדגשה",
+    "customTheme": "נושא מותאם אישית",
+    "requestDataSource": "בקש מקור נתונים שאתה צריך?",
+    "apiKey": "מפתח API",
+    "sharedBase": "בסיס משותף",
+    "importData": "יבוא נתונים",
+    "importSecondaryViews": "יבוא תצוגות משניות",
+    "importRollupColumns": "יבוא עמודות אולץ",
+    "importLookupColumns": "יבוא עמודות בדיקה",
+    "importAttachmentColumns": "יבוא עמודות קובץ מצורף",
+    "importFormulaColumns": "ייבא עמודות נוסחה",
+    "noData": "אין מידע",
+    "goToDashboard": "עבור אל לוח המחוונים",
+    "importing": "יבוא",
+    "flattenNested": "משטחים מקוננים",
+    "downloadAllowed": "הורד מותר",
+    "weAreHiring": "אנחנו מחפשים עובדים!"
   },
   "activity": {
     "createProject": "צור פרויקט",
@@ -265,7 +307,7 @@
     "translate": "עזור לתרגם",
     "account": {
       "authToken": "העתק טוקן Auth",
-      "swagger": "Swagger APIs Doc",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "העתק את פרטי הפרויקט",
       "themes": "ערכות נושא"
     },
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "הסר מסד נתונים מסביבה",
     "editConnJson": "ערוך חיבור JSON.",
     "sponsorUs": "חסות ארה\"ב",
-    "sendEmail": "שלח אימייל"
+    "sendEmail": "שלח אימייל",
+    "addUserToProject": "הוסף משתמש לפרויקט",
+    "getApiSnippet": "קבל קטע API",
+    "clearCell": "תא ברור"
   },
   "tooltip": {
     "saveChanges": "שמור שינויים",
@@ -391,7 +436,8 @@
     "searchModels": "מודלים לחיפוש",
     "noItemsFound": "לא נמצאו פריטים",
     "defaultValue": "ערך ברירת מחדל",
-    "filterByEmail": "מסנן בדואר אלקטרוני"
+    "filterByEmail": "מסנן בדואר אלקטרוני",
+    "filterQuery": "שאילתת סנן"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "או גרור ושחרר קובץ",
       "excelSupport": "נתמך: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "הזן את כתובת האתר של קובץ Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "הזן את כתובת האתר של קובץ CSV",
       "footMsg": "# של שורות לנתח כדי להסיק datatype",
       "excelImport": "גיליון (ים) זמינים לייבוא",
       "exportMetadata": "האם אתה רוצה לייצא מטא נתונים מ מטא שולחנות?",
@@ -413,7 +459,7 @@
       "deleteProject": "האם ברצונך למחוק את הפרויקט?",
       "shareBasePrivate": "ליצור בסיס שיתוף פעולה לציבור",
       "shareBasePublic": "כל אחד באינטרנט עם קישור זה יכול להציג",
-      "userInviteNoSMTP": "נראה כאילו לא הגדרת מיילר עדיין!\nאנא העתק מעל הזמנת קישור ולשלוח אותו",
+      "userInviteNoSMTP": "נראה כאילו לא הגדרת מיילר עדיין! \\ N אנא העתק מעל הזמנת קישור ולשלוח אותו",
       "dragDropHide": "גרור ושחרר שדות כאן כדי להסתיר",
       "formInput": "הזן תווית קלט טופס",
       "formHelpText": "הוסף טקסט עזרה",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "ניתן להוסיף אימיילים מופרדים מרובים (,)",
       "enterTableName": "הזן שם טבלה",
       "addDefaultColumns": "הוסף עמודות ברירת מחדל.",
-      "tableNameInDb": "שם לוח שנשמר במסד הנתונים"
+      "tableNameInDb": "שם לוח שנשמר במסד הנתונים",
+      "airtable": {
+        "credentials": "איפה למצוא את זה?"
+      },
+      "import": {
+        "clickOrDrag": "לחץ או גרור קובץ לאזור זה כדי להעלות"
+      },
+      "metaDataRecreated": "מטא נתונים של טבלה משוחזרים בהצלחה",
+      "invalidCredentials": "אישורים לא חוקיים",
+      "downloadingMoreFiles": "הורדת קבצים נוספים",
+      "copiedToClipboard": "הועתק ללוח",
+      "requriedFieldsCantBeMoved": "לא ניתן להזיז שדה חובה",
+      "updateNotAllowedWithoutPK": "עדכון אסור לטבלה שאין לה מפתח ראשי",
+      "autoIncFieldNotEditable": "שדה תוספת אוטומטי אינו ניתן לעריכה",
+      "editingPKnotSupported": "עריכת מפתח ראשי לא נתמך",
+      "deletedCache": "מטמון שנמחק בהצלחה",
+      "cacheEmpty": "מטמון ריק",
+      "exportedCache": "מטמון מיוצא בהצלחה",
+      "valueAlreadyInList": "ערך זה כבר נמצא ברשימה",
+      "noColumnsToUpdate": "אין עמודות לעדכון",
+      "tableDeleted": "שולחן נמחק בהצלחה"
     },
     "error": {
       "searchProject": "החיפוש שלך {חיפוש} לא נמצא תוצאות",
@@ -497,7 +563,8 @@
         "emailReqd": "דואר אלקטרוני נדרש",
         "emailInvalid": "דואר אלקטרוני חייב להיות תקף",
         "passwdRequired": "דרושה סיסמא",
-        "passwdLength": "הסיסמה שלך חייבת להיות atleast 8 תווים"
+        "passwdLength": "הסיסמה שלך חייבת להיות atleast 8 תווים",
+        "passwdMismatch": "סיסמאות לא תואמות"
       }
     },
     "toast": {

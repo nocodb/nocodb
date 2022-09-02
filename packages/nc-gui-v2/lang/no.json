@@ -54,7 +54,20 @@
     "search": "Søk",
     "notification": "Melding",
     "reference": "Referanse",
-    "function": "Funksjon"
+    "function": "Funksjon",
+    "confirm": "Bekrefte",
+    "generate": "generere",
+    "copy": "Kopiere",
+    "misc": "Diverse",
+    "lock": "Låse",
+    "unlock": "Låse opp",
+    "credentials": "Legitimasjon",
+    "help": "Hjelp",
+    "questions": "Spørsmål",
+    "reachOut": "Nå ut hit",
+    "betaNote": "Denne funksjonen er for tiden i beta.",
+    "moreInfo": "Mer informasjon finner du her",
+    "logs": "Tømmerstokker"
   },
   "objects": {
     "project": "Prosjekt",
@@ -172,7 +185,15 @@
     "resetPassword": "Tilbakestill passordet ditt",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Generere token",
+    "APIsAndSupport": "APIer og støtte",
+    "helpCenter": "Hjelpesenter",
+    "swaggerDocumentation": "Swagger -dokumentasjon",
+    "quickImportFrom": "Rask import fra",
+    "quickImport": "Rask import",
+    "advancedSettings": "Avanserte innstillinger",
+    "codeSnippet": "Kodeutdrag"
   },
   "labels": {
     "notifyVia": "Varsle Via.",
@@ -193,6 +214,7 @@
     "username": "Brukernavn",
     "password": "Passord",
     "schemaName": "Schema name",
+    "database": "Database",
     "action": "Handling",
     "actions": "Handlinger",
     "operation": "Operasjon",
@@ -238,7 +260,27 @@
     "childTable": "Barnbord",
     "childColumn": "Barn kolonne",
     "onUpdate": "På oppdatering",
-    "onDelete": "På slette"
+    "onDelete": "På slette",
+    "account": "Regnskap",
+    "language": "Språk",
+    "primaryColor": "Primærfarge",
+    "accentColor": "Aksentfarge",
+    "customTheme": "Tilpasset tema",
+    "requestDataSource": "Be om en datakilde du trenger?",
+    "apiKey": "API -nøkkel",
+    "sharedBase": "Delt base",
+    "importData": "Importere data",
+    "importSecondaryViews": "Importer sekundære visninger",
+    "importRollupColumns": "Importer rollup -kolonner",
+    "importLookupColumns": "Importer oppslagskolonner",
+    "importAttachmentColumns": "Importer vedleggskolonner",
+    "importFormulaColumns": "Importer formel kolonner",
+    "noData": "Ingen data",
+    "goToDashboard": "Gå til Dashboard",
+    "importing": "Import",
+    "flattenNested": "Flat nestet",
+    "downloadAllowed": "Last ned tillatt",
+    "weAreHiring": "Vi ansetter!"
   },
   "activity": {
     "createProject": "Opprett prosjekt",
@@ -265,7 +307,7 @@
     "translate": "Hjelp oversette",
     "account": {
       "authToken": "Kopier Auth Token",
-      "swagger": "Swagger Apis Doc.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopier prosjektinfo",
       "themes": "Temaer"
     },
@@ -309,7 +351,7 @@
     "importExcel": "Importer Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Last ned som CSV.",
-    "downloadExcel": "Last ned som XLSX.",
+    "downloadExcel": "Last ned som XLSX",
     "uploadCSV": "Last opp CSV.",
     "import": "Importer",
     "importMetadata": "Importer metadata",
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "Fjern databasen fra miljøet",
     "editConnJson": "Rediger tilkoblings-JSON",
     "sponsorUs": "Sponsor oss",
-    "sendEmail": "SEND E-POST"
+    "sendEmail": "SEND E-POST",
+    "addUserToProject": "Legg til brukeren i prosjektet",
+    "getApiSnippet": "Få API -utdrag",
+    "clearCell": "Klar celle"
   },
   "tooltip": {
     "saveChanges": "Lagre endringer",
@@ -391,7 +436,8 @@
     "searchModels": "Søk modeller",
     "noItemsFound": "ingen objekter funnet",
     "defaultValue": "Standardverdi",
-    "filterByEmail": "Filtrer via e-post"
+    "filterByEmail": "Filtrer via e-post",
+    "filterQuery": "Filterforespørsel"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "eller dra og slipp filen",
       "excelSupport": "Støttet: .xls, .xlsx, .xlsm ,.ods ,.ots",
       "excelURL": "Skriv inn Excel File URL",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Skriv inn CSV File URL",
       "footMsg": "# av rader for å analysere å utlede datatype",
       "excelImport": "Ark (er) er tilgjengelige for import",
       "exportMetadata": "Ønsker du å eksportere metadata fra Meta-bord?",
@@ -413,7 +459,7 @@
       "deleteProject": "Ønsker du å slette prosjektet?",
       "shareBasePrivate": "Generer offentlig delbar readonly base",
       "shareBasePublic": "Alle på Internett med denne lenken kan se",
-      "userInviteNoSMTP": "Ser ut som om du ikke har konfigurert mailer ennå!\nVennligst kopier over Inviter Link og send den til",
+      "userInviteNoSMTP": "Ser ut som om du ikke har konfigurert mailer ennå! Vennligst kopier over Inviter Link og send den til",
       "dragDropHide": "Dra og slipp felt her for å skjule",
       "formInput": "Skriv inn skjema inngangsetikett",
       "formHelpText": "Legg til litt hjelpetekst",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "Du kan legge til flere komma (,) separerte e-poster",
       "enterTableName": "Skriv inn tabellnavn",
       "addDefaultColumns": "Legg til standard kolonner",
-      "tableNameInDb": "Tabellnavn som lagret i databasen"
+      "tableNameInDb": "Tabellnavn som lagret i databasen",
+      "airtable": {
+        "credentials": "Hvor finner jeg dette?"
+      },
+      "import": {
+        "clickOrDrag": "Klikk eller dra fil til dette området for å laste opp"
+      },
+      "metaDataRecreated": "Tabellmetadata gjenskapt vellykket",
+      "invalidCredentials": "Ugyldige legitimasjon",
+      "downloadingMoreFiles": "Last ned flere filer",
+      "copiedToClipboard": "Kopiert til utklippstavle",
+      "requriedFieldsCantBeMoved": "Nødvendig felt kan ikke flyttes",
+      "updateNotAllowedWithoutPK": "Oppdatering ikke tillatt for tabell som ikke har primærnøkkel",
+      "autoIncFieldNotEditable": "Auto Increment -feltet er ikke redigerbart",
+      "editingPKnotSupported": "Redigering av primærnøkkel støttes ikke",
+      "deletedCache": "Slettet hurtigbuffer",
+      "cacheEmpty": "Cache er tom",
+      "exportedCache": "Eksportert cache med hell",
+      "valueAlreadyInList": "Denne verdien er allerede på listen",
+      "noColumnsToUpdate": "Ingen kolonner å oppdatere",
+      "tableDeleted": "Slettet tabell med hell"
     },
     "error": {
       "searchProject": "Søket ditt etter {søk} fant ingen resultater",
@@ -497,7 +563,8 @@
         "emailReqd": "E-post er nødvendig",
         "emailInvalid": "E-post må være gyldig",
         "passwdRequired": "Passord er påkrevd",
-        "passwdLength": "Ditt passord må være minst 8 tegn"
+        "passwdLength": "Ditt passord må være minst 8 tegn",
+        "passwdMismatch": "passordene er ikke like"
       }
     },
     "toast": {

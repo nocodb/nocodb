@@ -233,17 +233,19 @@ onBeforeUnmount(() => {
 <template>
   <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" class="p-2" @keydown.esc="dialogShow = false">
     <div class="px-5">
-      <div class="mt-5 prose-xl font-weight-bold">QUICK IMPORT - AIRTABLE</div>
+      <!--      Quick Import -->
+      <div class="mt-5 prose-xl font-weight-bold">{{ $t('title.quickImport') }} - AIRTABLE</div>
 
       <div v-if="step === 1">
         <div class="mb-4">
-          <span class="mr-3 pt-2 text-gray-500 text-xs">Credentials</span>
-
+          <!--          Credentials -->
+          <span class="mr-3 pt-2 text-gray-500 text-xs">{{ $t('general.credentials') }}</span>
+          <!--          Where to find this? -->
           <a
             href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials"
             class="prose-sm underline text-grey text-xs"
             target="_blank"
-            >Where to find this?
+            >{{ $t('msg.info.airtable.credentials') }}
           </a>
         </div>
 
@@ -252,7 +254,7 @@ onBeforeUnmount(() => {
             <a-input-password
               v-model:value="syncSource.details.apiKey"
               class="nc-input-api-key"
-              placeholder="Api Key"
+              :placeholder="$t('labels.apiKey')"
               size="large"
             />
           </a-form-item>
@@ -261,59 +263,83 @@ onBeforeUnmount(() => {
             <a-input
               v-model:value="syncSource.details.syncSourceUrlOrId"
               class="nc-input-shared-base"
-              placeholder="Shared Base ID / URL"
+              :placeholder="`${$t('labels.sharedBase')} ID / URL`"
               size="large"
             />
           </a-form-item>
 
-          <div class="prose-lg self-center my-4 text-gray-500">Advanced Settings</div>
+          <!--          Advanced Settings -->
+          <div class="prose-lg self-center my-4 text-gray-500">{{ $t('title.advancedSettings') }}</div>
 
           <a-divider class="mt-2 mb-5" />
 
+          <!--          Import Data -->
           <div class="mt-0 my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncData">Import Data</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncData">{{ $t('labels.importData') }}</a-checkbox>
           </div>
 
+          <!--          Import Secondary Views -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncViews">Import Secondary Views</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncViews">{{
+              $t('labels.importSecondaryViews')
+            }}</a-checkbox>
           </div>
 
+          <!--          Import Rollup Columns -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncRollup">Import Rollup Columns</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncRollup">{{
+              $t('labels.importRollupColumns')
+            }}</a-checkbox>
           </div>
 
+          <!--          Import Lookup Columns -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncLookup">Import Lookup Columns</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncLookup">{{
+              $t('labels.importLookupColumns')
+            }}</a-checkbox>
           </div>
 
+          <!--          Import Attachment Columns -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">Import Attachment Columns</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">{{
+              $t('labels.importAttachmentColumns')
+            }}</a-checkbox>
           </div>
 
+          <!--          Import Formula Columns -->
           <a-tooltip placement="top">
             <template #title>
               <span>Coming Soon!</span>
             </template>
-            <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>Import Formula Columns</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>{{
+              $t('labels.importFormulaColumns')
+            }}</a-checkbox>
           </a-tooltip>
         </a-form>
 
         <a-divider />
 
+        <!--        Questions / Help - Reach out here -->
         <div>
-          <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">Questions / Help - Reach out here</a>
+          <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank"
+            >{{ $t('general.questions') }} / {{ $t('general.help') }} - {{ $t('general.reachOut') }}</a
+          >
 
           <br />
-
+          <!--          This feature is currently in beta and more information can be found here -->
           <div>
-            This feature is currently in beta and more information can be found
-            <a class="prose-sm" href="https://github.com/nocodb/nocodb/discussions/2122" target="_blank">here</a>.
+            {{ $t('general.betaNote') }}
+            <a class="prose-sm" href="https://github.com/nocodb/nocodb/discussions/2122" target="_blank">{{
+              $t('general.moreInfo')
+            }}</a
+            >.
           </div>
         </div>
       </div>
 
       <div v-if="step === 2">
-        <div class="mb-4 prose-xl font-bold">Logs</div>
+        <!--        Logs -->
+        <div class="mb-4 prose-xl font-bold">{{ $t('general.logs') }}</div>
 
         <a-card ref="logRef" :body-style="{ backgroundColor: '#000000', height: '400px', overflow: 'auto' }">
           <div v-for="({ msg, status }, i) in progress" :key="i">
@@ -338,14 +364,16 @@ onBeforeUnmount(() => {
             "
             class="flex items-center"
           >
+            <!--            Importing -->
             <MdiLoading class="text-green-500 animate-spin" />
-            <span class="text-green-500 ml-2"> Importing</span>
+            <span class="text-green-500 ml-2"> {{ $t('labels.importing') }}</span>
           </div>
         </a-card>
 
+        <!--        Go to Dashboard -->
         <div class="flex justify-center items-center">
           <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">
-            Go to Dashboard
+            {{ $t('labels.goToDashboard') }}
           </a-button>
         </div>
       </div>
@@ -354,7 +382,7 @@ onBeforeUnmount(() => {
     <template #footer>
       <div v-if="step === 1">
         <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-
+        <!--        Import -->
         <a-button
           key="submit"
           v-t="['c:sync-airtable:save-and-sync']"
@@ -363,7 +391,7 @@ onBeforeUnmount(() => {
           :disabled="disableImportButton"
           @click="saveAndSync"
         >
-          Import
+          {{ $t('activity.import') }}
         </a-button>
       </div>
     </template>

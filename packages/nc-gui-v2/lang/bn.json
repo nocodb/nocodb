@@ -54,7 +54,20 @@
     "search": "Search",
     "notification": "বিজ্ঞপ্তি",
     "reference": "প্রসঙ্গ",
-    "function": "নির্দিষ্ট কর্ম"
+    "function": "নির্দিষ্ট কর্ম",
+    "confirm": "নিশ্চিত করুন",
+    "generate": "উত্পন্ন",
+    "copy": "অনুলিপি",
+    "misc": "বিবিধ",
+    "lock": "লক",
+    "unlock": "আনলক করুন",
+    "credentials": "শংসাপত্র",
+    "help": "সাহায্য",
+    "questions": "প্রশ্ন",
+    "reachOut": "এখানে পৌঁছান",
+    "betaNote": "এই বৈশিষ্ট্যটি বর্তমানে বিটাতে রয়েছে।",
+    "moreInfo": "আরো তথ্য পাওয়া যাবে এখানে",
+    "logs": "লগ"
   },
   "objects": {
     "project": "প্রকল্প",
@@ -172,7 +185,15 @@
     "resetPassword": "আপনার পাসওয়ার্ড পুনরায় সেট করুন",
     "teamAndSettings": "দল এবং সেটিংস",
     "apiDocs": "API Docs",
-    "importFromAirtable": "এয়ারটেবল থেকে আমদানি করুন"
+    "importFromAirtable": "এয়ারটেবল থেকে আমদানি করুন",
+    "generateToken": "টোকেন উত্পন্ন করুন",
+    "APIsAndSupport": "এপিআই এবং সমর্থন",
+    "helpCenter": "সাহায্য কেন্দ্র",
+    "swaggerDocumentation": "সোয়াগার ডকুমেন্টেশন",
+    "quickImportFrom": "থেকে দ্রুত আমদানি",
+    "quickImport": "দ্রুত আমদানি",
+    "advancedSettings": "উন্নত সেটিংস",
+    "codeSnippet": "টুকিটাকি সংকেতলিপি"
   },
   "labels": {
     "notifyVia": "এর মাধ্যমে অবহিত করুন",
@@ -193,6 +214,7 @@
     "username": "ব্যবহারকারীর নাম",
     "password": "পাসওয়ার্ড",
     "schemaName": "স্কিমার নাম",
+    "database": "তথ্যশালা",
     "action": "কর্ম",
     "actions": "ক্রিয়া",
     "operation": "অপারেশন",
@@ -213,7 +235,6 @@
     "sqlOutput": "এসকিউএল আউটপুট",
     "addOption": "বিকল্প যোগ করুন",
     "aggregateFunction": "সামগ্রিক ফাংশন",
-    "database": "তথ্যশালা",
     "dbCreateIfNotExists": "ডাটাবেস: উপস্থিত না থাকলে তৈরি করুন",
     "clientKey": "ক্লায়েন্ট কী",
     "clientCert": "ক্লায়েন্ট সার্ট",
@@ -239,7 +260,27 @@
     "childTable": "Child table",
     "childColumn": "Child column",
     "onUpdate": "আপডেটে",
-    "onDelete": "ডিলিটএ"
+    "onDelete": "ডিলিটএ",
+    "account": "অ্যাকাউন্ট",
+    "language": "ভাষা",
+    "primaryColor": "মৌলিক রঙ",
+    "accentColor": "সুরের ধাপের রঙ",
+    "customTheme": "কাস্টম থিম",
+    "requestDataSource": "আপনার প্রয়োজনীয় ডেটা উত্সের অনুরোধ?",
+    "apiKey": "এপিআই কী",
+    "sharedBase": "ভাগ করা বেস",
+    "importData": "তথ্য আমদানি",
+    "importSecondaryViews": "মাধ্যমিক দর্শন আমদানি করুন",
+    "importRollupColumns": "রোলআপ কলামগুলি আমদানি করুন",
+    "importLookupColumns": "আমদানি চেহারা কলাম",
+    "importAttachmentColumns": "সংযুক্তি কলামগুলি আমদানি করুন",
+    "importFormulaColumns": "ফর্মুলা কলামগুলি আমদানি করুন",
+    "noData": "কোনও ডেটা নেই",
+    "goToDashboard": "ড্যাশবোর্ড এ যান",
+    "importing": "আমদানি",
+    "flattenNested": "ফ্ল্যাটেন বাসা",
+    "downloadAllowed": "ডাউনলোড অনুমোদিত",
+    "weAreHiring": "আমরা ভাড়া নিচ্ছি!"
   },
   "activity": {
     "createProject": "প্রকল্প তৈরি করুন",
@@ -266,7 +307,7 @@
     "translate": "অনুবাদ করতে সহায়তা করুন",
     "account": {
       "authToken": "অনুলিপি আথ টোকেন",
-      "swagger": "সোয়াগার এপিস ডক",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "প্রকল্পের তথ্য অনুলিপি করুন",
       "themes": "থিম"
     },
@@ -310,6 +351,7 @@
     "importExcel": "এক্সেল আমদানি করুন",
     "importCSV": "Import CSV",
     "downloadCSV": "সিএসভি হিসাবে ডাউনলোড করুন",
+    "downloadExcel": "সিএসভি হিসাবে ডাউনলোড করুন",
     "uploadCSV": "সিএসভি আপলোড করুন",
     "import": "আমদানি",
     "importMetadata": "আমদানি মেটাডেটা",
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "পরিবেশ থেকে ডাটাবেস সরান",
     "editConnJson": "সংযোগ json সম্পাদনা",
     "sponsorUs": "আমাদের স্পনসর",
-    "sendEmail": "ইমেইল পাঠান"
+    "sendEmail": "ইমেইল পাঠান",
+    "addUserToProject": "প্রকল্পে ব্যবহারকারী যুক্ত করুন",
+    "getApiSnippet": "এপিআই স্নিপেট পান",
+    "clearCell": "ক্লিয়ার সেল"
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -391,7 +436,8 @@
     "searchModels": "অনুসন্ধান মডেল",
     "noItemsFound": "কোনও আইটেম পাওয়া যায় নি",
     "defaultValue": "ডিফল্ট মান",
-    "filterByEmail": "ই-মেইল দ্বারা ফিল্টার"
+    "filterByEmail": "ই-মেইল দ্বারা ফিল্টার",
+    "filterQuery": "ফিল্টার ক্যোয়ারী"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "অথবা ফাইল টেনে আনুন",
       "excelSupport": "সমর্থিত: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "এক্সেল ফাইল ইউআরএল লিখুন",
-      "csvURL": "CSV ফাইলের URL লিখুন",
+      "csvURL": "এক্সেল ফাইল ইউআরএল লিখুন",
       "footMsg": "# সারিগুলির জন্য ডেটাটাইপটি অনুমান করতে পার্স",
       "excelImport": "শীট (গুলি) আমদানির জন্য উপলব্ধ",
       "exportMetadata": "আপনি কি মেটা টেবিলগুলি থেকে মেটাডেটা রফতানি করতে চান?",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "आप एकाधिक COMMA (,) द्वारा अलग ईमेल जोड़ सकते है",
       "enterTableName": "টেবিলের নাম লিখুন",
       "addDefaultColumns": "ডিফল্ট কলাম যোগ করুন",
-      "tableNameInDb": "ডাটাবেসে সংরক্ষিত টেবিলের নাম"
+      "tableNameInDb": "ডাটাবেসে সংরক্ষিত টেবিলের নাম",
+      "airtable": {
+        "credentials": "এই কোথায় পাবেন?"
+      },
+      "import": {
+        "clickOrDrag": "আপলোড করতে এই অঞ্চলে ফাইল ক্লিক করুন বা টেনে আনুন"
+      },
+      "metaDataRecreated": "টেবিল মেটাডেটা সফলভাবে পুনরায় তৈরি করা হয়েছে",
+      "invalidCredentials": "অবৈধ প্রশংসাপত্র",
+      "downloadingMoreFiles": "আরও ফাইল ডাউনলোড করা হচ্ছে",
+      "copiedToClipboard": "ক্লিপবোর্ডে অনুলিপি করা হয়েছে",
+      "requriedFieldsCantBeMoved": "প্রয়োজনীয় ক্ষেত্র সরানো যাবে না",
+      "updateNotAllowedWithoutPK": "টেবিলের জন্য আপডেট অনুমোদিত নয় যা প্রাথমিক কী নেই",
+      "autoIncFieldNotEditable": "অটো ইনক্রিমেন্ট ক্ষেত্রটি সম্পাদনাযোগ্য নয়",
+      "editingPKnotSupported": "সম্পাদনা প্রাথমিক কী সমর্থিত নয়",
+      "deletedCache": "সফলভাবে ক্যাশে মুছে ফেলা হয়েছে",
+      "cacheEmpty": "ক্যাশে খালি",
+      "exportedCache": "সফলভাবে ক্যাশে রফতানি করা হয়েছে",
+      "valueAlreadyInList": "এই মানটি ইতিমধ্যে তালিকায় রয়েছে",
+      "noColumnsToUpdate": "আপডেট করার জন্য কোনও কলাম নেই",
+      "tableDeleted": "সফলভাবে টেবিল মুছে ফেলা হয়েছে"
     },
     "error": {
       "searchProject": "আপনার অনুসন্ধান {search} এর জন্য কোনও ফলাফল পাওয়া যায় নি",

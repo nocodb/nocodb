@@ -2,6 +2,7 @@
 import type { ApiTokenType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { useClipboard } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 import KebabIcon from '~icons/ic/baseline-more-vert'
 import MdiPlusIcon from '~icons/mdi/plus'
 import CloseIcon from '~icons/material-symbols/close-rounded'
@@ -12,6 +13,7 @@ import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import MdiContentCopyIcon from '~icons/mdi/content-copy'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
+const { t } = useI18n()
 interface ApiToken extends ApiTokenType {
   show?: boolean
 }
@@ -45,7 +47,8 @@ const copyToken = (token: string | undefined) => {
   if (!token) return
 
   copy(token)
-  message.info('Copied to clipboard')
+  // Copied to clipboard
+  message.info(t('msg.info.copiedToClipboard'))
 
   $e('c:api-token:copy')
 }
@@ -100,13 +103,16 @@ onMounted(() => {
           <CloseIcon class="flex mx-auto" />
         </template>
       </a-button>
+      <!-- Generate Token -->
       <div class="flex flex-row justify-center w-full -mt-1">
-        <a-typography-title :level="5">Generate Token</a-typography-title>
+        <a-typography-title :level="5">{{ $t('title.generateToken') }}</a-typography-title>
       </div>
+      <!-- Description -->
       <div class="flex flex-col mt-3 justify-center space-y-6">
-        <a-input v-model:value="selectedTokenData.description" placeholder="Description" />
+        <a-input v-model:value="selectedTokenData.description" :placeholder="$t('labels.description')" />
+        <!-- Generate -->
         <div class="flex flex-row justify-center">
-          <a-button type="primary" @click="generateToken"> Generate </a-button>
+          <a-button type="primary" @click="generateToken"> {{ $t('general.generate') }} </a-button>
         </div>
       </div>
     </div>
@@ -129,10 +135,11 @@ onMounted(() => {
             <div class="text-gray-500">{{ $t('general.reload') }}</div>
           </div>
         </a-button>
+        <!--        Add New Token -->
         <a-button size="middle" type="primary" ghost @click="openNewTokenModal">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiPlusIcon />
-            <div>Add New Token</div>
+            <div>{{ $t('activity.newToken') }}</div>
           </div>
         </a-button>
       </div>
@@ -155,8 +162,8 @@ onMounted(() => {
           <div class="flex flex-row w-2/10 justify-end">
             <a-tooltip placement="bottom">
               <template #title>
-                <span v-if="item.show">Hide API token </span>
-                <span v-else>Show API token </span>
+                <span v-if="item.show"> {{ $t('general.hide') }} </span>
+                <span v-else> {{ $t('general.show') }} </span>
               </template>
               <a-button type="text" class="!rounded-md" @click="item.show = !item.show">
                 <template #icon>
@@ -166,7 +173,7 @@ onMounted(() => {
               </a-button>
             </a-tooltip>
             <a-tooltip placement="bottom">
-              <template #title> Copy token to clipboard </template>
+              <template #title> {{ $t('general.copy') }} </template>
               <a-button type="text" class="!rounded-md" @click="copyToken(item.token)">
                 <template #icon>
                   <MdiContentCopyIcon class="flex mx-auto h-[1rem]" />
@@ -187,7 +194,7 @@ onMounted(() => {
                   <a-menu-item>
                     <div class="flex flex-row items-center py-1 h-[1rem]" @click="openDeleteModal(item)">
                       <MdiDeleteOutlineIcon class="flex" />
-                      <div class="text-xs pl-2">Remove API Token</div>
+                      <div class="text-xs pl-2">{{ $t('general.remove') }}</div>
                     </div>
                   </a-menu-item>
                 </a-menu>

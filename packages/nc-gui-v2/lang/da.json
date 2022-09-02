@@ -54,7 +54,20 @@
     "search": "Søg",
     "notification": "Notifikation",
     "reference": "Reference",
-    "function": "Fungere"
+    "function": "Fungere",
+    "confirm": "Bekræfte",
+    "generate": "Frembringe",
+    "copy": "Kopi",
+    "misc": "Diverse",
+    "lock": "Låse",
+    "unlock": "Lås op",
+    "credentials": "Legitimationsoplysninger",
+    "help": "Hjælp",
+    "questions": "Spørgsmål",
+    "reachOut": "Nå ud her",
+    "betaNote": "Denne funktion er i øjeblikket i beta.",
+    "moreInfo": "Mere information kan findes her",
+    "logs": "Logfiler"
   },
   "objects": {
     "project": "Projekt",
@@ -172,7 +185,15 @@
     "resetPassword": "Nulstil din adgangskode",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Generer token",
+    "APIsAndSupport": "API'er & support",
+    "helpCenter": "Hjælpecenter",
+    "swaggerDocumentation": "Swagger -dokumentation",
+    "quickImportFrom": "Hurtig import fra",
+    "quickImport": "Hurtig import",
+    "advancedSettings": "Avancerede indstillinger",
+    "codeSnippet": "Kodestykket"
   },
   "labels": {
     "notifyVia": "Bemærk Via.",
@@ -193,6 +214,7 @@
     "username": "Brugernavn.",
     "password": "Adgangskode",
     "schemaName": "Schema name",
+    "database": "Database",
     "action": "Handling",
     "actions": "Handlinger",
     "operation": "Operation",
@@ -238,7 +260,27 @@
     "childTable": "Børnebord",
     "childColumn": "Barn kolonne",
     "onUpdate": "På opdatering",
-    "onDelete": "På Delete."
+    "onDelete": "På Delete.",
+    "account": "Konto",
+    "language": "Sprog",
+    "primaryColor": "Primær farve",
+    "accentColor": "Accentfarve",
+    "customTheme": "Brugerdefineret tema",
+    "requestDataSource": "Anmod om en datakilde, du har brug for?",
+    "apiKey": "API -nøgle",
+    "sharedBase": "Delt base",
+    "importData": "Importer data",
+    "importSecondaryViews": "Importer sekundære synspunkter",
+    "importRollupColumns": "Importer rollupsøjler",
+    "importLookupColumns": "Importopslagskolonner",
+    "importAttachmentColumns": "Importfastgørelseskolonner",
+    "importFormulaColumns": "Importformelkolonner",
+    "noData": "Ingen data",
+    "goToDashboard": "Gå til dashboard",
+    "importing": "Import",
+    "flattenNested": "Flad nestede",
+    "downloadAllowed": "Download tilladt",
+    "weAreHiring": "Vi ansætter!"
   },
   "activity": {
     "createProject": "Opret projekt",
@@ -265,7 +307,7 @@
     "translate": "Hjælp Translate",
     "account": {
       "authToken": "Kopier Auth Token",
-      "swagger": "Swagger Apis DOC.",
+      "swagger": "Swagger: REST APIs",
       "projInfo": "Kopier projekt info.",
       "themes": "Temaer."
     },
@@ -309,7 +351,7 @@
     "importExcel": "Import Excel.",
     "importCSV": "Import CSV.",
     "downloadCSV": "Download som CSV.",
-    "downloadExcel": "Download som XLSX.",
+    "downloadExcel": "Download som XLSX",
     "uploadCSV": "Upload CSV.",
     "import": "Importere",
     "importMetadata": "Import metadata.",
@@ -345,7 +387,10 @@
     "removeDbFromEnv": "Fjern databasen fra miljøet",
     "editConnJson": "Rediger forbindelse JSON",
     "sponsorUs": "Sponsor os",
-    "sendEmail": "SEND E-MAIL"
+    "sendEmail": "SEND E-MAIL",
+    "addUserToProject": "Tilføj bruger til projektet",
+    "getApiSnippet": "Få API -uddrag",
+    "clearCell": "Klar celle"
   },
   "tooltip": {
     "saveChanges": "Gem ændringer",
@@ -391,7 +436,8 @@
     "searchModels": "Søgemodeller.",
     "noItemsFound": "Ingen varer fundet",
     "defaultValue": "Standard værdi",
-    "filterByEmail": "Filtrer efter e-mail"
+    "filterByEmail": "Filtrer efter e-mail",
+    "filterQuery": "Filterforespørgsel"
   },
   "msg": {
     "info": {
@@ -400,7 +446,7 @@
       "upload_sub": "eller træk og slip filen",
       "excelSupport": "Støttet: .xls, .xlsx, .xlsm, .ods, .Oer",
       "excelURL": "Indtast Excel-fil-URL",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Indtast CSV-fil-URL",
       "footMsg": "# af rækker til at analysere for at udlede datatype",
       "excelImport": "ark (r) er tilgængelige for import",
       "exportMetadata": "Ønsker du at eksportere metadata fra metaborde?",
@@ -413,7 +459,7 @@
       "deleteProject": "Ønsker du at slette projektet?",
       "shareBasePrivate": "Generer offentligt delbart readonly base",
       "shareBasePublic": "Enhver på internettet med dette link kan se",
-      "userInviteNoSMTP": "Ser ud som om du ikke har konfigureret mailer endnu!\nKopier venligst ovenstående invitation link og send det til",
+      "userInviteNoSMTP": "Ser ud som om du ikke har konfigureret mailer endnu! Kopier venligst ovenstående invitation link og send det til",
       "dragDropHide": "Træk og slip felter her for at skjule",
       "formInput": "Indtast formularindgangsmærke",
       "formHelpText": "Tilføj nogle hjælpetekst",
@@ -483,7 +529,27 @@
       "addMultipleUsers": "Du kan tilføje flere komma (,) adskilte e-mails",
       "enterTableName": "Indtast tabelnavn",
       "addDefaultColumns": "Tilføj standard kolonner",
-      "tableNameInDb": "Tabelnavn som gemt i databasen"
+      "tableNameInDb": "Tabelnavn som gemt i databasen",
+      "airtable": {
+        "credentials": "Hvor finder jeg dette?"
+      },
+      "import": {
+        "clickOrDrag": "Klik eller træk fil til dette område for at uploade"
+      },
+      "metaDataRecreated": "Bordmetadata genskabt med succes",
+      "invalidCredentials": "Ugyldige legitimationsoplysninger",
+      "downloadingMoreFiles": "Download af flere filer",
+      "copiedToClipboard": "Kopieret til udklipsholder",
+      "requriedFieldsCantBeMoved": "Påkrævet felt kan ikke flyttes",
+      "updateNotAllowedWithoutPK": "Opdatering er ikke tilladt til tabel, som ikke har primær nøgle",
+      "autoIncFieldNotEditable": "Auto -stigningsfelt kan ikke redigeres",
+      "editingPKnotSupported": "Redigering af primær nøgle ikke understøttet",
+      "deletedCache": "Slettet cache med succes",
+      "cacheEmpty": "Cache er tom",
+      "exportedCache": "Eksporteret cache med succes",
+      "valueAlreadyInList": "Denne værdi er allerede på listen",
+      "noColumnsToUpdate": "Ingen kolonner at opdatere",
+      "tableDeleted": "Slettet tabel med succes"
     },
     "error": {
       "searchProject": "Din søgning efter {Søg} viste ingen resultater",
@@ -497,7 +563,8 @@
         "emailReqd": "E-mail er påkrævet",
         "emailInvalid": "E-mail skal være gyldig",
         "passwdRequired": "adgangskode er påkrævet",
-        "passwdLength": "Din adgangskode skal være mindst 8 tegn"
+        "passwdLength": "Din adgangskode skal være mindst 8 tegn",
+        "passwdMismatch": "Kodeordene er ikke ens"
       }
     },
     "toast": {

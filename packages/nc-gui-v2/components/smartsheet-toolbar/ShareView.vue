@@ -147,7 +147,7 @@ onMounted(() => {
       </div>
 
       <a-collapse ghost>
-        <a-collapse-panel key="1" header="More Options">
+        <a-collapse-panel key="1" :header="$t('general.showOptions')">
           <div class="mb-2">
             <a-checkbox v-model:checked="passwordProtected" class="!text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
             <div v-if="passwordProtected" class="flex gap-2 mt-2 mb-4">
@@ -164,8 +164,9 @@ onMounted(() => {
             </div>
           </div>
           <div>
-            <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="!text-xs"
-              >Allow Download
+            <!--            Allow Download -->
+            <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="!text-xs">
+              {{ $t('labels.downloadAllowed') }}
             </a-checkbox>
           </div>
         </a-collapse-panel>

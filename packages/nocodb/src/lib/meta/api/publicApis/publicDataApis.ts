@@ -50,18 +50,25 @@ export async function dataList(req: Request, res: Response) {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
-    const data = await nocoExecute(
-      await getAst({
-        query: req.query,
-        model,
-        view,
-      }),
-      await baseModel.list(listArgs),
-      {},
-      listArgs
-    );
+    let data = [];
+    let count = 0;
 
-    const count = await baseModel.count(listArgs);
+    try {
+      data = await nocoExecute(
+        await getAst({
+          query: req.query,
+          model,
+          view,
+        }),
+        await baseModel.list(listArgs),
+        {},
+        listArgs
+      );
+      count = await baseModel.count(listArgs);
+    } catch (e) {
+      // show empty result instead of throwing error here
+      // e.g. search some text in a numeric field
+    }
 
     res.json({
       data: new PagedResponseImpl(data, { ...req.query, count }),
@@ -198,14 +205,20 @@ async function relDataList(req, res) {
     extractOnlyPrimaries: true,
   });
 
-  const data = await nocoExecute(
-    requestObj,
-    await baseModel.list(req.query),
-    {},
-    req.query
-  );
-
-  const count = await baseModel.count(req.query);
+  let data = [];
+  let count = 0;
+  try {
+    data = data = await nocoExecute(
+      requestObj,
+      await baseModel.list(req.query),
+      {},
+      req.query
+    );
+    count = await baseModel.count(req.query);
+  } catch (e) {
+    // show empty result instead of throwing error here
+    // e.g. search some text in a numeric field
+  }
 
   res.json(new PagedResponseImpl(data, { ...req.query, count }));
 }

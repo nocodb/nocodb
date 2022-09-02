@@ -10,7 +10,7 @@ import {
   createRollupColumn,
 } from './factory/column';
 import { createTable } from './factory/table';
-import { createRow } from './factory/row';
+import { createRow, getRow } from './factory/row';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -1100,6 +1100,80 @@ function tableTest() {
 
     if (updateResponse.body['Title'] !== 'Updated') {
       throw new Error('Wrong update');
+    }
+  });
+
+  it('Update table row with validation and invalid data', async function () {
+    const table = await createTable(context, project);
+    const emailColumn = await createColumn(context, table, {
+      title: 'Email',
+      column_name: 'email',
+      uidt: UITypes.Email,
+      meta: {
+        validate: true,
+      },
+    });
+    const columns = await table.getColumns();
+    const row = await createRow(context, project, table, columns, 0);
+
+    await request(context.app)
+      .patch(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
+      .set('xc-auth', context.token)
+      .send({
+        [emailColumn.column_name]: 'invalidemail',
+      })
+      .expect(400);
+  });
+
+  // todo: Test webhooks of before and after update
+  // todo: Test with form view
+
+  it('Update table row with validation and valid data', async function () {
+    const table = await createTable(context, project);
+    const emailColumn = await createColumn(context, table, {
+      title: 'Email',
+      column_name: 'email',
+      uidt: UITypes.Email,
+      meta: {
+        validate: true,
+      },
+    });
+    const columns = await table.getColumns();
+    const row = await createRow(context, project, table, columns, 0);
+
+    const response = await request(context.app)
+      .patch(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
+      .set('xc-auth', context.token)
+      .send({
+        [emailColumn.column_name]: 'valid@example.com',
+      })
+      .expect(200);
+
+    const updatedRow = await getRow(
+      context,
+      project,
+      table,
+      response.body['Id']
+    );
+    if (updatedRow[emailColumn.title] !== 'valid@example.com') {
+      throw new Error('Wrong update');
+    }
+  });
+
+  it('Delete table row', async function () {
+    const table = await createTable(context, project);
+    const columns = await table.getColumns();
+    const row = await createRow(context, project, table, columns, 0);
+
+    await request(context.app)
+      .delete(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    const deleteRow = await getRow(context, project, table, row['Id']);
+    if (deleteRow && Object.keys(deleteRow).length > 0) {
+      console.log(deleteRow);
+      throw new Error('Wrong delete');
     }
   });
 }

@@ -13,6 +13,8 @@ const rowValue = (column: ColumnType, index: number) => {
       return '2020-01-01';
     case UITypes.DateTime:
       return '2020-01-01 00:00:00';
+    case UITypes.Email:
+      return `test-${index}@example.com`;
     default:
       return `test-${index}`;
   }

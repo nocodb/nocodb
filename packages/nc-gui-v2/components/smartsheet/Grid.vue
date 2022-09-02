@@ -330,7 +330,7 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
     </div>
     <div v-else class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown v-model:visible="contextMenu" :trigger="isSqlView ? [] : ['contextmenu']">
-        <tablex
+        <table
           ref="smartTable"
           class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
           @contextmenu="showContextMenu"
@@ -506,7 +506,7 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
               </td>
             </tr>
           </tbody>
-        </tablex>
+        </table>
 
         <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">

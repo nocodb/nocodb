@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Klik atau seret file ke area ini untuk diunggah"
-      }
+      },
+      "metaDataRecreated": "Metadata Table berhasil diciptakan kembali",
+      "invalidCredentials": "Kredensial tidak valid",
+      "downloadingMoreFiles": "Mengunduh lebih banyak file",
+      "copiedToClipboard": "Disalin ke clipboard",
+      "requriedFieldsCantBeMoved": "Lapangan yang diperlukan tidak dapat dipindahkan",
+      "updateNotAllowedWithoutPK": "Pembaruan tidak diizinkan untuk tabel yang tidak memiliki kunci utama",
+      "autoIncFieldNotEditable": "Bidang Penambahan Otomatis tidak dapat diedit",
+      "editingPKnotSupported": "Mengedit kunci utama tidak didukung",
+      "deletedCache": "Berhasil menghapus cache",
+      "cacheEmpty": "Cache kosong",
+      "exportedCache": "Berhasil diekspor cache",
+      "valueAlreadyInList": "Nilai ini sudah ada dalam daftar",
+      "noColumnsToUpdate": "Tidak ada kolom untuk diperbarui",
+      "tableDeleted": "Tabel yang dihapus berhasil"
     },
     "error": {
       "searchProject": "Pencarian Anda untuk {Search} tidak menemukan hasil",

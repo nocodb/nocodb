@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Napsauta tai vedä tiedostoa tälle alueelle ladataksesi"
-      }
+      },
+      "metaDataRecreated": "Pöytämetatiedot luotiin uudelleen onnistuneesti",
+      "invalidCredentials": "Virheelliset valtakirjat",
+      "downloadingMoreFiles": "Lataamalla lisää tiedostoja",
+      "copiedToClipboard": "Kopioitu leikepöydälle",
+      "requriedFieldsCantBeMoved": "Vaadittua kenttää ei voida siirtää",
+      "updateNotAllowedWithoutPK": "Päivitys ei sallita taulukosta, jolla ei ole ensisijaista avainta",
+      "autoIncFieldNotEditable": "Automaattinen lisäyskenttä ei ole muokattavissa",
+      "editingPKnotSupported": "Ensisijaisen avaimen muokkaaminen ei tueta",
+      "deletedCache": "Poistettu välimuisti onnistuneesti",
+      "cacheEmpty": "Välimuisti on tyhjä",
+      "exportedCache": "Vie välimuisti onnistuneesti",
+      "valueAlreadyInList": "Tämä arvo on jo luettelossa",
+      "noColumnsToUpdate": "Ei päivitettävissä olevia sarakkeita",
+      "tableDeleted": "Poistettu taulukko onnistuneesti"
     },
     "error": {
       "searchProject": "Hakusi {haku} ei löytänyt tuloksia",

@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Klik eller træk fil til dette område for at uploade"
-      }
+      },
+      "metaDataRecreated": "Bordmetadata genskabt med succes",
+      "invalidCredentials": "Ugyldige legitimationsoplysninger",
+      "downloadingMoreFiles": "Download af flere filer",
+      "copiedToClipboard": "Kopieret til udklipsholder",
+      "requriedFieldsCantBeMoved": "Påkrævet felt kan ikke flyttes",
+      "updateNotAllowedWithoutPK": "Opdatering er ikke tilladt til tabel, som ikke har primær nøgle",
+      "autoIncFieldNotEditable": "Auto -stigningsfelt kan ikke redigeres",
+      "editingPKnotSupported": "Redigering af primær nøgle ikke understøttet",
+      "deletedCache": "Slettet cache med succes",
+      "cacheEmpty": "Cache er tom",
+      "exportedCache": "Eksporteret cache med succes",
+      "valueAlreadyInList": "Denne værdi er allerede på listen",
+      "noColumnsToUpdate": "Ingen kolonner at opdatere",
+      "tableDeleted": "Slettet tabel med succes"
     },
     "error": {
       "searchProject": "Din søgning efter {Søg} viste ingen resultater",

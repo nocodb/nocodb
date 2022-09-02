@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "برای بارگذاری ، روی این منطقه کلیک یا بکشید"
-      }
+      },
+      "metaDataRecreated": "ابرداده جدول با موفقیت بازآفرینی شد",
+      "invalidCredentials": "گواهی نامه نامعتبر",
+      "downloadingMoreFiles": "بارگیری پرونده های بیشتر",
+      "copiedToClipboard": "کپی شده در کلیپ بورد",
+      "requriedFieldsCantBeMoved": "زمینه مورد نیاز قابل جابجایی نیست",
+      "updateNotAllowedWithoutPK": "به روزرسانی برای جدول که کلید اصلی ندارد",
+      "autoIncFieldNotEditable": "قسمت افزایش خودکار قابل ویرایش نیست",
+      "editingPKnotSupported": "ویرایش کلید اصلی پشتیبانی نشده است",
+      "deletedCache": "حافظه نهان حذف شده با موفقیت",
+      "cacheEmpty": "حافظه نهان خالی است",
+      "exportedCache": "حافظه نهان صادر شده با موفقیت",
+      "valueAlreadyInList": "این مقدار در حال حاضر در لیست است",
+      "noColumnsToUpdate": "هیچ ستون برای به روزرسانی وجود ندارد",
+      "tableDeleted": "جدول حذف شده با موفقیت"
     },
     "error": {
       "searchProject": "جست‌وجوی شما برای {search} نتیجه‌ای نداشت",

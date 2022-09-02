@@ -125,7 +125,8 @@ const copyProjectInfo = async () => {
         .join('\n'),
     )
 
-    message.info('Copied project info to clipboard')
+    // Copied to clipboard
+    message.info(t('msg.info.copiedToClipboard'))
   } catch (e: any) {
     console.log(e)
     message.error(e.message)
@@ -136,7 +137,8 @@ const copyAuthToken = async () => {
   try {
     await copy(token.value!)
 
-    message.info('Copied auth token to clipboard')
+    // Copied to clipboard
+    message.info(t('msg.info.copiedToClipboard'))
   } catch (e: any) {
     console.log(e)
     message.error(e.message)

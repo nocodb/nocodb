@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Yüklemek için bu alana dosyayı tıklayın veya sürükleyin"
-      }
+      },
+      "metaDataRecreated": "Masa meta verileri başarıyla yeniden yaratıldı",
+      "invalidCredentials": "Geçersiz kimlik bilgileri",
+      "downloadingMoreFiles": "Daha fazla dosya indirme",
+      "copiedToClipboard": "Panoya kopyalandı",
+      "requriedFieldsCantBeMoved": "Gerekli alan taşınamaz",
+      "updateNotAllowedWithoutPK": "Birincil anahtarı olmayan tablo için güncellemeye izin verilmiyor",
+      "autoIncFieldNotEditable": "Otomatik artış alanı düzenlenemez değil",
+      "editingPKnotSupported": "Birincil anahtarı düzenleme desteklenmiyor",
+      "deletedCache": "Önbellek başarıyla silinmiş",
+      "cacheEmpty": "Önbellek boş",
+      "exportedCache": "Önbellek başarıyla dışa aktarıldı",
+      "valueAlreadyInList": "Bu değer zaten listede",
+      "noColumnsToUpdate": "Güncellenecek sütun yok",
+      "tableDeleted": "Silinmiş tablo başarıyla"
     },
     "error": {
       "searchProject": "{search} için aramanız hiç bir sonuç bulamadı",

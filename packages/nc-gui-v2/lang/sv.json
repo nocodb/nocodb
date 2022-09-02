@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Klicka eller dra fil till detta område för att ladda upp"
-      }
+      },
+      "metaDataRecreated": "Tabellmetadata återskapade framgångsrikt",
+      "invalidCredentials": "Ogiltiga uppgifter",
+      "downloadingMoreFiles": "Ladda ner fler filer",
+      "copiedToClipboard": "Kopierad till urklipp",
+      "requriedFieldsCantBeMoved": "Obligatoriskt fält kan inte flyttas",
+      "updateNotAllowedWithoutPK": "Uppdatera inte tillåtet för tabell som inte har primär nyckel",
+      "autoIncFieldNotEditable": "Auto Increment Field är inte redigerbart",
+      "editingPKnotSupported": "Redigera primärnyckel stöds inte",
+      "deletedCache": "Raderad cache framgångsrikt",
+      "cacheEmpty": "Cache är tom",
+      "exportedCache": "Exporterad cache framgångsrikt",
+      "valueAlreadyInList": "Detta värde finns redan i listan",
+      "noColumnsToUpdate": "Inga kolumner att uppdatera",
+      "tableDeleted": "Borttagna tabellen framgångsrikt"
     },
     "error": {
       "searchProject": "Din sökning efter {Sök} har inga resultat",

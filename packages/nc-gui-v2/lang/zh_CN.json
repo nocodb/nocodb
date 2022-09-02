@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "单击或将文件拖到此区域上传"
-      }
+      },
+      "metaDataRecreated": "表元数据成功重新创建",
+      "invalidCredentials": "无效证件",
+      "downloadingMoreFiles": "下载更多文件",
+      "copiedToClipboard": "复制到剪贴板",
+      "requriedFieldsCantBeMoved": "所需的字段无法移动",
+      "updateNotAllowedWithoutPK": "不允许使用没有主键的表",
+      "autoIncFieldNotEditable": "自动增量字段不是可编辑的",
+      "editingPKnotSupported": "编辑主键不支持",
+      "deletedCache": "成功删除了缓存",
+      "cacheEmpty": "缓存为空",
+      "exportedCache": "成功导出缓存",
+      "valueAlreadyInList": "此值已经在列表中",
+      "noColumnsToUpdate": "没有列更新",
+      "tableDeleted": "成功删除表"
     },
     "error": {
       "searchProject": "搜索： {search} 没有发现匹配的结果",

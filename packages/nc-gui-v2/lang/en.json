@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Click or drag file to this area to upload"
-      }
+      },
+      "metaDataRecreated": "Table metadata recreated successfully",
+      "invalidCredentials": "Invalid credentials",
+      "downloadingMoreFiles": "Downloading more files",
+      "copiedToClipboard": "Copied to clipboard",
+      "requriedFieldsCantBeMoved": "Required field can't be moved",
+      "updateNotAllowedWithoutPK": "Update not allowed for table which doesn't have primary key",
+      "autoIncFieldNotEditable": "Auto increment field is not editable",
+      "editingPKnotSupported": "Editing primary key not supported",
+      "deletedCache": "Deleted cache successfully",
+      "cacheEmpty": "Cache is empty",
+      "exportedCache": "Exported Cache Successfully",
+      "valueAlreadyInList": "This value is already in the list",
+      "noColumnsToUpdate": "No columns to update",
+      "tableDeleted": "Deleted table successfully"
     },
     "error": {
       "searchProject": "Your search for {search} found no results",

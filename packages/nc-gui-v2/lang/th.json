@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "คลิกหรือลากไฟล์ไปยังพื้นที่นี้เพื่ออัปโหลด"
-      }
+      },
+      "metaDataRecreated": "เมทาดาทาตารางสร้างขึ้นใหม่ได้สำเร็จ",
+      "invalidCredentials": "ข้อมูลประจำตัวที่ไม่ถูกต้อง",
+      "downloadingMoreFiles": "ดาวน์โหลดไฟล์เพิ่มเติม",
+      "copiedToClipboard": "คัดลอกไปยังคลิปบอร์ด",
+      "requriedFieldsCantBeMoved": "ไม่สามารถย้ายฟิลด์ที่จำเป็นได้",
+      "updateNotAllowedWithoutPK": "ไม่อนุญาตให้อัปเดตสำหรับตารางที่ไม่มีคีย์หลัก",
+      "autoIncFieldNotEditable": "ฟิลด์การเพิ่มอัตโนมัติไม่สามารถแก้ไขได้",
+      "editingPKnotSupported": "การแก้ไขคีย์หลักไม่รองรับ",
+      "deletedCache": "แคชที่ถูกลบสำเร็จ",
+      "cacheEmpty": "แคชว่างเปล่า",
+      "exportedCache": "แคชส่งออกสำเร็จ",
+      "valueAlreadyInList": "ค่านี้อยู่ในรายการแล้ว",
+      "noColumnsToUpdate": "ไม่มีคอลัมน์ที่จะอัปเดต",
+      "tableDeleted": "ตารางที่ถูกลบสำเร็จ"
     },
     "error": {
       "searchProject": "การค้นหาของคุณสำหรับ {search} ไม่พบผลลัพธ์",

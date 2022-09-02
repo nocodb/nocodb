@@ -57,7 +57,8 @@ const exportFile = async (exportType: ExportTypes) => {
       }
       offset = +headers['nc-export-offset']
       if (offset > -1) {
-        message.info('Downloading more files')
+        // Downloading more files
+        message.info(t('msg.info.downloadingMoreFiles'))
       } else {
         message.success('Successfully exported all table data')
       }

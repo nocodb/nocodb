@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Nhấp hoặc kéo tệp đến khu vực này để tải lên"
-      }
+      },
+      "metaDataRecreated": "Siêu dữ liệu bảng được tạo lại thành công",
+      "invalidCredentials": "Thông tin không hợp lệ",
+      "downloadingMoreFiles": "Tải xuống thêm các tập tin",
+      "copiedToClipboard": "Sao chép vào clipboard",
+      "requriedFieldsCantBeMoved": "Không thể di chuyển trường bắt buộc",
+      "updateNotAllowedWithoutPK": "Cập nhật không được phép cho bảng không có khóa chính",
+      "autoIncFieldNotEditable": "Trường tăng tự động không thể chỉnh sửa",
+      "editingPKnotSupported": "Chỉnh sửa khóa chính không được hỗ trợ",
+      "deletedCache": "Đã xóa bộ đệm thành công",
+      "cacheEmpty": "Bộ nhớ cache trống",
+      "exportedCache": "Xuất bộ nhớ cache thành công",
+      "valueAlreadyInList": "Giá trị này đã có trong danh sách",
+      "noColumnsToUpdate": "Không có cột để cập nhật",
+      "tableDeleted": "Xóa bảng thành công"
     },
     "error": {
       "searchProject": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả",

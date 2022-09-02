@@ -8,6 +8,7 @@ import { extractSdkResponseErrorMsg } from '~/utils'
 
 const { $api } = useNuxtApp()
 const { project, loadTables } = useProject()
+const { t } = useI18n()
 
 let isLoading = $ref(false)
 let isDifferent = $ref(false)
@@ -39,7 +40,8 @@ async function syncMetaDiff() {
 
     isLoading = true
     await $api.project.metaDiffSync(project.value.id)
-    message.info('Table metadata recreated successfully')
+    // Table metadata recreated successfully
+    message.info(t('msg.info.metaDataRecreated'))
     await loadTables()
     await loadMetaDiff()
   } catch (e: any) {
@@ -56,7 +58,6 @@ onMounted(async () => {
 })
 
 const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gray-500' }, label)
-const { t } = useI18n()
 const columns = [
   {
     // Models

@@ -2,6 +2,7 @@
 import HTTPSnippet from 'httpsnippet'
 import { useClipboard } from '@vueuse/core'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { ActiveViewInj, MetaInj } from '~/context'
 import { inject, useGlobal, useProject, useSmartsheetStoreOrThrow, useVModel, useViewData } from '#imports'
 
@@ -12,6 +13,8 @@ const emits = defineEmits(['update:modelValue'])
 interface Props {
   modelValue: boolean
 }
+
+const { t } = useI18n()
 
 const { project } = $(useProject())
 
@@ -117,7 +120,8 @@ api.dbViewRow.list(
 
 const onCopyToClipboard = () => {
   copy(code)
-  message.info('Copied to clipboard')
+  // Copied to clipboard
+  message.info(t('msg.info.copiedToClipboard'))
 }
 
 const afterVisibleChange = (visible: boolean) => {

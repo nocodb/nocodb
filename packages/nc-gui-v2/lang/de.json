@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Klicken oder ziehen Sie Datei in diesen Bereich, um sie hochzuladen"
-      }
+      },
+      "metaDataRecreated": "Tischmetadaten erfolgreich nachgebildet",
+      "invalidCredentials": "Ungültige Anmeldeinformationen",
+      "downloadingMoreFiles": "Herunterladen weiterer Dateien",
+      "copiedToClipboard": "In die Zwischenablage kopiert",
+      "requriedFieldsCantBeMoved": "Das erforderliche Feld kann nicht bewegt werden",
+      "updateNotAllowedWithoutPK": "Aktualisieren Sie keine Tabelle, die keinen Primärschlüssel enthält",
+      "autoIncFieldNotEditable": "Das automatische Inkrementfeld ist nicht bearbeitbar",
+      "editingPKnotSupported": "Bearbeitung des Primärschlüssels nicht unterstützt",
+      "deletedCache": "Cache erfolgreich gelöscht",
+      "cacheEmpty": "Cache ist leer",
+      "exportedCache": "Cache erfolgreich exportiert",
+      "valueAlreadyInList": "Dieser Wert liegt bereits in der Liste",
+      "noColumnsToUpdate": "Keine Spalten zu aktualisieren",
+      "tableDeleted": "Tisch erfolgreich gelöscht"
     },
     "error": {
       "searchProject": "Ihre Suche nach {search} fand keine Ergebnisse",

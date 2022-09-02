@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 const { api } = useApi()
 
 async function deleteCache() {
   try {
     await api.utils.cacheDelete()
-    message.info('Deleted Cache Successfully')
+    // Deleted Cache Successfully
+    message.info(t('msg.info.deletedCache'))
   } catch (e: any) {
     message.error(e.message)
   }

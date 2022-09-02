@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Clique ou arraste o arquivo para esta área para fazer upload"
-      }
+      },
+      "metaDataRecreated": "Metadados da tabela recriados com sucesso",
+      "invalidCredentials": "Credenciais inválidas",
+      "downloadingMoreFiles": "Baixando mais arquivos",
+      "copiedToClipboard": "Copiado para a área de transferência",
+      "requriedFieldsCantBeMoved": "O campo necessário não pode ser movido",
+      "updateNotAllowedWithoutPK": "Atualização não permitida para a tabela, que não possui chave primária",
+      "autoIncFieldNotEditable": "O campo de incremento automático não é editável",
+      "editingPKnotSupported": "Editando a chave primária não suportada",
+      "deletedCache": "Cache excluído com sucesso",
+      "cacheEmpty": "O cache está vazio",
+      "exportedCache": "Cache exportado com sucesso",
+      "valueAlreadyInList": "Este valor já está na lista",
+      "noColumnsToUpdate": "Sem colunas para atualizar",
+      "tableDeleted": "Tabela excluída com sucesso"
     },
     "error": {
       "searchProject": "A sua pesquisa por {search} não encontrou resultados",

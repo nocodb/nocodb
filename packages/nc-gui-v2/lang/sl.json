@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Kliknite ali povlecite datoteko na to območje, da se naložite"
-      }
+      },
+      "metaDataRecreated": "Metapodatki tabele so uspešno poustvarili",
+      "invalidCredentials": "Neveljavne poverilnice",
+      "downloadingMoreFiles": "Prenos več datotek",
+      "copiedToClipboard": "Kopirano v odložišče",
+      "requriedFieldsCantBeMoved": "Zahtevanega polja ni mogoče premakniti",
+      "updateNotAllowedWithoutPK": "Posodobitev ni dovoljena za tabelo, ki nima primarnega ključa",
+      "autoIncFieldNotEditable": "Polje za samodejno prirast ni mogoče urejati",
+      "editingPKnotSupported": "Urejanje primarnega ključa ni podprto",
+      "deletedCache": "Uspešno izbrisani predpomnilnik",
+      "cacheEmpty": "Predpomnilnik je prazen",
+      "exportedCache": "Uspešno izvožen predpomnilnik",
+      "valueAlreadyInList": "Ta vrednost je že na seznamu",
+      "noColumnsToUpdate": "Brez stolpcev za posodobitev",
+      "tableDeleted": "Uspešno izbrisana tabela"
     },
     "error": {
       "searchProject": "Vaše iskanje {search} ni dalo rezultatov",

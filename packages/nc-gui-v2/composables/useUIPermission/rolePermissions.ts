@@ -1,5 +1,9 @@
 const rolePermissions = {
-  super: '*',
+  /** todo: enable wildcard permission
+   *  limited permission  due to unexpected behaviour in shared base if opened in same window  */
+  super: {
+    projectTheme: true,
+  },
   creator: '*',
   owner: '*',
   guest: {},

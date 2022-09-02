@@ -123,9 +123,10 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
             <a-menu-divider />
             <a-sub-menu key="download">
               <template #title>
+                <!--                Download -->
                 <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                   <MdiDownload class="group-hover:text-accent text-gray-500" />
-                  Download
+                  {{ $t('general.download') }}
                   <div class="flex-1" />
 
                   <MaterialSymbolsChevronRightRounded
@@ -139,10 +140,11 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
             </a-sub-menu>
             <template v-if="isUIAllowed('csvImport') && !isView && !isPublicView && !isSqlView">
               <a-sub-menu key="upload">
+                <!--                Upload -->
                 <template #title>
                   <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                     <MdiUpload class="group-hover:text-accent text-gray-500" />
-                    Upload
+                    {{ $t('general.upload') }}
                     <div class="flex-1" />
 
                     <MaterialSymbolsChevronRightRounded
@@ -199,8 +201,8 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
                 @click="showApiSnippetDrawer = true"
               >
                 <MdiXml class="text-gray-500" />
-                <!-- todo: i18n translation -->
-                Get API Snippet
+                <!-- Get API Snippet -->
+                {{ $t('activity.getApiSnippet') }}
               </div>
             </a-menu-item>
           </a-menu-item-group>

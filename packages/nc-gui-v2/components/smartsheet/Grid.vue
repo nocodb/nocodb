@@ -517,8 +517,9 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
               </div>
             </a-menu-item>
 
+            <!--            Clear cell -->
             <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)">
-              <div class="nc-project-menu-item">Clear cell</div>
+              <div class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
             <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">

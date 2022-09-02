@@ -245,7 +245,8 @@ function openTableCreateDialog() {
 
               <template #overlay>
                 <a-menu class="!py-0 rounded text-sm">
-                  <a-menu-item-group title="QUICK IMPORT FROM" class="!px-0 !mx-0">
+                  <!--                  Quick Import From -->
+                  <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
                     <a-menu-item
                       v-if="isUIAllowed('airtableImport')"
                       key="quick-import-airtable"
@@ -253,7 +254,6 @@ function openTableCreateDialog() {
                     >
                       <div class="color-transition nc-project-menu-item group">
                         <MdiTableLarge class="group-hover:text-accent" />
-                        <!-- TODO: i18n -->
                         Airtable
                       </div>
                     </a-menu-item>
@@ -261,7 +261,6 @@ function openTableCreateDialog() {
                     <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv" @click="openQuickImportDialog('csv')">
                       <div class="color-transition nc-project-menu-item group">
                         <MdiFileDocumentOutline class="group-hover:text-accent" />
-                        <!-- TODO: i18n -->
                         CSV file
                       </div>
                     </a-menu-item>
@@ -269,7 +268,6 @@ function openTableCreateDialog() {
                     <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json" @click="openQuickImportDialog('json')">
                       <div class="color-transition nc-project-menu-item group">
                         <MdiCodeJson class="group-hover:text-accent" />
-                        <!-- TODO: i18n -->
                         JSON file
                       </div>
                     </a-menu-item>
@@ -281,7 +279,6 @@ function openTableCreateDialog() {
                     >
                       <div class="color-transition nc-project-menu-item group">
                         <MdiFileExcel class="group-hover:text-accent" />
-                        <!-- TODO: i18n -->
                         Microsoft Excel
                       </div>
                     </a-menu-item>
@@ -297,8 +294,8 @@ function openTableCreateDialog() {
                       class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
                     >
                       <MdiOpenInNew class="group-hover:text-accent" />
-                      <!-- TODO: i18n -->
-                      Request a data source you need?
+                      <!-- Request a data source you need? -->
+                      {{ $t('label.requestDataSource') }}
                     </a>
                   </a-menu-item>
                 </a-menu>

@@ -22,6 +22,7 @@ import {
   watch,
 } from '#imports'
 import { TabType } from '~/composables'
+import {useI18n} from "vue-i18n";
 
 definePageMeta({
   hideHeader: true,
@@ -87,6 +88,8 @@ const themePrimaryColor = ref<any>(theme.value.primaryColor)
 
 const themeAccentColor = ref<any>(theme.value.accentColor)
 
+const { t } = useI18n()
+
 // Chrome provides object so if custom picker used we only edit primary otherwise use complement as accent
 watch(themePrimaryColor, (nextColor) => {
   const hexColor = nextColor.hex8 ? nextColor.hex8 : nextColor
@@ -109,7 +112,7 @@ watch(themeAccentColor, (nextColor) => {
 })
 
 if (!route.params.type && isUIAllowed('teamAndAuth')) {
-  addTab({ type: TabType.AUTH, title: 'Team & Auth' })
+  addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
 }
 
 const copyProjectInfo = async () => {

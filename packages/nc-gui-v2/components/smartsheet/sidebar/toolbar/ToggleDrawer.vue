@@ -10,7 +10,7 @@ const { isOpen, toggle } = useSidebar({ storageKey: 'nc-right-sidebar' })
         <AntDesignMenuUnfoldOutlined v-if="isOpen" />
         <AntDesignMenuFoldOutlined v-else />
 
-        Views
+        {{ $t('objects.views') }}
       </div>
     </a-button>
   </div>

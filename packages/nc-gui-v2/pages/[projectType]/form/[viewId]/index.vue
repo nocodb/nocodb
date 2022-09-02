@@ -146,8 +146,8 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
               <a-input-password v-model:value="password" :placeholder="$t('msg.info.signUp.enterPassword')" />
             </a-form-item>
 
-            <!-- todo: i18n -->
-            <a-button type="primary" html-type="submit">Unlock</a-button>
+            <!-- Unlock -->
+            <a-button type="primary" html-type="submit">{{ $t('general.unlock') }}</a-button>
           </a-form>
         </div>
       </a-modal>

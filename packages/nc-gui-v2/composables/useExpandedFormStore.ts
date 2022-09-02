@@ -17,10 +17,10 @@ import {
 } from '#imports'
 import type { Row } from '~/composables'
 
-const { t } = useI18n()
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
   const { api, isLoading: isCommentsLoading, error: commentsError } = useApi()
+  const { t } = useI18n()
 
   const commentsOnly = ref(false)
   const commentsAndLogs = ref<any[]>([])

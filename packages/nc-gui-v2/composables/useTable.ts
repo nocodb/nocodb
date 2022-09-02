@@ -6,14 +6,13 @@ import { useNuxtApp } from '#app'
 import { TabType } from '~/composables/useTabs'
 import { SYSTEM_COLUMNS, extractSdkResponseErrorMsg, useProject } from '#imports'
 
-const { t } = useI18n()
 export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
     columns: SYSTEM_COLUMNS,
   })
-
+  const { t } = useI18n()
   const { $e, $api } = useNuxtApp()
   const { getMeta, removeMeta } = useMetas()
   const { loadTables } = useProject()

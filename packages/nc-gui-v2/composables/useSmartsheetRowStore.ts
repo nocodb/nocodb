@@ -20,9 +20,10 @@ import {
   useVirtualCell,
 } from '#imports'
 
-const { t } = useI18n()
 const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState((meta: Ref<TableType>, row: MaybeRef<Row>) => {
   const { $api } = useNuxtApp()
+
+  const { t } = useI18n()
 
   const { project } = useProject()
 

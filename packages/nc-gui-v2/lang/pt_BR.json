@@ -284,7 +284,10 @@
     "primaryKey": "Chave primária",
     "hasMany": "tem muitos",
     "belongsTo": "pertence a",
-    "manyToMany": "Tenha muitos para muitas relações"
+    "manyToMany": "Tenha muitos para muitas relações",
+    "extraConnectionParameters": "Parâmetros de conexão extras",
+    "commentsOnly": "Apenas comentários",
+    "documentation": "Documentação"
   },
   "activity": {
     "createProject": "Criar Projeto",
@@ -397,7 +400,9 @@
     "clearCell": "Célula transparente",
     "addFilterGroup": "Adicione o grupo de filtro",
     "linkRecord": "Link Register",
-    "addNewRecord": "Adicione um novo registro"
+    "addNewRecord": "Adicione um novo registro",
+    "useConnectionUrl": "Use URL de conexão",
+    "toggleCommentsDraw": "Alternar os comentários desenham"
   },
   "tooltip": {
     "saveChanges": "Salvar alterações",
@@ -577,7 +582,31 @@
         "passwdRequired": "A Palavra-passe é obrigatória",
         "passwdLength": "A sua palavra-passe deve conter pelo menos 8 caracteres",
         "passwdMismatch": "As senhas não coincidem"
-      }
+      },
+      "invalidURL": "URL inválida",
+      "internalError": "Algum erro interno ocorreu",
+      "templateGeneratorNotFound": "O gerador de modelos não pode ser encontrado!",
+      "fileUploadFailed": "Falha ao fazer upload do arquivo",
+      "primaryColumnUpdateFailed": "Falha ao atualizar a coluna primária",
+      "formDescriptionTooLong": "Dados muito longos para descrição do formulário",
+      "columnsRequired": "As colunas a seguir são necessárias",
+      "selectAtleastOneColumn": "Pelo menos uma coluna deve ser selecionada",
+      "columnDescriptionNotFound": "Não consigo encontrar a coluna de destino para",
+      "duplicateMappingFound": "Mapeamento duplicado encontrado, remova um dos mapeamentos",
+      "nullValueViolatesNotNull": "O valor nulo viola a restrição não nula",
+      "sourceHasInvalidNumbers": "Os dados de origem contêm alguns números inválidos",
+      "sourceHasInvalidBoolean": "Os dados de origem contêm alguns valores booleanos inválidos",
+      "invalidForm": "Forma inválida",
+      "formValidationFailed": "A validação do formulário falhou",
+      "youHaveBeenSignedOut": "Voce foi desconectado",
+      "failedToLoadList": "Falha ao carregar lista",
+      "failedToLoadChildrenList": "Falha ao carregar a lista de crianças",
+      "deleteFailed": "Excluir falhou",
+      "unlinkFailed": "Deslocável falhar",
+      "rowUpdateFailed": "A atualização da linha falhou",
+      "deleteRowFailed": "Falha ao excluir a linha",
+      "setFormDataFailed": "Falha ao definir dados de formulário",
+      "formViewUpdateFailed": "Falha ao atualizar a visualização do formulário"
     },
     "toast": {
       "exportMetadata": "Metadados do projeto exportado com sucesso",

@@ -284,7 +284,10 @@
     "primaryKey": "Clé primaire",
     "hasMany": "a beaucoup",
     "belongsTo": "appartient à",
-    "manyToMany": "avoir beaucoup à beaucoup de relations"
+    "manyToMany": "avoir beaucoup à beaucoup de relations",
+    "extraConnectionParameters": "Paramètres de connexion supplémentaires",
+    "commentsOnly": "Commentaires uniquement",
+    "documentation": "Documentation"
   },
   "activity": {
     "createProject": "Créer un projet",
@@ -397,7 +400,9 @@
     "clearCell": "Cellule claire",
     "addFilterGroup": "Ajouter un groupe de filtre",
     "linkRecord": "Record de liaison",
-    "addNewRecord": "Ajouter un nouveau record"
+    "addNewRecord": "Ajouter un nouveau record",
+    "useConnectionUrl": "Utiliser l'URL de connexion",
+    "toggleCommentsDraw": "Togle des commentaires des commentaires"
   },
   "tooltip": {
     "saveChanges": "Sauvegarder les modifications",
@@ -577,7 +582,31 @@
         "passwdRequired": "Mot de passe requis",
         "passwdLength": "Votre mot de passe doit contenir au moins 8 caractères",
         "passwdMismatch": "Les mots de passe ne correspondent pas"
-      }
+      },
+      "invalidURL": "URL invalide",
+      "internalError": "Une erreur interne s'est produite",
+      "templateGeneratorNotFound": "Le générateur de modèle ne peut pas être trouvé!",
+      "fileUploadFailed": "Échec du fichier de téléchargement",
+      "primaryColumnUpdateFailed": "Échec de la mise à jour de la colonne principale",
+      "formDescriptionTooLong": "Données trop longs pour la description du formulaire",
+      "columnsRequired": "Les colonnes suivantes sont requises",
+      "selectAtleastOneColumn": "Au moins une colonne doit être sélectionnée",
+      "columnDescriptionNotFound": "Impossible de trouver la colonne de destination pour",
+      "duplicateMappingFound": "Cartographie en double trouvée, veuillez supprimer l'une des mappages",
+      "nullValueViolatesNotNull": "La valeur nulle viole la contrainte non nulle",
+      "sourceHasInvalidNumbers": "Les données source contient des nombres non valides",
+      "sourceHasInvalidBoolean": "Les données de source contient des valeurs booléennes non valides",
+      "invalidForm": "Forme non valide",
+      "formValidationFailed": "La validation du formulaire a échoué",
+      "youHaveBeenSignedOut": "Vous avez été déconnecté",
+      "failedToLoadList": "Échec de la liste de chargement",
+      "failedToLoadChildrenList": "Échec de la liste des enfants",
+      "deleteFailed": "Supprimer l'échec",
+      "unlinkFailed": "Échec de la non-linge",
+      "rowUpdateFailed": "La mise à jour des lignes a échoué",
+      "deleteRowFailed": "Échec de la suppression de la ligne",
+      "setFormDataFailed": "Échec de la définition des données de formulaire",
+      "formViewUpdateFailed": "Échec de la mise à jour de la vue du formulaire"
     },
     "toast": {
       "exportMetadata": "Les métadonnées de projet sont exportées avec succès",

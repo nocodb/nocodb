@@ -284,7 +284,10 @@
     "primaryKey": "Clave primaria",
     "hasMany": "tiene muchos",
     "belongsTo": "pertenece a",
-    "manyToMany": "tener muchas de las relaciones"
+    "manyToMany": "tener muchas de las relaciones",
+    "extraConnectionParameters": "Parámetros de conexión extra",
+    "commentsOnly": "Comentarios solamente",
+    "documentation": "Documentación"
   },
   "activity": {
     "createProject": "Crear proyecto",
@@ -397,7 +400,9 @@
     "clearCell": "Célula clara",
     "addFilterGroup": "Agregar grupo de filtro",
     "linkRecord": "Registro de enlace",
-    "addNewRecord": "Añadir nuevo registro"
+    "addNewRecord": "Añadir nuevo registro",
+    "useConnectionUrl": "Usar URL de conexión",
+    "toggleCommentsDraw": "Dibujo de comentarios de alternancia"
   },
   "tooltip": {
     "saveChanges": "Guardar cambios",
@@ -577,7 +582,31 @@
         "passwdRequired": "Contraseña requerida",
         "passwdLength": "Tu contraseña debe tener al menos 8 carácteres",
         "passwdMismatch": "Las contraseñas no coinciden"
-      }
+      },
+      "invalidURL": "URL invalida",
+      "internalError": "Ocurrió algún error interno",
+      "templateGeneratorNotFound": "¡No se puede encontrar el generador de plantillas!",
+      "fileUploadFailed": "No se pudo subir el archivo",
+      "primaryColumnUpdateFailed": "No se pudo actualizar la columna primaria",
+      "formDescriptionTooLong": "Datos demasiado largos para la descripción de la forma",
+      "columnsRequired": "Se requieren las siguientes columnas",
+      "selectAtleastOneColumn": "Al menos una columna debe ser seleccionada",
+      "columnDescriptionNotFound": "No puedo encontrar la columna de destino para",
+      "duplicateMappingFound": "Mapeo duplicado encontrado, elimine uno de los mapeo",
+      "nullValueViolatesNotNull": "El valor nulo viola la restricción no nula",
+      "sourceHasInvalidNumbers": "Los datos de origen contienen algunos números no válidos",
+      "sourceHasInvalidBoolean": "Los datos de origen contienen algunos valores booleanos no válidos",
+      "invalidForm": "Forma invalida",
+      "formValidationFailed": "Validación de formulario falló",
+      "youHaveBeenSignedOut": "Te has inscrito",
+      "failedToLoadList": "No se pudo cargar la lista",
+      "failedToLoadChildrenList": "No se pudo cargar la lista de niños",
+      "deleteFailed": "Eliminar falló",
+      "unlinkFailed": "No unk falló",
+      "rowUpdateFailed": "La actualización de la fila falló",
+      "deleteRowFailed": "No se pudo eliminar la fila",
+      "setFormDataFailed": "No se pudo establecer datos de formulario",
+      "formViewUpdateFailed": "No se pudo actualizar la vista de formulario"
     },
     "toast": {
       "exportMetadata": "Metadatos del proyecto exportados con éxito.",

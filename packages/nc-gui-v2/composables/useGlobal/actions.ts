@@ -1,5 +1,6 @@
 import { message } from 'ant-design-vue'
 import { Api } from 'nocodb-sdk'
+import { useI18n } from 'vue-i18n'
 import type { Actions, State } from './types'
 
 export function useGlobalActions(state: State): Actions {
@@ -29,6 +30,7 @@ export function useGlobalActions(state: State): Actions {
 
   /** manually try to refresh token */
   const refreshToken = async () => {
+    const { t } = useI18n()
     api.instance
       .post('/auth/refresh-token', null, {
         withCredentials: true,
@@ -39,7 +41,7 @@ export function useGlobalActions(state: State): Actions {
         }
       })
       .catch((err) => {
-        message.error(err.message || 'You have been signed out.')
+        message.error(err.message || t('msg.error.youHaveBeenSignedOut'))
         signOut()
       })
   }

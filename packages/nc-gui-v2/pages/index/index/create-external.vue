@@ -262,7 +262,7 @@ const testConnection = async () => {
 
           okText: t('activity.OkSaveProject'),
           okType: 'primary',
-          cancelText: 'Cancel',
+          cancelText: t('general.cancel'),
           onOk: createProject,
         })
       } else {
@@ -287,7 +287,7 @@ const handleImportURL = async () => {
     formState.dataSource.client = connectionConfig.client
     formState.dataSource.connection = { ...connectionConfig.connection }
   } else {
-    message.error('Invalid URL')
+    message.error(t('msg.error.invalidURL'))
   }
   importURLDlg.value = false
   updateSSLUse()
@@ -425,13 +425,13 @@ onMounted(() => {
           <a-collapse-panel key="1">
             <template #header>
               <div class="flex items-center gap-2">
+                <!--                Use Connection URL -->
                 <a-button type="default" class="nc-extdb-btn-import-url" @click.stop="importURLDlg = true">
-                  Use Connection URL
+                  {{ $t('activity.connectionURL') }}
                 </a-button>
                 <span>{{ $t('title.advancedParameters') }}</span>
               </div>
             </template>
-            <!--            todo:  add in i18n -->
             <a-form-item label="SSL mode">
               <a-select v-model:value="formState.sslUse" @select="onSSLModeChange">
                 <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
@@ -482,7 +482,8 @@ onMounted(() => {
 
             <a-divider />
 
-            <a-form-item class="mb-2" label="Extra connection parameters" v-bind="validateInfos.extraParameters">
+            <!--            Extra connection parameters -->
+            <a-form-item class="mb-2" :label="$t('labels.extraConnectionParameters')" v-bind="validateInfos.extraParameters">
               <a-card>
                 <div v-for="(item, index) of formState.extraParameters" :key="index">
                   <div class="flex py-1 items-center gap-1">
@@ -532,7 +533,7 @@ onMounted(() => {
           </a-button>
 
           <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !shadow" @click="createProject">
-            Submit
+            {{ $t('general.submit') }}
           </a-button>
         </div>
       </a-form-item>
@@ -542,7 +543,8 @@ onMounted(() => {
       <MonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
     </a-modal>
 
-    <a-modal v-model:visible="importURLDlg" title="Use Connection URL" width="600px" @ok="handleImportURL">
+    <!--    Use Connection URL -->
+    <a-modal v-model:visible="importURLDlg" :title="$t('activity.useConnectionUrl')" width="600px" @ok="handleImportURL">
       <a-input v-model:value="importURL" />
     </a-modal>
   </div>

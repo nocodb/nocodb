@@ -46,7 +46,7 @@ const setAsPrimaryValue = async () => {
 
     $e('a:column:set-primary')
   } catch (e) {
-    message.error('Failed to update primary column')
+    message.error(t('msg.error.primaryColumnUpdateFailed'))
   }
 }
 </script>

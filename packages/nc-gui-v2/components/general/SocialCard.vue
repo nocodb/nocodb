@@ -20,8 +20,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
         >
           <div class="ml-3 flex items-center text-sm">
             <MdiBookOpenOutline class="text-lg text-accent" />
-            <!--            todo:  i18n -->
-            <span class="ml-3">Documentation</span>
+            <span class="ml-3">{{ $t('labels.documentation') }}</span>
           </div>
         </nuxt-link>
       </a-list-item>
@@ -35,7 +34,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
           <div class="ml-3 flex items-center text-sm">
             <MdiJson class="text-lg text-green-500" />
             <!--            todo:  i18n -->
-            <span class="ml-3">API Documentation</span>
+            <span class="ml-3">API {{ $t('labels.documentation') }}</span>
           </div>
         </nuxt-link>
       </a-list-item>

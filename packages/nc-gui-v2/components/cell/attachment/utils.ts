@@ -1,5 +1,6 @@
 import { message } from 'ant-design-vue'
 import FileSaver from 'file-saver'
+import { useI18n } from 'vue-i18n'
 import {
   ColumnInj,
   EditModeInj,
@@ -56,6 +57,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const { api, isLoading } = useApi()
 
     const { files, open } = useFileDialog()
+
+    const { t } = useI18n()
 
     /** remove a file from our stored attachments (either locally stored or saved ones) */
     function removeFile(i: number) {
@@ -123,7 +126,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
           newAttachments.push(...data)
         } catch (e: any) {
-          message.error(e.message || 'Some internal error occurred')
+          message.error(e.message || t('msg.error.internalError'))
         }
       }
 

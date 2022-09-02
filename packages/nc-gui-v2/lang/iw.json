@@ -284,7 +284,10 @@
     "primaryKey": "מפתח ראשי",
     "hasMany": "יש לו הרבה",
     "belongsTo": "שייך ל",
-    "manyToMany": "יש הרבה קשר עד הרבה"
+    "manyToMany": "יש הרבה קשר עד הרבה",
+    "extraConnectionParameters": "פרמטרי חיבור נוספים",
+    "commentsOnly": "הערות בלבד",
+    "documentation": "תיעוד"
   },
   "activity": {
     "createProject": "צור פרויקט",
@@ -397,7 +400,9 @@
     "clearCell": "תא ברור",
     "addFilterGroup": "הוסף קבוצת פילטר",
     "linkRecord": "רשומת קישור",
-    "addNewRecord": "הוסף רשומה חדשה"
+    "addNewRecord": "הוסף רשומה חדשה",
+    "useConnectionUrl": "השתמש בכתובת אתר חיבור",
+    "toggleCommentsDraw": "ערוך הערות"
   },
   "tooltip": {
     "saveChanges": "שמור שינויים",
@@ -577,7 +582,31 @@
         "passwdRequired": "דרושה סיסמא",
         "passwdLength": "הסיסמה שלך חייבת להיות atleast 8 תווים",
         "passwdMismatch": "סיסמאות לא תואמות"
-      }
+      },
+      "invalidURL": "כתובת אתר לא חוקית",
+      "internalError": "אירעה שגיאה פנימית כלשהי",
+      "templateGeneratorNotFound": "לא ניתן למצוא מחולל תבניות!",
+      "fileUploadFailed": "העלאת הקובץ נכשלה",
+      "primaryColumnUpdateFailed": "עדכון העמודה הראשית נכשלה",
+      "formDescriptionTooLong": "נתונים ארוכים מדי לתיאור הטופס",
+      "columnsRequired": "העמודות הבאות נדרשות",
+      "selectAtleastOneColumn": "יש לבחור לפחות עמודה אחת",
+      "columnDescriptionNotFound": "לא יכול למצוא את עמודת היעד עבור",
+      "duplicateMappingFound": "מיפוי כפול נמצא, אנא הסר את אחד המיפוי",
+      "nullValueViolatesNotNull": "ערך אפס מפר את האילוץ הלא-לא-לא",
+      "sourceHasInvalidNumbers": "נתוני המקור מכילים מספרים לא חוקיים",
+      "sourceHasInvalidBoolean": "נתוני המקור מכילים כמה ערכים בוליאניים לא חוקיים",
+      "invalidForm": "טופס לא חוקי",
+      "formValidationFailed": "אימות טופס נכשל",
+      "youHaveBeenSignedOut": "הוצאתם",
+      "failedToLoadList": "טוען רשימה נכשלה",
+      "failedToLoadChildrenList": "נכשל רשימת ילדים נכשלה",
+      "deleteFailed": "מחק נכשל",
+      "unlinkFailed": "קישור נכשל",
+      "rowUpdateFailed": "עדכון השורה נכשל",
+      "deleteRowFailed": "מחיקת השורה נכשלה",
+      "setFormDataFailed": "הגדרת נתוני טופס נכשלה",
+      "formViewUpdateFailed": "עדכון תצוגת טופס נכשל"
     },
     "toast": {
       "exportMetadata": "פרויקט Metadata מיוצא בהצלחה",

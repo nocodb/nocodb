@@ -284,7 +284,10 @@
     "primaryKey": "首要的关键",
     "hasMany": "有很多",
     "belongsTo": "属于",
-    "manyToMany": "有很多关系"
+    "manyToMany": "有很多关系",
+    "extraConnectionParameters": "额外的连接参数",
+    "commentsOnly": "仅评论",
+    "documentation": "文档"
   },
   "activity": {
     "createProject": "创建项目",
@@ -397,7 +400,9 @@
     "clearCell": "透明细胞",
     "addFilterGroup": "添加过滤器组",
     "linkRecord": "链接记录",
-    "addNewRecord": "添加新记录"
+    "addNewRecord": "添加新记录",
+    "useConnectionUrl": "使用连接URL",
+    "toggleCommentsDraw": "切换评论绘制"
   },
   "tooltip": {
     "saveChanges": "保存更改",
@@ -577,7 +582,31 @@
         "passwdRequired": "密码必填",
         "passwdLength": "您的密码必须至少为8个字符",
         "passwdMismatch": "密码不匹配"
-      }
+      },
+      "invalidURL": "无效的网址",
+      "internalError": "发生了一些内部错误",
+      "templateGeneratorNotFound": "无法找到模板生成器！",
+      "fileUploadFailed": "无法上传文件",
+      "primaryColumnUpdateFailed": "无法更新主列",
+      "formDescriptionTooLong": "数据太长而无法表格描述",
+      "columnsRequired": "需要以下列",
+      "selectAtleastOneColumn": "至少必须选择一列",
+      "columnDescriptionNotFound": "找不到目标列",
+      "duplicateMappingFound": "找到了重复的映射，请删除其中一个映射",
+      "nullValueViolatesNotNull": "零值违反了无障碍约束",
+      "sourceHasInvalidNumbers": "源数据包含一些无效的数字",
+      "sourceHasInvalidBoolean": "源数据包含一些无效的布尔值",
+      "invalidForm": "无效的形式",
+      "formValidationFailed": "表单验证失败",
+      "youHaveBeenSignedOut": "你已经签了",
+      "failedToLoadList": "无法加载列表",
+      "failedToLoadChildrenList": "未能加载儿童清单",
+      "deleteFailed": "删除失败",
+      "unlinkFailed": "UNLINK失败",
+      "rowUpdateFailed": "行更新失败",
+      "deleteRowFailed": "无法删除行",
+      "setFormDataFailed": "无法设置表格数据",
+      "formViewUpdateFailed": "无法更新表单视图"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

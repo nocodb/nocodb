@@ -233,7 +233,7 @@ function missingRequiredColumnsValidation() {
   )
 
   if (missingRequiredColumns.length) {
-    message.error(`Following columns are required : ${missingRequiredColumns.map((c) => c.title).join(', ')}`)
+    message.error(`${t('msg.error.columnsRequired')} : ${missingRequiredColumns.map((c) => c.title).join(', ')}`)
     return false
   }
 
@@ -242,7 +242,7 @@ function missingRequiredColumnsValidation() {
 
 function atLeastOneEnabledValidation() {
   if (srcDestMapping.value.filter((v) => v.enabled === true).length === 0) {
-    message.error('At least one column has to be selected')
+    message.error(t('msg.error.selectAtleastOneColumn'))
     return false
   }
 
@@ -258,12 +258,12 @@ function fieldsValidation(record: Record<string, any>) {
   const tableName = meta?.value.title || ''
 
   if (!record.destCn) {
-    message.error(`Cannot find the destination column for ${record.srcCn}`)
+    message.error(`${t('msg.error.columnDescriptionNotFound')} ${record.srcCn}`)
     return false
   }
 
   if (srcDestMapping.value.filter((v) => v.destCn === record.destCn).length > 1) {
-    message.error('Duplicate mapping found, please remove one of the mapping')
+    message.error(t('msg.error.duplicateMappingFound'))
     return false
   }
 
@@ -276,7 +276,7 @@ function fieldsValidation(record: Record<string, any>) {
         .slice(0, maxRowsToParse)
         .some((r: Record<string, any>) => r[record.srcCn] === null || r[record.srcCn] === undefined || r[record.srcCn] === '')
     ) {
-      message.error('null value violates not-null constraint')
+      message.error(t('msg.error.nullValueViolatesNotNull'))
     }
   }
 
@@ -289,7 +289,7 @@ function fieldsValidation(record: Record<string, any>) {
             (r: Record<string, any>) => r[record.sourceCn] !== null && r[record.srcCn] !== undefined && isNaN(+r[record.srcCn]),
           )
       ) {
-        message.error('Source data contains some invalid numbers')
+        message.error(t('msg.error.sourceHasInvalidNumbers'))
         return false
       }
 
@@ -319,7 +319,7 @@ function fieldsValidation(record: Record<string, any>) {
           return false
         })
       ) {
-        message.error('Source data contains some invalid boolean values')
+        message.error(t('msg.error.sourceHasInvalidBoolean'))
 
         return false
       }

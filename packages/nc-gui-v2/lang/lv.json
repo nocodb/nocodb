@@ -284,7 +284,10 @@
     "primaryKey": "Primārā atslēga",
     "hasMany": "ir daudz",
     "belongsTo": "pieder",
-    "manyToMany": "ir daudz pret daudzām attiecībām"
+    "manyToMany": "ir daudz pret daudzām attiecībām",
+    "extraConnectionParameters": "Papildu savienojuma parametri",
+    "commentsOnly": "Tikai komentāri",
+    "documentation": "Dokumentācija"
   },
   "activity": {
     "createProject": "Izveidot projektu",
@@ -397,7 +400,9 @@
     "clearCell": "Dzidra šūna",
     "addFilterGroup": "Pievienojiet filtru grupu",
     "linkRecord": "Link Record",
-    "addNewRecord": "Pievienojiet jaunu ierakstu"
+    "addNewRecord": "Pievienojiet jaunu ierakstu",
+    "useConnectionUrl": "Izmantojiet savienojuma URL",
+    "toggleCommentsDraw": "Pārslēgt komentāru zīmējumus"
   },
   "tooltip": {
     "saveChanges": "Saglabāt izmaiņas",
@@ -577,7 +582,31 @@
         "passwdRequired": "Parole ir obligāta",
         "passwdLength": "Parolei jābūt vismaz 8 simboli",
         "passwdMismatch": "Paroles nesakrīt"
-      }
+      },
+      "invalidURL": "Nederīgs URL",
+      "internalError": "Notika kāda iekšēja kļūda",
+      "templateGeneratorNotFound": "Veidņu ģeneratoru nevar atrast!",
+      "fileUploadFailed": "Neizdevās augšupielādēt failu",
+      "primaryColumnUpdateFailed": "Neizdevās atjaunināt primāro kolonnu",
+      "formDescriptionTooLong": "Dati pārāk ilgi formas aprakstam",
+      "columnsRequired": "Nepieciešamas šādas kolonnas",
+      "selectAtleastOneColumn": "Jāizvēlas vismaz viena kolonna",
+      "columnDescriptionNotFound": "Nevar atrast galamērķa kolonnu",
+      "duplicateMappingFound": "Dublikāta kartēšana atrasta, lūdzu, noņemiet vienu no kartēšanu",
+      "nullValueViolatesNotNull": "NULL vērtība pārkāpj ne-null ierobežojumu",
+      "sourceHasInvalidNumbers": "Avota dati satur dažus nederīgus skaitļus",
+      "sourceHasInvalidBoolean": "Avota dati satur dažas nederīgas Būla vērtības",
+      "invalidForm": "Nederīga forma",
+      "formValidationFailed": "Veidlapas validācija neizdevās",
+      "youHaveBeenSignedOut": "Jūs esat izrakstīts",
+      "failedToLoadList": "Neizdevās ielādēt sarakstu",
+      "failedToLoadChildrenList": "Neizdevās ielādēt bērnu sarakstu",
+      "deleteFailed": "Dzēst neizdevās",
+      "unlinkFailed": "Neizdalīt neizdevās",
+      "rowUpdateFailed": "Rindas atjauninājums neizdevās",
+      "deleteRowFailed": "Neizdevās izdzēst rindu",
+      "setFormDataFailed": "Neizdevās iestatīt veidlapas datus",
+      "formViewUpdateFailed": "Neizdevās atjaunināt veidlapas skatu"
     },
     "toast": {
       "exportMetadata": "Projekta metadati eksportēti veiksmīgi",

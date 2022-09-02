@@ -44,13 +44,14 @@ const iconColor = '#1890ff'
     <div class="flex-1" />
     <a-tooltip placement="bottom">
       <template #title>
-        <div class="text-center w-full">Reload</div>
+        <div class="text-center w-full">{{ $t('general.reload') }}</div>
       </template>
       <mdi-reload class="cursor-pointer select-none text-gray-500" />
     </a-tooltip>
     <a-tooltip v-if="!isSqlView" placement="bottom">
+      <!--      Toggle comments draw -->
       <template #title>
-        <div class="text-center w-full">Toggle comments draw</div>
+        <div class="text-center w-full">{{ $t('activity.toggleCommentsDraw') }}</div>
       </template>
       <MdiCommentTextOutline
         v-if="isUIAllowed('rowComments') && !isNew"

@@ -284,7 +284,10 @@
     "primaryKey": "Chiave primaria",
     "hasMany": "ha molti",
     "belongsTo": "appartiene a",
-    "manyToMany": "avere molte per molte relazioni"
+    "manyToMany": "avere molte per molte relazioni",
+    "extraConnectionParameters": "Parametri di connessione extra",
+    "commentsOnly": "Solo commenti",
+    "documentation": "Documentazione"
   },
   "activity": {
     "createProject": "Crea progetto",
@@ -397,7 +400,9 @@
     "clearCell": "Cella chiara",
     "addFilterGroup": "Aggiungi gruppo di filtri",
     "linkRecord": "Record di collegamento",
-    "addNewRecord": "Aggiungi nuovo record"
+    "addNewRecord": "Aggiungi nuovo record",
+    "useConnectionUrl": "Utilizzare l'URL di connessione",
+    "toggleCommentsDraw": "Attiva i commenti Disegna"
   },
   "tooltip": {
     "saveChanges": "Salva le modifiche",
@@ -577,7 +582,31 @@
         "passwdRequired": "È richiesta la password",
         "passwdLength": "La tua password deve essere di almeno 8 caratteri",
         "passwdMismatch": "le passwords non corrispondono"
-      }
+      },
+      "invalidURL": "URL non valido",
+      "internalError": "Si è verificato un errore interno",
+      "templateGeneratorNotFound": "Il generatore di template non può essere trovato!",
+      "fileUploadFailed": "Impossibile caricare il file",
+      "primaryColumnUpdateFailed": "Impossibile aggiornare la colonna primaria",
+      "formDescriptionTooLong": "Dati troppo a lungo per la descrizione del modulo",
+      "columnsRequired": "Sono richieste le seguenti colonne",
+      "selectAtleastOneColumn": "È necessario selezionare almeno una colonna",
+      "columnDescriptionNotFound": "Impossibile trovare la colonna di destinazione per",
+      "duplicateMappingFound": "Mappatura duplicata trovata, rimuovi una delle mappature",
+      "nullValueViolatesNotNull": "Il valore null viola non vincolo non null",
+      "sourceHasInvalidNumbers": "I dati di origine contiene alcuni numeri non validi",
+      "sourceHasInvalidBoolean": "I dati di origine contiene alcuni valori booleani non validi",
+      "invalidForm": "Forma non valida",
+      "formValidationFailed": "Convalida del modulo non riuscita",
+      "youHaveBeenSignedOut": "Sei stato disconnesso",
+      "failedToLoadList": "Impossibile caricare l'elenco",
+      "failedToLoadChildrenList": "Impossibile caricare l'elenco dei bambini",
+      "deleteFailed": "Elimina non riuscita",
+      "unlinkFailed": "UNLINK non è riuscito",
+      "rowUpdateFailed": "Aggiornamento della riga non riuscita",
+      "deleteRowFailed": "Impossibile eliminare la riga",
+      "setFormDataFailed": "Impossibile impostare i dati del modulo",
+      "formViewUpdateFailed": "Impossibile aggiornare la vista del modulo"
     },
     "toast": {
       "exportMetadata": "Metadati del progetto esportati con successo",

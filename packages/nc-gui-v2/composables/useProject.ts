@@ -78,8 +78,10 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     if (projectType === 'base') {
       const baseData = await $api.public.sharedBaseGet(route.params.projectId as string)
       project.value = await $api.project.read(baseData.project_id!)
-    } else {
+    } else if (projectId.value) {
       project.value = await $api.project.read(projectId.value)
+    } else {
+      return
     }
     await loadProjectRoles()
     await loadTables()

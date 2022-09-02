@@ -2,6 +2,7 @@
 import { message } from 'ant-design-vue'
 import { Chrome } from '@ckpack/vue-color'
 import tinycolor from 'tinycolor2'
+import { useI18n } from 'vue-i18n'
 import {
   computed,
   definePageMeta,
@@ -22,7 +23,6 @@ import {
   watch,
 } from '#imports'
 import { TabType } from '~/composables'
-import {useI18n} from "vue-i18n";
 
 definePageMeta({
   hideHeader: true,

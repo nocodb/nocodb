@@ -3,6 +3,8 @@ import request from 'supertest';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {
+    case UITypes.ID:
+      return index;
     case UITypes.Number:
       return index;
     case UITypes.SingleLineText:

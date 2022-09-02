@@ -320,6 +320,7 @@ class BaseModelSqlv2 {
     return (this.isPg ? res.rows[0] : res[0][0] ?? res[0]).count;
   }
 
+  // todo: add support for sortArrJson and filterArrJson
   async groupBy(
     args: {
       where?: string;

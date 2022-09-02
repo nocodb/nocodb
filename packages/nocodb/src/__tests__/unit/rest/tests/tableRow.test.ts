@@ -10,6 +10,7 @@ import {
   createRollupColumn,
 } from './factory/column';
 import { createTable } from './factory/table';
+import { createRow } from './factory/row';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -985,6 +986,120 @@ function tableTest() {
       nestedRentalResponse.length === 2
     ) {
       throw new Error('Wrong nested fields');
+    }
+  });
+
+  it('Groupby desc sorted and with rollup table data  list with required columns', async function () {
+    const firstNameColumn = customerColumns.find(
+      (col) => col.title === 'FirstName'
+    );
+
+    const rollupColumn = await createRollupColumn(context, {
+      project: sakilaProject,
+      title: 'Rollup',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: 'rental',
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const visibleColumns = [firstNameColumn];
+    const sortInfo = `-FirstName, +${rollupColumn.title}`;
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: sortInfo,
+        column_name: firstNameColumn.column_name,
+      })
+      .expect(200);
+
+    if (
+      response.body.list[4]['first_name'] !== 'WILLIE' ||
+      response.body.list[4]['count'] !== 2
+    )
+      throw new Error('Wrong groupby');
+  });
+
+  it('Groupby desc sorted and with rollup table data  list with required columns', async function () {
+    const firstNameColumn = customerColumns.find(
+      (col) => col.title === 'FirstName'
+    );
+
+    const rollupColumn = await createRollupColumn(context, {
+      project: sakilaProject,
+      title: 'Rollup',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: 'rental',
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const visibleColumns = [firstNameColumn];
+    const sortInfo = `-FirstName, +${rollupColumn.title}`;
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/groupby`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: sortInfo,
+        column_name: firstNameColumn.column_name,
+        offset: 4,
+      })
+      .expect(200);
+
+    if (
+      response.body.list[0]['first_name'] !== 'WILLIE' ||
+      response.body.list[0]['count'] !== 2
+    )
+      throw new Error('Wrong groupby');
+  });
+
+  it('Read table row', async function () {
+    const listResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    const row = listResponse.body.list[0];
+
+    const readResponse = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${row['CustomerId']}`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if (
+      row['CustomerId'] !== readResponse.body['CustomerId'] ||
+      row['FirstName'] !== readResponse.body['FirstName']
+    ) {
+      throw new Error('Wrong read');
+    }
+  });
+
+  it('Update table row', async function () {
+    const table = await createTable(context, project);
+    const columns = await table.getColumns();
+    const row = await createRow(context, project, table, columns, 0);
+
+    const updateResponse = await request(context.app)
+      .patch(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
+      .set('xc-auth', context.token)
+      .send({
+        title: 'Updated',
+      })
+      .expect(200);
+
+    if (updateResponse.body['Title'] !== 'Updated') {
+      throw new Error('Wrong update');
     }
   });
 }

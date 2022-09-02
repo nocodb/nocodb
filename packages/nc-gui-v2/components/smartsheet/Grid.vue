@@ -397,7 +397,7 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
                       <div
                         v-if="!readOnly || !isLocked"
                         class="nc-row-no text-xs text-gray-500"
-                        :class="{ hidden: row.rowMeta.selected }"
+                        :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                       >
                         {{ rowIndex + 1 }}
                       </div>
@@ -620,7 +620,7 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
   }
 
   &:hover {
-    .nc-row-no {
+    .nc-row-no.toggle {
       @apply hidden;
     }
 

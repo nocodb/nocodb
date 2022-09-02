@@ -91,21 +91,25 @@ const themeAccentColor = ref<any>(theme.value.accentColor)
 const { t } = useI18n()
 
 // Chrome provides object so if custom picker used we only edit primary otherwise use complement as accent
-watch(themePrimaryColor, (nextColor) => {
+watch(themePrimaryColor, async (nextColor) => {
   const hexColor = nextColor.hex8 ? nextColor.hex8 : nextColor
   const tcolor = tinycolor(hexColor)
   if (tcolor) {
     const complement = tcolor.complement()
-    themeAccentColor.value = nextColor.hex8 ? theme.value.accentColor : complement.toHex8String()
-    saveTheme({
+    await saveTheme({
       primaryColor: hexColor,
       accentColor: themeAccentColor.value,
     })
+    themeAccentColor.value = nextColor.hex8 ? theme.value.accentColor : complement.toHex8String()
   }
 })
 
 watch(themeAccentColor, (nextColor) => {
   const hexColor = nextColor.hex8 ? nextColor.hex8 : nextColor
+
+  // skip if the color is same as saved
+  if (hexColor === theme.value.accentColor) return
+
   saveTheme({
     primaryColor: theme.value.primaryColor,
     accentColor: hexColor,
@@ -137,7 +141,6 @@ const copyProjectInfo = async () => {
 const copyAuthToken = async () => {
   try {
     await copy(token.value!)
-
     // Copied to clipboard
     message.info(t('msg.info.copiedToClipboard'))
   } catch (e: any) {

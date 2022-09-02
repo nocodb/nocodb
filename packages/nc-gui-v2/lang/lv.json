@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Swagger dokumentācija",
     "quickImportFrom": "Ātra importēšana no",
     "quickImport": "Ātra importēšana",
-    "advancedSettings": "Uzlaboti iestatījumi"
+    "advancedSettings": "Uzlaboti iestatījumi",
+    "codeSnippet": "Koda fragments"
   },
   "labels": {
     "notifyVia": "Paziņot izmantojot",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Importēt formulas kolonnas",
     "noData": "Nav datu",
     "goToDashboard": "Dodieties uz informācijas paneli",
-    "importing": "Importēšana"
+    "importing": "Importēšana",
+    "flattenNested": "Saplaciniet ligzdotu",
+    "downloadAllowed": "Lejupielādēt atļauts",
+    "weAreHiring": "Mēs pieņemam darbā!"
   },
   "activity": {
     "createProject": "Izveidot projektu",
@@ -442,7 +446,7 @@
       "upload_sub": "vai vilkt un nomest datni",
       "excelSupport": "Atbalsta: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Ievadīt Excel datnes saiti",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Ievadīt CSV datnes saiti",
       "footMsg": "# ierakstu analizēšanai lai secinātu datu tipus",
       "excelImport": "lapa(s) ir pieejamas importēšanai",
       "exportMetadata": "Vai tu vēlies eksportēt metadatus no tabulām?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Tabulas nosaukums ar kādu tā tiks saglabāta datubāzē",
       "airtable": {
         "credentials": "Kur to atrast?"
+      },
+      "import": {
+        "clickOrDrag": "Noklikšķiniet vai velciet failu uz šo apgabalu, lai augšupielādētu"
       }
     },
     "error": {

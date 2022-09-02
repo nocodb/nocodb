@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Swagger Documentation",
     "quickImportFrom": "Quick Import From",
     "quickImport": "Quick Import",
-    "advancedSettings": "Advanced Settings"
+    "advancedSettings": "Advanced Settings",
+    "codeSnippet": "Code Snippet"
   },
   "labels": {
     "notifyVia": "Notify Via",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Import Formula Columns",
     "noData": "No Data",
     "goToDashboard": "Go to Dashboard",
-    "importing": "Importing"
+    "importing": "Importing",
+    "flattenNested": "Flatten Nested",
+    "downloadAllowed": "Download allowed",
+    "weAreHiring": "We are Hiring!"
   },
   "activity": {
     "createProject": "Create Project",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Table name as saved in database",
       "airtable": {
         "credentials": "Where to find this?"
+      },
+      "import": {
+        "clickOrDrag": "Click or drag file to this area to upload"
       }
     },
     "error": {

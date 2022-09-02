@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Documentación de arrogancia",
     "quickImportFrom": "Importación rápida de",
     "quickImport": "Importación rápida",
-    "advancedSettings": "Ajustes avanzados"
+    "advancedSettings": "Ajustes avanzados",
+    "codeSnippet": "Fragmento de código"
   },
   "labels": {
     "notifyVia": "Notificar a través de",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Importar columnas de fórmula",
     "noData": "Sin datos",
     "goToDashboard": "Ir al panel de control",
-    "importing": "Importador"
+    "importing": "Importador",
+    "flattenNested": "Aplanar anidado",
+    "downloadAllowed": "Descargar permitido",
+    "weAreHiring": "¡Estamos contratando!"
   },
   "activity": {
     "createProject": "Crear proyecto",
@@ -442,7 +446,7 @@
       "upload_sub": "o arrastra y suelta el archivo",
       "excelSupport": "Compatible: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Ingrese la URL del fichero Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Ingrese la URL del fichero CSV",
       "footMsg": "# de filas para analizar para inferir el tipo de datos",
       "excelImport": "hoja(s) están disponibles para importación",
       "exportMetadata": "¿Quieres exportar metadatos de Meta Tables?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Nombre de la tabla como se guardó en la base de datos",
       "airtable": {
         "credentials": "¿Dónde encontrar esto?"
+      },
+      "import": {
+        "clickOrDrag": "Haga clic o arrastre el archivo a esta área para cargar"
       }
     },
     "error": {

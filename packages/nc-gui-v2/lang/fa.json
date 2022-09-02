@@ -192,7 +192,8 @@
     "swaggerDocumentation": "مستند سازی",
     "quickImportFrom": "واردات سریع از",
     "quickImport": "واردات",
-    "advancedSettings": "تنظیمات پیشرفته"
+    "advancedSettings": "تنظیمات پیشرفته",
+    "codeSnippet": "قطعه کد"
   },
   "labels": {
     "notifyVia": "اعلان از طریق",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "ستون های فرمول را وارد کنید",
     "noData": "اطلاعاتی وجود ندارد",
     "goToDashboard": "به داشبورد بروید",
-    "importing": "وارد کننده"
+    "importing": "وارد کننده",
+    "flattenNested": "مسطح تو در تو",
+    "downloadAllowed": "بارگیری مجاز",
+    "weAreHiring": "ما در حال استخدام هستیم!"
   },
   "activity": {
     "createProject": "ایجاد پروژه",
@@ -442,7 +446,7 @@
       "upload_sub": "یا فایل را بکشید و رها کنید",
       "excelSupport": "فرمت‌های پشتیبانی شده: xls - xlsx - xlsm - ods - ots",
       "excelURL": "URL فایل Excel را انتخاب کنید",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "URL فایل CSV را انتخاب کنید",
       "footMsg": "تعداد ردیف‌ها برای parse جهت یافتن نوع داده",
       "excelImport": "صفحه(های) آماده برای ورود",
       "exportMetadata": "آیا می‌خواهید فراداده را از فراجدول‌ها خارج کنید؟",
@@ -528,6 +532,9 @@
       "tableNameInDb": "نام جدول به عنوان ذخیره شده در پایگاه داده",
       "airtable": {
         "credentials": "از کجا این را پیدا کنیم؟"
+      },
+      "import": {
+        "clickOrDrag": "برای بارگذاری ، روی این منطقه کلیک یا بکشید"
       }
     },
     "error": {

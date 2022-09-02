@@ -192,7 +192,8 @@
     "swaggerDocumentation": "炫耀文檔",
     "quickImportFrom": "快速導入",
     "quickImport": "快速導入",
-    "advancedSettings": "高級設置"
+    "advancedSettings": "高級設置",
+    "codeSnippet": "代碼段"
   },
   "labels": {
     "notifyVia": "透過...通知",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "導入公式列",
     "noData": "沒有數據",
     "goToDashboard": "去儀表板",
-    "importing": "輸入"
+    "importing": "輸入",
+    "flattenNested": "扁平的嵌套",
+    "downloadAllowed": "下載允許",
+    "weAreHiring": "我們正在招聘！"
   },
   "activity": {
     "createProject": "建立專案",
@@ -528,6 +532,9 @@
       "tableNameInDb": "數據庫中保存的表名",
       "airtable": {
         "credentials": "在哪裡可以找到這個？"
+      },
+      "import": {
+        "clickOrDrag": "單擊或將文件拖到此區域上傳"
       }
     },
     "error": {

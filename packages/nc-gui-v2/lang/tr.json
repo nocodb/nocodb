@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Swagger belgeleri",
     "quickImportFrom": "Hızlı ithalat",
     "quickImport": "Hızlı İthalat",
-    "advancedSettings": "Gelişmiş Ayarlar"
+    "advancedSettings": "Gelişmiş Ayarlar",
+    "codeSnippet": "Kod snippet"
   },
   "labels": {
     "notifyVia": "Aracılığıyla Bildir",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Formül sütunlarını içe aktarın",
     "noData": "Veri yok",
     "goToDashboard": "Gösterge Tablosuna Git",
-    "importing": "İthalat"
+    "importing": "İthalat",
+    "flattenNested": "İç içe düzleştirmek",
+    "downloadAllowed": "İzine İzin Ver",
+    "weAreHiring": "İşe alıyoruz!"
   },
   "activity": {
     "createProject": "Proje Oluştur",
@@ -442,7 +446,7 @@
       "upload_sub": "veya dosyayı sürükleyip bırakın",
       "excelSupport": "Desteklenen: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Excel dosyası linkini girin",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "CSV dosyası linkini girin",
       "footMsg": "Veri türünü bulmak için ayrıştırılacak satır sayısı #",
       "excelImport": "sayfa(lar) içe aktarılabilir",
       "exportMetadata": "Meta verileri meta tablolarından dışa aktarmak ister misiniz?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Veritabanında kayıt edildiği şekilde tablo adları",
       "airtable": {
         "credentials": "Bunu nerede bulabilirim?"
+      },
+      "import": {
+        "clickOrDrag": "Yüklemek için bu alana dosyayı tıklayın veya sürükleyin"
       }
     },
     "error": {

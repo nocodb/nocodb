@@ -192,7 +192,8 @@
     "swaggerDocumentation": "炫耀文档",
     "quickImportFrom": "快速导入",
     "quickImport": "快速导入",
-    "advancedSettings": "高级设置"
+    "advancedSettings": "高级设置",
+    "codeSnippet": "代码段"
   },
   "labels": {
     "notifyVia": "通知通过",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "导入公式列",
     "noData": "没有数据",
     "goToDashboard": "去仪表板",
-    "importing": "输入"
+    "importing": "输入",
+    "flattenNested": "扁平的嵌套",
+    "downloadAllowed": "下载允许",
+    "weAreHiring": "我们正在招聘！"
   },
   "activity": {
     "createProject": "创建项目",
@@ -442,7 +446,7 @@
       "upload_sub": "或拖放文件",
       "excelSupport": "支持：.xls，.xlsx，.xlsm，.ods，.ots",
       "excelURL": "输入Excel文件URL",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "输入CSV文件URL",
       "footMsg": "要解析为推断数据类型的行数",
       "excelImport": "可用于导入的表格",
       "exportMetadata": "您想从元表导出元数据吗？",
@@ -528,6 +532,9 @@
       "tableNameInDb": "数据库中保存的表名",
       "airtable": {
         "credentials": "在哪里可以找到这个？"
+      },
+      "import": {
+        "clickOrDrag": "单击或将文件拖到此区域上传"
       }
     },
     "error": {

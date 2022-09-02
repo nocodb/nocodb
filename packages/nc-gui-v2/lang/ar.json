@@ -192,7 +192,8 @@
     "swaggerDocumentation": "الوثائق Swagger",
     "quickImportFrom": "استيراد سريع من",
     "quickImport": "استيراد سريع",
-    "advancedSettings": "إعدادات متقدمة"
+    "advancedSettings": "إعدادات متقدمة",
+    "codeSnippet": "رمز مقتطف"
   },
   "labels": {
     "notifyVia": "إعلام عبر",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "استيراد أعمدة الصيغة",
     "noData": "لايوجد بيانات",
     "goToDashboard": "الذهاب إلى لوحة القيادة",
-    "importing": "الاستيراد"
+    "importing": "الاستيراد",
+    "flattenNested": "تسطح متداخلة",
+    "downloadAllowed": "تحميل مسموح به",
+    "weAreHiring": "نحن نوظف!"
   },
   "activity": {
     "createProject": "إنشاء مشروع",
@@ -528,6 +532,9 @@
       "tableNameInDb": "اسم الجدول كما تم حفظه في قاعدة البيانات",
       "airtable": {
         "credentials": "أين تجد هذا؟"
+      },
+      "import": {
+        "clickOrDrag": "انقر أو اسحب الملف إلى هذه المنطقة للتحميل"
       }
     },
     "error": {

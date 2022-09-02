@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Документація Swagger",
     "quickImportFrom": "Швидкий імпорт з",
     "quickImport": "Швидкий імпорт",
-    "advancedSettings": "Розширені налаштування"
+    "advancedSettings": "Розширені налаштування",
+    "codeSnippet": "Фрагмент коду"
   },
   "labels": {
     "notifyVia": "Повідомити через",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Імпортувати стовпці формули",
     "noData": "Немає даних",
     "goToDashboard": "Перейдіть на інформаційну панель",
-    "importing": "Імпорт"
+    "importing": "Імпорт",
+    "flattenNested": "Вкладений вкладений",
+    "downloadAllowed": "Завантажити дозволено",
+    "weAreHiring": "Ми наймаємо!"
   },
   "activity": {
     "createProject": "Створити проект",
@@ -442,7 +446,7 @@
       "upload_sub": "або перетягніть файл",
       "excelSupport": "Підтримується: .xls, .xlsx, .xlsm, .ods, .ot",
       "excelURL": "Введіть URL-адресу Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Введіть URL-адресу CSV",
       "footMsg": "# рядків, щоб розібрати для виведення даних",
       "excelImport": "Лист (и) доступні для імпорту",
       "exportMetadata": "Ви хочете експортувати метадані з мета-таблиць?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Назва таблиці, як збережено в базі даних",
       "airtable": {
         "credentials": "Де це знайти?"
+      },
+      "import": {
+        "clickOrDrag": "Клацніть або перетягніть файл у цю область, щоб завантажити"
       }
     },
     "error": {

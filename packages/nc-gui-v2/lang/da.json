@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Swagger -dokumentation",
     "quickImportFrom": "Hurtig import fra",
     "quickImport": "Hurtig import",
-    "advancedSettings": "Avancerede indstillinger"
+    "advancedSettings": "Avancerede indstillinger",
+    "codeSnippet": "Kodestykket"
   },
   "labels": {
     "notifyVia": "Bemærk Via.",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Importformelkolonner",
     "noData": "Ingen data",
     "goToDashboard": "Gå til dashboard",
-    "importing": "Import"
+    "importing": "Import",
+    "flattenNested": "Flad nestede",
+    "downloadAllowed": "Download tilladt",
+    "weAreHiring": "Vi ansætter!"
   },
   "activity": {
     "createProject": "Opret projekt",
@@ -442,7 +446,7 @@
       "upload_sub": "eller træk og slip filen",
       "excelSupport": "Støttet: .xls, .xlsx, .xlsm, .ods, .Oer",
       "excelURL": "Indtast Excel-fil-URL",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Indtast CSV-fil-URL",
       "footMsg": "# af rækker til at analysere for at udlede datatype",
       "excelImport": "ark (r) er tilgængelige for import",
       "exportMetadata": "Ønsker du at eksportere metadata fra metaborde?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Tabelnavn som gemt i databasen",
       "airtable": {
         "credentials": "Hvor finder jeg dette?"
+      },
+      "import": {
+        "clickOrDrag": "Klik eller træk fil til dette område for at uploade"
       }
     },
     "error": {

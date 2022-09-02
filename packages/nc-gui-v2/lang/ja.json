@@ -192,7 +192,8 @@
     "swaggerDocumentation": "スワッガードキュメント",
     "quickImportFrom": "からのクイックインポート",
     "quickImport": "クイックインポート",
-    "advancedSettings": "高度な設定"
+    "advancedSettings": "高度な設定",
+    "codeSnippet": "コードスニペット"
   },
   "labels": {
     "notifyVia": "次で通知する",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "式列をインポートします",
     "noData": "データなし",
     "goToDashboard": "ダッシュボードに進め",
-    "importing": "インポート"
+    "importing": "インポート",
+    "flattenNested": "ネストされた平ら",
+    "downloadAllowed": "ダウンロード許可",
+    "weAreHiring": "私達は雇っています！"
   },
   "activity": {
     "createProject": "プロジェクトを作成",
@@ -442,7 +446,7 @@
       "upload_sub": "またはファイルをドラッグ & ドロップ",
       "excelSupport": "サポートしているファイル形式：.xls、.xlsx、.xlsm、.ods、.ots",
       "excelURL": "ExcelファイルのURLを入力してください",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "CSVファイルのURLを入力してください",
       "footMsg": "# データ型を推測するために解析する行数",
       "excelImport": "シートはインポート可能です",
       "exportMetadata": "メタテーブルからメタデータをエクスポートしますか？",
@@ -528,6 +532,9 @@
       "tableNameInDb": "データベースに保存されているテーブル名",
       "airtable": {
         "credentials": "これをどこで見つけるのですか？"
+      },
+      "import": {
+        "clickOrDrag": "[ファイル]をクリックまたはドラッグこのエリアにドラッグしてアップロードします"
       }
     },
     "error": {

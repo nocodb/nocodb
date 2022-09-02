@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Swagger -dokumentaatio",
     "quickImportFrom": "Nopea tuonti",
     "quickImport": "Tuonti",
-    "advancedSettings": "Lisäasetukset"
+    "advancedSettings": "Lisäasetukset",
+    "codeSnippet": "Koodinpätkä"
   },
   "labels": {
     "notifyVia": "Ilmoittaa kautta",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Tuo kaava -sarakkeet",
     "noData": "Ei dataa",
     "goToDashboard": "Siirtyä kojelautaan",
-    "importing": "Tuonti"
+    "importing": "Tuonti",
+    "flattenNested": "Litisteinen sisäkkäinen",
+    "downloadAllowed": "Lataa sallittua",
+    "weAreHiring": "Palkkaamme!"
   },
   "activity": {
     "createProject": "Luo projekti",
@@ -442,7 +446,7 @@
       "upload_sub": "tai vedä ja pudota tiedosto",
       "excelSupport": "Tuetut: .xls, .xlsx, .xlsm, .odit,.",
       "excelURL": "Anna Excel-tiedoston URL-osoite",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Anna CSV-tiedoston URL-osoite",
       "footMsg": "# rivien jäsentää tietotekniikkaa",
       "excelImport": "arkki (t) on saatavilla tuonti",
       "exportMetadata": "Haluatko viedä metatietoja metapöydistä?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Taulukon nimi tallennetaan tietokantaan",
       "airtable": {
         "credentials": "Mistä löytää tämä?"
+      },
+      "import": {
+        "clickOrDrag": "Napsauta tai vedä tiedostoa tälle alueelle ladataksesi"
       }
     },
     "error": {

@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Tài liệu vênh vang",
     "quickImportFrom": "Nhập nhanh từ",
     "quickImport": "Nhập nhanh",
-    "advancedSettings": "Cài đặt nâng cao"
+    "advancedSettings": "Cài đặt nâng cao",
+    "codeSnippet": "Mã mã"
   },
   "labels": {
     "notifyVia": "Thông báo qua",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Nhập các cột công thức",
     "noData": "Không có dữ liệu",
     "goToDashboard": "Đi đến bảng điều khiển",
-    "importing": "Nhập khẩu"
+    "importing": "Nhập khẩu",
+    "flattenNested": "Làm phẳng lồng nhau",
+    "downloadAllowed": "Tải xuống cho phép",
+    "weAreHiring": "Chúng tôi đang thuê!"
   },
   "activity": {
     "createProject": "Tạo dự án",
@@ -442,7 +446,7 @@
       "upload_sub": "hoặc kéo và thả tập tin",
       "excelSupport": "Được hỗ trợ: .xls, .xlsx, .xlsm, .ods,.",
       "excelURL": "Nhập URL tệp Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Nhập URL tệp CSV",
       "footMsg": "# các hàng để phân tích để suy ra kiểu dữ liệu",
       "excelImport": "(các) tấm có sẵn để nhập khẩu",
       "exportMetadata": "Bạn có muốn xuất siêu dữ liệu từ bảng meta?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Tên bảng như đã lưu trong cơ sở dữ liệu",
       "airtable": {
         "credentials": "Tìm cái này ở đâu?"
+      },
+      "import": {
+        "clickOrDrag": "Nhấp hoặc kéo tệp đến khu vực này để tải lên"
       }
     },
     "error": {

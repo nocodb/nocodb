@@ -192,7 +192,8 @@
     "swaggerDocumentation": "स्वैगर प्रलेखन",
     "quickImportFrom": "से त्वरित आयात",
     "quickImport": "त्वरित आयात",
-    "advancedSettings": "एडवांस सेटिंग"
+    "advancedSettings": "एडवांस सेटिंग",
+    "codeSnippet": "सांकेतिक टुकड़ा"
   },
   "labels": {
     "notifyVia": "Notify Via",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "आयात सूत्र स्तंभ",
     "noData": "कोई डेटा नहीं",
     "goToDashboard": "डैशबोर्ड पर जाएं",
-    "importing": "आयात कर रहा है"
+    "importing": "आयात कर रहा है",
+    "flattenNested": "चपटा नेस्टेड",
+    "downloadAllowed": "डाउनलोड की अनुमति",
+    "weAreHiring": "हम भर्ती कर रहे हैं!"
   },
   "activity": {
     "createProject": "प्रोजेक्ट बनाएं",
@@ -442,7 +446,7 @@
       "upload_sub": "या ड्रैग एंड ड्रॉप फाइल",
       "excelSupport": "समर्थित: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Excel फ़ाइल URL दर्ज करें",
-      "csvURL": "csv फाइल का url दर्ज करे",
+      "csvURL": "CSV फ़ाइल URL दर्ज करें",
       "footMsg": "# पंक्तियों को हीन डेटाटाइप करने के लिए पार्स करने के लिए",
       "excelImport": "शीट आयात के लिए उपलब्ध हैं",
       "exportMetadata": "क्या आप मेटा टेबल से मेटाडेटा निर्यात करना चाहते हैं?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "डेटाबेस में टेबल का नाम बचाया गया है",
       "airtable": {
         "credentials": "यह कहां से मिले?"
+      },
+      "import": {
+        "clickOrDrag": "अपलोड करने के लिए इस क्षेत्र में फ़ाइल पर क्लिक या खींचें"
       }
     },
     "error": {

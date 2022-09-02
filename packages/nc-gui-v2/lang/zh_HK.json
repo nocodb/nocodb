@@ -55,7 +55,19 @@
     "notification": "通知",
     "reference": "參考",
     "function": "功能",
-    "confirm": "確認"
+    "confirm": "確認",
+    "generate": "產生",
+    "copy": "複製",
+    "misc": "各種各樣的",
+    "lock": "鎖",
+    "unlock": "開鎖",
+    "credentials": "證書",
+    "help": "幫助",
+    "questions": "問題",
+    "reachOut": "在這裡伸出援手",
+    "betaNote": "此功能當前在Beta中。",
+    "moreInfo": "更多信息可以在這裡找到",
+    "logs": "日誌"
   },
   "objects": {
     "project": "項目",
@@ -173,7 +185,14 @@
     "resetPassword": "reset你嗰密碼",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "產生令牌",
+    "APIsAndSupport": "API和支持",
+    "helpCenter": "幫助中心",
+    "swaggerDocumentation": "炫耀文檔",
+    "quickImportFrom": "快速導入",
+    "quickImport": "快速導入",
+    "advancedSettings": "高級設置"
   },
   "labels": {
     "notifyVia": "通知Via",
@@ -237,15 +256,27 @@
     },
     "docReference": "文件參考文獻",
     "selectUserRole": "選擇用戶角色",
-    "childTable": "兒童表",
-    "childColumn": "兒童專欄",
+    "childTable": "子表",
+    "childColumn": "子列",
     "onUpdate": "更新",
     "onDelete": "在刪除",
     "account": "帳戶",
-    "language": "語",
-    "primaryColor": "原色",
-    "accentColor": "口音顏色",
-    "customTheme": "自定義主題"
+    "language": "語言",
+    "primaryColor": "強調色",
+    "accentColor": "主色調",
+    "customTheme": "自定義主題",
+    "requestDataSource": "請求您需要的數據源？",
+    "apiKey": "API鍵",
+    "sharedBase": "共享基礎",
+    "importData": "導入數據",
+    "importSecondaryViews": "導入次要視圖",
+    "importRollupColumns": "導入匯總列",
+    "importLookupColumns": "導入查找列",
+    "importAttachmentColumns": "導入附件列",
+    "importFormulaColumns": "導入公式列",
+    "noData": "沒有數據",
+    "goToDashboard": "去儀表板",
+    "importing": "輸入"
   },
   "activity": {
     "createProject": "開新Project",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "從環境中delete DB",
     "editConnJson": "編輯連接 JSON.",
     "sponsorUs": "贊助我地",
-    "sendEmail": "發電子郵件"
+    "sendEmail": "發電子郵件",
+    "addUserToProject": "將用戶添加到項目",
+    "getApiSnippet": "獲取API片段",
+    "clearCell": "透明細胞"
   },
   "tooltip": {
     "saveChanges": "保存更改",
@@ -398,7 +432,8 @@
     "searchModels": "搜索模型",
     "noItemsFound": "未找到任何項目",
     "defaultValue": "默認值",
-    "filterByEmail": "通過電子郵件過濾"
+    "filterByEmail": "通過電子郵件過濾",
+    "filterQuery": "過濾器查詢"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "您可以添加多個逗號（，）分隔的電子郵件",
       "enterTableName": "輸入表名",
       "addDefaultColumns": "添加默認列",
-      "tableNameInDb": "數據庫中保存的表名"
+      "tableNameInDb": "數據庫中保存的表名",
+      "airtable": {
+        "credentials": "在哪裡可以找到這個？"
+      }
     },
     "error": {
       "searchProject": "搵唔到有關 {search}",

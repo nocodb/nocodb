@@ -55,7 +55,19 @@
     "notification": "सूचित करी",
     "reference": "संदर्भ",
     "function": "समारोह",
-    "confirm": "पुष्टि करें"
+    "confirm": "पुष्टि करें",
+    "generate": "बनाना",
+    "copy": "प्रतिलिपि",
+    "misc": "विविध",
+    "lock": "ताला",
+    "unlock": "अनलॉक",
+    "credentials": "साख",
+    "help": "मदद करना",
+    "questions": "प्रशन",
+    "reachOut": "यहां पहुंचें",
+    "betaNote": "यह विशेषता अभी बीटा संस्करण में है।",
+    "moreInfo": "अधिक जानकारी यहां पाई जा सकती है",
+    "logs": "लॉग्स"
   },
   "objects": {
     "project": "परियोजना",
@@ -173,7 +185,14 @@
     "resetPassword": "अपना पासवर्ड रीसेट करें",
     "teamAndSettings": "दल एवं सेटिंग्स",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "टोकन उत्पन्न करें",
+    "APIsAndSupport": "एपीआई और समर्थन",
+    "helpCenter": "सहायता केंद्र",
+    "swaggerDocumentation": "स्वैगर प्रलेखन",
+    "quickImportFrom": "से त्वरित आयात",
+    "quickImport": "त्वरित आयात",
+    "advancedSettings": "एडवांस सेटिंग"
   },
   "labels": {
     "notifyVia": "Notify Via",
@@ -245,7 +264,19 @@
     "language": "भाषा",
     "primaryColor": "प्राथमिक रंग",
     "accentColor": "स्वरोंका रंग",
-    "customTheme": "कस्टम थीम"
+    "customTheme": "कस्टम थीम",
+    "requestDataSource": "एक डेटा स्रोत का अनुरोध करें जिसकी आपको आवश्यकता है?",
+    "apiKey": "एपीआई कुंजी",
+    "sharedBase": "साझा आधार",
+    "importData": "आयात आंकड़ा",
+    "importSecondaryViews": "द्वितीयक विचार आयात करें",
+    "importRollupColumns": "आयात रोलअप कॉलम",
+    "importLookupColumns": "आयात लुकअप कॉलम",
+    "importAttachmentColumns": "आयात अनुलग्नक स्तंभ",
+    "importFormulaColumns": "आयात सूत्र स्तंभ",
+    "noData": "कोई डेटा नहीं",
+    "goToDashboard": "डैशबोर्ड पर जाएं",
+    "importing": "आयात कर रहा है"
   },
   "activity": {
     "createProject": "प्रोजेक्ट बनाएं",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "पर्यावरण से डेटाबेस निकालें",
     "editConnJson": "कनेक्शन JSON संपादित करें",
     "sponsorUs": "हमें प्रायोजित करें",
-    "sendEmail": "ईमेल भेजें"
+    "sendEmail": "ईमेल भेजें",
+    "addUserToProject": "प्रोजेक्ट में उपयोगकर्ता जोड़ें",
+    "getApiSnippet": "एपीआई स्निपेट प्राप्त करें",
+    "clearCell": "स्पष्ट कोशिका"
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -398,7 +432,8 @@
     "searchModels": "खोज मॉडल",
     "noItemsFound": "कुछ नहीं मिला",
     "defaultValue": "डिफ़ॉल्ट मान",
-    "filterByEmail": "ई-मेल द्वारा फ़िल्टर"
+    "filterByEmail": "ई-मेल द्वारा फ़िल्टर",
+    "filterQuery": "फ़िल्टर क्वेरी"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "आप एकाधिक COMMA (,) द्वारा अलग ईमेल जोड़ सकते है",
       "enterTableName": "टेबल का नाम लिखे",
       "addDefaultColumns": "डिफ़ॉल्ट कॉलम जोड़े",
-      "tableNameInDb": "डेटाबेस में टेबल का नाम बचाया गया है"
+      "tableNameInDb": "डेटाबेस में टेबल का नाम बचाया गया है",
+      "airtable": {
+        "credentials": "यह कहां से मिले?"
+      }
     },
     "error": {
       "searchProject": "{search} के लिए आपकी खोज कोई परिणाम नहीं मिला",

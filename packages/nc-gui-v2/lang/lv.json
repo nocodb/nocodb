@@ -55,7 +55,19 @@
     "notification": "Paziņojums",
     "reference": "Atsauce",
     "function": "Funkcija",
-    "confirm": "Apstiprināt"
+    "confirm": "Apstiprināt",
+    "generate": "Radīt",
+    "copy": "Kopija",
+    "misc": "Dažāds",
+    "lock": "Slēdzene",
+    "unlock": "Atbloķēt",
+    "credentials": "Akreditācijas dati",
+    "help": "Palīdzēt",
+    "questions": "Jautājumi",
+    "reachOut": "Sasniedziet šeit",
+    "betaNote": "Šī funkcija pašlaik atrodas beta versijā.",
+    "moreInfo": "Plašāku informāciju var atrast šeit",
+    "logs": "Baļķi"
   },
   "objects": {
     "project": "Projekts",
@@ -173,7 +185,14 @@
     "resetPassword": "Atjaunot paroli",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Ģenerēt marķieri",
+    "APIsAndSupport": "Apis un atbalsts",
+    "helpCenter": "Palīdzības centrs",
+    "swaggerDocumentation": "Swagger dokumentācija",
+    "quickImportFrom": "Ātra importēšana no",
+    "quickImport": "Ātra importēšana",
+    "advancedSettings": "Uzlaboti iestatījumi"
   },
   "labels": {
     "notifyVia": "Paziņot izmantojot",
@@ -245,7 +264,19 @@
     "language": "Valoda",
     "primaryColor": "Primārā krāsa",
     "accentColor": "Akcents",
-    "customTheme": "Pielāgota tēma"
+    "customTheme": "Pielāgota tēma",
+    "requestDataSource": "Pieprasīt nepieciešamo datu avotu?",
+    "apiKey": "API atslēga",
+    "sharedBase": "Kopīga bāze",
+    "importData": "Importēt datus",
+    "importSecondaryViews": "Importēt sekundāros uzskatus",
+    "importRollupColumns": "Importēt rullēšanas kolonnas",
+    "importLookupColumns": "Importēt meklēšanas kolonnas",
+    "importAttachmentColumns": "Importēt pielikuma kolonnas",
+    "importFormulaColumns": "Importēt formulas kolonnas",
+    "noData": "Nav datu",
+    "goToDashboard": "Dodieties uz informācijas paneli",
+    "importing": "Importēšana"
   },
   "activity": {
     "createProject": "Izveidot projektu",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Noņemt datubāzi no vides",
     "editConnJson": "Rediģēt pieslēguma JSON",
     "sponsorUs": "Atbalstīt mūs",
-    "sendEmail": "SŪTĪT E-PASTU"
+    "sendEmail": "SŪTĪT E-PASTU",
+    "addUserToProject": "Pievienojiet lietotāju projektam",
+    "getApiSnippet": "Iegūstiet API fragmentu",
+    "clearCell": "Dzidra šūna"
   },
   "tooltip": {
     "saveChanges": "Saglabāt izmaiņas",
@@ -398,7 +432,8 @@
     "searchModels": "Meklēt modeļus",
     "noItemsFound": "Nav ierakstu",
     "defaultValue": "Noklusētā vērtība",
-    "filterByEmail": "Filtrēt pēc e-pasta"
+    "filterByEmail": "Filtrēt pēc e-pasta",
+    "filterQuery": "Filtra vaicājums"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Tu vari pievienot vairākas epasta adreses atdalītas ar komatu(,)",
       "enterTableName": "Ievadiet tabulas nosaukumu",
       "addDefaultColumns": "Pievienot noklusētās kolonnas",
-      "tableNameInDb": "Tabulas nosaukums ar kādu tā tiks saglabāta datubāzē"
+      "tableNameInDb": "Tabulas nosaukums ar kādu tā tiks saglabāta datubāzē",
+      "airtable": {
+        "credentials": "Kur to atrast?"
+      }
     },
     "error": {
       "searchProject": "Nav atrasti rezultāti meklējot pēc atslēgvārda {search}",

@@ -55,7 +55,19 @@
     "notification": "Obvestilo",
     "reference": "Referenca",
     "function": "Funkcija",
-    "confirm": "Potrdite"
+    "confirm": "Potrdite",
+    "generate": "Generiranje",
+    "copy": "Kopirati",
+    "misc": "Razno",
+    "lock": "Ključavnica",
+    "unlock": "Odklepanje",
+    "credentials": "Poverilnice",
+    "help": "Pomoč",
+    "questions": "Vprašanja",
+    "reachOut": "Dosezite tukaj",
+    "betaNote": "Ta funkcija je trenutno v beta.",
+    "moreInfo": "Več informacij najdete tukaj",
+    "logs": "Dnevniki"
   },
   "objects": {
     "project": "Project.",
@@ -173,7 +185,14 @@
     "resetPassword": "Ponastavi geslo",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Ustvari žeton",
+    "APIsAndSupport": "API -ji in podpora",
+    "helpCenter": "Center pomoči",
+    "swaggerDocumentation": "Dokumentacija Swagger",
+    "quickImportFrom": "Hiter uvoz od",
+    "quickImport": "Hiter uvoz",
+    "advancedSettings": "Napredne nastavitve"
   },
   "labels": {
     "notifyVia": "Obvestite VIO.",
@@ -245,7 +264,19 @@
     "language": "Jezik",
     "primaryColor": "Primarna barva",
     "accentColor": "Naglasna barva",
-    "customTheme": "Tema po meri"
+    "customTheme": "Tema po meri",
+    "requestDataSource": "Zahtevate vir podatkov, ki ga potrebujete?",
+    "apiKey": "Ključ API",
+    "sharedBase": "Skupna baza",
+    "importData": "Uvoz podatkov",
+    "importSecondaryViews": "Uvoz sekundarnih pogledov",
+    "importRollupColumns": "Uvozi stolpce",
+    "importLookupColumns": "Uvozi za iskanje stolpcev",
+    "importAttachmentColumns": "Uvozi pritrdilne stolpce",
+    "importFormulaColumns": "Uvozite stolpce formule",
+    "noData": "Ni podatkov",
+    "goToDashboard": "Pojdite na nadzorno ploščo",
+    "importing": "Uvoz"
   },
   "activity": {
     "createProject": "Ustvari projek",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Odstranite bazo podatkov iz okolja",
     "editConnJson": "Uredi povezavo JSON",
     "sponsorUs": "Sponzoriraj nas",
-    "sendEmail": "POŠLJI SPOROČILO"
+    "sendEmail": "POŠLJI SPOROČILO",
+    "addUserToProject": "Dodaj uporabnika v projekt",
+    "getApiSnippet": "Pridobite odlomki API -ja",
+    "clearCell": "Prozorna celica"
   },
   "tooltip": {
     "saveChanges": "Shrani spremembe",
@@ -398,7 +432,8 @@
     "searchModels": "Iskalni modeli",
     "noItemsFound": "Ni najdenih predmetov",
     "defaultValue": "Privzeta vrednost",
-    "filterByEmail": "Filtrirajte po e-pošti"
+    "filterByEmail": "Filtrirajte po e-pošti",
+    "filterQuery": "Poizvedba filtra"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Dodate lahko več e-pošte, ločenih z vejicami (,)",
       "enterTableName": "Vnesite ime tabele",
       "addDefaultColumns": "Dodajte privzete stolpce",
-      "tableNameInDb": "Ime tabele kot shranjeno v bazi podatkov"
+      "tableNameInDb": "Ime tabele kot shranjeno v bazi podatkov",
+      "airtable": {
+        "credentials": "Kje to najti?"
+      }
     },
     "error": {
       "searchProject": "Vaše iskanje {search} ni dalo rezultatov",

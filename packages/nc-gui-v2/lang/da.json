@@ -55,7 +55,19 @@
     "notification": "Notifikation",
     "reference": "Reference",
     "function": "Fungere",
-    "confirm": "Bekræfte"
+    "confirm": "Bekræfte",
+    "generate": "Frembringe",
+    "copy": "Kopi",
+    "misc": "Diverse",
+    "lock": "Låse",
+    "unlock": "Lås op",
+    "credentials": "Legitimationsoplysninger",
+    "help": "Hjælp",
+    "questions": "Spørgsmål",
+    "reachOut": "Nå ud her",
+    "betaNote": "Denne funktion er i øjeblikket i beta.",
+    "moreInfo": "Mere information kan findes her",
+    "logs": "Logfiler"
   },
   "objects": {
     "project": "Projekt",
@@ -173,7 +185,14 @@
     "resetPassword": "Nulstil din adgangskode",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Generer token",
+    "APIsAndSupport": "API'er & support",
+    "helpCenter": "Hjælpecenter",
+    "swaggerDocumentation": "Swagger -dokumentation",
+    "quickImportFrom": "Hurtig import fra",
+    "quickImport": "Hurtig import",
+    "advancedSettings": "Avancerede indstillinger"
   },
   "labels": {
     "notifyVia": "Bemærk Via.",
@@ -245,7 +264,19 @@
     "language": "Sprog",
     "primaryColor": "Primær farve",
     "accentColor": "Accentfarve",
-    "customTheme": "Brugerdefineret tema"
+    "customTheme": "Brugerdefineret tema",
+    "requestDataSource": "Anmod om en datakilde, du har brug for?",
+    "apiKey": "API -nøgle",
+    "sharedBase": "Delt base",
+    "importData": "Importer data",
+    "importSecondaryViews": "Importer sekundære synspunkter",
+    "importRollupColumns": "Importer rollupsøjler",
+    "importLookupColumns": "Importopslagskolonner",
+    "importAttachmentColumns": "Importfastgørelseskolonner",
+    "importFormulaColumns": "Importformelkolonner",
+    "noData": "Ingen data",
+    "goToDashboard": "Gå til dashboard",
+    "importing": "Import"
   },
   "activity": {
     "createProject": "Opret projekt",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Fjern databasen fra miljøet",
     "editConnJson": "Rediger forbindelse JSON",
     "sponsorUs": "Sponsor os",
-    "sendEmail": "SEND E-MAIL"
+    "sendEmail": "SEND E-MAIL",
+    "addUserToProject": "Tilføj bruger til projektet",
+    "getApiSnippet": "Få API -uddrag",
+    "clearCell": "Klar celle"
   },
   "tooltip": {
     "saveChanges": "Gem ændringer",
@@ -398,7 +432,8 @@
     "searchModels": "Søgemodeller.",
     "noItemsFound": "Ingen varer fundet",
     "defaultValue": "Standard værdi",
-    "filterByEmail": "Filtrer efter e-mail"
+    "filterByEmail": "Filtrer efter e-mail",
+    "filterQuery": "Filterforespørgsel"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Du kan tilføje flere komma (,) adskilte e-mails",
       "enterTableName": "Indtast tabelnavn",
       "addDefaultColumns": "Tilføj standard kolonner",
-      "tableNameInDb": "Tabelnavn som gemt i databasen"
+      "tableNameInDb": "Tabelnavn som gemt i databasen",
+      "airtable": {
+        "credentials": "Hvor finder jeg dette?"
+      }
     },
     "error": {
       "searchProject": "Din søgning efter {Søg} viste ingen resultater",

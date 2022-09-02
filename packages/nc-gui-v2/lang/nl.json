@@ -55,7 +55,19 @@
     "notification": "Melding",
     "reference": "Verwijzing",
     "function": "Functie",
-    "confirm": "Bevestigen"
+    "confirm": "Bevestigen",
+    "generate": "Genereren",
+    "copy": "Kopiëren",
+    "misc": "Diversen",
+    "lock": "Op slot doen",
+    "unlock": "Ontgrendelen",
+    "credentials": "Inloggegevens",
+    "help": "Helpen",
+    "questions": "Vragen",
+    "reachOut": "Reik hier",
+    "betaNote": "Deze functie is momenteel in bèta.",
+    "moreInfo": "Meer informatie is hier te vinden",
+    "logs": "Houtblokken"
   },
   "objects": {
     "project": "Project",
@@ -173,7 +185,14 @@
     "resetPassword": "Stel je wachtwoord opnieuw in",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Genereer token",
+    "APIsAndSupport": "API's en ondersteuning",
+    "helpCenter": "Helpcentrum",
+    "swaggerDocumentation": "Swagger -documentatie",
+    "quickImportFrom": "Snel import van",
+    "quickImport": "Snel import",
+    "advancedSettings": "Geavanceerde instellingen"
   },
   "labels": {
     "notifyVia": "Melding via",
@@ -245,7 +264,19 @@
     "language": "Taal",
     "primaryColor": "Primaire kleur",
     "accentColor": "Accent kleur",
-    "customTheme": "Aangepast thema"
+    "customTheme": "Aangepast thema",
+    "requestDataSource": "Een gegevensbron aanvragen die u nodig hebt?",
+    "apiKey": "API sleutel",
+    "sharedBase": "Gedeelde basis",
+    "importData": "Data importeren",
+    "importSecondaryViews": "Importeren secundaire weergaven",
+    "importRollupColumns": "Rollup -kolommen importeren",
+    "importLookupColumns": "Importeer opzoekkolommen",
+    "importAttachmentColumns": "Import bijlage kolommen",
+    "importFormulaColumns": "Formulekolommen importeren",
+    "noData": "Geen gegevens",
+    "goToDashboard": "Ga naar het dashboard",
+    "importing": "Importeren"
   },
   "activity": {
     "createProject": "Maak project",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Verwijder de database uit de omgeving",
     "editConnJson": "Bewerk verbinding JSON",
     "sponsorUs": "Sponsor Ons",
-    "sendEmail": "STUUR E-MAIL"
+    "sendEmail": "STUUR E-MAIL",
+    "addUserToProject": "Voeg gebruiker toe aan project",
+    "getApiSnippet": "Krijg API -fragment",
+    "clearCell": "Duidelijke cel"
   },
   "tooltip": {
     "saveChanges": "Wijzigingen opslaan",
@@ -398,7 +432,8 @@
     "searchModels": "Zoekmodellen",
     "noItemsFound": "Geen items gevonden",
     "defaultValue": "Standaardwaarde",
-    "filterByEmail": "Filteren per e-mail"
+    "filterByEmail": "Filteren per e-mail",
+    "filterQuery": "Filterquery"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "U kunt meerdere komma (,) gescheiden e-mails toevoegen",
       "enterTableName": "Voer de tabelnaam in",
       "addDefaultColumns": "Voeg standaardkolommen toe",
-      "tableNameInDb": "Tabelnaam zoals opgeslagen in de database"
+      "tableNameInDb": "Tabelnaam zoals opgeslagen in de database",
+      "airtable": {
+        "credentials": "Waar te vinden dit?"
+      }
     },
     "error": {
       "searchProject": "Uw zoekopdracht voor {search} heeft geen resultaten opgeleverd",

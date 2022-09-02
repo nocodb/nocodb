@@ -55,7 +55,19 @@
     "notification": "알림",
     "reference": "참조",
     "function": "기능",
-    "confirm": "확인하다"
+    "confirm": "확인하다",
+    "generate": "생성하다",
+    "copy": "복사",
+    "misc": "여러 가지 잡다한",
+    "lock": "자물쇠",
+    "unlock": "터놓다",
+    "credentials": "신임장",
+    "help": "돕다",
+    "questions": "질문",
+    "reachOut": "여기에 연락하십시오",
+    "betaNote": "이 기능은 현재 베타 버전입니다.",
+    "moreInfo": "자세한 내용은 여기를 참조하십시오",
+    "logs": "로그"
   },
   "objects": {
     "project": "프로젝트",
@@ -173,7 +185,14 @@
     "resetPassword": "비밀번호 재설정",
     "teamAndSettings": "팀 & 설정",
     "apiDocs": "API 문서",
-    "importFromAirtable": "Airtable에서 불러오기"
+    "importFromAirtable": "Airtable에서 불러오기",
+    "generateToken": "토큰을 생성하십시오",
+    "APIsAndSupport": "API 및 지원",
+    "helpCenter": "지원 센터",
+    "swaggerDocumentation": "Swagger 문서",
+    "quickImportFrom": "빠른 수입",
+    "quickImport": "빠른 수입",
+    "advancedSettings": "고급 설정"
   },
   "labels": {
     "notifyVia": "공지",
@@ -245,7 +264,19 @@
     "language": "언어",
     "primaryColor": "원색",
     "accentColor": "악센트 색상",
-    "customTheme": "맞춤 테마"
+    "customTheme": "맞춤 테마",
+    "requestDataSource": "필요한 데이터 소스를 요청 하시겠습니까?",
+    "apiKey": "API 키",
+    "sharedBase": "공유 기지",
+    "importData": "수입 데이터",
+    "importSecondaryViews": "보조 조회수를 가져옵니다",
+    "importRollupColumns": "롤업 열을 가져옵니다",
+    "importLookupColumns": "조회 열을 가져옵니다",
+    "importAttachmentColumns": "첨부 열을 가져옵니다",
+    "importFormulaColumns": "포뮬러 열을 가져옵니다",
+    "noData": "데이터가 없습니다",
+    "goToDashboard": "대시 보드로 이동",
+    "importing": "가져 오기"
   },
   "activity": {
     "createProject": "프로젝트 생성",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "환경에서 데이터베이스 제거",
     "editConnJson": "연결 JSON 편집",
     "sponsorUs": "후원",
-    "sendEmail": "이메일 보내기"
+    "sendEmail": "이메일 보내기",
+    "addUserToProject": "프로젝트에 사용자를 추가하십시오",
+    "getApiSnippet": "API 스 니펫을 얻으십시오",
+    "clearCell": "클리어 셀"
   },
   "tooltip": {
     "saveChanges": "변경 사항 저장",
@@ -398,7 +432,8 @@
     "searchModels": "모델 검색",
     "noItemsFound": "제품을 찾지 못했습니다",
     "defaultValue": "기본값",
-    "filterByEmail": "전자 메일로 필터링"
+    "filterByEmail": "전자 메일로 필터링",
+    "filterQuery": "필터 쿼리"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "쉼표로 분리된 이메일을 여러 개 추가할 수 있습니다.",
       "enterTableName": "테이블 이름을 입력하십시오",
       "addDefaultColumns": "기본 열 추가",
-      "tableNameInDb": "테이블 이름은 데이터베이스에 저장된 것입니다"
+      "tableNameInDb": "테이블 이름은 데이터베이스에 저장된 것입니다",
+      "airtable": {
+        "credentials": "이것을 어디서 찾을 수 있습니까?"
+      }
     },
     "error": {
       "searchProject": "검색 결과가 없습니다",

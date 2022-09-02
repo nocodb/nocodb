@@ -55,7 +55,19 @@
     "notification": "Сповіщення",
     "reference": "Довідник",
     "function": "Функція",
-    "confirm": "Підтверджувати"
+    "confirm": "Підтверджувати",
+    "generate": "Генерувати",
+    "copy": "Копіювати",
+    "misc": "Різний",
+    "lock": "Замок",
+    "unlock": "Розблокувати",
+    "credentials": "Повноваження",
+    "help": "Допомога",
+    "questions": "Питання",
+    "reachOut": "Зверніться сюди",
+    "betaNote": "Ця функція наразі знаходиться в бета -версії.",
+    "moreInfo": "Більше інформації можна знайти тут",
+    "logs": "Журнали"
   },
   "objects": {
     "project": "Проект",
@@ -173,7 +185,14 @@
     "resetPassword": "Скинути пароль",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "Генерувати маркер",
+    "APIsAndSupport": "API та підтримка",
+    "helpCenter": "Центр допомоги",
+    "swaggerDocumentation": "Документація Swagger",
+    "quickImportFrom": "Швидкий імпорт з",
+    "quickImport": "Швидкий імпорт",
+    "advancedSettings": "Розширені налаштування"
   },
   "labels": {
     "notifyVia": "Повідомити через",
@@ -245,7 +264,19 @@
     "language": "Мову",
     "primaryColor": "Первинний колір",
     "accentColor": "Акцентний колір",
-    "customTheme": "Спеціальна тема"
+    "customTheme": "Спеціальна тема",
+    "requestDataSource": "Запитати необхідне джерело даних?",
+    "apiKey": "Ключ API",
+    "sharedBase": "Спільна база",
+    "importData": "Імпортувати дані",
+    "importSecondaryViews": "Імпорт вторинних поглядів",
+    "importRollupColumns": "Імпортуйте стовпці з перекидання",
+    "importLookupColumns": "Імпортувати стовпці пошуку",
+    "importAttachmentColumns": "Імпортувати стовпці кріплення",
+    "importFormulaColumns": "Імпортувати стовпці формули",
+    "noData": "Немає даних",
+    "goToDashboard": "Перейдіть на інформаційну панель",
+    "importing": "Імпорт"
   },
   "activity": {
     "createProject": "Створити проект",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "Видалити базу даних з навколишнього середовища",
     "editConnJson": "Редагувати підключення JSON",
     "sponsorUs": "Спонсорувати нас",
-    "sendEmail": "ВІДПРАВИТИ ЛИСТ"
+    "sendEmail": "ВІДПРАВИТИ ЛИСТ",
+    "addUserToProject": "Додайте користувача до проекту",
+    "getApiSnippet": "Отримайте фрагмент API",
+    "clearCell": "Прозора клітина"
   },
   "tooltip": {
     "saveChanges": "Зберегти зміни",
@@ -398,7 +432,8 @@
     "searchModels": "Моделі пошуку",
     "noItemsFound": "Не знайдено жодних елементів",
     "defaultValue": "Значення за замовчуванням",
-    "filterByEmail": "Фільтр по електронній пошті"
+    "filterByEmail": "Фільтр по електронній пошті",
+    "filterQuery": "Запит фільтру"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "Ви можете додати кілька електронних листів з кількома комунаціями (,)",
       "enterTableName": "Введіть назву таблиці",
       "addDefaultColumns": "Додайте стовпці за замовчуванням",
-      "tableNameInDb": "Назва таблиці, як збережено в базі даних"
+      "tableNameInDb": "Назва таблиці, як збережено в базі даних",
+      "airtable": {
+        "credentials": "Де це знайти?"
+      }
     },
     "error": {
       "searchProject": "Ваш пошук {пошук} не знайдено жодних результатів",

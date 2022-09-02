@@ -55,7 +55,19 @@
     "notification": "การแจ้ง",
     "reference": "อ้างอิง",
     "function": "การทำงาน",
-    "confirm": "ยืนยัน"
+    "confirm": "ยืนยัน",
+    "generate": "สร้าง",
+    "copy": "สำเนา",
+    "misc": "เบ็ดเตล็ด",
+    "lock": "ล็อค",
+    "unlock": "ปลดล็อค",
+    "credentials": "ข้อมูลรับรอง",
+    "help": "ช่วย",
+    "questions": "คำถาม",
+    "reachOut": "เอื้อมมือออกไปที่นี่",
+    "betaNote": "ฟีเจอร์นี้อยู่ในช่วงเบต้า",
+    "moreInfo": "ข้อมูลเพิ่มเติมสามารถดูได้ที่นี่",
+    "logs": "ท่อนไม้"
   },
   "objects": {
     "project": "โครงการ",
@@ -173,7 +185,14 @@
     "resetPassword": "รีเซ็ตรหัสผ่านของคุณ",
     "teamAndSettings": "Team & Settings",
     "apiDocs": "API Docs",
-    "importFromAirtable": "Import From Airtable"
+    "importFromAirtable": "Import From Airtable",
+    "generateToken": "สร้างโทเค็น",
+    "APIsAndSupport": "APIs & Support",
+    "helpCenter": "ศูนย์ช่วยเหลือ",
+    "swaggerDocumentation": "เอกสาร Swagger",
+    "quickImportFrom": "นำเข้าอย่างรวดเร็วจาก",
+    "quickImport": "นำเข้าอย่างรวดเร็ว",
+    "advancedSettings": "ตั้งค่าขั้นสูง"
   },
   "labels": {
     "notifyVia": "แจ้งเตือนผ่าน",
@@ -245,7 +264,19 @@
     "language": "ภาษา",
     "primaryColor": "สีหลัก",
     "accentColor": "สีเน้น",
-    "customTheme": "ธีมที่กำหนดเอง"
+    "customTheme": "ธีมที่กำหนดเอง",
+    "requestDataSource": "ขอแหล่งข้อมูลที่คุณต้องการ?",
+    "apiKey": "คีย์ API",
+    "sharedBase": "ฐานที่ใช้ร่วมกัน",
+    "importData": "นำเข้าข้อมูล",
+    "importSecondaryViews": "นำเข้ามุมมองรอง",
+    "importRollupColumns": "นำเข้าคอลัมน์นำเข้า",
+    "importLookupColumns": "นำเข้าคอลัมน์การค้นหา",
+    "importAttachmentColumns": "คอลัมน์นำเข้าคอลัมน์",
+    "importFormulaColumns": "คอลัมน์นำเข้าคอลัมน์",
+    "noData": "ไม่มีข้อมูล",
+    "goToDashboard": "ไปที่แผงควบคุม",
+    "importing": "การนำเข้า"
   },
   "activity": {
     "createProject": "สร้างโครงการ",
@@ -352,7 +383,10 @@
     "removeDbFromEnv": "ลบฐานข้อมูลออกจากสภาพแวดล้อม",
     "editConnJson": "แก้ไขการเชื่อมต่อ JSON",
     "sponsorUs": "สปอนเซอร์สหรัฐฯ",
-    "sendEmail": "ส่งอีเมล"
+    "sendEmail": "ส่งอีเมล",
+    "addUserToProject": "เพิ่มผู้ใช้ในโครงการ",
+    "getApiSnippet": "รับตัวอย่าง API",
+    "clearCell": "ล้างเซลล์"
   },
   "tooltip": {
     "saveChanges": "บันทึกการเปลี่ยนแปลง",
@@ -398,7 +432,8 @@
     "searchModels": "ค้นหาแบบจำลอง",
     "noItemsFound": "ไม่พบรายการ",
     "defaultValue": "ค่าเริ่มต้น",
-    "filterByEmail": "กรองทางอีเมล"
+    "filterByEmail": "กรองทางอีเมล",
+    "filterQuery": "ตัวกรองแบบสอบถาม"
   },
   "msg": {
     "info": {
@@ -490,7 +525,10 @@
       "addMultipleUsers": "คุณสามารถเพิ่มอีเมลคั่นด้วยเครื่องหมายจุลภาค (,) หลายรายการ",
       "enterTableName": "ป้อนชื่อตาราง",
       "addDefaultColumns": "เพิ่มคอลัมน์เริ่มต้น",
-      "tableNameInDb": "ชื่อตารางตามที่บันทึกไว้ในฐานข้อมูล"
+      "tableNameInDb": "ชื่อตารางตามที่บันทึกไว้ในฐานข้อมูล",
+      "airtable": {
+        "credentials": "จะหาสิ่งนี้ได้ที่ไหน?"
+      }
     },
     "error": {
       "searchProject": "การค้นหาของคุณสำหรับ {search} ไม่พบผลลัพธ์",

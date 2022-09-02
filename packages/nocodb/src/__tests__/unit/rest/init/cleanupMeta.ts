@@ -24,11 +24,11 @@ const dropTablesAllNonExternalProjects = async (knexClient) => {
       })
   );
 
-  await Promise.all(
-    userCreatedTableNames.map(async (tableName) => {
-      await knexClient.raw(`DROP TABLE ${tableName}`);
-    })
-  );
+  await knexClient.raw('SET FOREIGN_KEY_CHECKS = 0');
+  for (const tableName of userCreatedTableNames) {
+    await knexClient.raw(`DROP TABLE ${tableName}`);
+  }
+  await knexClient.raw('SET FOREIGN_KEY_CHECKS = 1');
 };
 
 const cleanupMetaTables = async (knexClient) => {

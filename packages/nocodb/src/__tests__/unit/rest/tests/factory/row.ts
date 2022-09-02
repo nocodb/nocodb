@@ -1,4 +1,3 @@
-import console from 'console';
 import { ColumnType, UITypes } from 'nocodb-sdk';
 import request from 'supertest';
 import Column from '../../../../../lib/models/Column';
@@ -27,6 +26,17 @@ const rowValue = (column: ColumnType, index: number) => {
 const getRow = async (context, project, table, id) => {
   const response = await request(context.app)
     .get(`/api/v1/db/data/noco/${project.id}/${table.id}/${id}`)
+    .set('xc-auth', context.token);
+
+  return response.body;
+};
+
+const getOneRow = async (
+  context,
+  { project, table }: { project: Project; table: Model }
+) => {
+  const response = await request(context.app)
+    .get(`/api/v1/db/data/noco/${project.id}/${table.id}/find-one`)
     .set('xc-auth', context.token);
 
   return response.body;
@@ -102,4 +112,4 @@ const createRelation = async (
     .set('xc-auth', context.token);
 };
 
-export { createRow, getRow, createRelation };
+export { createRow, getRow, createRelation, getOneRow };

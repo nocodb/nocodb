@@ -11,7 +11,7 @@ import {
   createRollupColumn,
 } from './factory/column';
 import { createTable } from './factory/table';
-import { createRelation, createRow, getRow } from './factory/row';
+import { createRelation, createRow, getOneRow, getRow } from './factory/row';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -1230,6 +1230,37 @@ function tableTest() {
       )
     ) {
       throw new Error('Should give ltar foreign key error');
+    }
+  });
+
+  it('Exist should be true table row when it exists', async function () {
+    const row = await getOneRow(context, {
+      project: sakilaProject,
+      table: customerTable,
+    });
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${row['CustomerId']}/exist`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if (!response.body) {
+      throw new Error('Should exist');
+    }
+  });
+
+  it('Exist should be false table row when it does not exists', async function () {
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/invalid-id/exist`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if (response.body) {
+      throw new Error('Should not exist');
     }
   });
 }

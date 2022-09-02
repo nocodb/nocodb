@@ -219,7 +219,6 @@ const copyAuthToken = async () => {
                     </div>
                   </template>
                   <template v-if="!isSharedBase">
-
                     <!-- Copy Project Info -->
                     <a-menu-item key="copy">
                       <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">

@@ -329,7 +329,7 @@ Cypress.Commands.add("deleteTable", (name, dbType) => {
     cy.getActiveMenu().find('[role="menuitem"]').contains("Delete").click();
     cy.getActiveModal().find("button").contains("Yes").click();
 
-    cy.toastWait(`Deleted table ${name} successfully`);
+    cy.toastWait(`Deleted table successfully`);
 });
 
 Cypress.Commands.add("renameTable", (oldName, newName) => {

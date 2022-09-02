@@ -29,7 +29,7 @@ export function useViewFilters(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
 
   const { isUIAllowed } = useUIPermission()
 
@@ -144,6 +144,7 @@ export function useViewFilters(
       } else {
         filters.value.splice(i, 1)
       }
+      $e('a:filter:delete')
     }
   }
 
@@ -161,6 +162,10 @@ export function useViewFilters(
           ...filter,
           fk_parent_id: parentId,
         })
+        $e('a:filter:update', {
+          logical: filter.logical_op,
+          comparison: filter.comparison_op,
+        })
       } else {
         // todo: return type of dbTableFilter is void?
         filters.value[i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
@@ -176,7 +181,10 @@ export function useViewFilters(
     reloadData?.()
   }
 
-  const addFilter = () => filters.value.push(placeholderFilter)
+  const addFilter = () => {
+    filters.value.push(placeholderFilter)
+    $e('a:filter:add', { length: filters.value.length })
+  }
 
   const addFilterGroup = async () => {
     const child = placeholderFilter
@@ -193,6 +201,8 @@ export function useViewFilters(
     const index = filters.value.length - 1
 
     await saveOrUpdate(filters.value[index], index, true)
+
+    $e('a:filter:add', { length: filters.value.length, group: true })
   }
 
   /** on column delete reload filters, identify by checking columns count */

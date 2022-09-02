@@ -29,6 +29,8 @@ const router = useRouter()
 
 const route = useRoute()
 
+const { $e } = useNuxtApp()
+
 provide(ViewListInj, views)
 
 /** Sidebar visible */
@@ -83,6 +85,7 @@ function onCreate(view: ViewType) {
   activeView.value = view
   router.push({ params: { viewTitle: view.title || '' } })
   modalOpen = false
+  $e('a:view:create', { view: view.type })
 }
 </script>
 

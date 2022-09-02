@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
+import { useNuxtApp } from '#app'
 import { computed, inject, useMetas, watchEffect } from '#imports'
-import { MetaInj, ReloadViewDataHookInj } from '~/context'
+import { IsFormInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
@@ -17,7 +18,11 @@ const { getMeta } = useMetas()
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const meta = inject(MetaInj)
+
+const isForm = inject(IsFormInj, ref(false))
 
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
@@ -55,6 +60,10 @@ async function onSubmit() {
     advancedOptions.value = false
   }, 500)
   emit('submit')
+
+  if (isForm.value) {
+    $e('a:form-view:add-new-field')
+  }
 }
 
 // focus and select the column name field

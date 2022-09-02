@@ -36,6 +36,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
         ...table,
         columns,
       })
+      $e('a:table:create')
       onTableCreate?.(tableMeta)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))

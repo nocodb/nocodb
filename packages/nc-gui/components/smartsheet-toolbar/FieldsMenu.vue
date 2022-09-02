@@ -144,7 +144,12 @@ const getIcon = (c: ColumnType) =>
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
               <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex items-center" @click.stop>
-                <a-checkbox v-model:checked="field.show" class="shrink" @change="saveOrUpdate(field, index)">
+                <a-checkbox
+                  v-model:checked="field.show"
+                  v-t="['a:fields:show-hide']"
+                  class="shrink"
+                  @change="saveOrUpdate(field, index)"
+                >
                   <div class="flex items-center">
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" />
                     <span>{{ field.title }}</span>

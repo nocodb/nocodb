@@ -433,6 +433,7 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
                           class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
                         >
                           <MdiArrowExpand
+                            v-t="['c:row-expand']"
                             class="select-none transform hover:(text-accent scale-120) nc-row-expand"
                             @click="expandForm(row, state)"
                           />
@@ -514,14 +515,14 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
         <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
-              <div class="nc-project-menu-item">
+              <div v-t="['a:row:delete']" class="nc-project-menu-item">
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
               </div>
             </a-menu-item>
 
             <a-menu-item @click="deleteSelectedRows">
-              <div class="nc-project-menu-item">
+              <div v-t="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
               </div>
@@ -529,11 +530,11 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
 
             <!--            Clear cell -->
             <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)">
-              <div class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
+              <div v-t="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
             <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              <div class="nc-project-menu-item">
+              <div v-t="['a:row:insert']" class="nc-project-menu-item">
                 <!-- Insert New Row -->
                 {{ $t('activity.insertRow') }}
               </div>

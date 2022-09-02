@@ -7,7 +7,7 @@ import type { ThemeConfig } from '@/composables/useTheme'
 import { useInjectionState } from '#imports'
 
 const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
   const route = useRoute()
   const { includeM2M } = useGlobal()
   const { setTheme, theme } = useTheme()
@@ -100,6 +100,8 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   }
 
   async function saveTheme(_theme: Partial<ThemeConfig>) {
+    $e('c:themes:change')
+
     const fullTheme = {
       primaryColor: theme.value.primaryColor,
       accentColor: theme.value.accentColor,

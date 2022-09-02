@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { useI18n } from 'vue-i18n'
 import { onUnmounted, useEventListener, useGlobal, useState, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
@@ -14,6 +13,7 @@ const position = useState('preview-as-position', () => ({
   x: `${window.innerWidth / 2 - 250}px`,
 }))
 
+const { $e } = useNuxtApp()
 const { t } = useI18n()
 
 const roleList = [
@@ -50,7 +50,10 @@ onUnmounted(() => {
 })
 
 /** reload page on previewas change */
-watch(previewAs, () => window.location.reload())
+watch(previewAs, () => {
+  $e('a:navdraw:preview', { role: previewAs })
+  window.location.reload()
+})
 </script>
 
 <template>

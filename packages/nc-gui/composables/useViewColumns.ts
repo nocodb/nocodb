@@ -13,7 +13,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
 
   const filterQuery = ref('')
 
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
 
   const { isUIAllowed } = useUIPermission()
 
@@ -90,6 +90,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
 
     await loadViewColumns()
     reloadData?.()
+    $e('a:fields:show-all')
   }
   const hideAll = async (ignoreIds?: any) => {
     if (isLocalMode.value) {
@@ -112,6 +113,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
 
     await loadViewColumns()
     reloadData?.()
+    $e('a:fields:show-all')
   }
 
   const saveOrUpdate = async (field: any, index: number) => {
@@ -163,6 +165,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
         }
         ;(view.value as any).show_system_fields = v
       }
+      $e('a:fields:system-fields')
     },
   })
 
@@ -202,14 +205,11 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   })
 
   // reload view columns when table meta changes
-  watch(
-    meta,
-    async (newVal, oldVal) => {
-      if (newVal !== oldVal && meta.value) {
-        await loadViewColumns()
-      }
-    },
-  )
+  watch(meta, async (newVal, oldVal) => {
+    if (newVal !== oldVal && meta.value) {
+      await loadViewColumns()
+    }
+  })
 
   return {
     fields,

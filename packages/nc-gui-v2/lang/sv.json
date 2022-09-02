@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Swaggerdokumentation",
     "quickImportFrom": "Snabb import från",
     "quickImport": "Snabb import",
-    "advancedSettings": "Avancerade inställningar"
+    "advancedSettings": "Avancerade inställningar",
+    "codeSnippet": "Kodavsnitt"
   },
   "labels": {
     "notifyVia": "Meddela via",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Importera formelkolumner",
     "noData": "Inga data",
     "goToDashboard": "Gå till instrumentpanelen",
-    "importing": "Importerande"
+    "importing": "Importerande",
+    "flattenNested": "Platta kapslad",
+    "downloadAllowed": "Nedladdning tillåtet",
+    "weAreHiring": "Vi hyr!"
   },
   "activity": {
     "createProject": "Skapa projekt",
@@ -442,7 +446,7 @@
       "upload_sub": "eller dra och släpp filen",
       "excelSupport": "Stöds: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Ange Excel-filadressen",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Ange CSV-filadressen",
       "footMsg": "# av rader att analysera att avleda datatyp",
       "excelImport": "ark (er) är tillgängliga för import",
       "exportMetadata": "Vill du exportera metadata från meta bord?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Tabellnamn som sparats i databasen",
       "airtable": {
         "credentials": "Var hittar man det här?"
+      },
+      "import": {
+        "clickOrDrag": "Klicka eller dra fil till detta område för att ladda upp"
       }
     },
     "error": {

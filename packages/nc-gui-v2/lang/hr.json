@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Dokumentacija Swaggera",
     "quickImportFrom": "Brzo uvoz iz",
     "quickImport": "Brzi uvoz",
-    "advancedSettings": "Napredne postavke"
+    "advancedSettings": "Napredne postavke",
+    "codeSnippet": "Isječak koda"
   },
   "labels": {
     "notifyVia": "Obavijestiti putem",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Uvoz Formula stupaca",
     "noData": "Nema podataka",
     "goToDashboard": "Idite na nadzornu ploču",
-    "importing": "Uvoz"
+    "importing": "Uvoz",
+    "flattenNested": "Spljošteno ugniježđen",
+    "downloadAllowed": "Preuzmi dopušteno",
+    "weAreHiring": "Mi se zapošljavamo!"
   },
   "activity": {
     "createProject": "Stvoriti projekt",
@@ -442,7 +446,7 @@
       "upload_sub": "ili povucite i ispustite datoteku",
       "excelSupport": "Podržani: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Unesite URL Excel datoteka",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Unesite URL CSV datoteka",
       "footMsg": "# redaka za analizu da biste zaključili datatype",
       "excelImport": "limovi (i) dostupni su za uvoz",
       "exportMetadata": "Želite li izvesti metapodatke iz meta stolova?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Ime tablice kao spremljene u bazi podataka",
       "airtable": {
         "credentials": "Gdje ovo pronaći?"
+      },
+      "import": {
+        "clickOrDrag": "Kliknite ili povucite datoteku na ovo područje za prijenos"
       }
     },
     "error": {

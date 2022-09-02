@@ -192,7 +192,8 @@
     "swaggerDocumentation": "תיעוד SWAGGER",
     "quickImportFrom": "יבוא מהיר מ",
     "quickImport": "יבוא מהיר",
-    "advancedSettings": "הגדרות מתקדמות"
+    "advancedSettings": "הגדרות מתקדמות",
+    "codeSnippet": "קטע קוד"
   },
   "labels": {
     "notifyVia": "תודיע דרך",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "ייבא עמודות נוסחה",
     "noData": "אין מידע",
     "goToDashboard": "עבור אל לוח המחוונים",
-    "importing": "יבוא"
+    "importing": "יבוא",
+    "flattenNested": "משטחים מקוננים",
+    "downloadAllowed": "הורד מותר",
+    "weAreHiring": "אנחנו מחפשים עובדים!"
   },
   "activity": {
     "createProject": "צור פרויקט",
@@ -442,7 +446,7 @@
       "upload_sub": "או גרור ושחרר קובץ",
       "excelSupport": "נתמך: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "הזן את כתובת האתר של קובץ Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "הזן את כתובת האתר של קובץ CSV",
       "footMsg": "# של שורות לנתח כדי להסיק datatype",
       "excelImport": "גיליון (ים) זמינים לייבוא",
       "exportMetadata": "האם אתה רוצה לייצא מטא נתונים מ מטא שולחנות?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "שם לוח שנשמר במסד הנתונים",
       "airtable": {
         "credentials": "איפה למצוא את זה?"
+      },
+      "import": {
+        "clickOrDrag": "לחץ או גרור קובץ לאזור זה כדי להעלות"
       }
     },
     "error": {

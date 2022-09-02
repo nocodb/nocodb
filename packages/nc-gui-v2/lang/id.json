@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Dokumentasi Swagger",
     "quickImportFrom": "Impor cepat dari",
     "quickImport": "Impor cepat",
-    "advancedSettings": "Pengaturan lanjutan"
+    "advancedSettings": "Pengaturan lanjutan",
+    "codeSnippet": "Cuplikan kode"
   },
   "labels": {
     "notifyVia": "Beri tahu VIA.",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Impor kolom formula",
     "noData": "Tidak ada data",
     "goToDashboard": "Pergi ke dasbor",
-    "importing": "Pengimporan"
+    "importing": "Pengimporan",
+    "flattenNested": "Ratakan bersarang",
+    "downloadAllowed": "Unduh diizinkan",
+    "weAreHiring": "Kami sedang merekrut!"
   },
   "activity": {
     "createProject": "Buat Proyek",
@@ -442,7 +446,7 @@
       "upload_sub": "atau seret dan jatuhkan file",
       "excelSupport": "Didukung: .xls, .xlsx, .xlsm, .ots, .ots",
       "excelURL": "Masukkan URL File Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Masukkan URL File CSV",
       "footMsg": "# dari baris untuk menguraikan untuk menyimpulkan datatype",
       "excelImport": "Lembar tersedia untuk impor",
       "exportMetadata": "Apakah Anda ingin mengekspor metadata dari Meta Tables?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Nama tabel sebagaimana disimpan dalam basis data",
       "airtable": {
         "credentials": "Di mana menemukan ini?"
+      },
+      "import": {
+        "clickOrDrag": "Klik atau seret file ke area ini untuk diunggah"
       }
     },
     "error": {

@@ -192,7 +192,8 @@
     "swaggerDocumentation": "সোয়াগার ডকুমেন্টেশন",
     "quickImportFrom": "থেকে দ্রুত আমদানি",
     "quickImport": "দ্রুত আমদানি",
-    "advancedSettings": "উন্নত সেটিংস"
+    "advancedSettings": "উন্নত সেটিংস",
+    "codeSnippet": "টুকিটাকি সংকেতলিপি"
   },
   "labels": {
     "notifyVia": "এর মাধ্যমে অবহিত করুন",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "ফর্মুলা কলামগুলি আমদানি করুন",
     "noData": "কোনও ডেটা নেই",
     "goToDashboard": "ড্যাশবোর্ড এ যান",
-    "importing": "আমদানি"
+    "importing": "আমদানি",
+    "flattenNested": "ফ্ল্যাটেন বাসা",
+    "downloadAllowed": "ডাউনলোড অনুমোদিত",
+    "weAreHiring": "আমরা ভাড়া নিচ্ছি!"
   },
   "activity": {
     "createProject": "প্রকল্প তৈরি করুন",
@@ -442,7 +446,7 @@
       "upload_sub": "অথবা ফাইল টেনে আনুন",
       "excelSupport": "সমর্থিত: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "এক্সেল ফাইল ইউআরএল লিখুন",
-      "csvURL": "CSV ফাইলের URL লিখুন",
+      "csvURL": "এক্সেল ফাইল ইউআরএল লিখুন",
       "footMsg": "# সারিগুলির জন্য ডেটাটাইপটি অনুমান করতে পার্স",
       "excelImport": "শীট (গুলি) আমদানির জন্য উপলব্ধ",
       "exportMetadata": "আপনি কি মেটা টেবিলগুলি থেকে মেটাডেটা রফতানি করতে চান?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "ডাটাবেসে সংরক্ষিত টেবিলের নাম",
       "airtable": {
         "credentials": "এই কোথায় পাবেন?"
+      },
+      "import": {
+        "clickOrDrag": "আপলোড করতে এই অঞ্চলে ফাইল ক্লিক করুন বা টেনে আনুন"
       }
     },
     "error": {

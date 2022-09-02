@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Documentazione di spavalderia",
     "quickImportFrom": "Importazione rapida da",
     "quickImport": "Importazione rapida",
-    "advancedSettings": "Impostazioni avanzate"
+    "advancedSettings": "Impostazioni avanzate",
+    "codeSnippet": "Frammento di codice"
   },
   "labels": {
     "notifyVia": "Notifica tramite",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Colonne di formula di importazione",
     "noData": "Nessun dato",
     "goToDashboard": "Vai a CRUSCOTTO",
-    "importing": "Importazione"
+    "importing": "Importazione",
+    "flattenNested": "Appiattire nidificato",
+    "downloadAllowed": "Scarica consentito",
+    "weAreHiring": "Stiamo assumendo!"
   },
   "activity": {
     "createProject": "Crea progetto",
@@ -442,7 +446,7 @@
       "upload_sub": "o trascinalo qui",
       "excelSupport": "Tipi supportati: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Inserisci l'URL del file Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Inserisci l'URL del file CSV",
       "footMsg": "Numero di righe per analizzare per dedurre il tipo di dati",
       "excelImport": "foglio (i) sono disponibili per l'importazione",
       "exportMetadata": "Vuoi esportare i metadati dalle sopracartelle?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Nome della tabella come salvato nel database",
       "airtable": {
         "credentials": "Dove trovarlo?"
+      },
+      "import": {
+        "clickOrDrag": "Fare clic o trascinare il file in quest'area per caricare"
       }
     },
     "error": {

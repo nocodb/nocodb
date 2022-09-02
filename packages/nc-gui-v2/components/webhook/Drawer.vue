@@ -38,7 +38,7 @@ async function editHook(hook: Record<string, any>) {
       </a-layout-content>
       <a-layout-footer class="!bg-white flex">
         <a-button v-t="['e:hiring']" class="mx-auto mb-4" href="https://angel.co/company/nocodb" target="_blank" size="large">
-          🚀 We are Hiring! 🚀
+          🚀 {{ $t('labels.weAreHiring') }}! 🚀
         </a-button>
       </a-layout-footer>
     </a-layout>

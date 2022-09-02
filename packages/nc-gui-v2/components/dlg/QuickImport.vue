@@ -79,7 +79,7 @@ const { validate, validateInfos } = useForm(importState, validators)
 const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {
     return {
-      header: 'QUICK IMPORT - EXCEL',
+      header: `${t('title.quickImport')} - EXCEL`,
       uploadHint: t('msg.info.excelSupport'),
       urlInputLabel: t('msg.info.excelURL'),
       loadUrlDirective: ['c:quick-import:excel:load-url'],
@@ -87,7 +87,7 @@ const importMeta = computed(() => {
     }
   } else if (isImportTypeCsv.value) {
     return {
-      header: 'QUICK IMPORT - CSV',
+      header: `${t('title.quickImport')} - CSV`,
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
       loadUrlDirective: ['c:quick-import:csv:load-url'],
@@ -95,7 +95,7 @@ const importMeta = computed(() => {
     }
   } else if (isImportTypeJson.value) {
     return {
-      header: 'QUICK IMPORT - JSON',
+      header: `${t('title.quickImport')} - JSON`,
       uploadHint: '',
       acceptTypes: '.json',
     }
@@ -293,9 +293,10 @@ defineExpose({
         <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" tab-position="top">
           <a-tab-pane key="uploadTab" :closable="false">
             <template #tab>
+              <!--              Upload -->
               <div class="flex items-center gap-2">
                 <MdiFileUploadOutline />
-                Upload
+                {{ $t('general.upload') }}
               </div>
             </template>
 
@@ -312,7 +313,8 @@ defineExpose({
               >
                 <MdiFilePlusOutline size="large" />
 
-                <p class="ant-upload-text">Click or drag file to this area to upload</p>
+                <!--                Click or drag file to this area to upload -->
+                <p class="ant-upload-text">{{ $t('msg.info.import.clickOrDrag') }}</p>
 
                 <p class="ant-upload-hint">
                   {{ importMeta.uploadHint }}
@@ -357,20 +359,23 @@ defineExpose({
         <a-divider />
 
         <div class="mb-4">
-          <span class="prose-lg">Advanced Settings</span>
+          <!--          Advanced Settings -->
+          <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
 
           <a-form-item class="mt-4 mb-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
             <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
           </a-form-item>
 
+          <!--          Flatten nested -->
           <div v-if="isImportTypeJson" class="mt-3">
             <a-checkbox v-model:checked="importState.parserConfig.normalizeNested">
-              <span class="caption">Flatten nested</span>
+              <span class="caption">{{ $t('labels.flattenNested') }}</span>
             </a-checkbox>
           </div>
 
+          <!--          Import Data -->
           <div v-if="isImportTypeJson" class="mt-4">
-            <a-checkbox v-model:checked="importState.parserConfig.importData">Import data</a-checkbox>
+            <a-checkbox v-model:checked="importState.parserConfig.importData">{{ $t('labels.importData') }}</a-checkbox>
           </div>
         </div>
       </div>

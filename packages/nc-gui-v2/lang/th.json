@@ -192,7 +192,8 @@
     "swaggerDocumentation": "เอกสาร Swagger",
     "quickImportFrom": "นำเข้าอย่างรวดเร็วจาก",
     "quickImport": "นำเข้าอย่างรวดเร็ว",
-    "advancedSettings": "ตั้งค่าขั้นสูง"
+    "advancedSettings": "ตั้งค่าขั้นสูง",
+    "codeSnippet": "รหัสตัวอย่าง"
   },
   "labels": {
     "notifyVia": "แจ้งเตือนผ่าน",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "คอลัมน์นำเข้าคอลัมน์",
     "noData": "ไม่มีข้อมูล",
     "goToDashboard": "ไปที่แผงควบคุม",
-    "importing": "การนำเข้า"
+    "importing": "การนำเข้า",
+    "flattenNested": "ซ้อนกัน",
+    "downloadAllowed": "ดาวน์โหลดได้รับอนุญาต",
+    "weAreHiring": "เรากำลังจ้าง!"
   },
   "activity": {
     "createProject": "สร้างโครงการ",
@@ -442,7 +446,7 @@
       "upload_sub": "หรือลากและวางไฟล์",
       "excelSupport": "รองรับ:. xls, .xlsx,. xlsm, .ods, .ots",
       "excelURL": "ป้อน URL ไฟล์ Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "ป้อน URL ไฟล์ CSV",
       "footMsg": "# ของแถวที่จะแยกวิเคราะห์กับ DataType",
       "excelImport": "มีแผ่นงานสำหรับนำเข้า",
       "exportMetadata": "คุณต้องการส่งออกข้อมูลเมตาจากตาราง Meta หรือไม่?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "ชื่อตารางตามที่บันทึกไว้ในฐานข้อมูล",
       "airtable": {
         "credentials": "จะหาสิ่งนี้ได้ที่ไหน?"
+      },
+      "import": {
+        "clickOrDrag": "คลิกหรือลากไฟล์ไปยังพื้นที่นี้เพื่ออัปโหลด"
       }
     },
     "error": {

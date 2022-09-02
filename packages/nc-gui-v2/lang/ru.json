@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Документация Swagger",
     "quickImportFrom": "Быстрый импорт из",
     "quickImport": "Быстрый импорт",
-    "advancedSettings": "Расширенные настройки"
+    "advancedSettings": "Расширенные настройки",
+    "codeSnippet": "Код фрагмент"
   },
   "labels": {
     "notifyVia": "Уведомлять через",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Импорт Формулы столбцы",
     "noData": "Нет данных",
     "goToDashboard": "Перейти к приборной панели",
-    "importing": "Импорт"
+    "importing": "Импорт",
+    "flattenNested": "Сгладить вложенные",
+    "downloadAllowed": "Загрузка разрешена",
+    "weAreHiring": "Мы нанимаем!"
   },
   "activity": {
     "createProject": "Создать проект",
@@ -442,7 +446,7 @@
       "upload_sub": "или перетащите файл",
       "excelSupport": "Поддерживаются: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Введите URL-адрес файла Excel",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Введите URL-адрес файла CSV",
       "footMsg": "Количество рядов на анализ вывода данных",
       "excelImport": "Листы доступны для импорта",
       "exportMetadata": "Вы хотите экспортировать метаданные из металоги?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Название таблицы как сохранено в базе данных",
       "airtable": {
         "credentials": "Где это найти?"
+      },
+      "import": {
+        "clickOrDrag": "Нажмите или перетащите файл в эту область, чтобы загрузить"
       }
     },
     "error": {

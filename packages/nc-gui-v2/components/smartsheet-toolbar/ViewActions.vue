@@ -214,7 +214,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
-    <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="max(900px,60vw)" :footer="null">
+    <a-modal v-model:visible="sharedViewListDlg" :title="$t('activity.listSharedView')" width="max(900px,60vw)" :footer="null">
       <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
     </a-modal>
     <SmartsheetApiSnippet v-model="showApiSnippetDrawer" />

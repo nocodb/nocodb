@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Swagger -documentatie",
     "quickImportFrom": "Snel import van",
     "quickImport": "Snel import",
-    "advancedSettings": "Geavanceerde instellingen"
+    "advancedSettings": "Geavanceerde instellingen",
+    "codeSnippet": "Codefragment"
   },
   "labels": {
     "notifyVia": "Melding via",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "Formulekolommen importeren",
     "noData": "Geen gegevens",
     "goToDashboard": "Ga naar het dashboard",
-    "importing": "Importeren"
+    "importing": "Importeren",
+    "flattenNested": "Flatten genest",
+    "downloadAllowed": "Download toegestaan",
+    "weAreHiring": "We zijn aan het huren!"
   },
   "activity": {
     "createProject": "Maak project",
@@ -442,7 +446,7 @@
       "upload_sub": "of sleep het bestand naar hier",
       "excelSupport": "Ondersteunt: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Voer Excel-bestandslink in",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "Voer CSV-bestandslink in",
       "footMsg": "# rijen om te parseren om datatype af te leiden",
       "excelImport": "blad(en) zijn beschikbaar om te importeren",
       "exportMetadata": "Wilt u metadata uit metatabellen exporteren?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "Tabelnaam zoals opgeslagen in de database",
       "airtable": {
         "credentials": "Waar te vinden dit?"
+      },
+      "import": {
+        "clickOrDrag": "Klik of sleep het bestand naar dit gebied om te uploaden"
       }
     },
     "error": {

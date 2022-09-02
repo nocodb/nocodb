@@ -192,7 +192,8 @@
     "swaggerDocumentation": "Swagger 문서",
     "quickImportFrom": "빠른 수입",
     "quickImport": "빠른 수입",
-    "advancedSettings": "고급 설정"
+    "advancedSettings": "고급 설정",
+    "codeSnippet": "코드 스 니펫"
   },
   "labels": {
     "notifyVia": "공지",
@@ -276,7 +277,10 @@
     "importFormulaColumns": "포뮬러 열을 가져옵니다",
     "noData": "데이터가 없습니다",
     "goToDashboard": "대시 보드로 이동",
-    "importing": "가져 오기"
+    "importing": "가져 오기",
+    "flattenNested": "평평하게 중첩",
+    "downloadAllowed": "다운로드 허용",
+    "weAreHiring": "직원 모집합니다!"
   },
   "activity": {
     "createProject": "프로젝트 생성",
@@ -442,7 +446,7 @@
       "upload_sub": "또는 끌어서 놓기 파일",
       "excelSupport": "지원 : .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Excel 파일 URL을 입력하십시오",
-      "csvURL": "Enter CSV file URL",
+      "csvURL": "CSV 파일 URL을 입력하십시오",
       "footMsg": "파싱 ​​할 행의 # DataType을 추론합니다",
       "excelImport": "시트는 수입 가능합니다",
       "exportMetadata": "메타 테이블에서 메타 데이터를 내보내려면 원하십니까?",
@@ -528,6 +532,9 @@
       "tableNameInDb": "테이블 이름은 데이터베이스에 저장된 것입니다",
       "airtable": {
         "credentials": "이것을 어디서 찾을 수 있습니까?"
+      },
+      "import": {
+        "clickOrDrag": "이 영역으로 파일을 클릭하거나 드래그하여 업로드하십시오"
       }
     },
     "error": {

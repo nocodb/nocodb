@@ -6,8 +6,8 @@ import cleanUpSakila from './cleanupSakila';
 import { createUser } from '../tests/factory/user';
 import knex from 'knex';
 
+let server;
 const knexClient = knex(dbConfig);
-
 const sakilaKnexClient = knex({
   client: 'mysql2',
   connection: {
@@ -21,10 +21,10 @@ const sakilaKnexClient = knex({
 });
 
 const serverInit = async () => {
-  const server = express();
-  server.enable('trust proxy');
-  server.use(await Noco.init());
-  return server;
+  const serverInstance = express();
+  serverInstance.enable('trust proxy');
+  serverInstance.use(await Noco.init());
+  return serverInstance;
 };
 
 const resetDatabase = async () => {
@@ -56,7 +56,9 @@ export default async function () {
 
   await resetDatabase();
 
-  const server = await serverInit();
+  if (!server) {
+    server = await serverInit();
+  }
 
   await cleanupAllTables();
 

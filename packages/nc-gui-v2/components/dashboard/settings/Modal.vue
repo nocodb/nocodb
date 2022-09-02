@@ -45,7 +45,7 @@ const { t } = useI18n()
 
 const tabsInfo: TabGroup = {
   teamAndAuth: {
-    title: 'Team and Auth',
+    title: t('title.teamAndAuth'),
     icon: TeamFillIcon,
     subTabs: {
       ...(isUIAllowed('userMgmtTab') && {
@@ -65,7 +65,8 @@ const tabsInfo: TabGroup = {
     },
   },
   appStore: {
-    title: 'App Store',
+    // App Store
+    title: t('title.appStore'),
     icon: StoreFrontOutline,
     subTabs: {
       new: {
@@ -75,29 +76,34 @@ const tabsInfo: TabGroup = {
     },
   },
   metaData: {
-    title: 'Project Metadata',
+    // Project Metadata
+    title: t('title.projMeta'),
     icon: MultipleTableIcon,
     subTabs: {
       metaData: {
-        title: 'Metadata',
+        // Metadata
+        title: t('title.metadata'),
         body: Metadata,
       },
       acl: {
-        title: 'UI Access Control',
+        // UI Access Control
+        title: t('title.uiACL'),
         body: UIAcl,
       },
       misc: {
-        title: 'Misc',
+        title: t('general.misc'),
         body: Misc,
       },
     },
   },
   audit: {
-    title: 'Audit',
+    // Audit
+    title: t('title.audit'),
     icon: NootbookOutline,
     subTabs: {
       audit: {
-        title: 'Audit',
+        // Audit
+        title: t('title.audit'),
         body: AuditTab,
       },
     },
@@ -136,8 +142,11 @@ watch(
     :closable="false"
     @cancel="emits('update:modelValue', false)"
   >
+    <!--    Settings -->
     <div class="flex flex-row justify-between w-full items-center mb-1">
-      <a-typography-title class="ml-4 select-none" type="secondary" :level="5">SETTINGS</a-typography-title>
+      <a-typography-title class="ml-4 select-none" type="secondary" :level="5">
+        {{ $t('activity.settings') }}
+      </a-typography-title>
 
       <a-button type="text" class="!rounded-md border-none -mt-1.5 -mr-1" @click="vModel = false">
         <template #icon>

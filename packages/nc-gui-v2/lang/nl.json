@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Klik of sleep het bestand naar dit gebied om te uploaden"
-      }
+      },
+      "metaDataRecreated": "Tafelmetadata heeft succesvol nagebootst",
+      "invalidCredentials": "Ongeldige referenties",
+      "downloadingMoreFiles": "Meer bestanden downloaden",
+      "copiedToClipboard": "Gekopieerd naar het klembord",
+      "requriedFieldsCantBeMoved": "Vereist veld kan niet worden verplaatst",
+      "updateNotAllowedWithoutPK": "Update niet toegestaan ​​voor tabel die geen primaire sleutel heeft",
+      "autoIncFieldNotEditable": "Auto -increment veld is niet bewerkbaar",
+      "editingPKnotSupported": "Het bewerken van primaire sleutel niet ondersteund",
+      "deletedCache": "Met succes verwijderd cache",
+      "cacheEmpty": "Cache is leeg",
+      "exportedCache": "Met succes geëxporteerd cache",
+      "valueAlreadyInList": "Deze waarde staat al in de lijst",
+      "noColumnsToUpdate": "Geen kolommen om bij te werken",
+      "tableDeleted": "Met succes verwijderde tabel"
     },
     "error": {
       "searchProject": "Uw zoekopdracht voor {search} heeft geen resultaten opgeleverd",

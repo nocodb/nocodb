@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Klikk eller dra fil til dette området for å laste opp"
-      }
+      },
+      "metaDataRecreated": "Tabellmetadata gjenskapt vellykket",
+      "invalidCredentials": "Ugyldige legitimasjon",
+      "downloadingMoreFiles": "Last ned flere filer",
+      "copiedToClipboard": "Kopiert til utklippstavle",
+      "requriedFieldsCantBeMoved": "Nødvendig felt kan ikke flyttes",
+      "updateNotAllowedWithoutPK": "Oppdatering ikke tillatt for tabell som ikke har primærnøkkel",
+      "autoIncFieldNotEditable": "Auto Increment -feltet er ikke redigerbart",
+      "editingPKnotSupported": "Redigering av primærnøkkel støttes ikke",
+      "deletedCache": "Slettet hurtigbuffer",
+      "cacheEmpty": "Cache er tom",
+      "exportedCache": "Eksportert cache med hell",
+      "valueAlreadyInList": "Denne verdien er allerede på listen",
+      "noColumnsToUpdate": "Ingen kolonner å oppdatere",
+      "tableDeleted": "Slettet tabell med hell"
     },
     "error": {
       "searchProject": "Søket ditt etter {søk} fant ingen resultater",

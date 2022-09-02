@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "이 영역으로 파일을 클릭하거나 드래그하여 업로드하십시오"
-      }
+      },
+      "metaDataRecreated": "테이블 메타 데이터가 성공적으로 재현되었습니다",
+      "invalidCredentials": "잘못된 자격 증명",
+      "downloadingMoreFiles": "더 많은 파일 다운로드",
+      "copiedToClipboard": "클립 보드에 복사",
+      "requriedFieldsCantBeMoved": "필수 필드는 이동할 수 없습니다",
+      "updateNotAllowedWithoutPK": "기본 키가없는 테이블에 대한 업데이트가 허용되지 않습니다.",
+      "autoIncFieldNotEditable": "자동 증분 필드는 편집 할 수 없습니다",
+      "editingPKnotSupported": "기본 키 편집 지원되지 않습니다",
+      "deletedCache": "캐시를 성공적으로 삭제했습니다",
+      "cacheEmpty": "캐시가 비어 있습니다",
+      "exportedCache": "캐시를 성공적으로 내보냈습니다",
+      "valueAlreadyInList": "이 값은 이미 목록에 있습니다",
+      "noColumnsToUpdate": "업데이트 할 열이 없습니다",
+      "tableDeleted": "삭제 된 테이블이 성공적으로 삭제되었습니다"
     },
     "error": {
       "searchProject": "검색 결과가 없습니다",

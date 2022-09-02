@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Нажмите или перетащите файл в эту область, чтобы загрузить"
-      }
+      },
+      "metaDataRecreated": "Столовые метаданные воссозданы успешно",
+      "invalidCredentials": "Неверные полномочия",
+      "downloadingMoreFiles": "Загрузка больше файлов",
+      "copiedToClipboard": "Скопировано в буфер обмена",
+      "requriedFieldsCantBeMoved": "Требуемое поле не может быть перемещено",
+      "updateNotAllowedWithoutPK": "Обновление не разрешено для таблицы, которая не имеет первичного ключа",
+      "autoIncFieldNotEditable": "Поле автоматического приращения не редактируется",
+      "editingPKnotSupported": "Редактирование первичного ключа не поддерживается",
+      "deletedCache": "Удаленный кэш успешно",
+      "cacheEmpty": "Кэш пуст",
+      "exportedCache": "Экспортированный кэш успешно",
+      "valueAlreadyInList": "Это значение уже в списке",
+      "noColumnsToUpdate": "Нет столбцов для обновления",
+      "tableDeleted": "Удаленная таблица успешно"
     },
     "error": {
       "searchProject": "Ваш поиск {поиск} не дал результатов",

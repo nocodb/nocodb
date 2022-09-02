@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "[ファイル]をクリックまたはドラッグこのエリアにドラッグしてアップロードします"
-      }
+      },
+      "metaDataRecreated": "テーブルメタデータは正常に再現されました",
+      "invalidCredentials": "無効な資格情報",
+      "downloadingMoreFiles": "より多くのファイルをダウンロードします",
+      "copiedToClipboard": "クリップボードにコピーされました",
+      "requriedFieldsCantBeMoved": "必要なフィールドは移動できません",
+      "updateNotAllowedWithoutPK": "プライマリキーを持たないテーブルの更新が許可されていません",
+      "autoIncFieldNotEditable": "自動増分フィールドは編集できません",
+      "editingPKnotSupported": "サポートされていないプライマリキーの編集",
+      "deletedCache": "キャッシュを正常に削除しました",
+      "cacheEmpty": "キャッシュは空です",
+      "exportedCache": "キャッシュを正常にエクスポートしました",
+      "valueAlreadyInList": "この値はすでにリストに載っています",
+      "noColumnsToUpdate": "更新する列はありません",
+      "tableDeleted": "テーブルを正常に削除しました"
     },
     "error": {
       "searchProject": "{search} の検索結果が見つかりませんでした",

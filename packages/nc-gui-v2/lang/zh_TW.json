@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "單擊或將文件拖到此區域上傳"
-      }
+      },
+      "metaDataRecreated": "表元數據成功重新創建",
+      "invalidCredentials": "無效證件",
+      "downloadingMoreFiles": "下載更多文件",
+      "copiedToClipboard": "複製到剪貼板",
+      "requriedFieldsCantBeMoved": "所需的字段無法移動",
+      "updateNotAllowedWithoutPK": "不允許使用沒有主鍵的表",
+      "autoIncFieldNotEditable": "自動增量字段不是可編輯的",
+      "editingPKnotSupported": "編輯主鍵不支持",
+      "deletedCache": "成功刪除了緩存",
+      "cacheEmpty": "緩存為空",
+      "exportedCache": "成功導出緩存",
+      "valueAlreadyInList": "此值已經在列表中",
+      "noColumnsToUpdate": "沒有列更新",
+      "tableDeleted": "成功刪除表"
     },
     "error": {
       "searchProject": "您的搜尋 {search} 找不到結果",

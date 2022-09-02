@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Noklikšķiniet vai velciet failu uz šo apgabalu, lai augšupielādētu"
-      }
+      },
+      "metaDataRecreated": "Galda metadati veiksmīgi atjaunojās",
+      "invalidCredentials": "Nederīgi akreditācijas dati",
+      "downloadingMoreFiles": "Lejupielādējot vairāk failu",
+      "copiedToClipboard": "Kopē pie starpliktuves",
+      "requriedFieldsCantBeMoved": "Nepieciešamo lauku nevar pārvietot",
+      "updateNotAllowedWithoutPK": "Atjauninājums nav atļauts tabulai, kurai nav primārās atslēgas",
+      "autoIncFieldNotEditable": "Automātiskā pieauguma lauks nav rediģējams",
+      "editingPKnotSupported": "Primārās atslēgas rediģēšana netiek atbalstīta",
+      "deletedCache": "Veiksmīgi izdzēsa kešatmiņu",
+      "cacheEmpty": "Kešatmiņa ir tukša",
+      "exportedCache": "Veiksmīgi eksportēja kešatmiņu",
+      "valueAlreadyInList": "Šī vērtība jau ir sarakstā",
+      "noColumnsToUpdate": "Nav kolonnu, lai atjauninātu",
+      "tableDeleted": "Veiksmīgi izdzēstu galdu"
     },
     "error": {
       "searchProject": "Nav atrasti rezultāti meklējot pēc atslēgvārda {search}",

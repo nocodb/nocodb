@@ -2,6 +2,7 @@
 import type { ApiTokenType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { useClipboard } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 import KebabIcon from '~icons/ic/baseline-more-vert'
 import MdiPlusIcon from '~icons/mdi/plus'
 import CloseIcon from '~icons/material-symbols/close-rounded'
@@ -12,6 +13,7 @@ import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import MdiContentCopyIcon from '~icons/mdi/content-copy'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
+const { t } = useI18n()
 interface ApiToken extends ApiTokenType {
   show?: boolean
 }
@@ -45,7 +47,8 @@ const copyToken = (token: string | undefined) => {
   if (!token) return
 
   copy(token)
-  message.info('Copied to clipboard')
+  // Copied to clipboard
+  message.info(t('msg.info.copiedToClipboard'))
 
   $e('c:api-token:copy')
 }

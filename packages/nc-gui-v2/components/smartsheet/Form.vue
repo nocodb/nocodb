@@ -2,6 +2,7 @@
 import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import {
   ActiveViewInj,
@@ -88,6 +89,8 @@ const emailMe = ref(false)
 const submitted = ref(false)
 
 const activeRow = ref('')
+
+const { t } = useI18n()
 
 function updateView() {
   if ((formViewData.value?.subheading?.length || 0) > 255) {
@@ -187,7 +190,8 @@ function onMove(event: any) {
 
 function hideColumn(idx: number) {
   if (shouldSkipColumn(localColumns.value[idx])) {
-    message.info("Required field can't be moved")
+    // Required field can't be moved
+    message.info(t('msg.info.requriedFieldsCantBeMoved'))
     return
   }
 
@@ -234,7 +238,8 @@ async function checkSMTPStatus() {
     const emailPluginActive = await $api.plugin.status('SMTP')
     if (!emailPluginActive) {
       emailMe.value = false
-      message.info('Please activate SMTP plugin in App store for enabling email notification')
+      // Please activate SMTP plugin in App store for enabling email notification
+      message.info(t('msg.toast.formEmailSMTP'))
     }
   }
 }

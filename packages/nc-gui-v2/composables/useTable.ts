@@ -1,10 +1,12 @@
 import { Modal, message } from 'ant-design-vue'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import { useI18n } from 'vue-i18n'
 import { useNuxtApp } from '#app'
 import { TabType } from '~/composables/useTabs'
 import { SYSTEM_COLUMNS, extractSdkResponseErrorMsg, useProject } from '#imports'
 
+const { t } = useI18n()
 export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
@@ -99,7 +101,8 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
           await loadTables()
 
           removeMeta(table.id as string)
-          message.info(`Deleted table ${table.title} successfully`)
+          // Deleted table successfully
+          message.info(t('msg.info.tableDeleted'))
           $e('a:table:delete')
         } catch (e: any) {
           message.error(await extractSdkResponseErrorMsg(e))

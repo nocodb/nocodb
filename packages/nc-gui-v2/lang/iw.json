@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "לחץ או גרור קובץ לאזור זה כדי להעלות"
-      }
+      },
+      "metaDataRecreated": "מטא נתונים של טבלה משוחזרים בהצלחה",
+      "invalidCredentials": "אישורים לא חוקיים",
+      "downloadingMoreFiles": "הורדת קבצים נוספים",
+      "copiedToClipboard": "הועתק ללוח",
+      "requriedFieldsCantBeMoved": "לא ניתן להזיז שדה חובה",
+      "updateNotAllowedWithoutPK": "עדכון אסור לטבלה שאין לה מפתח ראשי",
+      "autoIncFieldNotEditable": "שדה תוספת אוטומטי אינו ניתן לעריכה",
+      "editingPKnotSupported": "עריכת מפתח ראשי לא נתמך",
+      "deletedCache": "מטמון שנמחק בהצלחה",
+      "cacheEmpty": "מטמון ריק",
+      "exportedCache": "מטמון מיוצא בהצלחה",
+      "valueAlreadyInList": "ערך זה כבר נמצא ברשימה",
+      "noColumnsToUpdate": "אין עמודות לעדכון",
+      "tableDeleted": "שולחן נמחק בהצלחה"
     },
     "error": {
       "searchProject": "החיפוש שלך {חיפוש} לא נמצא תוצאות",

@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "अपलोड करने के लिए इस क्षेत्र में फ़ाइल पर क्लिक या खींचें"
-      }
+      },
+      "metaDataRecreated": "टेबल मेटाडेटा सफलतापूर्वक फिर से बनाया गया",
+      "invalidCredentials": "अवैध प्रत्यय पत्र",
+      "downloadingMoreFiles": "अधिक फ़ाइलें डाउनलोड करना",
+      "copiedToClipboard": "क्लिपबोर्ड पर नकल",
+      "requriedFieldsCantBeMoved": "आवश्यक क्षेत्र को स्थानांतरित नहीं किया जा सकता है",
+      "updateNotAllowedWithoutPK": "अद्यतन तालिका के लिए अनुमति नहीं है जिसमें प्राथमिक कुंजी नहीं है",
+      "autoIncFieldNotEditable": "ऑटो वेतन वृद्धि क्षेत्र संपादन योग्य नहीं है",
+      "editingPKnotSupported": "संपादन प्राथमिक कुंजी समर्थित नहीं है",
+      "deletedCache": "कैश को सफलतापूर्वक हटा दिया गया",
+      "cacheEmpty": "कैश खाली है",
+      "exportedCache": "निर्यात किया गया कैश सफलतापूर्वक",
+      "valueAlreadyInList": "यह मान पहले से ही सूची में है",
+      "noColumnsToUpdate": "अपडेट करने के लिए कोई कॉलम नहीं",
+      "tableDeleted": "हटाए गए तालिका सफलतापूर्वक"
     },
     "error": {
       "searchProject": "{search} के लिए आपकी खोज कोई परिणाम नहीं मिला",

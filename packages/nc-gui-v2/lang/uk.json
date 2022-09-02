@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "Клацніть або перетягніть файл у цю область, щоб завантажити"
-      }
+      },
+      "metaDataRecreated": "Метадані столу успішно відтворювались",
+      "invalidCredentials": "Недійсні облікові дані",
+      "downloadingMoreFiles": "Завантаження більше файлів",
+      "copiedToClipboard": "Скопіюється в буфер обміну",
+      "requriedFieldsCantBeMoved": "Необхідне поле неможливо перемістити",
+      "updateNotAllowedWithoutPK": "Оновлення не дозволено для таблиці, яка не має первинного ключа",
+      "autoIncFieldNotEditable": "Поле з збільшенням автоматичного збільшення не можна редагувати",
+      "editingPKnotSupported": "Редагування первинного ключа не підтримується",
+      "deletedCache": "Успішно видалений кеш",
+      "cacheEmpty": "Кеш порожній",
+      "exportedCache": "Експортований кеш успішно",
+      "valueAlreadyInList": "Це значення вже в списку",
+      "noColumnsToUpdate": "Немає стовпців для оновлення",
+      "tableDeleted": "Успішно видалений таблиця"
     },
     "error": {
       "searchProject": "Ваш пошук {пошук} не знайдено жодних результатів",

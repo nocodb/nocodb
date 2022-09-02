@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "আপলোড করতে এই অঞ্চলে ফাইল ক্লিক করুন বা টেনে আনুন"
-      }
+      },
+      "metaDataRecreated": "টেবিল মেটাডেটা সফলভাবে পুনরায় তৈরি করা হয়েছে",
+      "invalidCredentials": "অবৈধ প্রশংসাপত্র",
+      "downloadingMoreFiles": "আরও ফাইল ডাউনলোড করা হচ্ছে",
+      "copiedToClipboard": "ক্লিপবোর্ডে অনুলিপি করা হয়েছে",
+      "requriedFieldsCantBeMoved": "প্রয়োজনীয় ক্ষেত্র সরানো যাবে না",
+      "updateNotAllowedWithoutPK": "টেবিলের জন্য আপডেট অনুমোদিত নয় যা প্রাথমিক কী নেই",
+      "autoIncFieldNotEditable": "অটো ইনক্রিমেন্ট ক্ষেত্রটি সম্পাদনাযোগ্য নয়",
+      "editingPKnotSupported": "সম্পাদনা প্রাথমিক কী সমর্থিত নয়",
+      "deletedCache": "সফলভাবে ক্যাশে মুছে ফেলা হয়েছে",
+      "cacheEmpty": "ক্যাশে খালি",
+      "exportedCache": "সফলভাবে ক্যাশে রফতানি করা হয়েছে",
+      "valueAlreadyInList": "এই মানটি ইতিমধ্যে তালিকায় রয়েছে",
+      "noColumnsToUpdate": "আপডেট করার জন্য কোনও কলাম নেই",
+      "tableDeleted": "সফলভাবে টেবিল মুছে ফেলা হয়েছে"
     },
     "error": {
       "searchProject": "আপনার অনুসন্ধান {search} এর জন্য কোনও ফলাফল পাওয়া যায় নি",

@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx'
 import { ExportTypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -16,6 +17,7 @@ import {
   useProject,
   useUIPermission,
 } from '#imports'
+const { t } = useI18n()
 
 const sharedViewListDlg = ref(false)
 
@@ -82,7 +84,8 @@ const exportFile = async (exportType: ExportTypes) => {
       }
       offset = +headers['nc-export-offset']
       if (offset > -1) {
-        message.info('Downloading more files')
+        // Downloading more files
+        message.info(t('msg.info.downloadingMoreFiles'))
       } else {
         message.success('Successfully exported all table data')
       }

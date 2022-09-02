@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
   IsLockedInj,
@@ -17,6 +18,8 @@ import { viewIcons } from '~/utils'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
+
+const { t } = useI18n()
 
 const sharedViewListDlg = ref(false)
 
@@ -58,7 +61,8 @@ async function changeLockType(type: LockType) {
   if (!selectedView?.value) return
 
   if (type === 'personal') {
-    return message.info('Coming soon')
+    // Coming soon
+    return message.info(t('msg.toast.futureRelease'))
   }
   try {
     ;(selectedView.value as any).lock_type = type

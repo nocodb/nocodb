@@ -535,7 +535,21 @@
       },
       "import": {
         "clickOrDrag": "انقر أو اسحب الملف إلى هذه المنطقة للتحميل"
-      }
+      },
+      "metaDataRecreated": "تم إعادة إنشاء بيانات بيانات التعريف بنجاح",
+      "invalidCredentials": "بيانات الاعتماد غير صالحة",
+      "downloadingMoreFiles": "تنزيل المزيد من الملفات",
+      "copiedToClipboard": "نسخ إلى الحافظة",
+      "requriedFieldsCantBeMoved": "لا يمكن نقل الحقل المطلوب",
+      "updateNotAllowedWithoutPK": "التحديث غير مسموح للجدول الذي لا يحتوي على مفتاح أساسي",
+      "autoIncFieldNotEditable": "مجال زيادة السيارات غير قابلة للتحرير",
+      "editingPKnotSupported": "تحرير المفتاح الأساسي غير مدعوم",
+      "deletedCache": "ذاكرة التخزين المؤقت المحذوفة بنجاح",
+      "cacheEmpty": "ذاكرة التخزين المؤقت فارغة",
+      "exportedCache": "تصدير ذاكرة التخزين المؤقت بنجاح",
+      "valueAlreadyInList": "هذه القيمة موجودة بالفعل في القائمة",
+      "noColumnsToUpdate": "لا توجد أعمدة للتحديث",
+      "tableDeleted": "تم حذف الجدول بنجاح"
     },
     "error": {
       "searchProject": "البحث عن {بحث} لم يتم العثور على نتائج",

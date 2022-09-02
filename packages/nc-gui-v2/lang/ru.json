@@ -280,7 +280,11 @@
     "importing": "Импорт",
     "flattenNested": "Сгладить вложенные",
     "downloadAllowed": "Загрузка разрешена",
-    "weAreHiring": "Мы нанимаем!"
+    "weAreHiring": "Мы нанимаем!",
+    "primaryKey": "Первичный ключ",
+    "hasMany": "имеет много",
+    "belongsTo": "принадлежит",
+    "manyToMany": "иметь много ко многим отношениям"
   },
   "activity": {
     "createProject": "Создать проект",
@@ -390,7 +394,10 @@
     "sendEmail": "Отправить письмо",
     "addUserToProject": "Добавить пользователя в проект",
     "getApiSnippet": "Получите фрагмент API",
-    "clearCell": "Чистая ячейка"
+    "clearCell": "Чистая ячейка",
+    "addFilterGroup": "Добавить группу фильтров",
+    "linkRecord": "Ссылка записи",
+    "addNewRecord": "Добавить новую запись"
   },
   "tooltip": {
     "saveChanges": "Сохранить изменения",
@@ -437,7 +444,8 @@
     "noItemsFound": "Ничего не найдено",
     "defaultValue": "Значение по умолчанию",
     "filterByEmail": "Фильтр по электронной почте",
-    "filterQuery": "Фильтр запрос"
+    "filterQuery": "Фильтр запрос",
+    "selectField": "Выберите поле"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Экспортированный кэш успешно",
       "valueAlreadyInList": "Это значение уже в списке",
       "noColumnsToUpdate": "Нет столбцов для обновления",
-      "tableDeleted": "Удаленная таблица успешно"
+      "tableDeleted": "Удаленная таблица успешно",
+      "generatePublicShareableReadonlyBase": "Генерировать общедоступную базу Readonly",
+      "deleteViewConfirmation": "Вы уверены, что хотите удалить эту точку зрения?",
+      "deleteTableConfirmation": "Вы хотите удалить таблицу",
+      "showM2mTables": "Показать таблицы M2M"
     },
     "error": {
       "searchProject": "Ваш поиск {поиск} не дал результатов",

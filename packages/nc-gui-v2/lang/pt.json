@@ -280,7 +280,11 @@
     "importing": "Importação",
     "flattenNested": "Achatado aninhado",
     "downloadAllowed": "Download permitido",
-    "weAreHiring": "Estamos contratando!"
+    "weAreHiring": "Estamos contratando!",
+    "primaryKey": "Chave primária",
+    "hasMany": "tem muitos",
+    "belongsTo": "pertence a",
+    "manyToMany": "Tenha muitos para muitas relações"
   },
   "activity": {
     "createProject": "Criar Projecto",
@@ -390,7 +394,10 @@
     "sendEmail": "ENVIAR EMAIL",
     "addUserToProject": "Adicionar usuário ao projeto",
     "getApiSnippet": "Obtenha snippet da API",
-    "clearCell": "Célula transparente"
+    "clearCell": "Célula transparente",
+    "addFilterGroup": "Adicione o grupo de filtro",
+    "linkRecord": "Link Register",
+    "addNewRecord": "Adicione um novo registro"
   },
   "tooltip": {
     "saveChanges": "Salvar alterações",
@@ -437,7 +444,8 @@
     "noItemsFound": "Nenhum item encontrado",
     "defaultValue": "Valor padrão",
     "filterByEmail": "Filtrar por e-mail",
-    "filterQuery": "Consulta de filtro"
+    "filterQuery": "Consulta de filtro",
+    "selectField": "Selecione o campo"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Cache exportado com sucesso",
       "valueAlreadyInList": "Este valor já está na lista",
       "noColumnsToUpdate": "Sem colunas para atualizar",
-      "tableDeleted": "Tabela excluída com sucesso"
+      "tableDeleted": "Tabela excluída com sucesso",
+      "generatePublicShareableReadonlyBase": "Gerar base readnomamente compartilhável publicamente",
+      "deleteViewConfirmation": "Tem certeza de que deseja excluir essa visão?",
+      "deleteTableConfirmation": "Você quer excluir a mesa",
+      "showM2mTables": "Mostre tabelas M2M"
     },
     "error": {
       "searchProject": "A sua pesquisa por {search} não encontrou resultados",

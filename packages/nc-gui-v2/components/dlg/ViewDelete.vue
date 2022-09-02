@@ -51,7 +51,7 @@ async function onDelete() {
   <a-modal v-model:visible="vModel" class="!top-[35%]" :confirm-loading="isLoading">
     <template #title> {{ $t('general.delete') }} {{ $t('objects.view') }} </template>
 
-    Are you sure you want to delete this view?
+    {{ $t('msg.info.deleteViewConfirmation') }}
 
     <template #footer>
       <a-button key="back" @click="vModel = false">{{ $t('general.cancel') }}</a-button>

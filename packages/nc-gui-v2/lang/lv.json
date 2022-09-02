@@ -280,7 +280,11 @@
     "importing": "Importēšana",
     "flattenNested": "Saplaciniet ligzdotu",
     "downloadAllowed": "Lejupielādēt atļauts",
-    "weAreHiring": "Mēs pieņemam darbā!"
+    "weAreHiring": "Mēs pieņemam darbā!",
+    "primaryKey": "Primārā atslēga",
+    "hasMany": "ir daudz",
+    "belongsTo": "pieder",
+    "manyToMany": "ir daudz pret daudzām attiecībām"
   },
   "activity": {
     "createProject": "Izveidot projektu",
@@ -390,7 +394,10 @@
     "sendEmail": "SŪTĪT E-PASTU",
     "addUserToProject": "Pievienojiet lietotāju projektam",
     "getApiSnippet": "Iegūstiet API fragmentu",
-    "clearCell": "Dzidra šūna"
+    "clearCell": "Dzidra šūna",
+    "addFilterGroup": "Pievienojiet filtru grupu",
+    "linkRecord": "Link Record",
+    "addNewRecord": "Pievienojiet jaunu ierakstu"
   },
   "tooltip": {
     "saveChanges": "Saglabāt izmaiņas",
@@ -437,7 +444,8 @@
     "noItemsFound": "Nav ierakstu",
     "defaultValue": "Noklusētā vērtība",
     "filterByEmail": "Filtrēt pēc e-pasta",
-    "filterQuery": "Filtra vaicājums"
+    "filterQuery": "Filtra vaicājums",
+    "selectField": "Atlasīt lauku"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Veiksmīgi eksportēja kešatmiņu",
       "valueAlreadyInList": "Šī vērtība jau ir sarakstā",
       "noColumnsToUpdate": "Nav kolonnu, lai atjauninātu",
-      "tableDeleted": "Veiksmīgi izdzēstu galdu"
+      "tableDeleted": "Veiksmīgi izdzēstu galdu",
+      "generatePublicShareableReadonlyBase": "Ģenerēt publiski koplietojamu lasāmu bāzi",
+      "deleteViewConfirmation": "Vai esat pārliecināts, ka vēlaties izdzēst šo skatu?",
+      "deleteTableConfirmation": "Vai vēlaties izdzēst galdu",
+      "showM2mTables": "Rādīt M2M galdus"
     },
     "error": {
       "searchProject": "Nav atrasti rezultāti meklējot pēc atslēgvārda {search}",

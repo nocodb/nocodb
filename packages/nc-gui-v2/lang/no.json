@@ -280,7 +280,11 @@
     "importing": "Import",
     "flattenNested": "Flat nestet",
     "downloadAllowed": "Last ned tillatt",
-    "weAreHiring": "Vi ansetter!"
+    "weAreHiring": "Vi ansetter!",
+    "primaryKey": "Primærnøkkel",
+    "hasMany": "har mange",
+    "belongsTo": "tilhører",
+    "manyToMany": "har mange til mange forhold"
   },
   "activity": {
     "createProject": "Opprett prosjekt",
@@ -390,7 +394,10 @@
     "sendEmail": "SEND E-POST",
     "addUserToProject": "Legg til brukeren i prosjektet",
     "getApiSnippet": "Få API -utdrag",
-    "clearCell": "Klar celle"
+    "clearCell": "Klar celle",
+    "addFilterGroup": "Legg til filtergruppe",
+    "linkRecord": "Link Record",
+    "addNewRecord": "Legg til ny plate"
   },
   "tooltip": {
     "saveChanges": "Lagre endringer",
@@ -437,7 +444,8 @@
     "noItemsFound": "ingen objekter funnet",
     "defaultValue": "Standardverdi",
     "filterByEmail": "Filtrer via e-post",
-    "filterQuery": "Filterforespørsel"
+    "filterQuery": "Filterforespørsel",
+    "selectField": "Velg felt"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Eksportert cache med hell",
       "valueAlreadyInList": "Denne verdien er allerede på listen",
       "noColumnsToUpdate": "Ingen kolonner å oppdatere",
-      "tableDeleted": "Slettet tabell med hell"
+      "tableDeleted": "Slettet tabell med hell",
+      "generatePublicShareableReadonlyBase": "Generere offentlig delbar readonly base",
+      "deleteViewConfirmation": "Er du sikker på at du vil slette denne visningen?",
+      "deleteTableConfirmation": "Vil du slette tabellen",
+      "showM2mTables": "Vis M2M -tabeller"
     },
     "error": {
       "searchProject": "Søket ditt etter {søk} fant ingen resultater",

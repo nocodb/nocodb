@@ -280,7 +280,11 @@
     "importing": "Nhập khẩu",
     "flattenNested": "Làm phẳng lồng nhau",
     "downloadAllowed": "Tải xuống cho phép",
-    "weAreHiring": "Chúng tôi đang thuê!"
+    "weAreHiring": "Chúng tôi đang thuê!",
+    "primaryKey": "Khóa chính",
+    "hasMany": "Co nhiêu",
+    "belongsTo": "thuộc về",
+    "manyToMany": "có nhiều mối quan hệ"
   },
   "activity": {
     "createProject": "Tạo dự án",
@@ -390,7 +394,10 @@
     "sendEmail": "GỬI EMAIL",
     "addUserToProject": "Thêm người dùng vào dự án",
     "getApiSnippet": "Nhận đoạn trích API",
-    "clearCell": "Tế bào rõ ràng"
+    "clearCell": "Tế bào rõ ràng",
+    "addFilterGroup": "Thêm nhóm lọc",
+    "linkRecord": "Hồ sơ liên kết",
+    "addNewRecord": "Thêm bản ghi mới"
   },
   "tooltip": {
     "saveChanges": "Lưu thay đổi",
@@ -437,7 +444,8 @@
     "noItemsFound": "không tìm thấy vật nào",
     "defaultValue": "Giá trị mặc định",
     "filterByEmail": "Lọc bằng e-mail",
-    "filterQuery": "Truy vấn lọc"
+    "filterQuery": "Truy vấn lọc",
+    "selectField": "Chọn trường"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "Xuất bộ nhớ cache thành công",
       "valueAlreadyInList": "Giá trị này đã có trong danh sách",
       "noColumnsToUpdate": "Không có cột để cập nhật",
-      "tableDeleted": "Xóa bảng thành công"
+      "tableDeleted": "Xóa bảng thành công",
+      "generatePublicShareableReadonlyBase": "Tạo cơ sở đọc lại có thể chia sẻ công khai",
+      "deleteViewConfirmation": "Bạn có chắc bạn muốn xóa chế độ xem này không?",
+      "deleteTableConfirmation": "Bạn có muốn xóa bảng không",
+      "showM2mTables": "Hiển thị bảng M2M"
     },
     "error": {
       "searchProject": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả",

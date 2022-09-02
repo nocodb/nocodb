@@ -280,7 +280,11 @@
     "importing": "輸入",
     "flattenNested": "扁平的嵌套",
     "downloadAllowed": "下載允許",
-    "weAreHiring": "我們正在招聘！"
+    "weAreHiring": "我們正在招聘！",
+    "primaryKey": "首要的關鍵",
+    "hasMany": "有很多",
+    "belongsTo": "屬於",
+    "manyToMany": "有很多關係"
   },
   "activity": {
     "createProject": "建立專案",
@@ -390,7 +394,10 @@
     "sendEmail": "傳送電子郵件",
     "addUserToProject": "將用戶添加到項目",
     "getApiSnippet": "獲取API片段",
-    "clearCell": "透明細胞"
+    "clearCell": "透明細胞",
+    "addFilterGroup": "添加過濾器組",
+    "linkRecord": "鏈接記錄",
+    "addNewRecord": "添加新記錄"
   },
   "tooltip": {
     "saveChanges": "儲存更動",
@@ -437,7 +444,8 @@
     "noItemsFound": "未找到任何項目",
     "defaultValue": "預設值",
     "filterByEmail": "通過電子郵件過濾",
-    "filterQuery": "過濾器查詢"
+    "filterQuery": "過濾器查詢",
+    "selectField": "選擇字段"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "成功導出緩存",
       "valueAlreadyInList": "此值已經在列表中",
       "noColumnsToUpdate": "沒有列更新",
-      "tableDeleted": "成功刪除表"
+      "tableDeleted": "成功刪除表",
+      "generatePublicShareableReadonlyBase": "產生可公開共享的可讀基礎",
+      "deleteViewConfirmation": "您確定要刪除此視圖嗎？",
+      "deleteTableConfirmation": "您想刪除表格嗎",
+      "showM2mTables": "顯示M2M表"
     },
     "error": {
       "searchProject": "您的搜尋 {search} 找不到結果",

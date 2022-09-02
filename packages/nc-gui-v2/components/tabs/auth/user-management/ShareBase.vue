@@ -192,7 +192,8 @@ onMounted(() => {
         </a-tooltip>
       </div>
     </div>
-    <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">Generate publicly shareable readonly base</div>
+    <!--    Generate publicly shareable readonly base -->
+    <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">{{ $t('msg.info.generatePublicShareableReadonlyBase') }}</div>
     <div class="mt-4 flex flex-row justify-between mx-1">
       <a-dropdown v-model="showEditBaseDropdown" class="flex">
         <a-button>

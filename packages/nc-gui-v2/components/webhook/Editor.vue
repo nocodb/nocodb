@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Form, message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { MetaInj, extractSdkResponseErrorMsg, fieldRequiredValidator, inject, reactive, useApi, useNuxtApp } from '#imports'
 
 const emit = defineEmits(['backToList', 'editOrAdd'])
+
+const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 

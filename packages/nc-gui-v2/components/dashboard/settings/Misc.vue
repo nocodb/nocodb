@@ -9,7 +9,8 @@ watch(includeM2M, async () => await loadTables())
   <div class="flex flex-row w-full">
     <div class="flex flex-col w-full">
       <div class="flex flex-row items-center w-full mb-4 gap-2">
-        <a-checkbox v-model:checked="includeM2M">Show M2M Tables</a-checkbox>
+        <!--        Show M2M Tables -->
+        <a-checkbox v-model:checked="includeM2M">{{ $t('msg.info.showM2mTables') }}</a-checkbox>
       </div>
     </div>
   </div>

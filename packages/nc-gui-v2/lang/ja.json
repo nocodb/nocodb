@@ -280,7 +280,11 @@
     "importing": "インポート",
     "flattenNested": "ネストされた平ら",
     "downloadAllowed": "ダウンロード許可",
-    "weAreHiring": "私達は雇っています！"
+    "weAreHiring": "私達は雇っています！",
+    "primaryKey": "主キー",
+    "hasMany": "多くを持っています",
+    "belongsTo": "属する",
+    "manyToMany": "多くの関係があります"
   },
   "activity": {
     "createProject": "プロジェクトを作成",
@@ -390,7 +394,10 @@
     "sendEmail": "メールを送信",
     "addUserToProject": "プロジェクトにユーザーを追加します",
     "getApiSnippet": "APIスニペットを取得します",
-    "clearCell": "クリアセル"
+    "clearCell": "クリアセル",
+    "addFilterGroup": "フィルターグループを追加します",
+    "linkRecord": "リンクレコード",
+    "addNewRecord": "新しいレコードを追加します"
   },
   "tooltip": {
     "saveChanges": "変更を保存",
@@ -437,7 +444,8 @@
     "noItemsFound": "項目は見つかりませんでした",
     "defaultValue": "デフォルト値",
     "filterByEmail": "メールアドレスでフィルタ",
-    "filterQuery": "フィルタークエリ"
+    "filterQuery": "フィルタークエリ",
+    "selectField": "フィールドを選択します"
   },
   "msg": {
     "info": {
@@ -549,7 +557,11 @@
       "exportedCache": "キャッシュを正常にエクスポートしました",
       "valueAlreadyInList": "この値はすでにリストに載っています",
       "noColumnsToUpdate": "更新する列はありません",
-      "tableDeleted": "テーブルを正常に削除しました"
+      "tableDeleted": "テーブルを正常に削除しました",
+      "generatePublicShareableReadonlyBase": "公的に共有可能な読み取りベースを生成します",
+      "deleteViewConfirmation": "このビューを削除したいですか？",
+      "deleteTableConfirmation": "テーブルを削除しますか？",
+      "showM2mTables": "M2Mテーブルを表示します"
     },
     "error": {
       "searchProject": "{search} の検索結果が見つかりませんでした",

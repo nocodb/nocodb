@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
+import { Empty, message } from 'ant-design-vue'
 import { h, useNuxtApp, useProject } from '#imports'
 import MdiReload from '~icons/mdi/reload'
 import MdiDatabaseSync from '~icons/mdi/database-sync'
@@ -103,7 +103,9 @@ const columns = [
           :pagination="false"
           :loading="isLoading"
           bordered
-        />
+        >
+          <template #emptyText> <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" /> </template
+        ></a-table>
       </div>
     </div>
     <div class="flex place-content-center w-2/5">

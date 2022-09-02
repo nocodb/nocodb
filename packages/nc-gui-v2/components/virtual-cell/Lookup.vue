@@ -37,7 +37,7 @@ const lookupColumnMetaProps = useColumn(lookupColumn)
 </script>
 
 <template>
-  <div class="w-full h-full flex gap-1">
+  <div class=" h-full flex gap-1">
     <template v-if="lookupColumn">
       <!-- Render virtual cell -->
       <div v-if="isVirtualCol(lookupColumn)">
@@ -62,7 +62,8 @@ const lookupColumnMetaProps = useColumn(lookupColumn)
         <div
           v-for="(v, i) of arrValue"
           :key="i"
-          :class="{ 'bg-gray-100 px-2 rounded-full': !lookupColumnMetaProps.isAttachment }"
+          class="min-w-max"
+          :class="{ 'bg-gray-100 px-1 rounded-full flex-1': !lookupColumnMetaProps.isAttachment , ' border-gray-200 rounded border-1' : ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(lookupColumn.uidt) }"
         >
           <SmartsheetCell :model-value="v" :column="lookupColumn" :edit-enabled="false" :virtual="true" />
         </div>

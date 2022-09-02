@@ -284,7 +284,10 @@
     "primaryKey": "Primarni ključ",
     "hasMany": "ima mnogo",
     "belongsTo": "pripada",
-    "manyToMany": "imajo veliko odnosov"
+    "manyToMany": "imajo veliko odnosov",
+    "extraConnectionParameters": "Dodatni parametri povezave",
+    "commentsOnly": "Samo komentarji",
+    "documentation": "Dokumentacija"
   },
   "activity": {
     "createProject": "Ustvari projek",
@@ -397,7 +400,9 @@
     "clearCell": "Prozorna celica",
     "addFilterGroup": "Dodajte filtrirno skupino",
     "linkRecord": "Zapis povezave",
-    "addNewRecord": "Dodaj nov zapis"
+    "addNewRecord": "Dodaj nov zapis",
+    "useConnectionUrl": "Uporabite URL za povezavo",
+    "toggleCommentsDraw": "Preklopni komentarji Narišite"
   },
   "tooltip": {
     "saveChanges": "Shrani spremembe",
@@ -577,7 +582,31 @@
         "passwdRequired": "zahtevano je geslo",
         "passwdLength": "Geslo mora biti vsaj 8 znakov",
         "passwdMismatch": "geslo se ne ujema"
-      }
+      },
+      "invalidURL": "Neveljaven URL",
+      "internalError": "Prišlo je do notranje napake",
+      "templateGeneratorNotFound": "Generatorja predloge ni mogoče najti!",
+      "fileUploadFailed": "Datoteke ni bilo mogoče naložiti",
+      "primaryColumnUpdateFailed": "Ni uspelo posodobiti primarnega stolpca",
+      "formDescriptionTooLong": "Podatki predolgo za opis obrazca",
+      "columnsRequired": "Potrebni so naslednji stolpci",
+      "selectAtleastOneColumn": "Izbrati je treba vsaj en stolpec",
+      "columnDescriptionNotFound": "Ne najdem ciljnega stolpca za",
+      "duplicateMappingFound": "Najdeno podvojeno preslikavo, odstranite eno od preslikav",
+      "nullValueViolatesNotNull": "NULL vrednost krši ne-null omejitev",
+      "sourceHasInvalidNumbers": "Izvorni podatki vsebujejo nekaj neveljavnih številk",
+      "sourceHasInvalidBoolean": "Izvorni podatki vsebujejo nekatere neveljavne vrednosti Boolov",
+      "invalidForm": "Neveljavna oblika",
+      "formValidationFailed": "Validacija obrazca ni uspela",
+      "youHaveBeenSignedOut": "Odpisali ste",
+      "failedToLoadList": "Seznama ni bilo mogoče naložiti",
+      "failedToLoadChildrenList": "Ni naložil seznama otrok",
+      "deleteFailed": "Izbriši ni uspela",
+      "unlinkFailed": "Unlek ni uspel",
+      "rowUpdateFailed": "Posodobitev vrstice ni uspela",
+      "deleteRowFailed": "Ni uspel izbrisati vrstice",
+      "setFormDataFailed": "Ni nastavil podatkov",
+      "formViewUpdateFailed": "Ni uspelo posodobiti pogleda obrazca"
     },
     "toast": {
       "exportMetadata": "Projekt Metapodatki se je uspešno izvozil",

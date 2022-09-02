@@ -284,7 +284,10 @@
     "primaryKey": "Первичный ключ",
     "hasMany": "имеет много",
     "belongsTo": "принадлежит",
-    "manyToMany": "иметь много ко многим отношениям"
+    "manyToMany": "иметь много ко многим отношениям",
+    "extraConnectionParameters": "Дополнительные параметры соединения",
+    "commentsOnly": "Только комментарии",
+    "documentation": "Документация"
   },
   "activity": {
     "createProject": "Создать проект",
@@ -397,7 +400,9 @@
     "clearCell": "Чистая ячейка",
     "addFilterGroup": "Добавить группу фильтров",
     "linkRecord": "Ссылка записи",
-    "addNewRecord": "Добавить новую запись"
+    "addNewRecord": "Добавить новую запись",
+    "useConnectionUrl": "Используйте URL -адрес",
+    "toggleCommentsDraw": "Комментарии переключения"
   },
   "tooltip": {
     "saveChanges": "Сохранить изменения",
@@ -577,7 +582,31 @@
         "passwdRequired": "необходим пароль",
         "passwdLength": "Ваш пароль должен быть не короче 8 символов",
         "passwdMismatch": "Пароли не совпадают"
-      }
+      },
+      "invalidURL": "Неверный URL",
+      "internalError": "Произошла некоторая внутренняя ошибка",
+      "templateGeneratorNotFound": "Генератор шаблонов не может быть найден!",
+      "fileUploadFailed": "Не удалось загрузить файл",
+      "primaryColumnUpdateFailed": "Не удалось обновить первичный столбец",
+      "formDescriptionTooLong": "Данные слишком долго для описания формы",
+      "columnsRequired": "Требуются следующие столбцы",
+      "selectAtleastOneColumn": "По крайней мере один столбец должен быть выбран",
+      "columnDescriptionNotFound": "Не могу найти столбец назначения для",
+      "duplicateMappingFound": "Найдено дубликаты картирования, пожалуйста, удалите одно из картива",
+      "nullValueViolatesNotNull": "Нулевая стоимость нарушает не-нулевые ограничения",
+      "sourceHasInvalidNumbers": "Исходные данные содержат некоторые недопустимые числа",
+      "sourceHasInvalidBoolean": "Исходные данные содержат некоторые неверные логические значения",
+      "invalidForm": "Неверная форма",
+      "formValidationFailed": "Проверка формы не удалась",
+      "youHaveBeenSignedOut": "Вы были подписаны",
+      "failedToLoadList": "Не удалось загрузить список",
+      "failedToLoadChildrenList": "Не удалось загрузить список детей",
+      "deleteFailed": "Удалить не удалось",
+      "unlinkFailed": "Unlink не удалось",
+      "rowUpdateFailed": "Обновление строки не удалось",
+      "deleteRowFailed": "Не удалось удалить строку",
+      "setFormDataFailed": "Не удалось установить данные формы",
+      "formViewUpdateFailed": "Не удалось обновить представление формы"
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",

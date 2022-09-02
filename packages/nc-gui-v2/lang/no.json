@@ -284,7 +284,10 @@
     "primaryKey": "Primærnøkkel",
     "hasMany": "har mange",
     "belongsTo": "tilhører",
-    "manyToMany": "har mange til mange forhold"
+    "manyToMany": "har mange til mange forhold",
+    "extraConnectionParameters": "Ekstra tilkoblingsparametere",
+    "commentsOnly": "Bare kommentarer",
+    "documentation": "Dokumentasjon"
   },
   "activity": {
     "createProject": "Opprett prosjekt",
@@ -397,7 +400,9 @@
     "clearCell": "Klar celle",
     "addFilterGroup": "Legg til filtergruppe",
     "linkRecord": "Link Record",
-    "addNewRecord": "Legg til ny plate"
+    "addNewRecord": "Legg til ny plate",
+    "useConnectionUrl": "Bruk tilkoblings -URL",
+    "toggleCommentsDraw": "Veksle kommentarer tegning"
   },
   "tooltip": {
     "saveChanges": "Lagre endringer",
@@ -577,7 +582,31 @@
         "passwdRequired": "Passord er påkrevd",
         "passwdLength": "Ditt passord må være minst 8 tegn",
         "passwdMismatch": "passordene er ikke like"
-      }
+      },
+      "invalidURL": "ugyldig URL",
+      "internalError": "Noe intern feil oppstod",
+      "templateGeneratorNotFound": "Malgenerator kan ikke bli funnet!",
+      "fileUploadFailed": "Kunne ikke laste opp fil",
+      "primaryColumnUpdateFailed": "Kunne ikke oppdatere primærkolonnen",
+      "formDescriptionTooLong": "Data for lenge for formbeskrivelse",
+      "columnsRequired": "Følgende kolonner er påkrevd",
+      "selectAtleastOneColumn": "Minst en kolonne må velges",
+      "columnDescriptionNotFound": "Finner ikke destinasjonskolonnen for",
+      "duplicateMappingFound": "Duplikat kartlegging funnet, vennligst fjern en av kartleggingen",
+      "nullValueViolatesNotNull": "Nullverdien bryter ikke-null-begrensningen",
+      "sourceHasInvalidNumbers": "Kildedata inneholder noen ugyldige tall",
+      "sourceHasInvalidBoolean": "Kildedata inneholder noen ugyldige boolske verdier",
+      "invalidForm": "Ugyldig form",
+      "formValidationFailed": "Formvalidering mislyktes",
+      "youHaveBeenSignedOut": "Du er blitt logget på",
+      "failedToLoadList": "Kunne ikke laste liste",
+      "failedToLoadChildrenList": "Kunne ikke laste barneliste",
+      "deleteFailed": "Slett mislyktes",
+      "unlinkFailed": "Unlink mislyktes",
+      "rowUpdateFailed": "Rekkeoppdatering mislyktes",
+      "deleteRowFailed": "Kunne ikke slette rad",
+      "setFormDataFailed": "Kunne ikke angi skjemadata",
+      "formViewUpdateFailed": "Kunne ikke oppdatere skjemavisning"
     },
     "toast": {
       "exportMetadata": "Prosjektmetadata eksporteres vellykket",

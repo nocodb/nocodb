@@ -284,7 +284,10 @@
     "primaryKey": "প্রাথমিক কী",
     "hasMany": "প্রচুর আছে",
     "belongsTo": "অন্তর্গত",
-    "manyToMany": "অনেক সম্পর্ক আছে"
+    "manyToMany": "অনেক সম্পর্ক আছে",
+    "extraConnectionParameters": "অতিরিক্ত সংযোগ পরামিতি",
+    "commentsOnly": "শুধুমাত্র মন্তব্য",
+    "documentation": "ডকুমেন্টেশন"
   },
   "activity": {
     "createProject": "প্রকল্প তৈরি করুন",
@@ -397,7 +400,9 @@
     "clearCell": "ক্লিয়ার সেল",
     "addFilterGroup": "ফিল্টার গ্রুপ যুক্ত করুন",
     "linkRecord": "লিঙ্ক রেকর্ড",
-    "addNewRecord": "নতুন রেকর্ড যুক্ত করুন"
+    "addNewRecord": "নতুন রেকর্ড যুক্ত করুন",
+    "useConnectionUrl": "সংযোগ URL ব্যবহার করুন",
+    "toggleCommentsDraw": "টগল মন্তব্য আঁকুন"
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -577,7 +582,31 @@
         "passwdRequired": "পাসওয়ার্ড প্রয়োজন",
         "passwdLength": "আপনার পাসওয়ার্ড অবশ্যই কমপক্ষে 8 টি অক্ষর হতে হবে",
         "passwdMismatch": "পাসওয়ার্ড মিলছে না"
-      }
+      },
+      "invalidURL": "অবৈধ url",
+      "internalError": "কিছু অভ্যন্তরীণ ত্রুটি ঘটেছে",
+      "templateGeneratorNotFound": "টেমপ্লেট জেনারেটর খুঁজে পাওয়া যায় না!",
+      "fileUploadFailed": "ফাইল আপলোড করতে ব্যর্থ",
+      "primaryColumnUpdateFailed": "প্রাথমিক কলাম আপডেট করতে ব্যর্থ",
+      "formDescriptionTooLong": "ফর্ম বর্ণনার জন্য ডেটা খুব দীর্ঘ",
+      "columnsRequired": "নিম্নলিখিত কলাম প্রয়োজন",
+      "selectAtleastOneColumn": "কমপক্ষে একটি কলাম নির্বাচন করতে হবে",
+      "columnDescriptionNotFound": "এর জন্য গন্তব্য কলামটি খুঁজে পাচ্ছি না",
+      "duplicateMappingFound": "ডুপ্লিকেট ম্যাপিং পাওয়া গেছে, দয়া করে ম্যাপিংয়ের একটি সরান",
+      "nullValueViolatesNotNull": "নাল মান নাল সীমাবদ্ধতা লঙ্ঘন করে",
+      "sourceHasInvalidNumbers": "উত্স ডেটাতে কিছু অবৈধ সংখ্যা রয়েছে",
+      "sourceHasInvalidBoolean": "উত্স ডেটাতে কিছু অবৈধ বুলিয়ান মান রয়েছে",
+      "invalidForm": "অবৈধ ফর্ম",
+      "formValidationFailed": "ফর্ম বৈধতা ব্যর্থ",
+      "youHaveBeenSignedOut": "আপনি সাইন আউট করা হয়েছে",
+      "failedToLoadList": "তালিকা লোড করতে ব্যর্থ",
+      "failedToLoadChildrenList": "বাচ্চাদের তালিকা লোড করতে ব্যর্থ",
+      "deleteFailed": "মুছুন ব্যর্থ",
+      "unlinkFailed": "লিঙ্ক ব্যর্থ হয়েছে",
+      "rowUpdateFailed": "সারি আপডেট ব্যর্থ হয়েছে",
+      "deleteRowFailed": "সারি মুছতে ব্যর্থ",
+      "setFormDataFailed": "ফর্ম ডেটা সেট করতে ব্যর্থ",
+      "formViewUpdateFailed": "ফর্ম ভিউ আপডেট করতে ব্যর্থ"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",

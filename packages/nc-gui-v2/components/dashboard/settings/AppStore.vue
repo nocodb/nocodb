@@ -87,8 +87,8 @@ onMounted(async () => {
         {{ `Click on confirm to reset ${pluginApp && pluginApp.title}` }}
       </div>
       <div class="flex mt-6 justify-center space-x-2">
-        <a-button @click="showPluginUninstallModal = false"> Cancel </a-button>
-        <a-button type="primary" danger @click="resetPlugin"> Confirm </a-button>
+        <a-button @click="showPluginUninstallModal = false"> {{ $t('general.cancel') }} </a-button>
+        <a-button type="primary" danger @click="resetPlugin"> {{ $t('general.confirm') }} </a-button>
       </div>
     </div>
   </a-modal>

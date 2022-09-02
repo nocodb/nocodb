@@ -284,7 +284,10 @@
     "primaryKey": "主キー",
     "hasMany": "多くを持っています",
     "belongsTo": "属する",
-    "manyToMany": "多くの関係があります"
+    "manyToMany": "多くの関係があります",
+    "extraConnectionParameters": "追加の接続パラメーター",
+    "commentsOnly": "コメントのみ",
+    "documentation": "ドキュメンテーション"
   },
   "activity": {
     "createProject": "プロジェクトを作成",
@@ -397,7 +400,9 @@
     "clearCell": "クリアセル",
     "addFilterGroup": "フィルターグループを追加します",
     "linkRecord": "リンクレコード",
-    "addNewRecord": "新しいレコードを追加します"
+    "addNewRecord": "新しいレコードを追加します",
+    "useConnectionUrl": "接続URLを使用します",
+    "toggleCommentsDraw": "コメントの描画を切り替えます"
   },
   "tooltip": {
     "saveChanges": "変更を保存",
@@ -577,7 +582,31 @@
         "passwdRequired": "パスワードが必要です",
         "passwdLength": "パスワードは8文字以上にしてください",
         "passwdMismatch": "パスワードが一致していません"
-      }
+      },
+      "invalidURL": "無効なURL",
+      "internalError": "いくつかの内部エラーが発生しました",
+      "templateGeneratorNotFound": "テンプレートジェネレーターは見つかりません！",
+      "fileUploadFailed": "ファイルのアップロードに失敗しました",
+      "primaryColumnUpdateFailed": "プライマリ列の更新に失敗しました",
+      "formDescriptionTooLong": "フォーム説明にはデータが長すぎます",
+      "columnsRequired": "次の列が必要です",
+      "selectAtleastOneColumn": "少なくとも1つの列を選択する必要があります",
+      "columnDescriptionNotFound": "宛先列が見つかりません",
+      "duplicateMappingFound": "見つかった重複マッピング、マッピングの1つを削除してください",
+      "nullValueViolatesNotNull": "ヌル値は、ヌルの制約ではなく違反します",
+      "sourceHasInvalidNumbers": "ソースデータには、いくつかの無効な数値が含まれています",
+      "sourceHasInvalidBoolean": "ソースデータには、いくつかの無効なブール値が含まれています",
+      "invalidForm": "無効なフォーム",
+      "formValidationFailed": "フォーム検証に失敗しました",
+      "youHaveBeenSignedOut": "あなたはサインアウトされました",
+      "failedToLoadList": "リストの読み込みに失敗しました",
+      "failedToLoadChildrenList": "子供リストのロードに失敗しました",
+      "deleteFailed": "削除に失敗しました",
+      "unlinkFailed": "リンク解除は失敗しました",
+      "rowUpdateFailed": "行の更新に失敗しました",
+      "deleteRowFailed": "行を削除できませんでした",
+      "setFormDataFailed": "フォームデータの設定に失敗しました",
+      "formViewUpdateFailed": "フォームビューの更新に失敗しました"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",
@@ -612,7 +641,7 @@
       "tokenDeleted": "トークンは正常に削除されました",
       "userAddedToProject": "プロジェクトにユーザーを正常に追加しました",
       "userDeletedFromProject": "プロジェクトからユーザーを正常に削除しました",
-      "inviteEmailSent": "正常に送信されるメールを招待します",
+      "inviteEmailSent": "電子メールを正常に招待してください",
       "inviteURLCopied": "ClipboardにコピーされたURLを招待します",
       "shareableURLCopied": "Clipboardに共有可能なベースURLをコピーしました！",
       "embeddableHTMLCodeCopied": "埋め込み可能なHTMLコードをコピーしました！",

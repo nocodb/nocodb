@@ -284,7 +284,10 @@
     "primaryKey": "首要的關鍵",
     "hasMany": "有很多",
     "belongsTo": "屬於",
-    "manyToMany": "有很多關係"
+    "manyToMany": "有很多關係",
+    "extraConnectionParameters": "額外的連接參數",
+    "commentsOnly": "僅評論",
+    "documentation": "文檔"
   },
   "activity": {
     "createProject": "建立專案",
@@ -397,7 +400,9 @@
     "clearCell": "透明細胞",
     "addFilterGroup": "添加過濾器組",
     "linkRecord": "鏈接記錄",
-    "addNewRecord": "添加新記錄"
+    "addNewRecord": "添加新記錄",
+    "useConnectionUrl": "使用連接URL",
+    "toggleCommentsDraw": "切換評論繪製"
   },
   "tooltip": {
     "saveChanges": "儲存更動",
@@ -577,7 +582,31 @@
         "passwdRequired": "密碼為必填",
         "passwdLength": "您的密碼應至少有 8 個字元",
         "passwdMismatch": "密碼不匹配"
-      }
+      },
+      "invalidURL": "無效的網址",
+      "internalError": "發生了一些內部錯誤",
+      "templateGeneratorNotFound": "無法找到模板生成器！",
+      "fileUploadFailed": "無法上傳文件",
+      "primaryColumnUpdateFailed": "無法更新主列",
+      "formDescriptionTooLong": "數據太長而無法表格描述",
+      "columnsRequired": "需要以下列",
+      "selectAtleastOneColumn": "至少必須選擇一列",
+      "columnDescriptionNotFound": "找不到目標列",
+      "duplicateMappingFound": "找到了重複的映射，請刪除其中一個映射",
+      "nullValueViolatesNotNull": "零值違反了無障礙約束",
+      "sourceHasInvalidNumbers": "源數據包含一些無效的數字",
+      "sourceHasInvalidBoolean": "源數據包含一些無效的布爾值",
+      "invalidForm": "無效的形式",
+      "formValidationFailed": "表單驗證失敗",
+      "youHaveBeenSignedOut": "你已經簽了",
+      "failedToLoadList": "無法加載列表",
+      "failedToLoadChildrenList": "未能加載兒童清單",
+      "deleteFailed": "刪除失敗",
+      "unlinkFailed": "UNLINK失敗",
+      "rowUpdateFailed": "行更新失敗",
+      "deleteRowFailed": "無法刪除行",
+      "setFormDataFailed": "無法設置表格數據",
+      "formViewUpdateFailed": "無法更新表單視圖"
     },
     "toast": {
       "exportMetadata": "專案中繼資料已成功匯出",

@@ -312,7 +312,7 @@ async function saveHooks() {
   try {
     await validate()
   } catch (_: any) {
-    message.error('Invalid Form')
+    message.error(t('msg.error.invalidForm'))
 
     loading.value = false
 

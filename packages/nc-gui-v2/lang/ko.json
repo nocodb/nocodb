@@ -284,7 +284,10 @@
     "primaryKey": "기본 키",
     "hasMany": "많이있다",
     "belongsTo": "속한다",
-    "manyToMany": "많은 관계가 있습니다"
+    "manyToMany": "많은 관계가 있습니다",
+    "extraConnectionParameters": "추가 연결 매개 변수",
+    "commentsOnly": "의견 만",
+    "documentation": "선적 서류 비치"
   },
   "activity": {
     "createProject": "프로젝트 생성",
@@ -397,7 +400,9 @@
     "clearCell": "클리어 셀",
     "addFilterGroup": "필터 그룹을 추가하십시오",
     "linkRecord": "링크 레코드",
-    "addNewRecord": "새로운 레코드를 추가하십시오"
+    "addNewRecord": "새로운 레코드를 추가하십시오",
+    "useConnectionUrl": "연결 URL을 사용하십시오",
+    "toggleCommentsDraw": "댓글을 전환합니다"
   },
   "tooltip": {
     "saveChanges": "변경 사항 저장",
@@ -577,7 +582,31 @@
         "passwdRequired": "비밀번호가 필요합니다.",
         "passwdLength": "비밀번호는 8자 이상이어야 합니다.",
         "passwdMismatch": "비밀번호가 일치하지 않습니다"
-      }
+      },
+      "invalidURL": "잘못된 URL",
+      "internalError": "일부 내부 오류가 발생했습니다",
+      "templateGeneratorNotFound": "템플릿 생성기를 찾을 수 없습니다!",
+      "fileUploadFailed": "파일을 업로드하지 못했습니다",
+      "primaryColumnUpdateFailed": "기본 열을 업데이트하지 못했습니다",
+      "formDescriptionTooLong": "양식 설명에 너무 긴 데이터",
+      "columnsRequired": "다음 열이 필요합니다",
+      "selectAtleastOneColumn": "최소 하나의 열을 선택해야합니다",
+      "columnDescriptionNotFound": "대상 열을 찾을 수 없습니다",
+      "duplicateMappingFound": "중복 매핑이 발견되었습니다. 매핑 중 하나를 제거하십시오.",
+      "nullValueViolatesNotNull": "NULL 값은 Null 구속 조건을 위반합니다",
+      "sourceHasInvalidNumbers": "소스 데이터에는 몇 가지 유효하지 않은 숫자가 포함되어 있습니다",
+      "sourceHasInvalidBoolean": "소스 데이터에는 몇 가지 잘못된 부울 값이 포함되어 있습니다",
+      "invalidForm": "잘못된 형태",
+      "formValidationFailed": "양식 검증이 실패했습니다",
+      "youHaveBeenSignedOut": "당신은 서명되었습니다",
+      "failedToLoadList": "목록을로드하지 못했습니다",
+      "failedToLoadChildrenList": "어린이 목록을로드하지 못했습니다",
+      "deleteFailed": "삭제 실패",
+      "unlinkFailed": "링크 해제 실패",
+      "rowUpdateFailed": "행 업데이트가 실패했습니다",
+      "deleteRowFailed": "행을 삭제하지 못했습니다",
+      "setFormDataFailed": "양식 데이터를 설정하지 못했습니다",
+      "formViewUpdateFailed": "형태보기를 업데이트하지 못했습니다"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다.",

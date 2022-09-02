@@ -284,7 +284,10 @@
     "primaryKey": "کلید اصلی",
     "hasMany": "بسیاری دارد",
     "belongsTo": "متعلق به",
-    "manyToMany": "با بسیاری از ارتباطات داشته باشید"
+    "manyToMany": "با بسیاری از ارتباطات داشته باشید",
+    "extraConnectionParameters": "پارامترهای اتصال اضافی",
+    "commentsOnly": "فقط نظرات",
+    "documentation": "مستندات"
   },
   "activity": {
     "createProject": "ایجاد پروژه",
@@ -397,7 +400,9 @@
     "clearCell": "سلول پاک",
     "addFilterGroup": "گروه فیلتر را اضافه کنید",
     "linkRecord": "رکورد",
-    "addNewRecord": "رکورد جدید اضافه کنید"
+    "addNewRecord": "رکورد جدید اضافه کنید",
+    "useConnectionUrl": "از URL اتصال استفاده کنید",
+    "toggleCommentsDraw": "جابجایی نظرات ترسیم"
   },
   "tooltip": {
     "saveChanges": "ذخیره تغییرات",
@@ -577,7 +582,31 @@
         "passwdRequired": "کلمه عبور مورد نیاز است",
         "passwdLength": "کلمه عبور شما باید حداقل 8 کاراکتر داشته باشد",
         "passwdMismatch": "رمزهای ورود مطابقت ندارند"
-      }
+      },
+      "invalidURL": "URL نامعتبر",
+      "internalError": "برخی از خطای داخلی رخ داده است",
+      "templateGeneratorNotFound": "ژنراتور الگو یافت نمی شود!",
+      "fileUploadFailed": "بارگذاری پرونده انجام نشد",
+      "primaryColumnUpdateFailed": "به روزرسانی ستون اولیه انجام نشد",
+      "formDescriptionTooLong": "داده ها برای توصیف فرم خیلی طولانی است",
+      "columnsRequired": "ستون های زیر مورد نیاز است",
+      "selectAtleastOneColumn": "حداقل یک ستون باید انتخاب شود",
+      "columnDescriptionNotFound": "ستون مقصد را پیدا نمی کند",
+      "duplicateMappingFound": "نقشه برداری تکراری پیدا شده ، لطفاً یکی از نقشه ها را حذف کنید",
+      "nullValueViolatesNotNull": "مقدار تهی محدودیت بدون تهی را نقض می کند",
+      "sourceHasInvalidNumbers": "داده های منبع حاوی برخی از اعداد نامعتبر است",
+      "sourceHasInvalidBoolean": "داده های منبع حاوی مقادیر بولی نامعتبر است",
+      "invalidForm": "فرم نامعتبر",
+      "formValidationFailed": "اعتبار سنجی فرم انجام نشد",
+      "youHaveBeenSignedOut": "شما خارج شده اید",
+      "failedToLoadList": "لیست بارگیری نشد",
+      "failedToLoadChildrenList": "در لیست کودکان بارگیری نشد",
+      "deleteFailed": "حذف ناموفق بود",
+      "unlinkFailed": "unlink شکست خورد",
+      "rowUpdateFailed": "به روزرسانی ردیف انجام نشد",
+      "deleteRowFailed": "حذف ردیف انجام نشد",
+      "setFormDataFailed": "تنظیم داده های فرم انجام نشد",
+      "formViewUpdateFailed": "به روزرسانی نمای فرم انجام نشد"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",

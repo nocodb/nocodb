@@ -284,7 +284,10 @@
     "primaryKey": "Glavni ključ",
     "hasMany": "ima mnogo",
     "belongsTo": "pripada",
-    "manyToMany": "imaju mnogo do mnogih odnosa"
+    "manyToMany": "imaju mnogo do mnogih odnosa",
+    "extraConnectionParameters": "Dodatni parametri veze",
+    "commentsOnly": "Samo komentari",
+    "documentation": "Dokumentacija"
   },
   "activity": {
     "createProject": "Stvoriti projekt",
@@ -397,7 +400,9 @@
     "clearCell": "Bistra ćelija",
     "addFilterGroup": "Dodajte filtersku grupu",
     "linkRecord": "Link zapisnik",
-    "addNewRecord": "Dodajte novi zapis"
+    "addNewRecord": "Dodajte novi zapis",
+    "useConnectionUrl": "Koristite URL veze",
+    "toggleCommentsDraw": "Preklopni komentari crtaju"
   },
   "tooltip": {
     "saveChanges": "Spremi promjene",
@@ -577,7 +582,31 @@
         "passwdRequired": "potrebna je lozinka",
         "passwdLength": "Vi lozinka mora biti najmanje 8 znakova",
         "passwdMismatch": "Lozinke se ne podudaraju"
-      }
+      },
+      "invalidURL": "Neispravan URL",
+      "internalError": "Dogodila se neka unutarnja pogreška",
+      "templateGeneratorNotFound": "Ne može se naći generator predloška!",
+      "fileUploadFailed": "Nije uspjelo prijenos datoteke",
+      "primaryColumnUpdateFailed": "Nije uspjelo ažurirati primarni stupac",
+      "formDescriptionTooLong": "Podaci predugo za opis obrasca",
+      "columnsRequired": "Potrebni su sljedeći stupci",
+      "selectAtleastOneColumn": "Mora se odabrati barem jedan stupac",
+      "columnDescriptionNotFound": "Ne mogu pronaći odredišni stupac za",
+      "duplicateMappingFound": "Pronađeno duplikatno mapiranje, uklonite jedno od mapiranja",
+      "nullValueViolatesNotNull": "Nulta vrijednost krši ne-null ograničenje",
+      "sourceHasInvalidNumbers": "Izvorni podaci sadrže neke nevažeće brojeve",
+      "sourceHasInvalidBoolean": "Izvorni podaci sadrže neke nevažeće boolene vrijednosti",
+      "invalidForm": "Nevažeći oblik",
+      "formValidationFailed": "Validacija obrasca nije uspjela",
+      "youHaveBeenSignedOut": "Označeni ste",
+      "failedToLoadList": "Popis učitavanja nije uspio",
+      "failedToLoadChildrenList": "Nije uspjelo učitati popis djece",
+      "deleteFailed": "Izbriši propao",
+      "unlinkFailed": "Unlo Link nije propao",
+      "rowUpdateFailed": "Ažuriranje reda nije uspjelo",
+      "deleteRowFailed": "Nije uspjelo izbrisati red",
+      "setFormDataFailed": "Nije uspjelo postaviti podatke o obrascu",
+      "formViewUpdateFailed": "Nije uspio ažurirati prikaz obrasca"
     },
     "toast": {
       "exportMetadata": "Projektni metapodaci su uspješno izvozili",

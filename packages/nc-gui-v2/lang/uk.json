@@ -284,7 +284,10 @@
     "primaryKey": "Первинний ключ",
     "hasMany": "має багато",
     "belongsTo": "належить",
-    "manyToMany": "мають багато стосунків"
+    "manyToMany": "мають багато стосунків",
+    "extraConnectionParameters": "Додаткові параметри з'єднання",
+    "commentsOnly": "Тільки коментарі",
+    "documentation": "Документація"
   },
   "activity": {
     "createProject": "Створити проект",
@@ -397,7 +400,9 @@
     "clearCell": "Прозора клітина",
     "addFilterGroup": "Додайте групу фільтрів",
     "linkRecord": "Запис посилань",
-    "addNewRecord": "Додайте новий запис"
+    "addNewRecord": "Додайте новий запис",
+    "useConnectionUrl": "Використовуйте URL -адресу підключення",
+    "toggleCommentsDraw": "Перемикати коментарі Накрес"
   },
   "tooltip": {
     "saveChanges": "Зберегти зміни",
@@ -577,7 +582,31 @@
         "passwdRequired": "Необхідний пароль",
         "passwdLength": "Пароль повинен бути принаймні 8 символів",
         "passwdMismatch": "Паролі не співпадають"
-      }
+      },
+      "invalidURL": "Недійна URL -адреса",
+      "internalError": "Сталася якась внутрішня помилка",
+      "templateGeneratorNotFound": "Генератор шаблонів неможливо знайти!",
+      "fileUploadFailed": "Не вдалося завантажити файл",
+      "primaryColumnUpdateFailed": "Не вдалося оновити первинний стовпець",
+      "formDescriptionTooLong": "Дані занадто довгі для опису форми",
+      "columnsRequired": "Потрібні наступні стовпці",
+      "selectAtleastOneColumn": "Принаймні один стовпець повинен бути вибраний",
+      "columnDescriptionNotFound": "Не вдається знайти стовпчик призначення для",
+      "duplicateMappingFound": "Знайдено повторне відображення, будь ласка, зніміть одне з відображення",
+      "nullValueViolatesNotNull": "Нульова вартість порушує не обмежене обмеження",
+      "sourceHasInvalidNumbers": "Дані джерела містять деякі недійсні номери",
+      "sourceHasInvalidBoolean": "Дані джерела містять деякі недійсні булеві значення",
+      "invalidForm": "Недійсна форма",
+      "formValidationFailed": "Не вдалося валідацію форми",
+      "youHaveBeenSignedOut": "Ви були підписані",
+      "failedToLoadList": "Не вдалося завантажити список",
+      "failedToLoadChildrenList": "Не вдалося завантажити список дітей",
+      "deleteFailed": "Видалення не вдалося",
+      "unlinkFailed": "Підключення не вдалося",
+      "rowUpdateFailed": "Не вдалося оновлення рядка",
+      "deleteRowFailed": "Не вдалося видалити ряд",
+      "setFormDataFailed": "Не вдалося встановити дані форми",
+      "formViewUpdateFailed": "Не вдалося оновити перегляд форми"
     },
     "toast": {
       "exportMetadata": "Метадані проекту успішно експортується",

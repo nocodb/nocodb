@@ -94,7 +94,7 @@ const { t } = useI18n()
 
 function updateView() {
   if ((formViewData.value?.subheading?.length || 0) > 255) {
-    message.error('Data too long for Form Description')
+    message.error(t('msg.error.formDescriptionTooLong'))
     return
   }
   updateFormView(formViewData.value)

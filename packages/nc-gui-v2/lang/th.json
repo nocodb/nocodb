@@ -284,7 +284,10 @@
     "primaryKey": "คีย์หลัก",
     "hasMany": "มีมากมาย",
     "belongsTo": "เป็นของ",
-    "manyToMany": "มีความสัมพันธ์มากมายกับหลาย ๆ"
+    "manyToMany": "มีความสัมพันธ์มากมายกับหลาย ๆ",
+    "extraConnectionParameters": "พารามิเตอร์การเชื่อมต่อเพิ่มเติม",
+    "commentsOnly": "ความคิดเห็นเท่านั้น",
+    "documentation": "เอกสาร"
   },
   "activity": {
     "createProject": "สร้างโครงการ",
@@ -397,7 +400,9 @@
     "clearCell": "ล้างเซลล์",
     "addFilterGroup": "เพิ่มกลุ่มตัวกรอง",
     "linkRecord": "บันทึกลิงก์",
-    "addNewRecord": "เพิ่มบันทึกใหม่"
+    "addNewRecord": "เพิ่มบันทึกใหม่",
+    "useConnectionUrl": "ใช้ URL การเชื่อมต่อ",
+    "toggleCommentsDraw": "สลับความคิดเห็นวาด"
   },
   "tooltip": {
     "saveChanges": "บันทึกการเปลี่ยนแปลง",
@@ -577,7 +582,31 @@
         "passwdRequired": "ต้องการรหัสผ่าน",
         "passwdLength": "รหัสผ่านของคุณต้องมีอักขระอย่างน้อย 8 ตัว",
         "passwdMismatch": "รหัสผ่านไม่ตรงกัน"
-      }
+      },
+      "invalidURL": "URL ไม่ถูกต้อง",
+      "internalError": "เกิดข้อผิดพลาดภายในบางอย่าง",
+      "templateGeneratorNotFound": "ไม่พบเทมเพลตเครื่องกำเนิดไฟฟ้า!",
+      "fileUploadFailed": "ไม่สามารถอัปโหลดไฟล์ได้",
+      "primaryColumnUpdateFailed": "ไม่สามารถอัปเดตคอลัมน์หลัก",
+      "formDescriptionTooLong": "ข้อมูลยาวเกินไปสำหรับคำอธิบายแบบฟอร์ม",
+      "columnsRequired": "จำเป็นต้องมีคอลัมน์ต่อไปนี้",
+      "selectAtleastOneColumn": "ต้องเลือกคอลัมน์อย่างน้อยหนึ่งคอลัมน์",
+      "columnDescriptionNotFound": "ไม่พบคอลัมน์ปลายทางสำหรับ",
+      "duplicateMappingFound": "พบการทำแผนที่ซ้ำโปรดลบการแมปหนึ่งครั้ง",
+      "nullValueViolatesNotNull": "ค่า NULL ละเมิดข้อ จำกัด ที่ไม่ใช่ข้อ จำกัด",
+      "sourceHasInvalidNumbers": "ข้อมูลแหล่งที่มามีตัวเลขที่ไม่ถูกต้อง",
+      "sourceHasInvalidBoolean": "ข้อมูลแหล่งที่มามีค่าบูลีนที่ไม่ถูกต้อง",
+      "invalidForm": "รูปแบบที่ไม่ถูกต้อง",
+      "formValidationFailed": "การตรวจสอบแบบฟอร์มล้มเหลว",
+      "youHaveBeenSignedOut": "คุณได้รับการลงชื่อเข้าใช้",
+      "failedToLoadList": "ไม่สามารถโหลดรายการ",
+      "failedToLoadChildrenList": "ไม่สามารถโหลดรายการเด็กได้",
+      "deleteFailed": "ลบล้มเหลว",
+      "unlinkFailed": "Unlink ล้มเหลว",
+      "rowUpdateFailed": "การอัปเดตแถวล้มเหลว",
+      "deleteRowFailed": "ไม่สามารถลบแถวได้",
+      "setFormDataFailed": "ไม่สามารถตั้งค่าข้อมูลแบบฟอร์ม",
+      "formViewUpdateFailed": "ไม่สามารถอัปเดตมุมมองแบบฟอร์ม"
     },
     "toast": {
       "exportMetadata": "ข้อมูลเมตาของโครงการส่งออกเรียบร้อยแล้ว",

@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { ColumnInj, EditModeInj, computed, inject, isValidURL } from '#imports'
 import MiCircleWarning from '~icons/mi/circle-warning'
 
+const { modelValue: value } = defineProps<Props>()
+const emit = defineEmits(['update:modelValue'])
+const { t } = useI18n()
 interface Props {
   modelValue?: string | null
 }
-
-const { modelValue: value } = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
 
@@ -46,7 +46,7 @@ watch(
   () => editEnabled.value,
   () => {
     if (column.value.meta?.validate && !editEnabled.value && localState.value && !isValidURL(localState.value)) {
-      message.error('Invalid URL')
+      message.error(t('msg.error.invalidURL'))
       localState.value = undefined
       return
     }

@@ -117,7 +117,7 @@ async function getDataList(model, view: View, req) {
       listArgs
     );
     count = await baseModel.count(listArgs);
-  } catch (_) {
+  } catch (e) {
     // show empty result instead of throwing error here
     // e.g. search some text in a numeric field
   }

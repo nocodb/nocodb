@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { Tooltip as ATooltip } from 'ant-design-vue'
+import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/dateTimeUtils'
 import { h, useNuxtApp, useProject } from '#imports'
@@ -104,13 +104,10 @@ const columns = [
       />
     </div>
 
-    <a-table
-      class="w-full"
-      size="small"
-      :data-source="audits ?? []"
-      :columns="columns"
-      :pagination="false"
-      :loading="isLoading"
-    />
+    <a-table class="w-full" size="small" :data-source="audits ?? []" :columns="columns" :pagination="false" :loading="isLoading">
+      <template #emptyText>
+        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+      </template>
+    </a-table>
   </div>
 </template>

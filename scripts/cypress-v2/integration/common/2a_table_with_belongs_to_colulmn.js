@@ -6,23 +6,26 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Table: belongs to, link record`, () => {
         before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
-            //
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
 
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
+            mainPage.tabReset();
             cy.openTableTab("Country", 25);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
         });
 
         beforeEach(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         after(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
           cy.closeTableTab("City");
         });
 

@@ -35,17 +35,23 @@ export const genTest = (apiType, dbType) => {
         const updatedRandVal = "Updated@1234.com";
 
         before(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             mainPage.tabReset();
             cy.createTable(name);
         });
 
         beforeEach(() => {
-            cy.fileHook();
-        })
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+        });
 
         // delete table
         after(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             cy.deleteTable(name, dbType);
         });
 

@@ -18,6 +18,9 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             if (isXcdb()) {
                 cy.log(getProjectString());
                 projPrefix = `${getProjectString()}`;
@@ -29,10 +32,8 @@ export const genTest = (apiType, dbType) => {
         });
 
         beforeEach(() => {
-        });
-
-        after(() => {
-            // mainPage.closeMetaTab();
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         it(`Create table`, () => {

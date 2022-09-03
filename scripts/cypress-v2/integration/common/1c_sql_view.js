@@ -11,13 +11,13 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            cy.fileHook();
             mainPage.tabReset();
         });
 
         beforeEach(() => {
-            cy.fileHook();
-        })
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+        });
 
         it(`XCDB: SQL View Column operations`, () => {
             // Open one of the views & verify validity of first two entries

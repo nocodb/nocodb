@@ -6,27 +6,32 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Filter, Fields, Sort`, () => {
         before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
+            cy.restoreLocalStorage();
+            cy.wait(1000);
 
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
+            mainPage.tabReset();
 
             // open country table
             cy.openTableTab("Country", 25);
         });
 
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+        });
+
         after(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             cy.closeTableTab("Country");
         });
 
         describe(`Pagination`, () => {
             beforeEach(() => {
-                cy.fileHook();
-            })
+                cy.restoreLocalStorage();
+                cy.wait(1000);
+            });
 
             // check pagination
             it("Check country table - Pagination", () => {
@@ -48,7 +53,8 @@ export const genTest = (apiType, dbType) => {
 
         describe(`Row operations`, () => {
             beforeEach(() => {
-                cy.fileHook();
+                cy.restoreLocalStorage();
+                cy.wait(1000);
             })
 
             // create new row using + button in header
@@ -167,7 +173,8 @@ export const genTest = (apiType, dbType) => {
 
         describe(`Sort operations`, () => {
             beforeEach(() => {
-                cy.fileHook();
+                cy.restoreLocalStorage();
+                cy.wait(1000);
             })
 
             it("Enable sort", () => {
@@ -183,7 +190,8 @@ export const genTest = (apiType, dbType) => {
 
         describe("Field Operation", () => {
             beforeEach(() => {
-                cy.fileHook();
+                cy.restoreLocalStorage();
+                cy.wait(1000);
             })
 
             it("Hide field", () => {
@@ -197,7 +205,8 @@ export const genTest = (apiType, dbType) => {
 
         describe("Filter operations", () => {
             beforeEach(() => {
-                cy.fileHook();
+                cy.restoreLocalStorage();
+                cy.wait(1000);
             })
 
             it("Create Filter", () => {

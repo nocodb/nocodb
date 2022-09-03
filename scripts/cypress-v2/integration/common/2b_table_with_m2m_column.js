@@ -6,23 +6,25 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - M2M Column validation`, () => {
         before(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
+            cy.wait(1000);
             mainPage.tabReset();
 
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
-
             cy.openTableTab("Actor", 25);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
         });
 
         beforeEach(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         after(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             cy.closeTableTab("Actor");
         });
 

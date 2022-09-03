@@ -284,7 +284,10 @@
     "primaryKey": "Khóa chính",
     "hasMany": "Co nhiêu",
     "belongsTo": "thuộc về",
-    "manyToMany": "có nhiều mối quan hệ"
+    "manyToMany": "có nhiều mối quan hệ",
+    "extraConnectionParameters": "Tham số kết nối bổ sung",
+    "commentsOnly": "Chỉ nhận xét",
+    "documentation": "Tài liệu"
   },
   "activity": {
     "createProject": "Tạo dự án",
@@ -397,7 +400,9 @@
     "clearCell": "Tế bào rõ ràng",
     "addFilterGroup": "Thêm nhóm lọc",
     "linkRecord": "Hồ sơ liên kết",
-    "addNewRecord": "Thêm bản ghi mới"
+    "addNewRecord": "Thêm bản ghi mới",
+    "useConnectionUrl": "Sử dụng URL kết nối",
+    "toggleCommentsDraw": "Chuyển đổi bình luận vẽ"
   },
   "tooltip": {
     "saveChanges": "Lưu thay đổi",
@@ -577,7 +582,31 @@
         "passwdRequired": "Mật khẩu là bắt buộc",
         "passwdLength": "Mật khẩu của bạn phải có ít nhất 8 ký tự",
         "passwdMismatch": "mất khẩu không hợp lệ"
-      }
+      },
+      "invalidURL": "URL không hợp lệ",
+      "internalError": "Một số lỗi nội bộ đã xảy ra",
+      "templateGeneratorNotFound": "Không thể tìm thấy trình tạo mẫu!",
+      "fileUploadFailed": "Không tải lên tệp",
+      "primaryColumnUpdateFailed": "Không cập nhật cột chính",
+      "formDescriptionTooLong": "Dữ liệu quá dài để mô tả biểu mẫu",
+      "columnsRequired": "Các cột sau được yêu cầu",
+      "selectAtleastOneColumn": "Ít nhất một cột phải được chọn",
+      "columnDescriptionNotFound": "Không thể tìm thấy cột đích cho",
+      "duplicateMappingFound": "Bản đồ trùng lặp được tìm thấy, vui lòng xóa một trong các bản đồ",
+      "nullValueViolatesNotNull": "Giá trị null vi phạm ràng buộc không có null",
+      "sourceHasInvalidNumbers": "Dữ liệu nguồn chứa một số số không hợp lệ",
+      "sourceHasInvalidBoolean": "Dữ liệu nguồn chứa một số giá trị boolean không hợp lệ",
+      "invalidForm": "Mẫu không hợp lệ",
+      "formValidationFailed": "Xác thực hình thức không thành công",
+      "youHaveBeenSignedOut": "Bạn đã được đăng nhập",
+      "failedToLoadList": "Không tải danh sách",
+      "failedToLoadChildrenList": "Không tải danh sách trẻ em",
+      "deleteFailed": "Xóa thất bại",
+      "unlinkFailed": "Không liên kết thất bại",
+      "rowUpdateFailed": "Cập nhật hàng không thành công",
+      "deleteRowFailed": "Không xóa hàng",
+      "setFormDataFailed": "Không đặt dữ liệu biểu mẫu",
+      "formViewUpdateFailed": "Không thể cập nhật chế độ xem biểu mẫu"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",

@@ -284,7 +284,10 @@
     "primaryKey": "Primärschlüssel",
     "hasMany": "hat viele",
     "belongsTo": "gehört",
-    "manyToMany": "haben viele zu vielen Beziehung"
+    "manyToMany": "haben viele zu vielen Beziehung",
+    "extraConnectionParameters": "Zusätzliche Verbindungsparameter",
+    "commentsOnly": "Nur Kommentare",
+    "documentation": "Dokumentation"
   },
   "activity": {
     "createProject": "Projekt erstellen",
@@ -397,7 +400,9 @@
     "clearCell": "Klare Zelle",
     "addFilterGroup": "Filtergruppe hinzufügen",
     "linkRecord": "Linkdatensatz",
-    "addNewRecord": "Neuen Datensatz hinzufügen"
+    "addNewRecord": "Neuen Datensatz hinzufügen",
+    "useConnectionUrl": "Verwenden Sie die Verbindungs ​​-URL",
+    "toggleCommentsDraw": "Kippkommentare zeichnen"
   },
   "tooltip": {
     "saveChanges": "Änderungen speichern",
@@ -577,7 +582,31 @@
         "passwdRequired": "Passwort ist erforderlich",
         "passwdLength": "Ihr Passwort muß mindestens 8 Zeichen haben",
         "passwdMismatch": "Passwörter stimmen nicht überein"
-      }
+      },
+      "invalidURL": "ungültige URL",
+      "internalError": "Einige interne Fehler traten auf",
+      "templateGeneratorNotFound": "Vorlagengenerator kann nicht gefunden werden!",
+      "fileUploadFailed": "Die Datei nicht hochladen",
+      "primaryColumnUpdateFailed": "Die Primärspalte nicht aktualisiert",
+      "formDescriptionTooLong": "Daten zu lang für Form Beschreibung",
+      "columnsRequired": "Folgende Spalten sind erforderlich",
+      "selectAtleastOneColumn": "Mindestens eine Spalte muss ausgewählt werden",
+      "columnDescriptionNotFound": "Kann die Zielspalte nicht finden für",
+      "duplicateMappingFound": "Duplizierter Mapping gefunden, bitte entfernen Sie eine der Zuordnungen",
+      "nullValueViolatesNotNull": "Der Nullwert verstößt gegen die Nicht-Null-Einschränkungen",
+      "sourceHasInvalidNumbers": "Quelldaten enthalten einige ungültige Zahlen",
+      "sourceHasInvalidBoolean": "Quelldaten enthalten einige ungültige boolesche Werte",
+      "invalidForm": "Ungültiges Formular",
+      "formValidationFailed": "Formularvalidierung fehlgeschlagen",
+      "youHaveBeenSignedOut": "Sie wurden angemeldet",
+      "failedToLoadList": "Die Liste nicht laden",
+      "failedToLoadChildrenList": "Nicht laden Kinderliste",
+      "deleteFailed": "Delete fehlgeschlagen",
+      "unlinkFailed": "Unglink fehlgeschlagen",
+      "rowUpdateFailed": "Zeilen -Update fehlgeschlagen",
+      "deleteRowFailed": "Die Zeile nicht löschen",
+      "setFormDataFailed": "Fehlgeschlagene Formulardaten festlegen",
+      "formViewUpdateFailed": "Die Formularansicht nicht aktualisiert"
     },
     "toast": {
       "exportMetadata": "Projektmetadaten erfolgreich exportiert",

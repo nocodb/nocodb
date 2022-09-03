@@ -56,8 +56,9 @@ watch(
     <div class="border-1 my-2 w-full" />
     <div class="p-0">
       <div class="flex justify-center">
+        <!--        Comments only -->
         <a-checkbox v-model:checked="commentsOnly" @change="loadCommentsAndLogs"
-          ><span class="text-[11px] text-gray-500">Comments only</span>
+          >{{ $t('labels.commentsOnly') }}<span class="text-[11px] text-gray-500"></span>
         </a-checkbox>
       </div>
       <div class="shrink mt-2 flex">

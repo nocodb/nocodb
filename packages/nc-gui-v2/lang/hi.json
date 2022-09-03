@@ -284,7 +284,10 @@
     "primaryKey": "प्राथमिक कुंजी",
     "hasMany": "कई हैं",
     "belongsTo": "का है",
-    "manyToMany": "कई संबंधों के लिए कई हैं"
+    "manyToMany": "कई संबंधों के लिए कई हैं",
+    "extraConnectionParameters": "अतिरिक्त कनेक्शन पैरामीटर",
+    "commentsOnly": "केवल टिप्पणियाँ",
+    "documentation": "प्रलेखन"
   },
   "activity": {
     "createProject": "प्रोजेक्ट बनाएं",
@@ -397,7 +400,9 @@
     "clearCell": "स्पष्ट कोशिका",
     "addFilterGroup": "फ़िल्टर समूह जोड़ें",
     "linkRecord": "लिंक अभिलेख",
-    "addNewRecord": "नया रिकॉर्ड जोड़ें"
+    "addNewRecord": "नया रिकॉर्ड जोड़ें",
+    "useConnectionUrl": "कनेक्शन URL का उपयोग करें",
+    "toggleCommentsDraw": "टॉगल टिप्पणियाँ ड्रा"
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -577,7 +582,31 @@
         "passwdRequired": "पासवर्ड की आवश्यकता है",
         "passwdLength": "आप पासवर्ड कम से कम 8 वर्ण होना चाहिए",
         "passwdMismatch": "पासवर्ड मेल नहीं खाते"
-      }
+      },
+      "invalidURL": "अवैध यूआरएल",
+      "internalError": "कुछ आंतरिक त्रुटि हुई",
+      "templateGeneratorNotFound": "टेम्पलेट जनरेटर नहीं पाया जा सकता है!",
+      "fileUploadFailed": "फ़ाइल अपलोड करने में विफल",
+      "primaryColumnUpdateFailed": "प्राथमिक कॉलम को अपडेट करने में विफल",
+      "formDescriptionTooLong": "फॉर्म विवरण के लिए डेटा बहुत लंबा है",
+      "columnsRequired": "निम्नलिखित कॉलम की आवश्यकता है",
+      "selectAtleastOneColumn": "कम से कम एक कॉलम का चयन करना होगा",
+      "columnDescriptionNotFound": "के लिए गंतव्य स्तंभ नहीं मिल सकता है",
+      "duplicateMappingFound": "डुप्लिकेट मैपिंग मिली, कृपया मैपिंग में से एक को हटा दें",
+      "nullValueViolatesNotNull": "अशक्त मूल्य न-अशुद्ध बाधा का उल्लंघन करता है",
+      "sourceHasInvalidNumbers": "स्रोत डेटा में कुछ अमान्य संख्याएं होती हैं",
+      "sourceHasInvalidBoolean": "स्रोत डेटा में कुछ अमान्य बूलियन मान होते हैं",
+      "invalidForm": "अवैध रूप",
+      "formValidationFailed": "फॉर्म सत्यापन विफल",
+      "youHaveBeenSignedOut": "आप पर हस्ताक्षर किए गए हैं",
+      "failedToLoadList": "लोड सूची में विफल",
+      "failedToLoadChildrenList": "बच्चों की सूची लोड करने में विफल",
+      "deleteFailed": "हटाए गए विफल",
+      "unlinkFailed": "अनलिंक विफल",
+      "rowUpdateFailed": "पंक्ति अद्यतन विफल",
+      "deleteRowFailed": "पंक्ति को हटाने में विफल",
+      "setFormDataFailed": "फॉर्म डेटा सेट करने में विफल",
+      "formViewUpdateFailed": "फॉर्म व्यू को अपडेट करने में विफल"
     },
     "toast": {
       "exportMetadata": "परियोजना मेटाडेटा सफलतापूर्वक निर्यात की गई",

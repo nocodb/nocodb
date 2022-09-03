@@ -1,6 +1,7 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, TableType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { Modal, message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import {
   IsPublicInj,
   NOCO,
@@ -41,6 +42,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       query: '',
       size: 10,
     })
+    const { t } = useI18n()
 
     const isPublic: boolean = $(inject(IsPublicInj, ref(false)))
 
@@ -142,7 +144,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           )
         }
       } catch (e: any) {
-        message.error(`Failed to load list: ${await extractSdkResponseErrorMsg(e)}`)
+        message.error(`${t('msg.error.failedToLoadList')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
 
@@ -180,7 +182,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           )
         }
       } catch (e: any) {
-        message.error(`Failed to load children list: ${await extractSdkResponseErrorMsg(e)}`)
+        message.error(`${t('msg.error.failedToLoadChildrenList')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
 
@@ -200,7 +202,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             }
             onSuccess?.(row)
           } catch (e: any) {
-            message.error(`Delete failed: ${await extractSdkResponseErrorMsg(e)}`)
+            message.error(`${t('msg.error.deleteFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
           }
         },
       })
@@ -232,7 +234,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           getRelatedTableRowId(row) as string,
         )
       } catch (e: any) {
-        message.error(`Unlink failed: ${await extractSdkResponseErrorMsg(e)}`)
+        message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
       reloadData?.()
       // todo: reload table data and children list

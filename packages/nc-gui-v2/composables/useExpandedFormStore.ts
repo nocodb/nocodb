@@ -168,7 +168,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       changedColumns.value = new Set()
     } catch (e: any) {
-      message.error(`Failed to update row: ${await extractSdkResponseErrorMsg(e)}`)
+      message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
     $e('a:row-expand:add')
     return data

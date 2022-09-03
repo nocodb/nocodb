@@ -284,7 +284,10 @@
     "primaryKey": "Birincil anahtar",
     "hasMany": "Birçok vardır",
     "belongsTo": "ait olmak",
-    "manyToMany": "Birçok ilişkiye sahip olmak"
+    "manyToMany": "Birçok ilişkiye sahip olmak",
+    "extraConnectionParameters": "Ekstra bağlantı parametreleri",
+    "commentsOnly": "Yalnızca Yorumlar",
+    "documentation": "Belgeler"
   },
   "activity": {
     "createProject": "Proje Oluştur",
@@ -397,7 +400,9 @@
     "clearCell": "Temiz hücre",
     "addFilterGroup": "Filtre Grubu Ekle",
     "linkRecord": "Bağlantı kaydı",
-    "addNewRecord": "Yeni kayıt ekle"
+    "addNewRecord": "Yeni kayıt ekle",
+    "useConnectionUrl": "Bağlantı URL'si kullanın",
+    "toggleCommentsDraw": "Yorumlar Çizimini Başlat"
   },
   "tooltip": {
     "saveChanges": "Değişiklikleri Kaydet",
@@ -577,7 +582,31 @@
         "passwdRequired": "Şifre gerekli",
         "passwdLength": "Şifreniz en az 8 karakter olmalıdır",
         "passwdMismatch": "Parolalar uyuşmuyor"
-      }
+      },
+      "invalidURL": "Geçersiz URL",
+      "internalError": "Bazı dahili hata oluştu",
+      "templateGeneratorNotFound": "Şablon jeneratörü bulunamaz!",
+      "fileUploadFailed": "Dosya yüklenemedi",
+      "primaryColumnUpdateFailed": "Birincil sütunu güncelleyemedi",
+      "formDescriptionTooLong": "Form açıklaması için çok uzun veriler",
+      "columnsRequired": "Aşağıdaki sütunlar gereklidir",
+      "selectAtleastOneColumn": "En az bir sütun seçilmelidir",
+      "columnDescriptionNotFound": "Hedef sütunu bulamıyorum",
+      "duplicateMappingFound": "Yinelenen haritalama bulundu, lütfen eşlemeden birini kaldırın",
+      "nullValueViolatesNotNull": "NULL değeri, null olmayan kısıtlamayı ihlal eder",
+      "sourceHasInvalidNumbers": "Kaynak veriler bazı geçersiz sayılar içeriyor",
+      "sourceHasInvalidBoolean": "Kaynak veriler bazı geçersiz boolean değerleri içerir",
+      "invalidForm": "Geçersiz form",
+      "formValidationFailed": "Form doğrulaması başarısız oldu",
+      "youHaveBeenSignedOut": "Oturum açtınız",
+      "failedToLoadList": "Liste Yüklenemedi",
+      "failedToLoadChildrenList": "Çocuklar listesini yükleyemedi",
+      "deleteFailed": "Sil başarısız oldu",
+      "unlinkFailed": "UNLINK başarısız oldu",
+      "rowUpdateFailed": "Satır güncellemesi başarısız oldu",
+      "deleteRowFailed": "Satırı silemedi",
+      "setFormDataFailed": "Form verilerini ayarlayamadı",
+      "formViewUpdateFailed": "Form görünümünü güncelleyemedi"
     },
     "toast": {
       "exportMetadata": "Proje meta verileri başarıyla dışa aktarıldı",

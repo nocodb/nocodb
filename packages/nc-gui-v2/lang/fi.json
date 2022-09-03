@@ -284,7 +284,10 @@
     "primaryKey": "Pääavain",
     "hasMany": "on monta",
     "belongsTo": "kuuluu",
-    "manyToMany": "on monia suhteita"
+    "manyToMany": "on monia suhteita",
+    "extraConnectionParameters": "Ylimääräiset yhteysparametrit",
+    "commentsOnly": "Vain kommentit",
+    "documentation": "Dokumentointi"
   },
   "activity": {
     "createProject": "Luo projekti",
@@ -397,7 +400,9 @@
     "clearCell": "Selkeä solu",
     "addFilterGroup": "Lisää suodatinryhmä",
     "linkRecord": "Linkkitietue",
-    "addNewRecord": "Lisää uusi levy"
+    "addNewRecord": "Lisää uusi levy",
+    "useConnectionUrl": "Käytä yhteys -URL -osoitetta",
+    "toggleCommentsDraw": "Vaihda kommentit Piirrä"
   },
   "tooltip": {
     "saveChanges": "Tallenna muutokset",
@@ -577,7 +582,31 @@
         "passwdRequired": "salasana tarvitaan",
         "passwdLength": "Salasanan on oltava vähintään 8 merkkiä",
         "passwdMismatch": "Salasanat eivät täsmää"
-      }
+      },
+      "invalidURL": "Virheellinen URL",
+      "internalError": "Tapahtui jonkin verran sisäistä virhettä",
+      "templateGeneratorNotFound": "Malligeneraattoria ei löydy!",
+      "fileUploadFailed": "Tiedoston lataaminen epäonnistui",
+      "primaryColumnUpdateFailed": "Ensisijaisen sarakkeen päivittäminen epäonnistui",
+      "formDescriptionTooLong": "Tiedot liian kauan lomakkeen kuvaamiseksi",
+      "columnsRequired": "Seuraavat sarakkeet vaaditaan",
+      "selectAtleastOneColumn": "Ainakin yksi sarake on valittava",
+      "columnDescriptionNotFound": "Kohdepylvästä ei löydy",
+      "duplicateMappingFound": "Poista yksi kartoitus kaksoiskappaleesta",
+      "nullValueViolatesNotNull": "NULL-arvo rikkoo ei-nollaa rajoituksia",
+      "sourceHasInvalidNumbers": "Lähdetiedot sisältävät joitain virheellisiä numeroita",
+      "sourceHasInvalidBoolean": "Lähdetiedot sisältävät joitain virheellisiä boolen arvoja",
+      "invalidForm": "Virheellinen lomake",
+      "formValidationFailed": "Lomakkeen validointi epäonnistui",
+      "youHaveBeenSignedOut": "Sinut on kirjattu",
+      "failedToLoadList": "Latausluettelo epäonnistui",
+      "failedToLoadChildrenList": "Lasten luettelon lataaminen epäonnistui",
+      "deleteFailed": "Poista epäonnistui",
+      "unlinkFailed": "Irkintä epäonnistui",
+      "rowUpdateFailed": "Rivipäivitys epäonnistui",
+      "deleteRowFailed": "Rivin poistaminen epäonnistui",
+      "setFormDataFailed": "Lomaketietojen asettaminen epäonnistui",
+      "formViewUpdateFailed": "Lomakkeenäkymän päivittäminen epäonnistui"
     },
     "toast": {
       "exportMetadata": "Project Metadata viedään onnistuneesti",

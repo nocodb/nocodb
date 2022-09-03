@@ -284,7 +284,10 @@
     "primaryKey": "Hoofdsleutel",
     "hasMany": "heeft veel",
     "belongsTo": "hoort bij",
-    "manyToMany": "hebben veel te veel relatie"
+    "manyToMany": "hebben veel te veel relatie",
+    "extraConnectionParameters": "Extra verbindingsparameters",
+    "commentsOnly": "Alleen commentaar",
+    "documentation": "Documentatie"
   },
   "activity": {
     "createProject": "Maak project",
@@ -397,7 +400,9 @@
     "clearCell": "Duidelijke cel",
     "addFilterGroup": "Voeg filtergroep toe",
     "linkRecord": "Link Record",
-    "addNewRecord": "Nieuw record toevoegen"
+    "addNewRecord": "Nieuw record toevoegen",
+    "useConnectionUrl": "Gebruik verbindings -URL",
+    "toggleCommentsDraw": "Schakel opmerkingen tekenen"
   },
   "tooltip": {
     "saveChanges": "Wijzigingen opslaan",
@@ -577,7 +582,31 @@
         "passwdRequired": "Wachtwoord is verplicht",
         "passwdLength": "Je wachtwoord moet ten minste 8 tekens hebben",
         "passwdMismatch": "Wachtwoorden komen niet overeen"
-      }
+      },
+      "invalidURL": "Ongeldige URL",
+      "internalError": "Er is enige interne fout opgetreden",
+      "templateGeneratorNotFound": "Sjabloongenerator kan niet worden gevonden!",
+      "fileUploadFailed": "File niet uploaden",
+      "primaryColumnUpdateFailed": "Kan de primaire kolom niet bijwerken",
+      "formDescriptionTooLong": "Gegevens te lang voor formulierbeschrijving",
+      "columnsRequired": "De volgende kolommen zijn vereist",
+      "selectAtleastOneColumn": "Er moet ten minste één kolom worden geselecteerd",
+      "columnDescriptionNotFound": "Kan de bestemmingskolom niet vinden voor",
+      "duplicateMappingFound": "Duplicate mapping gevonden, verwijder een van de toewijzing",
+      "nullValueViolatesNotNull": "NULL-waarde schendt niet-nul beperking",
+      "sourceHasInvalidNumbers": "Brongegevens bevatten enkele ongeldige cijfers",
+      "sourceHasInvalidBoolean": "Brongegevens bevatten enkele ongeldige Booleaanse waarden",
+      "invalidForm": "Ongeldig formulier",
+      "formValidationFailed": "Forms validatie mislukt",
+      "youHaveBeenSignedOut": "Je bent uitmeld",
+      "failedToLoadList": "Laadlijst niet laden",
+      "failedToLoadChildrenList": "Kan kinderlijst niet laden",
+      "deleteFailed": "Verwijderen mislukt",
+      "unlinkFailed": "Ontkoppeling mislukt",
+      "rowUpdateFailed": "Rij -update is mislukt",
+      "deleteRowFailed": "Kan de rij niet verwijderen",
+      "setFormDataFailed": "Kan formuliergegevens niet instellen",
+      "formViewUpdateFailed": "Formweergave niet bijwerken"
     },
     "toast": {
       "exportMetadata": "Project metadata met succes geëxporteerd",

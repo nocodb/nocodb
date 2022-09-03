@@ -284,7 +284,10 @@
     "primaryKey": "Kunci utama",
     "hasMany": "memiliki banyak",
     "belongsTo": "Milik",
-    "manyToMany": "memiliki banyak hubungan"
+    "manyToMany": "memiliki banyak hubungan",
+    "extraConnectionParameters": "Parameter Koneksi Ekstra",
+    "commentsOnly": "Komentar saja",
+    "documentation": "Dokumentasi"
   },
   "activity": {
     "createProject": "Buat Proyek",
@@ -397,7 +400,9 @@
     "clearCell": "Sel bening",
     "addFilterGroup": "Tambahkan grup filter",
     "linkRecord": "Rekaman Tautan",
-    "addNewRecord": "Tambahkan catatan baru"
+    "addNewRecord": "Tambahkan catatan baru",
+    "useConnectionUrl": "Gunakan URL koneksi",
+    "toggleCommentsDraw": "Toggle Commentary Draw"
   },
   "tooltip": {
     "saveChanges": "Simpan perubahan",
@@ -549,7 +554,7 @@
       "downloadingMoreFiles": "Mengunduh lebih banyak file",
       "copiedToClipboard": "Disalin ke clipboard",
       "requriedFieldsCantBeMoved": "Lapangan yang diperlukan tidak dapat dipindahkan",
-      "updateNotAllowedWithoutPK": "Pembaruan tidak diizinkan untuk tabel yang tidak memiliki kunci utama",
+      "updateNotAllowedWithoutPK": "Pembaruan tidak diperbolehkan untuk tabel yang tidak memiliki kunci utama",
       "autoIncFieldNotEditable": "Bidang Penambahan Otomatis tidak dapat diedit",
       "editingPKnotSupported": "Mengedit kunci utama tidak didukung",
       "deletedCache": "Berhasil menghapus cache",
@@ -577,7 +582,31 @@
         "passwdRequired": "katakunci dibutuhkan",
         "passwdLength": "Kata sandi Anda harus minimal 8 karakter",
         "passwdMismatch": "Sandi tidak cocok"
-      }
+      },
+      "invalidURL": "URL tidak valid",
+      "internalError": "Beberapa kesalahan internal terjadi",
+      "templateGeneratorNotFound": "Generator template tidak dapat ditemukan!",
+      "fileUploadFailed": "Gagal mengunggah file",
+      "primaryColumnUpdateFailed": "Gagal memperbarui kolom utama",
+      "formDescriptionTooLong": "Data terlalu lama untuk deskripsi formulir",
+      "columnsRequired": "Kolom berikut diperlukan",
+      "selectAtleastOneColumn": "Setidaknya satu kolom harus dipilih",
+      "columnDescriptionNotFound": "Tidak dapat menemukan kolom tujuan untuk",
+      "duplicateMappingFound": "Pemetaan duplikat ditemukan, silakan hapus salah satu pemetaan",
+      "nullValueViolatesNotNull": "Nilai nol melanggar kendala yang tidak nol",
+      "sourceHasInvalidNumbers": "Data sumber berisi beberapa angka yang tidak valid",
+      "sourceHasInvalidBoolean": "Data sumber berisi beberapa nilai boolean yang tidak valid",
+      "invalidForm": "Bentuk tidak valid",
+      "formValidationFailed": "Formulir Validasi Gagal",
+      "youHaveBeenSignedOut": "Anda telah keluar",
+      "failedToLoadList": "Gagal memuat daftar",
+      "failedToLoadChildrenList": "Gagal Memuat Daftar Anak",
+      "deleteFailed": "Hapus gagal",
+      "unlinkFailed": "Untink gagal",
+      "rowUpdateFailed": "Pembaruan baris gagal",
+      "deleteRowFailed": "Gagal Menghapus Baris",
+      "setFormDataFailed": "Gagal mengatur data formulir",
+      "formViewUpdateFailed": "Gagal memperbarui tampilan formulir"
     },
     "toast": {
       "exportMetadata": "Metadata proyek berhasil diekspor",

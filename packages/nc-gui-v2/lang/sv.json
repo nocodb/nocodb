@@ -284,7 +284,10 @@
     "primaryKey": "Primärnyckel",
     "hasMany": "har många",
     "belongsTo": "tillhör",
-    "manyToMany": "har många till många relationer"
+    "manyToMany": "har många till många relationer",
+    "extraConnectionParameters": "Extra anslutningsparametrar",
+    "commentsOnly": "Endast kommentarer",
+    "documentation": "Dokumentation"
   },
   "activity": {
     "createProject": "Skapa projekt",
@@ -397,7 +400,9 @@
     "clearCell": "Klart cell",
     "addFilterGroup": "Lägg till filtergrupp",
     "linkRecord": "Länkpost",
-    "addNewRecord": "Lägg till ny post"
+    "addNewRecord": "Lägg till ny post",
+    "useConnectionUrl": "Använd anslutning till anslutning",
+    "toggleCommentsDraw": "Växla kommentarer rit"
   },
   "tooltip": {
     "saveChanges": "Spara ändringar",
@@ -577,7 +582,31 @@
         "passwdRequired": "lösenord krävs",
         "passwdLength": "Du lösenord måste vara minst 8 tecken",
         "passwdMismatch": "Lösenorden matchar inte"
-      }
+      },
+      "invalidURL": "Ogiltig URL",
+      "internalError": "Några interna fel inträffade",
+      "templateGeneratorNotFound": "Mallgenerator kan inte hittas!",
+      "fileUploadFailed": "Det gick inte att ladda upp filen",
+      "primaryColumnUpdateFailed": "Det gick inte att uppdatera primärkolumnen",
+      "formDescriptionTooLong": "Data för länge för formbeskrivning",
+      "columnsRequired": "Följande kolumner krävs",
+      "selectAtleastOneColumn": "Minst en kolumn måste väljas",
+      "columnDescriptionNotFound": "Kan inte hitta destinationskolumnen för",
+      "duplicateMappingFound": "Duplicerad mappning hittas, ta bort en av kartläggningen",
+      "nullValueViolatesNotNull": "Nullvärde bryter mot nollbegränsning",
+      "sourceHasInvalidNumbers": "Källdata innehåller några ogiltiga nummer",
+      "sourceHasInvalidBoolean": "Källdata innehåller några ogiltiga booleska värden",
+      "invalidForm": "Ogiltig form",
+      "formValidationFailed": "Formvalidering misslyckades",
+      "youHaveBeenSignedOut": "Du har skrivits ut",
+      "failedToLoadList": "Det gick inte att ladda listan",
+      "failedToLoadChildrenList": "Det gick inte att ladda barnlistan",
+      "deleteFailed": "Radera misslyckades",
+      "unlinkFailed": "Unlink Failed",
+      "rowUpdateFailed": "Raduppdatering misslyckades",
+      "deleteRowFailed": "Det gick inte att ta bort rad",
+      "setFormDataFailed": "Det gick inte att ställa in formulärdata",
+      "formViewUpdateFailed": "Det gick inte att uppdatera formulärvyn"
     },
     "toast": {
       "exportMetadata": "Projektmetadata exporterades framgångsrikt",

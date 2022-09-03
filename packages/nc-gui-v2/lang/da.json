@@ -284,7 +284,10 @@
     "primaryKey": "Primærnøgle",
     "hasMany": "har mange",
     "belongsTo": "tilhører",
-    "manyToMany": "har mange til mange forhold"
+    "manyToMany": "har mange til mange forhold",
+    "extraConnectionParameters": "Ekstra forbindelsesparametre",
+    "commentsOnly": "Kun kommentarer",
+    "documentation": "Dokumentation"
   },
   "activity": {
     "createProject": "Opret projekt",
@@ -397,7 +400,9 @@
     "clearCell": "Klar celle",
     "addFilterGroup": "Tilføj filtergruppe",
     "linkRecord": "Linkrekord",
-    "addNewRecord": "Tilføj ny rekord"
+    "addNewRecord": "Tilføj ny rekord",
+    "useConnectionUrl": "Brug Connection URL",
+    "toggleCommentsDraw": "Skift kommentarer til at trække"
   },
   "tooltip": {
     "saveChanges": "Gem ændringer",
@@ -577,7 +582,31 @@
         "passwdRequired": "adgangskode er påkrævet",
         "passwdLength": "Din adgangskode skal være mindst 8 tegn",
         "passwdMismatch": "Kodeordene er ikke ens"
-      }
+      },
+      "invalidURL": "ugyldig URL",
+      "internalError": "Nogle interne fejl opstod",
+      "templateGeneratorNotFound": "Skabelongenerator kan ikke findes!",
+      "fileUploadFailed": "Kunne ikke uploade filen",
+      "primaryColumnUpdateFailed": "Kunne ikke opdatere den primære kolonne",
+      "formDescriptionTooLong": "Data for længe til formbeskrivelse",
+      "columnsRequired": "Efter kolonner er påkrævet",
+      "selectAtleastOneColumn": "Mindst en kolonne skal vælges",
+      "columnDescriptionNotFound": "Kan ikke finde destinationskolonnen til",
+      "duplicateMappingFound": "Duplikat kortlægning fundet, fjern en af ​​kortlægningen",
+      "nullValueViolatesNotNull": "Nulværdi krænker ikke-nul begrænsning",
+      "sourceHasInvalidNumbers": "Kildedata indeholder nogle ugyldige numre",
+      "sourceHasInvalidBoolean": "Kildedata indeholder nogle ugyldige boolske værdier",
+      "invalidForm": "Ugyldig form",
+      "formValidationFailed": "Formvalidering mislykkedes",
+      "youHaveBeenSignedOut": "Du er blevet underskrevet",
+      "failedToLoadList": "Kunne ikke indlæsningsliste",
+      "failedToLoadChildrenList": "Kunne ikke indlæse børnelisten",
+      "deleteFailed": "Slet mislykkedes",
+      "unlinkFailed": "Unlink mislykkedes",
+      "rowUpdateFailed": "Rækkeopdatering mislykkedes",
+      "deleteRowFailed": "Kunne ikke slette række",
+      "setFormDataFailed": "Kunne ikke indstille formulardata",
+      "formViewUpdateFailed": "Kunne ikke opdatere Visning af formularen"
     },
     "toast": {
       "exportMetadata": "Project Metadata eksporteres med succes",

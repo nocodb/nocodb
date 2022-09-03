@@ -1,6 +1,7 @@
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { useNuxtApp } from '#app'
 import {
   IsPublicInj,
@@ -39,6 +40,7 @@ export function useViewData(
     throw new Error('Table meta is not available')
   }
 
+  const { t } = useI18n()
   const { api, isLoading, error } = useApi()
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
@@ -243,7 +245,7 @@ export function useViewData(
       Object.assign(toUpdate.row, updatedRowData)
       Object.assign(toUpdate.oldRow, updatedRowData)
     } catch (e: any) {
-      message.error(`Row update failed ${await extractSdkResponseErrorMsg(e)}`)
+      message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
 
@@ -305,7 +307,7 @@ export function useViewData(
 
       await syncCount()
     } catch (e: any) {
-      message.error(`Failed to delete row: ${await extractSdkResponseErrorMsg(e)}`)
+      message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
 
@@ -330,7 +332,7 @@ export function useViewData(
         }
         formattedData.value.splice(row, 1)
       } catch (e: any) {
-        return message.error(`Failed to delete row: ${await extractSdkResponseErrorMsg(e)}`)
+        return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
 
@@ -366,7 +368,7 @@ export function useViewData(
         }))
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>
     } catch (e: any) {
-      return message.error(`Failed to set form data: ${await extractSdkResponseErrorMsg(e)}`)
+      return message.error(`${t('msg.error.setFormDataFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
 
@@ -375,7 +377,7 @@ export function useViewData(
       if (!viewMeta?.value?.id || !view) return
       await $api.dbView.formUpdate(viewMeta.value.id, view)
     } catch (e: any) {
-      return message.error(`Failed to update form view: ${await extractSdkResponseErrorMsg(e)}`)
+      return message.error(`${t('msg.error.formViewUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
 

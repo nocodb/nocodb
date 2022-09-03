@@ -172,7 +172,7 @@ async function parseAndExtractData(val: string | ArrayBuffer, name: string) {
     const templateGenerator = getAdapter(name, val)
 
     if (!templateGenerator) {
-      message.error('Template Generator cannot be found!')
+      message.error(t('msg.error.templateGeneratorNotFound'))
       return
     }
 
@@ -193,7 +193,7 @@ async function parseAndExtractData(val: string | ArrayBuffer, name: string) {
 
 function rejectDrop(fileList: UploadFile[]) {
   fileList.map((file) => {
-    return message.error(`Failed to upload file ${file.name}`)
+    return message.error(`${t('msg.error.fileUploadFailed')} ${file.name}`)
   })
 }
 
@@ -227,7 +227,7 @@ function handleChange(info: UploadChangeParam) {
   if (status === 'done') {
     message.success(`Uploaded file ${info.file.name} successfully`)
   } else if (status === 'error') {
-    message.error(`Failed to upload file ${info.file.name}`)
+    message.error(`${t('msg.error.fileUploadFailed')} ${info.file.name}`)
   }
 }
 

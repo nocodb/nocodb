@@ -284,7 +284,10 @@
     "primaryKey": "المفتاح الأساسي",
     "hasMany": "لديه الكثير",
     "belongsTo": "ينتمي إلى",
-    "manyToMany": "لديك الكثير من العلاقات"
+    "manyToMany": "لديك الكثير من العلاقات",
+    "extraConnectionParameters": "معلمات اتصال إضافية",
+    "commentsOnly": "التعليقات فقط",
+    "documentation": "توثيق"
   },
   "activity": {
     "createProject": "إنشاء مشروع",
@@ -397,7 +400,9 @@
     "clearCell": "خلية واضحة",
     "addFilterGroup": "إضافة مجموعة المرشح",
     "linkRecord": "سجل الرابط",
-    "addNewRecord": "أضف سجلًا جديدًا"
+    "addNewRecord": "أضف سجلًا جديدًا",
+    "useConnectionUrl": "استخدم عنوان URL للاتصال",
+    "toggleCommentsDraw": "تبديل التعليقات رسم"
   },
   "tooltip": {
     "saveChanges": "حفظ التغييرات",
@@ -577,7 +582,31 @@
         "passwdRequired": "كلمة المرور مطلوبة",
         "passwdLength": "يجب أن تكون كلمة المرور الخاصة بك 8 أحرف على الأقل",
         "passwdMismatch": "كلمات المرور غير متطابقة"
-      }
+      },
+      "invalidURL": "URL غير صالح",
+      "internalError": "حدث خطأ داخلي",
+      "templateGeneratorNotFound": "لا يمكن العثور على مولد القالب!",
+      "fileUploadFailed": "فشل تحميل الملف",
+      "primaryColumnUpdateFailed": "فشل في تحديث العمود الأساسي",
+      "formDescriptionTooLong": "البيانات طويلة جدًا لوصف النموذج",
+      "columnsRequired": "الأعمدة التالية مطلوبة",
+      "selectAtleastOneColumn": "يجب تحديد عمود واحد على الأقل",
+      "columnDescriptionNotFound": "لا يمكن العثور على عمود الوجهة ل",
+      "duplicateMappingFound": "تم العثور على رسم الخرائط المكررة ، يرجى إزالة أحد الخرائط",
+      "nullValueViolatesNotNull": "القيمة الفارغة لا تنتهك القيد غير الفاتح",
+      "sourceHasInvalidNumbers": "تحتوي بيانات المصدر على بعض الأرقام غير الصالحة",
+      "sourceHasInvalidBoolean": "تحتوي بيانات المصدر على بعض القيم المنطقية غير الصالحة",
+      "invalidForm": "شكل غير صالح",
+      "formValidationFailed": "فشل التحقق من صحة النموذج",
+      "youHaveBeenSignedOut": "لقد تم تسجيل خروجك",
+      "failedToLoadList": "فشل تحميل قائمة",
+      "failedToLoadChildrenList": "فشل تحميل قائمة الأطفال",
+      "deleteFailed": "فشل حذف",
+      "unlinkFailed": "فشل إلغاء",
+      "rowUpdateFailed": "فشل تحديث الصف",
+      "deleteRowFailed": "فشل في حذف الصف",
+      "setFormDataFailed": "فشل في تعيين بيانات النموذج",
+      "formViewUpdateFailed": "فشل في تحديث عرض النموذج"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",

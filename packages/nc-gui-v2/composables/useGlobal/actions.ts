@@ -1,10 +1,13 @@
 import { message } from 'ant-design-vue'
 import { Api } from 'nocodb-sdk'
 import type { Actions, State } from './types'
+import { getI18n } from '~/plugins/a.i18n'
 
 export function useGlobalActions(state: State): Actions {
   /** detached api instance, will not trigger global loading */
   const api = new Api()
+
+  const { t } = getI18n().global
 
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = () => {
@@ -39,7 +42,7 @@ export function useGlobalActions(state: State): Actions {
         }
       })
       .catch((err) => {
-        message.error(err.message || 'You have been signed out.')
+        message.error(err.message || t('msg.error.youHaveBeenSignedOut'))
         signOut()
       })
   }

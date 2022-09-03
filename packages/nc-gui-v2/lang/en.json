@@ -284,7 +284,10 @@
     "primaryKey": "Primary key",
     "hasMany": "has many",
     "belongsTo": "belongs to",
-    "manyToMany": "have many to many relation"
+    "manyToMany": "have many to many relation",
+    "extraConnectionParameters": "Extra connection parameters",
+    "commentsOnly": "Comments only",
+    "documentation": "Documentation"
   },
   "activity": {
     "createProject": "Create Project",
@@ -397,7 +400,9 @@
     "clearCell": "Clear cell",
     "addFilterGroup": "Add Filter Group",
     "linkRecord": "Link record",
-    "addNewRecord": "Add new record"
+    "addNewRecord": "Add new record",
+    "useConnectionUrl": "Use Connection URL",
+    "toggleCommentsDraw": "Toggle comments draw"
   },
   "tooltip": {
     "saveChanges": "Save changes",
@@ -577,7 +582,31 @@
         "passwdRequired": "Password is required",
         "passwdLength": "You password must be atleast 8 characters",
         "passwdMismatch": "Passwords do not match"
-      }
+      },
+      "invalidURL": "Invalid URL",
+      "internalError": "Some internal error occurred",
+      "templateGeneratorNotFound": "Template Generator cannot be found!",
+      "fileUploadFailed": "Failed to upload file",
+      "primaryColumnUpdateFailed": "Failed to update primary column",
+      "formDescriptionTooLong": "Data too long for Form Description",
+      "columnsRequired": "Following columns are required",
+      "selectAtleastOneColumn": "At least one column has to be selected",
+      "columnDescriptionNotFound": "Cannot find the destination column for",
+      "duplicateMappingFound": "Duplicate mapping found, please remove one of the mapping",
+      "nullValueViolatesNotNull": "Null value violates not-null constraint",
+      "sourceHasInvalidNumbers": "Source data contains some invalid numbers",
+      "sourceHasInvalidBoolean": "Source data contains some invalid boolean values",
+      "invalidForm": "Invalid Form",
+      "formValidationFailed": "Form validation failed",
+      "youHaveBeenSignedOut": "You have been signed out",
+      "failedToLoadList": "Failed to load list",
+      "failedToLoadChildrenList": "Failed to load children list",
+      "deleteFailed": "Delete failed",
+      "unlinkFailed": "Unlink failed",
+      "rowUpdateFailed": "Row update failed",
+      "deleteRowFailed": "Failed to delete row",
+      "setFormDataFailed": "Failed to set form data",
+      "formViewUpdateFailed": "Failed to update form view"
     },
     "toast": {
       "exportMetadata": "Project metadata exported successfully",

@@ -284,7 +284,10 @@
     "primaryKey": "Główny klucz",
     "hasMany": "ma wiele",
     "belongsTo": "należy do",
-    "manyToMany": "mieć wiele do wielu relacji"
+    "manyToMany": "mieć wiele do wielu relacji",
+    "extraConnectionParameters": "Dodatkowe parametry połączenia",
+    "commentsOnly": "Tylko komentarze",
+    "documentation": "Dokumentacja"
   },
   "activity": {
     "createProject": "Utwórz projekt",
@@ -397,7 +400,9 @@
     "clearCell": "Jasna komórka",
     "addFilterGroup": "Dodaj grupę filtrów",
     "linkRecord": "Rekord linku",
-    "addNewRecord": "Dodaj nowy rekord"
+    "addNewRecord": "Dodaj nowy rekord",
+    "useConnectionUrl": "Użyj adresu URL połączenia",
+    "toggleCommentsDraw": "Przełącz komentarze narysuj"
   },
   "tooltip": {
     "saveChanges": "Zapisz zmiany",
@@ -577,7 +582,31 @@
         "passwdRequired": "Wymagane jest hasło",
         "passwdLength": "Użytkownik musi być co najmniej 8 znaków",
         "passwdMismatch": "Hasła nie pasują do siebie"
-      }
+      },
+      "invalidURL": "nieprawidłowy URL",
+      "internalError": "Wystąpił jakiś błąd wewnętrzny",
+      "templateGeneratorNotFound": "Nie można znaleźć generatora szablonu!",
+      "fileUploadFailed": "Nie udało się przesłać pliku",
+      "primaryColumnUpdateFailed": "Nie udało się zaktualizować kolumny podstawowej",
+      "formDescriptionTooLong": "Dane zbyt długie dla opisu formularza",
+      "columnsRequired": "Wymagane są następujące kolumny",
+      "selectAtleastOneColumn": "Przynajmniej jedną kolumnę należy wybrać",
+      "columnDescriptionNotFound": "Nie można znaleźć kolumny docelowej dla",
+      "duplicateMappingFound": "Znaleziono duplikat mapowania, usuń jedno z mapowania",
+      "nullValueViolatesNotNull": "Wartość zerowa narusza nieznane ograniczenie",
+      "sourceHasInvalidNumbers": "Dane źródłowe zawierają pewne nieprawidłowe liczby",
+      "sourceHasInvalidBoolean": "Dane źródłowe zawierają pewne nieprawidłowe wartości logiczne",
+      "invalidForm": "Niepoprawna forma",
+      "formValidationFailed": "Walidacja formularza nie powiodła się",
+      "youHaveBeenSignedOut": "Zostałeś wylogowany",
+      "failedToLoadList": "Nie udało się załadować listy",
+      "failedToLoadChildrenList": "Nie udało się załadować listy dzieci",
+      "deleteFailed": "Usuń nie powiodła się",
+      "unlinkFailed": "Unlink nie powiodło się",
+      "rowUpdateFailed": "Aktualizacja wiersza nie powiodła się",
+      "deleteRowFailed": "Nie udało się usunąć wiersza",
+      "setFormDataFailed": "Nie udało się ustawić danych formularza",
+      "formViewUpdateFailed": "Nie udało się zaktualizować widoku formularza"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",

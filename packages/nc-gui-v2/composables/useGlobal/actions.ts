@@ -1,11 +1,13 @@
 import { message } from 'ant-design-vue'
 import { Api } from 'nocodb-sdk'
-import { useI18n } from 'vue-i18n'
 import type { Actions, State } from './types'
+import { getI18n } from '~/plugins/a.i18n'
 
 export function useGlobalActions(state: State): Actions {
   /** detached api instance, will not trigger global loading */
   const api = new Api()
+
+  const { t } = getI18n().global
 
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = () => {
@@ -30,7 +32,6 @@ export function useGlobalActions(state: State): Actions {
 
   /** manually try to refresh token */
   const refreshToken = async () => {
-    const { t } = useI18n()
     api.instance
       .post('/auth/refresh-token', null, {
         withCredentials: true,

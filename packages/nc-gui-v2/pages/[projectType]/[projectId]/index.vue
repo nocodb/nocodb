@@ -17,7 +17,6 @@ import {
   useProject,
   useRoute,
   useTabs,
-  useTheme,
   useUIPermission,
 } from '#imports'
 import { TabType } from '~/composables'

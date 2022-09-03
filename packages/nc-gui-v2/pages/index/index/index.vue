@@ -83,7 +83,24 @@ const handleProjectColor = async (projectId: string, color: string) => {
         },
       }),
     })
+    // Update local project
+    const localProject = projects.value?.find((p) => p.id === projectId)
+    if (localProject) {
+      localProject.color = color
+      localProject.meta = JSON.stringify({
+        ...meta,
+        theme: {
+          primaryColor: color,
+          accentColor: complement.toHex8String(),
+        },
+      })
+    }
   }
+}
+
+const getProjectPrimary = (project: ProjectType) => {
+  const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+  return meta?.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
 }
 </script>
 
@@ -192,7 +209,7 @@ const handleProjectColor = async (projectId: string, color: string) => {
                         <div
                           class="color-selector"
                           :style="{
-                            'background-color': record.color || themeV2Colors['royal-blue'].DEFAULT,
+                            'background-color': getProjectPrimary(record),
                             'width': '8px',
                             'height': '100%',
                           }"

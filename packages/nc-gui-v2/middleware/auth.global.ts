@@ -36,6 +36,8 @@ import { useApi, useGlobal } from '#imports'
 export default defineNuxtRouteMiddleware(async (to, from) => {
   const state = useGlobal()
 
+  const { api } = useApi()
+
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
   if (!state.signedIn && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth()
 
@@ -64,6 +66,15 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       return navigateTo('/')
     } else {
       return navigateTo(from.path)
+    }
+  } else {
+    /** if users are accessing the projects without having enough permissions, redirect to My Projects page */
+    if (to.params.projectId) {
+      const user = await api.auth.me({ project_id: to?.params?.projectId as string })
+      if (user?.roles?.user) {
+        message.error("You don't have enough permission to access the project.")
+        return navigateTo('/')
+      }
     }
   }
 })

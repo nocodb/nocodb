@@ -17,8 +17,15 @@ export const genTest = (apiType, dbType) => {
         }
 
         before(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             mainPage.tabReset();
+        });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         /*

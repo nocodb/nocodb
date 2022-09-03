@@ -17,14 +17,14 @@ export const genTest = (apiType, dbType) => {
             cy.wait(1000);
         });
 
-        after(() => {
-        });
-
         const name = "tablex";
 
         // create a new random table
         it("Create Table", () => {
             cy.createTable(name);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
         });
 
         // delete newly created table

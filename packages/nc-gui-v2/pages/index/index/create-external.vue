@@ -427,7 +427,7 @@ onMounted(() => {
               <div class="flex items-center gap-2">
                 <!--                Use Connection URL -->
                 <a-button type="default" class="nc-extdb-btn-import-url" @click.stop="importURLDlg = true">
-                  {{ $t('activity.connectionURL') }}
+                  {{ $t('activity.useConnectionUrl') }}
                 </a-button>
                 <span>{{ $t('title.advancedParameters') }}</span>
               </div>

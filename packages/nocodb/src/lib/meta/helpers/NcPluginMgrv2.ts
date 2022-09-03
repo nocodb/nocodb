@@ -242,7 +242,8 @@ class NcPluginMgrv2 {
           const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
           await tempPlugin.init(args?.input);
 
-          if (!tempPlugin?.getAdapter()?.test) NcError.notImplemented();
+          if (!tempPlugin?.getAdapter()?.test)
+            NcError.notImplemented('Plugin test is not implemented');
 
           return tempPlugin?.getAdapter()?.test?.();
         }
@@ -255,7 +256,8 @@ class NcPluginMgrv2 {
           const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
           await tempPlugin.init(args?.input);
 
-          if (!tempPlugin?.getAdapter()?.test) NcError.notImplemented();
+          if (!tempPlugin?.getAdapter()?.test)
+            NcError.notImplemented('Plugin test is not implemented');
 
           return tempPlugin?.getAdapter()?.test?.();
         }
@@ -267,7 +269,8 @@ class NcPluginMgrv2 {
         const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
         await tempPlugin.init(args?.input);
 
-        if (!tempPlugin?.getAdapter()?.test) NcError.notImplemented();
+        if (!tempPlugin?.getAdapter()?.test)
+          NcError.notImplemented('Plugin test is not implemented');
 
         return tempPlugin?.getAdapter()?.test?.();
       }

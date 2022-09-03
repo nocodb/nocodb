@@ -76,7 +76,7 @@ const renderAllowCSVDownload = (view: SharedViewType) => {
 }
 
 const copyLink = (view: SharedViewType) => {
-  copy(`${dashboardUrl?.value as string}/${sharedViewUrl(view)}`)
+  copy(`${dashboardUrl?.value as string}#${sharedViewUrl(view)}`)
   // Copied to clipboard
   message.success(t('msg.info.copiedToClipboard'))
 }

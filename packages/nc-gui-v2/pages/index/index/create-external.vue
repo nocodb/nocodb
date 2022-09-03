@@ -544,7 +544,14 @@ onMounted(() => {
     </a-modal>
 
     <!--    Use Connection URL -->
-    <a-modal v-model:visible="importURLDlg" :title="$t('activity.useConnectionUrl')" width="600px" @ok="handleImportURL">
+    <a-modal
+      v-model:visible="importURLDlg"
+      :title="$t('activity.useConnectionUrl')"
+      width="600px"
+      :ok-text="$t('general.ok')"
+      :cancel-text="$t('general.cancel')"
+      @ok="handleImportURL"
+    >
       <a-input v-model:value="importURL" />
     </a-modal>
   </div>

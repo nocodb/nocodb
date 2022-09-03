@@ -207,8 +207,8 @@ onMounted(() => {
         <template #overlay>
           <a-menu>
             <a-menu-item>
-              <div v-if="base?.uuid" @click="disableSharedBase">{{ $t('activity.shareBase.disable') }}</div>
-              <div v-else @click="createShareBase(ShareBaseRole.Viewer)">{{ $t('activity.shareBase.enable') }}</div>
+              <div class="py-3" v-if="base?.uuid" @click="disableSharedBase">{{ $t('activity.shareBase.disable') }}</div>
+              <div v-else class="py-3" @click="createShareBase(ShareBaseRole.Viewer)">{{ $t('activity.shareBase.enable') }}</div>
             </a-menu-item>
           </a-menu>
         </template>

@@ -194,7 +194,7 @@ onMounted(() => {
               <template #overlay>
                 <a-menu>
                   <a-menu-item>
-                    <div class="flex flex-row items-center py-1 h-[1rem]" @click="openDeleteModal(item)">
+                    <div class="flex flex-row items-center py-3 h-[1rem]" @click="openDeleteModal(item)">
                       <MdiDeleteOutlineIcon class="flex" />
                       <div class="text-xs pl-2">{{ $t('general.remove') }}</div>
                     </div>

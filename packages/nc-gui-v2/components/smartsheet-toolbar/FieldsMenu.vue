@@ -67,18 +67,18 @@ watch(
 
 const isAnyFieldHidden = computed(() => filteredFieldList.value?.some((field) => !field.show))
 
-const onMove = (event: { moved: { newIndex: number } }) => {
+const onMove = (_event: { moved: { newIndex: number } }) => {
   // todo : sync with server
   if (!fields.value) return
 
   if (fields.value.length < 2) return
 
   fields.value.map((field, index) => {
-    field.order = index + 1
-    return field
+    if (field.order !== index + 1) {
+      field.order = index + 1
+      saveOrUpdate(field, index)
+    }
   })
-
-  saveOrUpdate(fields.value[event.moved.newIndex], event.moved.newIndex)
 
   $e('a:fields:reorder')
 }

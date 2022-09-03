@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { Chrome } from '@ckpack/vue-color'
 import tinycolor from 'tinycolor2'
 import { useI18n } from 'vue-i18n'
 import {
@@ -20,7 +19,6 @@ import {
   useTabs,
   useTheme,
   useUIPermission,
-  watch,
 } from '#imports'
 import { TabType } from '~/composables'
 
@@ -58,8 +56,6 @@ const sidebar = ref()
 
 const email = computed(() => user.value?.email ?? '---')
 
-const { theme } = useTheme()
-
 const logout = () => {
   signOut()
   navigateTo('/signin')
@@ -84,37 +80,41 @@ await loadProject()
 
 await loadTables()
 
-const themePrimaryColor = ref<any>(theme.value.primaryColor)
-
-const themeAccentColor = ref<any>(theme.value.accentColor)
-
 const { t } = useI18n()
 
-// Chrome provides object so if custom picker used we only edit primary otherwise use complement as accent
-watch(themePrimaryColor, async (nextColor) => {
-  const hexColor = nextColor.hex8 ? nextColor.hex8 : nextColor
-  const tcolor = tinycolor(hexColor)
-  if (tcolor) {
-    const complement = tcolor.complement()
-    await saveTheme({
-      primaryColor: hexColor,
-      accentColor: themeAccentColor.value,
-    })
-    themeAccentColor.value = nextColor.hex8 ? theme.value.accentColor : complement.toHex8String()
+const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: string) => {
+  switch (mode) {
+    case 'swatch': {
+      const tcolor = tinycolor(color)
+      if (tcolor.isValid()) {
+        const complement = tcolor.complement()
+        await saveTheme({
+          primaryColor: color,
+          accentColor: complement.toHex8String(),
+        })
+      }
+      break
+    }
+    case 'primary': {
+      const tcolor = tinycolor(color)
+      if (tcolor.isValid()) {
+        await saveTheme({
+          primaryColor: color,
+        })
+      }
+      break
+    }
+    case 'accent': {
+      const tcolor = tinycolor(color)
+      if (tcolor.isValid()) {
+        await saveTheme({
+          accentColor: color,
+        })
+      }
+      break
+    }
   }
-})
-
-watch(themeAccentColor, (nextColor) => {
-  const hexColor = nextColor.hex8 ? nextColor.hex8 : nextColor
-
-  // skip if the color is same as saved
-  if (hexColor === theme.value.accentColor) return
-
-  saveTheme({
-    primaryColor: theme.value.primaryColor,
-    accentColor: hexColor,
-  })
-})
+}
 
 if (!route.params.type && isUIAllowed('teamAndAuth')) {
   addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
@@ -292,10 +292,10 @@ const copyAuthToken = async () => {
                         <template #expandIcon></template>
 
                         <GeneralColorPicker
-                          v-model="themePrimaryColor"
                           :colors="projectThemeColors"
                           :row-size="9"
                           :advanced="false"
+                          @input="handleThemeColor('swatch', $event)"
                         />
 
                         <!-- Custom Theme -->
@@ -322,7 +322,7 @@ const copyAuthToken = async () => {
                               </div>
                             </template>
                             <template #expandIcon></template>
-                            <Chrome v-model="themePrimaryColor" />
+                            <GeneralChromeWrapper @input="handleThemeColor('primary', $event)" />
                           </a-sub-menu>
 
                           <!-- Accent Color -->
@@ -334,7 +334,7 @@ const copyAuthToken = async () => {
                               </div>
                             </template>
                             <template #expandIcon></template>
-                            <Chrome v-model="themeAccentColor" />
+                            <GeneralChromeWrapper @input="handleThemeColor('accent', $event)" />
                           </a-sub-menu>
                         </a-sub-menu>
                       </a-sub-menu>

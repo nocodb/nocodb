@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { Empty, Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { Chrome } from '@ckpack/vue-color'
 import tinycolor from 'tinycolor2'
 import {
   computed,
@@ -68,50 +67,24 @@ const deleteProject = (project: ProjectType) => {
 
 await loadProjects()
 
-const themePrimaryColors = $ref(
-  (() => {
-    const colors: Record<string, any> = {}
-    for (const project of projects?.value || []) {
-      if (project?.id) {
-        try {
-          const projectMeta = typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta
-          colors[project.id] = tinycolor(projectMeta?.theme?.primaryColor).isValid()
-            ? projectMeta?.theme?.primaryColor
-            : themeV2Colors['royal-blue'].DEFAULT
-        } catch (e) {
-          colors[project.id] = themeV2Colors['royal-blue'].DEFAULT
-        }
-      }
-    }
-    return colors
-  })(),
-)
-
-const oldPrimaryColors = ref({ ...themePrimaryColors })
-
-watch(themePrimaryColors, async (nextColors) => {
-  for (const [projectId, nextColor] of Object.entries(nextColors)) {
-    if (oldPrimaryColors.value[projectId] === nextColor) continue
-    const hexColor = nextColor.hex8 ? nextColor.hex8 : nextColor
-    const tcolor = tinycolor(hexColor)
-    if (tcolor) {
-      const complement = tcolor.complement()
-      const project: ProjectType = await $api.project.read(projectId)
-      const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
-      await $api.project.update(projectId, {
-        color: hexColor,
-        meta: JSON.stringify({
-          ...meta,
-          theme: {
-            primaryColor: hexColor,
-            accentColor: complement.toHex8String(),
-          },
-        }),
-      })
-    }
+const handleProjectColor = async (projectId: string, color: string) => {
+  const tcolor = tinycolor(color)
+  if (tcolor.isValid()) {
+    const complement = tcolor.complement()
+    const project: ProjectType = await $api.project.read(projectId)
+    const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+    await $api.project.update(projectId, {
+      color,
+      meta: JSON.stringify({
+        ...meta,
+        theme: {
+          primaryColor: color,
+          accentColor: complement.toHex8String(),
+        },
+      }),
+    })
   }
-  oldPrimaryColors.value = { ...themePrimaryColors }
-})
+}
 </script>
 
 <template>
@@ -219,7 +192,7 @@ watch(themePrimaryColors, async (nextColors) => {
                         <div
                           class="color-selector"
                           :style="{
-                            'background-color': themePrimaryColors[record.id].hex8 || themePrimaryColors[record.id],
+                            'background-color': record.color || themeV2Colors['royal-blue'].DEFAULT,
                             'width': '8px',
                             'height': '100%',
                           }"
@@ -229,10 +202,10 @@ watch(themePrimaryColors, async (nextColors) => {
                       <template #expandIcon></template>
 
                       <GeneralColorPicker
-                        v-model="themePrimaryColors[record.id]"
                         :colors="projectThemeColors"
                         :row-size="9"
                         :advanced="false"
+                        @input="handleProjectColor(record.id, $event)"
                       />
                       <a-sub-menu key="pick-primary">
                         <template #title>
@@ -242,7 +215,7 @@ watch(themePrimaryColors, async (nextColors) => {
                           </div>
                         </template>
                         <template #expandIcon></template>
-                        <Chrome v-model="themePrimaryColors[record.id]" />
+                        <GeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
                       </a-sub-menu>
                     </a-sub-menu>
                   </template>

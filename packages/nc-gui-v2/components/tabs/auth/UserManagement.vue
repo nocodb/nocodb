@@ -199,8 +199,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <div class="text-gray-500">{{ $t('general.reload') }}</div>
           </div>
         </a-button>
-        <a-button v-if="isUIAllowed('newUser')" size="middle" type="primary" ghost class="nc-invite-team"
-                  @click="onInvite">
+        <a-button v-if="isUIAllowed('newUser')" size="middle" type="primary" ghost class="nc-invite-team" @click="onInvite">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiAccountPlusOutline class="mr-1" />
             <div>{{ $t('activity.inviteTeam') }}</div>
@@ -225,8 +224,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </div>
       </div>
 
-      <div v-for="(user, index) of users" :key="index"
-           class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
+      <div v-for="(user, index) of users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
         <div class="flex w-4/6 flex-wrap nc-user-email">
           {{ user.email }}
         </div>

@@ -5562,14 +5562,7 @@
         "tags": [
           "Auth"
         ],
-        "description": "Resend Invitation to a specific user",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            }
-          }
-        }
+        "description": "Resend Invitation to a specific user"
       }
     }
   },
@@ -7734,7 +7727,10 @@
             "type": "string"
           },
           "input": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "creator": {
             "type": "string"

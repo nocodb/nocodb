@@ -1091,14 +1091,11 @@ export class Api<
     projectUserResendInvite: (
       projectId: string,
       userId: string,
-      data: any,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/meta/projects/${projectId}/users/${userId}/resend-invite`,
         method: 'POST',
-        body: data,
-        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

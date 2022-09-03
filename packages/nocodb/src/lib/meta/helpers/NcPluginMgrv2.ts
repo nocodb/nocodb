@@ -32,6 +32,7 @@ import Local from '../../v1-legacy/plugins/adapters/storage/Local';
 import { MetaTable } from '../../utils/globals';
 import { PluginCategory } from 'nocodb-sdk';
 import Plugin from '../../models/Plugin';
+import { NcError } from './catchError';
 
 const defaultPlugins = [
   SlackPluginConfig,
@@ -240,6 +241,9 @@ class NcPluginMgrv2 {
           );
           const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
           await tempPlugin.init(args?.input);
+
+          if (!tempPlugin?.getAdapter()?.test) NcError.notImplemented();
+
           return tempPlugin?.getAdapter()?.test?.();
         }
         break;
@@ -250,6 +254,9 @@ class NcPluginMgrv2 {
           );
           const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
           await tempPlugin.init(args?.input);
+
+          if (!tempPlugin?.getAdapter()?.test) NcError.notImplemented();
+
           return tempPlugin?.getAdapter()?.test?.();
         }
         break;
@@ -259,6 +266,9 @@ class NcPluginMgrv2 {
         );
         const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
         await tempPlugin.init(args?.input);
+
+        if (!tempPlugin?.getAdapter()?.test) NcError.notImplemented();
+
         return tempPlugin?.getAdapter()?.test?.();
       }
     }

@@ -128,7 +128,7 @@ const resendInvite = async (user: User) => {
   if (!project.value?.id) return
 
   try {
-    await api.auth.projectUserResendInvite(project.value.id, user.id, null)
+    await api.auth.projectUserResendInvite(project.value.id, user.id)
 
     // Invite email sent successfully
     message.success(t('msg.success.inviteEmailSent'))
@@ -178,8 +178,8 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
           This action will remove this user from this project
         </div>
         <div class="flex mt-6 justify-center space-x-2">
-          <a-button @click="showUserDeleteModal = false"> {{ $t('general.cancel') }} </a-button>
-          <a-button type="primary" danger @click="deleteUser"> {{ $t('general.confirm') }} </a-button>
+          <a-button @click="showUserDeleteModal = false"> {{ $t('general.cancel') }}</a-button>
+          <a-button type="primary" danger @click="deleteUser"> {{ $t('general.confirm') }}</a-button>
         </div>
       </div>
     </a-modal>
@@ -199,7 +199,8 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <div class="text-gray-500">{{ $t('general.reload') }}</div>
           </div>
         </a-button>
-        <a-button v-if="isUIAllowed('newUser')" size="middle" type="primary" ghost class="nc-invite-team" @click="onInvite">
+        <a-button v-if="isUIAllowed('newUser')" size="middle" type="primary" ghost class="nc-invite-team"
+                  @click="onInvite">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiAccountPlusOutline class="mr-1" />
             <div>{{ $t('activity.inviteTeam') }}</div>
@@ -224,7 +225,8 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </div>
       </div>
 
-      <div v-for="(user, index) of users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
+      <div v-for="(user, index) of users" :key="index"
+           class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
         <div class="flex w-4/6 flex-wrap nc-user-email">
           {{ user.email }}
         </div>

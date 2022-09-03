@@ -73,7 +73,7 @@ const onMove = (_event: { moved: { newIndex: number } }) => {
 
   if (fields.value.length < 2) return
 
-  fields.value.map((field, index) => {
+  fields.value.forEach((field, index) => {
     if (field.order !== index + 1) {
       field.order = index + 1
       saveOrUpdate(field, index)

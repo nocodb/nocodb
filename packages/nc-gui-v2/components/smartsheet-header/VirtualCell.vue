@@ -76,11 +76,11 @@ const tooltipMsg = computed(() => {
     return ''
   }
   if (isHm.value) {
-    return `'${tableTile}' ${t(labels.hasMany)} '${relatedTableTitle}'`
+    return `'${tableTile}' ${t('labels.hasMany')} '${relatedTableTitle}'`
   } else if (isMm.value) {
-    return `'${tableTile}' & '${relatedTableTitle}' ${t(labels.manyToMany)}`
+    return `'${tableTile}' & '${relatedTableTitle}' ${t('labels.manyToMany')}`
   } else if (isBt.value) {
-    return `'${column?.value?.title}' ${t(labels.belongsTo)} '${relatedTableTitle}'`
+    return `'${column?.value?.title}' ${t('labels.belongsTo')} '${relatedTableTitle}'`
   } else if (isLookup.value) {
     return `'${childColumn.title}' from '${relatedTableTitle}' (${childColumn.uidt})`
   } else if (isFormula.value) {

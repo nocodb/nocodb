@@ -155,9 +155,13 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
         <template #title> Click or drop a file into cell </template>
 
         <div class="flex items-center gap-2">
-          <MaterialSymbolsAttachFile class="transform group-hover:(text-accent scale-120) text-gray-500 text-[10px]" />
+          <MaterialSymbolsAttachFile
+            class="transform group-hover:(text-accent scale-120) text-gray-500 dark:text-slate-300 text-[10px]"
+          />
 
-          <div v-if="!visibleItems.length" class="group-hover:text-primary text-gray-500 text-xs">Add file(s)</div>
+          <div v-if="!visibleItems.length" class="group-hover:text-primary text-gray-500 dark:text-slate-300 text-xs">
+            Add file(s)
+          </div>
         </div>
       </a-tooltip>
     </div>
@@ -204,7 +208,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
           <template #title> View attachments </template>
 
           <MdiArrowExpand
-            class="select-none transform group-hover:(text-accent scale-120) text-[10px] text-gray-500"
+            class="select-none transform group-hover:(text-accent scale-120) text-[10px] text-gray-500 dark:text-slate-300"
             @click.stop="modalVisible = true"
           />
         </a-tooltip>

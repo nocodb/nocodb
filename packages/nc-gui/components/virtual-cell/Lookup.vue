@@ -77,7 +77,7 @@ const lookupColumnMetaProps = useColumn(lookupColumn)
           class="min-w-max"
           :class="{
             'bg-gray-100 px-1 rounded-full flex-1': !lookupColumnMetaProps.isAttachment,
-            ' border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
+            ' border-gray-200 dark:border-gray-700 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
               lookupColumn.uidt,
             ),
           }"

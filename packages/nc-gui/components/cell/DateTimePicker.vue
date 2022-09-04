@@ -62,7 +62,7 @@ watch(
     v-model:value="localState"
     :show-time="true"
     :bordered="false"
-    class="!w-full px-1"
+    class="!w-full px-1 datetime-picker"
     format="YYYY-MM-DD HH:mm"
     :placeholder="isDateInvalid ? 'Invalid date' : ''"
     :allow-clear="!readOnly"
@@ -77,8 +77,8 @@ watch(
   </a-date-picker>
 </template>
 
-<style scoped>
-:deep(.ant-picker-input > input[disabled]) {
-  @apply !text-current;
+<style scoped lang="scss">
+:global(.dark .datetime-picker input) {
+  @apply text-slate-300;
 }
 </style>

@@ -92,7 +92,7 @@ const coverImageColumnId = computed({
         ...activeView.value.view,
         fk_cover_image_col_id: val,
       })
-      ;(activeView.value?.view as GalleryType).fk_cover_image_col_id = val
+        ; (activeView.value?.view as GalleryType).fk_cover_image_col_id = val
       reloadDataHook.trigger()
     }
   },
@@ -118,8 +118,8 @@ const getIcon = (c: ColumnType) =>
 <template>
   <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
     <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
-      <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
-        <div class="flex items-center gap-1">
+      <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn dark:bg-slate-700" :disabled="isLocked">
+        <div class="flex items-center gap-1 dark:text-slate-300">
           <MdiEyeOffOutline />
 
           <!-- Fields -->
@@ -132,8 +132,7 @@ const getIcon = (c: ColumnType) =>
     <template #overlay>
       <div
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
-        @click.stop
-      >
+        @click.stop>
         <a-card v-if="activeView.type === ViewTypes.GALLERY" size="small" title="Cover image">
           <a-select v-model:value="coverImageColumnId" class="w-full" :options="coverOptions" @click.stop></a-select>
         </a-card>
@@ -143,13 +142,10 @@ const getIcon = (c: ColumnType) =>
         <div class="nc-fields-list py-1">
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
-              <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex items-center" @click.stop>
-                <a-checkbox
-                  v-model:checked="field.show"
-                  v-e="['a:fields:show-hide']"
-                  class="shrink"
-                  @change="saveOrUpdate(field, index)"
-                >
+              <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex items-center"
+                @click.stop>
+                <a-checkbox v-model:checked="field.show" v-e="['a:fields:show-hide']" class="shrink"
+                  @change="saveOrUpdate(field, index)">
                   <div class="flex items-center">
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" />
                     <span>{{ field.title }}</span>
@@ -188,6 +184,7 @@ const getIcon = (c: ColumnType) =>
 :deep(.ant-checkbox-inner) {
   @apply transform scale-60;
 }
+
 :deep(.ant-checkbox) {
   @apply top-auto;
 }

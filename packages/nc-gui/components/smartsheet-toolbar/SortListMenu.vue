@@ -43,43 +43,32 @@ watch(
 <template>
   <a-dropdown offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu">
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
-      <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
-        ><div class="flex items-center gap-1">
-          <MdiSort />
-          <!-- Sort -->
-          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
-          <MdiMenuDown class="text-grey" />
-        </div>
+      <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn dark:bg-slate-700" :disabled="isLocked">
+      </a-button>
+      <div class="flex items-center gap-1 dark:text-slate-300">
+        <MdiSort />
+        <!-- Sort -->
+        <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
+        <MdiMenuDown class="text-grey" />
+      </div>
       </a-button>
     </div>
     <template #overlay>
-      <div class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto !border">
+      <div
+        class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto !border">
         <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
           <template v-for="(sort, i) in sorts || []" :key="i">
-            <MdiCloseBox class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
+            <MdiCloseBox class="nc-sort-item-remove-btn text-grey self-center" small
+              @click.stop="deleteSort(sort, i)" />
 
-            <FieldListAutoCompleteDropdown
-              v-model="sort.fk_column_id"
-              class="caption nc-sort-field-select"
-              :columns="columns"
-              is-sort
-              @click.stop
-              @update:model-value="saveOrUpdate(sort, i)"
-            />
+            <FieldListAutoCompleteDropdown v-model="sort.fk_column_id" class="caption nc-sort-field-select"
+              :columns="columns" is-sort @click.stop @update:model-value="saveOrUpdate(sort, i)" />
 
-            <a-select
-              v-model:value="sort.direction"
-              class="shrink grow-0 nc-sort-dir-select !text-xs"
-              :label="$t('labels.operation')"
-              dropdown-class-name="sort-dir-dropdown"
-              @click.stop
-              @select="saveOrUpdate(sort, i)"
-            >
-              <a-select-option
-                v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"
-                :key="j"
-                :value="option.value"
-              >
+            <a-select v-model:value="sort.direction" class="shrink grow-0 nc-sort-dir-select !text-xs"
+              :label="$t('labels.operation')" dropdown-class-name="sort-dir-dropdown" @click.stop
+              @select="saveOrUpdate(sort, i)">
+              <a-select-option v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"
+                :key="j" :value="option.value">
                 <span>{{ option.text }}</span>
               </a-select-option>
             </a-select>

@@ -68,8 +68,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** saves a reactive state, any change to these values will write/delete to localStorage */
   const storage = useStorage<StoredState>(storageKey, initialState, localStorage, { mergeDefaults: true })
 
+  const route = useRoute()
   /** force turn off of dark mode, regardless of previously stored settings */
-  storage.value.darkMode = false
+  storage.value.darkMode = route.query.dark === '1' || false
 
   /** current token ref, used by `useJwt` to reactively parse our token payload */
   const token = computed({

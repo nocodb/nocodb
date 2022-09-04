@@ -74,7 +74,7 @@ watch(
     :bordered="false"
     use12-hours
     format="HH:mm"
-    class="!w-full px-1"
+    class="!w-full px-1 time-picker"
     :placeholder="isTimeInvalid ? 'Invalid time' : ''"
     :allow-clear="!readOnly"
     :input-read-only="true"
@@ -87,8 +87,8 @@ watch(
   </a-time-picker>
 </template>
 
-<style scoped>
-:deep(.ant-picker-input > input[disabled]) {
-  @apply !text-current;
+<style scoped lang="scss">
+:global(.dark .time-picker input) {
+  @apply text-slate-300;
 }
 </style>

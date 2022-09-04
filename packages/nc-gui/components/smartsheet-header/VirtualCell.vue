@@ -98,7 +98,10 @@ const tooltipMsg = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center w-full text-xs text-gray-500 font-weight-medium" :class="{ 'h-full': column }">
+  <div
+    class="flex items-center w-full text-xs text-gray-500 dark:text-slate-300 font-weight-medium"
+    :class="{ 'h-full': column }"
+  >
     <SmartsheetHeaderVirtualCellIcon v-if="column" />
 
     <a-tooltip placement="bottom">

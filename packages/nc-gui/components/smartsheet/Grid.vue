@@ -384,15 +384,15 @@ onBeforeUnmount(async () => {
       >
         <table
           ref="smartTable"
-          class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
+          class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white dark:bg-slate-600 dark:text-slate-300"
           @contextmenu="showContextMenu"
         >
           <thead>
-            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
-              <th>
-                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center">
+            <tr class="nc-grid-header border-1 bg-gray-100 dark:bg-slate-700 sticky top[-1px]">
+              <th class="dark:border-slate-800">
+                <div class="w-full h-full bg-gray-100 dark:bg-slate-700 flex min-w-[70px] pl-5 pr-1 items-center">
                   <template v-if="!readOnly">
-                    <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
+                    <div class="nc-no-label text-gray-500 dark:text-slate-300" :class="{ hidden: selectedAllRecords }">#</div>
                     <div
                       :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
                       class="nc-check-all w-full items-center"
@@ -403,7 +403,7 @@ onBeforeUnmount(async () => {
                     </div>
                   </template>
                   <template v-else>
-                    <div class="text-gray-500">#</div>
+                    <div class="text-gray-500 dark:text-slate-300">#</div>
                   </template>
                 </div>
               </th>
@@ -411,13 +411,14 @@ onBeforeUnmount(async () => {
                 v-for="col in fields"
                 :key="col.title"
                 v-xc-ver-resize
+                class="dark:border-slate-800"
                 :data-col="col.id"
                 :data-title="col.title"
                 @xcresize="onresize(col.id, $event)"
                 @xcresizing="onXcResizing(col.title, $event)"
                 @xcresized="resizingCol = null"
               >
-                <div class="w-full h-full bg-gray-100 flex items-center">
+                <div class="w-full h-full bg-gray-100 dark:bg-slate-700 flex items-center">
                   <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readOnly" />
 
                   <SmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly" />
@@ -455,11 +456,11 @@ onBeforeUnmount(async () => {
             <SmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">
-                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
+                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1 dark:border-slate-800">
                     <div class="items-center flex gap-1 min-w-[55px]">
                       <div
                         v-if="!readOnly || !isLocked"
-                        class="nc-row-no text-xs text-gray-500"
+                        class="nc-row-no text-xs text-gray-500 dark:text-slate-300"
                         :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
                       >
                         {{ rowIndex + 1 }}
@@ -498,7 +499,7 @@ onBeforeUnmount(async () => {
                     v-for="(columnObj, colIndex) of fields"
                     :ref="cellRefs.set"
                     :key="columnObj.id"
-                    class="cell relative cursor-pointer nc-grid-cell"
+                    class="cell relative cursor-pointer nc-grid-cell dark:border-slate-800"
                     :class="{
                       active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex,
                     }"
@@ -546,11 +547,11 @@ onBeforeUnmount(async () => {
               <td
                 v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
+                class="text-left pointer nc-grid-add-new-cell cursor-pointer dark:border-slate-800"
                 @click="addEmptyRow()"
               >
-                <div class="px-2 w-full flex items-center text-gray-500">
-                  <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
+                <div class="px-2 w-full flex items-center text-gray-500 dark:text-slate-300">
+                  <MdiPlus class="text-pint-500 dark:text-sky-500 text-xs ml-2 text-primary" />
 
                   <span class="ml-1">
                     {{ $t('activity.addRow') }}

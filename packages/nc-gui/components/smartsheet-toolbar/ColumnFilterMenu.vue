@@ -53,8 +53,9 @@ const filterAutoSaveLoc = computed({
 <template>
   <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
     <div :class="{ 'nc-badge nc-active-btn': filtersLength }">
-      <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
-        <div class="flex items-center gap-1">
+      <a-button v-t="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm dark:bg-slate-700"
+        :disabled="isLocked">
+        <div class="flex items-center gap-1 dark:text-slate-300">
           <MdiFilterOutline />
           <!-- Filter -->
           <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.filter') }}</span>
@@ -63,14 +64,11 @@ const filterAutoSaveLoc = computed({
       </a-button>
     </div>
     <template #overlay>
-      <SmartsheetToolbarColumnFilter
-        ref="filterComp"
-        class="nc-table-toolbar-menu shadow-lg"
-        :auto-save="filterAutoSave"
-        @update:filters-length="filtersLength = $event"
-      >
+      <SmartsheetToolbarColumnFilter ref="filterComp" class="nc-table-toolbar-menu shadow-lg"
+        :auto-save="filterAutoSave" @update:filters-length="filtersLength = $event">
         <div v-if="!isPublic" class="flex items-end mt-2 min-h-[30px]" @click.stop>
-          <a-checkbox id="col-filter-checkbox" v-model:checked="filterAutoSaveLoc" class="col-filter-checkbox" hide-details dense>
+          <a-checkbox id="col-filter-checkbox" v-model:checked="filterAutoSaveLoc" class="col-filter-checkbox"
+            hide-details dense>
             <span class="text-grey text-xs">
               {{ $t('msg.info.filterAutoApply') }}
               <!-- Auto apply -->
@@ -78,13 +76,8 @@ const filterAutoSaveLoc = computed({
           </a-checkbox>
 
           <div class="flex-1" />
-          <a-button
-            v-show="!filterAutoSave"
-            v-e="['a:filter:auto-apply']"
-            size="small"
-            class="text-xs ml-2"
-            @click="applyChanges"
-          >
+          <a-button v-show="!filterAutoSave" v-e="['a:filter:auto-apply']" size="small" class="text-xs ml-2"
+            @click="applyChanges">
             Apply changes
           </a-button>
         </div>

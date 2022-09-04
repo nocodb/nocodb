@@ -20,7 +20,7 @@ const page = computed({
 
 <template>
   <div class="flex items-center mb-1">
-    <span v-if="count !== null && count !== Infinity" class="caption ml-5 text-gray-500">
+    <span v-if="count !== null && count !== Infinity" class="caption ml-5 text-gray-500 dark:text-slate-300">
       {{ count }} {{ count !== 1 ? $t('objects.records') : $t('objects.record') }}
     </span>
 
@@ -30,7 +30,7 @@ const page = computed({
       v-if="count !== Infinity"
       v-model:current="page"
       size="small"
-      class="!text-xs !m-1 nc-pagination"
+      class="!text-xs !m-1 nc-pagination dark:text-slate-300"
       :total="count"
       :page-size="size"
       show-less-items
@@ -60,6 +60,6 @@ const page = computed({
 }
 
 :deep(.ant-pagination-item-link) {
-  @apply text-gray-500;
+  @apply text-gray-500 dark:text-slate-300;
 }
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { navigateTo } from '#app'
-const { isLoading } = useGlobal()
+const { isLoading, darkMode } = useGlobal()
 const { sharedView } = useSharedView()
 </script>
 
@@ -11,8 +11,8 @@ export default {
 </script>
 
 <template>
-  <a-layout id="nc-app">
-    <a-layout class="!flex-col bg-white">
+  <a-layout id="nc-app" :class="darkMode ? 'dark' : null">
+    <a-layout class="!flex-col bg-white dark:bg-slate-900">
       <a-layout-header class="flex !bg-primary items-center text-white pl-3 pr-4 shadow-lg">
         <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105" @click="navigateTo('/')">
           <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />

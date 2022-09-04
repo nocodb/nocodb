@@ -62,7 +62,7 @@ const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
   <a-date-picker
     v-model:value="localState"
     :bordered="false"
-    class="!w-full px-1"
+    class="!w-full px-1 date-picker"
     :format="dateFormat"
     :placeholder="placeholder"
     :allow-clear="!readOnly"
@@ -75,8 +75,8 @@ const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
   </a-date-picker>
 </template>
 
-<style scoped>
-:deep(.ant-picker-input > input[disabled]) {
-  @apply !text-current;
+<style scoped lang="scss">
+:global(.dark .date-picker input) {
+  @apply text-slate-300;
 }
 </style>

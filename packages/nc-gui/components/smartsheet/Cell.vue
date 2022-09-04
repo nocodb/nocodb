@@ -141,7 +141,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
 <template>
   <div
     class="nc-cell w-full h-full"
-    :class="{ 'text-blue-600': isPrimary && !virtual && !isForm }"
+    :class="{ 'text-blue-600 dark:text-emerald-400': isPrimary && !virtual && !isForm }"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up

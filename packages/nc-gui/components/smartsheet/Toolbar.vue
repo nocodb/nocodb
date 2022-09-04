@@ -13,9 +13,17 @@ const { isOpen } = useSidebar()
 const { allowCSVDownload } = useSharedView()
 </script>
 
+<script lang="ts">
+export default {
+  props: {
+    containerClass: String,
+  },
+}
+</script>
+
 <template>
   <div
-    class="nc-table-toolbar w-full py-1 flex gap-1 items-center h-[var(--toolbar-height)] px-2 border-b overflow-x-hidden"
+    :class="`nc-table-toolbar w-full py-1 flex gap-1 items-center h-[var(--toolbar-height)] px-2 overflow-x-hidden ${containerClass}`"
     style="z-index: 7"
   >
     <SmartsheetToolbarViewActions

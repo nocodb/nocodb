@@ -61,7 +61,7 @@ const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
     v-model:value="localState"
     picker="year"
     :bordered="false"
-    class="!w-full px-1"
+    class="!w-full px-1 year-picker"
     :placeholder="placeholder"
     :allow-clear="!readOnly"
     :input-read-only="true"
@@ -74,8 +74,8 @@ const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
   </a-date-picker>
 </template>
 
-<style scoped>
-:deep(.ant-picker-input > input[disabled]) {
-  @apply !text-current;
+<style scoped lang="scss">
+:global(.dark .year-picker input) {
+  @apply text-slate-300;
 }
 </style>

@@ -9,7 +9,7 @@ import {
   createLtarColumn,
   createRollupColumn,
 } from './factory/column';
-import { createTable } from './factory/table';
+import { createTable, getTable } from './factory/table';
 import {
   createRelation,
   createRow,
@@ -21,6 +21,7 @@ import {
 import { isMysql, isSqlite } from '../init/db';
 import Model from '../../../../src/lib/models/Model';
 import console from 'console';
+import Project from '../../../../src/lib/models/Project';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -34,8 +35,8 @@ const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
 
 function tableTest() {
   let context;
-  let project;
-  let sakilaProject;
+  let project: Project;
+  let sakilaProject: Project;
   let customerTable: Model;
   let customerColumns;
 
@@ -45,11 +46,7 @@ function tableTest() {
     sakilaProject = await createSakilaProject(context);
     project = await createProject(context);
 
-    customerTable = await Model.getByIdOrName({
-      project_id: sakilaProject.id,
-      base_id: sakilaProject.bases[0].id,
-      table_name: 'customer',
-    });
+    customerTable = await getTable({project: sakilaProject, name: 'customer'})
     customerColumns = await customerTable.getColumns();
   });
 
@@ -233,11 +230,7 @@ function tableTest() {
   });
 
   it('Get sorted table data list with a lookup column', async function () {
-    const rentalTable = await Model.getByIdOrName({
-      project_id: sakilaProject.id,
-      base_id: sakilaProject.bases[0].id,
-      table_name: 'rental',
-    });
+    const rentalTable = await getTable({project: sakilaProject, name: 'rental'})
 
     const lookupColumn = await createLookupColumn(context, {
       project: sakilaProject,
@@ -274,11 +267,7 @@ function tableTest() {
   });
 
   it('Get filtered table data list with a lookup column', async function () {
-    const rentalTable = await Model.getByIdOrName({
-      project_id: sakilaProject.id,
-      base_id: sakilaProject.bases[0].id,
-      table_name: 'rental',
-    });
+    const rentalTable = await getTable({project: sakilaProject, name: 'rental'});
 
     const lookupColumn = await createLookupColumn(context, {
       project: sakilaProject,
@@ -342,11 +331,7 @@ function tableTest() {
   });
 
   it('Get nested sorted filtered table data list with a lookup column', async function () {
-    const rentalTable = await Model.getByIdOrName({
-      project_id: sakilaProject.id,
-      base_id: sakilaProject.bases[0].id,
-      table_name: 'rental',
-    });
+    const rentalTable = await getTable({project: sakilaProject, name: 'rental'});
 
     const lookupColumn = await createLookupColumn(context, {
       project: sakilaProject,
@@ -1524,6 +1509,65 @@ function tableTest() {
       .expect(404);
 
     if(response.body['msg'] !== 'Table not found') {
+      throw new Error('Wrong error message');
+    }
+  })
+
+  it('Nested row list mm', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const filmTable = await getTable({project: sakilaProject, name: 'film'});
+    const filmListColumn = (await actorTable.getColumns()).find(
+      (column) => column.title === 'Film List'
+    )!;
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    const pageInfo = response.body['pageInfo']
+    if(pageInfo['totalRows'] !== 19 ||  pageInfo['pageSize'] !== 25) {
+      console.log(pageInfo)
+      throw new Error('Wrong total rows');
+    }
+  })
+
+  it('Nested row list mm with limit and offset', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const filmTable = await getTable({project: sakilaProject, name: 'film'});
+    const filmListColumn = (await actorTable.getColumns()).find(
+      (column) => column.title === 'Film List'
+    )!;
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        limit: 30,
+        offset: 10
+      })
+      .expect(200);
+
+    const pageInfo = response.body['pageInfo']
+    if(pageInfo['totalRows'] !== 19 ||  pageInfo['pageSize'] !== 30 || response.body.list.length !== 9) {
+      console.log(pageInfo, response.body.list.length)
+      throw new Error('Wrong total rows');
+    }
+  })
+
+  it('Row list mm with invalid table id', async () => {
+    const rowId = 1
+    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const filmListColumn = (await actorTable.getColumns()).find(
+      (column) => column.title === 'Film List'
+    )!;
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}`)
+      .set('xc-auth', context.token)
+      .expect(404);
+
+    if(response.body['msg'] !== 'Table not found') {
+      console.log(response.body)
       throw new Error('Wrong error message');
     }
   })

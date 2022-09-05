@@ -18,4 +18,12 @@ const createTable = async (context, project, args = {}) => {
   return table;
 };
 
-export { createTable };
+const getTable = async ({project, name}: {project, name: string}) => {
+  return await Model.getByIdOrName({
+    project_id: project.id,
+    base_id: project.bases[0].id,
+    table_name: name,
+  });
+}
+
+export { createTable, getTable };

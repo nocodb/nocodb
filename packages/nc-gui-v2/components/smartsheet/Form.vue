@@ -202,7 +202,6 @@ function hideColumn(idx: number) {
     },
     idx,
   )
-  ;(localColumns.value[idx] as any).show = false
 
   reloadEventHook.trigger()
 

@@ -1,4 +1,5 @@
-import { DbConfig } from '../../../../interface/config';
+import { DbConfig } from "../../../../src/interface/config";
+
 
 const isSqlite = (context) =>
   (context.dbConfig as DbConfig).client === 'sqlite';

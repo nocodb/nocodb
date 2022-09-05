@@ -1,4 +1,5 @@
-import NcConfigFactory from '../../../lib/utils/NcConfigFactory';
+import { NcConfigFactory } from "../../../src/lib";
+
 
 const sakilaTableNames = [
   'actor',

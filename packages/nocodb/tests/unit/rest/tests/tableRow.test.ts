@@ -1,6 +1,5 @@
 import 'mocha';
 import { createProject, createSakilaProject } from './factory/project';
-import Model from '../../../../lib/models/Model';
 import init from '../init';
 import request from 'supertest';
 import { ColumnType, UITypes } from 'nocodb-sdk';
@@ -20,6 +19,7 @@ import {
   listRow,
 } from './factory/row';
 import { isMysql, isSqlite } from '../init/db';
+import Model from '../../../../src/lib/models/Model';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -1395,6 +1395,12 @@ function tableTest() {
       throw new Error('Wrong number of rows delete');
     }
   });
+
+
+  // it.only('Test', () => {
+  //   console.log('#################', __dirname);
+  //   // Print project directory
+  // });
 }
 
 export default function () {

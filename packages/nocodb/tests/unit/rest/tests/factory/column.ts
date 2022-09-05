@@ -1,7 +1,7 @@
-import { ColumnType, UITypes } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
-import Column from '../../../../../lib/models/Column';
-import Model from '../../../../../lib/models/Model';
+import Column from '../../../../../src/lib/models/Column';
+import Model from '../../../../../src/lib/models/Model';
 
 const defaultColumns = [
   {

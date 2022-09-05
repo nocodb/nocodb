@@ -1,10 +1,10 @@
 import 'mocha';
 import request from 'supertest';
-import Project from '../../../../lib/models/Project';
 import { createProject, createSharedBase } from './factory/project';
 import { beforeEach } from 'mocha';
 import { Exception } from 'handlebars';
 import init from '../init/index';
+import Project from '../../../../src/lib/models/Project';
 
 function projectTest() {
   let context;

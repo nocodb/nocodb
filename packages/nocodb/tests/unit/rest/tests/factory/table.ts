@@ -1,5 +1,5 @@
 import request from 'supertest';
-import Model from '../../../../../lib/models/Model';
+import Model from '../../../../../src/lib/models/Model';
 import { defaultColumns } from './column';
 
 const defaultTableValue = {

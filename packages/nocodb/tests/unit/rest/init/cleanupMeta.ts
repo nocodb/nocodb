@@ -1,7 +1,7 @@
-import Model from '../../../../lib/models/Model';
-import Project from '../../../../lib/models/Project';
-import NcConnectionMgrv2 from '../../../../lib/utils/common/NcConnectionMgrv2';
-import { orderedMetaTables } from '../../../../lib/utils/globals';
+import Model from "../../../../src/lib/models/Model";
+import Project from "../../../../src/lib/models/Project";
+import NcConnectionMgrv2 from "../../../../src/lib/utils/common/NcConnectionMgrv2";
+import { orderedMetaTables } from "../../../../src/lib/utils/globals";
 
 const dropTablesAllNonExternalProjects = async (knexClient) => {
   const projects = await Project.list({});

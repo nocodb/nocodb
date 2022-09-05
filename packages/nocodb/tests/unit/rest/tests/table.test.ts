@@ -3,9 +3,9 @@ import 'mocha';
 import request from 'supertest';
 import { createTable } from './factory/table';
 import { createProject } from './factory/project';
-import Model from '../../../../lib/models/Model';
 import { defaultColumns } from './factory/column';
 import init from '../init';
+import Model from '../../../../src/lib/models/Model';
 
 function tableTest() {
   let context;

@@ -762,9 +762,18 @@ export default {
       }
     },
     selectBlock(col, row) {
-      if(this.isSelectedBlock){
-        this.selectedRows.endcol = col;
-        this.selectedRows.endrow = row;
+      if (this.selected.col === null || this.selected.row === null) {
+        if(this.isSelectedBlock){
+          this.selectedRows.endcol = col;
+          this.selectedRows.endrow = row;
+        }
+      }else if(this.selected.col !== col || this.selected.row !== row){
+        if(this.isSelectedBlock){
+          this.selected.col = null;
+          this.selected.row = null;
+          this.selectedRows.endcol = col;
+          this.selectedRows.endrow = row;
+        }
       }
     },
     selectedRange(row, col){
@@ -779,18 +788,16 @@ export default {
         }
     },
     preventSelectText(col, row){
-      this.isSelectedBlock = true
-      this.selected.row = null
-      this.selected.col = null
-      this.selectedRows.startcol = -1;
-      this.selectedRows.endcol = -1;
-      this.selectedRows.startrow = -1;
-      this.selectedRows.endrow = -1;
-      document.addEventListener('selectstart', function(event) {
-          event.preventDefault();
-      }, false);
-      this.selectedRows.startcol = col;
-      this.selectedRows.startrow = row;
+        this.isSelectedBlock = true
+        this.selectedRows.startcol = -1;
+        this.selectedRows.endcol = -1;
+        this.selectedRows.startrow = -1;
+        this.selectedRows.endrow = -1;
+        document.addEventListener('selectstart', function(event) {
+            event.preventDefault();
+        }, false);
+        this.selectedRows.startcol = col;
+        this.selectedRows.startrow = row;
     },
     makeEditable(col, row, _, rowMeta) {
       if (this.isPublicView || !this.isEditable || this.isView) {

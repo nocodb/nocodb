@@ -20,8 +20,6 @@ const advancedOptions = ref(false)
 
 const { getMeta } = useMetas()
 
-const editOrAddRef = ref<HTMLElement>()
-
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
@@ -79,28 +77,10 @@ onMounted(() => {
     formState.value.column_name = formState.value?.title
   }
 })
-
-const handleClose = (e: MouseEvent) => {
-  const target = e.target as HTMLElement
-
-  if (
-    target &&
-    editOrAddRef?.value &&
-    !editOrAddRef.value.contains(target) &&
-    !target.closest('.ant-dropdown') &&
-    !target.closest('.ant-select') &&
-    !target.closest('.ant-select-item')
-  ) {
-    emit('cancel')
-  }
-}
-
-useEventListener(document, 'click', handleClose)
 </script>
 
 <template>
   <div
-    ref="editOrAddRef"
     class="w-[400px] max-h-[95vh] bg-gray-50 shadow-lg p-6 overflow-auto !border"
     :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
     @click.stop

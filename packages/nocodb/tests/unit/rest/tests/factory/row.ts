@@ -24,7 +24,7 @@ const rowValue = (column: ColumnType, index: number) => {
   }
 };
 
-const getRow = async (context, project, table, id) => {
+const getRow = async (context, {project, table, id}) => {
   const response = await request(context.app)
     .get(`/api/v1/db/data/noco/${project.id}/${table.id}/${id}`)
     .set('xc-auth', context.token);

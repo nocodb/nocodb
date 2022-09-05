@@ -58,6 +58,7 @@ async function bulkDataDelete(req: Request, res: Response) {
   res.json(await baseModel.bulkDelete(req.body));
 }
 
+// todo: Integrate with filterArrJson bulkDataDelete
 async function bulkDataDeleteAll(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   const base = await Base.get(model.base_id);

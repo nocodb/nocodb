@@ -20,6 +20,7 @@ import {
 } from './factory/row';
 import { isMysql, isSqlite } from '../init/db';
 import Model from '../../../../src/lib/models/Model';
+import console from 'console';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -1157,9 +1158,9 @@ function tableTest() {
 
     const updatedRow = await getRow(
       context,
-      project,
+      {project,
       table,
-      response.body['Id']
+      id: response.body['Id']}
     );
     if (updatedRow[emailColumn.title] !== 'valid@example.com') {
       throw new Error('Wrong update');
@@ -1175,7 +1176,7 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
 
-    const deleteRow = await getRow(context, project, table, row['Id']);
+    const deleteRow = await getRow(context, {project, table, id: row['Id']});
     if (deleteRow && Object.keys(deleteRow).length > 0) {
       console.log(deleteRow);
       throw new Error('Wrong delete');
@@ -1191,7 +1192,7 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
 
-    const deleteRow = await getRow(context, project, table, row['Id']);
+    const deleteRow = await getRow(context, {project, table, id: row['Id']});
     if (deleteRow && Object.keys(deleteRow).length > 0) {
       console.log(deleteRow);
       throw new Error('Wrong delete');
@@ -1227,7 +1228,7 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
 
-    const deleteRow = await getRow(context, project, table, row['Id']);
+    const deleteRow = await getRow(context, {project, table, id: row['Id']});
     if (!deleteRow) {
       throw new Error('Should not delete');
     }
@@ -1396,7 +1397,136 @@ function tableTest() {
     }
   });
 
+  // todo: add test for bulk delete with ltar but need filterArrJson. filterArrJson not now supported with this api.
+  // it.only('Bulk update nested filtered table data list with a lookup column', async function () {
+  // });
 
+  it('Export csv', async () => {
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/csv`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if(!response['header']['content-disposition'].includes("Customer-export.csv")){
+      throw new Error('Wrong file name');
+    }
+    if(!response.text){
+      throw new Error('Wrong export');
+    }
+  })
+
+  it('Export excel', async () => {
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/excel`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if(!response['header']['content-disposition'].includes("Customer-export.xlsx")){
+      throw new Error('Wrong file name');
+    }
+    if(!response.text){
+      throw new Error('Wrong export');
+    }
+  })
+
+  // todo: Add export test for views
+
+  it('Nested row list hm', async () => {
+    const rowId = 1;
+    const rentalListColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'Rental List'
+    )!;
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    const pageInfo = response.body['pageInfo']
+    if(pageInfo['totalRows'] !== 32 ||  pageInfo['pageSize'] !== 25) {
+      console.log(pageInfo)
+      throw new Error('Wrong total rows');
+    }
+  })
+
+  it('Nested row list hm with limit and offset', async () => {
+    const rowId = 1;
+    const rentalListColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'Rental List'
+    )!;
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        limit: 30,
+        offset: 10
+      })
+      .expect(200);
+
+    const pageInfo = response.body['pageInfo']
+    if(pageInfo['totalRows'] !== 32 ||  pageInfo['pageSize'] !== 30 || response.body.list.length !== 22) {
+      throw new Error('Wrong total rows');
+    }
+  })
+
+  it('Row list hm with invalid table id', async () => {
+    const rowId = 1;
+    const rentalListColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'Rental List'
+    )!;
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/wrong-id/${rowId}/hm/${rentalListColumn.id}`)
+      .set('xc-auth', context.token)
+      .expect(404);
+
+    if(response.body['msg'] !== 'Table not found') {
+      throw new Error('Wrong error message');
+    }
+  })
+
+  // todo: Api does not support fields and sort 
+  // it.only('Nested row list hm with selected fields', async () => {
+  //   const rowId = 1;
+
+  //   const firstNameColumn = customerColumns.find(
+  //     (col) => col.title === 'FirstName'
+  //   );
+  //   const visibleColumns = [firstNameColumn];
+
+  //   const rentalListColumn = (await customerTable.getColumns()).find(
+  //     (column) => column.title === 'Rental List'
+  //   )!;
+  //   const response = await request(context.app)
+  //     .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
+  //     .query({
+  //       fields: visibleColumns.map((c) => c.title),
+  //     })
+  //     .set('xc-auth', context.token)
+
+  //   const pageInfo = response.body['pageInfo']
+  //   if(pageInfo['totalRows'] !== 32) {
+  //     throw new Error('Wrong total rows');
+  //   }
+
+  //   if (!isColumnsCorrectInResponse(response.body.list[0], visibleColumns)) {
+  //     console.log(response.body.list);
+  //     throw new Error('Wrong columns');
+  //   }
+  // })
+  
+  it('Create list hm with invalid table id', async () => {
+    const rowId = 1;
+    const rentalListColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'Rental List'
+    )!;
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/wrong-id/${rowId}/hm/${rentalListColumn.id}`)
+      .set('xc-auth', context.token)
+      .expect(404);
+
+    if(response.body['msg'] !== 'Table not found') {
+      throw new Error('Wrong error message');
+    }
+  })
 }
 
 export default function () {

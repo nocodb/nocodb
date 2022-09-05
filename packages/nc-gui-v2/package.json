@@ -9,8 +9,8 @@
     "test": "vitest -c test/vite.config.ts",
     "test:ui": "vitest -c test/vite.config.ts --ui",
     "coverage": "vitest -c test/vite.config.ts run --coverage",
-    "build:copy": "npm run generate; rm -rf ../nc-lib-gui-v2/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui-v2/lib/dist/",
-    "build:copy:publish": "npm run generate; rm -rf ../nc-lib-gui-v2/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui-v2/lib/dist/; npm publish ../nc-lib-gui-v2",
+    "build:copy": "npm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
+    "build:copy:publish": "npm run generate; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/; npm publish ../nc-lib-gui",
     "postinstall": "node scripts/updateNuxtRouting.js"
   },
   "dependencies": {

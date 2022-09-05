@@ -96,10 +96,13 @@ const suggestionsList = computed(() => {
         examples: formulas[fn].examples,
       })),
     ...columns.value
-      .filter(
-        (c: Record<string, any>) =>
-          !column || (column.value.id !== c.id && !(c.uidt === UITypes.LinkToAnotherRecord && c.system === 1)),
-      )
+      .filter((c: Record<string, any>) => {
+        // skip system LTAR columns
+        if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
+        // v1 logic? skip the current column
+        if (!column) return true
+        return column.value.id !== c.id
+      })
       .map((c: any) => ({
         text: c.title,
         type: 'column',

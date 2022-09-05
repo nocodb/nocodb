@@ -8,6 +8,7 @@ import {
   ChangePageInj,
   FieldsInj,
   IsFormInj,
+  IsGalleryInj,
   IsGridInj,
   IsLockedInj,
   MetaInj,
@@ -98,7 +99,9 @@ onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
 
-provide(IsGridInj, true)
+provide(IsGalleryInj, ref(false))
+
+provide(IsGridInj, ref(true))
 
 provide(PaginationDataInj, paginationData)
 

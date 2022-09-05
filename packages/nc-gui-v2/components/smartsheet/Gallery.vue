@@ -8,6 +8,7 @@ import {
   ChangePageInj,
   FieldsInj,
   IsFormInj,
+  IsGalleryInj,
   IsGridInj,
   MetaInj,
   OpenNewRecordFormHookInj,
@@ -42,7 +43,8 @@ const {
 const { isUIAllowed } = useUIPermission()
 
 provide(IsFormInj, ref(false))
-provide(IsGridInj, false)
+provide(IsGalleryInj, ref(true))
+provide(IsGridInj, ref(false))
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
@@ -140,7 +142,7 @@ openNewRecordFormHook?.on(async () => {
                   <div style="z-index: 1"></div>
                 </template>
                 <img
-                  v-for="(attachment, index) in attachments(record).filter((attachment) => attachment.url)"
+                  v-for="(attachment, index) in attachments(record)"
                   :key="`carousel-${record.row.id}-${index}`"
                   class="h-52"
                   :src="attachment.url"

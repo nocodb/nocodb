@@ -6,6 +6,7 @@ import Modal from './Modal.vue'
 import Carousel from './Carousel.vue'
 import {
   IsFormInj,
+  IsGalleryInj,
   inject,
   isImage,
   nextTick,
@@ -32,6 +33,8 @@ const emits = defineEmits<Emits>()
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isGallery = inject(IsGalleryInj, ref(false))
+
 const attachmentCellRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
@@ -57,15 +60,21 @@ const currentCellRef = ref()
 watch(
   [() => rowIndex, isForm],
   () => {
-    if (!rowIndex && isForm.value) {
+    if (!rowIndex && isForm.value && isGallery.value) {
       currentCellRef.value = attachmentCellRef.value
     } else {
       nextTick(() => {
-        currentCellRef.value = cellRefs.value.reduceRight((cell, curr) => {
-          if (!Object.keys(cell).length && curr.dataset.key === `${rowIndex}${column.value.id}`) cell = curr
+        const nextCell = cellRefs.value.reduceRight((cell, curr) => {
+          if (!cell && curr.dataset.key === `${rowIndex}${column.value.id}`) cell = curr
 
           return cell
-        }, {} as HTMLTableDataCellElement)
+        }, undefined as HTMLTableDataCellElement | undefined)
+
+        if (!nextCell) {
+          currentCellRef.value = attachmentCellRef.value
+        } else {
+          currentCellRef.value = nextCell
+        }
       })
     }
   },

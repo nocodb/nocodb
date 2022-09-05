@@ -6,17 +6,17 @@ on:
     push:
         branches: [develop]
         paths:
-            - "packages/nc-gui-v2/**"
-            - "scripts/cypress-v2/**"
+            - "packages/nc-gui/**"
+            - "scripts/cypress/**"
             - "packages/nocodb/**"
-            - ".github/workflows/ci-cd-v2.yml"
+            - ".github/workflows/ci-cd.yml"
     pull_request:
         branches: [develop]
         paths:
-            - "packages/nc-gui-v2/**"
-            - "scripts/cypress-v2/**"
+            - "packages/nc-gui/**"
+            - "scripts/cypress/**"
             - "packages/nocodb/**"
-            - ".github/workflows/ci-cd-v2.yml"
+            - ".github/workflows/ci-cd.yml"
 jobs:
     cypress-restTableOps-run-cache:
       runs-on: ubuntu-20.04
@@ -49,18 +49,18 @@ jobs:
           with:
             start: |
               npm run start:api:cache
-              npm run start:web-v2
+              npm run start:web
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/restTableOps.js"
+            spec: "./scripts/cypress/integration/test/restTableOps.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-restTableOps-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cypress-restViews-run-cache:
       runs-on: ubuntu-20.04
@@ -93,18 +93,18 @@ jobs:
           with:
             start: |
               npm run start:api:cache
-              npm run start:web-v2
+              npm run start:web
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/restViews.js"
+            spec: "./scripts/cypress/integration/test/restViews.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-restViews-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cypress-restRoles-run-cache:
       runs-on: ubuntu-20.04
@@ -137,18 +137,18 @@ jobs:
           with:
             start: |
               npm run start:api:cache
-              npm run start:web-v2
+              npm run start:web
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/restRoles.js"
+            spec: "./scripts/cypress/integration/test/restRoles.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-restRoles-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cypress-restMisc-run-cache:
       runs-on: ubuntu-20.04
@@ -181,18 +181,18 @@ jobs:
           with:
             start: |
               npm run start:api:cache
-              npm run start:web-v2
+              npm run start:web
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/restMisc.js"
+            spec: "./scripts/cypress/integration/test/restMisc.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-restMisc-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cypress-xcdb-restTableOps-run-cache:
       runs-on: ubuntu-20.04
@@ -224,19 +224,19 @@ jobs:
           uses: cypress-io/github-action@v2
           with:
             start: |
-              npm run start:xcdb-api:cache-v2
-              npm run start:web-v2
+              npm run start:xcdb-api:cache
+              npm run start:web
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/xcdb-restTableOps.js"
+            spec: "./scripts/cypress/integration/test/xcdb-restTableOps.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-xcdb-restTableOps-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cypress-xcdb-restViews-run-cache:
       runs-on: ubuntu-20.04
@@ -268,19 +268,19 @@ jobs:
           uses: cypress-io/github-action@v2
           with:
             start: |
-              npm run start:xcdb-api:cache-v2
-              npm run start:web-v2
+              npm run start:xcdb-api:cache
+              npm run start:web
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/xcdb-restViews.js"
+            spec: "./scripts/cypress/integration/test/xcdb-restViews.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-xcdb-restViews-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cypress-xcdb-restRoles-run-cache:
       runs-on: ubuntu-20.04
@@ -312,19 +312,19 @@ jobs:
           uses: cypress-io/github-action@v2
           with:
             start: |
-              npm run start:xcdb-api:cache-v2
-              npm run start:web-v2
+              npm run start:xcdb-api:cache
+              npm run start:web
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/xcdb-restRoles.js"
+            spec: "./scripts/cypress/integration/test/xcdb-restRoles.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-xcdb-restRoles-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cypress-xcdb-restMisc-run-cache:
       runs-on: ubuntu-20.04
@@ -356,19 +356,19 @@ jobs:
           uses: cypress-io/github-action@v2
           with:
             start: |
-              npm run start:xcdb-api:cache-v2
-              npm run start:web-v2
+              npm run start:xcdb-api:cache
+              npm run start:web
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/xcdb-restMisc.js"
+            spec: "./scripts/cypress/integration/test/xcdb-restMisc.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-xcdb-restMisc-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cypress-pg-restTableOps-run-cache:
       runs-on: ubuntu-20.04
@@ -401,18 +401,18 @@ jobs:
           with:
             start: |
               npm run start:api:cache
-              npm run start:web-v2
-              docker-compose -f ./scripts/cypress-v2/docker-compose-pg.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/pg-restTableOps.js"
+              npm run start:web
+              docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+            spec: "./scripts/cypress/integration/test/pg-restTableOps.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-pg-restTableOps-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cypress-pg-restViews-run-cache:
       runs-on: ubuntu-20.04
@@ -445,18 +445,18 @@ jobs:
           with:
             start: |
               npm run start:api:cache
-              npm run start:web-v2
-              docker-compose -f ./scripts/cypress-v2/docker-compose-pg.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/pg-restViews.js"
+              npm run start:web
+              docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+            spec: "./scripts/cypress/integration/test/pg-restViews.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-pg-restViews-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cypress-pg-restRoles-run-cache:
       runs-on: ubuntu-20.04
@@ -489,18 +489,18 @@ jobs:
           with:
             start: |
               npm run start:api:cache
-              npm run start:web-v2
-              docker-compose -f ./scripts/cypress-v2/docker-compose-pg.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/pg-restRoles.js"
+              npm run start:web
+              docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+            spec: "./scripts/cypress/integration/test/pg-restRoles.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-pg-restRoles-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cypress-pg-restMisc-run-cache:
       runs-on: ubuntu-20.04
@@ -533,18 +533,18 @@ jobs:
           with:
             start: |
               npm run start:api:cache
-              npm run start:web-v2
-              docker-compose -f ./scripts/cypress-v2/docker-compose-pg.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/pg-restMisc.js"
+              npm run start:web
+              docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+            spec: "./scripts/cypress/integration/test/pg-restMisc.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cypress-pg-restMisc-run-cache-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cy-quick-sqlite:
       runs-on: ubuntu-20.04
@@ -576,20 +576,20 @@ jobs:
           uses: cypress-io/github-action@v2
           with:
             start: |
-              cp ./scripts/cypress-v2/fixtures/quickTest/noco_0_91_7.db ./packages/nocodb/noco.db
+              cp ./scripts/cypress/fixtures/quickTest/noco_0_91_7.db ./packages/nocodb/noco.db
               npm run start:api:cache
-              npm run start:web-v2
+              npm run start:web
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
-            spec: "./scripts/cypress-v2/integration/test/quickTest.js"
+            spec: "./scripts/cypress/integration/test/quickTest.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cy-quick-sqlite-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2
     cy-quick-pg:
       runs-on: ubuntu-20.04
@@ -621,17 +621,17 @@ jobs:
           uses: cypress-io/github-action@v2
           with:
             start: |
-              docker-compose -f ./scripts/cypress-v2/docker-compose-pg-cy-quick.yml up -d
+              docker-compose -f ./scripts/cypress/docker-compose-pg-cy-quick.yml up -d
               npm run start:api:cache:pg:cyquick  
-              npm run start:web-v2
-            spec: "./scripts/cypress-v2/integration/test/quickTest.js"
+              npm run start:web
+            spec: "./scripts/cypress/integration/test/quickTest.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
-            config-file: scripts/cypress-v2/cypress.json
+            config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
           uses: actions/upload-artifact@v2
           with:
             name: cy-quick-pg-snapshots
-            path: scripts/cypress-v2/screenshots
+            path: scripts/cypress/screenshots
             retention-days: 2

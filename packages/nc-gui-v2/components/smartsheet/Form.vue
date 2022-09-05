@@ -204,6 +204,8 @@ function hideColumn(idx: number) {
   )
   ;(localColumns.value[idx] as any).show = false
 
+  reloadEventHook.trigger()
+
   $e('a:form-view:hide-columns')
 }
 

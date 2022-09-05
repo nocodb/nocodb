@@ -51,7 +51,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
               <div class="flex items-center gap-2">
                 <component :is="icon(tab)" class="text-sm" />
 
-                {{ tab.title }}
+                <GeneralTruncateText>{{ tab.title }}</GeneralTruncateText>
               </div>
             </template>
           </a-tab-pane>

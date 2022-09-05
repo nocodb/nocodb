@@ -334,7 +334,9 @@ function openTableCreateDialog() {
                     />
                   </div>
 
-                  <div class="nc-tbl-title flex-1">{{ table.title }}</div>
+                  <div class="nc-tbl-title flex-1">
+                    <GeneralTruncateText>{{ table.title }}</GeneralTruncateText>
+                  </div>
 
                   <a-dropdown
                     v-if="!isSharedBase && !isLocked && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"

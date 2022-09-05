@@ -70,15 +70,17 @@ export const genTest = (apiType, dbType) => {
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
-            mainPage.toggleRightSidebar();
 
-            cy.saveLocalStorage();
-            cy.wait(500);
+            mainPage.toggleRightSidebar().then(() => {
+                cy.get(".nc-view-item").should('exist');
+                cy.wait(500);
+                cy.saveLocalStorage();
+                cy.wait(500);
+            })
+
         });
 
         beforeEach(() => {
-            // fix me!
-            // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
             cy.restoreLocalStorage();
             cy.wait(500);
         });

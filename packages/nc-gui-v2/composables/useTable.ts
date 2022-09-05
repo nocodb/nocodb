@@ -61,7 +61,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
     $e('c:table:delete')
     // 'Click Submit to Delete The table'
     Modal.confirm({
-      title: `${t('msg.info.deleteTableConfirmation')} : ${table.title} ?`,
+      title: `${t('msg.info.deleteTableConfirmation')} : ${table.title}?`,
       okText: t('general.yes'),
       okType: 'danger',
       cancelText: t('general.no'),

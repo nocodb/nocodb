@@ -127,8 +127,8 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
         return column
       })
 
+      await loadViewColumns()
       reloadData?.()
-      return
     }
 
     if (isUIAllowed('fieldsSync')) {
@@ -143,7 +143,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
         return insertedField
       }
     }
-
+    await loadViewColumns()
     reloadData?.()
   }
 

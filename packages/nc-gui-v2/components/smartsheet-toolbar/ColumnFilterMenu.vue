@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type ColumnFilter from './ColumnFilter.vue'
-import { ActiveViewInj, IsLockedInj, IsPublicInj, computed, inject, ref, useGlobal, useViewFilters, watchEffect } from '#imports'
+import { ActiveViewInj, IsLockedInj, IsPublicInj, computed, inject, ref, useGlobal, useViewFilters } from '#imports'
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -9,8 +9,6 @@ const activeView = inject(ActiveViewInj)
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { filterAutoSave } = useGlobal()
-
-const state = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
@@ -27,13 +25,14 @@ const { filters, loadFilters } = useViewFilters(
 
 const filtersLength = ref(0)
 
-watchEffect(async () => {
-  if (activeView?.value && state.signedIn.value) {
+watch(
+  () => activeView?.value,
+  async () => {
     await loadFilters()
-
     filtersLength.value = filters.value.length || 0
-  }
-})
+  },
+  { immediate: true },
+)
 
 const applyChanges = async () => await filterComp.value?.applyChanges()
 </script>

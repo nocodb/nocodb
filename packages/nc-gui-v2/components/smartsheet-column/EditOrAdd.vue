@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { message } from 'ant-design-vue'
 import { computed, inject, useMetas, watchEffect } from '#imports'
 import { MetaInj, ReloadViewDataHookInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
@@ -9,16 +10,18 @@ import MdiIdentifierIcon from '~icons/mdi/identifier'
 
 const emit = defineEmits(['submit', 'cancel'])
 
-const meta = inject(MetaInj)
-
 const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeChange, validateInfos, isEdit } =
   useColumnCreateStoreOrThrow()
+
+const { getMeta } = useMetas()
+
+const { t } = useI18n()
+
+const meta = inject(MetaInj)
 
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
-
-const { getMeta } = useMetas()
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -70,6 +73,11 @@ watchEffect(() => {
 onMounted(() => {
   if (isEdit.value === false) {
     generateNewColumnMeta()
+  } else {
+    if (formState.value.pk) {
+      message.info(t('msg.info.editingPKnotSupported'))
+      emit('cancel')
+    }
   }
 
   // for cases like formula

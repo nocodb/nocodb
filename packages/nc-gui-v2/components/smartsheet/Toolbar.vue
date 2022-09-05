@@ -19,7 +19,7 @@ const { allowCSVDownload } = useSharedView()
     style="z-index: 7"
   >
     <SmartsheetToolbarViewActions
-      v-if="isGrid && !isPublic && isUIAllowed('dataInsert')"
+      v-if="(isGrid || isGallery) && !isPublic && isUIAllowed('dataInsert')"
       :show-system-fields="false"
       class="ml-1"
     />

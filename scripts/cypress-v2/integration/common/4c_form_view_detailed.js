@@ -413,8 +413,12 @@ export const genTest = (apiType, dbType) => {
                 // projectsPage.openConfiguredProject(apiType, dbType);
                 // cy.openTableTab("Country", 25);
 
+                // kludge
+                window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
+                cy.wait(1000)
+
                 // number of view entries should be 2 before we delete
-                cy.get(".nc-view-item").its("length").should("eq", 2);
+                cy.get(".nc-view-item").should('exist').its("length").should("eq", 2);
 
                 // click on delete icon (becomes visible on hovering mouse)
                 cy.get(".nc-view-delete-icon").click({ force: true });

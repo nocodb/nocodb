@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { Chrome } from '@ckpack/vue-color'
 import { computed, enumColor, ref, watch } from '#imports'
 
 interface Props {
@@ -18,27 +17,28 @@ const props = withDefaults(defineProps<Props>(), {
   pickButton: false,
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'input'])
 
 const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
-    emit('update:modelValue', val.hex8 ? val.hex8 : val || null)
+    emit('update:modelValue', val || null)
+    emit('input', val || null)
   },
 })
 
-const picked = ref<string | Record<string, any>>(props.modelValue || enumColor.light[0])
+const picked = ref<string>(props.modelValue || enumColor.light[0])
 
-const selectColor = (color: string | Record<string, any>) => {
-  picked.value = typeof color === 'string' ? color : color.hex8 ? color.hex8 : color
-  vModel.value = typeof color === 'string' ? color : color.hex8 ? color.hex8 : color
+const selectColor = (color: string) => {
+  picked.value = color
+  if (props.pickButton) vModel.value = color
 }
 
 const compare = (colorA: string, colorB: string) => colorA.toLowerCase() === colorB.toLowerCase()
 
 watch(picked, (n, _o) => {
   if (!props.pickButton) {
-    vModel.value = typeof n === 'string' ? n : n.hex8 ? n.hex8 : n
+    vModel.value = n
   }
 })
 </script>
@@ -50,11 +50,11 @@ watch(picked, (n, _o) => {
         v-for="(color, i) of colors.slice((colId - 1) * rowSize, colId * rowSize)"
         :key="`color-${colId}-${i}`"
         class="color-selector"
-        :class="compare(typeof picked === 'string' ? picked : picked.hex8, color) ? 'selected' : ''"
+        :class="compare(picked, color) ? 'selected' : ''"
         :style="{ 'background-color': `${color}` }"
         @click="selectColor(color)"
       >
-        {{ compare(typeof picked === 'string' ? picked : picked.hex8, color) ? '&#10003;' : '' }}
+        {{ compare(picked, color) ? '&#10003;' : '' }}
       </button>
     </div>
     <a-card v-if="props.advanced" class="w-full mt-2" :body-style="{ padding: '0px' }" :bordered="false">
@@ -64,7 +64,7 @@ watch(picked, (n, _o) => {
             Pick Color
           </a-button>
           <div class="flex justify-center py-4">
-            <Chrome v-model="picked" class="!w-full !shadow-none" />
+            <GeneralChromeWrapper v-model="picked" class="!w-full !shadow-none" />
           </div>
         </a-collapse-panel>
       </a-collapse>

@@ -10,7 +10,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   const { $api } = useNuxtApp()
   const route = useRoute()
   const { includeM2M } = useGlobal()
-  const { setTheme } = useTheme()
+  const { setTheme, theme } = useTheme()
 
   const projectId = computed(() => (_projectId ? unref(_projectId) : (route.params.projectId as string)))
   const project = ref<ProjectType>({})
@@ -99,15 +99,21 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     }
   }
 
-  async function saveTheme(theme: Partial<ThemeConfig>) {
+  async function saveTheme(_theme: Partial<ThemeConfig>) {
+    const fullTheme = {
+      primaryColor: theme.value.primaryColor,
+      accentColor: theme.value.accentColor,
+      ..._theme,
+    }
+
     await updateProject({
-      color: theme.primaryColor,
+      color: fullTheme.primaryColor,
       meta: {
         ...projectMeta.value,
-        theme,
+        theme: fullTheme,
       },
     })
-    setTheme(theme)
+    setTheme(fullTheme)
   }
 
   watch(

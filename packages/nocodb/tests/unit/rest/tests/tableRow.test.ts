@@ -1397,10 +1397,6 @@ function tableTest() {
   });
 
 
-  // it.only('Test', () => {
-  //   console.log('#################', __dirname);
-  //   // Print project directory
-  // });
 }
 
 export default function () {

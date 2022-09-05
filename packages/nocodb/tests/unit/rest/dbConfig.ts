@@ -28,8 +28,11 @@ const sakilaTableNames = [
 ];
 
 const dbName = 'test_meta';
-const sakilaDbName = 'sakila';
-process.env[`DATABASE_URL`] = `mysql2://root:password@localhost:3306/${dbName}`;
+const sakilaDbName = 'test_sakila';
+const dbUser = 'root';
+const dbPassword = 'password';
+
+process.env[`DATABASE_URL`] = `mysql2://${dbUser}:${dbPassword}@localhost:3306/${dbName}`;
 
 const dbConfig = NcConfigFactory.urlToDbConfig(
   NcConfigFactory.extractXcUrlFromJdbc(process.env[`DATABASE_URL`])
@@ -49,4 +52,4 @@ dbConfig.meta = {
   },
 } as any;
 
-export { dbConfig, dbName, sakilaTableNames, sakilaDbName };
+export { dbConfig, dbName, sakilaTableNames, sakilaDbName, dbUser, dbPassword };

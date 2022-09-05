@@ -16,8 +16,8 @@ const sakilaKnexClient = knex({
     user: 'root',
     password: 'password',
     database: sakilaDbName,
+    multipleStatements: true,
   },
-  pool: { min: 0, max: 2 },
 });
 
 const serverInit = async () => {

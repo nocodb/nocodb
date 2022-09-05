@@ -10,6 +10,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { filterAutoSave } = useGlobal()
 
+const state = useGlobal()
+
 const filterComp = ref<typeof ColumnFilter>()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
@@ -26,7 +28,7 @@ const { filters, loadFilters } = useViewFilters(
 const filtersLength = ref(0)
 
 watchEffect(async () => {
-  if (activeView?.value) {
+  if (activeView?.value && state.signedIn.value) {
     await loadFilters()
 
     filtersLength.value = filters.value.length || 0

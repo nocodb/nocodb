@@ -87,6 +87,48 @@ export const genTest = (apiType, dbType) => {
         });
 
         after(() => {
+            cy.restoreLocalStorage();
+            cy.wait(500);
+
+            cy.signOut();
+
+            loginPage.loginAndOpenProject(apiType, dbType);
+
+            cy.openTableTab("Country", 25);
+            cy.wait(500);
+            mainPage.toggleRightSidebar();
+            cy.wait(500);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
+
+            // number of view entries should be 2 before we delete
+            cy.get(".nc-view-item").should('exist').its("length").should("eq", 2);
+
+            // click on delete icon (becomes visible on hovering mouse)
+            cy.get(".nc-view-delete-icon").click({ force: true });
+            cy.wait(1000)
+            cy.getActiveModal().find('.ant-btn-dangerous').click();
+            cy.toastWait("View deleted successfully");
+
+            // confirm if the number of veiw entries is reduced by 1
+            cy.get(".nc-view-item").its("length").should("eq", 1);
+
+            // clean up newly added rows into Country table operations
+            // this auto verifies successfull addition of rows to table as well
+            mainPage.getPagination(5).click();
+
+            cy.get(".nc-grid-row").should("have.length", 13);
+            cy.get(".ant-checkbox").should('exist').eq(10).click({ force: true });
+            cy.get(".ant-checkbox").should('exist').eq(11).click({ force: true });
+            cy.get(".ant-checkbox").should('exist').eq(12).click({ force: true });
+            cy.get(".ant-checkbox").should('exist').eq(13).click({ force: true });
+
+            mainPage.getCell("Country", 10).rightclick({ force: true });
+            cy.getActiveMenu()
+                .contains("Delete Selected Rows")
+                .click({ force: true });
+
             cy.closeTableTab("Country");
         });
 
@@ -407,7 +449,7 @@ export const genTest = (apiType, dbType) => {
                 validateFormHeader();
             });
 
-            it(`Delete ${viewType} view`, () => {
+            it.skip(`Delete ${viewType} view`, () => {
                 // cy.visit("/");
                 // cy.wait(5000);
                 // projectsPage.openConfiguredProject(apiType, dbType);

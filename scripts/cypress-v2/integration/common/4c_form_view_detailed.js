@@ -71,13 +71,11 @@ export const genTest = (apiType, dbType) => {
             //
             cy.openTableTab("Country", 25);
 
-            mainPage.toggleRightSidebar().then(() => {
-                cy.get(".nc-view-item").should('exist');
-                cy.wait(500);
-                cy.saveLocalStorage();
-                cy.wait(500);
-            })
-
+            mainPage.toggleRightSidebar()
+            cy.get(".nc-view-item").should('exist');
+            cy.wait(500);
+            cy.saveLocalStorage();
+            cy.wait(500);
         });
 
         beforeEach(() => {

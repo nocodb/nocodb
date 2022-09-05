@@ -95,12 +95,6 @@ const tooltipMsg = computed(() => {
   }
   return ''
 })
-
-function onVisibleChange() {
-  // only allow to close the EditOrAdd component
-  // by clicking cancel button
-  editColumnDropdown.value = true
-}
 </script>
 
 <template>
@@ -121,13 +115,7 @@ function onVisibleChange() {
       <SmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
     </template>
 
-    <a-dropdown
-      v-model:visible="editColumnDropdown"
-      class="h-full"
-      :trigger="['click']"
-      placement="bottomRight"
-      @visible-change="onVisibleChange"
-    >
+    <a-dropdown v-model:visible="editColumnDropdown" class="h-full" :trigger="['click']" placement="bottomRight">
       <div />
       <template #overlay>
         <SmartsheetColumnEditOrAddProvider

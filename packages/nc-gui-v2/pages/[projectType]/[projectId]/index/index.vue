@@ -48,10 +48,17 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
         <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="onEdit">
           <a-tab-pane v-for="(tab, i) of tabs" :key="i">
             <template #tab>
-              <div class="flex items-center gap-2">
-                <component :is="icon(tab)" class="text-sm" />
-
-                <GeneralTruncateText>{{ tab.title }}</GeneralTruncateText>
+              <div class="flex items-center gap-2 max-w-[110px]">
+                <div class="flex items-center">
+                  <component :is="icon(tab)" class="text-sm" />
+                </div>
+                <a-tooltip v-if="tab.title?.length > 12" placement="bottom">
+                  <div class="truncate">{{ tab.title }}</div>
+                  <template #title>
+                    <div>{{ tab.title }}</div>
+                  </template>
+                </a-tooltip>
+                <div v-else>{{ tab.title }}</div>
               </div>
             </template>
           </a-tab-pane>
@@ -125,5 +132,8 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 :deep(.ant-menu-item::after),
 :deep(.ant-menu-submenu::after) {
   @apply !border-none;
+}
+:deep(.ant-tabs-tab-remove) {
+  @apply mt-[3px];
 }
 </style>

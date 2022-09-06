@@ -312,8 +312,8 @@ export class _mainPage {
 
     sortField = (field, criteria) => {
         cy.get(".nc-sort-menu-btn").click();
-        cy.wait(500)
-        cy.getActiveMenu().contains("Add Sort Option").click();
+        cy.wait(1000)
+        cy.contains("Add Sort Option").should('exist').click();
         cy.wait(500)
         // cy.get(".nc-sort-field-select div").first().click().type(field);
         cy.get(".nc-sort-field-select div").first().click();

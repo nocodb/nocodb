@@ -1,4 +1,6 @@
 <script setup lang="ts">
+/** A dummy page to redirect old shared base url from v1 to latest */
+
 const route = useRoute()
 
 const router = useRouter()

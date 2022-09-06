@@ -72,8 +72,8 @@ watch(previewAs, (newRole) => {
       <span>{{ $t('activity.previewAs') }}</span>
 
       <a-radio-group v-model:value="previewAs" name="radioGroup">
-        <a-radio v-for="role of roleList" :key="role.value" class="capitalize !text-white" :value="role.value"
-        >{{ role.label }}
+        <a-radio v-for="role of roleList" :key="role.value" class="capitalize !text-white" :value="role.value">
+          {{ role.label }}
         </a-radio>
       </a-radio-group>
 

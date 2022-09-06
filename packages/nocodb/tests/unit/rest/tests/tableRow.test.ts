@@ -20,7 +20,6 @@ import {
 } from './factory/row';
 import { isMysql, isSqlite } from '../init/db';
 import Model from '../../../../src/lib/models/Model';
-import console from 'console';
 import Project from '../../../../src/lib/models/Project';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {

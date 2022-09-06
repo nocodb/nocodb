@@ -1,7 +1,6 @@
 import type { AxiosError, AxiosResponse } from 'axios'
 import { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { getBaseUrl } from '~/utils'
 import type { CreateApiOptions, UseApiProps, UseApiReturn } from './types'
 import { addAxiosInterceptors } from './interceptors'
 import { createEventHook, ref, unref, useCounter, useGlobal, useNuxtApp } from '#imports'
@@ -11,7 +10,7 @@ export function createApiInstance<SecurityDataType = any>(options: CreateApiOpti
 
   return addAxiosInterceptors(
     new Api<SecurityDataType>({
-      baseURL: options.baseURL ?? appInfo.ncSiteUrl ?? getBaseUrl(),
+      baseURL: options.baseURL ?? appInfo.ncSiteUrl,
     }),
   )
 }

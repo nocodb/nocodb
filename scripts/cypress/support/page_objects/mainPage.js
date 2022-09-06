@@ -314,20 +314,20 @@ export class _mainPage {
         cy.get(".nc-sort-menu-btn").click();
         cy.wait(1000)
         cy.contains("Add Sort Option").should('exist').click();
-        cy.wait(500)
+        cy.wait(1000)
         // cy.get(".nc-sort-field-select div").first().click().type(field);
         cy.get(".nc-sort-field-select div").first().click();
-        cy.wait(500)
+        cy.wait(1000)
         cy.get('.ant-select-dropdown:visible').should('exist')
         cy.get('.ant-select-dropdown:visible').find(`.ant-select-item`).contains(new RegExp("^" + field + "$", "g")).should('exist').click();
-        cy.wait(500)
+        cy.wait(1000)
         cy.get(".nc-sort-dir-select div").first().click();
-        cy.wait(500)
+        cy.wait(1000)
         cy.get('.ant-select-dropdown:visible').should('exist')
         cy.get('.ant-select-dropdown:visible').find(`.ant-select-item`).contains(criteria).should('exist').click();
-        cy.wait(500)
+        cy.wait(1000)
         cy.get(".nc-sort-menu-btn").click();
-        cy.wait(500)
+        cy.wait(1000)
     };
 
     clearSort = () => {

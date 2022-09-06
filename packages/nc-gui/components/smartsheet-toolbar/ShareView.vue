@@ -23,7 +23,7 @@ const { isSharedBase } = useProject()
 
 let showShareModel = $ref(false)
 
-let passwordProtected = $ref(false)
+const passwordProtected = ref(false)
 
 const shared = ref()
 
@@ -40,11 +40,9 @@ const allowCSVDownload = computed({
 
 const genShareLink = async () => {
   shared.value = await $api.dbViewShare.create(view.value.id as string)
-  // shared.meta = shared.meta && typeof shared.meta === 'string' ? JSON.parse(shared.meta) : shared.meta;
-  // // todo: url
-  // shareLink = shared;
-  // passwordProtect = shared.password !== null;
-  // allowCSVDownload = shared.meta.allowCSVDownload;
+  shared.value.meta =
+    shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
+  passwordProtected.value = shared.value.password !== null && shared.value.password !== ''
   showShareModel = true
 }
 
@@ -69,7 +67,6 @@ const sharedViewUrl = computed(() => {
 async function saveAllowCSVDownload() {
   try {
     const meta = shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
-
     await $api.dbViewShare.update(shared.value.id, {
       meta,
     } as any)
@@ -105,18 +102,11 @@ const copyLink = () => {
   message.success(t('msg.info.copiedToClipboard'))
 }
 
-watch(
-  () => passwordProtected,
-  (value) => {
-    if (!value) {
-      shared.value.password = ''
-      saveShareLinkPassword()
-    }
-  },
-)
-
-onMounted(() => {
-  if (shared.value?.password?.length) passwordProtected = true
+watch(passwordProtected, (value) => {
+  if (!value) {
+    shared.value.password = ''
+    saveShareLinkPassword()
+  }
 })
 </script>
 
@@ -170,7 +160,7 @@ onMounted(() => {
             </div>
           </div>
           <div>
-            <!--            Allow Download -->
+            <!-- Allow Download -->
             <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="!text-xs">
               {{ $t('labels.downloadAllowed') }}
             </a-checkbox>

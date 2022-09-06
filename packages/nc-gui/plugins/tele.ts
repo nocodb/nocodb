@@ -52,8 +52,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   const tele = {
     emit(evt: string, data: Record<string, any>) {
-      console.log('======== tele : ', evt, JSON.stringify(data))
-
       // debugger
       if (socket) {
         socket.emit('event', {

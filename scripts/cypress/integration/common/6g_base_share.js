@@ -10,7 +10,9 @@ import {
     _viewMenu,
     _topRightMenu,
 } from "../spec/roleValidation.spec";
+import {linkSync} from "fs";
 
+// fix me
 let linkText = "";
 
 export const genTest = (apiType, dbType) => {
@@ -25,53 +27,67 @@ export const genTest = (apiType, dbType) => {
                 baseUrl: null,
             });
             cy.wait(5000);
-
-            projectsPage.waitHomePageLoad();
-
-            cy.closeTableTab("Actor");
-        });
+         });
 
         it(`${roleType}: Validate access permissions: advance menu`, () => {
-            _advSettings(roleType, false);
+            // cy.restoreLocalStorage();
+            _advSettings(roleType, "baseShare");
         });
 
         it(`${roleType}: Validate access permissions: edit schema`, () => {
-            _editSchema(roleType, false);
+            // cy.restoreLocalStorage();
+            _editSchema(roleType, "baseShare");
         });
 
         it(`${roleType}: Validate access permissions: edit data`, () => {
-            _editData(roleType, false);
+            // cy.restoreLocalStorage();
+            _editData(roleType, "baseShare");
         });
 
         it(`${roleType}: Validate access permissions: edit comments`, () => {
-            _editComment(roleType, false);
+            // cy.restoreLocalStorage();
+            _editComment(roleType, "baseShare");
         });
 
         it(`${roleType}: Validate access permissions: view's menu`, () => {
-            _viewMenu(roleType, false, 1);
+            // cy.restoreLocalStorage();
+            _viewMenu(roleType, "baseShare");
         });
     };
 
     describe(`${apiType.toUpperCase()} Base VIEW share`, () => {
         before(() => {
-            mainPage.tabReset();
+            loginPage.loginAndOpenProject(apiType, dbType);
+
+            cy.openTableTab("Country", 25);
+            cy.wait(1000);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
         });
 
         it(`Generate base share URL`, () => {
-            // click SHARE
-            cy.get(".nc-topright-menu").find(".nc-menu-share").click();
 
-            cy.snipActiveModal("Modal_BaseShare");
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
+            // click SHARE
+            cy.get(".nc-share-base:visible").should('exist').click();
 
             // Click on readonly base text
             cy.getActiveModal().find(".nc-disable-shared-base").click();
 
-            // Select 'Readonly link'
-            cy.snipActiveMenu("Menu_ShareLink");
             cy.getActiveMenu()
-                .find(".caption")
+                .find(".ant-dropdown-menu-title-content")
                 .contains("Anyone with the link")
                 .click();
+
+            cy.getActiveModal().find(".nc-shared-base-role").click();
+
+            cy.getActiveSelection()
+              .find('.ant-select-item')
+              .eq(1)
+              .click();
 
             // Copy URL
             cy.getActiveModal()
@@ -101,6 +117,14 @@ style="background: transparent; "></iframe>
                         htmlFile
                     );
                 });
+
+            cy.log(linkText);
+
+            cy.signOut();
+            cy.deleteLocalStorage();
+            cy.wait(1000);
+            cy.printLocalStorage();
+
         });
 
         permissionValidation("viewer");
@@ -109,31 +133,40 @@ style="background: transparent; "></iframe>
             loginPage.loginAndOpenProject(apiType, dbType);
 
             // click SHARE
-            cy.get(".nc-topright-menu").find(".nc-menu-share").click();
+            cy.get(".nc-share-base:visible").should('exist').click();
 
             cy.getActiveModal().find(".nc-shared-base-role").click();
 
-            cy.getActiveMenu()
-                .find('[role="menuitem"]')
-                .contains("Editor")
+            cy.getActiveSelection()
+                .find('.ant-select-item')
+                .eq(0)
                 .click();
+
+            cy.signOut();
+            cy.deleteLocalStorage();
+            cy.wait(1000);
+            cy.printLocalStorage();
+
         });
 
         permissionValidation("editor");
+    });
 
-        it("Generate & verify embed HTML IFrame", { baseUrl: null }, () => {
-            // open iFrame html
-            cy.visit("scripts/cypress/fixtures/sampleFiles/iFrame.html");
+    describe(`${apiType.toUpperCase()} iFrame Test`, () => {
+        // https://docs.cypress.io/api/commands/visit#Prefixes
+        it("Generate & verify embed HTML IFrame", {baseUrl: null}, () => {
+
+            let filePath = "scripts/cypress/fixtures/sampleFiles/iFrame.html";
+            cy.log(filePath);
+            cy.visit(filePath, {baseUrl: null});
 
             // wait for iFrame to load
             cy.frameLoaded(".nc-embed");
 
-            // for GQL- additionally close GQL Client window
-            if (apiType === "graphql") {
-                cy.iframe()
-                    .find(`[title="Graphql Client"] > button.mdi-close`)
-                    .click();
-            }
+            // cy.openTableTab("Country", 25);
+            cy.iframe().find(`.nc-project-tree-tbl-Actor`, {timeout: 10000}).should("exist")
+                .first()
+                .click({force: true});
 
             // validation for base menu opitons
             cy.iframe().find(".nc-project-tree").should("exist");
@@ -143,17 +176,12 @@ style="background: transparent; "></iframe>
             cy.iframe().find(".nc-actions-menu-btn").should("exist");
 
             // validate data (row-1)
-            mainPage
-                .getIFrameCell("FirstName", 1)
-                .contains("PENELOPE")
-                .should("exist");
-            mainPage
-                .getIFrameCell("LastName", 1)
-                .contains("GUINESS")
-                .should("exist");
+            cy.iframe().find(`.nc-grid-cell`).eq(1).contains("PENELOPE").should("exist");
+            cy.iframe().find(`.nc-grid-cell`).eq(2).contains("GUINESS").should("exist");
+
         });
-    });
-};
+    })
+}
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

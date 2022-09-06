@@ -8,26 +8,54 @@ const path = require("path");
  */
 export const deleteDownloadsFolder = () => {
     const downloadsFolder = Cypress.config("downloadsFolder");
-
     cy.task("deleteFolder", downloadsFolder);
 };
+
+export class _settingsPage {
+    constructor() {
+        // menu
+        this.TEAM_N_AUTH = "teamAndAuth";
+        this.APPSTORE = "appStore";
+        this.PROJ_METADATA = "metaData";
+        this.AUDIT = "audit";
+
+        // submenu
+        this.USER_MANAGEMENT = "usersManagement";
+        this.API_TOKEN_MANAGEMENT = "apiTokenManagement";
+        this.APPS = "new";
+        this.METADATA = "metaData";
+        this.UI_ACCESS_CONTROL = "acl";
+        this.AUDIT_LOG = "audit";
+    }
+
+    openMenu(menuId) {
+        // open settings tab
+        // cy.get('.nc-team-settings').should('exist').click()
+        // cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
+        cy.get('.nc-project-menu').should('exist').click()
+        cy.getActiveMenu().find(`[data-menu-id="teamAndSettings"]`).should('exist').click()
+        cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
+    }
+
+    openTab(tabId) {
+        cy.get(`[data-menu-id=${tabId}]`).should('exist').last().click()
+    }
+
+    closeMenu() {
+        cy.getActiveModal().find('.nc-modal-close').click({ force: true });
+    }
+
+    openProjectMenu() {
+        cy.get('.nc-project-menu').should('exist').click()
+    }
+}
 
 // main page
 export class _mainPage {
     constructor() {
-        // Top Right items
-        this.SHARE = 0;
-        this.THEME_BODY = 1;
-        this.THEME_HEADER = 2;
-        this.ALERT = 3;
-        this.LANGUAGE = 4;
-        this.USER = 5;
 
         // Top Left items
         this.HOME = 0;
-        this.GIT_HOME = 1;
-        this.GIT_STAR = 2;
-        this.GIT_DOCS = 3;
 
         this.AUDIT = 0;
         this.APPSTORE = 2;
@@ -60,11 +88,8 @@ export class _mainPage {
 
     navigationDraw(item) {
         // open settings tab
-        cy.get(".nc-team-settings").should("exist").click();
-        // if (item == this.ROLE_VIEW)
-        //     return cy.get('.nc-nav-drawer').find('.v-list').last()
-        // else
-        //     return cy.get('.nc-nav-drawer').find('.v-list > .v-list-item').eq(item)
+        cy.get('.nc-project-menu').should('exist').click()
+        cy.getActiveMenu().find(`[data-menu-id="teamAndSettings"]`).should('exist').click()
 
         switch (item) {
             case this.AUDIT:
@@ -75,14 +100,6 @@ export class _mainPage {
                 return cy.get(".nc-settings-teamauth:visible").should("exist");
             case this.PROJ_METADATA:
                 return cy.get(".nc-settings-projmeta:visible").should("exist");
-            case this.ROLE_VIEW_EDITOR:
-                return cy.get(".nc-preview-editor:visible").should("exist");
-            case this.ROLE_VIEW_COMMENTER:
-                return cy.get(".nc-preview-commenter:visible").should("exist");
-            case this.ROLE_VIEW_VIEWER:
-                return cy.get(".nc-preview-viewer:visible").should("exist");
-            case this.ROLE_VIEW_RESET:
-                return cy.get(".nc-preview-reset:visible").should("exist");
         }
     }
 
@@ -90,30 +107,26 @@ export class _mainPage {
     //
     addNewUserToProject = (userCred, roleType) => {
         let linkText;
+        let roleIndex = ["creator", "editor", "commenter", "viewer"].indexOf(roleType)
 
         // click on New User button, feed details
-        cy.get('button:contains("New User")').first().click();
+        cy.get('button.nc-invite-team').click();
 
-        cy.snip("NewUser");
-
-        cy.get('label:contains("E-mail")')
-            .next("input")
+        cy.get('input[placeholder="E-mail"]')
             .type(userCred.username)
-            .trigger("input");
 
-        cy.get('label:contains("Select User Role")').click();
+        cy.get('.ant-select.nc-user-roles').click();
 
         // opt-in requested role & submit
-        cy.snipActiveMenu("Menu_RoleType");
-        cy.getActiveMenu().contains(roleType).click();
-        cy.get(".nc-invite-or-save-btn").click();
+        // cy.getActiveSelection().contains(roleType).click({force: true});
+        cy.getActiveSelection().find('.nc-role-option').eq(roleIndex).should('exist').click()
+        cy.getActiveModal().find("button.ant-btn-primary").click();
 
         cy.toastWait("Successfully updated the user details");
 
         // get URL, invoke
-        cy.snipActiveModal("Modal_NewUserURL");
         cy.getActiveModal()
-            .find(".v-alert")
+            .find(".ant-alert-message")
             .then(($obj) => {
                 linkText = $obj.text().trim();
                 cy.log(linkText);
@@ -146,18 +159,18 @@ export class _mainPage {
 
     getCell = (columnHeader, cellNumber) => {
         return cy.get(
-            `tbody > :nth-child(${cellNumber}) > [data-col="${columnHeader}"]`
-        );
+            `:nth-child(${cellNumber}) > [data-title="${columnHeader}"]`
+        ).last();
     };
 
     getPagination = (pageNumber) => {
         if (pageNumber == "<")
-            return cy.get(".nc-pagination .v-pagination > li:first-child");
+            return cy.get(".nc-pagination > .ant-pagination-prev");
         if (pageNumber == ">")
-            return cy.get(".nc-pagination .v-pagination > li:last-child");
+            return cy.get(".nc-pagination > .ant-pagination-next");
 
         return cy.get(
-            `.nc-pagination .v-pagination > li:contains(${pageNumber}) button`
+            `.nc-pagination > .ant-pagination-item.ant-pagination-item-${pageNumber}`
         );
     };
 
@@ -166,39 +179,54 @@ export class _mainPage {
     };
 
     addColumn = (colName, tableName) => {
-        cy.get(".v-window-item--active .nc-grid  tr > th:last button").click({
+        cy.get(".nc-column-add").click({
             force: true,
         });
-        cy.get(".nc-column-name-input input", { timeout: 3000 })
-            .clear()
-            .type(colName);
-        cy.get(".nc-col-create-or-edit-card").contains("Save").click();
-        cy.toastWait(`Update table successful`);
+
+        cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+          .should('exist')
+          .clear()
+          .type(colName);
+        cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+        cy.toastWait(`Column created`);
+        cy.get(`th[data-title="${colName}"]`).should("exist");
     };
 
     addColumnWithType = (colName, colType, tableName) => {
-        cy.get(".v-window-item--active .nc-grid  tr > th:last button").click({
+        cy.get(".nc-column-add").click({
             force: true,
         });
-        cy.get(".nc-column-name-input input", { timeout: 3000 })
-            .clear()
-            .type(colName);
 
-        // Column data type: to be set to lookup in this context
-        cy.get(".nc-ui-dt-dropdown").click();
-        cy.getActiveMenu().contains(colType).click();
+        cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+          .should('exist')
+          .clear()
+          .type(colName);
 
-        cy.get(".nc-col-create-or-edit-card").contains("Save").click();
-        cy.toastWait(`Update table successful`);
+        // change column type and verify
+        cy.get(".nc-column-type-input").last().click();
+        cy.getActiveSelection().find('.ant-select-item-option').contains(colType).click();
+        cy.get(".ant-btn-primary:visible").contains("Save").click();
+
+        cy.toastWait(`Column created`);
+        cy.get(`th[data-title="${colName}"]`).should("exist");
     };
 
     deleteColumn = (colName) => {
-        cy.get(`th:contains(${colName}) .mdi-menu-down`)
-            .trigger("mouseover")
-            .click();
+        cy.get(`th:contains(${colName})`).should("exist");
 
-        cy.get(".nc-column-delete", { timeout: 5000 }).click();
-        cy.get("button:contains(Confirm)").click();
+        cy.get(`th:contains(${colName}) .nc-icon.ant-dropdown-trigger`)
+          .trigger("mouseover", { force: true })
+          .click({ force: true });
+
+        cy.wait(500)
+
+        cy.get(".nc-column-delete").click();
+        cy.wait(500)
+        cy.get(".nc-column-delete").should("not.be.visible");
+        cy.get(".ant-btn-dangerous:visible").contains("Delete").click();
+        cy.wait(500)
+
+        cy.get(`th:contains(${colName})`).should("not.exist");
     };
 
     getAuthToken = () => {
@@ -207,186 +235,153 @@ export class _mainPage {
     };
 
     configureSMTP = (from, host, port, secure) => {
-        cy.get(".v-card__title.title")
-            .contains("SMTP")
-            .parents(".elevatio")
-            .find("button")
-            .contains(" Install ")
-            .click({ force: true });
-        cy.getActiveModal()
-            .find('[placeholder="eg: admin@run.com"]')
-            .click()
-            .type(from);
-        cy.getActiveModal()
-            .find('[placeholder="eg: smtp.run.com"]')
-            .click()
-            .type(host);
-        cy.getActiveModal().find('[placeholder="Port"]').click().type(port);
-        // TODO: in v2, it would be a button
-        // if (secure) cy.getActiveModal().find('[placeholder="Secure"]').click();
-        cy.getActiveModal().find("button").contains("Save").click();
-        cy.toastWait(
-            "Successfully installed and email notification will use SMTP configuration"
-        );
+        cy.getActiveModal().find('.nc-app-store-card-SMTP').click().then((obj) => {
+            cy.wrap(obj).find('.nc-app-store-card-install').click({ force: true });
+        })
 
-        this.closeMetaTab();
+        cy.getActiveModal().find('#form_item_from').should('exist').clear().type(from)
+        cy.getActiveModal().find('#form_item_host').should('exist').clear().type(host)
+        cy.getActiveModal().find('#form_item_port').should('exist').clear().type(port)
+        // cy.getActiveModal().find('#form_item_secure').should('exist').clear().type(secure)
+        cy.getActiveModal().find("button").contains("Save").click();
+
+        cy.toastWait('Successfully installed and email notification will use SMTP configuration');
+        settingsPage.closeMenu()
     };
 
     resetSMTP = () => {
-        cy.get(".v-card__title.title")
-            .contains("SMTP")
-            .parents(".elevatio")
-            .find("button")
-            .contains(" Reset ")
-            .click({ force: true });
-        cy.getActiveModal().find("button").contains("Submit").click();
-        cy.toastWait("Plugin uninstalled successfully");
+        cy.getActiveModal().find('.nc-app-store-card-SMTP').click().then((obj) => {
+            cy.wrap(obj).find('.nc-app-store-card-reset').click({ force: true });
+        })
+        cy.getActiveModal().find("button").contains("Confirm").click();
 
-        this.closeMetaTab();
+        cy.toastWait("Plugin uninstalled successfully");
+        settingsPage.closeMenu()
     };
 
     shareView = () => {
-        cy.wait(3000);
-        return cy.get(".nc-btn-share-view");
+        return cy.get(".nc-btn-share-view").should("exist");
     };
 
     shareViewList = () => {
-        cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').contains("Shared View List");
+        cy.get(".nc-actions-menu-btn").should('exist').click();
+        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Shared View List');
     };
 
     downloadCsv = () => {
-        cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').contains("Download as CSV");
+        cy.get(".nc-actions-menu-btn").should('exist').click();
+        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Download as CSV');
     };
 
     downloadExcel = () => {
-        cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').contains("Download as XLSX");
+        cy.get(".nc-actions-menu-btn").should('exist').click();
+        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Download as XLSX');
     };
 
     uploadCsv = () => {
-        cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').contains("Upload CSV");
+        cy.get(".nc-actions-menu-btn").should('exist').click();
+        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Upload CSV');
     };
 
     automations = () => {
-        cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').contains("Webhooks");
+        cy.get(".nc-actions-menu-btn").should('exist').click();
+        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Webhooks');
     };
 
     hideField = (field) => {
-        cy.get(".nc-grid-header-cell").contains(field).should("be.visible");
+        cy.get(`th[data-title="${field}"]`).should("be.visible");
         cy.get(".nc-fields-menu-btn").click();
-
-        cy.snipActiveMenu("Menu_HideField");
-
-        cy.get(
-            `.menuable__content__active .v-list-item label:contains(${field})`
-        ).click();
+        cy.wait(500)
+        cy.getActiveMenu().find(`.nc-fields-list label:contains(${field}):visible`).click();
+        cy.wait(500)
         cy.get(".nc-fields-menu-btn").click();
-        cy.get(".nc-grid-header-cell").contains(field).should("not.be.visible");
+        cy.wait(500)
+        cy.get(`th[data-title="${field}"]`).should("not.exist");
     };
 
     unhideField = (field) => {
-        cy.get(".nc-grid-header-cell").contains(field).should("not.be.visible");
+        cy.get(`th[data-title="${field}"]`).should("not.exist");
         cy.get(".nc-fields-menu-btn").click();
-        cy.get(
-            `.menuable__content__active .v-list-item label:contains(${field})`
-        ).click();
+        cy.wait(500)
+        cy.getActiveMenu().find(`.nc-fields-list label:contains(${field}):visible`).click();
+        cy.wait(500)
         cy.get(".nc-fields-menu-btn").click();
-        cy.get(".nc-grid-header-cell").contains(field).should("be.visible");
+        cy.wait(500)
+        cy.get(`th[data-title="${field}"]`).should("be.visible");
     };
 
     sortField = (field, criteria) => {
         cy.get(".nc-sort-menu-btn").click();
-        cy.contains("Add Sort Option").click();
-
-        cy.snipActiveMenu("Menu_SortField");
-
-        cy.get(".nc-sort-field-select div").first().click().type(field);
-        cy.snipActiveMenu("Menu_SortField_fieldSelection");
-        // cy.get(`.menuable__content__active .v-list-item:contains(${field})`)
-        //     .first()
-        //     .click();
-        // cy.wait(3000)
-        cy.getActiveMenu().find(`.nc-fld-${field}`).should('exist').click();
+        cy.wait(500)
+        cy.getActiveMenu().contains("Add Sort Option").click();
+        cy.wait(500)
+        // cy.get(".nc-sort-field-select div").first().click().type(field);
+        cy.get(".nc-sort-field-select div").first().click();
+        cy.wait(500)
+        cy.get('.ant-select-dropdown:visible').find(`.ant-select-item`).contains(new RegExp("^" + field + "$", "g")).should('exist').click();
+        cy.wait(500)
         cy.get(".nc-sort-dir-select div").first().click();
-        cy.snipActiveMenu("Menu_SortField_criteriaSelection");
-        cy.get(
-            `.menuable__content__active .v-list-item:contains(${criteria})`
-        ).click();
+        cy.wait(500)
+        cy.get('.ant-select-dropdown:visible').find(`.ant-select-item`).contains(criteria).should('exist').click();
+        cy.wait(500)
         cy.get(".nc-sort-menu-btn").click();
+        cy.wait(500)
     };
 
     clearSort = () => {
         cy.get(".nc-sort-menu-btn").click();
+        cy.wait(500)
         cy.get(".nc-sort-item-remove-btn").click();
+        cy.wait(500)
+        cy.get(".nc-sort-item-remove-btn:visible").should("not.exist");
         cy.get(".nc-sort-menu-btn").click();
+        cy.wait(500)
+
     };
 
     filterField = (field, operation, value) => {
         cy.get(".nc-filter-menu-btn").click();
-        // cy.wait(2000);
+        cy.wait(500)
         cy.contains("Add Filter").click();
-        // cy.wait(2000);
-        cy.snipActiveMenu("Menu_FilterField");
-
-        cy.get(".nc-filter-field-select").should("exist").last().click().type(field);;
-        cy.snipActiveMenu("Menu_FilterField-fieldSelect");
-
-        cy.getActiveMenu().find(`.nc-fld-${field}`).should('exist').click();
+        cy.wait(500)
+        // cy.get(".nc-filter-field-select").should("exist").last().click().type(field);
+        cy.get(".nc-filter-field-select").should("exist").last().click();
+        cy.wait(500)
+        cy.get('.ant-select-dropdown:visible').should('exist').find(`.ant-select-item`).contains(new RegExp("^" + field + "$", "g")).should('exist').click();
+        cy.wait(500)
         cy.get(".nc-filter-operation-select").should("exist").last().click();
-        cy.snipActiveMenu("Menu_FilterField-operationSelect");
-
-        cy.getActiveMenu().find(`.v-list-item:contains(${operation})`).click();
+        cy.wait(500)
+        cy.get('.ant-select-dropdown:visible').should('exist').find(`.ant-select-item`).contains(operation).should('exist').click();
+        cy.wait(500)
         if (operation != "is null" && operation != "is not null") {
-            cy.get(".nc-filter-value-select input:text")
+            cy.get(".nc-filter-value-select")
                 .should("exist")
                 .last()
-                .type(`${value}`);
+                .type(value);
             cy.get(".nc-filter-operation-select").last().click();
+            cy.wait(500)
         }
-
-        cy.get(".nc-filter-field-select")
-            .find(".v-select__slot")
-            .contains(field)
-            .should("exist");
-        cy.get(".nc-filter-operation-select")
-            .find(".v-select__slot")
-            .contains(operation)
-            .should("exist");
-
         cy.get(".nc-filter-menu-btn").click();
+        cy.wait(500)
     };
 
     filterReset = () => {
         cy.get(".nc-filter-menu-btn").click();
+        cy.wait(500)
         cy.get(".nc-filter-item-remove-btn").click();
+        cy.wait(500)
+        cy.get(".nc-filter-item-remove-btn").should("not.exist");
         cy.get(".nc-filter-menu-btn").click();
+        cy.wait(500)
     };
 
     // delete created views
     //
     deleteCreatedViews = () => {
-        // cy.get(".v-navigation-drawer__content > .container")
-        //   .find(".v-list > .v-list-item")
-        //   .contains("Share View")
-        //   .parent()
-        //   .find("button.mdi-dots-vertical")
-        //   .click();
-
-        // cy.getActiveMenu().find(".v-list-item").contains("Views List").click();
         this.shareViewList().click();
 
-        cy.snipActiveModal("Modal_ShareViewList");
-
-        cy.wait(1000);
-
-        // cy.get('.container').find('button.mdi-delete-outline')
-
         cy.get('th:contains("View Link")')
-            .should("exist")
+            .should("be.visible")
             .parent()
             .parent()
             .next()
@@ -395,17 +390,14 @@ export class _mainPage {
                 cy.log($tableRow[0].childElementCount);
 
                 // one of the row would contain seggregation header ('other views)
-                if (4 == $tableRow[0].childElementCount) {
-                    cy.wrap($tableRow).find("button").last().click();
-                    cy.wait(1000);
+                if (5 == $tableRow[0].childElementCount) {
+                    cy.wrap($tableRow).find(".nc-icon").last().click();
+                    cy.wait(100);
                 }
             })
             .then(() => {
                 cy.toastWait("Deleted shared view successfully");
-                // close modal
-                cy.get(".v-overlay--active > .v-overlay__scrim").click({
-                    force: true,
-                });
+                cy.getActiveModal().find("button.ant-modal-close").should('exist').click();
             });
     };
 
@@ -415,12 +407,36 @@ export class _mainPage {
     //      wait for a while & check in configured download folder for the intended file
     //      if it exists, verify it against 'expectedRecords' passed in as parameter
     //
-    downloadAndVerifyCsv = (filename, verifyCsv) => {
+    downloadAndVerifyCsv = (filename, verifyCsv, role) => {
+
+        if(role === 'commenter' || role === 'viewer') {
+            cy.get(".nc-actions-menu-btn").click();
+            cy.getActiveMenu().find('.nc-project-menu-item').contains('Download as CSV').click();
+        } else {
+            cy.get(".nc-actions-menu-btn").click();
+            cy.getActiveMenu().find('.nc-project-menu-item').contains('Download').click();
+            cy.wait(1000);
+            cy.get('.nc-project-menu-item').contains('Download as CSV').should('exist').click();
+        }
+
+        cy.toastWait("Successfully exported all table data").then(() => {
+            // download folder path, read from config file
+            const downloadsFolder = Cypress.config("downloadsFolder");
+            let filePath = path.join(downloadsFolder, filename);
+
+            // append download folder path with filename to generate full file path, retrieve file
+            cy.readFile(filePath).then((fileData) => {
+                // from CSV, split into records (rows)
+                const rows = fileData.replace(/\r\n/g, "\n").split("\n");
+                verifyCsv(rows);
+                deleteDownloadsFolder();
+            });
+        });
+    };
+
+    downloadAndVerifyCsvFromSharedView = (filename, verifyCsv) => {
         cy.get(".nc-actions-menu-btn").click();
-        cy.snipActiveMenu("Menu_ActionsMenu");
-        cy.get(
-            `.menuable__content__active .v-list-item span:contains("Download as CSV")`
-        ).click();
+        cy.get('.nc-project-menu-item').contains('Download as CSV').should('exist').click();
 
         cy.toastWait("Successfully exported all table data").then(() => {
             // download folder path, read from config file
@@ -460,40 +476,24 @@ export class _mainPage {
     openMetaTab() {
         // open Project metadata tab
         //
-        this.navigationDraw(this.PROJ_METADATA).click();
-
-        cy.snip("Meta_Tab0");
-
-        cy.get(".nc-meta-mgmt-metadata-tab")
-            .should("exist")
-            .click({ force: true });
-        // kludge, at times test failed to open tab on click
-        cy.get(".nc-meta-mgmt-metadata-tab")
-            .should("exist")
-            .click({ force: true });
-
-        cy.snip("Meta_Tab1");
+        settingsPage.openMenu(settingsPage.PROJ_METADATA)
+        settingsPage.openTab(settingsPage.METADATA)
     }
 
     closeMetaTab() {
-        // user href link to find meta mgmt tab
-        // cy.get('[href="#disableOrEnableModel||||Meta Management"]')
-        //     .find("button.mdi-close")
-        //     .click({ force: true });
-        cy.get("body").click("bottomRight");
-
-        // refresh
-        cy.refreshTableTab();
+        // close Project metadata tab
+        settingsPage.closeMenu()
     }
 
     metaSyncValidate(tbl, msg) {
         cy.get(".nc-btn-metasync-reload")
             .should("exist")
-            .click({ force: true });
+            .click();
+        cy.wait(2000);
         cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("exist");
         cy.get(".nc-btn-metasync-sync-now")
             .should("exist")
-            .click({ force: true })
+            .click()
             .then(() => {
                 cy.toastWait(`Table metadata recreated successfully`);
             });
@@ -502,12 +502,6 @@ export class _mainPage {
                 cy.wrap(row).contains("No change identified").should("exist");
             }
         });
-        // cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("not.exist");
-        // cy.get(`.nc-metasync-row-${tbl}`)
-        //   .contains("No change identified")
-        //   .should("exist");
-        // cy.toastWait(`Table metadata recreated successfully`);
-        // cy.get(`.nc-metasync-row-${tbl}`).should("exist");
     }
 
     tabReset() {
@@ -518,10 +512,17 @@ export class _mainPage {
         // option-2
         // cy.openTableTab("Country", 0);
         // cy.get(".mdi-close").click({ multiple: true });
+        // cy.get("button.ant-tabs-tab-remove").click({ multiple: true });
+        // cy.get('.ant-tabs-tab-remove').should('not.exist')
+    }
+
+    toggleRightSidebar() {
+        cy.get(".nc-toggle-right-navbar").should("exist").click();
     }
 }
 
 export const mainPage = new _mainPage();
+export const settingsPage = new _settingsPage();
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

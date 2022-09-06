@@ -4,26 +4,13 @@ const path = require('path');
 
 class XcLibGui {
 
-  constructor(config) {
-    this.config = config;
-  }
-
-  expressMiddleware() {
+  static expressMiddleware(dashboardPath) {
 
     const router = express.Router();
-    router.use('/', express.static(path.join(__dirname, 'dist')));
+    // Express will serve up production assets i.e. main.js
+    router.use(dashboardPath, express.static(path.join(__dirname, 'dist')));
+
     return router;
-  }
-
-  addListener(handler) {
-  }
-
-  destroy() {
-
-  }
-
-  reInitialize(config) {
-    this.config = config;
   }
 }
 

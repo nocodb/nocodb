@@ -8,8 +8,8 @@ import { roles, staticProjects, defaultDbParams } from "./projectConstants";
 //
 const urlPool = {
     ncUrlBase: "/",
-    ncUrlSignUp: "#/user/authentication/signup",
-    ncUrlSignIn: "#/user/authentication/signin",
+    ncUrlSignUp: "#/signup",
+    ncUrlSignIn: "#/signin",
 };
 
 export class _loginPage {
@@ -21,7 +21,7 @@ export class _loginPage {
     // visit SignIn URL, enter credentials passed as parameters
     //
     signIn(userCredentials) {
-        this.go(urlPool.ncUrlSignIn);
+        this.go(urlPool.ncUrlBase);
 
         cy.get('input[type="text"]', { timeout: 20000 }).type(
             userCredentials.username
@@ -46,42 +46,43 @@ export class _loginPage {
         this.waitProjectPageLoad();
     }
 
+    // logout signed up user
+    //
+    signOut() {
+        cy.get(".nc-user-menu").click();
+        cy.get(".nc-user-menu-signout").click();
+
+        this.waitLoginPageLoad();
+    }
+
     // delay/ wait utility routines
     //
     waitProjectPageLoad() {
-        cy.url({ timeout: 6000 }).should("contain", "#/project");
         cy.get(".nc-new-project-menu").should("exist");
+    }
+
+    waitLoginPageLoad() {
+        cy.get(".nc-form-signin").should("exist");
     }
 
     // standard pre-project activity
     //
     loginAndOpenProject(apiType, dbType) {
         loginPage.signIn(roles.owner.credentials);
-
-        if (dbType === "mysql") {
-            if ("rest" == apiType)
-                projectsPage.openProject(
-                    staticProjects.externalREST.basic.name
-                );
-            else
-                projectsPage.openProject(staticProjects.externalGQL.basic.name);
-        } else if (dbType === "xcdb") {
-            if ("rest" == apiType)
-                projectsPage.openProject(staticProjects.sampleREST.basic.name);
-            else {
-                projectsPage.openProject(staticProjects.sampleGQL.basic.name);
-            }
-        } else if (dbType === "postgres") {
-            if ("rest" == apiType)
-                projectsPage.openProject(
-                    staticProjects.pgExternalREST.basic.name
-                );
-            else {
-                projectsPage.openProject(
-                    staticProjects.pgExternalGQL.basic.name
-                );
-            }
-        }
+        projectsPage.openConfiguredProject(apiType, dbType);
+        // if (dbType === "mysql") {
+        //     projectsPage.openProject(staticProjects.externalREST.basic.name);
+        // } else if (dbType === "xcdb") {
+        //     projectsPage.openProject(staticProjects.sampleREST.basic.name);
+        // } else if (dbType === "postgres") {
+        //     projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
+        // }
+        //
+        // // kludge: wait for page load to finish
+        // cy.wait(2000);
+        // // close team & auth tab
+        // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+        // cy.wait(1000);
     }
 }
 
@@ -95,11 +96,28 @@ export class _projectsPage {
     // {dbType, apiType, name}
     // for external database, {databaseType, hostAddress, portNumber, username, password, databaseName}
 
+    openConfiguredProject(apiType, dbType) {
+
+        if (dbType === "mysql") {
+            projectsPage.openProject(staticProjects.externalREST.basic.name);
+        } else if (dbType === "xcdb") {
+            projectsPage.openProject(staticProjects.sampleREST.basic.name);
+        } else if (dbType === "postgres") {
+            projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
+        }
+
+        // kludge: wait for page load to finish
+        cy.wait(4000);
+        // close team & auth tab
+        cy.get('button.ant-tabs-tab-remove').should('exist').click();
+        cy.wait(1000);
+    }
+
+
     // Open existing project
-    // TODO: add projectName validation
     //
     openProject(projectName) {
-        cy.get("tbody").contains("tr", projectName).should("exist").click();
+        cy.get(".ant-table-row").contains(`${projectName}`).should("exist").click();
 
         // takes a while to load project
         this.waitHomePageLoad();
@@ -119,30 +137,27 @@ export class _projectsPage {
         cy.get("body", { timeout: 2000 });
 
         let projectName = projectData.name;
-
         if (projectData.name == "") projectName = "test_proj" + Date.now();
 
         // click on "New Project"
-        // cy.get(":nth-child(5) > .v-btn", { timeout: 20000 }).click();
         cy.get(".nc-new-project-menu").should("exist").click();
 
         if ("none" == projectData.dbType) {
             // Subsequent form, select (+ Create) option
-            cy.get(".nc-create-xc-db-project", { timeout: 20000 }).click({
+            cy.get(".nc-create-xc-db-project", { timeout: 20000 }).last().click({
                 force: true,
             });
 
+            // wait for page load by verifying required elements
+            cy.get(".nc-metadb-project-name").should("exist");
+            cy.contains("button", "Create").should("exist");
+
+            cy.wait(1000)
+
             // feed project name
-            cy.get(".nc-metadb-project-name", { timeout: 20000 }).type(
+            cy.get(".nc-metadb-project-name", { timeout: 20000 }).clear().type(
                 projectName
             );
-
-            // Radio button: defaults to NC_REST
-            if ("GQL" == projectData.apiType) {
-                cy.contains("GRAPHQL APIs").closest("label").click();
-            }
-
-            cy.snip("XcdbCreate");
 
             // Submit
             cy.contains("button", "Create", { timeout: 20000 }).click();
@@ -156,148 +171,90 @@ export class _projectsPage {
         // dbType == 'external'
         else {
             // Subsequent form, select (+ Create by connection to external database) option
-            cy.get(".nc-create-external-db-project", { timeout: 20000 }).click({
+            cy.get(".nc-create-external-db-project", { timeout: 20000 }).last().click({
                 force: true,
             });
 
-            // feed project name
-            //cy.get('.nc-metadb-project-name').type(projectName)
-            cy.contains("Enter Project Name", { timeout: 20000 })
-                .parent()
-                .find("input")
-                .clear()
-                .type(projectName);
+            // wait for page load by verifying required elements
+            cy.get('.nc-extdb-host-database').should('exist');
+            cy.get('.nc-extdb-proj-name').should('exist');
+            cy.get('.nc-extdb-btn-test-connection').should('exist');
 
-            // Radio button: defaults to NC_REST
-            if ("GQL" == projectData.apiType) {
-                cy.contains("GRAPHQL APIs").closest("label").click();
-            }
+            // CY goes too fast at times, so wait for the page to load
+            cy.wait(1000);
 
-            // postgres project
+            cy.get('.nc-extdb-proj-name').clear().type(projectName);
+
             if (cred.databaseType === 1) {
-                cy.get(".db-select").click();
-                cy.getActiveMenu()
-                    .find(`[role="option"]`)
-                    .contains("Postgre")
-                    .should("exist")
-                    .click();
+                cy.get('.nc-extdb-db-type').should('exist').click();
+                cy.getActiveSelection().find('.ant-select-item-option').contains("PostgreSQL").click();
             }
 
-            if (cred.hostAddress != "")
-                cy.contains("Host Address")
-                    .parent()
-                    .find("input")
-                    .clear()
-                    .type(cred.hostAddress);
-            if (cred.portNumber != "")
-                cy.contains("Port Number")
-                    .parent()
-                    .find("input")
-                    .clear()
-                    .type(cred.portNumber);
-            if (cred.username != "")
-                cy.contains("Username")
-                    .parent()
-                    .find("input")
-                    .clear()
-                    .type(cred.username);
-            if (cred.password != "")
-                cy.contains("Password")
-                    .parent()
-                    .find("input")
-                    .clear()
-                    .type(cred.password);
-            if (cred.databaseName != "")
-                cy.contains("Database : create if not exists")
-                    .parent()
-                    .find("input")
-                    .clear()
-                    .type(cred.databaseName);
-
-            cy.snip("ExtDbCreate");
+            if (cred.databaseName !== "") {
+                cy.get('.nc-extdb-host-database').clear().type(cred.databaseName);
+            }
 
             // Test database connection
             cy.contains("Test Database Connection", { timeout: 20000 }).click();
 
-            cy.snipActiveModal("Modal_OK_SaveProject");
-
             // Create project
             cy.contains("Ok & Save Project", { timeout: 20000 }).click();
 
+            cy.wait(5000)
             // takes a while to load project
             this.waitHomePageLoad();
-
-            cy.snip("Team&Auth_UserMgmt");
 
             return projectName;
         }
     }
 
-    // create REST default project (sakila DB)
+    // // create REST default project (sakila DB)
+    // //
+    // createDefaulRestProject() {
+    //     return this.createProject(
+    //         { dbType: 1, apiType: 0, name: "" },
+    //         defaultDbParams
+    //     );
+    // }
+
+    // // search project with given key
+    // // return project-name array
+    // //
+    // searchProject(projectNameKey) {
+    //     cy.get('input[placeholder="Search Project"]').type(projectNameKey);
     //
-    createDefaulRestProject() {
-        return this.createProject(
-            { dbType: 1, apiType: 0, name: "" },
-            defaultDbParams
-        );
-    }
-
-    // create GraphQL default project (sakila DB)
+    //     const projectName = [];
     //
-    createDefaultGraphQlProject() {
-        return this.createProject(
-            { dbType: 1, apiType: 1, name: "" },
-            defaultDbParams
-        );
-    }
-
-    // Click on refresh key on projects page
-    //
-    refreshProject() {
-        cy.contains("My Projects").parent().find("button").click();
-    }
-
-    // search project with given key
-    // return project-name array
-    //
-    searchProject(projectNameKey) {
-        cy.get('input[placeholder="Search Project"]').type(projectNameKey);
-
-        const projectName = [];
-
-        cy.get("table tr")
-            .each((tableRow) => {
-                cy.wrap(tableRow)
-                    .find("td")
-                    .eq(0)
-                    .find(".title")
-                    .then((input) => {
-                        projectName.push(input.text());
-                    });
-            })
-            .then(() => {
-                // TBD: validate project name to contain search key
-                console.log(projectName);
-                return projectName;
-            });
-    }
+    //     cy.get("table tr")
+    //         .each((tableRow) => {
+    //             cy.wrap(tableRow)
+    //                 .find("td")
+    //                 .eq(0)
+    //                 .find(".title")
+    //                 .then((input) => {
+    //                     projectName.push(input.text());
+    //                 });
+    //         })
+    //         .then(() => {
+    //             // TBD: validate project name to contain search key
+    //             console.log(projectName);
+    //             return projectName;
+    //         });
+    // }
 
     // remove specified project entry
-    // TODO: error handling
     //
-    deleteProject(name) {
-        // delete icon
-        cy.get("tbody")
-            .contains("tr", name)
-            .find(".mdi-delete-circle-outline")
-            .click();
-        cy.toastWait("deleted successfully");
-        // this.waitDeletePageLoad()
+    deleteProject(projectName) {
+        cy.log("Delete project: " + projectName);
+        cy.get(".nc-noco-brand-icon").should('exist').click();
+        cy.get(".ant-table-row").contains(`${projectName}`).should("exist")
+        .then(($obj) => {
+            cy.log($obj)
+            cy.wrap($obj).parent().parent().find('.ant-table-cell').last().click()
+        })
 
         // pop-up, submit
-        cy.get("body").then((body) => {
-            cy.wrap(body).find("button").contains("Submit").click();
-        });
+        cy.getActiveModal().find('button:contains("Yes")').click({});
     }
 
     // remove all projects created
@@ -330,7 +287,7 @@ export class _projectsPage {
     // }
 
     waitHomePageLoad() {
-        cy.url({ timeout: 50000 }).should("contain", "&dbalias=");
+        cy.url({ timeout: 50000 }).should("contain", "/#/nc/p_");
     }
 }
 

@@ -6,8 +6,20 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - M2M Column validation`, () => {
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
+
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             cy.openTableTab("Actor", 25);
+        });
+
+        beforeEach(() => {
+            cy.fileHook();
         });
 
         after(() => {
@@ -16,42 +28,37 @@ export const genTest = (apiType, dbType) => {
 
         it("Table column header, URL validation", () => {
             // column name validation
-            cy.get(`.project-tab:contains(Actor):visible`).should("exist");
+            // cy.get(`.project-tab:contains(Actor):visible`).should("exist");
             // URL validation
-            cy.url().should("contain", `name=Actor`);
+            cy.url().should("contain", `table/Actor`);
         });
 
         it("M2m chip content validation on grid", () => {
           // grid m2m content validation
           mainPage.getCell("Film List", 1)
-            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .find('.nc-virtual-cell > .chips-wrapper > .chips > .group > .name')
             .contains("ACADEMY DINOSAUR")
             .should('exist');
           mainPage.getCell("Film List", 1)
-            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .find('.nc-virtual-cell > .chips-wrapper > .chips > .group > .name')
             .contains("ANACONDA CONFESSIONS")
             .should('exist');
         });
 
         it("Expand m2m column", () => {
             // expand first row
-            cy.get('td[data-col="Film List"] div', { timeout: 12000 })
-                .first()
-                .click({ force: true });
-            cy.get('td[data-col="Film List"] div .mdi-arrow-expand')
-                .first()
-                .click({ force: true });
+            mainPage.getCell("Film List", 1).should("exist").trigger("mouseover").click();
+            cy.get('.nc-action-icon').eq(0).should('exist').click({ force: true });
 
-            cy.snipActiveModal("Modal_ManyToMany");
-
+            // GUI-v2 Kludge:
             // validations
-            cy.getActiveModal().contains("Film").should("exist");
-            cy.getActiveModal().find("button.mdi-reload").should("exist");
+            // cy.getActiveModal().contains("Film").should("exist");
+            // cy.getActiveModal().find("button.mdi-reload").should("exist");
+            // cy.getActiveModal()
+            //     .find("button:contains(Link to 'Film')")
+            //     .should("exist");
             cy.getActiveModal()
-                .find("button:contains(Link to 'Film')")
-                .should("exist");
-            cy.getActiveModal()
-                .find(".child-card")
+                .find(".ant-card")
                 .eq(0)
                 .contains("ACADEMY DINOSAUR")
                 .should("exist");
@@ -62,47 +69,53 @@ export const genTest = (apiType, dbType) => {
                 .find("button:contains(Link to 'Film')")
                 .click()
                 .then(() => {
-                    cy.snipActiveModal("Modal_M2M_LinkToRecord");
                     // Link record form validation
                     cy.getActiveModal().contains("Link record").should("exist");
                     cy.getActiveModal()
-                        .find("button.mdi-reload")
+                        .find(".nc-reload")
                         .should("exist");
                     cy.getActiveModal()
-                        .find('button:contains("New Record")')
+                        .find('button:contains("Add new record")')
                         .should("exist");
                     cy.getActiveModal()
-                        .find(".child-card")
+                        .find(".ant-card")
                         .eq(0)
                         .contains("ACE GOLDFINGER")
                         .should("exist");
-                    cy.get("body").type("{esc}");
+                    cy.getActiveModal().find("button.ant-modal-close").click();
                 });
         });
 
         it("Expand first linked card, validate", () => {
+
+            // expand first row
+            mainPage.getCell("Film List", 1).should("exist").trigger("mouseover").click();
+            cy.get('.nc-action-icon').eq(0).should('exist').click({ force: true });
+
             cy.getActiveModal()
-                .find(".child-card")
+                .find(".ant-card")
                 .eq(0)
                 .contains("ACADEMY DINOSAUR", { timeout: 2000 })
                 .click()
                 .then(() => {
+                    // wait to ensure pop up appears before we proceed further
+                    cy.wait(1000)
                     // Link card validation
-                    cy.getActiveModal()
-                        .find("h5")
+                    cy.getActiveDrawer()
+                        .find(".text-lg")
                         .contains("ACADEMY DINOSAUR")
                         .should("exist");
-                    cy.getActiveModal()
+                    cy.getActiveDrawer()
                         .find('button:contains("Save row")')
                         .should("exist");
-                    cy.getActiveModal()
+                    cy.getActiveDrawer()
                         .find('button:contains("Cancel")')
                         .should("exist");
 
-                    cy.getActiveModal()
+                    cy.getActiveDrawer()
                         .find('button:contains("Cancel")')
                         .click();
-                    cy.getActiveModal().find("button.mdi-close").click();
+                    cy.getActiveModal().find("button.ant-modal-close").click();
                 });
         });
     });

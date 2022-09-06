@@ -3,11 +3,11 @@
 //      sakilaDb database created already
 
 import { loginPage, projectsPage } from "../../support/page_objects/navigation";
-import { mainPage } from "../../support/page_objects/mainPage";
+import { mainPage, settingsPage } from "../../support/page_objects/mainPage";
 import {
     isPostgres,
     isTestSuiteActive,
-    isXcdb,
+    isXcdb, roles
 } from "../../support/page_objects/projectConstants";
 import {
     _advSettings,
@@ -31,11 +31,21 @@ export const genTest = (apiType, dbType, roleType) => {
         before(() => {
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.openTableTab("City", 25);
-            cy.get(".nc-btn-preview").click();
-            cy.getActiveMenu()
-                .find(".nc-preview-editor")
-                .should("exist")
-                .click();
+
+            cy.wait(3000);
+
+            settingsPage.openProjectMenu();
+            cy.getActiveMenu().find(`[data-submenu-id="preview-as"]`).should('exist').click()
+            cy.wait(1000)
+            cy.get('.ant-dropdown-menu-submenu').eq(4).find(`[data-menu-id="editor"]`).should('exist').click()
+
+            cy.wait(10000)
+
+            cy.saveLocalStorage();
+        });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
         });
 
         after(() => {
@@ -81,26 +91,33 @@ export const genTest = (apiType, dbType, roleType) => {
 
         const genTestSub = (roleType) => {
             it(`Role preview: ${roleType}: Enable preview`, () => {
-                cy.get(`.nc-floating-preview-${roleType}`).click();
+                cy.get(".nc-floating-preview-btn", {timeout: 30000}).should("exist");
+                cy.get('.nc-floating-preview-btn')
+                  .find(`[type="radio"][value="${roleType}"]`)
+                  .should('exist')
+                  .click();
+
+                cy.wait(5000)
+                cy.saveLocalStorage();
             });
 
             it(`Role preview: ${roleType}: Advance settings`, () => {
                 // project configuration settings
                 //
-                _advSettings(roleType, true);
+                _advSettings(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Access control`, () => {
                 // Access control validation
                 //
-                _accessControl(roleType, false);
+                _accessControl(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Edit data`, () => {
                 // Table data related validations
                 //  - Add/delete/modify row
                 //
-                _editData(roleType, true);
+                _editData(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Edit comment`, () => {
@@ -108,21 +125,21 @@ export const genTest = (apiType, dbType, roleType) => {
                 //      Viewer: not allowed to read
                 //      Everyone else: read &/ update
                 //
-                _editComment(roleType, true);
+                _editComment(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Preview menu`, () => {
                 // right navigation menu bar
                 //      Editor/Viewer/Commenter : can only view 'existing' views
                 //      Rest: can create/edit
-                _viewMenu(roleType, true, 2);
+                _viewMenu(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Top Right Menu bar`, () => {
                 // Share button is conditional
                 // Rest are static/ mandatory
                 //
-                _topRightMenu(roleType, false);
+                _topRightMenu(roleType, "preview");
             });
 
             it(`Role preview: ${roleType}: Edit Schema`, () => {
@@ -130,7 +147,7 @@ export const genTest = (apiType, dbType, roleType) => {
                 //  - Add/delete table
                 //  - Add/Update/delete column
                 //
-                _editSchema(roleType, true);
+                _editSchema(roleType, "preview");
             });
         };
 

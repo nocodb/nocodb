@@ -158,20 +158,22 @@ function prepareSqliteQuery(projId) {
 export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Project pre-configurations`, () => {
+        before(() => {
+            cy.fileHook();
+        })
+
         it("Admin SignUp", () => {
             cy.task("log", "This will be output to the terminal");
-            cy.waitForSpinners();
-            cy.signinOrSignup(roles.owner.credentials);
+            cy.saveLocalStorage();
+            loginPage.signUp(roles.owner.credentials);
         });
 
         const createProject = (proj) => {
             it(`Create ${proj.basic.name} project`, () => {
-                cy.snip("ProjectPage");
+
                 // click home button
                 cy.get(".nc-noco-brand-icon").click();
-
-                cy.get(".nc-container").then((obj) => {
-                    cy.log(obj);
+                cy.get(".ant-table-content").then((obj) => {
 
                     // if project already created, open
                     // else, create a new one
@@ -191,6 +193,7 @@ export const genTest = (apiType, dbType) => {
                         }
                     } else {
                         projectsPage.createProject(proj.basic, proj.config);
+                        cy.wait(5000);
                         if (dbType === "xcdb") {
                             // store base URL- to re-visit and delete form view later
                             let projId;
@@ -234,34 +237,21 @@ export const genTest = (apiType, dbType) => {
                                 });
                         }
                     }
-
-                    // create requested project
-                    // projectsPage.createProject(proj.basic, proj.config)
                 });
+
+                // hack to disable dark mode
+                cy.fileHook();
+
+
             });
         };
 
-        // if (isTestSuiteActive('rest', true)) createProject(staticProjects.sampleREST)
-        // if (isTestSuiteActive('graphql', true)) createProject(staticProjects.sampleGQL)
-        // if (isTestSuiteActive('rest', false)) createProject(staticProjects.externalREST)
-        // if (isTestSuiteActive('graphql', false)) createProject(staticProjects.externalGQL)
-
-        if ("rest" === apiType) {
-            if ("xcdb" === dbType) {
-                createProject(staticProjects.sampleREST);
-            } else if (dbType === "mysql") {
-                createProject(staticProjects.externalREST);
-            } else if (dbType === "postgres") {
-                createProject(staticProjects.pgExternalREST);
-            }
-        } else if ("graphql" === apiType) {
-            if ("xcdb" === dbType) {
-                createProject(staticProjects.sampleGQL);
-            } else if (dbType === "mysql") {
-                createProject(staticProjects.externalGQL);
-            } else if (dbType === "postgres") {
-                createProject(staticProjects.pgExternalGQL);
-            }
+        if ("xcdb" === dbType) {
+            createProject(staticProjects.sampleREST);
+        } else if (dbType === "mysql") {
+            createProject(staticProjects.externalREST);
+        } else if (dbType === "postgres") {
+            createProject(staticProjects.pgExternalREST);
         }
     });
 };

@@ -6,53 +6,56 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Table: belongs to, link record`, () => {
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
+            //
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             cy.openTableTab("Country", 25);
+        });
+
+        beforeEach(() => {
+            cy.fileHook();
         });
 
         after(() => {
           cy.closeTableTab("City");
         });
 
-        it("Table column header, URL validation", () => {
+        it("URL validation", () => {
             // column name validation
-            cy.get(`.project-tab:contains(Country):visible`).should("exist");
+            // cy.get(`.project-tab:contains(Country):visible`).should("exist");
             // URL validation
-            cy.url().should("contain", `name=Country`);
+            cy.url().should("contain", `table/Country`);
         });
 
         it("Grid cell chip content validation", () => {
           // grid cell content validation
           mainPage.getCell("City List", 1)
-            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .find('.nc-virtual-cell > .chips-wrapper > .chips > .group > .name')
             .contains("Kabul")
             .should('exist');
           mainPage.getCell("City List", 2)
-            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .find('.nc-virtual-cell > .chips-wrapper > .chips > .group > .name')
             .contains("Batna")
             .should('exist');
           mainPage.getCell("City List", 2)
-            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .find('.nc-virtual-cell > .chips-wrapper > .chips > .group > .name')
             .contains("Bchar")
             .should('exist');
           mainPage.getCell("City List", 2)
-            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .find('.nc-virtual-cell > .chips-wrapper > .chips > .group > .name')
             .contains("Skikda")
             .should('exist');
         })
 
         it("Expand has-many column", () => {
-            // expand first row
-            cy.get('td[data-col="City List"] div:visible', {
-                timeout: 12000,
-            })
-                .first()
-                .click();
-            cy.get('td[data-col="City List"] div .mdi-arrow-expand:visible')
-                .first()
-                .click();
-
-            cy.snipActiveModal("Modal_BelongsTo");
+            mainPage.getCell("City List", 1).should("exist").trigger("mouseover").click();
+            cy.get('.nc-action-icon').eq(0).should('exist').click({ force: true });
         });
 
         it("Expand Link record, validate", () => {
@@ -60,49 +63,46 @@ export const genTest = (apiType, dbType) => {
                 .find("button:contains(Link to 'City')")
                 .click()
                 .then(() => {
-                    cy.snipActiveModal("Modal_BT_LinkRecord");
 
                     // Link record form validation
                     cy.getActiveModal().contains("Link record").should("exist");
                     cy.getActiveModal()
-                        .find("button.mdi-reload")
+                        .find(".nc-reload")
                         .should("exist");
                     cy.getActiveModal()
-                        .find('button:contains("New Record")')
+                        .find('button:contains("Add new record")')
                         .should("exist");
                     cy.getActiveModal()
-                        .find(".child-card")
+                        .find(".ant-card")
                         .eq(0)
                         .contains("A Corua (La Corua)")
                         .should("exist");
 
                     cy.getActiveModal()
-                        .find("button.mdi-close")
-                        .click()
-                        .then(() => {
-                            cy.getActiveModal()
-                                .find("button.mdi-close")
-                                .click();
-                        });
+                        .find("button.ant-modal-close")
+                        .click();
+                        // .then(() => {
+                        //     cy.getActiveModal()
+                        //         .find("button.ant-modal-close")
+                        //         .click();
+                        // });
                 });
         });
 
         it("Belongs to column, validate", () => {
           cy.closeTableTab("Country");
           cy.openTableTab("City", 25);
-          cy.get(`.project-tab:contains(City):visible`).should("exist");
-          cy.url().should("contain", `name=City`);
+          cy.url().should("contain", `table/City`);
 
           // grid cell content validation
           mainPage.getCell("Country", 1)
-            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .find('.nc-virtual-cell > .chips-wrapper > .chips > .group > .name')
             .contains("Spain")
             .should('exist');
           mainPage.getCell("Country", 2)
-            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .find('.nc-virtual-cell > .chips-wrapper > .chips > .group > .name')
             .contains("Saudi Arabia")
             .should('exist');
-
         })
     });
 };

@@ -8,59 +8,69 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.restoreLocalStorage();
+            cy.wait(500);
+
             mainPage.tabReset();
+
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
         });
 
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(500);
+        });
+
         after(() => {
+            cy.restoreLocalStorage();
+            cy.wait(500)
             cy.closeTableTab("Country");
         });
 
         const lockViewTest = (enabled) => {
             it(`Grid: lock view set to ${enabled}: validation`, () => {
                 let vString = enabled ? "not." : "";
-                let menuOption = enabled ? 1 : 0;
+                let menuOption = enabled ? 'Locked View' : 'Collaborative View';
 
                 // on menu, collaboration view appears first (at index 0)
                 // followed by Locked view (at index 1)
-                cy.get(".xc-toolbar")
-                    .find(".nc-view-lock-menu:enabled")
-                    .click();
-                cy.snipActiveMenu("Menu_Collaboration");
-                cy.getActiveMenu()
-                    .find('[role="menuitem"]')
-                    .eq(menuOption)
-                    .click();
+                cy.get(".nc-actions-menu-btn").click();
+                cy.getActiveMenu().find('.ant-dropdown-menu-submenu').eq(0).click();
+                cy.wait(1000);
+                cy.get('.nc-locked-menu-item').contains(menuOption).should('exist').click();
+
+                // cy.get(".nc-sidebar-lock-menu")
+                //     .click();
+                // cy.getActiveMenu()
+                //     .find('.nc-menu-item:visible')
+                //     .eq(menuOption)
+                //     .click();
+
+                if(enabled) {
+                    cy.toastWait('Successfully Switched to locked view')
+                    cy.get(".nc-icon-locked").should("exist");
+                } else {
+                    cy.toastWait('Successfully Switched to collaborative view')
+                    cy.get(".nc-icon-collaborative").should("exist");
+                }
 
                 // expected toolbar for Lock view: Only lock-view menu, reload, toggle-nav-drawer to be enabled
                 //
-                cy.get(".xc-toolbar")
-                    .find(".nc-view-lock-menu:enabled")
+                // cy.get(".nc-sidebar-lock-menu:enabled")
+                //     .should("exist");
+
+                cy.get(".nc-toolbar-reload-btn")
                     .should("exist");
-                cy.get(".xc-toolbar")
-                    .find(".nc-table-reload-btn:enabled")
-                    .should("exist");
-                cy.get(".xc-toolbar")
-                    .find(".nc-add-new-row-btn:enabled")
+                cy.get(".nc-add-new-row-btn > .cursor-pointer")
                     .should(`${vString}exist`);
-                // cy.get('.xc-toolbar').find('.nc-save-new-row-btn:disabled') .should('exist')
-                cy.get(".xc-toolbar")
-                    .find(".nc-fields-menu-btn:enabled")
+                cy.get(".nc-fields-menu-btn:enabled")
                     .should(`${vString}exist`);
-                cy.get(".xc-toolbar")
-                    .find(".nc-sort-menu-btn:enabled")
+                cy.get(".nc-sort-menu-btn:enabled")
                     .should(`${vString}exist`);
-                cy.get(".xc-toolbar")
-                    .find(".nc-filter-menu-btn:enabled")
+                cy.get(".nc-filter-menu-btn:enabled")
                     .should(`${vString}exist`);
-                cy.get(".xc-toolbar")
-                    .find(".nc-table-delete-btn:enabled")
-                    .should(`${vString}exist`);
-                cy.get(".xc-toolbar")
-                    .find(".nc-toggle-nav-drawer:enabled")
-                    .should("exist");
 
                 // dblClick on a cell & see if we can edit
                 mainPage.getCell("Country", 1).dblclick();
@@ -69,27 +79,25 @@ export const genTest = (apiType, dbType) => {
                     .find("input")
                     .should(`${vString}exist`);
 
-                // check if expand row option is available?
-                cy.get("td")
-                    .find(".nc-row-expand-icon")
-                    .should(`${vString}exist`);
-                // alt validation: mainPage.getRow(1).find('.nc-row-expand-icon').should(`${vString}exist`)
+                cy.get(".nc-row-expand")
+                  .should(`${vString}exist`);
 
                 // check if add/ expand options available for 'has many' column type
+                // GUI-v2: TBD
                 mainPage
                     .getCell("City List", 1)
                     .click()
-                    .find("button.mdi-plus")
+                    .find(".nc-action-icon.nc-plus")
                     .should(`${vString}exist`);
                 mainPage
                     .getCell("City List", 1)
                     .click()
-                    .find("button.mdi-arrow-expand")
+                    .find(".nc-action-icon.nc-arrow-expand")
                     .should(`${vString}exist`);
 
                 // update row option (right click) - should not be available for Lock view
                 mainPage.getCell("City List", 1).rightclick();
-                cy.get(".menuable__content__active").should(
+                cy.get(".ant-dropdown-content").should(
                     `${vString}be.visible`
                 );
             });

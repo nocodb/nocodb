@@ -182,6 +182,7 @@ Cypress.Commands.add("closeTableTab", (tn) => {
       .should('exist')
       .parent()
       .parent()
+      .parent()
       .find('button')
       .click();
 
@@ -410,6 +411,7 @@ Cypress.Commands.add("closeViewsTab", (vn) => {
     cy.get('.ant-tabs-tab-btn')
       .contains(vn)
       .should('exist')
+      .parent()
       .parent()
       .parent()
       .find('button')

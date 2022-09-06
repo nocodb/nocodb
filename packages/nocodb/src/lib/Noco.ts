@@ -252,11 +252,9 @@ export default class Noco {
     //   this.config.dashboardPath,
     //   await this.ncToolApi.expressMiddleware()
     // );
-    this.router.use(NcToolGui.expressMiddleware(
-      this.config.dashboardPath,
-    ));
+    this.router.use(NcToolGui.expressMiddleware(this.config.dashboardPath));
     this.router.get('/', (_req, res) =>
-      res.redirect(this.config.dashboardPath)
+      res.redirect(this.config.dashboardPath?.replace(/^\/?/, './'))
     );
 
     this.initSentryErrorHandler();

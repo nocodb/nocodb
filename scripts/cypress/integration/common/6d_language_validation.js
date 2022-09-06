@@ -33,7 +33,7 @@ export const genTest = (apiType, dbType) => {
         const langVerification = (idx, lang) => {
             // pick json from the file specified
             it(`Language verification: ${lang} > Projects page`, () => {
-                let json = require(`../../../../packages/nc-gui-v2/lang/${lang}`);
+                let json = require(`../../../../packages/nc-gui/lang/${lang}`);
 
                 cy.wait(500);
                 // toggle menu as per index

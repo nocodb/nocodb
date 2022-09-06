@@ -50,8 +50,8 @@ onUnmounted(() => {
 })
 
 /** reload page on previewas change */
-watch(previewAs, () => {
-  $e('a:navdraw:preview', { role: previewAs })
+watch(previewAs, (newRole) => {
+  $e('a:navdraw:preview', { role: newRole })
   window.location.reload()
 })
 </script>
@@ -73,7 +73,7 @@ watch(previewAs, () => {
 
       <a-radio-group v-model:value="previewAs" name="radioGroup">
         <a-radio v-for="role of roleList" :key="role.value" class="capitalize !text-white" :value="role.value"
-          >{{ role.label }}
+        >{{ role.label }}
         </a-radio>
       </a-radio-group>
 

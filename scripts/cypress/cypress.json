@@ -41,12 +41,12 @@
             "sharedBase": "https://airtable.com/shr4z0qmh6dg5s3eB"
         }
     },
-    "fixturesFolder": "scripts/cypress-v2/fixtures",
-    "integrationFolder": "scripts/cypress-v2/integration",
-    "pluginsFile": "scripts/cypress-v2/plugins/index.js",
-    "screenshotsFolder": "scripts/cypress-v2/screenshots",
-    "videosFolder": "scripts/cypress-v2/videos",
-    "downloadsFolder": "scripts/cypress-v2/downloads",
-    "supportFile": "scripts/cypress-v2/support/index.js",
+    "fixturesFolder": "scripts/cypress/fixtures",
+    "integrationFolder": "scripts/cypress/integration",
+    "pluginsFile": "scripts/cypress/plugins/index.js",
+    "screenshotsFolder": "scripts/cypress/screenshots",
+    "videosFolder": "scripts/cypress/videos",
+    "downloadsFolder": "scripts/cypress/downloads",
+    "supportFile": "scripts/cypress/support/index.js",
     "chromeWebSecurity": false
 }

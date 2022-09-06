@@ -75,14 +75,14 @@ export const genTest = (apiType, dbType) => {
             cy.wait(1000);
 
             cy.task("readSheetList", {
-                file: `./scripts/cypress-v2/fixtures/${filepath}`,
+                file: `./scripts/cypress/fixtures/${filepath}`,
             }).then((rows) => {
                 cy.log(rows);
                 sheetList = rows;
             });
 
             cy.task("readXlsx", {
-                file: `./scripts/cypress-v2/fixtures/${filepath}`,
+                file: `./scripts/cypress/fixtures/${filepath}`,
                 sheet: "Sheet2",
             }).then((rows) => {
                 cy.log(rows);

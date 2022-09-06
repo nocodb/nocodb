@@ -113,7 +113,7 @@ style="background: transparent; "></iframe>
 </html>
             `;
                     cy.writeFile(
-                        "scripts/cypress-v2/fixtures/sampleFiles/iFrame.html",
+                        "scripts/cypress/fixtures/sampleFiles/iFrame.html",
                         htmlFile
                     );
                 });
@@ -156,7 +156,7 @@ style="background: transparent; "></iframe>
         // https://docs.cypress.io/api/commands/visit#Prefixes
         it("Generate & verify embed HTML IFrame", {baseUrl: null}, () => {
 
-            let filePath = "scripts/cypress-v2/fixtures/sampleFiles/iFrame.html";
+            let filePath = "scripts/cypress/fixtures/sampleFiles/iFrame.html";
             cy.log(filePath);
             cy.visit(filePath, {baseUrl: null});
 

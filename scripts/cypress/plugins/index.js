@@ -29,7 +29,7 @@ module.exports = (on, config) => {
         copyFile() {
           console.log("copyFile", __dirname)
           return new Promise((resolve, reject) => {
-              copyFile("./scripts/cypress-v2/fixtures/quickTest/noco_0_91_7.db", "./packages/nocodb/noco.db", (err) => {
+              copyFile("./scripts/cypress/fixtures/quickTest/noco_0_91_7.db", "./packages/nocodb/noco.db", (err) => {
                   if(err) {
                       console.log(err)
                       return reject(err)
@@ -129,7 +129,7 @@ function _sqliteExecReturnValue(query) {
     // open the database
     console.log("Current directory: " + process.cwd());
     let db = new sqlite3.Database(
-        "./scripts/cypress-v2/fixtures/sqlite-sakila/sakila.db",
+        "./scripts/cypress/fixtures/sqlite-sakila/sakila.db",
         sqlite3.OPEN_READWRITE,
         (err) => {
             if (err) {
@@ -157,7 +157,7 @@ function _sqliteExec(query) {
     // open the database
     console.log("Current directory: " + process.cwd());
     let db = new sqlite3.Database(
-        "./scripts/cypress-v2/fixtures/sqlite-sakila/sakila.db",
+        "./scripts/cypress/fixtures/sqlite-sakila/sakila.db",
         sqlite3.OPEN_READWRITE,
         (err) => {
             if (err) {

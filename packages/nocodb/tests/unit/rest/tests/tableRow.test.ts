@@ -1386,6 +1386,7 @@ function tableTest() {
   // it.only('Bulk update nested filtered table data list with a lookup column', async function () {
   // });
 
+  // todo: Test contents of file
   it('Export csv', async () => {
     const response = await request(context.app)
       .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/csv`)
@@ -1400,6 +1401,7 @@ function tableTest() {
     }
   })
 
+  // todo: Test contents of file
   it('Export excel', async () => {
     const response = await request(context.app)
       .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/excel`)
@@ -1567,7 +1569,6 @@ function tableTest() {
       .post(`/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/${refId}`)
       .set('xc-auth', context.token)
       .expect(404);
-      global.touchedSakilaDb = true;
 
     if(response.body['msg'] !== 'Table not found') {
       throw new Error('Wrong error message');
@@ -1584,7 +1585,6 @@ function tableTest() {
       .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}/${refId}`)
       .set('xc-auth', context.token)
       .expect(404);
-      global.touchedSakilaDb = true;
 
     if(response.body['msg'] !== 'Column not found' ) {
       console.log(response.body)
@@ -1600,7 +1600,6 @@ function tableTest() {
       .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/invalid-column/${refId}`)
       .set('xc-auth', context.token)
       .expect(404);
-    global.touchedSakilaDb = true;
 
     if(response.body.msg !== "Column with id/name 'invalid-column' is not found") {
       console.log(response.body)
@@ -1665,7 +1664,6 @@ function tableTest() {
       .post(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/invalid-column/${refId}`)
       .set('xc-auth', context.token)
       .expect(404);
-      global.touchedSakilaDb = true;
 
     if(response.body.msg !== "Column with id/name 'invalid-column' is not found") {
       console.log(response.body)
@@ -1685,7 +1683,6 @@ function tableTest() {
       .post(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${firstNameColumn.id}/${refId}`)
       .set('xc-auth', context.token)
       .expect(404);
-      global.touchedSakilaDb = true;
 
     if(response.body['msg'] !== 'Column not found' ) {
       console.log(response.body)
@@ -1705,7 +1702,6 @@ function tableTest() {
       .post(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`)
       .set('xc-auth', context.token)
       .expect(400);
-      global.touchedSakilaDb = true;
   })
 
   it('Create list mm', async () => {
@@ -1837,6 +1833,126 @@ function tableTest() {
 
     if(response.body['msg'] !== 'success') {
       throw new Error('Response incorrect')
+    }
+  })
+
+  it('Exclude list hm', async () => {
+    const rowId = 1;
+    const rentalListColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'Rental List'
+    )!;
+
+    const response = await request(context.app)
+    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`)
+    .set('xc-auth', context.token)
+    .expect(200);
+
+    if(response.body.pageInfo.totalRows !== 16012){
+      throw new Error('Wrong number of rows')
+    }
+  })
+
+  it('Exclude list hm with limit and offset', async () => {
+    const rowId = 1;
+    const rentalListColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'Rental List'
+    )!;
+
+    const response = await request(context.app)
+    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`)
+    .set('xc-auth', context.token)
+    .query({
+      limit: 40,
+      offset: 60
+    })
+    .expect(200);
+
+    if(response.body.pageInfo.totalRows !== 16012 ){
+      throw new Error('Wrong number of rows')
+    }
+
+    if(response.body.list[0]['RentalId'] !== 61){
+      console.log(response.body.list)
+      throw new Error('Wrong rows')
+    }
+  })
+
+  it('Exclude list mm', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const filmListColumn = (await actorTable.getColumns()).find(
+      (column) => column.title === 'Film List'
+    )!;
+
+    const response = await request(context.app)
+    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`)
+    .set('xc-auth', context.token)
+    .expect(200);
+
+    if(response.body.pageInfo.totalRows !== 981){
+      console.log(response.body.pageInfo)
+      throw new Error('Wrong number of rows')
+    }
+  })
+
+  it('Exclude list mm with offset', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const filmListColumn = (await actorTable.getColumns()).find(
+      (column) => column.title === 'Film List'
+    )!;
+
+    const response = await request(context.app)
+    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`)
+    .set('xc-auth', context.token)
+    .query({
+      limit: 40,
+      offset: 60
+    })
+    .expect(200);
+
+    if(response.body.pageInfo.totalRows !== 981){
+      console.log(response.body.pageInfo)
+      throw new Error('Wrong number of rows')
+    }
+
+    if(response.body.list[0]['FilmId'] !== 64){
+      console.log(response.body.list)
+      throw new Error('Wrong rows')
+    }
+  })
+
+  it('Create nested hm relation with invalid table id', async () => {
+    const rowId = 1;
+    const rentalListColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'Rental List'
+    )!;
+    const refId = 1;
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/exclude`)
+      .set('xc-auth', context.token)
+      .expect(404);
+
+    if(response.body['msg'] !== 'Table not found') {
+      console.log(response.body['msg'])
+      throw new Error('Wrong error message');
+    }
+  })
+
+  it('Create nested mm relation with invalid table id', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const filmListColumn = (await actorTable.getColumns()).find(
+      (column) => column.title === 'Film List'
+    )!;
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}/exclude`)
+      .set('xc-auth', context.token)
+      .expect(404);
+
+    if(response.body['msg'] !== 'Table not found') {
+      console.log(response.body['msg'])
+      throw new Error('Wrong error message');
     }
   })
 }

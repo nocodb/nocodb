@@ -145,6 +145,10 @@ const createRelation = async (
       `/api/v1/db/data/noco/${project.id}/${table.id}/${rowId}/${type}/${column.title}/${childRowId}`
     )
     .set('xc-auth', context.token);
+
+  const row = await getRow(context, { project, table, id: rowId });
+
+  return row;
 };
 
 export {

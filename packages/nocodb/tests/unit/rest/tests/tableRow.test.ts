@@ -1760,6 +1760,85 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(400)
   })
+
+  it('Delete mm existing ref row id', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const filmListColumn = (await actorTable.getColumns()).find(
+      (column) => column.title === 'Film List'
+    )!;
+    const refId = 1;
+
+    const lisResponseBeforeDelete = await request(context.app)
+    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
+    .set('xc-auth', context.token)
+    .expect(200);
+
+    await request(context.app)
+      .delete(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+    global.touchedSakilaDb = true;
+    
+    const lisResponseAfterDelete = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+      if(lisResponseAfterDelete.body.pageInfo.totalRows !== lisResponseBeforeDelete.body.pageInfo.totalRows - 1) {
+        throw new Error('Item not deleted');
+      }
+  })
+
+  it('Delete list hm with existing ref row id with non nullable clause', async () => {
+    const rowId = 1;
+    const rentalListColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'Rental List'
+    )!;
+    const refId = 76;
+
+    const response = await request(context.app)
+      .delete(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+      .set('xc-auth', context.token)
+      .expect(400);
+    
+    if(!response.body.msg.includes("Column 'customer_id' cannot be null")){
+      console.log(response.body)
+      throw new Error('Wrong error message')
+    }
+  })
+
+  it('Delete list hm with existing ref row id', async () => {
+    const table = await createTable(context, project);
+    const relatedTable = await createTable(context, project, {
+      table_name: 'Table2',
+      title: 'Table2_Title',
+    });
+    const ltarColumn = await createLtarColumn(context, {
+      title: 'Ltar',
+      parentTable: table,
+      childTable: relatedTable,
+      type: 'hm',
+    });
+
+    const row = await createRelation(context, { project, table,childTable: relatedTable, column:ltarColumn, type: 'hm'  });
+    const childRow = row['Ltar'][0]
+
+    const response = await request(context.app)
+      .delete(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}/hm/${ltarColumn.id}/${childRow['Id']}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    const updatedRow = await getRow(context, {project, table,id: row['Id']})
+    
+    if(updatedRow['Ltar'].length !== 0){
+      throw new Error('Was not deleted')
+    }
+
+    if(response.body['msg'] !== 'success') {
+      throw new Error('Response incorrect')
+    }
+  })
 }
 
 export default function () {

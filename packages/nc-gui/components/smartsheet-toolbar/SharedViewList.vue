@@ -69,7 +69,7 @@ const sharedViewUrl = (view: SharedViewType) => {
 const renderAllowCSVDownload = (view: SharedViewType) => {
   if (view.type === ViewTypes.GRID) {
     view.meta = (view.meta && typeof view.meta === 'string' ? JSON.parse(view.meta) : view.meta) as Record<string, any>
-    return view.meta.allowCSVDownload ? '✔️' : '❌'
+    return view.meta?.allowCSVDownload ? '✔️' : '❌'
   } else {
     return 'N/A'
   }

@@ -7,6 +7,7 @@ import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
 import { useI18n } from 'vue-i18n'
 import RenameableMenuItem from './RenameableMenuItem.vue'
+import { useNuxtApp } from '#app'
 import {
   ActiveViewInj,
   ViewListInj,
@@ -34,6 +35,8 @@ interface Emits {
 
   (event: 'sorted'): void
 }
+
+const { $e } = useNuxtApp()
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -129,6 +132,7 @@ async function onSortEnd(evt: SortableEvent) {
   await api.dbView.update(currentItem.id, { order: _nextOrder })
 
   markItem(currentItem.id)
+  $e('a:view:reorder')
 }
 
 let sortable: Sortable

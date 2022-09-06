@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
+import { useNuxtApp } from '#app'
 import { useSmartsheetStoreOrThrow, useUIPermission, viewIcons } from '#imports'
 
 interface Emits {
@@ -8,11 +9,14 @@ interface Emits {
 
 const emits = defineEmits<Emits>()
 
+const { $e } = useNuxtApp()
+
 const { isUIAllowed } = useUIPermission()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
 function onOpenModal(type: ViewTypes, title = '') {
+  $e('c:view:create', { view: type })
   emits('openModal', { type, title })
 }
 </script>

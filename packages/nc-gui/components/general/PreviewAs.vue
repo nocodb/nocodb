@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { useI18n } from 'vue-i18n'
 import { onUnmounted, useEventListener, useGlobal, useState, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
@@ -14,6 +13,7 @@ const position = useState('preview-as-position', () => ({
   x: `${window.innerWidth / 2 - 250}px`,
 }))
 
+const { $e } = useNuxtApp()
 const { t } = useI18n()
 
 const roleList = [
@@ -50,7 +50,10 @@ onUnmounted(() => {
 })
 
 /** reload page on previewas change */
-watch(previewAs, () => window.location.reload())
+watch(previewAs, (newRole) => {
+  $e('a:navdraw:preview', { role: newRole })
+  window.location.reload()
+})
 </script>
 
 <template>
@@ -69,8 +72,8 @@ watch(previewAs, () => window.location.reload())
       <span>{{ $t('activity.previewAs') }}</span>
 
       <a-radio-group v-model:value="previewAs" name="radioGroup">
-        <a-radio v-for="role of roleList" :key="role.value" class="capitalize !text-white" :value="role.value"
-          >{{ role.label }}
+        <a-radio v-for="role of roleList" :key="role.value" class="capitalize !text-white" :value="role.value">
+          {{ role.label }}
         </a-radio>
       </a-radio-group>
 

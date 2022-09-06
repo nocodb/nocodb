@@ -147,6 +147,7 @@ const copyInviteUrl = (user: User) => {
 
   // Invite URL copied to clipboard
   message.success(t('msg.success.inviteURLCopied'))
+  $e('c:user:copy-url')
 }
 
 onMounted(() => {
@@ -193,13 +194,21 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
       </div>
 
       <div class="flex flex-row space-x-1">
-        <a-button size="middle" type="text" @click="loadUsers()">
+        <a-button v-t="['a:user:reload']" size="middle" type="text" @click="loadUsers()">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiReload class="text-gray-500" />
             <div class="text-gray-500">{{ $t('general.reload') }}</div>
           </div>
         </a-button>
-        <a-button v-if="isUIAllowed('newUser')" size="middle" type="primary" ghost class="nc-invite-team" @click="onInvite">
+        <a-button
+          v-if="isUIAllowed('newUser')"
+          v-t="['c:user:invite']"
+          size="middle"
+          type="primary"
+          ghost
+          class="nc-invite-team"
+          @click="onInvite"
+        >
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiAccountPlusOutline class="mr-1" />
             <div>{{ $t('activity.inviteTeam') }}</div>
@@ -266,7 +275,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <template #title>
               <span>{{ $t('activity.deleteUser') }}</span>
             </template>
-            <a-button type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
+            <a-button v-t="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
               <template #icon>
                 <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
               </template>

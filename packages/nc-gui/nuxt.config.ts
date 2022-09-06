@@ -14,7 +14,7 @@ export default defineNuxtConfig({
 
   ssr: false,
   app: {
-    baseURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
+    cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
   },
   css: [
     'virtual:windi.css',

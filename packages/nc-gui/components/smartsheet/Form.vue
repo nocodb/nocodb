@@ -591,6 +591,7 @@ onMounted(async () => {
 
                           <a-switch
                             v-model:checked="element.required"
+                            v-t="['a:form-view:field:mark-required']"
                             size="small"
                             class="ml-2"
                             @change="updateColMeta(element)"

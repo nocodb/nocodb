@@ -27,6 +27,8 @@ definePageMeta({
 
 const route = useRoute()
 
+const router = useRouter()
+
 const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
 const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme } = useProject()
@@ -147,6 +149,15 @@ const copyAuthToken = async () => {
     message.error(e.message)
   }
 }
+
+
+/** If v1 url found navigate to corresponding new url*/
+const { type, name, view } = route.query
+if (type && name) {
+  router.replace(`/nc/${route.params.projectId}/${type}/${name}${view ? `/${view}` : ''}`)
+}
+
+
 </script>
 
 <template>
@@ -169,6 +180,7 @@ const copyAuthToken = async () => {
         >
           <div
             v-if="isOpen && !isSharedBase"
+            v-t="['c:navbar:home']"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
             @click="navigateTo('/')"
           >
@@ -230,7 +242,11 @@ const copyAuthToken = async () => {
                   <template v-if="!isSharedBase">
                     <!-- Copy Project Info -->
                     <a-menu-item key="copy">
-                      <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">
+                      <div
+                        v-t="['c:navbar:user:copy-proj-info']"
+                        class="nc-project-menu-item group"
+                        @click.stop="copyProjectInfo"
+                      >
                         <MdiContentCopy class="group-hover:text-accent" />
                         {{ $t('activity.account.projInfo') }}
                       </div>
@@ -253,7 +269,8 @@ const copyAuthToken = async () => {
 
                     <!-- Copy Auth Token -->
                     <a-menu-item key="copy">
-                      <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                      <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group"
+                           @click.stop="copyAuthToken">
                         <MdiScriptTextKeyOutline class="group-hover:text-accent" />
                         {{ $t('activity.account.authToken') }}
                       </div>
@@ -403,7 +420,8 @@ const copyAuthToken = async () => {
                       <template #expandIcon></template>
 
                       <a-menu-item key="0" class="!rounded-t">
-                        <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
+                        <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline"
+                                   to="/user">
                           <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                           <span class="prose-sm">{{ email }}</span>
@@ -430,6 +448,7 @@ const copyAuthToken = async () => {
             class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
           >
             <MdiBackburger
+              v-t="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"
               :class="{ 'rotate-180': !isOpen }"
               @click="toggle(!isOpen)"

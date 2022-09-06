@@ -17,6 +17,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const { $api } = useNuxtApp()
     const { getMeta } = useMetas()
     const { t } = useI18n()
+    const { $e } = useNuxtApp()
 
     const isEdit = computed(() => !!column?.value?.id)
 
@@ -201,6 +202,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           // Column created
           message.success(t('msg.success.columnCreated'))
+
+          $e('a:column:add', { datatype: formState.value.uidt })
         }
         onSuccess?.()
       } catch (e: any) {

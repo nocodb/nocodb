@@ -35,7 +35,7 @@ export function useSharedView() {
       },
     })
 
-    allowCSVDownload.value = JSON.parse(viewMeta.meta).allowCSVDownload
+    allowCSVDownload.value = JSON.parse(viewMeta.meta)?.allowCSVDownload
 
     if (localPassword) password.value = localPassword
     sharedView.value = { ...viewMeta }

@@ -12,7 +12,9 @@ const size = computed(() => paginatedData.value?.pageSize ?? 25)
 
 const page = computed({
   get: () => paginatedData?.value?.page ?? 1,
-  set: (p) => changePage?.(p),
+  set: (p) => {
+    changePage?.(p)
+  },
 })
 </script>
 

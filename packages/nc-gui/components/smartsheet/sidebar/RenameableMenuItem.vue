@@ -50,6 +50,7 @@ function onDblClick() {
   if (!isEditing) {
     isEditing = true
     originalTitle = vModel.value.title
+    $e('c:view:rename', { view: vModel.value?.type })
   }
 }
 

@@ -29,6 +29,8 @@ const router = useRouter()
 
 const route = useRoute()
 
+const { $e } = useNuxtApp()
+
 provide(ViewListInj, views)
 
 /** Sidebar visible */
@@ -56,9 +58,19 @@ watch(
   [views, () => route.params.viewTitle],
   ([nextViews, viewTitle]) => {
     if (viewTitle) {
-      const view = nextViews.find((v) => v.title === viewTitle)
+      let view = nextViews.find((v) => v.title === viewTitle)
       if (view) {
         activeView.value = view
+      } else {
+        /** search with view id and if found replace with title */
+        view = nextViews.find((v) => v.id === viewTitle)
+        if (view) {
+          router.replace({
+            params: {
+              viewTitle: view.title,
+            },
+          })
+        }
       }
     }
     /** if active view is not found, set it to first view */
@@ -83,6 +95,7 @@ function onCreate(view: ViewType) {
   activeView.value = view
   router.push({ params: { viewTitle: view.title || '' } })
   modalOpen = false
+  $e('a:view:create', { view: view.type })
 }
 </script>
 

@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { ReloadViewDataHookInj, inject } from '#imports'
 
+const { $e } = useNuxtApp()
 const reloadHook = inject(ReloadViewDataHookInj)!
 
-const onClick = () => reloadHook.trigger()
+const onClick = () => {
+  $e('a:table:reload:navbar')
+  reloadHook.trigger()
+}
 </script>
 
 <template>

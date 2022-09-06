@@ -139,7 +139,7 @@ watch(passwordProtected, (value) => {
         <a v-t="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
           <MdiOpenInNewIcon class="text-sm text-gray-500 mt-2" />
         </a>
-        <MdiCopyIcon class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
+        <MdiCopyIcon v-t="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
       </div>
 
       <a-collapse ghost>

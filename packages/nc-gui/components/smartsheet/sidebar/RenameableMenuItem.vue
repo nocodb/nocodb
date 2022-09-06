@@ -167,7 +167,9 @@ function onStopEdit() {
 
       <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown="onKeyDown($event)" />
 
-      <div v-else>{{ vModel.alias || vModel.title }}</div>
+      <div v-else>
+        <GeneralTruncateText>{{ vModel.alias || vModel.title }}</GeneralTruncateText>
+      </div>
 
       <div class="flex-1" />
 

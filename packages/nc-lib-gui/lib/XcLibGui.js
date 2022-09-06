@@ -10,11 +10,6 @@ class XcLibGui {
     // Express will serve up production assets i.e. main.js
     router.use(dashboardPath, express.static(path.join(__dirname, 'dist')));
 
-    // If Express doesn't recognize route serve index.html
-    router.get(`${dashboardPath}/*`, (_req, res) => {
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    });
-
     return router;
   }
 }

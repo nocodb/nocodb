@@ -129,7 +129,7 @@ onMounted(async () => {
             :style="{
               backgroundColor: app.title === 'SES' ? '#242f3e' : '',
             }"
-            :src="`/${app.logo}`"
+            :src="app.logo"
           />
           <div v-else />
         </div>

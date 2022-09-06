@@ -77,10 +77,11 @@ export const genTest = (apiType, dbType) => {
         });
 
         beforeEach(() => {
-            // fix me!
-            // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
             cy.restoreLocalStorage();
             cy.wait(500);
+
+            // fix me!
+            window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
         });
 
         afterEach(() => {
@@ -385,27 +386,27 @@ export const genTest = (apiType, dbType) => {
                 // validate if form has appeared again
                 validateFormHeader();
 
-                // verify URL & copy it for subsequent test
-                cy.url().should("contain", `Country/Form-1`);
-                cy.url().then((url) => {
-                    cy.log(url);
-                    formViewURL = url;
-                });
-
-                cy.wait(300);
+                // // verify URL & copy it for subsequent test
+                // cy.url().should("contain", `Country/Form-1`);
+                // cy.url().then((url) => {
+                //     cy.log(url);
+                //     formViewURL = url;
+                // });
+                //
+                // cy.wait(300);
             });
 
-            it.skip(`Validate ${viewType}: URL validation after re-access`, () => {
-                // visit URL
-                cy.log(formViewURL);
-
-                cy.visit(formViewURL, {
-                    baseUrl: null,
-                });
-
-                // New form appeared? Header & description should exist
-                validateFormHeader();
-            });
+            // it.skip(`Validate ${viewType}: URL validation after re-access`, () => {
+            //     // visit URL
+            //     cy.log(formViewURL);
+            //
+            //     cy.visit(formViewURL, {
+            //         baseUrl: null,
+            //     });
+            //
+            //     // New form appeared? Header & description should exist
+            //     validateFormHeader();
+            // });
 
             it(`Delete ${viewType} view`, () => {
                 // cy.visit("/");

@@ -57,6 +57,9 @@ const exportFile = async (exportType: ExportTypes) => {
       } else if (exportType === ExportTypes.CSV) {
         const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
         FileSaver.saveAs(blob, `${meta?.value.title}_exported_${c++}.csv`)
+      }else if (exportType === ExportTypes.PDF) {
+        const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
+        FileSaver.saveAs(blob, `${meta?.value.title}_exported_${c++}.csv`)
       }
       offset = +headers['nc-export-offset']
       if (offset > -1) {
@@ -84,6 +87,13 @@ const exportFile = async (exportType: ExportTypes) => {
   <a-menu-item>
     <div v-t="['a:actions:download-excel']" class="nc-project-menu-item" @click="exportFile(ExportTypes.EXCEL)">
       <MdiDownloadOutline class="text-gray-500" />
+      <!-- Download as XLSX -->
+      {{ $t('activity.downloadExcel') }}
+    </div>
+  </a-menu-item>
+  <a-menu-item>
+    <div v-t="['a:actions:download-excel']" class="nc-project-menu-item" @click="exportFile(ExportTypes.PDF)">
+      <MdiFilePdf class="text-gray-500" />
       <!-- Download as XLSX -->
       {{ $t('activity.downloadExcel') }}
     </div>

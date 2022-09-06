@@ -1,3 +1,4 @@
+import { jsPDF } from 'jspdf';
 import Project from '../../../models/Project';
 import Model from '../../../models/Model';
 import View from '../../../models/View';
@@ -109,6 +110,64 @@ export async function extractCsvData(view: View, req: Request) {
   return { offset, dbRows, elapsed, data };
 }
 
+export async function extractPdfData(view: View, req: Request) {
+  const base = await Base.get(view.base_id);
+  const fields = req.query.fields;
+
+  await view.getModelWithInfo();
+  await view.getColumns();
+
+  view.model.columns = view.columns
+    .filter((c) => c.show)
+    .map(
+      (c) =>
+        new Column({ ...c, ...view.model.columnsById[c.fk_column_id] } as any)
+    )
+    .filter((column) => !isSystemColumn(column) || view.show_system_fields);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: view.model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  const { offset, dbRows, elapsed } = await getDbRows(baseModel, view, req);
+
+  function createHeaders(keys) {
+    const result = [];
+    for (let i = 0; i < keys.length; i += 1) {
+      result.push({
+        id: keys[i],
+        name: keys[i],
+        prompt: keys[i],
+        width: 65,
+        align: 'center',
+        padding: 0,
+      });
+    }
+    return result;
+  }
+
+  const headers = createHeaders(
+    view.model.columns
+      .sort((c1, c2) =>
+        Array.isArray(fields)
+          ? fields.indexOf(c1.title as any) - fields.indexOf(c2.title as any)
+          : 0
+      )
+      .filter(
+        (c) =>
+          !fields || !Array.isArray(fields) || fields.includes(c.title as any)
+      )
+      .map((c) => c.title)
+  );
+
+  const doc = new jsPDF({ putOnlyUsedFonts: true, orientation: 'landscape' });
+  doc.table(1, 1, dbRows, headers, { autoSize: true });
+
+  return { offset, dbRows, elapsed, data: doc.output() };
+}
+
 async function getDbRows(baseModel, view: View, req: Request) {
   let offset = +req.query.offset || 0;
   const limit = 100;
@@ -119,12 +178,12 @@ async function getDbRows(baseModel, view: View, req: Request) {
   let elapsed, temp;
 
   const listArgs: any = { ...req.query };
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-    try {
-      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-    } catch (e) {}
+  try {
+    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+  } catch (e) {}
+  try {
+    listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+  } catch (e) {}
 
   for (
     elapsed = 0;
@@ -155,10 +214,11 @@ async function getDbRows(baseModel, view: View, req: Request) {
 
       for (const column of view.model.columns) {
         if (isSystemColumn(column) && !view.show_system_fields) continue;
-        dbRow[column.title] = await serializeCellValue({
+        dbRow[column.title] = JSON.stringify(
+          await serializeCellValue({
           value: row[column.title],
           column,
-        });
+        }));
       }
       dbRows.push(dbRow);
     }
@@ -230,8 +290,10 @@ export async function serializeCellValue({
   }
 }
 
-
-export async function getColumnByIdOrName(columnNameOrId: string, model: Model) {
+export async function getColumnByIdOrName(
+  columnNameOrId: string,
+  model: Model
+) {
   const column = (await model.getColumns()).find(
     (c) =>
       c.title === columnNameOrId ||

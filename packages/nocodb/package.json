@@ -142,6 +142,7 @@
     "json2csv": "^5.0.6",
     "jsonfile": "^6.1.0",
     "jsonwebtoken": "^8.5.1",
+    "jspdf": "^2.5.1",
     "knex": "^0.21.2",
     "lodash": "^4.17.19",
     "lru-cache": "^6.0.0",

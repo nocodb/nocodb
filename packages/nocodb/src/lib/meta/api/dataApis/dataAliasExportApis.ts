@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import {
   extractCsvData,
+  extractPdfData,
   extractXlsxData,
   getViewAndModelFromRequestByAliasOrId,
 } from './helpers';
@@ -49,6 +50,25 @@ async function csvDataExport(req: Request, res: Response) {
   res.send(data);
 }
 
+async function pdfDataExport(req: Request, res: Response) {
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+  let targetView = view;
+  if (!targetView) {
+    targetView = await View.getDefaultView(model.id);
+  }
+  const { offset, elapsed, data } = await extractPdfData(targetView, req);
+
+  res.set({
+    'Access-Control-Expose-Headers': 'nc-export-offset',
+    'nc-export-offset': offset,
+    'nc-export-elapsed-time': elapsed,
+    'Content-Disposition': `attachment; filename="${encodeURI(
+      targetView.title
+    )}-export.pdf"`,
+  });
+  res.send(data);
+}
+
 const router = Router({ mergeParams: true });
 
 router.get(
@@ -60,6 +80,11 @@ router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/export/csv',
   apiMetrics,
   ncMetaAclMw(csvDataExport, 'exportCsv')
+);
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/export/pdf',
+  apiMetrics,
+  ncMetaAclMw(pdfDataExport, 'exportPdf')
 );
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/export/excel',

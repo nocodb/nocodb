@@ -386,14 +386,14 @@ export const genTest = (apiType, dbType) => {
                 // validate if form has appeared again
                 validateFormHeader();
 
-                // verify URL & copy it for subsequent test
-                cy.url().should("contain", `Country/Form-1`);
-                cy.url().then((url) => {
-                    cy.log(url);
-                    formViewURL = url;
-                });
-
-                cy.wait(300);
+                // // verify URL & copy it for subsequent test
+                // cy.url().should("contain", `Country/Form-1`);
+                // cy.url().then((url) => {
+                //     cy.log(url);
+                //     formViewURL = url;
+                // });
+                //
+                // cy.wait(300);
             });
 
             // it.skip(`Validate ${viewType}: URL validation after re-access`, () => {

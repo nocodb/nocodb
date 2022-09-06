@@ -218,6 +218,7 @@ async function relationDataRemove(req, res) {
 }
 
 //@ts-ignore
+// todo: Give proper error message when reference row is already related and handle duplicate ref row id in hm
 async function relationDataAdd(req, res) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   if (!model) NcError.notFound('Table not found');

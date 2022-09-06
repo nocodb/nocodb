@@ -1497,21 +1497,6 @@ function tableTest() {
   //     throw new Error('Wrong columns');
   //   }
   // })
-  
-  it('Create list hm with invalid table id', async () => {
-    const rowId = 1;
-    const rentalListColumn = (await customerTable.getColumns()).find(
-      (column) => column.title === 'Rental List'
-    )!;
-    const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/wrong-id/${rowId}/hm/${rentalListColumn.id}`)
-      .set('xc-auth', context.token)
-      .expect(404);
-
-    if(response.body['msg'] !== 'Table not found') {
-      throw new Error('Wrong error message');
-    }
-  })
 
   it('Nested row list mm', async () => {
     const rowId = 1;
@@ -1569,6 +1554,148 @@ function tableTest() {
     if(response.body['msg'] !== 'Table not found') {
       console.log(response.body)
       throw new Error('Wrong error message');
+    }
+  })
+
+  it('Create hm relation with invalid table id', async () => {
+    const rowId = 1;
+    const rentalListColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'Rental List'
+    )!;
+    const refId = 1;
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+      .set('xc-auth', context.token)
+      .expect(404);
+      global.touchedSakilaDb = true;
+
+    if(response.body['msg'] !== 'Table not found') {
+      throw new Error('Wrong error message');
+    }
+  })
+
+  it('Create list hm wrong column id', async () => {
+    const rowId = 1;
+    const refId = 1;
+
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/invalid-column/${refId}`)
+      .set('xc-auth', context.token)
+      .expect(404);
+    global.touchedSakilaDb = true;
+
+    if(response.body.msg !== "Column with id/name 'invalid-column' is not found") {
+      console.log(response.body)
+      throw new Error('Should error out');
+    }
+  })
+
+  // todo: mm create api does not error out in the case of existing ref row id
+  // it.only('Create list mm existing ref row id', async () => {
+  //   const rowId = 1;
+  //   const rentalListColumn = (await customerTable.getColumns()).find(
+  //     (column) => column.title === 'Rental List'
+  //   )!;
+  //   const refId = 1;
+
+  //   await request(context.app)
+  //     .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+  //     .set('xc-auth', context.token)
+  //     .expect(400)
+      
+
+  //     await request(context.app)
+  //     .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+  //     .set('xc-auth', context.token)
+  //     .expect(400)
+  // })
+
+  it('Create list hm', async () => {
+    const rowId = 1;
+    const rentalListColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'Rental List'
+    )!;
+    const refId = 1;
+
+    const lisResponseBeforeUpdate = await request(context.app)
+    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
+    .set('xc-auth', context.token)
+    .expect(200);
+
+    await request(context.app)
+      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+      global.touchedSakilaDb = true;
+
+    const lisResponseAfterUpdate = await request(context.app)
+    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
+    .set('xc-auth', context.token)
+    .expect(200);
+    
+    if(lisResponseAfterUpdate.body.pageInfo.totalRows !== lisResponseBeforeUpdate.body.pageInfo.totalRows + 1) {
+      throw new Error('Wrong list length');
+    }
+  })
+
+  it('Create list mm wrong column id', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const refId = 1;
+
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/invalid-column/${refId}`)
+      .set('xc-auth', context.token)
+      .expect(404);
+      global.touchedSakilaDb = true;
+
+    if(response.body.msg !== "Column with id/name 'invalid-column' is not found") {
+      console.log(response.body)
+      throw new Error('Should error out');
+    }
+  })
+
+  it('Create list mm existing ref row id', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const filmListColumn = (await actorTable.getColumns()).find(
+      (column) => column.title === 'Film List'
+    )!;
+    const refId = 1;
+
+    await request(context.app)
+      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`)
+      .set('xc-auth', context.token)
+      .expect(400);
+      global.touchedSakilaDb = true;
+  })
+
+  it('Create list mm', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const filmListColumn = (await actorTable.getColumns()).find(
+      (column) => column.title === 'Film List'
+    )!;
+    const refId = 2;
+
+    const lisResponseBeforeUpdate = await request(context.app)
+    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
+    .set('xc-auth', context.token)
+    .expect(200);
+
+    await request(context.app)
+      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+    global.touchedSakilaDb = true;
+
+    const lisResponseAfterUpdate = await request(context.app)
+    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
+    .set('xc-auth', context.token)
+    .expect(200);
+    
+    if(lisResponseAfterUpdate.body.pageInfo.totalRows !== lisResponseBeforeUpdate.body.pageInfo.totalRows + 1) {
+      throw new Error('Wrong list length');
     }
   })
 }

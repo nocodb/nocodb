@@ -157,7 +157,7 @@
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
     "nc-help": "0.2.67",
-    "nc-lib-gui-v2": "0.0.0",
+    "nc-lib-gui": "0.92.4",
     "nc-plugin": "0.1.2",
     "ncp": "^2.0.0",
     "nocodb-sdk": "file:../nocodb-sdk",

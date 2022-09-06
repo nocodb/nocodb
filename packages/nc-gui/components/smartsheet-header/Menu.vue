@@ -29,6 +29,7 @@ const deleteColumn = () =>
         await $api.dbTableColumn.delete(column?.value?.id as string)
 
         await getMeta(meta?.value?.id as string, true)
+        $e('a:column:delete')
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }

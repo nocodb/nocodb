@@ -14,7 +14,7 @@ export function useViewSorts(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
 
   const { isUIAllowed } = useUIPermission()
   const { isSharedBase } = useProject()
@@ -46,11 +46,13 @@ export function useViewSorts(
       if (isUIAllowed('sortSync')) {
         if (sort.id) {
           await $api.dbTableSort.update(sort.id, sort)
+          $e('sort-updated')
         } else {
           sorts.value[i] = (await $api.dbTableSort.create(view?.value?.id as string, sort)) as any
         }
       }
       reloadData?.()
+      $e('a:sort:dir', { direction: sort.direction })
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -63,6 +65,8 @@ export function useViewSorts(
         direction: 'asc',
       },
     ]
+
+    $e('a:sort:add', { length: sorts?.value?.length })
   }
 
   const deleteSort = async (sort: SortType, i: number) => {
@@ -72,6 +76,8 @@ export function useViewSorts(
       }
       sorts.value.splice(i, 1)
       sorts.value = [...sorts.value]
+
+      $e('a:sort:delete')
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))

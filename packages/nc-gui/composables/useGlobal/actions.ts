@@ -1,11 +1,14 @@
 import { message } from 'ant-design-vue'
 import { Api } from 'nocodb-sdk'
 import type { Actions, State } from './types'
+import { useNuxtApp } from '#app'
 import { getI18n } from '~/plugins/a.i18n'
 
 export function useGlobalActions(state: State): Actions {
   /** detached api instance, will not trigger global loading */
   const api = new Api()
+
+  const nuxtApp = useNuxtApp()
 
   const { t } = getI18n().global
 
@@ -28,6 +31,8 @@ export function useGlobalActions(state: State): Actions {
         roles: state.jwtPayload.value.roles,
       }
     }
+
+    nuxtApp.$e?.('a:auth:sign-in')
   }
 
   /** manually try to refresh token */

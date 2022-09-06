@@ -5,6 +5,7 @@ import AppStore from './AppStore.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Misc from './Misc.vue'
+import { useNuxtApp } from '#app'
 import { useI18n, useUIPermission, useVModel, watch } from '#imports'
 import ApiTokenManagement from '~/components/tabs/auth/ApiTokenManagement.vue'
 import UserManagement from '~/components/tabs/auth/UserManagement.vue'
@@ -22,6 +23,7 @@ interface SubTabGroup {
   [key: string]: {
     title: string
     body: any
+    onClick?: () => void
   }
 }
 
@@ -30,6 +32,7 @@ interface TabGroup {
     title: string
     icon: FunctionalComponent<SVGAttributes, {}>
     subTabs: SubTabGroup
+    onClick?: () => void
   }
 }
 
@@ -42,6 +45,8 @@ const vModel = useVModel(props, 'modelValue', emits)
 const { isUIAllowed } = useUIPermission()
 
 const { t } = useI18n()
+
+const { $e } = useNuxtApp()
 
 const tabsInfo: TabGroup = {
   teamAndAuth: {
@@ -63,6 +68,9 @@ const tabsInfo: TabGroup = {
         },
       }),
     },
+    onClick: () => {
+      $e('c:settings:team-auth')
+    },
   },
   appStore: {
     // App Store
@@ -73,6 +81,9 @@ const tabsInfo: TabGroup = {
         title: 'Apps',
         body: AppStore,
       },
+    },
+    onClick: () => {
+      $e('c:settings:appstore')
     },
   },
   metaData: {
@@ -89,11 +100,17 @@ const tabsInfo: TabGroup = {
         // UI Access Control
         title: t('title.uiACL'),
         body: UIAcl,
+        onClick: () => {
+          $e('c:table:ui-acl')
+        },
       },
       misc: {
         title: t('general.misc'),
         body: Misc,
       },
+    },
+    onClick: () => {
+      $e('c:settings:proj-metadata')
     },
   },
   audit: {
@@ -107,9 +124,11 @@ const tabsInfo: TabGroup = {
         body: AuditTab,
       },
     },
+    onClick: () => {
+      $e('c:settings:audit')
+    },
   },
 }
-
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
 // Array of keys of tabs which are selected. In our case will be only one.
@@ -164,7 +183,7 @@ watch(
             :key="key"
             class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
           >
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-2" @click="tab.onClick">
               <component :is="tab.icon" class="group-hover:text-accent" />
 
               <div class="select-none">
@@ -178,7 +197,12 @@ watch(
       <!-- Sub Tabs -->
       <a-layout-content class="h-auto px-4 scrollbar-thumb-gray-500">
         <a-menu v-model:selectedKeys="selectedSubTabKeys" :open-keys="[]" mode="horizontal">
-          <a-menu-item v-for="(tab, key) of selectedTab.subTabs" :key="key" class="active:(!ring-0) select-none">
+          <a-menu-item
+            v-for="(tab, key) of selectedTab.subTabs"
+            :key="key"
+            class="active:(!ring-0) select-none"
+            @click="tab.onClick"
+          >
             {{ tab.title }}
           </a-menu-item>
         </a-menu>

@@ -53,7 +53,7 @@ export function useViewData(
   const isPublic = inject(IsPublicInj, ref(false))
   const { project, isSharedBase } = useProject()
   const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
   const { isUIAllowed } = useUIPermission()
 
@@ -260,6 +260,7 @@ export function useViewData(
   async function changePage(page: number) {
     paginationData.value.page = page
     await loadData({ offset: (page - 1) * (paginationData.value.pageSize || 25), where: where?.value } as any)
+    $e('a:grid:pagination')
   }
 
   async function deleteRowById(id: string) {

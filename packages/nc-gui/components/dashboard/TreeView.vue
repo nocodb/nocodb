@@ -132,7 +132,7 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 
-  $e('c:table:create:navdraw:right-click')
+  // $e('c:table:create:navdraw:right-click')
 }
 
 const reloadTables = async () => {
@@ -142,8 +142,6 @@ const reloadTables = async () => {
 }
 
 const addTableTab = (table: TableType) => {
-  $e('a:table:open')
-
   addTab({ title: table.title, id: table.id, type: table.type as any })
 }
 
@@ -201,7 +199,7 @@ function openAirtableImportDialog() {
 }
 
 function openTableCreateDialog() {
-  $e('a:actions:create-table')
+  $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
 
@@ -375,7 +373,7 @@ function openTableCreateDialog() {
       <template v-if="!isLocked && !isSharedBase" #overlay>
         <a-menu class="!py-0 rounded text-sm">
           <template v-if="contextMenuTarget.type === 'table'">
-            <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value)">
+            <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
               <div class="nc-project-menu-item">
                 {{ $t('general.rename') }}
               </div>

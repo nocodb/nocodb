@@ -115,8 +115,6 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 }
 
 function openCreateTable() {
-  $e('a:table:open')
-
   const isOpen = ref(true)
   const { close } = useDialog(DlgTableCreate, {
     'modelValue': isOpen,

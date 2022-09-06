@@ -26,7 +26,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
       </a-list-item>
       <a-list-item>
         <nuxt-link
-          v-t="['e:docs']"
+          v-t="['e:api-docs']"
           class="text-primary !no-underline !text-current"
           target="_blank"
           to="https://apis.nocodb.com/"
@@ -39,7 +39,12 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link class="text-primary !no-underline !text-current" to="https://github.com/nocodb/nocodb" target="_blank">
+        <nuxt-link
+          v-t="['e:community:github']"
+          class="text-primary !no-underline !text-current"
+          to="https://github.com/nocodb/nocodb"
+          target="_blank"
+        >
           <div class="flex items-center text-sm">
             <mdi-github class="mx-3 text-lg" />
             <div v-if="isRtlLang">
@@ -60,7 +65,12 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link class="!no-underline !text-current" to="https://calendly.com/nocodb-meeting" target="_blank">
+        <nuxt-link
+          v-t="['e:community:book-demo']"
+          class="!no-underline !text-current"
+          to="https://calendly.com/nocodb-meeting"
+          target="_blank"
+        >
           <div class="flex items-center text-sm">
             <mdi-calendar-month class="mx-3 text-lg" :color="colors.dark[3 % colors.dark.length]" />
             <!-- Book a Free DEMO -->
@@ -71,7 +81,12 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link class="!no-underline !text-current" to="https://discord.gg/5RgZmkW" target="_blank">
+        <nuxt-link
+          v-t="['e:community:discord']"
+          class="!no-underline !text-current"
+          to="https://discord.gg/5RgZmkW"
+          target="_blank"
+        >
           <div class="flex items-center text-sm">
             <mdi-discord class="mx-3 text-lg" :color="colors.dark[0 % colors.dark.length]" />
             <!-- Get your questions answered -->
@@ -82,7 +97,12 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link class="!no-underline !text-current" to="https://twitter.com/NocoDB" target="_blank">
+        <nuxt-link
+          v-t="['e:community:twitter']"
+          class="!no-underline !text-current"
+          to="https://twitter.com/NocoDB"
+          target="_blank"
+        >
           <div class="flex items-center text-sm">
             <mdi-twitter class="mx-3 text-lg" :color="colors.dark[1 % colors.dark.length]" />
             <!-- Follow NocoDB -->
@@ -103,7 +123,12 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link v-t="['e:reddit']" class="!no-underline !text-current" target="_blank" to="https://www.reddit.com/r/NocoDB/">
+        <nuxt-link
+          v-t="['e:community:reddit']"
+          class="!no-underline !text-current"
+          target="_blank"
+          to="https://www.reddit.com/r/NocoDB/"
+        >
           <div class="ml-3 flex items-center text-sm">
             <LogosRedditIcon />
             <span class="ml-4">/r/NocoDB/</span>

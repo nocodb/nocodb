@@ -57,7 +57,13 @@ onMounted(() => {
   <div class="">
     <div class="mb-2">
       <div class="float-left font-bold text-xl mt-2 mb-4">{{ meta.title }} : Webhooks</div>
-      <a-button class="float-right nc-btn-create-webhook" type="primary" size="large" @click="emit('add')">
+      <a-button
+        v-t="['c:webhook:add']"
+        class="float-right nc-btn-create-webhook"
+        type="primary"
+        size="large"
+        @click="emit('add')"
+      >
         {{ $t('activity.addWebhook') }}
       </a-button>
     </div>

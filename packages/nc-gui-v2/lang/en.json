@@ -287,7 +287,11 @@
     "manyToMany": "have many to many relation",
     "extraConnectionParameters": "Extra connection parameters",
     "commentsOnly": "Comments only",
-    "documentation": "Documentation"
+    "documentation": "Documentation",
+    "subscribeNewsletter": "Subscribe to our weekly newsletter",
+    "signUpWithGoogle": "Sign up with Google",
+    "agreeToTos": "By signing up, you agree to the Terms of Service",
+    "welcomeToNc": "Welcome to NocoDB!"
   },
   "activity": {
     "createProject": "Create Project",
@@ -581,7 +585,13 @@
         "emailInvalid": "E-mail must be valid",
         "passwdRequired": "Password is required",
         "passwdLength": "You password must be atleast 8 characters",
-        "passwdMismatch": "Passwords do not match"
+        "passwdMismatch": "Passwords do not match",
+        "completeRuleSet": "At least 8 characters with one Uppercase, one number and one special character",
+        "atLeast8Char": "At least 8 characters",
+        "atLeastOneUppercase": "One Uppercase letter",
+        "atLeastOneNumber": "One Number",
+        "atLeastOneSpecialChar": "One special character",
+        "allowedSpecialCharList": "Allowed special character list"
       },
       "invalidURL": "Invalid URL",
       "internalError": "Some internal error occurred",

@@ -215,7 +215,9 @@ const copyAuthToken = async () => {
                       <MdiFolder class="group-hover:text-accent text-xl" />
 
                       <div class="flex flex-col">
-                        <div class="text-lg group-hover:(!text-primary) font-semibold truncate">{{ project.title }}</div>
+                        <div class="text-lg group-hover:(!text-primary) font-semibold">
+                          <GeneralTruncateText>{{ project.title }}</GeneralTruncateText>
+                        </div>
 
                         <div v-if="!isSharedBase" class="flex items-center gap-1">
                           <div class="group-hover:(!text-primary)">ID:</div>

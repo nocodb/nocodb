@@ -127,8 +127,8 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
         return column
       })
 
+      await loadViewColumns()
       reloadData?.()
-      return
     }
 
     if (isUIAllowed('fieldsSync')) {
@@ -143,7 +143,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
         return insertedField
       }
     }
-
+    await loadViewColumns()
     reloadData?.()
   }
 
@@ -202,7 +202,14 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   })
 
   // reload view columns when table meta changes
-  watch(meta, () => loadViewColumns())
+  watch(
+    meta,
+    async (newVal, oldVal) => {
+      if (newVal !== oldVal && meta.value) {
+        await loadViewColumns()
+      }
+    },
+  )
 
   return {
     fields,

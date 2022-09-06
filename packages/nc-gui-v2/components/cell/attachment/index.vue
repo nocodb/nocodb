@@ -6,9 +6,10 @@ import Modal from './Modal.vue'
 import Carousel from './Carousel.vue'
 import {
   IsFormInj,
-  computed,
+  IsGalleryInj,
   inject,
   isImage,
+  nextTick,
   openLink,
   ref,
   useDropZone,
@@ -32,6 +33,8 @@ const emits = defineEmits<Emits>()
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isGallery = inject(IsGalleryInj, ref(false))
+
 const attachmentCellRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
@@ -52,10 +55,30 @@ const {
   storedFiles,
 } = useProvideAttachmentCell(updateModelValue)
 
-const currentCellRef = computed(() =>
-  !rowIndex && isForm.value
-    ? attachmentCellRef.value
-    : cellRefs.value.find((cell) => cell.dataset.key === `${rowIndex}${column.value.id}`),
+const currentCellRef = ref()
+
+watch(
+  [() => rowIndex, isForm],
+  () => {
+    if (!rowIndex && isForm.value && isGallery.value) {
+      currentCellRef.value = attachmentCellRef.value
+    } else {
+      nextTick(() => {
+        const nextCell = cellRefs.value.reduceRight((cell, curr) => {
+          if (!cell && curr.dataset.key === `${rowIndex}${column.value.id}`) cell = curr
+
+          return cell
+        }, undefined as HTMLTableDataCellElement | undefined)
+
+        if (!nextCell) {
+          currentCellRef.value = attachmentCellRef.value
+        } else {
+          currentCellRef.value = nextCell
+        }
+      })
+    }
+  },
+  { immediate: true, flush: 'post' },
 )
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)

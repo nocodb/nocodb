@@ -7,6 +7,7 @@ import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import {
   ActiveViewInj,
   IsFormInj,
+  IsGalleryInj,
   MetaInj,
   computed,
   extractSdkResponseErrorMsg,
@@ -25,6 +26,7 @@ import {
 } from '#imports'
 
 provide(IsFormInj, ref(true))
+provide(IsGalleryInj, ref(false))
 
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
@@ -202,7 +204,8 @@ function hideColumn(idx: number) {
     },
     idx,
   )
-  ;(localColumns.value[idx] as any).show = false
+
+  reloadEventHook.trigger()
 
   $e('a:form-view:hide-columns')
 }

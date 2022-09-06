@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { message } from 'ant-design-vue'
 import { computed, inject, useMetas, watchEffect } from '#imports'
 import { MetaInj, ReloadViewDataHookInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
@@ -9,18 +10,18 @@ import MdiIdentifierIcon from '~icons/mdi/identifier'
 
 const emit = defineEmits(['submit', 'cancel'])
 
-const meta = inject(MetaInj)
-
 const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeChange, validateInfos, isEdit } =
   useColumnCreateStoreOrThrow()
+
+const { getMeta } = useMetas()
+
+const { t } = useI18n()
+
+const meta = inject(MetaInj)
 
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
-
-const { getMeta } = useMetas()
-
-const editOrAddRef = ref<HTMLElement>()
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -72,6 +73,11 @@ watchEffect(() => {
 onMounted(() => {
   if (isEdit.value === false) {
     generateNewColumnMeta()
+  } else {
+    if (formState.value.pk) {
+      message.info(t('msg.info.editingPKnotSupported'))
+      emit('cancel')
+    }
   }
 
   // for cases like formula
@@ -79,28 +85,10 @@ onMounted(() => {
     formState.value.column_name = formState.value?.title
   }
 })
-
-const handleClose = (e: MouseEvent) => {
-  const target = e.target as HTMLElement
-
-  if (
-    target &&
-    editOrAddRef?.value &&
-    !editOrAddRef.value.contains(target) &&
-    !target.closest('.ant-dropdown') &&
-    !target.closest('.ant-select') &&
-    !target.closest('.ant-select-item')
-  ) {
-    emit('cancel')
-  }
-}
-
-useEventListener(document, 'click', handleClose)
 </script>
 
 <template>
   <div
-    ref="editOrAddRef"
     class="w-[400px] max-h-[95vh] bg-gray-50 shadow-lg p-6 overflow-auto !border"
     :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
     @click.stop

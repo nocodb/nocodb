@@ -1574,6 +1574,24 @@ function tableTest() {
     }
   })
 
+  it('Create hm relation with non ltar column', async () => {
+    const rowId = 1;
+    const firstNameColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'FirstName'
+    )!;
+    const refId = 1;
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}/${refId}`)
+      .set('xc-auth', context.token)
+      .expect(404);
+      global.touchedSakilaDb = true;
+
+    if(response.body['msg'] !== 'Column not found' ) {
+      console.log(response.body)
+      throw new Error('Wrong error message');
+    }
+  })
+
   it('Create list hm wrong column id', async () => {
     const rowId = 1;
     const refId = 1;
@@ -1655,6 +1673,26 @@ function tableTest() {
     }
   })
 
+
+  it('Create mm relation with non ltar column', async () => {
+    const rowId = 1;
+    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const firstNameColumn = (await actorTable.getColumns()).find(
+      (column) => column.title === 'FirstName'
+    )!;
+    const refId = 1;
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${firstNameColumn.id}/${refId}`)
+      .set('xc-auth', context.token)
+      .expect(404);
+      global.touchedSakilaDb = true;
+
+    if(response.body['msg'] !== 'Column not found' ) {
+      console.log(response.body)
+      throw new Error('Wrong error message');
+    }
+  })
+
   it('Create list mm existing ref row id', async () => {
     const rowId = 1;
     const actorTable = await getTable({project: sakilaProject, name: 'actor'});
@@ -1697,6 +1735,30 @@ function tableTest() {
     if(lisResponseAfterUpdate.body.pageInfo.totalRows !== lisResponseBeforeUpdate.body.pageInfo.totalRows + 1) {
       throw new Error('Wrong list length');
     }
+  })
+
+  it('List hm with non ltar column', async () => {
+    const rowId = 1;
+    const firstNameColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'FirstName'
+    )!;
+
+    await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}`)
+      .set('xc-auth', context.token)
+      .expect(400)
+  })
+
+  it('List mm with non ltar column', async () => {
+    const rowId = 1;
+    const firstNameColumn = (await customerTable.getColumns()).find(
+      (column) => column.title === 'FirstName'
+    )!;
+
+    await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/mm/${firstNameColumn.id}`)
+      .set('xc-auth', context.token)
+      .expect(400)
   })
 }
 

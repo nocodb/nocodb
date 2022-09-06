@@ -8,6 +8,7 @@ import { getColumnByIdOrName, getViewAndModelFromRequestByAliasOrId } from './he
 import { NcError } from '../../helpers/catchError';
 import apiMetrics from '../../helpers/apiMetrics';
 
+// todo: handle case where the given column is not ltar
 export async function mmList(req: Request, res: Response, next) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
@@ -157,6 +158,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
   );
 }
 
+// todo: handle case where the given column is not ltar
 export async function hmList(req: Request, res: Response, next) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   if (!model) return next(new Error('Table not found'));

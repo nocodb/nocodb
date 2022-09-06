@@ -395,17 +395,17 @@ export const genTest = (apiType, dbType) => {
                 cy.wait(300);
             });
 
-            it.skip(`Validate ${viewType}: URL validation after re-access`, () => {
-                // visit URL
-                cy.log(formViewURL);
-
-                cy.visit(formViewURL, {
-                    baseUrl: null,
-                });
-
-                // New form appeared? Header & description should exist
-                validateFormHeader();
-            });
+            // it.skip(`Validate ${viewType}: URL validation after re-access`, () => {
+            //     // visit URL
+            //     cy.log(formViewURL);
+            //
+            //     cy.visit(formViewURL, {
+            //         baseUrl: null,
+            //     });
+            //
+            //     // New form appeared? Header & description should exist
+            //     validateFormHeader();
+            // });
 
             it(`Delete ${viewType} view`, () => {
                 // cy.visit("/");

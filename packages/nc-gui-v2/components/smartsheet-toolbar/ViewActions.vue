@@ -89,7 +89,9 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
             class="nc-view-icon group-hover:hidden"
             :style="{ color: viewIcons[selectedView?.type].color }"
           />
-          <span class="!text-sm font-weight-normal">{{ selectedView?.title }}</span>
+          <span class="!text-sm font-weight-normal"
+            ><GeneralTruncateText>{{ selectedView?.title }}</GeneralTruncateText></span
+          >
           <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
           <MdiMenuDown class="text-grey" />
         </div>

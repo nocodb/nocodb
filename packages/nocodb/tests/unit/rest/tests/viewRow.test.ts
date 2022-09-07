@@ -540,6 +540,74 @@ function viewRowTests() {
   it('Create table row wrong form id', async function () {
     await testCreateRowViewWithWrongView(ViewTypes.FORM);
   });
+
+  // todo: Test that all the columns needed to be shown in the view are returned
+
+  const testFindOneSortedDataWithRequiredColumns = async (viewType: ViewTypes) => {
+    const view = await createView(context, {
+      title: 'View', 
+      table: customerTable,
+      type: viewType
+    });
+    const firstNameColumn = customerColumns.find(
+      (col) => col.title === 'FirstName'
+    );
+    const visibleColumns = [firstNameColumn];
+
+    let response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/find-one`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: '-FirstName',
+      })
+      .expect(200);
+
+    if (!isColumnsCorrectInResponse(response.body, visibleColumns)) {
+      console.log(response.body.list);
+      throw new Error('Wrong columns');
+    }
+
+    if (response.body[firstNameColumn.title] !== 'ZACHARY') {
+      console.log(response.body);
+      throw new Error('Wrong sort');
+    }
+
+    response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/find-one`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: 'FirstName',
+      })
+      .expect(200);
+
+    if (!isColumnsCorrectInResponse(response.body, visibleColumns)) {
+      console.log(response.body.list);
+      throw new Error('Wrong columns');
+    }
+
+    if (response.body[firstNameColumn.title] !== 'AARON') {
+      console.log(response.body);
+      throw new Error('Wrong sort');
+    }
+  }
+
+  it('Find one sorted data list with required columns gallery', async function () {
+    await testFindOneSortedDataWithRequiredColumns(ViewTypes.GALLERY);
+  });
+
+  it('Find one sorted data list with required columns form', async function () {
+    await testFindOneSortedDataWithRequiredColumns(ViewTypes.FORM);
+  });
+
+  it('Find one sorted data list with required columns grid', async function () {
+    await testFindOneSortedDataWithRequiredColumns(ViewTypes.GRID);
+  });
 }
 
 export default function () {

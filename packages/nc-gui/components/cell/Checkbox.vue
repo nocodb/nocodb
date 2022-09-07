@@ -55,6 +55,7 @@ function onClick() {
   </div>
 </template>
 
+
 <style scoped lang="scss">
 .nc-cell-hover-show {
   opacity: 0;

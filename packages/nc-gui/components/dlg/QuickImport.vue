@@ -270,6 +270,17 @@ function getAdapter(name: string, val: any) {
 defineExpose({
   handleChange,
 })
+
+/** a workaround to override default antd upload api call */
+const customReqCbk = (o) => {
+  importState.fileList.forEach((f) => {
+    if (f.uid === o.file.uid) {
+      f.status = 'done'
+      handleChange({ file: f, fileList: importState.fileList })
+    }
+  })
+  o.onSuccess()
+}
 </script>
 
 <template>
@@ -310,6 +321,7 @@ defineExpose({
                 list-type="picture"
                 @change="handleChange"
                 @reject="rejectDrop"
+                :customRequest="customReqCbk"
               >
                 <MdiFilePlusOutline size="large" />
 
@@ -407,7 +419,8 @@ defineExpose({
         {{ $t('activity.import') }}
       </a-button>
 
-      <a-button v-else key="import" type="primary" :loading="loading" :disabled="disableImportButton" @click="handleImport">
+      <a-button v-else key="import" type="primary" :loading="loading" :disabled="disableImportButton"
+                @click="handleImport">
         {{ $t('activity.import') }}
       </a-button>
     </template>

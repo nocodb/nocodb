@@ -20,6 +20,7 @@ const {
 
 const driverClientMapping = {
   mysql: 'mysql2',
+  mariadb: 'mysql2',
   postgres: 'pg',
   postgresql: 'pg',
   sqlite: 'sqlite3',

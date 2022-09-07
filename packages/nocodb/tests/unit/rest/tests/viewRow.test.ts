@@ -514,5 +514,5 @@ function viewRowTests() {
 }
 
 export default function () {
-  describe.only('ViewRow', viewRowTests);
+  describe('ViewRow', viewRowTests);
 }

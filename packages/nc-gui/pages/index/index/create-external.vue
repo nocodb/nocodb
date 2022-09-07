@@ -181,7 +181,7 @@ function getConnectionConfig() {
   if ('ssl' in connection && connection.ssl) {
     if (
       formState.sslUse === SSLUsage.No ||
-      (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => !v))
+      (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => v === null || v === undefined))
     ) {
       delete connection.ssl
     }

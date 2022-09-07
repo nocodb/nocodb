@@ -1,22 +1,22 @@
-import fs from 'fs';
-import parseDbUrl from 'parse-database-url';
-import { URL } from 'url';
+import fs from 'fs'
+import parseDbUrl from 'parse-database-url'
+import { URL } from 'url'
 
 import {
   AuthConfig,
   DbConfig,
   MailerConfig,
   NcConfig,
-} from '../../interface/config';
-import * as path from 'path';
-import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
+} from '../../interface/config'
+import * as path from 'path'
+import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory'
 
 const {
   uniqueNamesGenerator,
   starWars,
   adjectives,
   animals,
-} = require('unique-names-generator');
+} = require('unique-names-generator')
 
 const driverClientMapping = {
   mysql: 'mysql2',
@@ -25,7 +25,7 @@ const driverClientMapping = {
   postgresql: 'pg',
   sqlite: 'sqlite3',
   mssql: 'mssql',
-};
+}
 
 const defaultClientPortMapping = {
   mysql: 3306,
@@ -33,13 +33,13 @@ const defaultClientPortMapping = {
   postgres: 5432,
   pg: 5432,
   mssql: 1433,
-};
+}
 
 const defaultConnectionConfig: any = {
   // https://github.com/knex/knex/issues/97
   // timezone: process.env.NC_TIMEZONE || 'UTC',
   dateStrings: true,
-};
+}
 
 const knownQueryParams = [
   {
@@ -78,51 +78,51 @@ const knownQueryParams = [
     parameter: 'options',
     aliases: ['opt', 'opts'],
   },
-];
+]
 
 export default class NcConfigFactory implements NcConfig {
   public static make(): NcConfig {
-    this.jdbcToXcUrl();
+    this.jdbcToXcUrl()
 
-    const ncConfig = new NcConfigFactory();
+    const ncConfig = new NcConfigFactory()
 
     ncConfig.auth = {
       jwt: {
         secret: process.env.NC_AUTH_JWT_SECRET,
       },
-    };
+    }
 
-    ncConfig.port = +(process?.env?.PORT ?? 8080);
-    ncConfig.env = '_noco'; // process.env?.NODE_ENV || 'dev';
-    ncConfig.workingEnv = '_noco'; // process.env?.NODE_ENV || 'dev';
+    ncConfig.port = +(process?.env?.PORT ?? 8080)
+    ncConfig.env = '_noco' // process.env?.NODE_ENV || 'dev';
+    ncConfig.workingEnv = '_noco' // process.env?.NODE_ENV || 'dev';
     // ncConfig.toolDir = this.getToolDir();
     ncConfig.projectType =
-      ncConfig?.envs?.[ncConfig.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest';
+      ncConfig?.envs?.[ncConfig.workingEnv]?.db?.[0]?.meta?.api?.type || 'rest'
 
     if (ncConfig.meta?.db?.connection?.filename) {
       ncConfig.meta.db.connection.filename = path.join(
         this.getToolDir(),
-        ncConfig.meta.db.connection.filename
-      );
+        ncConfig.meta.db.connection.filename,
+      )
     }
 
     if (process.env.NC_DB) {
-      ncConfig.meta.db = this.metaUrlToDbConfig(process.env.NC_DB);
+      ncConfig.meta.db = this.metaUrlToDbConfig(process.env.NC_DB)
     } else if (process.env.NC_DB_JSON) {
-      ncConfig.meta.db = JSON.parse(process.env.NC_DB_JSON);
+      ncConfig.meta.db = JSON.parse(process.env.NC_DB_JSON)
     } else if (process.env.NC_DB_JSON_FILE) {
-      const filePath = process.env.NC_DB_JSON_FILE;
+      const filePath = process.env.NC_DB_JSON_FILE
 
       if (!fs.existsSync(filePath)) {
-        throw new Error(`NC_DB_JSON_FILE not found: ${filePath}`);
+        throw new Error(`NC_DB_JSON_FILE not found: ${filePath}`)
       }
 
-      const fileContent = fs.readFileSync(filePath, { encoding: 'utf8' });
-      ncConfig.meta.db = JSON.parse(fileContent);
+      const fileContent = fs.readFileSync(filePath, { encoding: 'utf8' })
+      ncConfig.meta.db = JSON.parse(fileContent)
     }
 
     if (process.env.NC_TRY) {
-      ncConfig.try = true;
+      ncConfig.try = true
       ncConfig.meta.db = {
         client: 'sqlite3',
         connection: ':memory:',
@@ -132,54 +132,54 @@ export default class NcConfigFactory implements NcConfig {
           // disposeTimeout: 360000*1000,
           idleTimeoutMillis: 360000 * 1000,
         },
-      } as any;
+      } as any
     }
 
     if (process.env.NC_PUBLIC_URL) {
-      ncConfig.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
+      ncConfig.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL
       // ncConfig.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
-      ncConfig.publicUrl = process.env.NC_PUBLIC_URL;
+      ncConfig.publicUrl = process.env.NC_PUBLIC_URL
     }
 
     if (process.env.NC_DASHBOARD_URL) {
-      ncConfig.dashboardPath = process.env.NC_DASHBOARD_URL;
+      ncConfig.dashboardPath = process.env.NC_DASHBOARD_URL
     }
 
-    return ncConfig;
+    return ncConfig
   }
 
   public static getToolDir() {
-    return process.env.NC_TOOL_DIR || process.cwd();
+    return process.env.NC_TOOL_DIR || process.cwd()
   }
 
   public static hasDbUrl(): boolean {
     return Object.keys(process.env).some((envKey) =>
-      envKey.startsWith('NC_DB_URL')
-    );
+      envKey.startsWith('NC_DB_URL'),
+    )
   }
 
   public static makeFromUrls(urls: string[]): NcConfig {
-    const config = new NcConfigFactory();
+    const config = new NcConfigFactory()
 
     // config.envs[process.env.NODE_ENV || 'dev'].db = [];
-    config.envs['_noco'].db = [];
+    config.envs['_noco'].db = []
     for (const [i, url] of Object.entries(urls)) {
       // config.envs[process.env.NODE_ENV || 'dev'].db.push(this.urlToDbConfig(url, i));
-      config.envs['_noco'].db.push(this.urlToDbConfig(url, i));
+      config.envs['_noco'].db.push(this.urlToDbConfig(url, i))
     }
 
-    return config;
+    return config
   }
 
   public static urlToDbConfig(
     urlString: string,
     key = '',
     config?: NcConfigFactory,
-    type?: string
+    type?: string,
   ): DbConfig {
-    const url = new URL(urlString);
+    const url = new URL(urlString)
 
-    let dbConfig: DbConfig;
+    let dbConfig: DbConfig
 
     if (url.protocol.startsWith('sqlite3')) {
       dbConfig = {
@@ -194,17 +194,17 @@ export default class NcConfigFactory implements NcConfig {
             url.searchParams.get('d') || url.searchParams.get('database'),
           useNullAsDefault: true,
         },
-      } as any;
+      } as any
     } else {
-      const parsedQuery = {};
+      const parsedQuery = {}
       for (const [key, value] of url.searchParams.entries()) {
         const fnd = knownQueryParams.find(
-          (param) => param.parameter === key || param.aliases.includes(key)
-        );
+          (param) => param.parameter === key || param.aliases.includes(key),
+        )
         if (fnd) {
-          parsedQuery[fnd.parameter] = value;
+          parsedQuery[fnd.parameter] = value
         } else {
-          parsedQuery[key] = value;
+          parsedQuery[key] = value
         }
       }
 
@@ -220,10 +220,10 @@ export default class NcConfigFactory implements NcConfig {
         //   max: 1
         // },
         acquireConnectionTimeout: 600000,
-      } as any;
+      } as any
 
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
-        dbConfig.connection.ssl = true;
+        dbConfig.connection.ssl = true
       }
 
       if (
@@ -235,7 +235,7 @@ export default class NcConfigFactory implements NcConfig {
           keyFilePath: url.searchParams.get('keyFilePath'),
           certFilePath: url.searchParams.get('certFilePath'),
           caFilePath: url.searchParams.get('caFilePath'),
-        };
+        }
       }
     }
 
@@ -243,7 +243,7 @@ export default class NcConfigFactory implements NcConfig {
       config.title =
         url.searchParams.get('t') ||
         url.searchParams.get('title') ||
-        this.generateRandomTitle();
+        this.generateRandomTitle()
     }
 
     Object.assign(dbConfig, {
@@ -268,28 +268,28 @@ export default class NcConfigFactory implements NcConfig {
           name: 'nc_evolutions',
         },
       },
-    });
+    })
 
-    return dbConfig;
+    return dbConfig
   }
 
   private static generateRandomTitle(): string {
     return uniqueNamesGenerator({
       dictionaries: [[starWars], [adjectives, animals]][
         Math.floor(Math.random() * 2)
-      ],
+        ],
     })
       .toLowerCase()
-      .replace(/[ -]/g, '_');
+      .replace(/[ -]/g, '_')
   }
 
   static metaUrlToDbConfig(urlString) {
-    const url = new URL(urlString);
+    const url = new URL(urlString)
 
-    let dbConfig;
+    let dbConfig
 
     if (url.protocol.startsWith('sqlite3')) {
-      const db = url.searchParams.get('d') || url.searchParams.get('database');
+      const db = url.searchParams.get('d') || url.searchParams.get('database')
       dbConfig = {
         client: 'sqlite3',
         connection: {
@@ -297,25 +297,25 @@ export default class NcConfigFactory implements NcConfig {
         },
         ...(db === ':memory:'
           ? {
-              pool: {
-                min: 1,
-                max: 1,
-                // disposeTimeout: 360000*1000,
-                idleTimeoutMillis: 360000 * 1000,
-              },
-            }
+            pool: {
+              min: 1,
+              max: 1,
+              // disposeTimeout: 360000*1000,
+              idleTimeoutMillis: 360000 * 1000,
+            },
+          }
           : {}),
-      };
+      }
     } else {
-      const parsedQuery = {};
+      const parsedQuery = {}
       for (const [key, value] of url.searchParams.entries()) {
         const fnd = knownQueryParams.find(
-          (param) => param.parameter === key || param.aliases.includes(key)
-        );
+          (param) => param.parameter === key || param.aliases.includes(key),
+        )
         if (fnd) {
-          parsedQuery[fnd.parameter] = value;
+          parsedQuery[fnd.parameter] = value
         } else {
-          parsedQuery[key] = value;
+          parsedQuery[key] = value
         }
       }
 
@@ -329,22 +329,22 @@ export default class NcConfigFactory implements NcConfig {
         acquireConnectionTimeout: 600000,
         ...(url.searchParams.has('search_path')
           ? {
-              searchPath: url.searchParams.get('search_path').split(','),
-            }
+            searchPath: url.searchParams.get('search_path').split(','),
+          }
           : {}),
-      };
+      }
       if (process.env.NODE_TLS_REJECT_UNAUTHORIZED) {
-        dbConfig.connection.ssl = true;
+        dbConfig.connection.ssl = true
       }
     }
     url.searchParams.forEach((_value, key) => {
-      let value: any = _value;
+      let value: any = _value
       if (value === 'true') {
-        value = true;
+        value = true
       } else if (value === 'false') {
-        value = false;
+        value = false
       } else if (/^\d+$/.test(value)) {
-        value = +value;
+        value = +value
       }
       // todo: implement config read from JSON file or JSON env val read
       if (
@@ -359,10 +359,10 @@ export default class NcConfigFactory implements NcConfig {
         ].includes(key)
       ) {
         key.split('.').reduce((obj, k, i, arr) => {
-          return (obj[k] = i === arr.length - 1 ? value : obj[k] || {});
-        }, dbConfig);
+          return (obj[k] = i === arr.length - 1 ? value : obj[k] || {})
+        }, dbConfig)
       }
-    });
+    })
 
     if (
       dbConfig?.connection?.ssl &&
@@ -371,12 +371,12 @@ export default class NcConfigFactory implements NcConfig {
       if (dbConfig.connection.ssl.caFilePath && !dbConfig.connection.ssl.ca) {
         dbConfig.connection.ssl.ca = fs
           .readFileSync(dbConfig.connection.ssl.caFilePath)
-          .toString();
+          .toString()
       }
       if (dbConfig.connection.ssl.keyFilePath && !dbConfig.connection.ssl.key) {
         dbConfig.connection.ssl.key = fs
           .readFileSync(dbConfig.connection.ssl.keyFilePath)
-          .toString();
+          .toString()
       }
       if (
         dbConfig.connection.ssl.certFilePath &&
@@ -384,29 +384,32 @@ export default class NcConfigFactory implements NcConfig {
       ) {
         dbConfig.connection.ssl.cert = fs
           .readFileSync(dbConfig.connection.ssl.certFilePath)
-          .toString();
+          .toString()
+      }
+      if (dbConfig?.connection?.ssl === 'rejectUnauthorized') {
+        dbConfig.connection.ssl = { rejectUnauthorized: false }
       }
     }
 
-    return dbConfig;
+    return dbConfig
   }
 
   public static makeProjectConfigFromUrl(url, type?: string): NcConfig {
-    const config = new NcConfigFactory();
-    const dbConfig = this.urlToDbConfig(url, '', config, type);
+    const config = new NcConfigFactory()
+    const dbConfig = this.urlToDbConfig(url, '', config, type)
     // config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
-    config.envs['_noco'].db.push(dbConfig);
+    config.envs['_noco'].db.push(dbConfig)
 
     if (process.env.NC_AUTH_ADMIN_SECRET) {
       config.auth = {
         masterKey: {
           secret: process.env.NC_AUTH_ADMIN_SECRET,
         },
-      };
+      }
     } else if (process.env.NC_NO_AUTH) {
       config.auth = {
         disabled: true,
-      };
+      }
       // } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
     } else if (config?.envs?.['_noco']?.db?.[0]) {
       config.auth = {
@@ -417,15 +420,15 @@ export default class NcConfigFactory implements NcConfig {
             config.envs['_noco'].db[0].meta.dbAlias,
           secret: process.env.NC_AUTH_JWT_SECRET,
         },
-      };
+      }
     }
 
     if (process.env.NC_DB) {
-      config.meta.db = this.metaUrlToDbConfig(process.env.NC_DB);
+      config.meta.db = this.metaUrlToDbConfig(process.env.NC_DB)
     }
 
     if (process.env.NC_TRY) {
-      config.try = true;
+      config.try = true
       config.meta.db = {
         client: 'sqlite3',
         connection: ':memory:',
@@ -435,7 +438,7 @@ export default class NcConfigFactory implements NcConfig {
           // disposeTimeout: 360000*1000,
           idleTimeoutMillis: 360000 * 1000,
         },
-      } as any;
+      } as any
     }
 
     if (process.env.NC_MAILER) {
@@ -450,35 +453,35 @@ export default class NcConfigFactory implements NcConfig {
             pass: process.env.NC_MAILER_PASS,
           },
         },
-      };
+      }
     }
 
     if (process.env.NC_PUBLIC_URL) {
       // config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
-      config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
-      config.publicUrl = process.env.NC_PUBLIC_URL;
+      config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL
+      config.publicUrl = process.env.NC_PUBLIC_URL
     }
 
-    config.port = +(process?.env?.PORT ?? 8080);
+    config.port = +(process?.env?.PORT ?? 8080)
     // config.env = process.env?.NODE_ENV || 'dev';
     // config.workingEnv = process.env?.NODE_ENV || 'dev';
-    config.env = '_noco';
-    config.workingEnv = '_noco';
-    config.toolDir = this.getToolDir();
+    config.env = '_noco'
+    config.workingEnv = '_noco'
+    config.toolDir = this.getToolDir()
     config.projectType =
       type ||
       config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type ||
-      'rest';
+      'rest'
 
-    return config;
+    return config
   }
 
   public static makeProjectConfigFromConnection(
     dbConnectionConfig: any,
-    type?: string
+    type?: string,
   ): NcConfig {
-    const config = new NcConfigFactory();
-    let dbConfig = dbConnectionConfig;
+    const config = new NcConfigFactory()
+    let dbConfig = dbConnectionConfig
 
     if (dbConfig.client === 'sqlite3') {
       dbConfig = {
@@ -488,11 +491,11 @@ export default class NcConfigFactory implements NcConfig {
           database: dbConnectionConfig.connection.filename,
           useNullAsDefault: true,
         },
-      };
+      }
     }
 
     // todo:
-    const key = '';
+    const key = ''
     Object.assign(dbConfig, {
       meta: {
         tn: 'nc_evolutions',
@@ -508,21 +511,21 @@ export default class NcConfigFactory implements NcConfig {
           name: 'nc_evolutions',
         },
       },
-    });
+    })
 
     // config.envs[process.env.NODE_ENV || 'dev'].db.push(dbConfig);
-    config.envs['_noco'].db.push(dbConfig);
+    config.envs['_noco'].db.push(dbConfig)
 
     if (process.env.NC_AUTH_ADMIN_SECRET) {
       config.auth = {
         masterKey: {
           secret: process.env.NC_AUTH_ADMIN_SECRET,
         },
-      };
+      }
     } else if (process.env.NC_NO_AUTH) {
       config.auth = {
         disabled: true,
-      };
+      }
       // } else if (config?.envs?.[process.env.NODE_ENV || 'dev']?.db?.[0]) {
     } else if (config?.envs?.['_noco']?.db?.[0]) {
       config.auth = {
@@ -533,15 +536,15 @@ export default class NcConfigFactory implements NcConfig {
             config.envs['_noco'].db[0].meta.dbAlias,
           secret: process.env.NC_AUTH_JWT_SECRET,
         },
-      };
+      }
     }
 
     if (process.env.NC_DB) {
-      config.meta.db = this.metaUrlToDbConfig(process.env.NC_DB);
+      config.meta.db = this.metaUrlToDbConfig(process.env.NC_DB)
     }
 
     if (process.env.NC_TRY) {
-      config.try = true;
+      config.try = true
       config.meta.db = {
         client: 'sqlite3',
         connection: ':memory:',
@@ -551,27 +554,27 @@ export default class NcConfigFactory implements NcConfig {
           // disposeTimeout: 360000*1000,
           idleTimeoutMillis: 360000 * 1000,
         },
-      } as any;
+      } as any
     }
 
     if (process.env.NC_PUBLIC_URL) {
       // config.envs[process.env.NODE_ENV || 'dev'].publicUrl = process.env.NC_PUBLIC_URL;
-      config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL;
-      config.publicUrl = process.env.NC_PUBLIC_URL;
+      config.envs['_noco'].publicUrl = process.env.NC_PUBLIC_URL
+      config.publicUrl = process.env.NC_PUBLIC_URL
     }
 
-    config.port = +(process?.env?.PORT ?? 8080);
+    config.port = +(process?.env?.PORT ?? 8080)
     // config.env = process.env?.NODE_ENV || 'dev';
     // config.workingEnv = process.env?.NODE_ENV || 'dev';
-    config.env = '_noco';
-    config.workingEnv = '_noco';
-    config.toolDir = process.env.NC_TOOL_DIR || process.cwd();
+    config.env = '_noco'
+    config.workingEnv = '_noco'
+    config.toolDir = process.env.NC_TOOL_DIR || process.cwd()
     config.projectType =
       type ||
       config?.envs?.[config.workingEnv]?.db?.[0]?.meta?.api?.type ||
-      'rest';
+      'rest'
 
-    return config;
+    return config
   }
 
   public static async metaDbCreateIfNotExist(args: NcConfig) {
@@ -579,14 +582,14 @@ export default class NcConfigFactory implements NcConfig {
       const metaSqlClient = SqlClientFactory.create({
         ...args.meta.db,
         connection: args.meta.db,
-      });
+      })
       await metaSqlClient.createDatabaseIfNotExists({
         database: args.meta.db?.connection?.filename,
-      });
+      })
     } else {
-      const metaSqlClient = SqlClientFactory.create(args.meta.db);
-      await metaSqlClient.createDatabaseIfNotExists(args.meta.db?.connection);
-      await metaSqlClient.knex.destroy();
+      const metaSqlClient = SqlClientFactory.create(args.meta.db)
+      await metaSqlClient.createDatabaseIfNotExists(args.meta.db?.connection)
+      await metaSqlClient.knex.destroy()
     }
 
     /*    const dbPath = path.join(args.toolDir, 'xc.db')
@@ -597,21 +600,21 @@ export default class NcConfigFactory implements NcConfig {
         }*/
   }
 
-  public version = '0.6';
-  public port: number;
-  public auth?: AuthConfig;
-  public env: 'production' | 'dev' | 'test' | string;
-  public workingEnv: string;
-  public toolDir: string;
+  public version = '0.6'
+  public port: number
+  public auth?: AuthConfig
+  public env: 'production' | 'dev' | 'test' | string
+  public workingEnv: string
+  public toolDir: string
   public envs: {
     [p: string]: { db: DbConfig[]; api?: any; publicUrl?: string };
-  };
+  }
   // public projectType: "rest" | "graphql" | "grpc";
-  public queriesFolder: string | string[] = '';
-  public seedsFolder: string | string[];
-  public title: string;
-  public publicUrl: string;
-  public projectType;
+  public queriesFolder: string | string[] = ''
+  public seedsFolder: string | string[]
+  public title: string
+  public publicUrl: string
+  public projectType
   public meta = {
     db: {
       client: 'sqlite3',
@@ -619,37 +622,38 @@ export default class NcConfigFactory implements NcConfig {
         filename: 'noco.db',
       },
     },
-  };
-  public mailer: MailerConfig;
-  public try = false;
+  }
+  public mailer: MailerConfig
+  public try = false
 
-  public dashboardPath = '/dashboard';
+  public dashboardPath = '/dashboard'
 
   constructor() {
-    this.envs = { _noco: { db: [] } };
+    this.envs = { _noco: { db: [] } }
   }
 
   public static jdbcToXcUrl() {
     if (process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE) {
       const database_url = fs.readFileSync(
         process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,
-        'utf-8'
-      );
-      process.env.NC_DB = this.extractXcUrlFromJdbc(database_url);
+        'utf-8',
+      )
+      process.env.NC_DB = this.extractXcUrlFromJdbc(database_url)
     } else if (process.env.NC_DATABASE_URL || process.env.DATABASE_URL) {
       process.env.NC_DB = this.extractXcUrlFromJdbc(
-        process.env.NC_DATABASE_URL || process.env.DATABASE_URL
-      );
+        process.env.NC_DATABASE_URL || process.env.DATABASE_URL,
+      )
     }
   }
 
   public static extractXcUrlFromJdbc(url: string, rtConfig = false) {
     // drop the jdbc prefix
     if (url.startsWith('jdbc:')) {
-      url = url.substring(5);
+      url = url.substring(5)
     }
+    const extraParams = []
 
-    const config = parseDbUrl(url);
+    const config = parseDbUrl(url)
 
     const parsedConfig: {
       driver?: string;
@@ -658,69 +662,72 @@ export default class NcConfigFactory implements NcConfig {
       database?: string;
       user?: string;
       password?: string;
-      ssl?: string;
-    } = {};
+      ssl?: string | Record<string, any>;
+    } = {}
     for (const [key, value] of Object.entries(config)) {
       const fnd = knownQueryParams.find(
-        (param) => param.parameter === key || param.aliases.includes(key)
-      );
+        (param) => param.parameter === key || param.aliases.includes(key),
+      )
       if (fnd) {
-        parsedConfig[fnd.parameter] = value;
+        parsedConfig[fnd.parameter] = value
       } else {
-        parsedConfig[key] = value;
+        parsedConfig[key] = value
       }
     }
 
     if (!parsedConfig?.port)
       parsedConfig.port =
         defaultClientPortMapping[
-          driverClientMapping[parsedConfig.driver] || parsedConfig.driver
-        ];
+        driverClientMapping[parsedConfig.driver] || parsedConfig.driver
+          ]
+
+    const { driver, ...connectionConfig } = parsedConfig
+
+    const client = driverClientMapping[driver] || driver
+
+    const avoidSSL = [
+      'localhost',
+      '127.0.0.1',
+      'host.docker.internal',
+      '172.17.0.1',
+    ]
+
+    if (
+      client === 'pg' &&
+      !connectionConfig?.ssl &&
+      !avoidSSL.includes(connectionConfig.host)
+    ) {
+      connectionConfig.ssl = {
+        rejectUnauthorized: false,
+      }
+      parsedConfig['connection.ssl'] = 'rejectUnauthorized'
+    }
 
     if (rtConfig) {
-      const { driver, ...connectionConfig } = parsedConfig;
-
-      const client = driverClientMapping[driver] || driver;
-
-      const avoidSSL = [
-        'localhost',
-        '127.0.0.1',
-        'host.docker.internal',
-        '172.17.0.1',
-      ];
-
-      if (
-        client === 'pg' &&
-        !connectionConfig?.ssl &&
-        !avoidSSL.includes(connectionConfig.host)
-      ) {
-        connectionConfig.ssl = 'true';
-      }
-
       return {
         client: client,
         connection: {
           ...connectionConfig,
         },
-      } as any;
+      } as any
     }
 
-    const { driver, host, port, database, user, password, ...extra } =
-      parsedConfig;
 
-    const extraParams = [];
+    const { host, port, database, user, password, ...extra } =
+      parsedConfig
+
 
     for (const [key, value] of Object.entries(extra)) {
-      extraParams.push(`${key}=${value}`);
+      extraParams.push(`${key}=${value}`)
     }
 
     const res = `${driverClientMapping[driver] || driver}://${host}${
       port ? `:${port}` : ''
     }?${user ? `u=${user}&` : ''}${password ? `p=${password}&` : ''}${
       database ? `d=${database}&` : ''
-    }${extraParams.join('&')}`;
+    }${extraParams.join('&')}`
 
-    return res;
+    return res
   }
 
   // public static initOneClickDeployment() {
@@ -731,7 +738,7 @@ export default class NcConfigFactory implements NcConfig {
   // }
 }
 
-export { defaultConnectionConfig };
+export { defaultConnectionConfig }
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

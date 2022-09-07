@@ -76,20 +76,20 @@ const validators = computed(() => {
     'dataSource.client': [fieldRequiredValidator],
     ...(formState.dataSource.client === ClientType.SQLITE
       ? {
-          'dataSource.connection.connection.filename': [fieldRequiredValidator],
-        }
+        'dataSource.connection.connection.filename': [fieldRequiredValidator],
+      }
       : {
-          'dataSource.connection.host': [fieldRequiredValidator],
-          'dataSource.connection.port': [fieldRequiredValidator],
-          'dataSource.connection.user': [fieldRequiredValidator],
-          'dataSource.connection.password': [fieldRequiredValidator],
-          'dataSource.connection.database': [fieldRequiredValidator],
-          ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
-            ? {
-                'dataSource.searchPath.0': [fieldRequiredValidator],
-              }
-            : {}),
-        }),
+        'dataSource.connection.host': [fieldRequiredValidator],
+        'dataSource.connection.port': [fieldRequiredValidator],
+        'dataSource.connection.user': [fieldRequiredValidator],
+        'dataSource.connection.password': [fieldRequiredValidator],
+        'dataSource.connection.database': [fieldRequiredValidator],
+        ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
+          ? {
+            'dataSource.searchPath.0': [fieldRequiredValidator],
+          }
+          : {}),
+      }),
   }
 })
 
@@ -112,7 +112,9 @@ const onSSLModeChange = ((mode: SSLUsage) => {
         delete connection.ssl
         break
       case SSLUsage.Allowed:
-        connection.ssl = 'true'
+        connection.ssl = {
+          rejectUnauthorized: false,
+        }
         break
       default:
         connection.ssl = {
@@ -129,7 +131,7 @@ const updateSSLUse = () => {
   if (formState.dataSource.client !== ClientType.SQLITE) {
     const connection = formState.dataSource.connection as DefaultConnection
     if (connection.ssl) {
-      if (typeof connection.ssl === 'string') {
+      if (typeof connection.ssl === 'object' && !connection.ssl.rejectUnauthorized) {
         formState.sslUse = SSLUsage.Allowed
       } else {
         formState.sslUse = SSLUsage.Preferred
@@ -335,7 +337,8 @@ onMounted(() => {
   <div
     class="create-external bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
   >
-    <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+    <general-noco-icon class="color-transition hover:(ring ring-accent)"
+                       :class="[isLoading ? 'animated-bg-gradient' : '']" />
 
     <div
       class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full bg-white cursor-pointer"
@@ -361,7 +364,7 @@ onMounted(() => {
       <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
         <a-select v-model:value="formState.dataSource.client" class="nc-extdb-db-type" @change="onClientChange">
           <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
-            >{{ client.text }}
+          >{{ client.text }}
           </a-select-option>
         </a-select>
       </a-form-item>
@@ -378,7 +381,8 @@ onMounted(() => {
       <template v-else>
         <!-- Host Address -->
         <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
-          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).host" class="nc-extdb-host-address" />
+          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).host"
+                   class="nc-extdb-host-address" />
         </a-form-item>
 
         <!-- Port Number -->
@@ -391,7 +395,8 @@ onMounted(() => {
 
         <!-- Username -->
         <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
-          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).user" class="nc-extdb-host-user" />
+          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).user"
+                   class="nc-extdb-host-user" />
         </a-form-item>
 
         <!-- Password -->
@@ -434,7 +439,8 @@ onMounted(() => {
             </template>
             <a-form-item label="SSL mode">
               <a-select v-model:value="formState.sslUse" @select="onSSLModeChange">
-                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
+                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}
+                </a-select-option>
               </a-select>
             </a-form-item>
 
@@ -476,14 +482,16 @@ onMounted(() => {
 
             <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.ca, caFileInput)" />
 
-            <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.cert, certFileInput)" />
+            <input ref="certFileInput" type="file" class="!hidden"
+                   @change="onFileSelect(CertTypes.cert, certFileInput)" />
 
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.key, keyFileInput)" />
 
             <a-divider />
 
             <!--            Extra connection parameters -->
-            <a-form-item class="mb-2" :label="$t('labels.extraConnectionParameters')" v-bind="validateInfos.extraParameters">
+            <a-form-item class="mb-2" :label="$t('labels.extraConnectionParameters')"
+                         v-bind="validateInfos.extraParameters">
               <a-card>
                 <div v-for="(item, index) of formState.extraParameters" :key="index">
                   <div class="flex py-1 items-center gap-1">
@@ -497,7 +505,9 @@ onMounted(() => {
                   </div>
                 </div>
                 <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                  <div class="flex items-center justify-center"><MdiPlus /></div>
+                  <div class="flex items-center justify-center">
+                    <MdiPlus />
+                  </div>
                 </a-button>
               </a-card>
             </a-form-item>

@@ -156,6 +156,7 @@ declare module '@vue/runtime-core' {
     MdiFileDocumentOutline: typeof import('~icons/mdi/file-document-outline')['default']
     MdiFileExcel: typeof import('~icons/mdi/file-excel')['default']
     MdiFileEyeOutline: typeof import('~icons/mdi/file-eye-outline')['default']
+    MdiFilePdf: typeof import('~icons/mdi/file-pdf')['default']
     MdiFilePlusOutline: typeof import('~icons/mdi/file-plus-outline')['default']
     MdiFileUploadOutline: typeof import('~icons/mdi/file-upload-outline')['default']
     MdiFilterOutline: typeof import('~icons/mdi/filter-outline')['default']

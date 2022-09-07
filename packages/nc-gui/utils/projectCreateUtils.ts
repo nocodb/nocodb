@@ -21,7 +21,7 @@ export interface DefaultConnection {
   user: string
   password: string
   port: number | string
-  ssl?: Record<CertTypes, string> | 'true'
+  ssl?: Record<CertTypes | 'rejectUnauthorized', string | boolean> | 'true'
 }
 
 export interface SQLiteConnection {

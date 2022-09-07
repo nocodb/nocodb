@@ -476,6 +476,7 @@ function viewRowTests() {
     await testGetNestedSortedFilteredTableDataListWithLookupColumn(ViewTypes.GRID);
   })
 
+  // todo: gallery view doesnt seem to support rollup
   // it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table view gallery', async () => {
   //   await testGetNestedSortedFilteredTableDataListWithLookupColumn(ViewTypes.GALLERY);
   // })
@@ -607,6 +608,112 @@ function viewRowTests() {
 
   it('Find one sorted data list with required columns grid', async function () {
     await testFindOneSortedDataWithRequiredColumns(ViewTypes.GRID);
+  });
+
+  const testFindOneSortedFilteredNestedFieldsDataWithRollup = async (viewType: ViewTypes) => {
+    const view = await createView(context, {
+      title: 'View', 
+      table: customerTable,
+      type: viewType
+    });
+    const rollupColumn = await createRollupColumn(context, {
+      project: sakilaProject,
+      title: 'Number of rentals',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: 'rental',
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const paymentListColumn = (await customerTable.getColumns()).find(
+      (c) => c.title === 'Payment List'
+    );
+
+    const activeColumn = (await customerTable.getColumns()).find(
+      (c) => c.title === 'Active'
+    );
+
+    const nestedFields = {
+      'Rental List': ['RentalDate', 'ReturnDate'],
+    };
+
+    const nestedFilter = [
+      {
+        fk_column_id: rollupColumn?.id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'gte',
+        value: '25',
+      },
+      {
+        is_group: true,
+        status: 'create',
+        logical_op: 'or',
+        children: [
+          {
+            fk_column_id: rollupColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'lte',
+            value: '30',
+          },
+          {
+            fk_column_id: paymentListColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'notempty',
+          },
+          {
+            is_group: true,
+            status: 'create',
+            logical_op: 'and',
+            children: [
+              {
+                logical_op: 'and',
+                fk_column_id: activeColumn?.id,
+                status: 'create',
+                comparison_op: 'notempty',
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    const ascResponse = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}/find-one`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        nested: nestedFields,
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sort: `${rollupColumn.title}`,
+      })
+      .expect(200);
+
+    if (ascResponse.body[rollupColumn.title] !== 12) {
+      console.log(ascResponse.body);
+      throw new Error('Wrong filter');
+    }
+
+    const nestedRentalResponse = Object.keys(ascResponse.body['Rental List']);
+    if (
+      nestedRentalResponse.includes('RentalId') &&
+      nestedRentalResponse.includes('RentalDate') &&
+      nestedRentalResponse.length === 2
+    ) {
+      throw new Error('Wrong nested fields');
+    }
+  }
+
+  // todo: gallery view doesnt seem to support rollup
+  // it.only('Find one sorted filtered view with nested fields data list with a rollup column in customer table FORM', async function () {
+  //   await testFindOneSortedFilteredNestedFieldsDataWithRollup(ViewTypes.FORM);
+  // });
+
+  it('Find one sorted filtered view with nested fields data list with a rollup column in customer table GRID', async function () {
+    await testFindOneSortedFilteredNestedFieldsDataWithRollup(ViewTypes.GRID);
   });
 }
 

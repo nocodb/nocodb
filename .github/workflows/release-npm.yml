@@ -48,6 +48,7 @@ jobs:
         with:
           node-version: 16.15.0
           registry-url: 'https://registry.npmjs.org'
+          scope: '@nocodb'
       - run: |
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
           cd packages/nocodb-sdk &&

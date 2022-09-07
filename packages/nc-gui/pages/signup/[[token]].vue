@@ -78,9 +78,7 @@ async function signUp() {
     token: route.params.token,
   }
 
-  if (subscribe.value) {
-    data.ignore_subscribe = !subscribe.value
-  }
+  data.ignore_subscribe = !subscribe.value
 
   api.auth
     .signup(data)

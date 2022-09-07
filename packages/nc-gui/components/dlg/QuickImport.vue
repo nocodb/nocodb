@@ -270,6 +270,17 @@ function getAdapter(name: string, val: any) {
 defineExpose({
   handleChange,
 })
+
+/** a workaround to override default antd upload api call */
+const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
+  importState.fileList.forEach((f) => {
+    if (f.uid === customReqArgs.file.uid) {
+      f.status = 'done'
+      handleChange({ file: f, fileList: importState.fileList })
+    }
+  })
+  customReqArgs.onSuccess()
+}
 </script>
 
 <template>
@@ -308,6 +319,7 @@ defineExpose({
                 :accept="importMeta.acceptTypes"
                 :max-count="1"
                 list-type="picture"
+                :custom-request="customReqCbk"
                 @change="handleChange"
                 @reject="rejectDrop"
               >

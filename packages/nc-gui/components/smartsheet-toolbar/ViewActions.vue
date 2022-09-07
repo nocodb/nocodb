@@ -171,6 +171,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
                     <MdiUploadOutline class="text-gray-500" />
                     <!-- Upload CSV -->
                     {{ $t('activity.uploadCSV') }}
+                    <div class="flex items-center text-gray-400"><MdiAlpha />version</div>
                   </div>
                 </a-menu-item>
               </a-sub-menu>

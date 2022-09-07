@@ -18,6 +18,7 @@ import {
   useProject,
   watch,
 } from '#imports'
+import { IsFormInj } from '~/context'
 import MdiPdfBox from '~icons/mdi/pdf-box'
 import MdiFileWordOutline from '~icons/mdi/file-word-outline'
 import MdiFilePowerpointBox from '~icons/mdi/file-powerpoint-box'
@@ -36,6 +37,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const isReadonly = inject(ReadonlyInj, false)
 
     const isPublic = inject(IsPublicInj, ref(false))
+
+    const isForm = inject(IsFormInj, ref(false))
 
     const meta = inject(MetaInj)!
 
@@ -162,7 +165,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** our currently visible items, either the locally stored or the ones from db, depending on isPublicForm status */
-    const visibleItems = computed<any[]>(() => (isPublic.value ? storedFiles.value : attachments.value))
+    const visibleItems = computed<any[]>(() => (isPublic.value && isForm.value ? storedFiles.value : attachments.value))
 
     watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles))
 

@@ -47,6 +47,7 @@ async function dataCount(req: Request, res: Response) {
   res.json({ count });
 }
 
+// todo: Handle the error case where view doesnt belong to model
 async function dataInsert(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 

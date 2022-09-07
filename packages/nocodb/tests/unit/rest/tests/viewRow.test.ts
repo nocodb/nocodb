@@ -511,6 +511,35 @@ function viewRowTests() {
   it('Create table row form', async function () {
     await testCreateRowView(ViewTypes.FORM);
   });
+
+  const testCreateRowViewWithWrongView = async (viewType: ViewTypes) => {
+    const table = await createTable(context, project);
+    const nonRelatedView = await createView(context, {
+      title: 'View', 
+      table: customerTable,
+      type: viewType
+    });
+
+    await request(context.app)
+      .post(`/api/v1/db/data/noco/${project.id}/${table.id}/views/${nonRelatedView.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        title: 'Test',
+      })
+      .expect(400);
+  }
+
+  it('Create table row grid wrong grid id', async function () {
+    await testCreateRowViewWithWrongView(ViewTypes.GRID);
+  });
+
+  it('Create table row wrong gallery id', async function () {
+    await testCreateRowViewWithWrongView(ViewTypes.GALLERY);
+  });
+
+  it('Create table row wrong form id', async function () {
+    await testCreateRowViewWithWrongView(ViewTypes.FORM);
+  });
 }
 
 export default function () {

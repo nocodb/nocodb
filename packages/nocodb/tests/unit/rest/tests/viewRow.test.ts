@@ -4,11 +4,12 @@ import init from '../init';
 import request from 'supertest';
 import Project from '../../../../src/lib/models/Project';
 import Model from '../../../../src/lib/models/Model';
-import { getTable } from './factory/table';
+import { createTable, getTable } from './factory/table';
 import View from '../../../../src/lib/models/View';
 import { ColumnType, UITypes, ViewType, ViewTypes } from 'nocodb-sdk';
 import { createView } from './factory/view';
-import { createLookupColumn } from './factory/column';
+import { createLookupColumn, createRollupColumn } from './factory/column';
+import Audit from '../../../../src/lib/models/Audit';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -364,8 +365,154 @@ function viewRowTests() {
   it('Get nested sorted filtered table data list with a lookup column grid', async function () {
     await testGetViewDataListWithRequiredColumnsAndFilter(ViewTypes.GRID);
   });
+
+  const testGetNestedSortedFilteredTableDataListWithLookupColumn = async (viewType: ViewTypes) => {
+    const view = await createView(context, {
+      title: 'View', 
+      table: customerTable,
+      type: viewType
+    });
+
+    const rollupColumn = await createRollupColumn(context, {
+      project: sakilaProject,
+      title: 'Number of rentals',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: 'rental',
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const paymentListColumn = (await customerTable.getColumns()).find(
+      (c) => c.title === 'Payment List'
+    );
+
+    const activeColumn = (await customerTable.getColumns()).find(
+      (c) => c.title === 'Active'
+    );
+
+    const nestedFields = {
+      'Rental List': ['RentalDate', 'ReturnDate'],
+    };
+
+    const nestedFilter = [
+      {
+        fk_column_id: rollupColumn?.id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'gte',
+        value: '25',
+      },
+      {
+        is_group: true,
+        status: 'create',
+        logical_op: 'or',
+        children: [
+          {
+            fk_column_id: rollupColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'lte',
+            value: '30',
+          },
+          {
+            fk_column_id: paymentListColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'notempty',
+          },
+          {
+            is_group: true,
+            status: 'create',
+            logical_op: 'and',
+            children: [
+              {
+                logical_op: 'and',
+                fk_column_id: activeColumn?.id,
+                status: 'create',
+                comparison_op: 'notempty',
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    const ascResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        nested: nestedFields,
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: rollupColumn?.id,
+            direction: 'asc',
+          },
+        ]),
+      })
+      .expect(200);
+
+    if (ascResponse.body.pageInfo.totalRows !== 594)
+      throw new Error('Wrong number of rows');
+
+    if (ascResponse.body.list[0][rollupColumn.title] !== 12) {
+      throw new Error('Wrong filter');
+    }
+
+    const nestedRentalResponse = Object.keys(
+      ascResponse.body.list[0]['Rental List'][0]
+    );
+
+    if (
+      !(nestedRentalResponse.includes('RentalId') &&
+      nestedRentalResponse.includes('RentalDate') &&
+      nestedRentalResponse.length === 2)
+    ) {
+      throw new Error('Wrong nested fields');
+    }
+  }
+
+  it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table view grid', async () => {
+    await testGetNestedSortedFilteredTableDataListWithLookupColumn(ViewTypes.GRID);
+  })
+
+  // it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table view gallery', async () => {
+  //   await testGetNestedSortedFilteredTableDataListWithLookupColumn(ViewTypes.GALLERY);
+  // })
+
+  const testCreateRowView = async (viewType: ViewTypes) => {
+    const table = await createTable(context, project);
+    const view = await createView(context, {
+      title: 'View', 
+      table: table,
+      type: viewType
+    });
+
+    const response = await request(context.app)
+      .post(`/api/v1/db/data/noco/${project.id}/${table.id}/views/${view.id}`)
+      .set('xc-auth', context.token)
+      .send({
+        title: 'Test',
+      })
+      .expect(200);
+
+    const row = response.body;
+    if (row['Title'] !== 'Test') throw new Error('Wrong row title');
+  }
+
+  it('Create table row grid', async function () {
+    await testCreateRowView(ViewTypes.GRID);
+  });
+
+  it('Create table row gallery', async function () {
+    await testCreateRowView(ViewTypes.GALLERY);
+  });
+
+  it('Create table row form', async function () {
+    await testCreateRowView(ViewTypes.FORM);
+  });
 }
 
 export default function () {
-  describe('ViewRow', viewRowTests);
+  describe.only('ViewRow', viewRowTests);
 }

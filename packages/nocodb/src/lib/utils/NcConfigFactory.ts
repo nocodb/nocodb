@@ -59,23 +59,23 @@ const knownQueryParams = [
   },
   {
     parameter: 'keyFilePath',
-    aliases: []
+    aliases: [],
   },
   {
     parameter: 'certFilePath',
-    aliases: []
+    aliases: [],
   },
   {
     parameter: 'caFilePath',
-    aliases: []
+    aliases: [],
   },
   {
     parameter: 'ssl',
-    aliases: []
+    aliases: [],
   },
   {
     parameter: 'options',
-    aliases: ['opt', 'opts']
+    aliases: ['opt', 'opts'],
   },
 ];
 
@@ -195,9 +195,11 @@ export default class NcConfigFactory implements NcConfig {
         },
       } as any;
     } else {
-      const parsedQuery = {}
+      const parsedQuery = {};
       for (const [key, value] of url.searchParams.entries()) {
-        const fnd = knownQueryParams.find((param) => param.parameter === key || param.aliases.includes(key))
+        const fnd = knownQueryParams.find(
+          (param) => param.parameter === key || param.aliases.includes(key)
+        );
         if (fnd) {
           parsedQuery[fnd.parameter] = value;
         } else {
@@ -209,7 +211,8 @@ export default class NcConfigFactory implements NcConfig {
         client: url.protocol.replace(':', ''),
         connection: {
           ...defaultConnectionConfig,
-          ...parsedQuery
+          ...parsedQuery,
+          host: url.hostname,
         },
         // pool: {
         //   min: 1,
@@ -303,9 +306,11 @@ export default class NcConfigFactory implements NcConfig {
           : {}),
       };
     } else {
-      const parsedQuery = {}
+      const parsedQuery = {};
       for (const [key, value] of url.searchParams.entries()) {
-        const fnd = knownQueryParams.find((param) => param.parameter === key || param.aliases.includes(key))
+        const fnd = knownQueryParams.find(
+          (param) => param.parameter === key || param.aliases.includes(key)
+        );
         if (fnd) {
           parsedQuery[fnd.parameter] = value;
         } else {
@@ -318,7 +323,7 @@ export default class NcConfigFactory implements NcConfig {
         connection: {
           ...defaultConnectionConfig,
           ...parsedQuery,
-          host: url.hostname
+          host: url.hostname,
         },
         acquireConnectionTimeout: 600000,
         ...(url.searchParams.has('search_path')
@@ -637,7 +642,7 @@ export default class NcConfigFactory implements NcConfig {
     }
   }
 
-  public static extractXcUrlFromJdbc(url: string, rtConfig: boolean = false) {
+  public static extractXcUrlFromJdbc(url: string, rtConfig = false) {
     // drop the jdbc prefix
     if (url.startsWith('jdbc:')) {
       url = url.substring(5);
@@ -645,9 +650,19 @@ export default class NcConfigFactory implements NcConfig {
 
     const config = parseDbUrl(url);
 
-    const parsedConfig: { driver?: string, host?: string, port?: string, database?: string, user?:string, password?: string, ssl?: string } = {}
+    const parsedConfig: {
+      driver?: string;
+      host?: string;
+      port?: string;
+      database?: string;
+      user?: string;
+      password?: string;
+      ssl?: string;
+    } = {};
     for (const [key, value] of Object.entries(config)) {
-      const fnd = knownQueryParams.find((param) => param.parameter === key || param.aliases.includes(key))
+      const fnd = knownQueryParams.find(
+        (param) => param.parameter === key || param.aliases.includes(key)
+      );
       if (fnd) {
         parsedConfig[fnd.parameter] = value;
       } else {
@@ -655,28 +670,42 @@ export default class NcConfigFactory implements NcConfig {
       }
     }
 
-    if (!parsedConfig?.port) parsedConfig.port = defaultClientPortMapping[driverClientMapping[parsedConfig.driver] || parsedConfig.driver];
+    if (!parsedConfig?.port)
+      parsedConfig.port =
+        defaultClientPortMapping[
+          driverClientMapping[parsedConfig.driver] || parsedConfig.driver
+        ];
 
     if (rtConfig) {
       const { driver, ...connectionConfig } = parsedConfig;
 
       const client = driverClientMapping[driver] || driver;
 
-      const avoidSSL = ['localhost', '127.0.0.1', 'host.docker.internal', '172.17. 0.1']
+      const avoidSSL = [
+        'localhost',
+        '127.0.0.1',
+        'host.docker.internal',
+        '172.17. 0.1',
+      ];
 
-      if (client === 'pg' && !connectionConfig?.ssl && !avoidSSL.includes(connectionConfig.host)) {
+      if (
+        client === 'pg' &&
+        !connectionConfig?.ssl &&
+        !avoidSSL.includes(connectionConfig.host)
+      ) {
         connectionConfig.ssl = 'true';
       }
 
       return {
         client: client,
         connection: {
-          ...connectionConfig
-        }
+          ...connectionConfig,
+        },
       } as any;
     }
 
-    const { driver, host, port, database, user, password, ...extra } = parsedConfig;
+    const { driver, host, port, database, user, password, ...extra } =
+      parsedConfig;
 
     const extraParams = [];
 
@@ -684,7 +713,11 @@ export default class NcConfigFactory implements NcConfig {
       extraParams.push(`${key}=${value}`);
     }
 
-    const res = `${driverClientMapping[driver] || driver}://${host}${port ? `:${port}` : ''}?${user ? `u=${user}&` : ''}${password ? `p=${password}&` : ''}${database ? `d=${database}&` : ''}${extraParams.join('&')}`;
+    const res = `${driverClientMapping[driver] || driver}://${host}${
+      port ? `:${port}` : ''
+    }?${user ? `u=${user}&` : ''}${password ? `p=${password}&` : ''}${
+      database ? `d=${database}&` : ''
+    }${extraParams.join('&')}`;
 
     return res;
   }

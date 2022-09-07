@@ -317,7 +317,8 @@ export default class NcConfigFactory implements NcConfig {
         client: url.protocol.replace(':', ''),
         connection: {
           ...defaultConnectionConfig,
-          ...parsedQuery
+          ...parsedQuery,
+          host: url.hostname
         },
         acquireConnectionTimeout: 600000,
         ...(url.searchParams.has('search_path')
@@ -658,9 +659,9 @@ export default class NcConfigFactory implements NcConfig {
 
     if (rtConfig) {
       const { driver, ...connectionConfig } = parsedConfig;
-      
+
       const client = driverClientMapping[driver] || driver;
-      
+
       const avoidSSL = ['localhost', '127.0.0.1', 'host.docker.internal', '172.17. 0.1']
 
       if (client === 'pg' && !connectionConfig?.ssl && !avoidSSL.includes(connectionConfig.host)) {

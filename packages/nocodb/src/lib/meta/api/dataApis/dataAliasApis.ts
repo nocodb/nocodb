@@ -10,6 +10,7 @@ import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 
+// todo: Handle the error case where view doesnt belong to model
 async function dataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   res.json(await getDataList(model, view, req));

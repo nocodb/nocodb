@@ -691,7 +691,7 @@ export class SqliteUi {
   }
 
   static getAbstractType(col): any {
-    switch ((col.dt || col.dt).toLowerCase()) {
+    switch (col.dt?.replace(/\(\d+\)$/).toLowerCase()) {
       case 'date':
         return 'date';
       case 'datetime':
@@ -898,7 +898,7 @@ export class SqliteUi {
     return colProp;
   }
 
-  static getDataTypeListForUiType(col: { uidt: UITypes }, idType: IDType) {
+  static getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType) {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {

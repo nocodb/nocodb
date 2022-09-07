@@ -254,10 +254,10 @@ export class MysqlUi {
         return '';
 
       case 'enum':
-        return "'a','b'";
+        return '';
 
       case 'set':
-        return "'a','b'";
+        return '';
 
       case 'geometry':
         return '';
@@ -976,10 +976,10 @@ export class MysqlUi {
         colProp.dtxp = 1;
         break;
       case 'MultiSelect':
-        colProp.dt = 'text';
+        colProp.dt = 'set';
         break;
       case 'SingleSelect':
-        colProp.dt = 'text';
+        colProp.dt = 'enum';
         break;
       case 'Collaborator':
         colProp.dt = 'varchar';
@@ -1081,7 +1081,7 @@ export class MysqlUi {
     return colProp;
   }
 
-  static getDataTypeListForUiType(col, idType: IDType) {
+  static getDataTypeListForUiType(col, idType?: IDType) {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {

@@ -1,0 +1,244 @@
+@import 'ant-design-vue/dist/antd.variable.min.css';
+
+:root {
+  --header-height: 42px;
+  --toolbar-height: 48px;
+  --tw-text-opacity: 1;
+}
+
+.ant-layout-header {
+  height: var(--header-height) !important;
+}
+
+html,
+body,
+#__nuxt,
+.ant-layout,
+main {
+  @apply m-0 h-full w-full bg-white;
+}
+
+html {
+  overflow-y: auto !important;
+}
+
+main {
+  @apply flex-0 w-full relative scrollbar-thin-dull;
+  overflow-x: hidden;
+}
+
+a {
+  @apply !text-primary !underline hover:!text-accent;
+}
+
+.nc-icon {
+  @apply color-transition;
+}
+
+// menu item styling
+.nc-menu-item {
+  @apply cursor-pointer text-xs flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+
+  &.disabled {
+    @apply text-black text-opacity-25 bg-[#f5f5f5] cursor-not-allowed text-shadow-none box-shadow-none border-[#d9d9d9];
+  }
+}
+
+.nc-project-menu-item {
+  @apply cursor-pointer flex items-center gap-2 py-2 hover:text-primary after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+
+  &:hover {
+    .nc-icon {
+      @apply text-accent;
+    }
+  }
+}
+
+.nc-sidebar-right-item {
+  @apply relative flex items-center;
+
+  &::after {
+    @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out;
+    content: '';
+  }
+
+  &:hover::after {
+    @apply ring shadow-2xl transform scale-110;
+  }
+
+  &.disabled-ring:hover::after {
+    @apply ring-0;
+  }
+
+  svg {
+    @apply z-1 text-xl p-1 text-gray-500;
+  }
+
+  .disabled {
+    @apply cursor-not-allowed border-none;
+  }
+}
+
+// show  a dot badge if some change present
+.nc-badge {
+  @apply relative after:(absolute top-[-2px] right-[-2px] w-[8px] h-[8px] rounded-full bg-primary content-[''] !z-20);
+}
+
+// for highlighting toolbar menu item
+.nc-active-btn > .ant-btn{
+  @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);
+}
+
+.nc-locked-overlay {
+  @apply absolute h-full w-full z-2 top-0 left-0;
+}
+
+.ant-modal-wrap {
+  @apply !scrollbar-thin-dull;
+}
+
+.animated-bg-gradient {
+  background: linear-gradient(122deg, #6f3381, #81c7d4, #fedfe1, #9ee59e);
+  background-size: 800% 800%;
+
+  -webkit-animation: gradient 4s ease infinite;
+  -moz-animation: gradient 4s ease infinite;
+  animation: gradient 4s ease infinite;
+}
+
+@-webkit-keyframes gradient {
+  0% {
+    background-position: 0% 22%
+  }
+  50% {
+    background-position: 100% 79%
+  }
+  100% {
+    background-position: 0% 22%
+  }
+}
+
+@-moz-keyframes gradient {
+  0% {
+    background-position: 0% 22%
+  }
+  50% {
+    background-position: 100% 79%
+  }
+  100% {
+    background-position: 0% 22%
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 22%
+  }
+  50% {
+    background-position: 100% 79%
+  }
+  100% {
+    background-position: 0% 22%
+  }
+}
+
+.page-enter-active,
+.page-leave-active,
+.layout-enter-active,
+.layout-leave-active {
+  @apply transition-all duration-200 ease;
+}
+
+.page-enter-from,
+.page-leave-to,
+.layout-enter-from,
+.layout-leave-to {
+  @apply opacity-0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translate(-100%, 0);
+}
+
+.glow-enter-active,
+.glow-leave-active {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.glow-enter-active {
+  @apply ring ring-xl;
+}
+
+.glow-enter-from,
+.glow-leave-to {
+  @apply opacity-0;
+}
+
+.scaling-btn {
+  @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 bg-gray-100/50 text-white;
+
+  &::after {
+    @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
+    content: '';
+    z-index: -1;
+  }
+
+  &:hover::after {
+    @apply transform scale-110 ring ring-accent;
+  }
+
+  &:active::after {
+    @apply ring ring-accent;
+  }
+}
+
+.ant-dropdown-menu-submenu {
+  @apply !py-0;
+
+  .ant-dropdown-menu, .ant-menu {
+    @apply m-0 p-0;
+  }
+
+  .ant-menu-item {
+    @apply !m-0 !px-2;
+  }
+}
+
+.ant-dropdown-menu {
+  @apply !p-0 !rounded;
+}
+
+.ant-tabs-dropdown-menu-title-content {
+  @apply flex items-center;
+}
+
+.ant-dropdown-menu-item-group-list {
+  @apply !mx-0;
+}
+
+.ant-dropdown-menu-item-group-title {
+  @apply border-b-1;
+}
+
+.ant-dropdown-menu-item-group-list {
+  @apply m-0;
+}
+
+.ant-dropdown-menu-item, .ant-menu-item {
+  @apply !py-0 active:(ring ring-accent);
+}
+
+.ant-dropdown-menu-title-content,
+.ant-menu-title-content {
+  @apply !py-0;
+}
+
+.ant-dropdown-menu-submenu-title{
+  @apply !pr-2;
+}

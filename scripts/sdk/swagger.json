@@ -854,7 +854,7 @@
         "tags": [
           "Project"
         ]
-      },      
+      },
       "patch": {
         "summary": "Project update",
         "operationId": "project-update",
@@ -916,6 +916,9 @@
                     },
                     "url": {
                       "type": "string"
+                    },
+                    "roles": {
+                      "type": "string"
                     }
                   }
                 }
@@ -947,10 +950,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "uuid": {
+                      "type": "string"
+                    },
                     "url": {
                       "type": "string"
                     },
-                    "uuid": {
+                    "roles": {
                       "type": "string"
                     }
                   }
@@ -985,7 +991,25 @@
         "operationId": "project-shared-base-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "roles": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -1285,7 +1309,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "title": {
+                  "table_name": {
+                    "type": "string"
+                  },
+                  "project_id": {
                     "type": "string"
                   }
                 }
@@ -1334,7 +1361,7 @@
                 "type": "object",
                 "properties": {
                   "order": {
-                    "type": "string"
+                    "type": "number"
                   }
                 }
               }
@@ -1506,7 +1533,7 @@
                 "type": "object",
                 "properties": {
                   "order": {
-                    "type": "string"
+                    "type": "number"
                   },
                   "title": {
                     "type": "string"
@@ -1703,7 +1730,8 @@
                 "properties": {
                   "password": {
                     "type": "string"
-                  }
+                  },
+                  "meta": {}
                 }
               }
             }
@@ -1828,11 +1856,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "uuid": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "type": "string"
+                    "sorts": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Sort"
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -1946,7 +1979,17 @@
         "operationId": "db-table-filter-read",
         "responses": {
           "200": {
-            "$ref": "#/components/responses/FilterList"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Filter"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1958,7 +2001,14 @@
         "operationId": "db-table-filter-create",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Filter"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2104,7 +2154,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Filter"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Filter"
+                  }
                 }
               }
             }
@@ -3795,17 +3848,30 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
           }
         ]
       }
@@ -3999,17 +4065,30 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
           }
         ]
       }
@@ -4287,51 +4366,6 @@
         "description": ""
       }
     },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/meta": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "sharedViewUuid",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "in": "header",
-          "name": "xc-password",
-          "description": "Shared view password"
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "public-shared-view-meta-get",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              },
-              "application/xml": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "Public"
-        ],
-        "description": "",
-        "parameters": []
-      }
-    },
     "/api/v1/db/public/shared-base/{sharedBaseUuid}/meta": {
       "parameters": [
         {
@@ -4368,6 +4402,104 @@
         "tags": [
           "Public"
         ]
+      }
+    },
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/meta": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "public-shared-view-meta-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/View"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "relatedMetas": {},
+                        "client": {
+                          "type": "string"
+                        },
+                        "columns": {
+                          "allOf": [
+                            {
+                              "oneOf": [
+                                {
+                                  "$ref": "#/components/schemas/GridColumn"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/FormColumn"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/GalleryColumn"
+                                }
+                              ]
+                            },
+                            {
+                              "$ref": "#/components/schemas/Column"
+                            }
+                          ]
+                        },
+                        "model": {
+                          "$ref": "#/components/schemas/Table"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "view": {
+                          "oneOf": [
+                            {
+                              "$ref": "#/components/schemas/Form"
+                            },
+                            {
+                              "$ref": "#/components/schemas/Grid"
+                            },
+                            {
+                              "$ref": "#/components/schemas/Gallery"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "application/xml": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "description": "",
+        "parameters": []
       }
     },
     "/api/v1/db/meta/audits/comments": {
@@ -4435,7 +4567,7 @@
                   "fk_model_id": {
                     "type": "string"
                   },
-                  "comment": {
+                  "description": {
                     "type": "string"
                   }
                 },
@@ -5072,6 +5204,24 @@
         "description": ""
       }
     },
+    "/api/v1/url_to_config": {
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "utils-url-to-config",
+        "tags": [
+          "Utils"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "description": ""
+      }
+    },
     "/api/v1/db/meta/nocodb/info": {
       "parameters": [],
       "get": {
@@ -5412,14 +5562,7 @@
         "tags": [
           "Auth"
         ],
-        "description": "Resend Invitation to a specific user",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            }
-          }
-        }
+        "description": "Resend Invitation to a specific user"
       }
     }
   },
@@ -5431,7 +5574,7 @@
         "description": "",
         "examples": [
           {
-            "id": 142,
+            "id": "142",
             "firstName": "Alice",
             "lastName": "Smith",
             "email": "alice.smith@gmail.com",
@@ -5443,7 +5586,7 @@
         "x-internal": false,
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "description": "Unique identifier for the given user."
           },
           "firstname": {
@@ -5453,6 +5596,10 @@
             "type": "string"
           },
           "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "roles": {
             "type": "string",
             "format": "email"
           },
@@ -5917,6 +6064,9 @@
           },
           "slug": {
             "type": "string"
+          },
+          "project_id": {
+            "type": "string"
           }
         },
         "required": [
@@ -5998,7 +6148,8 @@
             "type": "string"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "required": true
           },
           "deleted": {
             "type": "boolean"
@@ -6011,6 +6162,36 @@
           },
           "slug": {
             "type": "string"
+          },
+          "uuid": {
+            "type": "string"
+          },
+          "show_system_fields": {
+            "type": "boolean"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
+          },
+          "type": {
+            "type": "number"
+          },
+          "view": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Form"
+              },
+              {
+                "$ref": "#/components/schemas/Grid"
+              },
+              {
+                "$ref": "#/components/schemas/Gallery"
+              }
+            ]
           }
         }
       },
@@ -6212,6 +6393,9 @@
           "order": {
             "type": "number"
           },
+          "mm": {
+            "type": "boolean"
+          },
           "columns": {
             "type": "array",
             "items": {
@@ -6221,7 +6405,8 @@
         },
         "required": [
           "table_name",
-          "title"
+          "title",
+          "columns"
         ]
       },
       "TableList": {
@@ -6558,6 +6743,13 @@
           "order": {
             "type": "number"
           },
+          "system": {
+            "type": [
+              "number",
+              "boolean"
+            ]
+          },
+          "meta": {},
           "colOptions": {
             "oneOf": [
               {
@@ -6573,10 +6765,7 @@
                 "$ref": "#/components/schemas/Lookup"
               },
               {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/SelectOptions"
-                }
+                "$ref": "#/components/schemas/SelectOptions"
               },
               {
                 "type": "object"
@@ -6757,7 +6946,7 @@
         }
       },
       "Formula": {
-        "title": "Lookup",
+        "title": "Formula",
         "type": "object",
         "properties": {
           "id": {
@@ -6775,6 +6964,9 @@
           "formula": {
             "type": "string"
           },
+          "formula_raw": {
+            "type": "string"
+          },
           "deleted": {
             "type": "string"
           },
@@ -6787,14 +6979,32 @@
         "title": "SelectOptions",
         "type": "object",
         "properties": {
+          "options": {
+            "type": "array",
+            "required": true,
+            "$ref": "#/components/schemas/SelectOption"
+          }
+        },
+        "examples": [
+          {
+            "options": [
+              {
+                "id": "string",
+                "fk_column_id": "string",
+                "title": "string",
+                "color": "string",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      },
+      "SelectOption": {
+        "title": "SelectOption",
+        "type": "object",
+        "properties": {
           "id": {
             "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "virtual": {
-            "type": "boolean"
           },
           "fk_column_id": {
             "type": "string"
@@ -6812,12 +7022,10 @@
         "examples": [
           {
             "id": "string",
-            "type": "string",
-            "virtual": true,
             "fk_column_id": "string",
             "title": "string",
             "color": "string",
-            "order": 0
+            "order": 1
           }
         ]
       },
@@ -6839,6 +7047,14 @@
           },
           "order": {
             "type": "number"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
           }
         },
         "description": ""
@@ -6895,6 +7111,14 @@
           },
           "fk_cover_image_col_id": {
             "type": "string"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
           }
         }
       },
@@ -7015,7 +7239,7 @@
           "subheading": {
             "type": "string"
           },
-          "sucess_msg": {
+          "success_msg": {
             "type": "string"
           },
           "redirect_url": {
@@ -7036,6 +7260,9 @@
           "submit_another_form": {
             "type": "boolean"
           },
+          "show_blank_form": {
+            "type": "boolean"
+          },
           "columns": {
             "type": "array",
             "items": {
@@ -7044,6 +7271,14 @@
           },
           "fk_model_id": {
             "type": "string"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
           }
         }
       },
@@ -7284,20 +7519,10 @@
         },
         "properties": {
           "list": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Grid"
-              },
-              {
-                "$ref": "#/components/schemas/Form"
-              },
-              {
-                "$ref": "#/components/schemas/Kanban"
-              },
-              {
-                "$ref": "#/components/schemas/Gallery"
-              }
-            ]
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/View"
+            }
           },
           "pageInfo": {
             "$ref": "#/components/schemas/Paginated"
@@ -7502,7 +7727,10 @@
             "type": "string"
           },
           "input": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "creator": {
             "type": "string"

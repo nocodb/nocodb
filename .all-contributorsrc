@@ -810,6 +810,51 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "seokjunjin",
+      "name": "Seokjun Jin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46950889?v=4",
+      "profile": "https://github.com/seokjunjin",
+      "contributions": [
+        "translation"
+      ]
+    },
+    {
+      "login": "systemctls",
+      "name": "jinxm",
+      "avatar_url": "https://avatars.githubusercontent.com/u/37177191?v=4",
+      "profile": "https://github.com/systemctls",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "yohanboniface",
+      "name": "Yohan Boniface",
+      "avatar_url": "https://avatars.githubusercontent.com/u/146023?v=4",
+      "profile": "https://yohanboniface.me",
+      "contributions": [
+        "translation"
+      ]
+    },
+    {
+      "login": "drsantam",
+      "name": "Santam Chakraborty",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10681456?v=4",
+      "profile": "https://github.com/drsantam",
+      "contributions": [
+        "translation"
+      ]
+    },
+    {
+      "login": "eltociear",
+      "name": "Ikko Ashimine",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22633385?v=4",
+      "profile": "https://bandism.net/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

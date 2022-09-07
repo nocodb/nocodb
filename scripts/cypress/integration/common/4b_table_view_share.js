@@ -1,23 +1,20 @@
 import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import {loginPage} from "../../support/page_objects/navigation";
 
 let storedURL = "";
 let linkText = "";
 
 const generateLinkWithPwd = () => {
-    mainPage.shareView().click({ force: true });
-
-    cy.wait(3000);
-
-    cy.snipActiveModal("Modal_ShareView");
+    mainPage.shareView().click();
+    cy.getActiveModal().find(".ant-modal-title").contains("This view is shared via a private link").should("be.visible");
 
     // enable checkbox & feed pwd, save
-    cy.getActiveModal().find('button:contains("More Options")').click({ force: true });
-    cy.getActiveModal().find('[role="checkbox"][type="checkbox"]').first().then(($el) => {
+    cy.getActiveModal().find('.ant-collapse').should('exist').click()
+      cy.getActiveModal().find('.ant-checkbox-input').should('exist').first().then(($el) => {
         if (!$el.prop("checked")) {
             cy.wrap($el).click({ force: true });
-            cy.getActiveModal().find('input[type="password"]').type("1");
-            cy.snipActiveModal("Modal_ShareView_Password");
+            cy.getActiveModal().find('input[type="password"]').clear().type("1");
             cy.getActiveModal().find('button:contains("Save password")').click();
             cy.toastWait("Successfully updated");
         }
@@ -25,7 +22,7 @@ const generateLinkWithPwd = () => {
     
     // copy link text, visit URL
     cy.getActiveModal()
-        .find(".share-link-box")
+        .find(".nc-share-link-box")
         .then(($obj) => {
             linkText = $obj.text().trim();
             cy.log(linkText);
@@ -39,6 +36,9 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             mainPage.tabReset();
             cy.openTableTab("City", 25);
 
@@ -46,39 +46,34 @@ export const genTest = (apiType, dbType) => {
             cy.url().then((url) => {
                 storedURL = url;
             });
-
             generateLinkWithPwd();
+
+            cy.signOut();
         });
 
         beforeEach(() => {
-            cy.restoreLocalStorage();
         });
 
         afterEach(() => {
-            cy.saveLocalStorage();
         });
 
         it("Share view with incorrect password", () => {
             cy.visit(linkText, {
                 baseUrl: null,
             });
-            cy.wait(5000);
 
             cy.getActiveModal().should("exist");
 
             // feed password
-            cy.getActiveModal().find('input[type="password"]').type("a");
+            cy.getActiveModal().find('input[type="password"]').clear().type("a");
             cy.getActiveModal().find('button:contains("Unlock")').click();
 
             // if pwd is incorrect, active modal requesting to feed in password again will persist
-            cy.get("body").find(".v-dialog.v-dialog--active").should("exist");
+            cy.getActiveModal().find('button:contains("Unlock")').should('exist');
         });
 
         // fallover test- use previously opened view & continue verification instead of opening again
         it("Share view with correct password", () => {
-            // cy.visit(linkText, {
-            //     baseUrl: null
-            // })
 
             // feed password
             cy.getActiveModal()
@@ -88,32 +83,42 @@ export const genTest = (apiType, dbType) => {
             cy.getActiveModal().find('button:contains("Unlock")').click();
 
             // if pwd is incorrect, active modal requesting to feed in password again will persist
-            cy.get("body")
-                .find(".v-dialog.v-dialog--active")
-                .should("not.exist");
+            // cy.getActiveModal().find('button:contains("Unlock")').should('not.exist');
+            // cy.get(".ant-modal-content:visible").should("not.exist")
+
+            cy.wait(1000);
 
             // Verify Download as CSV is here
-            cy.get(".nc-actions-menu-btn").click();
-            cy.snipActiveMenu("Menu_ActionsMenu");
-            cy.get(`.menuable__content__active .v-list-item span:contains("Download as CSV")`).should("exist");
+            mainPage.downloadCsv().should("exist");
+            cy.get(".nc-actions-menu-btn").should('exist').click();
+
+            mainPage.downloadExcel().should("exist");
+            cy.get(".nc-actions-menu-btn").should('exist').click();
         });
 
-        it("Delete view", () => {
-            cy.visit(storedURL, {
-                baseUrl: null,
-            });
-            cy.wait(5000);
+        it("Delete view",  () => {
+            loginPage.loginAndOpenProject(apiType, dbType);
+            cy.openTableTab("City", 25);
+            cy.wait(500);
+            mainPage.toggleRightSidebar();
+            cy.wait(500);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
+
+            // wait for page load to complete
+            cy.get(".nc-grid-row").should("have.length", 25);
             mainPage.deleteCreatedViews();
         });
 
         after(() => {
+            cy.restoreLocalStorage();
+            cy.wait(500);
+
             cy.closeTableTab("City");
         });
     });
 };
-
-// genTest('rest', false)
-// genTest('graphql', false)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

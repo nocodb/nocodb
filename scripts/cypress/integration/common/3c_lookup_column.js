@@ -8,16 +8,28 @@ export const genTest = (apiType, dbType) => {
         // to retrieve few v-input nodes from their label
         //
         const fetchParentFromLabel = (label) => {
-            cy.get("label").contains(label).parents(".v-input").click();
+            cy.get("label").contains(label).parents(".ant-row").click();
         };
 
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             // open a table to work on views
             //
+
+            // // kludge: wait for page load to finish
+            // cy.wait(1000);
+            // // close team & auth tab
+            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            // cy.wait(1000);
+
             cy.openTableTab("City", 25);
+        });
+
+        beforeEach(() => {
+            cy.fileHook();
         });
 
         after(() => {
@@ -27,52 +39,37 @@ export const genTest = (apiType, dbType) => {
         // Routine to create a new look up column
         //
         const addLookUpColumn = (childTable, childCol) => {
-            // (+) icon at end of column header (to add a new column)
-            // opens up a pop up window
-            //
-            cy.get(".new-column-header").click();
 
-            // Redundant to feed column name. as alias is displayed & referred for
-            cy.get(".nc-column-name-input input").clear().type(childCol);
+            cy.get(".nc-grid  tr > th:last .nc-icon").click({
+                force: true,
+            });
 
-            // Column data type: to be set to lookup in this context
-            cy.get(".nc-ui-dt-dropdown").click();
-            cy.getActiveMenu().contains("Lookup").click();
+            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+              .should('exist')
+              .clear()
+              .type(childCol);
+            cy.get(".nc-column-type-input").last().click().type("Lookup");
+            cy.getActiveSelection().find('.ant-select-item-option').contains("Lookup").click();
 
             // Configure Child table & column names
             fetchParentFromLabel("Child table");
-            cy.getActiveMenu().contains(childTable).click();
+            cy.getActiveSelection().find('.ant-select-item-option').contains(childTable).click();
+            // cy.getActiveMenu().contains(childTable).click();
 
             fetchParentFromLabel("Child column");
-            cy.getActiveMenu().contains(childCol).click();
+            cy.getActiveSelection().find('.ant-select-item-option').contains(childCol).click();
+            // cy.getActiveMenu().contains(childCol).click();
 
-            cy.snipActiveMenu("LookUp");
+            cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            cy.toastWait(`Column created`);
 
-            // click on Save
-            cy.get(".nc-col-create-or-edit-card").contains("Save").click();
-
-            // Verify if column exists.
-            //
-            cy.get(`th:contains(${childCol})`).should("exist");
+            cy.get(`th[data-title="${childCol}"]`).should("exist");
         };
 
         // routine to delete column
         //
         const deleteColumnByName = (childCol) => {
-            // verify if column exists before delete
-            cy.get(`th:contains(${childCol})`).should("exist");
-
-            // delete opiton visible on mouse-over
-            cy.get(`th:contains(${childCol}) .mdi-menu-down`)
-                .trigger("mouseover")
-                .click();
-
-            // delete/ confirm on pop-up
-            cy.get(".nc-column-delete").click();
-            cy.getActiveModal().find("button:contains(Confirm)").click();
-
-            // validate if deleted (column shouldnt exist)
-            cy.get(`th:contains(${childCol})`).should("not.exist");
+            mainPage.deleteColumn(childCol);
         };
 
         ///////////////////////////////////////////////////
@@ -82,7 +79,7 @@ export const genTest = (apiType, dbType) => {
             addLookUpColumn("Address", "PostalCode");
 
             // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
-            cy.get(`tbody > :nth-child(1) > [data-col="PostalCode"]`)
+            mainPage.getCell("PostalCode", 1)
                 .contains("4166")
                 .should("exist");
 
@@ -101,9 +98,6 @@ export const genTest = (apiType, dbType) => {
         });
     });
 };
-
-// genTest('rest', false)
-// genTest('graphql', false)
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

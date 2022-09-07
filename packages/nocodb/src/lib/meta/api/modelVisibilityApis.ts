@@ -115,7 +115,7 @@ router.get(
       await xcVisibilityMetaGet(
         req.params.projectId,
         null,
-        req.query.includeM2M
+        req.query.includeM2M === true || req.query.includeM2M === 'true'
       )
     );
   }, 'modelVisibilityList')

@@ -1,66 +1,42 @@
-# nc-gui
+# Nuxt 3 Minimal Starter
 
-## Build Setup
+Look at the [nuxt 3 documentation](https://v3.nuxtjs.org) to learn more.
+
+## Setup
+
+Make sure to install the dependencies:
 
 ```bash
-# install dependencies
-$ npm install
+# yarn
+yarn install
 
-# serve with hot reload at localhost:3000
-$ npm run dev
+# npm
+npm install
 
-# build for production and launch server
-$ npm run build
-$ npm run start
-
-# generate static project
-$ npm run generate
+# pnpm
+pnpm install --shamefully-hoist
 ```
 
-For detailed explanation on how things work, check out [Nuxt.js docs](https://nuxtjs.org).
+## Development Server
 
+Start the development server on http://localhost:3000
 
-# APIs required 
+```bash
+npm run dev
+```
 
-- DB Operations
-    - Table list 
-    - Column list
-    - View list
-    - Function list
-    - Query execution
-    - Trigger, relation list
-- Project Operation
-    - API Client Metadata operations
-    - Theme options
-- Migration 
-    - Migration Up
-    - Migration Down
-    - Migration List
+## Production
 
+Build the application for production:
 
-- First page
-    - With DB URL
-        - Get Started(P) - /xc/start : Welcome to NocoDB, Looks like you configured databases. Now it's time to setup an admin user. Or it's time to authenticate via Admin secret. No authentication configured access dashboard.
-            - With Auth
-                - Admin secret
-                    - Take Admin Secret(P) - /xc/user/authentication/signup
-                - JWT
-                    - Create Admin User(P) - /xc/user/authentication/signup
-            - Without Auth
-        - Dashboard(P) - /xc/
-    - Without DB URL
-        - Get Started(P) - /xc/start - Welcome to NocoDB, Let's set up a new project by connecting to database.
-            - Create Project(P) - - /xc/project/0
-                - Admin secret
-                    - Take Admin Secret(P) - /xc/user/authentication/signup
-                - JWT
-                    - Create Admin User(P) - /xc/user/authentication/signup
-                - Disabled
-            - Dashboard(P) - /xc/
-    - With Config
-        - Get started(P) - /xc/start - Welcome to NocoDB, Now it's time to setup an admin user. Or it's time to authenticate via Admin secret. No authentication configured access dashboard.
-            - Dashboard(P) - /xc/
+```bash
+npm run build
+```
 
+Locally preview production build:
 
-- Differentiate docker mvc and normal mvc project 
+```bash
+npm run preview
+```
 
+Checkout the [deployment documentation](https://v3.nuxtjs.org/guide/deploy/presets) for more information.

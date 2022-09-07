@@ -1,5 +1,5 @@
 import { loginPage, projectsPage } from "../../support/page_objects/navigation";
-import { mainPage } from "../../support/page_objects/mainPage";
+import { mainPage, settingsPage } from "../../support/page_objects/mainPage";
 import {
     isPostgres,
     isXcdb,
@@ -24,8 +24,24 @@ export const genTest = (apiType, dbType) => {
     describe("Static user creations (different roles)", () => {
         before(() => {
             mainPage.tabReset();
-            cy.get(".mdi-close").click();
-            mainPage.navigationDraw(mainPage.TEAM_N_AUTH).click();
+
+            // kludge: wait for page load to finish
+            cy.wait(4000);
+            // close team & auth tab
+            cy.get('button.ant-tabs-tab-remove').should('exist').click();
+            cy.wait(1000);
+
+            settingsPage.openMenu(settingsPage.TEAM_N_AUTH)
+
+            cy.saveLocalStorage();
+        });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+        });
+
+        after(() => {
+            cy.signOut();
         });
 
         const addUser = (user) => {
@@ -33,21 +49,27 @@ export const genTest = (apiType, dbType) => {
                 // for first project, users need to be added explicitly using "New User" button
                 // for subsequent projects, they will be required to just add to this project
                 // using ROW count to identify if its former or latter scenario
-                // 5 users (owner, creator, editor, viewer, commenter) + row header = 6
-                cy.get(`tr`).then((obj) => {
-                    cy.log(obj.length);
-                    if (obj.length == 6) {
-                        mainPage.addExistingUserToProject(
-                            user.credentials.username,
-                            user.name
-                        );
-                    } else {
-                        mainPage.addNewUserToProject(
-                            user.credentials,
-                            user.name
-                        );
-                    }
-                });
+                // 5 users (owner, creator, editor, viewer, commenter)  = 5
+                // cy.get(`.nc-user-row`).then((obj) => {
+                //     cy.log(obj.length);
+                //     if (obj.length == 5) {
+                //         mainPage.addExistingUserToProject(
+                //             user.credentials.username,
+                //             user.name
+                //         );
+                //     } else {
+                //         mainPage.addNewUserToProject(
+                //             user.credentials,
+                //             user.name
+                //         );
+                //     }
+                // });
+
+                cy.get(`.nc-user-row`).should('exist')
+                mainPage.addNewUserToProject(
+                    user.credentials,
+                    user.name
+                );
             });
         };
 
@@ -56,18 +78,15 @@ export const genTest = (apiType, dbType) => {
         addUser(roles.commenter);
         addUser(roles.viewer);
 
-        // Access contrl list- configuration
+        // Access control list- configuration
         //
         it(`Access control list- configuration`, () => {
             mainPage.closeMetaTab();
 
             // open Project metadata tab
             //
-            mainPage.navigationDraw(mainPage.PROJ_METADATA).click();
-            // cy.get(".nc-exp-imp-metadata").dblclick({ force: true });
-            cy.get(".nc-ui-acl-tab").click({ force: true });
-
-            cy.snip("Meta_Tab3");
+            settingsPage.openMenu(settingsPage.PROJ_METADATA);
+            settingsPage.openTab(settingsPage.UI_ACCESS_CONTROL);
 
             // validate if it has 19 entries representing tables & views
             if (isPostgres())
@@ -78,13 +97,16 @@ export const genTest = (apiType, dbType) => {
 
             // disable table & view access
             //
-            disableTableAccess("language", "editor");
-            disableTableAccess("language", "commenter");
-            disableTableAccess("language", "viewer");
+            disableTableAccess("Language", "editor");
+            disableTableAccess("Language", "commenter");
+            disableTableAccess("Language", "viewer");
 
-            disableTableAccess("customerlist", "editor");
-            disableTableAccess("customerlist", "commenter");
-            disableTableAccess("customerlist", "viewer");
+            disableTableAccess("CustomerList", "editor");
+            disableTableAccess("CustomerList", "commenter");
+            disableTableAccess("CustomerList", "viewer");
+
+            cy.get("button.nc-acl-save").click({ force: true });
+            cy.toastWait("Updated UI ACL for tables successfully");
 
             mainPage.closeMetaTab();
         });
@@ -92,60 +114,71 @@ export const genTest = (apiType, dbType) => {
 
     const roleValidation = (roleType) => {
         describe(`User role validation`, () => {
-            if (roleType != "owner") {
-                it(`[${roles[roleType].name}] SignIn, Open project`, () => {
-                    cy.log(mainPage.roleURL[roleType]);
-                    cy.visit(mainPage.roleURL[roleType], {
-                        baseUrl: null,
-                    });
-                    cy.wait(5000);
 
-                    // Redirected to new URL, feed details
-                    //
-                    cy.get('input[type="text"]')
-                        .should("exist")
-                        .type(roles[roleType].credentials.username);
-                    cy.get('input[type="password"]').type(
-                        roles[roleType].credentials.password
-                    );
-                    cy.get('button:contains("SIGN")').click();
+            before(() => {
+                // cy.restoreLocalStorage();
+                cy.visit(mainPage.roleURL[roleType])
+                cy.wait(5000);
 
-                    cy.url({ timeout: 6000 }).should("contain", "#/project");
+                cy.get('button:contains("SIGN UP")').should('exist')
+                cy.get('input[type="text"]', { timeout: 20000 }).type(
+                    roles[roleType].credentials.username
+                );
+                cy.get('input[type="password"]').type(roles[roleType].credentials.password);
+                cy.get('button:contains("SIGN UP")').click();
 
-                    if (dbType === "xcdb") {
-                        if ("rest" == apiType)
-                            projectsPage.openProject(
-                                staticProjects.sampleREST.basic.name
-                            );
-                        else
-                            projectsPage.openProject(
-                                staticProjects.sampleGQL.basic.name
-                            );
-                    } else if (dbType === "mysql") {
-                        if ("rest" == apiType)
-                            projectsPage.openProject(
-                                staticProjects.externalREST.basic.name
-                            );
-                        else
-                            projectsPage.openProject(
-                                staticProjects.externalGQL.basic.name
-                            );
-                    } else if (dbType === "postgres") {
-                        if ("rest" == apiType)
-                            projectsPage.openProject(
-                                staticProjects.pgExternalREST.basic.name
-                            );
-                        else
-                            projectsPage.openProject(
-                                staticProjects.pgExternalGQL.basic.name
-                            );
-                    }
+                cy.wait(3000);
 
-                    if (roleType != "creator") {
-                        cy.closeTableTab("Actor");
-                    }
-                });
-            }
+                cy.get('.nc-project-page-title').contains("My Projects").should("be.visible");
+
+                if (dbType === "xcdb") {
+                    if ("rest" == apiType)
+                        projectsPage.openProject(
+                            staticProjects.sampleREST.basic.name
+                        );
+                    else
+                        projectsPage.openProject(
+                            staticProjects.sampleGQL.basic.name
+                        );
+                } else if (dbType === "mysql") {
+                    if ("rest" == apiType)
+                        projectsPage.openProject(
+                            staticProjects.externalREST.basic.name
+                        );
+                    else
+                        projectsPage.openProject(
+                            staticProjects.externalGQL.basic.name
+                        );
+                } else if (dbType === "postgres") {
+                    if ("rest" == apiType)
+                        projectsPage.openProject(
+                            staticProjects.pgExternalREST.basic.name
+                        );
+                    else
+                        projectsPage.openProject(
+                            staticProjects.pgExternalGQL.basic.name
+                        );
+                }
+
+                if (roleType === "creator") {
+                    // kludge: wait for page load to finish
+                    // close team & auth tab
+                    cy.wait(2000);
+                    cy.get('button.ant-tabs-tab-remove').should('exist').click();
+                    cy.wait(1000);
+                }
+
+                cy.saveLocalStorage();
+            })
+
+            beforeEach(() => {
+                cy.restoreLocalStorage();
+            });
+
+            after(() => {
+                // sign out
+                cy.signOut();
+            });
 
             ///////////////////////////////////////////////////////
             // Test suite
@@ -153,13 +186,13 @@ export const genTest = (apiType, dbType) => {
             it(`[${roles[roleType].name}] Left navigation menu, New User add`, () => {
                 // project configuration settings
                 //
-                _advSettings(roleType, false);
+                _advSettings(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Access control`, () => {
                 // Access control validation
                 //
-                _accessControl(roleType, false);
+                _accessControl(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, () => {
@@ -167,14 +200,14 @@ export const genTest = (apiType, dbType) => {
                 //  - Add/delete table
                 //  - Add/Update/delete column
                 //
-                _editSchema(roleType, false);
+                _editSchema(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, () => {
                 // Table data related validations
                 //  - Add/delete/modify row
                 //
-                _editData(roleType, false);
+                _editData(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Comments: view/add`, () => {
@@ -182,27 +215,22 @@ export const genTest = (apiType, dbType) => {
                 //      Viewer: only allowed to read
                 //      Everyone else: read &/ update
                 //
-                if (roleType != "viewer") _editComment(roleType, false);
+                _editComment(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Right navigation menu, share view`, () => {
                 // right navigation menu bar
                 //      Editor/Viewer/Commenter : can only view 'existing' views
                 //      Rest: can create/edit
-                _viewMenu(roleType, false, 2);
-            });
-
-            it(`[${roles[roleType].name}] Top Right Menu bar`, () => {
-                // Share button is conditional
-                // Rest are static/ mandatory
-                //
-                _topRightMenu(roleType, false);
+                _viewMenu(roleType, "userRole");
             });
 
             it(`[${roles[roleType].name}] Download files`, () => {
-                // ncv2@fixme
-                // viewer & commenter doesn't contain hideField option in ncv2
-                if (roleType != "viewer" && roleType != "commenter") {
+
+                // to be fixed
+                if(roleType === 'commenter' || roleType === 'viewer') {}
+                else {
+                    // viewer & commenter doesn't contain hideField option in ncv2
                     // #ID, City, LastUpdate, City => Address, Country <= City, +
                     mainPage.hideField("LastUpdate");
 
@@ -216,7 +244,6 @@ export const genTest = (apiType, dbType) => {
                             `Acua,1789 Saint-Denis Parkway,Mexico`,
                         ];
 
-                        // ncv2@fixme
                         // skip if xcdb
                         if (!isXcdb()) {
                             for (let i = 0; i < storedRecords.length; i++) {
@@ -231,7 +258,8 @@ export const genTest = (apiType, dbType) => {
                     // download & verify
                     mainPage.downloadAndVerifyCsv(
                         `City_exported_1.csv`,
-                        verifyCsv
+                        verifyCsv,
+                        roleType
                     );
                     mainPage.unhideField("LastUpdate");
                 }

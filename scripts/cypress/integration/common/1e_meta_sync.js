@@ -28,8 +28,11 @@ export const genTest = (apiType, dbType) => {
             mainPage.openMetaTab();
         });
 
+        beforeEach(() => {
+        });
+
         after(() => {
-            mainPage.closeMetaTab();
+            // mainPage.closeMetaTab();
         });
 
         it(`Create table`, () => {

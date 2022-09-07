@@ -10,21 +10,14 @@ const {
     setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
 
-// use 0 as mode to execute individual files (debug mode, skip pre-configs)
-// use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
-const executionMode = 1;
-
 const nocoTestSuite = (apiType, dbType) => {
     setCurrentMode(apiType, dbType);
-    if (0 == executionMode) {
-        t0.genTest(apiType, dbType);
-    } else {
-        t01.genTest(apiType, dbType);
-    }
+    t01.genTest(apiType, dbType);
 
+    // place plugin related activities at top
+    t4c.genTest(apiType, dbType);
     t4a.genTest(apiType, dbType);
     t4b.genTest(apiType, dbType);
-    t4c.genTest(apiType, dbType);
     t4d.genTest(apiType, dbType);
     t4e.genTest(apiType, dbType);
     t4f.genTest(apiType, dbType);

@@ -11,6 +11,7 @@ export default {
     // project
     projectGet: true,
     projectList: true,
+    projectCost: true,
     //table
     tableList: true,
     tableGet: true,
@@ -26,6 +27,7 @@ export default {
     dataGroupBy: true,
     commentsCount: true,
     exportCsv: true,
+    exportExcel: true,
 
     viewList: true,
     columnList: true,
@@ -141,6 +143,7 @@ export default {
     // project
     projectGet: true,
     exportCsv: true,
+    exportExcel: true,
 
     //table
     tableGet: true,
@@ -168,6 +171,7 @@ export default {
     xcTableAndViewList: true,
     xcVirtualTableList: true,
     projectList: true,
+    projectCost: true,
     PROJECT_READ_BY_WEB: true,
 
     tableXcModelGet: true,
@@ -203,9 +207,11 @@ export default {
     dataGroupBy: true,
     commentsCount: true,
     exportCsv: true,
+    exportExcel: true,
 
     // sort & filter
     sortList: true,
+    filterList: true,
     projectInfoGet: true,
 
     galleryViewGet: true,
@@ -218,6 +224,7 @@ export default {
     xcTableAndViewList: true,
     xcVirtualTableList: true,
     projectList: true,
+    projectCost: true,
     PROJECT_READ_BY_WEB: true,
 
     tableXcModelGet: true,
@@ -234,7 +241,7 @@ export default {
     indexList: true,
     list: true,
     xcExportAsCsv: true,
-    dataCount: true,
+    dataCount: true
   },
   user_new: {
     passwordChange: true,
@@ -252,6 +259,7 @@ export default {
     pluginUpdate: true,
     projectCreate: true,
     projectList: true,
+    projectCost: true,
     handleAxiosCall: true,
     testConnection: true,
     projectCreateByWeb: true,

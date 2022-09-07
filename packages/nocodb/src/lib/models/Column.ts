@@ -2,8 +2,7 @@ import FormulaColumn from './FormulaColumn';
 import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
 import LookupColumn from './LookupColumn';
 import RollupColumn from './RollupColumn';
-import SingleSelectColumn from './SingleSelectColumn';
-import MultiSelectColumn from './MultiSelectColumn';
+import SelectOption from './SelectOption';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
 import { ColumnType, UITypes } from 'nocodb-sdk';
@@ -232,26 +231,92 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
       case UITypes.MultiSelect: {
-        for (const option of column.dtxp?.split(',') || []) {
-          await MultiSelectColumn.insert(
-            {
-              fk_column_id: colId,
-              title: option,
-            },
-            ncMeta
-          );
+        if (!column.colOptions?.options) {
+          const selectColors = [
+            '#cfdffe',
+            '#d0f1fd',
+            '#c2f5e8',
+            '#ffdaf6',
+            '#ffdce5',
+            '#fee2d5',
+            '#ffeab6',
+            '#d1f7c4',
+            '#ede2fe',
+            '#eeeeee',
+          ];
+          for (const [i, option] of column.dtxp?.split(',').entries() ||
+            [].entries()) {
+            await SelectOption.insert(
+              {
+                fk_column_id: colId,
+                title: option.replace(/^'/, '').replace(/'$/, ''),
+                order: i + 1,
+                color: selectColors[i % selectColors.length],
+              },
+              ncMeta
+            );
+          }
+        } else {
+          for (const [i, option] of column.colOptions.options.entries() ||
+            [].entries()) {
+            // Trim end of enum/set
+            if (column.dt === 'enum' || column.dt === 'set') {
+              option.title = option.title.trimEnd();
+            }
+            await SelectOption.insert(
+              {
+                ...option,
+                fk_column_id: colId,
+                order: i + 1,
+              },
+              ncMeta
+            );
+          }
         }
         break;
       }
       case UITypes.SingleSelect: {
-        for (const option of column.dtxp?.split(',') || []) {
-          await SingleSelectColumn.insert(
-            {
-              fk_column_id: colId,
-              title: option,
-            },
-            ncMeta
-          );
+        if (!column.colOptions?.options) {
+          const selectColors = [
+            '#cfdffe',
+            '#d0f1fd',
+            '#c2f5e8',
+            '#ffdaf6',
+            '#ffdce5',
+            '#fee2d5',
+            '#ffeab6',
+            '#d1f7c4',
+            '#ede2fe',
+            '#eeeeee',
+          ];
+          for (const [i, option] of column.dtxp?.split(',').entries() ||
+            [].entries()) {
+            await SelectOption.insert(
+              {
+                fk_column_id: colId,
+                title: option.replace(/^'/, '').replace(/'$/, ''),
+                order: i + 1,
+                color: selectColors[i % selectColors.length],
+              },
+              ncMeta
+            );
+          }
+        } else {
+          for (const [i, option] of column.colOptions.options.entries() ||
+            [].entries()) {
+            // Trim end of enum/set
+            if (column.dt === 'enum' || column.dt === 'set') {
+              option.title = option.title.trimEnd();
+            }
+            await SelectOption.insert(
+              {
+                ...option,
+                fk_column_id: colId,
+                order: i + 1,
+              },
+              ncMeta
+            );
+          }
         }
         break;
       }
@@ -322,10 +387,10 @@ export default class Column<T = any> implements ColumnType {
         res = await LinkToAnotherRecordColumn.read(this.id, ncMeta);
         break;
       case UITypes.MultiSelect:
-        res = await MultiSelectColumn.get(this.id, ncMeta);
+        res = await SelectOption.read(this.id, ncMeta);
         break;
       case UITypes.SingleSelect:
-        res = await SingleSelectColumn.get(this.id, ncMeta);
+        res = await SelectOption.read(this.id, ncMeta);
         break;
       case UITypes.Formula:
         res = await FormulaColumn.read(this.id, ncMeta);
@@ -468,12 +533,14 @@ export default class Column<T = any> implements ColumnType {
         MetaTable.COLUMNS,
         colId
       );
-      try {
-        colData.meta = JSON.parse(colData.meta);
-      } catch {
-        colData.meta = {};
+      if (colData) {
+        try {
+          colData.meta = JSON.parse(colData.meta);
+        } catch {
+          colData.meta = {};
+        }
+        await NocoCache.set(`${CacheScope.COLUMN}:${colId}`, colData);
       }
-      await NocoCache.set(`${CacheScope.COLUMN}:${colId}`, colData);
     }
     if (colData) {
       const column = new Column(colData);
@@ -772,10 +839,11 @@ export default class Column<T = any> implements ColumnType {
         await ncMeta.metaDelete(null, null, MetaTable.COL_SELECT_OPTIONS, {
           fk_column_id: colId,
         });
+
         await NocoCache.deepDel(
           CacheScope.COL_SELECT_OPTION,
-          `${CacheScope.COL_SELECT_OPTION}:${colId}`,
-          CacheDelDirection.CHILD_TO_PARENT
+          `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
+          CacheDelDirection.PARENT_TO_CHILD
         );
         break;
       }

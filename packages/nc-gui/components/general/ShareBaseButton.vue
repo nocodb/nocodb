@@ -9,7 +9,7 @@ const { isUIAllowed } = useUIPermission()
 </script>
 
 <template>
-  <div class="flex items-center w-full pl-3 hover:(text-primary bg-primary bg-opacity-5)">
+  <div class="flex items-center w-full pl-3 hover:(text-primary bg-primary bg-opacity-5)" @click="showUserModal = true">
     <div
       v-if="
         isUIAllowed('newUser') &&
@@ -18,7 +18,6 @@ const { isUIAllowed } = useUIPermission()
         route.name !== 'index-index-create-external' &&
         route.name !== 'index-user-index'
       "
-      @click="showUserModal = true"
     >
       <div class="flex items-center space-x-1">
         <MdiAccountPlusOutline class="mr-1 nc-share-base" />

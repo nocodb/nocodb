@@ -2,7 +2,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -27,6 +26,7 @@ import {
   ref,
   useEventListener,
   useGridViewColumnWidth,
+  useI18n,
   useSmartsheetStoreOrThrow,
   useUIPermission,
   useViewData,

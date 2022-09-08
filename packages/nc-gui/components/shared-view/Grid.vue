@@ -2,7 +2,6 @@
 import type { Ref } from 'vue'
 import type { TableType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-
 import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadViewDataHookInj } from '~/context'
 
 const { sharedView, meta, sorts, nestedFilters } = useSharedView()
@@ -10,6 +9,7 @@ const { signedIn } = useGlobal()
 const { loadProject } = useProject(meta?.value.project_id)
 
 const reloadEventHook = createEventHook<void>()
+
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(ReadonlyInj, true)
 provide(MetaInj, meta)

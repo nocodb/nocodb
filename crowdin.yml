@@ -1,3 +1,3 @@
 files:
   - source: /packages/nc-gui/lang/en.json
-    translation: /packages/nc-gui/lang/%two_letters_code%.json
+    translation: /packages/nc-gui/lang/%osx_locale%.json

@@ -1,6 +1,6 @@
 import 'mocha';
-import { createProject, createSakilaProject } from './factory/project';
 import init from '../init';
+import { createProject, createSakilaProject } from './factory/project';
 import request from 'supertest';
 import { ColumnType, UITypes } from 'nocodb-sdk';
 import {
@@ -1148,22 +1148,6 @@ function tableTest() {
     );
     if (updatedRow[emailColumn.title] !== 'valid@example.com') {
       throw new Error('Wrong update');
-    }
-  });
-
-  it('Delete table row', async function () {
-    const table = await createTable(context, project);
-    const row = await createRow(context, { project, table });
-
-    await request(context.app)
-      .delete(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}`)
-      .set('xc-auth', context.token)
-      .expect(200);
-
-    const deleteRow = await getRow(context, {project, table, id: row['Id']});
-    if (deleteRow && Object.keys(deleteRow).length > 0) {
-      console.log(deleteRow);
-      throw new Error('Wrong delete');
     }
   });
 

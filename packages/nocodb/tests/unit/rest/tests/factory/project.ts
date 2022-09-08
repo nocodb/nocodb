@@ -1,4 +1,5 @@
 import request from 'supertest';
+import Project from '../../../../../src/lib/models/Project';
 import { sakilaDbName } from '../../dbConfig';
 
 const externalProjectConfig = {
@@ -48,7 +49,8 @@ const createSakilaProject = async (context) => {
     .set('xc-auth', context.token)
     .send(externalProjectConfig);
 
-  const project = response.body;
+  const project: Project = await Project.getByTitleOrId(response.body.id);
+
   return project;
 };
 
@@ -58,7 +60,7 @@ const createProject = async (context, projectArgs = defaultProjectValue) => {
     .set('xc-auth', context.token)
     .send(projectArgs);
 
-  const project = response.body;
+  const project: Project = await Project.getByTitleOrId(response.body.id);
   return project;
 };
 

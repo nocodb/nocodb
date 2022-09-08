@@ -1,10 +1,10 @@
 // import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
-import { createTable } from './factory/table';
+import init from '../init';
+import { createTable, getAllTables } from './factory/table';
 import { createProject } from './factory/project';
 import { defaultColumns } from './factory/column';
-import init from '../init';
 import Model from '../../../../src/lib/models/Model';
 
 function tableTest() {
@@ -19,22 +19,18 @@ function tableTest() {
     table = await createTable(context, project);
   });
 
-  it('Get table list', function (done) {
-    request(context.app)
+  it('Get table list', async function () {
+    const response = await request(context.app)
       .get(`/api/v1/db/meta/projects/${project.id}/tables`)
       .set('xc-auth', context.token)
       .send({})
-      .expect(200, (err, res) => {
-        if (err) return done(err);
+      .expect(200);
 
-        if (res.body.list.length !== 1) return done('Wrong number of tables');
-
-        done();
-      });
+    if (response.body.list.length !== 1) return new Error('Wrong number of tables');
   });
 
-  it('Create table', function (done) {
-    request(context.app)
+  it('Create table', async function () {
+    const response = await request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
       .set('xc-auth', context.token)
       .send({
@@ -42,35 +38,29 @@ function tableTest() {
         title: 'new_title_2',
         columns: defaultColumns,
       })
-      .expect(200, async (err, res) => {
-        if (err) return done(err);
+      .expect(200);
 
-        const tables = await Model.list({
-          project_id: project.id,
-          base_id: project.bases[0].id,
-        });
-        if (tables.length !== 2) {
-          return done('Tables is not be created');
-        }
+    const tables = await getAllTables({ project });
+    if (tables.length !== 2) {
+      return new Error('Tables is not be created');
+    }
 
-        if (res.body.columns.length !== defaultColumns.length) {
-          done('Columns not saved properly');
-        }
+    if (response.body.columns.length !== defaultColumns.length) {
+      return new Error('Columns not saved properly');
+    }
 
-        if (
-          !(
-            res.body.table_name.startsWith(project.prefix) &&
-            res.body.table_name.endsWith('table2')
-          )
-        ) {
-          done('table name not configured properly');
-        }
-        done();
-      });
+    if (
+      !(
+        response.body.table_name.startsWith(project.prefix) &&
+        response.body.table_name.endsWith('table2')
+      )
+    ) {
+      return new Error('table name not configured properly');
+    }
   });
 
-  it('Create table with no table name', function (done) {
-    request(context.app)
+  it('Create table with no table name', async function () {
+    const response = await request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
       .set('xc-auth', context.token)
       .send({
@@ -78,35 +68,28 @@ function tableTest() {
         title: 'new_title',
         columns: defaultColumns,
       })
-      .expect(400, async (err, res) => {
-        if (err) return done(err);
+      .expect(400);
 
-        if (
-          !res.text.includes(
-            'Missing table name `table_name` property in request body'
-          )
-        ) {
-          console.error(res.text);
-          return done('Wrong api response');
-        }
+    if (
+      !response.text.includes(
+        'Missing table name `table_name` property in request body'
+      )
+    ) {
+      console.error(response.text);
+      return new Error('Wrong api response');
+    }
 
-        const tables = await Model.list({
-          project_id: project.id,
-          base_id: project.bases[0].id,
-        });
-        if (tables.length !== 1) {
-          console.log(tables);
-          return done(
-            `Tables should not be created, tables.length:${tables.length}`
-          );
-        }
-
-        done();
-      });
+    const tables = await getAllTables({ project });
+    if (tables.length !== 1) {
+      console.log(tables);
+      return new Error(
+        `Tables should not be created, tables.length:${tables.length}`
+      );
+    }
   });
 
-  it('Create table with same table name', function (done) {
-    request(context.app)
+  it('Create table with same table name', async function () {
+    const response = await request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
       .set('xc-auth', context.token)
       .send({
@@ -114,28 +97,21 @@ function tableTest() {
         title: 'New_title',
         columns: defaultColumns,
       })
-      .expect(400, async (err, res) => {
-        if (err) return done(err);
+      .expect(400);
 
-        if (!res.text.includes('Duplicate table name')) {
-          console.error(res.text);
-          return done('Wrong api response');
-        }
+    if (!response.text.includes('Duplicate table name')) {
+      console.error(response.text);
+      return new Error('Wrong api response');
+    }
 
-        const tables = await Model.list({
-          project_id: project.id,
-          base_id: project.bases[0].id,
-        });
-        if (tables.length !== 1) {
-          return done('Tables should not be created');
-        }
-
-        done();
-      });
+    const tables = await getAllTables({ project });
+    if (tables.length !== 1) {
+      return new Error('Tables should not be created');
+    }
   });
 
-  it('Create table with same title', function (done) {
-    request(context.app)
+  it('Create table with same title', async function () {
+    const response = await request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
       .set('xc-auth', context.token)
       .send({
@@ -143,28 +119,21 @@ function tableTest() {
         title: table.title,
         columns: defaultColumns,
       })
-      .expect(400, async (err, res) => {
-        if (err) return done(err);
+      .expect(400);
 
-        if (!res.text.includes('Duplicate table alias')) {
-          console.error(res.text);
-          return done('Wrong api response');
-        }
+      if (!response.text.includes('Duplicate table alias')) {
+        console.error(response.text);
+        return new Error('Wrong api response');
+      }
 
-        const tables = await Model.list({
-          project_id: project.id,
-          base_id: project.bases[0].id,
-        });
-        if (tables.length !== 1) {
-          return done('Tables should not be created');
-        }
-
-        done();
-      });
+      const tables = await getAllTables({ project });
+      if (tables.length !== 1) {
+        return new Error('Tables should not be created');
+      }
   });
 
-  it('Create table with title length more than the limit', function (done) {
-    request(context.app)
+  it('Create table with title length more than the limit', async function () {
+    const response = await request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
       .set('xc-auth', context.token)
       .send({
@@ -172,28 +141,22 @@ function tableTest() {
         title: 'new_title',
         columns: defaultColumns,
       })
-      .expect(400, async (err, res) => {
-        if (err) return done(err);
+      .expect(400);
 
-        if (!res.text.includes('Table name exceeds ')) {
-          console.error(res.text);
-          return done('Wrong api response');
-        }
+    if (!response.text.includes('Table name exceeds ')) {
+      console.error(response.text);
+      return new Error('Wrong api response');
+    }
 
-        const tables = await Model.list({
-          project_id: project.id,
-          base_id: project.bases[0].id,
-        });
-        if (tables.length !== 1) {
-          return done('Tables should not be created');
-        }
+    const tables = await getAllTables({ project });
+    if (tables.length !== 1) {
+      return new Error('Tables should not be created');
+    }
 
-        done();
-      });
   });
 
-  it('Create table with title having leading white space', function (done) {
-    request(context.app)
+  it('Create table with title having leading white space', async function () {
+    const response = await request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/tables`)
       .set('xc-auth', context.token)
       .send({
@@ -201,113 +164,90 @@ function tableTest() {
         title: 'new_title',
         columns: defaultColumns,
       })
-      .expect(400, async (err, res) => {
-        if (err) return done(err);
+      .expect(400);
 
-        if (
-          !res.text.includes(
-            'Leading or trailing whitespace not allowed in table names'
-          )
-        ) {
-          console.error(res.text);
-          return done('Wrong api response');
-        }
+    if (
+      !response.text.includes(
+        'Leading or trailing whitespace not allowed in table names'
+      )
+    ) {
+      console.error(response.text);
+      return new Error('Wrong api response');
+    }
 
-        const tables = await Model.list({
-          project_id: project.id,
-          base_id: project.bases[0].id,
-        });
-        if (tables.length !== 1) {
-          return done('Tables should not be created');
-        }
-
-        done();
-      });
+    const tables = await getAllTables({ project });
+    if (tables.length !== 1) {
+      return new Error('Tables should not be created');
+    }
   });
 
-  it('Update table', function (done) {
-    request(context.app)
+  it('Update table', async function () {
+    const response = await request(context.app)
       .patch(`/api/v1/db/meta/tables/${table.id}`)
       .set('xc-auth', context.token)
       .send({
         project_id: project.id,
         table_name: 'new_title',
       })
-      .expect(200, async (err) => {
-        if (err) return done(err);
+      .expect(200);
+    const updatedTable = await Model.get(table.id);
 
-        const updatedTable = await Model.get(table.id);
-
-        if (!updatedTable.table_name.endsWith('new_title')) {
-          return done('Table was not updated');
-        }
-
-        done();
-      });
+    if (!updatedTable.table_name.endsWith('new_title')) {
+      return new Error('Table was not updated');
+    }
   });
 
-  it('Delete table', function (done) {
-    request(context.app)
+  it('Delete table', async function () {
+    const response = await request(context.app)
       .delete(`/api/v1/db/meta/tables/${table.id}`)
       .set('xc-auth', context.token)
       .send({})
-      .expect(200, async (err) => {
-        if (err) return done(err);
+      .expect(200);
 
-        const tables = await Model.list({
-          project_id: project.id,
-          base_id: project.bases[0].id,
-        });
+    const tables = await getAllTables({ project });
 
-        if (tables.length !== 0) {
-          return done('Table is not deleted');
-        }
-
-        done();
-      });
+    if (tables.length !== 0) {
+      return new Error('Table is not deleted');
+    }
   });
 
   // todo: Check the condtion where the table being deleted is being refered by multiple tables
   // todo: Check the if views are also deleted
 
-  it('Get table', function (done) {
-    request(context.app)
+  it('Get table', async function () {
+    const response = await request(context.app)
       .get(`/api/v1/db/meta/tables/${table.id}`)
       .set('xc-auth', context.token)
       .send({})
-      .expect(200, async (err, res) => {
-        if (err) return done(err);
+      .expect(200);
 
-        if (res.body.id !== table.id) done('Wrong table');
-
-        done();
-      });
+      if (response.body.id !== table.id) new Error('Wrong table');
   });
 
   // todo: flaky test, order condition is sometimes not met
-  it('Reorder table', function (done) {
+  it('Reorder table', async function () {
     const newOrder = table.order === 0 ? 1 : 0;
-    request(context.app)
+    const response = await request(context.app)
       .post(`/api/v1/db/meta/tables/${table.id}/reorder`)
       .set('xc-auth', context.token)
       .send({
         order: newOrder,
       })
-      .expect(200, done);
+      .expect(200);
     // .expect(200, async (err) => {
-    //   if (err) return done(err);
+    //   if (err) return new Error(err);
 
     //   const updatedTable = await Model.get(table.id);
     //   console.log(Number(updatedTable.order), newOrder);
     //   if (Number(updatedTable.order) !== newOrder) {
-    //     return done('Reordering failed');
+    //     return new Error('Reordering failed');
     //   }
 
-    //   done();
+    //   new Error();
     // });
   });
 }
 
-export default function () {
+export default async function () {
   describe('Table', tableTest);
 }

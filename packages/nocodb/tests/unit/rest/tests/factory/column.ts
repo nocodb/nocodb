@@ -1,7 +1,12 @@
 import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
 import Column from '../../../../../src/lib/models/Column';
+import FormViewColumn from '../../../../../src/lib/models/FormViewColumn';
+import GalleryViewColumn from '../../../../../src/lib/models/GalleryViewColumn';
+import GridViewColumn from '../../../../../src/lib/models/GridViewColumn';
 import Model from '../../../../../src/lib/models/Model';
+import Project from '../../../../../src/lib/models/Project';
+import View from '../../../../../src/lib/models/View';
 
 const defaultColumns = [
   {
@@ -122,7 +127,7 @@ const createRollupColumn = async (
     relatedTableName,
     relatedTableColumnTitle,
   }: {
-    project: any;
+    project: Project;
     title: string;
     rollupFunction: string;
     table: Model;
@@ -130,9 +135,10 @@ const createRollupColumn = async (
     relatedTableColumnTitle: string;
   }
 ) => {
+  const childBases = await project.getBases();
   const childTable = await Model.getByIdOrName({
     project_id: project.id,
-    base_id: project.bases[0].id,
+    base_id: childBases[0].id!,
     table_name: relatedTableName,
   });
   const childTableColumns = await childTable.getColumns();
@@ -168,16 +174,17 @@ const createLookupColumn = async (
     relatedTableName,
     relatedTableColumnTitle,
   }: {
-    project: any;
+    project: Project;
     title: string;
     table: Model;
     relatedTableName: string;
     relatedTableColumnTitle: string;
   }
 ) => {
+  const childBases = await project.getBases();
   const childTable = await Model.getByIdOrName({
     project_id: project.id,
-    base_id: project.bases[0].id,
+    base_id: childBases[0].id!,
     table_name: relatedTableName,
   });
   const childTableColumns = await childTable.getColumns();
@@ -234,10 +241,26 @@ const createLtarColumn = async (
   return ltarColumn;
 };
 
+const updateViewColumn = async (context, {view, column, attr}: {column: Column, view: View, attr: any}) => {
+  const res = await request(context.app)
+  .patch(`/api/v1/db/meta/views/${view.id}/columns/${column.id}`)
+  .set('xc-auth', context.token)
+  .send({
+    ...attr,
+  });
+
+  const updatedColumn: FormViewColumn | GridViewColumn | GalleryViewColumn = (await view.getColumns()).find(
+    (column) => column.id === column.id
+  )!;
+
+  return updatedColumn;
+}
+
 export {
   defaultColumns,
   createColumn,
   createRollupColumn,
   createLookupColumn,
   createLtarColumn,
+  updateViewColumn
 };

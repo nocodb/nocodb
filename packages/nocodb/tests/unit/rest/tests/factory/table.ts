@@ -1,5 +1,6 @@
 import request from 'supertest';
 import Model from '../../../../../src/lib/models/Model';
+import Project from '../../../../../src/lib/models/Project';
 import { defaultColumns } from './column';
 
 const defaultTableValue = {
@@ -18,12 +19,23 @@ const createTable = async (context, project, args = {}) => {
   return table;
 };
 
-const getTable = async ({project, name}: {project, name: string}) => {
+const getTable = async ({project, name}: {project: Project, name: string}) => {
+  const bases = await project.getBases();
   return await Model.getByIdOrName({
     project_id: project.id,
-    base_id: project.bases[0].id,
+    base_id: bases[0].id!,
     table_name: name,
   });
 }
 
-export { createTable, getTable };
+const getAllTables = async ({project}: {project: Project}) => {
+  const bases = await project.getBases();
+  const tables = await Model.list({
+    project_id: project.id,
+    base_id: bases[0].id!,
+  });
+
+  return tables;
+}
+
+export { createTable, getTable, getAllTables };

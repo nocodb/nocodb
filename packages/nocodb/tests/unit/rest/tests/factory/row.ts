@@ -46,9 +46,10 @@ const listRow = async ({
     sortArr?: Sort[];
   };
 }) => {
+  const bases = await project.getBases();
   const baseModel = await Model.getBaseModelSQL({
     id: table.id,
-    dbDriver: NcConnectionMgrv2.get(project.bases[0]),
+    dbDriver: NcConnectionMgrv2.get(bases[0]!),
   });
 
   const ignorePagination = !options;

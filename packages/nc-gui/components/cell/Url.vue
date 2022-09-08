@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
-import { CellUrlConfigInj, CellUrlDisableOverlayInj, ColumnInj, EditModeInj, computed, inject, isValidURL, ref } from '#imports'
+import { CellUrlDisableOverlayInj, ColumnInj, EditModeInj, computed, inject, isValidURL, ref } from '#imports'
 import MiCircleWarning from '~icons/mi/circle-warning'
 
 const { modelValue: value } = defineProps<Props>()
@@ -16,7 +16,6 @@ const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
 
-const config = inject(CellUrlConfigInj, {})
 const disableOverlay = inject(CellUrlDisableOverlayInj)
 // Used in the logic of when to display error since we are not storing the url if its not valid
 const localState = ref(value)
@@ -41,17 +40,7 @@ const url = computed(() => {
 
   return `https://${value}`
 })
-
-const urlOptions = computed(() => {
-  const { behavior, overlay, rules } = config
-  const options = { behavior, overlay }
-  if (rules && (!behavior || !overlay)) {
-    for (const [regex, value] of rules) {
-      if (url.value.match(regex)) return Object.assign(options, value)
-    }
-  }
-  return options
-})
+const urlOptions = useCellUrlConfig(url)
 
 const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 

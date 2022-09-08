@@ -5,11 +5,6 @@ import type { useViewData } from '#imports'
 import type { Row } from '~/composables'
 import type { TabItem } from '~/composables/useTabs'
 
-export interface CellUrlOptions {
-  behavior?: string
-  overlay?: string
-}
-
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
 export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')
@@ -32,6 +27,4 @@ export const FieldsInj: InjectionKey<Ref<any[]>> = Symbol('fields-injection')
 export const ViewListInj: InjectionKey<Ref<ViewType[]>> = Symbol('view-list-injection')
 export const EditModeInj: InjectionKey<Ref<boolean>> = Symbol('edit-mode-injection')
 export const SharedViewPasswordInj: InjectionKey<Ref<string | null>> = Symbol('shared-view-password-injection')
-export const CellUrlConfigInj: InjectionKey<CellUrlOptions & { rules?: Array<[RegExp, CellUrlOptions]> }> =
-  Symbol('cell-url-config')
 export const CellUrlDisableOverlayInj: InjectionKey<Ref<boolean>> = Symbol('cell-url-disable-url')

@@ -1,4 +1,4 @@
-import { DbConfig } from "../../../../src/interface/config";
+import { DbConfig } from "../../../src/interface/config";
 
 
 const isSqlite = (context) =>

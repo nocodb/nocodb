@@ -1,7 +1,7 @@
 import 'mocha';
 import request from 'supertest';
-import init from '../init/index';
-import { createProject, createSharedBase } from './factory/project';
+import init from '../../init/index';
+import { createProject, createSharedBase } from '../../factory/project';
 import { beforeEach } from 'mocha';
 import { Exception } from 'handlebars';
 import Project from '../../../../src/lib/models/Project';

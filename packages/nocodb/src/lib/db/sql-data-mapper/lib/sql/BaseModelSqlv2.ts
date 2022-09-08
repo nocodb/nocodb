@@ -1860,7 +1860,7 @@ class BaseModelSqlv2 {
     await this.handleHooks('After.insert', data, req);
     // if (req?.headers?.['xc-gui']) {
     const id = this._extractPksValues(data);
-    Audit.insert({
+    await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
       op_type: AuditOperationTypes.DATA,

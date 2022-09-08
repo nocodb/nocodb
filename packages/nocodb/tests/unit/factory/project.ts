@@ -1,6 +1,6 @@
 import request from 'supertest';
-import Project from '../../../../../src/lib/models/Project';
-import { sakilaDbName } from '../../dbConfig';
+import Project from '../../../src/lib/models/Project';
+import { sakilaDbName } from '../dbConfig';
 
 const externalProjectConfig = {
   title: 'sakila',

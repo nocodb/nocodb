@@ -1,6 +1,6 @@
 import request from 'supertest';
-import Model from '../../../../../src/lib/models/Model';
-import Project from '../../../../../src/lib/models/Project';
+import Model from '../../../src/lib/models/Model';
+import Project from '../../../src/lib/models/Project';
 import { defaultColumns } from './column';
 
 const defaultTableValue = {

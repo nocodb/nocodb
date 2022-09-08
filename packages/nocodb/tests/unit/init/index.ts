@@ -1,12 +1,12 @@
 
 import express from 'express';
 import knex from 'knex';
-import { Noco } from '../../../../src/lib';
+import { Noco } from '../../../src/lib';
 
 import { dbConfig, dbName, sakilaDbName } from '../dbConfig';
 import cleanupMeta from './cleanupMeta';
 import {cleanUpSakila, resetAndSeedSakila} from './cleanupSakila';
-import { createUser } from '../tests/factory/user';
+import { createUser } from '../factory/user';
 
 let server;
 const knexClient = knex(dbConfig);

@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
-import init from '../init';
-import { defaultUserArgs } from './factory/user';
+import init from '../../init';
+import { defaultUserArgs } from '../../factory/user';
 
 function authTests() {
   let context;

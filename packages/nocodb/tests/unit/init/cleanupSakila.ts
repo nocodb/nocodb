@@ -1,5 +1,5 @@
-import Audit from '../../../../src/lib/models/Audit';
-import Project from '../../../../src/lib/models/Project';
+import Audit from '../../../src/lib/models/Audit';
+import Project from '../../../src/lib/models/Project';
 import { dbPassword, dbUser, sakilaTableNames, sakilaDbName } from '../dbConfig';
 import { exec } from 'child_process';
 
@@ -30,7 +30,7 @@ const resetAndSeedSakila = async (sakilaKnexClient) => {
   try {
     await dropTablesOfSakila(sakilaKnexClient);
     
-    const testsDir = __dirname.replace('tests/unit/rest/init', 'tests');
+    const testsDir = __dirname.replace('tests/unit/init', 'tests');
     await sh(`echo "SOURCE ${testsDir}/mysql-sakila-db/03-test-sakila-schema.sql" | mysql -u ${dbUser} -p${dbPassword} ${sakilaDbName}`);
     await sh(`echo "SOURCE ${testsDir}/mysql-sakila-db/04-test-sakila-data.sql" | mysql -u ${dbUser} -p${dbPassword} ${sakilaDbName}`);
     

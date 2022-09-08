@@ -1,8 +1,7 @@
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import request from 'supertest';
-import Column from '../../../../../src/lib/models/Column';
-import Model from '../../../../../src/lib/models/Model';
-import View from '../../../../../src/lib/models/View';
+import Model from '../../../src/lib/models/Model';
+import View from '../../../src/lib/models/View';
 
 const createView = async (context, {title, table, type}: {title: string, table: Model, type: ViewTypes}) => {
   const viewTypeStr = (type) => {

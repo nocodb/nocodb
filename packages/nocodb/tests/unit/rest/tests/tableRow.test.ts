@@ -1,6 +1,6 @@
 import 'mocha';
-import init from '../init';
-import { createProject, createSakilaProject } from './factory/project';
+import init from '../../init';
+import { createProject, createSakilaProject } from '../../factory/project';
 import request from 'supertest';
 import { ColumnType, UITypes } from 'nocodb-sdk';
 import {
@@ -8,8 +8,8 @@ import {
   createLookupColumn,
   createLtarColumn,
   createRollupColumn,
-} from './factory/column';
-import { createTable, getTable } from './factory/table';
+} from '../../factory/column';
+import { createTable, getTable } from '../../factory/table';
 import {
   createRelation,
   createRow,
@@ -17,8 +17,8 @@ import {
   getOneRow,
   getRow,
   listRow,
-} from './factory/row';
-import { isMysql, isSqlite } from '../init/db';
+} from '../../factory/row';
+import { isMysql, isSqlite } from '../../init/db';
 import Model from '../../../../src/lib/models/Model';
 import Project from '../../../../src/lib/models/Project';
 

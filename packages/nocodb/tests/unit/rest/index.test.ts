@@ -5,7 +5,7 @@ import tableTests from './tests/table.test';
 import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
 import knex from 'knex';
-import { dbName } from './dbConfig';
+import { dbName } from '../dbConfig';
 
 process.env.NODE_ENV = 'test';
 process.env.TEST = 'test';

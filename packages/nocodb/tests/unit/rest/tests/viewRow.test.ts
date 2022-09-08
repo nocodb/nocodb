@@ -1,18 +1,15 @@
 import 'mocha';
-import init from '../init';
-import { createProject, createSakilaProject } from './factory/project';
+import init from '../../init';
+import { createProject, createSakilaProject } from '../../factory/project';
 import request from 'supertest';
 import Project from '../../../../src/lib/models/Project';
 import Model from '../../../../src/lib/models/Model';
-import { createTable, getTable } from './factory/table';
+import { createTable, getTable } from '../../factory/table';
 import View from '../../../../src/lib/models/View';
-import { ColumnType, UITypes, ViewType, ViewTypes } from 'nocodb-sdk';
-import { createView } from './factory/view';
-import { createColumn, createLookupColumn, createLtarColumn, createRollupColumn, updateViewColumn } from './factory/column';
-import Audit from '../../../../src/lib/models/Audit';
-import Column from '../../../../src/lib/models/Column';
-import GalleryView from '../../../../src/lib/models/GalleryView';
-import { createRelation, createRow, getOneRow, getRow } from './factory/row';
+import { ColumnType, UITypes, ViewTypes } from 'nocodb-sdk';
+import { createView } from '../../factory/view';
+import { createColumn, createLookupColumn, createLtarColumn, createRollupColumn, updateViewColumn } from '../../factory/column';
+import { createRelation, createRow, getOneRow, getRow } from '../../factory/row';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');

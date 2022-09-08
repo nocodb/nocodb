@@ -1,10 +1,10 @@
 // import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
-import init from '../init';
-import { createTable, getAllTables } from './factory/table';
-import { createProject } from './factory/project';
-import { defaultColumns } from './factory/column';
+import init from '../../init';
+import { createTable, getAllTables } from '../../factory/table';
+import { createProject } from '../../factory/project';
+import { defaultColumns } from '../../factory/column';
 import Model from '../../../../src/lib/models/Model';
 
 function tableTest() {

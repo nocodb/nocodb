@@ -77,14 +77,16 @@ watch(
       class="z-3 text-sm underline hover:opacity-75"
       :to="url"
       :target="urlOptions?.behavior === 'replace' ? undefined : '_blank'"
-      >{{ value }}
+    >
+      {{ value }}
     </nuxt-link>
     <nuxt-link
       v-else-if="isValid && !disableOverlay && urlOptions?.overlay"
       class="z-3 w-full h-full text-center !no-underline hover:opacity-75"
       :to="url"
       :target="urlOptions?.behavior === 'replace' ? undefined : '_blank'"
-      >{{ urlOptions.overlay }}
+    >
+      {{ urlOptions.overlay }}
     </nuxt-link>
 
     <span v-else class="w-9/10 overflow-ellipsis overflow-hidden">{{ value }}</span>

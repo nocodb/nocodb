@@ -32,7 +32,7 @@ const lookupColumn = computed<any>(
 )
 
 provide(MetaInj, lookupTableMeta)
-provide(CellUrlDisableOverlayInj, true)
+provide(CellUrlDisableOverlayInj, ref(true))
 
 const lookupColumnMetaProps = useColumn(lookupColumn)
 </script>

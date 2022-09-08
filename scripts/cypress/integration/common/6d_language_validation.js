@@ -98,7 +98,7 @@ export const genTest = (apiType, dbType) => {
             langVerification(i, langMenu[i]);
 
         // reset to English
-        langVerification(2, langMenu[2]);
+        langVerification(4, langMenu[2]);
     });
 };
 

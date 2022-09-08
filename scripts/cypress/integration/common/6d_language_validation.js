@@ -61,7 +61,7 @@ export const genTest = (apiType, dbType) => {
 
         let langMenu = [
             "ar.json",
-            "bn.json",
+            "bn_IN.json",
             "da.json",
             "de.json",
             "en.json",
@@ -89,8 +89,8 @@ export const genTest = (apiType, dbType) => {
             "tr.json",
             "uk.json",
             "vi.json",
-            "zh_Hans.json",
-            "zh_Hant.json",
+            "zh-Hans.json",
+            "zh-Hant.json",
         ];
 
         // Index is the order in which menu options appear

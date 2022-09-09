@@ -7,7 +7,7 @@ import {
   IsFormInj,
   IsLockedInj,
   ReadonlyInj,
-  ReloadViewDataHookInj,
+  ReloadRowDataHookInj,
   RowInj,
   computed,
   inject,
@@ -29,7 +29,7 @@ const row = inject(RowInj)!
 
 const cellValue = inject(CellValueInj)!
 
-const reloadTrigger = inject(ReloadViewDataHookInj)!
+const reloadRowTrigger = inject(ReloadRowDataHookInj)!
 
 const isForm = inject(IsFormInj)
 
@@ -48,7 +48,7 @@ const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvid
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
-  reloadTrigger.trigger,
+  reloadRowTrigger.trigger,
 )
 
 await loadRelatedTableMeta()

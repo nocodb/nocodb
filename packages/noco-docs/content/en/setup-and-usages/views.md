@@ -52,7 +52,8 @@ Gallery View allows you to display images as thumbnails with other fields just l
 
 We can apply permission to each View. By default, Collaborative Views will be used. To see or change the view type, expand `view-tool-bar-menu` as shown below. 
 
-![Screenshot 2022-09-09 at 3 19 00 PM](https://user-images.githubusercontent.com/86527202/189323062-5be6bd3f-366a-4be2-8de0-df30fcd1808e.png)
+![Screenshot 2022-09-09 at 3 46 33 PM](https://user-images.githubusercontent.com/86527202/189328303-edbf35b5-f793-4e06-9dbf-89d045a38482.png)
+<!-- ![Screenshot 2022-09-09 at 3 19 00 PM](https://user-images.githubusercontent.com/86527202/189323062-5be6bd3f-366a-4be2-8de0-df30fcd1808e.png) -->
 <!-- ![image](https://user-images.githubusercontent.com/35857179/163343598-fd81edea-f160-41ee-8bb2-3ef1eee5348d.png) -->
 
 ### Collaborative Views (default)

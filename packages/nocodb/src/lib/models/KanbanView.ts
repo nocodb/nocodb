@@ -3,9 +3,8 @@ import { KanbanType } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
-import { isLeafType } from 'graphql';
 
-export default class KanbanView implements KanbanType{
+export default class KanbanView implements KanbanType {
   fk_view_id: string;
   title: string;
   project_id?: string;
@@ -15,7 +14,6 @@ export default class KanbanView implements KanbanType{
   show: boolean;
   is_default: boolean;
   order: number;
-  
 
   constructor(data: KanbanView) {
     Object.assign(this, data);
@@ -70,9 +68,10 @@ export default class KanbanView implements KanbanType{
     // get existing cache
     const key = `${CacheScope.KANBAN_VIEW}:${kanbanId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    console.log(body);
     const updateObj = {
-      // TODO: 
-    }
+      // TODO:
+    };
     if (o) {
       o = { ...o, ...updateObj };
       // set cache
@@ -83,7 +82,7 @@ export default class KanbanView implements KanbanType{
       null,
       null,
       MetaTable.KANBAN_VIEW,
-      ...updateObj,
+      updateObj,
       {
         fk_view_id: kanbanId,
       }

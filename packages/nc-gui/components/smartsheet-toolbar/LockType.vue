@@ -13,17 +13,17 @@ const types = {
   [LockType.Personal]: {
     title: 'title.personalView',
     icon: MdiAccountIcon,
-    subtitle: 'msg.info.collabView',
+    subtitle: 'msg.info.personalView',
   },
   [LockType.Collaborative]: {
     title: 'title.collabView',
     icon: MdiAccountGroupIcon,
-    subtitle: 'msg.info.lockedView',
+    subtitle: 'msg.info.collabView',
   },
   [LockType.Locked]: {
     title: 'title.lockedView',
     icon: MdiLockOutlineIcon,
-    subtitle: 'msg.info.personalView',
+    subtitle: 'msg.info.lockedView',
   },
 }
 

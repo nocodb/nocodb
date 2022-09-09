@@ -5,7 +5,7 @@ const emit = defineEmits(['cancel'])
 
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { commentsDrawer, primaryValue, save: _save } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, primaryValue, save: _save, loadRow } = useExpandedFormStoreOrThrow()
 
 const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
 
@@ -15,6 +15,7 @@ const save = async () => {
   if (isNew.value) {
     const data = await _save()
     await syncLTARRefs(data)
+    await loadRow()
   } else {
     await _save()
   }
@@ -46,7 +47,7 @@ const iconColor = '#1890ff'
       <template #title>
         <div class="text-center w-full">{{ $t('general.reload') }}</div>
       </template>
-      <mdi-reload class="cursor-pointer select-none text-gray-500" />
+      <mdi-reload class="cursor-pointer select-none text-gray-500" @click="loadRow" />
     </a-tooltip>
     <a-tooltip v-if="!isSqlView" placement="bottom">
       <!--      Toggle comments draw -->

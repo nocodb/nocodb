@@ -11,11 +11,13 @@ const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
 
 const { isUIAllowed } = useUIPermission()
 
+const reloadTrigger = inject(ReloadViewDataHookInj)!
+
 const save = async () => {
   if (isNew.value) {
     const data = await _save()
     await syncLTARRefs(data)
-    await loadRow()
+    reloadTrigger?.trigger()
   } else {
     await _save()
   }

@@ -86,6 +86,7 @@ const reloadTrigger = inject(ReloadViewDataHookInj)!
 const reloadHook = createEventHook()
 
 reloadHook.on(() => {
+  if (isNew.value) return
   loadRow()
   reloadTrigger?.trigger()
 })

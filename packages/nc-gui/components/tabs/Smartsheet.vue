@@ -38,7 +38,7 @@ const meta = computed<TableType>(() => metas.value?.[tabMeta?.value?.id as strin
 const reloadEventHook = createEventHook<void>()
 const openNewRecordFormHook = createEventHook<void>()
 
-const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
+const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
 
 // provide the sidebar injection state
 provideSidebar({ storageKey: 'nc-right-sidebar' })
@@ -70,6 +70,8 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
             <SmartsheetGallery v-else-if="isGallery" />
 
             <SmartsheetForm v-else-if="isForm" />
+
+            <SmartsheetKanban v-else-if="isKanban" />
           </div>
         </div>
       </template>

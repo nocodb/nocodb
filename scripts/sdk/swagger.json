@@ -5821,9 +5821,6 @@
           "pageInfo": {
             "$ref": "#/components/schemas/Paginated"
           }
-        },
-        "": {
-          "type": "string"
         }
       },
       "Base": {
@@ -6148,8 +6145,7 @@
             "type": "string"
           },
           "title": {
-            "type": "string",
-            "required": true
+            "type": "string"
           },
           "deleted": {
             "type": "boolean"
@@ -6193,7 +6189,8 @@
               }
             ]
           }
-        }
+        },
+        "required": ["title"]
       },
       "TableInfo": {
         "title": "Table",
@@ -6981,10 +6978,12 @@
         "properties": {
           "options": {
             "type": "array",
-            "required": true,
             "$ref": "#/components/schemas/SelectOption"
           }
         },
+        "required": [
+          "options"
+        ],
         "examples": [
           {
             "options": [

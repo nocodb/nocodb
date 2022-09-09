@@ -30,6 +30,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const { project } = useProject()
   const rowStore = useProvideSmartsheetRowStore(meta, row)
   const { sharedView } = useSharedView() as Record<string, any>
+  const reloadTrigger = inject(ReloadViewDataHookInj)!
 
   // todo
   // const activeView = inject(ActiveViewInj)
@@ -169,6 +170,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       message.success(`${primaryValue.value || 'Row'} updated successfully.`)
 
       changedColumns.value = new Set()
+      reloadTrigger?.trigger()
     } catch (e: any) {
       message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }

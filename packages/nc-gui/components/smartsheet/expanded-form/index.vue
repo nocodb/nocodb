@@ -79,6 +79,18 @@ const onClose = () => {
   if (row.value?.rowMeta?.new) emits('cancel')
   isExpanded.value = false
 }
+
+// override reload trigger and use it to reload grid and the form itself
+const reloadTrigger = inject(ReloadViewDataHookInj)!
+
+const reloadHook = createEventHook()
+
+reloadHook.on(() => {
+  loadRow()
+  reloadTrigger?.trigger()
+})
+
+provide(ReloadViewDataHookInj, reloadHook)
 </script>
 
 <script lang="ts">

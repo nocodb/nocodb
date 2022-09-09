@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, GalleryType } from 'nocodb-sdk'
-import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { ViewTypes, isVirtualCol, UITypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -74,6 +74,10 @@ const getIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? VirtualCellIcon : CellIcon, {
     columnMeta: c,
   })
+
+const singleSelectFields = computed(() =>
+  fields.value?.filter((f) => metaColumnById.value[f.fk_column_id as string].uidt === UITypes.SingleSelect),
+)
 </script>
 
 <template>
@@ -103,8 +107,7 @@ const getIcon = (c: ColumnType) =>
           <div class="grouping-field">
             <!-- TODO: add v-model:value -->
             <a-radio-group>
-              <!-- TODO: filter field - only allow single select -->
-              <a-radio v-for="field of fields" :key="field.id" class="h-[30px] !leading-[30px]" :value="field.id">
+              <a-radio v-for="field of singleSelectFields" :key="field.id" class="h-[30px] !leading-[30px]" :value="field.id">
                 {{ field.title }}
               </a-radio>
             </a-radio-group>

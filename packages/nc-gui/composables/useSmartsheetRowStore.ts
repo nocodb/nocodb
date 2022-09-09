@@ -109,6 +109,21 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     }
   }
 
+
+  const loadRow = async () => {
+    const record = await $api.dbTableRow.read(
+      NOCO,
+      (project?.value?.id) as string,
+      meta.value.title,
+      extractPkFromRow(ref(row).value?.row, meta.value.columns as ColumnType[]),
+    )
+    Object.assign(ref(row).value, {
+      row: record,
+      oldRow: { ...record },
+      rowMeta: {},
+    })
+  }
+
   return {
     row,
     state,
@@ -116,7 +131,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     // todo: use better name
     addLTARRef,
     removeLTARRef,
-    syncLTARRefs,
+    syncLTARRefs,loadRow
   }
 }, 'smartsheet-row-store')
 

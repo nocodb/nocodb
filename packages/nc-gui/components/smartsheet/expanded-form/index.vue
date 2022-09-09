@@ -2,6 +2,7 @@
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { ReloadRowDataHookInj } from '~/context'
 import Cell from '../Cell.vue'
 import VirtualCell from '../VirtualCell.vue'
 import Comments from './Comments.vue'
@@ -80,18 +81,18 @@ const onClose = () => {
   isExpanded.value = false
 }
 
-// override reload trigger and use it to reload grid and the form itself
-const reloadTrigger = inject(ReloadViewDataHookInj)!
+const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
 
+// override reload trigger and use it to reload grid and the form itself
 const reloadHook = createEventHook()
 
 reloadHook.on(() => {
   if (isNew.value) return
   loadRow()
-  reloadTrigger?.trigger()
+  reloadParentRowHook?.trigger()
 })
 
-provide(ReloadViewDataHookInj, reloadHook)
+provide(ReloadRowDataHookInj, reloadHook)
 </script>
 
 <script lang="ts">

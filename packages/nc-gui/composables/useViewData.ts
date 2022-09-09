@@ -1,4 +1,4 @@
-import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, ColumnType, FormType, GalleryType, KanbanType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
@@ -45,6 +45,7 @@ export function useViewData(
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
   const galleryData = ref<GalleryType>()
+  const kanbanData = ref<KanbanType>()
   const formColumnData = ref<FormType>()
   // todo: missing properties on FormType (success_msg, show_blank_form,
   const formViewData = ref<FormType & { success_msg?: string; show_blank_form?: boolean }>()
@@ -180,6 +181,11 @@ export function useViewData(
     if (!viewMeta?.value?.id) return
 
     galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
+  }
+
+  async function loadKanbanData() {
+    if (!viewMeta?.value?.id) return
+    galleryData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
   }
 
   async function insertRow(row: Record<string, any>, rowIndex = formattedData.value?.length) {
@@ -408,5 +414,6 @@ export function useViewData(
     aggCommentCount,
     loadAggCommentsCount,
     removeLastEmptyRow,
+    loadKanbanData,
   }
 }

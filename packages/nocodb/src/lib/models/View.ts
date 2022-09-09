@@ -16,6 +16,7 @@ import Filter from './Filter';
 import { isSystemColumn, ViewType, ViewTypes } from 'nocodb-sdk';
 import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
+import KanbanViewColumn from './KanbanViewColumn';
 import Column from './Column';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
@@ -302,6 +303,16 @@ export default class View implements ViewType {
           ncMeta
         );
         break;
+      case ViewTypes.KANBAN:
+        await KanbanView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta
+        );
+        break;
     }
 
     let columns: any[] = await (
@@ -343,7 +354,11 @@ export default class View implements ViewType {
 
         if (view.type === ViewTypes.GALLERY) {
           const galleryView = await GalleryView.get(view_id, ncMeta);
-          if (vCol.id === galleryView.fk_cover_image_col_id || vCol.pv || galleryShowLimit < 3) {
+          if (
+            vCol.id === galleryView.fk_cover_image_col_id ||
+            vCol.pv ||
+            galleryShowLimit < 3
+          ) {
             show = true;
             galleryShowLimit++;
           } else {
@@ -405,6 +420,15 @@ export default class View implements ViewType {
           break;
         case ViewTypes.GALLERY:
           await GalleryViewColumn.insert(
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta
+          );
+          break;
+        case ViewTypes.KANBAN:
+          await KanbanViewColumn.insert(
             {
               ...insertObj,
               fk_view_id: view.id,
@@ -598,13 +622,12 @@ export default class View implements ViewType {
             show: colData.show,
           });
         case ViewTypes.KANBAN:
-          // TODO: Use the following when KanbanViewColumn is ready to avoid cache issue
-          // return await KanbanViewColumn.insert({
-          //   fk_view_id: viewId,
-          //   fk_column_id: fkColId,
-          //   order: colData.order,
-          //   show: colData.show,
-          // });
+          return await KanbanViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
           break;
         case ViewTypes.FORM:
           return await FormViewColumn.insert({

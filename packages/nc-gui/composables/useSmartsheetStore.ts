@@ -28,8 +28,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isPkAvail = computed(() => meta?.value?.columns?.some((c) => c.pk))
     const isGrid = computed(() => (view?.value as any)?.type === ViewTypes.GRID)
     const isForm = computed(() => (view?.value as any)?.type === ViewTypes.FORM)
-    const isSharedForm = computed(() => isForm?.value && shared)
     const isGallery = computed(() => (view?.value as any)?.type === ViewTypes.GALLERY)
+    const isKanban = computed(() => (view?.value as any)?.type === ViewTypes.KANBAN)
+    const isSharedForm = computed(() => isForm?.value && shared)
     const xWhere = computed(() => {
       let where
       const col = meta?.value?.columns?.find(({ id }) => id === search.field) || meta?.value?.columns?.find((v) => v.pv)
@@ -60,6 +61,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isForm,
       isGrid,
       isGallery,
+      isKanban,
       cellRefs,
       isSharedForm,
       sorts,

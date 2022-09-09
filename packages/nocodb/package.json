@@ -164,6 +164,7 @@
     "nodemailer": "^6.4.10",
     "object-hash": "^3.0.0",
     "ora": "^4.0.4",
+    "oracledb": "https://github.com/oracle/node-oracledb/releases/download/v5.5.0/oracledb-src-5.5.0.tgz",
     "os-locale": "^5.0.0",
     "papaparse": "^5.3.1",
     "parse-database-url": "^0.3.0",

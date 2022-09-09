@@ -122,6 +122,8 @@ async function onSubmit() {
         case ViewTypes.FORM:
           data = await api.dbView.formCreate(_meta.id, form)
           break
+        case ViewTypes.KANBAN:
+          data = await api.dbView.kanbanCreate(_meta.id, form)
       }
 
       if (data) {

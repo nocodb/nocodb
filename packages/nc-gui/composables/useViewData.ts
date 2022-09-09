@@ -2,6 +2,7 @@ import type { Api, ColumnType, FormType, GalleryType, KanbanType, PaginatedType,
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
+import { ViewTypes } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 import {
   IsPublicInj,
@@ -20,6 +21,22 @@ const formatData = (list: Record<string, any>[]) =>
     oldRow: { ...row },
     rowMeta: {},
   }))
+
+const formatKanbanData = (list: Record<string, any>[]) =>
+  list.reduce((acc: any, obj: any) => {
+    // TODO: grouping field
+    const groupingFeild = 'singleSelect2'
+    const key = obj[groupingFeild]
+    if (!acc[key]) {
+      acc[key] = []
+    }
+    acc[key].push({
+      row: { ...obj },
+      oldRow: { ...obj },
+      rowMeta: {},
+    })
+    return acc
+  }, {})
 
 export interface Row {
   row: Record<string, any>
@@ -50,6 +67,7 @@ export function useViewData(
   // todo: missing properties on FormType (success_msg, show_blank_form,
   const formViewData = ref<FormType & { success_msg?: string; show_blank_form?: boolean }>()
   const formattedData = ref<Row[]>([])
+  const formattedKanbanData = ref<Record<string, Row[]>>()
 
   const isPublic = inject(IsPublicInj, ref(false))
   const { project, isSharedBase } = useProject()
@@ -172,6 +190,9 @@ export function useViewData(
           where: where?.value,
         })
       : await fetchSharedViewData()
+    if (viewMeta?.value.type === ViewTypes.KANBAN) {
+      formattedKanbanData.value = formatKanbanData(response.list)
+    }
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
     await loadAggCommentsCount()
@@ -395,6 +416,7 @@ export function useViewData(
     paginationData,
     queryParams,
     formattedData,
+    formattedKanbanData,
     insertRow,
     updateRowProperty,
     changePage,

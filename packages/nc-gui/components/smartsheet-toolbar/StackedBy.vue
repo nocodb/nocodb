@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, GalleryType } from 'nocodb-sdk'
-import { ViewTypes, isVirtualCol, UITypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import type { SelectProps } from 'ant-design-vue'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -75,9 +76,19 @@ const getIcon = (c: ColumnType) =>
     columnMeta: c,
   })
 
-const singleSelectFields = computed(() =>
-  fields.value?.filter((f) => metaColumnById.value[f.fk_column_id as string].uidt === UITypes.SingleSelect),
-)
+// TODO:
+const groupingFieldColumnId = ref(null)
+
+const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
+  return fields.value
+    ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.SingleSelect)
+    .map((field) => {
+      return {
+        value: field.fk_column_id,
+        label: field.title,
+      }
+    })
+})
 </script>
 
 <template>
@@ -105,12 +116,13 @@ const singleSelectFields = computed(() =>
         </div>
         <div class="nc-fields-list py-1">
           <div class="grouping-field">
-            <!-- TODO: add v-model:value -->
-            <a-radio-group>
-              <a-radio v-for="field of singleSelectFields" :key="field.id" class="h-[30px] !leading-[30px]" :value="field.id">
-                {{ field.title }}
-              </a-radio>
-            </a-radio-group>
+            <a-select
+              v-model:value="groupingFieldColumnId"
+              class="w-full"
+              :options="singleSelectFieldOptions"
+              placeholder="Select a Grouping Field"
+              @click.stop
+            ></a-select>
           </div>
         </div>
       </div>

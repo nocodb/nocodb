@@ -1895,6 +1895,65 @@ export class Api<
         format: 'json',
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name KanbanCreate
+     * @request POST:/api/v1/db/meta/tables/{tableId}/kanbans
+     * @response `200` `object` OK
+     */
+    kanbanCreate: (
+      tableId: string,
+      data: KanbanType,
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/tables/${tableId}/kanbans`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name KanbanUpdate
+     * @request PATCH:/api/v1/db/meta/kanbans/{kanbanId}
+     * @response `200` `void` OK
+     */
+    kanbanUpdate: (
+      kanbanId: string,
+      data: KanbanType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/kanbans/${kanbanId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name KanbanRead
+     * @request GET:/api/v1/db/meta/kanbans/{kanbanId}
+     * @response `200` `KanbanType` OK
+     */
+    kanbanRead: (kanbanId: string, params: RequestParams = {}) =>
+      this.request<KanbanType, any>({
+        path: `/api/v1/db/meta/kanbans/${kanbanId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
   };
   dbViewShare = {
     /**

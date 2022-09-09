@@ -2506,6 +2506,99 @@
         ]
       }
     },
+    "/api/v1/db/meta/tables/{tableId}/kanbans": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "db-view-kanban-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Kanban"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/kanbans/{kanbanId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "kanbanId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "db-view-kanban-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Kanban"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "",
+        "operationId": "db-view-kanban-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kanban"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/meta-diff": {
       "parameters": [
         {
@@ -7145,7 +7238,7 @@
         }
       },
       "GridColumn": {
-        "title": "GalleryColumn",
+        "title": "GridColumn",
         "type": "object",
         "description": "",
         "properties": {

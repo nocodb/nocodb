@@ -26,6 +26,8 @@ const { allowCSVDownload } = useSharedView()
 
     <SmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
 
+    <SmartsheetToolbarStackedBy v-if="isKanban" />
+
     <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban" :show-system-fields="false" class="ml-1" />
 
     <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban" />

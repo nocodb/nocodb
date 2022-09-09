@@ -7,6 +7,7 @@ import Carousel from './Carousel.vue'
 import {
   IsFormInj,
   IsGalleryInj,
+  IsKanbanInj,
   inject,
   isImage,
   nextTick,
@@ -35,6 +36,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isGallery = inject(IsGalleryInj, ref(false))
 
+const isKanban = inject(IsKanbanInj, ref(false))
+
 const attachmentCellRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
@@ -60,7 +63,7 @@ const currentCellRef = ref()
 watch(
   [() => rowIndex, isForm],
   () => {
-    if (!rowIndex && isForm.value && isGallery.value) {
+    if (!rowIndex && isForm.value && isGallery.value && isKanban.value) {
       currentCellRef.value = attachmentCellRef.value
     } else {
       nextTick(() => {

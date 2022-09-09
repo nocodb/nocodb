@@ -414,6 +414,7 @@ export function useViewData(
     aggCommentCount,
     loadAggCommentsCount,
     removeLastEmptyRow,
+    kanbanData,
     loadKanbanData,
   }
 }

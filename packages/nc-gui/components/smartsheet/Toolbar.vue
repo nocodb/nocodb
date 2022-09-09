@@ -2,7 +2,7 @@
 import { IsPublicInj, useSharedView, useSmartsheetStoreOrThrow } from '#imports'
 import ToggleDrawer from '~/components/smartsheet/sidebar/toolbar/ToggleDrawer.vue'
 
-const { isGrid, isForm, isGallery, isSqlView } = useSmartsheetStoreOrThrow()
+const { isGrid, isForm, isGallery, isKanban, isSqlView } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -19,18 +19,18 @@ const { allowCSVDownload } = useSharedView()
     style="z-index: 7"
   >
     <SmartsheetToolbarViewActions
-      v-if="(isGrid || isGallery) && !isPublic && isUIAllowed('dataInsert')"
+      v-if="(isGrid || isGallery || isKanban) && !isPublic && isUIAllowed('dataInsert')"
       :show-system-fields="false"
       class="ml-1"
     />
 
     <SmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
 
-    <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery" :show-system-fields="false" class="ml-1" />
+    <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban" :show-system-fields="false" class="ml-1" />
 
-    <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery" />
+    <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban" />
 
-    <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery" />
+    <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 
     <SmartsheetToolbarShareView v-if="(isForm || isGrid) && !isPublic" />
 
@@ -41,7 +41,7 @@ const { allowCSVDownload } = useSharedView()
 
     <SmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert') && !isPublic && !isForm && !isSqlView" class="mx-1" />
 
-    <SmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mr-2 ml-2" />
+    <SmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink mr-2 ml-2" />
     <template v-if="!isOpen && !isPublic">
       <div class="border-l-1 pl-3">
         <ToggleDrawer class="mr-2" />

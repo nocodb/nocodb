@@ -21,4 +21,5 @@ export const viewTypeAlias = {
   [ViewTypes.GRID as any]: 'grid',
   [ViewTypes.FORM as any]: 'form',
   [ViewTypes.GALLERY as any]: 'gallery',
+  [ViewTypes.KANBAN as any]: 'kanban',
 }

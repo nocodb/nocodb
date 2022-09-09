@@ -110,6 +110,7 @@ declare module '@vue/runtime-core' {
     MdiAlpha: typeof import('~icons/mdi/alpha')['default']
     MdiAlphaA: typeof import('~icons/mdi/alpha-a')['default']
     MdiApi: typeof import('~icons/mdi/api')['default']
+    MdiArrowDownDropCircleOutline: typeof import('~icons/mdi/arrow-down-drop-circle-outline')['default']
     MdiArrowExpand: typeof import('~icons/mdi/arrow-expand')['default']
     MdiArrowLeftBold: typeof import('~icons/mdi/arrow-left-bold')['default']
     MdiAt: typeof import('~icons/mdi/at')['default']

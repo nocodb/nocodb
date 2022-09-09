@@ -15,10 +15,9 @@ Consider an organization with
 - 5 employees working at different departments
   
   
-![Screenshot 2022-09-09 at 12 18 40 PM](https://user-images.githubusercontent.com/86527202/189291758-21c81ec6-7967-45f1-b49c-b3b6f2701edc.png)
-  
-  
-![Screenshot 2022-09-09 at 12 19 16 PM](https://user-images.githubusercontent.com/86527202/189291766-f619078e-0881-4531-a3f8-ede22269f6fc.png)
+![Screenshot 2022-09-09 at 12 57 32 PM](https://user-images.githubusercontent.com/86527202/189295738-a4197818-f7d7-4769-acad-13b6d05afe7e.png)
+<!-- ![Screenshot 2022-09-09 at 12 18 40 PM](https://user-images.githubusercontent.com/86527202/189291758-21c81ec6-7967-45f1-b49c-b3b6f2701edc.png) -->
+<!-- ![Screenshot 2022-09-09 at 12 19 16 PM](https://user-images.githubusercontent.com/86527202/189291766-f619078e-0881-4531-a3f8-ede22269f6fc.png) -->
 
 
 Now, let's explore procedure to retrieve team-code information in Employee table using **LOOKUP** columns

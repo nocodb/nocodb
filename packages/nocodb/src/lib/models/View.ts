@@ -36,7 +36,9 @@ export default class View implements ViewType {
   fk_model_id: string;
   model?: Model;
   view?: FormView | GridView | KanbanView | GalleryView;
-  columns?: Array<FormViewColumn | GridViewColumn | GalleryViewColumn>;
+  columns?: Array<
+    FormViewColumn | GridViewColumn | GalleryViewColumn | KanbanViewColumn
+  >;
 
   sorts: Sort[];
   filter: Filter;
@@ -487,6 +489,17 @@ export default class View implements ViewType {
           );
         }
         break;
+      case ViewTypes.KANBAN:
+        {
+          col = await KanbanViewColumn.insert(
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta
+          );
+        }
+        break;
     }
 
     return col;
@@ -503,7 +516,11 @@ export default class View implements ViewType {
   static async getColumns(
     viewId: string,
     ncMeta = Noco.ncMeta
-  ): Promise<Array<GridViewColumn | FormViewColumn | GalleryViewColumn>> {
+  ): Promise<
+    Array<
+      GridViewColumn | FormViewColumn | GalleryViewColumn | KanbanViewColumn
+    >
+  > {
     let columns: Array<GridViewColumn | any> = [];
     const view = await this.get(viewId, ncMeta);
 
@@ -512,12 +529,14 @@ export default class View implements ViewType {
       case ViewTypes.GRID:
         columns = await GridViewColumn.list(viewId, ncMeta);
         break;
-
       case ViewTypes.GALLERY:
         columns = await GalleryViewColumn.list(viewId, ncMeta);
         break;
       case ViewTypes.FORM:
         columns = await FormViewColumn.list(viewId, ncMeta);
+        break;
+      case ViewTypes.KANBAN:
+        columns = await KanbanViewColumn.list(viewId, ncMeta);
         break;
     }
 
@@ -583,7 +602,9 @@ export default class View implements ViewType {
       show: boolean;
     },
     ncMeta = Noco.ncMeta
-  ): Promise<GridViewColumn | FormViewColumn | GalleryViewColumn | any> {
+  ): Promise<
+    GridViewColumn | FormViewColumn | GalleryViewColumn | KanbanViewColumn | any
+  > {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
     console.log(table);

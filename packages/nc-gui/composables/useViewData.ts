@@ -185,7 +185,7 @@ export function useViewData(
 
   async function loadKanbanData() {
     if (!viewMeta?.value?.id) return
-    galleryData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
+    kanbanData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
   }
 
   async function insertRow(row: Record<string, any>, rowIndex = formattedData.value?.length) {

@@ -11,8 +11,13 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
         });
+
+        beforeEach(() => {
+            cy.fileHook();
+        })
 
         it(`XCDB: SQL View Column operations`, () => {
             // Open one of the views & verify validity of first two entries
@@ -133,7 +138,7 @@ export const genTest = (apiType, dbType) => {
             }
         });
 
-        it(`SQL View List`, () => {
+        it.skip(`SQL View List`, () => {
             // confirm if other views exist
             //
             cy.openViewsTab("CustomerList", 25);

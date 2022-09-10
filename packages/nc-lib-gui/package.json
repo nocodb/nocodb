@@ -1,9 +1,12 @@
 {
   "name": "nc-lib-gui",
-  "version": "0.92.4",
-  "description": "> TODO: description",
-  "author": "“pranavxc” <pranavxc@gmail.com>",
-  "homepage": "https://gitlab.com/xgenecloud-ts/xgenecloud-ts#readme",
+  "version": "0.96.2",
+  "description": "NocoDB GUI",
+  "author": {
+    "name": "NocoDB",
+    "url": "https://nocodb.com/"
+  },
+  "homepage": "https://github.com/nocodb/nocodb",
   "license": "AGPL-3.0-or-later",
   "main": "lib/XcLibGui.js",
   "directories": {
@@ -15,19 +18,20 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@gitlab.com/xgenecloud-ts/xgenecloud-ts.git"
+    "url": "git+ssh://git@github.com:nocodb/nocodb.git"
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "bugs": {
-    "url": "https://gitlab.com/xgenecloud-ts/xgenecloud-ts/issues"
+    "url": "https://github.com/nocodb/nocodb/issues"
   },
   "dependencies": {
     "axios": "^0.19.2",
     "body-parser": "^1.19.0",
     "dayjs": "^1.10.4",
     "express": "^4.17.1",
+    "serve-static": "^1.15.0",
     "vuedraggable": "^2.24.3"
   }
 }

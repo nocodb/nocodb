@@ -1,4 +1,4 @@
-import { mainPage } from "../../support/page_objects/mainPage";
+import { mainPage, settingsPage } from "../../support/page_objects/mainPage";
 import { roles } from "../../support/page_objects/projectConstants";
 
 // Left hand navigation bar, validation for
@@ -6,155 +6,149 @@ import { roles } from "../../support/page_objects/projectConstants";
 //  2. Advance settings menu
 //  3. Preview mode menu
 //
-export function _advSettings(roleType, previewMode) {
-    cy.log(roleType, previewMode);
+export function _advSettings(roleType, mode) {
+    cy.log(roleType, mode);
+
+    if(mode === 'baseShare') {
+
+        // open modal
+        cy.get('.nc-project-menu').should('exist').click()
+        cy.getActiveMenu().find(`[data-menu-id="language"]`).should('exist')
+
+        // click again to close modal
+        cy.get('.nc-project-menu').should('exist').click()
+        return;
+    }
 
     let validationString =
         true == roles[roleType].validations.advSettings ? "exist" : "not.exist";
 
-    cy.get(".nc-team-settings").should(validationString);
+    // cy.get(".nc-team-settings").should(validationString);
+    cy.get('.nc-project-menu').should('exist').click()
+    cy.getActiveMenu().find(`[data-menu-id="preview-as"]`).should(validationString)
+    cy.getActiveMenu().find(`[data-menu-id="teamAndSettings"]:visible`).should(validationString)
 
     if (true === roles[roleType].validations.advSettings) {
-        // audit/advance settings menu visible only for owner/ creator
-        mainPage.navigationDraw(mainPage.AUDIT).should(validationString);
-        mainPage.closeMetaTab();
-        mainPage.navigationDraw(mainPage.APPSTORE).should(validationString);
-        mainPage.closeMetaTab();
-        mainPage.navigationDraw(mainPage.TEAM_N_AUTH).should(validationString);
-        mainPage.closeMetaTab();
-        mainPage
-            .navigationDraw(mainPage.PROJ_METADATA)
-            .should(validationString);
-        mainPage.closeMetaTab();
+        cy.getActiveMenu().find(`[data-menu-id="teamAndSettings"]:visible`).should(validationString).click()
+
+        cy.get(`[data-menu-id="teamAndAuth"]`).should('exist')
+        cy.get(`[data-menu-id="appStore"]`).should('exist')
+        cy.get(`[data-menu-id="metaData"]`).should('exist')
+        cy.get(`[data-menu-id="audit"]`).should('exist')
+
+        settingsPage.closeMenu()
+    } else {
+        cy.get('.nc-project-menu').should('exist').click()
     }
 
-    // option to add new user conditionally visible only to owner/ creator
-    cy.get('button:contains("New User")').should(validationString);
-
-    // preview button visibility
-    cy.get(".nc-btn-preview:visible").should(validationString);
-
     // float menu in preview mode
-    if (true === previewMode) {
+    if ("preview" === mode) {
         cy.get(".nc-floating-preview-btn").should("exist");
-        cy.getActiveMenu()
+        cy.get('.nc-floating-preview-btn')
             .find(`[type="radio"][value="${roles[roleType].name}"]`)
             .should("be.checked");
     }
 
-    // if (true == previewMode) {
-    //     // preview mode, role toggle menubar is visible
-    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_EDITOR).should("exist");
-    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_COMMENTER).should("exist");
-    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_VIEWER).should("exist");
-    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_RESET).should("exist");
-    // } else {
-    //     // normal mode, role toggle menubar is visible only for owner/ creator
-    //     mainPage
-    //         .navigationDraw(mainPage.ROLE_VIEW_EDITOR)
-    //         .should(validationString);
-    //     mainPage
-    //         .navigationDraw(mainPage.ROLE_VIEW_COMMENTER)
-    //         .should(validationString);
-    //     mainPage
-    //         .navigationDraw(mainPage.ROLE_VIEW_VIEWER)
-    //         .should(validationString);
-    // }
-
-    cy.get("body").click("bottomRight");
+    // cy.get("body").click("bottomRight");
 }
 
-export function _editSchema(roleType, previewMode) {
+export function _editSchema(roleType, mode) {
     let columnName = "City";
     let validationString =
-        true == roles[roleType].validations.editSchema ? "exist" : "not.exist";
-
-    if (false == previewMode) {
-        cy.openTableTab(columnName, 25);
-    }
-
-    // create table options
-    //
-    cy.get(".add-btn").should(validationString);
-    cy.get(".v-tabs-bar")
-        .eq(0)
-        .find(".add-btn.mdi-plus-box")
-        .should(validationString);
-
-    // delete table option
-    //
-    cy.get(".nc-table-delete-btn").should(validationString);
-
-    // add new column option
-    //
-    cy.get(".new-column-header").should(validationString);
-
-    // update column (edit/ delete menu)
-    //
-    cy.get(`th:contains(${columnName}) .mdi-menu-down`).should(
-        validationString
-    );
-}
-
-export function _editData(roleType, previewMode) {
-    let columnName = "City";
-    let validationString =
-        true == roles[roleType].validations.editData ? "exist" : "not.exist";
+        true === roles[roleType].validations.editSchema ? "exist" : "not.exist";
 
     cy.openTableTab(columnName, 25);
 
-    // add new row option (from menu header)
+    // create table
+    cy.get(`.nc-add-new-table`).should(validationString);
+
+    // delete table option
+    cy.get(`.nc-project-tree-tbl-City`).should("exist").rightclick();
+    cy.get(".ant-dropdown-content:visible").should(validationString);
+
+    if(validationString === "exist"){
+        cy.getActiveMenu().find('[role="menuitem"]').contains("Delete").should("exist");
+        cy.getActiveMenu().find('[role="menuitem"]').contains("Rename").should("exist");
+
+        // click on a cell to close table context menu
+        mainPage.getCell(columnName, 3).click();
+    }
+
+    // add new column option
     //
-    cy.get(".nc-add-new-row-btn").should(validationString);
+    cy.get(".nc-column-add").should(validationString);
+
+    // update column (edit/ delete menu)
+    cy.get('.nc-ui-dt-dropdown').should(validationString)
+
+    if(validationString === "exist"){
+        cy.get('.nc-import-menu').should('exist').click();
+        cy.getActiveMenu().should('exist')
+        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Airtable')
+        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('CSV file')
+        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('JSON file')
+        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Microsoft Excel')
+    }
+}
+
+export function _editData(roleType, mode) {
+    let columnName = "City";
+    let validationString =
+        true === roles[roleType].validations.editData ? "exist" : "not.exist";
+
+    cy.openTableTab(columnName, 25);
+
+    // add row button
+    cy.get('.nc-add-new-row-btn:visible').should(validationString);
+
+    // add button at bottom of page
+    mainPage.getCell(columnName, 25).scrollIntoView();
+    cy.get('.nc-grid-add-new-cell:visible').should(validationString);
 
     // update row option (right click)
     //
-    cy.get(`tbody > :nth-child(4) > [data-col="City"]`).rightclick();
+    mainPage.getCell("City", 5).rightclick();
+    cy.wait(100);
+    cy.get(".ant-dropdown-content:visible").should(validationString);
 
-    if (previewMode)
-        cy.getActiveMenu().contains("Insert New Row").should(validationString);
-    else cy.get(".menuable__content__active").should(validationString);
-
-    if (validationString == "exist") {
+    if (validationString === "exist") {
         // right click options will exist (only for 'exist' case)
         //
         cy.getActiveMenu().contains("Insert New Row").should(validationString);
+        cy.getActiveMenu().contains("Clear cell").should(validationString);
         cy.getActiveMenu().contains("Delete Row").should(validationString);
-        cy.getActiveMenu()
-            .contains("Delete Selected Rows")
-            .should(validationString);
-        cy.get("body").type("{esc}");
+        cy.getActiveMenu().contains("Delete Selected Rows").should(validationString);
+
+        // cy.get("body").type("{esc}");
+        mainPage.getCell("City", 13).click();
 
         // update cell contents option using row expander should be enabled
         //
-        //cy.get('.nc-row-expand-icon').eq(4).click({ force: true })
-        cy.get(".v-input.row-checkbox")
-            .eq(4)
-            .next()
-            .next()
-            .click({ force: true });
-        cy.getActiveModal().find("button").contains("Save row").should("exist");
-        cy.get("body").type("{esc}");
+        mainPage
+          .getRow(1)
+          .find('.nc-row-no').should('exist')
+          .eq(0)
+          .trigger('mouseover', { force: true })
+        cy.get(".nc-row-expand")
+          .should("exist")
+          .eq(10)
+          .click({ force: true });
+        cy.getActiveDrawer().find("button").contains("Save row").should("exist");
+        cy.getActiveDrawer().find("button").contains("Cancel").should("exist").click();
     } else {
         // update cell contents option using row expander should be disabled
         //
-        //cy.get('.nc-row-expand-icon').eq(4).click({ force: true })
-        cy.get(".v-input.row-checkbox")
-            .eq(4)
-            .next()
-            .next()
-            .click({ force: true });
-        cy.getActiveModal()
-            .find("button:disabled")
-            .contains("Save row")
-            .should("exist");
-        cy.getActiveModal().find("button").contains("Cancel").click();
-        cy.get("body").type("{esc}");
+        cy.get(".nc-row-expand")
+          .should("exist")
+          .eq(10)
+          .click({ force: true });
+        cy.getActiveDrawer().find("button:disabled").contains("Save row").should("exist");
+        cy.getActiveDrawer().find("button").contains("Cancel").should("exist").click();
     }
 
     // double click cell entries to edit
     //
-    cy.get(`tbody > :nth-child(4) > [data-col="City"]`)
+    mainPage.getCell("City", 5)
         .dblclick()
         .find("input")
         .should(validationString);
@@ -164,126 +158,125 @@ export function _editData(roleType, previewMode) {
 //      Viewer: only allowed to read
 //      Everyone else: read &/ update
 //
-export function _editComment(roleType, previewMode) {
+export function _editComment(roleType, mode) {
     let columnName = "City";
     let validationString =
-        true == roles[roleType].validations.editComment
+        true === roles[roleType].validations.editComment
             ? "Comment added successfully"
             : "Not allowed";
 
     cy.openTableTab(columnName, 25);
 
+    cy.wait(1000);
+
     // click on comment icon & type comment
     //
-
-    cy.get(".v-input.row-checkbox").eq(4).next().next().click({ force: true });
+    cy.get(".nc-row-expand")
+      .should("exist")
+      .eq(10)
+      .click({force:true});
 
     // Expected response:
     //      Viewer: Not able to see comment option
     //      Everyone else: Comment added/read successfully
     //
 
-    if ("viewer" == roleType) {
-        cy.getActiveModal()
-            .find(".mdi-comment-multiple-outline")
+    cy.wait(3000);
+
+    if ("viewer" === roleType) {
+        cy.getActiveDrawer()
+            .should('exist')
+            .find(".nc-toggle-comments")
             .should("not.exist");
     } else {
-        cy.getActiveModal()
-            .find(".mdi-comment-multiple-outline")
+        cy.getActiveDrawer()
+            .should('exist')
+            .find(".nc-toggle-comments")
             .should("exist")
             .click();
-        cy.getActiveModal().find(".comment-box").type("Comment-1{enter}");
-        // cy.toastWait('Comment added successfully')
-        cy.getActiveModal().find(".mdi-door-open").click();
 
-        cy.get("body")
-            .contains(validationString, { timeout: 2000 })
-            .should("exist");
+        cy.getActiveDrawer().find(".nc-comment-box").should('exist').type("Comment-1{enter}");
+        // cy.toastWait('Comment added successfully')
+        cy.getActiveDrawer().find(".nc-toggle-comments").click();
     }
 
-    cy.getActiveModal()
+    cy.getActiveDrawer()
         .find("button")
         .contains("Cancel")
         .should("exist")
         .click();
-    cy.get("body").type("{esc}");
 }
 
 // right navigation menu bar
 //      Editor/Viewer/Commenter : can only view 'existing' views
 //      Rest: can create/edit
-export function _viewMenu(roleType, previewMode, navDrawListCnt) {
+export function _viewMenu(roleType, mode) {
     let columnName = "City";
-    // let navDrawListCnt = 2;
 
-    // Download CSV
-    let actionsMenuItemsCnt = 2;
+    // Lock, Download, Upload
+    let menuWithSubmenuCount = 3;
+
+    // share view list, webhook
+    let menuWithoutSubmenuCount = 3;
 
     cy.openTableTab(columnName, 25);
 
+    cy.get('.nc-toggle-right-navbar').click();
+    cy.wait(1000);
+
+    // hard-wire
+    // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
+
+
     let validationString =
-        true == roles[roleType].validations.shareView ? "exist" : "not.exist";
+        true === roles[roleType].validations.shareView ? "exist" : "not.exist";
 
-    // validate if Share button is visible at header tool bar
-    cy.get("header.v-toolbar")
-        .eq(0)
-        .find('button:contains("Share")')
-        .should(validationString);
-
-    // Owner, Creator will have two navigation drawer (on each side of center panel)
-    if (roleType == "owner" || roleType == "creator") {
-        navDrawListCnt = 3;
-        // Download CSV / Upload CSV / Shared View List / Webhook
-        actionsMenuItemsCnt = 5;
-    } else if (roleType == "editor") {
-        // Download CSV / Upload CSV
-        actionsMenuItemsCnt = 3;
+    if (roleType === "editor") {
+        // Download / Upload CSV
+        menuWithSubmenuCount = 2;
+        // Get API Snippet
+        menuWithoutSubmenuCount = 1
+        if(mode === 'baseShare') menuWithoutSubmenuCount = 0
+    } else if (roleType === "commenter" || roleType === "viewer") {
+        // Download CSV & Download excel
+        menuWithSubmenuCount = 0;
+        menuWithoutSubmenuCount = 2
     }
-
-    cy.get(".v-navigation-drawer__content")
-        .eq(1)
-        .find('[role="list"]')
-        .should("have.length", navDrawListCnt);
 
     // view list field (default GRID view)
     cy.get(`.nc-view-item`).should("exist");
 
     // view create option, exists only for owner/ creator
-    cy.get(`.nc-create-gallery-view`).should(validationString);
     cy.get(`.nc-create-grid-view`).should(validationString);
+    cy.get(`.nc-create-gallery-view`).should(validationString);
     cy.get(`.nc-create-form-view`).should(validationString);
 
-    // share view & automations, exists only for owner/creator
-    // cy.get(`.nc-share-view`).should(validationString);
-    // cy.get(`.nc-automations`).should(validationString);
-    // mainPage.shareView().should(validationString);
-    // mainPage.automations().should(validationString);
-
     // share view permissions are role specific
-    cy.get(".nc-btn-share-view").should(validationString);
 
     // actions menu (more), only download csv should be visible for non-previlaged users
     cy.get(".nc-actions-menu-btn").click();
     cy.getActiveMenu()
-        .find('[role="menuitem"]')
-        .should("have.length", actionsMenuItemsCnt);
+        .find('.ant-dropdown-menu-submenu:visible')
+        .should("have.length", menuWithSubmenuCount);
+    cy.getActiveMenu()
+        .find('.ant-dropdown-menu-item:visible')
+        .should("have.length", menuWithoutSubmenuCount);
+    // click again to close menu
+    cy.get(".nc-actions-menu-btn").click();
 }
 
-export function _topRightMenu(roleType, previewMode) {
+export function _topRightMenu(roleType, mode) {
     // kludge; download csv menu persists until clicked
     let columnName = "City";
-    cy.closeTableTab(columnName);
-    cy.openTableTab(columnName, 25);
+    // cy.closeTableTab(columnName);
+    // cy.openTableTab(columnName, 25);
 
     let validationString =
         true == roles[roleType].validations.shareView ? "exist" : "not.exist";
-    cy.get(".nc-topright-menu").find(".nc-menu-share").should(validationString);
 
-    // cy.get(".nc-topright-menu").find(".nc-menu-theme").should("exist");
-    // cy.get(".nc-topright-menu").find(".nc-menu-dark-theme").should("exist");
-    cy.get(".nc-topright-menu").find(".nc-menu-translate").should("exist");
-    cy.get(".nc-topright-menu").find(".nc-menu-account").should("exist");
-    // cy.get(".nc-topright-menu").find(".nc-menu-alert").should("exist");
+    cy.get(`.nc-share-base`).should(validationString);
+    cy.get(".nc-menu-translate").should("exist");
+    cy.get(".nc-menu-accounts").should("exist");
 }
 
 // Access control list
@@ -292,36 +285,17 @@ export function disableTableAccess(tbl, role) {
     const cls = `.nc-acl-${tbl}-${role}-chkbox`;
     cy.get(cls).find("input").should("be.checked").click({ force: true });
     cy.get(cls).find("input").should("not.be.checked");
-    cy.get(".nc-acl-save").next().click({ force: true });
-    cy.toastWait("Updated UI ACL for tables successfully");
 }
 
 export function enableTableAccess(tbl, role) {
     const cls = `.nc-acl-${tbl}-${role}-chkbox`;
     cy.get(cls).find("input").should("not.be.checked").click({ force: true });
     cy.get(cls).find("input").should("be.checked");
-    cy.get(".nc-acl-save").next().click({ force: true });
-    cy.toastWait("Updated UI ACL for tables successfully");
 }
 
 export function _accessControl(roleType, previewMode) {
-    let validationString = roleType == "creator" ? "exist" : "not.exist";
-    cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
-        .should("exist")
-        .first()
-        .click({ force: true });
+    let validationString = roleType === "creator" ? "exist" : "not.exist";
 
-    cy.get(".nc-project-tree")
-        .contains("Language", { timeout: 6000 })
-        .should(validationString);
-
-    cy.get(".nc-project-tree")
-        .contains("CustomerList", { timeout: 6000 })
-        .should(validationString);
-
-    cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
-        .first()
-        .click({ force: true });
+    cy.get(`.nc-project-tree-tbl-Language`).should(validationString)
+    cy.get(`.nc-project-tree-tbl-CustomerList`).should(validationString)
 }

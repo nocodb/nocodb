@@ -1,6 +1,10 @@
 import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
@@ -10,10 +14,22 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             mainPage.tabReset();
+
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
+
+            // toggle right navbar (open)
+            // cy.get('.nc-toggle-right-navbar').should('exist').click();
+        });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         after(() => {
@@ -29,29 +45,30 @@ export const genTest = (apiType, dbType) => {
                 cy.get(`.nc-create-${viewType}-view`).click();
 
                 // Pop up window, click Submit (accepting default name for view)
-                cy.getActiveModal().find("button:contains(Submit)").click();
+                cy.getActiveModal().find(".ant-btn-primary").click();
                 cy.toastWait("View created successfully");
 
-                // validate if view was creted && contains default name 'Country1'
-                cy.get(`.nc-${viewType}-view-item`)
-                    .contains("Country1")
-                    .should("exist");
+                // kludge: right navbar closes abruptly. force it open again
+                // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
 
-                cy.snip(`View_${viewType}`);
+                // validate if view was created && contains default name 'Country1'
+                cy.get(`.nc-${viewType}-view-item`)
+                    .contains(`${capitalizeFirstLetter(viewType)}-1`)
+                    .should("exist");
             });
 
             it(`Edit ${viewType} view name`, () => {
                 // click on edit-icon (becomes visible on hovering mouse)
-                cy.get(".nc-view-edit-icon").last().click({
-                    force: true,
-                    timeout: 1000,
-                });
+                cy.get(`.nc-${viewType}-view-item`).last().dblclick();
 
                 // feed new name
-                cy.get(`.nc-${viewType}-view-item input`).type(
-                    `${viewType}View-1{enter}`
-                );
+                cy.get(`.nc-${viewType}-view-item input`)
+                    .clear()
+                    .type(`${viewType}View-1{enter}`);
                 cy.toastWait("View renamed successfully");
+
+                // kludge: right navbar closes abruptly. force it open again
+                // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
 
                 // validate
                 cy.get(`.nc-${viewType}-view-item`)
@@ -65,7 +82,12 @@ export const genTest = (apiType, dbType) => {
 
                 // click on delete icon (becomes visible on hovering mouse)
                 cy.get(".nc-view-delete-icon").click({ force: true });
+                cy.wait(300)
+                cy.getActiveModal().find('.ant-btn-dangerous').click();
                 cy.toastWait("View deleted successfully");
+
+                // kludge: right navbar closes abruptly. force it open again
+                // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
 
                 // confirm if the number of veiw entries is reduced by 1
                 cy.get(".nc-view-item").its("length").should("eq", 1);
@@ -73,10 +95,9 @@ export const genTest = (apiType, dbType) => {
         };
 
         // below four scenario's will be invoked twice, once for rest & then for graphql
-        viewTest("grid");
-        viewTest("gallery");
-        viewTest("form");
-        // viewTest("kanban");
+        viewTest("grid");  // grid view
+        viewTest("gallery");  // gallery view
+        viewTest("form");  // form view
     });
 };
 

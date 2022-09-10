@@ -1,5 +1,5 @@
 import { mainPage } from "../../support/page_objects/mainPage";
-import { loginPage } from "../../support/page_objects/navigation";
+import {loginPage, projectsPage} from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
@@ -9,9 +9,22 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.openTableTab("Country", 25);
+            cy.wait(1000);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
+        });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         after(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
+            // clean up
             mainPage.deleteColumn("testAttach");
 
             // clean up newly added rows into Country table operations
@@ -22,13 +35,13 @@ export const genTest = (apiType, dbType) => {
 
             // wait for page rendering to complete
             cy.get(".nc-grid-row").should("have.length", 10);
-            mainPage
-                .getRow(10)
-                .find(".mdi-checkbox-blank-outline")
-                .click({ force: true });
+            // mainPage
+            //     .getRow(10)
+            //     .find(".mdi-checkbox-blank-outline")
+            //     .click({ force: true });
 
             mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu().contains("Delete Selected Row").click();
+            cy.getActiveMenu().contains("Delete Row").click();
 
             cy.closeTableTab("Country");
         });
@@ -36,37 +49,30 @@ export const genTest = (apiType, dbType) => {
         it(`Add column of type attachments`, () => {
             mainPage.addColumnWithType("testAttach", "Attachment", "Country");
 
-            for (let i = 1; i <= 2; i++) {
+            for (let i = 4; i <= 6; i++) {
                 let filepath = `sampleFiles/${i}.json`;
-                mainPage
-                    .getCell("testAttach", i)
-                    .click()
-                    .find('input[type="file"]')
-                    .attachFile(filepath);
-                mainPage
-                    .getCell("testAttach", i)
-                    .find(".mdi-file")
-                    .should("exist");
+                cy.get('.nc-attachment-cell')
+                  .eq(i)
+                  .attachFile(filepath, { subjectType: 'drag-n-drop' });
+                cy.get('.nc-attachment-cell')
+                  .eq(i)
+                  .find(".nc-attachment")
+                  .should("exist");
             }
         });
 
         it(`Form view with Attachment field- Submit & verify`, () => {
+
+            // open right navbar
+            cy.get('.nc-toggle-right-navbar').should('exist').click();
+
             // create form-view
             cy.get(`.nc-create-form-view`).click();
             cy.getActiveModal().find("button:contains(Submit)").click();
 
             cy.toastWait("View created successfully");
 
-            cy.get(`.nc-view-item.nc-form-view-item`)
-                .contains("Country1")
-                .click();
-
-            // cy.get(".v-navigation-drawer__content > .container")
-            //   .should("exist")
-            //   .find(".v-list > .v-list-item")
-            //   .contains("Share View")
-            //   .click();
-            mainPage.shareView().click({ force: true });
+            mainPage.shareView().click();
 
             cy.wait(5000);
 
@@ -74,41 +80,50 @@ export const genTest = (apiType, dbType) => {
             cy.getActiveModal()
                 .find(".share-link-box")
                 .contains("/nc/form/", { timeout: 10000 })
+                .should('exist')
                 .then(($obj) => {
                     let linkText = $obj.text().trim();
                     cy.log(linkText);
+
                     cy.visit(linkText, {
                         baseUrl: null,
                     });
                     cy.wait(5000);
 
                     // wait for share view page to load!
+                    cy.get(".nc-form").should("exist");
 
-                    cy.get("#data-table-form-Country")
-                        .should("exist")
-                        .type("_abc");
-                    cy.get("#data-table-form-LastUpdate").click();
-                    cy.getActiveModal().find("button").contains("19").click();
-                    cy.getActiveModal().find("button").contains("OK").click();
+                    // fill form
+                    // 0: Country
+                    // 1: LastUpdate
+                    cy.get(".nc-input").eq(0).type("_abc");
+                    cy.get(".nc-input").eq(1).click();
+                    cy.get('.ant-picker-dropdown').find(".ant-picker-now-btn").click();
+                    cy.get('.ant-picker-dropdown').find("button.ant-btn-primary").click();
 
-                    cy.get(".nc-field-editables")
-                        .last()
-                        .find('input[type="file"]')
-                        .attachFile(`sampleFiles/1.json`);
 
-                    // submit button & validate
-                    cy.get(".nc-form")
-                        .find("button")
-                        .contains("Submit")
-                        .click();
+                    cy.get('.nc-attachment-cell')
+                      .attachFile(`sampleFiles/1.json`, { subjectType: 'drag-n-drop' });
+
+                    cy.get(".nc-form").find("button").contains("Submit").click();
+
+                    cy.get(".ant-alert-message")
+                      .contains("Successfully submitted form data")
+                      .should("exist");
+
                     cy.toastWait("Saved successfully");
                 });
         });
 
         it(`Filter column which contain only attachments, download CSV`, () => {
             // come back to main window
-            loginPage.loginAndOpenProject(apiType, dbType);
+            // loginPage.loginAndOpenProject(apiType, dbType);
+            cy.visit('/')
+            cy.wait(5000)
+
+            projectsPage.openConfiguredProject(apiType, dbType);
             cy.openTableTab("Country", 25);
+            cy.wait(1000);
 
             mainPage.filterField("testAttach", "is not null", null);
             mainPage.hideField("LastUpdate");

@@ -1,7 +1,7 @@
 // Cypress test suite: Project creation using EXCEL
 //
 
-import { projectsPage } from "../../support/page_objects/navigation";
+import { loginPage, projectsPage } from "../../support/page_objects/navigation";
 import { mainPage } from "../../support/page_objects/mainPage";
 import {
     roles,
@@ -21,9 +21,9 @@ let filepath = `sampleFiles/simple.xlsx`;
 // let UrlFilePath = `sampleFiles/Financial Sample.xlsx`
 
 let expectedData = {
-    0: ["number", "Number"],
-    1: ["float", "Decimal"],
-    2: ["text", "SingleLineText"],
+    0: ["number", "Number", "Number"],
+    1: ["float", "Decimal", "Float"],
+    2: ["text", "SingleLineText", "Text"],
 };
 
 // column names with spaces will be converted to include _
@@ -68,6 +68,12 @@ export const genTest = (apiType, dbType) => {
 
     describe(`Import from excel`, () => {
         before(() => {
+
+            // loginPage.signIn(roles.owner.credentials);
+
+            cy.restoreLocalStorage();
+            cy.wait(1000);
+
             cy.task("readSheetList", {
                 file: `./scripts/cypress/fixtures/${filepath}`,
             }).then((rows) => {
@@ -83,112 +89,89 @@ export const genTest = (apiType, dbType) => {
                 sheetData = rows;
             });
 
-            // cy.task('readXlsx', { file: `./scripts/cypress/fixtures/${UrlFilePath}`, sheet: "Sheet1" })
-            //     .then((rows) => {
-            //         cy.log(rows)
-            //         UrlSheetData = rows
-            // })
+            // loginPage.signIn(roles.owner.credentials);
+            projectsPage.createProject({ dbType: "none", apiType: "REST", name: "importSample" }, {})
+            cy.wait(4000);
+
+            cy.saveLocalStorage();
+            cy.wait(1000);
+        });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+            cy.wait(1000);
         });
 
         it("File Upload: Upload excel as template", () => {
-            mainPage.toolBarTopLeft(mainPage.HOME).click();
 
-            // click on "New Project"
-            cy.get(":nth-child(5) > .v-btn", { timeout: 20000 }).click();
+            cy.get('.nc-add-new-table').should('exist').trigger('mouseover')
+            cy.get('.nc-import-menu').should('exist').click()
+            cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Microsoft Excel').click()
 
-            // Subsequent form, select (+ Create) option
-            cy.get(".nc-create-project-from-excel", { timeout: 20000 }).click({
-                force: true,
-            });
-
-            cy.snipActiveModal("Modal_CreateFromExcel");
-
-            cy.get(".nc-excel-import-input").attachFile(filepath);
-            cy.get(".nc-btn-use-template", { timeout: 120000 }).should("exist");
+            cy.get(".nc-input-import").should('exist').find('input').attachFile(filepath);
+            cy.toastWait("Uploaded file simple.xlsx successfully");
+            cy.get(".nc-btn-import").should('exist').click();
         });
 
         it("File Upload: Verify pre-load template page", () => {
-            cy.snip("ExcelImport");
-            cy.getActiveContentModal()
-                .find(".v-expansion-panel")
+            cy.getActiveModal()
+                .find(".ant-collapse-item")
                 .then((sheets) => {
-                    for (let i = 0; i < sheets.length; i++) {
-                        // verify if all sheet names are correct
-                        // cy.wrap(sheets[i]).find('.title').then((blk) => {
-                        //     cy.log(blk.text().trim())
-                        //     expect(blk.text().trim()).to.equal(sheetList[i])
-                        // })
 
+                    // hardcoded. fix me.
+                    let sheetList = ["Sheet2", "Sheet3", "Sheet4"];
+
+                    for (let i = 0; i < sheets.length; i++) {
                         cy.wrap(sheets[i])
+                            .find('.ant-collapse-header')
                             .contains(sheetList[i])
                             .should("exist");
 
                         // for each sheet, expand to verify table names & their data types
-                        cy.wrap(sheets[i]).find(".mdi-chevron-down").click();
+                        if(i!==0)
+                            cy.wrap(sheets[i]).find(".ant-collapse-arrow").click();
 
-                        // wait for 4 DOM rows to become visible, corresponding to 4 column names in excel
-                        // change to avoid static wait
-                        cy.get(".v-data-table")
-                            .find("tr:visible")
-                            .should("have.length", 4);
-
-                        cy.get(".v-data-table")
-                            .find("tr:visible")
-                            .then((row) => {
-                                for (let j = 1; j < row.length; j++) {
-                                    // column name to match input in excel
-                                    cy.wrap(row[j])
-                                        .find('[placeholder="Column Name"]')
-                                        .then((obj) => {
-                                            cy.log(obj[0].value);
-                                            expect(obj[0].value).to.equal(
-                                                expectedData[j - 1][0]
-                                            );
-                                        });
-
-                                    // datatype to match expected output
-                                    cy.wrap(row[j])
-                                        .find("span.caption")
-                                        .then((obj) => {
-                                            cy.log(obj[0].innerText);
-                                            expect(obj[0].innerText).to.equal(
-                                                expectedData[j - 1][1]
-                                            );
-                                        });
-                                }
-                            });
+                        // sheet > tables > rows > cells > inputs
+                        cy.wrap(sheets[i]).find(".ant-table-tbody").then((tables) => {
+                            cy.wrap(tables).find(".ant-table-row:visible")
+                                .should("have.length", 3)
+                                .then((rows) => {
+                                    // cy.log(rows)
+                                    for (let j = 0; j < rows.length; j++) {
+                                        cy.wrap(rows[j]).find(".ant-table-cell")
+                                          .then((cells) => {
+                                            cy.wrap(cells[0]).find("input")
+                                              .then((input) => {
+                                                expect(input.val()).to.equal(expectedData[j][0])
+                                            })
+                                            cy.wrap(cells[1]).find(".ant-select-selection-item")
+                                              .contains(expectedData[j][1])
+                                              .should("exist")
+                                        })
+                                    }
+                              })
+                        })
 
                         // unwind
-                        cy.wrap(sheets[i]).find(".mdi-chevron-down").click();
+                        cy.wrap(sheets[i]).find(".ant-collapse-arrow").click();
                     }
                 });
+            cy.getActiveModal().find(".ant-btn-primary").click();
+
+            // wait for page to get loaded (issue observed in CI-CD)
+            cy.wait(5000);
         });
 
         it("File Upload: Verify loaded data", () => {
-            // create rest/ gql project
-            cy.get(".nc-btn-use-template", { timeout: 120000 }).click();
-            // if (type == 'rest') {
-            //     cy.getActiveMenu().find('[role="menuitem"]').contains('REST').click()
-            // } else {
-            //     cy.getActiveMenu().find('[role="menuitem"]').contains('GQL').click()
-            // }
-
-            // wait for loading to be completed
-            projectsPage.waitHomePageLoad();
-
-            // open sheet & validate contents
-            // sheetData contains data read from excel in format
-            // 0: { float: 1.1, number: 1, text: "abc" }
-            // 1: { float: 1.2, number: 0, text: "def" }
 
             cy.openTableTab("Sheet2", 2);
             for (const [key, value] of Object.entries(expectedData)) {
                 mainPage
-                    .getCell(value[0], 1)
+                    .getCell(value[2], 1)
                     .contains(sheetData[0][value[0]])
                     .should("exist");
                 mainPage
-                    .getCell(value[0], 2)
+                    .getCell(value[2], 2)
                     .contains(sheetData[1][value[0]])
                     .should("exist");
             }
@@ -197,114 +180,71 @@ export const genTest = (apiType, dbType) => {
             cy.openTableTab("Sheet3", 2);
             for (const [key, value] of Object.entries(expectedData)) {
                 mainPage
-                    .getCell(value[0], 1)
+                    .getCell(value[2], 1)
                     .contains(sheetData[0][value[0]])
                     .should("exist");
                 mainPage
-                    .getCell(value[0], 2)
+                    .getCell(value[2], 2)
                     .contains(sheetData[1][value[0]])
                     .should("exist");
             }
             cy.closeTableTab("Sheet3");
-
-            // delete project once all operations are completed
-            mainPage.toolBarTopLeft(mainPage.HOME).click();
-            cy.get(`.nc-${apiType}-project-row .mdi-delete-circle-outline`, {
-                timeout: 10000,
-            })
-                .should("exist")
-                .last()
-                .invoke("show")
-                .click();
-            cy.contains("Submit").closest("button").click();
         });
 
-        it("URL: Upload excel as template", () => {
-            // click on "New Project"
-            cy.get(":nth-child(5) > .v-btn", { timeout: 20000 }).click();
+        it.skip("URL: Upload excel as template", () => {
+            // trigger import
+            cy.get(`[data-menu-id="addORImport"]`).click();
+            cy.getActivePopUp().contains("Microsoft Excel").should('exist').click();
 
-            // Subsequent form, select (+ Create) option
-            cy.get(".nc-create-project-from-excel", { timeout: 20000 }).click({
-                force: true,
-            });
+            cy.getActiveModal().find('.ant-tabs-tab').last().click()
 
-            cy.snipActiveModal("Modal_ImportExcelURL");
-            cy.getActiveModal().find(".caption").contains("URL").click();
-            cy.get(".nc-excel-import-tab-item")
-                .find('input[type="url"]')
+            cy.get("input[type=\"text\"]")
+                .last()
                 .click()
                 .type(URL);
-            cy.get(".nc-excel-import-tab-item")
-                .find("button")
-                .contains("Load")
-                .click();
-
-            cy.get(".nc-btn-use-template", { timeout: 120000 }).should("exist");
+            cy.get(".nc-btn-primary").should('exist').click();
         });
 
-        it("URL: Verify pre-load template page", () => {
-            cy.getActiveContentModal()
-                .find(".v-expansion-panel")
-                .then((sheets) => {
-                    for (let i = 0; i < sheets.length; i++) {
-                        // verify if all sheet names are correct
-                        // cy.wrap(sheets[i]).find('.title').then((blk) => {
-                        //     cy.log(blk.text().trim())
-                        //     expect(blk.text().trim()).to.equal('Sheet1')
-                        // })
+        it.skip("URL: Verify pre-load template page", () => {
+            cy.getActiveModal()
+              .find(".ant-collapse-item")
+              .then((sheets) => {
 
-                        cy.wrap(sheets[i]).contains("Sheet1").should("exist");
+                  let sheetList = ["Sheet1"];
 
-                        // for each sheet, expand to verify table names & their data types
-                        cy.wrap(sheets[i]).find(".mdi-chevron-down").click();
-                        cy.wait(3000).then(() => {
-                            cy.get(".v-data-table")
-                                .find("tr:visible")
-                                .then((row) => {
-                                    // verification restricting to 10, as others need to be scrolled back into view
-                                    for (
-                                        let j = 1;
-                                        j <= 10 /*row.length*/;
-                                        j++
-                                    ) {
-                                        // column name to match input in excel
-                                        cy.wrap(row[j])
-                                            .find('[placeholder="Column Name"]')
-                                            .then((obj) => {
-                                                cy.log(obj[0].value);
-                                                expect(obj[0].value).to.equal(
-                                                    UrlFileExpectedData[
-                                                        j - 1
-                                                    ][0]
-                                                );
-                                            });
+                  for (let i = 0; i < sheets.length; i++) {
+                      cy.wrap(sheets[i])
+                        .find('.ant-collapse-header')
+                        .contains(sheetList[i])
+                        .should("exist");
 
-                                        // datatype to match expected output
-                                        cy.wrap(row[j])
-                                            .find("span.caption")
-                                            .then((obj) => {
-                                                cy.log(obj[0].innerText);
-                                                expect(
-                                                    obj[0].innerText
-                                                ).to.equal(
-                                                    UrlFileExpectedData[
-                                                        j - 1
-                                                    ][1]
-                                                );
-                                            });
-                                    }
-                                });
-                        });
+                      cy.wrap(sheets[i]).find(".ant-table-tbody").then((tables) => {
+                          cy.wrap(tables).find(".ant-table-row:visible")
+                            .then((rows) => {
+                                // cy.log(rows)
+                                for (let j = 0; j < 10; j++) {
+                                    cy.wrap(rows[j]).find(".ant-table-cell").then((cells) => {
+                                        // cy.log(cells)
+                                        for (let k = 0; k < 2; k++) {
+                                            cy.wrap(cells[k]).find("input").then((input) => {
+                                                // cy.log(input)
+                                                expect(input.val()).to.equal(UrlFileExpectedData[j][k])
+                                            })
+                                        }
+                                    })
+                                }
+                            })
+                      })
 
-                        // unwind
-                        cy.wrap(sheets[i]).find(".mdi-chevron-down").click();
-                    }
-                });
-        });
+                      // unwind
+                      cy.wrap(sheets[i]).find(".ant-collapse-arrow").click();
+                  }
+              });
 
-        it("URL: Verify loaded data", () => {
-            // create rest/ gql project
-            cy.get(".nc-btn-use-template", { timeout: 120000 }).click();
+            cy.getActiveModal().find(".ant-btn-primary").click();
+        })
+
+        it.skip("URL: Verify loaded data", () => {
 
             // wait for loading to be completed
             projectsPage.waitHomePageLoad();
@@ -328,54 +268,23 @@ export const genTest = (apiType, dbType) => {
 
         after(() => {
             // delete project once all operations are completed
-            mainPage.toolBarTopLeft(mainPage.HOME).click();
-            cy.get(`.nc-${apiType}-project-row .mdi-delete-circle-outline`, {
-                timeout: 10000,
-            })
-                .should("exist")
-                .last()
-                .invoke("show")
-                .click();
-            cy.contains("Submit").closest("button").click();
+            // mainPage.toolBarTopLeft(mainPage.HOME).click();
+            // projectsPage.deleteProject("importSample");
+
+            // cy.get('.nc-noco-brand-icon').click();
+            //
+            // cy.get(`.nc-action-btn`)
+            //   .should("exist")
+            //   .last()
+            //   .click();
+            //
+            // cy.getActiveModal()
+            //   .find(".ant-btn-dangerous")
+            //   .should("exist")
+            //   .click();
         });
     });
 };
-
-// if (typeof require !== 'undefined') XLSX = require('xlsx');
-
-// let workbook
-
-// const getSheetList = (wb) => {
-//     return wb.SheetNames
-// }
-
-// const getRow = (sheet, rowIdx) => {
-//     let sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheet], {
-//         header: 1,
-//         blankrows: false
-//     });
-
-//     return sheetData[rowIdx]
-// }
-
-// // https://stackoverflow.com/questions/40630606/how-to-read-only-column-a-value-from-excel-using-nodejs
-// const getColumn = (sheet, colIdx) => {
-//     let columnA = []
-//     const worksheet = workbook.Sheets[sheet];
-//         for (let z in worksheet) {
-//             if (z.toString()[0] === colIdx) {
-//                 columnA.push(worksheet[z].v);
-//         }
-//     }
-//     return columnA
-// }
-
-// const getCell = (sheet, cellIdx) => {
-//     const worksheet = workbook.Sheets[sheet];
-//     var desired_cell = worksheet[cellIdx];
-//     desired_value = (desired_cell ? desired_cell.v : undefined);
-//     return desired_value
-// }
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

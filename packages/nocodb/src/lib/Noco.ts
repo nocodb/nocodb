@@ -11,7 +11,7 @@ import * as express from 'express';
 import { Router } from 'express';
 import importFresh from 'import-fresh';
 import morgan from 'morgan';
-import NcToolGui from 'nc-lib-gui-v2';
+import NcToolGui from 'nc-lib-gui';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -252,9 +252,7 @@ export default class Noco {
     //   this.config.dashboardPath,
     //   await this.ncToolApi.expressMiddleware()
     // );
-    this.router.use(NcToolGui.expressMiddleware(
-      this.config.dashboardPath,
-    ));
+    this.router.use(NcToolGui.expressMiddleware(this.config.dashboardPath));
     this.router.get('/', (_req, res) =>
       res.redirect(this.config.dashboardPath)
     );

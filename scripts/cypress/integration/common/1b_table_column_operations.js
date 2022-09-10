@@ -9,15 +9,21 @@ export const genTest = (apiType, dbType) => {
 
     function addNewRow(index, cellValue) {
         cy.get(".nc-add-new-row-btn:visible").should("exist");
-        cy.get(".nc-add-new-row-btn").click({ force: true });
-        cy.get("#data-table-form-Title > input").first().type(cellValue);
-        cy.snipActiveModal("Modal_AddNewRow");
-        cy.getActiveModal()
+        cy.get(".nc-add-new-row-btn").click();
+        // cy.get("#data-table-form-Title > input").first().type(cellValue);
+        cy.get(".nc-expand-col-Title").find(".nc-cell > input")
+            .should("exist")
+            .first()
+            .clear()
+            .type(cellValue);
+
+        cy.getActiveDrawer()
             .find("button")
             .contains("Save row")
             .click({ force: true });
 
         cy.toastWait("updated successfully");
+        cy.get("body").type("{esc}");
         mainPage.getCell("Title", index).contains(cellValue).should("exist");
     }
 
@@ -29,9 +35,14 @@ export const genTest = (apiType, dbType) => {
         const updatedRandVal = "Updated@1234.com";
 
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             cy.createTable(name);
         });
+
+        beforeEach(() => {
+            cy.fileHook();
+        })
 
         // delete table
         after(() => {
@@ -39,53 +50,46 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("Create Table Column", () => {
-            cy.get(`.project-tab:contains(${name}):visible`).should("exist");
             mainPage.addColumn(colName, name);
-
-            cy.get(`th:contains(${colName})`).should("exist");
         });
 
         // edit the newly created column
         it("Edit table column - change datatype", () => {
+
             if (!isXcdb()) {
-                cy.get(`th:contains(${colName}) .mdi-menu-down`)
+                cy.get(`th:contains(${colName}) .nc-icon.ant-dropdown-trigger`)
                     .trigger("mouseover", { force: true })
                     .click({ force: true });
 
                 cy.get(".nc-column-edit").click();
+                cy.get(".nc-column-edit").should("not.be.visible");
 
                 // change column type and verify
-                cy.get(".nc-ui-dt-dropdown").click();
-                cy.contains("LongText").click();
-                cy.get(".nc-col-create-or-edit-card").contains("Save").click();
+                cy.get(".nc-column-type-input").last().click();
+                cy.getActiveSelection().find('.ant-select-item-option').contains("LongText").click();
+                cy.get(".ant-btn-primary:visible").contains("Save").click();
 
-                cy.toastWait("Update table successful");
-
-                cy.get(`th[data-col="${colName}"] .mdi-text-subject`).should(
-                    "exist"
-                );
-
-                cy.get(`th:contains(${colName}) .mdi-menu-down`)
-                    .trigger("mouseover", { force: true })
-                    .click({ force: true });
-
-                cy.get(".nc-column-edit").click();
+                cy.toastWait("Column updated");
             }
         });
 
         // edit the newly created column
         it("Edit table column - rename", () => {
-            cy.get(`th:contains(${colName}) .mdi-menu-down`)
+            cy.get(`th:contains(${colName}) .nc-icon.ant-dropdown-trigger`)
                 .trigger("mouseover", { force: true })
                 .click({ force: true });
 
             cy.get(".nc-column-edit").click();
+            cy.get(".nc-column-edit").should("not.be.visible");
 
             // rename column and verify
-            cy.get(".nc-column-name-input input").clear().type(updatedColName);
-            cy.get(".nc-col-create-or-edit-card").contains("Save").click();
+            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+                .should('exist')
+                .clear()
+                .type(updatedColName);
+            cy.get(".ant-btn-primary:visible").contains("Save").click();
 
-            cy.toastWait("Update table successful");
+            cy.toastWait("Column updated");
 
             cy.get(`th:contains(${colName})`).should("not.exist");
             cy.get(`th:contains(${updatedColName})`).should("exist");
@@ -93,17 +97,7 @@ export const genTest = (apiType, dbType) => {
 
         // delete the newly created column
         it("Delete table column", () => {
-            cy.get(`th:contains(${updatedColName})`).should("exist");
-
-            cy.get(`th:contains(${updatedColName}) .mdi-menu-down`)
-                .trigger("mouseover")
-                .click();
-
-            cy.get(".nc-column-delete").click();
-            cy.get("button:contains(Confirm)").click();
-            cy.toastWait("Update table successful");
-
-            cy.get(`th:contains(${updatedColName})`).should("not.exist");
+            mainPage.deleteColumn(updatedColName);
         });
 
         it("Add new row", () => {
@@ -113,18 +107,24 @@ export const genTest = (apiType, dbType) => {
         it("Update row", () => {
             mainPage
                 .getRow(1)
-                .find(".nc-row-expand-icon")
+                .find('.nc-row-no').should('exist').eq(0).trigger('mouseover', { force: true })
+            cy.get(".nc-row-expand")
                 .click({ force: true });
-            cy.get("#data-table-form-Title > input")
+
+            cy.get(".nc-expand-col-Title").find(".nc-cell > input")
+                .should("exist")
                 .first()
                 .clear()
                 .type(updatedRandVal);
-            cy.getActiveModal()
+
+            cy.getActiveDrawer()
                 .find("button")
                 .contains("Save row")
                 .click({ force: true });
 
+            // partial toast message
             cy.toastWait("updated successfully");
+            cy.get("body").type("{esc}");
 
             mainPage.getCell("Title", 1).contains(randVal).should("not.exist");
             mainPage
@@ -133,7 +133,7 @@ export const genTest = (apiType, dbType) => {
                 .should("exist");
         });
 
-        it("Delete row", () => {
+        it("Delete Row", () => {
             mainPage
                 .getCell("Title", 1)
                 .contains(updatedRandVal)
@@ -141,10 +141,9 @@ export const genTest = (apiType, dbType) => {
 
             // delete row
             cy.getActiveMenu()
-                .find('.v-list-item:contains("Delete Row")')
+                .find('.ant-dropdown-menu-item:contains("Delete Row")')
                 .first()
                 .click({ force: true });
-            // cy.toastWait('Deleted row successfully')
             cy.get("td").contains(randVal).should("not.exist");
         });
 
@@ -156,16 +155,14 @@ export const genTest = (apiType, dbType) => {
             addNewRow(4, "a4");
             addNewRow(5, "a5");
 
-            // check-box, select-all. 0 indicates table header
-            mainPage
-                .getRow(0)
-                .find(".mdi-checkbox-blank-outline")
-                .click({ force: true });
+            cy.get('.nc-no-label').should('exist').eq(0).trigger('mouseover', { force: true })
+            cy.get(".ant-checkbox").should('exist')
+                .eq(0).click({ force: true });
 
             // delete selected rows
-            mainPage.getCell("Title", 1).rightclick({ force: true });
+            mainPage.getCell("Title", 3).rightclick({ force: true });
             cy.getActiveMenu()
-                .contains("Delete Selected Row")
+                .contains("Delete Selected Rows")
                 .click({ force: true });
 
             // verify if everything is wiped off

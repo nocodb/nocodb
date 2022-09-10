@@ -2,10 +2,6 @@ const fs = require('fs')
 const path = require('path')
 
 const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'packages', 'nocodb-sdk', 'package.json'), 'utf8'))
-const version = packageJson.version
-  .replace(/\.(\d+)$/, (_, v) => {
-    return `.${++v}`
-  })
 
 if (process.env.targetEnv === 'DEV') {
     // nightly build

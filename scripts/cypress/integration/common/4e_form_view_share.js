@@ -1,5 +1,6 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 import { mainPage } from "../../support/page_objects/mainPage";
+import {loginPage} from "../../support/page_objects/navigation";
 
 let storedURL = "";
 
@@ -12,21 +13,30 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            // loginPage.loginAndOpenProject(apiType, dbType);
+            // cy.openTableTab("City", 25);
+            // cy.wait(500);
+            // mainPage.toggleRightSidebar();
+            // cy.wait(500);
+            // cy.saveLocalStorage();
+            // cy.wait(500);
+
+            cy.restoreLocalStorage();
+            cy.wait(500);
+
             mainPage.tabReset();
             // open a table to work on views
             //
+
             cy.openTableTab("City", 25);
         });
 
         beforeEach(() => {
-            cy.restoreLocalStorage();
-        });
-
-        afterEach(() => {
-            cy.saveLocalStorage();
         });
 
         after(() => {
+            cy.restoreLocalStorage();
+            cy.wait(500);
             cy.closeTableTab("City");
         });
 
@@ -34,50 +44,50 @@ export const genTest = (apiType, dbType) => {
         // Input: viewType - 'grid'/'gallery'
         //
         const viewTest = (viewType) => {
-            it(`Create ${viewType} view`, () => {
-                // click on 'Grid/Gallery' button on Views bar
-                cy.get(`.nc-create-${viewType}-view`).click();
+            it(`Create ${viewType} view`, () => {0
 
-                // Pop up window, click Submit (accepting default name for view)
-                cy.getActiveModal().find("button:contains(Submit)").click();
+              cy.restoreLocalStorage();
+              cy.wait(500);
 
-                cy.toastWait("View created successfully");
+              // click on create grid view button
+              cy.get(`.nc-create-${viewType}-view`).click();
+
+              // Pop up window, click Submit (accepting default name for view)
+              cy.getActiveModal().find("button:contains(Submit)").click();
+
+              cy.toastWait("View created successfully");
+
+              // validate if view was creted && contains default name 'Country1'
+              cy.get(`.nc-view-item.nc-${viewType}-view-item`)
+                .contains("Form-1")
+                .should("exist");
 
                 // Prepare form
                 //      add header, description
                 //      add post submission message
                 //      swap position for City, LastUpdate fields
                 //      remove City=>Address field
-                cy.get(".nc-form > .mx-auto")
-                    .find('[type="checkbox"]')
-                    .eq(1)
-                    .click();
-                cy.get(".nc-form > .mx-auto")
-                    .find('[type="checkbox"]')
-                    .eq(1)
-                    .should("be.checked");
+                // enable "Submit another form" check box
+                cy.get("button.nc-form-checkbox-show-blank-form").click();
 
+                // Update header & add some description, verify
                 cy.get(".nc-form")
-                    .find('[placeholder="Form Title"]')
-                    .type("A B C D");
+                  .find('[placeholder="Form Title"]')
+                  .clear()
+                  .type("A B C D");
                 cy.get(".nc-form")
-                    .find('[placeholder="Add form description"]')
-                    .type("Some description about form comes here");
-                cy.get(".nc-form > .mx-auto")
-                    .find("textarea")
-                    .type("Congratulations!");
+                  .find('[placeholder="Add form description"]')
+                  .type("Some description about form comes here");
 
-                // ncv2@fix me
-                // cy.get("#data-table-form-LastUpdate").drag(
-                //     "#data-table-form-City"
-                // );
+                // add message
+                cy.get("textarea.nc-form-after-submit-msg")
+                  .type("Congratulations!");
+
+                // move Country field down (drag, drop)
+                cy.get(".nc-form-drag-LastUpdate").drag(
+                  ".nc-form-drag-City");
 
                 cy.get('[title="Address List"]').drag(".nc-drag-n-drop-to-hide");
-
-                cy.get(".nc-form > .mx-auto")
-                    .find('[type="checkbox"]')
-                    .eq(1)
-                    .should("be.checked");
 
                 // store base URL- to re-visit and delete form view later
                 cy.url().then((url) => {
@@ -86,47 +96,45 @@ export const genTest = (apiType, dbType) => {
             });
 
             it(`Share form view`, () => {
-                cy.get(".nc-form > .mx-auto")
-                    .find('[type="checkbox"]')
-                    .eq(1)
-                    .should("be.checked");
+
+                cy.restoreLocalStorage();
+                cy.wait(500);
+
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
-                    .contains("City1")
+                    .contains("Form-1")
                     .click();
-                // cy.get(".v-navigation-drawer__content > .container")
-                //   .find(".v-list > .v-list-item")
-                //   .contains("Share View")
-                //   .click();
-                mainPage.shareView().click({ force: true });
 
-                cy.wait(5000);
-
-                cy.snipActiveModal("Modal_ShareView");
+                cy.wait(2000);
+                mainPage.shareView().click();
 
                 // copy link text, visit URL
                 cy.getActiveModal()
+                    .should('exist')
                     .find(".share-link-box")
                     .contains("/nc/form/", { timeout: 10000 })
+                    .should("exist")
                     .then(($obj) => {
                         let linkText = $obj.text().trim();
                         cy.log(linkText);
+
+                        cy.signOut();
+
                         cy.visit(linkText, {
                             baseUrl: null,
                         });
                         cy.wait(5000);
 
                         // wait for share view page to load!
+
                         cy.get(".nc-form").should("exist");
 
-                        cy.snip("ShareView_Form");
-
                         // New form appeared? Header & description should exist
-                        cy.get(".nc-form", { timeout: 10000 })
-                            .find("h2")
+                        cy.get(".nc-form-view", { timeout: 10000 })
+                            .find("h1")
                             .contains("A B C D")
                             .should("exist");
-                        cy.get(".nc-form", { timeout: 10000 })
-                            .find(".body-1")
+                        cy.get(".nc-form-view", { timeout: 10000 })
+                            .find("h2")
                             .contains("Some description about form comes here")
                             .should("exist");
 
@@ -137,91 +145,89 @@ export const genTest = (apiType, dbType) => {
                         cy.get('[title="Address List"]').should("not.exist");
 
                         // order of LastUpdate & City field is retained
-                        cy.get(".nc-field-wrapper")
-                            .eq(1)
+                        cy.get(".nc-form-column-label")
+                            .eq(0)
                             .contains("LastUpdate")
                             .should("exist");
-                        cy.get(".nc-field-wrapper")
-                            .eq(0)
+                        cy.get(".nc-form-column-label")
+                            .eq(1)
                             .contains("City")
                             .should("exist");
 
                         // submit form, to read message
-                        cy.get("#data-table-form-City").type("_abc");
-                        cy.get("#data-table-form-LastUpdate").click();
-                        cy.getActiveModal()
-                            .find("button")
-                            .contains("19")
-                            .click();
-                        cy.getActiveModal()
-                            .find("button")
-                            .contains("OK")
-                            .click();
-                        cy.get("button").contains("Link to 'Country'").click();
-                        cy.getActiveModal()
-                            .find(".child-card")
-                            .contains("Afghanistan")
-                            .click();
+                        cy.get(".nc-form-input-City").type("_abc");
+                        cy.get(".nc-form-input-LastUpdate").click();
+                        cy.get(".ant-picker-now-btn:visible").contains("Now").click();
+                        cy.get(".ant-btn-primary:visible").contains("Ok").click();
 
-                        // submit button & validate
-                        cy.get(".nc-form")
-                            .find("button")
-                            .contains("Submit")
-                            .click();
-                        cy.toastWait("Congratulations");
-                        cy.get(".v-alert")
-                            .contains("Congratulations")
-                            .should("exist")
-                            .then(() => {
-                                cy.get(".nc-form").should("exist");
-
-                                // validate if form has appeared again
-                                cy.get(".nc-form", { timeout: 10000 })
-                                    .find("h2")
-                                    .contains("A B C D")
-                                    .should("exist");
-                                cy.get(".nc-form", { timeout: 10000 })
-                                    .find(".body-1")
-                                    .contains(
-                                        "Some description about form comes here"
-                                    )
-                                    .should("exist");
-                            });
+                        // cy.get('.nc-form-field-Country')
+                        //   .trigger('mouseover')
+                        //   .click()
+                        //   .find('.nc-action-icon')
+                        //   .click();
+                        // // cy.get("button").contains("Link to 'Country'").click();
+                        // cy.getActiveModal()
+                        //     .find(".ant-card")
+                        //     .contains("Afghanistan")
+                        //     .click();
+                        //
+                        // // submit button & validate
+                        // cy.get(".nc-form")
+                        //     .find("button")
+                        //     .contains("Submit")
+                        //     .click();
+                        //
+                        // cy.get(".ant-alert-message")
+                        //     .contains("Congratulations")
+                        //     .should("exist")
+                        //     .then(() => {
+                        //         cy.get(".nc-form").should("exist");
+                        //
+                        //         // validate if form has appeared again
+                        //         cy.get(".nc-share-form-title")
+                        //           .contains("A B C D")
+                        //           .should("exist");
+                        //         cy.get(".nc-share-form-desc")
+                        //           .contains("Some description about form comes here")
+                        //           .should("exist");
+                        //     });
                     });
             });
 
             it(`Delete ${viewType} view`, () => {
                 // go back to base page
-                cy.visit(storedURL, {
-                    baseUrl: null,
-                });
-                cy.wait(5000);
+                loginPage.loginAndOpenProject(apiType, dbType);
+                cy.openTableTab("City", 25);
+                cy.wait(500);
+                mainPage.toggleRightSidebar();
+                cy.wait(500);
+                cy.saveLocalStorage();
+                cy.wait(500);
 
                 // number of view entries should be 2 before we delete
                 cy.get(".nc-view-item").its("length").should("eq", 2);
 
                 // click on delete icon (becomes visible on hovering mouse)
                 cy.get(".nc-view-delete-icon").click({ force: true });
+                cy.wait(1000);
+                cy.getActiveModal().find('.ant-btn-dangerous').should('exist').click();
                 cy.toastWait("View deleted successfully");
 
                 // confirm if the number of veiw entries is reduced by 1
                 cy.get(".nc-view-item").its("length").should("eq", 1);
 
-                // clean up newly added rows into Country table operations
-                // this auto verifies successfull addition of rows to table as well
-                mainPage.getPagination(25).click();
-                // kludge: flicker on load
-                cy.wait(3000)
-
-                cy.get(".nc-grid-row").should("have.length", 1);
-                mainPage
-                    .getRow(1)
-                    .find(".mdi-checkbox-blank-outline")
-                    .click({ force: true });
-
-                mainPage.getCell("City", 1).rightclick();
-                cy.getActiveMenu().contains("Delete Selected Row").click();
-                // cy.toastWait('Deleted selected rows successfully')
+                // // clean up newly added rows into Country table operations
+                // // this auto verifies successfull addition of rows to table as well
+                // mainPage.getPagination(25).click();
+                // // kludge: flicker on load
+                // cy.wait(3000)
+                //
+                // cy.get(".nc-grid-row").should("have.length", 1);
+                // cy.get(".ant-checkbox").should('exist').eq(1).click({ force: true });
+                // mainPage.getCell("Country", 1).rightclick({ force: true });
+                // cy.getActiveMenu()
+                //   .contains("Delete Selected Rows")
+                //   .click({ force: true });
             });
         };
 

@@ -10,9 +10,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} Table/view drag-drop reorder`, () => {
         function validateTreeField(index, tblName) {
-            cy.get(`:nth-child(${index}) > .v-list-item__title > .caption`)
-                .contains(tblName)
-                .should("exist");
+            cy.get(`.nc-project-tree-tbl`).eq(index-1).find('.nc-tbl-title').contains(tblName).should('exist');
         }
 
         /*
@@ -22,7 +20,12 @@ export const genTest = (apiType, dbType) => {
         */
 
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
+        });
+
+        beforeEach(() => {
+            cy.fileHook();
         });
 
         it(`Table & SQL View list, Drag/drop`, () => {
@@ -36,45 +39,44 @@ export const genTest = (apiType, dbType) => {
             validateTreeField(1, "Actor");
 
             // move Actor field down, above Staff (drag, drop)
+            cy.get(".nc-child-draggable-icon-Actor").click({ force: true });
+            cy.get(".nc-child-draggable-icon-Actor").should("be.visible");
             cy.get(".nc-child-draggable-icon-Actor").drag(
-                ".nc-child-draggable-icon-Staff"
+                ".nc-child-draggable-icon-Staff", { force: true }
             );
 
             validateTreeField(12, "Actor");
 
-            // move ActorInfo (View) field up to first place (drag, drop)
-            cy.get(".nc-child-draggable-icon-ActorInfo").drag(
-                ".nc-child-draggable-icon-Address"
-            );
-
-            validateTreeField(1, "ActorInfo");
-            validateTreeField(2, "Address");
-            validateTreeField(13, "Actor");
-
-            // restore ActorInfo field (drag, drop)
-            cy.get(".nc-child-draggable-icon-ActorInfo").drag(
-                ".nc-child-draggable-icon-Actor"
-            );
-
-            // restore Actor field (drag, drop)
-            cy.get(".nc-child-draggable-icon-Actor").drag(
-                ".nc-child-draggable-icon-Address"
-            );
-
-            validateTreeField(1, "Actor");
-            validateTreeField(2, "Address");
-            validateTreeField(12, "Staff");
-            validateTreeField(13, "ActorInfo");
-            validateTreeField(14, "CustomerList");
-
-            // undo project-tree expand operation
-            cy.get(".nc-project-tree")
-                .find(".v-list-item__title:contains(Tables)", {
-                    timeout: 10000,
-                })
-                .should("exist")
-                .first()
-                .click({ force: true });
+            // // move ActorInfo (View) field up to first place (drag, drop)
+            // cy.get(".nc-child-draggable-icon-ActorInfo").drag(
+            //     ".nc-child-draggable-icon-Address"
+            // );
+            //
+            // validateTreeField(1, "ActorInfo");
+            // validateTreeField(2, "Address");
+            // validateTreeField(13, "Actor");
+            //
+            // // restore ActorInfo field (drag, drop)
+            // cy.get(".nc-child-draggable-icon-ActorInfo").drag(
+            //     ".nc-child-draggable-icon-Actor"
+            // );
+            //
+            // // restore Actor field (drag, drop)
+            // cy.get(".nc-child-draggable-icon-Actor").drag(
+            //     ".nc-child-draggable-icon-Address"
+            // );
+            //
+            // validateTreeField(1, "Actor");
+            // validateTreeField(2, "Address");
+            // validateTreeField(12, "Staff");
+            // validateTreeField(13, "ActorInfo");
+            // validateTreeField(14, "CustomerList");
+            //
+            // // undo project-tree expand operation
+            // cy.get(".nc-project-tree")
+            //     .should("exist")
+            //     .first()
+            //     .click({ force: true });
         });
 
         // create new view as specified by 'viewType'

@@ -103,6 +103,7 @@ const deleteLink = async (id: string) => {
       :locale="{
         emptyText: $t('labels.noData'),
       }"
+      :scroll="{ x: 400 }"
     >
       <template #emptyText>
         <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />

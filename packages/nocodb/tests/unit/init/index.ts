@@ -3,13 +3,13 @@ import express from 'express';
 import knex from 'knex';
 import { Noco } from '../../../src/lib';
 
-import { dbConfig, dbName, sakilaDbName } from '../dbConfig';
 import cleanupMeta from './cleanupMeta';
 import {cleanUpSakila, resetAndSeedSakila} from './cleanupSakila';
 import { createUser } from '../factory/user';
+import TestDbMngr from '../TestDbMngr';
 
 let server;
-const knexClient = knex(dbConfig);
+let knexClient;
 let sakilaKnexClient;
 
 const serverInit = async () => {
@@ -23,9 +23,9 @@ const resetDatabase = async () => {
   try {
     if (!Noco.initialized) {
       try {
-        await knexClient.raw(`DROP DATABASE ${dbName}`);
+        await knexClient.raw(`DROP DATABASE ${TestDbMngr.dbName}`);
       } catch (e) {}
-      await knexClient.raw(`CREATE DATABASE ${dbName}`);
+      await knexClient.raw(`CREATE DATABASE ${TestDbMngr.dbName}`);
     }
   } catch (e) {
     console.error('resetDatabase', e);
@@ -44,32 +44,25 @@ const cleanupAllTables = async () => {
 
 const setupSakila = async () => {
   try {
-    await knexClient.raw(`DROP DATABASE ${sakilaDbName}`);
+    await knexClient.raw(`DROP DATABASE ${TestDbMngr.sakilaDbName}`);
   } catch(e) {
     console.log('setupSakila',e)
   }
-  await knexClient.raw(`CREATE DATABASE ${sakilaDbName}`);
-  await knexClient.raw(`USE ${dbName}`);
+  await knexClient.raw(`CREATE DATABASE ${TestDbMngr.sakilaDbName}`);
+  await knexClient.raw(`USE ${TestDbMngr.dbName}`);
 
-  sakilaKnexClient = knex({
-    client: 'mysql2',
-    connection: {
-      host: 'localhost',
-      port: 3306,
-      user: 'root',
-      password: 'password',
-      database: sakilaDbName,
-      multipleStatements: true,
-    },
-  });
-  await sakilaKnexClient.raw(`USE ${sakilaDbName}`);
+  sakilaKnexClient = knex(TestDbMngr.getSakilaDbConfig());
+  await sakilaKnexClient.raw(`USE ${TestDbMngr.sakilaDbName}`);
   await resetAndSeedSakila(sakilaKnexClient);
 }
 
 const isFirstTimeRun = () => !server
 
 export default async function () {
-  await knexClient.raw(`USE ${dbName}`);
+  if(!knexClient) {
+    knexClient = knex(TestDbMngr.dbConfig);
+  }
+  await knexClient.raw(`USE ${TestDbMngr.dbName}`);
   
   await resetDatabase();
   
@@ -82,5 +75,5 @@ export default async function () {
 
   const { token } = await createUser({ app: server }, { roles: 'editor' });
 
-  return { app: server, token, dbConfig };
+  return { app: server, token, dbConfig: TestDbMngr.dbConfig };
 }

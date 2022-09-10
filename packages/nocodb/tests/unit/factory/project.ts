@@ -1,6 +1,6 @@
 import request from 'supertest';
 import Project from '../../../src/lib/models/Project';
-import { sakilaDbName } from '../dbConfig';
+import TestDbMngr from '../TestDbMngr';
 
 const externalProjectConfig = {
   title: 'sakila',
@@ -14,7 +14,7 @@ const externalProjectConfig = {
           port: '3306',
           user: 'root',
           password: 'password',
-          database: sakilaDbName,
+          database: TestDbMngr.sakilaDbName,
         },
       },
       inflection_column: 'camelize',

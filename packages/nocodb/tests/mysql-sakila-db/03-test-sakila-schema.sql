@@ -210,11 +210,10 @@ SET @@default_storage_engine = @old_default_storage_engine;
 -- Triggers for loading film_text from film
 --
 
-DELIMITER ;;
 CREATE TRIGGER `ins_film` AFTER INSERT ON `film` FOR EACH ROW BEGIN
     INSERT INTO film_text (film_id, title, description)
         VALUES (new.film_id, new.title, new.description);
-  END;;
+  END;
 
 
 CREATE TRIGGER `upd_film` AFTER UPDATE ON `film` FOR EACH ROW BEGIN
@@ -226,14 +225,12 @@ CREATE TRIGGER `upd_film` AFTER UPDATE ON `film` FOR EACH ROW BEGIN
                 film_id=new.film_id
         WHERE film_id=old.film_id;
     END IF;
-  END;;
+  END;
 
 
 CREATE TRIGGER `del_film` AFTER DELETE ON `film` FOR EACH ROW BEGIN
     DELETE FROM film_text WHERE film_id = old.film_id;
-  END;;
-
-DELIMITER ;
+  END;
 
 --
 -- Table structure for table `inventory`
@@ -472,8 +469,6 @@ GROUP BY a.actor_id, a.first_name, a.last_name;
 -- Procedure structure for procedure `rewards_report`
 --
 
-DELIMITER //
-
 CREATE PROCEDURE rewards_report (
     IN min_monthly_purchases TINYINT UNSIGNED
     , IN min_dollar_amount_purchased DECIMAL(10,2)
@@ -535,13 +530,9 @@ proc: BEGIN
 
     /* Clean up */
     DROP TABLE tmpCustomer;
-END //
+END;
 
-DELIMITER ;
-
-DELIMITER $$
-
-CREATE FUNCTION get_customer_balance(p_customer_id INT, p_effective_date DATETIME) RETURNS DECIMAL(5,2)
+CREATE FUNCTION IF NOT EXISTS get_customer_balance(p_customer_id INT, p_effective_date DATETIME) RETURNS DECIMAL(5,2)
     DETERMINISTIC
     READS SQL DATA
 BEGIN
@@ -580,11 +571,7 @@ BEGIN
     AND payment.customer_id = p_customer_id;
 
   RETURN v_rentfees + v_overfees - v_payments;
-END $$
-
-DELIMITER ;
-
-DELIMITER $$
+END;
 
 CREATE PROCEDURE film_in_stock(IN p_film_id INT, IN p_store_id INT, OUT p_film_count INT)
 READS SQL DATA
@@ -601,11 +588,7 @@ BEGIN
      AND store_id = p_store_id
      AND inventory_in_stock(inventory_id)
      INTO p_film_count;
-END $$
-
-DELIMITER ;
-
-DELIMITER $$
+END;  
 
 CREATE PROCEDURE film_not_in_stock(IN p_film_id INT, IN p_store_id INT, OUT p_film_count INT)
 READS SQL DATA
@@ -622,13 +605,10 @@ BEGIN
      AND store_id = p_store_id
      AND NOT inventory_in_stock(inventory_id)
      INTO p_film_count;
-END $$
+END;
 
-DELIMITER ;
 
-DELIMITER $$
-
-CREATE FUNCTION inventory_held_by_customer(p_inventory_id INT) RETURNS INT
+CREATE FUNCTION IF NOT EXISTS inventory_held_by_customer(p_inventory_id INT) RETURNS INT
 READS SQL DATA
 BEGIN
   DECLARE v_customer_id INT;
@@ -640,13 +620,9 @@ BEGIN
   AND inventory_id = p_inventory_id;
 
   RETURN v_customer_id;
-END $$
+END;
 
-DELIMITER ;
-
-DELIMITER $$
-
-CREATE FUNCTION inventory_in_stock(p_inventory_id INT) RETURNS BOOLEAN
+CREATE FUNCTION IF NOT EXISTS inventory_in_stock(p_inventory_id INT) RETURNS BOOLEAN
 READS SQL DATA
 BEGIN
     DECLARE v_rentals INT;
@@ -673,9 +649,7 @@ BEGIN
     ELSE
       RETURN TRUE;
     END IF;
-END $$
-
-DELIMITER ;
+END;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

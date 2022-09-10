@@ -1,24 +1,19 @@
 import 'mocha';
 
 import knex from 'knex';
-import { dbName } from './dbConfig';
+
 import restTests from './rest/index.test';
 import modelTests from './model/index.test';
+import TestDbMngr from './TestDbMngr'
 
 process.env.NODE_ENV = 'test';
 process.env.TEST = 'test';
 process.env.NC_DISABLE_CACHE = 'true';
+process.env.NC_DISABLE_TELE = 'true';
 
 const setupTestMetaDb = async () => {
-  const knexClient = knex({
-    client: 'mysql2',
-    connection: {
-      host: 'localhost',
-      port: 3306,
-      user: 'root',
-      password: 'password',
-    },
-  });
+  const knexClient = knex(TestDbMngr.getMetaDbConfig());
+  const dbName = TestDbMngr.dbName;
   
   try {
     await knexClient.raw(`DROP DATABASE ${dbName}`);
@@ -28,6 +23,8 @@ const setupTestMetaDb = async () => {
 }
 
 (async function() {
+  await TestDbMngr.init();
+
   await setupTestMetaDb();
 
   modelTests();

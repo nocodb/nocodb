@@ -1,19 +1,7 @@
 import Audit from '../../../src/lib/models/Audit';
 import Project from '../../../src/lib/models/Project';
-import { dbPassword, dbUser, sakilaTableNames, sakilaDbName } from '../dbConfig';
-import { exec } from 'child_process';
 
-async function sh(cmd) {
-  return new Promise(function (resolve, reject) {
-    exec(cmd, (err, stdout, stderr) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({ stdout, stderr });
-      }
-    });
-  });
-}
+import TestDbMngr from '../TestDbMngr';
 
 const dropTablesOfSakila = async (sakilaKnexClient) => {
   await sakilaKnexClient.raw('SET FOREIGN_KEY_CHECKS = 0');
@@ -30,11 +18,9 @@ const resetAndSeedSakila = async (sakilaKnexClient) => {
   try {
     await dropTablesOfSakila(sakilaKnexClient);
     
-    const testsDir = __dirname.replace('tests/unit/init', 'tests');
-    await sh(`echo "SOURCE ${testsDir}/mysql-sakila-db/03-test-sakila-schema.sql" | mysql -u ${dbUser} -p${dbPassword} ${sakilaDbName}`);
-    await sh(`echo "SOURCE ${testsDir}/mysql-sakila-db/04-test-sakila-data.sql" | mysql -u ${dbUser} -p${dbPassword} ${sakilaDbName}`);
+    await TestDbMngr.seedSakila(sakilaKnexClient);
     
-    await sakilaKnexClient.raw(`USE ${sakilaDbName}`);
+    await sakilaKnexClient.raw(`USE ${TestDbMngr.sakilaDbName}`);
   } catch (e) {
     console.error('resetSakila', e);
     throw e
@@ -71,5 +57,31 @@ const cleanUpSakila = async (sakilaKnexClient) => {
     console.error('cleanUpSakila', e);
   }
 };
+
+const sakilaTableNames = [
+  'actor',
+  'address',
+  'category',
+  'city',
+  'country',
+  'customer',
+  'film',
+  'film_actor',
+  'film_category',
+  'film_text',
+  'inventory',
+  'language',
+  'payment',
+  'rental',
+  'staff',
+  'store',
+  'actor_info',
+  'customer_list',
+  'film_list',
+  'nicer_but_slower_film_list',
+  'sales_by_film_category',
+  'sales_by_store',
+  'staff_list',
+];
 
 export { cleanUpSakila, resetAndSeedSakila };

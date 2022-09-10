@@ -87,9 +87,9 @@ const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
 const reloadHook = createEventHook()
 
 reloadHook.on(() => {
+  reloadParentRowHook?.trigger()
   if (isNew.value) return
   loadRow()
-  reloadParentRowHook?.trigger()
 })
 
 provide(ReloadRowDataHookInj, reloadHook)

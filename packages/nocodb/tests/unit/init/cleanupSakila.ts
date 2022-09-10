@@ -45,10 +45,9 @@ const cleanUpSakila = async (sakilaKnexClient) => {
   try {
     const sakilaProject = await Project.getByTitle('sakila');
 
-    const audits = sakilaProject && await Audit.projectAuditList(sakilaProject.id, {limit: 10});
+    const audits = sakilaProject && await Audit.projectAuditList(sakilaProject.id, {});
 
-    if(audits?.length > 0 || global.touchedSakilaDb) {
-      global.touchedSakilaDb = false;
+    if(audits?.length > 0) {
       return await resetAndSeedSakila(sakilaKnexClient);
     }
 

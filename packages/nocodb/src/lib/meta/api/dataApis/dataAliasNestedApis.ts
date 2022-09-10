@@ -4,7 +4,10 @@ import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
-import { getColumnByIdOrName, getViewAndModelFromRequestByAliasOrId } from './helpers'
+import {
+  getColumnByIdOrName,
+  getViewAndModelFromRequestByAliasOrId,
+} from './helpers';
 import { NcError } from '../../helpers/catchError';
 import apiMetrics from '../../helpers/apiMetrics';
 
@@ -214,6 +217,7 @@ async function relationDataRemove(req, res) {
     colId: column.id,
     childId: req.params.refRowId,
     rowId: req.params.rowId,
+    cookie: req,
   });
 
   res.json({ msg: 'success' });
@@ -238,11 +242,11 @@ async function relationDataAdd(req, res) {
     colId: column.id,
     childId: req.params.refRowId,
     rowId: req.params.rowId,
+    cookie: req,
   });
 
   res.json({ msg: 'success' });
 }
-
 
 const router = Router({ mergeParams: true });
 

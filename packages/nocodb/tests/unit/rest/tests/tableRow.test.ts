@@ -11,7 +11,7 @@ import {
 } from '../../factory/column';
 import { createTable, getTable } from '../../factory/table';
 import {
-  createRelation,
+  createChildRow,
   createRow,
   generateDefaultRowAttributes,
   getOneRow,
@@ -1182,7 +1182,7 @@ function tableTest() {
 
     const row = await createRow(context, { project, table });
 
-    await createRelation(context, {
+    await createChildRow(context, {
       project,
       table,
       childTable: relatedTable,
@@ -1364,6 +1364,42 @@ function tableTest() {
       throw new Error('Wrong number of rows delete');
     }
   });
+
+  // todo: Integrate filterArrJson with bulk delete all and update all
+  // it.only('Bulk delete all with condition', async function () {
+  //   const table = await createTable(context, project);
+  //   const columns = await table.getColumns();
+  //   const idColumn = columns.find((column) => column.title === 'Id')!;
+
+  //   const arr = Array(120)
+  //     .fill(0)
+  //     .map((_, index) => index);
+  //   for (const index of arr) {
+  //     await createRow(context, { project, table, index });
+  //   }
+
+  //   const rows = await listRow({ project, table });
+
+  //   await request(context.app)
+  //     .delete(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}/all`)
+  //     .set('xc-auth', context.token)
+  //     .query({ filterArr: [
+  //       {
+  //         logical_op: 'and',
+  //         fk_column_id: idColumn.id,
+  //         comparison_op: 'lt',
+  //         value: 20,
+  //       }
+  //     ]})
+  //     .send(rows.map((row) => ({ id: row['Id'] })))
+  //     .expect(200);
+
+  //   const updatedRows: Array<any> = await listRow({ project, table });
+  //   if (updatedRows.length !== 0) {
+  //     console.log(updatedRows.length)
+  //     throw new Error('Wrong number of rows delete');
+  //   }
+  // });
 
   // todo: add test for bulk delete with ltar but need filterArrJson. filterArrJson not now supported with this api.
   // it.only('Bulk update nested filtered table data list with a lookup column', async function () {
@@ -1800,7 +1836,7 @@ function tableTest() {
       type: 'hm',
     });
 
-    const row = await createRelation(context, { project, table,childTable: relatedTable, column:ltarColumn, type: 'hm'  });
+    const row = await createChildRow(context, { project, table,childTable: relatedTable, column:ltarColumn, type: 'hm'  });
     const childRow = row['Ltar'][0]
 
     const response = await request(context.app)

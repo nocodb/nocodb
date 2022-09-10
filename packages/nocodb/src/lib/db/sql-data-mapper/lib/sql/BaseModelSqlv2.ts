@@ -1666,8 +1666,10 @@ class BaseModelSqlv2 {
     datas: any[],
     {
       chunkSize: _chunkSize = 100,
+      cookie,
     }: {
       chunkSize?: number;
+      cookie?: any;
     } = {}
   ) {
     try {
@@ -1698,7 +1700,7 @@ class BaseModelSqlv2 {
         .batchInsert(this.model.table_name, insertDatas, chunkSize)
         .returning(this.model.primaryKey?.column_name);
 
-      // await this.afterInsertb(insertDatas, null);
+      await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
 
       return response;
     } catch (e) {
@@ -1707,7 +1709,7 @@ class BaseModelSqlv2 {
     }
   }
 
-  async bulkUpdate(datas: any[]) {
+  async bulkUpdate(datas: any[], { cookie }: { cookie?: any } = {}) {
     let transaction;
     try {
       const updateDatas = await Promise.all(
@@ -1732,7 +1734,7 @@ class BaseModelSqlv2 {
         res.push(response);
       }
 
-      // await this.afterUpdateb(res, transaction);
+      await this.afterBulkUpdate(updateDatas.length, this.dbDriver, cookie);
       transaction.commit();
 
       return res;
@@ -1746,13 +1748,14 @@ class BaseModelSqlv2 {
 
   async bulkUpdateAll(
     args: { where?: string; filterArr?: Filter[] } = {},
-    data
+    data,
+    { cookie }: { cookie?: any } = {}
   ) {
+    let queryResponse;
     try {
       const updateData = await this.model.mapAliasToColumn(data);
       await this.validate(updateData);
       const pkValues = await this._extractPksValues(updateData);
-      let res = null;
       if (pkValues) {
         // pk is specified - by pass
       } else {
@@ -1774,21 +1777,25 @@ class BaseModelSqlv2 {
               is_group: true,
               logical_op: 'and',
             }),
-            ...(args.filterArr || []),
           ],
           qb,
           this.dbDriver
         );
+
         qb.update(updateData);
-        res = ((await qb) as any).count;
+        queryResponse = (await qb) as any;
       }
-      return res;
+
+      const count = queryResponse.count || queryResponse;
+      await this.afterBulkUpdate(count, this.dbDriver, cookie);
+
+      return count;
     } catch (e) {
       throw e;
     }
   }
 
-  async bulkDelete(ids: any[]) {
+  async bulkDelete(ids: any[], { cookie }: { cookie?: any } = {}) {
     let transaction;
     try {
       transaction = await this.dbDriver.transaction();
@@ -1807,6 +1814,8 @@ class BaseModelSqlv2 {
 
       transaction.commit();
 
+      await this.afterBulkDelete(ids.length, this.dbDriver, cookie);
+
       return res;
     } catch (e) {
       if (transaction) transaction.rollback();
@@ -1816,7 +1825,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  async bulkDeleteAll(args: { where?: string; filterArr?: Filter[] } = {}) {
+  async bulkDeleteAll(
+    args: { where?: string; filterArr?: Filter[] } = {},
+    { cookie }: { cookie?: any } = {}
+  ) {
     try {
       await this.model.getColumns();
       const { where } = this._getListArgs(args);
@@ -1836,13 +1848,17 @@ class BaseModelSqlv2 {
             is_group: true,
             logical_op: 'and',
           }),
-          ...(args.filterArr || []),
         ],
         qb,
         this.dbDriver
       );
       qb.del();
-      return ((await qb) as any).count;
+      const queryResponse = (await qb) as any;
+
+      const count = queryResponse.count || queryResponse;
+      await this.afterBulkDelete(count, this.dbDriver, cookie);
+
+      return count;
     } catch (e) {
       throw e;
     }
@@ -1875,6 +1891,48 @@ class BaseModelSqlv2 {
     // }
   }
 
+  public async afterBulkUpdate(count: number, _trx: any, req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.BULK_UPDATE,
+      description: DOMPurify.sanitize(
+        `${count} records bulk updated in ${this.model.title}`
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+  }
+
+  public async afterBulkDelete(count: number, _trx: any, req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.BULK_DELETE,
+      description: DOMPurify.sanitize(
+        `${count} records bulk deleted in ${this.model.title}`
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+  }
+
+  public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.BULK_INSERT,
+      description: DOMPurify.sanitize(
+        `${data.length} records bulk inserted into ${this.model.title}`
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+  }
+
   public async beforeUpdate(data: any, _trx: any, req): Promise<void> {
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
@@ -1888,6 +1946,18 @@ class BaseModelSqlv2 {
   }
 
   public async afterUpdate(data: any, _trx: any, req): Promise<void> {
+    const id = this._extractPksValues(data);
+    Audit.insert({
+      fk_model_id: this.model.id,
+      row_id: id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.UPDATE,
+      description: DOMPurify.sanitize(`${id} updated in ${this.model.title}`),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
@@ -2069,10 +2139,12 @@ class BaseModelSqlv2 {
     colId,
     rowId,
     childId,
+    cookie,
   }: {
     colId: string;
     rowId: string;
     childId: string;
+    cookie?: any;
   }) {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
@@ -2139,16 +2211,35 @@ class BaseModelSqlv2 {
         }
         break;
     }
+
+    await this.afterAddChild(rowId, childId, cookie);
+  }
+
+  public async afterAddChild(rowId, childId, req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+      row_id: rowId,
+      description: DOMPurify.sanitize(
+        `Record [id:${childId}] record linked with record [id:${rowId}] record in ${this.model.title}`
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
   }
 
   async removeChild({
     colId,
     rowId,
     childId,
+    cookie,
   }: {
     colId: string;
     rowId: string;
     childId: string;
+    cookie?: any;
   }) {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
@@ -2213,6 +2304,23 @@ class BaseModelSqlv2 {
         }
         break;
     }
+
+    await this.afterRemoveChild(rowId, childId, cookie);
+  }
+
+  public async afterRemoveChild(rowId, childId, req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+      row_id: rowId,
+      description: DOMPurify.sanitize(
+        `Record [id:${childId}] record unlinked with record [id:${rowId}] record in ${this.model.title}`
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
   }
 
   private async extractRawQueryAndExec(qb: QueryBuilder) {

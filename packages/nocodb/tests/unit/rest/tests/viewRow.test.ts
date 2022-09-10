@@ -9,7 +9,7 @@ import View from '../../../../src/lib/models/View';
 import { ColumnType, UITypes, ViewTypes } from 'nocodb-sdk';
 import { createView } from '../../factory/view';
 import { createColumn, createLookupColumn, createLtarColumn, createRollupColumn, updateViewColumn } from '../../factory/column';
-import { createRelation, createRow, getOneRow, getRow } from '../../factory/row';
+import { createChildRow, createRow, getOneRow, getRow } from '../../factory/row';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -1081,7 +1081,7 @@ function viewRowTests() {
 
     const row = await createRow(context, { project, table });
 
-    await createRelation(context, {
+    await createChildRow(context, {
       project,
       table,
       childTable: relatedTable,

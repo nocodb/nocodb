@@ -15,7 +15,7 @@ const createTable = async (context, project, args = {}) => {
     .set('xc-auth', context.token)
     .send({ ...defaultTableValue, ...args });
 
-  const table = await Model.get(response.body.id);
+  const table: Model = await Model.get(response.body.id);
   return table;
 };
 

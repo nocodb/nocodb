@@ -5,7 +5,7 @@ import { orderedMetaTables } from "../../../src/lib/utils/globals";
 
 const dropTablesAllNonExternalProjects = async (knexClient) => {
   const projects = await Project.list({});
-  const userCreatedTableNames = [];
+  const userCreatedTableNames: string[] = [];
   await Promise.all(
     projects
       .filter((project) => project.is_meta)
@@ -16,7 +16,7 @@ const dropTablesAllNonExternalProjects = async (knexClient) => {
 
         const models = await Model.list({
           project_id: project.id,
-          base_id: base.id,
+          base_id: base.id!,
         });
         models.forEach((model) => {
           userCreatedTableNames.push(model.table_name);

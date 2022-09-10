@@ -70,10 +70,10 @@ const getOneRow = async (
 
 const generateDefaultRowAttributes = ({
   columns,
-  index,
+  index = 0,
 }: {
   columns: ColumnType[];
-  index: number;
+  index?: number;
 }) =>
   columns.reduce((acc, column) => {
     if (
@@ -83,7 +83,7 @@ const generateDefaultRowAttributes = ({
     ) {
       return acc;
     }
-    acc[column.column_name] = rowValue(column, index);
+    acc[column.title!] = rowValue(column, index);
     return acc;
   }, {});
 
@@ -111,7 +111,7 @@ const createRow = async (
 };
 
 // Links 2 table rows together. Will create rows if ids are not provided
-const createRelation = async (
+const createChildRow = async (
   context,
   {
     project,
@@ -155,7 +155,7 @@ const createRelation = async (
 export {
   createRow,
   getRow,
-  createRelation,
+  createChildRow,
   getOneRow,
   listRow,
   generateDefaultRowAttributes,

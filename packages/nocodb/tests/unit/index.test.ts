@@ -3,6 +3,7 @@ import 'mocha';
 import knex from 'knex';
 import { dbName } from './dbConfig';
 import restTests from './rest/index.test';
+import modelTests from './model/index.test';
 
 process.env.NODE_ENV = 'test';
 process.env.TEST = 'test';
@@ -29,6 +30,7 @@ const setupTestMetaDb = async () => {
 (async function() {
   await setupTestMetaDb();
 
+  modelTests();
   restTests();
 
   run();

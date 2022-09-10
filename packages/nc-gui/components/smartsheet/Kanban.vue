@@ -30,15 +30,10 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-const {
-  loadData,
-  paginationData,
-  formattedData: data,
-  loadKanbanData,
-  kanbanData,
-  changePage,
-  addEmptyRow,
-} = useViewData(meta, view as any)
+const { loadData, paginationData, formattedKanbanData, loadKanbanData, kanbanData, changePage, addEmptyRow } = useViewData(
+  meta,
+  view as any,
+)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -120,18 +115,24 @@ openNewRecordFormHook?.on(async () => {
 </script>
 
 <template>
-  <div class="flex h-full">
+  <div v-if="formattedKanbanData" class="flex h-full">
     <div class="nc-kanban-container flex grid gap-2 my-4 px-3">
-      <!-- TODO: v-for -->
-      <a-card class="nc-kanban-stack" head-style="padding-bottom: 0px;" body-style="padding: 0px 20px;">
+      <!-- TODO: add loading component when formattedKanbanData is not ready -->
+      <!-- TODO: the whole stack should be draggable -->
+      <a-card
+        v-for="kanbanDataKey in Object.keys(formattedKanbanData)"
+        :key="kanbanDataKey"
+        class="nc-kanban-stack"
+        head-style="padding-bottom: 0px;"
+        body-style="padding: 0px 20px;"
+      >
         <template #title>
           <div class="nc-kanban-stack-head">
-            <!-- TODO: i18n -->
-            Uncategorized
+            {{ kanbanDataKey }}
           </div>
         </template>
         <div class="nc-kanban-list flex flex-col">
-          <div v-for="record in data" :key="`record-${record.row.id}`" class="py-2">
+          <div v-for="record in formattedKanbanData[kanbanDataKey]" :key="`record-${record.row.id}`" class="py-2">
             <Row :row="record">
               <a-card
                 hoverable

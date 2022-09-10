@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
 import { isVirtualCol } from 'nocodb-sdk'
-import { inject, provide, useViewData } from '#imports'
+import { inject, provide, useKanbanViewData, useViewData } from '#imports'
 import Row from '~/components/smartsheet/Row.vue'
 import type { Row as RowType } from '~/composables'
 import {
   ActiveViewInj,
-  ChangePageInj,
+  // ChangePageInj,
   FieldsInj,
   IsFormInj,
   IsGalleryInj,
@@ -14,7 +14,7 @@ import {
   IsKanbanInj,
   MetaInj,
   OpenNewRecordFormHookInj,
-  PaginationDataInj,
+  // PaginationDataInj,
   ReadonlyInj,
 } from '~/context'
 
@@ -31,8 +31,10 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-const { loadData, paginationData, formattedKanbanData, updateOrSaveRow, loadKanbanData, kanbanData, changePage, addEmptyRow } =
-  useViewData(meta, view as any)
+const { loadKanbanData, loadKanbanMeta, kanbanMetaData, formatData, updateOrSaveRow, addEmptyRow } = useKanbanViewData(
+  meta,
+  view as any,
+)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -40,27 +42,25 @@ provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
 provide(IsKanbanInj, ref(true))
-provide(PaginationDataInj, paginationData)
-provide(ChangePageInj, changePage)
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
-const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== kanbanData.value?.fk_cover_image_col_id))
+// const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== kanbanData.value?.fk_cover_image_col_id))
 
-const coverImageColumn: any = $(
-  computed(() =>
-    meta?.value.columnsById
-      ? meta.value.columnsById[kanbanData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
-      : {},
-  ),
-)
+// const coverImageColumn: any = $(
+//   computed(() =>
+//     meta?.value.columnsById
+//       ? meta.value.columnsById[kanbanData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
+//       : {},
+//   ),
+// )
 
 watch(
   [meta, view],
   async () => {
     if (meta?.value && view?.value) {
-      await loadData()
+      await loadKanbanMeta()
       await loadKanbanData()
     }
   },
@@ -74,18 +74,18 @@ const isRowEmpty = (record: any, col: any) => {
   return Array.isArray(val) && val.length === 0
 }
 
-const attachments = (record: any): Array<Attachment> => {
-  try {
-    return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
-  } catch (e) {
-    return []
-  }
-}
+// const attachments = (record: any): Array<Attachment> => {
+//   try {
+//     return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
+//   } catch (e) {
+//     return []
+//   }
+// }
 
 const reloadAttachments = ref(false)
 
 reloadViewDataHook?.on(async () => {
-  await loadData()
+  await loadKanbanMeta()
   await loadKanbanData()
   reloadAttachments.value = true
   nextTick(() => {
@@ -126,6 +126,9 @@ openNewRecordFormHook?.on(async () => {
 <template>
   <!-- TODO: add loading component when formattedKanbanData is not ready -->
   <div v-if="formattedKanbanData" class="flex h-full">
+    <!--    {{ formattedData}} -->
+    <!--    <br/><br/> -->
+    <!--    {{ formattedKanbanData.data }} -->
     <div class="nc-kanban-container flex grid gap-2 my-4 px-3">
       <Draggable
         v-model="formattedKanbanData.meta"

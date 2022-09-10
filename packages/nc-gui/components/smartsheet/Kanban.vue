@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
 import { isVirtualCol } from 'nocodb-sdk'
-import { inject, provide, useKanbanViewData, useViewData } from '#imports'
+import { inject, provide, useKanbanViewData } from '#imports'
 import Row from '~/components/smartsheet/Row.vue'
 import type { Row as RowType } from '~/composables'
 import {
@@ -31,10 +31,8 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-const { loadKanbanData, loadKanbanMeta, kanbanMetaData, formatData, updateOrSaveRow, addEmptyRow } = useKanbanViewData(
-  meta,
-  view as any,
-)
+const { loadKanbanData, loadKanbanMeta, kanbanMetaData, formattedData, updateOrSaveRow, addEmptyRow, groupingFieldColOptions } =
+  useKanbanViewData(meta, view as any)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -46,7 +44,7 @@ provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
-// const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== kanbanData.value?.fk_cover_image_col_id))
+const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== kanbanMetaData.value?.fk_cover_image_col_id))
 
 // const coverImageColumn: any = $(
 //   computed(() =>
@@ -125,13 +123,10 @@ openNewRecordFormHook?.on(async () => {
 
 <template>
   <!-- TODO: add loading component when formattedKanbanData is not ready -->
-  <div v-if="formattedKanbanData" class="flex h-full">
-    <!--    {{ formattedData}} -->
-    <!--    <br/><br/> -->
-    <!--    {{ formattedKanbanData.data }} -->
+  <div v-if="formattedData" class="flex h-full">
     <div class="nc-kanban-container flex grid gap-2 my-4 px-3">
       <Draggable
-        v-model="formattedKanbanData.meta"
+        v-model="groupingFieldColOptions"
         class="flex gap-5"
         item-key="id"
         group="kanban-stack"
@@ -149,7 +144,7 @@ openNewRecordFormHook?.on(async () => {
             </template>
             <div class="nc-kanban-list flex flex-col">
               <Draggable
-                v-model="formattedKanbanData.data[stack.title]"
+                v-model="formattedData[stack.id]"
                 item-key="row.Id"
                 draggable=".nc-kanban-item"
                 group="kanban-card"
@@ -165,32 +160,32 @@ openNewRecordFormHook?.on(async () => {
                         class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
                         @click="expandFormClick($event, record)"
                       >
-                        <template #cover>
-                          <a-carousel
-                            v-if="!reloadAttachments && attachments(record).length"
-                            autoplay
-                            class="gallery-carousel"
-                            arrows
-                          >
-                            <template #customPaging>
-                              <a>
-                                <div class="pt-[12px]"><div></div></div>
-                              </a>
-                            </template>
-                            <template #prevArrow>
-                              <div style="z-index: 1"></div>
-                            </template>
-                            <template #nextArrow>
-                              <div style="z-index: 1"></div>
-                            </template>
-                            <img
-                              v-for="(attachment, index) in attachments(record)"
-                              :key="`carousel-${record.row.id}-${index}`"
-                              class="h-52"
-                              :src="attachment.url"
-                            />
-                          </a-carousel>
-                        </template>
+                        <!--                            <template #cover> -->
+                        <!--                              <a-carousel -->
+                        <!--                                v-if="!reloadAttachments && attachments(record).length" -->
+                        <!--                                autoplay -->
+                        <!--                                class="gallery-carousel" -->
+                        <!--                                arrows -->
+                        <!--                              > -->
+                        <!--                                <template #customPaging> -->
+                        <!--                                  <a> -->
+                        <!--                                    <div class="pt-[12px]"><div></div></div> -->
+                        <!--                                  </a> -->
+                        <!--                                </template> -->
+                        <!--                                <template #prevArrow> -->
+                        <!--                                  <div style="z-index: 1"></div> -->
+                        <!--                                </template> -->
+                        <!--                                <template #nextArrow> -->
+                        <!--                                  <div style="z-index: 1"></div> -->
+                        <!--                                </template> -->
+                        <!--                                <img -->
+                        <!--                                  v-for="(attachment, index) in attachments(record)" -->
+                        <!--                                  :key="`carousel-${record.row.id}-${index}`" -->
+                        <!--                                  class="h-52" -->
+                        <!--                                  :src="attachment.url" -->
+                        <!--                                /> -->
+                        <!--                              </a-carousel> -->
+                        <!--                            </template> -->
 
                         <div
                           v-for="col in fieldsWithoutCover"
@@ -234,8 +229,8 @@ openNewRecordFormHook?.on(async () => {
                 <div class="mt-5 text-center">
                   <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
                   <div class="nc-kanban-data-count">
-                    {{ formattedKanbanData.data[stack.title].length }}
-                    {{ formattedKanbanData.data[stack.title].length !== 1 ? $t('objects.records') : $t('objects.record') }}
+                    {{ formattedData[stack.id]?.length }}
+                    {{ formattedData[stack.id]?.length !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>
                 </div>
               </template>

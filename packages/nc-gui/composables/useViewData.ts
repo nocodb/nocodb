@@ -15,29 +15,6 @@ import {
   useUIPermission,
 } from '#imports'
 
-const formatData = (list: Record<string, any>[]) =>
-  list.map((row) => ({
-    row: { ...row },
-    oldRow: { ...row },
-    rowMeta: {},
-  }))
-
-const formatKanbanData = (list: Record<string, any>[]) =>
-  list.reduce((acc: any, obj: any) => {
-    // TODO: grouping field
-    const groupingFeild = 'singleSelect2'
-    const key = obj[groupingFeild] === null ? 'Uncategorized' : obj[groupingFeild]
-    if (!acc[key]) {
-      acc[key] = []
-    }
-    acc[key].push({
-      row: { ...obj },
-      oldRow: { ...obj },
-      rowMeta: {},
-    })
-    return acc
-  }, {})
-
 export interface Row {
   row: Record<string, any>
   oldRow: Record<string, any>
@@ -75,6 +52,43 @@ export function useViewData(
   const { $api, $e } = useNuxtApp()
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
   const { isUIAllowed } = useUIPermission()
+
+  const formatData = (list: Record<string, any>[]) =>
+    list.map((row) => ({
+      row: { ...row },
+      oldRow: { ...row },
+      rowMeta: {},
+    }))
+
+  const formatKanbanData = (list: Record<string, any>[]) => {
+    const groupingField = 'singleSelect2'
+    const groupingFieldColumn = meta?.value?.columns?.filter((f) => f.title === groupingField)[0] as Record<string, any>
+    const groupingFieldColumnOptions = [...groupingFieldColumn?.colOptions?.options, { title: 'Uncategorized', order: 0 }].sort(
+      (a: Record<string, any>, b: Record<string, any>) => a.order - b.order,
+    )
+    const initialAcc = groupingFieldColumnOptions.reduce((acc: any, obj: any) => {
+      if (!acc[obj.title]) {
+        acc[obj.title] = []
+      }
+      return acc
+    }, {})
+    return {
+      meta: groupingFieldColumnOptions,
+      data: list.reduce((acc: any, obj: any) => {
+        // TODO: grouping field
+        const key = obj[groupingField] === null ? 'Uncategorized' : obj[groupingField]
+        if (!acc[key]) {
+          acc[key] = []
+        }
+        acc[key].push({
+          row: { ...obj },
+          oldRow: { ...obj },
+          rowMeta: {},
+        })
+        return acc
+      }, initialAcc),
+    }
+  }
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),

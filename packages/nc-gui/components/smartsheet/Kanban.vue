@@ -200,9 +200,9 @@ openNewRecordFormHook?.on(async () => {
           <template #description>
             <div class="mt-5 text-center">
               <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
-              <div>
-                <!-- TODO: count -->
-                X Records
+              <div class="nc-kanban-data-count">
+                {{ formattedKanbanData[kanbanDataKey].length }}
+                {{ formattedKanbanData[kanbanDataKey].length !== 1 ? $t('objects.records') : $t('objects.record') }}
               </div>
             </div>
           </template>

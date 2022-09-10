@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Row } from '~/composables'
 import { useProvideSmartsheetRowStore, useSmartsheetStoreOrThrow } from '#imports'
-import { ReloadRowDataHookInj, ReloadViewDataHookInj } from '~/context'
+import { ReloadRowDataHookInj } from '~/context'
 
 interface Props {
   row: Row
@@ -11,7 +11,7 @@ const props = defineProps<Props>()
 const currentRow = toRef(props, 'row')
 
 const { meta } = useSmartsheetStoreOrThrow()
-const { isNew, state, syncLTARRefs, loadRow } = useProvideSmartsheetRowStore(meta, currentRow)
+const { isNew, state, syncLTARRefs } = useProvideSmartsheetRowStore(meta, currentRow)
 
 // on changing isNew(new record insert) status sync LTAR cell values
 watch(isNew, async (nextVal, prevVal) => {
@@ -23,12 +23,14 @@ watch(isNew, async (nextVal, prevVal) => {
   }
 })
 
+const reloadViewDataTrigger = inject(ReloadViewDataHookInj)!
+
 // override reload trigger and use it to reload row
 const reloadHook = createEventHook()
 
 reloadHook.on(() => {
   if (isNew.value) return
-  loadRow()
+  reloadViewDataTrigger?.trigger()
 })
 
 provide(ReloadRowDataHookInj, reloadHook)

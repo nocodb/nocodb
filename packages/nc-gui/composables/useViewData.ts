@@ -256,7 +256,7 @@ export function useViewData(
 
   async function updateOrSaveRow(row: Row, property: string) {
     if (row.rowMeta.new) {
-      await insertRow(row.row, formattedData.value.indexOf(row))
+      return await insertRow(row.row, formattedData.value.indexOf(row))
     } else {
       await updateRowProperty(row, property)
     }

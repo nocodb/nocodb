@@ -33,6 +33,10 @@ reloadHook.on(() => {
 })
 
 provide(ReloadRowDataHookInj, reloadHook)
+
+defineExpose({
+  syncLTARRefs
+})
 </script>
 
 <template>

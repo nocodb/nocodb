@@ -324,19 +324,24 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
   }
 }
 
+const rowRefs = $ref<any[]>()
+
 onBeforeUnmount(async () => {
-  for (const row of data.value) {
-    if (row.rowMeta.new) {
-      await updateOrSaveRow(row, null)
-      row.rowMeta.changed = false
+  console.log(rowRefs)
+  for (const [index, currentRow] of Object.entries(data.value)) {
+    if (currentRow.rowMeta.new) {
+      const syncLTARRefs = rowRefs[index]!.syncLTARRefs
+      const savedRow = await updateOrSaveRow(currentRow, null)
+      await syncLTARRefs(savedRow)
+      currentRow.rowMeta.changed = false
       continue
     }
-    if (row.rowMeta.changed) {
-      row.rowMeta.changed = false
+    if (currentRow.rowMeta.changed) {
+      currentRow.rowMeta.changed = false
       for (const field of meta?.value.columns ?? []) {
         if (isVirtualCol(field)) continue
-        if (row.row[field.title!] !== row.oldRow[field.title!]) {
-          await updateOrSaveRow(row, field.title!)
+        if (currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
+          await updateOrSaveRow(currentRow, field.title!)
         }
       }
     }
@@ -418,7 +423,7 @@ onBeforeUnmount(async () => {
           </tr>
           </thead>
           <tbody>
-          <SmartsheetRow v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
+          <SmartsheetRow ref="rowRefs" v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
             <template #default="{ state }">
               <tr class="nc-grid-row">
                 <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">

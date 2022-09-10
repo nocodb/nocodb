@@ -12,6 +12,7 @@ let t3b = require("../common/3b_formula_column");
 let t3c = require("../common/3c_lookup_column");
 let t3d = require("../common/3d_rollup_column");
 let t3e = require("../common/3e_duration_column");
+let t3f = require("../common/3f_link_to_another_record");
 const {
     setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
@@ -32,6 +33,7 @@ const nocoTestSuite = (apiType, dbType) => {
     t3c.genTest(apiType, dbType);
     t3d.genTest(apiType, dbType);
     // NcGUI v2 t3e.genTest(apiType, dbType);
+    t3f.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "mysql");

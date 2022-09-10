@@ -532,202 +532,204 @@ async function getMetaDiff(
 
 export async function metaDiff(req, res) {
   const project = await Project.getWithInfo(req.params.projectId);
-  const base = project.bases[0];
-
-  // @ts-ignore
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
-  const changes = await getMetaDiff(sqlClient, project, base);
+  const changes = []
+  for (const base of project.bases) {
+    // @ts-ignore
+    const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+    changes.push(await getMetaDiff(sqlClient, project, base));
+  }
 
   res.json(changes);
 }
 
 export async function metaDiffSync(req, res) {
   const project = await Project.getWithInfo(req.params.projectId);
-  const base = project.bases[0];
-  const virtualColumnInsert: Array<() => Promise<void>> = [];
+  for (const base of project.bases) {
+    const virtualColumnInsert: Array<() => Promise<void>> = [];
 
-  // @ts-ignore
-  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
-  const changes = await getMetaDiff(sqlClient, project, base);
-
-  /* Get all relations */
-  // const relations = (await sqlClient.relationListAll())?.data?.list;
-
-  for (const { table_name, detectedChanges } of changes) {
-    // reorder changes to apply relation remove changes
-    // before column remove to avoid foreign key constraint error
-    detectedChanges.sort((a, b) => {
-      return (
-        applyChangesPriorityOrder.indexOf(b.type) -
-        applyChangesPriorityOrder.indexOf(a.type)
-      );
-    });
-
-    for (const change of detectedChanges) {
-      switch (change.type) {
-        case MetaDiffType.TABLE_NEW:
-          {
-            const columns = (
-              await sqlClient.columnList({ tn: table_name })
-            )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
-
-            mapDefaultPrimaryValue(columns);
-
-            const model = await Model.insert(project.id, base.id, {
-              table_name: table_name,
-              title: getTableNameAlias(table_name, project.prefix, base),
-              type: ModelTypes.TABLE,
-            });
-
-            for (const column of columns) {
-              await Column.insert({
-                uidt: getColumnUiType(base, column),
-                fk_model_id: model.id,
-                ...column,
-                title: getColumnNameAlias(column.column_name, base),
+    // @ts-ignore
+    const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+    const changes = await getMetaDiff(sqlClient, project, base);
+  
+    /* Get all relations */
+    // const relations = (await sqlClient.relationListAll())?.data?.list;
+  
+    for (const { table_name, detectedChanges } of changes) {
+      // reorder changes to apply relation remove changes
+      // before column remove to avoid foreign key constraint error
+      detectedChanges.sort((a, b) => {
+        return (
+          applyChangesPriorityOrder.indexOf(b.type) -
+          applyChangesPriorityOrder.indexOf(a.type)
+        );
+      });
+      
+      for (const change of detectedChanges) {
+        switch (change.type) {
+          case MetaDiffType.TABLE_NEW:
+            {
+              const columns = (
+                await sqlClient.columnList({ tn: table_name })
+              )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+  
+              mapDefaultPrimaryValue(columns);
+  
+              const model = await Model.insert(project.id, base.id, {
+                table_name: table_name,
+                title: getTableNameAlias(table_name, project.prefix, base),
+                type: ModelTypes.TABLE,
               });
-            }
-          }
-          break;
-        case MetaDiffType.VIEW_NEW:
-          {
-            const columns = (
-              await sqlClient.columnList({ tn: table_name })
-            )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
-
-            mapDefaultPrimaryValue(columns);
-
-            const model = await Model.insert(project.id, base.id, {
-              table_name: table_name,
-              title: getTableNameAlias(table_name, project.prefix, base),
-              type: ModelTypes.VIEW,
-            });
-
-            for (const column of columns) {
-              await Column.insert({
-                uidt: getColumnUiType(base, column),
-                fk_model_id: model.id,
-                ...column,
-                title: getColumnNameAlias(column.column_name, base),
-              });
-            }
-          }
-          break;
-        case MetaDiffType.TABLE_REMOVE:
-        case MetaDiffType.VIEW_REMOVE:
-          {
-            await change.model.delete();
-          }
-          break;
-        case MetaDiffType.TABLE_COLUMN_ADD:
-        case MetaDiffType.VIEW_COLUMN_ADD:
-          {
-            const columns = (
-              await sqlClient.columnList({ tn: table_name })
-            )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
-            const column = columns.find((c) => c.cn === change.cn);
-            column.uidt = getColumnUiType(base, column);
-            //todo: inflection
-            column.title = getColumnNameAlias(column.cn, base);
-            await Column.insert({ fk_model_id: change.id, ...column });
-          }
-          // update old
-          // populateParams.tableNames.push({ tn });
-          // populateParams.oldMetas[tn] = oldMetas.find(m => m.tn === tn);
-
-          break;
-        case MetaDiffType.TABLE_COLUMN_TYPE_CHANGE:
-        case MetaDiffType.VIEW_COLUMN_TYPE_CHANGE:
-          {
-            const columns = (
-              await sqlClient.columnList({ tn: table_name })
-            )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
-            const column = columns.find((c) => c.cn === change.cn);
-            const metaFact = ModelXcMetaFactory.create(
-              { client: base.type },
-              {}
-            );
-            column.uidt = metaFact.getUIDataType(column);
-            column.title = change.column.title;
-            await Column.update(change.column.id, column);
-          }
-          break;
-        case MetaDiffType.TABLE_COLUMN_REMOVE:
-        case MetaDiffType.VIEW_COLUMN_REMOVE:
-          await change.column.delete();
-          break;
-        case MetaDiffType.TABLE_RELATION_REMOVE:
-        case MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE:
-          await change.column.delete();
-          break;
-        case MetaDiffType.TABLE_RELATION_ADD:
-          {
-            virtualColumnInsert.push(async () => {
-              const parentModel = await Model.getByIdOrName({
-                project_id: base.project_id,
-                base_id: base.id,
-                table_name: change.rtn,
-              });
-              const childModel = await Model.getByIdOrName({
-                project_id: base.project_id,
-                base_id: base.id,
-                table_name: change.tn,
-              });
-              const parentCol = await parentModel
-                .getColumns()
-                .then((cols) => cols.find((c) => c.column_name === change.rcn));
-              const childCol = await childModel
-                .getColumns()
-                .then((cols) => cols.find((c) => c.column_name === change.cn));
-
-              await Column.update(childCol.id, {
-                ...childCol,
-                uidt: UITypes.ForeignKey,
-                system: true,
-              });
-
-              if (change.relationType === RelationTypes.BELONGS_TO) {
-                const title = getUniqueColumnAliasName(
-                  childModel.columns,
-                  `${parentModel.title || parentModel.table_name}`
-                );
-                await Column.insert<LinkToAnotherRecordColumn>({
-                  uidt: UITypes.LinkToAnotherRecord,
-                  title,
-                  fk_model_id: childModel.id,
-                  fk_related_model_id: parentModel.id,
-                  type: RelationTypes.BELONGS_TO,
-                  fk_parent_column_id: parentCol.id,
-                  fk_child_column_id: childCol.id,
-                  virtual: false,
-                });
-              } else if (change.relationType === RelationTypes.HAS_MANY) {
-                const title = getUniqueColumnAliasName(
-                  childModel.columns,
-                  `${childModel.title || childModel.table_name} List`
-                );
-                await Column.insert<LinkToAnotherRecordColumn>({
-                  uidt: UITypes.LinkToAnotherRecord,
-                  title,
-                  fk_model_id: parentModel.id,
-                  fk_related_model_id: childModel.id,
-                  type: RelationTypes.HAS_MANY,
-                  fk_parent_column_id: parentCol.id,
-                  fk_child_column_id: childCol.id,
-                  virtual: false,
+  
+              for (const column of columns) {
+                await Column.insert({
+                  uidt: getColumnUiType(base, column),
+                  fk_model_id: model.id,
+                  ...column,
+                  title: getColumnNameAlias(column.column_name, base),
                 });
               }
-            });
-          }
-          break;
+            }
+            break;
+          case MetaDiffType.VIEW_NEW:
+            {
+              const columns = (
+                await sqlClient.columnList({ tn: table_name })
+              )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+  
+              mapDefaultPrimaryValue(columns);
+  
+              const model = await Model.insert(project.id, base.id, {
+                table_name: table_name,
+                title: getTableNameAlias(table_name, project.prefix, base),
+                type: ModelTypes.VIEW,
+              });
+  
+              for (const column of columns) {
+                await Column.insert({
+                  uidt: getColumnUiType(base, column),
+                  fk_model_id: model.id,
+                  ...column,
+                  title: getColumnNameAlias(column.column_name, base),
+                });
+              }
+            }
+            break;
+          case MetaDiffType.TABLE_REMOVE:
+          case MetaDiffType.VIEW_REMOVE:
+            {
+              await change.model.delete();
+            }
+            break;
+          case MetaDiffType.TABLE_COLUMN_ADD:
+          case MetaDiffType.VIEW_COLUMN_ADD:
+            {
+              const columns = (
+                await sqlClient.columnList({ tn: table_name })
+              )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+              const column = columns.find((c) => c.cn === change.cn);
+              column.uidt = getColumnUiType(base, column);
+              //todo: inflection
+              column.title = getColumnNameAlias(column.cn, base);
+              await Column.insert({ fk_model_id: change.id, ...column });
+            }
+            // update old
+            // populateParams.tableNames.push({ tn });
+            // populateParams.oldMetas[tn] = oldMetas.find(m => m.tn === tn);
+  
+            break;
+          case MetaDiffType.TABLE_COLUMN_TYPE_CHANGE:
+          case MetaDiffType.VIEW_COLUMN_TYPE_CHANGE:
+            {
+              const columns = (
+                await sqlClient.columnList({ tn: table_name })
+              )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+              const column = columns.find((c) => c.cn === change.cn);
+              const metaFact = ModelXcMetaFactory.create(
+                { client: base.type },
+                {}
+              );
+              column.uidt = metaFact.getUIDataType(column);
+              column.title = change.column.title;
+              await Column.update(change.column.id, column);
+            }
+            break;
+          case MetaDiffType.TABLE_COLUMN_REMOVE:
+          case MetaDiffType.VIEW_COLUMN_REMOVE:
+            await change.column.delete();
+            break;
+          case MetaDiffType.TABLE_RELATION_REMOVE:
+          case MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE:
+            await change.column.delete();
+            break;
+          case MetaDiffType.TABLE_RELATION_ADD:
+            {
+              virtualColumnInsert.push(async () => {
+                const parentModel = await Model.getByIdOrName({
+                  project_id: base.project_id,
+                  base_id: base.id,
+                  table_name: change.rtn,
+                });
+                const childModel = await Model.getByIdOrName({
+                  project_id: base.project_id,
+                  base_id: base.id,
+                  table_name: change.tn,
+                });
+                const parentCol = await parentModel
+                  .getColumns()
+                  .then((cols) => cols.find((c) => c.column_name === change.rcn));
+                const childCol = await childModel
+                  .getColumns()
+                  .then((cols) => cols.find((c) => c.column_name === change.cn));
+  
+                await Column.update(childCol.id, {
+                  ...childCol,
+                  uidt: UITypes.ForeignKey,
+                  system: true,
+                });
+  
+                if (change.relationType === RelationTypes.BELONGS_TO) {
+                  const title = getUniqueColumnAliasName(
+                    childModel.columns,
+                    `${parentModel.title || parentModel.table_name}`
+                  );
+                  await Column.insert<LinkToAnotherRecordColumn>({
+                    uidt: UITypes.LinkToAnotherRecord,
+                    title,
+                    fk_model_id: childModel.id,
+                    fk_related_model_id: parentModel.id,
+                    type: RelationTypes.BELONGS_TO,
+                    fk_parent_column_id: parentCol.id,
+                    fk_child_column_id: childCol.id,
+                    virtual: false,
+                  });
+                } else if (change.relationType === RelationTypes.HAS_MANY) {
+                  const title = getUniqueColumnAliasName(
+                    childModel.columns,
+                    `${childModel.title || childModel.table_name} List`
+                  );
+                  await Column.insert<LinkToAnotherRecordColumn>({
+                    uidt: UITypes.LinkToAnotherRecord,
+                    title,
+                    fk_model_id: parentModel.id,
+                    fk_related_model_id: childModel.id,
+                    type: RelationTypes.HAS_MANY,
+                    fk_parent_column_id: parentCol.id,
+                    fk_child_column_id: childCol.id,
+                    virtual: false,
+                  });
+                }
+              });
+            }
+            break;
+        }
       }
     }
+  
+    await NcHelp.executeOperations(virtualColumnInsert, base.type);
+  
+    // populate m2m relations
+    await extractAndGenerateManyToManyRelations(await base.getModels());
   }
-
-  await NcHelp.executeOperations(virtualColumnInsert, base.type);
-
-  // populate m2m relations
-  await extractAndGenerateManyToManyRelations(await base.getModels());
 
   Tele.emit('evt', { evt_type: 'metaDiff:synced' });
 

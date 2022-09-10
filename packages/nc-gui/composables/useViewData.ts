@@ -26,7 +26,7 @@ const formatKanbanData = (list: Record<string, any>[]) =>
   list.reduce((acc: any, obj: any) => {
     // TODO: grouping field
     const groupingFeild = 'singleSelect2'
-    const key = obj[groupingFeild]
+    const key = obj[groupingFeild] === null ? 'Uncategorized' : obj[groupingFeild]
     if (!acc[key]) {
       acc[key] = []
     }

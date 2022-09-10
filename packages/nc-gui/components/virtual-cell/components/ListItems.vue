@@ -64,7 +64,7 @@ const expandedFormDlg = ref(false)
 
 /** populate initial state for a new row which is parent/child of current record */
 const newRowState = computed(() => {
-  if(isNew.value) return  {}
+  if (isNew.value) return {}
   const colOpt = (column?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
   const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
     if (col.uidt !== UITypes.LinkToAnotherRecord) return false

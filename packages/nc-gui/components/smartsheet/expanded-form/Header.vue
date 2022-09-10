@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useExpandedFormStoreOrThrow, useSmartsheetRowStoreOrThrow, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
+import { useExpandedFormStoreOrThrow, useSmartsheetRowStoreOrThrow, useSmartsheetStoreOrThrow, useUIPermission, ReloadRowDataHookInj } from '#imports'
 
 const emit = defineEmits(['cancel'])
 
@@ -11,7 +11,7 @@ const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
 
 const { isUIAllowed } = useUIPermission()
 
-const reloadTrigger = inject(ReloadViewDataHookInj)!
+const reloadTrigger = inject(ReloadRowDataHookInj)!
 
 const save = async () => {
   if (isNew.value) {

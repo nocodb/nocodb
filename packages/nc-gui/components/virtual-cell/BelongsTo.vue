@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { createHook } from 'async_hooks'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import {
@@ -24,7 +25,7 @@ const ListItems = defineAsyncComponent(() => import('./components/ListItems.vue'
 
 const column = inject(ColumnInj)!
 
-const reloadRowTrigger = inject(ReloadRowDataHookInj)!
+const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())!
 
 const cellValue = inject(CellValueInj, ref<any>(null))
 

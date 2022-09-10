@@ -78,7 +78,7 @@ export function useViewData(
   })
 
   const queryParams = computed(() => ({
-    offset: (paginationData.value?.page ?? 0) - 1,
+    offset: ((paginationData.value?.page ?? 0) - 1) * (paginationData.value?.pageSize ?? 25),
     limit: paginationData.value?.pageSize ?? 25,
     where: where?.value ?? '',
   }))
@@ -162,9 +162,11 @@ export function useViewData(
   }
 
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+    console.log(queryParams.value)
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
     const response = !isPublic.value
       ? await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
+          ...queryParams.value,
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),

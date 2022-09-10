@@ -28,6 +28,7 @@ export interface Row {
     new?: boolean
     selected?: boolean
     commentCount?: number
+    changed?: boolean
   }
 }
 
@@ -166,12 +167,12 @@ export function useViewData(
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
     const response = !isPublic.value
       ? await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
-          ...queryParams.value,
-          ...params,
-          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          where: where?.value,
-        })
+        ...queryParams.value,
+        ...params,
+        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+        where: where?.value,
+      })
       : await fetchSharedViewData()
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
@@ -210,6 +211,7 @@ export function useViewData(
       await syncCount()
       return insertedData
     } catch (error: any) {
+      console.log(error)
       message.error(await extractSdkResponseErrorMsg(error))
     }
   }
@@ -241,7 +243,8 @@ export function useViewData(
           value: getHTMLEncodedText(toUpdate.row[property]),
           prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
         })
-        .then(() => {})
+        .then(() => {
+        })
 
       /** update row data(to sync formula and other related columns) */
       Object.assign(toUpdate.row, updatedRowData)
@@ -267,7 +270,7 @@ export function useViewData(
 
   async function deleteRowById(id: string) {
     if (!id) {
-      throw new Error("Delete not allowed for table which doesn't have primary Key")
+      throw new Error('Delete not allowed for table which doesn\'t have primary Key')
     }
 
     const res: any = await $api.dbViewRow.delete(
@@ -280,11 +283,9 @@ export function useViewData(
 
     if (res.message) {
       message.info(
-        `Row delete failed: ${h('div', {
-          innerHTML: `<div style="padding:10px 4px">Unable to delete row with ID ${id} because of the following:
-              <br><br>${res.message.join('<br>')}<br><br>
-              Clear the data first & try again</div>`,
-        })}`,
+        `Row delete failed: ${`Unable to delete row with ID ${id} because of the following:
+              \n${res.message.join('\n')}.\n
+              Clear the data first & try again`})}`,
       )
       return false
     }

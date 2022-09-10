@@ -62,8 +62,11 @@ const router = useRouter()
 const isView = false
 
 const selected = reactive<{ row: number | null; col: number | null }>({ row: null, col: null })
+const selectedRows = reactive<{ startcol: number | null; endcol: number | null; startrow: number | null; endrow: number | null }>({ startcol: null, endcol: null, startrow: null, endrow: null })
+const rangerows = reactive<{ minrow: number | null; maxrow: number | null; mincol: number | null; maxcol: number | null }>({ mincol: null, maxcol: null, minrow: null, maxrow: null })
 
 let editEnabled = $ref(false)
+let isSelectedBlock = $ref(false)
 
 const { xWhere, isPkAvail, cellRefs, isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -158,8 +161,63 @@ openNewRecordFormHook?.on(async () => {
 })
 
 const selectCell = (row: number, col: number) => {
+  clearRangeRows()
   selected.row = row
   selected.col = col
+}
+
+const selectBlock = (row: number, col: number) => {
+  if (selected.col === null || selected.row === null) {
+    if(isSelectedBlock){
+      selectedRows.endcol = col;
+      selectedRows.endrow = row;
+    }
+  }else if(selected.col !== col || selected.row !== row){
+    if(isSelectedBlock){
+      selected.col = null;
+      selected.row = null;
+      selectedRows.endcol = col;
+      selectedRows.endrow = row;
+    }
+  }
+}
+
+const selectedRange = (row: number, col: number)=>{
+  if(selectedRows.startrow !== null && selectedRows.startcol !== null && selectedRows.endrow !== null && selectedRows.endcol !== null){
+    rangerows.minrow=selectedRows.startrow > selectedRows.endrow ? selectedRows.endrow : selectedRows.startrow,
+    rangerows.maxrow=selectedRows.startrow < selectedRows.endrow ? selectedRows.endrow : selectedRows.startrow,
+    rangerows.mincol=selectedRows.startcol > selectedRows.endcol ? selectedRows.endcol : selectedRows.startcol,
+    rangerows.maxcol=selectedRows.startcol < selectedRows.endcol ? selectedRows.endcol : selectedRows.startcol
+    return (col>=rangerows.mincol && col<=rangerows.maxcol) && (row>=rangerows.minrow && row<=rangerows.maxrow);
+  }else{
+    return false
+  }
+}
+
+const startSelectRange = (event: MouseEvent, row: number, col: number)=>{
+  if(editEnabled && (selected.col !== col || selected.row !== row)){
+    event.preventDefault();
+  }else if(!editEnabled){
+    event.preventDefault();
+  }
+  selectedRows.startcol = null;
+  selectedRows.endcol = null;
+  selectedRows.startrow = null;
+  selectedRows.endrow = null;
+  selectedRows.startcol = col;
+  selectedRows.startrow = row;
+  isSelectedBlock = true
+}
+
+const clearRangeRows = ()=>{
+  rangerows.mincol = null
+  rangerows.maxcol = null
+  rangerows.minrow = null
+  rangerows.maxrow = null
+  selectedRows.startrow = null
+  selectedRows.startcol = null
+  selectedRows.endrow = null
+  selectedRows.endcol = null
 }
 
 watch(
@@ -233,11 +291,20 @@ const onKeyDown = async (e: KeyboardEvent) => {
     disableUrlOverlay.value = true
     return
   }
+
   if (selected.row === null || selected.col === null) return
+
+  if(selectedRows.startrow !== null && selectedRows.startcol !== null && selectedRows.endrow !== null && selectedRows.endcol !== null){
+    selected.row = selectedRows.startrow
+    selected.col = selectedRows.startcol
+  }
+
+
   /** on tab key press navigate through cells */
   switch (e.key) {
     case 'Tab':
       e.preventDefault()
+      clearRangeRows()
       if (e.shiftKey) {
         if (selected.col > 0) {
           selected.col--
@@ -257,42 +324,65 @@ const onKeyDown = async (e: KeyboardEvent) => {
     /** on enter key press make cell editable */
     case 'Enter':
       e.preventDefault()
+      clearRangeRows()
       makeEditable(data.value[selected.row], fields.value[selected.col])
       break
     /** on delete key press clear cell */
     case 'Delete':
       if (!editEnabled) {
         e.preventDefault()
+        clearRangeRows()
         await clearCell(selected as { row: number; col: number })
       }
       break
     /** on arrow key press navigate through cells */
     case 'ArrowRight':
       e.preventDefault()
+      clearRangeRows()
       if (selected.col < visibleColLength - 1) selected.col++
       break
     case 'ArrowLeft':
+      clearRangeRows()
       e.preventDefault()
+      clearRangeRows()
       if (selected.col > 0) selected.col--
       break
     case 'ArrowUp':
+      clearRangeRows()
       e.preventDefault()
+      clearRangeRows()
       if (selected.row > 0) selected.row--
       break
     case 'ArrowDown':
+      clearRangeRows()
       e.preventDefault()
+      clearRangeRows()
       if (selected.row < data.value.length - 1) selected.row++
       break
     default:
       {
         const rowObj = data.value[selected.row]
         const columnObj = fields.value[selected.col]
+        let cptext = "";
+        if(rangerows.minrow !== null && rangerows.maxrow !== null && rangerows.mincol !== null && rangerows.maxcol !== null){
+          const cprows = data.value.slice(rangerows.minrow, rangerows.maxrow+1);
+          const cpcols = fields.value.slice(rangerows.mincol, rangerows.maxcol+1);
+          cprows.forEach((row : any)=>{
+            cpcols.forEach((col : any)=>{
+              cptext = cptext + row.row[col.title]+'\t';
+            })
+            cptext = cptext.trim()+'\n'
+          })
+          cptext.trim()
+        }else{
+          cptext = rowObj.row[columnObj.title] || ''
+        }
 
         if ((!editEnabled && e.metaKey) || e.ctrlKey) {
           switch (e.keyCode) {
             // copy - ctrl/cmd +c
             case 67:
-              await copy(rowObj.row[columnObj.title] || '')
+              await copy(cptext)
               break
           }
         }
@@ -324,16 +414,23 @@ const onKeyUp = async (e: KeyboardEvent) => {
 
 useEventListener(document, 'keydown', onKeyDown)
 useEventListener(document, 'keyup', onKeyUp)
+useEventListener(document, 'mouseup', (e: MouseEvent)=>{
+  if(!editEnabled){
+    e.preventDefault()
+  }
+  isSelectedBlock = false
+})
+
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 onClickOutside(smartTable, () => {
+  clearRangeRows()
   if (selected.col === null) return
 
   const activeCol = fields.value[selected.col]
 
   if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
-
   selected.row = null
   selected.col = null
 })
@@ -499,7 +596,7 @@ reloadViewDataHook.trigger()
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody v-on:selectstart.prevent>
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">
@@ -548,13 +645,15 @@ reloadViewDataHook.trigger()
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
-                      active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex,
+                      active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex || isUIAllowed('xcDatatableEditable') && selectedRange(rowIndex, colIndex),
                     }"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
                     @click="selectCell(rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
+                    @mousedown="startSelectRange($event, rowIndex, colIndex)"
+                    @mouseover="selectBlock(rowIndex, colIndex)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
                     <div class="w-full h-full">

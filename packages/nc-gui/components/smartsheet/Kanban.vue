@@ -108,12 +108,8 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
 }
 
 async function onMove(event: any, stackKey: string) {
-  // const { newIndex, element, oldIndex } = event.added || event.moved || event.removed
   if (event.added) {
-    // TODO: change current groupingField to stackKey
-    console.log(event.added.element)
-    console.log(stackKey)
-    // TODO: groupField
+    // TODO: update groupingField
     const groupingField = 'singleSelect2'
     const ele = event.added.element
     ele.row[groupingField] = stackKey
@@ -125,34 +121,37 @@ openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
 })
-
-const stacks = ref<any[]>([])
-stacks.value = Object.keys(formattedKanbanData)
-watch(formattedKanbanData, (v) => {
-  if (v) {
-    stacks.value = Object.keys(v).map((o, id) => ({ key: o, id }))
-  }
-})
 </script>
 
 <template>
   <!-- TODO: add loading component when formattedKanbanData is not ready -->
-  <div v-if="stacks && formattedKanbanData" class="flex h-full">
+  <div v-if="formattedKanbanData" class="flex h-full">
     <div class="nc-kanban-container flex grid gap-2 my-4 px-3">
-      <Draggable v-model="stacks" class="flex gap-5" item-key="id" group="kanban-stack" draggable=".nc-kanban-stack">
+      <Draggable
+        v-model="formattedKanbanData.meta"
+        class="flex gap-5"
+        item-key="id"
+        group="kanban-stack"
+        draggable=".nc-kanban-stack"
+      >
         <template #item="{ element: stack }">
           <a-card :key="stack.id" class="nc-kanban-stack mx-4" head-style="padding-bottom: 0px;" body-style="padding: 0px 20px;">
             <template #title>
-              <div class="nc-kanban-stack-head">{{ stack.key }}</div>
+              <div class="nc-kanban-stack-head">
+                <span v-if="stack.order === 0" class="text-slate-500">{{ stack.title }}</span>
+                <a-tag v-else class="!px-[12px] !rounded-[12px]" :color="stack.color">
+                  <span class="text-slate-500">{{ stack.title }}</span>
+                </a-tag>
+              </div>
             </template>
             <div class="nc-kanban-list flex flex-col">
               <Draggable
-                v-model="formattedKanbanData[stack.key]"
+                v-model="formattedKanbanData.data[stack.title]"
                 item-key="row.Id"
                 draggable=".nc-kanban-item"
                 group="kanban-card"
                 class="h-full"
-                @change="onMove($event, stack.key)"
+                @change="onMove($event, stack.title)"
               >
                 <template #item="{ element: record }">
                   <div class="nc-kanban-item py-2">
@@ -232,8 +231,8 @@ watch(formattedKanbanData, (v) => {
                 <div class="mt-5 text-center">
                   <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
                   <div class="nc-kanban-data-count">
-                    {{ formattedKanbanData[stack.key].length }}
-                    {{ formattedKanbanData[stack.key].length !== 1 ? $t('objects.records') : $t('objects.record') }}
+                    {{ formattedKanbanData.data[stack.title].length }}
+                    {{ formattedKanbanData.data[stack.title].length !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>
                 </div>
               </template>

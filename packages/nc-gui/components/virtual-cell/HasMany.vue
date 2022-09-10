@@ -112,6 +112,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
 
     <ListChildItems
       v-model="childListDlg"
+      :cell-value="localCellValue"
       @attach-record="
         () => {
           childListDlg = false

@@ -16,51 +16,60 @@ export function useKanbanViewData(
   const { $api, $e } = useNuxtApp()
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
   const { isUIAllowed } = useUIPermission()
+  const groupingFieldColOptions = ref<Record<string, any>[]>([])
   const kanbanMetaData = ref<KanbanType>()
-  const formattedData = ref<Record<string, Row[]>>()
+  // {
+  //   [val1] : [
+  //     {row: {...}, oldRow: {...}, rowMeta: {...}},
+  //     {row: {...}, oldRow: {...}, rowMeta: {...}},
+  //     ...
+  //   ],
+  //   [val2] : [
+  //     {row: {...}, oldRow: {...}, rowMeta: {...}},
+  //     {row: {...}, oldRow: {...}, rowMeta: {...}},
+  //     ...
+  //   ],
+  // }
+  const formattedData = ref<Record<string, Row[]>>({})
+  // TODO: retrieve from meta
+  const groupingField = 'singleSelect2'
 
-  const formatData = (list: Record<string, any>[]) => {
-    const groupingField = 'singleSelect2'
-    const groupingFieldColumn = meta?.value?.columns?.filter((f) => f.title === groupingField)[0] as Record<string, any>
-    // TODO: sort by kanban meta
-    const groupingFieldColumnOptions = [
-      ...(groupingFieldColumn?.colOptions?.options ?? []),
-      { title: 'Uncategorized', order: 0 },
-    ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
-    const initialAcc = groupingFieldColumnOptions.reduce((acc: any, obj: any) => {
-      if (!acc[obj.title]) {
-        acc[obj.title] = []
-      }
-      return acc
-    }, {})
-    return {
-      meta: groupingFieldColumnOptions,
-      data: list.reduce((acc: any, obj: any) => {
-        // TODO: grouping field
-        const key = obj[groupingField] === null ? 'Uncategorized' : obj[groupingField]
-        if (!acc[key]) {
-          acc[key] = []
-        }
-        acc[key].push({
-          row: { ...obj },
-          oldRow: { ...obj },
-          rowMeta: {},
-        })
-        return acc
-      }, initialAcc),
-    }
-  }
+  const formatData = (list: Record<string, any>[]) =>
+    list.map((row) => ({
+      row: { ...row },
+      oldRow: { ...row },
+      rowMeta: {},
+    }))
 
   async function loadKanbanData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-    if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
+    // each stack only loads 25 records -> scroll to load more (to be integrated with infinite scroll)
+    // TODO: integrate with infinite scroll
     // TODO: handle share view case
-    const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
-      ...params,
-      ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-      ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-      where: where?.value,
-    })
-    formattedData.value = formatData(response.list)
+    if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
+
+    // grouping field column options
+    const groupingFieldColumn = meta?.value?.columns?.filter((f) => f.title === groupingField)[0] as Record<string, any>
+    groupingFieldColOptions.value = [
+      ...(groupingFieldColumn?.colOptions?.options ?? []),
+      { id: 'uncategorized', title: 'Uncategorized', order: 0 },
+    ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
+
+    await Promise.all(
+      groupingFieldColOptions.value.map(async (option) => {
+        let where = `(${groupingField},eq,${option.title})`
+        if (option.title === 'Uncategorized') {
+          where = `(${groupingField},is,null)`
+        }
+        const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
+          ...params,
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          where,
+        })
+
+        formattedData.value[option.id] = formatData(response.list)
+      }),
+    )
   }
 
   async function loadKanbanMeta() {
@@ -80,7 +89,8 @@ export function useKanbanViewData(
     loadKanbanData,
     loadKanbanMeta,
     kanbanMetaData,
-    formatData,
+    formattedData,
+    groupingFieldColOptions,
     updateOrSaveRow,
     addEmptyRow,
   }

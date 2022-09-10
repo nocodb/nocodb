@@ -52,15 +52,24 @@ const refTables = $computed(() => {
 <template>
   <div class="w-full flex flex-col mb-2 mt-4">
     <div class="border-2 p-6">
-      <a-form-item v-bind="validateInfos.type">
+      <a-form-item v-bind="validateInfos.type" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="vModel.type" name="type" v-bind="validateInfos.type">
           <a-radio value="hm">Has Many</a-radio>
           <a-radio value="mm">Many To Many</a-radio>
         </a-radio-group>
       </a-form-item>
-      <a-form-item class="flex w-full pb-2 mt-4" :label="$t('labels.childTable')" v-bind="validateInfos.childId">
-        <a-select v-model:value="vModel.childId" @change="onDataTypeChange">
-          <a-select-option v-for="(table, index) in refTables" :key="index" :value="table.id">
+      <a-form-item
+        class="flex w-full pb-2 mt-4 nc-ltar-child-table"
+        :label="$t('labels.childTable')"
+        v-bind="validateInfos.childId"
+      >
+        <a-select
+          v-model:value="vModel.childId"
+          show-search
+          :filter-option="(value, option) => option.key.toLowerCase().includes(value.toLowerCase())"
+          @change="onDataTypeChange"
+        >
+          <a-select-option v-for="table in refTables" :key="table.title" :value="table.id">
             {{ table.title }}
           </a-select-option>
         </a-select>

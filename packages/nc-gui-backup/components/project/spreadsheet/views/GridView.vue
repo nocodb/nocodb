@@ -171,7 +171,7 @@
             :key="row + columnObj.title"
             class="cell pointer nc-grid-cell"
             :class="{
-              active: (!isPublicView && selected.col === col && selected.row === row && isEditable) || selectedRange(row, col),
+              active: !isPublicView && selected.col === col && selected.row === row && isEditable,
               'primary-column': primaryValueColumn === columnObj.title,
               'text-center': isCentrallyAligned(columnObj),
               required: isRequired(columnObj, rowObj),
@@ -179,8 +179,6 @@
             :data-col="columnObj.title"
             @dblclick="makeEditable(col, row, columnObj.ai, rowMeta)"
             @click="makeSelected(col, row)"
-            @mousedown="preventSelectText(col, row)"
-            @mouseenter="selectBlock(col, row)"
             @contextmenu="showRowContextMenu($event, rowObj, rowMeta, row, col, columnObj)"
           >
             <virtual-cell
@@ -357,14 +355,6 @@ export default {
       row: null,
       col: null,
     },
-    selectedRows:{
-      "startcol":-1,
-      "endcol":-1,
-      "startrow":-1,
-      "endrow":-1
-    },
-    rangerows:{},
-    isSelectedBlock: false,
     editEnabled: {
       row: null,
       col: null,
@@ -451,10 +441,7 @@ export default {
     },
   },
   mounted() {
-    document.addEventListener('mouseup', (e)=>{
-      e.preventDefault();
-      this.isSelectedBlock = false;
-    })
+    // this.calculateColumnWidth()
   },
   created() {
     document.addEventListener('keydown', this.onKeyDown);
@@ -568,11 +555,10 @@ export default {
     },
 
     async onKeyDown(e) {
-      if(this.selectedRows.startrow == -1 && this.selectedRows.startcol == -1 && this.selectedRows.endrow == -1 && this.selectedRows.endcol == -1){
-        if (this.selected.col === null || this.selected.row === null || this.isLocked) {
-          return;
-        }
+      if (this.selected.col === null || this.selected.row === null || this.isLocked) {
+        return;
       }
+
       switch (e.keyCode) {
         // tab
         case 9:
@@ -659,27 +645,14 @@ export default {
             return;
           }
 
-          let cptext = "";
-          if(this.rangerows.minrow !== undefined && this.rangerows.minrow !== undefined){
-            const cprows = this.data.slice(this.rangerows.minrow, this.rangerows.maxrow+1);
-            const cpcols = this.availableColumns.slice(this.rangerows.mincol, this.rangerows.maxcol+1);
-            cprows.forEach((row)=>{
-              cpcols.forEach((col)=>{
-                cptext = cptext + row.row[col.title]+'\t';
-              })
-              cptext = cptext+'\n'
-            })
-          }else{
-            const rowObj = this.data[this.selected.row].row;
-            const columnObj = this.availableColumns[this.selected.col];
-            cptext = rowObj[columnObj.title] || ''
-          }
-          
+          const rowObj = this.data[this.selected.row].row;
+          const columnObj = this.availableColumns[this.selected.col];
+
           if (e.metaKey || e.ctrlKey) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
-                copyTextToClipboard(cptext.trim())
+                copyTextToClipboard(rowObj[columnObj.title] || '');
                 break;
               // // paste ctrl/cmd + v
               // case 86: {
@@ -718,10 +691,6 @@ export default {
       this.selected.row = null;
       this.editEnabled.col = null;
       this.editEnabled.row = null;
-      this.selectedRows.startcol = -1;
-      this.selectedRows.endcol = -1;
-      this.selectedRows.startrow = -1;
-      this.selectedRows.endrow = -1;
     },
     onNewColCreation(col, oldCol) {
       this.addNewColMenu = false;
@@ -757,47 +726,8 @@ export default {
           col,
           row,
         };
-        this.rangerows = {}
         this.editEnabled = {};
       }
-    },
-    selectBlock(col, row) {
-      if (this.selected.col === null || this.selected.row === null) {
-        if(this.isSelectedBlock){
-          this.selectedRows.endcol = col;
-          this.selectedRows.endrow = row;
-        }
-      }else if(this.selected.col !== col || this.selected.row !== row){
-        if(this.isSelectedBlock){
-          this.selected.col = null;
-          this.selected.row = null;
-          this.selectedRows.endcol = col;
-          this.selectedRows.endrow = row;
-        }
-      }
-    },
-    selectedRange(row, col){
-        if(this.selectedRows.startrow > -1 && this.selectedRows.startcol > -1 && this.selectedRows.endrow > -1 && this.selectedRows.endcol > -1){
-          this.rangerows.minrow=this.selectedRows.startrow > this.selectedRows.endrow ? this.selectedRows.endrow : this.selectedRows.startrow,
-          this.rangerows.maxrow=this.selectedRows.startrow < this.selectedRows.endrow ? this.selectedRows.endrow : this.selectedRows.startrow,
-          this.rangerows.mincol=this.selectedRows.startcol > this.selectedRows.endcol ? this.selectedRows.endcol : this.selectedRows.startcol,
-          this.rangerows.maxcol=this.selectedRows.startcol < this.selectedRows.endcol ? this.selectedRows.endcol : this.selectedRows.startcol
-          return (col>=this.rangerows.mincol && col<=this.rangerows.maxcol) && (row>=this.rangerows.minrow && row<=this.rangerows.maxrow);
-        }else{
-          return false
-        }
-    },
-    preventSelectText(col, row){
-        this.isSelectedBlock = true
-        this.selectedRows.startcol = -1;
-        this.selectedRows.endcol = -1;
-        this.selectedRows.startrow = -1;
-        this.selectedRows.endrow = -1;
-        document.addEventListener('selectstart', function(event) {
-            event.preventDefault();
-        }, false);
-        this.selectedRows.startcol = col;
-        this.selectedRows.startrow = row;
     },
     makeEditable(col, row, _, rowMeta) {
       if (this.isPublicView || !this.isEditable || this.isView) {
@@ -854,7 +784,7 @@ export default {
     },
     log(e, s) {
       console.log(e.target, s);
-    }
+    },
   },
 };
 </script>

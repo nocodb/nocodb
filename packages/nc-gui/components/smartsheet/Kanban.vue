@@ -31,10 +31,8 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-const { loadData, paginationData, formattedKanbanData, loadKanbanData, kanbanData, changePage, addEmptyRow } = useViewData(
-  meta,
-  view as any,
-)
+const { loadData, paginationData, formattedKanbanData, updateOrSaveRow, loadKanbanData, kanbanData, changePage, addEmptyRow } =
+  useViewData(meta, view as any)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -86,8 +84,6 @@ const attachments = (record: any): Array<Attachment> => {
 
 const reloadAttachments = ref(false)
 
-const drag = ref(false)
-
 reloadViewDataHook?.on(async () => {
   await loadData()
   await loadKanbanData()
@@ -111,9 +107,18 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
   }
 }
 
-function onMove(event: any) {
-  const { newIndex, element, oldIndex } = event.added || event.moved || event.removed
-  // TODO:
+async function onMove(event: any, stackKey: string) {
+  // const { newIndex, element, oldIndex } = event.added || event.moved || event.removed
+  if (event.added) {
+    // TODO: change current groupingField to stackKey
+    console.log(event.added.element)
+    console.log(stackKey)
+    // TODO: groupField
+    const groupingField = 'singleSelect2'
+    const ele = event.added.element
+    ele.row[groupingField] = stackKey
+    await updateOrSaveRow(ele, groupingField)
+  }
 }
 
 openNewRecordFormHook?.on(async () => {
@@ -125,7 +130,7 @@ const stacks = ref<any[]>([])
 stacks.value = Object.keys(formattedKanbanData)
 watch(formattedKanbanData, (v) => {
   if (v) {
-    stacks.value = Object.keys(v).map((o, idx) => ({ key: o, idx }))
+    stacks.value = Object.keys(v).map((o, id) => ({ key: o, id }))
   }
 })
 </script>
@@ -134,9 +139,9 @@ watch(formattedKanbanData, (v) => {
   <!-- TODO: add loading component when formattedKanbanData is not ready -->
   <div v-if="stacks && formattedKanbanData" class="flex h-full">
     <div class="nc-kanban-container flex grid gap-2 my-4 px-3">
-      <Draggable v-model="stacks" class="flex gap-5" item-key="idx" group="kanban-stack" draggable=".nc-kanban-stack">
+      <Draggable v-model="stacks" class="flex gap-5" item-key="id" group="kanban-stack" draggable=".nc-kanban-stack">
         <template #item="{ element: stack }">
-          <a-card :key="stack.idx" class="nc-kanban-stack mx-4" head-style="padding-bottom: 0px;" body-style="padding: 0px 20px;">
+          <a-card :key="stack.id" class="nc-kanban-stack mx-4" head-style="padding-bottom: 0px;" body-style="padding: 0px 20px;">
             <template #title>
               <div class="nc-kanban-stack-head">{{ stack.key }}</div>
             </template>
@@ -147,15 +152,14 @@ watch(formattedKanbanData, (v) => {
                 draggable=".nc-kanban-item"
                 group="kanban-card"
                 class="h-full"
-                @change="onMove($event)"
-                @start="drag = true"
-                @end="drag = false"
+                @change="onMove($event, stack.key)"
               >
-                <template #item="{ element: record, index }">
+                <template #item="{ element: record }">
                   <div class="nc-kanban-item py-2">
                     <Row :row="record">
                       <a-card
                         hoverable
+                        :data-stack="stack.id"
                         class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
                         @click="expandFormClick($event, record)"
                       >

@@ -370,18 +370,14 @@ useEventListener(document, 'mouseup', (e: MouseEvent)=>{
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 onClickOutside(smartTable, () => {
+  clearRangeRows()
   if (selected.col === null) return
 
   const activeCol = fields.value[selected.col]
 
   if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
-
   selected.row = null
   selected.col = null
-  selectedRows.startcol = -1
-  selectedRows.endcol = -1
-  selectedRows.startrow = -1
-  selectedRows.endrow = -1
 })
 
 const onNavigate = (dir: NavigateDir) => {

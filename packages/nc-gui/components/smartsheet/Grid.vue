@@ -56,8 +56,11 @@ const hasEditPermission = isUIAllowed('xcDatatableEditable')
 const isView = false
 
 const selected = reactive<{ row: number | null; col: number | null }>({ row: null, col: null })
+const selectedRows = reactive<{ startcol: number | -1; endcol: number | -1; startrow: number | -1; endrow: number | -1 }>({ startcol: -1, endcol: -1, startrow: -1, endrow: -1 })
+const rangerows = reactive<{ minrow: number | null; maxrow: number | null; mincol: number | null; maxcol: number | null }>({ mincol: null, maxcol: null, minrow: null, maxrow: null })
 
 let editEnabled = $ref(false)
+let isSelectedBlock = $ref(false)
 
 const { xWhere, isPkAvail, cellRefs, isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -125,10 +128,62 @@ openNewRecordFormHook?.on(async () => {
 })
 
 const selectCell = (row: number, col: number) => {
+  clearRangeRows()
   selected.row = row
   selected.col = col
 }
 
+const selectBlock = (row: number, col: number) => {
+  if (selected.col === null || selected.row === null) {
+    if(isSelectedBlock){
+      selectedRows.endcol = col;
+      selectedRows.endrow = row;
+    }
+  }else if(selected.col !== col || selected.row !== row){
+    if(isSelectedBlock){
+      selected.col = null;
+      selected.row = null;
+      selectedRows.endcol = col;
+      selectedRows.endrow = row;
+    }
+  }
+}
+
+const selectedRange = (row: number, col: number)=>{
+  if(selectedRows.startrow > -1 && selectedRows.startcol > -1 && selectedRows.endrow > -1 && selectedRows.endcol > -1){
+    rangerows.minrow=selectedRows.startrow > selectedRows.endrow ? selectedRows.endrow : selectedRows.startrow,
+    rangerows.maxrow=selectedRows.startrow < selectedRows.endrow ? selectedRows.endrow : selectedRows.startrow,
+    rangerows.mincol=selectedRows.startcol > selectedRows.endcol ? selectedRows.endcol : selectedRows.startcol,
+    rangerows.maxcol=selectedRows.startcol < selectedRows.endcol ? selectedRows.endcol : selectedRows.startcol
+    return (col>=rangerows.mincol && col<=rangerows.maxcol) && (row>=rangerows.minrow && row<=rangerows.maxrow);
+  }else{
+    return false
+  }
+}
+
+const preventSelectText = (row: number, col: number)=>{
+  selectedRows.startcol = -1;
+  selectedRows.endcol = -1;
+  selectedRows.startrow = -1;
+  selectedRows.endrow = -1;
+  useEventListener(document,'selectstart', function(e:Event) {
+      e.preventDefault();
+  })
+  selectedRows.startcol = col;
+  selectedRows.startrow = row;
+  isSelectedBlock = true
+}
+
+const clearRangeRows = ()=>{
+  rangerows.mincol = null
+  rangerows.maxcol = null
+  rangerows.minrow = null
+  rangerows.maxrow = null
+  selectedRows.startrow = -1
+  selectedRows.startcol = -1 
+  selectedRows.endrow = -1
+  selectedRows.endcol = -1
+}
 watch(
   () => (view?.value as any)?.id,
   async (n?: string, o?: string) => {
@@ -198,11 +253,16 @@ const makeEditable = (row: Row, col: ColumnType) => {
 
 /** handle keypress events */
 const onKeyDown = async (e: KeyboardEvent) => {
-  if (selected.row === null || selected.col === null) return
+  if(selectedRows.startrow != -1 && selectedRows.startcol != -1 && selectedRows.endrow != -1 && selectedRows.endcol != -1){
+    selected.row = selectedRows.startrow
+    selected.col = selectedRows.startcol
+  }
+  if(selected.row === null || selected.col === null) return
   /** on tab key press navigate through cells */
   switch (e.key) {
     case 'Tab':
       e.preventDefault()
+      clearRangeRows()
       if (e.shiftKey) {
         if (selected.col > 0) {
           selected.col--
@@ -222,6 +282,7 @@ const onKeyDown = async (e: KeyboardEvent) => {
     /** on enter key press make cell editable */
     case 'Enter':
       e.preventDefault()
+      clearRangeRows()
       makeEditable(data.value[selected.row], fields.value[selected.col])
       break
     /** on delete key press clear cell */
@@ -234,30 +295,47 @@ const onKeyDown = async (e: KeyboardEvent) => {
     /** on arrow key press navigate through cells */
     case 'ArrowRight':
       e.preventDefault()
+      clearRangeRows()
       if (selected.col < visibleColLength - 1) selected.col++
       break
     case 'ArrowLeft':
       e.preventDefault()
+      clearRangeRows()
       if (selected.col > 0) selected.col--
       break
     case 'ArrowUp':
       e.preventDefault()
+      clearRangeRows()
       if (selected.row > 0) selected.row--
       break
     case 'ArrowDown':
       e.preventDefault()
+      clearRangeRows()
       if (selected.row < data.value.length - 1) selected.row++
       break
     default:
       {
         const rowObj = data.value[selected.row]
         const columnObj = fields.value[selected.col]
-
+        let cptext = "";
+        if(rangerows.minrow !== null && rangerows.maxrow !== null && rangerows.mincol !== null && rangerows.maxcol !== null){
+          const cprows = data.value.slice(rangerows.minrow, rangerows.maxrow+1);
+          const cpcols = fields.value.slice(rangerows.mincol, rangerows.maxcol+1);
+          cprows.forEach((row)=>{
+            cpcols.forEach((col)=>{
+              cptext = cptext + row.row[col.title]+'\t';
+            })
+            cptext = cptext.trim()+'\n'
+          })
+          cptext.trim()
+        }else{
+          cptext = rowObj.row[columnObj.title] || ''
+        }
         if ((!editEnabled && e.metaKey) || e.ctrlKey) {
           switch (e.keyCode) {
             // copy - ctrl/cmd +c
             case 67:
-              await copy(rowObj.row[columnObj.title] || '')
+              await copy(cptext || '')
               break
           }
         }
@@ -283,6 +361,11 @@ const onKeyDown = async (e: KeyboardEvent) => {
 }
 
 useEventListener(document, 'keydown', onKeyDown)
+useEventListener(document, 'mouseup', (e: MouseEvent)=>{
+  e.preventDefault()
+  isSelectedBlock = false
+})
+
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
@@ -295,6 +378,10 @@ onClickOutside(smartTable, () => {
 
   selected.row = null
   selected.col = null
+  selectedRows.startcol = -1
+  selectedRows.endcol = -1
+  selectedRows.startrow = -1
+  selectedRows.endrow = -1
 })
 
 const onNavigate = (dir: NavigateDir) => {
@@ -447,13 +534,15 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
-                      active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex,
+                      active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex || selectedRange(rowIndex, colIndex),
                     }"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
                     @click="selectCell(rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
+                    @mousedown.native.capture.prevent="preventSelectText(rowIndex, colIndex)"
+                    @mouseover.native.capture.prevent="selectBlock(rowIndex, colIndex)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
                     <div class="w-full h-full">

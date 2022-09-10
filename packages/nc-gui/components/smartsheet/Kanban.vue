@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import Draggable from 'vuedraggable'
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, provide, useViewData } from '#imports'
 import Row from '~/components/smartsheet/Row.vue'
@@ -85,6 +86,8 @@ const attachments = (record: any): Array<Attachment> => {
 
 const reloadAttachments = ref(false)
 
+const drag = ref(false)
+
 reloadViewDataHook?.on(async () => {
   await loadData()
   await loadKanbanData()
@@ -108,106 +111,132 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
   }
 }
 
+function onMove(event: any) {
+  const { newIndex, element, oldIndex } = event.added || event.moved || event.removed
+  // TODO:
+}
+
 openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
 })
+
+const stacks = ref<any[]>([])
+stacks.value = Object.keys(formattedKanbanData)
+watch(formattedKanbanData, (v) => {
+  if (v) {
+    stacks.value = Object.keys(v).map((o, idx) => ({ key: o, idx }))
+  }
+})
 </script>
 
 <template>
-  <div v-if="formattedKanbanData" class="flex h-full">
+  <!-- TODO: add loading component when formattedKanbanData is not ready -->
+  <div v-if="stacks && formattedKanbanData" class="flex h-full">
     <div class="nc-kanban-container flex grid gap-2 my-4 px-3">
-      <!-- TODO: add loading component when formattedKanbanData is not ready -->
-      <!-- TODO: the whole stack should be draggable -->
-      <a-card
-        v-for="kanbanDataKey in Object.keys(formattedKanbanData)"
-        :key="kanbanDataKey"
-        class="nc-kanban-stack"
-        head-style="padding-bottom: 0px;"
-        body-style="padding: 0px 20px;"
-      >
-        <template #title>
-          <div class="nc-kanban-stack-head">
-            {{ kanbanDataKey }}
-          </div>
-        </template>
-        <div class="nc-kanban-list flex flex-col">
-          <div v-for="record in formattedKanbanData[kanbanDataKey]" :key="`record-${record.row.id}`" class="py-2">
-            <Row :row="record">
-              <a-card
-                hoverable
-                class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
-                @click="expandFormClick($event, record)"
+      <Draggable v-model="stacks" class="flex gap-5" item-key="idx" group="kanban-stack" draggable=".nc-kanban-stack">
+        <template #item="{ element: stack }">
+          <a-card :key="stack.idx" class="nc-kanban-stack mx-4" head-style="padding-bottom: 0px;" body-style="padding: 0px 20px;">
+            <template #title>
+              <div class="nc-kanban-stack-head">{{ stack.key }}</div>
+            </template>
+            <div class="nc-kanban-list flex flex-col">
+              <Draggable
+                v-model="formattedKanbanData[stack.key]"
+                item-key="row.Id"
+                draggable=".nc-kanban-item"
+                group="kanban-card"
+                class="h-full"
+                @change="onMove($event)"
+                @start="drag = true"
+                @end="drag = false"
               >
-                <template #cover>
-                  <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay class="gallery-carousel" arrows>
-                    <template #customPaging>
-                      <a>
-                        <div class="pt-[12px]"><div></div></div>
-                      </a>
-                    </template>
-                    <template #prevArrow>
-                      <div style="z-index: 1"></div>
-                    </template>
-                    <template #nextArrow>
-                      <div style="z-index: 1"></div>
-                    </template>
-                    <img
-                      v-for="(attachment, index) in attachments(record)"
-                      :key="`carousel-${record.row.id}-${index}`"
-                      class="h-52"
-                      :src="attachment.url"
-                    />
-                  </a-carousel>
-                </template>
+                <template #item="{ element: record, index }">
+                  <div class="nc-kanban-item py-2">
+                    <Row :row="record">
+                      <a-card
+                        hoverable
+                        class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
+                        @click="expandFormClick($event, record)"
+                      >
+                        <template #cover>
+                          <a-carousel
+                            v-if="!reloadAttachments && attachments(record).length"
+                            autoplay
+                            class="gallery-carousel"
+                            arrows
+                          >
+                            <template #customPaging>
+                              <a>
+                                <div class="pt-[12px]"><div></div></div>
+                              </a>
+                            </template>
+                            <template #prevArrow>
+                              <div style="z-index: 1"></div>
+                            </template>
+                            <template #nextArrow>
+                              <div style="z-index: 1"></div>
+                            </template>
+                            <img
+                              v-for="(attachment, index) in attachments(record)"
+                              :key="`carousel-${record.row.id}-${index}`"
+                              class="h-52"
+                              :src="attachment.url"
+                            />
+                          </a-carousel>
+                        </template>
 
-                <div
-                  v-for="col in fieldsWithoutCover"
-                  :key="`record-${record.row.id}-${col.id}`"
-                  class="flex flex-col space-y-1 px-2 mb-3 bg-gray-50 rounded-lg w-full"
-                >
-                  <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
-                    <div class="w-full text-gray-600">
-                      <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-                      <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
-                    </div>
+                        <div
+                          v-for="col in fieldsWithoutCover"
+                          :key="`record-${record.row.id}-${col.id}`"
+                          class="flex flex-col space-y-1 px-2 mb-3 bg-gray-50 rounded-lg w-full"
+                        >
+                          <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
+                            <div class="w-full text-gray-600">
+                              <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+                              <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                            </div>
+                          </div>
+
+                          <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
+                            <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
+                            <template v-else>
+                              <SmartsheetVirtualCell
+                                v-if="isVirtualCol(col)"
+                                v-model="record.row[col.title]"
+                                :column="col"
+                                :row="record"
+                              />
+                              <SmartsheetCell
+                                v-else
+                                v-model="record.row[col.title]"
+                                :column="col"
+                                :edit-enabled="false"
+                                :read-only="true"
+                              />
+                            </template>
+                          </div>
+                        </div>
+                      </a-card>
+                    </Row>
                   </div>
-
-                  <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
-                    <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
-                    <template v-else>
-                      <SmartsheetVirtualCell
-                        v-if="isVirtualCol(col)"
-                        v-model="record.row[col.title]"
-                        :column="col"
-                        :row="record"
-                      />
-                      <SmartsheetCell
-                        v-else
-                        v-model="record.row[col.title]"
-                        :column="col"
-                        :edit-enabled="false"
-                        :read-only="true"
-                      />
-                    </template>
+                </template>
+              </Draggable>
+            </div>
+            <a-card-meta>
+              <template #description>
+                <div class="mt-5 text-center">
+                  <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
+                  <div class="nc-kanban-data-count">
+                    {{ formattedKanbanData[stack.key].length }}
+                    {{ formattedKanbanData[stack.key].length !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>
                 </div>
-              </a-card>
-            </Row>
-          </div>
-        </div>
-        <a-card-meta>
-          <template #description>
-            <div class="mt-5 text-center">
-              <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
-              <div class="nc-kanban-data-count">
-                {{ formattedKanbanData[kanbanDataKey].length }}
-                {{ formattedKanbanData[kanbanDataKey].length !== 1 ? $t('objects.records') : $t('objects.record') }}
-              </div>
-            </div>
-          </template>
-        </a-card-meta>
-      </a-card>
+              </template>
+            </a-card-meta>
+          </a-card>
+        </template>
+      </Draggable>
     </div>
   </div>
   <div class="flex-1" />

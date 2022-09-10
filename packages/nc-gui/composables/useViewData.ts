@@ -63,9 +63,11 @@ export function useViewData(
   const formatKanbanData = (list: Record<string, any>[]) => {
     const groupingField = 'singleSelect2'
     const groupingFieldColumn = meta?.value?.columns?.filter((f) => f.title === groupingField)[0] as Record<string, any>
-    const groupingFieldColumnOptions = [...groupingFieldColumn?.colOptions?.options, { title: 'Uncategorized', order: 0 }].sort(
-      (a: Record<string, any>, b: Record<string, any>) => a.order - b.order,
-    )
+    // TODO: sort by kanban meta
+    const groupingFieldColumnOptions = [
+      ...(groupingFieldColumn?.colOptions?.options ?? []),
+      { title: 'Uncategorized', order: 0 },
+    ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
     const initialAcc = groupingFieldColumnOptions.reduce((acc: any, obj: any) => {
       if (!acc[obj.title]) {
         acc[obj.title] = []

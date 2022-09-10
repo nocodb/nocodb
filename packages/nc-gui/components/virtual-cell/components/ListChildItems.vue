@@ -70,18 +70,20 @@ const unlinkIfNewRow = async (row: Record<string, any>) => {
 const container = computed(() =>
   isForm?.value
     ? h('div', {
-      class: 'w-full p-2',
-    })
+        class: 'w-full p-2',
+      })
     : Modal,
 )
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref()
 
-watch(() => props.cellValue, () => {
-  if (!isNew.value)
-    loadChildrenList()
-})
+watch(
+  () => props.cellValue,
+  () => {
+    if (!isNew.value) loadChildrenList()
+  },
+)
 </script>
 
 <template>

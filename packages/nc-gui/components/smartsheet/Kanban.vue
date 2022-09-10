@@ -31,8 +31,16 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-const { loadKanbanData, loadKanbanMeta, kanbanMetaData, formattedData, updateOrSaveRow, addEmptyRow, groupingFieldColOptions } =
-  useKanbanViewData(meta, view as any)
+const {
+  loadKanbanData,
+  loadKanbanMeta,
+  kanbanMetaData,
+  formattedData,
+  updateOrSaveRow,
+  addEmptyRow,
+  groupingFieldColOptions,
+  groupingField,
+} = useKanbanViewData(meta, view as any)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -107,11 +115,9 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
 
 async function onMove(event: any, stackKey: string) {
   if (event.added) {
-    // TODO: update groupingField
-    const groupingField = 'singleSelect2'
     const ele = event.added.element
     ele.row[groupingField] = stackKey === 'Uncategorized' ? null : stackKey
-    await updateOrSaveRow(ele, groupingField)
+    await updateOrSaveRow(ele)
   }
 }
 
@@ -144,7 +150,7 @@ openNewRecordFormHook?.on(async () => {
             </template>
             <div class="nc-kanban-list flex flex-col">
               <Draggable
-                v-model="formattedData[stack.id]"
+                v-model="formattedData[stack.title]"
                 item-key="row.Id"
                 draggable=".nc-kanban-item"
                 group="kanban-card"
@@ -156,7 +162,7 @@ openNewRecordFormHook?.on(async () => {
                     <Row :row="record">
                       <a-card
                         hoverable
-                        :data-stack="stack.id"
+                        :data-stack="stack.title"
                         class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
                         @click="expandFormClick($event, record)"
                       >
@@ -229,8 +235,8 @@ openNewRecordFormHook?.on(async () => {
                 <div class="mt-5 text-center">
                   <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
                   <div class="nc-kanban-data-count">
-                    {{ formattedData[stack.id]?.length }}
-                    {{ formattedData[stack.id]?.length !== 1 ? $t('objects.records') : $t('objects.record') }}
+                    {{ formattedData[stack.title]?.length }}
+                    {{ formattedData[stack.title]?.length !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>
                 </div>
               </template>

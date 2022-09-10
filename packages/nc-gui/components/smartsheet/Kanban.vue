@@ -112,7 +112,7 @@ async function onMove(event: any, stackKey: string) {
     // TODO: update groupingField
     const groupingField = 'singleSelect2'
     const ele = event.added.element
-    ele.row[groupingField] = stackKey
+    ele.row[groupingField] = stackKey === 'Uncategorized' ? null : stackKey
     await updateOrSaveRow(ele, groupingField)
   }
 }

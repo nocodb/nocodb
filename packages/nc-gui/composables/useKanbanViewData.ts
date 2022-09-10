@@ -3,6 +3,8 @@ import type { Api, KanbanType, TableType, ViewType } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
 import type { Row } from '~/composables/useViewData'
 import { useNuxtApp } from '#app'
+import { message } from 'ant-design-vue'
+import { ColumnType } from 'nocodb-sdk'
 
 export function useKanbanViewData(
   meta: Ref<TableType> | ComputedRef<TableType> | undefined,
@@ -67,7 +69,7 @@ export function useKanbanViewData(
           where,
         })
 
-        formattedData.value[option.id] = formatData(response.list)
+        formattedData.value[option.title] = formatData(response.list)
       }),
     )
   }
@@ -77,8 +79,78 @@ export function useKanbanViewData(
     kanbanMetaData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
   }
 
-  async function updateOrSaveRow(row: Row, property: string) {
-    // TODO: implement
+  async function insertRow(row: Record<string, any>, rowIndex = formattedData.value['uncatgorized']?.length) {
+    try {
+      const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
+        if (!col.ai && row?.[col.title as string] !== null) {
+          o[col.title as string] = row?.[col.title as string]
+        }
+        return o
+      }, {})
+
+      const insertedData = await $api.dbViewRow.create(
+        NOCO,
+        project?.value.id as string,
+        meta?.value.id as string,
+        viewMeta?.value?.id as string,
+        insertObj,
+      )
+
+      formattedData.value['uncatgorized']?.splice(rowIndex ?? 0, 1, {
+        row: insertedData,
+        rowMeta: {},
+        oldRow: { ...insertedData },
+      })
+
+      return insertedData
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+    }
+  }
+
+  async function updateRowProperty(toUpdate: Row, property: string) {
+    try {
+      const id = extractPkFromRow(toUpdate.row, meta?.value.columns as ColumnType[])
+
+      const updatedRowData = await $api.dbViewRow.update(
+        NOCO,
+        project?.value.id as string,
+        meta?.value.id as string,
+        viewMeta?.value?.id as string,
+        id,
+        {
+          [property]: toUpdate.row[property],
+        },
+        // todo:
+        // {
+        //   query: { ignoreWebhook: !saved }
+        // }
+      )
+      // audit
+      $api.utils
+        .auditRowUpdate(id, {
+          fk_model_id: meta?.value.id as string,
+          column_name: property,
+          row_id: id,
+          value: getHTMLEncodedText(toUpdate.row[property]),
+          prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
+        })
+        .then(() => {})
+
+      /** update row data(to sync formula and other related columns) */
+      Object.assign(toUpdate.row, updatedRowData)
+      Object.assign(toUpdate.oldRow, updatedRowData)
+    } catch (e: any) {
+      message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
+    }
+  }
+
+  async function updateOrSaveRow(row: Row) {
+    if (row.rowMeta.new) {
+      await insertRow(row.row, formattedData.value[row.row.title].indexOf(row))
+    } else {
+      await updateRowProperty(row, groupingField)
+    }
   }
 
   function addEmptyRow(addAfter?: number) {
@@ -90,6 +162,7 @@ export function useKanbanViewData(
     loadKanbanMeta,
     kanbanMetaData,
     formattedData,
+    groupingField,
     groupingFieldColOptions,
     updateOrSaveRow,
     addEmptyRow,

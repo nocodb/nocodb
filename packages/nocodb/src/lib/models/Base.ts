@@ -83,6 +83,7 @@ export default class Base implements BaseType {
       return new Base(baseData);
     });
   }
+  
   static async get(id: string, ncMeta = Noco.ncMeta): Promise<Base> {
     let baseData =
       id &&
@@ -123,6 +124,7 @@ export default class Base implements BaseType {
 
     return config;
   }
+
   getProject(ncMeta = Noco.ncMeta): Promise<Project> {
     return Project.get(this.project_id, ncMeta);
   }

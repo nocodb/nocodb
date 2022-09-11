@@ -106,8 +106,8 @@ export interface BaseListType {
 
 export interface TableType {
   id?: string;
-  fk_project_id?: string;
-  fk_base_id?: string;
+  project_id?: string;
+  base_id?: string;
   table_name: string;
   title: string;
   type?: string;
@@ -121,7 +121,6 @@ export interface TableType {
   columns?: ColumnType[];
   columnsById?: object;
   slug?: string;
-  project_id?: string;
   mm?: boolean | number;
 }
 
@@ -1888,6 +1887,126 @@ export class Api<
         path: `/api/v1/db/meta/projects/${projectId}/audits`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  base = {
+    /**
+     * @description Read project base details
+     *
+     * @tags Base
+     * @name Read
+     * @summary Base read
+     * @request GET:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+     * @response `200` `object` OK
+     */
+    read: (projectId: string, baseId: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name Delete
+     * @summary Base delete
+     * @request DELETE:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+     * @response `200` `void` OK
+     */
+    delete: (projectId: string, baseId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name Update
+     * @summary Base update
+     * @request PATCH:/api/v1/db/meta/projects/{projectId}/bases/{baseId}
+     * @response `200` `void` OK
+     */
+    update: (
+      projectId: string,
+      baseId: string,
+      data: any,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/${baseId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Get project base list
+     *
+     * @tags Base
+     * @name List
+     * @summary Base list
+     * @request GET:/api/v1/db/meta/projects/{projectId}/bases/
+     * @response `200` `object` OK
+     */
+    list: (projectId: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name Create
+     * @summary Base create
+     * @request POST:/api/v1/db/meta/projects/{projectId}/bases/
+     * @response `200` `BaseType` OK
+     */
+    create: (
+      projectId: string,
+      data: BaseType & { external?: boolean },
+      params: RequestParams = {}
+    ) =>
+      this.request<BaseType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/bases/`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name TableCreate
+     * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
+     * @response `200` `TableType` OK
+     */
+    tableCreate: (
+      projectId: string,
+      baseId: string,
+      data: TableReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<TableType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

@@ -89,7 +89,10 @@ export async function tableList(req: Request, res: Response<TableListType>) {
 
 export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const project = await Project.getWithInfo(req.params.projectId);
-  const base = project.bases[0];
+  let base = project.bases[0];
+  if (req.params.baseId) {
+    base = project.bases.find((b) => b.id === req.params.baseId);
+  }
 
   if (
     !req.body.table_name ||
@@ -224,7 +227,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
   const model = await Model.get(req.params.tableId);
 
   const project = await Project.getWithInfo(req.body.project_id);
-  const base = project.bases[0];
+  const base = project.bases.find((b) => b.id === model.base_id);
 
   if (!req.body.table_name) {
     NcError.badRequest(
@@ -373,6 +376,11 @@ router.get(
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/tables',
+  metaApiMetrics,
+  ncMetaAclMw(tableCreate, 'tableCreate')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/:baseId/tables',
   metaApiMetrics,
   ncMetaAclMw(tableCreate, 'tableCreate')
 );

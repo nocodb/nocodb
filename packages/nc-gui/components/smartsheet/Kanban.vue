@@ -128,7 +128,7 @@ openNewRecordFormHook?.on(async () => {
 </script>
 
 <template>
-  <!-- TODO: add loading component when formattedKanbanData is not ready -->
+  <!-- TODO: add loading component when formattedData is not ready -->
   <div v-if="formattedData" class="flex h-full">
     <div class="nc-kanban-container flex grid gap-2 my-4 px-3">
       <Draggable

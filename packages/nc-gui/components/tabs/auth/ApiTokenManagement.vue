@@ -106,17 +106,29 @@ onMounted(() => {
         </template>
       </a-button>
       <!-- Generate Token -->
-      <div class="flex flex-row justify-center w-full -mt-1">
+      <div class="flex flex-row justify-center w-full -mt-1 mb-3">
         <a-typography-title :level="5">{{ $t('title.generateToken') }}</a-typography-title>
       </div>
       <!-- Description -->
-      <div class="flex flex-col mt-3 justify-center space-y-6">
+      <a-form
+        ref="form"
+        :model="selectedTokenData"
+        name="basic"
+        layout="vertical"
+        class="flex flex-col justify-center space-y-6"
+        no-style
+        autocomplete="off"
+        @finish="generateToken"
+      >
         <a-input v-model:value="selectedTokenData.description" :placeholder="$t('labels.description')" />
+
         <!-- Generate -->
         <div class="flex flex-row justify-center">
-          <a-button type="primary" @click="generateToken"> {{ $t('general.generate') }} </a-button>
+          <button type="submit" class="ant-btn ant-btn-primary">
+            {{ $t('general.generate') }}
+          </button>
         </div>
-      </div>
+      </a-form>
     </div>
   </a-modal>
   <a-modal v-model:visible="showDeleteTokenModal" :closable="false" width="28rem" centered :footer="null">

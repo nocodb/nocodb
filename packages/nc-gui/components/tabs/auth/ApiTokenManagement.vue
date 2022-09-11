@@ -124,9 +124,9 @@ onMounted(() => {
 
         <!-- Generate -->
         <div class="flex flex-row justify-center">
-          <button type="submit" class="ant-btn ant-btn-primary">
+          <a-button type="primary" html-type="submit">
             {{ $t('general.generate') }}
-          </button>
+          </a-button>
         </div>
       </a-form>
     </div>

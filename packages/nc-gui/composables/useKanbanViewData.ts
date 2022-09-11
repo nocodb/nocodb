@@ -1,10 +1,9 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Api, KanbanType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, ColumnType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
+import { message } from 'ant-design-vue'
 import type { Row } from '~/composables/useViewData'
 import { useNuxtApp } from '#app'
-import { message } from 'ant-design-vue'
-import { ColumnType } from 'nocodb-sdk'
 
 export function useKanbanViewData(
   meta: Ref<TableType> | ComputedRef<TableType> | undefined,
@@ -32,7 +31,7 @@ export function useKanbanViewData(
   //     ...
   //   ],
   // }
-  const formattedData = ref<Record<string, Row[]>>({})
+  const formattedData = useState<Record<string, Row[]>>('formattedKanbanData', () => ({}))
   // TODO: retrieve from meta
   const groupingField = 'singleSelect2'
 
@@ -79,7 +78,7 @@ export function useKanbanViewData(
     kanbanMetaData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
   }
 
-  async function insertRow(row: Record<string, any>, rowIndex = formattedData.value['uncatgorized']?.length) {
+  async function insertRow(row: Record<string, any>, rowIndex = formattedData.value.uncatgorized?.length) {
     try {
       const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
         if (!col.ai && row?.[col.title as string] !== null) {
@@ -96,7 +95,7 @@ export function useKanbanViewData(
         insertObj,
       )
 
-      formattedData.value['uncatgorized']?.splice(rowIndex ?? 0, 1, {
+      formattedData.value.uncatgorized?.splice(rowIndex ?? 0, 1, {
         row: insertedData,
         rowMeta: {},
         oldRow: { ...insertedData },
@@ -153,8 +152,14 @@ export function useKanbanViewData(
     }
   }
 
-  function addEmptyRow(addAfter?: number) {
-    // TODO: implement
+  function addEmptyRow(addAfter = formattedData.value.Uncategorized?.length) {
+    formattedData.value.Uncategorized.splice(addAfter, 0, {
+      row: {},
+      oldRow: {},
+      rowMeta: { new: true },
+    })
+
+    return formattedData.value.Uncategorized[addAfter]
   }
 
   return {

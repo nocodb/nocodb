@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
@@ -11,6 +11,7 @@ import {
   getHTMLEncodedText,
   useApi,
   useInjectionState,
+  useKanbanViewData,
   useNuxtApp,
   useProject,
   useProvideSmartsheetRowStore,
@@ -29,8 +30,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const changedColumns = ref(new Set<string>())
   const { project } = useProject()
   const rowStore = useProvideSmartsheetRowStore(meta, row)
-  // todo
-  // const activeView = inject(ActiveViewInj)
+  const activeView = inject(ActiveViewInj)
+  const { loadKanbanData } = useKanbanViewData(meta, activeView as any)
 
   // const { updateOrSaveRow, insertRow } = useViewData(meta, activeView as any)
 
@@ -157,6 +158,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       } else {
         // No columns to update
         return message.info(t('msg.info.noColumnsToUpdate'))
+      }
+
+      if (activeView?.value.type === ViewTypes.KANBAN) {
+        await loadKanbanData()
       }
 
       // this.$emit('update:oldRow', { ...this.localState });

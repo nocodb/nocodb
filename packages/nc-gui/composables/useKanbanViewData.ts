@@ -17,8 +17,8 @@ export function useKanbanViewData(
   const { $api, $e } = useNuxtApp()
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
   const { isUIAllowed } = useUIPermission()
-  const groupingFieldColOptions = ref<Record<string, any>[]>([])
-  const kanbanMetaData = ref<KanbanType>()
+  const groupingFieldColOptions = useState<Record<string, any>[]>('KanbanGroupingFieldColOptions', () => [])
+  const kanbanMetaData = useState<KanbanType>('KanbanMetaData', () => ({}))
   // {
   //   [val1] : [
   //     {row: {...}, oldRow: {...}, rowMeta: {...}},
@@ -31,9 +31,8 @@ export function useKanbanViewData(
   //     ...
   //   ],
   // }
-  const formattedData = useState<Record<string, Row[]>>('formattedKanbanData', () => ({}))
-  // TODO: retrieve from meta
-  const groupingField = 'singleSelect2'
+  const formattedData = useState<Record<string, Row[]>>('KanbanFormattedData', () => ({}))
+  const groupingField = useState<string>('KanbanGroupingField', () => '')
 
   const formatData = (list: Record<string, any>[]) =>
     list.map((row) => ({
@@ -48,8 +47,12 @@ export function useKanbanViewData(
     // TODO: handle share view case
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
 
+    // reset formattedData to avoid storing previous data
+    // after changing grouping field
+    formattedData.value = {}
+
     // grouping field column options
-    const groupingFieldColumn = meta?.value?.columns?.filter((f) => f.title === groupingField)[0] as Record<string, any>
+    const groupingFieldColumn = meta?.value?.columns?.filter((f) => f.title === groupingField.value)[0] as Record<string, any>
     groupingFieldColOptions.value = [
       ...(groupingFieldColumn?.colOptions?.options ?? []),
       { id: 'uncategorized', title: 'Uncategorized', order: 0 },
@@ -57,9 +60,9 @@ export function useKanbanViewData(
 
     await Promise.all(
       groupingFieldColOptions.value.map(async (option) => {
-        let where = `(${groupingField},eq,${option.title})`
+        let where = `(${groupingField.value},eq,${option.title})`
         if (option.title === 'Uncategorized') {
-          where = `(${groupingField},is,null)`
+          where = `(${groupingField.value},is,null)`
         }
         const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
           ...params,
@@ -67,7 +70,6 @@ export function useKanbanViewData(
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where,
         })
-
         formattedData.value[option.title] = formatData(response.list)
       }),
     )
@@ -76,6 +78,9 @@ export function useKanbanViewData(
   async function loadKanbanMeta() {
     if (!viewMeta?.value?.id) return
     kanbanMetaData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
+    // set groupingField
+    const groupingFieldCol = meta?.value?.columns?.filter((f) => f.id === kanbanMetaData?.value?.grp_column_id)[0]
+    groupingField.value = groupingFieldCol?.title as string
   }
 
   async function insertRow(row: Record<string, any>, rowIndex = formattedData.value.uncatgorized?.length) {
@@ -148,7 +153,7 @@ export function useKanbanViewData(
     if (row.rowMeta.new) {
       await insertRow(row.row, formattedData.value[row.row.title].indexOf(row))
     } else {
-      await updateRowProperty(row, groupingField)
+      await updateRowProperty(row, groupingField.value)
     }
   }
 
@@ -161,6 +166,8 @@ export function useKanbanViewData(
 
     return formattedData.value.Uncategorized[addAfter]
   }
+
+  watch(groupingField, async (v) => await loadKanbanData())
 
   return {
     loadKanbanData,

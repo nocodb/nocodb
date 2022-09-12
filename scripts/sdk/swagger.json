@@ -3393,7 +3393,12 @@
         "operationId": "db-table-row-delete",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
           }
         },
         "tags": [

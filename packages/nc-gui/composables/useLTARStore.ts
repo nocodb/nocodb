@@ -193,7 +193,22 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         onOk: async () => {
           const id = getRelatedTableRowId(row)
           try {
-            $api.dbTableRow.delete(NOCO, projectId, relatedTableMeta.value.id as string, id as string)
+            const res: { message?: string[] } = await $api.dbTableRow.delete(
+              NOCO,
+              projectId,
+              relatedTableMeta.value.id as string,
+              id as string,
+            )
+
+            if (res.message) {
+              message.info(
+                `Row delete failed: ${`Unable to delete row with ID ${id} because of the following:
+              \n${res.message.join('\n')}.\n
+              Clear the data first & try again`})}`,
+              )
+              return false
+            }
+
             reloadData?.()
 
             /** reload child list if not a new row */

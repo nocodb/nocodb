@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { ColumnType, GalleryType } from 'nocodb-sdk'
+import type { ColumnType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
+import { onMounted } from '@vue/runtime-core'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -12,6 +13,7 @@ import {
   computed,
   inject,
   ref,
+  useKanbanViewData,
   useNuxtApp,
   useViewColumns,
   watch,
@@ -46,6 +48,8 @@ const {
   metaColumnById,
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
+const { kanbanMetaData, loadKanbanMeta, loadKanbanData, groupingField } = useKanbanViewData(meta, activeView as any)
+
 watch(
   () => (activeView.value as any)?.id,
   async (newVal, oldVal) => {
@@ -56,28 +60,24 @@ watch(
   { immediate: true },
 )
 
-const coverImageColumnId = computed({
-  get: () =>
-    activeView.value?.type === ViewTypes.GALLERY ? (activeView.value?.view as GalleryType).fk_cover_image_col_id : undefined,
-  set: async (val) => {
-    if (val && activeView.value.type === ViewTypes.GALLERY && activeView.value.id && activeView.value.view) {
-      await $api.dbView.galleryUpdate(activeView.value.id, {
-        ...activeView.value.view,
-        fk_cover_image_col_id: val,
-      })
-      ;(activeView.value?.view as GalleryType).fk_cover_image_col_id = val
-      reloadDataHook.trigger()
-    }
-  },
-})
-
 const getIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? VirtualCellIcon : CellIcon, {
     columnMeta: c,
   })
 
-// TODO:
-const groupingFieldColumnId = ref(null)
+const groupingFieldColumnId = computed({
+  get: () => kanbanMetaData?.value?.grp_column_id,
+  set: async (val) => {
+    if (val) {
+      await $api.dbView.kanbanUpdate(activeView.value.id, {
+        ...kanbanMetaData.value,
+        grp_column_id: val,
+      })
+      ;(activeView.value?.view as KanbanType).grp_column_id = val
+      await loadKanbanMeta()
+    }
+  },
+})
 
 const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
   return fields.value
@@ -89,6 +89,7 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
       }
     })
 })
+onMounted(() => loadKanbanMeta())
 </script>
 
 <template>
@@ -97,8 +98,8 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
       <a-button v-t="['c:stacked-by']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <mdi-arrow-down-drop-circle-outline />
-          <!-- TODO: update the title -->
-          <span class="text-capitalize !text-sm font-weight-normal">Stacked By XXX</span>
+          <!-- TODO: i18n -->
+          <span class="text-capitalize !text-sm font-weight-normal">Stacked By {{ groupingField }}</span>
 
           <MdiMenuDown class="text-grey" />
         </div>

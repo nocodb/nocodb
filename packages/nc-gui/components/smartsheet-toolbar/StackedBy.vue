@@ -2,7 +2,6 @@
 import type { ColumnType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import { onMounted } from '@vue/runtime-core'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -89,7 +88,6 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
       }
     })
 })
-onMounted(() => loadKanbanMeta())
 </script>
 
 <template>

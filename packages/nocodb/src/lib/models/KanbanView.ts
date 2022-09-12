@@ -9,6 +9,7 @@ export default class KanbanView implements KanbanType {
   title: string;
   project_id?: string;
   base_id?: string;
+  grp_column_id?: string;
 
   // TODO: check these
   show: boolean;
@@ -68,9 +69,8 @@ export default class KanbanView implements KanbanType {
     // get existing cache
     const key = `${CacheScope.KANBAN_VIEW}:${kanbanId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    console.log(body);
     const updateObj = {
-      // TODO:
+      grp_column_id: body.grp_column_id,
     };
     if (o) {
       o = { ...o, ...updateObj };

@@ -93,11 +93,19 @@ export default class GridViewColumn implements GridColumnType {
 
     await NocoCache.set(`${CacheScope.GRID_VIEW_COLUMN}:${fk_column_id}`, id);
 
-    await NocoCache.appendToList(
-      CacheScope.GRID_VIEW_COLUMN,
-      [column.fk_view_id],
-      `${CacheScope.GRID_VIEW_COLUMN}:${id}`
-    );
+    // if cache is not present skip pushing it into the list to avoid unexpected behaviour
+    if (
+      (
+        await NocoCache.getList(CacheScope.GRID_VIEW_COLUMN, [
+          column.fk_view_id,
+        ])
+      )?.length
+    )
+      await NocoCache.appendToList(
+        CacheScope.GRID_VIEW_COLUMN,
+        [column.fk_view_id],
+        `${CacheScope.GRID_VIEW_COLUMN}:${id}`
+      );
 
     return this.get(id, ncMeta);
   }

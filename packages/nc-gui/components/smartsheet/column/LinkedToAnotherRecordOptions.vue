@@ -14,9 +14,9 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = $(inject(MetaInj, ref()))
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, sqlUi } = useColumnCreateStoreOrThrow()
 
-const { tables, sqlUi } = $(useProject())
+const { tables } = $(useProject())
 
 setAdditionalValidations({
   childId: [{ required: true, message: 'Required' }],

@@ -91,7 +91,7 @@ const {
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
-  removeLastEmptyRow,
+  removeRowIfNew,
 } = useViewData(meta, view as any, xWhere)
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
@@ -113,15 +113,18 @@ reloadViewDataHook?.on(async () => {
   await loadData()
 })
 
-const expandForm = (row: Row, state?: Record<string, any>) => {
+const skipRowRemovalOnCancel = ref(false)
+
+const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) => {
   expandedFormRow.value = row
   expandedFormRowState.value = state
   expandedFormDlg.value = true
+  skipRowRemovalOnCancel.value = !fromToolbar
 }
 
 openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
-  expandForm(newRow)
+  expandForm(newRow, undefined, true)
 })
 
 const selectCell = (row: number, col: number) => {
@@ -576,7 +579,11 @@ onBeforeUnmount(async () => {
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
-      @cancel="removeLastEmptyRow"
+      @update:model-value="
+        () => {
+          if (!skipRowRemovalOnCancel) removeRowIfNew(expandedFormRow)
+        }
+      "
     />
   </div>
 </template>

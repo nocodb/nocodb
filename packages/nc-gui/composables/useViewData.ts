@@ -382,6 +382,14 @@ export function useViewData(
     }
   }
 
+  const removeRowIfNew = (row: Row) => {
+    const index = formattedData.value.indexOf(row)
+
+    if (index > -1 && row.rowMeta.new) {
+      formattedData.value.splice(index, 1)
+    }
+  }
+
   return {
     error,
     isLoading,
@@ -408,5 +416,6 @@ export function useViewData(
     aggCommentCount,
     loadAggCommentsCount,
     removeLastEmptyRow,
+    removeRowIfNew,
   }
 }

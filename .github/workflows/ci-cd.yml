@@ -659,6 +659,9 @@ jobs:
               ${{ runner.os }}-build-${{ env.cache-name }}-
               ${{ runner.os }}-build-
               ${{ runner.os }}-
+        - name: build nocodb-sdk
+          working-directory: ./packages/nocodb-sdk
+          run: npm run build:main
         - name: Install dependencies
           working-directory: ./packages/nocodb
           run: npm install

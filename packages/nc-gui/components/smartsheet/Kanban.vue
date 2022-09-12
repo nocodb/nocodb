@@ -121,6 +121,11 @@ async function onMove(event: any, stackKey: string) {
   }
 }
 
+function createNewStack() {
+  // TODO:
+  // P.S tag value cannot be empty
+}
+
 openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
@@ -255,6 +260,21 @@ openNewRecordFormHook?.on(async () => {
           </a-card>
         </template>
       </Draggable>
+
+      <div class="nc-kanban-container flex px-3">
+        <a-card
+          class="mx-4 border-none !bg-gray-50 flex flex-col min-w-[280px] rounded-[12px]"
+          body-style="padding: 0px 20px; height: 100%;"
+          :bordered="false"
+        >
+          <a-button class="w-full !h-[40px] !rounded-xl" @click="createNewStack">
+            <div class="flex items-center">
+              <mdi-plus />
+              <span class="text-gray-500 group-hover:(text-primary/100) flex-1">New Stack</span>
+            </div>
+          </a-button>
+        </a-card>
+      </div>
     </div>
   </div>
   <div class="flex-1" />

@@ -36,7 +36,7 @@ function tableTest() {
       .send({
         table_name: 'table2',
         title: 'new_title_2',
-        columns: defaultColumns,
+        columns: defaultColumns(context),
       })
       .expect(200);
 
@@ -45,7 +45,7 @@ function tableTest() {
       return new Error('Tables is not be created');
     }
 
-    if (response.body.columns.length !== defaultColumns.length) {
+    if (response.body.columns.length !== (defaultColumns(context))) {
       return new Error('Columns not saved properly');
     }
 
@@ -66,7 +66,7 @@ function tableTest() {
       .send({
         table_name: undefined,
         title: 'new_title',
-        columns: defaultColumns,
+        columns: defaultColumns(context),
       })
       .expect(400);
 
@@ -95,7 +95,7 @@ function tableTest() {
       .send({
         table_name: table.table_name,
         title: 'New_title',
-        columns: defaultColumns,
+        columns: defaultColumns(context),
       })
       .expect(400);
 
@@ -117,7 +117,7 @@ function tableTest() {
       .send({
         table_name: 'New_table_name',
         title: table.title,
-        columns: defaultColumns,
+        columns: defaultColumns(context),
       })
       .expect(400);
 
@@ -139,7 +139,7 @@ function tableTest() {
       .send({
         table_name: 'a'.repeat(256),
         title: 'new_title',
-        columns: defaultColumns,
+        columns: defaultColumns(context),
       })
       .expect(400);
 
@@ -162,7 +162,7 @@ function tableTest() {
       .send({
         table_name: 'table_name_with_whitespace ',
         title: 'new_title',
-        columns: defaultColumns,
+        columns: defaultColumns(context),
       })
       .expect(400);
 

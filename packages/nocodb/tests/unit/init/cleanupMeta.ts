@@ -2,8 +2,9 @@ import Model from "../../../src/lib/models/Model";
 import Project from "../../../src/lib/models/Project";
 import NcConnectionMgrv2 from "../../../src/lib/utils/common/NcConnectionMgrv2";
 import { orderedMetaTables } from "../../../src/lib/utils/globals";
+import TestDbMngr from "../TestDbMngr";
 
-const dropTablesAllNonExternalProjects = async (knexClient) => {
+const dropTablesAllNonExternalProjects = async () => {
   const projects = await Project.list({});
   const userCreatedTableNames: string[] = [];
   await Promise.all(
@@ -24,29 +25,31 @@ const dropTablesAllNonExternalProjects = async (knexClient) => {
       })
   );
 
-  await knexClient.raw('SET FOREIGN_KEY_CHECKS = 0');
+  await TestDbMngr.disableForeignKeyChecks(TestDbMngr.metaKnex);
+
   for (const tableName of userCreatedTableNames) {
-    await knexClient.raw(`DROP TABLE ${tableName}`);
+    await TestDbMngr.metaKnex.raw(`DROP TABLE ${tableName}`);
   }
-  await knexClient.raw('SET FOREIGN_KEY_CHECKS = 1');
+
+  await TestDbMngr.enableForeignKeyChecks(TestDbMngr.metaKnex);
 };
 
-const cleanupMetaTables = async (knexClient) => {
-  await knexClient.raw('SET FOREIGN_KEY_CHECKS = 0');
+const cleanupMetaTables = async () => {
+  await TestDbMngr.disableForeignKeyChecks(TestDbMngr.metaKnex);
   for (const tableName of orderedMetaTables) {
     try {
-      await knexClient.raw(`DELETE FROM ${tableName}`);
+      await TestDbMngr.metaKnex.raw(`DELETE FROM ${tableName}`);
     } catch (e) {}
   }
-  await knexClient.raw('SET FOREIGN_KEY_CHECKS = 1');
+  await TestDbMngr.enableForeignKeyChecks(TestDbMngr.metaKnex);
 };
 
-export default async function (knexClient) {
+export default async function () {
   try {
     await NcConnectionMgrv2.destroyAll();
 
-    await dropTablesAllNonExternalProjects(knexClient);
-    await cleanupMetaTables(knexClient);
+    await dropTablesAllNonExternalProjects();
+    await cleanupMetaTables();
   } catch (e) {
     console.error('cleanupMeta', e);
   }

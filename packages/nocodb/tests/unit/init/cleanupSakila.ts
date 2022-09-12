@@ -3,51 +3,45 @@ import Project from '../../../src/lib/models/Project';
 
 import TestDbMngr from '../TestDbMngr';
 
-const dropTablesOfSakila = async (sakilaKnexClient) => {
-  await sakilaKnexClient.raw('SET FOREIGN_KEY_CHECKS = 0');
-  try{
-    for(const tableName of sakilaTableNames){
-      await sakilaKnexClient.raw(`DROP TABLE ${tableName}`);
-    }
-  } catch (e) {
+const dropTablesOfSakila = async () => {
+  await TestDbMngr.disableForeignKeyChecks(TestDbMngr.sakilaKnex);
+
+  for(const tableName of sakilaTableNames){
+    try {
+      await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
+    } catch(e){}
   }
-  await sakilaKnexClient.raw('SET FOREIGN_KEY_CHECKS = 1');
+  await TestDbMngr.enableForeignKeyChecks(TestDbMngr.sakilaKnex);
 }
 
-const resetAndSeedSakila = async (sakilaKnexClient) => {
+const resetAndSeedSakila = async () => {
   try {
-    await dropTablesOfSakila(sakilaKnexClient);
-    
-    await TestDbMngr.seedSakila(sakilaKnexClient);
-    
-    await sakilaKnexClient.raw(`USE ${TestDbMngr.sakilaDbName}`);
+    await dropTablesOfSakila();
+    await TestDbMngr.seedSakila();
   } catch (e) {
     console.error('resetSakila', e);
     throw e
   }
 }
 
-const cleanUpSakila = async (sakilaKnexClient) => {
+const cleanUpSakila = async () => {
   try {
     const sakilaProject = await Project.getByTitle('sakila');
 
     const audits = sakilaProject && await Audit.projectAuditList(sakilaProject.id, {});
 
     if(audits?.length > 0) {
-      return await resetAndSeedSakila(sakilaKnexClient);
+      return await resetAndSeedSakila();
     }
 
-    const tablesInSakilaQueryRes = await sakilaKnexClient.raw(`SHOW TABLES;`);
-    const tablesInSakila = tablesInSakilaQueryRes[0].map(
-      (table) => Object.values(table)[0]
-    );
+    const tablesInSakila = await TestDbMngr.showAllTables(TestDbMngr.sakilaKnex);
 
     await Promise.all(
       tablesInSakila
         .filter((tableName) => !sakilaTableNames.includes(tableName))
         .map(async (tableName) => {
           try {
-            await sakilaKnexClient.raw(`DROP TABLE ${tableName}`);
+            await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
           } catch (e) {
             console.error(e);
           }

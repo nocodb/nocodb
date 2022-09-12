@@ -26,7 +26,7 @@ function baseModelSqlTests() {
     context = await init();
     project = await createProject(context);
     table = await createTable(context, project);
-    view = table.getViews()[0];
+    view = await table.getViews()[0];
 
     const base = await Base.get(table.base_id);
     baseModelSql = new BaseModelSqlv2({

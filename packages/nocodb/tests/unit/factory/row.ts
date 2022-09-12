@@ -110,6 +110,24 @@ const createRow = async (
   return response.body;
 };
 
+const createBulkRows = async (
+  context,
+  {
+    project,
+    table,
+    values
+  }: {
+    project: Project;
+    table: Model;
+    values: any[];
+  }) => {
+    await request(context.app)
+      .post(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}`)
+      .set('xc-auth', context.token)
+      .send(values)
+      .expect(200);
+  }
+
 // Links 2 table rows together. Will create rows if ids are not provided
 const createChildRow = async (
   context,
@@ -159,4 +177,5 @@ export {
   getOneRow,
   listRow,
   generateDefaultRowAttributes,
+  createBulkRows
 };

@@ -3,17 +3,18 @@ import Model from '../../../src/lib/models/Model';
 import Project from '../../../src/lib/models/Project';
 import { defaultColumns } from './column';
 
-const defaultTableValue = {
+const defaultTableValue = (context) => ({
   table_name: 'Table1',
   title: 'Table1_Title',
-  columns: defaultColumns,
-};
+  columns: defaultColumns(context),
+});
 
 const createTable = async (context, project, args = {}) => {
+  const defaultValue = defaultTableValue(context);
   const response = await request(context.app)
     .post(`/api/v1/db/meta/projects/${project.id}/tables`)
     .set('xc-auth', context.token)
-    .send({ ...defaultTableValue, ...args });
+    .send({ ...defaultValue, ...args });
 
   const table: Model = await Model.get(response.body.id);
   return table;

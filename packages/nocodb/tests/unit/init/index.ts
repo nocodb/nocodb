@@ -1,77 +1,40 @@
 
 import express from 'express';
-import knex from 'knex';
 import { Noco } from '../../../src/lib';
 
 import cleanupMeta from './cleanupMeta';
 import {cleanUpSakila, resetAndSeedSakila} from './cleanupSakila';
 import { createUser } from '../factory/user';
-import TestDbMngr from '../TestDbMngr';
 
 let server;
-let knexClient;
-let sakilaKnexClient;
 
 const serverInit = async () => {
   const serverInstance = express();
   serverInstance.enable('trust proxy');
   serverInstance.use(await Noco.init());
+  serverInstance.use(function(req, res, next){
+    // 50 sec timeout
+    req.setTimeout(500000, function(){
+        console.log('Request has timed out.');
+        res.send(408);
+    });
+    next();
+});
   return serverInstance;
 };
 
-const resetDatabase = async () => {
-  try {
-    if (!Noco.initialized) {
-      try {
-        await knexClient.raw(`DROP DATABASE ${TestDbMngr.dbName}`);
-      } catch (e) {}
-      await knexClient.raw(`CREATE DATABASE ${TestDbMngr.dbName}`);
-    }
-  } catch (e) {
-    console.error('resetDatabase', e);
-  }
-};
-
-const cleanupAllTables = async () => {
-  try {
-    await cleanUpSakila(sakilaKnexClient);
-
-    await cleanupMeta(knexClient);
-  } catch (e) {
-    console.error('cleanupAllTables', e);
-  }
-};
-
-const setupSakila = async () => {
-  try {
-    await knexClient.raw(`DROP DATABASE ${TestDbMngr.sakilaDbName}`);
-  } catch(e) {
-    console.log('setupSakila',e)
-  }
-  await knexClient.raw(`CREATE DATABASE ${TestDbMngr.sakilaDbName}`);
-  await knexClient.raw(`USE ${TestDbMngr.dbName}`);
-
-  sakilaKnexClient = knex(TestDbMngr.getSakilaDbConfig());
-  await sakilaKnexClient.raw(`USE ${TestDbMngr.sakilaDbName}`);
-  await resetAndSeedSakila(sakilaKnexClient);
-}
-
 const isFirstTimeRun = () => !server
 
-export default async function () {
-  if(!knexClient) {
-    knexClient = knex(TestDbMngr.dbConfig);
-  }
-  await knexClient.raw(`USE ${TestDbMngr.dbName}`);
-  
-  await resetDatabase();
-  
+export default async function () {  
+  const {default: TestDbMngr} = await import('../TestDbMngr');
+
   if (isFirstTimeRun()) {
-    await setupSakila();
+    await resetAndSeedSakila();
     server = await serverInit();
   }
 
-  await cleanupAllTables();
+  await cleanUpSakila();
+  await cleanupMeta();
 
   const { token } = await createUser({ app: server }, { roles: 'editor' });
 

@@ -206,6 +206,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           $e('a:column:add', { datatype: formState.value.uidt })
         }
         onSuccess?.()
+        return true
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }

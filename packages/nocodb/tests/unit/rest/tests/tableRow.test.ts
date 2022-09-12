@@ -1859,7 +1859,9 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(400);
     
-    if(!response.body.msg.includes("Column 'customer_id' cannot be null")){
+    if(!response.body.msg.includes("Column 'customer_id' cannot be null") &&
+    !response.body.msg.includes("Cannot add or update a child row")
+    ){
       console.log('Delete list hm with existing ref row id with non nullable clause', response.body)
       throw new Error('Wrong error message')
     }

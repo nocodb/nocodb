@@ -322,7 +322,7 @@ export class _mainPage {
         cy.wait(500)
         cy.get(".nc-sort-dir-select div").first().click();
         cy.wait(500)
-        cy.get('.ant-select-dropdown:visible').find(`.ant-select-item`).contains(criteria).should('exist').click();
+        cy.get('.sort-dir-dropdown.ant-select-dropdown:visible').find(`.ant-select-item`).contains(criteria).should('exist').click();
         cy.wait(500)
         cy.get(".nc-sort-menu-btn").click();
         cy.wait(500)

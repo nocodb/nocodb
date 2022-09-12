@@ -329,7 +329,6 @@ const rowRefs = $ref<any[]>()
 
 /** save/update records before unmounting the component */
 onBeforeUnmount(async () => {
-  console.log(rowRefs)
   let index = -1
   for (const currentRow of data.value) {
     index++
@@ -518,10 +517,6 @@ onBeforeUnmount(async () => {
               </template>
             </SmartsheetRow>
 
-            <!--
-TODO: add relationType !== 'bt' ?
-v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
--->
             <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable') && !isSqlView">
               <td
                 v-t="['c:row:add:grid-bottom']"

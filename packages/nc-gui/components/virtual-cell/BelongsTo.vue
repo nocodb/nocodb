@@ -24,7 +24,7 @@ const ListItems = defineAsyncComponent(() => import('./components/ListItems.vue'
 
 const column = inject(ColumnInj)!
 
-const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())!
+const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const cellValue = inject(CellValueInj, ref<any>(null))
 

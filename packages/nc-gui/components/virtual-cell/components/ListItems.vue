@@ -116,8 +116,8 @@ watch(expandedFormDlg, (nexVal) => {
         <div class="flex-1" />
         <MdiReload class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
         <!--        Add new record -->
-        <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true"
-          >{{ $t('activity.addNewRecord') }}
+        <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">
+          {{ $t('activity.addNewRecord') }}
         </a-button>
       </div>
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">

@@ -33,10 +33,6 @@ const el = ref<typeof SmartsheetGrid>()
 
 const fields = ref<ColumnType[]>([])
 
-// const tabMeta = inject(
-//   TabMetaInj,
-//   computed(() => ({} as TabItem)),
-// )
 provide(TabMetaInj, ref(activeTab))
 const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
 

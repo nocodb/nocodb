@@ -383,6 +383,7 @@ export interface KanbanType {
   password?: string;
   columns?: KanbanColumnType[];
   fk_model_id?: string;
+  grp_column_id?: string;
 }
 
 export interface FormType {

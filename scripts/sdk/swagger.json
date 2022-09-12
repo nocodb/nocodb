@@ -7312,6 +7312,9 @@
           },
           "fk_model_id": {
             "type": "string"
+          },
+          "grp_column_id": {
+            "type": "string"
           }
         }
       },

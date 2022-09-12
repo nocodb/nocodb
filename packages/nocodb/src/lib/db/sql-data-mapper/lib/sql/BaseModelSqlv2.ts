@@ -1976,7 +1976,7 @@ class BaseModelSqlv2 {
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
     // if (req?.headers?.['xc-gui']) {
     const id = req?.params?.id;
-    Audit.insert({
+    await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
       op_type: AuditOperationTypes.DATA,

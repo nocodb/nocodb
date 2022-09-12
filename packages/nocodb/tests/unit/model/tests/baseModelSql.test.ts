@@ -218,6 +218,7 @@ function baseModelSqlTests() {
 
     expect(deletedRow).to.be.undefined;
 
+    console.log('Delete record', await Audit.projectAuditList(project.id, {}));
     const rowDeletedAudit = (await Audit.projectAuditList(project.id, {})).find((audit) => audit.op_sub_type === 'DELETE');
     expect(rowDeletedAudit).to.include({
       user: 'test@example.com',

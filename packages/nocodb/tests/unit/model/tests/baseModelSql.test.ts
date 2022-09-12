@@ -200,7 +200,7 @@ function baseModelSqlTests() {
     });
   });
 
-  it('Delete record', async () => {
+  it.only('Delete record', async () => {
     const request = {
       clientIp: '::ffff:192.0.0.1',
       user: {email: 'test@example.com'},
@@ -495,5 +495,5 @@ function baseModelSqlTests() {
 }
 
 export default function () {
-  describe('BaseModelSql', baseModelSqlTests);
+  describe.only('BaseModelSql', baseModelSqlTests);
 }

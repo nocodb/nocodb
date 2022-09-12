@@ -1847,7 +1847,7 @@ function tableTest() {
       }
   })
 
-  it('Delete list hm with existing ref row id with non nullable clause', async () => {
+  it.only('Delete list hm with existing ref row id with non nullable clause', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
       (column) => column.title === 'Rental List'
@@ -2025,5 +2025,5 @@ function tableTest() {
 }
 
 export default function () {
-  describe('TableRow', tableTest);
+  describe.only('TableRow', tableTest);
 }

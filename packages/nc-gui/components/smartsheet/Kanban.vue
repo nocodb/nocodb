@@ -116,7 +116,7 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
 async function onMove(event: any, stackKey: string) {
   if (event.added) {
     const ele = event.added.element
-    ele.row[groupingField] = stackKey === 'Uncategorized' ? null : stackKey
+    ele.row[groupingField.value] = stackKey === 'Uncategorized' ? null : stackKey
     await updateOrSaveRow(ele)
   }
 }
@@ -143,7 +143,7 @@ openNewRecordFormHook?.on(async () => {
           <a-card
             :key="stack.id"
             class="nc-kanban-stack mx-4 !bg-[#f0f2f5] flex flex-col min-w-[280px] h-full rounded-[12px]"
-            :class="{'not-draggable': stack.id === 'uncategorized'}"
+            :class="{ 'not-draggable': stack.id === 'uncategorized' }"
             head-style="padding-bottom: 0px;"
             body-style="padding: 0px 20px; height: 100%;"
           >

@@ -30,7 +30,7 @@ const cellValue = inject(CellValueInj)!
 
 const row = inject(RowInj)!
 
-const reloadRowTrigger = inject(ReloadRowDataHookInj)!
+const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const isForm = inject(IsFormInj)
 

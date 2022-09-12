@@ -17,7 +17,7 @@ const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
 
 const { isUIAllowed } = useUIPermission()
 
-const reloadTrigger = inject(ReloadRowDataHookInj)!
+const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const save = async () => {
   if (isNew.value) {

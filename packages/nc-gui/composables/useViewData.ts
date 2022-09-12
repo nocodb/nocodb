@@ -166,12 +166,12 @@ export function useViewData(
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
     const response = !isPublic.value
       ? await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
-        ...queryParams.value,
-        ...params,
-        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-        where: where?.value,
-      })
+          ...queryParams.value,
+          ...params,
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          where: where?.value,
+        })
       : await fetchSharedViewData()
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
@@ -251,11 +251,11 @@ export function useViewData(
     }
   }
 
-  async function updateOrSaveRow(row: Row, property: string) {
+  async function updateOrSaveRow(row: Row, property?: string) {
     if (row.rowMeta.new) {
       return await insertRow(row.row, formattedData.value.indexOf(row))
     } else {
-      await updateRowProperty(row, property)
+      await updateRowProperty(row, property!)
     }
   }
 

@@ -21,7 +21,6 @@ import {
 
 import type { TabItem } from '~/composables'
 
-
 const { activeTab } = defineProps<{
   activeTab: TabItem
 }>()
@@ -38,10 +37,7 @@ const fields = ref<ColumnType[]>([])
 //   TabMetaInj,
 //   computed(() => ({} as TabItem)),
 // )
-provide(
-  TabMetaInj,
-  ref(activeTab),
-)
+provide(TabMetaInj, ref(activeTab))
 const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
 
 const reloadEventHook = createEventHook<void>()

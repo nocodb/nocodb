@@ -134,7 +134,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     removeLTARRef,
     syncLTARRefs,
     loadRow,
-    currentRow
+    currentRow,
   }
 }, 'smartsheet-row-store')
 

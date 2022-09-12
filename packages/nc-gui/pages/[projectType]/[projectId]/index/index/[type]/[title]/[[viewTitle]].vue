@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { TabItem } from '~/composables'
-import { TabMetaInj } from '~/context'
+import type { TabItem } from '~/composables'
+import { TabMetaInj } from '#imports'
 
 const { getMeta } = useMetas()
 const route = useRoute()
@@ -20,7 +20,7 @@ getMeta(route.params.title as string, true).finally(() => {
   <div v-if="loading" class="flex items-center justify-center h-full w-full">
     <a-spin size="large" />
   </div>
-  <TabsSmartsheet :active-tab="activeTab" :key="route.params.title" v-else />
+  <TabsSmartsheet v-else :key="route.params.title" :active-tab="activeTab" />
 </template>
 
 <style scoped></style>

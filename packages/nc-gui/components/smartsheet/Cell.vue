@@ -15,9 +15,9 @@ import {
   toRef,
   useColumn,
   useDebounceFn,
+  useSmartsheetRowStoreOrThrow,
   useVModel,
 } from '#imports'
-import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
 import { NavigateDir } from '~/lib'
 
 interface Props {
@@ -64,7 +64,6 @@ const syncValue = useDebounceFn(function () {
   currentRow.value.rowMeta.changed = false
   emit('save')
 }, 1000)
-
 
 const isAutoSaved = $computed(() => {
   return [

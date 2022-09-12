@@ -35,7 +35,7 @@ reloadHook.on(() => {
 provide(ReloadRowDataHookInj, reloadHook)
 
 defineExpose({
-  syncLTARRefs
+  syncLTARRefs,
 })
 </script>
 

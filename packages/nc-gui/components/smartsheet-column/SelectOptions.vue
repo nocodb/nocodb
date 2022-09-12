@@ -15,7 +15,7 @@ const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
 const vModel = useVModel(props, 'value', emit)
 
-const { setAdditionalValidations } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
 let options = $ref<any[]>([])
 const colorMenus = $ref<any>({})
@@ -103,13 +103,20 @@ watch(inputs, () => {
             </template>
             <MdiArrowDownDropCircle :style="{ 'font-size': '1.5em', 'color': element.color }" class="mr-2" />
           </a-dropdown>
+
           <a-input ref="inputs" v-model:value="element.title" class="caption" />
           <MdiClose class="ml-2" :style="{ color: 'red' }" @click="removeOption(index)" />
         </div>
       </template>
       <template #footer>
+        <div v-if="validateInfos?.['colOptions.options']?.help?.[0]?.[0]" class="text-error text-xs my-2">
+          {{ validateInfos['colOptions.options'].help[0][0] }}
+        </div>
         <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
-          <div class="flex items-center"><MdiPlusIcon /><span class="flex-auto">Add option</span></div>
+          <div class="flex items-center">
+            <MdiPlusIcon />
+            <span class="flex-auto">Add option</span>
+          </div>
         </a-button>
       </template>
     </Draggable>

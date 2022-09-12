@@ -133,8 +133,7 @@ openNewRecordFormHook?.on(async () => {
 </script>
 
 <template>
-  <!-- TODO: add loading component when formattedData is not ready -->
-  <div v-if="formattedData" class="flex h-full">
+  <div class="flex h-full">
     <div class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-auto">
       <Draggable
         v-model="groupingFieldColOptions"
@@ -152,7 +151,8 @@ openNewRecordFormHook?.on(async () => {
             head-style="padding-bottom: 0px;"
             body-style="padding: 0px 20px; height: 100%;"
           >
-            <a-layout>
+            <a-skeleton v-if="!formattedData" />
+            <a-layout v-else>
               <a-layout-header>
                 <div class="nc-kanban-stack-head justify-center w-full items-center flex">
                   <div v-if="stack.order === 0" class="text-slate-500 font-bold">{{ stack.title }}</div>

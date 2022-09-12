@@ -50,6 +50,7 @@ const validators = {
     {
       validator: (_: any, formula: any) => {
         return new Promise<void>((resolve, reject) => {
+          if (!formula?.trim()) return reject(new Error('Required'))
           const res = parseAndValidateFormula(formula)
           if (res !== true) {
             return reject(new Error(res))

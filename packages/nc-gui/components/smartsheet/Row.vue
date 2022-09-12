@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { Row } from '~/composables'
-import { useProvideSmartsheetRowStore, useSmartsheetStoreOrThrow } from '#imports'
-import { ReloadRowDataHookInj } from '~/context'
+import { ReloadRowDataHookInj, useProvideSmartsheetRowStore, useSmartsheetStoreOrThrow } from '#imports'
 
 interface Props {
   row: Row
@@ -34,6 +33,10 @@ reloadHook.on(() => {
 })
 
 provide(ReloadRowDataHookInj, reloadHook)
+
+defineExpose({
+  syncLTARRefs
+})
 </script>
 
 <template>

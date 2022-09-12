@@ -28,6 +28,7 @@ export interface Row {
     new?: boolean
     selected?: boolean
     commentCount?: number
+    changed?: boolean
   }
 }
 
@@ -162,16 +163,15 @@ export function useViewData(
   }
 
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-    console.log(queryParams.value)
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
     const response = !isPublic.value
       ? await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
-          ...queryParams.value,
-          ...params,
-          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          where: where?.value,
-        })
+        ...queryParams.value,
+        ...params,
+        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+        where: where?.value,
+      })
       : await fetchSharedViewData()
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
@@ -253,7 +253,7 @@ export function useViewData(
 
   async function updateOrSaveRow(row: Row, property: string) {
     if (row.rowMeta.new) {
-      await insertRow(row.row, formattedData.value.indexOf(row))
+      return await insertRow(row.row, formattedData.value.indexOf(row))
     } else {
       await updateRowProperty(row, property)
     }
@@ -280,11 +280,9 @@ export function useViewData(
 
     if (res.message) {
       message.info(
-        `Row delete failed: ${h('div', {
-          innerHTML: `<div style="padding:10px 4px">Unable to delete row with ID ${id} because of the following:
-              <br><br>${res.message.join('<br>')}<br><br>
-              Clear the data first & try again</div>`,
-        })}`,
+        `Row delete failed: ${`Unable to delete row with ID ${id} because of the following:
+              \n${res.message.join('\n')}.\n
+              Clear the data first & try again`})}`,
       )
       return false
     }

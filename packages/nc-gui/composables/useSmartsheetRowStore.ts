@@ -29,6 +29,8 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
 
   const { metas } = useMetas()
 
+  const currentRow = ref(row)
+
   // state
   const state = ref<Record<string, Record<string, any> | Record<string, any>[] | null>>({})
 
@@ -132,6 +134,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     removeLTARRef,
     syncLTARRefs,
     loadRow,
+    currentRow
   }
 }, 'smartsheet-row-store')
 

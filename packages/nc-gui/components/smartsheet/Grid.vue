@@ -248,36 +248,35 @@ const onKeyDown = async (e: KeyboardEvent) => {
       e.preventDefault()
       if (selected.row < data.value.length - 1) selected.row++
       break
-    default:
-      {
-        const rowObj = data.value[selected.row]
-        const columnObj = fields.value[selected.col]
+    default: {
+      const rowObj = data.value[selected.row]
+      const columnObj = fields.value[selected.col]
 
-        if ((!editEnabled && e.metaKey) || e.ctrlKey) {
-          switch (e.keyCode) {
-            // copy - ctrl/cmd +c
-            case 67:
-              await copy(rowObj.row[columnObj.title] || '')
-              break
-          }
-        }
-
-        if (editEnabled || e.ctrlKey || e.altKey || e.metaKey) {
-          return
-        }
-
-        /** on letter key press make cell editable and empty */
-        if (e?.key?.length === 1) {
-          if (!isPkAvail && !rowObj.rowMeta.new) {
-            // Update not allowed for table which doesn't have primary Key
-            return message.info(t('msg.info.updateNotAllowedWithoutPK'))
-          }
-          if (makeEditable(rowObj, columnObj)) {
-            rowObj.row[columnObj.title] = ''
-          }
-          // editEnabled = true
+      if ((!editEnabled && e.metaKey) || e.ctrlKey) {
+        switch (e.keyCode) {
+          // copy - ctrl/cmd +c
+          case 67:
+            await copy(rowObj.row[columnObj.title] || '')
+            break
         }
       }
+
+      if (editEnabled || e.ctrlKey || e.altKey || e.metaKey) {
+        return
+      }
+
+      /** on letter key press make cell editable and empty */
+      if (e?.key?.length === 1) {
+        if (!isPkAvail && !rowObj.rowMeta.new) {
+          // Update not allowed for table which doesn't have primary Key
+          return message.info(t('msg.info.updateNotAllowedWithoutPK'))
+        }
+        if (makeEditable(rowObj, columnObj)) {
+          rowObj.row[columnObj.title] = ''
+        }
+        // editEnabled = true
+      }
+    }
       break
   }
 }
@@ -324,6 +323,31 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
     contextMenuTarget.value = target
   }
 }
+
+const rowRefs = $ref<any[]>()
+
+onBeforeUnmount(async () => {
+  console.log(rowRefs)
+  for (const [index, currentRow] of Object.entries(data.value)) {
+    if (currentRow.rowMeta.new) {
+      const syncLTARRefs = rowRefs[index]!.syncLTARRefs
+      const savedRow = await updateOrSaveRow(currentRow, null)
+      await syncLTARRefs(savedRow)
+      currentRow.rowMeta.changed = false
+      continue
+    }
+    if (currentRow.rowMeta.changed) {
+      currentRow.rowMeta.changed = false
+      for (const field of meta?.value.columns ?? []) {
+        if (isVirtualCol(field)) continue
+        if (currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
+          await updateOrSaveRow(currentRow, field.title!)
+        }
+      }
+    }
+  }
+})
+
 </script>
 
 <template>
@@ -339,87 +363,88 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
           @contextmenu="showContextMenu"
         >
           <thead>
-            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
-              <th>
-                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center">
-                  <template v-if="!readOnly">
-                    <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
-                    <div
-                      :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
-                      class="nc-check-all w-full items-center"
-                    >
-                      <a-checkbox v-model:checked="selectedAllRecords" />
+          <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
+            <th>
+              <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center">
+                <template v-if="!readOnly">
+                  <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
+                  <div
+                    :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
+                    class="nc-check-all w-full items-center"
+                  >
+                    <a-checkbox v-model:checked="selectedAllRecords" />
 
-                      <span class="flex-1" />
-                    </div>
-                  </template>
-                  <template v-else>
-                    <div class="text-gray-500">#</div>
-                  </template>
-                </div>
-              </th>
-              <th
-                v-for="col in fields"
-                :key="col.title"
-                v-xc-ver-resize
-                :data-col="col.id"
-                :data-title="col.title"
-                @xcresize="onresize(col.id, $event)"
-                @xcresizing="onXcResizing(col.title, $event)"
-                @xcresized="resizingCol = null"
-              >
-                <div class="w-full h-full bg-gray-100 flex items-center">
-                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readOnly" />
-
-                  <SmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly" />
-                </div>
-              </th>
-              <th
-                v-if="!readOnly && !isLocked && isUIAllowed('add-column') && !isSqlView"
-                v-t="['c:column:add']"
-                class="cursor-pointer"
-                @click.stop="addColumnDropdown = true"
-              >
-                <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
-                  <div class="h-full w-[60px] flex items-center justify-center">
-                    <MdiPlus class="text-sm nc-column-add" />
+                    <span class="flex-1" />
                   </div>
+                </template>
+                <template v-else>
+                  <div class="text-gray-500">#</div>
+                </template>
+              </div>
+            </th>
+            <th
+              v-for="col in fields"
+              :key="col.title"
+              v-xc-ver-resize
+              :data-col="col.id"
+              :data-title="col.title"
+              @xcresize="onresize(col.id, $event)"
+              @xcresizing="onXcResizing(col.title, $event)"
+              @xcresized="resizingCol = null"
+            >
+              <div class="w-full h-full bg-gray-100 flex items-center">
+                <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readOnly" />
 
-                  <template #overlay>
-                    <SmartsheetColumnEditOrAddProvider
-                      v-if="addColumnDropdown"
-                      @submit="addColumnDropdown = false"
-                      @cancel="addColumnDropdown = false"
-                      @click.stop
-                      @keydown.stop
-                    />
-                  </template>
-                </a-dropdown>
-              </th>
-            </tr>
+                <SmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly" />
+              </div>
+            </th>
+            <th
+              v-if="!readOnly && !isLocked && isUIAllowed('add-column') && !isSqlView"
+              v-t="['c:column:add']"
+              class="cursor-pointer"
+              @click.stop="addColumnDropdown = true"
+            >
+              <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
+                <div class="h-full w-[60px] flex items-center justify-center">
+                  <MdiPlus class="text-sm nc-column-add" />
+                </div>
+
+                <template #overlay>
+                  <SmartsheetColumnEditOrAddProvider
+                    v-if="addColumnDropdown"
+                    @submit="addColumnDropdown = false"
+                    @cancel="addColumnDropdown = false"
+                    @click.stop
+                    @keydown.stop
+                  />
+                </template>
+              </a-dropdown>
+            </th>
+          </tr>
           </thead>
           <tbody>
-            <SmartsheetRow v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
-              <template #default="{ state }">
-                <tr class="nc-grid-row">
-                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
-                    <div class="items-center flex gap-1 min-w-[55px]">
-                      <div
-                        v-if="!readOnly || !isLocked"
-                        class="nc-row-no text-xs text-gray-500"
-                        :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
-                      >
-                        {{ rowIndex + 1 }}
-                      </div>
-                      <div
-                        v-if="!readOnly"
-                        :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
-                        class="nc-row-expand-and-checkbox"
-                      >
-                        <a-checkbox v-model:checked="row.rowMeta.selected" />
-                      </div>
-                      <span class="flex-1" />
-                      <div v-if="!readOnly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
+          <SmartsheetRow ref="rowRefs" v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
+            <template #default="{ state }">
+              <tr class="nc-grid-row">
+                <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
+                  <div class="items-center flex gap-1 min-w-[55px]">
+                    <div
+                      v-if="!readOnly || !isLocked"
+                      class="nc-row-no text-xs text-gray-500"
+                      :class="{ toggle: !readOnly, hidden: row.rowMeta.selected }"
+                    >
+                      {{ rowIndex + 1 }}
+                    </div>
+                    <div
+                      v-if="!readOnly"
+                      :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
+                      class="nc-row-expand-and-checkbox"
+                    >
+                      <a-checkbox v-model:checked="row.rowMeta.selected" />
+                    </div>
+                    <span class="flex-1" />
+                    <div v-if="!readOnly && !isLocked" class="nc-expand"
+                         :class="{ 'nc-comment': row.rowMeta?.commentCount }">
                         <span
                           v-if="row.rowMeta?.commentCount"
                           class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
@@ -428,87 +453,87 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
                         >
                           {{ row.rowMeta.commentCount }}
                         </span>
-                        <div
-                          v-else
-                          class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
-                        >
-                          <MdiArrowExpand
-                            v-t="['c:row-expand']"
-                            class="select-none transform hover:(text-accent scale-120) nc-row-expand"
-                            @click="expandForm(row, state)"
-                          />
-                        </div>
+                      <div
+                        v-else
+                        class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
+                      >
+                        <MdiArrowExpand
+                          v-t="['c:row-expand']"
+                          class="select-none transform hover:(text-accent scale-120) nc-row-expand"
+                          @click="expandForm(row, state)"
+                        />
                       </div>
                     </div>
-                  </td>
-                  <td
-                    v-for="(columnObj, colIndex) of fields"
-                    :ref="cellRefs.set"
-                    :key="columnObj.id"
-                    class="cell relative cursor-pointer nc-grid-cell"
-                    :class="{
+                  </div>
+                </td>
+                <td
+                  v-for="(columnObj, colIndex) of fields"
+                  :ref="cellRefs.set"
+                  :key="columnObj.id"
+                  class="cell relative cursor-pointer nc-grid-cell"
+                  :class="{
                       active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex,
                     }"
-                    :data-key="rowIndex + columnObj.id"
-                    :data-col="columnObj.id"
-                    :data-title="columnObj.title"
-                    @click="selectCell(rowIndex, colIndex)"
-                    @dblclick="makeEditable(row, columnObj)"
-                    @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
-                  >
-                    <div class="w-full h-full">
-                      <SmartsheetVirtualCell
-                        v-if="isVirtualCol(columnObj)"
-                        v-model="row.row[columnObj.title]"
-                        :column="columnObj"
-                        :active="selected.col === colIndex && selected.row === rowIndex"
-                        :row="row"
-                        @navigate="onNavigate"
-                      />
+                  :data-key="rowIndex + columnObj.id"
+                  :data-col="columnObj.id"
+                  :data-title="columnObj.title"
+                  @click="selectCell(rowIndex, colIndex)"
+                  @dblclick="makeEditable(row, columnObj)"
+                  @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
+                >
+                  <div class="w-full h-full">
+                    <SmartsheetVirtualCell
+                      v-if="isVirtualCol(columnObj)"
+                      v-model="row.row[columnObj.title]"
+                      :column="columnObj"
+                      :active="selected.col === colIndex && selected.row === rowIndex"
+                      :row="row"
+                      @navigate="onNavigate"
+                    />
 
-                      <SmartsheetCell
-                        v-else
-                        v-model="row.row[columnObj.title]"
-                        :column="columnObj"
-                        :edit-enabled="
+                    <SmartsheetCell
+                      v-else
+                      v-model="row.row[columnObj.title]"
+                      :column="columnObj"
+                      :edit-enabled="
                           isUIAllowed('xcDatatableEditable') &&
                           editEnabled &&
                           selected.col === colIndex &&
                           selected.row === rowIndex
                         "
-                        :row-index="rowIndex"
-                        :active="selected.col === colIndex && selected.row === rowIndex"
-                        @update:edit-enabled="editEnabled = false"
-                        @save="updateOrSaveRow(row, columnObj.title)"
-                        @navigate="onNavigate"
-                        @cancel="editEnabled = false"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              </template>
-            </SmartsheetRow>
+                      :row-index="rowIndex"
+                      :active="selected.col === colIndex && selected.row === rowIndex"
+                      @update:edit-enabled="editEnabled = false"
+                      @save="updateOrSaveRow(row, columnObj.title)"
+                      @navigate="onNavigate"
+                      @cancel="editEnabled = false"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </SmartsheetRow>
 
-            <!--
-      TODO: add relationType !== 'bt' ?
-      v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
-    -->
-            <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable') && !isSqlView">
-              <td
-                v-t="['c:row:add:grid-bottom']"
-                :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell cursor-pointer"
-                @click="addEmptyRow()"
-              >
-                <div class="px-2 w-full flex items-center text-gray-500">
-                  <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
+          <!--
+    TODO: add relationType !== 'bt' ?
+    v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
+  -->
+          <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable') && !isSqlView">
+            <td
+              v-t="['c:row:add:grid-bottom']"
+              :colspan="visibleColLength + 1"
+              class="text-left pointer nc-grid-add-new-cell cursor-pointer"
+              @click="addEmptyRow()"
+            >
+              <div class="px-2 w-full flex items-center text-gray-500">
+                <MdiPlus class="text-pint-500 text-xs ml-2 text-primary" />
 
-                  <span class="ml-1">
+                <span class="ml-1">
                     {{ $t('activity.addRow') }}
                   </span>
-                </div>
-              </td>
-            </tr>
+              </div>
+            </td>
+          </tr>
           </tbody>
         </table>
 

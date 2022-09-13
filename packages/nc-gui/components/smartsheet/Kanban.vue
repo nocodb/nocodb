@@ -173,18 +173,14 @@ openNewRecordFormHook?.on(async () => {
             class="nc-kanban-stack mx-4 !bg-[#f0f2f5] flex flex-col min-w-[280px] h-full rounded-[12px]"
             :class="{ 'not-draggable': stack.id === 'uncategorized' }"
             head-style="padding-bottom: 0px;"
-            body-style="padding: 0px 20px; height: 100%;"
+            body-style="padding: 0px; height: 100%;"
           >
+            <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[20px]"></div>
             <a-skeleton v-if="!formattedData" />
-            <a-layout v-else>
+            <a-layout class="px-[20px] !bg-[#f0f2f5]" v-else>
               <a-layout-header>
                 <div class="nc-kanban-stack-head justify-center w-full items-center flex">
-                  <div v-if="stack.order === 0" class="text-slate-500 font-bold">{{ stack.title }}</div>
-                  <div v-else>
-                    <a-tag class="!rounded-[12px]" :color="stack.color">
-                      <span class="text-slate-500">{{ stack.title }}</span>
-                    </a-tag>
-                  </div>
+                  <div class="text-slate-500 font-bold">{{ stack.title }}</div>
                 </div>
               </a-layout-header>
               <a-layout-content class="overflow-y-hidden">

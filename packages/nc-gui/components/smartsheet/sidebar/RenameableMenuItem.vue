@@ -1,19 +1,19 @@
 <script lang="ts" setup>
-import type { ViewTypes } from 'nocodb-sdk'
+import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { viewIcons } from '~/utils'
-import { IsLockedInj, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
+import type { WritableComputedRef } from '@vue/reactivity'
+import { IsLockedInj, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel, viewIcons } from '#imports'
 
 interface Props {
-  view: Record<string, any>
-  onValidate: (view: Record<string, any>) => boolean | string
+  view: ViewType
+  onValidate: (view: ViewType) => boolean | string
 }
 
 interface Emits {
   (event: 'update:view', data: Record<string, any>): void
   (event: 'changeView', view: Record<string, any>): void
-  (event: 'rename', view: Record<string, any>): void
-  (event: 'delete', view: Record<string, any>): void
+  (event: 'rename', view: ViewType): void
+  (event: 'delete', view: ViewType): void
   (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
 }
 
@@ -21,7 +21,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const vModel = useVModel(props, 'view', emits)
+const vModel = useVModel(props, 'view', emits) as WritableComputedRef<any>
 
 const { $e } = useNuxtApp()
 
@@ -92,7 +92,7 @@ function focusInput(el: HTMLInputElement) {
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
 function onDuplicate() {
-  emits('openModal', { type: vModel.value.type, title: vModel.value.title, copyViewId: vModel.value.id })
+  emits('openModal', { type: vModel.value.type!, title: vModel.value.title, copyViewId: vModel.value.id })
 
   $e('c:view:copy', { view: vModel.value.type })
 }
@@ -129,7 +129,7 @@ async function onRename() {
 function onCancel() {
   if (!isEditing) return
 
-  vModel.value.title = originalTitle
+  vModel.value.title = originalTitle || ''
   onStopEdit()
 }
 
@@ -161,7 +161,7 @@ function onStopEdit() {
         <component
           :is="viewIcons[vModel.type].icon"
           class="nc-view-icon group-hover:hidden"
-          :style="{ color: viewIcons[vModel?.type]?.color }"
+          :style="{ color: viewIcons[vModel.type].color }"
         />
       </div>
 

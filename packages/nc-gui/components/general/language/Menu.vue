@@ -38,6 +38,12 @@ async function changeLanguage(lang: string) {
 onMounted(() => {
   applyDirection()
 })
+
+defineExpose({
+  languages,
+  currentLang,
+  changeLanguage,
+})
 </script>
 
 <template>

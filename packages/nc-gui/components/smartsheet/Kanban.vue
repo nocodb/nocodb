@@ -37,6 +37,7 @@ const {
   kanbanMetaData,
   formattedData,
   updateOrSaveRow,
+  updateKanbanMeta,
   addEmptyRow,
   groupingFieldColOptions,
   groupingField,
@@ -113,6 +114,27 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
   }
 }
 
+/** Block dragging the stack to first index (reserved for Uncategorized) **/
+function onMoveCallback(event: any) {
+  if (event.draggedContext.futureIndex === 0) {
+    return false
+  }
+}
+
+async function onMoveStack(event: any) {
+  if (event.moved) {
+    const { oldIndex, newIndex } = event.moved
+    const { grp_column_id, stack_meta } = kanbanMetaData.value
+    groupingFieldColOptions.value[oldIndex].order = newIndex
+    groupingFieldColOptions.value[newIndex].order = oldIndex
+    const stackMetaObj = JSON.parse(stack_meta as string) || {}
+    stackMetaObj[grp_column_id as string] = groupingFieldColOptions.value
+    await updateKanbanMeta({
+      stack_meta: stackMetaObj,
+    })
+  }
+}
+
 async function onMove(event: any, stackKey: string) {
   if (event.added) {
     const ele = event.added.element
@@ -142,6 +164,8 @@ openNewRecordFormHook?.on(async () => {
         group="kanban-stack"
         draggable=".nc-kanban-stack"
         filter=".not-draggable"
+        :move="onMoveCallback"
+        @change="onMoveStack($event)"
       >
         <template #item="{ element: stack, index }">
           <a-card

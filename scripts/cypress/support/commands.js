@@ -283,7 +283,7 @@ Cypress.Commands.add('printLocalStorage', () => {
 });
 
 Cypress.Commands.add('getActiveModal', (wrapperSelector) => {
-  if(wrapperSelector){
+  if (wrapperSelector) {
     return cy.get(`${wrapperSelector} .ant-modal-content:visible`).last();
   }
   return cy.get('.ant-modal-content:visible').last();
@@ -301,20 +301,23 @@ Cypress.Commands.add('getActivePopUp', () => {
 });
 
 Cypress.Commands.add('getActiveSelection', (selector) => {
-  if(selector) {
+  if (selector) {
     return cy.get(`${selector}.ant-select-dropdown:visible`).last();
   }
   return cy.get('.ant-select-dropdown:visible').last();
 });
 
 Cypress.Commands.add('getActiveDrawer', (selector) => {
-  if(selector) {
+  if (selector) {
     return cy.get(`${selector} .ant-drawer-content:visible`).last();
   }
   return cy.get('.ant-drawer-content:visible').last();
 });
 
-Cypress.Commands.add('getActivePicker', () => {
+Cypress.Commands.add('getActivePicker', (dropdownSelector) => {
+  if (dropdownSelector) {
+    return cy.get(`${dropdownSelector}.ant-drawer-content:visible`).last();
+  }
   return cy.get('.ant-picker-dropdown :visible').last();
 });
 

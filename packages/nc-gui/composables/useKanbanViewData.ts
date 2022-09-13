@@ -52,25 +52,6 @@ export function useKanbanViewData(
     // reset formattedData to avoid storing previous data after changing grouping field
     formattedData.value = {}
 
-    const { grp_column_id, stack_meta } = kanbanMetaData.value
-
-    const stackMetaObj = JSON.parse(stack_meta as string) || {}
-
-    // build stack meta
-    groupingFieldColOptions.value = [
-      ...(groupingFieldColumn.value?.colOptions?.options ?? []),
-      // enrich uncategorized stack
-      { id: 'uncategorized', title: 'Uncategorized', order: 0, color: enumColor.light[2] },
-    ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
-
-    // if grouping column id is present, add the grouping field column options to stackMetaObj
-    if (grp_column_id) {
-      stackMetaObj[grp_column_id] = groupingFieldColOptions.value
-      await updateKanbanMeta({
-        stack_meta: stackMetaObj,
-      })
-    }
-
     await Promise.all(
       groupingFieldColOptions.value.map(async (option) => {
         let where = `(${groupingField.value},eq,${option.title})`
@@ -94,6 +75,50 @@ export function useKanbanViewData(
     // set groupingField
     groupingFieldColumn.value = meta?.value?.columns?.filter((f) => f.id === kanbanMetaData?.value?.grp_column_id)[0] || {}
     groupingField.value = groupingFieldColumn.value?.title as string
+
+    const { grp_column_id, stack_meta } = kanbanMetaData.value
+
+    const stackMetaObj = stack_meta ? JSON.parse(stack_meta as string) : {}
+
+    if (stackMetaObj && grp_column_id && stackMetaObj[grp_column_id] && groupingFieldColumn.value?.colOptions?.options) {
+      // keep the existing order (index of the array) but update the values
+      for (const option of groupingFieldColumn.value.colOptions.options) {
+        const idx = stackMetaObj[grp_column_id].findIndex((ele: Record<string, any>) => ele.id === option.id)
+        if (idx !== -1) {
+          // update the option in stackMetaObj
+          stackMetaObj[grp_column_id][idx] = option
+        } else {
+          // new option found
+          const len = stackMetaObj[grp_column_id].length
+          stackMetaObj[grp_column_id][len] = option
+        }
+      }
+      // handle deleted options
+      const columnOptionIds = groupingFieldColumn.value.colOptions.options.map(({ id }) => id)
+      stackMetaObj[grp_column_id]
+        .filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
+        .forEach(({ id }) => {
+          const idx = stackMetaObj[grp_column_id].map((ele: Record<string, any>) => ele.id).indexOf(id)
+          if (idx !== -1) {
+            stackMetaObj[grp_column_id].splice(idx, 1)
+          }
+        })
+      groupingFieldColOptions.value = stackMetaObj[grp_column_id]
+    } else {
+      // build stack meta
+      groupingFieldColOptions.value = [
+        ...(groupingFieldColumn.value?.colOptions?.options ?? []),
+        // enrich uncategorized stack
+        { id: 'uncategorized', title: 'Uncategorized', order: 0, color: enumColor.light[2] },
+      ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
+    }
+    // if grouping column id is present, add the grouping field column options to stackMetaObj
+    if (grp_column_id) {
+      stackMetaObj[grp_column_id] = groupingFieldColOptions.value
+      await updateKanbanMeta({
+        stack_meta: stackMetaObj,
+      })
+    }
   }
 
   async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
@@ -102,7 +127,6 @@ export function useKanbanViewData(
       ...kanbanMetaData.value,
       ...updateObj,
     })
-    await loadKanbanMeta()
   }
 
   async function insertRow(row: Record<string, any>, rowIndex = formattedData.value.uncatgorized?.length) {
@@ -188,8 +212,6 @@ export function useKanbanViewData(
 
     return formattedData.value.Uncategorized[addAfter]
   }
-
-  watch(groupingField, async () => await loadKanbanData())
 
   return {
     loadKanbanData,

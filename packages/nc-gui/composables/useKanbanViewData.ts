@@ -9,13 +9,12 @@ import { useNuxtApp } from '#app'
 export function useKanbanViewData(
   meta: Ref<TableType> | ComputedRef<TableType> | undefined,
   viewMeta: Ref<ViewType & { id: string }> | ComputedRef<ViewType & { id: string }> | undefined,
-  where?: ComputedRef<string | undefined>,
 ) {
   const { t } = useI18n()
   const isPublic = inject(IsPublicInj, ref(false))
   const { api } = useApi()
   const { project } = useProject()
-  const { $api, $e } = useNuxtApp()
+  const { $api } = useNuxtApp()
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
   const { isUIAllowed } = useUIPermission()
   const groupingFieldColOptions = useState<Record<string, any>[]>('KanbanGroupingFieldColOptions', () => [])
@@ -190,7 +189,7 @@ export function useKanbanViewData(
     return formattedData.value.Uncategorized[addAfter]
   }
 
-  watch(groupingField, async (v) => await loadKanbanData())
+  watch(groupingField, async () => await loadKanbanData())
 
   return {
     loadKanbanData,

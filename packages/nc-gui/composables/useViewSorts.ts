@@ -1,12 +1,9 @@
-import type { GalleryType, GridType, KanbanType, SortType } from 'nocodb-sdk'
+import type { SortType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { IsPublicInj, ReloadViewDataHookInj, extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 
-export function useViewSorts(
-  view: Ref<(GridType | KanbanType | GalleryType) & { id?: string }> | undefined,
-  reloadData?: () => void,
-) {
+export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
   const { sharedView } = useSharedView()
   const { sorts } = useSmartsheetStoreOrThrow()
 
@@ -49,7 +46,7 @@ export function useViewSorts(
           await $api.dbTableSort.update(sort.id, sort)
           $e('sort-updated')
         } else {
-          sorts.value[i] = (await $api.dbTableSort.create(view?.value.id as string, sort)) as unknown as SortType
+          sorts.value[i] = (await $api.dbTableSort.create(view.value?.id as string, sort)) as unknown as SortType
         }
       }
       reloadData?.()

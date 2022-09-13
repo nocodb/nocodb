@@ -2,8 +2,6 @@
 import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import {
   ActiveViewInj,
   IsFormInj,
@@ -18,12 +16,14 @@ import {
   ref,
   useDebounceFn,
   useGlobal,
+  useI18n,
   useNuxtApp,
   useUIPermission,
   useViewColumns,
   useViewData,
   watch,
 } from '#imports'
+import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
@@ -45,11 +45,11 @@ const secondsRemain = ref(0)
 
 const isEditable = isUIAllowed('editFormView' as Permission)
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
-const view = inject(ActiveViewInj)
+const view = inject(ActiveViewInj, ref())
 
-const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view as any)
+const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
 
 const reloadEventHook = createEventHook<void>()
 provide(ReloadViewDataHookInj, reloadEventHook)
@@ -308,7 +308,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
 function updateEmail() {
   try {
-    const data = JSON.parse(formViewData.value?.email) || {}
+    const data = formViewData.value?.email ? JSON.parse(formViewData.value?.email) : {}
     data[state.user.value?.email as string] = emailMe.value
     formViewData.value!.email = JSON.stringify(data)
     checkSMTPStatus()

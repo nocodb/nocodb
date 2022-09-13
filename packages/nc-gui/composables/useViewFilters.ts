@@ -16,7 +16,7 @@ import {
 import type { Filter } from '~/lib'
 
 export function useViewFilters(
-  view: Ref<ViewType> | undefined,
+  view: Ref<ViewType | undefined>,
   parentId?: string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
@@ -75,7 +75,7 @@ export function useViewFilters(
         if (parentId) {
           filters.value = await $api.dbTableFilter.childrenRead(parentId)
         } else {
-          filters.value = await $api.dbTableFilter.read(view!.value.id!)
+          filters.value = await $api.dbTableFilter.read(view.value!.id!)
         }
       }
     } catch (e: any) {

@@ -12,14 +12,14 @@ const useForm = Form.useForm
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState(
-  (meta: Ref<TableType>, column?: Ref<ColumnType>) => {
+  (meta: Ref<TableType | undefined>, column: Ref<ColumnType | undefined>) => {
     const { sqlUi } = useProject()
     const { $api } = useNuxtApp()
     const { getMeta } = useMetas()
     const { t } = useI18n()
     const { $e } = useNuxtApp()
 
-    const isEdit = computed(() => !!column?.value?.id)
+    const isEdit = computed(() => !!column.value?.id)
 
     const idType = null
 
@@ -32,7 +32,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const formState = ref<Record<string, any>>({
       title: 'title',
       uidt: UITypes.SingleLineText,
-      ...clone(column?.value || {}),
+      ...clone(column.value || {}),
     })
 
     // actions
@@ -101,8 +101,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       formState.value.dtxs = sqlUi.value.getDefaultScaleForDatatype(formState.value.dt)
 
       const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
-      if (column && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column?.value?.uidt as UITypes)) {
-        formState.value.dtxp = column?.value?.dtxp
+      if (column && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column.value?.uidt as UITypes)) {
+        formState.value.dtxp = column.value?.dtxp
       }
 
       if (columnToValidate.includes(formState.value.uidt)) {
@@ -112,7 +112,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
 
       if (isCurrency.value) {
-        if (column?.value?.uidt === UITypes.Currency) {
+        if (column.value?.uidt === UITypes.Currency) {
           formState.value.dtxp = column.value.dtxp
           formState.value.dtxs = column.value.dtxs
         } else {
@@ -140,12 +140,12 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       formState.value.dtx = 'specificType'
 
       const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
-      if (column?.value && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column?.value.uidt as UITypes)) {
-        formState.value.dtxp = column?.value.dtxp
+      if (column.value && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column.value.uidt as UITypes)) {
+        formState.value.dtxp = column.value.dtxp
       }
 
       if (isCurrency.value) {
-        if (column?.value?.uidt === UITypes.Currency) {
+        if (column.value?.uidt === UITypes.Currency) {
           formState.value.dtxp = column.value.dtxp
           formState.value.dtxs = column.value.dtxs
         } else {
@@ -177,10 +177,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
 
       try {
-        formState.value.table_name = meta.value.table_name
+        formState.value.table_name = meta.value?.table_name
         // formState.value.title = formState.value.column_name
-        if (column?.value) {
-          await $api.dbTableColumn.update(column?.value?.id as string, formState.value)
+        if (column.value) {
+          await $api.dbTableColumn.update(column.value?.id as string, formState.value)
           // Column updated
           message.success(t('msg.success.columnUpdated'))
         } else {
@@ -193,10 +193,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             //   };
             // }
           }
-          await $api.dbTableColumn.create(meta.value.id as string, formState.value)
+          await $api.dbTableColumn.create(meta.value?.id as string, formState.value)
 
           /** if LTAR column then force reload related table meta */
-          if (formState.value.uidt === UITypes.LinkToAnotherRecord && meta.value.id !== formState.value.childId) {
+          if (formState.value.uidt === UITypes.LinkToAnotherRecord && meta.value?.id !== formState.value.childId) {
             getMeta(formState.value.childId, true).then(() => {})
           }
 

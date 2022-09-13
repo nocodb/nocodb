@@ -2,8 +2,7 @@
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { toRef } from 'vue'
-import { ColumnInj } from '~/context'
+import { ColumnInj, toRef } from '#imports'
 import GenericIcon from '~icons/mdi/square-rounded'
 import HMIcon from '~icons/mdi/table-arrow-right'
 import BTIcon from '~icons/mdi/table-arrow-left'
@@ -25,9 +24,9 @@ if (column) {
   const { isLookup, isBt, isRollup, isMm, isHm } = useVirtualCell(column as Ref<ColumnType>)
 
   if (isLookup || isBt || isRollup || isMm || isHm) {
-    const meta = inject(MetaInj)
+    const meta = inject(MetaInj, ref())
 
-    relationColumn = meta?.value.columns?.find((c) => c.id === column.value?.colOptions?.fk_relation_column_id) as ColumnType & {
+    relationColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_relation_column_id) as ColumnType & {
       colOptions: LinkToAnotherRecordType
     }
   }

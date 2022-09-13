@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
   IsLockedInj,
@@ -8,13 +7,14 @@ import {
   extractSdkResponseErrorMsg,
   inject,
   ref,
+  useI18n,
   useNuxtApp,
   useProject,
   useSmartsheetStoreOrThrow,
   useUIPermission,
+  viewIcons,
 } from '#imports'
 import { LockType } from '~/lib'
-import { viewIcons } from '~/utils'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'

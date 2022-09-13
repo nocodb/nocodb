@@ -27,7 +27,7 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.27.2",
     "body-parser": "^1.19.0",
     "dayjs": "^1.10.4",
     "express": "^4.17.1",

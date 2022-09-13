@@ -5,6 +5,7 @@ import AppStore from './AppStore.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Misc from './Misc.vue'
+import Erd from './Erd.vue'
 import { useNuxtApp } from '#app'
 import { useI18n, useUIPermission, useVModel, watch } from '#imports'
 import ApiTokenManagement from '~/components/tabs/auth/ApiTokenManagement.vue'
@@ -111,6 +112,10 @@ const tabsInfo: TabGroup = {
       misc: {
         title: t('general.misc'),
         body: Misc,
+      },
+      erd: {
+        title: t('title.erd'),
+        body: Erd,
       },
     },
     onClick: () => {

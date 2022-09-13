@@ -15,12 +15,14 @@
     "postinstall": "node scripts/updateNuxtRouting.js"
   },
   "dependencies": {
+    "@braks/vue-flow": "^0.4.39",
     "@ckpack/vue-color": "^1.2.0",
     "@vuelidate/core": "^2.0.0-alpha.44",
     "@vuelidate/validators": "^2.0.0-alpha.31",
     "@vueuse/core": "^9.0.2",
     "@vueuse/integrations": "^9.0.2",
     "ant-design-vue": "^3.2.11",
+    "dagre": "^0.8.5",
     "dayjs": "^1.11.3",
     "file-saver": "^2.0.5",
     "httpsnippet": "^2.0.0",
@@ -37,6 +39,7 @@
     "tinycolor2": "^1.4.2",
     "unique-names-generator": "^4.7.1",
     "vue-dompurify-html": "^3.0.0",
+    "vue-flow": "^0.3.0",
     "vue-github-button": "^3.0.3",
     "vue-i18n": "^9.2.2",
     "vuedraggable": "^4.1.0",

@@ -282,7 +282,10 @@ Cypress.Commands.add('printLocalStorage', () => {
   cy.task('log', JSON.stringify(LOCAL_STORAGE_MEMORY, null, 2));
 });
 
-Cypress.Commands.add('getActiveModal', () => {
+Cypress.Commands.add('getActiveModal', (wrapperSelector) => {
+  if(wrapperSelector){
+    return cy.get(`${wrapperSelector} .ant-modal-content:visible`).last();
+  }
   return cy.get('.ant-modal-content:visible').last();
 });
 
@@ -320,12 +323,12 @@ Cypress.Commands.add('createTable', (name) => {
   cy.wait(1000);
   cy.get('.nc-add-new-table').should('exist').click();
   cy.wait(1000);
-  cy.getActiveModal().find(`input[type="text"]:visible`)
+  cy.getActiveModal('.nc-modal-table-create').find(`input[type="text"]:visible`)
     .click()
     .clear()
     .type(name);
   // submit button
-  cy.getActiveModal().find('button.ant-btn-primary:visible').click();
+  cy.getActiveModal('.nc-modal-table-create').find('button.ant-btn-primary:visible').click();
   cy.wait(1000);
   cy.get('.xc-row-table.nc-grid').should('exist');
   // cy.get('.ant-tabs-tab-active > .ant-tabs-tab-btn').contains(name).should("exist");

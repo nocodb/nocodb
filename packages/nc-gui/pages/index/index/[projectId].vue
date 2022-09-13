@@ -95,7 +95,7 @@ onMounted(async () => {
       </a-form-item>
 
       <div class="text-center">
-        <button v-t="['a:project:edit:rename']" type="submit" class="submit">
+        <button v-e="['a:project:edit:rename']" type="submit" class="submit">
           <span class="flex items-center gap-2">
             <MaterialSymbolsRocketLaunchOutline />
             {{ $t('general.edit') }}

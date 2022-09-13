@@ -39,7 +39,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
         >
           <MdiMenu
-            v-t="['c:grid:toggle-navdraw']"
+            v-e="['c:grid:toggle-navdraw']"
             class="cursor-pointer transform transition-transform duration-500 text-white"
             :class="{ 'rotate-180': !isOpen }"
             @click="toggle(!isOpen)"

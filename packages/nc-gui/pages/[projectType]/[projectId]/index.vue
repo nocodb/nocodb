@@ -177,7 +177,7 @@ if (type && name) {
         >
           <div
             v-if="isOpen && !isSharedBase"
-            v-t="['c:navbar:home']"
+            v-e="['c:navbar:home']"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
             @click="navigateTo('/')"
           >
@@ -245,7 +245,7 @@ if (type && name) {
                     <!-- Copy Project Info -->
                     <a-menu-item key="copy">
                       <div
-                        v-t="['c:navbar:user:copy-proj-info']"
+                        v-e="['c:navbar:user:copy-proj-info']"
                         class="nc-project-menu-item group"
                         @click.stop="copyProjectInfo"
                       >
@@ -260,7 +260,7 @@ if (type && name) {
                     <a-menu-item key="api">
                       <div
                         v-if="isUIAllowed('apiDocs')"
-                        v-t="['e:api-docs']"
+                        v-e="['e:api-docs']"
                         class="nc-project-menu-item group"
                         @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                       >
@@ -271,7 +271,7 @@ if (type && name) {
 
                     <!-- Copy Auth Token -->
                     <a-menu-item key="copy">
-                      <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                      <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
                         <MdiScriptTextKeyOutline class="group-hover:text-accent" />
                         {{ $t('activity.account.authToken') }}
                       </div>
@@ -283,7 +283,7 @@ if (type && name) {
                     <a-menu-item key="teamAndSettings">
                       <div
                         v-if="isUIAllowed('settings')"
-                        v-t="['c:navdraw:project-settings']"
+                        v-e="['c:navdraw:project-settings']"
                         class="nc-project-menu-item group"
                         @click="toggleDialog(true, 'teamAndAuth')"
                       >
@@ -364,7 +364,7 @@ if (type && name) {
                     <!-- Preview As -->
                     <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
                       <template #title>
-                        <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                        <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                           <MdiFileEyeOutline class="group-hover:text-accent" />
                           {{ $t('activity.previewAs') }}
 
@@ -421,7 +421,7 @@ if (type && name) {
                       <template #expandIcon></template>
 
                       <a-menu-item key="0" class="!rounded-t">
-                        <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
+                        <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
                           <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                           <span class="prose-sm">{{ email }}</span>
@@ -429,7 +429,7 @@ if (type && name) {
                       </a-menu-item>
 
                       <a-menu-item key="1" class="!rounded-b">
-                        <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                        <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
                           <MdiLogout class="group-hover:(!text-accent)" />&nbsp;
 
                           <span class="prose-sm nc-user-menu-signout">
@@ -448,7 +448,7 @@ if (type && name) {
             class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
           >
             <MdiBackburger
-              v-t="['c:grid:toggle-navdraw']"
+              v-e="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"
               :class="{ 'rotate-180': !isOpen }"
               @click="toggle(!isOpen)"

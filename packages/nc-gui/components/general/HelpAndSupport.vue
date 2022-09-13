@@ -41,7 +41,7 @@ const openSwaggerLink = () => {
         <template #before>
           <a-list-item v-if="project">
             <nuxt-link
-              v-t="['a:navbar:user:swagger']"
+              v-e="['a:navbar:user:swagger']"
               class="!no-underline !text-current py-4 font-semibold"
               target="_blank"
               @click="openSwaggerLink"

@@ -100,7 +100,7 @@ const exportFile = async (exportType: ExportTypes) => {
 <template>
   <div>
     <a-dropdown>
-      <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
+      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-1 items-center">
           <MdiFlashOutline />
 
@@ -114,13 +114,13 @@ const exportFile = async (exportType: ExportTypes) => {
       <template #overlay>
         <div class="bg-gray-50 py-2 shadow-lg !border">
           <div>
-            <div v-t="['a:actions:download-csv']" class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
+            <div v-e="['a:actions:download-csv']" class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
               <MdiDownloadOutline class="text-gray-500" />
               <!-- Download as CSV -->
               {{ $t('activity.downloadCSV') }}
             </div>
 
-            <div v-t="['a:actions:download-excel']" class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)">
+            <div v-e="['a:actions:download-excel']" class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)">
               <MdiDownloadOutline class="text-gray-500" />
               <!-- Download as XLSX -->
               {{ $t('activity.downloadExcel') }}
@@ -128,7 +128,7 @@ const exportFile = async (exportType: ExportTypes) => {
 
             <div
               v-if="isUIAllowed('csvImport') && !isView && !isPublicView"
-              v-t="['a:actions:upload-csv']"
+              v-e="['a:actions:upload-csv']"
               class="nc-menu-item"
               :class="{ disabled: isLocked }"
               @click="!isLocked ? (quickImportDialog = true) : {}"
@@ -140,7 +140,7 @@ const exportFile = async (exportType: ExportTypes) => {
 
             <div
               v-if="isUIAllowed('sharedViewList') && !isView && !isPublicView"
-              v-t="['a:actions:shared-view-list']"
+              v-e="['a:actions:shared-view-list']"
               class="nc-menu-item"
               @click="sharedViewListDlg = true"
             >
@@ -150,7 +150,7 @@ const exportFile = async (exportType: ExportTypes) => {
             </div>
             <div
               v-if="isUIAllowed('webhook') && !isView && !isPublicView"
-              v-t="['c:actions:webhook']"
+              v-e="['c:actions:webhook']"
               class="nc-menu-item"
               @click="showWebhookDrawer = true"
             >

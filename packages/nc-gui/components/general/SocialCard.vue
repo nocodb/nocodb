@@ -13,7 +13,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
 
       <a-list-item>
         <nuxt-link
-          v-t="['e:docs']"
+          v-e="['e:docs']"
           class="text-primary !no-underline !text-current"
           target="_blank"
           to="https://docs.nocodb.com/"
@@ -26,7 +26,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
       </a-list-item>
       <a-list-item>
         <nuxt-link
-          v-t="['e:api-docs']"
+          v-e="['e:api-docs']"
           class="text-primary !no-underline !text-current"
           target="_blank"
           to="https://apis.nocodb.com/"
@@ -40,7 +40,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
       </a-list-item>
       <a-list-item>
         <nuxt-link
-          v-t="['e:community:github']"
+          v-e="['e:community:github']"
           class="text-primary !no-underline !text-current"
           to="https://github.com/nocodb/nocodb"
           target="_blank"
@@ -66,7 +66,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
       </a-list-item>
       <a-list-item>
         <nuxt-link
-          v-t="['e:community:book-demo']"
+          v-e="['e:community:book-demo']"
           class="!no-underline !text-current"
           to="https://calendly.com/nocodb-meeting"
           target="_blank"
@@ -82,7 +82,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
       </a-list-item>
       <a-list-item>
         <nuxt-link
-          v-t="['e:community:discord']"
+          v-e="['e:community:discord']"
           class="!no-underline !text-current"
           to="https://discord.gg/5RgZmkW"
           target="_blank"
@@ -98,7 +98,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
       </a-list-item>
       <a-list-item>
         <nuxt-link
-          v-t="['e:community:twitter']"
+          v-e="['e:community:twitter']"
           class="!no-underline !text-current"
           to="https://twitter.com/NocoDB"
           target="_blank"
@@ -113,7 +113,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
         </nuxt-link>
       </a-list-item>
       <a-list-item>
-        <nuxt-link v-t="['e:hiring']" class="!no-underline !text-current" target="_blank" to="http://careers.nocodb.com">
+        <nuxt-link v-e="['e:hiring']" class="!no-underline !text-current" target="_blank" to="http://careers.nocodb.com">
           <div class="flex items-center text-sm">
             <!--            todo:  i18n -->
             <div class="ml-3">
@@ -124,7 +124,7 @@ const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
       </a-list-item>
       <a-list-item>
         <nuxt-link
-          v-t="['e:community:reddit']"
+          v-e="['e:community:reddit']"
           class="!no-underline !text-current"
           target="_blank"
           to="https://www.reddit.com/r/NocoDB/"

@@ -1,6 +1,6 @@
 <template>
   <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
-    <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
+    <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
       <div class="flex gap-2 items-center">
         <MdiDownload class="group-hover:text-accent text-gray-500" />
         <span class="text-capitalize !text-sm font-weight-normal">Download</span>

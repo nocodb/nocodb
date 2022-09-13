@@ -10,6 +10,7 @@ export default class KanbanView implements KanbanType {
   project_id?: string;
   base_id?: string;
   grp_column_id?: string;
+  stack_meta?: string | object;
 
   // TODO: check these
   show: boolean;
@@ -70,7 +71,11 @@ export default class KanbanView implements KanbanType {
     const key = `${CacheScope.KANBAN_VIEW}:${kanbanId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     const updateObj = {
-      grp_column_id: body.grp_column_id,
+      ...body,
+      stack_meta:
+        typeof body.stack_meta === 'string'
+          ? body.stack_meta
+          : JSON.stringify(body.stack_meta),
     };
     if (o) {
       o = { ...o, ...updateObj };

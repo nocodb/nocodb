@@ -33,6 +33,8 @@ let showShareModel = $ref(false)
 
 const passwordProtected = ref(false)
 
+const surveyMode = ref(false)
+
 const shared = ref()
 
 const allowCSVDownload = computed({
@@ -47,17 +49,21 @@ const allowCSVDownload = computed({
 })
 
 const genShareLink = async () => {
-  shared.value = await $api.dbViewShare.create(view.value?.id as string)
+  if (!view.value.id) return
+
+  shared.value = await $api.dbViewShare.create(view.value?.id)
   shared.value.meta =
     shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
+
   passwordProtected.value = shared.value.password !== null && shared.value.password !== ''
+
   showShareModel = true
 }
 
 const sharedViewUrl = computed(() => {
   if (!shared.value) return
-  let viewType
 
+  let viewType
   switch (shared.value.type) {
     case ViewTypes.FORM:
       viewType = 'form'
@@ -69,7 +75,7 @@ const sharedViewUrl = computed(() => {
       viewType = 'view'
   }
 
-  return `${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}`
+  return `${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}${surveyMode.value ? '?survey=1' : ''}`
 })
 
 async function saveAllowCSVDownload() {
@@ -105,9 +111,12 @@ const saveShareLinkPassword = async () => {
 }
 
 const copyLink = () => {
-  copy(sharedViewUrl?.value as string)
-  // Copied to clipboard
-  message.success(t('msg.info.copiedToClipboard'))
+  if (sharedViewUrl.value) {
+    copy(sharedViewUrl.value)
+
+    // Copied to clipboard
+    message.success(t('msg.info.copiedToClipboard'))
+  }
 }
 
 watch(passwordProtected, (value) => {
@@ -154,28 +163,36 @@ watch(passwordProtected, (value) => {
 
       <a-collapse ghost>
         <a-collapse-panel key="1" :header="$t('general.showOptions')">
-          <div class="mb-2">
-            <a-checkbox v-model:checked="passwordProtected" class="!text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
-
-            <div v-if="passwordProtected" class="flex gap-2 mt-2 mb-4">
-              <a-input
-                v-model:value="shared.password"
-                size="small"
-                class="!text-xs max-w-[250px]"
-                type="password"
-                :placeholder="$t('placeholder.password.enter')"
-              />
-
-              <a-button size="small" class="!text-xs" @click="saveShareLinkPassword">
-                {{ $t('placeholder.password.save') }}
-              </a-button>
+          <div class="flex flex-col gap-2">
+            <div>
+              <!-- Survey Mode; todo: i18n -->
+              <a-checkbox v-model:checked="surveyMode" class="!text-xs">Use Survey Mode </a-checkbox>
             </div>
-          </div>
-          <div>
-            <!-- Allow Download -->
-            <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="!text-xs">
-              {{ $t('labels.downloadAllowed') }}
-            </a-checkbox>
+
+            <div>
+              <!-- Password Protection -->
+              <a-checkbox v-model:checked="passwordProtected" class="!text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
+              <div v-if="passwordProtected" class="flex gap-2 mt-2 mb-4">
+                <a-input
+                  v-model:value="shared.password"
+                  size="small"
+                  class="!text-xs max-w-[250px]"
+                  type="password"
+                  :placeholder="$t('placeholder.password.enter')"/>
+
+
+                <a-button size="small" class="!text-xs" @click="saveShareLinkPassword">
+                  {{ $t('placeholder.password.save') }}
+                </a-button>
+              </div>
+            </div>
+
+            <div>
+              <!-- Allow Download -->
+              <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="!text-xs">
+                {{ $t('labels.downloadAllowed') }}
+              </a-checkbox>
+            </div>
           </div>
         </a-collapse-panel>
       </a-collapse>

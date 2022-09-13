@@ -53,7 +53,7 @@ export const genTest = (apiType, dbType) => {
               cy.get(`.nc-create-${viewType}-view`).click();
 
               // Pop up window, click Submit (accepting default name for view)
-              cy.getActiveModal().find("button:contains(Submit)").click();
+              cy.getActiveModal(".nc-modal-view-create").find("button:contains(Submit)").click();
 
               cy.toastWait("View created successfully");
 
@@ -108,7 +108,7 @@ export const genTest = (apiType, dbType) => {
                 mainPage.shareView().click();
 
                 // copy link text, visit URL
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-share-view")
                     .should('exist')
                     .find(".share-link-box")
                     .contains("/nc/form/", { timeout: 10000 })
@@ -210,7 +210,7 @@ export const genTest = (apiType, dbType) => {
                 // click on delete icon (becomes visible on hovering mouse)
                 cy.get(".nc-view-delete-icon").click({ force: true });
                 cy.wait(1000);
-                cy.getActiveModal().find('.ant-btn-dangerous').should('exist').click();
+                cy.getActiveModal(".nc-modal-view-delete").find('.ant-btn-dangerous').should('exist').click();
                 cy.toastWait("View deleted successfully");
 
                 // confirm if the number of veiw entries is reduced by 1

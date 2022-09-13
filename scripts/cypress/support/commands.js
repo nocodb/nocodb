@@ -363,10 +363,10 @@ Cypress.Commands.add('renameTable', (oldName, newName) => {
     .click({ force: true });
 
   // feed new name
-  cy.getActiveModal().find('input').clear().type(newName);
+  cy.getActiveModal(".nc-modal-table-rename").find('input').clear().type(newName);
 
   // submit
-  cy.getActiveModal().find('button').contains('Submit').click();
+  cy.getActiveModal(".nc-modal-table-rename").find('button').contains('Submit').click();
 
   cy.toastWait('Table renamed successfully');
 

@@ -556,6 +556,7 @@ onMounted(() => {
       width="600px"
       :ok-text="$t('general.ok')"
       :cancel-text="$t('general.cancel')"
+      wrap-class-name="nc-modal-connection-url"
       @ok="handleImportURL"
     >
       <a-input v-model:value="importURL" />

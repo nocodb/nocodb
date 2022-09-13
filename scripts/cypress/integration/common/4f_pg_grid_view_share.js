@@ -25,13 +25,13 @@ export const genTest = (apiType, dbType) => {
         cy.wait(5000);
         
         // wait, as URL initially will be /undefined
-        cy.getActiveModal()
+        cy.getActiveModal(".nc-modal-share-view")
             .find(".share-link-box")
             .contains("/nc/view/", { timeout: 10000 })
             .should("exist");
 
         // copy link text, visit URL
-        cy.getActiveModal()
+        cy.getActiveModal(".nc-modal-share-view")
             .find(".share-link-box")
             .contains("/nc/view/", { timeout: 10000 })
             .then(($obj) => {
@@ -75,7 +75,7 @@ export const genTest = (apiType, dbType) => {
             it(`Create ${viewType.toUpperCase()} view`, () => {
                 // create a normal public view
                 cy.get(`.nc-create-${viewType}-view`).click();
-                cy.getActiveModal().find("button:contains(Submit)").click();
+                cy.getActiveModal(".nc-modal-view-create").find("button:contains(Submit)").click();
                 cy.toastWait("View created successfully");
 
                 // store base URL- to re-visit and delete form view later

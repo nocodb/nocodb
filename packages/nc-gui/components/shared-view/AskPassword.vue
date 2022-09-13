@@ -33,6 +33,7 @@ const onFinish = async () => {
     centered
     :footer="null"
     :mask-closable="false"
+    wrap-class-name="nc-modal-shared-view-password-dlg"
     @close="vModel = false"
   >
     <div class="w-full flex flex-col">

@@ -1,4 +1,3 @@
-import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { defineNuxtConfig } from 'nuxt'
 import vueI18n from '@intlify/vite-plugin-vue-i18n'
@@ -53,7 +52,7 @@ export default defineNuxtConfig({
     },
     plugins: [
       vueI18n({
-        include: [resolve(dirname(fileURLToPath(import.meta.url)), './lang/**')],
+        include: [resolve(dirname('./lang/**'))],
         runtimeOnly: false,
       }),
       Icons({

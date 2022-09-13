@@ -206,7 +206,7 @@ openNewRecordFormHook?.on(async () => {
   bottom: 0px;
 }
 
-.ant-carousel.gallery-carousel :deep(.slick-dots li div) {
+.ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
   background: #000;
   border: 0;
   border-radius: 1px;
@@ -222,7 +222,7 @@ openNewRecordFormHook?.on(async () => {
   width: 100%;
 }
 
-.ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div) {
+.ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
   opacity: 1;
 }
 

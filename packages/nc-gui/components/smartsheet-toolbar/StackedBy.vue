@@ -47,7 +47,10 @@ const {
   metaColumnById,
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
-const { kanbanMetaData, loadKanbanMeta, loadKanbanData, groupingField } = useKanbanViewData(meta, activeView as any)
+const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewData(
+  meta,
+  activeView as any,
+)
 
 watch(
   () => (activeView.value as any)?.id,
@@ -68,12 +71,10 @@ const groupingFieldColumnId = computed({
   get: () => kanbanMetaData?.value?.grp_column_id,
   set: async (val) => {
     if (val) {
-      await $api.dbView.kanbanUpdate(activeView.value.id, {
-        ...kanbanMetaData.value,
+      await updateKanbanMeta({
         grp_column_id: val,
       })
       ;(activeView.value?.view as KanbanType).grp_column_id = val
-      await loadKanbanMeta()
     }
   },
 })

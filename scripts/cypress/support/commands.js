@@ -286,9 +286,9 @@ Cypress.Commands.add('getActiveModal', () => {
   return cy.get('.ant-modal-content:visible').last();
 });
 
-Cypress.Commands.add('getActiveMenu', (overlayClassName) => {
-  if (overlayClassName) {
-    return cy.get(`${overlayClassName} .ant-dropdown-content:visible`);
+Cypress.Commands.add('getActiveMenu', (overlaySelector) => {
+  if (overlaySelector) {
+    return cy.get(`${overlaySelector} .ant-dropdown-content:visible`);
   }
   return cy.get('.ant-dropdown-content:visible').last();
 });
@@ -297,7 +297,10 @@ Cypress.Commands.add('getActivePopUp', () => {
   return cy.get('.ant-menu-submenu-popup:visible').last();
 });
 
-Cypress.Commands.add('getActiveSelection', () => {
+Cypress.Commands.add('getActiveSelection', (selector) => {
+  if(selector) {
+    return cy.get(`${selector}.ant-select-dropdown:visible`).last();
+  }
   return cy.get('.ant-select-dropdown:visible').last();
 });
 

@@ -158,6 +158,7 @@ defineExpose({
                 placeholder="Group op"
                 @click.stop
                 @change="saveOrUpdate(filter, i)"
+                dropdown-class-name="nc-dropdown-filter-logical-op-group"
               >
                 <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="">
                   {{ op.text }}
@@ -205,6 +206,7 @@ defineExpose({
               :disabled="filter.readOnly"
               @click.stop
               @change="filterUpdateCondition(filter, i)"
+              dropdown-class-name="nc-dropdown-filter-logical-op"
             >
               <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
                 {{ op.text }}
@@ -231,6 +233,7 @@ defineExpose({
               :disabled="filter.readOnly"
               hide-details
               @change="filterUpdateCondition(filter, i)"
+              dropdown-class-name="nc-dropdown-filter-comp-op"
             >
               <a-select-option v-for="compOp in comparisonOpList" :key="compOp.value" :value="compOp.value" class="">
                 {{ compOp.text }}

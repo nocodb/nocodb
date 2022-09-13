@@ -35,6 +35,7 @@ export function useKanbanViewData(
   // }
   const formattedData = useState<Record<string, Row[]>>('KanbanFormattedData', () => ({}))
   const groupingField = useState<string>('KanbanGroupingField', () => '')
+  const groupingFieldColumn = useState<Record<string, any>>('KanbanGroupingFieldColumn', () => ({}))
 
   const formatData = (list: Record<string, any>[]) =>
     list.map((row) => ({
@@ -56,26 +57,19 @@ export function useKanbanViewData(
 
     const stackMetaObj = JSON.parse(stack_meta as string) || {}
 
-    if (stack_meta && grp_column_id && stackMetaObj[grp_column_id]) {
-      // the target stack meta exists, use it directly
-      groupingFieldColOptions.value = stackMetaObj[grp_column_id]
-    } else {
-      // retrieve the grouping field column
-      const groupingFieldColumn = meta?.value?.columns?.filter((f) => f.title === groupingField.value)[0] as Record<string, any>
-      // build stack meta
-      groupingFieldColOptions.value = [
-        ...(groupingFieldColumn?.colOptions?.options ?? []),
-        // enrich uncategorized stack
-        { id: 'uncategorized', title: 'Uncategorized', order: 0, color: enumColor.light[2] },
-      ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
+    // build stack meta
+    groupingFieldColOptions.value = [
+      ...(groupingFieldColumn.value?.colOptions?.options ?? []),
+      // enrich uncategorized stack
+      { id: 'uncategorized', title: 'Uncategorized', order: 0, color: enumColor.light[2] },
+    ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
 
-      // if grouping column id is present, add the grouping field column options to stackMetaObj
-      if (grp_column_id) {
-        stackMetaObj[grp_column_id] = groupingFieldColOptions.value
-        await updateKanbanMeta({
-          stack_meta: stackMetaObj,
-        })
-      }
+    // if grouping column id is present, add the grouping field column options to stackMetaObj
+    if (grp_column_id) {
+      stackMetaObj[grp_column_id] = groupingFieldColOptions.value
+      await updateKanbanMeta({
+        stack_meta: stackMetaObj,
+      })
     }
 
     await Promise.all(
@@ -99,8 +93,8 @@ export function useKanbanViewData(
     if (!viewMeta?.value?.id) return
     kanbanMetaData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
     // set groupingField
-    const groupingFieldCol = meta?.value?.columns?.filter((f) => f.id === kanbanMetaData?.value?.grp_column_id)[0]
-    groupingField.value = groupingFieldCol?.title as string
+    groupingFieldColumn.value = meta?.value?.columns?.filter((f) => f.id === kanbanMetaData?.value?.grp_column_id)[0] || {}
+    groupingField.value = groupingFieldColumn.value?.title as string
   }
 
   async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
@@ -206,6 +200,7 @@ export function useKanbanViewData(
     formattedData,
     groupingField,
     groupingFieldColOptions,
+    groupingFieldColumn,
     updateOrSaveRow,
     addEmptyRow,
   }

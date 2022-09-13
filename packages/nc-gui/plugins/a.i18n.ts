@@ -1,7 +1,7 @@
 import { defineNuxtPlugin } from 'nuxt/app'
 import { createI18n } from 'vue-i18n'
 import { nextTick } from 'vue'
-import type { NocoI18n } from '~/lib'
+import type { Language, NocoI18n } from '~/lib'
 
 let globalI18n: NocoI18n
 
@@ -18,11 +18,15 @@ export const createI18nPlugin = async (): Promise<NocoI18n> =>
 
 export const getI18n = () => globalI18n
 
-export function setI18nLanguage(i18n: NocoI18n, locale: string): void {
+export async function setI18nLanguage(locale: keyof typeof Language, i18n = globalI18n) {
+  if (!i18n.global.availableLocales.includes(locale)) {
+    await loadLocaleMessages(locale)
+  }
+
   i18n.global.locale.value = locale
 }
 
-export async function loadLocaleMessages(i18n: NocoI18n, locale: string) {
+export async function loadLocaleMessages(locale: keyof typeof Language, i18n: NocoI18n = globalI18n) {
   // load locale messages with dynamic import
   const messages = await import(`../lang/${locale}.json`)
 

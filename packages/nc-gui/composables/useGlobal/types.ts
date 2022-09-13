@@ -1,7 +1,7 @@
 import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
-import type { User } from '~/lib'
+import type { Language, User } from '~/lib'
 import type { useCounter } from '#imports'
 
 export interface FeedbackForm {
@@ -30,7 +30,7 @@ export interface AppInfo {
 export interface StoredState {
   token: string | null
   user: User | null
-  lang: string
+  lang: keyof typeof Language
   darkMode: boolean
   feedbackForm: FeedbackForm
   filterAutoSave: boolean

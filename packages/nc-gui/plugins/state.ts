@@ -13,19 +13,18 @@ import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
  * console.log($state.lang.value) // 'en'
  * ```
  */
-export default defineNuxtPlugin(async (nuxtApp) => {
+export default defineNuxtPlugin(async () => {
   const state = useGlobal()
 
   const { api } = useApi()
 
-  const i18n = nuxtApp.vueApp.i18n
-
   const currentLang = state.lang.value
 
-  await loadLocaleMessages(i18n, currentLang)
+  /** force load initial locale messages */
+  await loadLocaleMessages(currentLang)
 
   /** set i18n locale to stored language */
-  setI18nLanguage(i18n, state.lang.value)
+  await setI18nLanguage(currentLang)
 
   try {
     state.appInfo.value = await api.utils.appInfo()

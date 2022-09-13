@@ -4,7 +4,7 @@ import type { JwtPayload } from 'jwt-decode'
 import type { AppInfo, State, StoredState } from './types'
 import { BASE_URL } from '~/lib'
 import { computed, ref, toRefs, useCounter, useNuxtApp, useTimestamp } from '#imports'
-import type { User } from '~/lib'
+import type { Language, User } from '~/lib'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */
@@ -25,7 +25,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
    * If the user has not set a preferred language, we fall back to 'en'.
    * If the user has set a preferred language, we try to find a matching locale in the available locales.
    */
-  const preferredLanguage = preferredLanguages.reduce((locale, language) => {
+  const preferredLanguage = preferredLanguages.reduce<keyof typeof Language>((locale, language) => {
     /** split language to language and code, e.g. en-GB -> [en, GB] */
     const [lang, code] = language.split(/[_-]/)
 
@@ -41,7 +41,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     const availableLocale = availableLocales[0]
 
     /** if we found a matching locale, return it */
-    if (availableLocale) locale = availableLocale
+    if (availableLocale) locale = availableLocale as keyof typeof Language
 
     return locale
   }, 'en' /** fallback locale */)

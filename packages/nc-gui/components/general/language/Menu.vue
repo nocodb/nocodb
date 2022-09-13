@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { Language } from '~/lib'
 import { onMounted, useGlobal, useI18n, useNuxtApp } from '#imports'
-import { loadLocaleMessages } from '~/plugins/a.i18n'
+import { setI18nLanguage } from '~/plugins/a.i18n'
 
-const { $e, vueApp } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { lang: currentLang } = useGlobal()
 
-const { availableLocales = ['en'], locale } = useI18n()
+const { locale } = useI18n()
 
 const languages = $computed(() => Object.entries(Language).sort())
 
@@ -23,12 +23,10 @@ function applyDirection() {
 }
 
 async function changeLanguage(lang: string) {
-  if (!availableLocales.includes(lang)) {
-    await loadLocaleMessages(vueApp.i18n, lang)
-  }
+  const nextLang = lang as keyof typeof Language
 
-  currentLang.value = lang
-  locale.value = lang
+  await setI18nLanguage(nextLang)
+  currentLang.value = nextLang
 
   applyDirection()
 
@@ -37,12 +35,6 @@ async function changeLanguage(lang: string) {
 
 onMounted(() => {
   applyDirection()
-})
-
-defineExpose({
-  languages,
-  currentLang,
-  changeLanguage,
 })
 </script>
 

@@ -102,9 +102,7 @@ hooks.hook('page:finish', () => {
       <a-tooltip placement="bottom">
         <template #title> Switch language</template>
 
-        <Transition name="layout">
-          <GeneralLanguage v-if="!signedIn" class="nc-lang-btn" />
-        </Transition>
+        <GeneralLanguage class="nc-lang-btn" />
       </a-tooltip>
 
       <div class="w-full h-full overflow-hidden">

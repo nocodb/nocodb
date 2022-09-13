@@ -168,7 +168,7 @@ export const genTest = (apiType, dbType) => {
             loginPage.signUp(roles.owner.credentials);
         });
 
-        function cy_createProjectBlock(proj) {
+        function cy_createProjectBlock(proj, apiType, dbType) {
             // click home button
             cy.get(".nc-noco-brand-icon").click();
             cy.get(".ant-table-content").then((obj) => {
@@ -245,10 +245,10 @@ export const genTest = (apiType, dbType) => {
                     cy.task(
                       'pgExecTest',
                       `SELECT 1+1`, {timeout: 120000}
-                    ).then(() => cy_createProjectBlock(proj));
+                    ).then(() => cy_createProjectBlock(proj, apiType, dbType));
                 }
                 else {
-                    cy_createProjectBlock(proj);
+                    cy_createProjectBlock(proj, apiType, dbType);
                 }
             });
         };
@@ -258,7 +258,7 @@ export const genTest = (apiType, dbType) => {
         } else if (dbType === "mysql") {
             createProject(staticProjects.externalREST);
         } else if (dbType === "postgres") {
-            createProject(staticProjects.externalREST);
+            createProject(staticProjects.pgExternalREST);
         }
     });
 };

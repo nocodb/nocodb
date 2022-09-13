@@ -7,7 +7,7 @@ import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadView
 
 const { sharedView, meta, sorts, nestedFilters } = useSharedView()
 const { signedIn } = useGlobal()
-const { loadProject } = useProject(meta?.value.project_id)
+const { loadProject } = useProject((meta.value as any)?.project_id)
 
 const reloadEventHook = createEventHook<void>()
 provide(ReloadViewDataHookInj, reloadEventHook)

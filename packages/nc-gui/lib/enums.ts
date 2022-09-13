@@ -50,8 +50,8 @@ export enum Language {
   tr = 'Türk',
   uk = 'Українська',
   vi = 'Tiếng Việt',
-  zh_Hans = '大陆简体',
-  zh_Hant = '臺灣正體',
+  zh_Hans = '简体中文',
+  zh_Hant = '繁體中文',
 }
 
 export enum NavigateDir {

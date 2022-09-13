@@ -175,14 +175,14 @@ export const genTest = (apiType, dbType) => {
         .should("exist")
         .click({ force: true });
       cy.wait(1000);
-      cy.getActiveModal()
+      cy.getActiveModal(".nc-modal-child-list")
         .find('.ant-card').should('exist')
         .eq(0).click();
 
       // MM
       cy.get(".nc-expand-col-Sheet1.List").find(".ant-btn-primary").click();
       cy.wait(1000);
-      cy.getActiveModal()
+      cy.getActiveModal(".nc-modal-child-list")
         .find('.ant-card').should('exist')
         .eq(0).click();
 

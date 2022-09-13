@@ -287,16 +287,16 @@ export const genTest = (apiType, dbType) => {
                     .find("button.mdi-arrow-expand")
                     .click();
 
-                cy.getActiveModal().find("button.mdi-reload").should("exist");
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-child-list").find("button.mdi-reload").should("exist");
+                cy.getActiveModal(".nc-modal-child-list")
                     .find("button")
                     .contains("Link to")
                     .should("not.exist");
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-child-list")
                     .find(".child-card")
                     .contains("2")
                     .should("exist");
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-child-list")
                     .find(".child-card")
                     .find("button")
                     .should("not.exist");
@@ -340,8 +340,8 @@ export const genTest = (apiType, dbType) => {
                     .find("button.mdi-arrow-expand")
                     .click();
 
-                cy.getActiveModal().find("button.mdi-reload").should("exist");
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-child-list").find("button.mdi-reload").should("exist");
+                cy.getActiveModal(".nc-modal-child-list")
                     .find("button")
                     .contains("Link to")
                     .should("not.exist");

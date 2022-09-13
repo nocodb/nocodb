@@ -416,7 +416,7 @@ export const genTest = (apiType, dbType, testMode) => {
                   .last()
                   .click();
 
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-project-delete")
                   .find("button")
                   .contains("Submit")
                   .should("exist")

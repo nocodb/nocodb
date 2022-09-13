@@ -57,7 +57,7 @@ export const genTest = (apiType, dbType) => {
             // cy.getActiveModal()
             //     .find("button:contains(Link to 'Film')")
             //     .should("exist");
-            cy.getActiveModal()
+            cy.getActiveModal(".nc-modal-child-list")
                 .find(".ant-card")
                 .eq(0)
                 .contains("ACADEMY DINOSAUR")
@@ -65,7 +65,7 @@ export const genTest = (apiType, dbType) => {
         });
 
         it('Expand "Link to" record, validate', () => {
-            cy.getActiveModal()
+            cy.getActiveModal(".nc-modal-child-list")
                 .find("button:contains(Link to 'Film')")
                 .click()
                 .then(() => {
@@ -92,7 +92,7 @@ export const genTest = (apiType, dbType) => {
             mainPage.getCell("Film List", 1).should("exist").trigger("mouseover").click();
             cy.get('.nc-action-icon').eq(0).should('exist').click({ force: true });
 
-            cy.getActiveModal()
+            cy.getActiveModal(".nc-modal-child-list")
                 .find(".ant-card")
                 .eq(0)
                 .contains("ACADEMY DINOSAUR", { timeout: 2000 })

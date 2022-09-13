@@ -48,6 +48,7 @@ const deleteProject = (project: ProjectType) => {
 
   Modal.confirm({
     title: `Do you want to delete '${project.title}' project?`,
+    wrapClassName: 'nc-modal-project-delete',
     okText: 'Yes',
     okType: 'danger',
     cancelText: 'No',

@@ -303,6 +303,7 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
           :import-only="importOnly"
           :quick-import-type="importType"
           :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+          class="nc-quick-import-template-editor"
           @import="handleImport"
         />
 

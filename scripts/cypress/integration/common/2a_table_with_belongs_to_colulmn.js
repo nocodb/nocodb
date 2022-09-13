@@ -59,7 +59,7 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("Expand Link record, validate", () => {
-            cy.getActiveModal(".nc-modal-link-record")
+            cy.getActiveModal(".nc-modal-child-list")
                 .find("button:contains(Link to 'City')")
                 .click()
                 .then(() => {

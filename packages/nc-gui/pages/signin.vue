@@ -105,7 +105,6 @@ function resetError() {
           <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
             <a-input-password
               v-model:value="form.password"
-              size="large"
               class="password"
               :placeholder="$t('msg.info.signUp.enterPassword')"
               @focus="resetError"

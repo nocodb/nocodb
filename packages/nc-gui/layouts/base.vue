@@ -103,9 +103,7 @@ hooks.hook('page:finish', () => {
         <template #title> Switch language</template>
 
         <Transition name="layout">
-          <div v-if="!signedIn" class="nc-lang-btn">
-            <GeneralLanguage />
-          </div>
+          <GeneralLanguage v-if="!signedIn" class="nc-lang-btn" />
         </Transition>
       </a-tooltip>
 
@@ -116,7 +114,7 @@ hooks.hook('page:finish', () => {
   </a-layout>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .nc-lang-btn {
   @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white active:(ring ring-accent) hover:(ring ring-accent);
 

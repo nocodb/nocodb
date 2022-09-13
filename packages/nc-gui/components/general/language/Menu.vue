@@ -1,14 +1,15 @@
 <script lang="ts" setup>
 import { Language } from '~/lib'
 import { onMounted, useGlobal, useI18n, useNuxtApp } from '#imports'
+import { loadLocaleMessages } from '~/plugins/a.i18n'
 
-const { $e } = useNuxtApp()
+const { $e, vueApp } = useNuxtApp()
 
 const { lang: currentLang } = useGlobal()
 
 const { availableLocales = ['en'], locale } = useI18n()
 
-const languages = $computed(() => availableLocales.sort())
+const languages = $computed(() => Object.entries(Language).sort())
 
 const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
 
@@ -21,7 +22,11 @@ function applyDirection() {
   document.body.style.direction = targetDirection
 }
 
-function changeLanguage(lang: string) {
+async function changeLanguage(lang: string) {
+  if (!availableLocales.includes(lang)) {
+    await loadLocaleMessages(vueApp.i18n, lang)
+  }
+
   currentLang.value = lang
   locale.value = lang
 
@@ -33,19 +38,25 @@ function changeLanguage(lang: string) {
 onMounted(() => {
   applyDirection()
 })
+
+defineExpose({
+  languages,
+  currentLang,
+  changeLanguage,
+})
 </script>
 
 <template>
   <a-menu-item
-    v-for="lang of languages"
-    :key="lang"
-    :class="lang === locale ? '!bg-primary bg-opacity-10 text-primary' : ''"
+    v-for="[key, lang] of languages"
+    :key="key"
+    :class="key === locale ? '!bg-primary bg-opacity-10 text-primary' : ''"
     class="group"
-    :value="lang"
-    @click="changeLanguage(lang)"
+    :value="key"
+    @click="changeLanguage(key)"
   >
-    <div :class="lang === locale ? '!font-semibold !text-primary' : ''" class="nc-project-menu-item capitalize">
-      {{ Language[lang] || lang }}
+    <div :class="key === locale ? '!font-semibold !text-primary' : ''" class="nc-project-menu-item capitalize">
+      {{ Language[key] || lang }}
     </div>
   </a-menu-item>
 

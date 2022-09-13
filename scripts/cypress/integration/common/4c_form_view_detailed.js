@@ -437,7 +437,7 @@ export const genTest = (apiType, dbType) => {
                 cy.get(".ant-checkbox").should('exist').eq(13).click({ force: true });
 
                 mainPage.getCell("Country", 10).rightclick({ force: true });
-                cy.getActiveMenu()
+                cy.getActiveMenu(".nc-dropdown-grid-context-menu")
                   .contains("Delete Selected Rows")
                   .click({ force: true });
             });

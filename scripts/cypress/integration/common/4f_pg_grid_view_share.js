@@ -404,7 +404,7 @@ export const genTest = (apiType, dbType) => {
                 .find(".mdi-checkbox-blank-outline")
                 .click({ force: true });
             mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu().contains("Delete Selected Row").click();
+            cy.getActiveMenu(".nc-dropdown-grid-context-menu").contains("Delete Selected Row").click();
 
             // delete column
             cy.get(`th:contains('dummy') .mdi-menu-down`)

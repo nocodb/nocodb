@@ -41,7 +41,7 @@ export const genTest = (apiType, dbType) => {
             //     .click({ force: true });
 
             mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu().contains("Delete Row").click();
+            cy.getActiveMenu(".nc-dropdown-grid-context-menu").contains("Delete Row").click();
 
             cy.closeTableTab("Country");
         });

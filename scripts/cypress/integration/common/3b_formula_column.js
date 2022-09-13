@@ -13,17 +13,6 @@ export const genTest = (apiType, dbType) => {
         //
         before(() => {
             // loginPage.loginAndOpenProject(apiType, dbType)
-
-            mainPage.tabReset();
-            // open a table to work on views
-            //
-
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
-
             cy.openTableTab("City", 25);
         });
 
@@ -59,7 +48,7 @@ export const genTest = (apiType, dbType) => {
                 force: true,
             });
 
-            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+            cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
               .should('exist')
               .clear()
               .type(columnName);
@@ -91,7 +80,7 @@ export const genTest = (apiType, dbType) => {
             cy.get(".nc-column-edit").click();
             cy.get(".nc-column-edit").should("not.be.visible");
 
-            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+            cy.getActiveMenu(".nc-dropdown-edit-column").find('input.nc-column-name-input', { timeout: 3000 })
               .should('exist')
               .clear()
               .type(newName);

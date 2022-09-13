@@ -5,7 +5,7 @@ import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
-  describe(`${apiType.toUpperCase()} api - RollUp column`, () => {
+  describe(`${apiType.toUpperCase()} api - Link to another record`, () => {
 
     function fetchParentFromLabel(label) {
       cy.get("label").contains(label).parents(".ant-row").click();
@@ -31,7 +31,7 @@ export const genTest = (apiType, dbType) => {
       cy.get(".nc-grid  tr > th:last .nc-icon").click();
 
       // Column name
-      cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+      cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
         .should('exist')
         .clear()
         .type(columnName);

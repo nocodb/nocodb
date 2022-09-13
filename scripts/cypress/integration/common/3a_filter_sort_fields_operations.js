@@ -82,7 +82,7 @@ export const genTest = (apiType, dbType) => {
             it("Delete Row", () => {
                 // delete row added in previous step
                 mainPage.getCell("Country", 10).rightclick();
-                cy.getActiveMenu().contains("Delete Row").click();
+                cy.getActiveMenu(".nc-dropdown-grid-context-menu").contains("Delete Row").click();
 
                 // cy.toastWait('Deleted row successfully')
 
@@ -99,7 +99,7 @@ export const genTest = (apiType, dbType) => {
                 mainPage.getPagination(5).click();
 
                 mainPage.getCell("Country", 9).rightclick({ force: true });
-                cy.getActiveMenu()
+                cy.getActiveMenu(".nc-dropdown-grid-context-menu")
                     .contains("Insert New Row")
                     .click({ force: true });
                 mainPage
@@ -109,7 +109,7 @@ export const genTest = (apiType, dbType) => {
                     .type("Test Country-1{enter}");
 
                 mainPage.getCell("Country", 10).rightclick({ force: true });
-                cy.getActiveMenu()
+                cy.getActiveMenu(".nc-dropdown-grid-context-menu")
                     .contains("Insert New Row")
                     .click({ force: true });
                 mainPage
@@ -142,7 +142,7 @@ export const genTest = (apiType, dbType) => {
                   .eq(11).click({ force: true });
 
                 mainPage.getCell("Country", 10).rightclick({ force: true });
-                cy.getActiveMenu()
+                cy.getActiveMenu(".nc-dropdown-grid-context-menu")
                     .contains("Delete Selected Rows")
                     .click({ force: true });
 

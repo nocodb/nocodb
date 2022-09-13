@@ -141,7 +141,7 @@ Cypress.Commands.add('refreshTableTab', () => {
     .first()
     .rightclick({ force: true });
 
-  cy.getActiveMenu()
+  cy.getActiveMenu(".nc-dropdown-tree-view-context-menu")
     .find('[role="menuitem"]')
     .contains('Tables Refresh')
     .should('exist')
@@ -342,7 +342,7 @@ Cypress.Commands.add('createTable', (name) => {
 
 Cypress.Commands.add('deleteTable', (name, dbType) => {
   cy.get(`.nc-project-tree-tbl-${name}`).should('exist').rightclick();
-  cy.getActiveMenu().find('[role="menuitem"]').contains('Delete').click();
+  cy.getActiveMenu(".nc-dropdown-tree-view-context-menu").find('[role="menuitem"]').contains('Delete').click();
   cy.getActiveModal().find('button').contains('Yes').click();
 
   cy.toastWait(`Deleted table successfully`);
@@ -357,7 +357,7 @@ Cypress.Commands.add('renameTable', (oldName, newName) => {
     .rightclick();
 
   // choose rename option from menu
-  cy.getActiveMenu()
+  cy.getActiveMenu(".nc-dropdown-tree-view-context-menu")
     .find('[role="menuitem"]')
     .contains('Rename')
     .click({ force: true });
@@ -495,7 +495,7 @@ Cypress.Commands.add('signOut', () => {
   cy.visit(`/`);
   cy.get('.nc-project-page-title', { timeout: 30000 }).contains('My Projects').should('be.visible');
   cy.get('.nc-menu-accounts', { timeout: 30000 }).should('exist').click();
-  cy.getActiveMenu().find('.ant-dropdown-menu-item').eq(1).click();
+  cy.getActiveMenu(".nc-dropdown-user-accounts-menu").find('.ant-dropdown-menu-item').eq(1).click();
 
   cy.wait(5000);
   cy.get('button:contains("SIGN")').should('exist');

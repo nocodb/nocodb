@@ -7,7 +7,7 @@ let hookPath = "http://localhost:9090/hook";
 
 function createWebhook(hook, test) {
     cy.get('.nc-actions-menu-btn').should('exist').click();
-    cy.getActiveMenu().find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
+    cy.getActiveMenu(".nc-dropdown-webhook").find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
 
     // cy.get(".nc-btn-webhook").should("exist").click();
     cy.get(".nc-btn-create-webhook").should("exist").click();
@@ -51,7 +51,7 @@ function createWebhook(hook, test) {
 
 function deleteWebhook(index) {
     cy.get('.nc-actions-menu-btn').should('exist').click();
-    cy.getActiveMenu().find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
+    cy.getActiveMenu(".nc-dropdown-actions-menu").find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
 
     cy.get(".nc-hook-delete-icon").eq(index).click({ force: true });
     cy.toastWait("Hook deleted successfully");
@@ -60,7 +60,7 @@ function deleteWebhook(index) {
 
 function openWebhook(index) {
     cy.get('.nc-actions-menu-btn').should('exist').click();
-    cy.getActiveMenu().find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
+    cy.getActiveMenu(".nc-dropdown-actions-menu").find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
 
     cy.get(".nc-hook").eq(index).click({ force: true });
 }
@@ -216,7 +216,7 @@ function deleteRow(index) {
       .rightclick();
 
     // delete row
-    cy.getActiveMenu()
+    cy.getActiveMenu(".nc-dropdown-grid-context-menu")
       .find('.ant-dropdown-menu-item:contains("Delete Row")')
       .first()
       .click({ force: true });

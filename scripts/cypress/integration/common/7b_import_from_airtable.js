@@ -30,7 +30,7 @@ export const genTest = (apiType, dbType) => {
       // trigger import
       cy.get('.nc-add-new-table').should('exist').trigger('mouseover')
       cy.get('.nc-import-menu').should('exist').click()
-      cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Airtable').click()
+      cy.getActiveMenu(".nc-dropdown-import-menu").find('.ant-dropdown-menu-item').contains('Airtable').click()
 
       cy.getActiveModal().find(".nc-input-api-key").should('exist').clear().type(apiKey)
       cy.getActiveModal().find(".nc-input-shared-base").should('exist').clear().type(sharedBase)

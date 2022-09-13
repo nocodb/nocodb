@@ -120,7 +120,7 @@ const tooltipMsg = computed(() => {
       class="h-full"
       :trigger="['click']"
       placement="bottomRight"
-      overlay-class-name="nc-dropdown"
+      overlay-class-name="nc-dropdown-edit-column"
     >
       <div />
       <template #overlay>

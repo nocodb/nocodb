@@ -424,7 +424,7 @@ export const genTest = (apiType, dbType) => {
             // wait for page rendering to complete
             cy.get(".nc-grid-row").should("have.length", 10);
             mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu()
+            cy.getActiveMenu(".nc-dropdown-grid-context-menu")
                 .find('.ant-dropdown-menu-item:contains("Delete Row")')
                 .first()
                 .click();

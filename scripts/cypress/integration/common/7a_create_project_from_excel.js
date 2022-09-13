@@ -106,7 +106,7 @@ export const genTest = (apiType, dbType) => {
 
             cy.get('.nc-add-new-table').should('exist').trigger('mouseover')
             cy.get('.nc-import-menu').should('exist').click()
-            cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Microsoft Excel').click()
+            cy.getActiveMenu(".nc-dropdown-import-menu").find('.ant-dropdown-menu-item').contains('Microsoft Excel').click()
 
             cy.get(".nc-input-import").should('exist').find('input').attachFile(filepath);
             cy.toastWait("Uploaded file simple.xlsx successfully");

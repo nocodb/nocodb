@@ -77,7 +77,7 @@ export const genTest = (apiType, dbType) => {
             // Click on readonly base text
             cy.getActiveModal().find(".nc-disable-shared-base").click();
 
-            cy.getActiveMenu()
+            cy.getActiveMenu(".nc-dropdown-shared-base-toggle")
                 .find(".ant-dropdown-menu-title-content")
                 .contains("Anyone with the link")
                 .click();

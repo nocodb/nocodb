@@ -35,7 +35,6 @@ const aggrFunctionsList = [
   { text: 'min', value: 'min' },
   { text: 'max', value: 'max' },
   { text: 'avg', value: 'avg' },
-  { text: 'min', value: 'min' },
   { text: 'sum', value: 'sum' },
   { text: 'countDistinct', value: 'countDistinct' },
   { text: 'sumDistinct', value: 'sumDistinct' },

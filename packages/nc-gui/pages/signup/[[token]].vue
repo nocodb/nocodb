@@ -113,7 +113,7 @@ function resetError() {
           {{ $route.query.redirect_to === '/pricing' ? '& BUY' : '' }}
         </h1>
 
-        <h2 v-if="appInfo.firstUser" class="prose !text-primary font-semibold self-center my-4">
+        <h2 v-if="appInfo.firstUser" class="prose !text-primary font-semibold self-center">
           {{ $t('msg.info.signUp.superAdmin') }}
         </h2>
 

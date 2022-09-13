@@ -313,7 +313,7 @@ export class _mainPage {
     sortField = (field, criteria) => {
         cy.get(".nc-sort-menu-btn").click();
         cy.wait(500)
-        cy.getActiveMenu().contains("Add Sort Option").click();
+        cy.getActiveMenu('.sort-menu-overlay').contains("Add Sort Option").click();
         cy.wait(500)
         // cy.get(".nc-sort-field-select div").first().click().type(field);
         cy.get(".nc-sort-field-select div").first().click();
@@ -322,7 +322,7 @@ export class _mainPage {
         cy.wait(500)
         cy.get(".nc-sort-dir-select div").first().click();
         cy.wait(500)
-        cy.get('.ant-select-dropdown:visible').find(`.ant-select-item`).contains(criteria).should('exist').click();
+        cy.get('.sort-dir-dropdown.ant-select-dropdown:visible').find(`.ant-select-item`).contains(criteria).should('exist').click();
         cy.wait(500)
         cy.get(".nc-sort-menu-btn").click();
         cy.wait(500)

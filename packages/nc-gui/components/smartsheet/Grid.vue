@@ -91,7 +91,7 @@ const {
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
-  removeLastEmptyRow,
+  removeRowIfNew,
 } = useViewData(meta, view as any, xWhere)
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
@@ -113,15 +113,18 @@ reloadViewDataHook?.on(async () => {
   await loadData()
 })
 
-const expandForm = (row: Row, state?: Record<string, any>) => {
+const skipRowRemovalOnCancel = ref(false)
+
+const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) => {
   expandedFormRow.value = row
   expandedFormRowState.value = state
   expandedFormDlg.value = true
+  skipRowRemovalOnCancel.value = !fromToolbar
 }
 
 openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
-  expandForm(newRow)
+  expandForm(newRow, undefined, true)
 })
 
 const selectCell = (row: number, col: number) => {
@@ -324,6 +327,34 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
     contextMenuTarget.value = target
   }
 }
+
+const rowRefs = $ref<any[]>()
+
+/** save/update records before unmounting the component */
+onBeforeUnmount(async () => {
+  let index = -1
+  for (const currentRow of data.value) {
+    index++
+    /** if new record save row and save the LTAR cells */
+    if (currentRow.rowMeta.new) {
+      const syncLTARRefs = rowRefs[index]!.syncLTARRefs
+      const savedRow = await updateOrSaveRow(currentRow, '')
+      await syncLTARRefs(savedRow)
+      currentRow.rowMeta.changed = false
+      continue
+    }
+    /** if existing row check updated cell and invoke update method */
+    if (currentRow.rowMeta.changed) {
+      currentRow.rowMeta.changed = false
+      for (const field of meta?.value.columns ?? []) {
+        if (isVirtualCol(field)) continue
+        if (currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
+          await updateOrSaveRow(currentRow, field.title!)
+        }
+      }
+    }
+  }
+})
 </script>
 
 <template>
@@ -399,7 +430,7 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
             </tr>
           </thead>
           <tbody>
-            <SmartsheetRow v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
+            <SmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
@@ -489,10 +520,6 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
               </template>
             </SmartsheetRow>
 
-            <!--
-      TODO: add relationType !== 'bt' ?
-      v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
-    -->
             <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable') && !isSqlView">
               <td
                 v-t="['c:row:add:grid-bottom']"
@@ -552,7 +579,11 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
-      @cancel="removeLastEmptyRow"
+      @update:model-value="
+        () => {
+          if (!skipRowRemovalOnCancel) removeRowIfNew(expandedFormRow)
+        }
+      "
     />
   </div>
 </template>

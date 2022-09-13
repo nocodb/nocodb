@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
+import type { LinkToAnotherRecordType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import { ColumnInj, IsLockedInj, MetaInj, extractSdkResponseErrorMsg, inject, useI18n, useMetas, useNuxtApp } from '#imports'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
@@ -29,6 +31,12 @@ const deleteColumn = () =>
         await $api.dbTableColumn.delete(column?.value?.id as string)
 
         await getMeta(meta?.value?.id as string, true)
+
+        /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
+        if (column?.value?.uidt === UITypes.LinkToAnotherRecord && column.value?.colOptions) {
+          await getMeta((column.value?.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
+        }
+
         $e('a:column:delete')
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))

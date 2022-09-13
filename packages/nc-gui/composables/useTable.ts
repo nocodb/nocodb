@@ -68,7 +68,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
       cancelText: t('general.no'),
       async onOk() {
         try {
-          const meta = (await getMeta(table.id as string)) as TableType
+          const meta = (await getMeta(table.id as string, true)) as TableType
           const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord)
 
           if (relationColumns?.length) {

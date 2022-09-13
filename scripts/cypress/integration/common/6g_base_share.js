@@ -90,7 +90,7 @@ export const genTest = (apiType, dbType) => {
               .click();
 
             // Copy URL
-            cy.getActiveModal(".nc-modal-invite-user-and-shared-base")
+            cy.getActiveModal(".nc-modal-invite-user-and-share-base")
                 .find(".nc-url")
                 .then(($obj) => {
                     cy.log($obj[0]);

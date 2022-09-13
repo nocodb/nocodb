@@ -120,12 +120,12 @@ export class _mainPage {
         // opt-in requested role & submit
         // cy.getActiveSelection().contains(roleType).click({force: true});
         cy.getActiveSelection().find('.nc-role-option').eq(roleIndex).should('exist').click()
-        cy.getActiveModal(".nc-modal-invite-user-and-shared-base").find("button.ant-btn-primary").click();
+        cy.getActiveModal(".nc-modal-invite-user-and-share-base").find("button.ant-btn-primary").click();
 
         cy.toastWait("Successfully updated the user details");
 
         // get URL, invoke
-        cy.getActiveModal(".nc-modal-invite-user-and-shared-base")
+        cy.getActiveModal(".nc-modal-invite-user-and-share-base")
             .find(".ant-alert-message")
             .then(($obj) => {
                 linkText = $obj.text().trim();

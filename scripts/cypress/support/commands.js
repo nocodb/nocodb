@@ -304,7 +304,10 @@ Cypress.Commands.add('getActiveSelection', (selector) => {
   return cy.get('.ant-select-dropdown:visible').last();
 });
 
-Cypress.Commands.add('getActiveDrawer', () => {
+Cypress.Commands.add('getActiveDrawer', (selector) => {
+  if(selector) {
+    return cy.get(`${selector} .ant-drawer-content:visible`).last();
+  }
   return cy.get('.ant-drawer-content:visible').last();
 });
 

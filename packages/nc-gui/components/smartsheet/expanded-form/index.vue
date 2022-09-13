@@ -108,6 +108,7 @@ export default {
     width="min(90vw,1000px)"
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
+    class="nc-drawer-expanded-form"
   >
     <Header @cancel="onClose" />
     <div class="!bg-gray-100 rounded flex-1">

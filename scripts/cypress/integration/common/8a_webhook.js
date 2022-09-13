@@ -161,12 +161,12 @@ function addNewRow(index, cellValue) {
     cy.get(".nc-add-new-row-btn").click();
     cy.wait(1000);
     cy.get(".nc-expand-col-Title").find(".nc-cell > input").first().type(cellValue);
-    cy.getActiveDrawer()
+    cy.getActiveDrawer('.nc-drawer-expanded-form')
         .find(".ant-btn-primary")
         .click();
 
     cy.toastWait("updated successfully");
-    cy.getActiveDrawer()
+    cy.getActiveDrawer('.nc-drawer-expanded-form')
       .find(".ant-btn")
       .contains("Cancel")
       .click();
@@ -184,14 +184,14 @@ function updateRow(index, cellValue) {
       .clear()
       .type(cellValue);
 
-    cy.getActiveDrawer()
+    cy.getActiveDrawer('.nc-drawer-expanded-form')
       .find("button")
       .contains("Save row")
       .click({ force: true });
 
     // partial toast message
     cy.toastWait("updated successfully");
-    cy.getActiveDrawer()
+    cy.getActiveDrawer('.nc-drawer-expanded-form')
         .find("button")
         .contains("Cancel")
         .click({ force: true });

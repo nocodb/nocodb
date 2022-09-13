@@ -60,6 +60,8 @@ export const genTest = (apiType, dbType) => {
         };
 
         let langMenu = [
+            "ar.json",
+            "bn_IN.json",
             "da.json",
             "de.json",
             "en.json",
@@ -67,15 +69,18 @@ export const genTest = (apiType, dbType) => {
             "fa.json",
             "fi.json",
             "fr.json",
+            "he.json",
+            "hi.json",
             "hr.json",
             "id.json",
-            "it_IT.json",
-            "iw.json",
+            "it.json",
             "ja.json",
             "ko.json",
             "lv.json",
             "nl.json",
             "no.json",
+            "pl.json",
+            "pt.json",
             "pt_BR.json",
             "ru.json",
             "sl.json",
@@ -84,9 +89,8 @@ export const genTest = (apiType, dbType) => {
             "tr.json",
             "uk.json",
             "vi.json",
-            "zh_CN.json",
-            "zh_HK.json",
-            "zh_TW.json",
+            "zh-Hans.json",
+            "zh-Hant.json",
         ];
 
         // Index is the order in which menu options appear
@@ -94,7 +98,7 @@ export const genTest = (apiType, dbType) => {
             langVerification(i, langMenu[i]);
 
         // reset to English
-        langVerification(2, langMenu[2]);
+        langVerification(4, langMenu[4]);
     });
 };
 

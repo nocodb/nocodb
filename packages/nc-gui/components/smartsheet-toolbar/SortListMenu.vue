@@ -71,9 +71,9 @@ watch(
               v-model:value="sort.direction"
               class="shrink grow-0 nc-sort-dir-select !text-xs"
               :label="$t('labels.operation')"
+              dropdown-class-name="sort-dir-dropdown"
               @click.stop
               @select="saveOrUpdate(sort, i)"
-              dropdown-class-name="sort-dir-dropdown"
             >
               <a-select-option
                 v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"

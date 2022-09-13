@@ -7,7 +7,7 @@ let hookPath = "http://localhost:9090/hook";
 
 function createWebhook(hook, test) {
     cy.get('.nc-actions-menu-btn').should('exist').click();
-    cy.getActiveMenu(".nc-dropdown-webhook").find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
+    cy.getActiveMenu(".nc-dropdown-actions-menu").find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
 
     // cy.get(".nc-btn-webhook").should("exist").click();
     cy.get(".nc-btn-create-webhook").should("exist").click();

@@ -363,7 +363,11 @@ onBeforeUnmount(async () => {
       <a-spin size="large" />
     </div>
     <div v-else class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
-      <a-dropdown v-model:visible="contextMenu" :trigger="isSqlView ? [] : ['contextmenu']">
+      <a-dropdown
+        v-model:visible="contextMenu"
+        :trigger="isSqlView ? [] : ['contextmenu']"
+        overlay-class-name="nc-dropdown-grid-context-menu"
+      >
         <table
           ref="smartTable"
           class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
@@ -411,7 +415,11 @@ onBeforeUnmount(async () => {
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
               >
-                <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
+                <a-dropdown
+                  v-model:visible="addColumnDropdown"
+                  :trigger="['click']"
+                  overlay-class-name="nc-dropdown-grid-add-column"
+                >
                   <div class="h-full w-[60px] flex items-center justify-center">
                     <MdiPlus class="text-sm nc-column-add" />
                   </div>

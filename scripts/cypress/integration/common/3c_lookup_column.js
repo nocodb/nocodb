@@ -44,7 +44,7 @@ export const genTest = (apiType, dbType) => {
                 force: true,
             });
 
-            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+            cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
               .should('exist')
               .clear()
               .type(childCol);
@@ -54,11 +54,9 @@ export const genTest = (apiType, dbType) => {
             // Configure Child table & column names
             fetchParentFromLabel("Child table");
             cy.getActiveSelection().find('.ant-select-item-option').contains(childTable).click();
-            // cy.getActiveMenu().contains(childTable).click();
 
             fetchParentFromLabel("Child column");
             cy.getActiveSelection().find('.ant-select-item-option').contains(childCol).click();
-            // cy.getActiveMenu().contains(childCol).click();
 
             cy.get(".ant-btn-primary").contains("Save").should('exist').click();
             cy.toastWait(`Column created`);

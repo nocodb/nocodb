@@ -173,7 +173,14 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
       @closed="showUserModal = false"
       @reload="loadUsers()"
     />
-    <a-modal v-model:visible="showUserDeleteModal" :closable="false" width="28rem" centered :footer="null">
+    <a-modal
+      v-model:visible="showUserDeleteModal"
+      :closable="false"
+      width="28rem"
+      centered
+      :footer="null"
+      wrap-class-name="nc-modal-delete-user"
+    >
       <div class="flex flex-col h-full">
         <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
           This action will remove this user from this project
@@ -282,7 +289,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             </a-button>
           </a-tooltip>
 
-          <a-dropdown :trigger="['click']" class="flex" placement="bottomRight">
+          <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
             <div class="flex flex-row items-center">
               <a-button type="text" class="!px-0">
                 <div class="flex flex-row items-center h-[1.2rem]">

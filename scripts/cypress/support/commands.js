@@ -141,7 +141,7 @@ Cypress.Commands.add('refreshTableTab', () => {
     .first()
     .rightclick({ force: true });
 
-  cy.getActiveMenu()
+  cy.getActiveMenu(".nc-dropdown-tree-view-context-menu")
     .find('[role="menuitem"]')
     .contains('Tables Refresh')
     .should('exist')
@@ -282,13 +282,16 @@ Cypress.Commands.add('printLocalStorage', () => {
   cy.task('log', JSON.stringify(LOCAL_STORAGE_MEMORY, null, 2));
 });
 
-Cypress.Commands.add('getActiveModal', () => {
+Cypress.Commands.add('getActiveModal', (wrapperSelector) => {
+  if (wrapperSelector) {
+    return cy.get(`${wrapperSelector} .ant-modal-content:visible`).last();
+  }
   return cy.get('.ant-modal-content:visible').last();
 });
 
-Cypress.Commands.add('getActiveMenu', (overlayClassName) => {
-  if (overlayClassName) {
-    return cy.get(`${overlayClassName} .ant-dropdown-content:visible`);
+Cypress.Commands.add('getActiveMenu', (overlaySelector) => {
+  if (overlaySelector) {
+    return cy.get(`${overlaySelector} .ant-dropdown-content:visible`);
   }
   return cy.get('.ant-dropdown-content:visible').last();
 });
@@ -297,15 +300,24 @@ Cypress.Commands.add('getActivePopUp', () => {
   return cy.get('.ant-menu-submenu-popup:visible').last();
 });
 
-Cypress.Commands.add('getActiveSelection', () => {
+Cypress.Commands.add('getActiveSelection', (selector) => {
+  if (selector) {
+    return cy.get(`${selector}.ant-select-dropdown:visible`).last();
+  }
   return cy.get('.ant-select-dropdown:visible').last();
 });
 
-Cypress.Commands.add('getActiveDrawer', () => {
+Cypress.Commands.add('getActiveDrawer', (selector) => {
+  if (selector) {
+    return cy.get(`${selector} .ant-drawer-content:visible`).last();
+  }
   return cy.get('.ant-drawer-content:visible').last();
 });
 
-Cypress.Commands.add('getActivePicker', () => {
+Cypress.Commands.add('getActivePicker', (dropdownSelector) => {
+  if (dropdownSelector) {
+    return cy.get(`${dropdownSelector}.ant-drawer-content:visible`).last();
+  }
   return cy.get('.ant-picker-dropdown :visible').last();
 });
 
@@ -314,12 +326,12 @@ Cypress.Commands.add('createTable', (name) => {
   cy.wait(1000);
   cy.get('.nc-add-new-table').should('exist').click();
   cy.wait(1000);
-  cy.getActiveModal().find(`input[type="text"]:visible`)
+  cy.getActiveModal('.nc-modal-table-create').find(`input[type="text"]:visible`)
     .click()
     .clear()
     .type(name);
   // submit button
-  cy.getActiveModal().find('button.ant-btn-primary:visible').click();
+  cy.getActiveModal('.nc-modal-table-create').find('button.ant-btn-primary:visible').click();
   cy.wait(1000);
   cy.get('.xc-row-table.nc-grid').should('exist');
   // cy.get('.ant-tabs-tab-active > .ant-tabs-tab-btn').contains(name).should("exist");
@@ -330,7 +342,7 @@ Cypress.Commands.add('createTable', (name) => {
 
 Cypress.Commands.add('deleteTable', (name, dbType) => {
   cy.get(`.nc-project-tree-tbl-${name}`).should('exist').rightclick();
-  cy.getActiveMenu().find('[role="menuitem"]').contains('Delete').click();
+  cy.getActiveMenu(".nc-dropdown-tree-view-context-menu").find('[role="menuitem"]').contains('Delete').click();
   cy.getActiveModal().find('button').contains('Yes').click();
 
   cy.toastWait(`Deleted table successfully`);
@@ -345,16 +357,16 @@ Cypress.Commands.add('renameTable', (oldName, newName) => {
     .rightclick();
 
   // choose rename option from menu
-  cy.getActiveMenu()
+  cy.getActiveMenu(".nc-dropdown-tree-view-context-menu")
     .find('[role="menuitem"]')
     .contains('Rename')
     .click({ force: true });
 
   // feed new name
-  cy.getActiveModal().find('input').clear().type(newName);
+  cy.getActiveModal(".nc-modal-table-rename").find('input').clear().type(newName);
 
   // submit
-  cy.getActiveModal().find('button').contains('Submit').click();
+  cy.getActiveModal(".nc-modal-table-rename").find('button').contains('Submit').click();
 
   cy.toastWait('Table renamed successfully');
 
@@ -483,7 +495,7 @@ Cypress.Commands.add('signOut', () => {
   cy.visit(`/`);
   cy.get('.nc-project-page-title', { timeout: 30000 }).contains('My Projects').should('be.visible');
   cy.get('.nc-menu-accounts', { timeout: 30000 }).should('exist').click();
-  cy.getActiveMenu().find('.ant-dropdown-menu-item').eq(1).click();
+  cy.getActiveMenu(".nc-dropdown-user-accounts-menu").find('.ant-dropdown-menu-item').eq(1).click();
 
   cy.wait(5000);
   cy.get('button:contains("SIGN")').should('exist');

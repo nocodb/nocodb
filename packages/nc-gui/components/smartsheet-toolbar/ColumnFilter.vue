@@ -156,6 +156,7 @@ defineExpose({
                 :dropdown-match-select-width="false"
                 class="shrink grow-0"
                 placeholder="Group op"
+                dropdown-class-name="nc-dropdown-filter-logical-op-group"
                 @click.stop
                 @change="saveOrUpdate(filter, i)"
               >
@@ -203,6 +204,7 @@ defineExpose({
               class="h-full"
               hide-details
               :disabled="filter.readOnly"
+              dropdown-class-name="nc-dropdown-filter-logical-op"
               @click.stop
               @change="filterUpdateCondition(filter, i)"
             >
@@ -230,6 +232,7 @@ defineExpose({
               variant="solo"
               :disabled="filter.readOnly"
               hide-details
+              dropdown-class-name="nc-dropdown-filter-comp-op"
               @change="filterUpdateCondition(filter, i)"
             >
               <a-select-option v-for="compOp in comparisonOpList" :key="compOp.value" :value="compOp.value" class="">

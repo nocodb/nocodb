@@ -41,7 +41,7 @@ export const genTest = (apiType, dbType) => {
             //     .click({ force: true });
 
             mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu().contains("Delete Row").click();
+            cy.getActiveMenu(".nc-dropdown-grid-context-menu").contains("Delete Row").click();
 
             cy.closeTableTab("Country");
         });
@@ -68,7 +68,7 @@ export const genTest = (apiType, dbType) => {
 
             // create form-view
             cy.get(`.nc-create-form-view`).click();
-            cy.getActiveModal().find("button:contains(Submit)").click();
+            cy.getActiveModal(".nc-modal-view-create").find("button:contains(Submit)").click();
 
             cy.toastWait("View created successfully");
 
@@ -77,7 +77,7 @@ export const genTest = (apiType, dbType) => {
             cy.wait(5000);
 
             // copy link text, visit URL
-            cy.getActiveModal()
+            cy.getActiveModal(".nc-modal-share-view")
                 .find(".share-link-box")
                 .contains("/nc/form/", { timeout: 10000 })
                 .should('exist')

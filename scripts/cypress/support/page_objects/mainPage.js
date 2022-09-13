@@ -33,7 +33,7 @@ export class _settingsPage {
         // cy.get('.nc-team-settings').should('exist').click()
         // cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
         cy.get('.nc-project-menu').should('exist').click()
-        cy.getActiveMenu().find(`[data-menu-id="teamAndSettings"]`).should('exist').click()
+        cy.getActiveMenu(".nc-dropdown-project-menu").find(`[data-menu-id="teamAndSettings"]`).should('exist').click()
         cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
     }
 
@@ -89,7 +89,7 @@ export class _mainPage {
     navigationDraw(item) {
         // open settings tab
         cy.get('.nc-project-menu').should('exist').click()
-        cy.getActiveMenu().find(`[data-menu-id="teamAndSettings"]`).should('exist').click()
+        cy.getActiveMenu(".nc-dropdown-project-menu").find(`[data-menu-id="teamAndSettings"]`).should('exist').click()
 
         switch (item) {
             case this.AUDIT:
@@ -120,12 +120,12 @@ export class _mainPage {
         // opt-in requested role & submit
         // cy.getActiveSelection().contains(roleType).click({force: true});
         cy.getActiveSelection().find('.nc-role-option').eq(roleIndex).should('exist').click()
-        cy.getActiveModal().find("button.ant-btn-primary").click();
+        cy.getActiveModal(".nc-modal-invite-user-and-share-base").find("button.ant-btn-primary").click();
 
         cy.toastWait("Successfully updated the user details");
 
         // get URL, invoke
-        cy.getActiveModal()
+        cy.getActiveModal(".nc-modal-invite-user-and-share-base")
             .find(".ant-alert-message")
             .then(($obj) => {
                 linkText = $obj.text().trim();
@@ -136,26 +136,26 @@ export class _mainPage {
             });
     };
 
-    addExistingUserToProject = (emailId, role) => {
-        cy.get('.v-list-item:contains("Team & Auth")').click();
-        cy.get(`tr:contains(${emailId})`)
-            .find(".mdi-plus", { timeout: 2000 })
-            .click();
-        cy.get(`tr:contains(${emailId})`)
-            .find(".mdi-pencil-outline", { timeout: 2000 })
-            .click();
-
-        cy.get("label:contains(Select User Role)").click();
-
-        // opt-in requested role & submit
-        //
-        cy.getActiveMenu().contains(role).click();
-        cy.get(".nc-invite-or-save-btn").click();
-        cy.toastWait("Successfully updated the user details");
-
-        this.roleURL[role] =
-            "http://localhost:3000/#/user/authentication/signin";
-    };
+    // addExistingUserToProject = (emailId, role) => {
+    //     cy.get('.v-list-item:contains("Team & Auth")').click();
+    //     cy.get(`tr:contains(${emailId})`)
+    //         .find(".mdi-plus", { timeout: 2000 })
+    //         .click();
+    //     cy.get(`tr:contains(${emailId})`)
+    //         .find(".mdi-pencil-outline", { timeout: 2000 })
+    //         .click();
+    //
+    //     cy.get("label:contains(Select User Role)").click();
+    //
+    //     // opt-in requested role & submit
+    //     //
+    //     cy.getActiveMenu().contains(role).click();
+    //     cy.get(".nc-invite-or-save-btn").click();
+    //     cy.toastWait("Successfully updated the user details");
+    //
+    //     this.roleURL[role] =
+    //         "http://localhost:3000/#/user/authentication/signin";
+    // };
 
     getCell = (columnHeader, cellNumber) => {
         return cy.get(
@@ -183,7 +183,7 @@ export class _mainPage {
             force: true,
         });
 
-        cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+        cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
           .should('exist')
           .clear()
           .type(colName);
@@ -197,7 +197,7 @@ export class _mainPage {
             force: true,
         });
 
-        cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+        cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
           .should('exist')
           .clear()
           .type(colName);
@@ -265,34 +265,34 @@ export class _mainPage {
 
     shareViewList = () => {
         cy.get(".nc-actions-menu-btn").should('exist').click();
-        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Shared View List');
+        return cy.getActiveMenu(".nc-dropdown-actions-menu").find('.ant-dropdown-menu-item').contains('Shared View List');
     };
 
     downloadCsv = () => {
         cy.get(".nc-actions-menu-btn").should('exist').click();
-        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Download as CSV');
+        return cy.getActiveMenu(".nc-dropdown-actions-menu").find('.ant-dropdown-menu-item').contains('Download as CSV');
     };
 
     downloadExcel = () => {
         cy.get(".nc-actions-menu-btn").should('exist').click();
-        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Download as XLSX');
+        return cy.getActiveMenu(".nc-dropdown-actions-menu").find('.ant-dropdown-menu-item').contains('Download as XLSX');
     };
 
     uploadCsv = () => {
         cy.get(".nc-actions-menu-btn").should('exist').click();
-        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Upload CSV');
+        return cy.getActiveMenu(".nc-dropdown-actions-menu").find('.ant-dropdown-menu-item').contains('Upload CSV');
     };
 
     automations = () => {
         cy.get(".nc-actions-menu-btn").should('exist').click();
-        return cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Webhooks');
+        return cy.getActiveMenu(".nc-dropdown-actions-menu").find('.ant-dropdown-menu-item').contains('Webhooks');
     };
 
     hideField = (field) => {
         cy.get(`th[data-title="${field}"]`).should("be.visible");
         cy.get(".nc-fields-menu-btn").click();
         cy.wait(500)
-        cy.getActiveMenu().find(`.nc-fields-list label:contains(${field}):visible`).click();
+        cy.getActiveMenu(".nc-dropdown-fields-menu").find(`.nc-fields-list label:contains(${field}):visible`).click();
         cy.wait(500)
         cy.get(".nc-fields-menu-btn").click();
         cy.wait(500)
@@ -303,7 +303,7 @@ export class _mainPage {
         cy.get(`th[data-title="${field}"]`).should("not.exist");
         cy.get(".nc-fields-menu-btn").click();
         cy.wait(500)
-        cy.getActiveMenu().find(`.nc-fields-list label:contains(${field}):visible`).click();
+        cy.getActiveMenu(".nc-dropdown-fields-menu").find(`.nc-fields-list label:contains(${field}):visible`).click();
         cy.wait(500)
         cy.get(".nc-fields-menu-btn").click();
         cy.wait(500)
@@ -313,7 +313,7 @@ export class _mainPage {
     sortField = (field, criteria) => {
         cy.get(".nc-sort-menu-btn").click();
         cy.wait(500)
-        cy.getActiveMenu('.sort-menu-overlay').contains("Add Sort Option").click();
+        cy.getActiveMenu('.nc-dropdown-sort-menu').contains("Add Sort Option").click();
         cy.wait(500)
         // cy.get(".nc-sort-field-select div").first().click().type(field);
         cy.get(".nc-sort-field-select div").first().click();
@@ -411,10 +411,10 @@ export class _mainPage {
 
         if(role === 'commenter' || role === 'viewer') {
             cy.get(".nc-actions-menu-btn").click();
-            cy.getActiveMenu().find('.nc-project-menu-item').contains('Download as CSV').click();
+            cy.getActiveMenu(".nc-dropdown-actions-menu").find('.nc-project-menu-item').contains('Download as CSV').click();
         } else {
             cy.get(".nc-actions-menu-btn").click();
-            cy.getActiveMenu().find('.nc-project-menu-item').contains('Download').click();
+            cy.getActiveMenu(".nc-dropdown-actions-menu").find('.nc-project-menu-item').contains('Download').click();
             cy.wait(1000);
             cy.get('.nc-project-menu-item').contains('Download as CSV').should('exist').click();
         }

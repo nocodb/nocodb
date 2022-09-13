@@ -470,7 +470,7 @@ onMounted(async () => {
             <!-- Drag and drop fields here to hide -->
             {{ $t('msg.info.dragDropHide') }}
           </div>
-          <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']">
+          <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-form-add-column">
             <a-button type="link" class="w-full caption mt-2" size="large" @click.stop="showColumnDropdown = true">
               <div class="flex items-center prose-sm justify-center text-gray-400">
                 <mdi-plus />

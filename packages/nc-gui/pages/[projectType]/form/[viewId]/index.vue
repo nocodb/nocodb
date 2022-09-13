@@ -136,6 +136,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
         centered
         :footer="null"
         :mask-closable="false"
+        wrap-class-name="nc-modal-shared-form-password-dlg"
         @close="passwordDlg = false"
       >
         <div class="w-full flex flex-col">

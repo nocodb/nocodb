@@ -30,11 +30,11 @@ export const genTest = (apiType, dbType) => {
       // trigger import
       cy.get('.nc-add-new-table').should('exist').trigger('mouseover')
       cy.get('.nc-import-menu').should('exist').click()
-      cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Airtable').click()
+      cy.getActiveMenu(".nc-dropdown-import-menu").find('.ant-dropdown-menu-item').contains('Airtable').click()
 
-      cy.getActiveModal().find(".nc-input-api-key").should('exist').clear().type(apiKey)
-      cy.getActiveModal().find(".nc-input-shared-base").should('exist').clear().type(sharedBase)
-      cy.getActiveModal().find(".nc-btn-airtable-import").should('exist').click()
+      cy.getActiveModal(".nc-modal-airtable-import").find(".nc-input-api-key").should('exist').clear().type(apiKey)
+      cy.getActiveModal(".nc-modal-airtable-import").find(".nc-input-shared-base").should('exist').clear().type(sharedBase)
+      cy.getActiveModal(".nc-modal-airtable-import").find(".nc-btn-airtable-import").should('exist').click()
 
       // it will take a while for import to finish
       // cy.getActiveModal().find(".nc-btn-go-dashboard", {timeout: 180000}).should('exist').click()

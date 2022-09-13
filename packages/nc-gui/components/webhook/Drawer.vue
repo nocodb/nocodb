@@ -29,6 +29,7 @@ async function editHook(hook: Record<string, any>) {
     placement="right"
     width="700px"
     :body-style="{ background: 'rgba(67, 81, 232, 0.05)', padding: '0px 0px', overflow: 'hidden' }"
+    class="nc-drawer-webhook"
     @keydown.esc="vModel = false"
   >
     <a-layout class="">

@@ -40,7 +40,7 @@ let cn = [ "Name", "Notes", "Status", "Tags", "Done", "Date", "Phone",
 
 function openWebhook(index) {
     cy.get('.nc-actions-menu-btn').should('exist').click();
-    cy.getActiveMenu().find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
+    cy.getActiveMenu(".nc-dropdown-actions-menu").find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
 
     cy.get(".nc-hook").eq(index).click();
 }
@@ -348,11 +348,11 @@ export const genTest = (apiType, dbType, testMode) => {
             cy.wait(2000);
             cy.get(".nc-fields-menu-btn").click()
 
-            cy.getActiveMenu().find(`[type="checkbox"]`).eq(0).should('be.checked')
-            cy.getActiveMenu().find(`[type="checkbox"]`).eq(1).should('be.checked')
-            cy.getActiveMenu().find(`[type="checkbox"]`).eq(2).should('not.be.checked')
-            cy.getActiveMenu().find(`[type="checkbox"]`).eq(3).should('be.checked')
-            cy.getActiveMenu().find(`[type="checkbox"]`).eq(4).should('be.checked')
+            cy.getActiveMenu(".nc-dropdown-fields-menu").find(`[type="checkbox"]`).eq(0).should('be.checked')
+            cy.getActiveMenu(".nc-dropdown-fields-menu").find(`[type="checkbox"]`).eq(1).should('be.checked')
+            cy.getActiveMenu(".nc-dropdown-fields-menu").find(`[type="checkbox"]`).eq(2).should('not.be.checked')
+            cy.getActiveMenu(".nc-dropdown-fields-menu").find(`[type="checkbox"]`).eq(3).should('be.checked')
+            cy.getActiveMenu(".nc-dropdown-fields-menu").find(`[type="checkbox"]`).eq(4).should('be.checked')
             cy.get(".nc-fields-menu-btn").click();
 
             cy.get(".nc-sort-menu-btn").click();
@@ -416,7 +416,7 @@ export const genTest = (apiType, dbType, testMode) => {
                   .last()
                   .click();
 
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-project-delete")
                   .find("button")
                   .contains("Submit")
                   .should("exist")

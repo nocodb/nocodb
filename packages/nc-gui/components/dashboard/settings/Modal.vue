@@ -159,6 +159,7 @@ watch(
     :footer="null"
     width="max(90vw, 600px)"
     :closable="false"
+    wrap-class-name="nc-modal-settings"
     @cancel="emits('update:modelValue', false)"
   >
     <!--    Settings -->

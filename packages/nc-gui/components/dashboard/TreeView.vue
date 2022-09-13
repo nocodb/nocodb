@@ -218,7 +218,7 @@ function openTableCreateDialog() {
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <a-dropdown :trigger="['contextmenu']">
+    <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
       <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col scrollbar-thin-dull" :class="{ 'mb-[20px]': isSharedBase }">
         <div class="py-1 px-3 flex w-full items-center gap-1 cursor-pointer" @contextmenu="setMenuContext('main')">
           <span class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
@@ -238,7 +238,7 @@ function openTableCreateDialog() {
 
             <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
 
-            <a-dropdown v-if="!isSharedBase" :trigger="['click']" @click.stop>
+            <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
               <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu" />
 
               <template #overlay>

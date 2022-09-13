@@ -27,7 +27,7 @@ const openSwaggerLink = () => {
   <a-drawer
     v-bind="$attrs"
     v-model:visible="showDrawer"
-    class="h-full relative"
+    class="h-full relative nc-drawer-help-and-support"
     placement="right"
     size="small"
     :closable="false"

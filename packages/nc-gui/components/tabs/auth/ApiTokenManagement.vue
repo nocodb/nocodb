@@ -98,7 +98,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="showNewTokenModal" :closable="false" width="28rem" centered :footer="null">
+  <a-modal
+    v-model:visible="showNewTokenModal"
+    :closable="false"
+    width="28rem"
+    centered
+    :footer="null"
+    wrap-class-name="nc-modal-generate-token"
+  >
     <div class="relative flex flex-col h-full">
       <a-button type="text" class="!absolute top-0 right-0 rounded-md -mt-2 -mr-3" @click="showNewTokenModal = false">
         <template #icon>
@@ -131,7 +138,14 @@ onMounted(() => {
       </a-form>
     </div>
   </a-modal>
-  <a-modal v-model:visible="showDeleteTokenModal" :closable="false" width="28rem" centered :footer="null">
+  <a-modal
+    v-model:visible="showDeleteTokenModal"
+    :closable="false"
+    width="28rem"
+    centered
+    :footer="null"
+    wrap-class-name="nc-modal-delete-token"
+  >
     <div class="flex flex-col h-full">
       <div class="flex flex-row justify-center mt-2 text-center w-full text-base">This action will remove this API Token</div>
       <div class="flex mt-6 justify-center space-x-2">
@@ -195,7 +209,7 @@ onMounted(() => {
               </a-button>
             </a-tooltip>
 
-            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight">
+            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-api-token-mgmt">
               <div class="flex flex-row items-center">
                 <a-button type="text" class="!px-0">
                   <div class="flex flex-row items-center h-[1.2rem]">

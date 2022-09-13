@@ -35,9 +35,9 @@ import { NavigateDir } from '~/lib'
 
 const { t } = useI18n()
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
-const view = inject(ActiveViewInj)!
+const view = inject(ActiveViewInj, ref())
 
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
@@ -132,7 +132,7 @@ const selectCell = (row: number, col: number) => {
 }
 
 watch(
-  () => view?.value.id,
+  () => view.value?.id,
   async (next, old) => {
     if (next && old && next !== old) {
       await loadData()
@@ -345,7 +345,7 @@ onBeforeUnmount(async () => {
     /** if existing row check updated cell and invoke update method */
     if (currentRow.rowMeta.changed) {
       currentRow.rowMeta.changed = false
-      for (const field of meta?.value.columns ?? []) {
+      for (const field of meta.value?.columns ?? []) {
         if (isVirtualCol(field)) continue
         if (currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
           await updateOrSaveRow(currentRow, field.title!)

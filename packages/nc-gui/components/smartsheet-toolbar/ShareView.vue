@@ -1,9 +1,15 @@
 <script lang="ts" setup>
-import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { computed, extractSdkResponseErrorMsg, useNuxtApp, useProject, useSmartsheetStoreOrThrow } from '#imports'
+import {
+  computed,
+  extractSdkResponseErrorMsg,
+  useClipboard,
+  useI18n,
+  useNuxtApp,
+  useProject,
+  useSmartsheetStoreOrThrow,
+} from '#imports'
 import MdiOpenInNewIcon from '~icons/mdi/open-in-new'
 import MdiCopyIcon from '~icons/mdi/content-copy'
 
@@ -39,7 +45,7 @@ const allowCSVDownload = computed({
 })
 
 const genShareLink = async () => {
-  shared.value = await $api.dbViewShare.create(view.value.id as string)
+  shared.value = await $api.dbViewShare.create(view.value?.id as string)
   shared.value.meta =
     shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
   passwordProtected.value = shared.value.password !== null && shared.value.password !== ''

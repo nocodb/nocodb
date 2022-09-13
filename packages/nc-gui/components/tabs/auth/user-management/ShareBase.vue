@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { onMounted, useClipboard, useNuxtApp, useProject } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
-
-const { t } = useI18n()
+import { extractSdkResponseErrorMsg, onMounted, useClipboard, useI18n, useNuxtApp, useProject } from '#imports'
 
 interface ShareBase {
   uuid?: string
@@ -16,6 +12,8 @@ enum ShareBaseRole {
   Editor = 'editor',
   Viewer = 'viewer',
 }
+
+const { t } = useI18n()
 
 const { dashboardUrl } = $(useDashboard())
 

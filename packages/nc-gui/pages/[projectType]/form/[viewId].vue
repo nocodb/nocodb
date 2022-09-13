@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { Ref } from 'vue'
-import type { TableType } from 'nocodb-sdk'
 import {
   IsFormInj,
   IsPublicInj,
@@ -34,7 +32,7 @@ if (!notFound.value) {
   provide(IsPublicInj, ref(true))
   provide(IsFormInj, ref(true))
 
-  useProvideSmartsheetStore(sharedView as Ref<TableType>, meta as Ref<TableType>, true)
+  useProvideSmartsheetStore(sharedView, meta, true)
 }
 </script>
 

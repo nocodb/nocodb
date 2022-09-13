@@ -82,6 +82,11 @@ const unlinkRef = async (rec: Record<string, any>) => {
     await unlink(rec)
   }
 }
+
+const onAttachRecord = () => {
+  childListDlg.value = false
+  listItemsDlg.value = true
+}
 </script>
 
 <template>
@@ -110,16 +115,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
 
     <ListItems v-model="listItemsDlg" />
 
-    <ListChildItems
-      v-model="childListDlg"
-      :cell-value="localCellValue"
-      @attach-record="
-        () => {
-          childListDlg = false
-          listItemsDlg = true
-        }
-      "
-    />
+    <ListChildItems v-model="childListDlg" :cell-value="localCellValue" @attach-record="onAttachRecord" />
   </div>
 </template>
 

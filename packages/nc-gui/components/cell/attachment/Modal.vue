@@ -9,7 +9,7 @@ const { isUIAllowed } = useUIPermission()
 const {
   open,
   isLoading,
-  isPublicGrid,
+  isPublic,
   isReadonly,
   visibleItems,
   modalVisible,
@@ -62,7 +62,7 @@ function onClick(item: Record<string, any>) {
     <template #title>
       <div class="flex gap-4">
         <div
-          v-if="isSharedForm || (!isReadonly && isUIAllowed('tableAttachment') && !isPublicGrid && !isLocked)"
+          v-if="isSharedForm || (!isReadonly && isUIAllowed('tableAttachment') && !isPublic && !isLocked)"
           class="nc-attach-file group"
           @click="open"
         >

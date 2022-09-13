@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useClipboard } from '@vueuse/core'
-import { useI18n } from 'vue-i18n'
+import { extractSdkResponseErrorMsg, useClipboard, useI18n } from '#imports'
 import KebabIcon from '~icons/ic/baseline-more-vert'
 import MdiPlusIcon from '~icons/mdi/plus'
 import CloseIcon from '~icons/material-symbols/close-rounded'
@@ -11,12 +10,12 @@ import VisibilityOpenIcon from '~icons/material-symbols/visibility'
 import VisibilityCloseIcon from '~icons/material-symbols/visibility-off'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import MdiContentCopyIcon from '~icons/mdi/content-copy'
-import { extractSdkResponseErrorMsg } from '~/utils'
 
-const { t } = useI18n()
 interface ApiToken extends ApiTokenType {
   show?: boolean
 }
+
+const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 

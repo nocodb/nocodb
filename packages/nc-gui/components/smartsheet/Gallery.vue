@@ -24,8 +24,8 @@ interface Attachment {
   url: string
 }
 
-const meta = inject(MetaInj)!
-const view = inject(ActiveViewInj)!
+const meta = inject(MetaInj, ref())
+const view = inject(ActiveViewInj, ref())
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
@@ -58,7 +58,7 @@ const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== ga
 
 const coverImageColumn: any = $(
   computed(() =>
-    meta?.value.columnsById
+    meta.value?.columnsById
       ? meta.value.columnsById[galleryData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
       : {},
   ),

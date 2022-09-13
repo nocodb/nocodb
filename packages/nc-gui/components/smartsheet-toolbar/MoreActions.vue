@@ -30,11 +30,11 @@ const { project } = useProject()
 
 const { $api } = useNuxtApp()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref([]))
 
-const selectedView = inject(ActiveViewInj)
+const selectedView = inject(ActiveViewInj, ref())
 
 const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
@@ -61,8 +61,8 @@ const exportFile = async (exportType: ExportTypes) => {
         res = await $api.dbViewRow.export(
           'noco',
           project?.value.title as string,
-          meta?.value.title as string,
-          selectedView?.value.title as string,
+          meta.value?.title as string,
+          selectedView.value?.title as string,
           exportType,
           {
             responseType,
@@ -78,10 +78,10 @@ const exportFile = async (exportType: ExportTypes) => {
       const { data, headers } = res
       if (exportType === ExportTypes.EXCEL) {
         const workbook = XLSX.read(data, { type: 'base64' })
-        XLSX.writeFile(workbook, `${meta?.value.title}_exported_${c++}.xlsx`)
+        XLSX.writeFile(workbook, `${meta.value?.title}_exported_${c++}.xlsx`)
       } else if (exportType === ExportTypes.CSV) {
         const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
-        FileSaver.saveAs(blob, `${meta?.value.title}_exported_${c++}.csv`)
+        FileSaver.saveAs(blob, `${meta.value?.title}_exported_${c++}.csv`)
       }
       offset = +headers['nc-export-offset']
       if (offset > -1) {

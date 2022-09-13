@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
-import { useI18n } from 'vue-i18n'
 import {
   ColumnInj,
   IsFormInj,
@@ -11,6 +10,7 @@ import {
   provide,
   ref,
   toRef,
+  useI18n,
   useMetas,
   useUIPermission,
   useVirtualCell,
@@ -32,7 +32,7 @@ const { metas } = useMetas()
 
 const { isUIAllowed } = useUIPermission()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
 

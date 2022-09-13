@@ -10,7 +10,7 @@ const emit = defineEmits(['edit'])
 
 const column = inject(ColumnInj)
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const isLocked = inject(IsLockedInj)
 

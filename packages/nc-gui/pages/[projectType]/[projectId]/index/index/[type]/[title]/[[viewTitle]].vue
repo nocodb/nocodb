@@ -22,5 +22,3 @@ getMeta(route.params.title as string, true).finally(() => {
   </div>
   <TabsSmartsheet v-else :key="route.params.title" :active-tab="activeTab" />
 </template>
-
-<style scoped></style>

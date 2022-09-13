@@ -33,9 +33,9 @@ const logicalOps = [
   { value: 'or', text: 'OR' },
 ]
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
-const activeView = inject(ActiveViewInj)!
+const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 

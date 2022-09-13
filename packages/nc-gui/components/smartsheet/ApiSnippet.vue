@@ -28,9 +28,9 @@ const { project } = $(useProject())
 
 const { appInfo, token } = $(useGlobal())
 
-const meta = $(inject(MetaInj)!)
+const meta = $(inject(MetaInj, ref()))
 
-const view = $(inject(ActiveViewInj)!)
+const view = $(inject(ActiveViewInj, ref()))
 
 const { xWhere } = useSmartsheetStoreOrThrow()
 

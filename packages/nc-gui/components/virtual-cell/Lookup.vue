@@ -10,13 +10,13 @@ provide(ReadonlyInj, true)
 
 const column = inject(ColumnInj)! as Ref<ColumnType & { colOptions: LookupType }>
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const value = inject(CellValueInj)
 
 const arrValue = computed(() => (Array.isArray(value?.value) ? value?.value : [value?.value]) ?? [])
 
-const relationColumn = meta?.value.columns?.find((c) => c.id === column.value.colOptions?.fk_relation_column_id) as ColumnType & {
+const relationColumn = meta.value?.columns?.find((c) => c.id === column.value.colOptions?.fk_relation_column_id) as ColumnType & {
   colOptions: LinkToAnotherRecordType
 }
 

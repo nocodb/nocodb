@@ -20,9 +20,9 @@ import {
 import CellIcon from '~/components/smartsheet-header/CellIcon.vue'
 import VirtualCellIcon from '~/components/smartsheet-header/VirtualCellIcon.vue'
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
-const activeView = inject(ActiveViewInj)!
+const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 

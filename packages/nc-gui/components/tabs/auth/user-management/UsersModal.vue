@@ -1,27 +1,22 @@
 <script setup lang="ts">
 import { Form, message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import ShareBase from './ShareBase.vue'
 import {
   computed,
   extractSdkResponseErrorMsg,
   isEmail,
   onMounted,
+  projectRoleTagColors,
   projectRoles,
   ref,
   useClipboard,
   useDashboard,
+  useI18n,
   useNuxtApp,
   useProject,
 } from '#imports'
 import type { User } from '~/lib'
 import { ProjectRole } from '~/lib'
-
-const { show, selectedUser } = defineProps<Props>()
-
-const emit = defineEmits(['closed', 'reload'])
-
-const { t } = useI18n()
 
 interface Props {
   show: boolean
@@ -33,6 +28,12 @@ interface Users {
   role: ProjectRole
   invitationToken?: string
 }
+
+const { show, selectedUser } = defineProps<Props>()
+
+const emit = defineEmits(['closed', 'reload'])
+
+const { t } = useI18n()
 
 const { project } = useProject()
 const { $api, $e } = useNuxtApp()
@@ -69,7 +70,8 @@ const { validateInfos } = useForm(usersData, validators)
 onMounted(() => {
   if (!usersData.emails && selectedUser?.email) {
     usersData.emails = selectedUser.email
-    usersData.role = selectedUser.roles
+    // todo: types not matching, probably a bug here?
+    usersData.role = selectedUser.roles as any
   }
 })
 

@@ -1,8 +1,17 @@
 <script setup lang="ts">
 import { Form, message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import type { Ref } from 'vue'
-import { MetaInj, extractSdkResponseErrorMsg, fieldRequiredValidator, inject, reactive, useApi, useNuxtApp } from '#imports'
+import type { AuditType } from 'nocodb-sdk'
+import {
+  MetaInj,
+  extractSdkResponseErrorMsg,
+  fieldRequiredValidator,
+  inject,
+  reactive,
+  useApi,
+  useI18n,
+  useNuxtApp,
+} from '#imports'
 
 const emit = defineEmits(['backToList', 'editOrAdd'])
 
@@ -12,7 +21,7 @@ const { $e } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const useForm = Form.useForm
 
@@ -339,13 +348,13 @@ async function saveHooks() {
         },
       })
     } else {
-      res = await api.dbTableWebhook.create(meta!.value.id!, {
+      res = await api.dbTableWebhook.create(meta.value!.id!, {
         ...hook,
         notification: {
           ...hook.notification,
           payload: hook.notification.payload,
         },
-      } as any)
+      } as AuditType)
     }
 
     if (!hook.id && res) {

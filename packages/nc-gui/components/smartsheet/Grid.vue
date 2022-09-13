@@ -162,7 +162,11 @@ const selectedRange = (row: number, col: number)=>{
 }
 
 const startSelectRange = (event: MouseEvent, row: number, col: number)=>{
-  event.preventDefault()
+  if(editEnabled && (selected.col !== col || selected.row !== row)){
+    event.preventDefault();
+  }else if(!editEnabled){
+    event.preventDefault();
+  }
   selectedRows.startcol = null;
   selectedRows.endcol = null;
   selectedRows.startrow = null;
@@ -182,6 +186,7 @@ const clearRangeRows = ()=>{
   selectedRows.endrow = null
   selectedRows.endcol = null
 }
+
 watch(
   () => (view?.value as any)?.id,
   async (n?: string, o?: string) => {
@@ -358,7 +363,9 @@ const onKeyDown = async (e: KeyboardEvent) => {
 
 useEventListener(document, 'keydown', onKeyDown)
 useEventListener(document, 'mouseup', (e: MouseEvent)=>{
-  e.preventDefault()
+  if(!editEnabled){
+    e.preventDefault()
+  }
   isSelectedBlock = false
 })
 
@@ -477,7 +484,7 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody v-on:selectstart.prevent>
             <SmartsheetRow v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">
@@ -526,13 +533,15 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
-                      active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex,
+                      active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex || isUIAllowed('xcDatatableEditable') && selectedRange(rowIndex, colIndex),
                     }"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
                     @click="selectCell(rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
+                    @mousedown="startSelectRange($event, rowIndex, colIndex)"
+                    @mouseover="selectBlock(rowIndex, colIndex)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
                     <div class="w-full h-full">

@@ -3,6 +3,7 @@ import type { Api, ColumnType, KanbanType, TableType, ViewType } from 'nocodb-sd
 import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
 import type { Row } from '~/composables/useViewData'
+import { enumColor } from '~/utils'
 import { useNuxtApp } from '#app'
 
 export function useKanbanViewData(
@@ -65,7 +66,7 @@ export function useKanbanViewData(
       groupingFieldColOptions.value = [
         ...(groupingFieldColumn?.colOptions?.options ?? []),
         // enrich uncategorized stack
-        { id: 'uncategorized', title: 'Uncategorized', order: 0 },
+        { id: 'uncategorized', title: 'Uncategorized', order: 0, color: enumColor.light[2] },
       ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
 
       // if grouping column id is present, add the grouping field column options to stackMetaObj

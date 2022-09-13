@@ -256,6 +256,10 @@ const makeEditable = (row: Row, col: ColumnType) => {
 
 /** handle keypress events */
 const onKeyDown = async (e: KeyboardEvent) => {
+  if(selectedRows.startrow !== null && selectedRows.startcol !== null && selectedRows.endrow !== null && selectedRows.endcol !== null){
+    selected.row = selectedRows.startrow
+    selected.col = selectedRows.startcol
+  }
   if (selected.row === null || selected.col === null) return
   /** on tab key press navigate through cells */
   switch (e.key) {

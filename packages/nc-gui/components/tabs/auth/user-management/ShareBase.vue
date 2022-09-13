@@ -35,8 +35,7 @@ const loadBase = async () => {
   try {
     if (!project.value.id) return
 
-    // todo: response is missing roles in type
-    const res = (await $api.project.sharedBaseGet(project.value.id)) as any
+    const res = await $api.project.sharedBaseGet(project.value.id)
 
     base = {
       uuid: res.uuid,
@@ -52,10 +51,9 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
   try {
     if (!project.value.id) return
 
-    // todo: return type void?
-    const res = (await $api.project.sharedBaseUpdate(project.value.id, {
+    const res = await $api.project.sharedBaseUpdate(project.value.id, {
       roles: role,
-    })) as any
+    })
 
     base = res ?? {}
     base!.role = role

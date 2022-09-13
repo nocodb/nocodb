@@ -2,7 +2,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
   ChangePageInj,
@@ -17,7 +16,6 @@ import {
   ReadonlyInj,
   ReloadViewDataHookInj,
   createEventHook,
-  enumColor,
   inject,
   onClickOutside,
   onMounted,
@@ -26,6 +24,7 @@ import {
   ref,
   useEventListener,
   useGridViewColumnWidth,
+  useI18n,
   useSmartsheetStoreOrThrow,
   useUIPermission,
   useViewData,
@@ -36,9 +35,9 @@ import { NavigateDir } from '~/lib'
 
 const { t } = useI18n()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj)!
 
-const view = inject(ActiveViewInj)
+const view = inject(ActiveViewInj)!
 
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
@@ -92,7 +91,7 @@ const {
   deleteSelectedRows,
   selectedAllRecords,
   removeRowIfNew,
-} = useViewData(meta, view as any, xWhere)
+} = useViewData(meta, view, xWhere)
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
 onMounted(loadGridViewColumns)
@@ -133,9 +132,9 @@ const selectCell = (row: number, col: number) => {
 }
 
 watch(
-  () => (view?.value as any)?.id,
-  async (n?: string, o?: string) => {
-    if (n && o && n !== o) {
+  () => view?.value.id,
+  async (next, old) => {
+    if (next && old && next !== old) {
       await loadData()
     }
   },

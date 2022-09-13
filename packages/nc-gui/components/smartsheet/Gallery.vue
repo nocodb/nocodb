@@ -1,8 +1,5 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import { inject, provide, useViewData } from '#imports'
-import Row from '~/components/smartsheet/Row.vue'
-import type { Row as RowType } from '~/composables'
 import {
   ActiveViewInj,
   ChangePageInj,
@@ -14,15 +11,21 @@ import {
   OpenNewRecordFormHookInj,
   PaginationDataInj,
   ReadonlyInj,
-} from '~/context'
+  ReloadViewDataHookInj,
+  inject,
+  provide,
+  useViewData,
+} from '#imports'
+import Row from '~/components/smartsheet/Row.vue'
+import type { Row as RowType } from '~/composables'
 import ImageIcon from '~icons/mdi/file-image-box'
 
 interface Attachment {
   url: string
 }
 
-const meta = inject(MetaInj)
-const view = inject(ActiveViewInj)
+const meta = inject(MetaInj)!
+const view = inject(ActiveViewInj)!
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
@@ -38,7 +41,7 @@ const {
   galleryData,
   changePage,
   addEmptyRow,
-} = useViewData(meta, view as any)
+} = useViewData(meta, view)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -192,15 +195,18 @@ openNewRecordFormHook?.on(async () => {
   grid-auto-rows: 1fr;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 }
-:depp(.slick-dots li button) {
+
+:deep(.slick-dots li button) {
   background-color: black;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-dots) {
   position: relative;
   height: auto;
   bottom: 0px;
 }
-.ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
+
+.ant-carousel.gallery-carousel :deep(.slick-dots li div) {
   background: #000;
   border: 0;
   border-radius: 1px;
@@ -215,15 +221,18 @@ openNewRecordFormHook?.on(async () => {
   transition: all 0.5s;
   width: 100%;
 }
-.ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
+
+.ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div) {
   opacity: 1;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-prev) {
   left: 0;
   height: 100%;
   top: 12px;
   width: 50%;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-next) {
   right: 0;
   height: 100%;

@@ -1,4 +1,4 @@
-import type { ViewType } from 'nocodb-sdk'
+import type { FilterType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
@@ -69,13 +69,13 @@ export function useViewFilters(
         if (parentId) {
           filters.value = await $api.dbTableFilter.childrenRead(parentId)
         } else {
-          filters.value = (await $api.dbTableWebhookFilter.read(hookId as string)) as any
+          filters.value = (await $api.dbTableWebhookFilter.read(hookId!)).filters.list
         }
       } else {
         if (parentId) {
           filters.value = await $api.dbTableFilter.childrenRead(parentId)
         } else {
-          filters.value = await $api.dbTableFilter.read(view?.value?.id as string)
+          filters.value = await $api.dbTableFilter.read(view!.value.id!)
         }
       }
     } catch (e: any) {
@@ -99,12 +99,12 @@ export function useViewFilters(
             filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
               ...filter,
               fk_parent_id: parentId,
-            })) as any
+            })) as unknown as FilterType
           } else {
-            filters.value[+i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
+            filters.value[+i] = await $api.dbTableFilter.create(view?.value?.id as string, {
               ...filter,
               fk_parent_id: parentId,
-            })) as any
+            })
           }
         }
       }
@@ -168,10 +168,10 @@ export function useViewFilters(
         })
       } else {
         // todo: return type of dbTableFilter is void?
-        filters.value[i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
+        filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
           ...filter,
           fk_parent_id: parentId,
-        })) as any
+        })
       }
     } catch (e: any) {
       console.log(e)

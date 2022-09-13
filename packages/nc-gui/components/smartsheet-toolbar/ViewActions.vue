@@ -44,7 +44,7 @@ const { isUIAllowed } = useUIPermission()
 const { isSharedBase } = useProject()
 
 const Icon = computed(() => {
-  switch ((selectedView?.value as any)?.lock_type) {
+  switch (selectedView?.value.lock_type) {
     case LockType.Personal:
       return MdiAccountIcon
     case LockType.Locked:
@@ -65,8 +65,8 @@ async function changeLockType(type: LockType) {
     return message.info(t('msg.toast.futureRelease'))
   }
   try {
-    ;(selectedView.value as any).lock_type = type
-    $api.dbView.update(selectedView.value.id as string, {
+    selectedView.value.lock_type = type
+    await $api.dbView.update(selectedView.value.id as string, {
       lock_type: type,
     })
 

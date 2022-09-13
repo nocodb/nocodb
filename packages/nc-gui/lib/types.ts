@@ -1,6 +1,6 @@
 import type { FilterType } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
-import type { Language, Role } from './enums'
+import type { Role } from './enums'
 
 export interface User {
   id: string

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import * as XLSX from 'xlsx'
+import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
 import { message } from 'ant-design-vue'
@@ -71,7 +72,7 @@ const exportFile = async (exportType: ExportTypes) => {
               sortArrJson: JSON.stringify(sorts.value),
               filterArrJson: JSON.stringify(nestedFilters.value),
             },
-          } as any,
+          } as RequestParams,
         )
       }
       const { data, headers } = res

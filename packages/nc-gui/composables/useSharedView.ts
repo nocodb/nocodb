@@ -40,7 +40,7 @@ export function useSharedView() {
     allowCSVDownload.value = JSON.parse(viewMeta.meta)?.allowCSVDownload
 
     if (localPassword) password.value = localPassword
-    sharedView.value = { ...viewMeta }
+    sharedView.value = { title: '', ...viewMeta }
     meta.value = { ...viewMeta.model }
 
     let order = 1
@@ -56,11 +56,13 @@ export function useSharedView() {
   }
 
   const fetchSharedViewData = async () => {
+    if (!sharedView.value) return
+
     const page = paginationData.value.page || 1
     const pageSize = paginationData.value.pageSize || 25
 
     const { data } = await $api.public.dataList(
-      (sharedView.value as any)?.uuid,
+      sharedView.value.uuid!,
       {
         offset: (page - 1) * pageSize,
         filterArrJson: JSON.stringify(nestedFilters.value),
@@ -82,8 +84,8 @@ export function useSharedView() {
     type: ExportTypes.EXCEL | ExportTypes.CSV,
     responseType: 'base64' | 'blob',
   ) => {
-    return await $api.public.csvExport((sharedView.value as any)?.uuid, type, {
-      format: responseType as any,
+    return await $api.public.csvExport(sharedView.value!.uuid!, type, {
+      format: responseType,
       query: {
         fields: fields.map((field) => field.title),
         offset,

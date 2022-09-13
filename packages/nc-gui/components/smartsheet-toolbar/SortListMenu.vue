@@ -32,7 +32,7 @@ const columnByID = computed(() =>
 )
 
 watch(
-  () => (view?.value as any)?.id,
+  () => view!.value?.id,
   () => {
     loadSorts()
   },

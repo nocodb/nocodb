@@ -104,7 +104,7 @@ const initSortable = (el: Element) => {
 
       // update the item order
       await $api.dbTable.reorder(item.id as string, {
-        order: item.order as any,
+        order: item.order,
       })
     },
     animation: 150,
@@ -142,7 +142,7 @@ const reloadTables = async () => {
 }
 
 const addTableTab = (table: TableType) => {
-  addTab({ title: table.title, id: table.id, type: table.type as any })
+  addTab({ title: table.title, id: table.id, type: table.type as TabType })
 }
 
 function openRenameTableDialog(table: TableType, rightClick = false) {

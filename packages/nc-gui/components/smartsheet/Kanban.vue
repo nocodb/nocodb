@@ -41,6 +41,7 @@ const {
   addEmptyRow,
   groupingFieldColOptions,
   groupingField,
+  groupingFieldColumn,
 } = useKanbanViewData(meta, view as any)
 
 const { isUIAllowed } = useUIPermission()
@@ -143,20 +144,17 @@ async function onMove(event: any, stackKey: string) {
   }
 }
 
-function createNewStack() {
-  // TODO:
-  // P.S tag value cannot be empty
-}
-
 openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
 })
+
+const addNewStackDropdown = ref(false)
 </script>
 
 <template>
   <div class="flex h-full">
-    <div class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-auto">
+    <div class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
       <Draggable
         v-model="groupingFieldColOptions"
         class="flex gap-5"
@@ -177,7 +175,7 @@ openNewRecordFormHook?.on(async () => {
           >
             <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[20px]"></div>
             <a-skeleton v-if="!formattedData" />
-            <a-layout class="px-[20px] !bg-[#f0f2f5]" v-else>
+            <a-layout v-else class="px-[20px] !bg-[#f0f2f5]">
               <a-layout-header>
                 <div class="nc-kanban-stack-head justify-center w-full items-center flex">
                   <div class="text-slate-500 font-bold">{{ stack.title }}</div>
@@ -287,12 +285,31 @@ openNewRecordFormHook?.on(async () => {
           body-style="padding: 0px 20px; height: 100%;"
           :bordered="false"
         >
-          <a-button class="w-full !h-[40px] !rounded-xl" @click="createNewStack">
-            <div class="flex items-center">
-              <mdi-plus />
-              <span class="text-gray-500 group-hover:(text-primary/100) flex-1">New Stack</span>
-            </div>
-          </a-button>
+          <a-dropdown v-if="isUIAllowed('edit-column')" v-model:visible="addNewStackDropdown" :trigger="['click']">
+            <a-button class="w-full !h-[40px] !rounded-xl">
+              <div class="flex items-center">
+                <mdi-plus />
+                <span class="text-gray-500 group-hover:(text-primary/100) flex-1">Add / Edit Stack</span>
+              </div>
+            </a-button>
+
+            <template #overlay>
+              <SmartsheetColumnEditOrAddProvider
+                v-if="addNewStackDropdown"
+                :column="groupingFieldColumn"
+                @submit="
+                  ;async () => {
+                    addNewStackDropdown = false
+                    await loadKanbanMeta()
+                    await loadKanbanData()
+                  }
+                "
+                @cancel="addNewStackDropdown = false"
+                @click.stop
+                @keydown.stop
+              />
+            </template>
+          </a-dropdown>
         </a-card>
       </div>
     </div>

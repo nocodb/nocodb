@@ -22,7 +22,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
 
   /**
    * Set initial language based on browser settings.
-   * If the user has not set a preferred language, we fallback to 'en'.
+   * If the user has not set a preferred language, we fall back to 'en'.
    * If the user has set a preferred language, we try to find a matching locale in the available locales.
    */
   const preferredLanguage = preferredLanguages.reduce((locale, language) => {
@@ -30,7 +30,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     const [lang, code] = language.split(/[_-]/)
 
     /** find all locales that match the language */
-    let availableLocales = i18n.availableLocales.filter((locale) => locale.startsWith(lang))
+    let availableLocales = i18n.global.availableLocales.filter((locale) => locale.startsWith(lang))
 
     /** If we can match more than one locale, we check if the code of the language matches as well */
     if (availableLocales.length > 1) {

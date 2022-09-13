@@ -1,4 +1,5 @@
-import path from 'path'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
 import { defineNuxtConfig } from 'nuxt'
 import vueI18n from '@intlify/vite-plugin-vue-i18n'
 import Icons from 'unplugin-icons/vite'
@@ -13,9 +14,7 @@ export default defineNuxtConfig({
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge'],
 
   ssr: false,
-  app: {
-    cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
-  },
+
   css: [
     'virtual:windi.css',
     'virtual:windi-devtools',
@@ -54,7 +53,7 @@ export default defineNuxtConfig({
     },
     plugins: [
       vueI18n({
-        include: path.resolve(__dirname, './lang'),
+        include: [resolve(dirname(fileURLToPath(import.meta.url)), './lang/**')],
         runtimeOnly: false,
       }),
       Icons({

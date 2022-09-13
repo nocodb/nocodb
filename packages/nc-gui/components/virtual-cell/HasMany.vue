@@ -7,7 +7,7 @@ import {
   IsFormInj,
   IsLockedInj,
   ReadonlyInj,
-  ReloadViewDataHookInj,
+  ReloadRowDataHookInj,
   RowInj,
   computed,
   defineAsyncComponent,
@@ -30,7 +30,7 @@ const cellValue = inject(CellValueInj)!
 
 const row = inject(RowInj)!
 
-const reloadTrigger = inject(ReloadViewDataHookInj)!
+const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const isForm = inject(IsFormInj)
 
@@ -50,7 +50,7 @@ const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvid
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
-  reloadTrigger.trigger,
+  reloadRowTrigger.trigger,
 )
 await loadRelatedTableMeta()
 
@@ -112,6 +112,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
 
     <ListChildItems
       v-model="childListDlg"
+      :cell-value="localCellValue"
       @attach-record="
         () => {
           childListDlg = false

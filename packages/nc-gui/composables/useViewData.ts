@@ -22,6 +22,7 @@ export interface Row {
     new?: boolean
     selected?: boolean
     commentCount?: number
+    changed?: boolean
   }
 }
 
@@ -113,7 +114,7 @@ export function useViewData(
   })
 
   const queryParams = computed(() => ({
-    offset: (paginationData.value?.page ?? 0) - 1,
+    offset: ((paginationData.value?.page ?? 0) - 1) * (paginationData.value?.pageSize ?? 25),
     limit: paginationData.value?.pageSize ?? 25,
     where: where?.value ?? '',
   }))
@@ -200,6 +201,7 @@ export function useViewData(
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
     const response = !isPublic.value
       ? await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
+          ...queryParams.value,
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
@@ -292,11 +294,11 @@ export function useViewData(
     }
   }
 
-  async function updateOrSaveRow(row: Row, property: string) {
+  async function updateOrSaveRow(row: Row, property?: string) {
     if (row.rowMeta.new) {
-      await insertRow(row.row, formattedData.value.indexOf(row))
+      return await insertRow(row.row, formattedData.value.indexOf(row))
     } else {
-      await updateRowProperty(row, property)
+      await updateRowProperty(row, property!)
     }
   }
 
@@ -321,11 +323,9 @@ export function useViewData(
 
     if (res.message) {
       message.info(
-        `Row delete failed: ${h('div', {
-          innerHTML: `<div style="padding:10px 4px">Unable to delete row with ID ${id} because of the following:
-              <br><br>${res.message.join('<br>')}<br><br>
-              Clear the data first & try again</div>`,
-        })}`,
+        `Row delete failed: ${`Unable to delete row with ID ${id} because of the following:
+              \n${res.message.join('\n')}.\n
+              Clear the data first & try again`})}`,
       )
       return false
     }
@@ -425,6 +425,14 @@ export function useViewData(
     }
   }
 
+  const removeRowIfNew = (row: Row) => {
+    const index = formattedData.value.indexOf(row)
+
+    if (index > -1 && row.rowMeta.new) {
+      formattedData.value.splice(index, 1)
+    }
+  }
+
   return {
     error,
     isLoading,
@@ -452,6 +460,7 @@ export function useViewData(
     aggCommentCount,
     loadAggCommentsCount,
     removeLastEmptyRow,
+    removeRowIfNew,
     kanbanData,
     loadKanbanData,
   }

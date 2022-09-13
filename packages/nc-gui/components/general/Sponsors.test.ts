@@ -1,16 +1,14 @@
 import { mount } from '@vue/test-utils'
 import { expect, test } from 'vitest'
 import Sponsors from './Sponsors.vue'
-import { createVuetifyPlugin } from '~/plugins/vuetify'
 import { createI18nPlugin } from '~/plugins/a.i18n'
 
 const mountComponent = async (nav: boolean) => {
-  const vuetify = createVuetifyPlugin()
   const i18n = await createI18nPlugin()
 
   const wrapper = mount(Sponsors, {
     global: {
-      plugins: [vuetify, i18n],
+      plugins: [i18n],
     },
     props: {
       nav,

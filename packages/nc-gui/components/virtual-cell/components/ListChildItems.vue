@@ -13,7 +13,7 @@ import {
 } from '#imports'
 import { IsPublicInj } from '~/context'
 
-const props = defineProps<{ modelValue?: boolean }>()
+const props = defineProps<{ modelValue?: boolean; cellValue: any }>()
 
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
@@ -77,6 +77,13 @@ const container = computed(() =>
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref()
+
+watch(
+  () => props.cellValue,
+  () => {
+    if (!isNew.value) loadChildrenList()
+  },
+)
 </script>
 
 <template>

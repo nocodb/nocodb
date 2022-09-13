@@ -41,7 +41,7 @@ watch(
 </script>
 
 <template>
-  <a-dropdown offset-y class="" :trigger="['click']">
+  <a-dropdown offset-y class="" :trigger="['click']" overlay-class-name="sort-menu-overlay">
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-t="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
         ><div class="flex items-center gap-1">
@@ -73,6 +73,7 @@ watch(
               :label="$t('labels.operation')"
               @click.stop
               @select="saveOrUpdate(sort, i)"
+              dropdown-class-name="sort-dir-dropdown"
             >
               <a-select-option
                 v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"

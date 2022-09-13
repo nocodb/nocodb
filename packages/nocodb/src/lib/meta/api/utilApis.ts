@@ -82,12 +82,14 @@ export async function versionInfo(_req: Request, res: Response) {
 
 export async function feedbackFormGet(_req: Request, res: Response) {
   axios
-    .get('https://nocodb.com/api/v1/feedback_form')
+    .get('https://nocodb.com/api/v1/feedback_form', {
+      timeout: 5000,
+    })
     .then((response) => {
       res.json(response.data);
     })
     .catch((e) => {
-      res.status(500).json({ error: e.message });
+      res.json({ error: e.message });
     });
 }
 

@@ -214,6 +214,7 @@ export default class NcConfigFactory implements NcConfig {
           ...defaultConnectionConfig,
           ...parsedQuery,
           host: url.hostname,
+          port: +url.port,
         },
         // pool: {
         //   min: 1,
@@ -325,6 +326,7 @@ export default class NcConfigFactory implements NcConfig {
           ...defaultConnectionConfig,
           ...parsedQuery,
           host: url.hostname,
+          port: +url.port,
         },
         acquireConnectionTimeout: 600000,
         ...(url.searchParams.has('search_path')

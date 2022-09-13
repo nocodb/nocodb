@@ -64,6 +64,7 @@ const expandedFormDlg = ref(false)
 
 /** populate initial state for a new row which is parent/child of current record */
 const newRowState = computed(() => {
+  if (isNew.value) return {}
   const colOpt = (column?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
   const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
     if (col.uidt !== UITypes.LinkToAnotherRecord) return false
@@ -94,6 +95,12 @@ const newRowState = computed(() => {
     }
   }
 })
+
+// if it's an existing record close the list
+// after new record creation since it's already linking while creating
+watch(expandedFormDlg, (nexVal) => {
+  if (!nexVal && !isNew.value) vModel.value = false
+})
 </script>
 
 <template>
@@ -109,9 +116,9 @@ const newRowState = computed(() => {
         <div class="flex-1" />
         <MdiReload class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
         <!--        Add new record -->
-        <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">{{
-          $t('activity.addNewRecord')
-        }}</a-button>
+        <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">
+          {{ $t('activity.addNewRecord') }}
+        </a-button>
       </div>
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12">
@@ -121,10 +128,10 @@ const newRowState = computed(() => {
             class="!my-4 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
             @click="linkRow(refRow)"
           >
-            {{ refRow[relatedTablePrimaryValueProp]
-            }}<span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1"
-              >({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})</span
-            >
+            {{ refRow[relatedTablePrimaryValueProp] }}
+            <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">
+              ({{ $t('labels.primaryKey') }} : {{ getRelatedTableRowId(refRow) }})
+            </span>
           </a-card>
         </div>
         <div class="flex justify-center mt-6">

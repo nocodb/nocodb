@@ -30,6 +30,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const changedColumns = ref(new Set<string>())
   const { project } = useProject()
   const rowStore = useProvideSmartsheetRowStore(meta, row)
+  const { sharedView } = useSharedView() as Record<string, any>
   const activeView = inject(ActiveViewInj)
   const { loadKanbanData } = useKanbanViewData(meta, activeView as any)
 
@@ -179,6 +180,20 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return data
   }
 
+  const loadRow = async () => {
+    const record = await $api.dbTableRow.read(
+      NOCO,
+      (project?.value?.id || sharedView.value.view.project_id) as string,
+      meta.value.title,
+      extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]),
+    )
+    Object.assign(row.value, {
+      row: record,
+      oldRow: { ...record },
+      rowMeta: {},
+    })
+  }
+
   return {
     ...rowStore,
     commentsOnly,
@@ -194,6 +209,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     primaryValue,
     save,
     changedColumns,
+    loadRow,
   }
 }, 'expanded-form-store')
 

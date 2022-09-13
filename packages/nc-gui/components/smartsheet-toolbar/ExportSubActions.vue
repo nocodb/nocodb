@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
@@ -47,7 +48,7 @@ const exportFile = async (exportType: ExportTypes) => {
               sortArrJson: JSON.stringify(sorts.value),
               filterArrJson: JSON.stringify(nestedFilters.value),
             },
-          } as any,
+          } as RequestParams,
         )
       }
       const { data, headers } = res

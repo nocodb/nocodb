@@ -69,7 +69,7 @@ async function saveAllowCSVDownload() {
     const meta = shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
     await $api.dbViewShare.update(shared.value.id, {
       meta,
-    } as any)
+    })
     // Successfully updated
     message.success(t('msg.success.updated'))
   } catch (e: any) {

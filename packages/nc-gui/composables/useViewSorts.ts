@@ -21,14 +21,15 @@ export function useViewSorts(
 
   const loadSorts = async () => {
     if (isPublic.value) {
-      const sharedSorts = sharedView.value?.sorts || []
+      // todo: sorts missing on `ViewType`
+      const sharedSorts = (sharedView.value as any)?.sorts || []
       sorts.value = [...sharedSorts]
       return
     }
 
     try {
       if (!view?.value) return
-      sorts.value = ((await $api.dbTableSort.list(view?.value?.id as string)) as any)?.sorts?.list
+      sorts.value = (await $api.dbTableSort.list(view.value!.id!)).sorts?.list || []
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -48,7 +49,7 @@ export function useViewSorts(
           await $api.dbTableSort.update(sort.id, sort)
           $e('sort-updated')
         } else {
-          sorts.value[i] = (await $api.dbTableSort.create(view?.value?.id as string, sort)) as any
+          sorts.value[i] = (await $api.dbTableSort.create(view?.value.id as string, sort)) as unknown as SortType
         }
       }
       reloadData?.()

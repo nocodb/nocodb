@@ -84,7 +84,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const onUidtOrIdTypeChange = () => {
       const { isCurrency } = useColumn(ref(formState.value as ColumnType))
 
-      const colProp = sqlUi?.value.getDataTypeForUiType(formState?.value as any, idType as any)
+      const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
         ...formState.value,
         meta: {},

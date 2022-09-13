@@ -59,7 +59,7 @@ reloadEventHook.on(async () => {
   setFormData()
 })
 
-const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, async () => reloadEventHook.trigger())
+const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta, async () => reloadEventHook.trigger())
 
 const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   meta,
@@ -252,10 +252,9 @@ function setFormData() {
 
   formViewData.value = {
     ...formViewData.value,
-    submit_another_form: !!(formViewData?.value?.submit_another_form ?? 0),
-    // todo: show_blank_form missing from FormType
-    show_blank_form: !!((formViewData?.value as any)?.show_blank_form ?? 0),
-  } as any
+    submit_another_form: !!(formViewData.value?.submit_another_form ?? 0),
+    show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
+  }
 
   // email me
   let data: Record<string, boolean> = {}
@@ -338,7 +337,7 @@ const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
 }, 250)
 
 watch(submitted, (v) => {
-  if (v && (formViewData?.value as any)?.show_blank_form) {
+  if (v && formViewData.value?.show_blank_form) {
     secondsRemain.value = 5
     const intvl = setInterval(() => {
       if (--secondsRemain.value < 0) {

@@ -48,7 +48,7 @@ const {
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
 watch(
-  () => (activeView.value as any)?.id,
+  () => activeView.value?.id,
   async (newVal, oldVal) => {
     if (newVal !== oldVal && meta.value) {
       await loadViewColumns()

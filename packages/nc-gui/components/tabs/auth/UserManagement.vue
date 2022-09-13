@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
+import type { RequestParams } from 'nocodb-sdk'
 import UsersModal from './user-management/UsersModal.vue'
 import FeedbackForm from './user-management/FeedbackForm.vue'
 import {
   extractSdkResponseErrorMsg,
   onBeforeMount,
-  projectRoleTagColors,
   ref,
   useApi,
   useClipboard,
@@ -61,7 +61,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
         offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
         query: searchText.value,
       },
-    } as any)
+    } as RequestParams)
     if (!response.users) return
 
     totalRows = response.users.pageInfo.totalRows ?? 0

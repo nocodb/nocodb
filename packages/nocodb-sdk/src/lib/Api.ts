@@ -384,6 +384,7 @@ export interface KanbanType {
   columns?: KanbanColumnType[];
   fk_model_id?: string;
   grp_column_id?: string;
+  stack_meta?: string | object;
 }
 
 export interface FormType {

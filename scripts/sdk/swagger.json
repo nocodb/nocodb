@@ -7315,6 +7315,12 @@
           },
           "grp_column_id": {
             "type": "string"
+          },
+          "stack_meta": {
+            "type": [
+              "string",
+              "object"
+            ]
           }
         }
       },

@@ -130,7 +130,15 @@ const clickInviteMore = () => {
 </script>
 
 <template>
-  <a-modal :footer="null" centered :visible="show" :closable="false" width="max(50vw, 44rem)" @cancel="emit('closed')">
+  <a-modal
+    :footer="null"
+    centered
+    :visible="show"
+    :closable="false"
+    width="max(50vw, 44rem)"
+    wrap-class-name="nc-modal-invite-user-and-share-base"
+    @cancel="emit('closed')"
+  >
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
         <a-typography-title class="select-none" :level="4"> {{ $t('activity.share') }}: {{ project.title }} </a-typography-title>

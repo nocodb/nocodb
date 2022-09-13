@@ -136,7 +136,7 @@ const getProjectPrimary = (project: ProjectType) => {
 
       <div class="flex-1" />
 
-      <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']">
+      <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']" overlay-class-name="nc-dropdown-create-project">
         <button class="nc-new-project-menu">
           <span class="flex items-center w-full">
             {{ $t('title.newProj') }}

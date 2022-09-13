@@ -140,7 +140,7 @@ async function onSubmit() {
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" class="!top-[35%]" :confirm-loading="loading">
+  <a-modal v-model:visible="vModel" class="!top-[35%]" :confirm-loading="loading" wrap-class-name="nc-modal-view-create">
     <template #title>
       {{ $t('general.create') }} <span class="text-capitalize">{{ typeAlias }}</span> {{ $t('objects.view') }}
     </template>

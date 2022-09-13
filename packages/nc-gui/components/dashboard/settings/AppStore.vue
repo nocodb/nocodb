@@ -72,7 +72,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a-modal v-model:visible="showPluginInstallModal" :closable="false" centered min-height="300" :footer="null">
+  <a-modal
+    v-model:visible="showPluginInstallModal"
+    :closable="false"
+    centered
+    min-height="300"
+    :footer="null"
+    wrap-class-name="nc-modal-plugin-install"
+  >
     <AppInstall
       v-if="pluginApp && showPluginInstallModal"
       :id="pluginApp.id"
@@ -81,7 +88,14 @@ onMounted(async () => {
     />
   </a-modal>
 
-  <a-modal v-model:visible="showPluginUninstallModal" :closable="false" width="24rem" centered :footer="null">
+  <a-modal
+    v-model:visible="showPluginUninstallModal"
+    :closable="false"
+    width="24rem"
+    centered
+    :footer="null"
+    wrap-class-name="nc-modal-plugin-uninstall"
+  >
     <div class="flex flex-col h-full">
       <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
         {{ `Click on confirm to reset ${pluginApp && pluginApp.title}` }}

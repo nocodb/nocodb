@@ -193,7 +193,12 @@ if (type && name) {
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </a>
 
-          <a-dropdown class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom">
+          <a-dropdown
+            class="h-full min-w-0 flex-1"
+            :trigger="['click']"
+            placement="bottom"
+            overlay-class-name="nc-dropdown-project-menu"
+          >
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"

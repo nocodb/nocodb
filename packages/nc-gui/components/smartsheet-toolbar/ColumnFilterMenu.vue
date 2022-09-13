@@ -51,7 +51,7 @@ const filterAutoSaveLoc = computed({
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']">
+  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
     <div :class="{ 'nc-badge nc-active-btn': filtersLength }">
       <a-button v-t="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-1">

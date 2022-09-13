@@ -27,12 +27,11 @@ const openSwaggerLink = () => {
   <a-drawer
     v-bind="$attrs"
     v-model:visible="showDrawer"
-    class="h-full relative nc-help-and-support"
+    class="h-full relative nc-drawer-help-and-support"
     placement="right"
     size="small"
     :closable="false"
     :body-style="{ padding: '12px 24px 0 24px', background: '#fafafa' }"
-
   >
     <div class="flex flex-col w-full h-full p-4 pb-0">
       <!-- Help center -->

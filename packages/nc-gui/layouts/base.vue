@@ -69,7 +69,7 @@ hooks.hook('page:finish', () => {
         </a-tooltip>
 
         <template v-if="signedIn && !isSharedBase">
-          <a-dropdown :trigger="['click']">
+          <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white" @click.prevent />
 
             <template #overlay>

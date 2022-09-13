@@ -81,7 +81,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
 <template>
   <div>
-    <a-dropdown :trigger="['click']">
+    <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
       <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-2 items-center">
           <component
@@ -221,7 +221,13 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
-    <a-modal v-model:visible="sharedViewListDlg" :title="$t('activity.listSharedView')" width="max(900px,60vw)" :footer="null">
+    <a-modal
+      v-model:visible="sharedViewListDlg"
+      :title="$t('activity.listSharedView')"
+      width="max(900px,60vw)"
+      :footer="null"
+      wrap-class-name="nc-modal-shared-view-list"
+    >
       <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
     </a-modal>
     <SmartsheetApiSnippet v-model="showApiSnippetDrawer" />

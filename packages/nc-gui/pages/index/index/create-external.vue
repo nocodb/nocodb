@@ -539,7 +539,13 @@ onMounted(() => {
       </a-form-item>
     </a-form>
 
-    <a-modal v-model:visible="configEditDlg" :title="$t('activity.editConnJson')" width="600px" @ok="handleOk">
+    <a-modal
+      v-model:visible="configEditDlg"
+      :title="$t('activity.editConnJson')"
+      width="600px"
+      wrap-class-name="nc-modal-edit-connection-json"
+      @ok="handleOk"
+    >
       <MonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
     </a-modal>
 

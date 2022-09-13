@@ -195,7 +195,7 @@ onMounted(() => {
     <!--    Generate publicly shareable readonly base -->
     <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">{{ $t('msg.info.generatePublicShareableReadonlyBase') }}</div>
     <div class="mt-4 flex flex-row justify-between mx-1">
-      <a-dropdown v-model="showEditBaseDropdown" class="flex">
+      <a-dropdown v-model="showEditBaseDropdown" class="flex" overlay-class-name="nc-dropdown-shared-base-toggle">
         <a-button>
           <div class="flex flex-row items-center space-x-2 nc-disable-shared-base">
             <div v-if="base?.uuid">{{ $t('activity.shareBase.enable') }}</div>

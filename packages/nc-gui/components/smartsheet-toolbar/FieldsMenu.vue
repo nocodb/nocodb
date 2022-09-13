@@ -116,7 +116,7 @@ const getIcon = (c: ColumnType) =>
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']">
+  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-nc-fields-menu">
     <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
       <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">

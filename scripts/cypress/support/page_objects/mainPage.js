@@ -313,7 +313,7 @@ export class _mainPage {
     sortField = (field, criteria) => {
         cy.get(".nc-sort-menu-btn").click();
         cy.wait(500)
-        cy.getActiveMenu('.sort-menu-overlay').contains("Add Sort Option").click();
+        cy.getActiveMenu('.nc-dropdown-sort-menu').contains("Add Sort Option").click();
         cy.wait(500)
         // cy.get(".nc-sort-field-select div").first().click().type(field);
         cy.get(".nc-sort-field-select div").first().click();

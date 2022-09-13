@@ -21,6 +21,10 @@ import {
 
 import type { TabItem } from '~/composables'
 
+const { activeTab } = defineProps<{
+  activeTab: TabItem
+}>()
+
 const { metas } = useMetas()
 
 const activeView = ref()
@@ -29,11 +33,8 @@ const el = ref<typeof SmartsheetGrid>()
 
 const fields = ref<ColumnType[]>([])
 
-const tabMeta = inject(
-  TabMetaInj,
-  computed(() => ({} as TabItem)),
-)
-const meta = computed<TableType>(() => metas.value?.[tabMeta?.value?.id as string])
+provide(TabMetaInj, ref(activeTab))
+const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
 
 const reloadEventHook = createEventHook<void>()
 const openNewRecordFormHook = createEventHook<void>()

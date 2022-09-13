@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { TableType, ViewType } from 'nocodb-sdk'
 import { isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import Cell from '../Cell.vue'
@@ -10,14 +10,11 @@ import {
   FieldsInj,
   IsFormInj,
   MetaInj,
-  NOCO,
+  ReloadRowDataHookInj,
   computedInject,
-  extractPkFromRow,
   provide,
   ref,
   toRef,
-  useNuxtApp,
-  useProject,
   useProvideExpandedFormStore,
   useProvideSmartsheetStore,
   useVModel,
@@ -53,25 +50,10 @@ const fields = computedInject(FieldsInj, (_fields) => {
 
 provide(MetaInj, meta)
 
-const { commentsDrawer, changedColumns, state: rowState, isNew } = useProvideExpandedFormStore(meta, row)
-
-const { $api } = useNuxtApp()
+const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
 
 if (props.loadRow) {
-  const { project } = useProject()
-
-  const { sharedView } = useSharedView() as Record<string, any>
-
-  row.value.row = await $api.dbTableRow.read(
-    NOCO,
-    (project?.value?.id || sharedView.value.view.project_id) as string,
-    meta.value.title,
-    extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]),
-  )
-
-  row.value.oldRow = { ...row.value.row }
-
-  row.value.rowMeta = {}
+  await loadRow()
 }
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
@@ -98,6 +80,19 @@ const onClose = () => {
   if (row.value?.rowMeta?.new) emits('cancel')
   isExpanded.value = false
 }
+
+const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
+
+// override reload trigger and use it to reload grid and the form itself
+const reloadHook = createEventHook()
+
+reloadHook.on(() => {
+  reloadParentRowHook?.trigger()
+  if (isNew.value) return
+  loadRow()
+})
+
+provide(ReloadRowDataHookInj, reloadHook)
 </script>
 
 <script lang="ts">

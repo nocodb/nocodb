@@ -6,7 +6,7 @@ import {
   CellValueInj,
   ColumnInj,
   ReadonlyInj,
-  ReloadViewDataHookInj,
+  ReloadRowDataHookInj,
   RowInj,
   defineAsyncComponent,
   inject,
@@ -24,7 +24,7 @@ const ListItems = defineAsyncComponent(() => import('./components/ListItems.vue'
 
 const column = inject(ColumnInj)!
 
-const reloadTrigger = inject(ReloadViewDataHookInj)!
+const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const cellValue = inject(CellValueInj, ref<any>(null))
 
@@ -48,7 +48,7 @@ const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvid
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
-  reloadTrigger.trigger,
+  reloadRowTrigger.trigger,
 )
 
 await loadRelatedTableMeta()

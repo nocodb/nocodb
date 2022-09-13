@@ -1,4 +1,5 @@
 import { mainPage } from "../../support/page_objects/mainPage";
+import { loginPage} from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
@@ -6,14 +7,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Filter, Fields, Sort`, () => {
         before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
-
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
+            // loginPage.loginAndOpenProject(apiType, dbType);
 
             // open country table
             cy.openTableTab("Country", 25);
@@ -25,7 +19,6 @@ export const genTest = (apiType, dbType) => {
 
         describe(`Pagination`, () => {
             beforeEach(() => {
-                cy.fileHook();
             })
 
             // check pagination
@@ -95,6 +88,8 @@ export const genTest = (apiType, dbType) => {
 
                 // verify
                 cy.get(`:nth-child(10) > [data-title="Country"]`).should("not.exist");
+
+                mainPage.getPagination(1).click();
             });
 
             // create new row using right click menu option

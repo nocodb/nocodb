@@ -15,6 +15,7 @@ import {
   toRef,
   useColumn,
   useDebounceFn,
+  useSmartsheetRowStoreOrThrow,
   useVModel,
 } from '#imports'
 import { NavigateDir } from '~/lib'
@@ -57,10 +58,10 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-let changed = $ref(false)
+const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const syncValue = useDebounceFn(function () {
-  changed = false
+  currentRow.value.rowMeta.changed = false
   emit('save')
 }, 1000)
 
@@ -89,13 +90,13 @@ const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
     if (val !== props.modelValue) {
-      changed = true
+      currentRow.value.rowMeta.changed = true
       emit('update:modelValue', val)
       if (isAutoSaved) {
         syncValue()
       } else if (!isManualSaved) {
         emit('save')
-        changed = true
+        currentRow.value.rowMeta.changed = true
       }
     }
   },
@@ -129,9 +130,9 @@ const {
 const syncAndNavigate = (dir: NavigateDir) => {
   if (isJSON.value) return
 
-  if (changed) {
+  if (currentRow.value.rowMeta.changed) {
     emit('save')
-    changed = false
+    currentRow.value.rowMeta.changed = false
   }
   emit('navigate', dir)
 }

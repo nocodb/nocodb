@@ -53,7 +53,9 @@ const reloadMetaAndData = async () => {
 }
 
 async function onSubmit() {
-  await addOrUpdate(reloadMetaAndData)
+  const saved = await addOrUpdate(reloadMetaAndData)
+
+  if (!saved) return
 
   // add delay to complete the minimize transition
   setTimeout(() => {

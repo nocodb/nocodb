@@ -2395,7 +2395,7 @@ export class Api<
      * @name Delete
      * @summary Table row delete
      * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
-     * @response `200` `void` OK
+     * @response `200` `any` OK
      */
     delete: (
       orgs: string,
@@ -2404,9 +2404,10 @@ export class Api<
       rowId: string,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<any, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 

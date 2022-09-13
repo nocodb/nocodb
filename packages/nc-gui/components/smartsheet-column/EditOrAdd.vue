@@ -3,7 +3,7 @@ import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
 import { computed, inject, useMetas, watchEffect } from '#imports'
-import { IsFormInj, MetaInj, ReloadViewDataHookInj } from '~/context'
+import { IsFormInj, IsKanbanInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
@@ -23,6 +23,8 @@ const { $e } = useNuxtApp()
 const meta = inject(MetaInj)
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
 
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
@@ -107,14 +109,26 @@ onMounted(() => {
     <a-form v-if="formState" v-model="formState" name="column-create-or-edit" layout="vertical">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
-          <a-input ref="antInput" v-model:value="formState.title" class="nc-column-name-input" @input="onAlter(8)" />
+          <a-input
+            ref="antInput"
+            v-model:value="formState.title"
+            class="nc-column-name-input"
+            :disabled="isKanban"
+            @input="onAlter(8)"
+          />
         </a-form-item>
 
         <a-form-item
           v-if="!(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
           :label="$t('labels.columnType')"
         >
-          <a-select v-model:value="formState.uidt" show-search class="nc-column-type-input" @change="onUidtOrIdTypeChange">
+          <a-select
+            v-model:value="formState.uidt"
+            show-search
+            class="nc-column-type-input"
+            :disabled="isKanban"
+            @change="onUidtOrIdTypeChange"
+          >
             <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
               <div class="flex gap-1 items-center">
                 <component :is="opt.icon" class="text-grey" />

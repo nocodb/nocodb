@@ -4,12 +4,14 @@ import { MetaTable } from '../../utils/globals';
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.KANBAN_VIEW, (table) => {
     table.string('grp_column_id');
+    table.text('stack_meta');
   });
 };
 
 const down = async (knex) => {
   await knex.schema.alterTable(MetaTable.KANBAN_VIEW, (table) => {
     table.dropColumns('grp_column_id');
+    table.dropColumns('stack_meta');
   });
 };
 

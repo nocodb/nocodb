@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
-import { useI18n } from 'vue-i18n'
 import {
   computed,
   definePageMeta,
@@ -14,26 +13,26 @@ import {
   ref,
   useClipboard,
   useGlobal,
+  useI18n,
   useProject,
   useRoute,
   useTabs,
   useUIPermission,
 } from '#imports'
-import { TabType } from '~/composables'
 
 definePageMeta({
   hideHeader: true,
 })
 
-const route = useRoute()
+const { t } = useI18n()
 
-const router = useRouter()
+const route = useRoute()
 
 const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
-const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme } = useProject()
+const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme } = useProject()
 
-const { addTab, clearTabs } = useTabs()
+const { clearTabs } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -62,26 +61,10 @@ const logout = () => {
   navigateTo('/signin')
 }
 
-onKeyStroke(
-  'Escape',
-  () => {
-    dropdownOpen.value = false
-  },
-  { eventName: 'keydown' },
-)
-
-clearTabs()
-
 function toggleDialog(value?: boolean, key?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
   openDialogKey.value = key
 }
-
-await loadProject()
-
-await loadTables()
-
-const { t } = useI18n()
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: string) => {
   switch (mode) {
@@ -117,10 +100,6 @@ const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: st
   }
 }
 
-if (!route.params.type && isUIAllowed('teamAndAuth')) {
-  addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
-}
-
 const copyProjectInfo = async () => {
   try {
     await loadProjectMetaInfo()
@@ -150,11 +129,15 @@ const copyAuthToken = async () => {
   }
 }
 
-/** If v1 url found navigate to corresponding new url */
-const { type, name, view } = route.query
-if (type && name) {
-  router.replace(`/nc/${route.params.projectId}/${type}/${name}${view ? `/${view}` : ''}`)
-}
+onKeyStroke(
+  'Escape',
+  () => {
+    dropdownOpen.value = false
+  },
+  { eventName: 'keydown' },
+)
+
+clearTabs()
 </script>
 
 <template>

@@ -17,7 +17,7 @@ export function useSharedView() {
   const formColumns = computed(
     () =>
       meta.value.columns
-        .filter(
+        ?.filter(
           (f: Record<string, any>) =>
             f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,
         )

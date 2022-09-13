@@ -1,14 +1,57 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
 import { TabType } from '~/composables'
-import { TabMetaInj, provide, useGlobal, useSidebar, useTabs } from '#imports'
+import {
+  TabMetaInj,
+  onBeforeMount,
+  provide,
+  ref,
+  useGlobal,
+  useI18n,
+  useProject,
+  useRoute,
+  useRouter,
+  useSidebar,
+  useTabs,
+  useUIPermission,
+} from '#imports'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
 
-const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
+const { t } = useI18n()
+
+const { loadProject, loadTables } = useProject()
+
+const { tabs, activeTabIndex, activeTab, closeTab, addTab } = useTabs()
 
 const { isLoading } = useGlobal()
+
+const route = useRoute()
+
+const router = useRouter()
+
+const { isUIAllowed } = useUIPermission()
+
+const isReady = ref(false)
+
+onBeforeMount(async () => {
+  await loadProject()
+
+  if (!route.params.type && isUIAllowed('teamAndAuth')) {
+    addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
+  }
+
+  /** If v1 url found navigate to corresponding new url */
+  const { type, name, view } = route.query
+  if (type && name) {
+    await router.replace(`/nc/${route.params.projectId}/${type}/${name}${view ? `/${view}` : ''}`)
+  }
+
+  await loadTables()
+
+  isReady.value = true
+})
 
 provide(TabMetaInj, activeTab)
 
@@ -71,13 +114,17 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           <div v-show="isLoading" class="flex items-center gap-2 ml-3 text-gray-200">
             {{ $t('general.loading') }}
 
-            <MdiLoading :class="{ 'animate-infinite animate-spin': isLoading }" />
+            <MdiLoading class="animate-infinite animate-spin" />
           </div>
         </div>
       </div>
 
       <div class="w-full min-h-[300px] flex-auto">
-        <NuxtPage />
+        <NuxtPage v-if="isReady" />
+
+        <div v-else class="w-full h-full flex justify-center items-center">
+          <a-spin size="large" />
+        </div>
       </div>
     </div>
   </div>

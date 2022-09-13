@@ -175,18 +175,18 @@ const getProjectPrimary = (project: ProjectType) => {
     </div>
 
     <TransitionGroup name="layout" mode="out-in">
-      <div v-if="isLoading">
+      <div v-if="isLoading" key="skeleton">
         <a-skeleton />
       </div>
 
       <a-table
         v-else
+        key="table"
         :custom-row="
           (record) => ({
             onClick: () => {
-              $e('a:project:open')
-
               navigateTo(`/nc/${record.id}`)
+              $e('a:project:open')
             },
             class: ['group'],
           })
@@ -197,6 +197,7 @@ const getProjectPrimary = (project: ProjectType) => {
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </template>
+
         <!-- Title -->
         <a-table-column key="title" :title="$t('general.title')" data-index="title">
           <template #default="{ text, record }">

@@ -5,7 +5,7 @@ import UsersModal from './user-management/UsersModal.vue'
 import FeedbackForm from './user-management/FeedbackForm.vue'
 import {
   extractSdkResponseErrorMsg,
-  onMounted,
+  onBeforeMount,
   projectRoleTagColors,
   ref,
   useApi,
@@ -128,7 +128,7 @@ const resendInvite = async (user: User) => {
   if (!project.value?.id) return
 
   try {
-    await api.auth.projectUserResendInvite(project.value.id, user.id)
+    await api.auth.projectUserResendInvite(project.value.id, user.id, null)
 
     // Invite email sent successfully
     message.success(t('msg.success.inviteEmailSent'))
@@ -150,11 +150,13 @@ const copyInviteUrl = (user: User) => {
   $e('c:user:copy-url')
 }
 
-onMounted(() => {
+onBeforeMount(async () => {
   if (!users) {
     isLoading = true
 
-    loadUsers().finally(() => (isLoading = false))
+    await loadUsers()
+
+    isLoading = false
   }
 })
 
@@ -162,9 +164,10 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
 </script>
 
 <template>
-  <div v-if="isLoading" class="h-full w-full flex flex-row justify-center mt-42">
+  <div v-if="isLoading" class="h-full w-full flex items-center justify-center">
     <a-spin size="large" />
   </div>
+
   <div v-else class="flex flex-col w-full px-6">
     <UsersModal
       :key="showUserModal"

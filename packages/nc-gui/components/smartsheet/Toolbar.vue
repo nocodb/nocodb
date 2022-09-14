@@ -2,6 +2,8 @@
 import { IsPublicInj, useSharedView, useSmartsheetStoreOrThrow } from '#imports'
 import ToggleDrawer from '~/components/smartsheet/sidebar/toolbar/ToggleDrawer.vue'
 
+const props = defineProps<{ containerClass?: string }>()
+
 const { isGrid, isForm, isGallery, isSqlView } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -13,24 +15,13 @@ const { isOpen } = useSidebar()
 const { allowCSVDownload } = useSharedView()
 </script>
 
-<script lang="ts">
-export default {
-  props: {
-    containerClass: String,
-  },
-}
-</script>
 
 <template>
   <div
-    :class="`nc-table-toolbar w-full py-1 flex gap-1 items-center h-[var(--toolbar-height)] px-2 overflow-x-hidden ${containerClass}`"
-    style="z-index: 7"
-  >
-    <SmartsheetToolbarViewActions
-      v-if="(isGrid || isGallery) && !isPublic && isUIAllowed('dataInsert')"
-      :show-system-fields="false"
-      class="ml-1"
-    />
+    :class="`nc-table-toolbar w-full py-1 flex gap-1 items-center h-[var(--toolbar-height)] px-2 overflow-x-hidden ${props.containerClass}`"
+    style="z-index: 7">
+    <SmartsheetToolbarViewActions v-if="(isGrid || isGallery) && !isPublic && isUIAllowed('dataInsert')"
+      :show-system-fields="false" class="ml-1" />
 
     <SmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
 

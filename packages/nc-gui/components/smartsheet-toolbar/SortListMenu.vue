@@ -44,13 +44,12 @@ watch(
   <a-dropdown offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu">
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn dark:bg-slate-700" :disabled="isLocked">
-      </a-button>
-      <div class="flex items-center gap-1 dark:text-slate-300">
-        <MdiSort />
-        <!-- Sort -->
-        <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
-        <MdiMenuDown class="text-grey" />
-      </div>
+        <div class="flex items-center gap-1 dark:text-slate-300">
+          <MdiSort />
+          <!-- Sort -->
+          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
+          <MdiMenuDown class="text-grey" />
+        </div>
       </a-button>
     </div>
     <template #overlay>

@@ -152,7 +152,7 @@ function resetError() {
 
   .password {
     input {
-      @apply !border-none;
+      @apply !border-none !m-0;
     }
   }
 

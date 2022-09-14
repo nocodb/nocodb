@@ -83,7 +83,7 @@ export const genTest = (apiType, dbType) => {
             cy.get(".nc-column-edit").should("not.be.visible");
 
             // rename column and verify
-            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+            cy.getActiveMenu(".nc-dropdown-edit-column").find('input.nc-column-name-input', { timeout: 3000 })
                 .should('exist')
                 .clear()
                 .type(updatedColName);
@@ -140,7 +140,7 @@ export const genTest = (apiType, dbType) => {
                 .rightclick({ force: true });
 
             // delete row
-            cy.getActiveMenu()
+            cy.getActiveMenu(".nc-dropdown-grid-context-menu")
                 .find('.ant-dropdown-menu-item:contains("Delete Row")')
                 .first()
                 .click({ force: true });
@@ -161,7 +161,7 @@ export const genTest = (apiType, dbType) => {
 
             // delete selected rows
             mainPage.getCell("Title", 3).rightclick({ force: true });
-            cy.getActiveMenu()
+            cy.getActiveMenu(".nc-dropdown-grid-context-menu")
                 .contains("Delete Selected Rows")
                 .click({ force: true });
 

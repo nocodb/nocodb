@@ -1,10 +1,6 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
-import type { I18n } from 'vue-i18n'
 import type { UseGlobalReturn } from './composables/useGlobal/types'
-
-import type en from './lang/en.json'
-
-type MessageSchema = typeof en
+import type { NocoI18n } from './lib'
 
 declare module '#app/nuxt' {
   interface NuxtApp {
@@ -21,7 +17,7 @@ declare module '#app/nuxt' {
 
 declare module '@vue/runtime-core' {
   interface App {
-    i18n: I18n<MessageSchema, unknown, unknown, false>['global']
+    i18n: NocoI18n
   }
 }
 

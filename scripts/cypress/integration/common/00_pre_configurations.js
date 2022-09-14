@@ -168,81 +168,88 @@ export const genTest = (apiType, dbType) => {
             loginPage.signUp(roles.owner.credentials);
         });
 
+        function cy_createProjectBlock(proj, apiType, dbType) {
+            // click home button
+            cy.get(".nc-noco-brand-icon").click();
+            cy.get(".ant-table-content").then((obj) => {
+
+                // if project already created, open
+                // else, create a new one
+                if (true == obj[0].innerHTML.includes(proj.basic.name)) {
+                    projectsPage.openProject(proj.basic.name);
+                    let projId;
+                    if (dbType === "xcdb") {
+                        let query = `SELECT prefix from nc_projects_v2 where title = "sampleREST"; `;
+                        cy.task("sqliteExecReturnValue", query).then(
+                          (resolve) => {
+                              cy.log(resolve);
+                              projId = resolve.prefix;
+                              setProjectString(projId);
+                              cy.log(projId);
+                          }
+                        );
+                    }
+                } else {
+                    projectsPage.createProject(proj.basic, proj.config);
+                    cy.wait(5000);
+                    if (dbType === "xcdb") {
+                        // store base URL- to re-visit and delete form view later
+                        let projId;
+                        cy.url()
+                            .then((url) => {
+                                // project prefix code can include "_"
+                                // projId = url.split("_")[1].split("?")[0];
+                                let startIdx = url.indexOf("_");
+                                let endIdx = url.indexOf("?");
+                                projId = url.slice(startIdx + 1, endIdx);
+
+                                let query = `SELECT prefix from nc_projects_v2 where title = "sampleREST"; `;
+                                cy.task("sqliteExecReturnValue", query)
+                                    .then((resolve) => {
+                                        cy.log(resolve);
+                                        projId = resolve.prefix;
+                                        cy.log(projId);
+                                        setProjectString(projId);
+                                    })
+                                    .then(() => {
+                                        let query =
+                                          prepareSqliteQuery(projId);
+                                        for (
+                                          let i = 0;
+                                          i < query.length;
+                                          i++
+                                        ) {
+                                            cy.task("sqliteExec", query[i]);
+                                            cy.wait(1000);
+                                        }
+                                    });
+                            })
+                            .then(() => {
+                                cy.log(projId);
+                                mainPage.openMetaTab();
+                                mainPage.metaSyncValidate(
+                                  `${projId}actor`,
+                                  `New table, New relation added`
+                                );
+                                mainPage.closeMetaTab();
+                            });
+                    }
+                }
+            });
+        }
+
         const createProject = (proj) => {
             it(`Create ${proj.basic.name} project`, () => {
-
-                // click home button
-                cy.get(".nc-noco-brand-icon").click();
-                cy.get(".ant-table-content").then((obj) => {
-
-                    // if project already created, open
-                    // else, create a new one
-                    if (true == obj[0].innerHTML.includes(proj.basic.name)) {
-                        projectsPage.openProject(proj.basic.name);
-                        let projId;
-                        if (dbType === "xcdb") {
-                            let query = `SELECT prefix from nc_projects_v2 where title = "sampleREST"; `;
-                            cy.task("sqliteExecReturnValue", query).then(
-                                (resolve) => {
-                                    cy.log(resolve);
-                                    projId = resolve.prefix;
-                                    setProjectString(projId);
-                                    cy.log(projId);
-                                }
-                            );
-                        }
-                    } else {
-                        projectsPage.createProject(proj.basic, proj.config);
-                        cy.wait(5000);
-                        if (dbType === "xcdb") {
-                            // store base URL- to re-visit and delete form view later
-                            let projId;
-                            cy.url()
-                                .then((url) => {
-                                    // project prefix code can include "_"
-                                    // projId = url.split("_")[1].split("?")[0];
-                                    let startIdx = url.indexOf("_");
-                                    let endIdx = url.indexOf("?");
-                                    projId = url.slice(startIdx + 1, endIdx);
-
-                                    let query = `SELECT prefix from nc_projects_v2 where title = "sampleREST"; `;
-                                    cy.task("sqliteExecReturnValue", query)
-                                        .then((resolve) => {
-                                            cy.log(resolve);
-                                            projId = resolve.prefix;
-                                            cy.log(projId);
-                                            setProjectString(projId);
-                                        })
-                                        .then(() => {
-                                            let query =
-                                                prepareSqliteQuery(projId);
-                                            for (
-                                                let i = 0;
-                                                i < query.length;
-                                                i++
-                                            ) {
-                                                cy.task("sqliteExec", query[i]);
-                                                cy.wait(1000);
-                                            }
-                                        });
-                                })
-                                .then(() => {
-                                    cy.log(projId);
-                                    mainPage.openMetaTab();
-                                    mainPage.metaSyncValidate(
-                                        `${projId}actor`,
-                                        `New table, New relation added`
-                                    );
-                                    mainPage.closeMetaTab();
-                                });
-                        }
-                    }
-                });
-
-                // hack to disable dark mode
-                cy.fileHook();
-
-
+                if(dbType === "postgres") {
+                    // wait for docker compose to start
+                    cy.task(
+                      'pgExecTest',
+                      `SELECT 1+1`, {timeout: 120000}
+                    ).then(() => cy_createProjectBlock(proj, apiType, dbType));
+                }
+                else {
+                    cy_createProjectBlock(proj, apiType, dbType);
+                }
             });
         };
 

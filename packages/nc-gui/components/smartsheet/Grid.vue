@@ -5,6 +5,7 @@ import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
+  CellUrlDisableOverlayInj,
   ChangePageInj,
   FieldsInj,
   IsFormInj,
@@ -109,6 +110,9 @@ provide(ChangePageInj, changePage)
 
 provide(ReadonlyInj, !hasEditPermission)
 
+const disableUrlOverlay = ref(false)
+provide(CellUrlDisableOverlayInj, disableUrlOverlay)
+
 reloadViewDataHook?.on(async () => {
   await loadData()
 })
@@ -201,6 +205,10 @@ const makeEditable = (row: Row, col: ColumnType) => {
 
 /** handle keypress events */
 const onKeyDown = async (e: KeyboardEvent) => {
+  if (e.key === 'Alt') {
+    disableUrlOverlay.value = true
+    return
+  }
   if (selected.row === null || selected.col === null) return
   /** on tab key press navigate through cells */
   switch (e.key) {
@@ -284,8 +292,14 @@ const onKeyDown = async (e: KeyboardEvent) => {
       break
   }
 }
+const onKeyUp = async (e: KeyboardEvent) => {
+  if (e.key === 'Alt') {
+    disableUrlOverlay.value = false
+  }
+}
 
 useEventListener(document, 'keydown', onKeyDown)
+useEventListener(document, 'keyup', onKeyUp)
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
@@ -363,7 +377,11 @@ onBeforeUnmount(async () => {
       <a-spin size="large" />
     </div>
     <div v-else class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
-      <a-dropdown v-model:visible="contextMenu" :trigger="isSqlView ? [] : ['contextmenu']">
+      <a-dropdown
+        v-model:visible="contextMenu"
+        :trigger="isSqlView ? [] : ['contextmenu']"
+        overlay-class-name="nc-dropdown-grid-context-menu"
+      >
         <table
           ref="smartTable"
           class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
@@ -411,7 +429,11 @@ onBeforeUnmount(async () => {
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
               >
-                <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
+                <a-dropdown
+                  v-model:visible="addColumnDropdown"
+                  :trigger="['click']"
+                  overlay-class-name="nc-dropdown-grid-add-column"
+                >
                   <div class="h-full w-[60px] flex items-center justify-center">
                     <MdiPlus class="text-sm nc-column-add" />
                   </div>

@@ -115,7 +115,13 @@ const tooltipMsg = computed(() => {
       <SmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
     </template>
 
-    <a-dropdown v-model:visible="editColumnDropdown" class="h-full" :trigger="['click']" placement="bottomRight">
+    <a-dropdown
+      v-model:visible="editColumnDropdown"
+      class="h-full"
+      :trigger="['click']"
+      placement="bottomRight"
+      overlay-class-name="nc-dropdown-edit-column"
+    >
       <div />
       <template #overlay>
         <SmartsheetColumnEditOrAddProvider

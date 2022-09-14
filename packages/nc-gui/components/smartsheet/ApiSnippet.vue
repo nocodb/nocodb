@@ -136,7 +136,7 @@ watch($$(activeLang), (newLang) => {
 <template>
   <a-drawer
     v-model:visible="vModel"
-    class="h-full relative"
+    class="h-full relative nc-drawer-api-snippet"
     style="color: red"
     placement="right"
     size="large"

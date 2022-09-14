@@ -29,7 +29,7 @@ Workflow details are captured below
 
 ## Adding a relationship
 
-![1](https://user-images.githubusercontent.com/86527202/144224170-43f4194f-83d4-4291-8c91-1f66ea1caeda.png)
+<img width="1016" alt="image" src="https://user-images.githubusercontent.com/35857179/189105583-20014dd9-e5a6-4f27-b03c-97fad9096b5f.png">
 
 ### 1. Create column
 
@@ -45,8 +45,8 @@ Select Column type as "LinkToAnotherRecord" from the drop-down menu
 
 ### 4. Choose relationship type
 
-'Has Many': corresponds to the 'One-to-many' relationships
-'Many To Many': corresponds to the 'Many-to-many' relationships
+- 'Has Many' corresponds to the 'One-to-many' relationships
+- 'Many To Many' corresponds to the 'Many-to-many' relationships
 
 ### 5. Select child table from drop down menu
 
@@ -59,19 +59,22 @@ A new column will get created in both the parent table & child table
 ### 1. Open link record tab
 
 Click on the '+' icon in corresponding row - cell
-![2truncate](https://user-images.githubusercontent.com/86527202/144224728-1cba50e3-323e-4578-be48-d2a205fb472c.png)
+<img width="750" alt="image" src="https://user-images.githubusercontent.com/35857179/189106326-90e46156-798d-4a01-a4eb-4e991ce94c03.png">
 
 ### 2. Select from the option displayed
 
 Use 'Filter box' to narrow down on search items
 You can opt to insert a new record as well, using "+ New Record" button
-![3](https://user-images.githubusercontent.com/86527202/144224530-a258775f-1eea-4c79-88ed-a377d1e35a26.png)
+<img width="1014" alt="image" src="https://user-images.githubusercontent.com/35857179/189106494-4b49a200-a44f-41ae-8b54-93b18d867a04.png">
 
 ### 3. Column mapping showing "Has Many" relationship
 
-Country 'has many' City
+Sheet1 'has many' Sheet2
+
+<img width="756" alt="image" src="https://user-images.githubusercontent.com/35857179/189106702-3b8d7a50-08f4-4a04-b2cb-16db0cf667b3.png">
 
 ### 4. Column mapping for "Belongs to" relationship [Automatically updated]
 
-City 'belongs to' Country
-![4](https://user-images.githubusercontent.com/86527202/144224542-d28be060-a077-468a-bdc4-b2e8a783d75f.png)
+Sheet2 'belongs to' Sheet1
+
+<img width="574" alt="image" src="https://user-images.githubusercontent.com/35857179/189106731-59e5bc3c-bcc5-4796-b5b2-d9b5418bfe2b.png">

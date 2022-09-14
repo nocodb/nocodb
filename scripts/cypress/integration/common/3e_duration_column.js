@@ -44,7 +44,7 @@ export const genTest = (apiType, dbType) => {
                 force: true,
             });
 
-            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+            cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
               .should('exist')
               .clear()
               .type(columnName);
@@ -54,7 +54,6 @@ export const genTest = (apiType, dbType) => {
             // Configure Duration format
             fetchParentFromLabel("Duration Format");
             cy.getActiveSelection().find('.ant-select-item-option').contains(durationFormat).click();
-            // cy.getActiveMenu().contains(durationFormat).click();
 
             cy.get(".ant-btn-primary").contains("Save").should('exist').click();
             cy.toastWait(`Column created`);
@@ -80,7 +79,7 @@ export const genTest = (apiType, dbType) => {
             cy.get(".nc-column-edit").should("not.be.visible");
 
             // rename column and verify
-            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+            cy.getActiveMenu(".nc-dropdown-column-operations").find('input.nc-column-name-input', { timeout: 3000 })
               .should('exist')
               .clear()
               .type(newName);

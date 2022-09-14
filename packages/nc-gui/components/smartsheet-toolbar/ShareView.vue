@@ -132,6 +132,7 @@ watch(passwordProtected, (value) => {
       :title="$t('msg.info.privateLink')"
       :footer="null"
       width="min(100vw,640px)"
+      wrap-class-name="nc-modal-share-view"
     >
       <div class="share-link-box nc-share-link-box bg-primary-50">
         <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>

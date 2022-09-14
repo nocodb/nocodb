@@ -22,7 +22,7 @@ export const genTest = (apiType, dbType) => {
                 .last()
                 .click();
 
-            cy.getActiveModal()
+            cy.getActiveModal(".nc-modal-project-delete")
                 .find(".ant-btn-dangerous")
                 .should("exist")
                 .click();

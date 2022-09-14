@@ -1,5 +1,7 @@
 import type { FilterType } from 'nocodb-sdk'
-import type { Role } from './enums'
+import type { I18n } from 'vue-i18n'
+import type { Language, Role } from './enums'
+
 export interface User {
   id: string
   email: string
@@ -32,3 +34,5 @@ export interface Field {
 export type Roles = Record<Role, boolean>
 
 export type Filter = FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string; readOnly?: boolean }
+
+export type NocoI18n = I18n<{}, unknown, unknown, string, false>

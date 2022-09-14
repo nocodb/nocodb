@@ -231,7 +231,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" class="p-2" @keydown.esc="dialogShow = false">
+  <a-modal
+    v-model:visible="dialogShow"
+    width="max(30vw, 600px)"
+    class="p-2"
+    wrap-class-name="nc-modal-airtable-import"
+    @keydown.esc="dialogShow = false"
+  >
     <div class="px-5">
       <!--      Quick Import -->
       <div class="mt-5 prose-xl font-weight-bold">{{ $t('title.quickImport') }} - AIRTABLE</div>

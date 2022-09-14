@@ -21,13 +21,13 @@ export const genTest = (apiType, dbType) => {
         cy.wait(1000);
 
         // wait, as URL initially will be /undefined
-        cy.getActiveModal()
+        cy.getActiveModal(".nc-modal-share-view")
             .find(".share-link-box")
             .contains("/nc/view/", { timeout: 10000 })
             .should("exist");
 
         // copy link text, visit URL
-        cy.getActiveModal()
+        cy.getActiveModal(".nc-modal-share-view")
             .find(".share-link-box")
             .contains("/nc/view/", { timeout: 10000 })
             .then(($obj) => {
@@ -82,7 +82,7 @@ export const genTest = (apiType, dbType) => {
 
                 // create a normal public view
                 cy.get(`.nc-create-${viewType}-view`).click();
-                cy.getActiveModal().find("button:contains(Submit)").click();
+                cy.getActiveModal(".nc-modal-view-create").find("button:contains(Submit)").click();
                 cy.toastWait("View created successfully");
 
                 // store base URL- to re-visit and delete form view later
@@ -373,7 +373,7 @@ export const genTest = (apiType, dbType) => {
                 cy.get(".nc-view-item").its("length").should("eq", 2);
 
                 cy.get(".nc-view-delete-icon").eq(0).click({ force: true });
-                cy.getActiveModal().find(".ant-btn-dangerous").click();
+                cy.getActiveModal(".nc-modal-view-delete").find(".ant-btn-dangerous").click();
                 cy.toastWait("View deleted successfully");
 
                 // confirm if the number of veiw entries is reduced by 1
@@ -424,7 +424,7 @@ export const genTest = (apiType, dbType) => {
             // wait for page rendering to complete
             cy.get(".nc-grid-row").should("have.length", 10);
             mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu()
+            cy.getActiveMenu(".nc-dropdown-grid-context-menu")
                 .find('.ant-dropdown-menu-item:contains("Delete Row")')
                 .first()
                 .click();

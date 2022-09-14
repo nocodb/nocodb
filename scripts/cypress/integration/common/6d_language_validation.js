@@ -24,7 +24,7 @@ export const genTest = (apiType, dbType) => {
 
         after(() => {
             cy.get('.nc-menu-accounts').should('exist').click();
-            cy.getActiveMenu().find('.ant-dropdown-menu-item').eq(1).click();
+            cy.getActiveMenu('.nc-dropdown-user-accounts-menu').find('.ant-dropdown-menu-item').eq(1).click();
 
             cy.wait(5000);
             cy.get('button:contains("SIGN")').should('exist')
@@ -39,7 +39,7 @@ export const genTest = (apiType, dbType) => {
                 // toggle menu as per index
                 cy.get(".nc-menu-translate").should('exist').last().click();
                 cy.wait(500);
-                cy.getActiveMenu().find(".ant-dropdown-menu-item").eq(idx).click();
+                cy.getActiveMenu(".nc-dropdown-menu-translate").find(".ant-dropdown-menu-item").eq(idx).click();
                 cy.wait(200);
 
                 // basic validations

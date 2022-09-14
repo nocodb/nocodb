@@ -59,26 +59,26 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("Expand Link record, validate", () => {
-            cy.getActiveModal()
+            cy.getActiveModal(".nc-modal-child-list")
                 .find("button:contains(Link to 'City')")
                 .click()
                 .then(() => {
 
                     // Link record form validation
-                    cy.getActiveModal().contains("Link record").should("exist");
-                    cy.getActiveModal()
+                    cy.getActiveModal(".nc-modal-link-record").contains("Link record").should("exist");
+                    cy.getActiveModal(".nc-modal-link-record")
                         .find(".nc-reload")
                         .should("exist");
-                    cy.getActiveModal()
+                    cy.getActiveModal(".nc-modal-link-record")
                         .find('button:contains("Add new record")')
                         .should("exist");
-                    cy.getActiveModal()
+                    cy.getActiveModal(".nc-modal-link-record")
                         .find(".ant-card")
                         .eq(0)
                         .contains("A Corua (La Corua)")
                         .should("exist");
 
-                    cy.getActiveModal()
+                    cy.getActiveModal(".nc-modal-link-record")
                         .find("button.ant-modal-close")
                         .click();
                         // .then(() => {

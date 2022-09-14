@@ -48,6 +48,7 @@ const deleteProject = (project: ProjectType) => {
 
   Modal.confirm({
     title: `Do you want to delete '${project.title}' project?`,
+    wrapClassName: 'nc-modal-project-delete',
     okText: 'Yes',
     okType: 'danger',
     cancelText: 'No',
@@ -136,7 +137,7 @@ const getProjectPrimary = (project: ProjectType) => {
 
       <div class="flex-1" />
 
-      <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']">
+      <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']" overlay-class-name="nc-dropdown-create-project">
         <button class="nc-new-project-menu">
           <span class="flex items-center w-full">
             {{ $t('title.newProj') }}

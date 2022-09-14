@@ -13,7 +13,7 @@ export function _advSettings(roleType, mode) {
 
         // open modal
         cy.get('.nc-project-menu').should('exist').click()
-        cy.getActiveMenu().find(`[data-menu-id="language"]`).should('exist')
+        cy.getActiveMenu(".nc-dropdown-project-menu").find(`[data-menu-id="language"]`).should('exist')
 
         // click again to close modal
         cy.get('.nc-project-menu').should('exist').click()
@@ -25,11 +25,11 @@ export function _advSettings(roleType, mode) {
 
     // cy.get(".nc-team-settings").should(validationString);
     cy.get('.nc-project-menu').should('exist').click()
-    cy.getActiveMenu().find(`[data-menu-id="preview-as"]`).should(validationString)
-    cy.getActiveMenu().find(`[data-menu-id="teamAndSettings"]:visible`).should(validationString)
+    cy.getActiveMenu(".nc-dropdown-project-menu").find(`[data-menu-id="preview-as"]`).should(validationString)
+    cy.getActiveMenu(".nc-dropdown-project-menu").find(`[data-menu-id="teamAndSettings"]:visible`).should(validationString)
 
     if (true === roles[roleType].validations.advSettings) {
-        cy.getActiveMenu().find(`[data-menu-id="teamAndSettings"]:visible`).should(validationString).click()
+        cy.getActiveMenu(".nc-dropdown-project-menu").find(`[data-menu-id="teamAndSettings"]:visible`).should(validationString).click()
 
         cy.get(`[data-menu-id="teamAndAuth"]`).should('exist')
         cy.get(`[data-menu-id="appStore"]`).should('exist')
@@ -67,8 +67,8 @@ export function _editSchema(roleType, mode) {
     cy.get(".ant-dropdown-content:visible").should(validationString);
 
     if(validationString === "exist"){
-        cy.getActiveMenu().find('[role="menuitem"]').contains("Delete").should("exist");
-        cy.getActiveMenu().find('[role="menuitem"]').contains("Rename").should("exist");
+        cy.getActiveMenu(".nc-dropdown-tree-view-context-menu").find('[role="menuitem"]').contains("Delete").should("exist");
+        cy.getActiveMenu(".nc-dropdown-tree-view-context-menu").find('[role="menuitem"]').contains("Rename").should("exist");
 
         // click on a cell to close table context menu
         mainPage.getCell(columnName, 3).click();
@@ -83,11 +83,11 @@ export function _editSchema(roleType, mode) {
 
     if(validationString === "exist"){
         cy.get('.nc-import-menu').should('exist').click();
-        cy.getActiveMenu().should('exist')
-        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Airtable')
-        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('CSV file')
-        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('JSON file')
-        cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Microsoft Excel')
+        cy.getActiveMenu(".nc-dropdown-import-menu").should('exist')
+        cy.getActiveMenu(".nc-dropdown-import-menu").find('.ant-dropdown-menu-item').contains('Airtable')
+        cy.getActiveMenu(".nc-dropdown-import-menu").find('.ant-dropdown-menu-item').contains('CSV file')
+        cy.getActiveMenu(".nc-dropdown-import-menu").find('.ant-dropdown-menu-item').contains('JSON file')
+        cy.getActiveMenu(".nc-dropdown-import-menu").find('.ant-dropdown-menu-item').contains('Microsoft Excel')
     }
 }
 
@@ -114,10 +114,10 @@ export function _editData(roleType, mode) {
     if (validationString === "exist") {
         // right click options will exist (only for 'exist' case)
         //
-        cy.getActiveMenu().contains("Insert New Row").should(validationString);
-        cy.getActiveMenu().contains("Clear cell").should(validationString);
-        cy.getActiveMenu().contains("Delete Row").should(validationString);
-        cy.getActiveMenu().contains("Delete Selected Rows").should(validationString);
+        cy.getActiveMenu(".nc-dropdown-grid-context-menu").contains("Insert New Row").should(validationString);
+        cy.getActiveMenu(".nc-dropdown-grid-context-menu").contains("Clear cell").should(validationString);
+        cy.getActiveMenu(".nc-dropdown-grid-context-menu").contains("Delete Row").should(validationString);
+        cy.getActiveMenu(".nc-dropdown-grid-context-menu").contains("Delete Selected Rows").should(validationString);
 
         // cy.get("body").type("{esc}");
         mainPage.getCell("City", 13).click();
@@ -255,10 +255,10 @@ export function _viewMenu(roleType, mode) {
 
     // actions menu (more), only download csv should be visible for non-previlaged users
     cy.get(".nc-actions-menu-btn").click();
-    cy.getActiveMenu()
+    cy.getActiveMenu(".nc-dropdown-actions-menu")
         .find('.ant-dropdown-menu-submenu:visible')
         .should("have.length", menuWithSubmenuCount);
-    cy.getActiveMenu()
+    cy.getActiveMenu(".nc-dropdown-actions-menu")
         .find('.ant-dropdown-menu-item:visible')
         .should("have.length", menuWithoutSubmenuCount);
     // click again to close menu

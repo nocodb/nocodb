@@ -45,7 +45,7 @@ export const genTest = (apiType, dbType) => {
                 cy.get(`.nc-create-${viewType}-view`).click();
 
                 // Pop up window, click Submit (accepting default name for view)
-                cy.getActiveModal().find(".ant-btn-primary").click();
+                cy.getActiveModal(".nc-modal-view-create").find(".ant-btn-primary").click();
                 cy.toastWait("View created successfully");
 
                 // kludge: right navbar closes abruptly. force it open again
@@ -83,7 +83,7 @@ export const genTest = (apiType, dbType) => {
                 // click on delete icon (becomes visible on hovering mouse)
                 cy.get(".nc-view-delete-icon").click({ force: true });
                 cy.wait(300)
-                cy.getActiveModal().find('.ant-btn-dangerous').click();
+                cy.getActiveModal(".nc-modal-view-delete").find('.ant-btn-dangerous').click();
                 cy.toastWait("View deleted successfully");
 
                 // kludge: right navbar closes abruptly. force it open again

@@ -284,7 +284,12 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" :width="modalWidth" @keydown.esc="dialogShow = false">
+  <a-modal
+    v-model:visible="dialogShow"
+    :width="modalWidth"
+    wrap-class-name="nc-modal-quick-import"
+    @keydown.esc="dialogShow = false"
+  >
     <div class="px-5">
       <div class="prose-xl font-weight-bold my-5">{{ importMeta.header }}</div>
 
@@ -298,6 +303,7 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
           :import-only="importOnly"
           :quick-import-type="importType"
           :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+          class="nc-quick-import-template-editor"
           @import="handleImport"
         />
 

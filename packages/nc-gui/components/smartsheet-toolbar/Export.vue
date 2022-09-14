@@ -1,5 +1,5 @@
 <template>
-  <a-dropdown :trigger="['click']">
+  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
     <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
       <div class="flex gap-2 items-center">
         <MdiDownload class="group-hover:text-accent text-gray-500" />

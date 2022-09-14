@@ -69,7 +69,7 @@ hooks.hook('page:finish', () => {
         </a-tooltip>
 
         <template v-if="signedIn && !isSharedBase">
-          <a-dropdown :trigger="['click']">
+          <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white" @click.prevent />
 
             <template #overlay>
@@ -102,11 +102,7 @@ hooks.hook('page:finish', () => {
       <a-tooltip placement="bottom">
         <template #title> Switch language</template>
 
-        <Transition name="layout">
-          <div v-if="!signedIn" class="nc-lang-btn">
-            <GeneralLanguage />
-          </div>
-        </Transition>
+        <GeneralLanguage class="nc-lang-btn" />
       </a-tooltip>
 
       <div class="w-full h-full overflow-hidden">
@@ -116,7 +112,7 @@ hooks.hook('page:finish', () => {
   </a-layout>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .nc-lang-btn {
   @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white active:(ring ring-accent) hover:(ring ring-accent);
 

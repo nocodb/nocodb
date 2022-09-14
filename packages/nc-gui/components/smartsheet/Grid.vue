@@ -339,7 +339,7 @@ const onKeyDown = async (e: KeyboardEvent) => {
       {
         const rowObj = data.value[selected.row]
         const columnObj = fields.value[selected.col]
-        let cptext = '' //variable for save the text it will copy
+        let cptext = '' //variable for save the text to be copy
         if(!isNaN(rangeRows.minRow) && !isNaN(rangeRows.maxRow) && !isNaN(rangeRows.minCol) && !isNaN(rangeRows.maxCol)){
           const cprows = data.value.slice(rangeRows.minRow, rangeRows.maxRow+1) //slice the the selected rows for copy
           const cpcols = fields.value.slice(rangeRows.minCol, rangeRows.maxCol+1) //slice the the selected cols for copy

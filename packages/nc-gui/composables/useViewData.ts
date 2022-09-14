@@ -10,6 +10,7 @@ import {
   extractSdkResponseErrorMsg,
   getHTMLEncodedText,
   useApi,
+  useGlobal,
   useProject,
   useUIPermission,
 } from '#imports'
@@ -43,7 +44,9 @@ export function useViewData(
 
   const { t } = useI18n()
   const { api, isLoading, error } = useApi()
-  const _paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
+  const { appInfo } = $(useGlobal())
+  const appInfoDefaultLimit = appInfo?.defaultLimit || 25
+  const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
   const galleryData = ref<GalleryType>()
   const formColumnData = ref<FormType>()
@@ -79,8 +82,8 @@ export function useViewData(
   })
 
   const queryParams = computed(() => ({
-    offset: ((paginationData.value?.page ?? 0) - 1) * (paginationData.value?.pageSize ?? 25),
-    limit: paginationData.value?.pageSize ?? 25,
+    offset: ((paginationData.value?.page ?? 0) - 1) * (paginationData.value?.pageSize ?? appInfoDefaultLimit),
+    limit: paginationData.value?.pageSize ?? appInfoDefaultLimit,
     where: where?.value ?? '',
   }))
 
@@ -116,7 +119,7 @@ export function useViewData(
     // total records in the current table
     const count = paginationData.value?.totalRows ?? Infinity
     // the number of rows in a page
-    const size = paginationData.value?.pageSize ?? 25
+    const size = paginationData.value?.pageSize ?? appInfoDefaultLimit
     // the current page number
     const currentPage = paginationData.value?.page ?? 1
     // the maximum possible page given the current count and the size
@@ -261,7 +264,7 @@ export function useViewData(
 
   async function changePage(page: number) {
     paginationData.value.page = page
-    await loadData({ offset: (page - 1) * (paginationData.value.pageSize || 25), where: where?.value } as any)
+    await loadData({ offset: (page - 1) * (paginationData.value.pageSize || appInfoDefaultLimit), where: where?.value } as any)
     $e('a:grid:pagination')
   }
 

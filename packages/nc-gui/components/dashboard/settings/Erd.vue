@@ -23,8 +23,6 @@ const edges = ref<Edge[]>([])
 
 let isLoading = $ref(true)
 
-const isLayouting = ref(false)
-
 const config = ref({
   showPkAndFk: true,
   showViews: false,
@@ -41,17 +39,19 @@ const loadMetasOfTablesNotInMetas = async () => {
 }
 
 const populateTables = () => {
-  tables.value.forEach((table) => {
-    if (!table.id) return
+  tables.value
+    .filter((table) => (!config.value.showViews && table.type !== 'view') || config.value.showViews)
+    .forEach((table) => {
+      if (!table.id) return
 
-    dagreGraph.setNode(table.id, { width: 250, height: 30 * metasWithId.value[table.id].columns.length })
+      dagreGraph.setNode(table.id, { width: 250, height: 30 * metasWithId.value[table.id].columns.length })
 
-    initialNodes.value.push({
-      id: table.id,
-      data: { ...metasWithId.value[table.id], showPkAndFk: config.value.showPkAndFk },
-      type: 'custom',
+      initialNodes.value.push({
+        id: table.id,
+        data: { ...metasWithId.value[table.id], showPkAndFk: config.value.showPkAndFk },
+        type: 'custom',
+      })
     })
-  })
 
   dagreGraph.setGraph({ rankdir: 'LR' })
 }
@@ -125,8 +125,6 @@ const resetElements = () => {
 }
 
 const populateErd = (shouldReset = false) => {
-  isLayouting.value = true
-
   if (shouldReset) {
     dagreGraph = new dagre.graphlib.Graph()
     dagreGraph.setDefaultEdgeLabel(() => ({}))
@@ -137,8 +135,8 @@ const populateErd = (shouldReset = false) => {
   populateElements()
   populateRelations()
   layoutNodes()
-
-  isLayouting.value = false
+  console.log('nodes', nodes.value)
+  console.log('edges', edges.value)
 }
 
 onBeforeMount(async () => {

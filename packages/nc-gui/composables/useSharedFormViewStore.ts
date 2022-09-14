@@ -51,8 +51,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord),
   )
   const loadSharedView = async () => {
-    if (!sharedView.value) return
-
     try {
       const viewMeta = await api.public.sharedViewMetaGet(sharedViewId, {
         headers: {

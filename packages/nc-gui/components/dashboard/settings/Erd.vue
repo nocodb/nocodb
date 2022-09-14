@@ -44,7 +44,7 @@ const populateTables = () => {
     .forEach((table) => {
       if (!table.id) return
 
-      dagreGraph.setNode(table.id, { width: 250, height: 30 * metasWithId.value[table.id].columns.length })
+      dagreGraph.setNode(table.id, { width: 250, height: 50 * metasWithId.value[table.id].columns.length })
 
       initialNodes.value.push({
         id: table.id,
@@ -90,7 +90,7 @@ const populateRelations = () => {
 
     if (column.colOptions.type === 'hm') {
       sourceColumnId = column.colOptions.fk_child_column_id
-      targetColumnId = column.colOptions.fk_parent_column_id
+      targetColumnId = column.colOptions.fk_child_column_id
     }
     if (column.colOptions.type === 'mm') {
       sourceColumnId = column.colOptions.fk_parent_column_id

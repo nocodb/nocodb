@@ -45,7 +45,7 @@ See [here](https://support.airtable.com/hc/en-us/articles/205752117-Creating-a-b
 <alert>
 Prerequisites: <br/> - A NocoDB Project <br/> - Airtable Credentials
 </alert>
-
+  
 Below are 3 simple steps
 1. Go to your Project, Open `Add / Import` menu and click `Airtable`.
   

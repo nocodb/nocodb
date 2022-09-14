@@ -36,16 +36,7 @@ const router = useRouter()
 
 const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
-const {
-  project,
-  isSharedBase,
-  loadProjectMetaInfo,
-  projectMetaInfo,
-  saveTheme,
-  isLoading: isLoadingProject,
-  loadProject,
-  reset,
-} = useProject()
+const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme, loadProject, reset } = useProject()
 
 const { clearTabs, addTab } = useTabs()
 
@@ -155,9 +146,7 @@ onKeyStroke(
 clearTabs()
 
 onBeforeMount(async () => {
-  if (!isLoadingProject.value) {
-    await loadProject()
-  }
+  await loadProject()
 
   if (!route.params.type && isUIAllowed('teamAndAuth')) {
     addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })

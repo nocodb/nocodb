@@ -122,8 +122,6 @@ const customRow = (record: ProjectType) => ({
     await navigateTo(`/nc/${record.id}`)
 
     $e('a:project:open')
-
-    await loadProject(record.id)
   },
   class: ['group'],
 })

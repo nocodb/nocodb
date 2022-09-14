@@ -79,9 +79,11 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
       </div>
 
       <div class="w-full min-h-[300px] flex-auto">
-        <NuxtPage v-if="!isLoadingProject" />
+        <div v-show="!isLoadingProject" class="w-full h-full">
+          <NuxtPage />
+        </div>
 
-        <div v-else class="w-full h-full flex justify-center items-center">
+        <div v-show="isLoadingProject" class="w-full h-full flex justify-center items-center">
           <a-spin size="large" />
         </div>
       </div>

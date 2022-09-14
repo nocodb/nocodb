@@ -47,7 +47,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
 
   const projectMeta = computed<Record<string, any>>(() => {
     try {
-      return project.value.meta && isString(project.value.meta) ? JSON.parse(project.value.meta) : project.value.meta
+      return isString(project.value.meta) ? JSON.parse(project.value.meta) : project.value.meta
     } catch (e) {
       return {}
     }
@@ -167,9 +167,6 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     projectMetaInfo.value = undefined
     projectRoles.value = {}
   }
-
-  // TODO useProject should only called inside a project for now this doesn't work
-  // onScopeDispose(reset)
 
   return {
     project,

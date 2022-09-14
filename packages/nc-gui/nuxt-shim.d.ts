@@ -32,5 +32,6 @@ declare module 'vue-router' {
   interface RouteParams {
     projectId: string
     projectType: 'base' | 'nc' | string
+    title: string
   }
 }

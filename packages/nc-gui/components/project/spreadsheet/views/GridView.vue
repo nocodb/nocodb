@@ -303,7 +303,7 @@ import colors from '@/mixins/colors';
 import TableCell from '~/components/project/spreadsheet/components/Cell';
 import DynamicStyle from '~/components/DynamicStyle';
 import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes';
-import { copyTextToClipboard } from '~/helpers/xutils';
+import { copyTextToClipboard, toSafeString } from '~/helpers/xutils';
 import { isColumnLocked } from '~/helpers/isColumnLocked';
 
 export default {
@@ -651,13 +651,14 @@ export default {
 
           const rowObj = this.data[this.selected.row].row;
           const columnObj = this.availableColumns[this.selected.col];
+          const value = rowObj[columnObj.title] ?? '';
 
           if (e.metaKey || e.ctrlKey) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
+                copyTextToClipboard(toSafeString(value));
                 this.$toast.info('Copied to clipboard').goAway(2000);
-                copyTextToClipboard(rowObj[columnObj.title] || '');
                 break;
               // // paste ctrl/cmd + v
               // case 86: {

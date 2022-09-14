@@ -78,6 +78,10 @@ export function insertKey(key, value, obj, pos) {
   }, {})
 }
 
+export function toSafeString(value) {
+  return typeof value === 'object' ? JSON.stringify(value) : value;
+}
+
 export function copyTextToClipboard(text) {
   const textArea = document.createElement('textarea')
 

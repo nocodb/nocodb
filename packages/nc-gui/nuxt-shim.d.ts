@@ -28,4 +28,9 @@ declare module 'vue-router' {
     hideHeader?: boolean
     title?: string
   }
+
+  interface RouteParams {
+    projectId: string
+    projectType: 'base' | 'nc' | string
+  }
 }

@@ -1,25 +1,30 @@
 <script setup lang="ts">
-import type { Edge } from '@braks/vue-flow'
+import type { Edge, Node } from '@braks/vue-flow'
 import { Background, Controls, VueFlow, useVueFlow } from '@braks/vue-flow'
-import { ref } from 'vue'
 import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
 import TableNode from './erd/TableNode.vue'
 import RelationEdge from './erd/RelationEdge.vue'
-import { useProject } from '#imports'
 
-const dagreGraph = new dagre.graphlib.Graph()
+let dagreGraph = new dagre.graphlib.Graph()
 dagreGraph.setDefaultEdgeLabel(() => ({}))
 
-const { updateNodeInternals, removeNodes, removeEdges, $reset } = useVueFlow()
+const { setNodes, setEdges } = useVueFlow()
 
 const { tables } = useProject()
+
 const { metas, getMeta, metasWithId } = useMetas()
 
-const nodes = ref<any[]>([])
+const initialNodes = ref<Pick<Node, 'id' | 'data' | 'type'>[]>([])
+
+const nodes = ref<Node[]>([])
+
 const edges = ref<Edge[]>([])
+
 let isLoading = $ref(true)
+
 const isLayouting = ref(false)
+
 const config = ref({
   showPkAndFk: true,
   showViews: false,
@@ -37,14 +42,15 @@ const loadMetasOfTablesNotInMetas = async () => {
 
 const populateTables = () => {
   tables.value.forEach((table) => {
-    if (!table?.id) return
+    if (!table.id) return
 
-    nodes.value.push({
+    dagreGraph.setNode(table.id, { width: 250, height: 30 * metasWithId.value[table.id].columns.length })
+
+    initialNodes.value.push({
       id: table.id,
       data: { ...metasWithId.value[table.id], showPkAndFk: config.value.showPkAndFk },
       type: 'custom',
     })
-    dagreGraph.setNode(table.id, { width: 250, height: 30 * metasWithId.value[table.id].columns.length })
   })
 
   dagreGraph.setGraph({ rankdir: 'LR' })
@@ -97,11 +103,12 @@ const populateRelations = () => {
 const layoutNodes = () => {
   dagre.layout(dagreGraph)
 
-  nodes.value = nodes.value.map((node) => {
+  nodes.value = initialNodes.value.flatMap((node) => {
     const nodeWithPosition = dagreGraph.node(node.id)
-    if (!nodeWithPosition) return node
 
-    return { ...node, position: { x: nodeWithPosition.x, y: nodeWithPosition.y } }
+    if (!nodeWithPosition) return []
+
+    return [{ ...node, position: { x: nodeWithPosition.x, y: nodeWithPosition.y } } as Node]
   })
 }
 
@@ -109,62 +116,64 @@ const populateElements = () => {
   populateTables()
 }
 
-const populateErd = () => {
+const resetElements = () => {
+  setNodes([])
+  setEdges([])
+  initialNodes.value = []
+  nodes.value = []
+  edges.value = []
+}
+
+const populateErd = (shouldReset = false) => {
   isLayouting.value = true
+
+  if (shouldReset) {
+    dagreGraph = new dagre.graphlib.Graph()
+    dagreGraph.setDefaultEdgeLabel(() => ({}))
+
+    resetElements()
+  }
+
   populateElements()
   populateRelations()
   layoutNodes()
 
-  updateNodeInternals(nodes.value as any)
   isLayouting.value = false
 }
 
-const resetElements = () => {
-  $reset()
-  updateNodeInternals(nodes.value as any)
-  removeNodes(nodes.value)
-  removeEdges(edges.value)
-  nodes.value = []
-  edges.value = []
-  dagreGraph.nodes().forEach((node: any) => dagreGraph.removeNode(node))
-  dagreGraph.edges().forEach((edge: any) => dagreGraph.removeEdge(edge))
-}
-
-onMounted(async () => {
+onBeforeMount(async () => {
   isLoading = true
-  resetElements()
 
   await loadMetasOfTablesNotInMetas()
 
   isLoading = false
+
   populateErd()
 })
 
-watch(config.value, () => {
-  populateErd()
+onBeforeUnmount(() => {
+  resetElements()
 })
+
+watch(config.value, () => populateErd(true))
 </script>
 
 <template>
   <div v-if="isLoading" style="height: 650px"></div>
   <div v-else class="relative" style="height: 650px">
-    <VueFlow
-      :key="config.toString()"
-      :nodes="nodes"
-      :edges="edges"
-      :fit-view-on-init="true"
-      :default-edge-options="{ type: 'step' }"
-      :elevate-edges-on-select="true"
-    >
+    <VueFlow :nodes="nodes" :edges="edges" :fit-view-on-init="true" :elevate-edges-on-select="true">
       <Controls :show-fit-view="false" :show-interactive="false" />
+
       <template #node-custom="props">
         <TableNode :data="props.data" />
       </template>
+
       <template #edge-custom="props">
         <RelationEdge v-bind="props" />
       </template>
       <Background />
     </VueFlow>
+
     <div class="absolute top-4 right-4 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
       <div class="flex flex-row items-center">
         <a-checkbox v-model:checked="config.showPkAndFk" />

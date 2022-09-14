@@ -15,7 +15,7 @@ const { sqlUi, isPg } = useProject()
 const { onAlter, onDataTypeChange, validateInfos } = useColumnCreateStoreOrThrow()
 
 // todo: 2nd argument of `getDataTypeListForUiType` is missing!
-const dataTypes = computed(() => sqlUi?.value?.getDataTypeListForUiType(vModel.value as { uidt: UITypes }, '' as any))
+const dataTypes = computed(() => sqlUi.value.getDataTypeListForUiType(vModel.value as { uidt: UITypes }, '' as any))
 
 const sampleValue = computed(() => {
   switch (vModel.value.uidt) {
@@ -24,7 +24,7 @@ const sampleValue = computed(() => {
     case UITypes.MultiSelect:
       return 'eg : a,b,c'
     default:
-      return sqlUi?.value.getDefaultValueForDatatype(vModel.value.dt)
+      return sqlUi.value.getDefaultValueForDatatype(vModel.value.dt)
   }
 })
 
@@ -40,6 +40,7 @@ vModel.value.ai = !!vModel.value.ai
 vModel.value.au = !!vModel.value.au
 
 onBeforeMount(() => {
+  // Postgres returns default value wrapped with single quotes & sometimes casted with type so we have to remove them to keep it unified for all databases
   if (isPg && vModel.value.cdf.indexOf(`'`) !== vModel.value.cdf.lastIndexOf(`'`)) {
     vModel.value.cdf = vModel.value.cdf.substring(vModel.value.cdf.indexOf(`'`) + 1, vModel.value.cdf.lastIndexOf(`'`))
   }

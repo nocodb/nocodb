@@ -63,6 +63,7 @@
     "@intlify/vite-plugin-vue-i18n": "^6.0.1",
     "@nuxt/image-edge": "^1.0.0-27657146.da85542",
     "@types/axios": "^0.14.0",
+    "@types/dagre": "^0.7.48",
     "@types/file-saver": "^2.0.5",
     "@types/papaparse": "^5.3.2",
     "@types/sortablejs": "^1.13.0",

@@ -591,7 +591,7 @@ onMounted(async () => {
 
                           <a-switch
                             v-model:checked="element.required"
-                            v-t="['a:form-view:field:mark-required']"
+                            v-e="['a:form-view:field:mark-required']"
                             size="small"
                             class="ml-2"
                             @change="updateColMeta(element)"
@@ -715,7 +715,7 @@ onMounted(async () => {
               <!-- Show "Submit Another Form" button -->
               <a-switch
                 v-model:checked="formViewData.submit_another_form"
-                v-t="[`a:form-view:submit-another-form`]"
+                v-e="[`a:form-view:submit-another-form`]"
                 size="small"
                 class="nc-form-checkbox-submit-another-form"
                 @change="updateView"
@@ -727,7 +727,7 @@ onMounted(async () => {
               <!-- Show a blank form after 5 seconds -->
               <a-switch
                 v-model:checked="formViewData.show_blank_form"
-                v-t="[`a:form-view:show-blank-form`]"
+                v-e="[`a:form-view:show-blank-form`]"
                 size="small"
                 class="nc-form-checkbox-show-blank-form"
                 @change="updateView"
@@ -738,7 +738,7 @@ onMounted(async () => {
             <div class="my-4">
               <a-switch
                 v-model:checked="emailMe"
-                v-t="[`a:form-view:email-me`]"
+                v-e="[`a:form-view:email-me`]"
                 size="small"
                 class="nc-form-checkbox-send-email"
                 @change="onEmailChange"

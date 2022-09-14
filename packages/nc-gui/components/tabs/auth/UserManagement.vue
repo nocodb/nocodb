@@ -201,7 +201,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
       </div>
 
       <div class="flex flex-row space-x-1">
-        <a-button v-t="['a:user:reload']" size="middle" type="text" @click="loadUsers()">
+        <a-button v-e="['a:user:reload']" size="middle" type="text" @click="loadUsers()">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiReload class="text-gray-500" />
             <div class="text-gray-500">{{ $t('general.reload') }}</div>
@@ -209,7 +209,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </a-button>
         <a-button
           v-if="isUIAllowed('newUser')"
-          v-t="['c:user:invite']"
+          v-e="['c:user:invite']"
           size="middle"
           type="primary"
           ghost
@@ -282,7 +282,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <template #title>
               <span>{{ $t('activity.deleteUser') }}</span>
             </template>
-            <a-button v-t="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
+            <a-button v-e="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
               <template #icon>
                 <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
               </template>

@@ -286,7 +286,7 @@ function openTableCreateDialog() {
 
                   <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
                     <a
-                      v-t="['e:datasource:import-request']"
+                      v-e="['e:datasource:import-request']"
                       href="https://github.com/nocodb/nocodb/issues/2052"
                       target="_blank"
                       class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
@@ -306,7 +306,7 @@ function openTableCreateDialog() {
               <div
                 v-for="table of tables"
                 :key="table.id"
-                v-t="['a:table:open']"
+                v-e="['a:table:open']"
                 :class="[
                   { hidden: !filteredTables?.includes(table), active: activeTable === table.title },
                   `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,

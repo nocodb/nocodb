@@ -37,7 +37,7 @@ const logout = () => {
         <a-menu class="ml-2 !py-0 min-w-32 leading-8 !rounded nc-menu-account">
           <a-menu-item-group title="User Settings">
             <a-menu-item key="email" class="!rounded-t">
-              <nuxt-link v-t="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">
+              <nuxt-link v-e="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">
                 <MdiAt class="mt-1 group-hover:text-success" />
                 &nbsp;
                 <span class="prose group-hover:text-black nc-user-menu-email">{{ email }}</span>
@@ -47,7 +47,7 @@ const logout = () => {
             <a-menu-divider class="!m-0" />
 
             <a-menu-item key="signout" class="!rounded-b">
-              <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
+              <div v-e="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
                 <MdiLogout class="group-hover:(!text-red-500)" />&nbsp;
                 <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">
                   {{ $t('general.signOut') }}
@@ -76,7 +76,7 @@ const logout = () => {
 
               <a-menu-item class="active:(ring ring-accent)">
                 <div
-                  v-t="['c:project:create:xcdb']"
+                  v-e="['c:project:create:xcdb']"
                   class="group flex items-center gap-2 py-2 hover:text-primary"
                   @click="navigateTo('/project/create')"
                 >
@@ -87,7 +87,7 @@ const logout = () => {
 
               <a-menu-item class="rounded-b active:(ring ring-accent)">
                 <div
-                  v-t="['c:project:create:extdb']"
+                  v-e="['c:project:create:extdb']"
                   class="group flex items-center gap-2 py-2 hover:text-primary"
                   @click="navigateTo('/project/create-external')"
                 >

@@ -151,7 +151,7 @@ function onStopEdit() {
     @dblclick.stop="isUIAllowed('virtualViewsCreateOrEdit') && onDblClick()"
     @click.stop="onClick"
   >
-    <div v-t="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
       <div class="flex w-auto">
         <MdiDrag
           class="nc-drag-icon hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 !cursor-move"

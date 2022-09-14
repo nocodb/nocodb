@@ -56,11 +56,11 @@ const hasEditPermission = isUIAllowed('xcDatatableEditable')
 const isView = false
 
 const selected = reactive<{ row: number | null; col: number | null }>({ row: null, col: null })
-const selectedRows = reactive<{ startcol: number | null; endcol: number | null; startrow: number | null; endrow: number | null }>({ startcol: null, endcol: null, startrow: null, endrow: null })
-const rangerows = reactive<{ minrow: number | null; maxrow: number | null; mincol: number | null; maxcol: number | null }>({ mincol: null, maxcol: null, minrow: null, maxrow: null })
+const selectedRows = reactive({ startCol: NaN, endCol: NaN, startRow: NaN, endRow: NaN }) //save the first and the last column where the mouse is down while the value isSelectedRow is true
+const rangeRows = reactive({ minRow: NaN, maxRow: NaN, minCol: NaN, maxCol: NaN }) // calculate the min and the max column where the mouse is down while the value isSelectedRow is true
 
 let editEnabled = $ref(false)
-let isSelectedBlock = $ref(false)
+let isSelectedBlock = $ref(false) //check if mouse is down or up false=mouseup and true=mousedown
 
 const { xWhere, isPkAvail, cellRefs, isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -134,57 +134,68 @@ const selectCell = (row: number, col: number) => {
 }
 
 const selectBlock = (row: number, col: number) => {
+  // if selected.col and selected.row are null and isSelectedBlock is true thats mean you are select a block
   if (selected.col === null || selected.row === null) {
     if(isSelectedBlock){
-      selectedRows.endcol = col;
-      selectedRows.endrow = row;
+      //save the next value after the selectionStart
+      selectedRows.endCol = col;
+      selectedRows.endRow = row;
     }
   }else if(selected.col !== col || selected.row !== row){
+     // if selected.col and selected.row is not null but the selected col and row is not equal at the row and col where the mouse is clicking 
+     //and isSelectedBlock is true thats mean you are select a block
     if(isSelectedBlock){
       selected.col = null;
       selected.row = null;
-      selectedRows.endcol = col;
-      selectedRows.endrow = row;
+      //save the next value after the selectionStart
+      selectedRows.endCol = col;
+      selectedRows.endRow = row;
     }
   }
 }
 
 const selectedRange = (row: number, col: number)=>{
-  if(selectedRows.startrow !== null && selectedRows.startcol !== null && selectedRows.endrow !== null && selectedRows.endcol !== null){
-    rangerows.minrow=selectedRows.startrow > selectedRows.endrow ? selectedRows.endrow : selectedRows.startrow,
-    rangerows.maxrow=selectedRows.startrow < selectedRows.endrow ? selectedRows.endrow : selectedRows.startrow,
-    rangerows.mincol=selectedRows.startcol > selectedRows.endcol ? selectedRows.endcol : selectedRows.startcol,
-    rangerows.maxcol=selectedRows.startcol < selectedRows.endcol ? selectedRows.endcol : selectedRows.startcol
-    return (col>=rangerows.mincol && col<=rangerows.maxcol) && (row>=rangerows.minrow && row<=rangerows.maxrow);
+  if(!isNaN(selectedRows.startRow) && !isNaN(selectedRows.startCol) && !isNaN(selectedRows.endRow) && !isNaN(selectedRows.endCol)){
+    //for know if the selection is up o down
+    rangeRows.minRow=Math.min(selectedRows.startRow, selectedRows.endRow),
+    rangeRows.maxRow=Math.max(selectedRows.startRow, selectedRows.endRow),
+    rangeRows.minCol=Math.min(selectedRows.startCol, selectedRows.endCol),
+    rangeRows.maxCol=Math.max(selectedRows.startCol, selectedRows.endCol)
+    //return if the column is in bettwen the selection
+    return (col>=rangeRows.minCol && col<=rangeRows.maxCol) && (row>=rangeRows.minRow && row<=rangeRows.maxRow);
   }else{
     return false
   }
 }
 
 const startSelectRange = (event: MouseEvent, row: number, col: number)=>{
+  //if editEnabled but the selected col or the selected row is not equal like the actual row or col, enabled selected multiple rows
   if(editEnabled && (selected.col !== col || selected.row !== row)){
     event.preventDefault();
   }else if(!editEnabled){
+    //if editEnabled is not true, enabled selected multiple rows
     event.preventDefault();
   }
-  selectedRows.startcol = null;
-  selectedRows.endcol = null;
-  selectedRows.startrow = null;
-  selectedRows.endrow = null;
-  selectedRows.startcol = col;
-  selectedRows.startrow = row;
+  //clear the selection when the mouse is down
+  selectedRows.startCol = NaN
+  selectedRows.endCol = NaN
+  selectedRows.startRow = NaN
+  selectedRows.endRow = NaN
+  //asing where the selection start
+  selectedRows.startCol = col
+  selectedRows.startRow = row
   isSelectedBlock = true
 }
 
 const clearRangeRows = ()=>{
-  rangerows.mincol = null
-  rangerows.maxcol = null
-  rangerows.minrow = null
-  rangerows.maxrow = null
-  selectedRows.startrow = null
-  selectedRows.startcol = null 
-  selectedRows.endrow = null
-  selectedRows.endcol = null
+  rangeRows.minCol = NaN
+  rangeRows.maxCol = NaN
+  rangeRows.minRow = NaN
+  rangeRows.maxRow = NaN
+  selectedRows.startRow = NaN
+  selectedRows.startCol = NaN 
+  selectedRows.endRow = NaN
+  selectedRows.endCol = NaN
 }
 
 watch(
@@ -256,9 +267,10 @@ const makeEditable = (row: Row, col: ColumnType) => {
 
 /** handle keypress events */
 const onKeyDown = async (e: KeyboardEvent) => {
-  if(selectedRows.startrow !== null && selectedRows.startcol !== null && selectedRows.endrow !== null && selectedRows.endcol !== null){
-    selected.row = selectedRows.startrow
-    selected.col = selectedRows.startcol
+  if(!isNaN(selectedRows.startRow) && !isNaN(selectedRows.startCol) && !isNaN(selectedRows.endRow) && !isNaN(selectedRows.endCol)){
+    //In case the user press tabs or arrows keys
+    selected.row = selectedRows.startRow
+    selected.col = selectedRows.startCol
   }
   if (selected.row === null || selected.col === null) return
   /** on tab key press navigate through cells */
@@ -321,15 +333,15 @@ const onKeyDown = async (e: KeyboardEvent) => {
       {
         const rowObj = data.value[selected.row]
         const columnObj = fields.value[selected.col]
-        let cptext = "";
-        if(rangerows.minrow !== null && rangerows.maxrow !== null && rangerows.mincol !== null && rangerows.maxcol !== null){
-          const cprows = data.value.slice(rangerows.minrow, rangerows.maxrow+1);
-          const cpcols = fields.value.slice(rangerows.mincol, rangerows.maxcol+1);
-          cprows.forEach((row : any)=>{
-            cpcols.forEach((col : any)=>{
-              cptext = cptext + row.row[col.title]+'\t';
+        let cptext = '' //variable for save the text it will copy
+        if(!isNaN(rangeRows.minRow) && !isNaN(rangeRows.maxRow) && !isNaN(rangeRows.minCol) && !isNaN(rangeRows.maxCol)){
+          const cprows = data.value.slice(rangeRows.minRow, rangeRows.maxRow+1) //slice the the selected rows for copy
+          const cpcols = fields.value.slice(rangeRows.minCol, rangeRows.maxCol+1) //slice the the selected cols for copy
+          cprows.forEach((row)=>{
+            cpcols.forEach((col)=>{
+              cptext = `${cptext} ${row.row[col.title]} \t`
             })
-            cptext = cptext.trim()+'\n'
+            cptext = `${cptext.trim()}\n`
           })
           cptext.trim()
         }else{
@@ -366,7 +378,8 @@ const onKeyDown = async (e: KeyboardEvent) => {
 }
 
 useEventListener(document, 'keydown', onKeyDown)
-useEventListener(document, 'mouseup', (e: MouseEvent)=>{
+useEventListener(document, 'mouseup', (e)=>{
+  //if the editEnabled is false prevent the mouseup event for not select text
   if(!editEnabled){
     e.preventDefault()
   }
@@ -488,7 +501,8 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
               </th>
             </tr>
           </thead>
-          <tbody v-on:selectstart.prevent>
+          <!--this prevent select text from field if not in edit mode-->
+          <tbody @selectstart.prevent>
             <SmartsheetRow v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">

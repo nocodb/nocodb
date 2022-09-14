@@ -453,6 +453,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
       <td align="center"><a href="https://github.com/drsantam"><img src="https://avatars.githubusercontent.com/u/10681456?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Santam Chakraborty</b></sub></a><br /><a href="#translation-drsantam" title="Translation">🌍</a></td>
       <td align="center"><a href="https://bandism.net/"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ikko Ashimine</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=eltociear" title="Code">💻</a></td>
       <td align="center"><a href="http://asheerrizvi.com"><img src="https://avatars.githubusercontent.com/u/17976252?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Asheer Rizvi</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=asheerrizvi" title="Code">💻</a></td>
+      <td align="center"><a href="https://github.com/dolsem"><img src="https://avatars.githubusercontent.com/u/14323955?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Denis Olsem</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=dolsem" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

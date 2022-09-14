@@ -73,7 +73,7 @@ export function useKanbanViewData(
     if (!viewMeta?.value?.id) return
     kanbanMetaData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
     // set groupingField
-    groupingFieldColumn.value = meta?.value?.columns?.filter((f) => f.id === kanbanMetaData?.value?.grp_column_id)[0] || {}
+    groupingFieldColumn.value = meta?.value?.columns?.filter((f) => f.id === kanbanMetaData.value.grp_column_id)[0] || {}
     groupingField.value = groupingFieldColumn.value?.title as string
 
     const { grp_column_id, stack_meta } = kanbanMetaData.value
@@ -107,13 +107,13 @@ export function useKanbanViewData(
     } else {
       // build stack meta
       groupingFieldColOptions.value = [
-        ...(groupingFieldColumn.value.colOptions.options ?? []),
+        ...(groupingFieldColumn.value?.colOptions?.options ?? []),
         // enrich uncategorized stack
         { id: 'uncategorized', title: 'Uncategorized', order: 0, color: enumColor.light[2] },
       ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
     }
     // if grouping column id is present, add the grouping field column options to stackMetaObj
-    if (grp_column_id) {
+    if (stackMetaObj && grp_column_id) {
       stackMetaObj[grp_column_id] = groupingFieldColOptions.value
       await updateKanbanMeta({
         stack_meta: stackMetaObj,

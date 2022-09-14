@@ -94,7 +94,8 @@ const {
   removeRowIfNew,
 } = useViewData(meta, view, xWhere)
 
-const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
+const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
+
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))

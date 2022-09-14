@@ -1,7 +1,6 @@
 import type { ExportTypes, FilterType, PaginatedType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { useNuxtApp } from '#app'
-import { useGlobal } from '#imports'
+import { useGlobal, useNuxtApp } from '#imports'
 
 export function useSharedView() {
   const nestedFilters = useState<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>(
@@ -9,7 +8,7 @@ export function useSharedView() {
     () => [],
   )
   const { appInfo } = $(useGlobal())
-  const appInfoDefaultLimit = appInfo?.defaultLimit || 25
+  const appInfoDefaultLimit = appInfo.defaultLimit || 25
   const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: appInfoDefaultLimit }))
   const sharedView = useState<ViewType>('sharedView')
   const sorts = useState<SortType[]>('sorts', () => [])

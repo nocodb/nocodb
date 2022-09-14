@@ -45,7 +45,7 @@ export function useViewData(
   const { t } = useI18n()
   const { api, isLoading, error } = useApi()
   const { appInfo } = $(useGlobal())
-  const appInfoDefaultLimit = appInfo?.defaultLimit || 25
+  const appInfoDefaultLimit = appInfo.defaultLimit || 25
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
   const galleryData = ref<GalleryType>()
@@ -82,7 +82,7 @@ export function useViewData(
   })
 
   const queryParams = computed(() => ({
-    offset: ((paginationData.value?.page ?? 0) - 1) * (paginationData.value?.pageSize ?? appInfoDefaultLimit),
+    offset: ((paginationData.value.page ?? 0) - 1) * (paginationData.value.pageSize ?? appInfoDefaultLimit),
     limit: paginationData.value?.pageSize ?? appInfoDefaultLimit,
     where: where?.value ?? '',
   }))

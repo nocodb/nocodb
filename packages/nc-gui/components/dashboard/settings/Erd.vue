@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Erd from './erd/Erd.vue'
+import Erd from '~/components/erd/Erd.vue'
 
 const { tables } = useProject()
 

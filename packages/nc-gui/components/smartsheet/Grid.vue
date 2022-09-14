@@ -2,6 +2,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
+import { useRoute } from '#app'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -34,6 +35,7 @@ import {
 } from '#imports'
 import type { Row } from '~/composables'
 import { NavigateDir } from '~/lib'
+import { extractPkFromRow } from '~/utils'
 
 const { t } = useI18n()
 
@@ -52,6 +54,9 @@ const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook()
 
 const { isUIAllowed } = useUIPermission()
 const hasEditPermission = isUIAllowed('xcDatatableEditable')
+
+const route = useRoute()
+const router = useRouter()
 
 // todo: get from parent ( inject or use prop )
 const isView = false
@@ -130,10 +135,23 @@ reloadViewDataHook?.on(async (shouldShowLoading) => {
 const skipRowRemovalOnCancel = ref(false)
 
 const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) => {
-  expandedFormRow.value = row
-  expandedFormRowState.value = state
-  expandedFormDlg.value = true
-  skipRowRemovalOnCancel.value = !fromToolbar
+  const rowId = extractPkFromRow(row.row, meta.value.columns)
+
+  if (rowId) {
+    router.push({
+      params: {
+        ...route.params,
+        rowId,
+      },
+    })
+  } else {
+    expandedFormRow.value = row
+    expandedFormRowState.value = state
+    expandedFormDlg.value = true
+    skipRowRemovalOnCancel.value = !fromToolbar
+  }
+
+  /*  */
 }
 
 openNewRecordFormHook?.on(async () => {
@@ -377,6 +395,21 @@ onBeforeUnmount(async () => {
     }
   }
 })
+
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!route.params.rowId
+  },
+  set(val) {
+    if (!val)
+      router.push({
+        params: {
+          ...route.params,
+          rowId: undefined,
+        },
+      })
+  },
+})
 </script>
 
 <template>
@@ -616,6 +649,15 @@ onBeforeUnmount(async () => {
           if (!skipRowRemovalOnCancel) removeRowIfNew(expandedFormRow)
         }
       "
+    />
+
+    <SmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg"
+      :key="route.params.rowId"
+      v-model="expandedFormOnRowIdDlg"
+      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :meta="meta"
+      :row-id="route.params.rowId"
     />
   </div>
 </template>

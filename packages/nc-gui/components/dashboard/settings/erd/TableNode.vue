@@ -13,15 +13,21 @@ const { data } = toRefs(props)
 
 provide(MetaInj, data)
 
-const columns = data.value.columns
+const columns = computed(() => {
+  // Hide hm related created for `mm` relations
+  return data.value.columns.filter((col) => !(col.uidt === UITypes.LinkToAnotherRecord && col.system === 1))
+})
 
 const pkAndFkColumns = computed(() => {
-  return columns.filter(() => data.value.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
+  return columns.value.filter(() => data.value.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
 })
 
 const nonPkColumns = computed(() => {
-  return columns.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
+  return columns.value.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
 })
+
+const relatedColumnId = (col) =>
+  col.colOptions.type === 'mm' ? col.colOptions.fk_parent_column_id : col.colOptions.fk_child_column_id
 </script>
 
 <template>
@@ -38,8 +44,18 @@ const nonPkColumns = computed(() => {
       <div v-for="col in nonPkColumns" :key="col.title">
         <div class="w-full h-full flex items-center min-w-32 border-b-1 border-gray-100 py-2 px-1">
           <div v-if="col.uidt === UITypes.LinkToAnotherRecord" class="flex relative w-full">
-            <Handle :id="`s-${col.id}-${data.id}`" class="-right-4 opacity-0" type="source" :position="Position.Right" />
-            <Handle :id="`d-${col.id}-${data.id}`" class="-left-1 opacity-0" type="target" :position="Position.Left" />
+            <Handle
+              :id="`s-${relatedColumnId(col)}-${data.id}`"
+              class="-right-4 opacity-0"
+              type="source"
+              :position="Position.Right"
+            />
+            <Handle
+              :id="`d-${relatedColumnId(col)}-${data.id}`"
+              class="-left-1 opacity-0"
+              type="target"
+              :position="Position.Left"
+            />
             <SmartsheetHeaderVirtualCell :column="col" :hide-menu="true" />
           </div>
           <SmartsheetHeaderVirtualCell v-else-if="isVirtualCol(col)" :column="col" :hide-menu="true" />

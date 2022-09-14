@@ -57,9 +57,9 @@ const populateTables = () => {
 }
 
 const populateRelations = () => {
-  const ltarColumns = Object.keys(metasWithId.value).reduce((acc: any[], tableId) => {
-    const table = metasWithId.value[tableId]
-    const ltarColumns = table.columns.filter((column: any) => column.uidt === UITypes.LinkToAnotherRecord)
+  const ltarColumns = tables.value.reduce((acc: any[], table) => {
+    const meta = metasWithId.value[table.id!]
+    const ltarColumns = meta.columns.filter((column: any) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1)
 
     ltarColumns.forEach((column: any) => {
       if (column.colOptions.type === 'hm') {
@@ -68,8 +68,13 @@ const populateRelations = () => {
 
       if (column.colOptions.type === 'mm') {
         // Remove duplicate relations
-        const relatedColumnId = column.colOptions.fk_child_column_id
-        if (!acc.find((col) => col.id === relatedColumnId)) {
+        const isCorrespondingRelationAlreadyAdded = acc.find(
+          (c) =>
+            c.colOptions.type === 'mm' &&
+            c.colOptions.fk_parent_column_id === column.colOptions.fk_child_column_id &&
+            c.colOptions.fk_child_column_id === column.colOptions.fk_parent_column_id,
+        )
+        if (!isCorrespondingRelationAlreadyAdded) {
           acc.push(column)
         }
       }
@@ -81,23 +86,31 @@ const populateRelations = () => {
   edges.value = ltarColumns.map((column: any) => {
     const source = column.fk_model_id
     const target = column.colOptions.fk_related_model_id
-    const targetColumnId = column.colOptions.fk_related_column_id
+    let sourceColumnId, targetColumnId
+
+    if (column.colOptions.type === 'hm') {
+      sourceColumnId = column.colOptions.fk_child_column_id
+      targetColumnId = column.colOptions.fk_parent_column_id
+    }
+    if (column.colOptions.type === 'mm') {
+      sourceColumnId = column.colOptions.fk_parent_column_id
+      targetColumnId = column.colOptions.fk_child_column_id
+    }
 
     dagreGraph.setEdge(source, target)
 
     return {
-      id: `e${source}-${target}`,
+      id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}`,
       source: `${source}`,
       target: `${target}`,
-      sourceHandle: `s-${column.id}-${source}`,
+      sourceHandle: `s-${sourceColumnId}-${source}`,
       targetHandle: `d-${targetColumnId}-${target}`,
       type: 'custom',
-      data: { column, table: metasWithId.value[source], relatedTable: metasWithId.value[target] },
+      data: {
+        column,
+      },
     }
   })
-
-  // console.log('json:elements', JSON.parse(JSON.stringify(elements)))
-  // console.log('elements', elements)
 }
 
 const layoutNodes = () => {
@@ -135,8 +148,6 @@ const populateErd = (shouldReset = false) => {
   populateElements()
   populateRelations()
   layoutNodes()
-  console.log('nodes', nodes.value)
-  console.log('edges', edges.value)
 }
 
 onBeforeMount(async () => {

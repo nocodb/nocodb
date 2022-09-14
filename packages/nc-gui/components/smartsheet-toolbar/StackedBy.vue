@@ -70,7 +70,7 @@ const getIcon = (c: ColumnType) =>
   })
 
 const groupingFieldColumnId = computed({
-  get: () => kanbanMetaData?.value?.grp_column_id,
+  get: () => kanbanMetaData.value.grp_column_id,
   set: async (val) => {
     if (val) {
       await updateKanbanMeta({
@@ -78,7 +78,7 @@ const groupingFieldColumnId = computed({
       })
       await loadKanbanMeta()
       await loadKanbanData()
-      ;(activeView.value?.view as KanbanType).grp_column_id = val
+      ;(activeView.value.view as KanbanType).grp_column_id = val
     }
   },
 })

@@ -267,8 +267,8 @@ openNewRecordFormHook?.on(async () => {
                 <div v-if="formattedData[stack.title]" class="mt-5 text-center">
                   <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
                   <div class="nc-kanban-data-count">
-                    {{ formattedData[stack.title]?.length }}
-                    {{ formattedData[stack.title]?.length !== 1 ? $t('objects.records') : $t('objects.record') }}
+                    {{ formattedData[stack.title].length }}
+                    {{ formattedData[stack.title].length !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>
                 </div>
               </a-layout-footer>

@@ -107,7 +107,7 @@ export function useKanbanViewData(
     } else {
       // build stack meta
       groupingFieldColOptions.value = [
-        ...(groupingFieldColumn.value?.colOptions?.options ?? []),
+        ...(groupingFieldColumn.value.colOptions.options ?? []),
         // enrich uncategorized stack
         { id: 'uncategorized', title: 'Uncategorized', order: 0, color: enumColor.light[2] },
       ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)

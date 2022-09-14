@@ -39,7 +39,7 @@ export function useGridViewColumnWidth(view: Ref<GridType | undefined>) {
   const loadGridViewColumns = async () => {
     if ((!view.value || view.value?.id) && !isPublic.value) return
 
-    const colsData: GridColumnType[] = isPublic.value ? columns.value : await $api.dbView.gridColumnsList(view.value!.id!)
+    const colsData: GridColumnType[] = (isPublic.value ? columns.value : await $api.dbView.gridColumnsList(view.value!.id!)) ?? []
     gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
       (o, col) => ({
         ...o,

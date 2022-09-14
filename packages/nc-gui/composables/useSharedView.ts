@@ -29,8 +29,6 @@ export function useSharedView() {
   const { setMeta } = useMetas()
 
   const loadSharedView = async (viewId: string, localPassword: string | undefined = undefined) => {
-    if (!meta.value) return
-
     const viewMeta: Record<string, any> = await $api.public.sharedViewMetaGet(viewId, {
       headers: {
         'xc-password': localPassword ?? password.value,

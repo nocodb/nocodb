@@ -151,11 +151,11 @@ openNewRecordFormHook?.on(async () => {
 </script>
 
 <template>
-  <div class="flex h-full">
+  <div class="flex h-full bg-white px-2">
     <div class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
       <Draggable
         v-model="groupingFieldColOptions"
-        class="flex gap-5"
+        class="flex gap-4"
         item-key="id"
         group="kanban-stack"
         draggable=".nc-kanban-stack"
@@ -171,13 +171,11 @@ openNewRecordFormHook?.on(async () => {
             head-style="padding-bottom: 0px;"
             body-style="padding: 0px; height: 100%;"
           >
-            <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[20px]"></div>
+            <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
             <a-skeleton v-if="!formattedData[stack.title]" class="p-4" />
-            <a-layout v-else class="px-[20px] !bg-[#f0f2f5]">
+            <a-layout v-else class="px-[15px] !bg-[#f0f2f5]">
               <a-layout-header>
-                <div class="nc-kanban-stack-head justify-center w-full items-center flex">
-                  <div class="text-slate-500 font-bold">{{ stack.title }}</div>
-                </div>
+                <div class="nc-kanban-stack-head text-slate-500 font-bold">{{ stack.title }}</div>
               </a-layout-header>
               <a-layout-content class="overflow-y-hidden">
                 <div class="nc-kanban-list h-full overflow-y-auto">
@@ -196,6 +194,7 @@ openNewRecordFormHook?.on(async () => {
                             hoverable
                             :data-stack="stack.title"
                             class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
+                            body-style="padding: 10px;"
                             @click="expandFormClick($event, record)"
                           >
                             <!--                            <template #cover> -->
@@ -228,7 +227,7 @@ openNewRecordFormHook?.on(async () => {
                             <div
                               v-for="col in fieldsWithoutCover"
                               :key="`record-${record.row.id}-${col.id}`"
-                              class="flex flex-col space-y-1 px-2 mb-3 bg-gray-50 rounded-lg w-full"
+                              class="flex flex-col space-y-1 px-1 mb-3 bg-gray-50 rounded-lg w-full"
                             >
                               <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
                                 <div class="w-full text-gray-600">
@@ -297,6 +296,6 @@ openNewRecordFormHook?.on(async () => {
 }
 
 .ant-layout-header {
-  @apply !h-[64px];
+  @apply !h-[30px] !leading-[30px] !px-[5px] !my-[10px];
 }
 </style>

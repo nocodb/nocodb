@@ -7,23 +7,19 @@ import {
   provide,
   ref,
   useGlobal,
-  useI18n,
   useProject,
   useRoute,
   useRouter,
   useSidebar,
   useTabs,
-  useUIPermission,
 } from '#imports'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
 
-const { t } = useI18n()
+const { project, loadProject, loadTables } = useProject()
 
-const { loadProject, loadTables } = useProject()
-
-const { tabs, activeTabIndex, activeTab, closeTab, addTab } = useTabs()
+const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
 const { isLoading } = useGlobal()
 
@@ -31,16 +27,10 @@ const route = useRoute()
 
 const router = useRouter()
 
-const { isUIAllowed } = useUIPermission()
-
 const isReady = ref(false)
 
 onBeforeMount(async () => {
-  await loadProject()
-
-  if (!route.params.type && isUIAllowed('teamAndAuth')) {
-    addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
-  }
+  if (!Object.keys(project.value).length) await loadProject()
 
   /** If v1 url found navigate to corresponding new url */
   const { type, name, view } = route.query

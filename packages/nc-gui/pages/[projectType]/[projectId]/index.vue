@@ -19,6 +19,7 @@ import {
   useTabs,
   useUIPermission,
 } from '#imports'
+import { TabType } from '~/composables'
 
 definePageMeta({
   hideHeader: true,
@@ -30,9 +31,9 @@ const route = useRoute()
 
 const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
-const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme } = useProject()
+const { projectLoadedHook, project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme } = useProject()
 
-const { clearTabs } = useTabs()
+const { clearTabs, addTab } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -138,6 +139,12 @@ onKeyStroke(
 )
 
 clearTabs()
+
+projectLoadedHook(() => {
+  if (!route.params.type && isUIAllowed('teamAndAuth')) {
+    addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
+  }
+})
 </script>
 
 <template>

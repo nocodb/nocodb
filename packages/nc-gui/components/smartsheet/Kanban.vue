@@ -166,7 +166,7 @@ openNewRecordFormHook?.on(async () => {
         <template #item="{ element: stack, index }">
           <a-card
             :key="stack.id"
-            class="nc-kanban-stack mx-4 !bg-[#f0f2f5] flex flex-col min-w-[280px] h-full rounded-[12px]"
+            class="nc-kanban-stack mx-4 !bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
             :class="{ 'not-draggable': stack.id === 'uncategorized' }"
             head-style="padding-bottom: 0px;"
             body-style="padding: 0px; height: 100%;"

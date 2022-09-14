@@ -1,5 +1,5 @@
 import type { MaybeRef } from '@vueuse/core'
-import { computed, ref, unref, useInjectionState, useRoute } from '#imports'
+import { computed, unref, useRoute } from '#imports'
 
 export interface CellUrlOptions {
   behavior?: string

@@ -166,7 +166,9 @@ watch(passwordProtected, (value) => {
           <div class="flex flex-col gap-2">
             <div>
               <!-- Survey Mode; todo: i18n -->
-              <a-checkbox v-model:checked="surveyMode" class="!text-xs">Use Survey Mode </a-checkbox>
+              <a-checkbox v-if="shared.type === ViewTypes.FORM" v-model:checked="surveyMode" class="!text-xs">
+                Use Survey Mode
+              </a-checkbox>
             </div>
 
             <div>

@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import type { Edge, Node } from '@braks/vue-flow'
-import { Background, MarkerType, VueFlow, isNode, useVueFlow } from '@braks/vue-flow'
+import type { Edge } from '@braks/vue-flow'
+import { Background, Controls, VueFlow, useVueFlow } from '@braks/vue-flow'
 import { ref } from 'vue'
-import { ColumnType, UITypes } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
 import TableNode from './erd/TableNode.vue'
 import RelationEdge from './erd/RelationEdge.vue'
-import { useNuxtApp, useProject } from '#imports'
+import { useProject } from '#imports'
 
 const dagreGraph = new dagre.graphlib.Graph()
 dagreGraph.setDefaultEdgeLabel(() => ({}))
 
-const { updateNodeInternals } = useVueFlow()
+const { updateNodeInternals, removeNodes, removeEdges, $reset } = useVueFlow()
 
-const { $api } = useNuxtApp()
-const { project, tables } = useProject()
-const { t } = useI18n()
-
+const { tables } = useProject()
 const { metas, getMeta, metasWithId } = useMetas()
 
-const nodes = ref<Node[]>([])
+const nodes = ref<any[]>([])
 const edges = ref<Edge[]>([])
-
 let isLoading = $ref(true)
+const isLayouting = ref(false)
+const config = ref({
+  showPkAndFk: true,
+  showViews: false,
+})
 
 const loadMetasOfTablesNotInMetas = async () => {
   await Promise.all(
@@ -36,24 +36,26 @@ const loadMetasOfTablesNotInMetas = async () => {
 }
 
 const populateTables = () => {
-  Object.keys(metasWithId.value).forEach((tableId) => {
+  tables.value.forEach((table) => {
+    if (!table?.id) return
+
     nodes.value.push({
-      id: tableId,
-      data: metasWithId.value[tableId],
+      id: table.id,
+      data: { ...metasWithId.value[table.id], showPkAndFk: config.value.showPkAndFk },
       type: 'custom',
     })
-    dagreGraph.setNode(tableId, { width: 250, height: 30 * metasWithId.value[tableId].columns.length })
+    dagreGraph.setNode(table.id, { width: 250, height: 30 * metasWithId.value[table.id].columns.length })
   })
 
   dagreGraph.setGraph({ rankdir: 'LR' })
 }
 
 const populateRelations = () => {
-  const ltarColumns = Object.keys(metasWithId.value).reduce((acc, tableId) => {
+  const ltarColumns = Object.keys(metasWithId.value).reduce((acc: any[], tableId) => {
     const table = metasWithId.value[tableId]
-    const ltarColumns = table.columns.filter((column) => column.uidt === UITypes.LinkToAnotherRecord)
+    const ltarColumns = table.columns.filter((column: any) => column.uidt === UITypes.LinkToAnotherRecord)
 
-    ltarColumns.forEach((column) => {
+    ltarColumns.forEach((column: any) => {
       if (column.colOptions.type === 'hm') {
         acc.push(column)
       }
@@ -73,6 +75,7 @@ const populateRelations = () => {
   edges.value = ltarColumns.map((column: any) => {
     const source = column.fk_model_id
     const target = column.colOptions.fk_related_model_id
+    const targetColumnId = column.colOptions.fk_related_column_id
 
     dagreGraph.setEdge(source, target)
 
@@ -81,10 +84,9 @@ const populateRelations = () => {
       source: `${source}`,
       target: `${target}`,
       sourceHandle: `s-${column.id}-${source}`,
-      targetHandle: `d-${column.id}-${target}`,
+      targetHandle: `d-${targetColumnId}-${target}`,
       type: 'custom',
       data: { column, table: metasWithId.value[source], relatedTable: metasWithId.value[target] },
-      markerEnd: MarkerType.ArrowClosed,
     }
   })
 
@@ -107,27 +109,54 @@ const populateElements = () => {
   populateTables()
 }
 
+const populateErd = () => {
+  isLayouting.value = true
+  populateElements()
+  populateRelations()
+  layoutNodes()
+
+  updateNodeInternals(nodes.value as any)
+  isLayouting.value = false
+}
+
+const resetElements = () => {
+  $reset()
+  updateNodeInternals(nodes.value as any)
+  removeNodes(nodes.value)
+  removeEdges(edges.value)
+  nodes.value = []
+  edges.value = []
+  dagreGraph.nodes().forEach((node: any) => dagreGraph.removeNode(node))
+  dagreGraph.edges().forEach((edge: any) => dagreGraph.removeEdge(edge))
+}
+
 onMounted(async () => {
-  if (isLoading) {
-    await loadMetasOfTablesNotInMetas()
+  isLoading = true
+  resetElements()
 
-    populateElements()
-    populateRelations()
-    layoutNodes()
+  await loadMetasOfTablesNotInMetas()
 
-    console.log('nodes', nodes.value)
-    console.log('edges', edges.value)
+  isLoading = false
+  populateErd()
+})
 
-    updateNodeInternals(nodes.value as any)
-    isLoading = false
-  }
+watch(config.value, () => {
+  populateErd()
 })
 </script>
 
 <template>
-  <div style="height: 650px">
-    <div v-if="isLoading"></div>
-    <VueFlow v-else :nodes="nodes" :edges="edges" :fit-view-on-init="true" :default-edge-options="{ type: 'step' }">
+  <div v-if="isLoading" style="height: 650px"></div>
+  <div v-else class="relative" style="height: 650px">
+    <VueFlow
+      :key="config.toString()"
+      :nodes="nodes"
+      :edges="edges"
+      :fit-view-on-init="true"
+      :default-edge-options="{ type: 'step' }"
+      :elevate-edges-on-select="true"
+    >
+      <Controls :show-fit-view="false" :show-interactive="false" />
       <template #node-custom="props">
         <TableNode :data="props.data" />
       </template>
@@ -136,5 +165,15 @@ onMounted(async () => {
       </template>
       <Background />
     </VueFlow>
+    <div class="absolute top-4 right-4 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
+      <div class="flex flex-row items-center">
+        <a-checkbox v-model:checked="config.showPkAndFk" />
+        <span class="ml-2" style="font-size: 0.65rem">Show PK and FK</span>
+      </div>
+      <div class="flex flex-row items-center">
+        <a-checkbox v-model:checked="config.showViews" />
+        <span class="ml-2" style="font-size: 0.65rem">Show views</span>
+      </div>
+    </div>
   </div>
 </template>

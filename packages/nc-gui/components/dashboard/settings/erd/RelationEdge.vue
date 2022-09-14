@@ -1,5 +1,5 @@
 <script setup>
-import { EdgeText, getBezierCenter, getBezierPath, getEdgeCenter } from '@braks/vue-flow'
+import { getBezierPath } from '@braks/vue-flow'
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -53,8 +53,9 @@ const props = defineProps({
   },
 })
 
-const isHovered = ref(false)
-const { column, relatedTable, table } = props.data
+const { column } = toRefs(props.data)
+
+const isManyToMany = computed(() => column.value?.colOptions?.type === 'mm')
 
 const edgePath = computed(() =>
   getBezierPath({
@@ -66,24 +67,6 @@ const edgePath = computed(() =>
     targetPosition: props.targetPosition,
   }),
 )
-
-const center = computed(() =>
-  getEdgeCenter({
-    sourceX: props.sourceX,
-    sourceY: props.sourceY,
-    sourcePosition: props.sourcePosition,
-    targetX: props.targetX,
-    targetY: props.targetY,
-    targetPosition: props.targetPosition,
-  }),
-)
-
-watch(
-  () => isHovered.value,
-  (val) => {
-    console.log(val)
-  },
-)
 </script>
 
 <script>
@@ -93,28 +76,55 @@ export default {
 </script>
 
 <template>
-  <circle :cx="sourceX" :cy="sourceY" fill="#fff" :r="5" stroke="#6F3381" :stroke-width="1.5" />
   <path
     :id="id"
     :style="style"
-    class="stroke-gray-500 p-4 hover:stroke-green-500 hover:cursor-pointer"
-    :class="{ 'stroke-green-500': isHovered }"
-    :stroke-width="2.5"
+    class="path-wrapper p-4 hover:cursor-pointer"
+    :stroke-width="8"
     fill="none"
     :d="edgePath"
     :marker-end="markerEnd"
-    onmouseover="isHovered = true"
-    onmouseout="isHovered = false"
   />
-  <EdgeText
-    :x="center[0]"
-    :y="center[1]"
-    label="Text"
-    :label-style="{ fill: 'white' }"
-    :label-show-bg="true"
-    :label-bg-style="{ fill: '#10b981' }"
-    :label-bg-padding="[2, 4]"
-    :label-bg-border-radius="2"
+  <path
+    :id="id"
+    :style="style"
+    class="path stroke-gray-500 hover:stroke-green-500 hover:cursor-pointer"
+    :stroke-width="1.5"
+    fill="none"
+    :d="edgePath"
+    :marker-end="markerEnd"
   />
-  <circle :cx="targetX" :cy="targetY" fill="#fff" :r="5" stroke="#6F3381" :stroke-width="1.5" />
+
+  <rect
+    :x="sourceX"
+    :y="sourceY - 4"
+    width="8"
+    height="8"
+    fill="#fff"
+    stroke="#6F3381"
+    :stroke-width="1.5"
+    :transform="`rotate(45,${sourceX + 2},${sourceY - 4})`"
+  />
+  <rect
+    v-if="isManyToMany"
+    :x="targetX"
+    :y="targetY - 4"
+    width="8"
+    height="8"
+    fill="#fff"
+    stroke="#6F3381"
+    :stroke-width="1.5"
+    :transform="`rotate(45,${targetX + 2},${targetY - 4})`"
+  />
+  <circle v-else :cx="targetX" :cy="targetY" fill="#fff" :r="5" stroke="#6F3381" :stroke-width="1.5" />
 </template>
+
+<style scoped lang="scss">
+.path-wrapper:hover + .path {
+  @apply stroke-green-500;
+  stroke-width: 2;
+}
+.path:hover {
+  stroke-width: 2;
+}
+</style>

@@ -144,6 +144,21 @@ async function onMove(event: any, stackKey: string) {
   }
 }
 
+const kanbanListScrollHandler = async (e: any) => {
+  if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight) {
+    const stackId = e.target.getAttribute('data-id')
+    // TODO: load 25 more records
+    console.log(stackId)
+  }
+}
+
+const kanbanListRef = (kanbanListElement: HTMLElement) => {
+  if (kanbanListElement) {
+    kanbanListElement.removeEventListener('scroll', kanbanListScrollHandler)
+    kanbanListElement.addEventListener('scroll', kanbanListScrollHandler)
+  }
+}
+
 openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
@@ -178,7 +193,7 @@ openNewRecordFormHook?.on(async () => {
                 <div class="nc-kanban-stack-head text-slate-500 font-bold">{{ stack.title }}</div>
               </a-layout-header>
               <a-layout-content class="overflow-y-hidden">
-                <div class="nc-kanban-list h-full overflow-y-auto">
+                <div :ref="kanbanListRef" class="nc-kanban-list h-full overflow-y-auto" :data-id="stack.id">
                   <Draggable
                     v-model="formattedData[stack.title]"
                     item-key="row.Id"

@@ -46,9 +46,7 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGr
   activeView,
   parentId,
   computed(() => autoSave),
-  () => {
-    reloadDataHook.trigger()
-  },
+  reloadDataHook.trigger,
   modelValue || nestedFilters.value,
   !modelValue,
 )

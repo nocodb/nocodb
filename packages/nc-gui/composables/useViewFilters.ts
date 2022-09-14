@@ -19,7 +19,7 @@ export function useViewFilters(
   view: Ref<ViewType | undefined>,
   parentId?: string,
   autoApply?: ComputedRef<boolean>,
-  reloadData?: () => void,
+  reloadData?: (showLoading?: boolean) => void,
   currentFilters?: Filter[],
   isNestedRoot?: boolean,
 ) {
@@ -110,7 +110,7 @@ export function useViewFilters(
         }
       }
 
-      reloadData?.()
+      reloadData?.(false)
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -122,7 +122,7 @@ export function useViewFilters(
     if (nestedMode.value) {
       filters.value.splice(i, 1)
       filters.value = [...filters.value]
-      reloadData?.()
+      reloadData?.(false)
     } else {
       if (filter.id) {
         // if auto-apply disabled mark it as disabled
@@ -133,7 +133,7 @@ export function useViewFilters(
           try {
             await $api.dbTableFilter.delete(filter.id)
 
-            reloadData?.()
+            reloadData?.(false)
 
             filters.value.splice(i, 1)
           } catch (e: any) {
@@ -150,7 +150,7 @@ export function useViewFilters(
   }
 
   const saveOrUpdate = async (filter: Filter, i: number, force = false) => {
-    if (!view?.value) return
+    if (!view.value) return
 
     try {
       if (nestedMode.value) {
@@ -179,7 +179,7 @@ export function useViewFilters(
       message.error(await extractSdkResponseErrorMsg(e))
     }
 
-    reloadData?.()
+    reloadData?.(false)
   }
 
   const addFilter = () => {

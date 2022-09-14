@@ -512,6 +512,9 @@
               {{ $t('activity.deleteSelectedRow') }}
             </span>
           </v-list-item>
+          <v-list-item @click="copyValue">
+            <span class="caption"> Copy </span>
+          </v-list-item>
         </template>
 
         <template
@@ -648,6 +651,7 @@ import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilt
 import MoreActions from '~/components/project/spreadsheet/components/MoreActions';
 import ShareViewMenu from '~/components/project/spreadsheet/components/ShareViewMenu';
 import getPlainText from '~/components/project/spreadsheet/helpers/getPlainText';
+import { copyTextToClipboard, toSafeString } from '~/helpers/xutils';
 
 export default {
   name: 'RowsXcDataTable',
@@ -834,6 +838,11 @@ export default {
     this.searchField = this.primaryValueColumn;
   },
   methods: {
+    copyValue() {
+      const value = this.rowContextMenu.row[this.rowContextMenu.col.alias] ?? '';
+      copyTextToClipboard(toSafeString(value));
+      this.$toast.info('Copied to clipboard').goAway(2000);
+    },
     setLastOpenedView(table, id) {
       this.$emit('setLastOpenedView', table, id)
     },

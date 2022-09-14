@@ -1,9 +1,9 @@
 ---
-title: "Primary value"
+title: "Primary Value"
 description: "Understanding Primary Value in NocoDB!"
 position: 580
 category: "Product"
-menuTitle: "Primary value"
+menuTitle: "Primary Value"
 ---
 
 ## What is a Primary Value ?
@@ -14,19 +14,27 @@ menuTitle: "Primary value"
 - Within a spreadsheet, primary value are always highlighted so that it is easier to recognise what row we are in.
 - And when LinkToAnotherRecord is created between two tables - it is the primary value that appears in LinkToAnotheRecord column. 
 
-#### Example : Primary Value highlighted in actor table
-<img width="547" alt="actor" src="https://user-images.githubusercontent.com/5435402/152645708-92b83985-4a0a-42b2-9d01-d26be70fd3aa.png">
+#### Example : Primary Value highlighted in Actor table
+<img width="646" alt="image" src="https://user-images.githubusercontent.com/35857179/189114321-58ebaa16-20e2-4615-abda-39417a5df5bf.png">
 
-#### Example : Primary Value highlighted in film table
-<img width="1406" alt="film-table" src="https://user-images.githubusercontent.com/5435402/152645713-b4df99b2-4eb7-4fea-85f9-0baf47470ef3.png">
+#### Example : Primary Value highlighted in Film table
+<img width="643" alt="image" src="https://user-images.githubusercontent.com/35857179/189114462-a7fef0e2-f9ac-4943-98d5-fee9f60a4ab5.png">
 
 #### Example : Primary Value associated when LinkToAnotherRecord is created
-<img width="753" alt="actor-film" src="https://user-images.githubusercontent.com/5435402/152645714-4061c94a-4cfb-44e5-b112-63cf4ed869fe.png">
+<img width="311" alt="image" src="https://user-images.githubusercontent.com/35857179/189114548-193acc4d-f714-4204-a560-97668db7884c.png">
+
+## How to set Primary Value ?
+
+Click down arrow in the target column. Click `Set as Primary Value`. 
+
+<img width="251" alt="image" src="https://user-images.githubusercontent.com/35857179/189114857-b452aa6b-5cdb-4a74-9980-cb839d7d15fd.png">
 
 
 ## How is Primary Value identfied for existing database tables ?
+
 - It is usually the first column after the primary key which is not a number. 
 - If there is no column which is not a number then the column adjacent to primary key is chosen. 
 
 ## Can I change the Primary Value to another column within tables ?
-- Yes, you can. Hover over column which you want as primary column and click ```Set as Primary Value``` 
+
+- Yes, you can use the same way mentioned above to set Primary Value.

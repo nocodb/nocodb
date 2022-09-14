@@ -6,48 +6,81 @@ category: "Engineering"
 menuTitle: "i18n translation"
 ---
 
-NocoDB supports many foreign languages & we welcome community contributions via an easy to use [google-spreadsheet](https://docs.google.com/spreadsheets/d/1kGp92yLwhs1l7lwwgeor3oN1dFl7JZWuQOa4WSeZ0TE/edit#gid=2076107172).
+NocoDB supports many foreign languages & community contributions are now simplified via [Crowdin](https://crowdin.com/)
 Your help in fixing i18n goes a long way supporting NocoDB. Please follow below simple procedure to request corrections to existing translation errors.
 
-## How to contribute ? (for community members)
+# Public Contributions
 
-### 1. How to change a string value ?
-- Make a copy of [Google spreadsheet](https://docs.google.com/spreadsheets/d/1kGp92yLwhs1l7lwwgeor3oN1dFl7JZWuQOa4WSeZ0TE/edit#gid=2076107172)
-  <img width="995" alt="Screenshot 2022-02-10 at 1 47 06 PM" src="https://user-images.githubusercontent.com/86527202/153368423-d1d898ef-bdcb-48c4-a772-b75e2c66566d.png">
-- Find your language code [here](https://developers.google.com/admin-sdk/directory/v1/languages)
-- Go to the column containing your language code. Make necessary changes. Origin text in ENGLISH can be found in `Column B` of master spreadsheet.
-- Create a new [issue in Github](https://github.com/nocodb/nocodb/issues/new?assignees=dstala&labels=i18n+translation&template=i18n-translation-request.md&title=%5Bi18n%5D+Language+support+extension-+%3Clanguage+code%3E) request with a link to your spreadsheet from Step-1 (for us to verify & update master spreadsheet). 
-- NocoDB Maintainers will take changes and merge it.
-- It's that simple!
+### 1. How to add translation corrections (to existing languages)?
 
+- Setup [Crowdin](https://crowdin.com) account
+- Join [NocoDB](https://crowdin.com/project/nocodb) project
+  
+![Screenshot 2022-09-08 at 10 26 23 PM](https://user-images.githubusercontent.com/86527202/189181511-51b8671e-bee8-45d5-8216-a4a031bc6309.png)
 
+- Click the language that you wish to contribute
+  
+![Screenshot 2022-09-08 at 10 29 56 PM](https://user-images.githubusercontent.com/86527202/189182132-0eed7d5a-eaa1-43e1-929d-688f375763c1.png)
 
+- Click the `Translate` button; this opens up `Crowdin Online Editor`
+  
+![Screenshot 2022-09-08 at 10 32 17 PM](https://user-images.githubusercontent.com/86527202/189182450-999124e8-566c-40af-9d3c-731a11c1b6aa.png)
 
-### 2. How to add a new language ?
+- Select string in `English` on the left-hand menu bar [1]
+- Propose changes [2]
+- Save [3]
+Note: Crowdin provides translation recommendation's as in [4]. Click directly if it's apt
+  
+![Screenshot 2022-09-08 at 10 37 38 PM](https://user-images.githubusercontent.com/86527202/189184278-69d688ed-4e5a-4d5a-b629-9f6d10d79346.png)
 
-Your native language not in list, we will be glad to support with your help! Please follow below steps
-
-- Make a copy of [Google spreadsheet](https://docs.google.com/spreadsheets/d/1kGp92yLwhs1l7lwwgeor3oN1dFl7JZWuQOa4WSeZ0TE/edit#gid=2076107172)
-  <img width="995" alt="Screenshot 2022-02-10 at 1 47 06 PM" src="https://user-images.githubusercontent.com/86527202/153368423-d1d898ef-bdcb-48c4-a772-b75e2c66566d.png">
-- Find your language code [here](https://developers.google.com/admin-sdk/directory/v1/languages)
-- Replace cell $AB$1 (rightmost, containing text `en`) with language code obtained above.
-- Google will generate first version translation in column AB. Review. Make changes as you find appropriate for various items listed. Origin text in ENGLISH can be found in `Column B` of master spreadsheet.
-- Create new [issue](https://github.com/nocodb/nocodb/issues/new?assignees=dstala&labels=i18n+translation&template=i18n-translation-request.md&title=%5Bi18n%5D+Language+support+extension-+%3Clanguage+code%3E) request with a link to your spreadsheet from Step-1 (for us to verify & update master spreadsheet).
+A GitHub Pull Request will be automatically triggered (periodicity- 6 hours). We will follup on remaining integration work items.
 
 ---
 
-## How to accept i18n contributions ? (for NocoDB maintainers)
 
-> _This is exclusive to NocoDB maintainers only_
+#### Reference
+  
+Refer following articles to get additional details about Crowdin Portal usage
+- [Translator Introduction](https://support.crowdin.com/crowdin-intro/)
+- [Volunteer Translation Introduction](https://support.crowdin.com/for-volunteer-translators/)
+- [Online Editor](https://support.crowdin.com/online-editor/) 
+
+---
+
+
+### 2. How to add a new language ?
+  
+Your native language not in list, we will be glad to support with your help! Request for it [here](https://github.com/nocodb/nocodb/issues/new?assignees=dstala&labels=i18n+translation&template=i18n-translation-request.md&title=%5Bi18n%5D+Language+support+extension-+%3Clanguage+code%3E). We will be glad to take your help to set up translations
+
+
+---
+
+# Engineering Contributions (for NocoDB developers & maintainers)
+
+> _This is exclusive to NocoDB developers & maintainers only_
 
 ### 1. Adding / Updating a string
-- Open master [Spreadsheet](https://docs.google.com/spreadsheets/d/1kGp92yLwhs1l7lwwgeor3oN1dFl7JZWuQOa4WSeZ0TE/edit#gid=2076107172)
-- For the string/ text under consideration, look-up in existing sheet if it exists already
-- [New string already exists] Consider re-using it; align string key if required
-- [New string need to be inserted] Insert a new record into appropriate categories as defined below
-- Download spreadsheet as .csv (File > Download > Comma-seperated values (.csv, current sheet)
-- Use noco-i18n-from-cli to generate new language JSON file
-- Copy respective i18n/\*.json files to `nocodb/packages/nc-gui/lang`
+### Add / update key-value
+  - [en] make changes directly to `en.json` & commit to `develop`
+  - [any other language] add changes using `crowdin` portal; procedure described below
+
+### Add a new language
+#### GitHub changes
+- Update enumeration in `enums.ts` [packages/nc-gui/lib/enums.ts]
+- Map JSON path in `a.i18n.ts` [packages/nc-gui/plugins/a.i18n.ts]
+- Update array in `6d_language_validation.js` [scripts/cypress/integration/common/6d_language_validation.js]
+#### Crowdin changes [admin only]
+- Open `NocoDB` project
+- Click on `Language` on the home tab
+- Select target language, `Update`
+  
+  
+![Screenshot 2022-09-08 at 10 52 59 PM](https://user-images.githubusercontent.com/86527202/189186570-5c1c7cad-6d3f-4937-ab4d-fa7ebe022cb1.png)
+  
+  
+![Screenshot 2022-09-08 at 10 54 04 PM](https://user-images.githubusercontent.com/86527202/189186632-0b9f5f55-0550-4d8f-a8ae-7e9b9076774e.png)
+  
+---
 
 ### 2. String Categories
 -   **General**: simple & common tokens (save, cancel, submit, open, close, home, and such)

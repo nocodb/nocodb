@@ -208,9 +208,10 @@ onMounted(async () => {
   socket.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
 
-    // FIXME: this doesn't work
     await nextTick(() => {
-      ;(logRef.value?.$el as HTMLDivElement).scrollTo()
+      const container: HTMLDivElement = logRef.value?.$el?.firstElementChild
+      if (!container) return
+      container.scrollTop = container.scrollHeight
     })
 
     if (d.status === 'COMPLETED') {
@@ -286,30 +287,30 @@ onBeforeUnmount(() => {
 
           <!--          Import Secondary Views -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncViews">{{
-              $t('labels.importSecondaryViews')
-            }}</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncViews"
+              >{{ $t('labels.importSecondaryViews') }}
+            </a-checkbox>
           </div>
 
           <!--          Import Rollup Columns -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncRollup">{{
-              $t('labels.importRollupColumns')
-            }}</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncRollup"
+              >{{ $t('labels.importRollupColumns') }}
+            </a-checkbox>
           </div>
 
           <!--          Import Lookup Columns -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncLookup">{{
-              $t('labels.importLookupColumns')
-            }}</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncLookup"
+              >{{ $t('labels.importLookupColumns') }}
+            </a-checkbox>
           </div>
 
           <!--          Import Attachment Columns -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">{{
-              $t('labels.importAttachmentColumns')
-            }}</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncAttachment"
+              >{{ $t('labels.importAttachmentColumns') }}
+            </a-checkbox>
           </div>
 
           <!--          Import Formula Columns -->
@@ -317,9 +318,9 @@ onBeforeUnmount(() => {
             <template #title>
               <span>Coming Soon!</span>
             </template>
-            <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>{{
-              $t('labels.importFormulaColumns')
-            }}</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled
+              >{{ $t('labels.importFormulaColumns') }}
+            </a-checkbox>
           </a-tooltip>
         </a-form>
 

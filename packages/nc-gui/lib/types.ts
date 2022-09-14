@@ -31,7 +31,7 @@ export interface Field {
   system?: boolean
 }
 
-export type Roles = Record<Role, boolean> | string
+export type Roles = Record<Role | string, boolean> | string
 
 export type Filter = FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string; readOnly?: boolean }
 

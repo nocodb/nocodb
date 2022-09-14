@@ -189,6 +189,8 @@ const startSelectRange = (event: MouseEvent, row: number, col: number)=>{
 }
 
 const clearRangeRows = ()=>{
+  //when the selection starts or ends or when enter/arrow/tab is pressed 
+  //this clear the previous selection
   rangeRows.minCol = NaN
   rangeRows.maxCol = NaN
   rangeRows.minRow = NaN

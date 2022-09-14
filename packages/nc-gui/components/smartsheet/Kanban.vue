@@ -174,7 +174,7 @@ const addNewStackDropdown = ref(false)
             body-style="padding: 0px; height: 100%;"
           >
             <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[20px]"></div>
-            <a-skeleton v-if="!formattedData" />
+            <a-skeleton class="p-4" v-if="!formattedData[stack.title]" />
             <a-layout v-else class="px-[20px] !bg-[#f0f2f5]">
               <a-layout-header>
                 <div class="nc-kanban-stack-head justify-center w-full items-center flex">
@@ -266,7 +266,7 @@ const addNewStackDropdown = ref(false)
                 </div>
               </a-layout-content>
               <a-layout-footer>
-                <div class="mt-5 text-center">
+                <div class="mt-5 text-center" v-if="formattedData[stack.title]">
                   <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
                   <div class="nc-kanban-data-count">
                     {{ formattedData[stack.title]?.length }}

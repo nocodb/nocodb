@@ -1,0 +1,133 @@
+<script setup lang="ts">
+import type { Edge, Node } from '@braks/vue-flow'
+import { Background, Controls, VueFlow } from '@braks/vue-flow'
+import { UITypes } from 'nocodb-sdk'
+import dagre from 'dagre'
+import TableNode from './TableNode.vue'
+import RelationEdge from './RelationEdge.vue'
+
+interface Props {
+  tables: any[]
+  config: {
+    showPkAndFk: boolean
+    showViews: boolean
+  }
+}
+
+const { tables, config } = defineProps<Props>()
+
+const { metasWithId } = useMetas()
+
+const initialNodes = ref<Pick<Node, 'id' | 'data' | 'type'>[]>([])
+const nodes = ref<Node[]>([])
+const edges = ref<Edge[]>([])
+
+const dagreGraph = new dagre.graphlib.Graph()
+dagreGraph.setDefaultEdgeLabel(() => ({}))
+
+const populateInitalNodes = () => {
+  tables.forEach((table) => {
+    if (!table.id) return
+
+    dagreGraph.setNode(table.id, { width: 250, height: 50 * metasWithId.value[table.id].columns.length })
+
+    initialNodes.value.push({
+      id: table.id,
+      data: { ...metasWithId.value[table.id], showPkAndFk: config.showPkAndFk },
+      type: 'custom',
+    })
+  })
+
+  dagreGraph.setGraph({ rankdir: 'LR' })
+}
+
+const populateEdges = () => {
+  const ltarColumns = tables.reduce((acc: any[], table) => {
+    const meta = metasWithId.value[table.id!]
+    const ltarColumns = meta.columns.filter((column: any) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1)
+
+    ltarColumns.forEach((column: any) => {
+      if (column.colOptions.type === 'hm') {
+        acc.push(column)
+      }
+
+      if (column.colOptions.type === 'mm') {
+        // Avoid duplicate mm connections
+        const correspondingColumn = acc.find(
+          (c) =>
+            c.colOptions.type === 'mm' &&
+            c.colOptions.fk_parent_column_id === column.colOptions.fk_child_column_id &&
+            c.colOptions.fk_child_column_id === column.colOptions.fk_parent_column_id,
+        )
+        if (!correspondingColumn) {
+          acc.push(column)
+        }
+      }
+    })
+
+    return acc
+  }, [])
+
+  edges.value = ltarColumns.map((column: any) => {
+    const source = column.fk_model_id
+    const target = column.colOptions.fk_related_model_id
+    let sourceColumnId, targetColumnId
+
+    if (column.colOptions.type === 'hm') {
+      sourceColumnId = column.colOptions.fk_child_column_id
+      targetColumnId = column.colOptions.fk_child_column_id
+    }
+    if (column.colOptions.type === 'mm') {
+      sourceColumnId = column.colOptions.fk_parent_column_id
+      targetColumnId = column.colOptions.fk_child_column_id
+    }
+
+    dagreGraph.setEdge(source, target)
+
+    return {
+      id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}`,
+      source: `${source}`,
+      target: `${target}`,
+      sourceHandle: `s-${sourceColumnId}-${source}`,
+      targetHandle: `d-${targetColumnId}-${target}`,
+      type: 'custom',
+      data: {
+        column,
+      },
+    }
+  })
+}
+
+const layoutNodes = () => {
+  dagre.layout(dagreGraph)
+
+  nodes.value = initialNodes.value.flatMap((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id)
+
+    if (!nodeWithPosition) return []
+
+    return [{ ...node, position: { x: nodeWithPosition.x, y: nodeWithPosition.y } } as Node]
+  })
+}
+
+onBeforeMount(async () => {
+  populateInitalNodes()
+  populateEdges()
+  layoutNodes()
+})
+</script>
+
+<template>
+  <VueFlow :nodes="nodes" :edges="edges" :fit-view-on-init="true" :elevate-edges-on-select="true">
+    <Controls :show-fit-view="false" :show-interactive="false" />
+
+    <template #node-custom="props">
+      <TableNode :data="props.data" />
+    </template>
+
+    <template #edge-custom="props">
+      <RelationEdge v-bind="props" />
+    </template>
+    <Background />
+  </VueFlow>
+</template>

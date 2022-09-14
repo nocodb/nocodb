@@ -34,7 +34,7 @@ const { $e } = useNuxtApp()
 provide(ViewListInj, views)
 
 /** Sidebar visible */
-const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
+const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar', isOpen: true })
 
 const sidebarCollapsed = computed(() => !isOpen.value)
 

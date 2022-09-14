@@ -64,7 +64,7 @@ const iconColor = '#1890ff'
       </template>
       <MdiCommentTextOutline
         v-if="isUIAllowed('rowComments') && !isNew"
-        v-t="['c:row-expand:comment-toggle']"
+        v-e="['c:row-expand:comment-toggle']"
         class="cursor-pointer select-none nc-toggle-comments text-gray-500"
         @click="commentsDrawer = !commentsDrawer"
       />

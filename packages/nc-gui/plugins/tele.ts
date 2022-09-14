@@ -63,7 +63,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     },
   }
 
-  nuxtApp.vueApp.directive('t', {
+  nuxtApp.vueApp.directive('e', {
     created(el, binding, vnode) {
       if (vnode.el) vnode.el.addEventListener('click', getListener(binding))
       else el.addEventListener('click', getListener(binding))

@@ -114,7 +114,7 @@ watch(passwordProtected, (value) => {
   <div>
     <a-button
       v-if="isUIAllowed('share-view') && !isSharedBase"
-      v-t="['c:view:share']"
+      v-e="['c:view:share']"
       outlined
       class="nc-btn-share-view nc-toolbar-btn"
     >
@@ -136,11 +136,10 @@ watch(passwordProtected, (value) => {
     >
       <div class="share-link-box nc-share-link-box bg-primary-50">
         <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
-        <!--        <v-spacer /> -->
-        <a v-t="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
+        <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
           <MdiOpenInNewIcon class="text-sm text-gray-500 mt-2" />
         </a>
-        <MdiCopyIcon v-t="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
+        <MdiCopyIcon v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
       </div>
 
       <a-collapse ghost>

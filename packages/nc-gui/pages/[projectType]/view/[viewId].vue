@@ -8,7 +8,6 @@ import {
   extractSdkResponseErrorMsg,
   provide,
   ref,
-  useProvideCellUrlConfig,
   useRoute,
   useSharedView,
 } from '#imports'
@@ -24,8 +23,6 @@ const route = useRoute()
 const reloadEventHook = createEventHook<void>()
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(ReadonlyInj, true)
-
-useProvideCellUrlConfig()
 
 const { loadSharedView } = useSharedView()
 const showPassword = ref(false)

@@ -2,7 +2,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -27,6 +26,7 @@ import {
   ref,
   useEventListener,
   useGridViewColumnWidth,
+  useI18n,
   useSmartsheetStoreOrThrow,
   useUIPermission,
   useViewData,
@@ -425,7 +425,7 @@ onBeforeUnmount(async () => {
               </th>
               <th
                 v-if="!readOnly && !isLocked && isUIAllowed('add-column') && !isSqlView"
-                v-t="['c:column:add']"
+                v-e="['c:column:add']"
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
               >
@@ -486,7 +486,7 @@ onBeforeUnmount(async () => {
                           class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
                         >
                           <MdiArrowExpand
-                            v-t="['c:row-expand']"
+                            v-e="['c:row-expand']"
                             class="select-none transform hover:(text-accent scale-120) nc-row-expand"
                             @click="expandForm(row, state)"
                           />
@@ -544,7 +544,7 @@ onBeforeUnmount(async () => {
 
             <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable') && !isSqlView">
               <td
-                v-t="['c:row:add:grid-bottom']"
+                v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
                 class="text-left pointer nc-grid-add-new-cell cursor-pointer"
                 @click="addEmptyRow()"
@@ -564,14 +564,14 @@ onBeforeUnmount(async () => {
         <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
-              <div v-t="['a:row:delete']" class="nc-project-menu-item">
+              <div v-e="['a:row:delete']" class="nc-project-menu-item">
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
               </div>
             </a-menu-item>
 
             <a-menu-item @click="deleteSelectedRows">
-              <div v-t="['a:row:delete-bulk']" class="nc-project-menu-item">
+              <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
               </div>
@@ -579,11 +579,11 @@ onBeforeUnmount(async () => {
 
             <!--            Clear cell -->
             <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)">
-              <div v-t="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
+              <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
             <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              <div v-t="['a:row:insert']" class="nc-project-menu-item">
+              <div v-e="['a:row:insert']" class="nc-project-menu-item">
                 <!-- Insert New Row -->
                 {{ $t('activity.insertRow') }}
               </div>

@@ -391,7 +391,7 @@ onBeforeUnmount(() => {
         <!--        Import -->
         <a-button
           key="submit"
-          v-t="['c:sync-airtable:save-and-sync']"
+          v-e="['c:sync-airtable:save-and-sync']"
           type="primary"
           class="nc-btn-airtable-import"
           :disabled="disableImportButton"

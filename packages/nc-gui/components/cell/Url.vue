@@ -1,22 +1,35 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { CellUrlDisableOverlayInj, ColumnInj, EditModeInj, computed, inject, isValidURL, ref } from '#imports'
-import MiCircleWarning from '~icons/mi/circle-warning'
+import {
+  CellUrlDisableOverlayInj,
+  ColumnInj,
+  EditModeInj,
+  computed,
+  inject,
+  isValidURL,
+  ref,
+  useCellUrlConfig,
+  useI18n,
+  watch,
+} from '#imports'
 
-const { modelValue: value } = defineProps<Props>()
-const emit = defineEmits(['update:modelValue'])
-const { t } = useI18n()
 interface Props {
   modelValue?: string | null
 }
+
+const { modelValue: value } = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue'])
+
+const { t } = useI18n()
 
 const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
 
 const disableOverlay = inject(CellUrlDisableOverlayInj)
+
 // Used in the logic of when to display error since we are not storing the url if its not valid
 const localState = ref(value)
 
@@ -40,7 +53,8 @@ const url = computed(() => {
 
   return `https://${value}`
 })
-const urlOptions = useCellUrlConfig(url)
+
+const { cellUrlOptions } = useCellUrlConfig(url)
 
 const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
@@ -62,20 +76,20 @@ watch(
     <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm w-full" @blur="editEnabled = false" />
 
     <nuxt-link
-      v-else-if="isValid && !urlOptions?.overlay"
+      v-else-if="isValid && !cellUrlOptions?.overlay"
       class="z-3 text-sm underline hover:opacity-75"
       :to="url"
-      :target="urlOptions?.behavior === 'replace' ? undefined : '_blank'"
+      :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
     >
       {{ value }}
     </nuxt-link>
     <nuxt-link
-      v-else-if="isValid && !disableOverlay && urlOptions?.overlay"
+      v-else-if="isValid && !disableOverlay && cellUrlOptions?.overlay"
       class="z-3 w-full h-full text-center !no-underline hover:opacity-75"
       :to="url"
-      :target="urlOptions?.behavior === 'replace' ? undefined : '_blank'"
+      :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
     >
-      {{ urlOptions.overlay }}
+      {{ cellUrlOptions.overlay }}
     </nuxt-link>
 
     <span v-else class="w-9/10 overflow-ellipsis overflow-hidden">{{ value }}</span>

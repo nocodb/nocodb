@@ -169,7 +169,7 @@ watch($$(activeLang), (newLang) => {
               </a-select-option>
             </a-select>
             <a-button
-              v-t="[
+              v-e="[
                 'c:snippet:copy',
                 { client: activeLang?.clients && (selectedClient || activeLang?.clients[0]), lang: activeLang?.name },
               ]"
@@ -181,7 +181,7 @@ watch($$(activeLang), (newLang) => {
 
           <div class="absolute bottom-4 flex flex-row justify-center w-[95%]">
             <a
-              v-t="['e:hiring']"
+              v-e="['e:hiring']"
               class="px-4 py-2 ! rounded shadow"
               href="https://angel.co/company/nocodb"
               target="_blank"

@@ -864,6 +864,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "dolsem",
+      "name": "Denis Olsem",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14323955?v=4",
+      "profile": "https://github.com/dolsem",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

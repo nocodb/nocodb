@@ -144,7 +144,7 @@ openNewRecordFormHook?.on(async () => {
                 <img
                   v-for="(attachment, index) in attachments(record)"
                   :key="`carousel-${record.row.id}-${index}`"
-                  class="h-52"
+                  class="h-52 object-cover"
                   :src="attachment.url"
                 />
               </a-carousel>

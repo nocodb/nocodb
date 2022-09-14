@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** Sidebar visible */
-const { isOpen, toggle } = useSidebar({ storageKey: 'nc-right-sidebar' })
+const { isOpen, toggle } = useSidebar({ storageKey: 'nc-right-sidebar', isOpen: true })
 </script>
 
 <template>

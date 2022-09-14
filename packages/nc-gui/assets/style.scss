@@ -89,6 +89,12 @@ a {
   @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);
 }
 
+// for highlighing toolbar kanban menu item
+
+.nc-kanban-btn > .ant-btn {
+  @apply bg-green-400 bg-opacity-20 hover:(bg-primary bg-opacity-20);
+}
+
 .nc-locked-overlay {
   @apply absolute h-full w-full z-2 top-0 left-0;
 }

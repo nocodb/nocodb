@@ -101,7 +101,7 @@ const handleChange = () => {
 
 <template>
   <a-dropdown v-model:visible="stackedByDropdown" :trigger="['click']">
-    <div>
+    <div class="nc-kanban-btn">
       <a-button v-t="['c:stacked-by']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <mdi-arrow-down-drop-circle-outline />

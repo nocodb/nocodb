@@ -52,6 +52,8 @@ const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupi
   activeView as any,
 )
 
+const stackedByDropdown = ref(false)
+
 watch(
   () => (activeView.value as any)?.id,
   async (newVal, oldVal) => {
@@ -74,6 +76,8 @@ const groupingFieldColumnId = computed({
       await updateKanbanMeta({
         grp_column_id: val,
       })
+      await loadKanbanMeta()
+      await loadKanbanData()
       ;(activeView.value?.view as KanbanType).grp_column_id = val
     }
   },
@@ -89,10 +93,14 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
       }
     })
 })
+
+const handleChange = () => {
+  stackedByDropdown.value = false
+}
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']">
+  <a-dropdown v-model:visible="stackedByDropdown" :trigger="['click']">
     <div>
       <a-button v-t="['c:stacked-by']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
@@ -106,6 +114,7 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
     </div>
     <template #overlay>
       <div
+        v-if="stackedByDropdown"
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
         @click.stop
       >
@@ -121,6 +130,7 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
               class="w-full"
               :options="singleSelectFieldOptions"
               placeholder="Select a Grouping Field"
+              @change="handleChange"
               @click.stop
             ></a-select>
           </div>

@@ -40,8 +40,8 @@ vModel.value.ai = !!vModel.value.ai
 vModel.value.au = !!vModel.value.au
 
 onBeforeMount(() => {
-  // Postgres returns default value wrapped with single quotes & sometimes casted with type so we have to remove them to keep it unified for all databases
-  if (isPg && vModel.value.cdf.indexOf(`'`) !== vModel.value.cdf.lastIndexOf(`'`)) {
+  // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
+  if (isPg.value && vModel.value.cdf) {
     vModel.value.cdf = vModel.value.cdf.substring(vModel.value.cdf.indexOf(`'`) + 1, vModel.value.cdf.lastIndexOf(`'`))
   }
 })

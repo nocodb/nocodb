@@ -69,7 +69,8 @@ export function useViewFilters(
         if (parentId) {
           filters.value = await $api.dbTableFilter.childrenRead(parentId)
         } else {
-          filters.value = (await $api.dbTableWebhookFilter.read(hookId!)).filters.list
+          // todo: return type is incorrect
+          filters.value = (await $api.dbTableWebhookFilter.read(hookId!)) as unknown as Filter[]
         }
       } else {
         if (parentId) {

@@ -117,9 +117,9 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
         NOCO,
         project.value?.id as string,
         meta.value?.title as string,
-        extractPkFromRow(ref(row).value?.row, meta.value?.columns as ColumnType[]),
+        extractPkFromRow(unref(row)?.row, meta.value?.columns as ColumnType[]),
       )
-      Object.assign(ref(row).value, {
+      Object.assign(unref(row), {
         row: record,
         oldRow: { ...record },
         rowMeta: {},

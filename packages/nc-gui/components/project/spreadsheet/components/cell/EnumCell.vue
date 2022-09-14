@@ -28,7 +28,7 @@ export default {
           .reduce(
             (obj, v, i) => ({
               ...obj,
-              [v]: col[i],
+              [v]: col[i % col.length],
             }),
             {}
           );

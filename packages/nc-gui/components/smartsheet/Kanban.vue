@@ -1,12 +1,8 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
 import { isVirtualCol } from 'nocodb-sdk'
-import { inject, provide, useKanbanViewData } from '#imports'
-import Row from '~/components/smartsheet/Row.vue'
-import type { Row as RowType } from '~/composables'
 import {
   ActiveViewInj,
-  // ChangePageInj,
   FieldsInj,
   IsFormInj,
   IsGalleryInj,
@@ -14,9 +10,13 @@ import {
   IsKanbanInj,
   MetaInj,
   OpenNewRecordFormHookInj,
-  // PaginationDataInj,
   ReadonlyInj,
-} from '~/context'
+  inject,
+  provide,
+  useKanbanViewData,
+} from '#imports'
+import Row from '~/components/smartsheet/Row.vue'
+import type { Row as RowType } from '~/composables'
 
 interface Attachment {
   url: string
@@ -148,8 +148,6 @@ openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
 })
-
-const addNewStackDropdown = ref(false)
 </script>
 
 <template>
@@ -174,7 +172,7 @@ const addNewStackDropdown = ref(false)
             body-style="padding: 0px; height: 100%;"
           >
             <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[20px]"></div>
-            <a-skeleton class="p-4" v-if="!formattedData[stack.title]" />
+            <a-skeleton v-if="!formattedData[stack.title]" class="p-4" />
             <a-layout v-else class="px-[20px] !bg-[#f0f2f5]">
               <a-layout-header>
                 <div class="nc-kanban-stack-head justify-center w-full items-center flex">
@@ -266,7 +264,7 @@ const addNewStackDropdown = ref(false)
                 </div>
               </a-layout-content>
               <a-layout-footer>
-                <div class="mt-5 text-center" v-if="formattedData[stack.title]">
+                <div v-if="formattedData[stack.title]" class="mt-5 text-center">
                   <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
                   <div class="nc-kanban-data-count">
                     {{ formattedData[stack.title]?.length }}
@@ -278,40 +276,6 @@ const addNewStackDropdown = ref(false)
           </a-card>
         </template>
       </Draggable>
-
-      <div class="nc-kanban-container flex px-3">
-        <a-card
-          class="mx-4 border-none !bg-gray-50 flex flex-col min-w-[280px] rounded-[12px]"
-          body-style="padding: 0px 20px; height: 100%;"
-          :bordered="false"
-        >
-          <a-dropdown v-if="isUIAllowed('edit-column')" v-model:visible="addNewStackDropdown" :trigger="['click']">
-            <a-button class="w-full !h-[40px] !rounded-xl">
-              <div class="flex items-center">
-                <mdi-plus />
-                <span class="text-gray-500 group-hover:(text-primary/100) flex-1">Add / Edit Stack</span>
-              </div>
-            </a-button>
-
-            <template #overlay>
-              <SmartsheetColumnEditOrAddProvider
-                v-if="addNewStackDropdown"
-                :column="groupingFieldColumn"
-                @submit="
-                  ;async () => {
-                    addNewStackDropdown = false
-                    await loadKanbanMeta()
-                    await loadKanbanData()
-                  }
-                "
-                @cancel="addNewStackDropdown = false"
-                @click.stop
-                @keydown.stop
-              />
-            </template>
-          </a-dropdown>
-        </a-card>
-      </div>
     </div>
   </div>
   <div class="flex-1" />

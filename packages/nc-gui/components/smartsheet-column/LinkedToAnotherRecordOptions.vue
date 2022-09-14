@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ModelTypes, MssqlUi, SqliteUi } from 'nocodb-sdk'
-import { inject, useProject } from '#imports'
-import { MetaInj } from '~/context'
+import { MetaInj, inject, useProject } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
@@ -13,7 +12,7 @@ const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
 const vModel = useVModel(props, 'value', emit)
 
-const meta = $(inject(MetaInj)!)
+const meta = $(inject(MetaInj, ref()))
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
 
@@ -25,10 +24,10 @@ setAdditionalValidations({
 
 const onUpdateDeleteOptions = sqlUi === MssqlUi ? ['NO ACTION'] : ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
 
-if (!vModel.value.parentId) vModel.value.parentId = meta.id
+if (!vModel.value.parentId) vModel.value.parentId = meta?.id
 if (!vModel.value.childId) vModel.value.childId = null
-if (!vModel.value.childColumn) vModel.value.childColumn = `${meta.table_name}_id`
-if (!vModel.value.childTable) vModel.value.childTable = meta.table_name
+if (!vModel.value.childColumn) vModel.value.childColumn = `${meta?.table_name}_id`
+if (!vModel.value.childTable) vModel.value.childTable = meta?.table_name
 if (!vModel.value.parentTable) vModel.value.parentTable = vModel.value.rtn || ''
 if (!vModel.value.parentColumn) vModel.value.parentColumn = vModel.value.rcn || ''
 

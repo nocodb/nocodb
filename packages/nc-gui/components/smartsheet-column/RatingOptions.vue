@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getMdiIcon } from '@/utils'
+import { getMdiIcon } from '#imports'
 
 interface Props {
   value: Record<string, any>

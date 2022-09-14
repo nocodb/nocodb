@@ -13,7 +13,7 @@ import MdiThumbUpOutline from '~icons/mdi/thumb-up-outline'
 import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
 
-export const getMdiIcon = (type: string) => {
+export const getMdiIcon = (type: string): any => {
   switch (type) {
     case 'mdi-check-bold':
       return MdiCheckBold

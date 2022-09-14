@@ -59,8 +59,8 @@ onMounted(() => {
 
 <template>
   <a-select v-model:value="localChannelValues" mode="multiple" :placeholder="placeholder" max-tag-count="responsive">
-    <a-select-option v-for="channel of availableChannelWithIdxList" :key="channel.idx" :value="channel.idx">{{
-      channel.channel
-    }}</a-select-option>
+    <a-select-option v-for="channel of availableChannelWithIdxList" :key="channel.idx" :value="channel.idx">
+      {{ channel.channel }}
+    </a-select-option>
   </a-select>
 </template>

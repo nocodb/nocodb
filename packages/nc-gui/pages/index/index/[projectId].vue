@@ -57,7 +57,7 @@ onMounted(async () => {
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
 
-      input.setSelectionRange(0, formState.title.length)
+      input.setSelectionRange(0, formState.title?.length)
 
       input.focus()
     }, 500)

@@ -208,7 +208,7 @@ watch(
           </a-menu-item>
         </a-menu>
 
-        <component :is="selectedSubTab.body" class="px-2 py-6" />
+        <component :is="selectedSubTab?.body" class="px-2 py-6" />
       </a-layout-content>
     </a-layout>
   </a-modal>

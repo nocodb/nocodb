@@ -5,7 +5,7 @@ import { ActiveViewInj, IsLockedInj, IsPublicInj, computed, inject, ref, useGlob
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const activeView = inject(ActiveViewInj)
+const activeView = inject(ActiveViewInj, ref())
 
 const isPublic = inject(IsPublicInj, ref(false))
 

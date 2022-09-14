@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
+import type { RequestParams } from 'nocodb-sdk'
 import UsersModal from './user-management/UsersModal.vue'
 import FeedbackForm from './user-management/FeedbackForm.vue'
 import {
   extractSdkResponseErrorMsg,
-  onMounted,
-  projectRoleTagColors,
+  onBeforeMount,
   ref,
   useApi,
   useClipboard,
   useDashboard,
+  useI18n,
   useNuxtApp,
   useProject,
   useUIPermission,
@@ -61,7 +61,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
         offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
         query: searchText.value,
       },
-    } as any)
+    } as RequestParams)
     if (!response.users) return
 
     totalRows = response.users.pageInfo.totalRows ?? 0
@@ -150,11 +150,13 @@ const copyInviteUrl = (user: User) => {
   $e('c:user:copy-url')
 }
 
-onMounted(() => {
+onBeforeMount(async () => {
   if (!users) {
     isLoading = true
 
-    loadUsers().finally(() => (isLoading = false))
+    await loadUsers()
+
+    isLoading = false
   }
 })
 
@@ -162,9 +164,10 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
 </script>
 
 <template>
-  <div v-if="isLoading" class="h-full w-full flex flex-row justify-center mt-42">
+  <div v-if="isLoading" class="h-full w-full flex items-center justify-center">
     <a-spin size="large" />
   </div>
+
   <div v-else class="flex flex-col w-full px-6">
     <UsersModal
       :key="showUserModal"

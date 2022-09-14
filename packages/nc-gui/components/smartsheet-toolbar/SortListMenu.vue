@@ -14,14 +14,14 @@ import {
   watch,
 } from '#imports'
 
-const meta = inject(MetaInj)
-const view = inject(ActiveViewInj)
+const meta = inject(MetaInj, ref())
+const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
 const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
-const columns = computed(() => meta?.value?.columns || [])
+const columns = computed(() => meta.value?.columns || [])
 
 const columnByID = computed(() =>
   columns.value.reduce((obj, col) => {
@@ -32,7 +32,7 @@ const columnByID = computed(() =>
 )
 
 watch(
-  () => (view?.value as any)?.id,
+  () => view.value?.id,
   () => {
     loadSorts()
   },

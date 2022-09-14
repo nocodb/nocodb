@@ -2,8 +2,6 @@
 import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import {
   ActiveViewInj,
   IsFormInj,
@@ -18,12 +16,14 @@ import {
   ref,
   useDebounceFn,
   useGlobal,
+  useI18n,
   useNuxtApp,
   useUIPermission,
   useViewColumns,
   useViewData,
   watch,
 } from '#imports'
+import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
@@ -45,11 +45,11 @@ const secondsRemain = ref(0)
 
 const isEditable = isUIAllowed('editFormView' as Permission)
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
-const view = inject(ActiveViewInj)
+const view = inject(ActiveViewInj, ref())
 
-const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view as any)
+const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
 
 const reloadEventHook = createEventHook<void>()
 provide(ReloadViewDataHookInj, reloadEventHook)
@@ -59,7 +59,7 @@ reloadEventHook.on(async () => {
   setFormData()
 })
 
-const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, async () => reloadEventHook.trigger())
+const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta, async () => reloadEventHook.trigger())
 
 const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   meta,
@@ -252,10 +252,9 @@ function setFormData() {
 
   formViewData.value = {
     ...formViewData.value,
-    submit_another_form: !!(formViewData?.value?.submit_another_form ?? 0),
-    // todo: show_blank_form missing from FormType
-    show_blank_form: !!((formViewData?.value as any)?.show_blank_form ?? 0),
-  } as any
+    submit_another_form: !!(formViewData.value?.submit_another_form ?? 0),
+    show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
+  }
 
   // email me
   let data: Record<string, boolean> = {}
@@ -309,7 +308,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
 function updateEmail() {
   try {
-    const data = JSON.parse(formViewData.value?.email) || {}
+    const data = formViewData.value?.email ? JSON.parse(formViewData.value?.email) : {}
     data[state.user.value?.email as string] = emailMe.value
     formViewData.value!.email = JSON.stringify(data)
     checkSMTPStatus()
@@ -338,7 +337,7 @@ const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
 }, 250)
 
 watch(submitted, (v) => {
-  if (v && (formViewData?.value as any)?.show_blank_form) {
+  if (v && formViewData.value?.show_blank_form) {
     secondsRemain.value = 5
     const intvl = setInterval(() => {
       if (--secondsRemain.value < 0) {

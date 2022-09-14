@@ -1,6 +1,7 @@
 import type { Permission } from './rolePermissions'
 import rolePermissions from './rolePermissions'
-import { USER_PROJECT_ROLES, useGlobal, useState } from '#imports'
+import { USER_PROJECT_ROLES, computed, useGlobal, useState } from '#imports'
+import type { Role, Roles } from '~/lib'
 
 export function useUIPermission() {
   const { user, previewAs } = useGlobal()
@@ -8,7 +9,7 @@ export function useUIPermission() {
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
 
   const baseRoles = computed(() => {
-    let userRoles = user.value?.roles || {}
+    let userRoles = typeof user.value?.roles === 'string' ? user.value?.roles : ({ ...(user.value?.roles || {}) } as Roles)
 
     // if string populate key-value paired object
     if (typeof userRoles === 'string') {
@@ -17,20 +18,20 @@ export function useUIPermission() {
         return acc
       }, {})
     }
+
     // merge user role and project specific user roles
-    const roles = {
+    return {
       ...userRoles,
       ...projectRoles.value,
     }
-
-    return roles
   })
 
   const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
-    let roles = baseRoles.value
+    let roles = baseRoles.value as Record<string, any>
+
     if (previewAs.value && !skipPreviewAs) {
       roles = {
-        [previewAs.value]: true,
+        [previewAs.value as Role]: true,
       }
     }
 

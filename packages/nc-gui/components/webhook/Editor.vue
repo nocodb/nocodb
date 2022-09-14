@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import { Form, message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { MetaInj, extractSdkResponseErrorMsg, fieldRequiredValidator, inject, reactive, useApi, useNuxtApp } from '#imports'
+import type { Ref } from 'vue'
+import type { AuditType } from 'nocodb-sdk'
+import {
+  MetaInj,
+  extractSdkResponseErrorMsg,
+  fieldRequiredValidator,
+  inject,
+  reactive,
+  useApi,
+  useI18n,
+  useNuxtApp,
+} from '#imports'
 
 const emit = defineEmits(['backToList', 'editOrAdd'])
 
@@ -11,7 +21,7 @@ const { $e } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const useForm = Form.useForm
 
@@ -254,28 +264,28 @@ async function onEventChange() {
 
   hook.notification.payload = payload
 
-  let channels: Record<string, any>[] | null = null
+  let channels: Ref<Record<string, any>[] | null> = ref(null)
 
   switch (hook.notification.type) {
     case 'Slack':
-      channels = slackChannels as any
+      channels = slackChannels
       break
     case 'Microsoft Teams':
-      channels = teamsChannels as any
+      channels = teamsChannels
       break
     case 'Discord':
-      channels = discordChannels as any
+      channels = discordChannels
       break
     case 'Mattermost':
-      channels = mattermostChannels as any
+      channels = mattermostChannels
       break
   }
 
   if (channels) {
     hook.notification.payload.webhook_url =
       hook.notification.payload.webhook_url &&
-      hook.notification.payload.webhook_url.map((v: Record<string, any>) =>
-        channels?.find((s: Record<string, any>) => v.webhook_url === s.webhook_url),
+      hook.notification.payload.webhook_url.map((v: { webhook_url: string }) =>
+        channels.value?.find((s) => v.webhook_url === s.webhook_url),
       )
   }
 
@@ -289,13 +299,21 @@ async function onEventChange() {
 
 async function loadPluginList() {
   try {
-    const plugins = (await api.plugin.list()).list as any
-    apps.value = plugins.reduce((o: Record<string, any>[], p: Record<string, any>) => {
-      p.tags = p.tags ? p.tags.split(',') : []
-      p.parsedInput = p.input && JSON.parse(p.input)
-      o[p.title] = p
+    const plugins = (await api.plugin.list()).list!
+
+    apps.value = plugins.reduce((o, p) => {
+      const plugin: { title: string; tags: string[]; parsedInput: Record<string, any> } = {
+        title: '',
+        tags: [],
+        parsedInput: {},
+        ...(p as any),
+      }
+      plugin.tags = p.tags ? p.tags.split(',') : []
+      plugin.parsedInput = p.input && JSON.parse(p.input)
+      o[plugin.title] = plugin
+
       return o
-    }, {})
+    }, {} as Record<string, any>)
 
     if (hook.event && hook.operation) {
       hook.eventOperation = `${hook.event} ${hook.operation}`
@@ -330,13 +348,13 @@ async function saveHooks() {
         },
       })
     } else {
-      res = await api.dbTableWebhook.create(meta!.value.id!, {
+      res = await api.dbTableWebhook.create(meta.value!.id!, {
         ...hook,
         notification: {
           ...hook.notification,
           payload: hook.notification.payload,
         },
-      } as any)
+      } as AuditType)
     }
 
     if (!hook.id && res) {

@@ -6,7 +6,11 @@ import { useNuxtApp } from '#app'
 import { IsPublicInj } from '#imports'
 import type { Field } from '~/lib'
 
-export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRef<TableType>, reloadData?: () => void) {
+export function useViewColumns(
+  view: Ref<ViewType | undefined>,
+  meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
+  reloadData?: () => void,
+) {
   const isPublic = inject(IsPublicInj, ref(false))
 
   const fields = ref<Field[]>()
@@ -26,12 +30,12 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   const metaColumnById = computed<Record<string, ColumnType>>(() => {
     if (!meta.value?.columns) return {}
 
-    return meta.value?.columns?.reduce(
-      (acc: ColumnType, curr: ColumnType) => ({
+    return meta.value.columns.reduce(
+      (acc, curr) => ({
         ...acc,
         [curr.id!]: curr,
       }),
-      {} as any,
+      {},
     )
   })
 
@@ -119,7 +123,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   const saveOrUpdate = async (field: any, index: number) => {
     if (isPublic.value && fields.value) {
       fields.value[index] = field
-      meta.value.columns = meta.value?.columns?.map((column: ColumnType) => {
+      meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
         if (column.id === field.fk_column_id) {
           return {
             ...column,
@@ -136,7 +140,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     if (isUIAllowed('fieldsSync')) {
       if (field.id && view?.value?.id) {
         await $api.dbViewColumn.update(view.value.id, field.id, field)
-      } else if (view?.value?.id) {
+      } else if (view.value?.id) {
         const insertedField = (await $api.dbViewColumn.create(view.value.id, field)) as any
 
         /** update the field in fields if defined */
@@ -151,8 +155,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
 
   const showSystemFields = computed({
     get() {
-      // todo: show_system_fields missing from ViewType
-      return (view?.value as any)?.show_system_fields || false
+      return view.value?.show_system_fields || false
     },
     set(v: boolean) {
       if (view?.value?.id) {
@@ -163,7 +166,7 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
             })
             .finally(() => reloadData?.())
         }
-        ;(view.value as any).show_system_fields = v
+        view.value.show_system_fields = v
       }
       $e('a:fields:system-fields')
     },

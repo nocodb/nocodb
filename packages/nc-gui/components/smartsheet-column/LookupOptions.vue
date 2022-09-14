@@ -11,7 +11,7 @@ const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
 const vModel = useVModel(props, 'value', emit)
 
-const meta = $(inject(MetaInj)!)
+const meta = $(inject(MetaInj, ref()))
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
 
@@ -38,7 +38,7 @@ const refTables = $computed(() => {
     return []
   }
 
-  return meta.columns
+  return meta?.columns
     ?.filter((c: any) => c.uidt === UITypes.LinkToAnotherRecord && !c.system)
     .map((c: ColumnType) => ({
       col: c.colOptions,

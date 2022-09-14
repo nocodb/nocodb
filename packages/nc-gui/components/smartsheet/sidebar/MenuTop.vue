@@ -5,9 +5,7 @@ import type { Menu as AntMenu } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
-import { useI18n } from 'vue-i18n'
 import RenameableMenuItem from './RenameableMenuItem.vue'
-import { useNuxtApp } from '#app'
 import {
   ActiveViewInj,
   ViewListInj,
@@ -17,6 +15,8 @@ import {
   ref,
   useApi,
   useDialog,
+  useI18n,
+  useNuxtApp,
   useRoute,
   useRouter,
   viewTypeAlias,
@@ -40,7 +40,7 @@ const { $e } = useNuxtApp()
 
 const activeView = inject(ActiveViewInj, ref())
 
-const views = inject<Ref<any[]>>(ViewListInj, ref([]))
+const views = inject<Ref<ViewType[]>>(ViewListInj, ref([]))
 
 const { api } = useApi()
 
@@ -76,7 +76,7 @@ function markItem(id: string) {
 }
 
 /** validate view title */
-function validate(view: Record<string, any>) {
+function validate(view: ViewType) {
   if (!view.title || view.title.trim().length < 0) {
     return 'View name is required'
   }
@@ -110,28 +110,32 @@ async function onSortEnd(evt: SortableEvent) {
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
 
-  const currentItem: Record<string, any> = views.value.find((v) => v.id === evt.item.id)
-  const previousItem: Record<string, any> = previousEl ? views.value.find((v) => v.id === previousEl.id) : {}
-  const nextItem: Record<string, any> = nextEl ? views.value.find((v) => v.id === nextEl.id) : {}
+  const currentItem = views.value.find((v) => v.id === evt.item.id)
+
+  if (!currentItem || !currentItem.id) return
+
+  const previousItem = (previousEl ? views.value.find((v) => v.id === previousEl.id) : {}) as ViewType
+  const nextItem = (nextEl ? views.value.find((v) => v.id === nextEl.id) : {}) as ViewType
 
   let nextOrder: number
 
   // set new order value based on the new order of the items
   if (views.value.length - 1 === newIndex) {
-    nextOrder = parseFloat(previousItem.order) + 1
+    nextOrder = parseFloat(String(previousItem.order)) + 1
   } else if (newIndex === 0) {
-    nextOrder = parseFloat(nextItem.order) / 2
+    nextOrder = parseFloat(String(nextItem.order)) / 2
   } else {
-    nextOrder = (parseFloat(previousItem.order) + parseFloat(nextItem.order)) / 2
+    nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
   }
 
-  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder.toString() : oldIndex.toString()
+  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
 
   currentItem.order = _nextOrder
 
   await api.dbView.update(currentItem.id, { order: _nextOrder })
 
   markItem(currentItem.id)
+
   $e('a:view:reorder')
 }
 
@@ -168,7 +172,7 @@ async function onRename(view: ViewType) {
   try {
     await api.dbView.update(view.id!, {
       title: view.title,
-      order: String(view.order),
+      order: view.order,
     })
 
     await router.replace({

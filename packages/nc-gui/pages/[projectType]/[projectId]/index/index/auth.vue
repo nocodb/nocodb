@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import Auth from '~~/components/tabs/Auth.vue'
+import Auth from '~/components/tabs/Auth.vue'
 </script>
 
 <template>

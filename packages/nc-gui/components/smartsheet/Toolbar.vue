@@ -28,6 +28,8 @@ const { allowCSVDownload } = useSharedView()
 
     <SmartsheetToolbarStackedBy v-if="isKanban" />
 
+    <SmartsheetToolbarKanbanStackEditOrAdd v-if="isKanban" />
+
     <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban" :show-system-fields="false" class="ml-1" />
 
     <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban" />

@@ -36,7 +36,7 @@ provide(IsKanbanInj, ref(true))
 <template>
   <a-dropdown v-if="isUIAllowed('edit-column')" v-model:visible="addOrEditStackDropdown" :trigger="['click']">
     <div class="nc-kanban-btn">
-      <a-button v-t="['c:kanban-stack-edit-or-add']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
+      <a-button v-e="['c:kanban-stack-edit-or-add']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <mdi-plus-circle-outline />
           <span class="text-capitalize !text-sm font-weight-normal">

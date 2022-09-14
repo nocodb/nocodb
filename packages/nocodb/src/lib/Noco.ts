@@ -81,12 +81,10 @@ export default class Noco {
       return Noco._this.router;
     }
     Noco._this = new Noco();
-    Noco.initialized = true;
     return Noco._this.init(args, server, app);
   }
 
   private static config: NcConfig;
-  public static initialized: boolean;
   public readonly router: express.Router;
   public readonly projectRouter: express.Router;
   public static _ncMeta: NcMetaIO;

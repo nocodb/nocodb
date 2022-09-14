@@ -30,33 +30,16 @@ export default class TestDbMngr {
     }
   }
 
-  static async init({
-    user = TestDbMngr.defaultConnection.user,
-    password = TestDbMngr.defaultConnection.password,
-    host = TestDbMngr.defaultConnection.host,
-    port = TestDbMngr.defaultConnection.port,
-    client = TestDbMngr.defaultConnection.client,
-  } = {}) {
-    if(await TestDbMngr.isMysqlConfigured({ user, password, host, port, client })){
-      await TestDbMngr.connectMysql({ user, password, host, port, client });
+  static async init() {
+    if(await TestDbMngr.isMysqlConfigured()){
+      await TestDbMngr.connectMysql();
     } else {
       await TestDbMngr.switchToSqlite();
     }
   }
 
-  static async isMysqlConfigured({
-    user,
-    password,
-    host,
-    port,
-    client,
-  }: {
-    user: string,
-    password: string,
-    host: string,
-    port: number,
-    client: string,
-  }) {
+  static async isMysqlConfigured() {
+    const { user, password, host, port, client } = TestDbMngr.defaultConnection;
     const config = NcConfigFactory.urlToDbConfig(`${client}://${user}:${password}@${host}:${port}`);
     config.connection = {
       user,
@@ -68,13 +51,8 @@ export default class TestDbMngr {
     return result.code !== -1;
   }
 
-  static async connectMysql({
-    user = TestDbMngr.defaultConnection.user,
-    password = TestDbMngr.defaultConnection.password,
-    host = TestDbMngr.defaultConnection.host,
-    port = TestDbMngr.defaultConnection.port,
-    client = TestDbMngr.defaultConnection.client,
-  }) {
+  static async connectMysql() {
+    const { user, password, host, port, client } = TestDbMngr.defaultConnection;
     if(!process.env[`DATABASE_URL`]){
       process.env[`DATABASE_URL`] = `${client}://${user}:${password}@${host}:${port}/${TestDbMngr.dbName}`;
     }

@@ -1786,7 +1786,7 @@ class BaseModelSqlv2 {
         queryResponse = (await qb) as any;
       }
 
-      const count = queryResponse.count || queryResponse;
+      const count = queryResponse ?? 0;
       await this.afterBulkUpdate(count, this.dbDriver, cookie);
 
       return count;
@@ -1853,9 +1853,8 @@ class BaseModelSqlv2 {
         this.dbDriver
       );
       qb.del();
-      const queryResponse = (await qb) as any;
+      const count = (await qb) as any;
 
-      const count = queryResponse.count || queryResponse;
       await this.afterBulkDelete(count, this.dbDriver, cookie);
 
       return count;

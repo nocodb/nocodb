@@ -49,9 +49,7 @@ const createSakilaProject = async (context) => {
     .set('xc-auth', context.token)
     .send(externalProjectConfig);
 
-  const project: Project = await Project.getByTitleOrId(response.body.id);
-
-  return project;
+  return (await Project.getByTitleOrId(response.body.id)) as Project;
 };
 
 const createProject = async (context, projectArgs = defaultProjectValue) => {
@@ -60,8 +58,7 @@ const createProject = async (context, projectArgs = defaultProjectValue) => {
     .set('xc-auth', context.token)
     .send(projectArgs);
 
-  const project: Project = await Project.getByTitleOrId(response.body.id);
-  return project;
+  return (await Project.getByTitleOrId(response.body.id)) as Project;
 };
 
 export { createProject, createSharedBase, createSakilaProject };

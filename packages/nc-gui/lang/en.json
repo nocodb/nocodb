@@ -157,6 +157,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "erd": "ERD",
     "newProj": "New Project",
     "myProject": "My Projects",
     "formTitle": "Form Title",

@@ -109,13 +109,13 @@ const tabsInfo: TabGroup = {
           $e('c:table:ui-acl')
         },
       },
-      misc: {
-        title: t('general.misc'),
-        body: Misc,
-      },
       erd: {
         title: t('title.erd'),
         body: Erd,
+      },
+      misc: {
+        title: t('general.misc'),
+        body: Misc,
       },
     },
     onClick: () => {

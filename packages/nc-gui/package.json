@@ -1,5 +1,6 @@
 {
   "private": true,
+  "web-types": "web-types.json",
   "scripts": {
     "build": "nuxi build",
     "dev": "nuxi dev",

@@ -136,7 +136,6 @@ watch(passwordProtected, (value) => {
     >
       <div class="share-link-box nc-share-link-box bg-primary-50">
         <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
-        <!--        <v-spacer /> -->
         <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
           <MdiOpenInNewIcon class="text-sm text-gray-500 mt-2" />
         </a>

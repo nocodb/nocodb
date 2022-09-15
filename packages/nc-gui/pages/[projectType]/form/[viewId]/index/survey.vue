@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { computed, onKeyStroke, ref, useEventListener, useSharedFormStoreOrThrow, useStepper, watch } from '#imports'
+import { computed, onKeyStroke, ref, useEventListener, useSharedFormStoreOrThrow, useStepper } from '#imports'
 
-const { v$, formState, formColumns, submitForm, submitted, secondsRemain } = useSharedFormStoreOrThrow()
+const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView } = useSharedFormStoreOrThrow()
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -95,7 +95,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
         :key="field.title"
         class="bg-white flex flex-col justify-center gap-4 w-full lg:max-w-1/2 max-w-500px m-auto px-8 pt-8 pb-4 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
-        <div v-if="field" class="flex flex-col gap-2">
+        <div v-if="field && !submitted" class="flex flex-col gap-2">
           <div class="flex nc-form-column-label">
             <SmartsheetHeaderVirtualCell
               v-if="isVirtualCol(field)"
@@ -147,7 +147,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
           </div>
         </div>
 
-        <div v-if="!isFirst || !isLast" class="flex w-full text-lg mt-2">
+        <div v-if="(!isFirst || !isLast) && !submitted" class="flex w-full text-lg mt-2">
           <a-tooltip v-if="!isFirst" title="Go to previous" :mouse-enter-delay="1" :mouse-leave-delay="0">
             <button
               class="group color-transition transform hover:scale-110 absolute left-5 top-1/2 md:static"
@@ -180,10 +180,35 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
             </button>
           </a-tooltip>
         </div>
+
+        <Transition name="layout">
+          <div v-if="submitted" class="flex flex-col justify-center text-center">
+            <h2 class="prose-xl mb-2">Thank you!</h2>
+
+            <div v-if="sharedFormView" class="min-w-350px mt-3">
+              <a-alert
+                type="success"
+                class="my-4 text-center"
+                outlined
+                :message="sharedFormView.success_msg || 'Successfully submitted form data'"
+              />
+
+              <p v-if="sharedFormView?.show_blank_form" class="text-xs text-gray-500 text-center my-4">
+                New form will be loaded after {{ secondsRemain }} seconds
+              </p>
+
+              <div v-if="sharedFormView?.submit_another_form" class="text-center">
+                <a-button type="primary" @click="submitted = false"> Submit Another Form</a-button>
+              </div>
+            </div>
+          </div>
+        </Transition>
       </div>
     </Transition>
 
-    <div class="absolute bottom-12 right-12">{{ index }} / {{ formColumns?.length }}</div>
+    <div class="absolute bottom-12 right-12 flex flex-col">
+      <div>{{ index + 1 }} / {{ formColumns?.length }}</div>
+    </div>
   </div>
 </template>
 

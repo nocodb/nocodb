@@ -12,11 +12,11 @@ export const genTest = (apiType, dbType) => {
             cy.wait(4000);
         });
 
-        cy.beforeEach(() => {
+        beforeEach(() => {
             cy.restoreLocalStorage();
         })
 
-        cy.afterEach(() => {
+        afterEach(() => {
             cy.saveLocalStorage();
         })
 

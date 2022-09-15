@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { NodeProps } from '@braks/vue-flow'
 import { Handle, Position } from '@braks/vue-flow'
-import type { TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 interface Props extends NodeProps {
-  data: TableType & { showPkAndFk: boolean }
+  data: TableType & { showPkAndFk: boolean; hideAllColumns: boolean }
 }
 
 const props = defineProps<Props>()
@@ -21,11 +21,17 @@ const columns = computed(() => {
 })
 
 const pkAndFkColumns = computed(() => {
-  return columns.value?.filter(() => data.value.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
+  return columns.value
+    ?.filter(() => data.value.showPkAndFk && !data.value.hideAllColumns)
+    .filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
 })
 
 const nonPkColumns = computed(() => {
-  return columns.value?.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
+  return columns.value
+    ?.filter(
+      (col: ColumnType) => !data.value.hideAllColumns || (data.value.hideAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
+    )
+    .filter((col: ColumnType) => !col.pk && col.uidt !== UITypes.ForeignKey)
 })
 
 const relatedColumnId = (col: Record<string, any>) =>
@@ -34,7 +40,7 @@ const relatedColumnId = (col: Record<string, any>) =>
 
 <template>
   <div class="h-full flex flex-col min-w-16 bg-gray-50 rounded-lg border-1">
-    <div class="text-gray-600 text-md py-2 border-b-2 border-gray-100 w-full pl-3 bg-gray-100 font-semibold">
+    <div class="text-gray-600 text-md py-2 border-b-2 border-gray-100 w-full px-3 bg-gray-100 font-semibold">
       {{ data.title }}
     </div>
     <div>

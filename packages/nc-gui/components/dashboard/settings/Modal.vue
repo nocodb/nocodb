@@ -112,6 +112,9 @@ const tabsInfo: TabGroup = {
       erd: {
         title: t('title.erdView'),
         body: Erd,
+        onClick: () => {
+          $e('c:settings:erd')
+        },
       },
       misc: {
         title: t('general.misc'),

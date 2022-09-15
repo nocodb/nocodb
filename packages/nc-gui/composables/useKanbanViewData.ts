@@ -33,7 +33,7 @@ export function useKanbanViewData(
   //   ],
   // }
   const formattedData = useState<Record<string, Row[]>>('KanbanFormattedData', () => ({}))
-  const countByStack = useState<Record<string, Row[]>>('KanbanCountByStack', () => ({}))
+  const countByStack = useState<Record<string, number>>('KanbanCountByStack', () => ({}))
   const groupingField = useState<string>('KanbanGroupingField', () => '')
   const groupingFieldColumn = useState<Record<string, any>>('KanbanGroupingFieldColumn', () => ({}))
 
@@ -57,8 +57,6 @@ export function useKanbanViewData(
           option.title === 'Uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
 
         const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
-          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where,
         })
 
@@ -216,6 +214,43 @@ export function useKanbanViewData(
     }
   }
 
+  async function deleteStack(stackTitle: string) {
+    try {
+      // set groupingField to null for all records under the target stack
+      await api.dbTableRow.bulkUpdateAll(
+        'noco',
+        project.value.id!,
+        meta!.value.id!,
+        {
+          [groupingField.value]: null,
+        },
+        {
+          where: `(${groupingField.value},eq,${stackTitle})`,
+        },
+      )
+      // update to groupingField value to null
+      formattedData.value[stackTitle] = formattedData.value[stackTitle].map((o) => ({
+        ...o,
+        row: {
+          ...o.row,
+          [groupingField.value]: null,
+        },
+        oldRow: {
+          ...o.oldRow,
+          [groupingField.value]: null,
+        },
+      }))
+      // merge the 'deleted' stack to Uncategorized stack
+      formattedData.value.Uncategorized = [...formattedData.value.Uncategorized, ...formattedData.value[stackTitle]]
+      countByStack.value.Uncategorized += countByStack.value[stackTitle]
+      // clear the 'deleted' stack
+      formattedData.value[stackTitle] = []
+      countByStack.value[stackTitle] = 0
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   function addEmptyRow(addAfter = formattedData.value.Uncategorized?.length) {
     formattedData.value.Uncategorized.splice(addAfter, 0, {
       row: {},
@@ -239,5 +274,6 @@ export function useKanbanViewData(
     groupingFieldColumn,
     updateOrSaveRow,
     addEmptyRow,
+    deleteStack,
   }
 }

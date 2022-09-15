@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { message } from 'ant-design-vue'
 import {
   ReloadRowDataHookInj,
   useExpandedFormStoreOrThrow,
@@ -9,9 +10,11 @@ import {
 
 const emit = defineEmits(['cancel'])
 
+const { project } = useProject()
+
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
-const { commentsDrawer, primaryValue, save: _save, loadRow } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, primaryValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
 
 const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
 
@@ -32,6 +35,15 @@ const save = async () => {
 
 // todo: accept as a prop / inject
 const iconColor = '#1890ff'
+
+const { dashboardUrl } = useDashboard()
+
+const { copy } = useClipboard()
+
+const copyRecordUrl = () => {
+  copy(`${dashboardUrl?.value}#/nc/${project.value?.id}/table/${meta.value?.title}?rowId=${primaryKey.value}`)
+  message.success('Copied to clipboard')
+}
 </script>
 
 <template>
@@ -57,6 +69,13 @@ const iconColor = '#1890ff'
         <div class="text-center w-full">{{ $t('general.reload') }}</div>
       </template>
       <mdi-reload v-if="!isNew" class="cursor-pointer select-none text-gray-500" @click="loadRow" />
+    </a-tooltip>
+    <a-tooltip placement="bottom">
+      <template #title>
+        <!-- todo: i18n -->
+        <div class="text-center w-full">Copy record URL</div>
+      </template>
+      <mdi-link v-if="!isNew" class="cursor-pointer select-none text-gray-500" @click="copyRecordUrl" />
     </a-tooltip>
     <a-tooltip v-if="!isSqlView" placement="bottom">
       <!--      Toggle comments draw -->

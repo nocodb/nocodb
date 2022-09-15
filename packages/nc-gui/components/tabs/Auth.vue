@@ -7,7 +7,7 @@ interface Tab {
   title: string
   label: string
   body: any
-  isUIAllowed: boolean
+  isUIAllowed: () => boolean
 }
 
 const { t } = useI18n()
@@ -19,13 +19,13 @@ const tabsInfo: Tab[] = [
     title: 'Users Management',
     label: t('title.userMgmt'),
     body: () => UserManagement,
-    isUIAllowed: isUIAllowed('userMgmtTab'),
+    isUIAllowed: () => isUIAllowed('userMgmtTab'),
   },
   {
     title: 'API Token Management',
     label: t('title.apiTokenMgmt'),
     body: () => ApiTokenManagement,
-    isUIAllowed: isUIAllowed('apiTokenTab'),
+    isUIAllowed: () => isUIAllowed('apiTokenTab'),
   },
 ]
 
@@ -34,7 +34,7 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKey])
 </script>
 
 <template>
-  <div v-if="selectedTab.isUIAllowed">
+  <div v-if="selectedTab.isUIAllowed()">
     <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs !mx-6">
       <a-tab-pane v-for="(tab, key) of tabsInfo" :key="key" class="select-none">
         <template #tab>

@@ -3679,6 +3679,13 @@
           "name": "tableName",
           "in": "path",
           "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "where"
         }
       ],
       "patch": {

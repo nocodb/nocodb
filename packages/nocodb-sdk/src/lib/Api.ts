@@ -2584,11 +2584,13 @@ export class Api<
       projectName: string,
       tableName: string,
       data: any,
+      query?: { where?: string },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
         method: 'PATCH',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -2609,11 +2611,13 @@ export class Api<
       projectName: string,
       tableName: string,
       data: any,
+      query?: { where?: string },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
         method: 'DELETE',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',

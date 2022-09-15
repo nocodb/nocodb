@@ -11,9 +11,12 @@ import {
   useNuxtApp,
   useProject,
   useSmartsheetStoreOrThrow,
+  useTheme,
   useUIPermission,
   watch,
 } from '#imports'
+
+const { theme } = useTheme()
 
 const { t } = useI18n()
 
@@ -34,6 +37,8 @@ let showShareModel = $ref(false)
 const passwordProtected = ref(false)
 
 const surveyMode = ref(false)
+
+const withTheme = ref(false)
 
 const shared = ref()
 
@@ -75,21 +80,35 @@ const sharedViewUrl = computed(() => {
       viewType = 'view'
   }
 
-  return `${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}${surveyMode.value ? '/survey' : ''}`
+  let url = `${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}`
+
+  /** if survey mode is enabled, append survey path segment */
+  if (surveyMode.value) {
+    url = `${url}/survey`
+
+    /** if theme is enabled, append theme query params */
+    if (withTheme.value) {
+      url = `${url}?theme=${theme.value.primaryColor.replace('#', '')},${theme.value.accentColor.replace('#', '')}`
+    }
+  }
+
+  return url
 })
 
 async function saveAllowCSVDownload() {
   try {
     const meta = shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
+
     await $api.dbViewShare.update(shared.value.id, {
       meta,
     })
-    // Successfully updated
+
     message.success(t('msg.success.updated'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-  if (allowCSVDownload?.value) {
+
+  if (allowCSVDownload.value) {
     $e('a:view:share:enable-csv-download')
   } else {
     $e('a:view:share:disable-csv-download')
@@ -164,11 +183,15 @@ watch(passwordProtected, (value) => {
       <a-collapse ghost>
         <a-collapse-panel key="1" :header="$t('general.showOptions')">
           <div class="flex flex-col gap-2">
-            <div>
+            <div class="flex flex-col gap-2">
               <!-- Survey Mode; todo: i18n -->
               <a-checkbox v-if="shared.type === ViewTypes.FORM" v-model:checked="surveyMode" class="!text-xs">
                 Use Survey Mode
               </a-checkbox>
+
+              <div v-if="surveyMode" class="ml-2">
+                <a-checkbox v-model:checked="withTheme" class="!text-xs"> Use Theme </a-checkbox>
+              </div>
             </div>
 
             <div>

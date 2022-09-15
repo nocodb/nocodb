@@ -40,7 +40,7 @@ const localTables = computed(() =>
     <div v-else class="relative h-full">
       <ErdView :key="JSON.stringify(config)" :tables="localTables" :config="config" />
 
-      <div class="absolute top-4 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
+      <div class="absolute top-1 right-8 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
         <div class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showPkAndFk" />
           <span class="ml-2" style="font-size: 0.65rem">Show PK and FK</span>

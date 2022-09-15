@@ -58,6 +58,7 @@
     "@iconify-json/mi": "^1.1.2",
     "@iconify-json/ph": "^1.1.2",
     "@iconify-json/ri": "^1.1.3",
+    "@iconify-json/system-uicons": "^1.1.4",
     "@intlify/vite-plugin-vue-i18n": "^6.0.1",
     "@nuxt/image-edge": "^1.0.0-27657146.da85542",
     "@types/axios": "^0.14.0",

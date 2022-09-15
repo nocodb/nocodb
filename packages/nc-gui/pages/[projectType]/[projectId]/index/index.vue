@@ -35,7 +35,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 <template>
   <div class="h-full w-full nc-container">
     <div class="h-full w-full flex flex-col">
-      <div class="flex items-end !min-h-[var(--header-height)] !bg-primary">
+      <div class="flex items-end !min-h-[var(--header-height)] !bg-primary nc-tab-bar">
         <div
           v-if="!isOpen"
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
@@ -76,6 +76,8 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
             <MdiLoading class="animate-infinite animate-spin" />
           </div>
         </div>
+
+        <GeneralFullScreen class="nc-fullscreen-icon" />
       </div>
 
       <div class="w-full min-h-[300px] flex-auto">
@@ -142,7 +144,18 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 :deep(.ant-menu-submenu::after) {
   @apply !border-none;
 }
+
 :deep(.ant-tabs-tab-remove) {
   @apply mt-[3px];
+}
+
+.nc-tab-bar {
+  :deep(.nc-fullscreen-icon) {
+    @apply opacity-0 transition;
+  }
+
+  &:hover :deep(.nc-fullscreen-icon) {
+    @apply opacity-100;
+  }
 }
 </style>

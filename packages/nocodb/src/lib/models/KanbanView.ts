@@ -75,7 +75,7 @@ export default class KanbanView implements KanbanType {
       stack_meta:
         typeof body.stack_meta === 'string'
           ? body.stack_meta
-          : JSON.stringify(body.stack_meta),
+          : JSON.stringify(body.stack_meta ?? {}),
     };
     if (o) {
       o = { ...o, ...updateObj };

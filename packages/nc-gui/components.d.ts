@@ -203,6 +203,7 @@ declare module '@vue/runtime-core' {
     MdiNull: typeof import('~icons/mdi/null')['default']
     MdiNumeric: typeof import('~icons/mdi/numeric')['default']
     MdiOpenInNew: typeof import('~icons/mdi/open-in-new')['default']
+    MdiOpenInNewIcon: typeof import('~icons/mdi/open-in-new-icon')['default']
     MdiPencil: typeof import('~icons/mdi/pencil')['default']
     MdiPlus: typeof import('~icons/mdi/plus')['default']
     MdiPlusBoxOutline: typeof import('~icons/mdi/plus-box-outline')['default']

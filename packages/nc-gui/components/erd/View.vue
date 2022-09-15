@@ -119,7 +119,7 @@ onBeforeMount(async () => {
 
 <template>
   <VueFlow :nodes="nodes" :edges="edges" :fit-view-on-init="true" :elevate-edges-on-select="true">
-    <Controls :show-fit-view="false" :show-interactive="false" />
+    <Controls class="!left-auto right-2 !top-2 !bottom-auto" :show-fit-view="false" :show-interactive="false" />
 
     <template #node-custom="props">
       <TableNode :data="props.data" />

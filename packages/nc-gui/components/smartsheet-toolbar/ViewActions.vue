@@ -18,6 +18,7 @@ import { LockType } from '~/lib'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
+import AcountTreeRoundedIcon from '~icons/material-symbols/account-tree-rounded'
 
 const { t } = useI18n()
 
@@ -36,6 +37,8 @@ const isLocked = inject(IsLockedInj)
 const showWebhookDrawer = ref(false)
 
 const showApiSnippetDrawer = ref(false)
+
+const showErd = ref(false)
 
 const quickImportDialog = ref(false)
 
@@ -212,6 +215,12 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
                 {{ $t('activity.getApiSnippet') }}
               </div>
             </a-menu-item>
+            <a-menu-item>
+              <div v-t="['c:erd:open']" class="py-2 flex gap-2 items-center" @click="showErd = true">
+                <AcountTreeRoundedIcon class="text-gray-500" />
+                {{ $t('title.erdView') }}
+              </div>
+            </a-menu-item>
           </a-menu-item-group>
         </a-menu>
       </template>
@@ -220,6 +229,10 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
     <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-only="true" />
 
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
+
+    <a-modal v-model:visible="showErd" size="small" :title="$t('title.erdView')" :footer="null" width="max(900px,60vw)">
+      <SmartsheetToolbarErd />
+    </a-modal>
 
     <a-modal
       v-model:visible="sharedViewListDlg"

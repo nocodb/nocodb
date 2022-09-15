@@ -85,11 +85,11 @@ const sharedViewUrl = computed(() => {
   /** if survey mode is enabled, append survey path segment */
   if (surveyMode.value) {
     url = `${url}/survey`
+  }
 
-    /** if theme is enabled, append theme query params */
-    if (withTheme.value) {
-      url = `${url}?theme=${theme.value.primaryColor.replace('#', '')},${theme.value.accentColor.replace('#', '')}`
-    }
+  /** if theme is enabled, append theme query params */
+  if (withTheme.value) {
+    url = `${url}?theme=${theme.value.primaryColor.replace('#', '')},${theme.value.accentColor.replace('#', '')}`
   }
 
   return url
@@ -183,15 +183,16 @@ watch(passwordProtected, (value) => {
       <a-collapse ghost>
         <a-collapse-panel key="1" :header="$t('general.showOptions')">
           <div class="flex flex-col gap-2">
-            <div class="flex flex-col gap-2">
+            <div>
               <!-- Survey Mode; todo: i18n -->
               <a-checkbox v-if="shared.type === ViewTypes.FORM" v-model:checked="surveyMode" class="!text-xs">
                 Use Survey Mode
               </a-checkbox>
+            </div>
 
-              <div v-if="surveyMode" class="ml-2">
-                <a-checkbox v-model:checked="withTheme" class="!text-xs"> Use Theme </a-checkbox>
-              </div>
+            <div>
+              <!-- todo: i18n -->
+              <a-checkbox v-model:checked="withTheme" class="!text-xs"> Use Theme </a-checkbox>
             </div>
 
             <div>

@@ -33,6 +33,7 @@ export function useKanbanViewData(
   //   ],
   // }
   const formattedData = useState<Record<string, Row[]>>('KanbanFormattedData', () => ({}))
+  const countByStack = useState<Record<string, Row[]>>('KanbanCountByStack', () => ({}))
   const groupingField = useState<string>('KanbanGroupingField', () => '')
   const groupingFieldColumn = useState<Record<string, any>>('KanbanGroupingFieldColumn', () => ({}))
 
@@ -46,21 +47,30 @@ export function useKanbanViewData(
   async function loadKanbanData() {
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
 
-    // reset formattedData to avoid storing previous data after changing grouping field
+    // reset formattedData & countByStack to avoid storing previous data after changing grouping field
     formattedData.value = {}
+    countByStack.value = {}
 
     await Promise.all(
       groupingFieldColOptions.value.map(async (option) => {
-        let where = `(${groupingField.value},eq,${option.title})`
-        if (option.title === 'Uncategorized') {
-          where = `(${groupingField.value},is,null)`
-        }
-        const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
-          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          where,
-        })
-        formattedData.value[option.title] = formatData(response.list)
+        const where =
+          option.title === 'Uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
+
+        formattedData.value[option.title] = formatData(
+          (
+            await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              where,
+            })
+          ).list,
+        )
+        countByStack.value[option.title] =
+          (
+            await api.dbViewRow.count('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
+              where,
+            })
+          ).count || 0
       }),
     )
   }
@@ -230,6 +240,7 @@ export function useKanbanViewData(
     updateKanbanMeta,
     kanbanMetaData,
     formattedData,
+    countByStack,
     groupingField,
     groupingFieldColOptions,
     groupingFieldColumn,

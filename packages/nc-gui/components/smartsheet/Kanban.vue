@@ -43,6 +43,7 @@ const {
   groupingFieldColOptions,
   groupingField,
   groupingFieldColumn,
+  countByStack,
 } = useKanbanViewData(meta, view as any)
 
 const { isUIAllowed } = useUIPermission()
@@ -143,7 +144,10 @@ async function onMove(event: any, stackKey: string) {
   if (event.added) {
     const ele = event.added.element
     ele.row[groupingField.value] = stackKey === 'Uncategorized' ? null : stackKey
+    countByStack.value[stackKey] += 1
     await updateOrSaveRow(ele)
+  } else if (event.removed) {
+    countByStack.value[stackKey] -= 1
   }
 }
 
@@ -282,11 +286,11 @@ openNewRecordFormHook?.on(async () => {
                 </div>
               </a-layout-content>
               <a-layout-footer>
-                <div v-if="formattedData[stack.title]" class="mt-5 text-center">
+                <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
                   <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
                   <div class="nc-kanban-data-count">
-                    {{ formattedData[stack.title].length }}
-                    {{ formattedData[stack.title].length !== 1 ? $t('objects.records') : $t('objects.record') }}
+                    {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
+                    {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>
                 </div>
               </a-layout-footer>

@@ -1,32 +1,34 @@
-<script setup>
+<script lang="ts" setup>
+import type { NodeProps } from '@braks/vue-flow'
 import { Handle, Position } from '@braks/vue-flow'
+import type { TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 
-const props = defineProps({
-  data: {
-    type: Object,
-    required: true,
-  },
-})
+interface Props extends NodeProps {
+  data: TableType & { showPkAndFk: boolean }
+}
+
+const props = defineProps<Props>()
 
 const { data } = toRefs(props)
 
-provide(MetaInj, data)
+provide(MetaInj, data as Ref<TableType>)
 
 const columns = computed(() => {
   // Hide hm ltar created for `mm` relations
-  return data.value.columns.filter((col) => !(col.uidt === UITypes.LinkToAnotherRecord && col.system === 1))
+  return data.value.columns?.filter((col) => !(col.uidt === UITypes.LinkToAnotherRecord && col.system === 1))
 })
 
 const pkAndFkColumns = computed(() => {
-  return columns.value.filter(() => data.value.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
+  return columns.value?.filter(() => data.value.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
 })
 
 const nonPkColumns = computed(() => {
-  return columns.value.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
+  return columns.value?.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
 })
 
-const relatedColumnId = (col) =>
+const relatedColumnId = (col: Record<string, any>) =>
   col.colOptions.type === 'mm' ? col.colOptions.fk_parent_column_id : col.colOptions.fk_child_column_id
 </script>
 

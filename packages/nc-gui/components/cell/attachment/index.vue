@@ -135,7 +135,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
         v-model="isOverDropZone"
         inline
         :target="currentCellRef"
-        class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+        class="nc-attachment-cell-dropzone text-white text-lg ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
       >
         <MaterialSymbolsFileCopyOutline class="text-accent" /> Drop here
       </general-overlay>
@@ -167,32 +167,32 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
         :class="{ dragging }"
         class="flex justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-auto"
       >
-        <div
-          v-for="(item, i) of visibleItems"
-          :key="item.url || item.title"
-          :class="isImage(item.title, item.mimetype ?? item.type) ? '' : 'border-1 rounded'"
-          class="nc-attachment flex items-center justify-center min-h-[50px]"
-        >
+        <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
           <a-tooltip placement="bottom">
             <template #title>
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
 
-            <LazyNuxtImg
-              v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)"
-              quality="75"
-              placeholder
-              :alt="item.title || `#${i}`"
-              :src="item.url || item.data"
-              class="ring-1 ring-gray-300 rounded max-h-[50px] max-w-[50px]"
-              @click="selectedImage = item"
-            />
+            <template v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)">
+              <div class="nc-attachment flex items-center justify-center" @click="selectedImage = item">
+                <LazyNuxtImg
+                  quality="75"
+                  placeholder
+                  fit="cover"
+                  :alt="item.title || `#${i}`"
+                  :src="item.url || item.data"
+                  class="max-w-full max-h-full"
+                />
+              </div>
+            </template>
 
-            <component :is="FileIcon(item.icon)" v-else-if="item.icon" @click="openLink(item.url || item.data)" />
+            <div v-else class="nc-attachment flex items-center justify-center" @click="openLink(item.url || item.data)">
+              <component :is="FileIcon(item.icon)" v-if="item.icon" />
 
-            <IcOutlineInsertDriveFile v-else @click.stop="openLink(item.url || item.data)" />
+              <IcOutlineInsertDriveFile v-else />
+            </div>
           </a-tooltip>
-        </div>
+        </template>
       </div>
 
       <div class="group flex gap-1 items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)">

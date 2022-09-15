@@ -439,35 +439,33 @@ watch(view, (nextView) => {
         item-key="id"
         draggable=".item"
         group="form-inputs"
+        class="flex flex-col gap-2"
         @start="drag = true"
         @end="drag = false"
       >
         <template #item="{ element, index }">
           <a-card
             size="small"
-            class="m-0 p-0 cursor-pointer item mb-2 hover:bg-primary bg-opacity-10 !rounded !shadow"
+            class="cursor-pointer item hover:(bg-primary ring-1 ring-accent ring-opacity-100) bg-opacity-10 !rounded !shadow-lg"
             @mousedown="moved = false"
             @mousemove="moved = false"
             @mouseup="handleMouseUp(element, index)"
           >
             <div class="flex">
-              <div class="flex flex-row flex-1">
+              <div class="flex flex-1">
                 <LazySmartsheetHeaderVirtualCell
                   v-if="isVirtualCol(element)"
                   :column="{ ...element, title: element.label || element.title }"
                   :required="isRequired(element, element.required)"
                   :hide-menu="true"
                 />
+
                 <LazySmartsheetHeaderCell
                   v-else
-                  class="w-full"
                   :column="{ ...element, title: element.label || element.title }"
                   :required="isRequired(element, element.required)"
                   :hide-menu="true"
                 />
-              </div>
-              <div class="flex flex-row">
-                <MdiDragVertical class="flex flex-1" />
               </div>
             </div>
           </a-card>
@@ -512,49 +510,52 @@ watch(view, (nextView) => {
       </div>
 
       <a-card
-        class="m-0 !rounded-0 p-4 border-none"
+        class="p-4 border-none"
         :body-style="{
-          maxWidth: '700px',
+          maxWidth: 'max(50vw, 700px)',
           margin: '0 auto',
           marginTop: '-200px',
+          padding: '0px',
         }"
       >
         <a-form ref="formRef" :model="formState" class="nc-form" no-style>
-          <a-card class="!rounded !shadow m-2 py-8" :body-style="{ paddingLeft: '0px', paddingRight: '0px' }">
+          <a-card class="!rounded !shadow !m-2 md:!m-4 xl:!m-8 py-8" :body-style="{ paddingLeft: '0px', paddingRight: '0px' }">
             <!-- Header -->
-            <a-form-item v-if="isEditable" class="px-4">
-              <a-input
-                v-model:value="formViewData.heading"
-                class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed"
-                :style="{ borderRightWidth: '0px !important' }"
-                size="large"
-                hide-details
-                placeholder="Form Title"
-                :bordered="false"
-                @blur="updateView"
-                @keydown.enter="updateView"
-              />
-            </a-form-item>
-
+            <div v-if="isEditable" class="px-4">
+              <a-form-item v-if="isEditable">
+                <a-input
+                  v-model:value="formViewData.heading"
+                  class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed"
+                  :style="{ borderRightWidth: '0px !important' }"
+                  size="large"
+                  hide-details
+                  placeholder="Form Title"
+                  :bordered="false"
+                  @blur="updateView"
+                  @keydown.enter="updateView"
+                />
+              </a-form-item>
+            </div>
             <div v-else class="px-4 ml-3 w-full text-bold text-4xl">{{ formViewData.heading }}</div>
 
             <!-- Sub Header -->
-            <a-form-item v-if="isEditable" class="m-0 gap-0 p-0">
-              <a-input
-                v-model:value="formViewData.subheading"
-                class="w-full !border-0 !border-b-1 !border-dashed"
-                :style="{ borderRightWidth: '0px !important' }"
-                size="large"
-                hide-details
-                :placeholder="$t('msg.info.formDesc')"
-                :bordered="false"
-                :disabled="!isEditable"
-                @blur="updateView"
-                @click="updateView"
-              />
-            </a-form-item>
-
-            <div v-else class="ml-3 mb-5 w-full text-bold text-h3">{{ formViewData.subheading }}</div>
+            <div v-if="isEditable" class="px-4">
+              <a-form-item>
+                <a-input
+                  v-model:value="formViewData.subheading"
+                  class="w-full !border-0 !border-b-1 !border-dashed"
+                  :style="{ borderRightWidth: '0px !important' }"
+                  size="large"
+                  hide-details
+                  :placeholder="$t('msg.info.formDesc')"
+                  :bordered="false"
+                  :disabled="!isEditable"
+                  @blur="updateView"
+                  @click="updateView"
+                />
+              </a-form-item>
+            </div>
+            <div v-else class="px-4 ml-3 w-full text-bold text-md">{{ formViewData.subheading || '---' }}</div>
 
             <Draggable
               ref="draggableRef"
@@ -570,7 +571,7 @@ watch(view, (nextView) => {
             >
               <template #item="{ element, index }">
                 <div
-                  class="nc-editable item cursor-pointer hover:(bg-primary bg-opacity-10) p-3 my-2 relative"
+                  class="nc-editable item cursor-pointer hover:(bg-primary bg-opacity-10 ring-1 ring-accent ring-opacity-100) px-4 lg:px-12 py-4 relative"
                   :class="[
                     `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                     {
@@ -585,15 +586,13 @@ watch(view, (nextView) => {
                   >
                     <mdi-eye-off-outline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
                   </div>
+
                   <template v-if="activeRow === element.title">
                     <div class="flex">
                       <div
                         class="flex flex-1 opacity-0 align-center gap-2"
                         :class="{ 'opacity-100': activeRow === element.title }"
                       >
-                        <div class="flex flex-row">
-                          <mdi-drag-vertical class="flex flex-1" />
-                        </div>
                         <div class="items-center flex">
                           <span
                             class="text-xs text-gray-500 mr-2 nc-form-input-required"
@@ -658,7 +657,6 @@ watch(view, (nextView) => {
 
                   <a-form-item
                     v-if="isVirtualCol(element)"
-                    class="!m-0 gap-0 p-0"
                     :name="element.title"
                     :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
@@ -674,7 +672,6 @@ watch(view, (nextView) => {
 
                   <a-form-item
                     v-else
-                    class="!m-0 gap-0 p-0"
                     :name="element.title"
                     :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
@@ -702,23 +699,24 @@ watch(view, (nextView) => {
               </template>
             </Draggable>
 
-            <div class="justify-center flex mt-10">
+            <div class="justify-center flex mt-6">
               <a-button type="primary" class="flex items-center gap-2 nc-form-submit" size="large" @click="submitForm">
-                <!-- Submit -->
                 {{ $t('general.submit') }}
               </a-button>
             </div>
           </a-card>
         </a-form>
 
-        <div v-if="isEditable" class="mx-10 px-10">
+        <a-divider />
+
+        <div v-if="isEditable" class="px-4 flex flex-col gap-2">
           <!-- After form is submitted -->
-          <div class="text-gray-500 mt-4 mb-2">
+          <div class="text-lg text-gray-700">
             {{ $t('msg.info.afterFormSubmitted') }}
           </div>
 
           <!-- Show this message -->
-          <label class="text-gray-600 text-bold"> {{ $t('msg.info.showMessage') }}: </label>
+          <div class="text-gray-500 text-bold">{{ $t('msg.info.showMessage') }}:</div>
           <a-textarea
             v-model:value="formViewData.success_msg"
             :rows="3"
@@ -728,8 +726,8 @@ watch(view, (nextView) => {
           />
 
           <!-- Other options -->
-          <div class="mt-4">
-            <div class="my-4">
+          <div class="flex flex-col gap-2 mt-4">
+            <div class="flex items-center">
               <!-- Show "Submit Another Form" button -->
               <a-switch
                 v-model:checked="formViewData.submit_another_form"
@@ -741,7 +739,7 @@ watch(view, (nextView) => {
               <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
             </div>
 
-            <div class="my-4">
+            <div class="flex items-center">
               <!-- Show a blank form after 5 seconds -->
               <a-switch
                 v-model:checked="formViewData.show_blank_form"
@@ -750,10 +748,11 @@ watch(view, (nextView) => {
                 class="nc-form-checkbox-show-blank-form"
                 @change="updateView"
               />
+
               <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
             </div>
 
-            <div class="my-4">
+            <div class="mb-12 flex items-center">
               <a-switch
                 v-model:checked="emailMe"
                 v-e="[`a:form-view:email-me`]"
@@ -761,6 +760,7 @@ watch(view, (nextView) => {
                 class="nc-form-checkbox-send-email"
                 @change="onEmailChange"
               />
+
               <!-- Email me at <email> -->
               <span class="ml-4">
                 {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>
@@ -792,6 +792,22 @@ watch(view, (nextView) => {
 .nc-form-input-help-text {
   &::placeholder {
     @apply !text-gray-500 !text-xs;
+  }
+}
+
+:deep(.nc-cell-attachment) {
+  @apply p-0;
+
+  .nc-attachment-cell {
+    @apply px-4 min-h-[75px] w-full h-full;
+
+    .nc-attachment {
+      @apply md:(w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
+    }
+
+    .nc-attachment-cell-dropzone {
+      @apply rounded bg-gray-400/75;
+    }
   }
 }
 </style>

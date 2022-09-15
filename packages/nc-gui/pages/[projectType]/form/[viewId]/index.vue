@@ -5,7 +5,7 @@ const { passwordDlg, password, loadSharedView } = useSharedFormStoreOrThrow()
 </script>
 
 <template>
-  <div class="nc-form-view md:bg-primary bg-opacity-5 min-h-full flex flex-col nc-form-signin py-15">
+  <div class="nc-form-view md:bg-primary bg-opacity-5 h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin">
     <NuxtPage />
 
     <a-modal

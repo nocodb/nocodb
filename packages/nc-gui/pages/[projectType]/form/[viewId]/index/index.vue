@@ -21,7 +21,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
 <template>
   <div
-    class="bg-white relative flex flex-col justify-center gap-2 w-full lg:max-w-1/2 max-w-500px m-auto p-4 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+    class="bg-white relative flex flex-col justify-center gap-2 w-full lg:max-w-1/2 max-w-500px m-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
   >
     <template v-if="sharedFormView">
       <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
@@ -108,7 +108,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
               </div>
             </div>
 
-            <div class="text-center my-9">
+            <div class="text-center">
               <button type="submit" class="submit" @click="submitForm">
                 {{ $t('general.submit') }}
               </button>

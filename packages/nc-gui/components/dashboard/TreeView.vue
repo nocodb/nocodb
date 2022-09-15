@@ -311,12 +311,12 @@ function openTableCreateDialog() {
                   { hidden: !filteredTables?.includes(table), active: activeTable === table.title },
                   `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
                 ]"
-                class="nc-tree-item pl-5 pr-3 py-2 text-sm cursor-pointer group"
+                class="nc-tree-item text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
                 @click="addTableTab(table)"
               >
-                <a-tooltip>
+                <GeneralTooltip wrapper-class="pl-5 pr-3 py-2" modifier-key="Alt">
                   <template #title>{{ table.table_name }}</template>
                   <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                     <div class="flex w-auto">
@@ -362,7 +362,7 @@ function openTableCreateDialog() {
                       </template>
                     </a-dropdown>
                   </div>
-                </a-tooltip>
+                </GeneralTooltip>
               </div>
             </div>
           </div>

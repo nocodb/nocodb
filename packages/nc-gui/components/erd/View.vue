@@ -48,7 +48,9 @@ onMounted(async () => {
 })
 
 const tablesFilteredWithConfig = computed(() =>
-  tables.value.filter((table) => (!config.value.showViews && table.type !== 'view') || config.value.showViews),
+  tables.value
+    .filter((table) => !table.mm)
+    .filter((table) => (!config.value.showViews && table.type !== 'view') || config.value.showViews),
 )
 
 watch(

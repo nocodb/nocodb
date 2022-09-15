@@ -6,13 +6,15 @@ import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
 import TableNode from './TableNode.vue'
 import RelationEdge from './RelationEdge.vue'
+import MdiView from '~icons/mdi/eye-circle-outline'
+import MdiTableLarge from '~icons/mdi/table-large'
 
 interface Props {
   tables: any[]
   config: {
     showPkAndFk: boolean
     showViews: boolean
-    hideAllColumns: boolean
+    showAllColumns: boolean
   }
 }
 
@@ -31,15 +33,15 @@ const populateInitialNodes = () => {
   tables.forEach((table) => {
     if (!table.id) return
 
-    const columns = metasWithIdAsKey.value[table.id].columns?.filter(
-      (col) => !config.hideAllColumns || (config.hideAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
+    const columns = metasWithIdAsKey.value[table.id].columns!.filter(
+      (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
     )
 
     dagreGraph.setNode(table.id, { width: 250, height: 50 * columns.length })
 
     initialNodes.value.push({
       id: table.id,
-      data: { ...metasWithIdAsKey.value[table.id], showPkAndFk: config.showPkAndFk, hideAllColumns: config.hideAllColumns },
+      data: { ...metasWithIdAsKey.value[table.id], showPkAndFk: config.showPkAndFk, showAllColumns: config.showAllColumns },
       type: 'custom',
     })
   })
@@ -141,5 +143,18 @@ onBeforeMount(async () => {
       <RelationEdge v-bind="props" />
     </template>
     <Background />
+    <div
+      class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200"
+      style="font-size: 0.6rem"
+    >
+      <div class="flex flex-row items-center space-x-1 border-b-1 pb-1 border-gray-100">
+        <MdiTableLarge class="text-primary" />
+        <div>Table</div>
+      </div>
+      <div class="flex flex-row items-center space-x-1 pt-1">
+        <MdiView class="text-primary" />
+        <div>SQL View</div>
+      </div>
+    </div>
   </VueFlow>
 </template>

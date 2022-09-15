@@ -122,6 +122,7 @@ export interface TableType {
   columnsById?: object;
   slug?: string;
   project_id?: string;
+  mm?: boolean | number;
 }
 
 export interface ViewType {

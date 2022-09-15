@@ -219,158 +219,180 @@ openNewRecordFormHook?.on(async (stackTitle) => {
         @change="onMoveStack($event)"
       >
         <template #item="{ element: stack, index }">
-          <a-card
-            :key="stack.id"
-            class="nc-kanban-stack mx-4 !bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
-            :class="{ 'not-draggable': stack.id === 'uncategorized' }"
-            head-style="padding-bottom: 0px;"
-            body-style="padding: 0px; height: 100%;"
-          >
-            <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
-            <a-skeleton v-if="!formattedData[stack.title]" class="p-4" />
-            <a-layout v-else class="px-[15px] !bg-[#f0f2f5]">
-              <a-layout-header>
-                <div class="nc-kanban-stack-head text-slate-500 font-bold flex items-center">
-                  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
-                    <div class="flex gap-2 items-center cursor-pointer">
-                      <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
-                      <mdi-menu-down class="text-grey text-lg" />
-                    </div>
-                    <template #overlay>
-                      <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
-                        <a-menu-item @click="openNewRecordFormHook.trigger(stack.title)">
-                          <div class="py-2 flex gap-2 items-center">
-                            <mdi-plus class="text-gray-500" />
-                            <!-- TODO: i18n -->
-                            Add new record
-                          </div>
-                        </a-menu-item>
-                        <a-menu-item @click="collapseStack">
-                          <div class="py-2 flex gap-2 items-center">
-                            <mdi-arrow-collapse class="text-gray-500" />
-                            <!-- TODO: i18n -->
-                            Collapse Stack
-                          </div>
-                        </a-menu-item>
-                        <a-menu-item v-if="stack.title !== 'Uncategorized'" @click="renameStack">
-                          <div class="py-2 flex gap-2 items-center">
-                            <mdi-pencil class="text-gray-500" />
-                            <!-- TODO: i18n -->
-                            Rename Stack
-                          </div>
-                        </a-menu-item>
-                        <a-menu-item v-if="stack.title !== 'Uncategorized'" @click="handleDeleteStackClick(stack.title)">
-                          <div class="py-2 flex gap-2 items-center">
-                            <mdi-delete class="text-gray-500" />
-                            <!-- TODO: i18n -->
-                            Delete Stack
-                          </div>
-                        </a-menu-item>
-                      </a-menu>
-                    </template>
-                  </a-dropdown>
-                </div>
-              </a-layout-header>
-              <a-layout-content class="overflow-y-hidden">
-                <div :ref="kanbanListRef" class="nc-kanban-list h-full overflow-y-auto" :data-stack-title="stack.title">
-                  <Draggable
-                    v-model="formattedData[stack.title]"
-                    item-key="row.Id"
-                    draggable=".nc-kanban-item"
-                    group="kanban-card"
-                    class="h-full"
-                    @change="onMove($event, stack.title)"
-                  >
-                    <template #item="{ element: record }">
-                      <div class="nc-kanban-item py-2">
-                        <Row :row="record">
-                          <a-card
-                            hoverable
-                            :data-stack="stack.title"
-                            class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
-                            body-style="padding: 10px;"
-                            @click="expandFormClick($event, record)"
-                          >
-                            <!--                            <template #cover> -->
-                            <!--                              <a-carousel -->
-                            <!--                                v-if="!reloadAttachments && attachments(record).length" -->
-                            <!--                                autoplay -->
-                            <!--                                class="gallery-carousel" -->
-                            <!--                                arrows -->
-                            <!--                              > -->
-                            <!--                                <template #customPaging> -->
-                            <!--                                  <a> -->
-                            <!--                                    <div class="pt-[12px]"><div></div></div> -->
-                            <!--                                  </a> -->
-                            <!--                                </template> -->
-                            <!--                                <template #prevArrow> -->
-                            <!--                                  <div style="z-index: 1"></div> -->
-                            <!--                                </template> -->
-                            <!--                                <template #nextArrow> -->
-                            <!--                                  <div style="z-index: 1"></div> -->
-                            <!--                                </template> -->
-                            <!--                                <img -->
-                            <!--                                  v-for="(attachment, index) in attachments(record)" -->
-                            <!--                                  :key="`carousel-${record.row.id}-${index}`" -->
-                            <!--                                  class="h-52" -->
-                            <!--                                  :src="attachment.url" -->
-                            <!--                                /> -->
-                            <!--                              </a-carousel> -->
-                            <!--                            </template> -->
-
-                            <div
-                              v-for="col in fieldsWithoutCover"
-                              :key="`record-${record.row.id}-${col.id}`"
-                              class="flex flex-col space-y-1 px-1 mb-3 bg-gray-50 rounded-lg w-full"
+          <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="p-4" />
+          <div v-else class="nc-kanban-stack" :class="{ 'w-[50px]': stack.collapsed }">
+            <a-card
+              v-if="!stack.collapsed"
+              :key="stack.id"
+              class="mx-4!bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
+              :class="{ 'not-draggable': stack.id === 'uncategorized' }"
+              head-style="padding-bottom: 0px;"
+              body-style="padding: 0px; height: 100%;"
+            >
+              <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
+              <a-skeleton v-if="!formattedData[stack.title]" class="p-4" />
+              <a-layout v-else class="px-[15px] !bg-[#f0f2f5]">
+                <a-layout-header>
+                  <div class="nc-kanban-stack-head text-slate-500 font-bold flex items-center">
+                    <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
+                      <div class="flex gap-2 items-center cursor-pointer">
+                        <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
+                        <mdi-menu-down class="text-grey text-lg" />
+                      </div>
+                      <template #overlay>
+                        <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
+                          <a-menu-item @click="openNewRecordFormHook.trigger(stack.title)">
+                            <div class="py-2 flex gap-2 items-center">
+                              <mdi-plus class="text-gray-500" />
+                              <!-- TODO: i18n -->
+                              Add new record
+                            </div>
+                          </a-menu-item>
+                          <a-menu-item @click="collapseStack">
+                            <div class="py-2 flex gap-2 items-center">
+                              <mdi-arrow-collapse class="text-gray-500" />
+                              <!-- TODO: i18n -->
+                              Collapse Stack
+                            </div>
+                          </a-menu-item>
+                          <a-menu-item v-if="stack.title !== 'Uncategorized'" @click="renameStack">
+                            <div class="py-2 flex gap-2 items-center">
+                              <mdi-pencil class="text-gray-500" />
+                              <!-- TODO: i18n -->
+                              Rename Stack
+                            </div>
+                          </a-menu-item>
+                          <a-menu-item v-if="stack.title !== 'Uncategorized'" @click="handleDeleteStackClick(stack.title)">
+                            <div class="py-2 flex gap-2 items-center">
+                              <mdi-delete class="text-gray-500" />
+                              <!-- TODO: i18n -->
+                              Delete Stack
+                            </div>
+                          </a-menu-item>
+                        </a-menu>
+                      </template>
+                    </a-dropdown>
+                  </div>
+                </a-layout-header>
+                <a-layout-content class="overflow-y-hidden">
+                  <div :ref="kanbanListRef" class="nc-kanban-list h-full overflow-y-auto" :data-stack-title="stack.title">
+                    <Draggable
+                      v-model="formattedData[stack.title]"
+                      item-key="row.Id"
+                      draggable=".nc-kanban-item"
+                      group="kanban-card"
+                      class="h-full"
+                      @change="onMove($event, stack.title)"
+                    >
+                      <template #item="{ element: record }">
+                        <div class="nc-kanban-item py-2">
+                          <Row :row="record">
+                            <a-card
+                              hoverable
+                              :data-stack="stack.title"
+                              class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
+                              body-style="padding: 10px;"
+                              @click="expandFormClick($event, record)"
                             >
-                              <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
-                                <div class="w-full text-gray-600">
-                                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-                                  <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                              <!--                            <template #cover> -->
+                              <!--                              <a-carousel -->
+                              <!--                                v-if="!reloadAttachments && attachments(record).length" -->
+                              <!--                                autoplay -->
+                              <!--                                class="gallery-carousel" -->
+                              <!--                                arrows -->
+                              <!--                              > -->
+                              <!--                                <template #customPaging> -->
+                              <!--                                  <a> -->
+                              <!--                                    <div class="pt-[12px]"><div></div></div> -->
+                              <!--                                  </a> -->
+                              <!--                                </template> -->
+                              <!--                                <template #prevArrow> -->
+                              <!--                                  <div style="z-index: 1"></div> -->
+                              <!--                                </template> -->
+                              <!--                                <template #nextArrow> -->
+                              <!--                                  <div style="z-index: 1"></div> -->
+                              <!--                                </template> -->
+                              <!--                                <img -->
+                              <!--                                  v-for="(attachment, index) in attachments(record)" -->
+                              <!--                                  :key="`carousel-${record.row.id}-${index}`" -->
+                              <!--                                  class="h-52" -->
+                              <!--                                  :src="attachment.url" -->
+                              <!--                                /> -->
+                              <!--                              </a-carousel> -->
+                              <!--                            </template> -->
+
+                              <div
+                                v-for="col in fieldsWithoutCover"
+                                :key="`record-${record.row.id}-${col.id}`"
+                                class="flex flex-col space-y-1 px-1 mb-3 bg-gray-50 rounded-lg w-full"
+                              >
+                                <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
+                                  <div class="w-full text-gray-600">
+                                    <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+                                    <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                  </div>
+                                </div>
+
+                                <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
+                                  <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
+                                  <template v-else>
+                                    <SmartsheetVirtualCell
+                                      v-if="isVirtualCol(col)"
+                                      v-model="record.row[col.title]"
+                                      :column="col"
+                                      :row="record"
+                                    />
+                                    <SmartsheetCell
+                                      v-else
+                                      v-model="record.row[col.title]"
+                                      :column="col"
+                                      :edit-enabled="false"
+                                      :read-only="true"
+                                    />
+                                  </template>
                                 </div>
                               </div>
-
-                              <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
-                                <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
-                                <template v-else>
-                                  <SmartsheetVirtualCell
-                                    v-if="isVirtualCol(col)"
-                                    v-model="record.row[col.title]"
-                                    :column="col"
-                                    :row="record"
-                                  />
-                                  <SmartsheetCell
-                                    v-else
-                                    v-model="record.row[col.title]"
-                                    :column="col"
-                                    :edit-enabled="false"
-                                    :read-only="true"
-                                  />
-                                </template>
-                              </div>
-                            </div>
-                          </a-card>
-                        </Row>
-                      </div>
-                    </template>
-                  </Draggable>
-                </div>
-              </a-layout-content>
-              <a-layout-footer>
-                <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
-                  <mdi-plus
-                    class="text-pint-500 text-lg text-primary cursor-pointer"
-                    @click="openNewRecordFormHook.trigger(stack.title)"
-                  />
-                  <div class="nc-kanban-data-count">
-                    <!-- TODO: fix current count for Uncategorized -->
-                    {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
-                    {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
+                            </a-card>
+                          </Row>
+                        </div>
+                      </template>
+                    </Draggable>
                   </div>
+                </a-layout-content>
+                <a-layout-footer>
+                  <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
+                    <mdi-plus
+                      class="text-pint-500 text-lg text-primary cursor-pointer"
+                      @click="openNewRecordFormHook.trigger(stack.title)"
+                    />
+                    <div class="nc-kanban-data-count">
+                      <!-- TODO: fix current count for Uncategorized -->
+                      {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
+                      {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
+                    </div>
+                  </div>
+                </a-layout-footer>
+              </a-layout>
+            </a-card>
+            <a-card
+              v-else
+              :key="stack.id"
+              class="nc-kanban-stack nc-kanban-collapsed-stack mx-4 flex !bg-[#f0f2f5] items-center w-[300px] h-[50px] rounded-[12px]"
+              :class="{ 'not-draggable': stack.id === 'uncategorized' }"
+              :body-style="'width: 100%;'"
+            >
+              <div class="items-center justify-between">
+                <div class="nc-kanban-data-count">
+                  <div class="float-right flex gap-2 items-center cursor-pointer">
+                    <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
+                    <mdi-menu-down class="text-grey text-lg" />
+                  </div>
+                  {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
+                  {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
                 </div>
-              </a-layout-footer>
-            </a-layout>
-          </a-card>
+              </div>
+            </a-card>
+          </div>
         </template>
       </Draggable>
     </div>
@@ -412,5 +434,11 @@ openNewRecordFormHook?.on(async (stackTitle) => {
 
 .ant-layout-header {
   @apply !h-[30px] !leading-[30px] !px-[5px] !my-[10px];
+}
+
+.nc-kanban-collapsed-stack {
+  transform: rotate(-90deg) translateX(-100%);
+  transform-origin: left top 0px;
+  transition: left 0.2s ease-in-out 0s;
 }
 </style>

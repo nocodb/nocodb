@@ -89,6 +89,14 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
 
 <template>
   <div class="w-full h-full flex flex-col justify-center items-center">
+    <template v-if="sharedFormView">
+      <div class="flex-1" />
+
+      <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
+
+      <h2 v-if="sharedFormView.subheading" class="prose-lg text-gray-500 self-center">{{ sharedFormView.subheading }}</h2>
+    </template>
+
     <Transition :name="`slide-${transitionName}`" mode="out-in">
       <div
         ref="el"
@@ -112,24 +120,16 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
             />
           </div>
 
-          <div v-if="isVirtualCol(field)">
+          <div>
             <SmartsheetVirtualCell
+              v-if="isVirtualCol(field)"
               class="mt-0 nc-input"
               :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
               :column="field"
             />
 
-            <div v-if="field.description" class="text-gray-500 text-[10px] mb-2 ml-1">{{ field.description }}</div>
-
-            <template v-if="v$.virtual.$dirty && v$.virtual?.[field.title]">
-              <div v-for="error of v$.virtual[field.title].$errors" :key="error" class="text-xs text-red-500">
-                {{ error.$message }}
-              </div>
-            </template>
-          </div>
-
-          <div v-else>
             <SmartsheetCell
+              v-else
               v-model="formState[field.title]"
               class="nc-input"
               :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
@@ -137,7 +137,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
               :edit-enabled="true"
             />
 
-            <div class="flex flex-col gap-2 text-gray-500 text-xs my-2 px-1">
+            <div class="flex flex-col gap-2 text-gray-500 text-[0.75rem] my-2 px-1">
               <div v-for="error of v$.localState[field.title].$errors" :key="error" class="text-red-500">
                 {{ error.$message }}
               </div>
@@ -206,6 +206,8 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
       </div>
     </Transition>
 
+    <div v-if="sharedFormView" class="flex-1" />
+
     <div class="absolute bottom-12 right-12 flex flex-col">
       <div>{{ index + 1 }} / {{ formColumns?.length }}</div>
     </div>
@@ -224,22 +226,6 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
 
   .nc-icon {
     @apply mr-2;
-  }
-}
-
-:deep(.nc-cell-attachment) {
-  @apply p-0;
-
-  .nc-attachment-cell {
-    @apply px-4 min-h-[75px] w-full h-full;
-
-    .nc-attachment {
-      @apply md:(w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
-    }
-
-    .nc-attachment-cell-dropzone {
-      @apply rounded bg-gray-400/75;
-    }
   }
 }
 </style>

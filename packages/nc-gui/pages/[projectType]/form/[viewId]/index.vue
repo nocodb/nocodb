@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRoute, useSharedFormStoreOrThrow, useTheme, watch } from '#imports'
+import { openLink, useRoute, useSharedFormStoreOrThrow, useTheme, watch } from '#imports'
 
 const { passwordDlg, password, loadSharedView } = useSharedFormStoreOrThrow()
 
@@ -28,12 +28,17 @@ watch(
   <div class="nc-form-view relative md:bg-primary bg-opacity-5 h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin">
     <NuxtPage />
 
-    <div class="self-end text-xs text-gray-400 mx-auto my-4 flex justify-center gap-2 items-center">
-      <div class="bg-primary bg-opacity-100 rounded">
+    <button
+      type="button"
+      class="cursor-pointer self-end text-xs text-gray-400 hover:text-primary mx-auto my-4 flex justify-center gap-2 items-center"
+      @click="openLink('https://github.com/nocodb/nocodb')"
+    >
+      <span class="bg-primary bg-opacity-100 rounded">
         <img width="32" height="32" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-      </div>
+      </span>
+
       Powered by NocoDB
-    </div>
+    </button>
 
     <a-modal
       v-model:visible="passwordDlg"

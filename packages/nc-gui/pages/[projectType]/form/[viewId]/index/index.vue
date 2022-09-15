@@ -59,56 +59,50 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
         </GeneralOverlay>
 
         <div class="nc-form-wrapper">
-          <div class="nc-form h-full max-w-3/4 mx-auto">
-            <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col my-6 gap-2">
-              <div class="flex nc-form-column-label">
-                <SmartsheetHeaderVirtualCell
-                  v-if="isVirtualCol(field)"
-                  :column="{ ...field, title: field.label || field.title }"
-                  :required="isRequired(field, field.required)"
-                  :hide-menu="true"
-                />
+          <div class="nc-form h-full px-6 lg:(max-w-3/4 mx-auto px-0)">
+            <div class="flex flex-col gap-6">
+              <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
+                <div class="flex nc-form-column-label">
+                  <SmartsheetHeaderVirtualCell
+                    v-if="isVirtualCol(field)"
+                    :column="{ ...field, title: field.label || field.title }"
+                    :required="isRequired(field, field.required)"
+                    :hide-menu="true"
+                  />
 
-                <SmartsheetHeaderCell
-                  v-else
-                  :column="{ ...field, title: field.label || field.title }"
-                  :required="isRequired(field, field.required)"
-                  :hide-menu="true"
-                />
-              </div>
+                  <SmartsheetHeaderCell
+                    v-else
+                    :column="{ ...field, title: field.label || field.title }"
+                    :required="isRequired(field, field.required)"
+                    :hide-menu="true"
+                  />
+                </div>
 
-              <div v-if="isVirtualCol(field)" class="mt-0">
-                <SmartsheetVirtualCell
-                  class="mt-0 nc-input"
-                  :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
-                  :column="field"
-                />
+                <div>
+                  <SmartsheetVirtualCell
+                    v-if="isVirtualCol(field)"
+                    class="mt-0 nc-input"
+                    :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+                    :column="field"
+                  />
 
-                <div v-if="field.description" class="text-gray-500 text-[10px] mb-2 ml-1">{{ field.description }}</div>
+                  <SmartsheetCell
+                    v-else
+                    v-model="formState[field.title]"
+                    class="nc-input"
+                    :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+                    :column="field"
+                    :edit-enabled="true"
+                  />
 
-                <template v-if="v$.virtual.$dirty && v$.virtual?.[field.title]">
-                  <div v-for="error of v$.virtual[field.title].$errors" :key="error" class="text-xs text-red-500">
-                    {{ error.$message }}
+                  <div class="flex flex-col gap-2 text-gray-500 text-[0.75rem] my-2 px-1">
+                    <div v-for="error of v$.localState[field.title].$errors" :key="error" class="text-red-500">
+                      {{ error.$message }}
+                    </div>
+
+                    {{ field.description }}
                   </div>
-                </template>
-              </div>
-
-              <div v-else class="mt-0">
-                <SmartsheetCell
-                  v-model="formState[field.title]"
-                  class="nc-input"
-                  :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
-                  :column="field"
-                  :edit-enabled="true"
-                />
-
-                <div v-if="field.description" class="text-gray-500 text-[10px] mb-2 ml-1">{{ field.description }}</div>
-
-                <template v-if="v$.localState.$dirty && v$.localState?.[field.title]">
-                  <div v-for="error of v$.localState[field.title].$errors" :key="error" class="text-xs text-red-500">
-                    {{ error.$message }}
-                  </div>
-                </template>
+                </div>
               </div>
             </div>
 

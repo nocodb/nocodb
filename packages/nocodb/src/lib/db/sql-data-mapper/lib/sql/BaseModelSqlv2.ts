@@ -96,7 +96,7 @@ class BaseModelSqlv2 {
 
     await this.selectObject({ qb });
 
-    qb.where(this.model.primaryKey.column_name, id);
+    qb.where(await this._wherePk(id));
 
     const data = (await this.extractRawQueryAndExec(qb))?.[0];
 

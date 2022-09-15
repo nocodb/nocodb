@@ -41,7 +41,7 @@ hooks.hook('page:finish', () => {
       >
         <div
           v-if="!route.params.projectType"
-          v-t="['c:navbar:home']"
+          v-e="['c:navbar:home']"
           class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
           @click="navigateTo('/')"
         >
@@ -75,7 +75,7 @@ hooks.hook('page:finish', () => {
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded">
                 <a-menu-item key="0" class="!rounded-t">
-                  <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
+                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
                     <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                     <span class="prose group-hover:text-primary"> {{ email }}</span>
@@ -85,7 +85,7 @@ hooks.hook('page:finish', () => {
                 <a-menu-divider class="!m-0" />
 
                 <a-menu-item key="1" class="!rounded-b group">
-                  <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                  <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
                     <MdiLogout class="group-hover:text-accent" />&nbsp;
 
                     <span class="prose group-hover:text-primary">
@@ -102,7 +102,7 @@ hooks.hook('page:finish', () => {
       <a-tooltip placement="bottom">
         <template #title> Switch language</template>
 
-        <GeneralLanguage class="nc-lang-btn" />
+        <GeneralLanguage v-if="!signedIn" class="nc-lang-btn" />
       </a-tooltip>
 
       <div class="w-full h-full overflow-hidden">

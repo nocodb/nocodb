@@ -119,7 +119,7 @@ const getProjectPrimary = (project: ProjectType) => {
           :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
         >
           <MdiRefresh
-            v-t="['a:project:refresh']"
+            v-e="['a:project:refresh']"
             class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
             :class="isLoading ? '!text-primary' : ''"
             @click="loadProjects"
@@ -149,7 +149,7 @@ const getProjectPrimary = (project: ProjectType) => {
           <a-menu class="!py-0 rounded">
             <a-menu-item>
               <div
-                v-t="['c:project:create:xcdb']"
+                v-e="['c:project:create:xcdb']"
                 class="nc-project-menu-item group nc-create-xc-db-project"
                 @click="navigateTo('/create')"
               >
@@ -161,7 +161,7 @@ const getProjectPrimary = (project: ProjectType) => {
 
             <a-menu-item>
               <div
-                v-t="['c:project:create:extdb']"
+                v-e="['c:project:create:extdb']"
                 class="nc-project-menu-item group nc-create-external-db-project"
                 @click="navigateTo('/create-external')"
               >
@@ -176,18 +176,18 @@ const getProjectPrimary = (project: ProjectType) => {
     </div>
 
     <TransitionGroup name="layout" mode="out-in">
-      <div v-if="isLoading">
+      <div v-if="isLoading" key="skeleton">
         <a-skeleton />
       </div>
 
       <a-table
         v-else
+        key="table"
         :custom-row="
           (record) => ({
             onClick: () => {
-              $e('a:project:open')
-
               navigateTo(`/nc/${record.id}`)
+              $e('a:project:open')
             },
             class: ['group'],
           })
@@ -198,6 +198,7 @@ const getProjectPrimary = (project: ProjectType) => {
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </template>
+
         <!-- Title -->
         <a-table-column key="title" :title="$t('general.title')" data-index="title">
           <template #default="{ text, record }">
@@ -252,7 +253,7 @@ const getProjectPrimary = (project: ProjectType) => {
         <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
           <template #default="{ text, record }">
             <div class="flex items-center gap-2">
-              <MdiEditOutline v-t="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
+              <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
 
               <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
             </div>

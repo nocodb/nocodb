@@ -26,7 +26,7 @@ WORKDIR /usr/src/app
 # Copying this separately prevents re-running npm ci on every code change.
 COPY ./package*.json ./
 COPY ./docker/main.js ./docker/main.js
-#COPY ./docker/start.sh /usr/src/appEntry/start.s
+#COPY ./docker/start.sh /usr/src/appEntry/start.sh
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
 
 # install production dependencies,

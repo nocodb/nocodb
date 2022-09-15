@@ -2,9 +2,9 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
+  CellUrlDisableOverlayInj,
   ChangePageInj,
   FieldsInj,
   IsFormInj,
@@ -17,7 +17,6 @@ import {
   ReadonlyInj,
   ReloadViewDataHookInj,
   createEventHook,
-  enumColor,
   inject,
   onClickOutside,
   onMounted,
@@ -26,6 +25,7 @@ import {
   ref,
   useEventListener,
   useGridViewColumnWidth,
+  useI18n,
   useSmartsheetStoreOrThrow,
   useUIPermission,
   useViewData,
@@ -36,9 +36,9 @@ import { NavigateDir } from '~/lib'
 
 const { t } = useI18n()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
-const view = inject(ActiveViewInj)
+const view = inject(ActiveViewInj, ref())
 
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
@@ -92,9 +92,10 @@ const {
   deleteSelectedRows,
   selectedAllRecords,
   removeRowIfNew,
-} = useViewData(meta, view as any, xWhere)
+} = useViewData(meta, view, xWhere)
 
-const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
+const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
+
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
@@ -108,6 +109,9 @@ provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
 
 provide(ReadonlyInj, !hasEditPermission)
+
+const disableUrlOverlay = ref(false)
+provide(CellUrlDisableOverlayInj, disableUrlOverlay)
 
 reloadViewDataHook?.on(async () => {
   await loadData()
@@ -133,9 +137,9 @@ const selectCell = (row: number, col: number) => {
 }
 
 watch(
-  () => (view?.value as any)?.id,
-  async (n?: string, o?: string) => {
-    if (n && o && n !== o) {
+  () => view.value?.id,
+  async (next, old) => {
+    if (next && old && next !== old) {
       await loadData()
     }
   },
@@ -201,6 +205,10 @@ const makeEditable = (row: Row, col: ColumnType) => {
 
 /** handle keypress events */
 const onKeyDown = async (e: KeyboardEvent) => {
+  if (e.key === 'Alt') {
+    disableUrlOverlay.value = true
+    return
+  }
   if (selected.row === null || selected.col === null) return
   /** on tab key press navigate through cells */
   switch (e.key) {
@@ -284,8 +292,14 @@ const onKeyDown = async (e: KeyboardEvent) => {
       break
   }
 }
+const onKeyUp = async (e: KeyboardEvent) => {
+  if (e.key === 'Alt') {
+    disableUrlOverlay.value = false
+  }
+}
 
 useEventListener(document, 'keydown', onKeyDown)
+useEventListener(document, 'keyup', onKeyUp)
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
@@ -346,7 +360,7 @@ onBeforeUnmount(async () => {
     /** if existing row check updated cell and invoke update method */
     if (currentRow.rowMeta.changed) {
       currentRow.rowMeta.changed = false
-      for (const field of meta?.value.columns ?? []) {
+      for (const field of meta.value?.columns ?? []) {
         if (isVirtualCol(field)) continue
         if (currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
           await updateOrSaveRow(currentRow, field.title!)
@@ -411,7 +425,7 @@ onBeforeUnmount(async () => {
               </th>
               <th
                 v-if="!readOnly && !isLocked && isUIAllowed('add-column') && !isSqlView"
-                v-t="['c:column:add']"
+                v-e="['c:column:add']"
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
               >
@@ -472,7 +486,7 @@ onBeforeUnmount(async () => {
                           class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
                         >
                           <MdiArrowExpand
-                            v-t="['c:row-expand']"
+                            v-e="['c:row-expand']"
                             class="select-none transform hover:(text-accent scale-120) nc-row-expand"
                             @click="expandForm(row, state)"
                           />
@@ -530,7 +544,7 @@ onBeforeUnmount(async () => {
 
             <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable') && !isSqlView">
               <td
-                v-t="['c:row:add:grid-bottom']"
+                v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
                 class="text-left pointer nc-grid-add-new-cell cursor-pointer"
                 @click="addEmptyRow()"
@@ -550,14 +564,14 @@ onBeforeUnmount(async () => {
         <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
-              <div v-t="['a:row:delete']" class="nc-project-menu-item">
+              <div v-e="['a:row:delete']" class="nc-project-menu-item">
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
               </div>
             </a-menu-item>
 
             <a-menu-item @click="deleteSelectedRows">
-              <div v-t="['a:row:delete-bulk']" class="nc-project-menu-item">
+              <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
               </div>
@@ -565,11 +579,11 @@ onBeforeUnmount(async () => {
 
             <!--            Clear cell -->
             <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)">
-              <div v-t="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
+              <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
             <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              <div v-t="['a:row:insert']" class="nc-project-menu-item">
+              <div v-e="['a:row:insert']" class="nc-project-menu-item">
                 <!-- Insert New Row -->
                 {{ $t('activity.insertRow') }}
               </div>

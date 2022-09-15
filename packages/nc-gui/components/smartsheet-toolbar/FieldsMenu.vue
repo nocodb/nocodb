@@ -20,9 +20,9 @@ import {
 import CellIcon from '~/components/smartsheet-header/CellIcon.vue'
 import VirtualCellIcon from '~/components/smartsheet-header/VirtualCellIcon.vue'
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
-const activeView = inject(ActiveViewInj)!
+const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
@@ -48,7 +48,7 @@ const {
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
 watch(
-  () => (activeView.value as any)?.id,
+  () => activeView.value?.id,
   async (newVal, oldVal) => {
     if (newVal !== oldVal && meta.value) {
       await loadViewColumns()
@@ -118,7 +118,7 @@ const getIcon = (c: ColumnType) =>
 <template>
   <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
     <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
-      <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
+      <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <MdiEyeOffOutline />
 
@@ -146,7 +146,7 @@ const getIcon = (c: ColumnType) =>
               <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex items-center" @click.stop>
                 <a-checkbox
                   v-model:checked="field.show"
-                  v-t="['a:fields:show-hide']"
+                  v-e="['a:fields:show-hide']"
                   class="shrink"
                   @change="saveOrUpdate(field, index)"
                 >

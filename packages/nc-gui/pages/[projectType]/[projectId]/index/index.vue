@@ -1,14 +1,47 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
 import { TabType } from '~/composables'
-import { TabMetaInj, provide, useGlobal, useSidebar, useTabs } from '#imports'
+import {
+  TabMetaInj,
+  onBeforeMount,
+  provide,
+  ref,
+  useGlobal,
+  useProject,
+  useRoute,
+  useRouter,
+  useSidebar,
+  useTabs,
+} from '#imports'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
 
+const { project, loadProject, loadTables } = useProject()
+
 const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
 const { isLoading } = useGlobal()
+
+const route = useRoute()
+
+const router = useRouter()
+
+const isReady = ref(false)
+
+onBeforeMount(async () => {
+  if (!Object.keys(project.value).length) await loadProject()
+
+  /** If v1 url found navigate to corresponding new url */
+  const { type, name, view } = route.query
+  if (type && name) {
+    await router.replace(`/nc/${route.params.projectId}/${type}/${name}${view ? `/${view}` : ''}`)
+  }
+
+  await loadTables()
+
+  isReady.value = true
+})
 
 provide(TabMetaInj, activeTab)
 
@@ -39,7 +72,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
         >
           <MdiMenu
-            v-t="['c:grid:toggle-navdraw']"
+            v-e="['c:grid:toggle-navdraw']"
             class="cursor-pointer transform transition-transform duration-500 text-white"
             :class="{ 'rotate-180': !isOpen }"
             @click="toggle(!isOpen)"
@@ -71,13 +104,17 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           <div v-show="isLoading" class="flex items-center gap-2 ml-3 text-gray-200">
             {{ $t('general.loading') }}
 
-            <MdiLoading :class="{ 'animate-infinite animate-spin': isLoading }" />
+            <MdiLoading class="animate-infinite animate-spin" />
           </div>
         </div>
       </div>
 
       <div class="w-full min-h-[300px] flex-auto">
-        <NuxtPage />
+        <NuxtPage v-if="isReady" />
+
+        <div v-else class="w-full h-full flex justify-center items-center">
+          <a-spin size="large" />
+        </div>
       </div>
     </div>
   </div>

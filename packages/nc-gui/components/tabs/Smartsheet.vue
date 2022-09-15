@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
 import SmartsheetGrid from '../smartsheet/Grid.vue'
 import {
   ActiveViewInj,
@@ -18,7 +17,6 @@ import {
   useProvideSmartsheetStore,
   watch,
 } from '#imports'
-
 import type { TabItem } from '~/composables'
 
 const { activeTab } = defineProps<{
@@ -39,10 +37,10 @@ const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
 const reloadEventHook = createEventHook<void>()
 const openNewRecordFormHook = createEventHook<void>()
 
-const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
+const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
 // provide the sidebar injection state
-provideSidebar({ storageKey: 'nc-right-sidebar' })
+provideSidebar({ storageKey: 'nc-right-sidebar', isOpen: true })
 
 // todo: move to store
 provide(MetaInj, meta)

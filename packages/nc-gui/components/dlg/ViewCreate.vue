@@ -42,7 +42,7 @@ const { t } = useI18n()
 
 const { isLoading: loading, api } = useApi()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const viewList = inject(ViewListInj)
 

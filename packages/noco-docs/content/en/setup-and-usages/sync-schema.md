@@ -8,25 +8,27 @@ menuTitle: 'Sync Schema'
 
 ## How to sync schema changes to NocoDB
 
-NocoDB allows you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from environment to others.
+NocoDB allows you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from one environment to other.
 
 Below are the steps to sync schema changes.
 
-### 1. From the menu bar, click `Team & Settings`
+### 1. From the `Project menu`, click `Team & Settings`
 
-<img width="367" alt="image" src="https://user-images.githubusercontent.com/35857179/170426881-ba645392-24a2-4446-b501-0595a0887724.png">
+<img width="390" alt="image" src="https://user-images.githubusercontent.com/35857179/189115289-07657c15-deab-435f-b0f9-2948007f8c65.png">
 
-### 2. Click `Project Metadata` under SETTINGS and click `Metadata`
+### 2. Click `Project Metadata` under SETTINGS, access `Metadata` tab
 
-![image](https://user-images.githubusercontent.com/35857179/170427133-09faf93f-a41c-428b-b51c-fefe3fb45d9d.png)
+![Screenshot 2022-09-13 at 10 37 17 AM](https://user-images.githubusercontent.com/86527202/189814111-56036958-c6e4-4560-af1e-9443380db080.png)
 
 ### 3. Changes carried outside GUI, identified by NocoDB are listed under `Sync state`
+- If changes made to the database are not visible, click `Reload`
+- Identified schema changes are identified for each table in `red`
+- `Sync now` button gets activated, if Schema changes are identified by NocoDB
 
-![image](https://user-images.githubusercontent.com/35857179/161957119-f66f22ad-9d37-45ed-84ca-35c99726078c.png)
+![Screenshot 2022-09-13 at 10 42 12 AM](https://user-images.githubusercontent.com/86527202/189814648-ca28f28d-b0ed-4652-a5da-e6472bfd9407.png)
+<!-- ![image](https://user-images.githubusercontent.com/35857179/161957119-f66f22ad-9d37-45ed-84ca-35c99726078c.png) -->
 
 ### 4. Click `Sync Now` to complete Schema sync procedure
-
-<img width="1352" alt="image" src="https://user-images.githubusercontent.com/35857179/170428004-022dd436-0c58-41c5-b5e6-89d1d3ac87b0.png">
 
 #### Notes
 

@@ -1,8 +1,5 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import { inject, provide, useViewData } from '#imports'
-import Row from '~/components/smartsheet/Row.vue'
-import type { Row as RowType } from '~/composables'
 import {
   ActiveViewInj,
   ChangePageInj,
@@ -14,15 +11,21 @@ import {
   OpenNewRecordFormHookInj,
   PaginationDataInj,
   ReadonlyInj,
-} from '~/context'
+  ReloadViewDataHookInj,
+  inject,
+  provide,
+  useViewData,
+} from '#imports'
+import Row from '~/components/smartsheet/Row.vue'
+import type { Row as RowType } from '~/composables'
 import ImageIcon from '~icons/mdi/file-image-box'
 
 interface Attachment {
   url: string
 }
 
-const meta = inject(MetaInj)
-const view = inject(ActiveViewInj)
+const meta = inject(MetaInj, ref())
+const view = inject(ActiveViewInj, ref())
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
@@ -38,7 +41,7 @@ const {
   galleryData,
   changePage,
   addEmptyRow,
-} = useViewData(meta, view as any)
+} = useViewData(meta, view)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -55,7 +58,7 @@ const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== ga
 
 const coverImageColumn: any = $(
   computed(() =>
-    meta?.value.columnsById
+    meta.value?.columnsById
       ? meta.value.columnsById[galleryData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
       : {},
   ),
@@ -144,7 +147,7 @@ openNewRecordFormHook?.on(async () => {
                 <img
                   v-for="(attachment, index) in attachments(record)"
                   :key="`carousel-${record.row.id}-${index}`"
-                  class="h-52"
+                  class="h-52 object-cover"
                   :src="attachment.url"
                 />
               </a-carousel>
@@ -192,14 +195,17 @@ openNewRecordFormHook?.on(async () => {
   grid-auto-rows: 1fr;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 }
-:depp(.slick-dots li button) {
+
+:deep(.slick-dots li button) {
   background-color: black;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-dots) {
   position: relative;
   height: auto;
   bottom: 0px;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
   background: #000;
   border: 0;
@@ -215,15 +221,18 @@ openNewRecordFormHook?.on(async () => {
   transition: all 0.5s;
   width: 100%;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
   opacity: 1;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-prev) {
   left: 0;
   height: 100%;
   top: 12px;
   width: 50%;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-next) {
   right: 0;
   height: 100%;

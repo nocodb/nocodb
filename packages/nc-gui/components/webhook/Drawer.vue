@@ -38,7 +38,7 @@ async function editHook(hook: Record<string, any>) {
         <WebhookList v-else @edit="editHook" @add="editOrAdd = true" />
       </a-layout-content>
       <a-layout-footer class="!bg-white flex">
-        <a-button v-t="['e:hiring']" class="mx-auto mb-4" href="https://angel.co/company/nocodb" target="_blank" size="large">
+        <a-button v-e="['e:hiring']" class="mx-auto mb-4" href="https://angel.co/company/nocodb" target="_blank" size="large">
           🚀 {{ $t('labels.weAreHiring') }}! 🚀
         </a-button>
       </a-layout-footer>

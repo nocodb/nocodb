@@ -45,12 +45,32 @@ See [here](https://support.airtable.com/hc/en-us/articles/205752117-Creating-a-b
 <alert>
 Prerequisites: <br/> - A NocoDB Project <br/> - Airtable Credentials
 </alert>
-
+  
 Below are 3 simple steps
-1. Go to your Project and Click `Add / Import` and click `Airtable`.
-  ![image](https://user-images.githubusercontent.com/35857179/168772072-937b037b-32b3-4e5b-b982-5ee4b9a4959c.png)
-  ![image](https://user-images.githubusercontent.com/35857179/168773192-f3ef9d36-3329-4324-ae25-989b611f66bf.png)
+1. Go to your Project, Open `Add / Import` menu and click `Airtable`.
+  
+![Screenshot 2022-09-14 at 9 27 51 AM](https://user-images.githubusercontent.com/86527202/190057053-983126b3-287a-4bc4-a1d8-fa89da8f40f8.png)
+
+<!--   ![image](https://user-images.githubusercontent.com/35857179/168772072-937b037b-32b3-4e5b-b982-5ee4b9a4959c.png) -->
+<!--   ![image](https://user-images.githubusercontent.com/35857179/168773192-f3ef9d36-3329-4324-ae25-989b611f66bf.png) -->
 2. Input API key & Shared Base ID / URL (retrieved from `Get Airtable Credentials` above).
-  ![image](https://user-images.githubusercontent.com/35857179/168779663-5bb1dac8-01bd-43fb-8638-318a66a0f4bf.png)
-3. Click `Import` and you will see the status.
-  ![image](https://user-images.githubusercontent.com/35857179/168779906-6163b23e-4bcc-4991-8a77-b2fa94e5dcf3.png)
+  
+  - <1> API Key
+  - <2> Share Base ID
+  - <3> Configuration option
+    - Import Data: disable this option to import only table & view schema's
+    - Import Secondary Views: disable this option to import only primary grid view per table
+    - Import Rollup Columns: disable this option to skip Rollup column import
+    - Import Lookup Columns: disable this option to skip Lookup column import
+    - Import Attachments Columns: disable this option to skip Attachment column import
+    - <Not supported yet> Import Formula Columns: disable this option to skip Formula (computation) column import
+    
+![Screenshot 2022-09-14 at 9 30 14 AM](https://user-images.githubusercontent.com/86527202/190057133-92807b16-4f2b-4c58-8bae-a2cfe677ee62.png)
+
+<!--   ![image](https://user-images.githubusercontent.com/35857179/168779663-5bb1dac8-01bd-43fb-8638-318a66a0f4bf.png) -->
+3. Click `Import` and you will see the status
+4. Wait until `Go To Dashboard` button is activated on the modal. Import details are captured in log window.
+  
+![Screenshot 2022-09-14 at 9 33 42 AM](https://user-images.githubusercontent.com/86527202/190057152-be9ec6cb-e414-465c-8967-d1ad40478ce1.png)
+
+<!--   ![image](https://user-images.githubusercontent.com/35857179/168779906-6163b23e-4bcc-4991-8a77-b2fa94e5dcf3.png) -->

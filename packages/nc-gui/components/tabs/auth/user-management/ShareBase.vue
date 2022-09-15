@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { onMounted, useClipboard, useNuxtApp, useProject } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
-
-const { t } = useI18n()
+import { extractSdkResponseErrorMsg, onMounted, useClipboard, useI18n, useNuxtApp, useProject } from '#imports'
 
 interface ShareBase {
   uuid?: string
@@ -16,6 +12,8 @@ enum ShareBaseRole {
   Editor = 'editor',
   Viewer = 'viewer',
 }
+
+const { t } = useI18n()
 
 const { dashboardUrl } = $(useDashboard())
 
@@ -35,8 +33,7 @@ const loadBase = async () => {
   try {
     if (!project.value.id) return
 
-    // todo: response is missing roles in type
-    const res = (await $api.project.sharedBaseGet(project.value.id)) as any
+    const res = await $api.project.sharedBaseGet(project.value.id)
 
     base = {
       uuid: res.uuid,
@@ -52,10 +49,9 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
   try {
     if (!project.value.id) return
 
-    // todo: return type void?
-    const res = (await $api.project.sharedBaseUpdate(project.value.id, {
+    const res = await $api.project.sharedBaseUpdate(project.value.id, {
       roles: role,
-    })) as any
+    })
 
     base = res ?? {}
     base!.role = role

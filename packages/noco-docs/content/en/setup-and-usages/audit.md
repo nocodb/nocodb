@@ -6,10 +6,10 @@ category: 'Product'
 menuTitle: 'Audit'
 ---
 
-We are keeping all the user operation logs under Audit. Audits logs can be accessed by clicking `Team & Settings` from the left navigation drawer.
+We are keeping all the user operation logs under Audit. To access it, click the down arrow button next to Project Name on the top left side, then select `Team & Settings`.
 
-<img width="367" alt="image" src="https://user-images.githubusercontent.com/35857179/170426881-ba645392-24a2-4446-b501-0595a0887724.png">
+<img width="390" alt="image" src="https://user-images.githubusercontent.com/35857179/189115289-07657c15-deab-435f-b0f9-2948007f8c65.png">
 
 Then, under SETTINGS, click `Audit`.
 
-<img width="1335" alt="image" src="https://user-images.githubusercontent.com/35857179/170428570-627a3763-26ae-4b8f-b5a8-0b8b42638464.png">
+<img width="1498" alt="image" src="https://user-images.githubusercontent.com/35857179/189115759-ac1664be-906a-4f36-973b-ed67f39d55a3.png">

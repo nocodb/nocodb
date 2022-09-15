@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
   IsLockedInj,
@@ -8,13 +7,14 @@ import {
   extractSdkResponseErrorMsg,
   inject,
   ref,
+  useI18n,
   useNuxtApp,
   useProject,
   useSmartsheetStoreOrThrow,
   useUIPermission,
+  viewIcons,
 } from '#imports'
 import { LockType } from '~/lib'
-import { viewIcons } from '~/utils'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
@@ -44,7 +44,7 @@ const { isUIAllowed } = useUIPermission()
 const { isSharedBase } = useProject()
 
 const Icon = computed(() => {
-  switch ((selectedView?.value as any)?.lock_type) {
+  switch (selectedView?.value.lock_type) {
     case LockType.Personal:
       return MdiAccountIcon
     case LockType.Locked:
@@ -65,8 +65,8 @@ async function changeLockType(type: LockType) {
     return message.info(t('msg.toast.futureRelease'))
   }
   try {
-    ;(selectedView.value as any).lock_type = type
-    $api.dbView.update(selectedView.value.id as string, {
+    selectedView.value.lock_type = type
+    await $api.dbView.update(selectedView.value.id as string, {
       lock_type: type,
     })
 
@@ -82,7 +82,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 <template>
   <div>
     <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
-      <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
+      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-2 items-center">
           <component
             :is="viewIcons[selectedView?.type].icon"
@@ -106,7 +106,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
               class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0"
             >
               <template #title>
-                <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
+                <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
                   <SmartsheetToolbarLockType hide-tick :type="selectedView?.lock_type || LockType.Collaborative" />
 
                   <MaterialSymbolsChevronRightRounded
@@ -130,7 +130,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
             <a-sub-menu key="download">
               <template #title>
                 <!--                Download -->
-                <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                   <MdiDownload class="group-hover:text-accent text-gray-500" />
                   {{ $t('general.download') }}
                   <div class="flex-1" />
@@ -148,7 +148,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
               <a-sub-menu key="upload">
                 <!--                Upload -->
                 <template #title>
-                  <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                  <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                     <MdiUpload class="group-hover:text-accent text-gray-500" />
                     {{ $t('general.upload') }}
                     <div class="flex-1" />
@@ -163,7 +163,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
                 <a-menu-item>
                   <div
                     v-if="isUIAllowed('csvImport') && !isView && !isPublicView"
-                    v-t="['a:actions:upload-csv']"
+                    v-e="['a:actions:upload-csv']"
                     class="nc-project-menu-item"
                     :class="{ disabled: isLocked }"
                     @click="!isLocked ? (quickImportDialog = true) : {}"
@@ -180,7 +180,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
             <a-menu-item>
               <div
                 v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView"
-                v-t="['a:actions:shared-view-list']"
+                v-e="['a:actions:shared-view-list']"
                 class="py-2 flex gap-2 items-center"
                 @click="sharedViewListDlg = true"
               >
@@ -192,7 +192,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
             <a-menu-item v-if="!isSqlView">
               <div
                 v-if="isUIAllowed('webhook') && !isView && !isPublicView"
-                v-t="['c:actions:webhook']"
+                v-e="['c:actions:webhook']"
                 class="py-2 flex gap-2 items-center"
                 @click="showWebhookDrawer = true"
               >
@@ -203,7 +203,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
             <a-menu-item>
               <div
                 v-if="!isSharedBase && !isPublicView"
-                v-t="['c:snippet:open']"
+                v-e="['c:snippet:open']"
                 class="py-2 flex gap-2 items-center"
                 @click="showApiSnippetDrawer = true"
               >

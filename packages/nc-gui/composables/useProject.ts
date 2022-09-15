@@ -4,13 +4,15 @@ import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { useNuxtApp, useRoute } from '#app'
 import type { ProjectMetaInfo } from '~/lib'
 import type { ThemeConfig } from '@/composables/useTheme'
-import { useInjectionState } from '#imports'
+import { createEventHook, useInjectionState } from '#imports'
 
 const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   const { $api, $e } = useNuxtApp()
   const route = useRoute()
   const { includeM2M } = useGlobal()
   const { setTheme, theme } = useTheme()
+
+  const projectLoadedHook = createEventHook<ProjectType>()
 
   const projectId = computed(() => (_projectId ? unref(_projectId) : (route.params.projectId as string)))
   const project = ref<ProjectType>({})
@@ -86,6 +88,8 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     await loadProjectRoles()
     await loadTables()
     setTheme(projectMeta.value?.theme)
+
+    projectLoadedHook.trigger(project.value)
   }
 
   async function updateProject(data: Partial<ProjectType>) {
@@ -151,6 +155,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     projectMetaInfo,
     projectMeta,
     saveTheme,
+    projectLoadedHook: projectLoadedHook.on,
   }
 }, 'useProject')
 

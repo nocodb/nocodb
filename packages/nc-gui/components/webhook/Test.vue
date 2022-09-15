@@ -1,21 +1,18 @@
 <script setup lang="ts">
-import { onMounted } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { MetaInj } from '~/context'
-import { extractSdkResponseErrorMsg } from '~/utils'
-
-const { hook } = defineProps<Props>()
-
-const { t } = useI18n()
+import { MetaInj, extractSdkResponseErrorMsg, onMounted, useI18n } from '#imports'
 
 interface Props {
   hook: Record<string, any>
 }
 
+const { hook } = defineProps<Props>()
+
+const { t } = useI18n()
+
 const { $api } = useNuxtApp()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const sampleData = ref({
   data: {},
@@ -37,7 +34,7 @@ async function loadSampleData() {
 
 async function testWebhook() {
   try {
-    await $api.dbTableWebhook.test(meta?.value.id as string, {
+    await $api.dbTableWebhook.test(meta.value?.id as string, {
       hook,
       payload: sampleData.value,
     })

@@ -1,24 +1,19 @@
 <script setup lang="ts">
-import type { ColumnType, KanbanType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
+import type { KanbanType } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 import {
   ActiveViewInj,
-  FieldsInj,
   IsLockedInj,
-  IsPublicInj,
   MetaInj,
   ReloadViewDataHookInj,
   computed,
   inject,
   ref,
   useKanbanViewData,
-  useNuxtApp,
   useViewColumns,
   watch,
 } from '#imports'
-import CellIcon from '~/components/smartsheet-header/CellIcon.vue'
-import VirtualCellIcon from '~/components/smartsheet-header/VirtualCellIcon.vue'
 
 const meta = inject(MetaInj)!
 
@@ -26,36 +21,16 @@ const activeView = inject(ActiveViewInj)!
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
-const rootFields = inject(FieldsInj)
-
 const isLocked = inject(IsLockedInj, ref(false))
 
-const isPublic = inject(IsPublicInj, ref(false))
+const { fields, loadViewColumns, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
-const { $api, $e } = useNuxtApp()
-
-const {
-  showSystemFields,
-  sortedAndFilteredFields,
-  fields,
-  loadViewColumns,
-  filteredFieldList,
-  filterQuery,
-  showAll,
-  hideAll,
-  saveOrUpdate,
-  metaColumnById,
-} = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
-
-const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewData(
-  meta,
-  activeView as any,
-)
+const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewData(meta, activeView)
 
 const stackedByDropdown = ref(false)
 
 watch(
-  () => (activeView.value as any)?.id,
+  () => activeView.value?.id,
   async (newVal, oldVal) => {
     if (newVal !== oldVal && meta.value) {
       await loadViewColumns()
@@ -63,11 +38,6 @@ watch(
   },
   { immediate: true },
 )
-
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? VirtualCellIcon : CellIcon, {
-    columnMeta: c,
-  })
 
 const groupingFieldColumnId = computed({
   get: () => kanbanMetaData.value.grp_column_id,

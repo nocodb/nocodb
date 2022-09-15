@@ -193,7 +193,8 @@ export const genTest = (apiType, dbType, testMode) => {
 
         it("Verify Views & Shared base", () => {
             cy.openTableTab("Film", 3);
-            mainPage.toggleRightSidebar();
+            // mainPage.toggleRightSidebar();
+            cy.get(".nc-toggle-right-navbar").should("exist").click();
             cy.get('.nc-form-view-item:visible')
                 .should('exist')
                 .eq(0)

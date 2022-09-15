@@ -5,6 +5,8 @@ import {
   computed,
   definePageMeta,
   navigateTo,
+  onBeforeMount,
+  onBeforeUnmount,
   onKeyStroke,
   openLink,
   projectThemeColors,
@@ -16,6 +18,7 @@ import {
   useI18n,
   useProject,
   useRoute,
+  useRouter,
   useTabs,
   useUIPermission,
 } from '#imports'
@@ -29,9 +32,11 @@ const { t } = useI18n()
 
 const route = useRoute()
 
+const router = useRouter()
+
 const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
-const { projectLoadedHook, project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme } = useProject()
+const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme, loadProject, reset } = useProject()
 
 const { clearTabs, addTab } = useTabs()
 
@@ -114,7 +119,7 @@ const copyProjectInfo = async () => {
     // Copied to clipboard
     message.info(t('msg.info.copiedToClipboard'))
   } catch (e: any) {
-    console.log(e)
+    console.error(e)
     message.error(e.message)
   }
 }
@@ -125,7 +130,7 @@ const copyAuthToken = async () => {
     // Copied to clipboard
     message.info(t('msg.info.copiedToClipboard'))
   } catch (e: any) {
-    console.log(e)
+    console.error(e)
     message.error(e.message)
   }
 }
@@ -140,11 +145,21 @@ onKeyStroke(
 
 clearTabs()
 
-projectLoadedHook(() => {
+onBeforeMount(async () => {
+  await loadProject()
+
   if (!route.params.type && isUIAllowed('teamAndAuth')) {
     addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
   }
+
+  /** If v1 url found navigate to corresponding new url */
+  const { type, name, view } = route.query
+  if (type && name) {
+    await router.replace(`/nc/${route.params.projectId}/${type}/${name}${view ? `/${view}` : ''}`)
+  }
 })
+
+onBeforeUnmount(reset)
 </script>
 
 <template>

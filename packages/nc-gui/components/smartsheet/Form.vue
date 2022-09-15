@@ -401,42 +401,39 @@ watch(view, (nextView) => {
       </div>
     </a-col>
   </a-row>
+
   <a-row v-else class="h-full flex">
-    <a-col
-      v-if="isEditable"
-      :span="8"
-      class="bg-[#f7f7f7] shadow-md p-5 h-full overflow-auto scrollbar-thin-primary nc-form-left-drawer"
-    >
-      <div class="flex">
-        <div class="flex flex-row flex-1 text-lg">
-          <span>
-            <!-- Fields -->
-            {{ $t('objects.fields') }}
-          </span>
+    <a-col v-if="isEditable" :span="8" class="shadow p-2 md:p-4 h-full overflow-auto scrollbar-thin-primary nc-form-left-drawer">
+      <div class="flex flex-wrap gap-2">
+        <div class="flex-1 text-lg">
+          {{ $t('objects.fields') }}
         </div>
-        <div class="flex flex-row">
-          <div class="cursor-pointer mr-2">
-            <span
-              v-if="hiddenColumns.length"
-              class="mr-2 nc-form-add-all"
-              style="border-bottom: 2px solid rgb(218, 218, 218)"
-              @click="addAllColumns"
-            >
-              <!-- Add all -->
-              {{ $t('general.addAll') }}
-            </span>
-            <span
-              v-if="localColumns.length"
-              class="ml-2 nc-form-remove-all"
-              style="border-bottom: 2px solid rgb(218, 218, 218)"
-              @click="removeAllColumns"
-            >
-              <!-- Remove all -->
-              {{ $t('general.removeAll') }}
-            </span>
-          </div>
+
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button
+            v-if="hiddenColumns.length"
+            type="button"
+            class="nc-form-add-all color-transition hover:text-primary"
+            style="border-bottom: 2px solid rgb(218, 218, 218)"
+            @click="addAllColumns"
+          >
+            <!-- Add all -->
+            {{ $t('general.addAll') }}
+          </button>
+
+          <button
+            v-if="localColumns.length"
+            type="button"
+            class="nc-form-remove-all color-transition hover:text-primary"
+            style="border-bottom: 2px solid rgb(218, 218, 218)"
+            @click="removeAllColumns"
+          >
+            <!-- Remove all -->
+            {{ $t('general.removeAll') }}
+          </button>
         </div>
       </div>
+
       <Draggable
         :list="hiddenColumns"
         item-key="id"
@@ -448,7 +445,7 @@ watch(view, (nextView) => {
         <template #item="{ element, index }">
           <a-card
             size="small"
-            class="m-0 p-0 cursor-pointer item mb-2"
+            class="m-0 p-0 cursor-pointer item mb-2 hover:bg-primary bg-opacity-10 !rounded !shadow"
             @mousedown="moved = false"
             @mousemove="moved = false"
             @mouseup="handleMouseUp(element, index)"
@@ -475,19 +472,26 @@ watch(view, (nextView) => {
             </div>
           </a-card>
         </template>
+
         <template #footer>
-          <div class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide">
+          <div
+            class="my-4 select-none border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide"
+          >
             <!-- Drag and drop fields here to hide -->
             {{ $t('msg.info.dragDropHide') }}
           </div>
+
           <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-form-add-column">
-            <a-button type="link" class="w-full caption mt-2" size="large" @click.stop="showColumnDropdown = true">
-              <div class="flex items-center prose-sm justify-center text-gray-400">
-                <mdi-plus />
+            <button type="button" class="group w-full mt-2" @click.stop="showColumnDropdown = true">
+              <span class="flex items-center flex-wrap justify-center gap-2 prose-sm text-gray-400">
+                <MdiPlus class="color-transition transform group-hover:(text-accent scale-125)" />
                 <!-- Add new field to this table -->
-                {{ $t('activity.addField') }}
-              </div>
-            </a-button>
+                <span class="color-transition group-hover:text-primary break-words">
+                  {{ $t('activity.addField') }}
+                </span>
+              </span>
+            </button>
+
             <template #overlay>
               <LazySmartsheetColumnEditOrAddProvider
                 v-if="showColumnDropdown"
@@ -501,25 +505,28 @@ watch(view, (nextView) => {
         </template>
       </Draggable>
     </a-col>
+
     <a-col v-if="formViewData" :span="isEditable ? 16 : 24" class="h-full overflow-auto scrollbar-thin-primary">
-      <div class="h-[200px] !bg-[#dbdad7]">
+      <div class="h-[200px] bg-primary bg-opacity-75">
         <!-- for future implementation of cover image -->
       </div>
+
       <a-card
-        class="m-0 rounded-b-0 p-4 border-none"
+        class="m-0 !rounded-0 p-4 border-none"
         :body-style="{
           maxWidth: '700px',
           margin: '0 auto',
           marginTop: '-200px',
         }"
       >
-        <a-form ref="formRef" :model="formState" class="nc-form">
-          <a-card class="rounded m-2 py-10 px-5">
+        <a-form ref="formRef" :model="formState" class="nc-form" no-style>
+          <a-card class="!rounded !shadow m-2 py-8" :body-style="{ paddingLeft: '0px', paddingRight: '0px' }">
             <!-- Header -->
-            <a-form-item v-if="isEditable" class="m-0 gap-0 p-0">
+            <a-form-item v-if="isEditable" class="px-4">
               <a-input
                 v-model:value="formViewData.heading"
-                class="w-full !font-bold !text-4xl"
+                class="w-full !font-bold !text-4xl !border-0 !border-b-1 !border-dashed"
+                :style="{ borderRightWidth: '0px !important' }"
                 size="large"
                 hide-details
                 placeholder="Form Title"
@@ -529,13 +536,14 @@ watch(view, (nextView) => {
               />
             </a-form-item>
 
-            <div v-else class="ml-3 w-full text-bold text-h3">{{ formViewData.heading }}</div>
+            <div v-else class="px-4 ml-3 w-full text-bold text-4xl">{{ formViewData.heading }}</div>
 
             <!-- Sub Header -->
             <a-form-item v-if="isEditable" class="m-0 gap-0 p-0">
               <a-input
                 v-model:value="formViewData.subheading"
-                class="w-full"
+                class="w-full !border-0 !border-b-1 !border-dashed"
+                :style="{ borderRightWidth: '0px !important' }"
                 size="large"
                 hide-details
                 :placeholder="$t('msg.info.formDesc')"

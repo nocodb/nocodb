@@ -151,7 +151,7 @@ watch(
     <div
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
-      class="group flex gap-1 items-center active:ring rounded border-1 p-1 hover:(bg-primary bg-opacity-10)"
+      class="group cursor-pointer flex gap-1 items-center active:ring rounded border-1 p-1 hover:(bg-primary bg-opacity-10)"
       @click.stop="open"
     >
       <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />

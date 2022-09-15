@@ -3,6 +3,7 @@ import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import {
+  DropZoneRef,
   IsGalleryInj,
   inject,
   isImage,
@@ -30,11 +31,13 @@ const emits = defineEmits<Emits>()
 
 const isGallery = inject(IsGalleryInj, ref(false))
 
+const dropZoneInjection = inject(DropZoneRef, ref())
+
 const attachmentCellRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const currentCellRef = ref()
+const currentCellRef = dropZoneInjection && dropZoneInjection.value ? ref() : dropZoneInjection
 
 const { cellRefs, isSharedForm } = useSmartsheetStoreOrThrow()!
 
@@ -57,6 +60,8 @@ const {
 watch(
   [() => rowIndex, isForm, attachmentCellRef],
   () => {
+    if (dropZoneInjection?.value) return
+
     if (!rowIndex && (isForm.value || isGallery.value)) {
       currentCellRef.value = attachmentCellRef.value
     } else {
@@ -173,7 +178,7 @@ watch(
       <div
         ref="sortableRef"
         :class="{ dragging }"
-        class="flex justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-auto"
+        class="flex cursor-pointer justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-auto"
       >
         <template v-for="(item, i) of visibleItems" :key="item.url || item.title">
           <a-tooltip placement="bottom">
@@ -203,7 +208,7 @@ watch(
         </template>
       </div>
 
-      <div class="group flex gap-1 items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)">
+      <div class="group cursor-pointer flex gap-1 items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)">
         <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <a-tooltip v-else placement="bottom">

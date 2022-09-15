@@ -1,6 +1,15 @@
 <script lang="ts" setup>
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { computed, onKeyStroke, ref, useEventListener, useSharedFormStoreOrThrow, useStepper } from '#imports'
+import {
+  DropZoneRef,
+  computed,
+  onKeyStroke,
+  provide,
+  ref,
+  useEventListener,
+  useSharedFormStoreOrThrow,
+  useStepper,
+} from '#imports'
 
 const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView } = useSharedFormStoreOrThrow()
 
@@ -35,6 +44,8 @@ const transitionName = ref<'left' | 'right'>('left')
 const field = computed(() => formColumns.value?.[index.value])
 
 const el = ref<HTMLDivElement>()
+
+provide(DropZoneRef, el)
 
 const transition = (direction: 'left' | 'right') => {
   isTransitioning.value = true
@@ -101,7 +112,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
       <div
         ref="el"
         :key="field.title"
-        class="bg-white flex flex-col justify-center gap-4 w-full lg:max-w-1/2 max-w-500px m-auto px-8 pt-8 pb-4 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+        class="bg-white flex flex-col justify-center gap-4 w-full max-w-[max(33%,600px)] m-auto px-8 pt-8 pb-4 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
         <div v-if="field && !submitted" class="flex flex-col gap-2">
           <div class="flex nc-form-column-label">

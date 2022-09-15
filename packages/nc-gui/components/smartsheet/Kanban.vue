@@ -156,7 +156,7 @@ const kanbanListScrollHandler = async (e: any) => {
     const stackTitle = e.target.getAttribute('data-stack-title')
     const pageSize = appInfo.defaultLimit || 25
     const page = Math.ceil(formattedData.value[stackTitle].length / pageSize)
-    await loadMoreKanbanData(stackTitle, { offset: (page - 1) * pageSize })
+    await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
   }
 }
 

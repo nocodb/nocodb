@@ -195,8 +195,12 @@ const renameStack = () => {
   // TODO:
 }
 
-openNewRecordFormHook?.on(async () => {
+openNewRecordFormHook?.on(async (stackTitle) => {
   const newRow = await addEmptyRow()
+  // preset the grouping field value
+  newRow.row = {
+    [groupingField.value]: stackTitle,
+  }
   expandForm(newRow)
 })
 </script>
@@ -234,7 +238,7 @@ openNewRecordFormHook?.on(async () => {
                     </div>
                     <template #overlay>
                       <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
-                        <a-menu-item @click="openNewRecordFormHook.trigger()">
+                        <a-menu-item @click="openNewRecordFormHook.trigger(stack.title)">
                           <div class="py-2 flex gap-2 items-center">
                             <mdi-plus class="text-gray-500" />
                             <!-- TODO: i18n -->
@@ -354,7 +358,10 @@ openNewRecordFormHook?.on(async () => {
               </a-layout-content>
               <a-layout-footer>
                 <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
-                  <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
+                  <mdi-plus
+                    class="text-pint-500 text-lg text-primary cursor-pointer"
+                    @click="openNewRecordFormHook.trigger(stack.title)"
+                  />
                   <div class="nc-kanban-data-count">
                     <!-- TODO: fix current count for Uncategorized -->
                     {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
@@ -376,11 +383,7 @@ openNewRecordFormHook?.on(async () => {
     :state="expandedFormRowState"
     :meta="meta"
   />
-  <a-modal
-    v-model:visible="deleteStackVModel"
-    class="!top-[35%]"
-    wrap-class-name="nc-modal-view-create"
-  >
+  <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-view-create">
     <template #title>
       <!-- TODO: i18n -->
       Delete stack?

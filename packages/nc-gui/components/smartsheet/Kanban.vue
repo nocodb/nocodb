@@ -60,8 +60,6 @@ const { isUIAllowed } = useUIPermission()
 
 const { appInfo } = $(useGlobal())
 
-const { isLoading: loading, api } = useApi()
-
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
@@ -204,7 +202,6 @@ openNewRecordFormHook?.on(async () => {
 </script>
 
 <template>
-  {{ formattedData.Uncategorized }}
   <div class="flex h-full bg-white px-2">
     <div class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
       <Draggable
@@ -382,7 +379,6 @@ openNewRecordFormHook?.on(async () => {
   <a-modal
     v-model:visible="deleteStackVModel"
     class="!top-[35%]"
-    :confirm-loading="loading"
     wrap-class-name="nc-modal-view-create"
   >
     <template #title>
@@ -396,7 +392,7 @@ openNewRecordFormHook?.on(async () => {
     </div>
     <template #footer>
       <a-button key="back" @click="deleteStackVModel = false">{{ $t('general.cancel') }}</a-button>
-      <a-button key="submit" type="primary" :loading="loading" @click="handleDeleteStackConfirmClick">
+      <a-button key="submit" type="primary" @click="handleDeleteStackConfirmClick">
         {{ $t('general.delete') }}
       </a-button>
     </template>

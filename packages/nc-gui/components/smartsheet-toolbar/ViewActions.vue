@@ -216,7 +216,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
               </div>
             </a-menu-item>
             <a-menu-item>
-              <div v-t="['c:erd:open']" class="py-2 flex gap-2 items-center" @click="showErd = true">
+              <div v-e="['c:erd:open']" class="py-2 flex gap-2 items-center" @click="showErd = true">
                 <AcountTreeRoundedIcon class="text-gray-500" />
                 {{ $t('title.erdView') }}
               </div>

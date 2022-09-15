@@ -42,11 +42,11 @@ const localTables = computed(() =>
 
       <div class="absolute top-1 right-8 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
         <div class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showPkAndFk" />
+          <a-checkbox v-model:checked="config.showPkAndFk" v-e="['c:erd:showPkAndFk']" />
           <span class="ml-2" style="font-size: 0.65rem">Show PK and FK</span>
         </div>
         <div class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showViews" />
+          <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" />
           <span class="ml-2" style="font-size: 0.65rem">Show views</span>
         </div>
       </div>

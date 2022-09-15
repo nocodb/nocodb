@@ -62,6 +62,9 @@ useEventListener('wheel', (event) => {
     goNext()
   }
 })
+
+onKeyStroke(['ArrowLeft', 'ArrowDown'], goPrevious)
+onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
 </script>
 
 <template>

@@ -156,7 +156,7 @@ watch(
     <div
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
-      class="group cursor-pointer flex gap-1 items-center active:ring rounded border-1 p-1 hover:(bg-primary bg-opacity-10)"
+      class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       @click.stop="open"
     >
       <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
@@ -165,9 +165,16 @@ watch(
         <template #title> Click or drop a file into cell </template>
 
         <div class="flex items-center gap-2">
-          <MaterialSymbolsAttachFile class="transform group-hover:(text-accent scale-120) text-gray-500 text-[10px]" />
+          <MaterialSymbolsAttachFile
+            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
+          />
 
-          <div v-if="!visibleItems.length" class="group-hover:text-primary text-gray-500 text-xs">Add file(s)</div>
+          <div
+            v-if="!visibleItems.length"
+            class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs"
+          >
+            Add file(s)
+          </div>
         </div>
       </a-tooltip>
     </div>
@@ -208,14 +215,16 @@ watch(
         </template>
       </div>
 
-      <div class="group cursor-pointer flex gap-1 items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)">
+      <div
+        class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      >
         <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <a-tooltip v-else placement="bottom">
           <template #title> View attachments </template>
 
           <MdiArrowExpand
-            class="select-none transform group-hover:(text-accent scale-120) text-[10px] text-gray-500"
+            class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
             @click.stop="modalVisible = true"
           />
         </a-tooltip>

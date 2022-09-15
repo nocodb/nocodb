@@ -413,8 +413,7 @@ watch(view, (nextView) => {
           <button
             v-if="hiddenColumns.length"
             type="button"
-            class="nc-form-add-all color-transition hover:text-primary"
-            style="border-bottom: 2px solid rgb(218, 218, 218)"
+            class="nc-form-add-all color-transition bg-white transform hover:(text-primary bg-primary bg-opacity-5 ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 border-b-2 border-slate-300 shadow-sm rounded"
             @click="addAllColumns"
           >
             <!-- Add all -->
@@ -424,8 +423,7 @@ watch(view, (nextView) => {
           <button
             v-if="localColumns.length"
             type="button"
-            class="nc-form-remove-all color-transition hover:text-primary"
-            style="border-bottom: 2px solid rgb(218, 218, 218)"
+            class="nc-form-remove-all color-transition bg-white transform hover:(text-primary bg-primary bg-opacity-5 ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 border-b-2 border-slate-300 shadow-sm rounded"
             @click="removeAllColumns"
           >
             <!-- Remove all -->
@@ -519,7 +517,7 @@ watch(view, (nextView) => {
         }"
       >
         <a-form ref="formRef" :model="formState" class="nc-form" no-style>
-          <a-card class="!rounded !shadow !m-2 md:!m-4 xl:!m-8 py-8" :body-style="{ paddingLeft: '0px', paddingRight: '0px' }">
+          <a-card class="!rounded !shadow !m-2 md:!m-4 xl:!m-8" :body-style="{ paddingLeft: '0px', paddingRight: '0px' }">
             <!-- Header -->
             <div v-if="isEditable" class="px-4">
               <a-form-item v-if="isEditable">
@@ -700,9 +698,9 @@ watch(view, (nextView) => {
             </Draggable>
 
             <div class="justify-center flex mt-6">
-              <a-button type="primary" class="flex items-center gap-2 nc-form-submit" size="large" @click="submitForm">
+              <button type="submit" class="scaling-btn nc-form-submit" @click="submitForm">
                 {{ $t('general.submit') }}
-              </a-button>
+              </button>
             </div>
           </a-card>
         </a-form>

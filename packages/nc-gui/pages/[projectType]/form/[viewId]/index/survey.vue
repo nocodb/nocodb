@@ -35,7 +35,7 @@ const steps = computed(() => {
   }, [] as string[])
 })
 
-const { index, goToPrevious, goToNext, isFirst, isLast, steps: _steps } = useStepper(steps)
+const { index, goToPrevious, goToNext, isFirst, isLast } = useStepper(steps)
 
 const isTransitioning = ref(false)
 
@@ -63,8 +63,14 @@ const transition = (direction: 'left' | 'right') => {
 const goNext = async () => {
   if (isLast.value) return
 
-  const isValid = await v$.value.localState[field.value!.title!].$validate()
-  if (!isValid) return
+  if (!field.value || !field.value.title) return
+
+  const validationField = v$.value.localState[field.value.title]
+
+  if (validationField) {
+    const isValid = await validationField.$validate()
+    if (!isValid) return
+  }
 
   transition('left')
 
@@ -99,13 +105,15 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
 </script>
 
 <template>
-  <div class="w-full h-full flex flex-col justify-center items-center">
+  <div class="w-full flex flex-auto flex-col justify-center items-center">
     <template v-if="sharedFormView">
       <div class="flex-1" />
 
       <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
 
-      <h2 v-if="sharedFormView.subheading" class="prose-lg text-gray-500 self-center">{{ sharedFormView.subheading }}</h2>
+      <h2 class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4">
+        {{ sharedFormView.subheading }}
+      </h2>
     </template>
 
     <Transition :name="`slide-${transitionName}`" mode="out-in">
@@ -149,7 +157,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
             />
 
             <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
-              <div v-for="error of v$.localState[field.title].$errors" :key="error" class="text-red-500">
+              <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                 {{ error.$message }}
               </div>
 

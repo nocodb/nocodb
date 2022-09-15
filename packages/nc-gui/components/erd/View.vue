@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Edge, Node } from '@braks/vue-flow'
 import { Background, Controls, VueFlow } from '@braks/vue-flow'
+import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
 import TableNode from './TableNode.vue'
@@ -42,22 +43,26 @@ const populateInitialNodes = () => {
 }
 
 const populateEdges = () => {
-  const ltarColumns = tables.reduce((acc: any[], table) => {
+  const ltarColumns = tables.reduce<ColumnType[]>((acc, table) => {
     const meta = metasWithIdAsKey.value[table.id!]
-    const columns = meta.columns.filter((column: any) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1)
+    const columns = meta.columns?.filter(
+      (column: ColumnType) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1,
+    )
 
-    columns.forEach((column: any) => {
-      if (column.colOptions.type === 'hm') {
+    columns?.forEach((column: ColumnType) => {
+      if ((column.colOptions as LinkToAnotherRecordType)?.type === 'hm') {
         acc.push(column)
       }
 
-      if (column.colOptions.type === 'mm') {
+      if ((column.colOptions as LinkToAnotherRecordType).type === 'mm') {
         // Avoid duplicate mm connections
         const correspondingColumn = acc.find(
           (c) =>
-            c.colOptions.type === 'mm' &&
-            c.colOptions.fk_parent_column_id === column.colOptions.fk_child_column_id &&
-            c.colOptions.fk_child_column_id === column.colOptions.fk_parent_column_id,
+            (c.colOptions as LinkToAnotherRecordType | FormulaType | RollupType | LookupType).type === 'mm' &&
+            (c.colOptions as LinkToAnotherRecordType).fk_parent_column_id ===
+              (column.colOptions as LinkToAnotherRecordType).fk_child_column_id &&
+            (c.colOptions as LinkToAnotherRecordType).fk_child_column_id ===
+              (column.colOptions as LinkToAnotherRecordType).fk_parent_column_id,
         )
         if (!correspondingColumn) {
           acc.push(column)
@@ -66,20 +71,22 @@ const populateEdges = () => {
     })
 
     return acc
-  }, [])
+  }, [] as ColumnType[])
 
-  edges.value = ltarColumns.map((column: any) => {
-    const source = column.fk_model_id
-    const target = column.colOptions.fk_related_model_id
+  edges.value = ltarColumns.map((column) => {
+    const source = column.fk_model_id!
+    const target = (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!
+
     let sourceColumnId, targetColumnId
 
-    if (column.colOptions.type === 'hm') {
-      sourceColumnId = column.colOptions.fk_child_column_id
-      targetColumnId = column.colOptions.fk_child_column_id
+    if ((column.colOptions as LinkToAnotherRecordType).type === 'hm') {
+      sourceColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
+      targetColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
     }
-    if (column.colOptions.type === 'mm') {
-      sourceColumnId = column.colOptions.fk_parent_column_id
-      targetColumnId = column.colOptions.fk_child_column_id
+
+    if ((column.colOptions as LinkToAnotherRecordType).type === 'mm') {
+      sourceColumnId = (column.colOptions as LinkToAnotherRecordType).fk_parent_column_id
+      targetColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
     }
 
     dagreGraph.setEdge(source, target)

@@ -163,6 +163,8 @@ declare module '@vue/runtime-core' {
     MdiFlag: typeof import('~icons/mdi/flag')['default']
     MdiFlashOutline: typeof import('~icons/mdi/flash-outline')['default']
     MdiFolder: typeof import('~icons/mdi/folder')['default']
+    MdiFullscreen: typeof import('~icons/mdi/fullscreen')['default']
+    MdiFullscreenExit: typeof import('~icons/mdi/fullscreen-exit')['default']
     MdiFunction: typeof import('~icons/mdi/function')['default']
     MdiGestureDoubleTap: typeof import('~icons/mdi/gesture-double-tap')['default']
     MdiGithub: typeof import('~icons/mdi/github')['default']

@@ -43,10 +43,7 @@ export function useKanbanViewData(
       rowMeta: {},
     }))
 
-  async function loadKanbanData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-    // each stack only loads 25 records -> scroll to load more (to be integrated with infinite scroll)
-    // TODO: integrate with infinite scroll
-    // TODO: handle share view case
+  async function loadKanbanData() {
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
 
     // reset formattedData to avoid storing previous data after changing grouping field
@@ -59,7 +56,6 @@ export function useKanbanViewData(
           where = `(${groupingField.value},is,null)`
         }
         const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
-          ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where,
@@ -67,6 +63,20 @@ export function useKanbanViewData(
         formattedData.value[option.title] = formatData(response.list)
       }),
     )
+  }
+
+  async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+    let where = `(${groupingField.value},eq,${stackTitle})`
+    if (stackTitle === 'Uncategorized') {
+      where = `(${groupingField.value},is,null)`
+    }
+    const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
+      ...params,
+      ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+      ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+      where,
+    })
+    formattedData.value[stackTitle] = [...formattedData.value[stackTitle], ...formatData(response.list)]
   }
 
   async function loadKanbanMeta() {
@@ -215,6 +225,7 @@ export function useKanbanViewData(
 
   return {
     loadKanbanData,
+    loadMoreKanbanData,
     loadKanbanMeta,
     updateKanbanMeta,
     kanbanMetaData,

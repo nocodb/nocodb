@@ -27,17 +27,7 @@ watch(
   <div class="nc-form-view relative md:bg-primary bg-opacity-5 h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin">
     <NuxtPage />
 
-    <button
-      type="button"
-      class="cursor-pointer self-end text-xs text-gray-400 hover:text-primary mx-auto my-4 flex justify-center gap-2 items-center"
-      @click="openLink('https://github.com/nocodb/nocodb')"
-    >
-      <span class="bg-primary bg-opacity-100 rounded">
-        <img width="32" height="32" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-      </span>
-
-      Powered by NocoDB
-    </button>
+    <GeneralPoweredBy />
 
     <a-modal
       v-model:visible="passwordDlg"

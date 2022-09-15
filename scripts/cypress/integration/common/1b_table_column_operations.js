@@ -34,22 +34,26 @@ export const genTest = (apiType, dbType) => {
         const randVal = "Test@1234.com";
         const updatedRandVal = "Updated@1234.com";
 
-        before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
-            cy.createTable(name);
-        });
+        // before(() => {
+        //     cy.restoreLocalStorage();
+        //     cy.createTable(name);
+        // })
 
         beforeEach(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
         })
 
-        // delete table
-        after(() => {
-            cy.deleteTable(name, dbType);
-        });
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
+        // // delete table
+        // after(() => {
+        //     cy.deleteTable(name, dbType);
+        // });
 
         it("Create Table Column", () => {
+            cy.createTable(name);
             mainPage.addColumn(colName, name);
         });
 
@@ -167,6 +171,9 @@ export const genTest = (apiType, dbType) => {
 
             // verify if everything is wiped off
             mainPage.getCell("Title", 1).contains("a1").should("not.exist");
+
+            // clean-up
+            cy.deleteTable(name, dbType);
         });
     });
 };

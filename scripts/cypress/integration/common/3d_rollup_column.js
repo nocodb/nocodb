@@ -14,28 +14,32 @@ export const genTest = (apiType, dbType) => {
 
         // Run once before test- create project (rest/graphql)
         //
-        before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
-
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
-
-            // open a table to work on views
-            //
-            cy.openTableTab("Country", 25);
-        });
+        // before(() => {
+        //     cy.fileHook();
+        //     mainPage.tabReset();
+        //
+        //     // // kludge: wait for page load to finish
+        //     // cy.wait(1000);
+        //     // // close team & auth tab
+        //     // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+        //     // cy.wait(1000);
+        //
+        //     // open a table to work on views
+        //     //
+        //     cy.openTableTab("Country", 25);
+        // });
 
         beforeEach(() => {
-            cy.fileHook();
-        });
+            cy.restoreLocalStorage();
+        })
 
-        after(() => {
-            cy.closeTableTab("Country");
-        });
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
+        // after(() => {
+        //     cy.closeTableTab("Country");
+        // });
 
         // Routine to create a new look up column
         //
@@ -106,6 +110,8 @@ export const genTest = (apiType, dbType) => {
         // Test case
 
         it("Add Rollup column (City, City, count) & Delete", () => {
+            cy.openTableTab("Country", 25);
+
             addRollUpColumn("RollUpCol", "City", "City", "count");
 
             // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
@@ -116,6 +122,8 @@ export const genTest = (apiType, dbType) => {
 
             // editColumnByName("RollUpCol_2", "RollUpCol_New");
             deleteColumnByName("RollUpCol");
+
+            cy.closeTableTab("Country");
         });
 
         it.skip("Add Rollup column (City, CountryId, count) & Delete", () => {

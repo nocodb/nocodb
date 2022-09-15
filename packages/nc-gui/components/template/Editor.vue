@@ -2,7 +2,6 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { Empty, Form, message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   MetaInj,
@@ -17,6 +16,7 @@ import {
   onMounted,
   reactive,
   ref,
+  useI18n,
   useNuxtApp,
   useProject,
   useTabs,
@@ -44,7 +44,7 @@ interface Option {
   value: string
 }
 
-const meta = inject(MetaInj, ref({} as TableType))
+const meta = inject(MetaInj, ref())
 
 const columns = computed(() => meta.value?.columns || [])
 
@@ -255,7 +255,7 @@ function fieldsValidation(record: Record<string, any>) {
     return true
   }
 
-  const tableName = meta?.value.title || ''
+  const tableName = meta.value?.title || ''
 
   if (!record.destCn) {
     message.error(`${t('msg.error.columnDescriptionNotFound')} ${record.srcCn}`)
@@ -340,7 +340,7 @@ async function importTemplate() {
     try {
       isImporting.value = true
 
-      const tableName = meta.value.title
+      const tableName = meta.value?.title
 
       // only one file is allowed currently
       const data = importData[Object.keys(importData)[0]]
@@ -381,7 +381,7 @@ async function importTemplate() {
           }, {}),
         )
 
-        await $api.dbTableRow.bulkCreate('noco', projectName, tableName, batchData)
+        await $api.dbTableRow.bulkCreate('noco', projectName, tableName!, batchData)
 
         importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
 
@@ -440,7 +440,7 @@ async function importTemplate() {
           table_name: table.ref_table_name,
           // leave title empty to get a generated one based on ref_table_name
           title: '',
-          columns: table.columns,
+          columns: table.columns || [],
         })
         table.title = tableMeta.title
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { inject, useMetas, useProject } from '#imports'
-import { MetaInj } from '~/context'
+import { MetaInj, inject, useMetas, useProject } from '#imports'
 
 interface Props {
   value: Record<string, any>
@@ -11,7 +10,7 @@ const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
 const vModel = useVModel(props, 'value', emit)
 
-const meta = $(inject(MetaInj)!)
+const meta = $(inject(MetaInj, ref()))
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
 
@@ -51,7 +50,7 @@ const refTables = $computed(() => {
   }
 
   return (
-    meta.columns
+    meta?.columns
       ?.filter((c: any) => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions.type !== 'bt' && !c.system)
       .map((c) => ({
         col: c.colOptions,

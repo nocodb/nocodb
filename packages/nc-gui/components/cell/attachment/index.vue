@@ -68,7 +68,7 @@ watch(
     } else {
       nextTick(() => {
         const nextCell = cellRefs.value.reduceRight((cell, curr) => {
-          if (!cell && curr.dataset.key === `${rowIndex}${column.value.id}`) cell = curr
+          if (!cell && curr.dataset.key === `${rowIndex}${column.value!.id}`) cell = curr
 
           return cell
         }, undefined as HTMLTableDataCellElement | undefined)
@@ -121,7 +121,7 @@ onKeyDown('Escape', () => {
 watch(
   () => storedFiles.value.length || 0,
   () => {
-    rowState.value[column.value.title!] = storedFiles.value
+    rowState.value[column.value!.title!] = storedFiles.value
   },
 )
 

@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import HTTPSnippet from 'httpsnippet'
-import { useClipboard } from '@vueuse/core'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { ActiveViewInj, MetaInj } from '~/context'
-import { inject, useGlobal, useProject, useSmartsheetStoreOrThrow, useVModel, useViewData } from '#imports'
+import {
+  ActiveViewInj,
+  MetaInj,
+  inject,
+  useClipboard,
+  useGlobal,
+  useI18n,
+  useProject,
+  useSmartsheetStoreOrThrow,
+  useVModel,
+  useViewData,
+} from '#imports'
 
 const props = defineProps<Props>()
 
@@ -20,13 +28,13 @@ const { project } = $(useProject())
 
 const { appInfo, token } = $(useGlobal())
 
-const meta = $(inject(MetaInj)!)
+const meta = $(inject(MetaInj, ref()))
 
-const view = $(inject(ActiveViewInj)!)
+const view = $(inject(ActiveViewInj, ref()))
 
 const { xWhere } = useSmartsheetStoreOrThrow()
 
-const { queryParams } = $(useViewData($$(meta), view as any, xWhere))
+const { queryParams } = $(useViewData($$(meta), $$(view), xWhere))
 
 const { copy } = useClipboard()
 

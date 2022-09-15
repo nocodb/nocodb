@@ -39,9 +39,9 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
       <template v-if="sharedFormView">
         <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
 
-        <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
+        <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView?.heading }}</h1>
 
-        <h2 v-if="sharedFormView.subheading" class="prose-lg text-gray-500 self-center">{{ sharedFormView.subheading }}</h2>
+        <h2 v-if="sharedFormView?.subheading" class="prose-lg text-gray-500 self-center">{{ sharedFormView.subheading }}</h2>
 
         <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
 

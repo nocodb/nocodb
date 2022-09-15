@@ -1,7 +1,7 @@
 <!-- File not in use for now -->
 
 <script setup lang="ts">
-import { precisions } from '@/utils/percentUtils'
+import { precisions } from '#imports'
 
 interface Props {
   value: Record<string, any>

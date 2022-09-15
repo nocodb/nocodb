@@ -225,6 +225,7 @@ declare module '@vue/runtime-core' {
     MdiViewListOutline: typeof import('~icons/mdi/view-list-outline')['default']
     MdiWhatsapp: typeof import('~icons/mdi/whatsapp')['default']
     MdiXml: typeof import('~icons/mdi/xml')['default']
+    MiCircleWarning: typeof import('~icons/mi/circle-warning')['default']
     PhFileCsv: typeof import('~icons/ph/file-csv')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

@@ -1,10 +1,18 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useNuxtApp } from '#app'
-import { computed, inject, useMetas, watchEffect } from '#imports'
-import { IsFormInj, IsKanbanInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-import { uiTypes } from '~/utils/columnUtils'
+import {
+  IsFormInj,
+  IsKanbanInj,
+  MetaInj,
+  ReloadViewDataHookInj,
+  computed,
+  inject,
+  uiTypes,
+  useMetas,
+  useNuxtApp,
+  watchEffect,
+} from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -20,7 +28,7 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -50,7 +58,7 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
 })
 
 const reloadMetaAndData = async () => {
-  await getMeta(meta?.value.id as string, true)
+  await getMeta(meta.value?.id as string, true)
   reloadDataTrigger?.trigger()
 }
 

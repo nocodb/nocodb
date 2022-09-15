@@ -136,7 +136,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
 
 <template>
   <div
-    class="nc-cell w-full h-full"
+    class="nc-cell"
     :class="[`nc-cell-${(column?.uidt || 'default').toLowerCase()}`, { 'text-blue-600': isPrimary && !virtual && !isForm }]"
     @keydown.stop.left
     @keydown.stop.right

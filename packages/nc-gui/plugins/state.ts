@@ -22,6 +22,7 @@ export default defineNuxtPlugin(async () => {
 
   /** force load initial locale messages */
   await loadLocaleMessages(currentLang)
+
   const route = useRoute()
   /** force turn off of dark mode, regardless of previously stored settings */
   state.darkMode.value = route.query.dark === '1' || false
@@ -35,5 +36,3 @@ export default defineNuxtPlugin(async () => {
     console.error(e)
   }
 })
-
-

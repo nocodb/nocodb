@@ -73,17 +73,28 @@ watch(
 
 <template>
   <div class="flex flex-row items-center justify-between">
-    <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm w-full w-full dark:bg-gray-800"
-      @blur="editEnabled = false" />
+    <input
+      v-if="editEnabled"
+      :ref="focus"
+      v-model="vModel"
+      class="outline-none text-sm w-full w-full dark:bg-gray-800"
+      @blur="editEnabled = false"
+    />
 
-    <nuxt-link v-else-if="isValid && !cellUrlOptions?.overlay"
-      class="z-3 text-sm underline hover:opacity-75 !dark:text-cyan-300" :to="url"
-      :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'">
+    <nuxt-link
+      v-else-if="isValid && !cellUrlOptions?.overlay"
+      class="z-3 text-sm underline hover:opacity-75 !dark:text-cyan-300"
+      :to="url"
+      :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
+    >
       {{ value }}
     </nuxt-link>
-    <nuxt-link v-else-if="isValid && !disableOverlay && cellUrlOptions?.overlay"
-      class="z-3 w-full h-full text-center !no-underline hover:opacity-75 !dark:text-cyan-300" :to="url"
-      :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'">
+    <nuxt-link
+      v-else-if="isValid && !disableOverlay && cellUrlOptions?.overlay"
+      class="z-3 w-full h-full text-center !no-underline hover:opacity-75 !dark:text-cyan-300"
+      :to="url"
+      :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
+    >
       {{ cellUrlOptions.overlay }}
     </nuxt-link>
 

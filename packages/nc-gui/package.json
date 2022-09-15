@@ -39,7 +39,6 @@
     "tinycolor2": "^1.4.2",
     "unique-names-generator": "^4.7.1",
     "vue-dompurify-html": "^3.0.0",
-    "vue-flow": "^0.3.0",
     "vue-github-button": "^3.0.3",
     "vue-i18n": "^9.2.2",
     "vuedraggable": "^4.1.0",

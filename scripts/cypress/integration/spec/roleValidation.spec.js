@@ -221,13 +221,6 @@ export function _viewMenu(roleType, mode) {
 
     cy.openTableTab(columnName, 25);
 
-    cy.get('.nc-toggle-right-navbar').click();
-    cy.wait(1000);
-
-    // hard-wire
-    // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
-
-
     let validationString =
         true === roles[roleType].validations.shareView ? "exist" : "not.exist";
 

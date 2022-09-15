@@ -79,37 +79,37 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     async function onFileSelect(selectedFiles: FileList | File[]) {
       if (!selectedFiles.length) return
 
-      if (isPublic.value) {
-        storedFiles.value.push(
-          ...(await Promise.all<AttachmentProps>(
-            Array.from(selectedFiles).map(
-              (file) =>
-                new Promise<AttachmentProps>((resolve) => {
-                  const res: AttachmentProps = { ...file, file, title: file.name, mimetype: file.type }
+      if (isPublic.value && isForm.value) {
+        const newFiles = await Promise.all<AttachmentProps>(
+          Array.from(selectedFiles).map(
+            (file) =>
+              new Promise<AttachmentProps>((resolve) => {
+                const res: AttachmentProps = { ...file, file, title: file.name, mimetype: file.type }
 
-                  if (isImage(file.name, (<any>file).mimetype ?? file.type)) {
-                    const reader = new FileReader()
+                if (isImage(file.name, (<any>file).mimetype ?? file.type)) {
+                  const reader = new FileReader()
 
-                    reader.onload = (e) => {
-                      res.data = e.target?.result
+                  reader.onload = (e) => {
+                    res.data = e.target?.result
 
-                      resolve(res)
-                    }
-
-                    reader.onerror = () => {
-                      resolve(res)
-                    }
-
-                    reader.readAsDataURL(file)
-                  } else {
                     resolve(res)
                   }
-                }),
-            ),
-          )),
+
+                  reader.onerror = () => {
+                    resolve(res)
+                  }
+
+                  reader.readAsDataURL(file)
+                } else {
+                  resolve(res)
+                }
+              }),
+          ),
         )
 
-        return updateModelValue(storedFiles.value.map((stored) => stored.file))
+        attachments.value = [...attachments.value, ...newFiles]
+
+        return updateModelValue(attachments.value)
       }
 
       const newAttachments = []
@@ -132,7 +132,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         }
       }
 
-      updateModelValue([...attachments.value, ...newAttachments])
+      updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
     }
 
     /** save files on drop */
@@ -163,7 +163,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
-    /** our currently visible items, either the locally stored or the ones from db, depending on isPublicForm status */
+    /** our currently visible items, either the locally stored or the ones from db, depending on isPublic & isForm status */
     const visibleItems = computed<any[]>(() => (isPublic.value && isForm.value ? storedFiles.value : attachments.value))
 
     watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles))
@@ -172,6 +172,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       attachments,
       visibleItems,
       isPublic,
+      isForm,
       isReadonly,
       meta,
       column,

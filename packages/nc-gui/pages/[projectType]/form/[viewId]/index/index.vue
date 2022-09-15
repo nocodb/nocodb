@@ -21,12 +21,14 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
 <template>
   <div
-    class="bg-white relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+    class="color-transition bg-white dark:bg-slate-700 relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
   >
     <template v-if="sharedFormView">
       <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
 
-      <h2 v-if="sharedFormView.subheading" class="prose-lg text-gray-500 self-center">{{ sharedFormView.subheading }}</h2>
+      <h2 v-if="sharedFormView.subheading" class="prose-lg text-slate-500 dark:text-slate-300 self-center">
+        {{ sharedFormView.subheading }}
+      </h2>
 
       <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
 
@@ -40,7 +42,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
               :message="sharedFormView.success_msg || 'Successfully submitted form data'"
             />
 
-            <p v-if="sharedFormView.show_blank_form" class="text-xs text-gray-500 text-center my-4">
+            <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
 
@@ -95,7 +97,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                     :edit-enabled="true"
                   />
 
-                  <div class="flex flex-col gap-2 text-gray-500 text-[0.75rem] my-2 px-1">
+                  <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
                     <div v-for="error of v$.localState[field.title].$errors" :key="error" class="text-red-500">
                       {{ error.$message }}
                     </div>
@@ -107,7 +109,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
             </div>
 
             <div class="text-center mt-4">
-              <button type="submit" class="submit" @click="submitForm">
+              <button type="submit" class="scaling-btn prose-sm" @click="submitForm">
                 {{ $t('general.submit') }}
               </button>
             </div>

@@ -112,7 +112,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
       <div
         ref="el"
         :key="field.title"
-        class="bg-white flex flex-col justify-center gap-4 w-full max-w-[max(33%,600px)] m-auto px-8 pt-8 pb-4 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+        class="color-transition bg-white dark:bg-slate-700 flex flex-col justify-center gap-4 w-full max-w-[max(33%,600px)] m-auto px-8 pt-8 pb-4 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
         <div v-if="field && !submitted" class="flex flex-col gap-2">
           <div class="flex nc-form-column-label">
@@ -148,7 +148,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
               :edit-enabled="true"
             />
 
-            <div class="flex flex-col gap-2 text-gray-500 text-[0.75rem] my-2 px-1">
+            <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
               <div v-for="error of v$.localState[field.title].$errors" :key="error" class="text-red-500">
                 {{ error.$message }}
               </div>
@@ -170,7 +170,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
 
           <div class="flex-1">
             <div v-if="isLast && !submitted && !v$.$invalid" class="text-center my-4">
-              <button type="submit" class="submit !px-4 !py-2 prose-sm" @click="submitForm">
+              <button type="submit" class="scaling-btn prose-sm" @click="submitForm">
                 {{ $t('general.submit') }}
               </button>
             </div>
@@ -204,7 +204,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
                 :message="sharedFormView.success_msg || 'Successfully submitted form data'"
               />
 
-              <p v-if="sharedFormView?.show_blank_form" class="text-xs text-gray-500 text-center my-4">
+              <p v-if="sharedFormView?.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
                 New form will be loaded after {{ secondsRemain }} seconds
               </p>
 
@@ -225,14 +225,14 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 :global(html, body) {
   @apply overscroll-x-none;
 }
 
-:deep(.nc-form-column-label) {
+.nc-form-column-label {
   > * {
-    @apply !prose-lg;
+    @apply !prose-lg dark:text-slate-300;
   }
 
   .nc-icon {

@@ -13,7 +13,6 @@ watch(
     if (nextTheme) {
       const theme = (nextTheme as string).split(',').map((t) => t.trim() && `#${t}`)
 
-      console.log(theme)
       setTheme({
         primaryColor: theme[0],
         accentColor: theme[1],

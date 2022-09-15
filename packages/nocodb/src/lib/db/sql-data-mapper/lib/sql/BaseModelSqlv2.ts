@@ -2090,7 +2090,7 @@ class BaseModelSqlv2 {
         );
       }
       // skip validation if `validate` is undefined or false
-      if (!column?.meta?.validate) continue;
+      if (!column?.meta?.validate && !column?.validate) continue;
 
       const validate = column.getValidators();
       if (!validate) continue;
@@ -2105,14 +2105,15 @@ class BaseModelSqlv2 {
         const arg =
           typeof func[j] === 'string' ? columns[cn] + '' : columns[cn];
         if (
-          columns[cn] !== null &&
-          columns[cn] !== undefined &&
-          columns[cn] !== '' &&
-          cn in columns &&
-          !(fn.constructor.name === 'AsyncFunction' ? await fn(arg) : fn(arg))
+          !(fn.constructor.name === 'AsyncFunction'
+            ? await fn(arg)
+            : fn(arg)) &&
+          (columns?.[cn] || columns?.[columnTitle])
         ) {
           NcError.badRequest(
-            msg[j].replace(/\{VALUE}/g, columns[cn]).replace(/\{cn}/g, cn)
+            msg[j]
+              .replace(/\{VALUE}/g, columns[cn] || columns[columnTitle])
+              .replace(/\{cn}/g, columnTitle)
           );
         }
       }

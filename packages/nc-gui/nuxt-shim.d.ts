@@ -1,6 +1,7 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
 import type { UseGlobalReturn } from './composables/useGlobal/types'
 import type { NocoI18n } from './lib'
+import type { TabType } from './composables'
 
 declare module '#app/nuxt' {
   interface NuxtApp {
@@ -32,6 +33,11 @@ declare module 'vue-router' {
   interface RouteParams {
     projectId: string
     projectType: 'base' | 'nc' | string
+    type: TabType
     title: string
+    viewId: string
+    viewTitle: string
+    baseId: string
+    token: string
   }
 }

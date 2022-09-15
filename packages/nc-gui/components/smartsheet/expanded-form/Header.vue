@@ -26,6 +26,7 @@ const save = async () => {
     reloadTrigger?.trigger()
   } else {
     await _save()
+    reloadTrigger?.trigger()
   }
 }
 

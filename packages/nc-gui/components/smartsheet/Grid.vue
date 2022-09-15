@@ -139,8 +139,8 @@ const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) 
 
   if (rowId) {
     router.push({
-      params: {
-        ...route.params,
+      query: {
+        ...route.query,
         rowId,
       },
     })
@@ -398,18 +398,21 @@ onBeforeUnmount(async () => {
 
 const expandedFormOnRowIdDlg = computed({
   get() {
-    return !!route.params.rowId
+    return !!route.query.rowId
   },
   set(val) {
     if (!val)
       router.push({
-        params: {
-          ...route.params,
+        query: {
+          ...route.query,
           rowId: undefined,
         },
       })
   },
 })
+
+// reload table data reload hook as fallback to rowdatareload
+provide(ReloadRowDataHookInj, reloadViewDataHook)
 </script>
 
 <template>
@@ -653,11 +656,11 @@ const expandedFormOnRowIdDlg = computed({
 
     <SmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg"
-      :key="route.params.rowId"
+      :key="route.query.rowId"
       v-model="expandedFormOnRowIdDlg"
       :row="{ row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
-      :row-id="route.params.rowId"
+      :row-id="route.query.rowId"
     />
   </div>
 </template>

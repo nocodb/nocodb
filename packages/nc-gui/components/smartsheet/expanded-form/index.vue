@@ -53,15 +53,13 @@ provide(MetaInj, meta)
 
 const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
 
-
 if (props.loadRow) {
   await loadRow()
 }
 
 if (props.rowId) {
-  loadRow(props.rowId)
+  await loadRow(props.rowId)
 }
-
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 

@@ -53,7 +53,7 @@ const localTables = computed(() => (meta ? [meta.value, ...relatedTables.value] 
 
       <div class="absolute top-3 right-11 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
         <div class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showPkAndFk" v-e="['c:erd:open']" />
+          <a-checkbox v-model:checked="config.showPkAndFk" v-e="['c:erd:showPkAndFk']" />
           <span class="ml-2" style="font-size: 0.65rem">Show PK and FK</span>
         </div>
       </div>

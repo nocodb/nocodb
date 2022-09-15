@@ -103,24 +103,17 @@ jobs:
     secrets:
       NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
-  # Close all issues with target tags 'Fixed' & 'Resolved'
-  close-fixed-issues:
+  # Close all issues with target tags 'Status: Ready for Next Release'
+  close-issues:
     needs: [release-docker, process-input]
     uses: ./.github/workflows/release-close-issue.yml
     with:
-      issue_label: 'Status: Fixed'
-      version: ${{ needs.process-input.outputs.target_tag }}
-
-  close-resolved-issues:
-    needs: [close-fixed-issues, process-input]
-    uses: ./.github/workflows/release-close-issue.yml
-    with:
-      issue_label: 'Status: Resolved'
+      issue_label: 'Status: Ready for Next Release'
       version: ${{ needs.process-input.outputs.target_tag }}
 
   # Publish Docs
   publish-docs:
-    needs: close-resolved-issues
+    needs: close-issues
     uses: ./.github/workflows/publish-docs.yml
     secrets:
       GH_TOKEN: "${{ secrets.GH_TOKEN }}"

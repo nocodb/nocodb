@@ -5,10 +5,10 @@ const { passwordDlg, password, loadSharedView } = useSharedFormStoreOrThrow()
 </script>
 
 <template>
-  <div class="nc-form-view md:bg-primary bg-opacity-5 h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin">
+  <div class="nc-form-view relative md:bg-primary bg-opacity-5 h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin">
     <NuxtPage />
 
-    <div class="self-end prose-xs text-gray-400 mx-auto my-4 relative flex items-center gap-2">Powered by NocoDB</div>
+    <div class="self-end text-xs text-gray-400 mx-auto my-4">Powered by NocoDB</div>
 
     <a-modal
       v-model:visible="passwordDlg"

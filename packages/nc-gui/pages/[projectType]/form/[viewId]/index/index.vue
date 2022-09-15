@@ -98,7 +98,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                   />
 
                   <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
-                    <div v-for="error of v$.localState[field.title].$errors" :key="error" class="text-red-500">
+                    <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
                       {{ error.$message }}
                     </div>
 

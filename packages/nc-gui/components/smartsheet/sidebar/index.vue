@@ -35,7 +35,7 @@ const { $e } = useNuxtApp()
 provide(ViewListInj, views)
 
 /** Sidebar visible */
-const { isOpen } = useSidebar('nc-right-sidebar', { useStorage: true, isOpen: true })
+const { isOpen } = useSidebar('nc-right-sidebar', { isOpen: true })
 
 const sidebarCollapsed = computed(() => !isOpen.value)
 
@@ -110,6 +110,7 @@ function onCreate(view: ViewType) {
     class="relative shadow-md h-full"
     theme="light"
   >
+    {{ isOpen }}
     <Toolbar
       v-if="isOpen"
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** Sidebar visible */
-const { isOpen, toggle } = useSidebar('nc-right-sidebar', { isOpen: true })
+const { isOpen, toggle } = useSidebar('nc-right-sidebar')
 
 const onClick = () => {
   toggle(!isOpen.value)

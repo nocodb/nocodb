@@ -23,13 +23,22 @@ interface Attachment {
 }
 
 const meta = inject(MetaInj)
+
 const view = inject(ActiveViewInj)
+
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
+
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const expandedFormDlg = ref(false)
+
 const expandedFormRow = ref<RowType>()
+
 const expandedFormRowState = ref<Record<string, any>>()
+
+const deleteStackVModel = ref(false)
+
+const stackToBeDeleted = ref('')
 
 const {
   loadKanbanData,
@@ -44,6 +53,7 @@ const {
   groupingField,
   groupingFieldColumn,
   countByStack,
+  deleteStack,
 } = useKanbanViewData(meta, view as any)
 
 const { isUIAllowed } = useUIPermission()
@@ -169,6 +179,16 @@ const kanbanListRef = (kanbanListElement: HTMLElement) => {
   }
 }
 
+const handleDeleteStackClick = (stackTitle: string) => {
+  deleteStackVModel.value = true
+  stackToBeDeleted.value = stackTitle
+}
+
+const handleDeleteStackConfirmClick = async () => {
+  await deleteStack(stackToBeDeleted.value)
+  deleteStackVModel.value = false
+}
+
 const collapseStack = () => {
   // TODO:
 }
@@ -177,12 +197,6 @@ const renameStack = () => {
   // TODO:
 }
 
-const deleteStack = () => {
-  // TODO:
-}
-
-const deleteStackVModel = ref(false)
-
 openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
@@ -190,6 +204,7 @@ openNewRecordFormHook?.on(async () => {
 </script>
 
 <template>
+  {{ formattedData.Uncategorized }}
   <div class="flex h-full bg-white px-2">
     <div class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
       <Draggable
@@ -243,7 +258,7 @@ openNewRecordFormHook?.on(async () => {
                             Rename Stack
                           </div>
                         </a-menu-item>
-                        <a-menu-item @click="deleteStackVModel = true">
+                        <a-menu-item @click="handleDeleteStackClick(stack.title)">
                           <div class="py-2 flex gap-2 items-center">
                             <mdi-delete class="text-gray-500" />
                             <!-- TODO: i18n -->
@@ -344,7 +359,7 @@ openNewRecordFormHook?.on(async () => {
                 <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
                   <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
                   <div class="nc-kanban-data-count">
-                    <!-- TODO: fix current count for Uncategorized-->
+                    <!-- TODO: fix current count for Uncategorized -->
                     {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
                     {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>
@@ -376,12 +391,14 @@ openNewRecordFormHook?.on(async () => {
     </template>
     <div>
       <!-- TODO: i18n -->
-      Deleting this stack will also remove the select option from the `{{ groupingField }}`. The records will move to the
-      uncategorized stack.
+      Deleting this stack will also remove the select option `{{ stackToBeDeleted }}` from the `{{ groupingField }}`. The records
+      will move to the uncategorized stack.
     </div>
     <template #footer>
       <a-button key="back" @click="deleteStackVModel = false">{{ $t('general.cancel') }}</a-button>
-      <a-button key="submit" type="primary" :loading="loading" @click="deleteStack">{{ $t('general.delete') }}</a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="handleDeleteStackConfirmClick">
+        {{ $t('general.delete') }}
+      </a-button>
     </template>
   </a-modal>
 </template>

@@ -168,7 +168,7 @@ const kanbanListRef = (kanbanListElement: HTMLElement) => {
 }
 
 const addNewRecord = () => {
-  // TODO:
+  openNewRecordFormHook.trigger()
 }
 
 const collapseStack = () => {
@@ -344,6 +344,7 @@ openNewRecordFormHook?.on(async () => {
                 <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
                   <mdi-plus class="text-pint-500 text-lg text-primary cursor-pointer" @click="openNewRecordFormHook.trigger()" />
                   <div class="nc-kanban-data-count">
+                    <!-- TODO: fix current count for Uncategorized-->
                     {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
                     {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>

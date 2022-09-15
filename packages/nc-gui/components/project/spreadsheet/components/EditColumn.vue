@@ -649,6 +649,7 @@ export default {
       if (!this.$refs.form.validate()) {
         return;
       }
+
       try {
         if (this.newColumn.uidt === 'Formula') {
           await this.$refs.formula.save();
@@ -671,7 +672,11 @@ export default {
         }
 
         this.newColumn.table_name = this.nodes.table_name;
-        this.newColumn.title = this.newColumn.column_name;
+
+        // condition is needed not to break camelization when column name is not changed
+        if (this.newColumn.column_name !== this.column.column_name) {
+          this.newColumn.title = this.newColumn.column_name;
+        }
 
         if (this.editColumn) {
           await this.$api.dbTableColumn.update(this.column.id, this.newColumn);

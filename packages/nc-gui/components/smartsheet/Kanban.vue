@@ -50,6 +50,8 @@ const { isUIAllowed } = useUIPermission()
 
 const { appInfo } = $(useGlobal())
 
+const { isLoading: loading, api } = useApi()
+
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
@@ -167,10 +169,6 @@ const kanbanListRef = (kanbanListElement: HTMLElement) => {
   }
 }
 
-const addNewRecord = () => {
-  openNewRecordFormHook.trigger()
-}
-
 const collapseStack = () => {
   // TODO:
 }
@@ -182,6 +180,8 @@ const renameStack = () => {
 const deleteStack = () => {
   // TODO:
 }
+
+const deleteStackVModel = ref(false)
 
 openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
@@ -222,7 +222,7 @@ openNewRecordFormHook?.on(async () => {
                     </div>
                     <template #overlay>
                       <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
-                        <a-menu-item @click="addNewRecord">
+                        <a-menu-item @click="openNewRecordFormHook.trigger()">
                           <div class="py-2 flex gap-2 items-center">
                             <mdi-plus class="text-gray-500" />
                             <!-- TODO: i18n -->
@@ -243,7 +243,7 @@ openNewRecordFormHook?.on(async () => {
                             Rename Stack
                           </div>
                         </a-menu-item>
-                        <a-menu-item @click="deleteStack">
+                        <a-menu-item @click="deleteStackVModel = true">
                           <div class="py-2 flex gap-2 items-center">
                             <mdi-delete class="text-gray-500" />
                             <!-- TODO: i18n -->
@@ -364,6 +364,26 @@ openNewRecordFormHook?.on(async () => {
     :state="expandedFormRowState"
     :meta="meta"
   />
+  <a-modal
+    v-model:visible="deleteStackVModel"
+    class="!top-[35%]"
+    :confirm-loading="loading"
+    wrap-class-name="nc-modal-view-create"
+  >
+    <template #title>
+      <!-- TODO: i18n -->
+      Delete stack?
+    </template>
+    <div>
+      <!-- TODO: i18n -->
+      Deleting this stack will also remove the select option from the `{{ groupingField }}`. The records will move to the
+      uncategorized stack.
+    </div>
+    <template #footer>
+      <a-button key="back" @click="deleteStackVModel = false">{{ $t('general.cancel') }}</a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="deleteStack">{{ $t('general.delete') }}</a-button>
+    </template>
+  </a-modal>
 </template>
 
 <style lang="scss" scoped>

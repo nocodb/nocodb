@@ -56,21 +56,14 @@ export function useKanbanViewData(
         const where =
           option.title === 'Uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
 
-        formattedData.value[option.title] = formatData(
-          (
-            await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where,
-            })
-          ).list,
-        )
-        countByStack.value[option.title] =
-          (
-            await api.dbViewRow.count('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
-              where,
-            })
-          ).count || 0
+        const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          where,
+        })
+
+        formattedData.value[option.title] = formatData(response.list)
+        countByStack.value[option.title] = response.pageInfo.totalRows || 0
       }),
     )
   }

@@ -1,10 +1,10 @@
 import { useStorage } from '@vueuse/core'
-import { ref, syncRef, toRefs, useInjectionState, watch } from '#imports'
+import { MemStorage, useInjectionState, watch } from '#imports'
 
 interface UseSidebarProps {
   hasSidebar?: boolean
   isOpen?: boolean
-  storageKey?: string // if a storageKey is passed, use that key for localStorage
+  useStorage?: boolean
 }
 
 /**
@@ -15,7 +15,9 @@ interface UseSidebarProps {
  *
  * If `provideSidebar` is not called explicitly, `useSidebar` will trigger the provider if no injection state can be found
  */
-const [setup, use] = useInjectionState((props: UseSidebarProps = {}) => {
+const [setupSidebarStore, useSidebarStore] = useInjectionState(() => new MemStorage(), 'SidebarStore')
+
+const createSidebar = (id: string, props: UseSidebarProps = {}) => {
   const isOpen = ref(props.isOpen ?? false)
   const hasSidebar = ref(props.hasSidebar ?? true)
 
@@ -27,8 +29,8 @@ const [setup, use] = useInjectionState((props: UseSidebarProps = {}) => {
     hasSidebar.value = state ?? !hasSidebar.value
   }
 
-  if (props.storageKey) {
-    const storage = toRefs(useStorage(props.storageKey, { isOpen, hasSidebar }, localStorage, { mergeDefaults: true }).value)
+  if (props.useStorage) {
+    const storage = toRefs(useStorage(id, { isOpen, hasSidebar }, localStorage, { mergeDefaults: true }).value)
     syncRef(isOpen, storage.isOpen)
     syncRef(hasSidebar, storage.hasSidebar)
   }
@@ -55,20 +57,50 @@ const [setup, use] = useInjectionState((props: UseSidebarProps = {}) => {
     hasSidebar,
     toggleHasSidebar,
   }
-}, 'useSidebar')
+}
 
-export const provideSidebar = setup
+const useSidebarStorage = () => {
+  let sidebarStorage = useSidebarStore()
 
-export function useSidebar(props: UseSidebarProps = {}) {
-  const state = use()
-
-  if (!state) {
-    return setup(props)
-  } else {
-    // set state if props were passed
-    if (typeof props.isOpen !== 'undefined') state.isOpen.value = props.isOpen
-    if (typeof props.hasSidebar !== 'undefined') state.hasSidebar.value = props.hasSidebar
+  if (!sidebarStorage) {
+    sidebarStorage = setupSidebarStore()
   }
 
-  return state
+  return sidebarStorage
+}
+
+export const provideSidebar = (id: string, props: UseSidebarProps = {}) => {
+  const sidebarStorage = useSidebarStorage()
+
+  if (!sidebarStorage.has(id)) {
+    const sidebar = createSidebar(id, props)
+
+    sidebarStorage.set(id, sidebar)
+
+    return sidebar
+  } else {
+    const sidebar = sidebarStorage.get(id)
+
+    if (props.isOpen !== undefined) sidebar.isOpen.value = props.isOpen
+    if (props.hasSidebar !== undefined) sidebar.hasSidebar.value = props.hasSidebar
+
+    return sidebar
+  }
+}
+
+export function useSidebar(id: string, props: UseSidebarProps = {}) {
+  if (!id) throw new Error('useSidebar requires an id')
+
+  const sidebarStorage = useSidebarStorage()
+
+  if (sidebarStorage.has(id)) {
+    const sidebar = sidebarStorage.get(id)
+
+    if (props.isOpen !== undefined) sidebar.isOpen.value = props.isOpen
+    if (props.hasSidebar !== undefined) sidebar.hasSidebar.value = props.hasSidebar
+
+    return sidebar
+  } else {
+    return provideSidebar(id, props)
+  }
 }

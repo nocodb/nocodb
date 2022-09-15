@@ -5,7 +5,7 @@ const meta = inject(MetaInj, ref())
 
 const { deleteTable } = useTable()
 
-const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
+const { isOpen } = useSidebar('nc-right-sidebar')
 </script>
 
 <template>

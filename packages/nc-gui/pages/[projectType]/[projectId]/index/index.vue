@@ -25,7 +25,7 @@ const icon = (tab: TabItem) => {
   }
 }
 
-const { isOpen, toggle } = useSidebar()
+const { isOpen, toggle } = useSidebar('nc-left-sidebar')
 
 function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
   if (action === 'remove') closeTab(targetKey)

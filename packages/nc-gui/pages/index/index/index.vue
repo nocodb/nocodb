@@ -12,7 +12,6 @@ import {
   themeV2Colors,
   useApi,
   useNuxtApp,
-  useProject,
   useSidebar,
   useUIPermission,
 } from '#imports'
@@ -27,9 +26,7 @@ const { api, isLoading } = useApi()
 
 const { isUIAllowed } = useUIPermission()
 
-useSidebar({ hasSidebar: true, isOpen: true })
-
-const { loadProject } = useProject()
+useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: true })
 
 const filterQuery = ref('')
 

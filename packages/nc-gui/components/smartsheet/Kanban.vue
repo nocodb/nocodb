@@ -167,6 +167,22 @@ const kanbanListRef = (kanbanListElement: HTMLElement) => {
   }
 }
 
+const addNewRecord = () => {
+  // TODO:
+}
+
+const collapseStack = () => {
+  // TODO:
+}
+
+const renameStack = () => {
+  // TODO:
+}
+
+const deleteStack = () => {
+  // TODO:
+}
+
 openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
@@ -198,7 +214,46 @@ openNewRecordFormHook?.on(async () => {
             <a-skeleton v-if="!formattedData[stack.title]" class="p-4" />
             <a-layout v-else class="px-[15px] !bg-[#f0f2f5]">
               <a-layout-header>
-                <div class="nc-kanban-stack-head text-slate-500 font-bold">{{ stack.title }}</div>
+                <div class="nc-kanban-stack-head text-slate-500 font-bold flex items-center">
+                  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
+                    <div class="flex gap-2 items-center cursor-pointer">
+                      <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
+                      <mdi-menu-down class="text-grey text-lg" />
+                    </div>
+                    <template #overlay>
+                      <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
+                        <a-menu-item @click="addNewRecord">
+                          <div class="py-2 flex gap-2 items-center">
+                            <mdi-plus class="text-gray-500" />
+                            <!-- TODO: i18n -->
+                            Add new record
+                          </div>
+                        </a-menu-item>
+                        <a-menu-item @click="collapseStack">
+                          <div class="py-2 flex gap-2 items-center">
+                            <mdi-arrow-collapse class="text-gray-500" />
+                            <!-- TODO: i18n -->
+                            Collapse Stack
+                          </div>
+                        </a-menu-item>
+                        <a-menu-item @click="renameStack">
+                          <div class="py-2 flex gap-2 items-center">
+                            <mdi-pencil class="text-gray-500" />
+                            <!-- TODO: i18n -->
+                            Rename Stack
+                          </div>
+                        </a-menu-item>
+                        <a-menu-item @click="deleteStack">
+                          <div class="py-2 flex gap-2 items-center">
+                            <mdi-delete class="text-gray-500" />
+                            <!-- TODO: i18n -->
+                            Delete Stack
+                          </div>
+                        </a-menu-item>
+                      </a-menu>
+                    </template>
+                  </a-dropdown>
+                </div>
               </a-layout-header>
               <a-layout-content class="overflow-y-hidden">
                 <div :ref="kanbanListRef" class="nc-kanban-list h-full overflow-y-auto" :data-stack-title="stack.title">

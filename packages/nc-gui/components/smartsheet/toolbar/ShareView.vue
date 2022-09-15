@@ -49,9 +49,9 @@ const allowCSVDownload = computed({
 })
 
 const genShareLink = async () => {
-  if (!view.value.id) return
+  if (!view.value?.id) return
 
-  shared.value = await $api.dbViewShare.create(view.value?.id)
+  shared.value = await $api.dbViewShare.create(view.value.id)
   shared.value.meta =
     shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
 
@@ -75,7 +75,7 @@ const sharedViewUrl = computed(() => {
       viewType = 'view'
   }
 
-  return `${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}${surveyMode.value ? '?survey=1' : ''}`
+  return `${dashboardUrl?.value}#/nc/${surveyMode.value ? 'survey' : ''}${viewType}/${shared.value.uuid}`
 })
 
 async function saveAllowCSVDownload() {

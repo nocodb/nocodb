@@ -16,7 +16,7 @@ interface Props {
 
 const { tables, config } = defineProps<Props>()
 
-const { metasWithId } = useMetas()
+const { metasWithIdAsKey } = useMetas()
 
 const initialNodes = ref<Pick<Node, 'id' | 'data' | 'type'>[]>([])
 const nodes = ref<Node[]>([])
@@ -29,11 +29,11 @@ const populateInitalNodes = () => {
   tables.forEach((table) => {
     if (!table.id) return
 
-    dagreGraph.setNode(table.id, { width: 250, height: 50 * metasWithId.value[table.id].columns.length })
+    dagreGraph.setNode(table.id, { width: 250, height: 50 * metasWithIdAsKey.value[table.id].columns.length })
 
     initialNodes.value.push({
       id: table.id,
-      data: { ...metasWithId.value[table.id], showPkAndFk: config.showPkAndFk },
+      data: { ...metasWithIdAsKey.value[table.id], showPkAndFk: config.showPkAndFk },
       type: 'custom',
     })
   })
@@ -43,10 +43,10 @@ const populateInitalNodes = () => {
 
 const populateEdges = () => {
   const ltarColumns = tables.reduce((acc: any[], table) => {
-    const meta = metasWithId.value[table.id!]
-    const ltarColumns = meta.columns.filter((column: any) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1)
+    const meta = metasWithIdAsKey.value[table.id!]
+    const columns = meta.columns.filter((column: any) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1)
 
-    ltarColumns.forEach((column: any) => {
+    columns.forEach((column: any) => {
       if (column.colOptions.type === 'hm') {
         acc.push(column)
       }

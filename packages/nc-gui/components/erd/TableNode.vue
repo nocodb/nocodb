@@ -14,7 +14,7 @@ const { data } = toRefs(props)
 provide(MetaInj, data)
 
 const columns = computed(() => {
-  // Hide hm related created for `mm` relations
+  // Hide hm ltar created for `mm` relations
   return data.value.columns.filter((col) => !(col.uidt === UITypes.LinkToAnotherRecord && col.system === 1))
 })
 

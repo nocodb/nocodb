@@ -2,7 +2,8 @@
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { useSharedFormStoreOrThrow } from '#imports'
 
-const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain } = useSharedFormStoreOrThrow()
+const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading } =
+  useSharedFormStoreOrThrow()
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -51,6 +52,12 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
       </template>
 
       <template v-else>
+        <GeneralOverlay class="bg-gray-400/75" :model-value="isLoading" inline transition>
+          <div class="w-full h-full flex items-center justify-center">
+            <a-spin size="large" />
+          </div>
+        </GeneralOverlay>
+
         <div class="nc-form-wrapper">
           <div class="nc-form h-full max-w-3/4 mx-auto">
             <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col my-6 gap-2">

@@ -2,8 +2,7 @@
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { useSharedFormStoreOrThrow } from '#imports'
 
-const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain, isLoading } =
-  useSharedFormStoreOrThrow()
+const { sharedFormView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain } = useSharedFormStoreOrThrow()
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -24,11 +23,9 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
     class="bg-white relative flex flex-col justify-center gap-2 w-full lg:max-w-1/2 max-w-500px m-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
   >
     <template v-if="sharedFormView">
-      <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+      <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
 
-      <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView?.heading }}</h1>
-
-      <h2 v-if="sharedFormView?.subheading" class="prose-lg text-gray-500 self-center">{{ sharedFormView.subheading }}</h2>
+      <h2 v-if="sharedFormView.subheading" class="prose-lg text-gray-500 self-center">{{ sharedFormView.subheading }}</h2>
 
       <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
 
@@ -53,7 +50,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
         </div>
       </template>
 
-      <template v-else-if="sharedFormView">
+      <template v-else>
         <div class="nc-form-wrapper">
           <div class="nc-form h-full max-w-3/4 mx-auto">
             <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col my-6 gap-2">

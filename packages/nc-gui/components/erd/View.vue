@@ -25,7 +25,7 @@ const edges = ref<Edge[]>([])
 const dagreGraph = new dagre.graphlib.Graph()
 dagreGraph.setDefaultEdgeLabel(() => ({}))
 
-const populateInitalNodes = () => {
+const populateInitialNodes = () => {
   tables.forEach((table) => {
     if (!table.id) return
 
@@ -111,7 +111,7 @@ const layoutNodes = () => {
 }
 
 onBeforeMount(async () => {
-  populateInitalNodes()
+  populateInitialNodes()
   populateEdges()
   layoutNodes()
 })

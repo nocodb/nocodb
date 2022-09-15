@@ -4,7 +4,7 @@ import { computed, useGlobal, useProject, useRoute, useSidebar } from '#imports'
 
 const { signOut, signedIn, user } = useGlobal()
 
-const { isOpen } = useSidebar({ isOpen: true })
+const { isOpen } = useSidebar('nc-mini-sidebar', { isOpen: true })
 
 const { project } = useProject()
 

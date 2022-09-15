@@ -17,7 +17,7 @@ import {
 
 const { isLoading } = useApi()
 
-useSidebar({ hasSidebar: false })
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 

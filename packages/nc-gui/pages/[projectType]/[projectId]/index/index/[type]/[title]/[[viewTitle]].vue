@@ -3,7 +3,11 @@ import type { TabItem } from '~/composables'
 import { TabMetaInj } from '#imports'
 
 const { getMeta } = useMetas()
+
+const { project, projectLoadedHook } = useProject()
+
 const route = useRoute()
+
 const loading = ref(true)
 
 const activeTab = inject(
@@ -11,9 +15,14 @@ const activeTab = inject(
   computed(() => ({} as TabItem)),
 )
 
-getMeta(route.params.title as string, true).finally(() => {
-  loading.value = false
-})
+if (!project.value.id) {
+  projectLoadedHook(async () => {
+    await getMeta(route.params.title as string, true)
+    loading.value = false
+  })
+} else {
+  getMeta(route.params.title as string, true).finally(() => (loading.value = false))
+}
 </script>
 
 <template>

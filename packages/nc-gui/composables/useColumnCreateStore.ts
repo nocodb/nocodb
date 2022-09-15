@@ -82,8 +82,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const { resetFields, validate, validateInfos } = useForm(formState, validators)
 
     const onUidtOrIdTypeChange = () => {
-      const { isCurrency } = useColumn(ref(formState.value as ColumnType))
-
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
         ...formState.value,
@@ -111,14 +109,12 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         }
       }
 
-      if (isCurrency.value) {
-        if (column.value?.uidt === UITypes.Currency) {
-          formState.value.dtxp = column.value.dtxp
-          formState.value.dtxs = column.value.dtxs
-        } else {
-          formState.value.dtxp = 19
-          formState.value.dtxs = 2
-        }
+      if (column.value?.uidt === UITypes.Currency) {
+        formState.value.dtxp = column.value.dtxp
+        formState.value.dtxs = column.value.dtxs
+      } else {
+        formState.value.dtxp = 19
+        formState.value.dtxs = 2
       }
 
       formState.value.altered = formState.value.altered || 2
@@ -167,7 +163,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const addOrUpdate = async (onSuccess: () => void) => {
       try {
-        console.log(formState, validators)
         if (!(await validate())) return
       } catch (e) {
         console.log(e)

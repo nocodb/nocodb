@@ -19,7 +19,7 @@ const { api, isLoading } = useApi()
 
 const { t } = useI18n()
 
-useSidebar({ hasSidebar: false })
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 definePageMeta({
   requiresAuth: false,

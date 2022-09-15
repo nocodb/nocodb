@@ -1,9 +1,6 @@
-import type { Api, ColumnType, FormType, GalleryType, KanbanType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { ViewTypes } from 'nocodb-sdk'
-import { useNuxtApp } from '#app'
 import {
   IsPublicInj,
   NOCO,
@@ -11,6 +8,8 @@ import {
   extractSdkResponseErrorMsg,
   getHTMLEncodedText,
   useApi,
+  useI18n,
+  useNuxtApp,
   useProject,
   useUIPermission,
 } from '#imports'
@@ -40,11 +39,9 @@ export function useViewData(
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
   const galleryData = ref<GalleryType>()
-  const kanbanData = ref<KanbanType>()
   const formColumnData = ref<FormType>()
   const formViewData = ref<FormType>()
   const formattedData = ref<Row[]>([])
-  const formattedKanbanData = ref<Record<string, Row[]>>()
 
   const isPublic = inject(IsPublicInj, ref(false))
   const { project, isSharedBase } = useProject()
@@ -59,38 +56,6 @@ export function useViewData(
       oldRow: { ...row },
       rowMeta: {},
     }))
-
-  const formatKanbanData = (list: Record<string, any>[]) => {
-    const groupingField = 'singleSelect2'
-    const groupingFieldColumn = meta?.value?.columns?.filter((f) => f.title === groupingField)[0] as Record<string, any>
-    // TODO: sort by kanban meta
-    const groupingFieldColumnOptions = [
-      ...(groupingFieldColumn?.colOptions?.options ?? []),
-      { title: 'Uncategorized', order: 0 },
-    ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
-    const initialAcc = groupingFieldColumnOptions.reduce((acc: any, obj: any) => {
-      if (!acc[obj.title]) {
-        acc[obj.title] = []
-      }
-      return acc
-    }, {})
-    return {
-      meta: groupingFieldColumnOptions,
-      data: list.reduce((acc: any, obj: any) => {
-        // TODO: grouping field
-        const key = obj[groupingField] === null ? 'Uncategorized' : obj[groupingField]
-        if (!acc[key]) {
-          acc[key] = []
-        }
-        acc[key].push({
-          row: { ...obj },
-          oldRow: { ...obj },
-          rowMeta: {},
-        })
-        return acc
-      }, initialAcc),
-    }
-  }
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
@@ -207,9 +172,6 @@ export function useViewData(
           where: where?.value,
         })
       : await fetchSharedViewData()
-    if (viewMeta?.value.type === ViewTypes.KANBAN) {
-      formattedKanbanData.value = formatKanbanData(response.list)
-    }
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
     await loadAggCommentsCount()
@@ -219,11 +181,6 @@ export function useViewData(
     if (!viewMeta?.value?.id) return
 
     galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
-  }
-
-  async function loadKanbanData() {
-    if (!viewMeta?.value?.id) return
-    kanbanData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
   }
 
   async function insertRow(row: Record<string, any>, rowIndex = formattedData.value?.length) {
@@ -439,7 +396,6 @@ export function useViewData(
     paginationData,
     queryParams,
     formattedData,
-    formattedKanbanData,
     insertRow,
     updateRowProperty,
     changePage,
@@ -460,7 +416,5 @@ export function useViewData(
     loadAggCommentsCount,
     removeLastEmptyRow,
     removeRowIfNew,
-    kanbanData,
-    loadKanbanData,
   }
 }

@@ -9,6 +9,7 @@ const { tables: projectTables } = useProject()
 const { metas, getMeta } = useMetas()
 
 let isLoading = $ref(true)
+const erdKey = ref(0)
 
 const config = ref({
   showPkAndFk: true,
@@ -59,6 +60,14 @@ watch(
     config.value.showPkAndFk = config.value.showAllColumns
   },
 )
+
+watch(metas, () => {
+  erdKey.value++
+})
+
+watch(config, () => {
+  erdKey.value++
+})
 </script>
 
 <template>
@@ -69,7 +78,7 @@ watch(
       </div>
     </div>
     <div v-else class="relative h-full">
-      <ErdSimpleView :key="JSON.stringify(config)" :tables="tablesFilteredWithConfig" :config="config" />
+      <ErdSimpleView :key="erdKey" :tables="tablesFilteredWithConfig" :config="config" />
 
       <div class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
         <div class="flex flex-row items-center">
@@ -80,7 +89,7 @@ watch(
           <a-checkbox v-model:checked="config.showPkAndFk" v-e="['c:erd:showPkAndFk']" />
           <span class="ml-2" style="font-size: 0.65rem">Show PK and FK</span>
         </div>
-        <div class="flex flex-row items-center">
+        <div v-if="!table" class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" />
           <span class="ml-2" style="font-size: 0.65rem">Show SQL views</span>
         </div>

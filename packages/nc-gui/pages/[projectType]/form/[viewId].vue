@@ -18,7 +18,7 @@ definePageMeta({
   public: true,
 })
 
-useSidebar({ hasSidebar: false })
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 

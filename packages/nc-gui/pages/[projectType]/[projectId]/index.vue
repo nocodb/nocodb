@@ -11,7 +11,6 @@ import {
   openLink,
   projectThemeColors,
   provide,
-  provideSidebar,
   ref,
   useClipboard,
   useGlobal,
@@ -19,6 +18,7 @@ import {
   useProject,
   useRoute,
   useRouter,
+  useSidebar,
   useTabs,
   useUIPermission,
 } from '#imports'
@@ -49,7 +49,7 @@ const isLocked = ref(false)
 provide('TreeViewIsLockedInj', isLocked)
 
 // create a new sidebar state
-const { isOpen, toggle } = provideSidebar({ isOpen: true })
+const { isOpen, toggle } = useSidebar('nc-left-sidebar', { isOpen: true })
 
 const dialogOpen = ref(false)
 

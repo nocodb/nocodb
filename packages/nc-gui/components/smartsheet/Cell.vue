@@ -38,8 +38,6 @@ const column = toRef(props, 'column')
 
 const active = toRef(props, 'active', false)
 
-const virtual = toRef(props, 'virtual', false)
-
 const readOnly = toRef(props, 'readOnly', undefined)
 
 provide(ColumnInj, column)
@@ -139,7 +137,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
 <template>
   <div
     class="nc-cell w-full h-full"
-    :class="{ 'text-blue-600': isPrimary && !virtual && !isForm }"
+    :class="[`nc-cell-${(column?.uidt || 'default').toLowerCase()}`, { 'text-blue-600': isPrimary && !virtual && !isForm }]"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up

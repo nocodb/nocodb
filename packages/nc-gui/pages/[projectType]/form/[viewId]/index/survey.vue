@@ -78,9 +78,9 @@ useEventListener(
     <div
       ref="el"
       :key="field.title"
-      class="bg-white relative flex flex-col justify-center gap-2 w-full lg:max-w-1/2 max-w-500px m-auto px-8 py-4 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+      class="bg-white relative flex flex-col justify-center gap-4 w-full lg:max-w-1/2 max-w-500px m-auto px-8 pt-8 pb-1 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
     >
-      <div v-if="field" class="flex flex-col my-6 gap-2">
+      <div v-if="field" class="flex flex-col gap-2">
         <div class="flex nc-form-column-label">
           <SmartsheetHeaderVirtualCell
             v-if="isVirtualCol(field)"
@@ -97,7 +97,7 @@ useEventListener(
           />
         </div>
 
-        <div v-if="isVirtualCol(field)" class="mt-0">
+        <div v-if="isVirtualCol(field)">
           <SmartsheetVirtualCell
             class="mt-0 nc-input"
             :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
@@ -113,7 +113,7 @@ useEventListener(
           </template>
         </div>
 
-        <div v-else class="mt-0">
+        <div v-else>
           <SmartsheetCell
             v-model="formState[field.title]"
             class="nc-input"
@@ -154,5 +154,9 @@ useEventListener(
 <style scoped>
 :global(html, body) {
   @apply overscroll-x-none;
+}
+
+:deep(.nc-cell-attachment) {
+  @apply h-1/3 min-h-[100px];
 }
 </style>

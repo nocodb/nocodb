@@ -1,7 +1,27 @@
 <script setup lang="ts">
-import { useSharedFormStoreOrThrow } from '#imports'
+import { useRoute, useSharedFormStoreOrThrow, useTheme, watch } from '#imports'
 
 const { passwordDlg, password, loadSharedView } = useSharedFormStoreOrThrow()
+
+const route = useRoute()
+
+const { setTheme } = useTheme()
+
+watch(
+  () => route.query.theme,
+  (nextTheme) => {
+    if (nextTheme) {
+      const theme = (nextTheme as string).split(',').map((t) => t.trim() && `#${t}`)
+
+      console.log(theme)
+      setTheme({
+        primaryColor: theme[0],
+        accentColor: theme[1],
+      })
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

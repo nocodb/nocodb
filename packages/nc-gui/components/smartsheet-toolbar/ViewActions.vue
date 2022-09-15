@@ -230,7 +230,13 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
-    <a-modal v-model:visible="showErd" size="small" :title="$t('title.erdView')" :footer="null" width="max(900px,60vw)">
+    <a-modal
+      v-model:visible="showErd"
+      size="small"
+      :title="`${$t('title.erdView')}: ${selectedView?.title}`"
+      :footer="null"
+      width="max(900px,60vw)"
+    >
       <SmartsheetToolbarErd />
     </a-modal>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { openLink, useRoute, useSharedFormStoreOrThrow, useTheme, watch } from '#imports'
+import { useRoute, useSharedFormStoreOrThrow, useTheme, watch } from '#imports'
 
 const { passwordDlg, password, loadSharedView } = useSharedFormStoreOrThrow()
 
@@ -28,6 +28,8 @@ watch(
     <NuxtPage />
 
     <GeneralPoweredBy />
+
+    <div class=""></div>
 
     <a-modal
       v-model:visible="passwordDlg"

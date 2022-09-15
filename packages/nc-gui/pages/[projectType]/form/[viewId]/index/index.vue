@@ -21,7 +21,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
 <template>
   <div
-    class="bg-white relative flex flex-col justify-center gap-2 w-full lg:max-w-1/2 max-w-500px m-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+    class="bg-white relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
   >
     <template v-if="sharedFormView">
       <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
@@ -59,7 +59,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
         </GeneralOverlay>
 
         <div class="nc-form-wrapper">
-          <div class="nc-form h-full px-6 lg:(max-w-3/4 mx-auto px-0)">
+          <div class="nc-form h-full">
             <div class="flex flex-col gap-6">
               <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
                 <div class="flex nc-form-column-label">
@@ -106,7 +106,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
               </div>
             </div>
 
-            <div class="text-center">
+            <div class="text-center mt-4">
               <button type="submit" class="submit" @click="submitForm">
                 {{ $t('general.submit') }}
               </button>

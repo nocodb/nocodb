@@ -41,3 +41,21 @@ if (!notFound.value) {
     <NuxtPage />
   </NuxtLayout>
 </template>
+
+<style lang="scss" scoped>
+:deep(.nc-cell-attachment) {
+  @apply p-0;
+
+  .nc-attachment-cell {
+    @apply px-4 min-h-[75px] w-full h-full;
+
+    .nc-attachment {
+      @apply md:(w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
+    }
+
+    .nc-attachment-cell-dropzone {
+      @apply rounded bg-gray-400/75;
+    }
+  }
+}
+</style>

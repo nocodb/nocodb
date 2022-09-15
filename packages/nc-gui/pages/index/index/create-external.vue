@@ -73,20 +73,20 @@ const validators = computed(() => {
       projectTitleValidator,
     ],
     'extraParameters': [extraParameterValidator],
-    'dataSource.client': [fieldRequiredValidator],
+    'dataSource.client': [fieldRequiredValidator()],
     ...(formState.dataSource.client === ClientType.SQLITE
       ? {
-          'dataSource.connection.connection.filename': [fieldRequiredValidator],
+          'dataSource.connection.connection.filename': [fieldRequiredValidator()],
         }
       : {
-          'dataSource.connection.host': [fieldRequiredValidator],
-          'dataSource.connection.port': [fieldRequiredValidator],
-          'dataSource.connection.user': [fieldRequiredValidator],
-          'dataSource.connection.password': [fieldRequiredValidator],
-          'dataSource.connection.database': [fieldRequiredValidator],
+          'dataSource.connection.host': [fieldRequiredValidator()],
+          'dataSource.connection.port': [fieldRequiredValidator()],
+          'dataSource.connection.user': [fieldRequiredValidator()],
+          'dataSource.connection.password': [fieldRequiredValidator()],
+          'dataSource.connection.database': [fieldRequiredValidator()],
           ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
             ? {
-                'dataSource.searchPath.0': [fieldRequiredValidator],
+                'dataSource.searchPath.0': [fieldRequiredValidator()],
               }
             : {}),
         }),

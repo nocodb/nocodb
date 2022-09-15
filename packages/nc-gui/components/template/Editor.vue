@@ -94,13 +94,13 @@ const data = reactive<{ title: string | null; name: string; tables: (TableType &
 })
 
 const validators = computed(() =>
-  data.tables.reduce<Record<string, [typeof fieldRequiredValidator]>>((acc, table, tableIdx) => {
-    acc[`tables.${tableIdx}.ref_table_name`] = [fieldRequiredValidator]
+  data.tables.reduce<Record<string, [ReturnType<typeof fieldRequiredValidator>]>>((acc, table, tableIdx) => {
+    acc[`tables.${tableIdx}.ref_table_name`] = [fieldRequiredValidator()]
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
-      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [fieldRequiredValidator]
-      acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [fieldRequiredValidator()]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
         hasSelectColumn.value[tableIdx] = true
       }

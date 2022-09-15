@@ -184,28 +184,28 @@ const methodList = ref([
 
 const validators = computed(() => {
   return {
-    'title': [fieldRequiredValidator],
-    'eventOperation': [fieldRequiredValidator],
-    'notification.type': [fieldRequiredValidator],
+    'title': [fieldRequiredValidator()],
+    'eventOperation': [fieldRequiredValidator()],
+    'notification.type': [fieldRequiredValidator()],
     ...(hook.notification.type === 'URL' && {
-      'notification.payload.method': [fieldRequiredValidator],
-      'notification.payload.path': [fieldRequiredValidator],
+      'notification.payload.method': [fieldRequiredValidator()],
+      'notification.payload.path': [fieldRequiredValidator()],
     }),
     ...(hook.notification.type === 'Email' && {
-      'notification.payload.to': [fieldRequiredValidator],
-      'notification.payload.subject': [fieldRequiredValidator],
-      'notification.payload.body': [fieldRequiredValidator],
+      'notification.payload.to': [fieldRequiredValidator()],
+      'notification.payload.subject': [fieldRequiredValidator()],
+      'notification.payload.body': [fieldRequiredValidator()],
     }),
     ...((hook.notification.type === 'Slack' ||
       hook.notification.type === 'Microsoft Teams' ||
       hook.notification.type === 'Discord' ||
       hook.notification.type === 'Mattermost') && {
-      'notification.payload.channels': [fieldRequiredValidator],
-      'notification.payload.body': [fieldRequiredValidator],
+      'notification.payload.channels': [fieldRequiredValidator()],
+      'notification.payload.body': [fieldRequiredValidator()],
     }),
     ...((hook.notification.type === 'Twilio' || hook.notification.type === 'Whatsapp Twilio') && {
-      'notification.payload.body': [fieldRequiredValidator],
-      'notification.payload.to': [fieldRequiredValidator],
+      'notification.payload.body': [fieldRequiredValidator()],
+      'notification.payload.to': [fieldRequiredValidator()],
     }),
   }
 })

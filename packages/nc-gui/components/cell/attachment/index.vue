@@ -56,9 +56,9 @@ const {
 const currentCellRef = ref()
 
 watch(
-  [() => rowIndex, isForm],
+  [() => rowIndex, isForm, attachmentCellRef],
   () => {
-    if (!rowIndex && isForm.value && isGallery.value) {
+    if (!rowIndex && (isForm.value || isGallery.value)) {
       currentCellRef.value = attachmentCellRef.value
     } else {
       nextTick(() => {

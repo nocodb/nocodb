@@ -1,7 +1,10 @@
-<script setup lang="ts">
+<script lang="ts" setup>
+import { UITypes } from 'nocodb-sdk'
+
 const { tables } = useProject()
 
 const { metas, getMeta } = useMetas()
+const meta = inject(MetaInj)
 
 let isLoading = $ref(true)
 
@@ -10,9 +13,19 @@ const config = ref({
   showViews: false,
 })
 
+const relatedTables = computed(() =>
+  tables.value.filter(
+    (table) =>
+      meta?.value.columns &&
+      meta.value.columns.find(
+        (column) => column.uidt === UITypes.LinkToAnotherRecord && column?.colOptions?.fk_related_model_id === table.id,
+      ),
+  ),
+)
+
 const loadMetaOfTablesNotInMetas = async () => {
   await Promise.all(
-    tables.value
+    relatedTables.value
       .filter((table) => !metas.value[table.id!])
       .map(async (table) => {
         await getMeta(table.id!)
@@ -25,9 +38,7 @@ onMounted(async () => {
   isLoading = false
 })
 
-const localTables = computed(() =>
-  tables.value.filter((table) => (!config.value.showViews && table.type !== 'view') || config.value.showViews),
-)
+const localTables = computed(() => (meta ? [meta.value, ...relatedTables.value] : []))
 </script>
 
 <template>
@@ -40,14 +51,10 @@ const localTables = computed(() =>
     <div v-else class="relative h-full">
       <ErdView :key="JSON.stringify(config)" :tables="localTables" :config="config" />
 
-      <div class="absolute top-4 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
+      <div class="absolute top-3 right-11 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
         <div class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showPkAndFk" />
           <span class="ml-2" style="font-size: 0.65rem">Show PK and FK</span>
-        </div>
-        <div class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showViews" />
-          <span class="ml-2" style="font-size: 0.65rem">Show views</span>
         </div>
       </div>
     </div>

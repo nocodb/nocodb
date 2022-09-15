@@ -158,6 +158,7 @@
   },
   "title": {
     "erd": "ERD",
+    "erdView": "ERD View",
     "newProj": "New Project",
     "myProject": "My Projects",
     "formTitle": "Form Title",

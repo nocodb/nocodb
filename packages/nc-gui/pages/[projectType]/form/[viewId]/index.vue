@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { useRoute, useSharedFormStoreOrThrow, useTheme, watch } from '#imports'
+import { useDark, useRoute, useSharedFormStoreOrThrow, useTheme, watch } from '#imports'
 
 const { passwordDlg, password, loadSharedView } = useSharedFormStoreOrThrow()
 
 const route = useRoute()
+
+const isDark = useDark()
 
 const { setTheme } = useTheme()
 
@@ -21,15 +23,29 @@ watch(
   },
   { immediate: true },
 )
+
+const onClick = () => {
+  isDark.value = !isDark.value
+}
 </script>
 
 <template>
-  <div class="nc-form-view relative md:bg-primary bg-opacity-5 h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin">
+  <div
+    class="color-transition nc-form-view relative md:bg-primary bg-opacity-10 dark:(bg-slate-900) h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
+  >
     <NuxtPage />
 
     <GeneralPoweredBy />
 
-    <div class=""></div>
+    <div
+      class="flex items-center justify-center cursor-pointer absolute top-15 right-15 rounded-full p-2 bg-white dark:(bg-slate-600) shadow hover:(ring-1 ring-accent ring-opacity-100)"
+      @click="onClick"
+    >
+      <Transition name="slide-left" duration="250" mode="out-in">
+        <MaterialSymbolsDarkModeOutline v-if="isDark" />
+        <MaterialSymbolsLightModeOutline v-else />
+      </Transition>
+    </div>
 
     <a-modal
       v-model:visible="passwordDlg"
@@ -58,27 +74,33 @@ watch(
 </template>
 
 <style lang="scss">
+html,
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  @apply dark:text-white color-transition;
+}
+
 .nc-form-view {
   .nc-input {
-    @apply w-full rounded p-2 min-h-[40px] flex items-center border-solid border-1 border-primary;
+    @apply w-full rounded p-2 min-h-[40px] flex items-center border-solid border-1 border-primary dark:border-slate-200;
+
+    input {
+      @apply dark:(bg-slate-300 text-slate-900);
+    }
   }
+}
 
-  .submit {
-    @apply z-1 relative color-transition rounded p-3 text-white shadow-sm;
+.nc-cell {
+  @apply dark:bg-slate-300;
 
-    &::after {
-      @apply rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
-      content: '';
-      z-index: -1;
-    }
-
-    &:hover::after {
-      @apply transform scale-110 ring ring-accent;
-    }
-
-    &:active::after {
-      @apply ring ring-accent;
-    }
+  .nc-attachment-cell > div {
+    @apply dark:(bg-slate-100);
   }
 }
 </style>

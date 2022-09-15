@@ -11,7 +11,7 @@ export function useMetas() {
 
   const metas = useState<{ [idOrTitle: string]: TableType | any }>('metas', () => ({}))
 
-  const metasWithIdAsKey = computed(() => {
+  const metasWithIdAsKey = computed<Record<string, TableType>>(() => {
     const idEntries = Object.entries(metas.value).filter(([k, v]) => k === v.id)
     return Object.fromEntries(idEntries)
   })

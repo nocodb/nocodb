@@ -1,3 +1,4 @@
+import { isString } from '@vueuse/core'
 import type { Permission } from './rolePermissions'
 import rolePermissions from './rolePermissions'
 import { USER_PROJECT_ROLES, computed, useGlobal, useState } from '#imports'
@@ -9,7 +10,7 @@ export function useUIPermission() {
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
 
   const baseRoles = computed(() => {
-    let userRoles = typeof user.value?.roles === 'string' ? user.value?.roles : ({ ...(user.value?.roles || {}) } as Roles)
+    let userRoles = isString(user.value?.roles) ? user.value?.roles : ({ ...(user.value?.roles || {}) } as Roles)
 
     // if string populate key-value paired object
     if (typeof userRoles === 'string') {

@@ -64,7 +64,7 @@ export const genTest = (apiType, dbType) => {
         it(`Form view with Attachment field- Submit & verify`, () => {
 
             // open right navbar
-            cy.get('.nc-toggle-right-navbar').should('exist').click();
+            // cy.get('.nc-toggle-right-navbar').should('exist').click();
 
             // create form-view
             cy.get(`.nc-create-form-view`).click();

@@ -517,7 +517,7 @@ export class _mainPage {
     }
 
     toggleRightSidebar() {
-        cy.get(".nc-toggle-right-navbar").should("exist").click();
+        // cy.get(".nc-toggle-right-navbar").should("exist").click();
     }
 }
 

@@ -2,18 +2,23 @@
 import { ColumnInj, IsFormInj, ReadonlyInj, getMdiIcon, inject } from '#imports'
 
 interface Props {
-  modelValue?: boolean | undefined | number
+  // If the previous cell value was a text, the initial checkbox value is a string type
+  // otherwise it can be either a boolean, or a string representing a boolean, i.e '0' or '1'
+  modelValue?: boolean | string | '0' | '1'
 }
 
 interface Emits {
-  (event: 'update:modelValue', model: boolean | undefined | number): void
+  (event: 'update:modelValue', model: boolean): void
 }
 
 const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-let vModel = $(useVModel(props, 'modelValue', emits))
+let vModel = $computed({
+  get: () => !!props.modelValue && props.modelValue !== '0',
+  set: (val) => emits('update:modelValue', val),
+})
 
 const column = inject(ColumnInj)
 

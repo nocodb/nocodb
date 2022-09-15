@@ -75,7 +75,7 @@ const sharedViewUrl = computed(() => {
       viewType = 'view'
   }
 
-  return `${dashboardUrl?.value}#/nc/${surveyMode.value ? 'survey' : ''}${viewType}/${shared.value.uuid}`
+  return `${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}${surveyMode.value ? '/survey' : ''}`
 })
 
 async function saveAllowCSVDownload() {

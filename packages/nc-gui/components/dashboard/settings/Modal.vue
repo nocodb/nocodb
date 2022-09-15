@@ -110,7 +110,7 @@ const tabsInfo: TabGroup = {
         },
       },
       erd: {
-        title: t('title.erd'),
+        title: t('title.erdView'),
         body: Erd,
       },
       misc: {

@@ -157,7 +157,6 @@
     "isNotNull": "is not null"
   },
   "title": {
-    "erd": "ERD",
     "erdView": "ERD View",
     "newProj": "New Project",
     "myProject": "My Projects",

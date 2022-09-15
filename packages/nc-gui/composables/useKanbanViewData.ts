@@ -97,11 +97,17 @@ export function useKanbanViewData(
         const idx = stackMetaObj[grp_column_id].findIndex((ele: Record<string, any>) => ele.id === option.id)
         if (idx !== -1) {
           // update the option in stackMetaObj
-          stackMetaObj[grp_column_id][idx] = option
+          stackMetaObj[grp_column_id][idx] = {
+            ...stackMetaObj[grp_column_id][idx],
+            ...option,
+          }
         } else {
           // new option found
           const len = stackMetaObj[grp_column_id].length
-          stackMetaObj[grp_column_id][len] = option
+          stackMetaObj[grp_column_id][len] = {
+            ...option,
+            collapsed: false,
+          }
         }
       }
       // handle deleted options
@@ -121,10 +127,17 @@ export function useKanbanViewData(
         ...(groupingFieldColumn.value?.colOptions?.options ?? []),
         // enrich uncategorized stack
         { id: 'uncategorized', title: 'Uncategorized', order: 0, color: enumColor.light[2] },
-      ].sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
+      ]
+        // sort by initial order
+        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
+        // enrich `collapsed`
+        .map((ele) => ({
+          ...ele,
+          collapsed: false,
+        }))
     }
     // if grouping column id is present, add the grouping field column options to stackMetaObj
-    if (stackMetaObj && grp_column_id) {
+    if (grp_column_id) {
       stackMetaObj[grp_column_id] = groupingFieldColOptions.value
       await updateKanbanMeta({
         stack_meta: stackMetaObj,

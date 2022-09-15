@@ -21,10 +21,11 @@ interface Props {
   parentId?: string
   autoSave: boolean
   hookId?: string
+  showLoading?: boolean
   modelValue?: Filter[]
 }
 
-const { nested = false, parentId, autoSave = true, hookId = null, modelValue } = defineProps<Props>()
+const { nested = false, parentId, autoSave = true, hookId = null, modelValue, showLoading = true } = defineProps<Props>()
 
 const emit = defineEmits(['update:filtersLength'])
 
@@ -46,7 +47,7 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGr
   activeView,
   parentId,
   computed(() => autoSave),
-  reloadDataHook.trigger,
+  () => reloadDataHook.trigger(showLoading),
   modelValue || nestedFilters.value,
   !modelValue,
 )

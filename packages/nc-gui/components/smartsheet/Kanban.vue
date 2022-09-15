@@ -252,14 +252,14 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                             Collapse Stack
                           </div>
                         </a-menu-item>
-                        <a-menu-item @click="renameStack">
+                        <a-menu-item v-if="stack.title !== 'Uncategorized'" @click="renameStack">
                           <div class="py-2 flex gap-2 items-center">
                             <mdi-pencil class="text-gray-500" />
                             <!-- TODO: i18n -->
                             Rename Stack
                           </div>
                         </a-menu-item>
-                        <a-menu-item @click="handleDeleteStackClick(stack.title)">
+                        <a-menu-item v-if="stack.title !== 'Uncategorized'" @click="handleDeleteStackClick(stack.title)">
                           <div class="py-2 flex gap-2 items-center">
                             <mdi-delete class="text-gray-500" />
                             <!-- TODO: i18n -->

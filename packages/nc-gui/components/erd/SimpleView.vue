@@ -12,6 +12,7 @@ interface Props {
   config: {
     showPkAndFk: boolean
     showViews: boolean
+    hideAllColumns: boolean
   }
 }
 
@@ -30,11 +31,15 @@ const populateInitialNodes = () => {
   tables.forEach((table) => {
     if (!table.id) return
 
-    dagreGraph.setNode(table.id, { width: 250, height: 50 * metasWithIdAsKey.value[table.id].columns.length })
+    const columns = metasWithIdAsKey.value[table.id].columns?.filter(
+      (col) => !config.hideAllColumns || (config.hideAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
+    )
+
+    dagreGraph.setNode(table.id, { width: 250, height: 50 * columns.length })
 
     initialNodes.value.push({
       id: table.id,
-      data: { ...metasWithIdAsKey.value[table.id], showPkAndFk: config.showPkAndFk },
+      data: { ...metasWithIdAsKey.value[table.id], showPkAndFk: config.showPkAndFk, hideAllColumns: config.hideAllColumns },
       type: 'custom',
     })
   })

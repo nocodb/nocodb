@@ -13,6 +13,7 @@ let isLoading = $ref(true)
 const config = ref({
   showPkAndFk: true,
   showViews: false,
+  hideAllColumns: false,
 })
 
 const tables = computed(() => {
@@ -49,6 +50,15 @@ onMounted(async () => {
 const tablesFilteredWithConfig = computed(() =>
   tables.value.filter((table) => (!config.value.showViews && table.type !== 'view') || config.value.showViews),
 )
+
+watch(
+  () => config.value.hideAllColumns,
+  () => {
+    if (config.value.hideAllColumns) {
+      config.value.showPkAndFk = false
+    }
+  },
+)
 </script>
 
 <template>
@@ -69,6 +79,10 @@ const tablesFilteredWithConfig = computed(() =>
         <div class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" />
           <span class="ml-2" style="font-size: 0.65rem">Show views</span>
+        </div>
+        <div class="flex flex-row items-center">
+          <a-checkbox v-model:checked="config.hideAllColumns" v-e="['c:erd:hideAllColumns']" />
+          <span class="ml-2" style="font-size: 0.65rem">Hide all columns</span>
         </div>
       </div>
     </div>

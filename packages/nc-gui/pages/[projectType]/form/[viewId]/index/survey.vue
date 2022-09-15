@@ -62,15 +62,6 @@ useEventListener('wheel', (event) => {
     goNext()
   }
 })
-
-useEventListener(
-  'touchmove',
-  (e) => {
-    e.preventDefault()
-    console.log('touchmove')
-  },
-  { passive: false },
-)
 </script>
 
 <template>
@@ -157,6 +148,18 @@ useEventListener(
 }
 
 :deep(.nc-cell-attachment) {
-  @apply h-1/3 min-h-[100px];
+  @apply p-0;
+
+  .nc-attachment-cell {
+    @apply px-4 h-1/3 min-h-[100px];
+
+    .nc-attachment {
+      @apply md:(w-[50px] h-[50px]) lg:(w-[75px] h-[75px]) min-h-[50px] min-w-[50px];
+    }
+
+    .nc-attachment-cell-dropzone {
+      @apply rounded bg-gray-400/75;
+    }
+  }
 }
 </style>

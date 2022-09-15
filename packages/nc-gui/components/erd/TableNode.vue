@@ -4,9 +4,11 @@ import { Handle, Position } from '@braks/vue-flow'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import MdiView from '~icons/mdi/eye-circle-outline'
+import MdiTableLarge from '~icons/mdi/table-large'
 
 interface Props extends NodeProps {
-  data: TableType & { showPkAndFk: boolean; hideAllColumns: boolean }
+  data: TableType & { showPkAndFk: boolean; showAllColumns: boolean }
 }
 
 const props = defineProps<Props>()
@@ -22,14 +24,14 @@ const columns = computed(() => {
 
 const pkAndFkColumns = computed(() => {
   return columns.value
-    ?.filter(() => data.value.showPkAndFk && !data.value.hideAllColumns)
+    ?.filter(() => data.value.showPkAndFk && data.value.showAllColumns)
     .filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
 })
 
 const nonPkColumns = computed(() => {
   return columns.value
     ?.filter(
-      (col: ColumnType) => !data.value.hideAllColumns || (data.value.hideAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
+      (col: ColumnType) => data.value.showAllColumns || (!data.value.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
     )
     .filter((col: ColumnType) => !col.pk && col.uidt !== UITypes.ForeignKey)
 })
@@ -40,8 +42,14 @@ const relatedColumnId = (col: Record<string, any>) =>
 
 <template>
   <div class="h-full flex flex-col min-w-16 bg-gray-50 rounded-lg border-1">
-    <div class="text-gray-600 text-md py-2 border-b-2 border-gray-100 w-full px-3 bg-gray-100 font-semibold">
-      {{ data.title }}
+    <div
+      class="text-gray-600 text-md py-2 border-b-1 border-gray-200 w-full pr-3 pl-2 bg-gray-100 font-semibold flex flex-row items-center"
+    >
+      <MdiTableLarge v-if="data.type === 'table'" class="text-primary" />
+      <MdiView v-else class="text-primary" />
+      <div class="flex pl-1.5">
+        {{ data.title }}
+      </div>
     </div>
     <div>
       <div class="keys mb-1">

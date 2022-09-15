@@ -13,7 +13,7 @@ let isLoading = $ref(true)
 const config = ref({
   showPkAndFk: true,
   showViews: false,
-  hideAllColumns: false,
+  showAllColumns: true,
 })
 
 const tables = computed(() => {
@@ -54,11 +54,9 @@ const tablesFilteredWithConfig = computed(() =>
 )
 
 watch(
-  () => config.value.hideAllColumns,
+  () => config.value.showAllColumns,
   () => {
-    if (config.value.hideAllColumns) {
-      config.value.showPkAndFk = false
-    }
+    config.value.showPkAndFk = config.value.showAllColumns
   },
 )
 </script>
@@ -75,16 +73,16 @@ watch(
 
       <div class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
         <div class="flex flex-row items-center">
+          <a-checkbox v-model:checked="config.showAllColumns" v-e="['c:erd:showAllColumns']" />
+          <span class="ml-2" style="font-size: 0.65rem">Show columns</span>
+        </div>
+        <div class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showPkAndFk" v-e="['c:erd:showPkAndFk']" />
           <span class="ml-2" style="font-size: 0.65rem">Show PK and FK</span>
         </div>
         <div class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" />
-          <span class="ml-2" style="font-size: 0.65rem">Show views</span>
-        </div>
-        <div class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.hideAllColumns" v-e="['c:erd:hideAllColumns']" />
-          <span class="ml-2" style="font-size: 0.65rem">Hide all columns</span>
+          <span class="ml-2" style="font-size: 0.65rem">Show SQL views</span>
         </div>
       </div>
     </div>

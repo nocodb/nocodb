@@ -14,30 +14,22 @@ export const genTest = (apiType, dbType) => {
         //
         before(() => {
             // loginPage.loginAndOpenProject(apiType, dbType);
-            // cy.openTableTab("City", 25);
-            // cy.wait(500);
-            // mainPage.toggleRightSidebar();
-            // cy.wait(500);
-            // cy.saveLocalStorage();
-            // cy.wait(500);
-
             cy.restoreLocalStorage();
-            cy.wait(500);
-
-            mainPage.tabReset();
-            // open a table to work on views
-            //
-
             cy.openTableTab("City", 25);
         });
 
         beforeEach(() => {
+            cy.restoreLocalStorage();
+        });
+
+        afterEach(() => {
+            cy.saveLocalStorage();
         });
 
         after(() => {
             cy.restoreLocalStorage();
-            cy.wait(500);
             cy.closeTableTab("City");
+            cy.saveLocalStorage();
         });
 
         // Common routine to create/edit/delete GRID & GALLERY view
@@ -45,9 +37,6 @@ export const genTest = (apiType, dbType) => {
         //
         const viewTest = (viewType) => {
             it(`Create ${viewType} view`, () => {0
-
-              cy.restoreLocalStorage();
-              cy.wait(500);
 
               // click on create grid view button
               cy.get(`.nc-create-${viewType}-view`).click();
@@ -96,9 +85,6 @@ export const genTest = (apiType, dbType) => {
             });
 
             it(`Share form view`, () => {
-
-                cy.restoreLocalStorage();
-                cy.wait(500);
 
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
                     .contains("Form-1")
@@ -198,11 +184,6 @@ export const genTest = (apiType, dbType) => {
                 // go back to base page
                 loginPage.loginAndOpenProject(apiType, dbType);
                 cy.openTableTab("City", 25);
-                cy.wait(500);
-                mainPage.toggleRightSidebar();
-                cy.wait(500);
-                cy.saveLocalStorage();
-                cy.wait(500);
 
                 // number of view entries should be 2 before we delete
                 cy.get(".nc-view-item").its("length").should("eq", 2);

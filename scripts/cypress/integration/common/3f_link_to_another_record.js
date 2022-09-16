@@ -103,15 +103,14 @@ export const genTest = (apiType, dbType) => {
       cy.wait(1000);
     }
 
-    before(() => {
-      // required for standalone test
-      // loginPage.loginAndOpenProject(apiType, dbType);
+    // before(() => {
+    //   // required for standalone test
+    //   // loginPage.loginAndOpenProject(apiType, dbType);
+    // });
 
-      cy.createTable("Sheet1");
-      cy.createTable("Sheet2");
-
+    afterEach(() => {
       cy.saveLocalStorage();
-    });
+    })
 
     beforeEach(() => {
       cy.restoreLocalStorage();
@@ -120,6 +119,8 @@ export const genTest = (apiType, dbType) => {
     after(() => {
       // Cleanup
       //
+      cy.restoreLocalStorage();
+
       cy.openTableTab("Sheet1", 0);
       mainPage.deleteColumn("Link1-2hm");
       mainPage.deleteColumn("Link1-2mm");
@@ -127,12 +128,16 @@ export const genTest = (apiType, dbType) => {
       cy.deleteTable("Sheet1");
 
       cy.deleteTable("Sheet2");
+      cy.saveLocalStorage();
     });
 
     ///////////////////////////////////////////////////
     // Test case
 
     it("Create Link columns", () => {
+      cy.createTable("Sheet1");
+      cy.createTable("Sheet2");
+
       cy.openTableTab("Sheet1", 0);
       addRow(1, "1a");
       addRow(2, "1b");

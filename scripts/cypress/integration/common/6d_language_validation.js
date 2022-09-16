@@ -8,26 +8,27 @@ export const genTest = (apiType, dbType) => {
     describe(`Language support`, () => {
         before(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
 
             cy.visit("/")
             cy.wait(5000);
-
-            cy.saveLocalStorage();
-            cy.wait(1000);
         });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
-        });
+        })
+
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
 
         after(() => {
+            cy.restoreLocalStorage();
             cy.get('.nc-menu-accounts').should('exist').click();
             cy.getActiveMenu('.nc-dropdown-user-accounts-menu').find('.ant-dropdown-menu-item').eq(1).click();
 
             cy.wait(5000);
             cy.get('button:contains("SIGN")').should('exist')
+            cy.saveLocalStorage();
         })
 
         const langVerification = (idx, lang) => {

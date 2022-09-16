@@ -13,28 +13,32 @@ export const genTest = (apiType, dbType) => {
 
         // Run once before test- create project (rest/graphql)
         //
-        before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
-            // open a table to work on views
-            //
-
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
-
-            cy.openTableTab("City", 25);
-        });
+        // before(() => {
+        //     cy.fileHook();
+        //     mainPage.tabReset();
+        //     // open a table to work on views
+        //     //
+        //
+        //     // // kludge: wait for page load to finish
+        //     // cy.wait(1000);
+        //     // // close team & auth tab
+        //     // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+        //     // cy.wait(1000);
+        //
+        //     cy.openTableTab("City", 25);
+        // });
 
         beforeEach(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
         });
 
-        after(() => {
-            cy.closeTableTab("City");
-        });
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
+        // after(() => {
+        //     cy.closeTableTab("City");
+        // });
 
         // Routine to create a new look up column
         //
@@ -74,6 +78,8 @@ export const genTest = (apiType, dbType) => {
         // Test case
 
         it("Add Lookup column (Address, PostalCode) & Delete", () => {
+            cy.openTableTab("City", 25);
+
             addLookUpColumn("Address", "PostalCode");
 
             // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
@@ -82,6 +88,8 @@ export const genTest = (apiType, dbType) => {
                 .should("exist");
 
             deleteColumnByName("PostalCode");
+
+            cy.closeTableTab("City");
         });
 
         it.skip("Add Lookup column (Country, CountryId) & Delete", () => {

@@ -513,7 +513,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)) {
           const dbDriver = NcConnectionMgrv2.get(base);
           const driverType = dbDriver.clientType();
-          const optionTitles = colBody.colOptions.options.map(el => el.title);
+          const optionTitles = colBody.colOptions.options.map(el => el.title.replace(/'/g, "''"));
           // Handle default values
           if (colBody.cdf) {
             if (colBody.uidt === UITypes.SingleSelect) {
@@ -756,7 +756,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       }
 
       // Handle default values
-      const optionTitles = colBody.colOptions.options.map(el => el.title);
+      const optionTitles = colBody.colOptions.options.map(el => el.title.replace(/'/g, "''"));
       if (colBody.cdf) {
         if (colBody.uidt === UITypes.SingleSelect) {
           if (!optionTitles.includes(colBody.cdf)) {

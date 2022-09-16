@@ -10,7 +10,7 @@ const { metas, getMeta } = useMetas()
 
 let isLoading = $ref(true)
 const erdKey = ref(0)
-const showMMOption = ref(false)
+const showAdvancedOptions = ref(false)
 
 const config = ref({
   showPkAndFk: true,
@@ -18,6 +18,7 @@ const config = ref({
   showAllColumns: true,
   singleTableMode: !!table,
   showMMTables: false,
+  showJunctionTableNames: false,
 })
 
 const tables = computed(() => {
@@ -96,7 +97,7 @@ watch(
       <div class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
         <div class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showAllColumns" v-e="['c:erd:showAllColumns']" />
-          <span class="ml-2 select-none" style="font-size: 0.65rem" @dblclick="showMMOption = true">{{
+          <span class="ml-2 select-none" style="font-size: 0.65rem" @dblclick="showAdvancedOptions = true">{{
             $t('activity.erd.showColumns')
           }}</span>
         </div>
@@ -108,9 +109,13 @@ watch(
           <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" />
           <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showSqlViews') }}</span>
         </div>
-        <div v-if="!table && showMMOption" class="flex flex-row items-center">
+        <div v-if="!table && showAdvancedOptions" class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showMMTables" v-e="['c:erd:showMMTables']" />
           <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showMMTables') }}</span>
+        </div>
+        <div v-if="!table && showAdvancedOptions" class="flex flex-row items-center">
+          <a-checkbox v-model:checked="config.showJunctionTableNames" v-e="['c:erd:showJunctionTableNames']" />
+          <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showJunctionTableNames') }}</span>
         </div>
       </div>
     </div>

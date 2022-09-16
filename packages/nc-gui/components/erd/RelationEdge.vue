@@ -1,5 +1,5 @@
 <script setup>
-import { getBezierPath } from '@braks/vue-flow'
+import { EdgeText, getBezierPath, getEdgeCenter } from '@braks/vue-flow'
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -53,7 +53,7 @@ const props = defineProps({
   },
 })
 
-const { column, isSelfRelation } = toRefs(props.data)
+const { column, isSelfRelation, label } = toRefs(props.data)
 
 const isManyToMany = computed(() => column.value?.colOptions?.type === 'mm')
 
@@ -74,6 +74,15 @@ const edgePath = computed(() => {
     targetPosition: props.targetPosition,
   })
 })
+
+const center = computed(() =>
+  getEdgeCenter({
+    sourceX: props.sourceX,
+    sourceY: props.sourceY,
+    targetX: props.targetX,
+    targetY: props.targetY,
+  }),
+)
 </script>
 
 <script>
@@ -100,6 +109,18 @@ export default {
     fill="none"
     :d="edgePath"
     :marker-end="markerEnd"
+  />
+
+  <EdgeText
+    v-if="label"
+    :x="center[0]"
+    :y="center[1]"
+    :label="label"
+    :label-style="{ fill: 'white' }"
+    :label-show-bg="true"
+    :label-bg-style="{ fill: '#10b981' }"
+    :label-bg-padding="[2, 4]"
+    :label-bg-border-radius="2"
   />
 
   <rect

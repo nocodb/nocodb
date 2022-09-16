@@ -413,7 +413,8 @@
       "showColumns": "Show Columns",
       "showPkAndFk": "Show Primary and Foreign Keys",
       "showSqlViews": "Show SQL Views",
-      "showMMTables": "Show MM tables"
+      "showMMTables": "Show MM tables",
+      "showJunctionTableNames": "Show Junction Table Names"
     }
   },
   "tooltip": {

@@ -16,6 +16,7 @@ interface Props {
     showViews: boolean
     showAllColumns: boolean
     singleTableMode: boolean
+    showJunctionTableNames: boolean
   }
 }
 
@@ -86,7 +87,7 @@ const populateEdges = () => {
     const source = column.fk_model_id!
     const target = (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!
 
-    let sourceColumnId, targetColumnId
+    let sourceColumnId, targetColumnId, edgeLabel
 
     if ((column.colOptions as LinkToAnotherRecordType).type === 'hm') {
       sourceColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
@@ -96,6 +97,9 @@ const populateEdges = () => {
     if ((column.colOptions as LinkToAnotherRecordType).type === 'mm') {
       sourceColumnId = (column.colOptions as LinkToAnotherRecordType).fk_parent_column_id
       targetColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
+      edgeLabel =
+        config.showJunctionTableNames &&
+        metasWithIdAsKey.value[(column.colOptions as LinkToAnotherRecordType).fk_mm_model_id!].table_name
     }
 
     if (source !== target) dagreGraph.setEdge(source, target)
@@ -118,6 +122,7 @@ const populateEdges = () => {
       data: {
         column,
         isSelfRelation: source === target && sourceColumnId === targetColumnId,
+        label: edgeLabel,
       },
     }
   })

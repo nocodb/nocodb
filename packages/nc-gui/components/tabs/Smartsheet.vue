@@ -59,7 +59,7 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
 <template>
   <div class="nc-container flex h-full">
     <div class="flex flex-col h-full flex-1 min-w-0">
-      <SmartsheetToolbar container-class="border-b" />
+      <SmartsheetToolbar class="border-b" />
 
       <template v-if="meta">
         <div class="flex flex-1 min-h-0">

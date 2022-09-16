@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Api, ColumnType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, ColumnType, KanbanType, TableType, ViewType, SelectOptionType } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
 import type { Row } from '~/composables/useViewData'
@@ -11,14 +11,22 @@ export function useKanbanViewData(
   viewMeta: Ref<ViewType & { id: string }> | ComputedRef<ViewType & { id: string }> | undefined,
 ) {
   const { t } = useI18n()
-  const isPublic = inject(IsPublicInj, ref(false))
   const { api } = useApi()
   const { project } = useProject()
   const { $api } = useNuxtApp()
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
   const { isUIAllowed } = useUIPermission()
-  const groupingFieldColOptions = useState<Record<string, any>[]>('KanbanGroupingFieldColOptions', () => [])
+  const isPublic = inject(IsPublicInj, ref(false))
+
+  // kanban view meta data
   const kanbanMetaData = useState<KanbanType>('KanbanMetaData', () => ({}))
+
+  // grouping field column options - e.g. title, fk_column_id, color etc
+  const groupingFieldColOptions = useState<Record<string, SelectOptionType & { collapsed: boolean }>[]>(
+    'KanbanGroupingFieldColOptions',
+    () => [],
+  )
+
   // formattedData structure
   // {
   //   [val1] : [
@@ -33,9 +41,22 @@ export function useKanbanViewData(
   //   ],
   // }
   const formattedData = useState<Record<string, Row[]>>('KanbanFormattedData', () => ({}))
+
+  // countByStack structure
+  // {
+  //   "Uncategorized": 0,
+  //   [val1]: 10,
+  //   [val2]: 20
+  // }
   const countByStack = useState<Record<string, number>>('KanbanCountByStack', () => ({}))
+
+  // grouping field title
   const groupingField = useState<string>('KanbanGroupingField', () => '')
-  const groupingFieldColumn = useState<Record<string, any>>('KanbanGroupingFieldColumn', () => ({}))
+
+  // grouping field column
+  const groupingFieldColumn = useState<ColumnType>('KanbanGroupingFieldColumn')
+
+  // stack meta in object format
   const stackMetaObj = ref<Record<string, any>>({})
 
   const formatData = (list: Record<string, any>[]) =>
@@ -53,16 +74,15 @@ export function useKanbanViewData(
     countByStack.value = {}
 
     await Promise.all(
-      groupingFieldColOptions.value.map(async (option) => {
+      groupingFieldColOptions.value.map(async (option: SelectOptionType) => {
         const where =
           option.title === 'Uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
-
         const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
           where,
         })
 
-        formattedData.value[option.title] = formatData(response.list)
-        countByStack.value[option.title] = response.pageInfo.totalRows || 0
+        formattedData.value[option.title!] = formatData(response.list)
+        countByStack.value[option.title!] = response.pageInfo.totalRows || 0
       }),
     )
   }
@@ -82,21 +102,23 @@ export function useKanbanViewData(
   }
 
   async function loadKanbanMeta() {
-    if (!viewMeta?.value?.id) return
+    if (!viewMeta?.value?.id || !meta?.value?.columns) return
     kanbanMetaData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
     // set groupingField
-    groupingFieldColumn.value = meta?.value?.columns?.filter((f) => f.id === kanbanMetaData.value.grp_column_id)[0] || {}
-    groupingField.value = groupingFieldColumn.value?.title as string
+    groupingFieldColumn.value = meta.value.columns.filter((f) => f.id === kanbanMetaData.value.grp_column_id)[0]
+
+    groupingField.value = groupingFieldColumn.value.title!
 
     const { grp_column_id, stack_meta } = kanbanMetaData.value
 
     stackMetaObj.value = stack_meta ? JSON.parse(stack_meta as string) : {}
 
+    // TOOD: fix types
     if (
       stackMetaObj.value &&
       grp_column_id &&
       stackMetaObj.value[grp_column_id] &&
-      groupingFieldColumn.value?.colOptions?.options
+      groupingFieldColumn.value?.colOptions.options
     ) {
       // keep the existing order (index of the array) but update the values
       for (const option of groupingFieldColumn.value.colOptions.options) {

@@ -835,7 +835,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           if (driverType === 'mssql') {
             await dbDriver.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [table.table_name, column.column_name, column.column_name, option.title]);
           } else {
-            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: null });
+            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: null }, { cookie: req});
           }
         } else if (column.uidt === UITypes.MultiSelect) {
           if (driverType === 'mysql' || driverType === 'mysql2') {
@@ -933,7 +933,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           if (driverType === 'mssql') {
             await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.column_name, newOp.title, column.column_name, option.title]);
           } else {
-            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: newOp.title });
+            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: newOp.title }, { cookie: req});
           }
         } else if (column.uidt === UITypes.MultiSelect) {
           if (driverType === 'mysql' || driverType === 'mysql2') {
@@ -954,7 +954,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           if (driverType === 'mssql') {
             await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.column_name, newOp.title, column.column_name, ch.temp_title]);
           } else {
-            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${ch.temp_title})` }, { [column.column_name]: newOp.title });
+            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${ch.temp_title})` }, { [column.column_name]: newOp.title }, { cookie: req});
           }
         } else if (column.uidt === UITypes.MultiSelect) {
           if (driverType === 'mysql' || driverType === 'mysql2') {

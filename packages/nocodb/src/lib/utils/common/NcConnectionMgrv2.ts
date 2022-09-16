@@ -22,6 +22,15 @@ export default class NcConnectionMgrv2 {
   //   this.metaKnex = ncMeta;
   // }
 
+  public static async destroyAll() {
+    for (const projectId in this.connectionRefs) {
+      for (const baseId in this.connectionRefs[projectId]) {
+        await this.connectionRefs[projectId][baseId].destroy();
+      }
+    }
+  }
+
+  // Todo: Should await on connection destroy
   public static delete(base: Base) {
     // todo: ignore meta projects
     if (this.connectionRefs?.[base.project_id]?.[base.id]) {

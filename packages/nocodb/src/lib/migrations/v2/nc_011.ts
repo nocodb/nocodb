@@ -1,4 +1,4 @@
-import { MetaTable } from '../../utils/globals';
+import { MetaTable, orderedMetaTables } from '../../utils/globals';
 // import googleAuth from '../plugins/googleAuth';
 // import ses from '../plugins/ses';
 // import cache from '../plugins/cache';
@@ -806,38 +806,9 @@ const up = async (knex) => {
 };
 
 const down = async (knex) => {
-  await knex.schema.dropTable(MetaTable.MODEL_ROLE_VISIBILITY);
-  await knex.schema.dropTable(MetaTable.PLUGIN);
-  await knex.schema.dropTable(MetaTable.AUDIT);
-  await knex.schema.dropTable(MetaTable.TEAM_USERS);
-  await knex.schema.dropTable(MetaTable.TEAMS);
-  await knex.schema.dropTable(MetaTable.ORGS);
-  await knex.schema.dropTable(MetaTable.PROJECT_USERS);
-  await knex.schema.dropTable(MetaTable.USERS);
-  await knex.schema.dropTable(MetaTable.KANBAN_VIEW_COLUMNS);
-  await knex.schema.dropTable(MetaTable.KANBAN_VIEW);
-  await knex.schema.dropTable(MetaTable.GRID_VIEW_COLUMNS);
-  await knex.schema.dropTable(MetaTable.GRID_VIEW);
-  await knex.schema.dropTable(MetaTable.GALLERY_VIEW_COLUMNS);
-  await knex.schema.dropTable(MetaTable.GALLERY_VIEW);
-  await knex.schema.dropTable(MetaTable.FORM_VIEW_COLUMNS);
-  await knex.schema.dropTable(MetaTable.FORM_VIEW);
-  await knex.schema.dropTable(MetaTable.SHARED_VIEWS);
-  await knex.schema.dropTable(MetaTable.SORT);
-  await knex.schema.dropTable(MetaTable.FILTER_EXP);
-  await knex.schema.dropTable(MetaTable.HOOK_LOGS);
-  await knex.schema.dropTable(MetaTable.HOOKS);
-  await knex.schema.dropTable(MetaTable.VIEWS);
-  await knex.schema.dropTable(MetaTable.COL_FORMULA);
-  await knex.schema.dropTable(MetaTable.COL_ROLLUP);
-  await knex.schema.dropTable(MetaTable.COL_LOOKUP);
-  await knex.schema.dropTable(MetaTable.COL_SELECT_OPTIONS);
-  await knex.schema.dropTable(MetaTable.COL_RELATIONS);
-  await knex.schema.dropTable(MetaTable.COLUMN_VALIDATIONS);
-  await knex.schema.dropTable(MetaTable.COLUMNS);
-  await knex.schema.dropTable(MetaTable.MODELS);
-  await knex.schema.dropTable(MetaTable.BASES);
-  await knex.schema.dropTable(MetaTable.PROJECT);
+  for (const tableName of orderedMetaTables) {
+    await knex.schema.dropTable(tableName);
+  }
 };
 
 export { up, down };

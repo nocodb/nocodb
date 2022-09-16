@@ -3266,6 +3266,61 @@
         }
       }
     },
+    "/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "base-meta-diff-sync",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ]
+      },
+      "get": {
+        "summary": "",
+        "operationId": "base-meta-diff-get",
+        "parameters": [],
+        "tags": [
+          "Base"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}": {
       "parameters": [
         {

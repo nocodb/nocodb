@@ -150,8 +150,6 @@ const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) 
     expandedFormDlg.value = true
     skipRowRemovalOnCancel.value = !fromToolbar
   }
-
-  /*  */
 }
 
 openNewRecordFormHook?.on(async () => {

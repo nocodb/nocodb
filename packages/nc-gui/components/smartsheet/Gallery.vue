@@ -18,6 +18,7 @@ import {
 } from '#imports'
 import Row from '~/components/smartsheet/Row.vue'
 import type { Row as RowType } from '~/composables'
+import { extractPkFromRow } from '~/utils'
 import ImageIcon from '~icons/mdi/file-image-box'
 
 interface Attachment {
@@ -53,6 +54,10 @@ provide(ChangePageInj, changePage)
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
+
+const route = useRoute()
+
+const router = useRouter()
 
 const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id))
 
@@ -101,11 +106,23 @@ reloadViewDataHook?.on(async () => {
   })
 })
 
-const expandForm = (row: RowType, state?: Record<string, any>) => {
+const expandForm = (row: RowType, _state?: Record<string, any>) => {
   if (!isUIAllowed('xcDatatableEditable')) return
-  expandedFormRow.value = row
-  expandedFormRowState.value = state
-  expandedFormDlg.value = true
+
+  const rowId = extractPkFromRow(row.row, meta.value.columns)
+
+  if (rowId) {
+    router.push({
+      query: {
+        ...route.query,
+        rowId,
+      },
+    })
+  } else {
+    expandedFormRow.value = row
+    expandedFormRowState.value = state
+    expandedFormDlg.value = true
+  }
 }
 
 const expandFormClick = async (e: MouseEvent, row: RowType) => {
@@ -119,6 +136,24 @@ openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
 })
+
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!route.query.rowId
+  },
+  set(val) {
+    if (!val)
+      router.push({
+        query: {
+          ...route.query,
+          rowId: undefined,
+        },
+      })
+  },
+})
+
+// reload table data reload hook as fallback to rowdatareload
+provide(ReloadRowDataHookInj, reloadViewDataHook)
 </script>
 
 <template>
@@ -186,6 +221,15 @@ openNewRecordFormHook?.on(async () => {
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
+    />
+
+    <SmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg"
+      :key="route.query.rowId"
+      v-model="expandedFormOnRowIdDlg"
+      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :meta="meta"
+      :row-id="route.query.rowId"
     />
   </div>
 </template>

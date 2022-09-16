@@ -205,7 +205,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
               <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="p-4" />
               <a-layout v-else class="!bg-[#f0f2f5]">
                 <a-layout-header>
-                  <div class="nc-kanban-stack-head text-slate-500 font-bold flex items-center px-[15px]">
+                  <div class="nc-kanban-stack-head font-bold flex items-center px-[15px]">
                     <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
                       <div class="flex items-center cursor-pointer w-full">
                         <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
@@ -336,7 +336,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                 <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
                 <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="m-0 ml-[10px] p-0" />
                 <div v-else class="nc-kanban-data-count mt-[7px] mx-[10px]">
-                  <div class="float-right flex gap-2 items-center cursor-pointer">
+                  <div class="float-right flex gap-2 items-center cursor-pointer font-bold">
                     <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
                     <mdi-menu-down class="text-grey text-lg" />
                   </div>

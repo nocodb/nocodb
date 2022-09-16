@@ -220,8 +220,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
         @change="onMoveStack($event)"
       >
         <template #item="{ element: stack, index: stackIdx }">
-          <a-skeleton v-if="!formattedData[stack.title] && !countByStack" class="p-4" />
-          <div v-else class="nc-kanban-stack" :class="{ 'w-[50px]': stack.collapsed }">
+          <div class="nc-kanban-stack" :class="{ 'w-[50px]': stack.collapsed }">
             <a-card
               v-if="!stack.collapsed"
               :key="stack.id"
@@ -231,7 +230,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
               body-style="padding: 0px; height: 100%;"
             >
               <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
-              <a-skeleton v-if="!formattedData[stack.title]" class="p-4" />
+              <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="p-4" />
               <a-layout v-else class="px-[15px] !bg-[#f0f2f5]">
                 <a-layout-header>
                   <div class="nc-kanban-stack-head text-slate-500 font-bold flex items-center">
@@ -384,7 +383,8 @@ openNewRecordFormHook?.on(async (stackTitle) => {
             >
               <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
                 <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
-                <div class="nc-kanban-data-count mt-[7px] mx-[10px]">
+                <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="m-0 ml-[10px] p-0" />
+                <div v-else class="nc-kanban-data-count mt-[7px] mx-[10px]">
                   <div class="float-right flex gap-2 items-center cursor-pointer">
                     <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
                     <mdi-menu-down class="text-grey text-lg" />

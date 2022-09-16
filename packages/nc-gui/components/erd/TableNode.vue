@@ -42,15 +42,18 @@ const relatedColumnId = (col: Record<string, any>) =>
 
 <template>
   <div class="h-full flex flex-col min-w-16 bg-gray-50 rounded-lg border-1">
-    <div
-      class="text-gray-600 text-md py-2 border-b-1 border-gray-200 rounded-t-lg w-full pr-3 pl-2 bg-gray-100 font-semibold flex flex-row items-center"
-    >
-      <MdiTableLarge v-if="data.type === 'table'" class="text-primary" />
-      <MdiView v-else class="text-primary" />
-      <div class="flex pl-1.5">
-        {{ data.title }}
+    <GeneralTooltip modifier-key="Alt">
+      <template #title> {{ data.table_name }} </template>
+      <div
+        class="text-gray-600 text-md py-2 border-b-1 border-gray-200 rounded-t-lg w-full pr-3 pl-2 bg-gray-100 font-semibold flex flex-row items-center"
+      >
+        <MdiTableLarge v-if="data.type === 'table'" class="text-primary" />
+        <MdiView v-else class="text-primary" />
+        <div class="flex pl-1.5">
+          {{ data.title }}
+        </div>
       </div>
-    </div>
+    </GeneralTooltip>
     <div>
       <div class="keys mb-1">
         <div v-for="col in pkAndFkColumns" :key="col.title" class="w-full border-b-1 py-2 border-gray-100">

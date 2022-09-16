@@ -514,6 +514,9 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           const dbDriver = NcConnectionMgrv2.get(base);
           const driverType = dbDriver.clientType();
           const optionTitles = colBody.colOptions.options.map(el => el.title.replace(/'/g, "''"));
+
+          // this is not used for select columns and cause issue for MySQL
+          colBody.dtxs = '';
           // Handle default values
           if (colBody.cdf) {
             if (colBody.uidt === UITypes.SingleSelect) {

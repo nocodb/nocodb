@@ -96,7 +96,7 @@ onBeforeMount(() => {
       />
     </a-form-item>
     <a-form-item v-if="sqlUi.showScale(vModel)" label="Scale">
-      <a-input v-model="vModel.dtxs" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
+      <a-input v-model:value="vModel.dtxs" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
     </a-form-item>
     <a-form-item :label="$t('placeholder.defaultValue')">
       <a-textarea v-model:value="vModel.cdf" auto-size @input="onAlter(2, true)" />

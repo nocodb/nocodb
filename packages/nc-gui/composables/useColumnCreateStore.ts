@@ -109,20 +109,22 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         }
       }
 
-      if (column.value?.uidt === UITypes.Currency) {
+      // keep length and scale for same datatype
+      if (column.value && formState.value.uidt === column.value?.uidt) {
         formState.value.dtxp = column.value.dtxp
         formState.value.dtxs = column.value.dtxs
       } else {
-        formState.value.dtxp = 19
-        formState.value.dtxs = 2
+        // default length and scale for currency
+        if (formState.value?.uidt === UITypes.Currency) {
+          formState.value.dtxp = 19
+          formState.value.dtxs = 2
+        }
       }
 
       formState.value.altered = formState.value.altered || 2
     }
 
     const onDataTypeChange = () => {
-      const { isCurrency } = useColumn(ref(formState.value as ColumnType))
-
       formState.value.rqd = false
       if (formState.value.uidt !== UITypes.ID) {
         formState.value.primaryKey = false
@@ -135,16 +137,19 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       formState.value.dtx = 'specificType'
 
+      // use enum response as dtxp for select columns
       const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
       if (column.value && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column.value.uidt as UITypes)) {
         formState.value.dtxp = column.value.dtxp
       }
 
-      if (isCurrency.value) {
-        if (column.value?.uidt === UITypes.Currency) {
-          formState.value.dtxp = column.value.dtxp
-          formState.value.dtxs = column.value.dtxs
-        } else {
+      // keep length and scale for same datatype
+      if (column.value && formState.value.uidt === column.value?.uidt) {
+        formState.value.dtxp = column.value.dtxp
+        formState.value.dtxs = column.value.dtxs
+      } else {
+        // default length and scale for currency
+        if (formState.value?.uidt === UITypes.Currency) {
           formState.value.dtxp = 19
           formState.value.dtxs = 2
         }

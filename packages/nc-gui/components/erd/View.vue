@@ -53,8 +53,14 @@ onMounted(async () => {
 
 const tablesFilteredWithConfig = computed(() =>
   tables.value
-    .filter((table) => config.value.showMMTables || (!config.value.showMMTables && !table.mm))
-    .filter((table) => (!config.value.showViews && table.type !== 'view') || config.value.showViews),
+    .filter(
+      (t) =>
+        config.value.showMMTables ||
+        (!config.value.showMMTables && !t.mm) ||
+        // Show mm table if its the selected table
+        t.id === table?.id,
+    )
+    .filter((t) => (!config.value.showViews && t.type !== 'view') || config.value.showViews),
 )
 
 watch(

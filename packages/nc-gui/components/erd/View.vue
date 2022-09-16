@@ -94,7 +94,9 @@ watch(
     <div v-else class="relative h-full">
       <ErdSimpleView :key="erdKey" :tables="tablesFilteredWithConfig" :config="config" />
 
-      <div class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
+      <div
+        class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1 nc-erd-context-menu"
+      >
         <div class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showAllColumns" v-e="['c:erd:showAllColumns']" />
           <span class="ml-2 select-none" style="font-size: 0.65rem" @dblclick="showAdvancedOptions = true">{{

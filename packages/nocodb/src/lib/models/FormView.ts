@@ -26,6 +26,7 @@ export default class FormView implements FormType {
 
   project_id?: string;
   base_id?: string;
+  meta?: string | Record<string, any>;
 
   constructor(data: FormView) {
     Object.assign(this, data);
@@ -42,7 +43,13 @@ export default class FormView implements FormType {
       view = await ncMeta.metaGet2(null, null, MetaTable.FORM_VIEW, {
         fk_view_id: viewId,
       });
-      await NocoCache.set(`${CacheScope.FORM_VIEW}:${viewId}`, view);
+      if (view) {
+        view.meta =
+          view.meta && typeof view.meta === 'string'
+            ? JSON.parse(view.meta)
+            : view.meta;
+        await NocoCache.set(`${CacheScope.FORM_VIEW}:${viewId}`, view);
+      }
     }
     return view && new FormView(view);
   }
@@ -62,6 +69,10 @@ export default class FormView implements FormType {
       logo_url: view.logo_url,
       submit_another_form: view.submit_another_form,
       show_blank_form: view.show_blank_form,
+      meta:
+        view.meta && typeof view.meta === 'object'
+          ? JSON.stringify(view.meta)
+          : view.meta,
     };
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id);

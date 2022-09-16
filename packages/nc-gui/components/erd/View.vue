@@ -15,6 +15,7 @@ const config = ref({
   showPkAndFk: true,
   showViews: false,
   showAllColumns: true,
+  singleTableMode: !!table,
 })
 
 const tables = computed(() => {

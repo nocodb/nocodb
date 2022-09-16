@@ -15,6 +15,7 @@ interface Props {
     showPkAndFk: boolean
     showViews: boolean
     showAllColumns: boolean
+    singleTableMode: boolean
   }
 }
 
@@ -25,6 +26,7 @@ const { metasWithIdAsKey } = useMetas()
 const initialNodes = ref<Pick<Node, 'id' | 'data' | 'type'>[]>([])
 const nodes = ref<Node[]>([])
 const edges = ref<Edge[]>([])
+const vueFlowKey = ref(0)
 
 const dagreGraph = new dagre.graphlib.Graph()
 dagreGraph.setDefaultEdgeLabel(() => ({}))
@@ -96,7 +98,15 @@ const populateEdges = () => {
       targetColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
     }
 
-    dagreGraph.setEdge(source, target)
+    if (source !== target) dagreGraph.setEdge(source, target)
+
+    // todo: In the case of one self relation and one has many between 2 tables in only single table view, edges are getting messed up
+    if (source === target) {
+      // rerender after 200ms
+      setTimeout(() => {
+        vueFlowKey.value = 1
+      }, 200)
+    }
 
     return {
       id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}`,
@@ -107,6 +117,7 @@ const populateEdges = () => {
       type: 'custom',
       data: {
         column,
+        isSelfRelation: source === target && sourceColumnId === targetColumnId,
       },
     }
   })
@@ -143,7 +154,7 @@ const connectNonConnectedNodes = () => {
 }
 
 const layoutNodes = () => {
-  connectNonConnectedNodes()
+  if (!config.singleTableMode) connectNonConnectedNodes()
 
   dagre.layout(dagreGraph)
 
@@ -156,7 +167,7 @@ const layoutNodes = () => {
   })
 }
 
-onBeforeMount(async () => {
+onBeforeMount(() => {
   populateInitialNodes()
   populateEdges()
   layoutNodes()
@@ -164,7 +175,7 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <VueFlow :nodes="nodes" :edges="edges" :fit-view-on-init="true" :elevate-edges-on-select="true">
+  <VueFlow :key="vueFlowKey" :nodes="nodes" :edges="edges" :fit-view-on-init="true" :elevate-edges-on-select="true">
     <Controls class="!left-auto right-2 !top-3.5 !bottom-auto" :show-fit-view="false" :show-interactive="false" />
 
     <template #node-custom="props">
@@ -176,6 +187,7 @@ onBeforeMount(async () => {
     </template>
     <Background />
     <div
+      v-if="!config.singleTableMode"
       class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200"
       style="font-size: 0.6rem"
     >

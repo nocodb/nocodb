@@ -50,8 +50,8 @@ const {
   updateKanbanMeta,
   addEmptyRow,
   groupingFieldColOptions,
+  updateKanbanStackMeta,
   groupingField,
-  groupingFieldColumn,
   countByStack,
   deleteStack,
 } = useKanbanViewData(meta, view as any)
@@ -187,8 +187,9 @@ const handleDeleteStackConfirmClick = async () => {
   deleteStackVModel.value = false
 }
 
-const collapseStack = () => {
-  // TODO:
+const handleCollapseStack = async (stackIdx: number) => {
+  groupingFieldColOptions.value[stackIdx].collapsed = !groupingFieldColOptions.value[stackIdx].collapsed
+  await updateKanbanStackMeta()
 }
 
 const renameStack = () => {
@@ -218,7 +219,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
         :move="onMoveCallback"
         @change="onMoveStack($event)"
       >
-        <template #item="{ element: stack, index }">
+        <template #item="{ element: stack, index: stackIdx }">
           <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="p-4" />
           <div v-else class="nc-kanban-stack" :class="{ 'w-[50px]': stack.collapsed }">
             <a-card
@@ -248,7 +249,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                               Add new record
                             </div>
                           </a-menu-item>
-                          <a-menu-item @click="collapseStack">
+                          <a-menu-item @click="handleCollapseStack(stackIdx)">
                             <div class="py-2 flex gap-2 items-center">
                               <mdi-arrow-collapse class="text-gray-500" />
                               <!-- TODO: i18n -->
@@ -376,13 +377,14 @@ openNewRecordFormHook?.on(async (stackTitle) => {
             </a-card>
             <a-card
               v-else
-              :key="stack.id"
-              class="nc-kanban-stack nc-kanban-collapsed-stack mx-4 flex !bg-[#f0f2f5] items-center w-[300px] h-[50px] rounded-[12px]"
+              :key="`${stack.id}-collapsed`"
+              class="nc-kanban-stack nc-kanban-collapsed-stack mx-4 flex !bg-[#f0f2f5] items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer"
               :class="{ 'not-draggable': stack.id === 'uncategorized' }"
-              :body-style="'width: 100%;'"
+              body-style="padding: 0px; height: 100%; width: 100%;"
             >
-              <div class="items-center justify-between">
-                <div class="nc-kanban-data-count">
+              <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
+                <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
+                <div class="nc-kanban-data-count mt-[7px] mx-[10px]">
                   <div class="float-right flex gap-2 items-center cursor-pointer">
                     <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
                     <mdi-menu-down class="text-grey text-lg" />

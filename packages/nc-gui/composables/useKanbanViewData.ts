@@ -36,6 +36,7 @@ export function useKanbanViewData(
   const countByStack = useState<Record<string, number>>('KanbanCountByStack', () => ({}))
   const groupingField = useState<string>('KanbanGroupingField', () => '')
   const groupingFieldColumn = useState<Record<string, any>>('KanbanGroupingFieldColumn', () => ({}))
+  const stackMetaObj = ref<Record<string, any>>({})
 
   const formatData = (list: Record<string, any>[]) =>
     list.map((row) => ({
@@ -89,22 +90,27 @@ export function useKanbanViewData(
 
     const { grp_column_id, stack_meta } = kanbanMetaData.value
 
-    const stackMetaObj = stack_meta ? JSON.parse(stack_meta as string) : {}
+    stackMetaObj.value = stack_meta ? JSON.parse(stack_meta as string) : {}
 
-    if (stackMetaObj && grp_column_id && stackMetaObj[grp_column_id] && groupingFieldColumn.value?.colOptions?.options) {
+    if (
+      stackMetaObj.value &&
+      grp_column_id &&
+      stackMetaObj.value[grp_column_id] &&
+      groupingFieldColumn.value?.colOptions?.options
+    ) {
       // keep the existing order (index of the array) but update the values
       for (const option of groupingFieldColumn.value.colOptions.options) {
-        const idx = stackMetaObj[grp_column_id].findIndex((ele: Record<string, any>) => ele.id === option.id)
+        const idx = stackMetaObj.value[grp_column_id].findIndex((ele: Record<string, any>) => ele.id === option.id)
         if (idx !== -1) {
           // update the option in stackMetaObj
-          stackMetaObj[grp_column_id][idx] = {
-            ...stackMetaObj[grp_column_id][idx],
+          stackMetaObj.value[grp_column_id][idx] = {
+            ...stackMetaObj.value[grp_column_id][idx],
             ...option,
           }
         } else {
           // new option found
-          const len = stackMetaObj[grp_column_id].length
-          stackMetaObj[grp_column_id][len] = {
+          const len = stackMetaObj.value[grp_column_id].length
+          stackMetaObj.value[grp_column_id][len] = {
             ...option,
             collapsed: false,
           }
@@ -112,15 +118,15 @@ export function useKanbanViewData(
       }
       // handle deleted options
       const columnOptionIds = groupingFieldColumn.value.colOptions.options.map(({ id }) => id)
-      stackMetaObj[grp_column_id]
+      stackMetaObj.value[grp_column_id]
         .filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
         .forEach(({ id }) => {
-          const idx = stackMetaObj[grp_column_id].map((ele: Record<string, any>) => ele.id).indexOf(id)
+          const idx = stackMetaObj.value[grp_column_id].map((ele: Record<string, any>) => ele.id).indexOf(id)
           if (idx !== -1) {
-            stackMetaObj[grp_column_id].splice(idx, 1)
+            stackMetaObj.value[grp_column_id].splice(idx, 1)
           }
         })
-      groupingFieldColOptions.value = stackMetaObj[grp_column_id]
+      groupingFieldColOptions.value = stackMetaObj.value[grp_column_id]
     } else {
       // build stack meta
       groupingFieldColOptions.value = [
@@ -136,11 +142,15 @@ export function useKanbanViewData(
           collapsed: false,
         }))
     }
-    // if grouping column id is present, add the grouping field column options to stackMetaObj
+    await updateKanbanStackMeta()
+  }
+
+  async function updateKanbanStackMeta() {
+    const { grp_column_id } = kanbanMetaData.value
     if (grp_column_id) {
-      stackMetaObj[grp_column_id] = groupingFieldColOptions.value
+      stackMetaObj.value[grp_column_id] = groupingFieldColOptions.value
       await updateKanbanMeta({
-        stack_meta: stackMetaObj,
+        stack_meta: stackMetaObj.value,
       })
     }
   }
@@ -288,5 +298,6 @@ export function useKanbanViewData(
     updateOrSaveRow,
     addEmptyRow,
     deleteStack,
+    updateKanbanStackMeta,
   }
 }

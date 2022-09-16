@@ -11,7 +11,6 @@ const tables = ref<TableType>([])
 const { metas, getMeta } = useMetas()
 
 let isLoading = $ref(true)
-const erdKey = ref(0)
 const showAdvancedOptions = ref(false)
 
 const config = ref({
@@ -104,7 +103,7 @@ watch(
       </div>
     </div>
     <div v-else class="relative h-full">
-      <ErdSimpleView :key="erdKey" :tables="tables" :config="config" />
+      <ErdSimpleView :tables="tables" :config="config" />
 
       <div
         class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1 nc-erd-context-menu z-50"

@@ -6,8 +6,6 @@ import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
 import TableNode from './TableNode.vue'
 import RelationEdge from './RelationEdge.vue'
-import MdiView from '~icons/mdi/eye-circle-outline'
-import MdiTableLarge from '~icons/mdi/table-large'
 
 interface Props {
   tables: any[]
@@ -26,12 +24,14 @@ const { metasWithIdAsKey } = useMetas()
 
 const { $destroy, fitView } = useVueFlow()
 
-const isTransitioning = ref(true)
+const { $destroy, fitView } = useVueFlow()
 
+const isTransitioning = ref(true)
 const nodes = ref<Node[]>([])
 const edges = ref<Edge[]>([])
 
 let dagreGraph: dagre.graphlib.Graph
+
 const initDagre = () => {
   dagreGraph = new dagre.graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))
@@ -137,6 +137,7 @@ const populateEdges = () => {
 
 const connectNonConnectedNodes = () => {
   const connectedNodes = new Set<string>()
+
   edges.value.forEach((edge) => {
     connectedNodes.add(edge.source)
     connectedNodes.add(edge.target)
@@ -229,7 +230,7 @@ useEventListener('transitionend', () => {
           <div>{{ $t('objects.table') }}</div>
         </div>
         <div class="flex flex-row items-center space-x-1 pt-1">
-          <MdiView class="text-primary" />
+          <MdiEyeCircleOutline class="text-primary" />
           <div>{{ $t('objects.sqlVIew') }}</div>
         </div>
       </div>

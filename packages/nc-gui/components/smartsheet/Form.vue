@@ -641,7 +641,7 @@ onMounted(async () => {
                     v-if="isVirtualCol(element)"
                     class="!m-0 gap-0 p-0"
                     :name="element.title"
-                    :rules="[{ required: element.required, message: `${element.title} is required` }]"
+                    :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
                     <SmartsheetVirtualCell
                       v-model="formState[element.title]"
@@ -657,7 +657,7 @@ onMounted(async () => {
                     v-else
                     class="!m-0 gap-0 p-0"
                     :name="element.title"
-                    :rules="[{ required: element.required, message: `${element.title} is required` }]"
+                    :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
                     <SmartsheetCell
                       v-model="formState[element.title]"

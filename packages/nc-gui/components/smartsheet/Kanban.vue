@@ -220,12 +220,12 @@ openNewRecordFormHook?.on(async (stackTitle) => {
         @change="onMoveStack($event)"
       >
         <template #item="{ element: stack, index: stackIdx }">
-          <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="p-4" />
+          <a-skeleton v-if="!formattedData[stack.title] && !countByStack" class="p-4" />
           <div v-else class="nc-kanban-stack" :class="{ 'w-[50px]': stack.collapsed }">
             <a-card
               v-if="!stack.collapsed"
               :key="stack.id"
-              class="mx-4!bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
+              class="mx-4 !bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
               :class="{ 'not-draggable': stack.id === 'uncategorized' }"
               head-style="padding-bottom: 0px;"
               body-style="padding: 0px; height: 100%;"

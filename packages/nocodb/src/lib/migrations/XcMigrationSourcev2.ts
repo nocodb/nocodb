@@ -6,6 +6,7 @@ import * as nc_015_add_meta_col_in_column_table from './v2/nc_015_add_meta_col_i
 import * as nc_016_alter_hooklog_payload_types from './v2/nc_016_alter_hooklog_payload_types';
 import * as nc_017_add_user_token_version_column from './v2/nc_017_add_user_token_version_column';
 import * as nc_018_add_meta_in_view from './v2/nc_018_add_meta_in_view';
+import * as nc_019_add_meta_in_form_view from './v2/nc_019_add_meta_in_form_view';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -23,6 +24,7 @@ export default class XcMigrationSourcev2 {
       'nc_016_alter_hooklog_payload_types',
       'nc_017_add_user_token_version_column',
       'nc_018_add_meta_in_view',
+      'nc_019_add_meta_in_form_view',
     ]);
   }
 
@@ -48,6 +50,8 @@ export default class XcMigrationSourcev2 {
         return nc_017_add_user_token_version_column;
       case 'nc_018_add_meta_in_view':
         return nc_018_add_meta_in_view;
+      case 'nc_019_add_meta_in_form_view':
+        return nc_019_add_meta_in_form_view;
     }
   }
 }

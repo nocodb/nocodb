@@ -26,6 +26,7 @@ export class _settingsPage {
         this.METADATA = "metaData";
         this.UI_ACCESS_CONTROL = "acl";
         this.AUDIT_LOG = "audit";
+        this.ERD = "erd";
     }
 
     openMenu(menuId) {
@@ -478,6 +479,13 @@ export class _mainPage {
         //
         settingsPage.openMenu(settingsPage.PROJ_METADATA)
         settingsPage.openTab(settingsPage.METADATA)
+    }
+
+    openErdTab() {
+        // open Project metadata tab
+        //
+        settingsPage.openMenu(settingsPage.PROJ_METADATA)
+        settingsPage.openTab(settingsPage.ERD)
     }
 
     closeMetaTab() {

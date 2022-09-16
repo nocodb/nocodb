@@ -328,13 +328,13 @@ openNewRecordFormHook?.on(async (stackTitle) => {
             <a-card
               v-else
               :key="`${stack.id}-collapsed`"
-              class="nc-kanban-stack nc-kanban-collapsed-stack mx-4 flex !bg-[#f0f2f5] items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer"
+              :style="`background-color: ${stack.color} !important`"
+              class="nc-kanban-stack nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer h-full !pr-[10px]"
               :class="{ 'not-draggable': stack.id === 'uncategorized' }"
-              body-style="padding: 0px; height: 100%; width: 100%;"
+              body-style="padding: 0px; height: 100%; width: 100%; background: #f0f2f5 !important;"
             >
               <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
-                <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
-                <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="m-0 ml-[10px] p-0" />
+                <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="!w-[150px] pl-5" :paragraph="false" />
                 <div v-else class="nc-kanban-data-count mt-[7px] mx-[10px]">
                   <div class="float-right flex gap-2 items-center cursor-pointer font-bold">
                     <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>

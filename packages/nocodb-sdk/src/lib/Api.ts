@@ -311,7 +311,7 @@ export interface FormulaType {
 }
 
 export interface SelectOptionsType {
-  options: SelectOptionType;
+  options: SelectOptionType[];
 }
 
 export interface SelectOptionType {

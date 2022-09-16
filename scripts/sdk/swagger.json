@@ -7083,7 +7083,9 @@
         "properties": {
           "options": {
             "type": "array",
-            "$ref": "#/components/schemas/SelectOption"
+            "items": {
+              "$ref": "#/components/schemas/SelectOption"
+            }
           }
         },
         "required": [

@@ -267,23 +267,22 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                               hoverable
                               :data-stack="stack.title"
                               class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
-                              body-style="padding: 10px;"
+                              body-style="padding: 5px;"
                               @click="expandFormClick($event, record)"
                             >
                               <div
                                 v-for="col in fields"
                                 :key="`record-${record.row.id}-${col.id}`"
-                                class="flex flex-col space-y-1 px-1 mb-3 bg-gray-50 rounded-lg w-full"
+                                class="flex flex-col rounded-lg w-full"
                               >
-                                <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
+                                <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2">
                                   <div class="w-full text-gray-600">
                                     <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
                                     <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
                                   </div>
                                 </div>
-
-                                <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
-                                  <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
+                                <div class="flex flex-row w-full pt-2 pl-2 items-center justify-start">
+                                  <div v-if="isRowEmpty(record, col)" class="h-4 bg-gray-200 px-5 rounded-lg"></div>
                                   <template v-else>
                                     <SmartsheetVirtualCell
                                       v-if="isVirtualCol(col)"

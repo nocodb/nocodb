@@ -68,14 +68,14 @@ const copyRecordUrl = () => {
       <template #title>
         <div class="text-center w-full">{{ $t('general.reload') }}</div>
       </template>
-      <mdi-reload v-if="!isNew" class="cursor-pointer select-none text-gray-500" @click="loadRow" />
+      <mdi-reload class="cursor-pointer select-none text-gray-500 mx-1" @click="loadRow" />
     </a-tooltip>
     <a-tooltip placement="bottom">
       <template #title>
         <!-- todo: i18n -->
         <div class="text-center w-full">Copy record URL</div>
       </template>
-      <mdi-link v-if="!isNew" class="cursor-pointer select-none text-gray-500" @click="copyRecordUrl" />
+      <mdi-link v-if="!isNew" class="cursor-pointer select-none text-gray-500 mx-1" @click="copyRecordUrl" />
     </a-tooltip>
     <a-tooltip v-if="!isSqlView" placement="bottom">
       <!--      Toggle comments draw -->
@@ -85,17 +85,17 @@ const copyRecordUrl = () => {
       <MdiCommentTextOutline
         v-if="isUIAllowed('rowComments') && !isNew"
         v-e="['c:row-expand:comment-toggle']"
-        class="cursor-pointer select-none nc-toggle-comments text-gray-500"
+        class="cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1"
         @click="commentsDrawer = !commentsDrawer"
       />
     </a-tooltip>
 
-    <a-button class="!text" @click="emit('cancel')">
+    <a-button class="!text mx-1" @click="emit('cancel')">
       <!-- Cancel -->
       {{ $t('general.cancel') }}
     </a-button>
 
-    <a-button :disabled="!isUIAllowed('tableRowUpdate')" type="primary" @click="save">
+    <a-button :disabled="!isUIAllowed('tableRowUpdate')" type="primary" class="mx-1" @click="save">
       <!-- Save Row -->
       {{ $t('activity.saveRow') }}
     </a-button>

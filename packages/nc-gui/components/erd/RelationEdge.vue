@@ -53,20 +53,27 @@ const props = defineProps({
   },
 })
 
-const { column } = toRefs(props.data)
+const { column, isSelfRelation } = toRefs(props.data)
 
 const isManyToMany = computed(() => column.value?.colOptions?.type === 'mm')
 
-const edgePath = computed(() =>
-  getBezierPath({
+const edgePath = computed(() => {
+  if (isSelfRelation.value) {
+    const { sourceX, sourceY, targetX, targetY } = props
+    const radiusX = (sourceX - targetX) * 0.6
+    const radiusY = 50
+    return `M ${sourceX} ${sourceY} A ${radiusX} ${radiusY} 0 1 0 ${targetX} ${targetY}`
+  }
+
+  return getBezierPath({
     sourceX: props.sourceX,
     sourceY: props.sourceY,
     sourcePosition: props.sourcePosition,
     targetX: props.targetX,
     targetY: props.targetY,
     targetPosition: props.targetPosition,
-  }),
-)
+  })
+})
 </script>
 
 <script>

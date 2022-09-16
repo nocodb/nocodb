@@ -241,7 +241,9 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                       </div>
                       <template #overlay>
                         <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
-                          <a-menu-item @click="openNewRecordFormHook.trigger(stack.title)">
+                          <a-menu-item
+                            @click="openNewRecordFormHook.trigger(stack.title === 'Uncategorized' ? null : stack.title)"
+                          >
                             <div class="py-2 flex gap-2 items-center">
                               <mdi-plus class="text-gray-500" />
                               <!-- TODO: i18n -->
@@ -363,7 +365,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                   <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
                     <mdi-plus
                       class="text-pint-500 text-lg text-primary cursor-pointer"
-                      @click="openNewRecordFormHook.trigger(stack.title)"
+                      @click="openNewRecordFormHook.trigger(stack.title === 'Uncategorized' ? null : stack.title)"
                     />
                     <div class="nc-kanban-data-count">
                       <!-- TODO: fix current count for Uncategorized -->

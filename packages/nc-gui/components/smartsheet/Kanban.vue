@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
-import { isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -203,13 +203,13 @@ openNewRecordFormHook?.on(async (stackTitle) => {
             >
               <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
               <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="p-4" />
-              <a-layout v-else class="px-[15px] !bg-[#f0f2f5]">
+              <a-layout v-else class="!bg-[#f0f2f5]">
                 <a-layout-header>
-                  <div class="nc-kanban-stack-head text-slate-500 font-bold flex items-center">
+                  <div class="nc-kanban-stack-head text-slate-500 font-bold flex items-center px-[15px]">
                     <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
                       <div class="flex items-center cursor-pointer w-full">
                         <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
-                        <span class="w-full items-center flex">
+                        <span class="w-full flex">
                           <mdi-menu-down class="text-grey text-lg ml-auto" />
                         </span>
                       </div>
@@ -261,13 +261,13 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                       @change="onMove($event, stack.title)"
                     >
                       <template #item="{ element: record }">
-                        <div class="nc-kanban-item py-2">
+                        <div class="nc-kanban-item py-2 px-[15px]">
                           <Row :row="record">
                             <a-card
                               hoverable
                               :data-stack="stack.title"
                               class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
-                              body-style="padding: 5px;"
+                              body-style="padding: 10px 5px;"
                               @click="expandFormClick($event, record)"
                             >
                               <div
@@ -275,14 +275,17 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                                 :key="`record-${record.row.id}-${col.id}`"
                                 class="flex flex-col rounded-lg w-full"
                               >
-                                <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2">
+                                <div class="flex flex-row w-full justify-start pt-2">
                                   <div class="w-full text-gray-600">
                                     <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
                                     <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
                                   </div>
                                 </div>
-                                <div class="flex flex-row w-full pt-2 pl-2 items-center justify-start">
-                                  <div v-if="isRowEmpty(record, col)" class="h-4 bg-gray-200 px-5 rounded-lg"></div>
+                                <div
+                                  class="flex flex-row w-full items-center justify-start"
+                                  :class="{ 'pt-2 pl-2': col.uidt !== UITypes.SingleSelect }"
+                                >
+                                  <div v-if="isRowEmpty(record, col)" class="h-4 bg-gray-200 px-5 ml-3 mt-2 rounded-lg"></div>
                                   <template v-else>
                                     <SmartsheetVirtualCell
                                       v-if="isVirtualCol(col)"

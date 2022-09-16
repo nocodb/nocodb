@@ -10,13 +10,17 @@ export const genTest = (apiType, dbType) => {
     describe(`${apiType.toUpperCase()} SQL Views`, () => {
         // Run once before test- create project (rest/graphql)
         //
-        before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
-        });
+        // before(() => {
+        //     cy.fileHook();
+        //     mainPage.tabReset();
+        // });
 
         beforeEach(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
+        })
+
+        afterEach(() => {
+            cy.saveLocalStorage();
         })
 
         it(`XCDB: SQL View Column operations`, () => {
@@ -167,10 +171,6 @@ export const genTest = (apiType, dbType) => {
                 cy.openViewsTab("StaffList", 2);
                 cy.closeViewsTab("StaffList");
             }
-        });
-
-        after(() => {
-            // void
         });
     });
 };

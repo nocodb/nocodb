@@ -42,33 +42,23 @@ export const genTest = (apiType, dbType) => {
         //
         before(() => {
             cy.restoreLocalStorage();
-            cy.wait(500);
-
-            mainPage.tabReset();
             cy.openTableTab("Address", 25);
-
-            // loginPage.loginAndOpenProject(apiType, dbType);
-            //
-            // // open a table to work on views
-            // //
-            // cy.openTableTab("Address", 25);
-            // mainPage.toggleRightSidebar();
-            // //
-            // cy.saveLocalStorage();
         });
 
         beforeEach(() => {
+            cy.restoreLocalStorage();
         });
 
         afterEach(() => {
+            cy.saveLocalStorage();
         });
 
         after(() => {
             // close table
             // mainPage.deleteCreatedViews()
             cy.restoreLocalStorage();
-            cy.wait(500);
             cy.closeTableTab("Address");
+            cy.saveLocalStorage();
         });
 
         // Common routine to create/edit/delete GRID & GALLERY view
@@ -76,9 +66,6 @@ export const genTest = (apiType, dbType) => {
         //
         const viewTest = (viewType) => {
             it(`Create ${viewType.toUpperCase()} view`, () => {
-
-                cy.restoreLocalStorage();
-                cy.wait(500);
 
                 // create a normal public view
                 cy.get(`.nc-create-${viewType}-view`).click();
@@ -93,9 +80,6 @@ export const genTest = (apiType, dbType) => {
 
             it(`Share ${viewType.toUpperCase()} hide, sort, filter & verify`, () => {
 
-                cy.restoreLocalStorage();
-                cy.wait(500);
-
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
                     .contains("Grid-1")
                     .click();
@@ -107,9 +91,6 @@ export const genTest = (apiType, dbType) => {
             });
 
             it(`Share GRID view : ensure we have only one link even if shared multiple times`, () => {
-
-                cy.restoreLocalStorage();
-                cy.wait(500);
 
                 // generate view link multiple times
                 generateViewLink("combined");
@@ -364,11 +345,6 @@ export const genTest = (apiType, dbType) => {
                 loginPage.loginAndOpenProject(apiType, dbType);
                 cy.openTableTab("Address", 25);
 
-                mainPage.toggleRightSidebar();
-                cy.wait(500);
-                cy.saveLocalStorage();
-                cy.wait(500);
-
                 // number of view entries should be 2 before we delete
                 cy.get(".nc-view-item").its("length").should("eq", 2);
 
@@ -387,9 +363,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Grid view/ row-column update verification`, () => {
         before(() => {
-
             cy.restoreLocalStorage();
-            cy.wait(500);
 
             // Address table has belongs to, has many & many-to-many
             cy.openTableTab("Country", 25);
@@ -401,47 +375,21 @@ export const genTest = (apiType, dbType) => {
             });
         });
 
-        after(() => {
-            // close table
-            // cy.visit(storedURL, {
-            //     baseUrl: null,
-            // });
-            // cy.wait(5000);
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+        });
 
-            loginPage.loginAndOpenProject(apiType, dbType);
-            cy.openTableTab("Country", 25)
-            cy.wait(500);
-            mainPage.toggleRightSidebar();
-            cy.wait(500);
+        afterEach(() => {
             cy.saveLocalStorage();
-            cy.wait(500);
+        });
 
-            // delete row
-            mainPage.getPagination(5).click();
-            // kludge: flicker on load
-            cy.wait(3000)
-
-            // wait for page rendering to complete
-            cy.get(".nc-grid-row").should("have.length", 10);
-            mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu(".nc-dropdown-grid-context-menu")
-                .find('.ant-dropdown-menu-item:contains("Delete Row")')
-                .first()
-                .click();
-
-            // delete column
-            mainPage.deleteColumn("dummy");
-            mainPage.deleteCreatedViews();
-
-            // close table
+        after(() => {
+            cy.restoreLocalStorage();
             cy.closeTableTab("Country");
+            cy.saveLocalStorage();
         });
 
         it(`Generate default Shared GRID view URL`, () => {
-
-            cy.restoreLocalStorage();
-            cy.wait(500);
-
             // add row
             cy.get(".nc-add-new-row-btn").click();
             cy.get(".nc-expand-col-Country").find(".nc-cell > input")
@@ -487,6 +435,28 @@ export const genTest = (apiType, dbType) => {
         it(`Share GRID view : new column visible`, () => {
             // verify column headers
             cy.get('[data-title="dummy"]').should("exist");
+        });
+
+        it(`Clean up`, () => {
+            loginPage.loginAndOpenProject(apiType, dbType);
+            cy.openTableTab("Country", 25)
+
+            // delete row
+            mainPage.getPagination(5).click();
+            // kludge: flicker on load
+            cy.wait(3000)
+
+            // wait for page rendering to complete
+            cy.get(".nc-grid-row").should("have.length", 10);
+            mainPage.getCell("Country", 10).rightclick();
+            cy.getActiveMenu(".nc-dropdown-grid-context-menu")
+              .find('.ant-dropdown-menu-item:contains("Delete Row")')
+              .first()
+              .click();
+
+            // delete column
+            mainPage.deleteColumn("dummy");
+            mainPage.deleteCreatedViews();
         });
     });
 };

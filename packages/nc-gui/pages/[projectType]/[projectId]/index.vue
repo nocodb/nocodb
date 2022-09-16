@@ -49,7 +49,7 @@ const isLocked = ref(false)
 provide('TreeViewIsLockedInj', isLocked)
 
 // create a new sidebar state
-const { isOpen, toggle } = useSidebar('nc-left-sidebar', { isOpen: true })
+const { isOpen, toggle } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
 const dialogOpen = ref(false)
 

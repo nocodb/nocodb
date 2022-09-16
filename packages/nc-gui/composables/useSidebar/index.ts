@@ -1,5 +1,5 @@
 import { useStorage } from '@vueuse/core'
-import { MemStorage, useInjectionState, watch } from '#imports'
+import { MemStorage, onScopeDispose, useInjectionState, watch } from '#imports'
 
 interface UseSidebarProps {
   hasSidebar?: boolean
@@ -71,6 +71,10 @@ const useSidebarStorage = () => {
 
 export const provideSidebar = (id: string, props: UseSidebarProps = {}) => {
   const sidebarStorage = useSidebarStorage()
+
+  onScopeDispose(() => {
+    sidebarStorage.remove(id)
+  })
 
   if (!sidebarStorage.has(id)) {
     const sidebar = createSidebar(id, props)

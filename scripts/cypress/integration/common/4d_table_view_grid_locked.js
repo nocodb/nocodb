@@ -9,24 +9,21 @@ export const genTest = (apiType, dbType) => {
         //
         before(() => {
             cy.restoreLocalStorage();
-            cy.wait(500);
-
-            mainPage.tabReset();
-
-            // open a table to work on views
-            //
             cy.openTableTab("Country", 25);
         });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
-            cy.wait(500);
+        });
+
+        afterEach(() => {
+            cy.saveLocalStorage();
         });
 
         after(() => {
             cy.restoreLocalStorage();
-            cy.wait(500)
             cy.closeTableTab("Country");
+            cy.saveLocalStorage();
         });
 
         const lockViewTest = (enabled) => {

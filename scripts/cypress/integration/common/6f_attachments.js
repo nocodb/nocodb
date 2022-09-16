@@ -9,20 +9,19 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.openTableTab("Country", 25);
-            cy.wait(1000);
-
             cy.saveLocalStorage();
-            cy.wait(1000);
         });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
-        });
+        })
+
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
 
         after(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
 
             // clean up
             mainPage.deleteColumn("testAttach");
@@ -44,6 +43,7 @@ export const genTest = (apiType, dbType) => {
             cy.getActiveMenu(".nc-dropdown-grid-context-menu").contains("Delete Row").click();
 
             cy.closeTableTab("Country");
+            cy.saveLocalStorage();
         });
 
         it(`Add column of type attachments`, () => {
@@ -62,9 +62,8 @@ export const genTest = (apiType, dbType) => {
         });
 
         it(`Form view with Attachment field- Submit & verify`, () => {
-
-            // open right navbar
-            cy.get('.nc-toggle-right-navbar').should('exist').click();
+            // // open right navbar
+            // cy.get('.nc-toggle-right-navbar').should('exist').click();
 
             // create form-view
             cy.get(`.nc-create-form-view`).click();
@@ -85,6 +84,8 @@ export const genTest = (apiType, dbType) => {
                     let linkText = $obj.text().trim();
                     cy.log(linkText);
 
+                    cy.signOut();
+
                     cy.visit(linkText, {
                         baseUrl: null,
                     });
@@ -101,7 +102,6 @@ export const genTest = (apiType, dbType) => {
                     cy.get('.ant-picker-dropdown').find(".ant-picker-now-btn").click();
                     cy.get('.ant-picker-dropdown').find("button.ant-btn-primary").click();
 
-
                     cy.get('.nc-attachment-cell')
                       .attachFile(`sampleFiles/1.json`, { subjectType: 'drag-n-drop' });
 
@@ -117,11 +117,11 @@ export const genTest = (apiType, dbType) => {
 
         it(`Filter column which contain only attachments, download CSV`, () => {
             // come back to main window
-            // loginPage.loginAndOpenProject(apiType, dbType);
-            cy.visit('/')
-            cy.wait(5000)
+            loginPage.loginAndOpenProject(apiType, dbType);
+            // cy.visit('/')
+            // cy.wait(5000)
+            // projectsPage.openConfiguredProject(apiType, dbType);
 
-            projectsPage.openConfiguredProject(apiType, dbType);
             cy.openTableTab("Country", 25);
             cy.wait(1000);
 

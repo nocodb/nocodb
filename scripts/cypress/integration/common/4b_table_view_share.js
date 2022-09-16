@@ -37,11 +37,24 @@ export const genTest = (apiType, dbType) => {
         //
         before(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
-
-            mainPage.tabReset();
             cy.openTableTab("City", 25);
+        });
 
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+        });
+
+        afterEach(() => {
+            cy.saveLocalStorage();
+        });
+
+        after(() => {
+            cy.restoreLocalStorage();
+            cy.closeTableTab("City");
+            cy.saveLocalStorage();
+        });
+
+        it("Generate link with password", () => {
             // store base URL- to re-visit and delete form view later
             cy.url().then((url) => {
                 storedURL = url;
@@ -49,12 +62,6 @@ export const genTest = (apiType, dbType) => {
             generateLinkWithPwd();
 
             cy.signOut();
-        });
-
-        beforeEach(() => {
-        });
-
-        afterEach(() => {
         });
 
         it("Share view with incorrect password", () => {
@@ -99,23 +106,10 @@ export const genTest = (apiType, dbType) => {
         it("Delete view",  () => {
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.openTableTab("City", 25);
-            cy.wait(500);
-            mainPage.toggleRightSidebar();
-            cy.wait(500);
-
-            cy.saveLocalStorage();
-            cy.wait(1000);
 
             // wait for page load to complete
             cy.get(".nc-grid-row").should("have.length", 25);
             mainPage.deleteCreatedViews();
-        });
-
-        after(() => {
-            cy.restoreLocalStorage();
-            cy.wait(500);
-
-            cy.closeTableTab("City");
         });
     });
 };

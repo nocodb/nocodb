@@ -81,8 +81,6 @@ export const genTest = (apiType, dbType, testMode) => {
         }
 
         before(() => {
-            cy.restoreLocalStorage();
-
             if( testMode === 'CY_QUICK') {
                 // cy.task("copyFile")
                 loginPage.signIn(roles.owner.credentials);
@@ -93,28 +91,31 @@ export const genTest = (apiType, dbType, testMode) => {
                 // close team & auth tab
                 cy.get('button.ant-tabs-tab-remove').should('exist').click();
                 cy.wait(1000);
-
-                cy.saveLocalStorage();
             }
+            else {
+                cy.restoreLocalStorage();
+            }
+
+            cy.openTableTab("Film", 3)
+            cy.saveLocalStorage();
+
         });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
         })
 
-        // afterEach(() => {
-        //     cy.saveLocalStorage();
-        // })
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
 
         after(() => {
             cy.restoreLocalStorage();
-
-            // sign out
             cy.signOut();
+            cy.saveLocalStorage();
         });
 
         it("Verify Schema", () => {
-            cy.openTableTab("Film", 3)
 
             // verify if all tables exist
             for(let i=0; i<tn.length; i++) {
@@ -129,7 +130,6 @@ export const genTest = (apiType, dbType, testMode) => {
         });
 
         it("Verify Data types", () => {
-            cy.openTableTab("Film", 3);
 
             // normal cells
             for (let [key, value] of Object.entries(records)) {
@@ -188,12 +188,9 @@ export const genTest = (apiType, dbType, testMode) => {
                 mainPage.getCell("Producer", cellIdx).find('.chip').eq(1).contains(records2.Producer[1]).should('exist')
             }
 
-            cy.closeTableTab("Film");
         });
 
         it("Verify Views & Shared base", () => {
-            cy.openTableTab("Film", 3);
-            mainPage.toggleRightSidebar();
             cy.get('.nc-form-view-item:visible')
                 .should('exist')
                 .eq(0)
@@ -333,7 +330,6 @@ export const genTest = (apiType, dbType, testMode) => {
 
         it("Verify Fields, Filter & Sort", () => {
             cy.openTableTab("Actor", 25);
-            mainPage.toggleRightSidebar();
 
             cy.get(".nc-grid-view-item").eq(1).click()
 
@@ -387,7 +383,6 @@ export const genTest = (apiType, dbType, testMode) => {
             if( testMode === 'CY_QUICK') {
 
                 cy.openTableTab("Producer", 3)
-                mainPage.toggleRightSidebar();
 
                 cy.get('.nc-grid-view-item').should('have.length', 4)
                 cy.get('.nc-form-view-item').should('have.length', 4)

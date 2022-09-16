@@ -18,11 +18,20 @@ export const genTest = (apiType, dbType) => {
 
       loginPage.signIn(roles.owner.credentials);
       projectsPage.createProject({ dbType: "none", apiType: "REST", name: "importSample" }, {})
-    });
-
-    after(() => {
       cy.saveLocalStorage();
     });
+
+    beforeEach(() => {
+      cy.restoreLocalStorage();
+    });
+
+    afterEach(() => {
+      cy.saveLocalStorage();
+    });
+
+    // after(() => {
+    //   cy.saveLocalStorage();
+    // });
 
     it("Import", () => {
       cy.log(apiKey, sharedBase);

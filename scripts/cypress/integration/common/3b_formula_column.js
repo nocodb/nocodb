@@ -11,17 +11,22 @@ export const genTest = (apiType, dbType) => {
     describe(`${apiType.toUpperCase()} api - FORMULA`, () => {
         // Run once before test- create project (rest/graphql)
         //
-        before(() => {
-            // loginPage.loginAndOpenProject(apiType, dbType)
-            cy.openTableTab("City", 25);
-        });
+        // before(() => {
+        //     // loginPage.loginAndOpenProject(apiType, dbType)
+        //     cy.openTableTab("City", 25);
+        // });
 
         beforeEach(() => {
-        });
+            cy.restoreLocalStorage();
+        })
 
-        after(() => {
-            cy.closeTableTab("City");
-        });
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
+        // after(() => {
+        //     cy.closeTableTab("City");
+        // });
 
         // Given rowname & expected result for first 10 entries, validate
         // NOTE: Scroll issue with Cypress automation, to fix
@@ -157,6 +162,8 @@ export const genTest = (apiType, dbType) => {
         }
 
         it("Formula: ADD, AVG, LEN", () => {
+            cy.openTableTab("City", 25);
+
             addFormulaBasedColumn(
                 "NC_MATH_0",
                 "ADD({CityId}, {CountryId}) + AVG({CityId}, {CountryId}) + LEN({City})"
@@ -217,6 +224,8 @@ export const genTest = (apiType, dbType) => {
             if (dbType === 'mysql') editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
             else editColumnByName("NC_MATH_1", "NC_NOW", `NOW()`);
             deleteColumnByName("NC_NOW");
+
+            cy.closeTableTab("City");
         });
     });
 };

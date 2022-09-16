@@ -24,9 +24,8 @@ const { metasWithIdAsKey } = useMetas()
 
 const { $destroy, fitView } = useVueFlow()
 
-const { $destroy, fitView } = useVueFlow()
-
 const isTransitioning = ref(true)
+
 const nodes = ref<Node[]>([])
 const edges = ref<Edge[]>([])
 
@@ -187,6 +186,7 @@ const init = (reset = false) => {
   populateInitialNodes()
   populateEdges()
   layoutNodes()
+
   if (reset) {
     setTimeout(() => fitView({ duration: 300 }))
   }
@@ -222,7 +222,7 @@ useEventListener('transitionend', () => {
 
       <div
         v-if="!config.singleTableMode"
-        class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200 z-50 nc-erd-histogram"
+        class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200"
         style="font-size: 0.6rem"
       >
         <div class="flex flex-row items-center space-x-1 border-b-1 pb-1 border-gray-100">

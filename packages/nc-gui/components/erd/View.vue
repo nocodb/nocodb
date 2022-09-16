@@ -118,8 +118,9 @@ watch(
             class="ml-2 select-none nc-erd-showColumns-label"
             style="font-size: 0.65rem"
             @dblclick="showAdvancedOptions = true"
-            >{{ $t('activity.erd.showColumns') }}</span
-          >
+            >
+            {{ $t('activity.erd.showColumns') }}
+          </span>
         </div>
         <div class="flex flex-row items-center">
           <a-checkbox

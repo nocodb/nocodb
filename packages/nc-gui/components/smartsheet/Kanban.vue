@@ -18,10 +18,6 @@ import {
 import Row from '~/components/smartsheet/Row.vue'
 import type { Row as RowType } from '~/composables'
 
-interface Attachment {
-  url: string
-}
-
 const meta = inject(MetaInj)
 
 const view = inject(ActiveViewInj)
@@ -68,16 +64,6 @@ provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
-const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== kanbanMetaData.value?.fk_cover_image_col_id))
-
-// const coverImageColumn: any = $(
-//   computed(() =>
-//     meta?.value.columnsById
-//       ? meta.value.columnsById[kanbanData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
-//       : {},
-//   ),
-// )
-
 watch(
   [meta, view],
   async () => {
@@ -96,23 +82,9 @@ const isRowEmpty = (record: any, col: any) => {
   return Array.isArray(val) && val.length === 0
 }
 
-// const attachments = (record: any): Array<Attachment> => {
-//   try {
-//     return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
-//   } catch (e) {
-//     return []
-//   }
-// }
-
-const reloadAttachments = ref(false)
-
 reloadViewDataHook?.on(async () => {
   await loadKanbanMeta()
   await loadKanbanData()
-  reloadAttachments.value = true
-  nextTick(() => {
-    reloadAttachments.value = false
-  })
 })
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
@@ -235,9 +207,11 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                 <a-layout-header>
                   <div class="nc-kanban-stack-head text-slate-500 font-bold flex items-center">
                     <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
-                      <div class="flex gap-2 items-center cursor-pointer">
+                      <div class="flex items-center cursor-pointer w-full">
                         <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
-                        <mdi-menu-down class="text-grey text-lg" />
+                        <span class="w-full items-center flex">
+                          <mdi-menu-down class="text-grey text-lg ml-auto" />
+                        </span>
                       </div>
                       <template #overlay>
                         <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
@@ -296,35 +270,8 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                               body-style="padding: 10px;"
                               @click="expandFormClick($event, record)"
                             >
-                              <!--                            <template #cover> -->
-                              <!--                              <a-carousel -->
-                              <!--                                v-if="!reloadAttachments && attachments(record).length" -->
-                              <!--                                autoplay -->
-                              <!--                                class="gallery-carousel" -->
-                              <!--                                arrows -->
-                              <!--                              > -->
-                              <!--                                <template #customPaging> -->
-                              <!--                                  <a> -->
-                              <!--                                    <div class="pt-[12px]"><div></div></div> -->
-                              <!--                                  </a> -->
-                              <!--                                </template> -->
-                              <!--                                <template #prevArrow> -->
-                              <!--                                  <div style="z-index: 1"></div> -->
-                              <!--                                </template> -->
-                              <!--                                <template #nextArrow> -->
-                              <!--                                  <div style="z-index: 1"></div> -->
-                              <!--                                </template> -->
-                              <!--                                <img -->
-                              <!--                                  v-for="(attachment, index) in attachments(record)" -->
-                              <!--                                  :key="`carousel-${record.row.id}-${index}`" -->
-                              <!--                                  class="h-52" -->
-                              <!--                                  :src="attachment.url" -->
-                              <!--                                /> -->
-                              <!--                              </a-carousel> -->
-                              <!--                            </template> -->
-
                               <div
-                                v-for="col in fieldsWithoutCover"
+                                v-for="col in fields"
                                 :key="`record-${record.row.id}-${col.id}`"
                                 class="flex flex-col space-y-1 px-1 mb-3 bg-gray-50 rounded-lg w-full"
                               >

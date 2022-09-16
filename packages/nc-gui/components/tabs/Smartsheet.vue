@@ -68,7 +68,7 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
 
             <SmartsheetGallery v-else-if="isGallery" />
 
-            <SmartsheetForm v-else-if="isForm" />
+            <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
           </div>
         </div>
       </template>

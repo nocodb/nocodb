@@ -193,11 +193,11 @@ onBeforeMount(() => {
     >
       <div class="flex flex-row items-center space-x-1 border-b-1 pb-1 border-gray-100">
         <MdiTableLarge class="text-primary" />
-        <div>Table</div>
+        <div>{{ $t('objects.table') }}</div>
       </div>
       <div class="flex flex-row items-center space-x-1 pt-1">
         <MdiView class="text-primary" />
-        <div>SQL View</div>
+        <div>{{ $t('objects.sqlVIew') }}</div>
       </div>
     </div>
   </VueFlow>

@@ -465,7 +465,7 @@ onBeforeUnmount(reset)
       </a-layout-sider>
     </template>
 
-    <div>
+    <div :key="$route.fullPath">
       <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
 
       <NuxtPage />

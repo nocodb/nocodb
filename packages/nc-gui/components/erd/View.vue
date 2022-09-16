@@ -62,12 +62,16 @@ watch(
 )
 
 watch(metas, () => {
-  erdKey.value++
+  erdKey.value = erdKey.value + 1
 })
 
-watch(config, () => {
-  erdKey.value++
-})
+watch(
+  config,
+  () => {
+    erdKey.value = erdKey.value + 1
+  },
+  { deep: true },
+)
 </script>
 
 <template>

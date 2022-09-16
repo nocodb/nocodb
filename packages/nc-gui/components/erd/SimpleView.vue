@@ -112,7 +112,39 @@ const populateEdges = () => {
   })
 }
 
+const connectNonConnectedNodes = () => {
+  const connectedNodes = new Set<string>()
+  edges.value.forEach((edge) => {
+    connectedNodes.add(edge.source)
+    connectedNodes.add(edge.target)
+  })
+
+  const nonConnectedNodes = tables.filter((table) => !connectedNodes.has(table.id!))
+
+  if (nonConnectedNodes.length === 0) return
+
+  if (nonConnectedNodes.length === 1) {
+    const firstTable = tables.find((table) => table.type === 'table' && table.id !== nonConnectedNodes[0].id)
+    if (!firstTable) return
+
+    dagreGraph.setEdge(nonConnectedNodes[0].id, firstTable.id)
+    return
+  }
+
+  const firstNode = nonConnectedNodes[0]
+  nonConnectedNodes.forEach((node, index) => {
+    if (index === 0) return
+
+    const source = firstNode.id
+    const target = node.id
+
+    dagreGraph.setEdge(source, target)
+  })
+}
+
 const layoutNodes = () => {
+  connectNonConnectedNodes()
+
   dagre.layout(dagreGraph)
 
   nodes.value = initialNodes.value.flatMap((node) => {

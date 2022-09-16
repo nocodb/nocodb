@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Api, ColumnType, KanbanType, TableType, ViewType, SelectOptionType } from 'nocodb-sdk'
+import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
 import type { Row } from '~/composables/useViewData'
@@ -10,6 +10,8 @@ export function useKanbanViewData(
   meta: Ref<TableType> | ComputedRef<TableType> | undefined,
   viewMeta: Ref<ViewType & { id: string }> | ComputedRef<ViewType & { id: string }> | undefined,
 ) {
+  type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
+
   const { t } = useI18n()
   const { api } = useApi()
   const { project } = useProject()
@@ -22,10 +24,7 @@ export function useKanbanViewData(
   const kanbanMetaData = useState<KanbanType>('KanbanMetaData', () => ({}))
 
   // grouping field column options - e.g. title, fk_column_id, color etc
-  const groupingFieldColOptions = useState<Record<string, SelectOptionType & { collapsed: boolean }>[]>(
-    'KanbanGroupingFieldColOptions',
-    () => [],
-  )
+  const groupingFieldColOptions = useState<GroupingFieldColOptionsType[]>('KanbanGroupingFieldColOptions', () => [])
 
   // formattedData structure
   // {
@@ -54,10 +53,10 @@ export function useKanbanViewData(
   const groupingField = useState<string>('KanbanGroupingField', () => '')
 
   // grouping field column
-  const groupingFieldColumn = useState<ColumnType>('KanbanGroupingFieldColumn')
+  const groupingFieldColumn = useState<ColumnType | undefined>('KanbanGroupingFieldColumn')
 
   // stack meta in object format
-  const stackMetaObj = ref<Record<string, any>>({})
+  const stackMetaObj = ref<Record<string, GroupingFieldColOptionsType[]>>({})
 
   const formatData = (list: Record<string, any>[]) =>
     list.map((row) => ({
@@ -74,7 +73,7 @@ export function useKanbanViewData(
     countByStack.value = {}
 
     await Promise.all(
-      groupingFieldColOptions.value.map(async (option: SelectOptionType) => {
+      groupingFieldColOptions.value.map(async (option: GroupingFieldColOptionsType) => {
         const where =
           option.title === 'Uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
         const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
@@ -105,7 +104,7 @@ export function useKanbanViewData(
     if (!viewMeta?.value?.id || !meta?.value?.columns) return
     kanbanMetaData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
     // set groupingField
-    groupingFieldColumn.value = meta.value.columns.filter((f) => f.id === kanbanMetaData.value.grp_column_id)[0]
+    groupingFieldColumn.value = meta.value.columns.filter((f: ColumnType) => f.id === kanbanMetaData.value.grp_column_id)[0] || {}
 
     groupingField.value = groupingFieldColumn.value.title!
 
@@ -113,16 +112,10 @@ export function useKanbanViewData(
 
     stackMetaObj.value = stack_meta ? JSON.parse(stack_meta as string) : {}
 
-    // TOOD: fix types
-    if (
-      stackMetaObj.value &&
-      grp_column_id &&
-      stackMetaObj.value[grp_column_id] &&
-      groupingFieldColumn.value?.colOptions.options
-    ) {
+    if (stackMetaObj.value && grp_column_id && stackMetaObj.value[grp_column_id]) {
       // keep the existing order (index of the array) but update the values
-      for (const option of groupingFieldColumn.value.colOptions.options) {
-        const idx = stackMetaObj.value[grp_column_id].findIndex((ele: Record<string, any>) => ele.id === option.id)
+      for (const option of (groupingFieldColumn.value.colOptions as SelectOptionsType).options) {
+        const idx = stackMetaObj.value[grp_column_id].findIndex((ele) => ele.id === option.id)
         if (idx !== -1) {
           // update the option in stackMetaObj
           stackMetaObj.value[grp_column_id][idx] = {
@@ -139,7 +132,8 @@ export function useKanbanViewData(
         }
       }
       // handle deleted options
-      const columnOptionIds = groupingFieldColumn.value.colOptions.options.map(({ id }) => id)
+      const columnOptionIds = (groupingFieldColumn.value?.colOptions as SelectOptionsType)?.options.map(({ id }) => id)
+
       stackMetaObj.value[grp_column_id]
         .filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
         .forEach(({ id }) => {
@@ -152,12 +146,12 @@ export function useKanbanViewData(
     } else {
       // build stack meta
       groupingFieldColOptions.value = [
-        ...(groupingFieldColumn.value?.colOptions?.options ?? []),
+        ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
         // enrich uncategorized stack
         { id: 'uncategorized', title: 'Uncategorized', order: 0, color: enumColor.light[2] },
       ]
         // sort by initial order
-        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
+        .sort((a, b) => a.order! - b.order!)
         // enrich `collapsed`
         .map((ele) => ({
           ...ele,
@@ -302,7 +296,6 @@ export function useKanbanViewData(
       oldRow: {},
       rowMeta: { new: true },
     })
-
     return formattedData.value.Uncategorized[addAfter]
   }
 

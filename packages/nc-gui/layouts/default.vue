@@ -18,7 +18,7 @@ export default {
 </script>
 
 <template>
-  <div class="w-full h-full">
+  <div class="w-full h-full flex">
     <Teleport :to="hasSidebar ? '#nc-sidebar-left' : null" :disabled="!hasSidebar">
       <slot name="sidebar" />
     </Teleport>

@@ -23,9 +23,18 @@ provide(IsKanbanInj, ref(true))
 </script>
 
 <template>
-  <a-dropdown v-if="isUIAllowed('edit-column')" v-model:visible="addOrEditStackDropdown" :trigger="['click']">
+  <a-dropdown
+    v-if="isUIAllowed('edit-column')"
+    v-model:visible="addOrEditStackDropdown"
+    :trigger="['click']"
+    overlay-class-name="nc-dropdown-kanban-add-edit-stack-menu"
+  >
     <div class="nc-kanban-btn">
-      <a-button v-e="['c:kanban-stack-edit-or-add']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
+      <a-button
+        v-e="['c:kanban-stack-edit-or-add']"
+        class="nc-kanban-add-edit-stack-menu-btn nc-toolbar-btn"
+        :disabled="isLocked"
+      >
         <div class="flex items-center gap-1">
           <mdi-plus-circle-outline />
           <span class="text-capitalize !text-sm font-weight-normal">

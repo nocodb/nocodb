@@ -482,6 +482,80 @@ Cypress.Commands.add('signOut', () => {
 });
 
 
+
+// View basic routines
+//
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// viewCreate
+//  : viewType: grid, gallery, kanban, form
+//  : creates view with default name
+//
+Cypress.Commands.add('viewCreate', (viewType) => {
+
+  // click on 'Grid/Gallery/Form/Kanban' button on Views bar
+    cy.get(`.nc-create-${viewType}-view`).click();
+
+  // Pop up window, click Submit (accepting default name for view)
+  cy.getActiveModal(".nc-modal-view-create")
+    .find(".ant-btn-primary").click();
+  cy.toastWait("View created successfully");
+
+  // validate if view was created && contains default name 'Country1'
+  cy.get(`.nc-${viewType}-view-item`)
+    .contains(`${capitalizeFirstLetter(viewType)}-1`)
+    .should("exist");
+})
+
+// viewDelete
+//  : delete view by index (0-based, exclude default view)
+//
+Cypress.Commands.add('viewDelete', (viewIndex) => {
+  // click on delete icon (becomes visible on hovering mouse)
+  cy.get(".nc-view-delete-icon")
+    .eq(viewIndex)
+    .click({ force: true });
+  cy.wait(300)
+
+  // click on 'Delete' button on confirmation modal
+  cy.getActiveModal(".nc-modal-view-delete")
+    .find('.ant-btn-dangerous')
+    .click();
+  cy.toastWait("View deleted successfully");
+})
+
+// viewRename
+//  : rename view by index (0-based, exclude default view)
+//
+Cypress.Commands.add('viewRename', (viewType, viewIndex, newName) => {
+  // click on edit-icon (becomes visible on hovering mouse)
+  cy.get(`.nc-${viewType}-view-item`).eq(viewIndex).dblclick();
+
+  // feed new name
+  cy.get(`.nc-${viewType}-view-item input`)
+    .clear()
+    .type(`${newName}{enter}`);
+  cy.toastWait("View renamed successfully");
+
+  // validate
+  cy.get(`.nc-${viewType}-view-item`)
+    .contains(`${newName}`)
+    .should("exist");
+})
+
+// openTableView
+//  : open view by type & name
+//
+Cypress.Commands.add('openTableView', (viewType, viewName) => {
+  cy.get(`.nc-${viewType}-view-item`)
+    .contains(`${viewName}`)
+    .click();
+})
+
+
+
 // Drag n Drop
 // refer: https://stackoverflow.com/a/55409853
 /*

@@ -70,9 +70,9 @@ const handleChange = () => {
 </script>
 
 <template>
-  <a-dropdown v-model:visible="stackedByDropdown" :trigger="['click']">
+  <a-dropdown v-model:visible="stackedByDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-kanban-stacked-by-menu">
     <div class="nc-kanban-btn">
-      <a-button v-e="['c:stacked-by']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
+      <a-button v-e="['c:stacked-by']" class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <mdi-arrow-down-drop-circle-outline />
           <!-- TODO: i18n -->
@@ -97,7 +97,7 @@ const handleChange = () => {
           <div class="grouping-field">
             <a-select
               v-model:value="groupingFieldColumnId"
-              class="w-full"
+              class="w-full nc-kanban-grouping-field-select"
               :options="singleSelectFieldOptions"
               placeholder="Select a Grouping Field"
               @change="handleChange"

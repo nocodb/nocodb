@@ -10,12 +10,14 @@ const { metas, getMeta } = useMetas()
 
 let isLoading = $ref(true)
 const erdKey = ref(0)
+const showMMOption = ref(false)
 
 const config = ref({
   showPkAndFk: true,
   showViews: false,
   showAllColumns: true,
   singleTableMode: !!table,
+  showMMTables: false,
 })
 
 const tables = computed(() => {
@@ -51,7 +53,7 @@ onMounted(async () => {
 
 const tablesFilteredWithConfig = computed(() =>
   tables.value
-    .filter((table) => !table.mm)
+    .filter((table) => config.value.showMMTables || (!config.value.showMMTables && !table.mm))
     .filter((table) => (!config.value.showViews && table.type !== 'view') || config.value.showViews),
 )
 
@@ -88,15 +90,21 @@ watch(
       <div class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1">
         <div class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showAllColumns" v-e="['c:erd:showAllColumns']" />
-          <span class="ml-2" style="font-size: 0.65rem">Show columns</span>
+          <span class="ml-2 select-none" style="font-size: 0.65rem" @dblclick="showMMOption = true">{{
+            $t('activity.erd.showColumns')
+          }}</span>
         </div>
         <div class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showPkAndFk" v-e="['c:erd:showPkAndFk']" />
-          <span class="ml-2" style="font-size: 0.65rem">Show PK and FK</span>
+          <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showPkAndFk') }}</span>
         </div>
         <div v-if="!table" class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" />
-          <span class="ml-2" style="font-size: 0.65rem">Show SQL views</span>
+          <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showSqlViews') }}</span>
+        </div>
+        <div v-if="!table && showMMOption" class="flex flex-row items-center">
+          <a-checkbox v-model:checked="config.showMMTables" v-e="['c:erd:showMMTables']" />
+          <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showMMTables') }}</span>
         </div>
       </div>
     </div>

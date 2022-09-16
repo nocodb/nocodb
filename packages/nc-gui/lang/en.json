@@ -103,7 +103,8 @@
       "editor": "Editor",
       "commenter": "Commenter",
       "viewer": "Viewer"
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "ID",
@@ -407,7 +408,13 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show MM tables"
+    }
   },
   "tooltip": {
     "saveChanges": "Save changes",

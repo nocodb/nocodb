@@ -18,9 +18,9 @@ import {
 import Row from '~/components/smartsheet/Row.vue'
 import type { Row as RowType } from '~/composables'
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
-const view = inject(ActiveViewInj)
+const view = inject(ActiveViewInj, ref())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
@@ -63,17 +63,6 @@ provide(IsKanbanInj, ref(true))
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
-
-watch(
-  [meta, view],
-  async () => {
-    if (meta?.value && view?.value) {
-      await loadKanbanMeta()
-      await loadKanbanData()
-    }
-  },
-  { immediate: true },
-)
 
 const isRowEmpty = (record: any, col: any) => {
   const val = record.row[col.title]

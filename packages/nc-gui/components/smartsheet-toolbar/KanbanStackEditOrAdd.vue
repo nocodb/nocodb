@@ -15,8 +15,6 @@ const addOrEditStackDropdown = ref(false)
 
 const handleSubmit = async () => {
   addOrEditStackDropdown.value = false
-  await loadKanbanMeta()
-  await loadKanbanData()
 }
 
 provide(IsKanbanInj, ref(true))

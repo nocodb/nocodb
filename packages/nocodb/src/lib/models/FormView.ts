@@ -1,7 +1,7 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import { FormType } from 'nocodb-sdk';
-import { deserializeJSON, serializeJSON } from '../utils/searialize';
+import { deserializeJSON, serializeJSON } from '../utils/serialize';
 import FormViewColumn from './FormViewColumn';
 import View from './View';
 import NocoCache from '../cache/NocoCache';

@@ -109,9 +109,9 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
       try {
         const baseData = await api.public.sharedBaseGet(route.params.projectId as string)
         project.value = await api.project.read(baseData.project_id!)
-      } catch (e) {
+      } catch (e: any) {
         if (e?.response?.status === 404) {
-          return router.push('/404')
+          return router.push('/error/404')
         }
         throw e
       }

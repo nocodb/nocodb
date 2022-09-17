@@ -195,6 +195,7 @@ declare module '@vue/runtime-core' {
     MdiUpload: typeof import('~icons/mdi/upload')['default']
     MdiUploadOutline: typeof import('~icons/mdi/upload-outline')['default']
     MdiViewListOutline: typeof import('~icons/mdi/view-list-outline')['default']
+    MdiWarning: typeof import('~icons/mdi/warning')['default']
     MdiWhatsapp: typeof import('~icons/mdi/whatsapp')['default']
     MdiXml: typeof import('~icons/mdi/xml')['default']
     MiCircleWarning: typeof import('~icons/mi/circle-warning')['default']

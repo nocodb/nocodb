@@ -7,7 +7,6 @@ import Cell from '../Cell.vue'
 import VirtualCell from '../VirtualCell.vue'
 import Comments from './Comments.vue'
 import Header from './Header.vue'
-import { useRouter } from '#app'
 import {
   FieldsInj,
   IsFormInj,
@@ -19,6 +18,7 @@ import {
   toRef,
   useProvideExpandedFormStore,
   useProvideSmartsheetStore,
+  useRouter,
   useVModel,
   watch,
 } from '#imports'

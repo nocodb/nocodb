@@ -12,13 +12,13 @@ import {
   PaginationDataInj,
   ReadonlyInj,
   ReloadViewDataHookInj,
+  extractPkFromRow,
   inject,
   provide,
   useViewData,
 } from '#imports'
 import Row from '~/components/smartsheet/Row.vue'
 import type { Row as RowType } from '~/composables'
-import { extractPkFromRow } from '~/utils'
 import ImageIcon from '~icons/mdi/file-image-box'
 
 interface Attachment {

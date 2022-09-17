@@ -2,7 +2,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useRoute } from '#app'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -18,6 +17,7 @@ import {
   ReadonlyInj,
   ReloadViewDataHookInj,
   createEventHook,
+  extractPkFromRow,
   inject,
   onClickOutside,
   onMounted,
@@ -28,6 +28,7 @@ import {
   useEventListener,
   useGridViewColumnWidth,
   useI18n,
+  useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
   useViewData,
@@ -35,7 +36,6 @@ import {
 } from '#imports'
 import type { Row } from '~/composables'
 import { NavigateDir } from '~/lib'
-import { extractPkFromRow } from '~/utils'
 
 const { t } = useI18n()
 

@@ -21,7 +21,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
 <template>
   <div
-    class="color-transition bg-white dark:bg-slate-700 relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+    class="color-transition bg-white dark:bg-slate-700 relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(rounded-lg border-1 border-gray-200 shadow-xl) mt-12"
   >
     <template v-if="sharedFormView">
       <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>

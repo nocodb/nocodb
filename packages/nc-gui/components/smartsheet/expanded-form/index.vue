@@ -93,6 +93,13 @@ reloadHook.on(() => {
 })
 
 provide(ReloadRowDataHookInj, reloadHook)
+
+// adding column titles to changedColumns if they are preset (e.g. kanban)
+for (const [k, v] of Object.entries(row.value.row)) {
+  if (v) {
+    changedColumns.value.add(k)
+  }
+}
 </script>
 
 <script lang="ts">

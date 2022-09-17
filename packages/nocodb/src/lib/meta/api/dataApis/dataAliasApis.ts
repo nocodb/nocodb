@@ -3,6 +3,7 @@ import Model from '../../../models/Model';
 import { nocoExecute } from 'nc-help';
 import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
+import { NcError } from '../../helpers/catchError';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import View from '../../../models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
@@ -92,6 +93,7 @@ async function dataDelete(req: Request, res: Response) {
   }
   res.json(await baseModel.delByPk(req.params.rowId, null, req));
 }
+
 async function getDataList(model, view: View, req) {
   const base = await Base.get(model.base_id);
 
@@ -190,10 +192,16 @@ async function dataRead(req: Request, res: Response) {
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
+  const row = await baseModel.readByPk(req.params.rowId);
+
+  if (!row) {
+    NcError.notFound();
+  }
+
   res.json(
     await nocoExecute(
       await getAst({ model, query: req.query, view }),
-      await baseModel.readByPk(req.params.rowId),
+      row,
       {},
       {}
     )
@@ -213,6 +221,7 @@ async function dataExist(req: Request, res: Response) {
 
   res.json(await baseModel.exist(req.params.rowId));
 }
+
 const router = Router({ mergeParams: true });
 
 // table data crud apis

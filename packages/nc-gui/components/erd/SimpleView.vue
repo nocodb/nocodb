@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Edge, Node } from '@braks/vue-flow'
-import { Background, Controls, VueFlow } from '@braks/vue-flow'
+import { Background, Controls, VueFlow, useVueFlow } from '@braks/vue-flow'
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
@@ -22,36 +22,42 @@ interface Props {
 
 const { tables, config } = defineProps<Props>()
 
-console.log(tables.map((t) => t.table_name))
-
 const { metasWithIdAsKey } = useMetas()
 
-const initialNodes = ref<Pick<Node, 'id' | 'data' | 'type'>[]>([])
+const { $destroy, fitView } = useVueFlow()
+
+const isTransitioning = ref(true)
+
 const nodes = ref<Node[]>([])
 const edges = ref<Edge[]>([])
-const vueFlowKey = ref(0)
 
-const dagreGraph = new dagre.graphlib.Graph()
-dagreGraph.setDefaultEdgeLabel(() => ({}))
+let dagreGraph: dagre.graphlib.Graph
+const initDagre = () => {
+  dagreGraph = new dagre.graphlib.Graph()
+  dagreGraph.setDefaultEdgeLabel(() => ({}))
+  dagreGraph.setGraph({ rankdir: 'LR' })
+}
 
 const populateInitialNodes = () => {
-  tables.forEach((table) => {
-    if (!table.id) return
+  nodes.value = tables.flatMap((table) => {
+    if (!table.id) return []
 
-    const columns = metasWithIdAsKey.value[table.id].columns!.filter(
-      (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
-    )
+    const columns =
+      metasWithIdAsKey.value[table.id].columns?.filter(
+        (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
+      ) || []
 
     dagreGraph.setNode(table.id, { width: 250, height: 50 * columns.length })
 
-    initialNodes.value.push({
-      id: table.id,
-      data: { ...metasWithIdAsKey.value[table.id], showPkAndFk: config.showPkAndFk, showAllColumns: config.showAllColumns },
-      type: 'custom',
-    })
+    return [
+      {
+        id: table.id,
+        data: { ...metasWithIdAsKey.value[table.id], showPkAndFk: config.showPkAndFk, showAllColumns: config.showAllColumns },
+        type: 'custom',
+        position: { x: 0, y: 0 },
+      },
+    ]
   })
-
-  dagreGraph.setGraph({ rankdir: 'LR' })
 }
 
 const populateEdges = () => {
@@ -113,14 +119,6 @@ const populateEdges = () => {
 
     if (source !== target) dagreGraph.setEdge(source, target)
 
-    // todo: In the case of one self relation and one has many between 2 tables in only single table view, edges are getting messed up
-    if (source === target) {
-      // rerender after 200ms
-      setTimeout(() => {
-        vueFlowKey.value = 1
-      }, 350)
-    }
-
     return {
       id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}`,
       source: `${source}`,
@@ -172,7 +170,7 @@ const layoutNodes = () => {
 
   dagre.layout(dagreGraph)
 
-  nodes.value = initialNodes.value.flatMap((node) => {
+  nodes.value = nodes.value.flatMap((node) => {
     const nodeWithPosition = dagreGraph.node(node.id)
 
     if (!nodeWithPosition) return []
@@ -181,38 +179,60 @@ const layoutNodes = () => {
   })
 }
 
-onBeforeMount(() => {
+const init = (reset = false) => {
+  if (reset) {
+    initDagre()
+  }
   populateInitialNodes()
   populateEdges()
   layoutNodes()
+  if (reset) {
+    setTimeout(() => fitView({ duration: 300 }))
+  }
+}
+
+initDagre()
+
+onBeforeMount(init)
+
+onScopeDispose($destroy)
+
+watch([() => tables, () => config], () => init(true), { deep: true, flush: 'pre' })
+
+useEventListener('transitionend', () => {
+  isTransitioning.value = false
 })
 </script>
 
 <template>
-  <VueFlow :key="vueFlowKey" :nodes="nodes" :edges="edges" :fit-view-on-init="true" :elevate-edges-on-select="true">
-    <Controls class="!left-auto right-2 !top-3.5 !bottom-auto" :show-fit-view="false" :show-interactive="false" />
+  <Transition name="layout" mode="in-out">
+    <VueFlow v-if="!isTransitioning" :nodes="nodes" :edges="edges" fit-view-on-init elevate-edges-on-select>
+      <Controls class="!left-auto right-2 !top-3.5 !bottom-auto" :show-fit-view="false" :show-interactive="false" />
 
-    <template #node-custom="props">
-      <TableNode :data="props.data" />
-    </template>
+      <template #node-custom="props">
+        <TableNode :data="props.data" />
+      </template>
 
-    <template #edge-custom="props">
-      <RelationEdge v-bind="props" />
-    </template>
-    <Background />
-    <div
-      v-if="!config.singleTableMode"
-      class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200 z-50 nc-erd-histogram"
-      style="font-size: 0.6rem"
-    >
-      <div class="flex flex-row items-center space-x-1 border-b-1 pb-1 border-gray-100">
-        <MdiTableLarge class="text-primary" />
-        <div>{{ $t('objects.table') }}</div>
+      <template #edge-custom="props">
+        <RelationEdge v-bind="props" />
+      </template>
+
+      <Background />
+
+      <div
+        v-if="!config.singleTableMode"
+        class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200 z-50 nc-erd-histogram"
+        style="font-size: 0.6rem"
+      >
+        <div class="flex flex-row items-center space-x-1 border-b-1 pb-1 border-gray-100">
+          <MdiTableLarge class="text-primary" />
+          <div>{{ $t('objects.table') }}</div>
+        </div>
+        <div class="flex flex-row items-center space-x-1 pt-1">
+          <MdiView class="text-primary" />
+          <div>{{ $t('objects.sqlVIew') }}</div>
+        </div>
       </div>
-      <div class="flex flex-row items-center space-x-1 pt-1">
-        <MdiView class="text-primary" />
-        <div>{{ $t('objects.sqlVIew') }}</div>
-      </div>
-    </div>
-  </VueFlow>
+    </VueFlow>
+  </Transition>
 </template>

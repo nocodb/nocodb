@@ -7,7 +7,7 @@ const { table } = defineProps<{ table?: TableType }>()
 const { includeM2M } = useGlobal()
 
 const { tables: projectTables } = useProject()
-
+const tables = ref<TableType>([])
 const { metas, getMeta } = useMetas()
 
 let isLoading = $ref(true)
@@ -23,24 +23,9 @@ const config = ref({
   showJunctionTableNames: false,
 })
 
-const tables = computed(() => {
-  if (table) {
-    // if table is provided only get the table and its related tables
-    return projectTables.value.filter(
-      (t) =>
-        t.id === table.id ||
-        table.columns?.find(
-          (column) => column.uidt === UITypes.LinkToAnotherRecord && column?.colOptions?.fk_related_model_id === t.id,
-        ),
-    )
-  }
-
-  return projectTables.value
-})
-
-const loadMetaOfTablesNotInMetas = async () => {
+const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
   await Promise.all(
-    tables.value
+    localTables
       .filter((table) => !metas.value[table.id!])
       .map(async (table) => {
         await getMeta(table.id!)
@@ -48,14 +33,24 @@ const loadMetaOfTablesNotInMetas = async () => {
   )
 }
 
-onMounted(async () => {
-  await loadMetaOfTablesNotInMetas()
+const populateTables = async () => {
+  let localTables: TableType[] = []
+  if (table) {
+    // if table is provided only get the table and its related tables
+    localTables = projectTables.value.filter(
+      (t) =>
+        t.id === table.id ||
+        table.columns?.find(
+          (column) => column.uidt === UITypes.LinkToAnotherRecord && column?.colOptions?.fk_related_model_id === t.id,
+        ),
+    )
+  } else {
+    localTables = projectTables.value
+  }
 
-  isLoading = false
-})
+  await loadMetaOfTablesNotInMetas(localTables)
 
-const tablesFilteredWithConfig = computed(() =>
-  tables.value
+  tables.value = localTables
     .filter(
       (t) =>
         config.value.showMMTables ||
@@ -63,7 +58,27 @@ const tablesFilteredWithConfig = computed(() =>
         // Show mm table if its the selected table
         t.id === table?.id,
     )
-    .filter((t) => (!config.value.showViews && t.type !== 'view') || config.value.showViews),
+    .filter((t) => (!config.value.showViews && t.type !== 'view') || config.value.showViews)
+
+  isLoading = false
+}
+
+watch(
+  [config, metas],
+  async () => {
+    await populateTables()
+  },
+  {
+    deep: true,
+  },
+)
+
+watch(
+  [projectTables],
+  async () => {
+    await populateTables()
+  },
+  { immediate: true },
 )
 
 watch(
@@ -71,18 +86,6 @@ watch(
   () => {
     config.value.showPkAndFk = config.value.showAllColumns
   },
-)
-
-watch(metas, () => {
-  erdKey.value = erdKey.value + 1
-})
-
-watch(
-  config,
-  () => {
-    erdKey.value = erdKey.value + 1
-  },
-  { deep: true },
 )
 </script>
 
@@ -101,7 +104,7 @@ watch(
       </div>
     </div>
     <div v-else class="relative h-full">
-      <ErdSimpleView :key="erdKey" :tables="tablesFilteredWithConfig" :config="config" />
+      <ErdSimpleView :key="erdKey" :tables="tables" :config="config" />
 
       <div
         class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1 nc-erd-context-menu z-50"
@@ -132,15 +135,15 @@ watch(
             }"
             :disabled="!config.showAllColumns"
           />
-          <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showPkAndFk') }}</span>
+          <span class="ml-2 select-none text-[0.65rem]">{{ $t('activity.erd.showPkAndFk') }}</span>
         </div>
         <div v-if="!table" class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" class="nc-erd-showViews-checkbox" />
-          <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showSqlViews') }}</span>
+          <span class="ml-2 select-none text-[0.65rem]">{{ $t('activity.erd.showSqlViews') }}</span>
         </div>
         <div v-if="!table && showAdvancedOptions && includeM2M" class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showMMTables" v-e="['c:erd:showMMTables']" class="nc-erd-showMMTables-checkbox" />
-          <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showMMTables') }}</span>
+          <span class="ml-2 select-none text-[0.65rem]">{{ $t('activity.erd.showMMTables') }}</span>
         </div>
         <div v-if="showAdvancedOptions && includeM2M" class="flex flex-row items-center">
           <a-checkbox
@@ -148,7 +151,7 @@ watch(
             v-e="['c:erd:showJunctionTableNames']"
             class="nc-erd-showJunctionTableNames-checkbox"
           />
-          <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showJunctionTableNames') }}</span>
+          <span class="ml-2 select-none text-[0.65rem]">{{ $t('activity.erd.showJunctionTableNames') }}</span>
         </div>
       </div>
     </div>

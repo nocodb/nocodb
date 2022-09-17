@@ -5,6 +5,7 @@ import {
   IsFormInj,
   IsKanbanInj,
   MetaInj,
+  ReloadKanbanMetaHookInj,
   ReloadViewDataHookInj,
   computed,
   inject,
@@ -34,6 +35,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
+const reloadKanbanMetaTrigger = inject(ReloadKanbanMetaHookInj)
+
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
@@ -59,7 +62,12 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
 
 const reloadMetaAndData = async () => {
   await getMeta(meta.value?.id as string, true)
-  reloadDataTrigger?.trigger()
+
+  if (isKanban.value) {
+    reloadKanbanMetaTrigger?.trigger()
+  } else {
+    reloadDataTrigger?.trigger()
+  }
 }
 
 async function onSubmit() {

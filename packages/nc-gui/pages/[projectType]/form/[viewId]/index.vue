@@ -31,7 +31,7 @@ const onClick = () => {
 
 <template>
   <div
-    class="overflow-y-auto overflow-x-hidden flex flex-wrap color-transition nc-form-view relative md:bg-primary bg-opacity-10 dark:(bg-slate-900) h-full min-h-[600px] pt-12"
+    class="overflow-y-auto overflow-x-hidden flex flex-wrap color-transition nc-form-view relative md:bg-primary bg-opacity-10 dark:(bg-slate-900) h-full min-h-[600px]"
   >
     <NuxtPage />
 

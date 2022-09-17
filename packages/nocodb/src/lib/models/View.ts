@@ -273,6 +273,10 @@ export default class View implements ViewType {
       `${CacheScope.VIEW}:${view_id}`
     );
 
+    let columns: any[] = await (
+      await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta)
+    ).getColumns(ncMeta);
+
     // insert view metadata based on view type
     switch (view.type) {
       case ViewTypes.GRID:
@@ -306,6 +310,13 @@ export default class View implements ViewType {
         );
         break;
       case ViewTypes.KANBAN:
+        // Preset a grouping field by choosing the first single select field
+        // TODO: let users to choose in kanban create modal
+        const singleSelectColumns = columns.filter(
+          (c) => c.uidt === UITypes.SingleSelect
+        )[0];
+        (view as KanbanView).grp_column_id = singleSelectColumns?.id;
+
         await KanbanView.insert(
           {
             ...(copyFromView?.view || {}),
@@ -316,10 +327,6 @@ export default class View implements ViewType {
         );
         break;
     }
-
-    let columns: any[] = await (
-      await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta)
-    ).getColumns(ncMeta);
 
     if (copyFromView) {
       const sorts = await copyFromView.getSorts(ncMeta);

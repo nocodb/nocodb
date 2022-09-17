@@ -43,6 +43,7 @@ export default class KanbanView implements KanbanType {
       project_id: view.project_id,
       base_id: view.base_id,
       fk_view_id: view.fk_view_id,
+      grp_column_id: view.grp_column_id,
       // TODO: more
     };
     if (!(view.project_id && view.base_id)) {

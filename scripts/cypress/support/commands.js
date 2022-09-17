@@ -374,7 +374,8 @@ Cypress.Commands.add('renameTable', (oldName, newName) => {
 // });
 
 Cypress.Commands.add('toastWait', (msg) => {
-  cy.get('.ant-message-notice-content:visible', { timeout: 60000 }).contains(msg).should('exist');
+  // cy.get('.ant-message-notice-content:visible', { timout: 30000 }).should('exist')
+  cy.get(`.ant-message-notice-content:visible:contains("${msg}")`, { timeout: 30000 }).should('exist');
   cy.get('.ant-message-notice-content:visible', { timeout: 12000 }).should('not.exist');
 });
 

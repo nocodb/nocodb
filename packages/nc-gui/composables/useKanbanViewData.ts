@@ -60,7 +60,7 @@ export function useKanbanViewData(
   const groupingFieldColumn = useState<ColumnType | undefined>('KanbanGroupingFieldColumn')
 
   // stack meta in object format
-  const stackMetaObj = ref<Record<string, GroupingFieldColOptionsType[]>>({})
+  const stackMetaObj = useState<Record<string, GroupingFieldColOptionsType[]>>('KanbanStackMetaObj', () => ({}))
 
   const formatData = (list: Record<string, any>[]) =>
     list.map((row) => ({
@@ -70,6 +70,7 @@ export function useKanbanViewData(
     }))
 
   async function loadKanbanData() {
+    console.log('loadKanbanData')
     if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
 
     // reset formattedData & countByStack to avoid storing previous data after changing grouping field
@@ -106,6 +107,7 @@ export function useKanbanViewData(
   }
 
   async function loadKanbanMeta() {
+    console.log('loadKanbanMeta')
     if (!viewMeta?.value?.id || !meta?.value?.columns) return
     kanbanMetaData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
     // set groupingField
@@ -162,14 +164,15 @@ export function useKanbanViewData(
           ...ele,
           collapsed: false,
         }))
+      await updateKanbanStackMeta()
     }
-    await updateKanbanStackMeta()
   }
 
   async function updateKanbanStackMeta() {
     const { grp_column_id } = kanbanMetaData.value
     if (grp_column_id) {
       stackMetaObj.value[grp_column_id] = groupingFieldColOptions.value
+      console.log('updateKanbanStackMeta > updateKanbanMeta')
       await updateKanbanMeta({
         stack_meta: stackMetaObj.value,
       })
@@ -177,6 +180,7 @@ export function useKanbanViewData(
   }
 
   async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
+    console.log('updateKanbanMeta')
     if (!viewMeta?.value?.id) return
     await $api.dbView.kanbanUpdate(viewMeta.value.id, {
       ...kanbanMetaData.value,

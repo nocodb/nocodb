@@ -275,32 +275,30 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                                 :key="`record-${record.row.id}-${col.id}`"
                                 class="flex flex-col rounded-lg w-full"
                               >
-                                <div class="flex flex-row w-full justify-start pt-2">
+                                <div v-if="!isRowEmpty(record, col)" class="flex flex-row w-full justify-start pt-2">
                                   <div class="w-full text-gray-600">
                                     <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
                                     <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
                                   </div>
                                 </div>
                                 <div
+                                  v-if="!isRowEmpty(record, col)"
                                   class="flex flex-row w-full items-center justify-start"
                                   :class="{ 'pt-2 pl-2': col.uidt !== UITypes.SingleSelect }"
                                 >
-                                  <div v-if="isRowEmpty(record, col)" class="h-4 bg-gray-200 px-5 ml-3 mt-2 rounded-lg"></div>
-                                  <template v-else>
-                                    <SmartsheetVirtualCell
-                                      v-if="isVirtualCol(col)"
-                                      v-model="record.row[col.title]"
-                                      :column="col"
-                                      :row="record"
-                                    />
-                                    <SmartsheetCell
-                                      v-else
-                                      v-model="record.row[col.title]"
-                                      :column="col"
-                                      :edit-enabled="false"
-                                      :read-only="true"
-                                    />
-                                  </template>
+                                  <SmartsheetVirtualCell
+                                    v-if="isVirtualCol(col)"
+                                    v-model="record.row[col.title]"
+                                    :column="col"
+                                    :row="record"
+                                  />
+                                  <SmartsheetCell
+                                    v-else
+                                    v-model="record.row[col.title]"
+                                    :column="col"
+                                    :edit-enabled="false"
+                                    :read-only="true"
+                                  />
                                 </div>
                               </div>
                             </a-card>

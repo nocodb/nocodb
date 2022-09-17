@@ -8,6 +8,7 @@ import {
   IsLockedInj,
   MetaInj,
   OpenNewRecordFormHookInj,
+  ReloadKanbanMetaHookInj,
   ReloadViewDataHookInj,
   computed,
   inject,
@@ -36,6 +37,7 @@ const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
 
 const reloadEventHook = createEventHook<void>()
 const openNewRecordFormHook = createEventHook<void>()
+const reloadKanbanMetaHook = createEventHook<void>()
 
 const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
@@ -47,6 +49,7 @@ provide(MetaInj, meta)
 provide(ActiveViewInj, activeView)
 provide(IsLockedInj, isLocked)
 provide(ReloadViewDataHookInj, reloadEventHook)
+provide(ReloadKanbanMetaHookInj, reloadKanbanMetaHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)

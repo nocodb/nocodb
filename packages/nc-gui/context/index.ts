@@ -23,6 +23,7 @@ export const CellValueInj: InjectionKey<Ref<any>> = Symbol('cell-value-injection
 export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<boolean> = Symbol('readonly-injection')
 export const ReloadViewDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-view-data-injection')
+export const ReloadKanbanMetaHookInj: InjectionKey<EventHook<void>> = Symbol('reload-kanban-meta-injection')
 export const ReloadRowDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-row-data-injection')
 export const OpenNewRecordFormHookInj: InjectionKey<EventHook<void>> = Symbol('open-new-record-form-injection')
 export const FieldsInj: InjectionKey<Ref<any[]>> = Symbol('fields-injection')

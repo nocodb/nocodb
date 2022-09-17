@@ -24,8 +24,6 @@ const { metasWithIdAsKey } = useMetas()
 
 const { $destroy, fitView } = useVueFlow()
 
-const isTransitioning = ref(true)
-
 const nodes = ref<Node[]>([])
 const edges = ref<Edge[]>([])
 
@@ -179,57 +177,49 @@ const layoutNodes = () => {
   })
 }
 
-const init = (reset = false) => {
+const init = () => {
   initDagre()
   populateInitialNodes()
   populateEdges()
   layoutNodes()
 
-  if (reset) {
-    setTimeout(() => fitView({ duration: 300 }))
-  }
+  setTimeout(() => fitView({ duration: 300 }))
 }
 
 init()
 
 onScopeDispose($destroy)
 
-watch([() => tables, () => config], () => init(true), { deep: true, flush: 'pre' })
-
-useEventListener('transitionend', () => {
-  isTransitioning.value = false
-})
+watch([() => tables, () => config], init, { deep: true, flush: 'pre' })
 </script>
 
 <template>
-  <Transition name="layout" mode="out-in">
-    <VueFlow v-if="!isTransitioning" :nodes="nodes" :edges="edges" fit-view-on-init elevate-edges-on-select>
-      <Controls class="!left-auto right-2 !top-3.5 !bottom-auto" :show-fit-view="false" :show-interactive="false" />
+  <VueFlow :nodes="nodes" :edges="edges" elevate-edges-on-select>
+    <Controls class="!left-auto right-2 !top-3.5 !bottom-auto" :show-fit-view="false" :show-interactive="false" />
 
-      <template #node-custom="props">
-        <TableNode :data="props.data" />
-      </template>
+    <template #node-custom="props">
+      <TableNode :data="props.data" />
+    </template>
 
-      <template #edge-custom="props">
-        <RelationEdge v-bind="props" />
-      </template>
+    <template #edge-custom="props">
+      <RelationEdge v-bind="props" />
+    </template>
 
-      <Background />
+    <Background />
 
-      <div
-        v-if="!config.singleTableMode"
-        class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200 z-50 nc-erd-histogram"
-        style="font-size: 0.6rem"
-      >
-        <div class="flex flex-row items-center space-x-1 border-b-1 pb-1 border-gray-100">
-          <MdiTableLarge class="text-primary" />
-          <div>{{ $t('objects.table') }}</div>
-        </div>
-        <div class="flex flex-row items-center space-x-1 pt-1">
-          <MdiEyeCircleOutline class="text-primary" />
-          <div>{{ $t('objects.sqlVIew') }}</div>
-        </div>
+    <div
+      v-if="!config.singleTableMode"
+      class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200 z-50 nc-erd-histogram"
+      style="font-size: 0.6rem"
+    >
+      <div class="flex flex-row items-center space-x-1 border-b-1 pb-1 border-gray-100">
+        <MdiTableLarge class="text-primary" />
+        <div>{{ $t('objects.table') }}</div>
       </div>
-    </VueFlow>
-  </Transition>
+      <div class="flex flex-row items-center space-x-1 pt-1">
+        <MdiEyeCircleOutline class="text-primary" />
+        <div>{{ $t('objects.sqlVIew') }}</div>
+      </div>
+    </div>
+  </VueFlow>
 </template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { message } from 'ant-design-vue'
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -6,6 +7,7 @@ import Cell from '../Cell.vue'
 import VirtualCell from '../VirtualCell.vue'
 import Comments from './Comments.vue'
 import Header from './Header.vue'
+import { useRouter } from '#app'
 import {
   FieldsInj,
   IsFormInj,
@@ -42,6 +44,8 @@ const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
 
+const router = useRouter()
+
 const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
     return (meta.value.columns ?? []).filter((col) => !isSystemColumn(col))
@@ -58,7 +62,15 @@ if (props.loadRow) {
 }
 
 if (props.rowId) {
-  await loadRow(props.rowId)
+  try {
+    await loadRow(props.rowId)
+  } catch (e) {
+    if (e.response?.status === 404) {
+      // todo: i18n
+      message.error('Record not found')
+      router.replace({ query: {} })
+    } else throw e
+  }
 }
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)

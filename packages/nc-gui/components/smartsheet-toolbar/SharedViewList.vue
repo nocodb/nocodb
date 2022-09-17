@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
 import { Empty, message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, onMounted, useClipboard, useI18n, useSmartsheetStoreOrThrow } from '#imports'
+import { extractSdkResponseErrorMsg, onMounted, useCopy, useI18n, useSmartsheetStoreOrThrow } from '#imports'
 import MdiVisibilityOnIcon from '~icons/mdi/visibility'
 import MdiVisibilityOffIcon from '~icons/mdi/visibility-off'
 import MdiCopyIcon from '~icons/mdi/content-copy'
@@ -20,7 +20,7 @@ const { t } = useI18n()
 
 const { $api, meta } = useSmartsheetStoreOrThrow()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const { dashboardUrl } = useDashboard()
 

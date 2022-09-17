@@ -23,7 +23,7 @@ import {
   provide,
   reactive,
   ref,
-  useClipboard,
+  useCopy,
   useEventListener,
   useGridViewColumnWidth,
   useI18n,
@@ -97,7 +97,7 @@ const {
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 onMounted(loadGridViewColumns)
 

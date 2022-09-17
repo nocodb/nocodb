@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
+import type { ViewType } from 'nocodb-sdk'
 import {
   ReloadRowDataHookInj,
   useExpandedFormStoreOrThrow,
@@ -8,9 +9,11 @@ import {
   useUIPermission,
 } from '#imports'
 
+const props = defineProps<{ view?: ViewType }>()
+
 const emit = defineEmits(['cancel'])
 
-const { project } = useProject()
+const route = useRoute()
 
 const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -41,7 +44,11 @@ const { dashboardUrl } = useDashboard()
 const { copy } = useClipboard()
 
 const copyRecordUrl = () => {
-  copy(`${dashboardUrl?.value}#/nc/${project.value?.id}/table/${meta.value?.title}?rowId=${primaryKey.value}`)
+  copy(
+    `${dashboardUrl?.value}#/${route.params.projectType}/${route.params.projectId}/${route.params.type}/${meta.value?.title}${
+      props.view ? `/${props.view.title}` : ''
+    }?rowId=${primaryKey.value}`,
+  )
   message.success('Copied to clipboard')
 }
 </script>

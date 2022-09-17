@@ -221,6 +221,7 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
+      :view="view"
     />
 
     <SmartsheetExpandedForm
@@ -230,6 +231,7 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
       :row="{ row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
       :row-id="route.query.rowId"
+      :view="view"
     />
   </div>
 </template>

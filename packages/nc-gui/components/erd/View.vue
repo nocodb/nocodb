@@ -104,7 +104,7 @@ watch(
           }}</span>
         </div>
         <div class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showPkAndFk" v-e="['c:erd:showPkAndFk']" />
+          <a-checkbox v-model:checked="config.showPkAndFk" v-e="['c:erd:showPkAndFk']" :disabled="!config.showAllColumns" />
           <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showPkAndFk') }}</span>
         </div>
         <div v-if="!table" class="flex flex-row items-center">
@@ -115,7 +115,7 @@ watch(
           <a-checkbox v-model:checked="config.showMMTables" v-e="['c:erd:showMMTables']" />
           <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showMMTables') }}</span>
         </div>
-        <div v-if="!table && showAdvancedOptions" class="flex flex-row items-center">
+        <div v-if="showAdvancedOptions" class="flex flex-row items-center">
           <a-checkbox v-model:checked="config.showJunctionTableNames" v-e="['c:erd:showJunctionTableNames']" />
           <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showJunctionTableNames') }}</span>
         </div>

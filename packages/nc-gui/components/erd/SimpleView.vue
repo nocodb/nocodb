@@ -83,6 +83,14 @@ const populateEdges = () => {
     return acc
   }, [] as ColumnType[])
 
+  const edgeMMTableLabel = (modelId: string) => {
+    const mmModel = metasWithIdAsKey.value[modelId]
+    if (mmModel.title !== mmModel.table_name) {
+      return `${mmModel.title} (${mmModel.table_name})`
+    }
+    return mmModel.title
+  }
+
   edges.value = ltarColumns.map((column) => {
     const source = column.fk_model_id!
     const target = (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!
@@ -98,8 +106,7 @@ const populateEdges = () => {
       sourceColumnId = (column.colOptions as LinkToAnotherRecordType).fk_parent_column_id
       targetColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
       edgeLabel =
-        config.showJunctionTableNames &&
-        metasWithIdAsKey.value[(column.colOptions as LinkToAnotherRecordType).fk_mm_model_id!].table_name
+        config.showJunctionTableNames && edgeMMTableLabel((column.colOptions as LinkToAnotherRecordType).fk_mm_model_id!)
     }
 
     if (source !== target) dagreGraph.setEdge(source, target)
@@ -109,7 +116,7 @@ const populateEdges = () => {
       // rerender after 200ms
       setTimeout(() => {
         vueFlowKey.value = 1
-      }, 200)
+      }, 350)
     }
 
     return {

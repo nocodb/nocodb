@@ -54,7 +54,7 @@ const copyRecordUrl = () => {
 </script>
 
 <template>
-  <div class="flex p-2 items-center gap-2 p-4">
+  <div class="flex p-2 items-center gap-2 p-4 nc-expanded-form-header">
     <h5 class="text-lg font-weight-medium flex items-center gap-1 mb-0 min-w-0 overflow-x-hidden truncate">
       <mdi-table-arrow-right :style="{ color: iconColor }" />
 
@@ -82,7 +82,7 @@ const copyRecordUrl = () => {
         <!-- todo: i18n -->
         <div class="text-center w-full">Copy record URL</div>
       </template>
-      <mdi-link v-if="!isNew" class="cursor-pointer select-none text-gray-500 mx-1" @click="copyRecordUrl" />
+      <mdi-link v-if="!isNew" class="cursor-pointer select-none text-gray-500 mx-1 nc-copy-row-url" @click="copyRecordUrl" />
     </a-tooltip>
     <a-tooltip v-if="!isSqlView" placement="bottom">
       <!--      Toggle comments draw -->
@@ -97,7 +97,7 @@ const copyRecordUrl = () => {
       />
     </a-tooltip>
 
-    <a-button class="!text mx-1" @click="emit('cancel')">
+    <a-button class="!text mx-1 nc-expand-form-close-btn" @click="emit('cancel')">
       <!-- Cancel -->
       {{ $t('general.cancel') }}
     </a-button>

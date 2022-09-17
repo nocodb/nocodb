@@ -14,5 +14,5 @@ module.exports = {
   extends: ['@antfu', 'plugin:prettier/recommended'],
   plugins: ['prettier'],
   rules: baseRules,
-  ignorePatterns: ['!*.d.ts'],
+  ignorePatterns: ['!*.d.ts', 'components.d.ts'],
 }

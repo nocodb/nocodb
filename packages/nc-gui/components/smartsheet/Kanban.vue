@@ -153,10 +153,6 @@ const handleCollapseStack = async (stackIdx: number) => {
   await updateKanbanStackMeta()
 }
 
-const renameStack = () => {
-  // TODO:
-}
-
 openNewRecordFormHook?.on(async (stackTitle) => {
   const newRow = await addEmptyRow()
   // preset the grouping field value
@@ -218,13 +214,6 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                               <mdi-arrow-collapse class="text-gray-500" />
                               <!-- TODO: i18n -->
                               Collapse Stack
-                            </div>
-                          </a-menu-item>
-                          <a-menu-item v-if="stack.title !== 'Uncategorized'" @click="renameStack">
-                            <div class="py-2 flex gap-2 items-center">
-                              <mdi-pencil class="text-gray-500" />
-                              <!-- TODO: i18n -->
-                              Rename Stack
                             </div>
                           </a-menu-item>
                           <a-menu-item v-if="stack.title !== 'Uncategorized'" @click="handleDeleteStackClick(stack.title)">

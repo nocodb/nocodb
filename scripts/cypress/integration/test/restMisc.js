@@ -15,23 +15,23 @@ const {
 
 const nocoTestSuite = (apiType, dbType) => {
     setCurrentMode(apiType, dbType);
-    // t01.genTest(apiType, dbType);
-    //
-    // t6b.genTest(apiType, dbType);
-    // t6d.genTest(apiType, dbType);
-    // // exclude@ncv2 t6c.genTest(apiType, dbType);
-    // t6f.genTest(apiType, dbType);
-    // t6g.genTest(apiType, dbType);
-    //
-    // // webhook tests
-    // t8a.genTest(apiType, dbType)
-    //
-    // // **deletes created project, hence place it @ end
-    // t6e.genTest(apiType, dbType);
-    //
-    // // intended to keep this after earlier project deletion
-    // // creates project using excel & deletes it
-    // t7a.genTest(apiType, dbType);
+    t01.genTest(apiType, dbType);
+    
+    t6b.genTest(apiType, dbType);
+    t6d.genTest(apiType, dbType);
+    // exclude@ncv2 t6c.genTest(apiType, dbType);
+    t6f.genTest(apiType, dbType);
+    t6g.genTest(apiType, dbType);
+    
+    // webhook tests
+    t8a.genTest(apiType, dbType)
+    
+    // **deletes created project, hence place it @ end
+    t6e.genTest(apiType, dbType);
+    
+    // intended to keep this after earlier project deletion
+    // creates project using excel & deletes it
+    t7a.genTest(apiType, dbType);
 
     t9b.genTest(apiType, dbType);
 };

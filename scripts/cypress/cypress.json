@@ -1,6 +1,19 @@
 {
     "baseUrl": "http://localhost:3000/",
     "testFiles": [
+        "test/restTableOps.js",
+        "test/restViews.js",
+        "test/restRoles.js",
+        "test/restMisc.js",
+        "test/xcdb-restTableOps.js",
+        "test/xcdb-restViews.js",
+        "test/xcdb-restRoles.js",
+        "test/xcdb-restMisc.js",
+        "test/pg-restTableOps.js",
+        "test/pg-restViews.js",
+        "test/pg-restRoles.js",
+        "test/pg-restMisc.js",
+        "test/quickTest.js",
         "test/restMisc.js"
     ],
     "defaultCommandTimeout": 13000,
@@ -10,7 +23,7 @@
     "video": false,
     "retries": 0,
     "screenshotOnRunFailure": true,
-    "numTestsKeptInMemory": 5,
+    "numTestsKeptInMemory": 0,
     "experimentalInteractiveRunEvents": true,
     "env": {
         "testMode": [

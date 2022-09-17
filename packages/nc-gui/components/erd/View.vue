@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TableType } from 'nocodb-sdk'
+import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 
 const { table } = defineProps<{ table?: TableType }>()
@@ -7,7 +7,7 @@ const { table } = defineProps<{ table?: TableType }>()
 const { includeM2M } = useGlobal()
 
 const { tables: projectTables } = useProject()
-const tables = ref<TableType>([])
+const tables = ref<TableType[]>([])
 const { metas, getMeta } = useMetas()
 
 let isLoading = $ref(true)
@@ -40,7 +40,9 @@ const populateTables = async () => {
       (t) =>
         t.id === table.id ||
         table.columns?.find(
-          (column) => column.uidt === UITypes.LinkToAnotherRecord && column?.colOptions?.fk_related_model_id === t.id,
+          (column) =>
+            column.uidt === UITypes.LinkToAnotherRecord &&
+            (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id,
         ),
     )
   } else {
@@ -52,9 +54,10 @@ const populateTables = async () => {
   tables.value = localTables
     .filter(
       (t) =>
+        // todo: table type is missing mm property in type definition
         config.value.showMMTables ||
         (!config.value.showMMTables && !t.mm) ||
-        // Show mm table if its the selected table
+        // Show mm table if it's the selected table
         t.id === table?.id,
     )
     .filter((t) => (!config.value.showViews && t.type !== 'view') || config.value.showViews)
@@ -118,7 +121,7 @@ watch(
             class="ml-2 select-none nc-erd-showColumns-label"
             style="font-size: 0.65rem"
             @dblclick="showAdvancedOptions = true"
-            >
+          >
             {{ $t('activity.erd.showColumns') }}
           </span>
         </div>

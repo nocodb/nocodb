@@ -3,14 +3,14 @@ import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, 
 import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
 import type { Row } from '~/composables/useViewData'
-import { enumColor } from '~/utils'
+import { deepCompare, enumColor } from '~/utils'
 import { useNuxtApp } from '#app'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
 export function useKanbanViewData(
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
-  viewMeta: Ref<ViewType & { id: string }> | ComputedRef<ViewType & { id: string }> | undefined,
+  viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
 ) {
   if (!meta) {
     throw new Error('Table meta is not available')
@@ -70,7 +70,6 @@ export function useKanbanViewData(
     }))
 
   async function loadKanbanData() {
-    console.log('loadKanbanData')
     if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
 
     // reset formattedData & countByStack to avoid storing previous data after changing grouping field
@@ -81,7 +80,7 @@ export function useKanbanViewData(
       groupingFieldColOptions.value.map(async (option: GroupingFieldColOptionsType) => {
         const where =
           option.title === 'Uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
-        const response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta!.value.id, {
+        const response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
           where,
         })
 
@@ -92,12 +91,12 @@ export function useKanbanViewData(
   }
 
   async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-    if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
+    if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
     let where = `(${groupingField.value},eq,${stackTitle})`
     if (stackTitle === 'Uncategorized') {
       where = `(${groupingField.value},is,null)`
     }
-    const response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta!.value.id, {
+    const response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
       ...params,
       ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
       ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
@@ -107,7 +106,6 @@ export function useKanbanViewData(
   }
 
   async function loadKanbanMeta() {
-    console.log('loadKanbanMeta')
     if (!viewMeta?.value?.id || !meta?.value?.columns) return
     kanbanMetaData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
     // set groupingField
@@ -120,27 +118,33 @@ export function useKanbanViewData(
     stackMetaObj.value = stack_meta ? JSON.parse(stack_meta as string) : {}
 
     if (stackMetaObj.value && grp_column_id && stackMetaObj.value[grp_column_id]) {
-      // keep the existing order (index of the array) but update the values
+      // keep the existing order (index of the array) but update the values done outside kanban
+      let isChanged = false
       for (const option of (groupingFieldColumn.value.colOptions as SelectOptionsType).options) {
         const idx = stackMetaObj.value[grp_column_id].findIndex((ele) => ele.id === option.id)
         if (idx !== -1) {
-          // update the option in stackMetaObj
-          stackMetaObj.value[grp_column_id][idx] = {
-            ...stackMetaObj.value[grp_column_id][idx],
-            ...option,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { collapsed, ...rest } = stackMetaObj.value[grp_column_id][idx]
+          if (!deepCompare(rest, option)) {
+            // update the option in stackMetaObj
+            stackMetaObj.value[grp_column_id][idx] = {
+              ...stackMetaObj.value[grp_column_id][idx],
+              ...option,
+            }
+            isChanged = true
           }
         } else {
-          // new option found
-          const len = stackMetaObj.value[grp_column_id].length
-          stackMetaObj.value[grp_column_id][len] = {
+          // new option found - add to stackMetaObj
+          stackMetaObj.value[grp_column_id].push({
             ...option,
             collapsed: false,
-          }
+          })
+          isChanged = true
         }
       }
+
       // handle deleted options
       const columnOptionIds = (groupingFieldColumn.value?.colOptions as SelectOptionsType)?.options.map(({ id }) => id)
-
       stackMetaObj.value[grp_column_id]
         .filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
         .forEach(({ id }) => {
@@ -149,7 +153,11 @@ export function useKanbanViewData(
             stackMetaObj.value[grp_column_id].splice(idx, 1)
           }
         })
+
       groupingFieldColOptions.value = stackMetaObj.value[grp_column_id]
+      if (isChanged) {
+        await updateKanbanStackMeta()
+      }
     } else {
       // build stack meta
       groupingFieldColOptions.value = [
@@ -172,7 +180,6 @@ export function useKanbanViewData(
     const { grp_column_id } = kanbanMetaData.value
     if (grp_column_id) {
       stackMetaObj.value[grp_column_id] = groupingFieldColOptions.value
-      console.log('updateKanbanStackMeta > updateKanbanMeta')
       await updateKanbanMeta({
         stack_meta: stackMetaObj.value,
       })
@@ -180,7 +187,6 @@ export function useKanbanViewData(
   }
 
   async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
-    console.log('updateKanbanMeta')
     if (!viewMeta?.value?.id) return
     await $api.dbView.kanbanUpdate(viewMeta.value.id, {
       ...kanbanMetaData.value,

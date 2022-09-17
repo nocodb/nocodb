@@ -31,8 +31,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const { project } = useProject()
   const rowStore = useProvideSmartsheetRowStore(meta, row)
   const { sharedView } = useSharedView() as Record<string, any>
-  const activeView = inject(ActiveViewInj)
-  const { loadKanbanData } = useKanbanViewData(meta, activeView as any)
+  const activeView = inject(ActiveViewInj, ref())
+  const { loadKanbanData } = useKanbanViewData(meta, activeView)
 
   // const { updateOrSaveRow, insertRow } = useViewData(meta, activeView as any)
 
@@ -160,7 +160,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         return message.info(t('msg.info.noColumnsToUpdate'))
       }
 
-      if (activeView?.value.type === ViewTypes.KANBAN) {
+      if (activeView.value?.type === ViewTypes.KANBAN) {
         await loadKanbanData()
       }
 

@@ -139,6 +139,8 @@ export function useKanbanViewData(
             ...option,
             collapsed: false,
           })
+          formattedData.value[option.title!] = []
+          countByStack.value[option.title!] = 0
           isChanged = true
         }
       }
@@ -150,6 +152,7 @@ export function useKanbanViewData(
         .forEach(({ id }) => {
           const idx = stackMetaObj.value[grp_column_id].map((ele: Record<string, any>) => ele.id).indexOf(id)
           if (idx !== -1) {
+            deleteStack(stackMetaObj.value[grp_column_id][idx].title!)
             stackMetaObj.value[grp_column_id].splice(idx, 1)
           }
         })

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ActiveViewInj, IsLockedInj, MetaInj, useKanbanViewData } from '#imports'
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
-const activeView = inject(ActiveViewInj)!
+const activeView = inject(ActiveViewInj, ref())
 
 const { isUIAllowed } = useUIPermission()
 

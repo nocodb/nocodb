@@ -6,11 +6,15 @@ import type { Row } from '~/composables/useViewData'
 import { enumColor } from '~/utils'
 import { useNuxtApp } from '#app'
 
+type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
+
 export function useKanbanViewData(
-  meta: Ref<TableType> | ComputedRef<TableType> | undefined,
+  meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
   viewMeta: Ref<ViewType & { id: string }> | ComputedRef<ViewType & { id: string }> | undefined,
 ) {
-  type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
+  if (!meta) {
+    throw new Error('Table meta is not available')
+  }
 
   const { t } = useI18n()
   const { api } = useApi()
@@ -66,7 +70,7 @@ export function useKanbanViewData(
     }))
 
   async function loadKanbanData() {
-    if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
+    if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
 
     // reset formattedData & countByStack to avoid storing previous data after changing grouping field
     formattedData.value = {}
@@ -76,7 +80,7 @@ export function useKanbanViewData(
       groupingFieldColOptions.value.map(async (option: GroupingFieldColOptionsType) => {
         const where =
           option.title === 'Uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
-        const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
+        const response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta!.value.id, {
           where,
         })
 
@@ -87,11 +91,12 @@ export function useKanbanViewData(
   }
 
   async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+    if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
     let where = `(${groupingField.value},eq,${stackTitle})`
     if (stackTitle === 'Uncategorized') {
       where = `(${groupingField.value},is,null)`
     }
-    const response = await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
+    const response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta!.value.id, {
       ...params,
       ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
       ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
@@ -191,7 +196,7 @@ export function useKanbanViewData(
       const insertedData = await $api.dbViewRow.create(
         NOCO,
         project?.value.id as string,
-        meta?.value.id as string,
+        meta.value?.id as string,
         viewMeta?.value?.id as string,
         insertObj,
       )
@@ -210,12 +215,12 @@ export function useKanbanViewData(
 
   async function updateRowProperty(toUpdate: Row, property: string) {
     try {
-      const id = extractPkFromRow(toUpdate.row, meta?.value.columns as ColumnType[])
+      const id = extractPkFromRow(toUpdate.row, meta?.value?.columns as ColumnType[])
 
       const updatedRowData = await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
-        meta?.value.id as string,
+        meta.value?.id as string,
         viewMeta?.value?.id as string,
         id,
         {
@@ -229,7 +234,7 @@ export function useKanbanViewData(
       // audit
       $api.utils
         .auditRowUpdate(id, {
-          fk_model_id: meta?.value.id as string,
+          fk_model_id: meta.value?.id as string,
           column_name: property,
           row_id: id,
           value: getHTMLEncodedText(toUpdate.row[property]),
@@ -259,7 +264,7 @@ export function useKanbanViewData(
       await api.dbTableRow.bulkUpdateAll(
         'noco',
         project.value.id!,
-        meta!.value.id!,
+        meta.value?.id as string,
         {
           [groupingField.value]: null,
         },

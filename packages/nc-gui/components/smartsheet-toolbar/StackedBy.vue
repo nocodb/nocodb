@@ -15,9 +15,9 @@ import {
   watch,
 } from '#imports'
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
-const activeView = inject(ActiveViewInj)!
+const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
@@ -77,7 +77,6 @@ const handleChange = () => {
           <mdi-arrow-down-drop-circle-outline />
           <!-- TODO: i18n -->
           <span class="text-capitalize !text-sm font-weight-normal">Stacked By {{ groupingField }}</span>
-
           <MdiMenuDown class="text-grey" />
         </div>
       </a-button>
@@ -90,7 +89,7 @@ const handleChange = () => {
       >
         <div>
           <!-- TODO: i18n -->
-          <span class="font-bold">Choose a grouping field</span>
+          <span class="font-bold">Choose a Grouping Field</span>
           <a-divider class="!my-2" />
         </div>
         <div class="nc-fields-list py-1">

@@ -2331,7 +2331,7 @@ class BaseModelSqlv2 {
     }
     return this.isPg
       ? (await this.dbDriver.raw(query))?.rows
-      : query.slice(0, 6) === 'select'
+      : query.slice(0, 6) === 'select' && !this.isMssql
       ? await this.dbDriver.from(
           this.dbDriver.raw(query).wrap('(', ') __nc_alias')
         )

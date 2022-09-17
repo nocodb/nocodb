@@ -24,6 +24,8 @@ const view = inject(ActiveViewInj, ref())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
+const reloadKanbanMetaHook = inject(ReloadKanbanMetaHookInj)
+
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const expandedFormDlg = ref(false)
@@ -50,7 +52,7 @@ const {
   groupingField,
   countByStack,
   deleteStack,
-} = useKanbanViewData(meta, view as any)
+} = useKanbanViewData(meta, view)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -74,6 +76,10 @@ const isRowEmpty = (record: any, col: any) => {
 reloadViewDataHook?.on(async () => {
   await loadKanbanMeta()
   await loadKanbanData()
+})
+
+reloadKanbanMetaHook?.on(async () => {
+  await loadKanbanMeta()
 })
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {

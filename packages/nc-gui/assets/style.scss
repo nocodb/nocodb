@@ -249,3 +249,9 @@ a {
   transform: scale(75%);
   transform-origin: bottom right;
 }
+
+.nc-modal-erd {
+  .ant-modal {
+    transform: none !important;
+  }
+}

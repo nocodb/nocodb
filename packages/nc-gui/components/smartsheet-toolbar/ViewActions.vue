@@ -245,7 +245,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 :deep(.ant-dropdown-menu-submenu-title) {
   @apply py-0;
 }

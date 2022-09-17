@@ -72,7 +72,7 @@ const relatedColumnId = (col: Record<string, any>) =>
       <div v-for="(col, index) in nonPkColumns" :key="col.title">
         <div
           class="w-full h-full flex items-center min-w-32 border-gray-100 py-2 px-1"
-          :class="index + 1 === nonPkColumns!.length ? 'rounded-b-lg' : 'border-b-1'"
+          :class="index + 1 === nonPkColumns.length ? 'rounded-b-lg' : 'border-b-1'"
         >
           <div
             v-if="col.uidt === UITypes.LinkToAnotherRecord"
@@ -85,6 +85,7 @@ const relatedColumnId = (col: Record<string, any>) =>
               type="source"
               :position="Position.Right"
             />
+
             <Handle
               :id="`d-${relatedColumnId(col)}-${data.id}`"
               class="-left-1 opacity-0"

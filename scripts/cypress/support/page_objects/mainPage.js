@@ -27,6 +27,7 @@ export class _settingsPage {
         this.UI_ACCESS_CONTROL = "acl";
         this.AUDIT_LOG = "audit";
         this.ERD = "erd";
+        this.MISC = "misc";
     }
 
     openMenu(menuId) {
@@ -35,7 +36,7 @@ export class _settingsPage {
         // cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
         cy.get('.nc-project-menu').should('exist').click()
         cy.getActiveMenu(".nc-dropdown-project-menu").find(`[data-menu-id="teamAndSettings"]`).should('exist').click()
-        cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
+        cy.get(`[data-menu-id=${menuId}]`).should('exist').click({ multiple: true })
     }
 
     openTab(tabId) {
@@ -481,6 +482,23 @@ export class _mainPage {
         settingsPage.openTab(settingsPage.METADATA)
     }
 
+    openMiscTab() {
+        // open Project metadata tab
+        //
+        settingsPage.openMenu(settingsPage.PROJ_METADATA)
+        settingsPage.openTab(settingsPage.MISC)
+    }
+
+    toggleShowMMSetting() {
+        // toggle show MM setting
+        //
+        this.openMiscTab()
+        cy.get('.nc-settings-meta-misc').click()
+
+        settingsPage.openTab(settingsPage.TEAM_N_AUTH)
+        this.closeMetaTab()
+    }
+
     openErdTab() {
         // open Project metadata tab
         //
@@ -527,6 +545,12 @@ export class _mainPage {
     toggleRightSidebar() {
         cy.get(".nc-toggle-right-navbar").should("exist").click();
     }
+
+    openTableErdView() {
+        cy.get(".nc-actions-menu-btn").should("exist").click();
+        cy.get(".nc-view-action-erd").should("exist").click();
+    }
+
 }
 
 export const mainPage = new _mainPage();

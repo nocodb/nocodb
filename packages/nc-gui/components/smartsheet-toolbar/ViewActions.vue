@@ -216,7 +216,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
               </div>
             </a-menu-item>
             <a-menu-item>
-              <div v-e="['c:erd:open']" class="py-2 flex gap-2 items-center" @click="showErd = true">
+              <div v-e="['c:erd:open']" class="py-2 flex gap-2 items-center nc-view-action-erd" @click="showErd = true">
                 <AcountTreeRoundedIcon class="text-gray-500" />
                 {{ $t('title.erdView') }}
               </div>
@@ -230,13 +230,18 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
-    <a-modal
-      v-model:visible="showErd"
-      size="small"
-      :title="`${$t('title.erdView')}: ${selectedView?.title}`"
-      :footer="null"
-      width="max(900px,60vw)"
-    >
+    <a-modal v-model:visible="showErd" size="small" :footer="null" width="max(900px,60vw)" :closable="false">
+      <div class="flex flex-row justify-between w-full items-center mb-1">
+        <a-typography-title class="ml-4 select-none" type="secondary" :level="5">
+          {{ `${$t('title.erdView')}: ${selectedView?.title}` }}
+        </a-typography-title>
+
+        <a-button type="text" class="!rounded-md border-none -mt-1.5 -mr-1" @click="showErd = false">
+          <template #icon>
+            <MdiClose class="cursor-pointer mt-1 nc-modal-close" />
+          </template>
+        </a-button>
+      </div>
       <SmartsheetToolbarErd />
     </a-modal>
 

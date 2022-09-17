@@ -22,6 +22,8 @@ interface Props {
 
 const { tables, config } = defineProps<Props>()
 
+console.log(tables.map((t) => t.table_name))
+
 const { metasWithIdAsKey } = useMetas()
 
 const initialNodes = ref<Pick<Node, 'id' | 'data' | 'type'>[]>([])
@@ -200,7 +202,7 @@ onBeforeMount(() => {
     <Background />
     <div
       v-if="!config.singleTableMode"
-      class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200"
+      class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200 z-50 nc-erd-histogram"
       style="font-size: 0.6rem"
     >
       <div class="flex flex-row items-center space-x-1 border-b-1 pb-1 border-gray-100">

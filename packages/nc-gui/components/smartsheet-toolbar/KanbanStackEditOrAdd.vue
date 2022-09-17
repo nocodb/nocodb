@@ -7,7 +7,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { isUIAllowed } = useUIPermission()
 
-const { loadKanbanData, loadKanbanMeta, groupingFieldColumn } = useKanbanViewData(meta, activeView)
+const { groupingFieldColumn } = useKanbanViewData(meta, activeView)
 
 const isLocked = inject(IsLockedInj, ref(false))
 

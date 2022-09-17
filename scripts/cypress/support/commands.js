@@ -526,6 +526,23 @@ Cypress.Commands.add('viewDelete', (viewIndex) => {
   cy.toastWait("View deleted successfully");
 })
 
+// viewDuplicate
+//  : duplicate view by index (0-based, *include* default view)
+//
+Cypress.Commands.add('viewCopy', (viewIndex) => {
+  // click on delete icon (becomes visible on hovering mouse)
+  cy.get(".nc-view-copy-icon")
+    .eq(viewIndex)
+    .click({ force: true });
+  cy.wait(300)
+
+  // click on 'Delete' button on confirmation modal
+  cy.getActiveModal(".nc-modal-view-create")
+    .find('.ant-btn-primary')
+    .click();
+  cy.toastWait("View created successfully");
+})
+
 // viewRename
 //  : rename view by index (0-based, exclude default view)
 //

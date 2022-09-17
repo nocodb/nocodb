@@ -164,7 +164,7 @@ const getIcon = (c: ColumnType) =>
 
         <a-divider class="!my-2" />
 
-        <div v-if="!isPublic" class="p-2 py-1 flex" @click.stop>
+        <div v-if="!isPublic" class="p-2 py-1 flex nc-fields-show-system-fields" @click.stop>
           <a-checkbox v-model:checked="showSystemFields" class="!items-center">
             <span class="text-xs"> {{ $t('activity.showSystemFields') }}</span>
           </a-checkbox>

@@ -195,7 +195,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
               <a-layout v-else class="!bg-[#f0f2f5]">
                 <a-layout-header>
                   <div class="nc-kanban-stack-head font-bold flex items-center px-[15px]">
-                    <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
+                    <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-kanban-stack-context-menu">
                       <div class="flex items-center cursor-pointer w-full">
                         <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
                         <span class="w-full flex">

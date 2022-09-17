@@ -300,11 +300,17 @@ export class _mainPage {
         cy.get(".nc-fields-menu-btn").should('exist').click();
     }
 
+    toggleShowSystemFields = () => {
+        cy.get(".nc-fields-menu-btn").should('exist').click();
+        cy.getActiveMenu(".nc-dropdown-fields-menu").find('.nc-fields-show-system-fields').click();
+        cy.get(".nc-fields-menu-btn").should('exist').click();
+    }
+
     hideField = (field) => {
         cy.get(`th[data-title="${field}"]`).should("be.visible");
         cy.get(".nc-fields-menu-btn").click();
         cy.wait(500)
-        cy.getActiveMenu(".nc-dropdown-fields-menu").find(`.nc-fields-list label:contains(${field}):visible`).click();
+        cy.getActiveMenu(".nc-dropdown-fields-menu").find(`.nc-fields-list label:visible`).contains(new RegExp("^" + field + "$", "g")).click();
         cy.wait(500)
         cy.get(".nc-fields-menu-btn").click();
         cy.wait(500)
@@ -317,7 +323,7 @@ export class _mainPage {
         }
         cy.get(".nc-fields-menu-btn").click();
         cy.wait(500)
-        cy.getActiveMenu(".nc-dropdown-fields-menu").find(`.nc-fields-list label:contains(${field}):visible`).click();
+        cy.getActiveMenu(".nc-dropdown-fields-menu").find(`.nc-fields-list label:visible`).contains(new RegExp("^" + field + "$", "g")).click();
         cy.wait(500)
         cy.get(".nc-fields-menu-btn").click();
         cy.wait(500)

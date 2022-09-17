@@ -4,7 +4,6 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useColumn } from './useColumn'
 import { computed, createInjectionState, extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 
 const useForm = Form.useForm

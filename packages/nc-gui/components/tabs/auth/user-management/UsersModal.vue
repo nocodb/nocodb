@@ -9,7 +9,7 @@ import {
   projectRoleTagColors,
   projectRoles,
   ref,
-  useClipboard,
+  useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
@@ -37,7 +37,7 @@ const { t } = useI18n()
 
 const { project } = useProject()
 const { $api, $e } = useNuxtApp()
-const { copy } = useClipboard()
+const { copy } = useCopy()
 const { dashboardUrl } = $(useDashboard())
 
 const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })

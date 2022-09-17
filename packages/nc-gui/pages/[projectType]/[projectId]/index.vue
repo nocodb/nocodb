@@ -12,7 +12,7 @@ import {
   projectThemeColors,
   provide,
   ref,
-  useClipboard,
+  useCopy,
   useGlobal,
   useI18n,
   useProject,
@@ -42,7 +42,7 @@ const { clearTabs, addTab } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const isLocked = ref(false)
 

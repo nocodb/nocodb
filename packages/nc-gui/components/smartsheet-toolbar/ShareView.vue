@@ -4,7 +4,7 @@ import { message } from 'ant-design-vue'
 import {
   computed,
   extractSdkResponseErrorMsg,
-  useClipboard,
+  useCopy,
   useI18n,
   useNuxtApp,
   useProject,
@@ -17,7 +17,7 @@ const { t } = useI18n()
 
 const { view, $api } = useSmartsheetStoreOrThrow()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const { $e } = useNuxtApp()
 

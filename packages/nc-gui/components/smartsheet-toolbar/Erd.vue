@@ -22,6 +22,7 @@ const selectedView = inject(ActiveViewInj)
     width="max(900px,60vw)"
     :closable="false"
     wrap-class-name="erd-single-table-modal"
+    transition-name="fade"
   >
     <div class="flex flex-row justify-between w-full items-center mb-1">
       <a-typography-title class="ml-4 select-none" type="secondary" :level="5">
@@ -39,11 +40,3 @@ const selectedView = inject(ActiveViewInj)
     </div>
   </a-modal>
 </template>
-
-<style lang="scss">
-.erd-single-table-modal {
-  .ant-modal {
-    transform: none !important;
-  }
-}
-</style>

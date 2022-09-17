@@ -389,7 +389,11 @@ export default class View implements ViewType {
             show = false;
           }
         } else if (view.type === ViewTypes.KANBAN) {
-          if (vCol.pv) {
+          const kanbanView = await KanbanView.get(view_id, ncMeta);
+          if (vCol.id === kanbanView?.grp_column_id) {
+            // include grouping field if it exists
+            show = true;
+          } else if (vCol.pv) {
             // Show primary key
             show = true;
             kanbanShowCount++;

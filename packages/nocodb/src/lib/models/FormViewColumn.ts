@@ -1,6 +1,7 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import { FormColumnType } from 'nocodb-sdk';
+import { deserializeJSON, serializeJSON } from '../utils/searialize';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
@@ -69,11 +70,8 @@ export default class FormViewColumn implements FormColumnType {
       required: column.required,
     };
 
-    if (insertObj.meta) {
-      insertObj.meta =
-        typeof insertObj.meta === 'object'
-          ? JSON.stringify(insertObj.meta)
-          : insertObj.meta;
+    if (column.meta) {
+      insertObj.meta = serializeJSON(column.meta);
     }
 
     if (!(column.project_id && column.base_id)) {
@@ -130,10 +128,7 @@ export default class FormViewColumn implements FormColumnType {
       );
 
       for (const viewColumn of viewColumns) {
-        viewColumn.meta =
-          viewColumn.meta && typeof viewColumn.meta === 'string'
-            ? JSON.parse(viewColumn.meta)
-            : viewColumn.meta;
+        viewColumn.meta = deserializeJSON(viewColumn.meta);
       }
 
       await NocoCache.setList(
@@ -165,13 +160,6 @@ export default class FormViewColumn implements FormColumnType {
       'meta',
     ]);
 
-    if (insertObj.meta) {
-      insertObj.meta =
-        insertObj.meta && typeof insertObj.meta === 'object'
-          ? JSON.stringify(insertObj.meta)
-          : insertObj.meta;
-    }
-
     // get existing cache
     const key = `${CacheScope.FORM_VIEW_COLUMN}:${columnId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -180,6 +168,11 @@ export default class FormViewColumn implements FormColumnType {
       // set cache
       await NocoCache.set(key, o);
     }
+
+    if (insertObj.meta) {
+      insertObj.meta = serializeJSON(insertObj.meta);
+    }
+
     // update meta
     await ncMeta.metaUpdate(
       null,

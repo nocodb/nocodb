@@ -13,7 +13,7 @@ import GalleryView from './GalleryView';
 import GridViewColumn from './GridViewColumn';
 import Sort from './Sort';
 import Filter from './Filter';
-import { isSystemColumn, ViewType, ViewTypes } from 'nocodb-sdk';
+import { isSystemColumn, UITypes, ViewType, ViewTypes } from 'nocodb-sdk';
 import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
 import KanbanViewColumn from './KanbanViewColumn';
@@ -351,6 +351,21 @@ export default class View implements ViewType {
     {
       let order = 1;
       let galleryShowLimit = 0;
+      let kanbanShowCount = 0;
+      let kanbanAttachmentCount = 0;
+
+      if (view.type === ViewTypes.KANBAN) {
+        // sort by primary value & attachment first, then by order
+        // so that later we can handle control `show` easily
+        columns.sort((a, b) => {
+          const primaryValueOrder = b.pv - a.pv;
+          const attachmentOrder =
+            +(b.uidt === UITypes.Attachment) - +(a.uidt === UITypes.Attachment);
+          const defaultOrder = b.order - a.order;
+          return primaryValueOrder || attachmentOrder || defaultOrder;
+        });
+      }
+
       for (const vCol of columns) {
         let show = 'show' in vCol ? vCol.show : true;
 
@@ -364,6 +379,27 @@ export default class View implements ViewType {
             show = true;
             galleryShowLimit++;
           } else {
+            show = false;
+          }
+        } else if (view.type === ViewTypes.KANBAN) {
+          if (vCol.pv) {
+            // Show primary key
+            show = true;
+            kanbanShowCount++;
+          } else if (
+            vCol.uidt === UITypes.Attachment &&
+            kanbanAttachmentCount < 1
+          ) {
+            // Show at most 1 attachment
+            show = true;
+            kanbanAttachmentCount++;
+            kanbanShowCount++;
+          } else if (kanbanShowCount < 3 && !isSystemColumn(vCol)) {
+            // show at most 3 non-system columns
+            show = true;
+            kanbanShowCount++;
+          } else {
+            // other columns will be hidden
             show = false;
           }
         }

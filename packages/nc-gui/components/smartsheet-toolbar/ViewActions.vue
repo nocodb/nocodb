@@ -230,20 +230,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
-    <a-modal v-model:visible="showErd" size="small" :footer="null" width="max(900px,60vw)" :closable="false">
-      <div class="flex flex-row justify-between w-full items-center mb-1">
-        <a-typography-title class="ml-4 select-none" type="secondary" :level="5">
-          {{ `${$t('title.erdView')}: ${selectedView?.title}` }}
-        </a-typography-title>
-
-        <a-button type="text" class="!rounded-md border-none -mt-1.5 -mr-1" @click="showErd = false">
-          <template #icon>
-            <MdiClose class="cursor-pointer mt-1 nc-modal-close" />
-          </template>
-        </a-button>
-      </div>
-      <SmartsheetToolbarErd />
-    </a-modal>
+    <SmartsheetToolbarErd v-model:modelValue="showErd" />
 
     <a-modal
       v-model:visible="sharedViewListDlg"

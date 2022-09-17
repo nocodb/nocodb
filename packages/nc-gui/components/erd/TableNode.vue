@@ -41,7 +41,10 @@ const relatedColumnId = (col: Record<string, any>) =>
 </script>
 
 <template>
-  <div class="h-full flex flex-col min-w-16 bg-gray-50 rounded-lg border-1">
+  <div
+    class="h-full flex flex-col min-w-16 bg-gray-50 rounded-lg border-1 nc-erd-table-node"
+    :class="`nc-erd-table-node-${data.table_name}`"
+  >
     <GeneralTooltip modifier-key="Alt">
       <template #title> {{ data.table_name }} </template>
       <div
@@ -55,17 +58,27 @@ const relatedColumnId = (col: Record<string, any>) =>
       </div>
     </GeneralTooltip>
     <div>
-      <div class="keys mb-1">
-        <div v-for="col in pkAndFkColumns" :key="col.title" class="w-full border-b-1 py-2 border-gray-100">
-          <SmartsheetHeaderCell v-if="col" :column="col" :hide-menu="true" />
-        </div>
+      <div
+        v-for="col in pkAndFkColumns"
+        :key="col.title"
+        class="w-full border-b-1 py-2 border-gray-100 keys"
+        :class="`nc-erd-table-node-${data.table_name}-column-${col.column_name}`"
+      >
+        <SmartsheetHeaderCell v-if="col" :column="col" :hide-menu="true" />
       </div>
+
+      <div class="w-full mb-1"></div>
+
       <div v-for="(col, index) in nonPkColumns" :key="col.title">
         <div
           class="w-full h-full flex items-center min-w-32 border-gray-100 py-2 px-1"
           :class="index + 1 === nonPkColumns!.length ? 'rounded-b-lg' : 'border-b-1'"
         >
-          <div v-if="col.uidt === UITypes.LinkToAnotherRecord" class="flex relative w-full">
+          <div
+            v-if="col.uidt === UITypes.LinkToAnotherRecord"
+            class="flex relative w-full"
+            :class="`nc-erd-table-node-${data.table_name}-column-${col.title?.toLowerCase().replace(' ', '_')}`"
+          >
             <Handle
               :id="`s-${relatedColumnId(col)}-${data.id}`"
               class="-right-4 opacity-0"
@@ -80,9 +93,19 @@ const relatedColumnId = (col: Record<string, any>) =>
             />
             <SmartsheetHeaderVirtualCell :column="col" :hide-menu="true" />
           </div>
-          <SmartsheetHeaderVirtualCell v-else-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+          <SmartsheetHeaderVirtualCell
+            v-else-if="isVirtualCol(col)"
+            :column="col"
+            :hide-menu="true"
+            :class="`nc-erd-table-node-${data.table_name}-column-${col.column_name}`"
+          />
 
-          <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+          <SmartsheetHeaderCell
+            v-else
+            :column="col"
+            :hide-menu="true"
+            :class="`nc-erd-table-node-${data.table_name}-column-${col.column_name}`"
+          />
         </div>
       </div>
     </div>

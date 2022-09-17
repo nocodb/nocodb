@@ -113,6 +113,7 @@ export default {
 
   <EdgeText
     v-if="label"
+    :class="`nc-erd-table-label-${label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`"
     :x="center[0]"
     :y="center[1]"
     :label="label"
@@ -124,6 +125,7 @@ export default {
   />
 
   <rect
+    class="nc-erd-edge-rect"
     :x="sourceX"
     :y="sourceY - 4"
     width="8"
@@ -135,6 +137,7 @@ export default {
   />
   <rect
     v-if="isManyToMany"
+    class="nc-erd-edge-rect"
     :x="targetX"
     :y="targetY - 4"
     width="8"
@@ -144,7 +147,7 @@ export default {
     :stroke-width="1.5"
     :transform="`rotate(45,${targetX + 2},${targetY - 4})`"
   />
-  <circle v-else :cx="targetX" :cy="targetY" fill="#fff" :r="5" stroke="#6F3381" :stroke-width="1.5" />
+  <circle v-else class="nc-erd-edge-circle" :cx="targetX" :cy="targetY" fill="#fff" :r="5" stroke="#6F3381" :stroke-width="1.5" />
 </template>
 
 <style scoped lang="scss">

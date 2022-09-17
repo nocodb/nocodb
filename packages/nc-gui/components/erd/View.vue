@@ -4,6 +4,8 @@ import { UITypes } from 'nocodb-sdk'
 
 const { table } = defineProps<{ table?: TableType }>()
 
+const { includeM2M } = useGlobal()
+
 const { tables: projectTables } = useProject()
 
 const { metas, getMeta } = useMetas()
@@ -85,7 +87,14 @@ watch(
 </script>
 
 <template>
-  <div class="w-full" style="height: inherit">
+  <div
+    class="w-full"
+    style="height: inherit"
+    :class="{
+      'nc-erd-vue-flow': !config.singleTableMode,
+      'nc-erd-vue-flow-single-table': config.singleTableMode,
+    }"
+  >
     <div v-if="isLoading" class="h-full w-full flex flex-col justify-center items-center">
       <div class="flex flex-row justify-center">
         <a-spin size="large" />
@@ -95,28 +104,50 @@ watch(
       <ErdSimpleView :key="erdKey" :tables="tablesFilteredWithConfig" :config="config" />
 
       <div
-        class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1 nc-erd-context-menu"
+        class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1 nc-erd-context-menu z-50"
       >
         <div class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showAllColumns" v-e="['c:erd:showAllColumns']" />
-          <span class="ml-2 select-none" style="font-size: 0.65rem" @dblclick="showAdvancedOptions = true">{{
-            $t('activity.erd.showColumns')
-          }}</span>
+          <a-checkbox
+            v-model:checked="config.showAllColumns"
+            v-e="['c:erd:showAllColumns']"
+            class="nc-erd-showColumns-checkbox"
+          />
+          <span
+            class="ml-2 select-none nc-erd-showColumns-label"
+            style="font-size: 0.65rem"
+            @dblclick="showAdvancedOptions = true"
+            >{{ $t('activity.erd.showColumns') }}</span
+          >
         </div>
         <div class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showPkAndFk" v-e="['c:erd:showPkAndFk']" :disabled="!config.showAllColumns" />
+          <a-checkbox
+            v-model:checked="config.showPkAndFk"
+            v-e="['c:erd:showPkAndFk']"
+            class="nc-erd-showPkAndFk-checkbox"
+            :class="{
+              'nc-erd-showPkAndFk-checkbox-enabled': config.showAllColumns,
+              'nc-erd-showPkAndFk-checkbox-disabled': !config.showAllColumns,
+              'nc-erd-showPkAndFk-checkbox-checked': config.showPkAndFk,
+              'nc-erd-showPkAndFk-checkbox-unchecked': !config.showPkAndFk,
+            }"
+            :disabled="!config.showAllColumns"
+          />
           <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showPkAndFk') }}</span>
         </div>
         <div v-if="!table" class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" />
+          <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" class="nc-erd-showViews-checkbox" />
           <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showSqlViews') }}</span>
         </div>
-        <div v-if="!table && showAdvancedOptions" class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showMMTables" v-e="['c:erd:showMMTables']" />
+        <div v-if="!table && showAdvancedOptions && includeM2M" class="flex flex-row items-center">
+          <a-checkbox v-model:checked="config.showMMTables" v-e="['c:erd:showMMTables']" class="nc-erd-showMMTables-checkbox" />
           <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showMMTables') }}</span>
         </div>
-        <div v-if="showAdvancedOptions" class="flex flex-row items-center">
-          <a-checkbox v-model:checked="config.showJunctionTableNames" v-e="['c:erd:showJunctionTableNames']" />
+        <div v-if="showAdvancedOptions && includeM2M" class="flex flex-row items-center">
+          <a-checkbox
+            v-model:checked="config.showJunctionTableNames"
+            v-e="['c:erd:showJunctionTableNames']"
+            class="nc-erd-showJunctionTableNames-checkbox"
+          />
           <span class="ml-2 select-none" style="font-size: 0.65rem">{{ $t('activity.erd.showJunctionTableNames') }}</span>
         </div>
       </div>

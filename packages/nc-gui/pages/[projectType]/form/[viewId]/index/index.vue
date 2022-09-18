@@ -65,14 +65,14 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
             <div class="flex flex-col gap-6">
               <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
                 <div class="flex nc-form-column-label">
-                  <SmartsheetHeaderVirtualCell
+                  <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(field)"
                     :column="{ ...field, title: field.label || field.title }"
                     :required="isRequired(field, field.required)"
                     :hide-menu="true"
                   />
 
-                  <SmartsheetHeaderCell
+                  <LazySmartsheetHeaderCell
                     v-else
                     :column="{ ...field, title: field.label || field.title }"
                     :required="isRequired(field, field.required)"
@@ -81,14 +81,14 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                 </div>
 
                 <div>
-                  <SmartsheetVirtualCell
+                  <LazySmartsheetVirtualCell
                     v-if="isVirtualCol(field)"
                     class="mt-0 nc-input"
                     :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
                     :column="field"
                   />
 
-                  <SmartsheetCell
+                  <LazySmartsheetCell
                     v-else
                     v-model="formState[field.title]"
                     class="nc-input"

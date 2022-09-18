@@ -24,7 +24,7 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
       <div class="flex-1 flex gap-6 flex-col justify-center items-center md:(flex-row justify-between items-start)">
         <template v-if="route.name === 'index-index'">
           <TransitionGroup name="page" mode="out-in">
-            <div>
+            <div key="social-card">
               <LazyGeneralSocialCard />
             </div>
 

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { SwipeDirection } from '@vueuse/core'
 import {
@@ -7,16 +8,22 @@ import {
   onKeyStroke,
   provide,
   ref,
+  useEventListener,
   usePointerSwipe,
   useSharedFormStoreOrThrow,
   useStepper,
 } from '#imports'
 
+enum TransitionDirection {
+  Left = 'left',
+  Right = 'right',
+}
+
 const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView } = useSharedFormStoreOrThrow()
 
 const isTransitioning = ref(false)
 
-const transitionName = ref<'left' | 'right'>('left')
+const transitionName = ref<TransitionDirection>(TransitionDirection.Left)
 
 const el = ref<HTMLDivElement>()
 
@@ -36,36 +43,44 @@ provide(DropZoneRef, el)
 
 const steps = computed(() => {
   if (!formColumns.value) return []
-  return formColumns.value.reduce((acc, column) => {
-    acc.push((column as any).label || column.title)
+
+  return formColumns.value.reduce<string[]>((acc, column) => {
+    const title = column.label || column.title
+
+    if (!title) return acc
+
+    acc.push(title)
 
     return acc
-  }, [] as string[])
+  }, [])
 })
 
 const { index, goToPrevious, goToNext, isFirst, isLast } = useStepper(steps)
 
 const field = computed(() => formColumns.value?.[index.value])
 
-function isRequired(_columnObj: Record<string, any>, required = false) {
-  let columnObj = _columnObj
+function isRequired(column: ColumnType, required = false) {
+  let columnObj = column
   if (
     columnObj.uidt === UITypes.LinkToAnotherRecord &&
     columnObj.colOptions &&
-    columnObj.colOptions.type === RelationTypes.BELONGS_TO
+    (columnObj.colOptions as { type: RelationTypes }).type === RelationTypes.BELONGS_TO
   ) {
-    columnObj = formColumns.value?.find((c) => c.id === columnObj.colOptions.fk_child_column_id) as Record<string, any>
+    columnObj = formColumns.value?.find(
+      (c) => c.id === (columnObj.colOptions as LinkToAnotherRecordType).fk_child_column_id,
+    ) as ColumnType
   }
 
-  return !!(required || (columnObj && columnObj.rqd && !columnObj.cdf))
+  return required || (columnObj && columnObj.rqd && !columnObj.cdf)
 }
 
-function transition(direction: 'left' | 'right') {
+function transition(direction: TransitionDirection) {
   isTransitioning.value = true
   transitionName.value = direction
 
   setTimeout(() => {
-    transitionName.value = transitionName.value === 'left' ? 'right' : 'left'
+    transitionName.value =
+      transitionName.value === TransitionDirection.Left ? TransitionDirection.Right : TransitionDirection.Left
   }, 500)
 
   setTimeout(() => {
@@ -85,7 +100,7 @@ async function goNext() {
     if (!isValid) return
   }
 
-  transition('left')
+  transition(TransitionDirection.Left)
 
   goToNext()
 }
@@ -93,7 +108,7 @@ async function goNext() {
 async function goPrevious() {
   if (isFirst.value) return
 
-  transition('right')
+  transition(TransitionDirection.Right)
 
   goToPrevious()
 }
@@ -138,14 +153,14 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
             <div class="flex nc-form-column-label">
-              <SmartsheetHeaderVirtualCell
+              <LazySmartsheetHeaderVirtualCell
                 v-if="isVirtualCol(field)"
                 :column="{ ...field, title: field.label || field.title }"
                 :required="isRequired(field, field.required)"
                 :hide-menu="true"
               />
 
-              <SmartsheetHeaderCell
+              <LazySmartsheetHeaderCell
                 v-else
                 :column="{ ...field, title: field.label || field.title }"
                 :required="isRequired(field, field.required)"
@@ -154,14 +169,14 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
             </div>
 
             <div>
-              <SmartsheetVirtualCell
+              <LazySmartsheetVirtualCell
                 v-if="isVirtualCol(field)"
                 class="mt-0 nc-input"
                 :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
               />
 
-              <SmartsheetCell
+              <LazySmartsheetCell
                 v-else
                 v-model="formState[field.title]"
                 class="nc-input"
@@ -200,13 +215,13 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
 
             <a-tooltip
               v-if="!isLast"
-              placement="left"
+              placement="bottom"
               :title="v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : 'Go to next'"
-              :mouse-enter-delay="v$.localState[field.title]?.$error ? 0 : 1"
+              :mouse-enter-delay="0.2"
               :mouse-leave-delay="0"
             >
               <button class="group color-transition transform absolute right-1 top-1/2 md:static hover:scale-110" @click="goNext">
-                <TransitionGroup name="layout">
+                <TransitionGroup name="slide-left" mode="out-in">
                   <MdiCloseCircleOutline v-if="v$.localState[field.title]?.$error" class="text-red-500 text-2xl md:text-md" />
                   <MdiChevronRight v-else class="group-hover:text-accent text-2xl md:text-md" />
                 </TransitionGroup>

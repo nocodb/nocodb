@@ -31,7 +31,7 @@ const onClick = () => {
 
 <template>
   <div
-    class="overflow-y-auto overflow-x-hidden flex flex-wrap color-transition nc-form-view relative md:bg-primary bg-opacity-10 dark:(bg-slate-900) h-full min-h-[600px]"
+    class="overflow-y-auto overflow-x-hidden flex flex-wrap color-transition nc-form-view relative md:bg-primary bg-opacity-10 dark:(bg-slate-900) h-full min-h-[600px] nc-form-signin"
   >
     <NuxtPage />
 
@@ -40,7 +40,7 @@ const onClick = () => {
     </div>
 
     <div
-      class="flex items-center justify-center cursor-pointer absolute top-15 right-15 rounded-full p-2 bg-white dark:(bg-slate-600) shadow hover:(ring-1 ring-accent ring-opacity-100)"
+      class="color-transition flex items-center justify-center cursor-pointer absolute top-15 right-15 rounded-full p-2 bg-white dark:(bg-slate-600) shadow hover:(ring-1 ring-accent ring-opacity-100)"
       @click="onClick"
     >
       <Transition name="slide-left" duration="250" mode="out-in">

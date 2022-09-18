@@ -1,17 +1,51 @@
 <script lang="ts" setup>
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { SwipeDirection } from '@vueuse/core'
 import {
   DropZoneRef,
   computed,
   onKeyStroke,
   provide,
   ref,
-  useEventListener,
+  usePointerSwipe,
   useSharedFormStoreOrThrow,
   useStepper,
 } from '#imports'
 
 const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView } = useSharedFormStoreOrThrow()
+
+const isTransitioning = ref(false)
+
+const transitionName = ref<'left' | 'right'>('left')
+
+const el = ref<HTMLDivElement>()
+
+const { direction } = usePointerSwipe(el, {
+  onSwipe: () => {
+    if (isTransitioning.value) return
+
+    if (direction.value === SwipeDirection.LEFT) {
+      goNext()
+    } else if (direction.value === SwipeDirection.RIGHT) {
+      goPrevious()
+    }
+  },
+})
+
+provide(DropZoneRef, el)
+
+const steps = computed(() => {
+  if (!formColumns.value) return []
+  return formColumns.value.reduce((acc, column) => {
+    acc.push((column as any).label || column.title)
+
+    return acc
+  }, [] as string[])
+})
+
+const { index, goToPrevious, goToNext, isFirst, isLast } = useStepper(steps)
+
+const field = computed(() => formColumns.value?.[index.value])
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -26,28 +60,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   return !!(required || (columnObj && columnObj.rqd && !columnObj.cdf))
 }
 
-const steps = computed(() => {
-  if (!formColumns.value) return []
-  return formColumns.value.reduce((acc, column) => {
-    acc.push((column as any).label || column.title)
-
-    return acc
-  }, [] as string[])
-})
-
-const { index, goToPrevious, goToNext, isFirst, isLast } = useStepper(steps)
-
-const isTransitioning = ref(false)
-
-const transitionName = ref<'left' | 'right'>('left')
-
-const field = computed(() => formColumns.value?.[index.value])
-
-const el = ref<HTMLDivElement>()
-
-provide(DropZoneRef, el)
-
-const transition = (direction: 'left' | 'right') => {
+function transition(direction: 'left' | 'right') {
   isTransitioning.value = true
   transitionName.value = direction
 
@@ -60,7 +73,7 @@ const transition = (direction: 'left' | 'right') => {
   }, 1000)
 }
 
-const goNext = async () => {
+async function goNext() {
   if (isLast.value) return
 
   if (!field.value || !field.value.title) return
@@ -77,7 +90,7 @@ const goNext = async () => {
   goToNext()
 }
 
-const goPrevious = async () => {
+async function goPrevious() {
   if (isFirst.value) return
 
   transition('right')
@@ -105,7 +118,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
 </script>
 
 <template>
-  <div class="w-full min-h-2/3 flex flex-auto flex-col justify-center items-center">
+  <div ref="el" class="w-full min-h-2/3 flex flex-auto flex-col justify-center items-center">
     <template v-if="sharedFormView">
       <div class="min-h-1 h-1/3 w-full flex flex-col justify-end">
         <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>

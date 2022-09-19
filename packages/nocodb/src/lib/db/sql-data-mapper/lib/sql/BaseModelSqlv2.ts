@@ -2,6 +2,7 @@ import autoBind from 'auto-bind';
 import _ from 'lodash';
 
 import Model from '../../../../models/Model';
+import SelectOption from '../../../../models/SelectOption';
 import { XKnex } from '../../index';
 import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
 import RollupColumn from '../../../../models/RollupColumn';
@@ -21,6 +22,7 @@ import View from '../../../../models/View';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isVirtualCol,
   RelationTypes,
   SortType,
   UITypes,
@@ -1290,9 +1292,15 @@ class BaseModelSqlv2 {
     }
   }
 
-  public async selectObject({ qb }: { qb: QueryBuilder }): Promise<void> {
+  public async selectObject({
+    qb,
+    columns: _columns,
+  }: {
+    qb: QueryBuilder;
+    columns?: Column[];
+  }): Promise<void> {
     const res = {};
-    const columns = await this.model.getColumns();
+    const columns = _columns ?? (await this.model.getColumns());
     for (const column of columns) {
       switch (column.uidt) {
         case 'LinkToAnotherRecord':
@@ -2320,6 +2328,75 @@ class BaseModelSqlv2 {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
+  }
+
+  public async groupedList(args: { groupColumnId: string }) {
+    const column = await this.model
+      .getColumns()
+      .then((cols) => cols?.find((col) => col.id === args.groupColumnId));
+
+    if (!column) NcError.notFound('Column not found');
+    if (isVirtualCol(column))
+      NcError.notImplemented('Grouping for virtual columns not implemented');
+
+    let groupingValues;
+    if (column.uidt !== UITypes.SingleSelect) {
+      const colOptions = await column.getColOptions<SelectOption[]>();
+      groupingValues = colOptions?.map((opt) => opt.title);
+    } else {
+      groupingValues = await this.dbDriver(this.model.table_name)
+        .select(column.column_name)
+        .distinct();
+    }
+
+    const qb = this.dbDriver(this.model.table_name);
+    await this.selectObject({ qb });
+
+    const nullQb = qb.clone().whereNull(column.title);
+    nullQb.limit(20);
+    nullQb.offset(0);
+
+    const groupedQb = this.dbDriver.from(
+      this.dbDriver
+        .unionAll(
+          [
+            this.isSqlite ? this.dbDriver.select().from(nullQb) : nullQb,
+            ...groupingValues.map((r) => {
+              const query = qb.clone().where(column.title, r);
+              query.limit(20);
+              query.offset(0);
+
+              return this.isSqlite ? this.dbDriver.select().from(query) : query;
+            }),
+          ],
+          !this.isSqlite
+        )
+        .as('__nc_grouped_list')
+    );
+
+    const result = await groupedQb;
+
+    return _.groupBy(result, column.title);
+  }
+
+  public async groupedListCount(args: { groupColumnId: string }) {
+    const column = await this.model
+      .getColumns()
+      .then((cols) => cols?.find((col) => col.id === args.groupColumnId));
+
+    if (!column) NcError.notFound('Column not found');
+    if (isVirtualCol(column))
+      NcError.notImplemented('Grouping for virtual columns not implemented');
+
+    this.selectObject({ qb: this.dbDriver(this.model.table_name) });
+
+    const qb = this.dbDriver(this.model.table_name)
+      .count('*', { as: 'count' })
+      .groupBy(column.column_name);
+
+    await this.selectObject({ qb, columns: [column] });
+
+    return await qb;
   }
 
   private async extractRawQueryAndExec(qb: QueryBuilder) {

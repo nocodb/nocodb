@@ -31,7 +31,7 @@ const [setup, use] = useInjectionState(() => {
     )
   }
 
-  return { isUIAllowed, projectRoles }
+  return { isUIAllowed }
 }, 'useUIPermission')
 
 export function useUIPermission() {

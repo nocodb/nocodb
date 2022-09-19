@@ -10,17 +10,17 @@ const [setup, use] = useInjectionState(() => {
   const projectRoles = ref<Roles<ProjectRole>>({})
 
   const userRoles = computed<Roles<Role>>(() => {
-    let userRoles = user.value?.roles ?? {}
+    let roles = user.value?.roles ?? {}
 
     // if string populate key-value paired object
-    if (isString(userRoles)) {
-      userRoles = userRoles.split(',').reduce<Roles>((acc, role) => {
+    if (isString(roles)) {
+      roles = roles.split(',').reduce<Roles>((acc, role) => {
         acc[role] = true
         return acc
       }, {})
     }
 
-    return userRoles
+    return roles
   })
 
   async function loadProjectRoles(projectId: string, isSharedBase: boolean) {

@@ -1,8 +1,6 @@
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { useNuxtApp } from '#app'
 import {
   IsPublicInj,
   NOCO,
@@ -11,6 +9,8 @@ import {
   getHTMLEncodedText,
   useApi,
   useGlobal,
+  useI18n,
+  useNuxtApp,
   useProject,
   useUIPermission,
 } from '#imports'

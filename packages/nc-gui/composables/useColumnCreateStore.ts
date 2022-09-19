@@ -4,7 +4,6 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useColumn } from './useColumn'
 import { computed, createInjectionState, extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 
 const useForm = Form.useForm
@@ -82,8 +81,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const { resetFields, validate, validateInfos } = useForm(formState, validators)
 
     const onUidtOrIdTypeChange = () => {
-      const { isCurrency } = useColumn(ref(formState.value as ColumnType))
-
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
         ...formState.value,
@@ -111,11 +108,13 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         }
       }
 
-      if (isCurrency.value) {
-        if (column.value?.uidt === UITypes.Currency) {
-          formState.value.dtxp = column.value.dtxp
-          formState.value.dtxs = column.value.dtxs
-        } else {
+      // keep length and scale for same datatype
+      if (column.value && formState.value.uidt === column.value?.uidt) {
+        formState.value.dtxp = column.value.dtxp
+        formState.value.dtxs = column.value.dtxs
+      } else {
+        // default length and scale for currency
+        if (formState.value?.uidt === UITypes.Currency) {
           formState.value.dtxp = 19
           formState.value.dtxs = 2
         }
@@ -125,8 +124,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     }
 
     const onDataTypeChange = () => {
-      const { isCurrency } = useColumn(ref(formState.value as ColumnType))
-
       formState.value.rqd = false
       if (formState.value.uidt !== UITypes.ID) {
         formState.value.primaryKey = false
@@ -139,16 +136,19 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       formState.value.dtx = 'specificType'
 
+      // use enum response as dtxp for select columns
       const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
       if (column.value && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column.value.uidt as UITypes)) {
         formState.value.dtxp = column.value.dtxp
       }
 
-      if (isCurrency.value) {
-        if (column.value?.uidt === UITypes.Currency) {
-          formState.value.dtxp = column.value.dtxp
-          formState.value.dtxs = column.value.dtxs
-        } else {
+      // keep length and scale for same datatype
+      if (column.value && formState.value.uidt === column.value?.uidt) {
+        formState.value.dtxp = column.value.dtxp
+        formState.value.dtxs = column.value.dtxs
+      } else {
+        // default length and scale for currency
+        if (formState.value?.uidt === UITypes.Currency) {
           formState.value.dtxp = 19
           formState.value.dtxs = 2
         }
@@ -167,7 +167,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const addOrUpdate = async (onSuccess: () => void) => {
       try {
-        console.log(formState, validators)
         if (!(await validate())) return
       } catch (e) {
         console.log(e)

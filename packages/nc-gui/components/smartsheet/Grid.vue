@@ -23,6 +23,7 @@ import {
   provide,
   reactive,
   ref,
+  useCopy,
   useEventListener,
   useGridViewColumnWidth,
   useI18n,
@@ -96,6 +97,8 @@ const {
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 
+const { copy } = useCopy()
+
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
@@ -113,8 +116,15 @@ provide(ReadonlyInj, !hasEditPermission)
 const disableUrlOverlay = ref(false)
 provide(CellUrlDisableOverlayInj, disableUrlOverlay)
 
-reloadViewDataHook?.on(async () => {
+const showLoading = ref(true)
+
+reloadViewDataHook?.on(async (shouldShowLoading) => {
+  // set value if spinner should be hidden
+  showLoading.value = !!shouldShowLoading
   await loadData()
+
+  // reset to default (showing spinner on load)
+  showLoading.value = true
 })
 
 const skipRowRemovalOnCancel = ref(false)
@@ -178,8 +188,6 @@ const clearCell = async (ctx: { row: number; col: number }) => {
   // update/save cell value
   await updateOrSaveRow(rowObj, columnObj.title)
 }
-
-const { copy } = useClipboard()
 
 const makeEditable = (row: Row, col: ColumnType) => {
   if (!hasEditPermission || editEnabled || isView) {
@@ -373,10 +381,12 @@ onBeforeUnmount(async () => {
 
 <template>
   <div class="flex flex-col h-full min-h-0 w-full">
-    <div v-if="isLoading" class="flex items-center justify-center h-full w-full">
-      <a-spin size="large" />
-    </div>
-    <div v-else class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
+    <general-overlay :model-value="isLoading" inline transition>
+      <div class="flex items-center justify-center h-full w-full">
+        <a-spin size="large" />
+      </div>
+    </general-overlay>
+    <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"

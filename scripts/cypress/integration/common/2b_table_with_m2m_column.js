@@ -5,28 +5,24 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
     describe(`${apiType.toUpperCase()} api - M2M Column validation`, () => {
-        before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
-
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
-
-            cy.openTableTab("Actor", 25);
-        });
+        // before(() => {
+        //     cy.openTableTab("Actor", 25);
+        // });
 
         beforeEach(() => {
-            cy.fileHook();
-        });
+            cy.restoreLocalStorage();
+        })
 
-        after(() => {
-            cy.closeTableTab("Actor");
-        });
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
+        // after(() => {
+        //     cy.closeTableTab("Actor");
+        // });
 
         it("Table column header, URL validation", () => {
+            cy.openTableTab("Actor", 25);
             // column name validation
             // cy.get(`.project-tab:contains(Actor):visible`).should("exist");
             // URL validation
@@ -117,6 +113,8 @@ export const genTest = (apiType, dbType) => {
                         .click();
                     cy.getActiveModal().find("button.ant-modal-close").click();
                 });
+
+          cy.closeTableTab("Actor");
         });
     });
 };

@@ -1,47 +1,16 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
 import { TabType } from '~/composables'
-import {
-  TabMetaInj,
-  onBeforeMount,
-  provide,
-  ref,
-  useGlobal,
-  useProject,
-  useRoute,
-  useRouter,
-  useSidebar,
-  useTabs,
-} from '#imports'
+import { TabMetaInj, provide, useGlobal, useProject, useSidebar, useTabs } from '#imports'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
 
-const { project, loadProject, loadTables } = useProject()
+const { isLoading: isLoadingProject } = useProject()
 
 const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
 const { isLoading } = useGlobal()
-
-const route = useRoute()
-
-const router = useRouter()
-
-const isReady = ref(false)
-
-onBeforeMount(async () => {
-  if (!Object.keys(project.value).length) await loadProject()
-
-  /** If v1 url found navigate to corresponding new url */
-  const { type, name, view } = route.query
-  if (type && name) {
-    await router.replace(`/nc/${route.params.projectId}/${type}/${name}${view ? `/${view}` : ''}`)
-  }
-
-  await loadTables()
-
-  isReady.value = true
-})
 
 provide(TabMetaInj, activeTab)
 
@@ -56,7 +25,7 @@ const icon = (tab: TabItem) => {
   }
 }
 
-const { isOpen, toggle } = useSidebar()
+const { isOpen, toggle } = useSidebar('nc-left-sidebar')
 
 function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
   if (action === 'remove') closeTab(targetKey)
@@ -66,7 +35,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 <template>
   <div class="h-full w-full nc-container">
     <div class="h-full w-full flex flex-col">
-      <div class="flex items-end !min-h-[var(--header-height)] !bg-primary">
+      <div class="flex items-end !min-h-[var(--header-height)] !bg-primary nc-tab-bar">
         <div
           v-if="!isOpen"
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
@@ -107,12 +76,16 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
             <MdiLoading class="animate-infinite animate-spin" />
           </div>
         </div>
+
+        <GeneralFullScreen class="nc-fullscreen-icon" />
       </div>
 
       <div class="w-full min-h-[300px] flex-auto">
-        <NuxtPage v-if="isReady" />
+        <div v-show="!isLoadingProject" class="w-full h-full">
+          <NuxtPage />
+        </div>
 
-        <div v-else class="w-full h-full flex justify-center items-center">
+        <div v-show="isLoadingProject" class="w-full h-full flex justify-center items-center">
           <a-spin size="large" />
         </div>
       </div>
@@ -171,7 +144,18 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 :deep(.ant-menu-submenu::after) {
   @apply !border-none;
 }
+
 :deep(.ant-tabs-tab-remove) {
   @apply mt-[3px];
+}
+
+.nc-tab-bar {
+  :deep(.nc-fullscreen-icon) {
+    @apply opacity-0 transition;
+  }
+
+  &:hover :deep(.nc-fullscreen-icon) {
+    @apply opacity-100;
+  }
 }
 </style>

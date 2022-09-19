@@ -40,7 +40,7 @@ const openNewRecordFormHook = createEventHook<void>()
 const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
 // provide the sidebar injection state
-provideSidebar({ storageKey: 'nc-right-sidebar', isOpen: true })
+provideSidebar('nc-right-sidebar', { useStorage: true, isOpen: true })
 
 // todo: move to store
 provide(MetaInj, meta)

@@ -228,20 +228,21 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.createTable("Temp");
-            cy.wait(1000);
-
             cy.saveLocalStorage();
         });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
         });
 
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
         after(() => {
+            cy.restoreLocalStorage();
             cy.deleteTable("Temp");
             cy.saveLocalStorage();
-            cy.wait(1000);
         });
 
         it("Create: 'After Insert' event", () => {

@@ -9,6 +9,7 @@ import {
   navigateTo,
   projectThemeColors,
   ref,
+  themeV2Colors,
   useApi,
   useNuxtApp,
   useSidebar,
@@ -25,7 +26,7 @@ const { api, isLoading } = useApi()
 
 const { isUIAllowed } = useUIPermission()
 
-useSidebar({ hasSidebar: true, isOpen: true })
+useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: true })
 
 const filterQuery = ref('')
 
@@ -70,10 +71,14 @@ await loadProjects()
 
 const handleProjectColor = async (projectId: string, color: string) => {
   const tcolor = tinycolor(color)
+
   if (tcolor.isValid()) {
     const complement = tcolor.complement()
+
     const project: ProjectType = await $api.project.read(projectId)
+
     const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+
     await $api.project.update(projectId, {
       color,
       meta: JSON.stringify({
@@ -84,8 +89,10 @@ const handleProjectColor = async (projectId: string, color: string) => {
         },
       }),
     })
+
     // Update local project
     const localProject = projects.value?.find((p) => p.id === projectId)
+
     if (localProject) {
       localProject.color = color
       localProject.meta = JSON.stringify({
@@ -100,9 +107,21 @@ const handleProjectColor = async (projectId: string, color: string) => {
 }
 
 const getProjectPrimary = (project: ProjectType) => {
-  const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
-  return meta?.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
+  if (!project) return
+
+  const meta = project.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+
+  return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
 }
+
+const customRow = (record: ProjectType) => ({
+  onClick: async () => {
+    await navigateTo(`/nc/${record.id}`)
+
+    $e('a:project:open')
+  },
+  class: ['group'],
+})
 </script>
 
 <template>
@@ -183,15 +202,7 @@ const getProjectPrimary = (project: ProjectType) => {
       <a-table
         v-else
         key="table"
-        :custom-row="
-          (record) => ({
-            onClick: () => {
-              navigateTo(`/nc/${record.id}`)
-              $e('a:project:open')
-            },
-            class: ['group'],
-          })
-        "
+        :custom-row="customRow"
         :data-source="filteredProjects"
         :pagination="{ position: ['bottomCenter'] }"
       >

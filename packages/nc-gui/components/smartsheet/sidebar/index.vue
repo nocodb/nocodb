@@ -13,6 +13,7 @@ import {
   ref,
   useRoute,
   useRouter,
+  useSidebar,
   useViews,
   watch,
 } from '#imports'
@@ -34,7 +35,7 @@ const { $e } = useNuxtApp()
 provide(ViewListInj, views)
 
 /** Sidebar visible */
-const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar', isOpen: true })
+const { isOpen } = useSidebar('nc-right-sidebar', { isOpen: true })
 
 const sidebarCollapsed = computed(() => !isOpen.value)
 

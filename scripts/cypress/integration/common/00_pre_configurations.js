@@ -164,7 +164,6 @@ export const genTest = (apiType, dbType) => {
 
         it("Admin SignUp", () => {
             cy.task("log", "This will be output to the terminal");
-            cy.saveLocalStorage();
             loginPage.signUp(roles.owner.credentials);
         });
 
@@ -250,6 +249,15 @@ export const genTest = (apiType, dbType) => {
                 else {
                     cy_createProjectBlock(proj, apiType, dbType);
                 }
+
+                // kludge: wait for page load to finish
+                cy.wait(2000);
+                // close team & auth tab
+                cy.get('button.ant-tabs-tab-remove').should('exist').click();
+                cy.wait(1000);
+
+                // first instance of updating local storage information
+                cy.saveLocalStorage();
             });
         };
 

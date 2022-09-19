@@ -57,20 +57,21 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} Base VIEW share`, () => {
         before(() => {
-            loginPage.loginAndOpenProject(apiType, dbType);
-
+            // loginPage.loginAndOpenProject(apiType, dbType);
+            cy.restoreLocalStorage();
             cy.openTableTab("Country", 25);
-            cy.wait(1000);
-
             cy.saveLocalStorage();
-            cy.wait(1000);
         });
 
-        it(`Generate base share URL`, () => {
-
+        beforeEach(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
+        })
 
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
+        it(`Generate base share URL`, () => {
             // click SHARE
             cy.get(".nc-share-base:visible").should('exist').click();
 
@@ -121,10 +122,6 @@ style="background: transparent; "></iframe>
             cy.log(linkText);
 
             cy.signOut();
-            cy.deleteLocalStorage();
-            cy.wait(1000);
-            cy.printLocalStorage();
-
         });
 
         permissionValidation("viewer");
@@ -143,10 +140,6 @@ style="background: transparent; "></iframe>
                 .click();
 
             cy.signOut();
-            cy.deleteLocalStorage();
-            cy.wait(1000);
-            cy.printLocalStorage();
-
         });
 
         permissionValidation("editor");
@@ -178,7 +171,6 @@ style="background: transparent; "></iframe>
             // validate data (row-1)
             cy.iframe().find(`.nc-grid-cell`).eq(1).contains("PENELOPE").should("exist");
             cy.iframe().find(`.nc-grid-cell`).eq(2).contains("GUINESS").should("exist");
-
         });
     })
 }

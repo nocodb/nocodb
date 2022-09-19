@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, useClipboard, useI18n } from '#imports'
+import { extractSdkResponseErrorMsg, useCopy, useI18n } from '#imports'
 import KebabIcon from '~icons/ic/baseline-more-vert'
 import MdiPlusIcon from '~icons/mdi/plus'
 import CloseIcon from '~icons/material-symbols/close-rounded'
@@ -21,7 +21,7 @@ const { $api, $e } = useNuxtApp()
 
 const { project } = $(useProject())
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 let tokensInfo = $ref<ApiToken[] | undefined>([])
 

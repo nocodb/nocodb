@@ -37,7 +37,7 @@ const { api, isLoading } = useApi()
 
 const { $e } = useNuxtApp()
 
-useSidebar({ hasSidebar: false })
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const { t } = useI18n()
 

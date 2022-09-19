@@ -150,7 +150,7 @@ export function useViewFilters(
   }
 
   const saveOrUpdate = async (filter: Filter, i: number, force = false) => {
-    if (!view?.value) return
+    if (!view.value) return
 
     try {
       if (nestedMode.value) {

@@ -606,7 +606,13 @@ onMounted(async () => {
         <a-col :span="24">
           <a-card>
             <a-checkbox v-model:checked="hook.condition" class="nc-check-box-hook-condition">On Condition</a-checkbox>
-            <SmartsheetToolbarColumnFilter v-if="hook.condition" ref="filterRef" :auto-save="false" :hook-id="hook.id" />
+            <SmartsheetToolbarColumnFilter
+              v-if="hook.condition"
+              ref="filterRef"
+              :auto-save="false"
+              :show-loading="false"
+              :hook-id="hook.id"
+            />
           </a-card>
         </a-col>
       </a-row>

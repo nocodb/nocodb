@@ -5,28 +5,25 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
     describe(`${apiType.toUpperCase()} api - Table: belongs to, link record`, () => {
-        before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
-            //
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
-
-            cy.openTableTab("Country", 25);
-        });
+        // before(() => {
+        //     cy.restoreLocalStorage();
+        //     cy.openTableTab("Country", 25);
+        // });
 
         beforeEach(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
         });
 
-        after(() => {
-          cy.closeTableTab("City");
-        });
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
+        // after(() => {
+        //   cy.closeTableTab("City");
+        // });
 
         it("URL validation", () => {
+            cy.openTableTab("Country", 25);
             // column name validation
             // cy.get(`.project-tab:contains(Country):visible`).should("exist");
             // URL validation
@@ -103,6 +100,8 @@ export const genTest = (apiType, dbType) => {
             .find('.nc-virtual-cell > .chips-wrapper > .chips > .group > .name')
             .contains("Saudi Arabia")
             .should('exist');
+
+          cy.closeTableTab("City");
         })
     });
 };

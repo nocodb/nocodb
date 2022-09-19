@@ -8,12 +8,17 @@ export const genTest = (apiType, dbType) => {
 
         before(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
-
-            // loginPage.signIn(roles.owner.credentials);
             cy.visit("/");
             cy.wait(4000);
         });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+        })
+
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
 
         it("Delete Project", () => {
 

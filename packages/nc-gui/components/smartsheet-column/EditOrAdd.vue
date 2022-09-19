@@ -97,11 +97,11 @@ onMounted(() => {
 
 <template>
   <div
-    class="w-[400px] max-h-[95vh] bg-gray-50 shadow-lg p-6 overflow-auto !border"
+    class="w-[400px] bg-gray-50 shadow p-4 overflow-auto border"
     :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
     @click.stop
   >
-    <a-form v-if="formState" v-model="formState" name="column-create-or-edit" layout="vertical">
+    <a-form v-if="formState" v-model="formState" no-style name="column-create-or-edit" layout="vertical">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
           <a-input ref="antInput" v-model:value="formState.title" class="nc-column-name-input" @input="onAlter(8)" />
@@ -138,6 +138,7 @@ onMounted(() => {
           v-model:value="formState"
         />
       </div>
+
       <div
         v-if="!isVirtualCol(formState.uidt)"
         class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
@@ -147,18 +148,22 @@ onMounted(() => {
         <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
       </div>
 
-      <div class="overflow-hidden" :class="advancedOptions ? 'h-min mb-2' : 'h-0'">
-        <a-checkbox
-          v-if="formState.meta && columnToValidate.includes(formState.uidt)"
-          v-model:checked="formState.meta.validate"
-          class="ml-1 mb-1"
-        >
-          <span class="text-[10px] text-gray-600">
-            {{ `Accept only valid ${formState.uidt}` }}
-          </span>
-        </a-checkbox>
-        <SmartsheetColumnAdvancedOptions v-model:value="formState" />
-      </div>
+      <Transition name="layout" mode="out-in">
+        <div v-if="advancedOptions" class="overflow-hidden">
+          <a-checkbox
+            v-if="formState.meta && columnToValidate.includes(formState.uidt)"
+            v-model:checked="formState.meta.validate"
+            class="ml-1 mb-1"
+          >
+            <span class="text-[10px] text-gray-600">
+              {{ `Accept only valid ${formState.uidt}` }}
+            </span>
+          </a-checkbox>
+
+          <SmartsheetColumnAdvancedOptions v-model:value="formState" />
+        </div>
+      </Transition>
+
       <a-form-item>
         <div class="flex justify-end gap-1 mt-4">
           <a-button html-type="button" @click="emit('cancel')">

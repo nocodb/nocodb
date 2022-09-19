@@ -8,7 +8,7 @@ import {
   onBeforeMount,
   ref,
   useApi,
-  useClipboard,
+  useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
@@ -26,7 +26,7 @@ const { api } = useApi()
 
 const { project } = useProject()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const { isUIAllowed } = useUIPermission()
 

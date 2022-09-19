@@ -235,39 +235,19 @@ let LOCAL_STORAGE_MEMORY = {};
 let LOCAL_STORAGE_MEMORY_v2 = {};
 
 Cypress.Commands.add('saveLocalStorage', (name) => {
-  if (name) {
-    cy.task('log', `[saveLocalStorage] ${name}`);
-    LOCAL_STORAGE_MEMORY_v2[name] = {};
-    Object.keys(localStorage).forEach((key) => {
-      LOCAL_STORAGE_MEMORY_v2[name][key] = localStorage[key];
-    });
-    return;
-  }
-
   LOCAL_STORAGE_MEMORY = {};
   Object.keys(localStorage).forEach((key) => {
     LOCAL_STORAGE_MEMORY[key] = localStorage[key];
   });
   cy.printLocalStorage();
-
 });
 
 Cypress.Commands.add('restoreLocalStorage', (name) => {
-  if (name) {
-    cy.task('log', `[restoreLocalStorage] ${name}`);
-    Object.keys(LOCAL_STORAGE_MEMORY_v2[name]).forEach((key) => {
-      localStorage.setItem(key, LOCAL_STORAGE_MEMORY_v2[name][key]);
-    });
-    return;
-  }
-
-  cy.deleteLocalStorage().then(() => {
     Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
       localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key]);
     });
 
     cy.printLocalStorage();
-  });
 });
 
 Cypress.Commands.add('deleteLocalStorage', () => {
@@ -394,9 +374,8 @@ Cypress.Commands.add('createColumn', (table, columnName) => {
 });
 
 Cypress.Commands.add('toastWait', (msg) => {
-  // cy.get('.ant-message-notice-content:visible', { timout: 30000 }).should('exist')
-  cy.get('.ant-message-notice-content:visible', { timout: 30000 }).contains(msg).should('exist');
-  cy.get('.ant-message-notice-content:visible', { timout: 12000 }).should('not.exist');
+  cy.get('.ant-message-notice-content:visible', { timeout: 60000 }).contains(msg).should('exist');
+  cy.get('.ant-message-notice-content:visible', { timeout: 12000 }).should('not.exist');
 });
 
 // vn: view name

@@ -53,20 +53,24 @@ const tabsInfo: TabGroup = {
     title: t('title.teamAndAuth'),
     icon: TeamFillIcon,
     subTabs: {
-      ...(isUIAllowed('userMgmtTab') && {
-        usersManagement: {
-          // Users Management
-          title: t('title.userMgmt'),
-          body: UserManagement,
-        },
-      }),
-      ...(isUIAllowed('apiTokenTab') && {
-        apiTokenManagement: {
-          // API Tokens Management
-          title: t('title.apiTokenMgmt'),
-          body: ApiTokenManagement,
-        },
-      }),
+      ...(isUIAllowed('userMgmtTab')
+        ? {
+            usersManagement: {
+              // Users Management
+              title: t('title.userMgmt'),
+              body: UserManagement,
+            },
+          }
+        : {}),
+      ...(isUIAllowed('apiTokenTab')
+        ? {
+            apiTokenManagement: {
+              // API Tokens Management
+              title: t('title.apiTokenMgmt'),
+              body: ApiTokenManagement,
+            },
+          }
+        : {}),
     },
     onClick: () => {
       $e('c:settings:team-auth')

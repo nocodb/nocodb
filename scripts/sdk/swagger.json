@@ -7310,15 +7310,6 @@
           "title": {
             "type": "string"
           },
-          "alias": {
-            "type": "string"
-          },
-          "public": {
-            "type": "boolean"
-          },
-          "password": {
-            "type": "string"
-          },
           "columns": {
             "type": "array",
             "items": {
@@ -7331,7 +7322,7 @@
           "grp_column_id": {
             "type": "string"
           },
-          "stack_meta": {
+          "meta": {
             "type": [
               "string",
               "object"

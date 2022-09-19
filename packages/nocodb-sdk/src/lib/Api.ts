@@ -378,13 +378,10 @@ export interface KanbanColumnType {
 export interface KanbanType {
   id?: string;
   title?: string;
-  alias?: string;
-  public?: boolean;
-  password?: string;
   columns?: KanbanColumnType[];
   fk_model_id?: string;
   grp_column_id?: string;
-  stack_meta?: string | object;
+  meta?: string | object;
 }
 
 export interface FormType {

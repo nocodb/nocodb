@@ -97,7 +97,7 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
   }
 }
 
-/** Block dragging the stack to first index (reserved for Uncategorized) **/
+/** Block dragging the stack to first index (reserved for uncategorized) **/
 function onMoveCallback(event: any) {
   if (event.draggedContext.futureIndex === 0) {
     return false
@@ -121,7 +121,7 @@ async function onMoveStack(event: any) {
 async function onMove(event: any, stackKey: string) {
   if (event.added) {
     const ele = event.added.element
-    ele.row[groupingField.value] = stackKey === 'Uncategorized' ? null : stackKey
+    ele.row[groupingField.value] = stackKey === 'uncategorized' ? null : stackKey
     countByStack.value[stackKey] += 1
     await updateOrSaveRow(ele)
   } else if (event.removed) {
@@ -162,9 +162,9 @@ const handleCollapseStack = async (stackIdx: number) => {
 
 const handleExpandedFormCancel = () => {
   // remove the empty record
-  formattedData.value.Uncategorized.pop()
+  formattedData.value.uncategorized.pop()
   // decrease total count by 1
-  countByStack.value.Uncategorized -= 1
+  countByStack.value.uncategorized -= 1
 }
 
 openNewRecordFormHook?.on(async (stackTitle) => {
@@ -174,7 +174,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
     [groupingField.value]: stackTitle,
   }
   // increase total count by 1
-  countByStack.value.Uncategorized += 1
+  countByStack.value.uncategorized += 1
   // open the expanded form
   expandForm(newRow)
 })
@@ -215,7 +215,10 @@ onMounted(() => {
                 <a-layout-header>
                   <div class="nc-kanban-stack-head font-bold flex items-center px-[15px]">
                     <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-kanban-stack-context-menu">
-                      <div class="flex items-center cursor-pointer w-full">
+                      <div
+                        class="flex items-center cursor-pointer w-full"
+                        :class="{ capitalize: stack.title === 'uncategorized' }"
+                      >
                         <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
                         <span class="w-full flex">
                           <mdi-menu-down class="text-grey text-lg ml-auto" />
@@ -224,7 +227,7 @@ onMounted(() => {
                       <template #overlay>
                         <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
                           <a-menu-item
-                            @click="openNewRecordFormHook.trigger(stack.title === 'Uncategorized' ? null : stack.title)"
+                            @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
                           >
                             <div class="py-2 flex gap-2 items-center">
                               <mdi-plus class="text-gray-500" />
@@ -239,7 +242,7 @@ onMounted(() => {
                               Collapse Stack
                             </div>
                           </a-menu-item>
-                          <a-menu-item v-if="stack.title !== 'Uncategorized'" @click="handleDeleteStackClick(stack.title)">
+                          <a-menu-item v-if="stack.title !== 'uncategorized'" @click="handleDeleteStackClick(stack.title)">
                             <div class="py-2 flex gap-2 items-center">
                               <mdi-delete class="text-gray-500" />
                               <!-- TODO: i18n -->
@@ -313,7 +316,7 @@ onMounted(() => {
                   <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
                     <mdi-plus
                       class="text-pint-500 text-lg text-primary cursor-pointer"
-                      @click="openNewRecordFormHook.trigger(stack.title === 'Uncategorized' ? null : stack.title)"
+                      @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
                     />
                     <div class="nc-kanban-data-count">
                       {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}

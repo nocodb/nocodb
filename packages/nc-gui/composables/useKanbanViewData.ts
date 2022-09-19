@@ -47,7 +47,7 @@ export function useKanbanViewData(
 
   // countByStack structure
   // {
-  //   "Uncategorized": 0,
+  //   "uncategorized": 0,
   //   [val1]: 10,
   //   [val2]: 20
   // }
@@ -79,7 +79,7 @@ export function useKanbanViewData(
     await Promise.all(
       groupingFieldColOptions.value.map(async (option: GroupingFieldColOptionsType) => {
         const where =
-          option.title === 'Uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
+          option.title === 'uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
         const response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
           where,
         })
@@ -93,7 +93,7 @@ export function useKanbanViewData(
   async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
     if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
     let where = `(${groupingField.value},eq,${stackTitle})`
-    if (stackTitle === 'Uncategorized') {
+    if (stackTitle === 'uncategorized') {
       where = `(${groupingField.value},is,null)`
     }
     const response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
@@ -166,7 +166,7 @@ export function useKanbanViewData(
       groupingFieldColOptions.value = [
         ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
         // enrich uncategorized stack
-        { id: 'uncategorized', title: 'Uncategorized', order: 0, color: enumColor.light[2] },
+        { id: 'uncategorized', title: 'uncategorized', order: 0, color: enumColor.light[2] },
       ]
         // sort by initial order
         .sort((a, b) => a.order! - b.order!)
@@ -297,9 +297,9 @@ export function useKanbanViewData(
           [groupingField.value]: null,
         },
       }))
-      // merge the 'deleted' stack to Uncategorized stack
-      formattedData.value.Uncategorized = [...formattedData.value.Uncategorized, ...formattedData.value[stackTitle]]
-      countByStack.value.Uncategorized += countByStack.value[stackTitle]
+      // merge the 'deleted' stack to uncategorized stack
+      formattedData.value.uncategorized = [...formattedData.value.uncategorized, ...formattedData.value[stackTitle]]
+      countByStack.value.uncategorized += countByStack.value[stackTitle]
       // clear the 'deleted' stack
       formattedData.value[stackTitle] = []
       countByStack.value[stackTitle] = 0
@@ -308,13 +308,13 @@ export function useKanbanViewData(
     }
   }
 
-  function addEmptyRow(addAfter = formattedData.value.Uncategorized?.length) {
-    formattedData.value.Uncategorized.splice(addAfter, 0, {
+  function addEmptyRow(addAfter = formattedData.value.uncategorized?.length) {
+    formattedData.value.uncategorized.splice(addAfter, 0, {
       row: {},
       oldRow: {},
       rowMeta: { new: true },
     })
-    return formattedData.value.Uncategorized[addAfter]
+    return formattedData.value.uncategorized[addAfter]
   }
 
   return {

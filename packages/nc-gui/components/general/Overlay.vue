@@ -43,16 +43,27 @@ export default {
 
 <template>
   <teleport :disabled="teleportDisabled || (inline && !target)" :to="target || 'body'">
-    <div
-      v-bind="$attrs"
-      :class="[
-        vModel ? 'opacity-100' : 'opacity-0 pointer-events-none',
-        inline ? 'absolute' : 'fixed',
-        transition ? 'transition-opacity duration-200 ease-in-out' : '',
-      ]"
-      class="z-100 top-0 left-0 bottom-0 right-0 bg-gray-700/75"
-    >
-      <slot :is-open="vModel" />
-    </div>
+    <Transition :name="transition ? 'fade' : undefined" mode="out-in">
+      <div
+        v-show="!!vModel"
+        v-bind="$attrs"
+        :class="[inline ? 'absolute' : 'fixed']"
+        class="z-100 top-0 left-0 bottom-0 right-0 bg-gray-700/75"
+      >
+        <slot :is-open="vModel" />
+      </div>
+    </Transition>
   </teleport>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

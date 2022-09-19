@@ -317,6 +317,25 @@ export function useKanbanViewData(
     return formattedData.value.uncategorized[addAfter]
   }
 
+  function addRowToStack(row: Row) {
+    const stackTitle = row.row[groupingField.value] ?? 'uncategorized'
+    if (stackTitle) {
+      // push the row to target stack
+      formattedData.value[stackTitle].push(row)
+      // increase the current count in the target stack by 1
+      countByStack.value[stackTitle] += 1
+      // clear the one under uncategorized since we don't reload the view
+      removeRowFromUncategorizedStack()
+    }
+  }
+
+  function removeRowFromUncategorizedStack() {
+    // remove the last record
+    formattedData.value.uncategorized.pop()
+    // decrease total count by 1
+    countByStack.value.uncategorized -= 1
+  }
+
   return {
     loadKanbanData,
     loadMoreKanbanData,
@@ -330,7 +349,9 @@ export function useKanbanViewData(
     groupingFieldColumn,
     updateOrSaveRow,
     addEmptyRow,
+    addRowToStack,
     deleteStack,
     updateKanbanStackMeta,
+    removeRowFromUncategorizedStack,
   }
 }

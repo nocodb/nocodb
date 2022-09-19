@@ -1,33 +1,13 @@
 import { isString } from '@vueuse/core'
 import type { Permission } from './rolePermissions'
 import rolePermissions from './rolePermissions'
-import { USER_PROJECT_ROLES, computed, useGlobal, useState } from '#imports'
-import type { ProjectRole, Role, Roles } from '~/lib'
+import { useGlobal, useInjectionState, useRoles } from '#imports'
+import type { ProjectRole, Role } from '~/lib'
 
-export function useUIPermission() {
-  const { user, previewAs } = useGlobal()
+const [setup, use] = useInjectionState(() => {
+  const { previewAs } = useGlobal()
 
-  const projectRoles = useState<Roles<ProjectRole>>(USER_PROJECT_ROLES, () => ({}))
-
-  const allRoles = useState<Roles>('allRoles', () =>
-    computed(() => {
-      let userRoles = user.value?.roles
-
-      // if string populate key-value paired object
-      if (isString(userRoles)) {
-        userRoles = userRoles.split(',').reduce<Roles>((acc, role) => {
-          acc[role] = true
-          return acc
-        }, {})
-      }
-
-      // merge user role and project specific user roles
-      return {
-        ...userRoles,
-        ...projectRoles.value,
-      }
-    }),
-  )
+  const { allRoles } = useRoles()
 
   const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: Permission | string) => {
     const rolePermission = rolePermissions[role]
@@ -51,5 +31,15 @@ export function useUIPermission() {
     )
   }
 
-  return { isUIAllowed }
+  return { isUIAllowed, projectRoles }
+}, 'useUIPermission')
+
+export function useUIPermission() {
+  let usePermissions = use()
+
+  if (!usePermissions) {
+    usePermissions = setup()
+  }
+
+  return { isUIAllowed: usePermissions.isUIAllowed }
 }

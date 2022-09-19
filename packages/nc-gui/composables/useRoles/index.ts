@@ -2,6 +2,15 @@ import { isString } from '@vueuse/core'
 import { computed, createSharedComposable, ref, useApi, useGlobal } from '#imports'
 import type { ProjectRole, Role, Roles } from '~/lib'
 
+/**
+ * Provides the roles a user currently has
+ *
+ * * `userRoles` - the roles a user has outside of projects
+ * * `projectRoles` - the roles a user has in the current project (if one was loaded)
+ * * `allRoles` - all roles a user has (userRoles + projectRoles)
+ * * `hasRole` - a function to check if a user has a specific role
+ * * `loadProjectRoles` - a function to load the project roles for a specific project (by id)
+ */
 export const useRoles = createSharedComposable(() => {
   const { user } = useGlobal()
 
@@ -23,6 +32,11 @@ export const useRoles = createSharedComposable(() => {
     return roles
   })
 
+  const allRoles = computed<Roles>(() => ({
+    ...userRoles.value,
+    ...projectRoles.value,
+  }))
+
   async function loadProjectRoles(projectId: string, isSharedBase: boolean) {
     projectRoles.value = {}
 
@@ -43,10 +57,9 @@ export const useRoles = createSharedComposable(() => {
     }
   }
 
-  const allRoles = computed<Roles>(() => ({
-    ...userRoles.value,
-    ...projectRoles.value,
-  }))
+  function hasRole(role: Role | ProjectRole | string) {
+    return allRoles.value[role]
+  }
 
-  return { allRoles, userRoles, projectRoles, loadProjectRoles }
+  return { allRoles, userRoles, projectRoles, loadProjectRoles, hasRole }
 })

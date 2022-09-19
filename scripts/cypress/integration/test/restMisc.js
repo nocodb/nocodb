@@ -21,6 +21,9 @@ const nocoTestSuite = (apiType, dbType) => {
     t6d.genTest(apiType, dbType);
     // exclude@ncv2 t6c.genTest(apiType, dbType);
     t6f.genTest(apiType, dbType);
+
+    t9b.genTest(apiType, dbType);
+
     t6g.genTest(apiType, dbType);
     
     // webhook tests
@@ -32,8 +35,6 @@ const nocoTestSuite = (apiType, dbType) => {
     // intended to keep this after earlier project deletion
     // creates project using excel & deletes it
     t7a.genTest(apiType, dbType);
-
-    t9b.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "mysql");

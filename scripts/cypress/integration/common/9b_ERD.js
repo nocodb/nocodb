@@ -29,6 +29,7 @@ export const genTest = (apiType, dbType) => {
     // Test cases
 
     it(`Enable MM setting Open Table ERD`, () => {
+      cy.openTableTab("Country", 25);
       mainPage.toggleShowMMSetting();
       
       mainPage.openErdTab();
@@ -170,9 +171,9 @@ export const genTest = (apiType, dbType) => {
       cy.get('.nc-erd-context-menu').get('.nc-erd-showMMTables-checkbox').click();
 
       cy.get('.nc-erd-vue-flow').find('.nc-erd-table-node').should('have.length', 16)
-      cy.get('.nc-erd-vue-flow').find('.vue-flow__edge').should('have.length', 18)
-      cy.get('.nc-erd-vue-flow').find('.nc-erd-edge-circle').should('have.length', 14)
-      cy.get('.nc-erd-vue-flow').find('.nc-erd-edge-rect').should('have.length', 22)
+      cy.get('.nc-erd-vue-flow').find('.vue-flow__edge').should('have.length', 26)
+      cy.get('.nc-erd-vue-flow').find('.nc-erd-edge-circle').should('have.length', 22)
+      cy.get('.nc-erd-vue-flow').find('.nc-erd-edge-rect').should('have.length', 30)
 
       // Check if store table is present
       cy.get('.nc-erd-vue-flow').find(`.nc-erd-table-node-store`).should('exist');

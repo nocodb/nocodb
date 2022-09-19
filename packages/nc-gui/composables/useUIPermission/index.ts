@@ -12,11 +12,11 @@ const [setup, use] = useInjectionState(() => {
   const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: Permission | string) => {
     const rolePermission = rolePermissions[role]
 
-    return (
-      hasRole &&
-      rolePermission &&
-      ((isString(rolePermission) && rolePermission === '*') || rolePermission[permission as keyof typeof rolePermission])
-    )
+    if (!hasRole || !rolePermission) return false
+
+    if (isString(rolePermission) && rolePermission === '*') return true
+
+    return rolePermission[permission as keyof typeof rolePermission]
   }
 
   const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {

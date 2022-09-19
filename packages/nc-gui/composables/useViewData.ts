@@ -82,7 +82,7 @@ export function useViewData(
 
   const queryParams = computed(() => ({
     offset: ((paginationData.value.page ?? 0) - 1) * (paginationData.value.pageSize ?? appInfoDefaultLimit),
-    limit: paginationData.value?.pageSize ?? appInfoDefaultLimit,
+    limit: paginationData.value.pageSize ?? appInfoDefaultLimit,
     where: where?.value ?? '',
   }))
 
@@ -118,9 +118,9 @@ export function useViewData(
     // total records in the current table
     const count = paginationData.value?.totalRows ?? Infinity
     // the number of rows in a page
-    const size = paginationData.value?.pageSize ?? appInfoDefaultLimit
+    const size = paginationData.value.pageSize ?? appInfoDefaultLimit
     // the current page number
-    const currentPage = paginationData.value?.page ?? 1
+    const currentPage = paginationData.value.page ?? 1
     // the maximum possible page given the current count and the size
     const mxPage = Math.ceil(count / size)
     // calculate targetPage where 1 <= targetPage <= mxPage

@@ -183,11 +183,13 @@ export class _mainPage {
             force: true,
         });
 
-        cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
+        cy.getActiveMenu(".nc-dropdown-grid-add-column")
+          .find('input.nc-column-name-input')
           .should('exist')
           .clear()
           .type(colName);
-        cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+        cy.getActiveMenu(".nc-dropdown-grid-add-column")
+          .find(".ant-btn-primary").contains("Save").should('exist').click();
         cy.toastWait(`Column created`);
         cy.get(`th[data-title="${colName}"]`).should("exist");
     };
@@ -197,15 +199,24 @@ export class _mainPage {
             force: true,
         });
 
-        cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
+        cy.getActiveMenu(".nc-dropdown-grid-add-column")
+          .find('input.nc-column-name-input')
           .should('exist')
           .clear()
           .type(colName);
 
         // change column type and verify
-        cy.get(".nc-column-type-input").last().click();
+        // cy.get(".nc-column-type-input").last().click();
+        cy.getActiveMenu('.nc-dropdown-grid-add-column')
+          .find(".nc-column-type-input")
+          .last()
+          .click()
         cy.getActiveSelection('.nc-dropdown-column-type').find('.ant-select-item-option').contains(colType).click();
-        cy.get(".ant-btn-primary:visible").contains("Save").click();
+        // cy.get(".ant-btn-primary:visible").contains("Save").click();
+        cy.getActiveMenu('.nc-dropdown-grid-add-column')
+          .find(".ant-btn-primary:visible")
+          .contains("Save")
+          .click();
 
         cy.toastWait(`Column created`);
         cy.get(`th[data-title="${colName}"]`).should("exist");

@@ -57,10 +57,25 @@ export const genTest = (apiType, dbType) => {
               .should('exist')
               .clear()
               .type(columnName);
-            cy.get(".nc-column-type-input").last().click().type("Formula");
-            cy.getActiveSelection('.nc-dropdown-column-type').find('.ant-select-item-option').contains("Formula").click();
-            cy.get('textarea.nc-formula-input').click().type(formula, { parseSpecialCharSequences: false });
-            cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            // cy.get(".nc-column-type-input").last().click().type("Formula");
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find(".nc-column-type-input")
+              .last()
+              .click()
+              .type("Formula");
+            cy.getActiveSelection('.nc-dropdown-column-type')
+              .find('.ant-select-item-option')
+              .contains("Formula")
+              .click();
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find('textarea.nc-formula-input')
+              .click()
+              .type(formula, { parseSpecialCharSequences: false });
+            // cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find(".ant-btn-primary:visible")
+              .contains("Save")
+              .click();
 
             // cy.toastWait(`Column created`);
             cy.closeTableTab("City");
@@ -82,8 +97,11 @@ export const genTest = (apiType, dbType) => {
               .trigger("mouseover", { force: true })
               .click({ force: true });
 
-            cy.get(".nc-column-edit").click();
-            cy.get(".nc-column-edit").should("not.be.visible");
+            // cy.get(".nc-column-edit").click();
+            // cy.get(".nc-column-edit").should("not.be.visible");
+            cy.getActiveMenu(".nc-dropdown-column-operations")
+              .find(".nc-column-edit")
+              .click();
 
             cy.getActiveMenu(".nc-dropdown-edit-column").find('input.nc-column-name-input', { timeout: 3000 })
               .should('exist')

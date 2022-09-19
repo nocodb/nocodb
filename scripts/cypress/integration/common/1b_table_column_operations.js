@@ -65,13 +65,26 @@ export const genTest = (apiType, dbType) => {
                     .trigger("mouseover", { force: true })
                     .click({ force: true });
 
-                cy.get(".nc-column-edit").click();
-                cy.get(".nc-column-edit").should("not.be.visible");
+                // cy.get(".nc-column-edit").click();
+                // cy.get(".nc-column-edit").should("not.be.visible");
+                cy.getActiveMenu(".nc-dropdown-column-operations")
+                  .find(".nc-column-edit")
+                  .click();
 
                 // change column type and verify
-                cy.get(".nc-column-type-input").last().click();
-                cy.getActiveSelection('.nc-dropdown-column-type').find('.ant-select-item-option').contains("LongText").click();
-                cy.get(".ant-btn-primary:visible").contains("Save").click();
+                // cy.get(".nc-column-type-input").last().click();
+                cy.getActiveMenu('.nc-dropdown-edit-column')
+                  .find(".nc-column-type-input")
+                  .last()
+                  .click();
+                cy.getActiveSelection('.nc-dropdown-column-type')
+                  .find('.ant-select-item-option')
+                  .contains("LongText")
+                  .click();
+                cy.getActiveMenu('.nc-dropdown-edit-column')
+                  .find(".ant-btn-primary:visible")
+                  .contains("Save")
+                  .click();
 
                 cy.toastWait("Column updated");
             }
@@ -83,15 +96,22 @@ export const genTest = (apiType, dbType) => {
                 .trigger("mouseover", { force: true })
                 .click({ force: true });
 
-            cy.get(".nc-column-edit").click();
-            cy.get(".nc-column-edit").should("not.be.visible");
+            // cy.get(".nc-column-edit").click();
+            // cy.get(".nc-column-edit").should("not.be.visible");
+            cy.getActiveMenu(".nc-dropdown-column-operations")
+              .find(".nc-column-edit")
+              .click();
 
             // rename column and verify
             cy.getActiveMenu(".nc-dropdown-edit-column").find('input.nc-column-name-input', { timeout: 3000 })
                 .should('exist')
                 .clear()
                 .type(updatedColName);
-            cy.get(".ant-btn-primary:visible").contains("Save").click();
+            // cy.get(".ant-btn-primary:visible").contains("Save").click();
+            cy.getActiveMenu('.nc-dropdown-edit-column')
+              .find(".ant-btn-primary:visible")
+              .contains("Save")
+              .click();
 
             cy.toastWait("Column updated");
 

@@ -29,24 +29,26 @@ export function useUIPermission() {
     }),
   )
 
-  const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
-    let roles = { ...allRoles.value }
+  const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: Permission | string) => {
+    const rolePermission = rolePermissions[role]
 
+    return (
+      hasRole &&
+      rolePermission &&
+      ((isString(rolePermission) && rolePermission === '*') || rolePermission[permission as keyof typeof rolePermission])
+    )
+  }
+
+  const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
+    let hasPreviewPermission = false
     if (previewAs.value && !skipPreviewAs) {
-      roles = {
-        [previewAs.value]: true,
-      }
+      hasPreviewPermission = hasPermission(previewAs.value, true, permission)
     }
 
-    return Object.entries(roles).some(([role, hasRole]) => {
-      const rolePermission = rolePermissions[role as Role | ProjectRole]
-
-      return (
-        hasRole &&
-        rolePermission &&
-        ((isString(rolePermission) && rolePermission === '*') || rolePermission[permission as keyof typeof rolePermission])
-      )
-    })
+    return (
+      hasPreviewPermission ||
+      Object.entries(allRoles.value).some(([role, hasRole]) => hasPermission(role as Role | ProjectRole, hasRole, permission))
+    )
   }
 
   return { isUIAllowed }

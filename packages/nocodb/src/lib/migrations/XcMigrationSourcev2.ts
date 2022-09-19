@@ -7,7 +7,7 @@ import * as nc_016_alter_hooklog_payload_types from './v2/nc_016_alter_hooklog_p
 import * as nc_017_add_user_token_version_column from './v2/nc_017_add_user_token_version_column';
 import * as nc_018_add_meta_in_view from './v2/nc_018_add_meta_in_view';
 import * as nc_019_add_meta_in_meta_tables from './v2/nc_019_add_meta_in_meta_tables';
-import * as nc_020_add_kanban_meta_col from './v2/nc_019_add_kanban_meta_col';
+import * as nc_020_add_kanban_meta_col from './v2/nc_020_add_kanban_meta_col';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {

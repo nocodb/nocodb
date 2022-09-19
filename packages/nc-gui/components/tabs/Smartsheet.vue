@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import SmartsheetGrid from '../smartsheet/Grid.vue'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -10,10 +9,12 @@ import {
   OpenNewRecordFormHookInj,
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
+  TabMetaInj,
   computed,
   createEventHook,
   inject,
   provide,
+  ref,
   useMetas,
   useProvideSmartsheetStore,
   watch,
@@ -28,7 +29,7 @@ const { metas } = useMetas()
 
 const activeView = ref()
 
-const el = ref<typeof SmartsheetGrid>()
+const el = ref()
 
 const fields = ref<ColumnType[]>([])
 
@@ -36,8 +37,8 @@ provide(TabMetaInj, ref(activeTab))
 const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
 
 const reloadEventHook = createEventHook()
-const reloadViewMetaEventHook = createEventHook<void>()
-const openNewRecordFormHook = createEventHook<void>()
+const reloadViewMetaEventHook = createEventHook()
+const openNewRecordFormHook = createEventHook()
 
 const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
@@ -62,21 +63,24 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
 <template>
   <div class="nc-container flex h-full">
     <div class="flex flex-col h-full flex-1 min-w-0">
-      <SmartsheetToolbar />
+      <LazySmartsheetToolbar />
 
-      <template v-if="meta">
-        <div class="flex flex-1 min-h-0">
-          <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
-            <SmartsheetGrid v-if="isGrid" :ref="el" />
+      <Transition name="layout" mode="out-in">
+        <template v-if="meta">
+          <div class="flex flex-1 min-h-0">
+            <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
+              <LazySmartsheetGrid v-if="isGrid" :ref="el" />
 
-            <SmartsheetGallery v-else-if="isGallery" />
+              <LazySmartsheetGallery v-else-if="isGallery" />
 
-            <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
+              <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+            </div>
           </div>
-        </div>
-      </template>
+        </template>
+      </Transition>
     </div>
-    <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
+
+    <LazySmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
   </div>
 </template>
 

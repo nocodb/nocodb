@@ -417,12 +417,13 @@ reloadViewDataHook.trigger()
 </script>
 
 <template>
-  <div class="flex flex-col h-full min-h-0 w-full">
+  <div class="relative flex flex-col h-full min-h-0 w-full">
     <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
-      <div class="flex items-center justify-center h-full w-full">
+      <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
         <a-spin size="large" />
       </div>
     </general-overlay>
+
     <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown
         v-model:visible="contextMenu"
@@ -642,18 +643,14 @@ reloadViewDataHook.trigger()
 
     <SmartsheetPagination />
 
-    <SmartsheetExpandedForm
+    <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"
       v-model="expandedFormDlg"
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
       :view="view"
-      @update:model-value="
-        () => {
-          if (!skipRowRemovalOnCancel) removeRowIfNew(expandedFormRow)
-        }
-      "
+      @update:model-value="!skipRowRemovalOnCancel && removeRowIfNew(expandedFormRow)"
     />
 
     <SmartsheetExpandedForm

@@ -11,9 +11,9 @@ import {
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
   computed,
+  createEventHook,
   inject,
   provide,
-  provideSidebar,
   useMetas,
   useProvideSmartsheetStore,
   watch,
@@ -35,14 +35,14 @@ const fields = ref<ColumnType[]>([])
 provide(TabMetaInj, ref(activeTab))
 const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
 
-const reloadEventHook = createEventHook<void>()
+const reloadEventHook = createEventHook()
 const reloadViewMetaEventHook = createEventHook<void>()
 const openNewRecordFormHook = createEventHook<void>()
 
 const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
 // provide the sidebar injection state
-provideSidebar('nc-right-sidebar', { useStorage: true, isOpen: true })
+useSidebar('nc-right-sidebar', { useStorage: true, isOpen: true })
 
 // todo: move to store
 provide(MetaInj, meta)

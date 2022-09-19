@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { provideSidebar, useI18n, useRoute } from '#imports'
+import { useI18n, useRoute, useSidebar } from '#imports'
 
 const route = useRoute()
 
 const { te, t } = useI18n()
 
-const { hasSidebar } = provideSidebar('nc-left-sidebar')
+const { hasSidebar } = useSidebar('nc-left-sidebar')
 
 useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)} | NocoDB` : 'NocoDB')
 </script>

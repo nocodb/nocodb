@@ -579,7 +579,13 @@ function handleEditableTnChange(idx: number) {
               </template>
 
               <template v-else-if="column.key === 'destination_column'">
-                <a-select v-model:value="record.destCn" class="w-52" show-search :filter-option="filterOption">
+                <a-select
+                  v-model:value="record.destCn"
+                  class="w-52"
+                  show-search
+                  :filter-option="filterOption"
+                  dropdown-class-name="nc-dropdown-filter-field"
+                >
                   <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
                     <div class="flex items-center">
                       <component :is="getUIDTIcon(col.uidt)" />
@@ -687,6 +693,7 @@ function handleEditableTnChange(idx: number) {
                       show-search
                       :options="uiTypeOptions"
                       :filter-option="filterOption"
+                      dropdown-class-name="nc-dropdown-template-uidt"
                     />
                   </a-form-item>
                 </template>

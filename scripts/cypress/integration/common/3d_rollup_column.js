@@ -59,17 +59,17 @@ export const genTest = (apiType, dbType) => {
               .clear()
               .type(columnName);
             cy.get(".nc-column-type-input").last().click().type("RollUp");
-            cy.getActiveSelection().find('.ant-select-item-option').contains("Rollup").click();
+            cy.getActiveSelection('.nc-dropdown-column-type').find('.ant-select-item-option').contains("Rollup").click();
 
             // Configure Child table & column names
             fetchParentFromLabel("Child table");
-            cy.getActiveSelection().find('.ant-select-item-option').contains(childTable).click();
+            cy.getActiveSelection('.nc-dropdown-relation-table').find('.ant-select-item-option').contains(childTable).click();
 
             fetchParentFromLabel("Child column");
-            cy.getActiveSelection().find('.ant-select-item-option').contains(childCol).click();
+            cy.getActiveSelection('.nc-dropdown-relation-column').find('.ant-select-item-option').contains(childCol).click();
 
             fetchParentFromLabel("Aggregate function");
-            cy.getActiveSelection().find('.ant-select-item-option').contains(aggregateFunc).click();
+            cy.getActiveSelection('.nc-dropdown-rollup-function').find('.ant-select-item-option').contains(aggregateFunc).click();
 
             cy.get(".ant-btn-primary").contains("Save").should('exist').click();
             cy.toastWait(`Column created`);

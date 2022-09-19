@@ -135,7 +135,13 @@ const getIcon = (c: ColumnType) =>
         @click.stop
       >
         <a-card v-if="activeView.type === ViewTypes.GALLERY" size="small" title="Cover image">
-          <a-select v-model:value="coverImageColumnId" class="w-full" :options="coverOptions" @click.stop></a-select>
+          <a-select
+            v-model:value="coverImageColumnId"
+            class="w-full"
+            :options="coverOptions"
+            dropdown-class-name="nc-dropdown-cover-image"
+            @click.stop
+          ></a-select>
         </a-card>
         <div class="p-1" @click.stop>
           <a-input v-model:value="filterQuery" size="small" :placeholder="$t('placeholder.searchFields')" />

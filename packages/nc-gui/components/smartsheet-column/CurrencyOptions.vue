@@ -83,6 +83,7 @@ vModel.value.meta = {
           show-search
           :filter-option="filterOption"
           :disabled="isMoney && isPg"
+          dropdown-class-name="nc-dropdown-currency-cell-locale"
         >
           <a-select-option v-for="(currencyLocale, i) of currencyLocaleList" :key="i" :value="currencyLocale.value">
             {{ currencyLocale.text }}
@@ -98,6 +99,7 @@ vModel.value.meta = {
           show-search
           :filter-option="filterOption"
           :disabled="isMoney && isPg"
+          dropdown-class-name="nc-dropdown-currency-cell-code"
         >
           <a-select-option v-for="(currencyCode, i) of currencyList" :key="i" :value="currencyCode">
             {{ currencyCode }}

@@ -82,7 +82,7 @@ onBeforeMount(() => {
       </a-form-item>
     </div>
     <a-form-item :label="$t('labels.databaseType')" v-bind="validateInfos.dt">
-      <a-select v-model:value="vModel.dt" @change="onDataTypeChange">
+      <a-select v-model:value="vModel.dt" dropdown-class-name="nc-dropdown-db-type" @change="onDataTypeChange">
         <a-select-option v-for="type in dataTypes" :key="type" :value="type">
           {{ type }}
         </a-select-option>

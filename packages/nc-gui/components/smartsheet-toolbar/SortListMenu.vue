@@ -71,7 +71,7 @@ watch(
               v-model:value="sort.direction"
               class="shrink grow-0 nc-sort-dir-select !text-xs"
               :label="$t('labels.operation')"
-              dropdown-class-name="sort-dir-dropdown"
+              dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
               @click.stop
               @select="saveOrUpdate(sort, i)"
             >

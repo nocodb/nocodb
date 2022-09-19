@@ -85,7 +85,7 @@ export const genTest = (apiType, dbType) => {
 
             cy.getActiveModal().find(".nc-shared-base-role").click();
 
-            cy.getActiveSelection()
+            cy.getActiveSelection('.nc-dropdown-share-base-role')
               .find('.ant-select-item')
               .eq(1)
               .click();
@@ -134,7 +134,7 @@ style="background: transparent; "></iframe>
 
             cy.getActiveModal().find(".nc-shared-base-role").click();
 
-            cy.getActiveSelection()
+            cy.getActiveSelection('.nc-dropdown-share-base-role')
                 .find('.ant-select-item')
                 .eq(0)
                 .click();

@@ -111,7 +111,13 @@ onMounted(() => {
           v-if="!(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
           :label="$t('labels.columnType')"
         >
-          <a-select v-model:value="formState.uidt" show-search class="nc-column-type-input" @change="onUidtOrIdTypeChange">
+          <a-select
+            v-model:value="formState.uidt"
+            show-search
+            class="nc-column-type-input"
+            dropdown-class-name="nc-dropdown-column-type"
+            @change="onUidtOrIdTypeChange"
+          >
             <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
               <div class="flex gap-1 items-center">
                 <component :is="opt.icon" class="text-grey" />

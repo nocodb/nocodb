@@ -159,12 +159,22 @@ const handleCollapseStack = async (stackIdx: number) => {
   await updateKanbanStackMeta()
 }
 
+const handleExpandedFormCancel = () => {
+  // remove the empty record
+  formattedData.value['Uncategorized'].pop()
+  // decrease total count by 1
+  countByStack.value['Uncategorized'] -= 1
+}
+
 openNewRecordFormHook?.on(async (stackTitle) => {
   const newRow = await addEmptyRow()
   // preset the grouping field value
   newRow.row = {
     [groupingField.value]: stackTitle,
   }
+  // increase total count by 1
+  countByStack.value['Uncategorized'] += 1
+  // open the expanded form
   expandForm(newRow)
 })
 </script>
@@ -299,7 +309,6 @@ openNewRecordFormHook?.on(async (stackTitle) => {
                       @click="openNewRecordFormHook.trigger(stack.title === 'Uncategorized' ? null : stack.title)"
                     />
                     <div class="nc-kanban-data-count">
-                      <!-- TODO: fix current count for Uncategorized -->
                       {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
                       {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
                     </div>
@@ -339,6 +348,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
     :row="expandedFormRow"
     :state="expandedFormRowState"
     :meta="meta"
+    @cancel="handleExpandedFormCancel"
   />
   <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-view-create">
     <template #title>

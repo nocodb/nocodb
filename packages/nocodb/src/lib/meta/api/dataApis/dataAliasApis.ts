@@ -222,6 +222,59 @@ async function dataExist(req: Request, res: Response) {
   res.json(await baseModel.exist(req.params.rowId));
 }
 
+
+
+// todo: Handle the error case where view doesnt belong to model
+async function groupedDataList(req: Request, res: Response) {
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+  res.json(await getGroupedDataList(model, view, req));
+}
+
+
+
+async function getGroupedDataList(model, view: View, req) {
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+
+  const requestObj = await getAst({ model, query: req.query, view });
+
+  const listArgs: any = { ...req.query };
+  try {
+    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+  } catch (e) {}
+  try {
+    listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+  } catch (e) {}
+
+  let data = [];
+  let count = 0;
+  try {
+    data = await nocoExecute(
+      requestObj,
+      await baseModel.list(listArgs),
+      {},
+      listArgs
+    );
+    count = await baseModel.count(listArgs);
+  } catch (e) {
+    // show empty result instead of throwing error here
+    // e.g. search some text in a numeric field
+  }
+
+  return new PagedResponseImpl(data, {
+    ...req.query,
+    count,
+  });
+}
+
+
+
+
 const router = Router({ mergeParams: true });
 
 // table data crud apis
@@ -302,6 +355,13 @@ router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/groupby',
   apiMetrics,
   ncMetaAclMw(dataGroupBy, 'dataGroupBy')
+);
+
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/grouped',
+  apiMetrics,
+  ncMetaAclMw(groupedDataList, 'groupedDataList')
 );
 
 router.get(

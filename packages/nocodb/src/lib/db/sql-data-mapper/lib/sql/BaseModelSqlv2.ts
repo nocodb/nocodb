@@ -2330,7 +2330,12 @@ class BaseModelSqlv2 {
     });
   }
 
-  public async groupedList(args: { groupColumnId: string }) {
+  public async groupedList(args: { groupColumnId: string }): Promise<
+    {
+      key: string;
+      value: Record<string, unknown>[];
+    }[]
+  > {
     const column = await this.model
       .getColumns()
       .then((cols) => cols?.find((col) => col.id === args.groupColumnId));
@@ -2352,15 +2357,17 @@ class BaseModelSqlv2 {
     const qb = this.dbDriver(this.model.table_name);
     await this.selectObject({ qb });
 
-    const nullQb = qb.clone().whereNull(column.title);
-    nullQb.limit(20);
-    nullQb.offset(0);
+    const nullListQb = qb.clone().whereNull(column.title);
+    nullListQb.limit(20);
+    nullListQb.offset(0);
 
     const groupedQb = this.dbDriver.from(
       this.dbDriver
         .unionAll(
           [
-            this.isSqlite ? this.dbDriver.select().from(nullQb) : nullQb,
+            this.isSqlite
+              ? this.dbDriver.select().from(nullListQb)
+              : nullListQb,
             ...groupingValues.map((r) => {
               const query = qb.clone().where(column.title, r);
               query.limit(20);
@@ -2376,7 +2383,18 @@ class BaseModelSqlv2 {
 
     const result = await groupedQb;
 
-    return _.groupBy(result, column.title);
+    // todo: handle null values
+    const groupedResult: Record<string, Record<string, unknown>[]> = _.groupBy(
+      result,
+      column.title
+    );
+
+    const r = Object.entries(groupedResult).map(([key, value]) => ({
+      key,
+      value,
+    }));
+
+    return r;
   }
 
   public async groupedListCount(args: { groupColumnId: string }) {

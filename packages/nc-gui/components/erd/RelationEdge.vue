@@ -112,7 +112,7 @@ export default {
   />
 
   <EdgeText
-    v-if="label"
+    v-if="label?.length > 0"
     :class="`nc-erd-table-label-${label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`"
     :x="center[0]"
     :y="center[1]"

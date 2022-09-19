@@ -100,7 +100,8 @@ const populateEdges = () => {
     const source = column.fk_model_id!
     const target = (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!
 
-    let sourceColumnId, targetColumnId, edgeLabel
+    let sourceColumnId, targetColumnId
+    let edgeLabel = ''
 
     if ((column.colOptions as LinkToAnotherRecordType).type === 'hm') {
       sourceColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
@@ -110,14 +111,15 @@ const populateEdges = () => {
     if ((column.colOptions as LinkToAnotherRecordType).type === 'mm') {
       sourceColumnId = (column.colOptions as LinkToAnotherRecordType).fk_parent_column_id
       targetColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
-      edgeLabel =
-        config.showJunctionTableNames && edgeMMTableLabel((column.colOptions as LinkToAnotherRecordType).fk_mm_model_id!)
+      edgeLabel = config.showJunctionTableNames
+        ? edgeMMTableLabel((column.colOptions as LinkToAnotherRecordType).fk_mm_model_id!)
+        : ''
     }
 
     if (source !== target) dagreGraph.setEdge(source, target)
 
     return {
-      id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}`,
+      id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}-#${edgeLabel}`,
       source: `${source}`,
       target: `${target}`,
       sourceHandle: `s-${sourceColumnId}-${source}`,

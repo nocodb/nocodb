@@ -64,6 +64,8 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   const isPg = computed(() => projectBaseType === 'pg')
   const isSharedBase = computed(() => projectType === 'base')
 
+  const router = useRouter()
+
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
       projectMetaInfo.value = await api.project.metaGet(project.value.id!, {}, {})
@@ -104,8 +106,15 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     if (id) {
       project.value = await api.project.read(projectId.value)
     } else if (projectType === 'base') {
-      const baseData = await api.public.sharedBaseGet(route.params.projectId as string)
-      project.value = await api.project.read(baseData.project_id!)
+      try {
+        const baseData = await api.public.sharedBaseGet(route.params.projectId as string)
+        project.value = await api.project.read(baseData.project_id!)
+      } catch (e: any) {
+        if (e?.response?.status === 404) {
+          return router.push('/error/404')
+        }
+        throw e
+      }
     } else if (projectId.value) {
       project.value = await api.project.read(projectId.value)
     } else {

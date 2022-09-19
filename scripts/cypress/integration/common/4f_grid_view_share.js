@@ -1,5 +1,6 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 import { mainPage } from "../../support/page_objects/mainPage";
+import {loginPage} from "../../support/page_objects/navigation";
 
 let storedURL = "";
 
@@ -15,14 +16,9 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
     const generateViewLink = (viewName) => {
-        // click on share view
-        // cy.get(".v-navigation-drawer__content > .container")
-        //   .find(".v-list > .v-list-item")
-        //   .contains("Share View")
-        //   .click();
-        mainPage.shareView().click({ force: true });
+        mainPage.shareView().click();
 
-        cy.wait(5000);
+        cy.wait(1000);
 
         // wait, as URL initially will be /undefined
         cy.getActiveModal()
@@ -45,25 +41,33 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.restoreLocalStorage();
+            cy.wait(500);
+
             mainPage.tabReset();
-            // open a table to work on views
-            //
             cy.openTableTab("Address", 25);
 
-            cy.saveLocalStorage();
+            // loginPage.loginAndOpenProject(apiType, dbType);
+            //
+            // // open a table to work on views
+            // //
+            // cy.openTableTab("Address", 25);
+            // mainPage.toggleRightSidebar();
+            // //
+            // cy.saveLocalStorage();
         });
 
         beforeEach(() => {
-            cy.restoreLocalStorage();
         });
 
         afterEach(() => {
-            cy.saveLocalStorage();
         });
 
         after(() => {
             // close table
             // mainPage.deleteCreatedViews()
+            cy.restoreLocalStorage();
+            cy.wait(500);
             cy.closeTableTab("Address");
         });
 
@@ -72,6 +76,10 @@ export const genTest = (apiType, dbType) => {
         //
         const viewTest = (viewType) => {
             it(`Create ${viewType.toUpperCase()} view`, () => {
+
+                cy.restoreLocalStorage();
+                cy.wait(500);
+
                 // create a normal public view
                 cy.get(`.nc-create-${viewType}-view`).click();
                 cy.getActiveModal().find("button:contains(Submit)").click();
@@ -84,8 +92,12 @@ export const genTest = (apiType, dbType) => {
             });
 
             it(`Share ${viewType.toUpperCase()} hide, sort, filter & verify`, () => {
+
+                cy.restoreLocalStorage();
+                cy.wait(500);
+
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
-                    .contains("Address1")
+                    .contains("Grid-1")
                     .click();
                 mainPage.hideField("Address2");
                 mainPage.sortField("District", "Z → A");
@@ -95,20 +107,16 @@ export const genTest = (apiType, dbType) => {
             });
 
             it(`Share GRID view : ensure we have only one link even if shared multiple times`, () => {
+
+                cy.restoreLocalStorage();
+                cy.wait(500);
+
                 // generate view link multiple times
                 generateViewLink("combined");
                 generateViewLink("combined");
 
                 // verify if only one link exists in table
-                // cy.get(".v-navigation-drawer__content > .container")
-                //   .find(".v-list > .v-list-item")
-                //   .contains("Share View")
-                //   .parent()
-                //   .find("button.mdi-dots-vertical")
-                //   .click();
                 mainPage.shareViewList().click();
-
-                // cy.getActiveMenu().find(".v-list-item").contains("Views List").click();
 
                 cy.get('th:contains("View Link")').should("exist");
 
@@ -120,12 +128,10 @@ export const genTest = (apiType, dbType) => {
                     .its("length")
                     .should("eq", 1)
                     .then(() => {
-                        // cy.get(".v-overlay__content > .d-flex > .v-icon").click();
-                        // close modal (fix me! add a close button to share view list modal)
-                        cy.get(".v-overlay--active > .v-overlay__scrim").click({
-                            force: true,
-                        });
+                        cy.get('button.ant-modal-close:visible').click();
                     });
+
+                cy.signOut();
             });
 
             it(`Share ${viewType.toUpperCase()} view : Visit URL, Verify title`, () => {
@@ -138,17 +144,15 @@ export const genTest = (apiType, dbType) => {
                 // wait for page rendering to complete
                 cy.get(".nc-grid-row").should("have.length", 18);
 
-                cy.snip("ShareView_Grid");
-
                 // verify title
-                cy.get("div.model-name").contains("Address1").should("exist");
+                cy.get(".nc-shared-view-title").contains("Grid-1").should("exist");
             });
 
             it(`Share ${viewType.toUpperCase()} view : verify fields hidden/open`, () => {
                 // verify column headers
-                cy.get('[data-col="Address"]').should("exist");
-                cy.get('[data-col="Address2"]').should("not.exist");
-                cy.get('[data-col="District"]').should("exist");
+                cy.get('[data-title="Address"]').should("exist");
+                cy.get('[data-title="Address2"]').should("not.exist");
+                cy.get('[data-title="District"]').should("exist");
             });
 
             it(`Share ${viewType.toUpperCase()} view : verify fields sort/ filter`, () => {
@@ -185,12 +189,11 @@ export const genTest = (apiType, dbType) => {
                         for (let j = 0; j < 4; j++) {
                             expect(strCol[j]).to.be.equal(retCol[j]);
                         }
-                        // expect(retrievedRecords[i]).to.be.equal(storedRecords[i])
                     }
                 };
 
                 // download & verify
-                mainPage.downloadAndVerifyCsv(
+                mainPage.downloadAndVerifyCsvFromSharedView(
                     `Address_exported_1.csv`,
                     verifyCsv
                 );
@@ -202,8 +205,6 @@ export const genTest = (apiType, dbType) => {
                 mainPage.clearSort();
                 mainPage
                     .getCell("District", 1)
-                    // ncv2@fixme
-                    // .contains("Southern Mindanao")
                     .contains("West Bengali")
                     .should("exist");
             });
@@ -251,7 +252,7 @@ export const genTest = (apiType, dbType) => {
                     //     }
                     // }
                 };
-                mainPage.downloadAndVerifyCsv(
+                mainPage.downloadAndVerifyCsvFromSharedView(
                     `Address_exported_1.csv`,
                     verifyCsv
                 );
@@ -269,42 +270,44 @@ export const genTest = (apiType, dbType) => {
 
             it(`Share GRID view : Virtual column validation > has many`, () => {
                 // verify column headers
-                cy.get('[data-col="Customer List"]').should("exist");
-                cy.get('[data-col="Staff List"]').should("exist");
-                cy.get('[data-col="City"]').should("exist");
-                cy.get('[data-col="Staff List"]').should("exist");
+                cy.get('[data-title="Customer List"]').should("exist");
+                cy.get('[data-title="Staff List"]').should("exist");
+                cy.get('[data-title="City"]').should("exist");
+                cy.get('[data-title="Staff List"]').should("exist");
 
                 // has many field validation
                 mainPage
                     .getCell("Customer List", 3)
                     .click()
-                    .find("button.mdi-close-thick")
+                    .find(".nc-icon.nc-unlink-icon")
                     .should("not.exist");
                 mainPage
                     .getCell("Customer List", 3)
                     .click()
-                    .find("button.mdi-plus")
+                    .find(".nc-icon.nc-action-icon.nc-plus")
                     .should("not.exist");
-                mainPage
-                    .getCell("Customer List", 3)
-                    .click()
-                    .find("button.mdi-arrow-expand")
-                    .click();
 
-                cy.getActiveModal().find("button.mdi-reload").should("exist");
-                cy.getActiveModal()
-                    .find("button")
-                    .contains("Link to")
-                    .should("not.exist");
-                cy.getActiveModal()
-                    .find(".child-card")
-                    .contains("2")
-                    .should("exist");
-                cy.getActiveModal()
-                    .find(".child-card")
-                    .find("button")
-                    .should("not.exist");
-                cy.get("body").type("{esc}");
+                // mainPage
+                //     .getCell("Customer List", 3)
+                //     .click()
+                //     .find(".nc-icon.nc-action-icon.nc-arrow-expand")
+                //     .click({ force: true });
+                //
+                // // reload button
+                // cy.getActiveModal().find(".nc-icon").should("exist");
+                // cy.getActiveModal()
+                //     .find("button")
+                //     .contains("Link to")
+                //     .should("not.exist");
+                // cy.getActiveModal()
+                //     .find(".ant-card")
+                //     .contains("2")
+                //     .should("exist");
+                // cy.getActiveModal()
+                //     .find(".ant-card")
+                //     .find("button")
+                //     .should("not.exist");
+                // cy.get('button.ant-modal-close').click();
             });
 
             it(`Share GRID view : Virtual column validation > belongs to`, () => {
@@ -312,16 +315,17 @@ export const genTest = (apiType, dbType) => {
                 mainPage
                     .getCell("City", 1)
                     .click()
-                    .find("button.mdi-close-thick")
+                    .find(".nc-icon.nc-unlink-icon")
                     .should("not.exist");
+
                 mainPage
                     .getCell("City", 1)
                     .click()
-                    .find("button.mdi-arrow-expand")
+                    .find(".nc-icon.nc-action-icon.nc-arrow-expand")
                     .should("not.exist");
                 mainPage
                     .getCell("City", 1)
-                    .find(".v-chip")
+                    .find(".chips")
                     .contains("Kanchrapara")
                     .should("exist");
             });
@@ -331,39 +335,45 @@ export const genTest = (apiType, dbType) => {
                 mainPage
                     .getCell("Staff List", 1)
                     .click()
-                    .find("button.mdi-close-thick")
+                    .find(".nc-icon.nc-unlink-icon")
                     .should("not.exist");
                 mainPage
                     .getCell("Staff List", 1)
                     .click()
-                    .find("button.mdi-plus")
+                    .find(".nc-icon.nc-action-icon.nc-plus")
                     .should("not.exist");
-                mainPage
-                    .getCell("Staff List", 1)
-                    .click()
-                    .find("button.mdi-arrow-expand")
-                    .click();
 
-                cy.getActiveModal().find("button.mdi-reload").should("exist");
-                cy.getActiveModal()
-                    .find("button")
-                    .contains("Link to")
-                    .should("not.exist");
-                cy.get("body").type("{esc}");
+                mainPage
+                    .getCell("Staff List", 1)
+                    .click()
+                    .find(".nc-icon.nc-action-icon.nc-arrow-expand")
+                    .click({ force: true });
+
+                // // reload button
+                // Fix me : ncv2@fixme
+                // cy.getActiveModal().find(".nc-icon").should("exist");
+                // cy.getActiveModal()
+                //     .find("button")
+                //     .contains("Link to")
+                //     .should("not.exist");
+                // cy.get('button.ant-modal-close:visible').last().click();
             });
 
             it(`Delete ${viewType.toUpperCase()} view`, () => {
                 // go back to base page
-                cy.visit(storedURL, {
-                    baseUrl: null,
-                });
+                loginPage.loginAndOpenProject(apiType, dbType);
+                cy.openTableTab("Address", 25);
 
-                cy.wait(5000);
+                mainPage.toggleRightSidebar();
+                cy.wait(500);
+                cy.saveLocalStorage();
+                cy.wait(500);
 
                 // number of view entries should be 2 before we delete
                 cy.get(".nc-view-item").its("length").should("eq", 2);
 
                 cy.get(".nc-view-delete-icon").eq(0).click({ force: true });
+                cy.getActiveModal().find(".ant-btn-dangerous").click();
                 cy.toastWait("View deleted successfully");
 
                 // confirm if the number of veiw entries is reduced by 1
@@ -377,10 +387,13 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Grid view/ row-column update verification`, () => {
         before(() => {
+
+            cy.restoreLocalStorage();
+            cy.wait(500);
+
             // Address table has belongs to, has many & many-to-many
             cy.openTableTab("Country", 25);
 
-            cy.saveLocalStorage();
             // store base URL- to re-visit and delete form view later
             cy.url().then((url) => {
                 storedURL = url;
@@ -390,11 +403,18 @@ export const genTest = (apiType, dbType) => {
 
         after(() => {
             // close table
-            cy.restoreLocalStorage();
-            cy.visit(storedURL, {
-                baseUrl: null,
-            });
-            cy.wait(5000);
+            // cy.visit(storedURL, {
+            //     baseUrl: null,
+            // });
+            // cy.wait(5000);
+
+            loginPage.loginAndOpenProject(apiType, dbType);
+            cy.openTableTab("Country", 25)
+            cy.wait(500);
+            mainPage.toggleRightSidebar();
+            cy.wait(500);
+            cy.saveLocalStorage();
+            cy.wait(500);
 
             // delete row
             mainPage.getPagination(5).click();
@@ -403,22 +423,14 @@ export const genTest = (apiType, dbType) => {
 
             // wait for page rendering to complete
             cy.get(".nc-grid-row").should("have.length", 10);
-            mainPage
-                .getRow(10)
-                .find(".mdi-checkbox-blank-outline")
-                .click({ force: true });
             mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu().contains("Delete Selected Row").click();
+            cy.getActiveMenu()
+                .find('.ant-dropdown-menu-item:contains("Delete Row")')
+                .first()
+                .click();
 
             // delete column
-            cy.get(`th:contains('dummy') .mdi-menu-down`)
-                .trigger("mouseover")
-                .click();
-            cy.get(".nc-column-delete").click();
-            cy.get("button:contains(Confirm)").click();
-
-            cy.toastWait("Update table successful");
-
+            mainPage.deleteColumn("dummy");
             mainPage.deleteCreatedViews();
 
             // close table
@@ -426,27 +438,38 @@ export const genTest = (apiType, dbType) => {
         });
 
         it(`Generate default Shared GRID view URL`, () => {
-            // add row
-            cy.get(".nc-add-new-row-btn").click({ force: true });
-            cy.get("#data-table-form-Country > input")
-                .first()
-                .click()
-                .type("a");
-            cy.contains("Save row").filter("button").click({ force: true });
-            cy.toastWait("updated successfully");
 
+            cy.restoreLocalStorage();
+            cy.wait(500);
+
+            // add row
+            cy.get(".nc-add-new-row-btn").click();
+            cy.get(".nc-expand-col-Country").find(".nc-cell > input")
+                .should("exist")
+                .first()
+                .clear({ force: true })
+                .type("a");
+            cy.getActiveDrawer()
+                .find("button")
+                .contains("Save row")
+                .click();
+            cy.toastWait("updated successfully");
+            cy.getActiveDrawer()
+                .find("button")
+                .contains("Cancel")
+                .click();
             // add column
             mainPage.addColumn("dummy", "Country");
 
+            cy.signOut();
+
             // visit public view
             cy.log(viewURL["rowColUpdate"]);
-            cy.restoreLocalStorage();
             cy.visit(viewURL["rowColUpdate"], {
                 baseUrl: null,
             });
             cy.wait(5000);
 
-            //5
             // wait for public view page to load!
             // wait for page rendering to complete
             cy.get(".nc-grid-row").should("have.length", 25);
@@ -454,15 +477,16 @@ export const genTest = (apiType, dbType) => {
 
         it(`Share GRID view : new row visible`, () => {
             // verify row
-            cy.get(`.v-pagination > li:contains('5') button`).click();
+            // cy.get(`.v-pagination > li:contains('5') button`).click();
+            cy.get(`.nc-pagination > .ant-pagination-item.ant-pagination-item-5`).click();
             // wait for page rendering to complete
             cy.get(".nc-grid-row").should("have.length", 10);
             mainPage.getCell("Country", 10).contains("a").should("exist");
         });
 
-        it.skip(`Share GRID view : new column visible`, () => {
+        it(`Share GRID view : new column visible`, () => {
             // verify column headers
-            cy.get('[data-col="dummy"]').should("exist");
+            cy.get('[data-title="dummy"]').should("exist");
         });
     });
 };

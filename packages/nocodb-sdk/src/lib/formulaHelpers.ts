@@ -129,6 +129,7 @@ export function jsepTreeToFormula(node) {
       'AVG',
       'ADD',
       'DATEADD',
+      'WEEKDAY',
       'AND',
       'OR',
       'CONCAT',

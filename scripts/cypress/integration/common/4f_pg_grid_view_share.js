@@ -45,6 +45,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             // open a table to work on views
             //
@@ -371,6 +372,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Grid view/ row-column update verification`, () => {
         before(() => {
+            cy.fileHook();
             // Address table has belongs to, has many & many-to-many
             cy.openTableTab("Country", 25);
 
@@ -421,7 +423,7 @@ export const genTest = (apiType, dbType) => {
 
         it(`Generate default Shared GRID view URL`, () => {
             // add row
-            cy.get(".nc-add-new-row-btn").click({ force: true });
+            cy.get(".nc-add-new-row-btn").click();
             cy.get("#data-table-form-Country > input")
                 .first()
                 .click()

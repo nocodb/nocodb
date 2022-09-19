@@ -11,12 +11,15 @@
 
 export interface UserType {
   /** Unique identifier for the given user. */
-  id: number;
+  id: string;
   firstname: string;
   lastname: string;
 
   /** @format email */
   email: string;
+
+  /** @format email */
+  roles?: string;
 
   /**
    * @format date
@@ -118,15 +121,21 @@ export interface TableType {
   columns?: ColumnType[];
   columnsById?: object;
   slug?: string;
+  project_id?: string;
 }
 
 export interface ViewType {
   id?: string;
-  title?: string;
+  title: string;
   deleted?: boolean;
   order?: number;
   fk_model_id?: string;
   slug?: string;
+  uuid?: string;
+  show_system_fields?: boolean;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+  type?: number;
+  view?: FormType | GridType | GalleryType;
 }
 
 export interface TableInfoType {
@@ -162,7 +171,8 @@ export interface TableReqType {
   pinned?: boolean;
   deleted?: boolean;
   order?: number;
-  columns?: ColumnType[];
+  mm?: boolean;
+  columns: ColumnType[];
 }
 
 export interface TableListType {
@@ -233,12 +243,14 @@ export interface ColumnType {
   deleted?: boolean;
   visible?: boolean;
   order?: number;
+  system?: number | boolean;
+  meta?: any;
   colOptions?:
     | LinkToAnotherRecordType
     | FormulaType
     | RollupType
     | LookupType
-    | SelectOptionsType[]
+    | SelectOptionsType
     | object;
 }
 
@@ -293,14 +305,17 @@ export interface FormulaType {
   virtual?: boolean;
   fk_column_id?: string;
   formula?: string;
+  formula_raw?: string;
   deleted?: string;
   order?: string;
 }
 
 export interface SelectOptionsType {
+  options: SelectOptionType;
+}
+
+export interface SelectOptionType {
   id?: string;
-  type?: string;
-  virtual?: boolean;
   fk_column_id?: string;
   title?: string;
   color?: string;
@@ -313,6 +328,7 @@ export interface GridType {
   alias?: string;
   deleted?: boolean;
   order?: number;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
 export interface GalleryType {
@@ -331,6 +347,7 @@ export interface GalleryType {
   columns?: GalleryColumnType[];
   fk_model_id?: string;
   fk_cover_image_col_id?: string;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
 export interface GalleryColumnType {
@@ -373,15 +390,17 @@ export interface FormType {
   title?: string;
   heading?: string;
   subheading?: string;
-  sucess_msg?: string;
+  success_msg?: string;
   redirect_url?: string;
   redirect_after_secs?: string;
   email?: string;
   banner_image_url?: string;
   logo_url?: string;
   submit_another_form?: boolean;
+  show_blank_form?: boolean;
   columns?: FormColumnType[];
   fk_model_id?: string;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
 export interface FormColumnType {
@@ -426,7 +445,7 @@ export interface SharedViewListType {
 }
 
 export interface ViewListType {
-  list?: GridType | FormType | KanbanType | GalleryType;
+  list?: ViewType[];
   pageInfo?: PaginatedType;
 }
 
@@ -495,7 +514,7 @@ export interface PluginType {
   tags?: string;
   category?: string;
   input_schema?: string;
-  input?: string;
+  input?: string | null;
   creator?: string;
   creator_website?: string;
   price?: string;
@@ -651,10 +670,7 @@ export interface FullRequestParams
   body?: unknown;
 }
 
-export type RequestParams = Omit<
-  FullRequestParams,
-  'body' | 'method' | 'query' | 'path'
->;
+export type RequestParams = Omit<FullRequestParams, 'body' | 'method' | 'path'>;
 
 export interface ApiConfig<SecurityDataType = unknown>
   extends Omit<AxiosRequestConfig, 'data' | 'cancelToken'> {
@@ -724,6 +740,7 @@ export class HttpClient<SecurityDataType = unknown> {
         formData.append(key, property);
       } else if (typeof property === 'object' && property !== null) {
         if (Array.isArray(property)) {
+          // eslint-disable-next-line functional/no-loop-statement
           for (const prop of property) {
             formData.append(`${key}[]`, prop);
           }
@@ -1074,14 +1091,11 @@ export class Api<
     projectUserResendInvite: (
       projectId: string,
       userId: string,
-      data: any,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/meta/projects/${projectId}/users/${userId}/resend-invite`,
         method: 'POST',
-        body: data,
-        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -1260,10 +1274,10 @@ export class Api<
      * @tags Project
      * @name SharedBaseGet
      * @request GET:/api/v1/db/meta/projects/{projectId}/shared
-     * @response `200` `{ uuid?: string, url?: string }` OK
+     * @response `200` `{ uuid?: string, url?: string, roles?: string }` OK
      */
     sharedBaseGet: (projectId: string, params: RequestParams = {}) =>
-      this.request<{ uuid?: string; url?: string }, any>({
+      this.request<{ uuid?: string; url?: string; roles?: string }, any>({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'GET',
         format: 'json',
@@ -1291,14 +1305,14 @@ export class Api<
      * @tags Project
      * @name SharedBaseCreate
      * @request POST:/api/v1/db/meta/projects/{projectId}/shared
-     * @response `200` `{ url?: string, uuid?: string }` OK
+     * @response `200` `{ uuid?: string, url?: string, roles?: string }` OK
      */
     sharedBaseCreate: (
       projectId: string,
       data: { roles?: string; password?: string },
       params: RequestParams = {}
     ) =>
-      this.request<{ url?: string; uuid?: string }, any>({
+      this.request<{ uuid?: string; url?: string; roles?: string }, any>({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'POST',
         body: data,
@@ -1313,18 +1327,19 @@ export class Api<
      * @tags Project
      * @name SharedBaseUpdate
      * @request PATCH:/api/v1/db/meta/projects/{projectId}/shared
-     * @response `200` `void` OK
+     * @response `200` `{ uuid?: string, url?: string, roles?: string }` OK
      */
     sharedBaseUpdate: (
       projectId: string,
       data: { roles?: string; password?: string },
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<{ uuid?: string; url?: string; roles?: string }, any>({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -1472,7 +1487,7 @@ export class Api<
      */
     update: (
       tableId: string,
-      data: { title?: string },
+      data: { table_name?: string; project_id?: string },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -1509,7 +1524,7 @@ export class Api<
      */
     reorder: (
       tableId: string,
-      data: { order?: string },
+      data: { order?: number },
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -1623,7 +1638,7 @@ export class Api<
     update: (
       viewId: string,
       data: {
-        order?: string;
+        order?: number;
         title?: string;
         show_system_fields?: boolean;
         lock_type?: 'collaborative' | 'locked' | 'personal';
@@ -1925,7 +1940,7 @@ export class Api<
      */
     update: (
       viewId: string,
-      data: { password?: string },
+      data: { password?: string; meta?: any },
       params: RequestParams = {}
     ) =>
       this.request<SharedViewType, any>({
@@ -2013,10 +2028,10 @@ export class Api<
      * @tags DB table sort
      * @name List
      * @request GET:/api/v1/db/meta/views/{viewId}/sorts
-     * @response `200` `{ uuid?: string, url?: string }` OK
+     * @response `200` `{ sorts?: { list?: (SortType)[] } }` OK
      */
     list: (viewId: string, params: RequestParams = {}) =>
-      this.request<{ uuid?: string; url?: string }, any>({
+      this.request<{ sorts?: { list?: SortType[] } }, any>({
         path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'GET',
         format: 'json',
@@ -2095,12 +2110,13 @@ export class Api<
      * @tags DB table filter
      * @name Read
      * @request GET:/api/v1/db/meta/views/{viewId}/filters
-     * @response `200` `FilterListType`
+     * @response `200` `(FilterType)[]` OK
      */
     read: (viewId: string, params: RequestParams = {}) =>
-      this.request<FilterListType, any>({
+      this.request<FilterType[], any>({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -2110,14 +2126,15 @@ export class Api<
      * @tags DB table filter
      * @name Create
      * @request POST:/api/v1/db/meta/views/{viewId}/filters
-     * @response `200` `void` OK
+     * @response `200` `FilterType` OK
      */
     create: (viewId: string, data: FilterType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<FilterType, any>({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -2175,10 +2192,10 @@ export class Api<
      * @tags DB table filter
      * @name ChildrenRead
      * @request GET:/api/v1/db/meta/filters/{filterGroupId}/children
-     * @response `200` `FilterType` OK
+     * @response `200` `(FilterType)[]` OK
      */
     childrenRead: (filterGroupId: string, params: RequestParams = {}) =>
-      this.request<FilterType, any>({
+      this.request<FilterType[], any>({
         path: `/api/v1/db/meta/filters/${filterGroupId}/children`,
         method: 'GET',
         format: 'json',
@@ -2378,7 +2395,7 @@ export class Api<
      * @name Delete
      * @summary Table row delete
      * @request DELETE:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
-     * @response `200` `void` OK
+     * @response `200` `any` OK
      */
     delete: (
       orgs: string,
@@ -2387,9 +2404,10 @@ export class Api<
       rowId: string,
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<any, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'DELETE',
+        format: 'json',
         ...params,
       }),
 
@@ -2580,7 +2598,11 @@ export class Api<
       rowId: string,
       relationType: 'mm' | 'hm',
       columnName: string,
-      query?: { limit?: string; offset?: string },
+      query?: {
+        limit?: string | number;
+        offset?: string | number;
+        where?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -2661,7 +2683,11 @@ export class Api<
       rowId: string,
       relationType: 'mm' | 'hm',
       columnName: string,
-      query?: { limit?: string; offset?: string },
+      query?: {
+        limit?: string | number;
+        offset?: string | number;
+        where?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -3038,22 +3064,6 @@ export class Api<
       }),
 
     /**
-     * No description
-     *
-     * @tags Public
-     * @name SharedViewMetaGet
-     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/meta
-     * @response `200` `object` OK
-     */
-    sharedViewMetaGet: (sharedViewUuid: string, params: RequestParams = {}) =>
-      this.request<object, any>({
-        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/meta`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
      * @description Read project details
      *
      * @tags Public
@@ -3064,6 +3074,31 @@ export class Api<
     sharedBaseGet: (sharedBaseUuid: string, params: RequestParams = {}) =>
       this.request<{ project_id?: string }, any>({
         path: `/api/v1/db/public/shared-base/${sharedBaseUuid}/meta`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
+     * @name SharedViewMetaGet
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/meta
+     * @response `200` `(ViewType & { relatedMetas?: any, client?: string, columns?: ((GridColumnType | FormColumnType | GalleryColumnType) & ColumnType), model?: TableType } & { view?: (FormType | GridType | GalleryType) })` OK
+     */
+    sharedViewMetaGet: (sharedViewUuid: string, params: RequestParams = {}) =>
+      this.request<
+        ViewType & {
+          relatedMetas?: any;
+          client?: string;
+          columns?: (GridColumnType | FormColumnType | GalleryColumnType) &
+            ColumnType;
+          model?: TableType;
+        } & { view?: FormType | GridType | GalleryType },
+        any
+      >({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/meta`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3099,7 +3134,7 @@ export class Api<
      * @response `200` `void` OK
      */
     commentRow: (
-      data: { row_id: string; fk_model_id: string; comment: string },
+      data: { row_id: string; fk_model_id: string; description?: string },
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -3172,6 +3207,22 @@ export class Api<
         body: data,
         type: ContentType.Json,
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Utils
+     * @name UrlToConfig
+     * @request POST:/api/v1/url_to_config
+     */
+    urlToConfig: (data: any, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/url_to_config`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 

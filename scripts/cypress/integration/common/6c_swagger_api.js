@@ -8,6 +8,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} : API List - Test preparation`, () => {
         before(() => {
+            cy.fileHook();
             loginPage.loginAndOpenProject(apiType, dbType);
         });
 
@@ -39,6 +40,10 @@ export const genTest = (apiType, dbType) => {
 
     if ("rest" == apiType) {
         describe(`Swagger page, base verification`, () => {
+            before(() => {
+                cy.fileHook();
+            })
+
             // returns swagger button intended for
             //
             const getSwaggerButton = (tag, idx, desc) => {

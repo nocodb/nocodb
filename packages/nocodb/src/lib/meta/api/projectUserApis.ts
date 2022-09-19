@@ -285,7 +285,7 @@ async function sendInviteEmail(
         html: ejs.render(template, {
           signupLink: `${req.ncSiteUrl}${
             Noco.getConfig()?.dashboardPath
-          }#/user/authentication/signup/${token}`,
+          }#/signup/${token}`,
           projectName: req.body?.projectName,
           roles: (req.body?.roles || '')
             .split(',')

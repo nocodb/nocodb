@@ -3,7 +3,7 @@ import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import { FormColumnType } from 'nocodb-sdk';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
-import extractProps from '../meta/helpers/extractProps';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class FormViewColumn implements FormColumnType {
   id?: string;
@@ -76,11 +76,19 @@ export default class FormViewColumn implements FormColumnType {
 
     await NocoCache.set(`${CacheScope.FORM_VIEW_COLUMN}:${fk_column_id}`, id);
 
-    await NocoCache.appendToList(
-      CacheScope.FORM_VIEW_COLUMN,
-      [column.fk_view_id],
-      `${CacheScope.FORM_VIEW_COLUMN}:${id}`
-    );
+    // if cache is not present skip pushing it into the list to avoid unexpected behaviour
+    if (
+      (
+        await NocoCache.getList(CacheScope.FORM_VIEW_COLUMN, [
+          column.fk_view_id,
+        ])
+      )?.length
+    )
+      await NocoCache.appendToList(
+        CacheScope.FORM_VIEW_COLUMN,
+        [column.fk_view_id],
+        `${CacheScope.FORM_VIEW_COLUMN}:${id}`
+      );
     return this.get(id, ncMeta);
   }
 

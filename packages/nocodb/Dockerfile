@@ -47,6 +47,7 @@ FROM alpine:3.12
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER 0.6
+ENV NODE_ENV production
 ENV PORT 8080
 ENV NC_TOOL_DIR=/usr/app/data/
 

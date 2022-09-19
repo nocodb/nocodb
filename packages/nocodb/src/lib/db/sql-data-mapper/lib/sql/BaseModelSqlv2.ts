@@ -992,7 +992,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    const data = await this.extractRawQueryAndExec(qb);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1031,7 +1031,8 @@ class BaseModelSqlv2 {
             .select(cn)
             // .where(childTable.primaryKey.cn, cid)
             .where(_wherePk(childTable.primaryKeys, cid))
-        ).orWhereNull(rcn);
+            .whereNotNull(cn)
+        );
       })
       .count(`*`, { as: 'count' });
 
@@ -1093,7 +1094,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    const data = await this.extractRawQueryAndExec(qb);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1583,9 +1584,9 @@ class BaseModelSqlv2 {
           switch (colOptions.type) {
             case RelationTypes.BELONGS_TO:
               {
-                const parentCol = await colOptions.getChildColumn();
-                insertObj[parentCol.column_name] =
-                  nestedData?.[parentCol.title];
+                const childCol = await colOptions.getChildColumn();
+                const parentCol = await colOptions.getParentColumn();
+                insertObj[childCol.column_name] = nestedData?.[parentCol.title];
               }
               break;
             case RelationTypes.HAS_MANY:
@@ -2014,6 +2015,46 @@ class BaseModelSqlv2 {
     if (hookName === 'After.insert' && view.type === ViewTypes.FORM) {
       try {
         const formView = await view.getView<FormView>();
+        const { columns } = await FormView.getWithInfo(formView.fk_view_id);
+        const allColumns = await this.model.getColumns();
+        const fieldById = columns.reduce(
+          (o: Record<string, any>, f: Record<string, any>) => ({
+            ...o,
+            [f.fk_column_id]: f,
+          }),
+          {}
+        );
+        let order = 1;
+        const filteredColumns = allColumns
+          ?.map((c: Record<string, any>) => ({
+            ...c,
+            fk_column_id: c.id,
+            fk_view_id: formView.fk_view_id,
+            ...(fieldById[c.id] ? fieldById[c.id] : {}),
+            order: (fieldById[c.id] && fieldById[c.id].order) || order++,
+            id: fieldById[c.id] && fieldById[c.id].id,
+          }))
+          .sort(
+            (a: Record<string, any>, b: Record<string, any>) =>
+              a.order - b.order
+          )
+          .filter(
+            (f: Record<string, any>) =>
+              f.show &&
+              f.uidt !== UITypes.Rollup &&
+              f.uidt !== UITypes.Lookup &&
+              f.uidt !== UITypes.Formula &&
+              f.uidt !== UITypes.SpecificDBType
+          )
+          .sort(
+            (a: Record<string, any>, b: Record<string, any>) =>
+              a.order - b.order
+          )
+          .map((c: Record<string, any>) => ({
+            ...c,
+            required: !!(c.required || 0),
+          }));
+
         const emails = Object.entries(JSON.parse(formView?.email) || {})
           .filter((a) => a[1])
           .map((a) => a[0]);
@@ -2021,9 +2062,8 @@ class BaseModelSqlv2 {
           const transformedData = _transformSubmittedFormDataForEmail(
             data,
             formView,
-            await this.model.getColumns()
+            filteredColumns
           );
-          // todo: notification template
           (await NcPluginMgrv2.emailAdapter())?.mailSend({
             to: emails.join(','),
             subject: 'NocoDB Form',

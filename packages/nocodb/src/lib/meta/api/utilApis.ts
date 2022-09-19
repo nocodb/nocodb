@@ -4,10 +4,17 @@ import { Request, Response } from 'express';
 import { packageVersion } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2';
-import { defaultConnectionConfig } from '../../utils/NcConfigFactory';
+import NcConfigFactory, {
+  defaultConnectionConfig,
+} from '../../utils/NcConfigFactory';
 import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
+
+const versionCache = {
+  releaseVersion: null,
+  lastFetched: null,
+};
 
 export async function testConnection(req: Request, res: Response) {
   res.json(await SqlMgrv2.testConnection(req.body));
@@ -49,29 +56,43 @@ export async function appInfo(req: Request, res: Response) {
 }
 
 export async function versionInfo(_req: Request, res: Response) {
-  const result = await axios
-    .get('https://github.com/nocodb/nocodb/releases/latest')
-    .then((response) => {
-      return {
-        currentVersion: packageVersion,
-        releaseVersion: response.request.res.responseUrl.replace(
+  if (
+    !versionCache.lastFetched ||
+    (versionCache.lastFetched &&
+      versionCache.lastFetched < Date.now() - 1000 * 60 * 60)
+  ) {
+    versionCache.releaseVersion = await axios
+      .get('https://github.com/nocodb/nocodb/releases/latest', {
+        timeout: 5000,
+      })
+      .then((response) =>
+        response.request.res.responseUrl.replace(
           'https://github.com/nocodb/nocodb/releases/tag/',
           ''
-        ),
-      };
-    });
+        )
+      )
+      .catch(() => null);
+    versionCache.lastFetched = Date.now();
+  }
 
-  res.json(result);
+  const response = {
+    currentVersion: packageVersion,
+    releaseVersion: versionCache.releaseVersion,
+  };
+
+  res.json(response);
 }
 
 export async function feedbackFormGet(_req: Request, res: Response) {
   axios
-    .get('https://nocodb.com/api/v1/feedback_form')
+    .get('https://nocodb.com/api/v1/feedback_form', {
+      timeout: 5000,
+    })
     .then((response) => {
       res.json(response.data);
     })
     .catch((e) => {
-      res.status(500).json({ error: e.message });
+      res.json({ error: e.message });
     });
 }
 
@@ -150,6 +171,17 @@ export async function axiosRequestMake(req: Request, res: Response) {
   return await _axiosRequestMake(req, res);
 }
 
+export async function urlToDbConfig(req: Request, res: Response) {
+  const { url } = req.body;
+  try {
+    let connectionConfig;
+    connectionConfig = NcConfigFactory.extractXcUrlFromJdbc(url, true);
+    return res.json(connectionConfig);
+  } catch (error) {
+    return res.sendStatus(500);
+  }
+}
+
 export default (router) => {
   router.post(
     '/api/v1/db/meta/connection/test',
@@ -160,4 +192,5 @@ export default (router) => {
   router.get('/api/v1/version', catchError(versionInfo));
   router.get('/api/v1/health', catchError(appHealth));
   router.get('/api/v1/feedback_form', catchError(feedbackFormGet));
+  router.post('/api/v1/url_to_config', catchError(urlToDbConfig));
 };

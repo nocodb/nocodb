@@ -63,6 +63,8 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
     this.timeout(10000);
     (async () => {
       const server = express();
+      server.enable('trust proxy');
+
 
       server.use(await Noco.init({}));
       app = server;

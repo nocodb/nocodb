@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.92.3-finn.0",
+  "version": "0.96.3-finn.0",
   "description": "NocoDB",
   "main": "dist/bundle.js",
   "repository": "https://github.com/finn-auto/nocodb",
@@ -55,7 +55,7 @@
     "postbuild": "npm run copy-files",
     "copy-files": "copyfiles -u 1 \"src/**/*.ejs\" build/main && copyfiles -u 1 \"src/**/*.ejs\" build/module && copyfiles -u 1 \"src/**/*.ejs\" docker",
     "docker:build": "EE=\"true-xc-test\" webpack  --config docker/webpack.config.js",
-    "docker:image:build": "docker build . -t nocodb/nocodb:latest -t nocodb/nocodb:0.10.0 --no-cache",
+    "docker:image:build": "docker build . -t nocodb/nocodb-test:latest -t nocodb/nocodb-test:0.10.0 --no-cache",
     "docker:image:buildx": "docker buildx build . --platform linux/arm64 -t nocodb/nocodb:arm64 --no-cache",
     "docker:image:deploy": "docker push nocodb/nocodb:latest && docker push  nocodb/nocodb:0.10.0",
     "docker:build:publish:image": "npm run build && npm run docker:build && npm run docker:image:build",
@@ -158,11 +158,11 @@
     "mysql2": "^2.2.5",
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
-    "nc-help": "0.2.67",
-    "nc-lib-gui": "file:nc-lib-gui-0.92.42.tgz",
+    "nc-help": "0.2.68",
+    "nc-lib-gui": "file:nc-lib-gui-0.96.3.tgz",
     "nc-plugin": "0.1.2",
     "ncp": "^2.0.0",
-    "nocodb-sdk": "^0.92.0",
+    "nocodb-sdk": "0.96.3",
     "nodemailer": "^6.4.10",
     "object-hash": "^3.0.0",
     "ora": "^4.0.4",
@@ -188,7 +188,8 @@
     "unique-names-generator": "^4.3.1",
     "uuid": "^8.2.0",
     "validator": "^13.1.1",
-    "xc-core-ts": "^0.1.0"
+    "xc-core-ts": "^0.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@bitjson/npm-scripts-info": "^1.0.0",

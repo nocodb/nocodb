@@ -1,8 +1,8 @@
 import { isString } from '@vueuse/core'
-import { computed, ref, useApi, useGlobal, useInjectionState } from '#imports'
+import { computed, createSharedComposable, ref, useApi, useGlobal } from '#imports'
 import type { ProjectRole, Role, Roles } from '~/lib'
 
-const [setup, use] = useInjectionState(() => {
+export const useRoles = createSharedComposable(() => {
   const { user } = useGlobal()
 
   const { api } = useApi()
@@ -49,14 +49,4 @@ const [setup, use] = useInjectionState(() => {
   }))
 
   return { allRoles, userRoles, projectRoles, loadProjectRoles }
-}, 'useRoles')
-
-export function useRoles() {
-  const roles = use()
-
-  if (!roles) {
-    return setup()
-  }
-
-  return roles
-}
+})

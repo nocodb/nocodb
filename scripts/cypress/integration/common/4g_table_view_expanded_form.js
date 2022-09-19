@@ -63,14 +63,15 @@ export const genTest = (apiType, dbType) => {
         }
         cy.url().should('include', 'rowId=1');
 
+        // spy on clipboard to verify copied text
+        cy.window().then((win) => {
+          cy.spy(win.navigator.clipboard, 'writeText').as('copy');
+        })
+
         // copy url
         cy.get('.nc-copy-row-url').click();
 
-        cy.window().then((win) => {
-          win.navigator.clipboard.readText().then((text) => {
-            expect(text).to.contains('?rowId=1');
-          });
-        });
+        cy.get('@copy').should('be.calledWithMatch', `?rowId=1`);
 
         cy.get('.nc-expand-form-close-btn').click();
 
@@ -79,20 +80,16 @@ export const genTest = (apiType, dbType) => {
       it(`Visit a ${viewType} row url and verify expanded form`, () => {
         cy.url()
           .then((url) => {
-            cy.restoreLocalStorage();
             cy.visit('/' + url.split('/').slice(3).join('/').split('?')[0] + '?rowId=2');
             cy.get('.nc-expanded-form-header').should('exist');
-            cy.saveLocalStorage();
           });
       });
 
       it(`Visit an invalid ${viewType} row url and verify expanded form`, () => {
         cy.url()
           .then((url) => {
-            cy.restoreLocalStorage();
             cy.visit('/' + url.split('/').slice(3).join('/').split('?')[0] + '?rowId=99999999');
             cy.get('.nc-expanded-form-header').should('not.exist');
-            cy.saveLocalStorage();
           });
       });
 

@@ -141,7 +141,7 @@ Cypress.Commands.add('refreshTableTab', () => {
     .first()
     .rightclick({ force: true });
 
-  cy.getActiveMenu(".nc-dropdown-tree-view-context-menu")
+  cy.getActiveMenu('.nc-dropdown-tree-view-context-menu')
     .find('[role="menuitem"]')
     .contains('Tables Refresh')
     .should('exist')
@@ -242,13 +242,16 @@ Cypress.Commands.add('saveLocalStorage', (name) => {
   cy.printLocalStorage();
 });
 
-Cypress.Commands.add('restoreLocalStorage', (name) => {
-    Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
-      localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key]);
-    });
+const restoreLocalStorage = () => {
+  Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
+    localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key]);
+  });
 
-    cy.printLocalStorage();
-});
+  cy.printLocalStorage();
+};
+
+Cypress.Commands.add('restoreLocalStorage', restoreLocalStorage);
+Cypress.on('window:before:load', restoreLocalStorage);
 
 Cypress.Commands.add('deleteLocalStorage', () => {
   Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
@@ -322,7 +325,7 @@ Cypress.Commands.add('createTable', (name) => {
 
 Cypress.Commands.add('deleteTable', (name, dbType) => {
   cy.get(`.nc-project-tree-tbl-${name}`).should('exist').rightclick();
-  cy.getActiveMenu(".nc-dropdown-tree-view-context-menu").find('[role="menuitem"]').contains('Delete').click();
+  cy.getActiveMenu('.nc-dropdown-tree-view-context-menu').find('[role="menuitem"]').contains('Delete').click();
   cy.getActiveModal().find('button').contains('Yes').click();
 
   cy.toastWait(`Deleted table successfully`);
@@ -337,16 +340,16 @@ Cypress.Commands.add('renameTable', (oldName, newName) => {
     .rightclick();
 
   // choose rename option from menu
-  cy.getActiveMenu(".nc-dropdown-tree-view-context-menu")
+  cy.getActiveMenu('.nc-dropdown-tree-view-context-menu')
     .find('[role="menuitem"]')
     .contains('Rename')
     .click({ force: true });
 
   // feed new name
-  cy.getActiveModal(".nc-modal-table-rename").find('input').clear().type(newName);
+  cy.getActiveModal('.nc-modal-table-rename').find('input').clear().type(newName);
 
   // submit
-  cy.getActiveModal(".nc-modal-table-rename").find('button').contains('Submit').click();
+  cy.getActiveModal('.nc-modal-table-rename').find('button').contains('Submit').click();
 
   cy.toastWait('Table renamed successfully');
 
@@ -475,7 +478,7 @@ Cypress.Commands.add('signOut', () => {
   cy.visit(`/`);
   cy.get('.nc-project-page-title', { timeout: 30000 }).contains('My Projects').should('be.visible');
   cy.get('.nc-menu-accounts', { timeout: 30000 }).should('exist').click();
-  cy.getActiveMenu(".nc-dropdown-user-accounts-menu").find('.ant-dropdown-menu-item').eq(1).click();
+  cy.getActiveMenu('.nc-dropdown-user-accounts-menu').find('.ant-dropdown-menu-item').eq(1).click();
 
   cy.wait(5000);
   cy.get('button:contains("SIGN")').should('exist');

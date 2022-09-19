@@ -49,7 +49,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** State */
   const initialState: StoredState = {
     token: null,
-    user: null,
     lang: preferredLanguage,
     darkMode: prefersDarkMode,
     feedbackForm: {
@@ -102,6 +101,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** global error */
   const error = ref()
 
+  /** our local user object */
+  const user = ref<User | null>(null)
+
   return {
     ...toRefs(storage.value),
     storage,
@@ -110,6 +112,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     timestamp,
     runningRequests,
     error,
+    user,
     appInfo,
   }
 }

@@ -264,8 +264,8 @@ onMounted(() => {
                             <a-card
                               hoverable
                               :data-stack="stack.title"
-                              class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
-                              body-style="padding: 10px 5px;"
+                              class="!rounded-lg h-full overflow-hidden break-all max-w-[450px] shadow-lg"
+                              body-style="padding: 10px;"
                               @click="expandFormClick($event, record)"
                             >
                               <div

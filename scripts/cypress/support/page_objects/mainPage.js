@@ -119,7 +119,7 @@ export class _mainPage {
 
         // opt-in requested role & submit
         // cy.getActiveSelection().contains(roleType).click({force: true});
-        cy.getActiveSelection().find('.nc-role-option').eq(roleIndex).should('exist').click()
+        cy.getActiveSelection('.nc-dropdown-user-role').find('.nc-role-option').eq(roleIndex).should('exist').click()
         cy.getActiveModal(".nc-modal-invite-user-and-share-base").find("button.ant-btn-primary").click();
 
         cy.toastWait("Successfully updated the user details");
@@ -204,7 +204,7 @@ export class _mainPage {
 
         // change column type and verify
         cy.get(".nc-column-type-input").last().click();
-        cy.getActiveSelection().find('.ant-select-item-option').contains(colType).click();
+        cy.getActiveSelection('.nc-dropdown-column-type').find('.ant-select-item-option').contains(colType).click();
         cy.get(".ant-btn-primary:visible").contains("Save").click();
 
         cy.toastWait(`Column created`);

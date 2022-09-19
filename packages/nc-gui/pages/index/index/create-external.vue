@@ -359,7 +359,12 @@ onMounted(() => {
       </a-form-item>
 
       <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
-        <a-select v-model:value="formState.dataSource.client" class="nc-extdb-db-type" @change="onClientChange">
+        <a-select
+          v-model:value="formState.dataSource.client"
+          class="nc-extdb-db-type"
+          dropdown-class-name="nc-dropdown-ext-db-type"
+          @change="onClientChange"
+        >
           <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
             >{{ client.text }}
           </a-select-option>
@@ -433,7 +438,7 @@ onMounted(() => {
               </div>
             </template>
             <a-form-item label="SSL mode">
-              <a-select v-model:value="formState.sslUse" @select="onSSLModeChange">
+              <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
                 <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
               </a-select>
             </a-form-item>
@@ -505,13 +510,19 @@ onMounted(() => {
             <a-divider />
 
             <a-form-item :label="$t('labels.inflection.tableName')">
-              <a-select v-model:value="formState.inflection.inflectionTable">
+              <a-select
+                v-model:value="formState.inflection.inflectionTable"
+                dropdown-class-name="nc-dropdown-inflection-table-name"
+              >
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
 
             <a-form-item :label="$t('labels.inflection.columnName')">
-              <a-select v-model:value="formState.inflection.inflectionColumn">
+              <a-select
+                v-model:value="formState.inflection.inflectionColumn"
+                dropdown-class-name="nc-dropdown-inflection-column-name"
+              >
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>

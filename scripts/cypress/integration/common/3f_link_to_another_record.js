@@ -40,7 +40,7 @@ export const genTest = (apiType, dbType) => {
       cy.get(".nc-column-type-input").last()
         .click()
         .type("Link");
-      cy.getActiveSelection()
+      cy.getActiveSelection('.nc-dropdown-column-type')
         .find('.ant-select-item-option')
         .contains("LinkToAnotherRecord").click();
 
@@ -56,7 +56,7 @@ export const genTest = (apiType, dbType) => {
         .last()
         .click()
         .type(foreignTable);
-      cy.getActiveSelection()
+      cy.getActiveSelection('.nc-dropdown-ltar-child-table')
         .find('.ant-select-item-option')
         .contains(foreignTable)
         .click();

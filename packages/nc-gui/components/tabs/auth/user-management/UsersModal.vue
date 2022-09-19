@@ -221,7 +221,7 @@ const clickInviteMore = () => {
                 <div class="flex flex-col w-1/4">
                   <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
-                    <a-select v-model:value="usersData.role" class="nc-user-roles">
+                    <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
                       <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
                         <div class="flex flex-row h-full justify-start items-center">
                           <div

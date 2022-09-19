@@ -134,6 +134,7 @@ watch(isOpen, (n, _o) => {
     :show-search="false"
     :open="isOpen"
     :disabled="readOnly"
+    dropdown-class-name="nc-dropdown-multi-select-cell"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"
   >

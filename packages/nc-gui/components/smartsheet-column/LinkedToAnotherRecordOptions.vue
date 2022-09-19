@@ -66,6 +66,7 @@ const refTables = $computed(() => {
           v-model:value="vModel.childId"
           show-search
           :filter-option="(value, option) => option.key.toLowerCase().includes(value.toLowerCase())"
+          dropdown-class-name="nc-dropdown-ltar-child-table"
           @change="onDataTypeChange"
         >
           <a-select-option v-for="table in refTables" :key="table.title" :value="table.id">
@@ -86,14 +87,26 @@ const refTables = $computed(() => {
     <div v-if="advancedOptions" class="flex flex-col p-6 gap-4 border-2 mt-2">
       <div class="flex flex-row space-x-2">
         <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
-          <a-select v-model:value="vModel.onUpdate" :disabled="vModel.virtual" name="onUpdate" @change="onDataTypeChange">
+          <a-select
+            v-model:value="vModel.onUpdate"
+            :disabled="vModel.virtual"
+            name="onUpdate"
+            dropdown-class-name="nc-dropdown-on-update"
+            @change="onDataTypeChange"
+          >
             <a-select-option v-for="(option, index) in onUpdateDeleteOptions" :key="index" :value="option">
               {{ option }}
             </a-select-option>
           </a-select>
         </a-form-item>
         <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')">
-          <a-select v-model:value="vModel.onDelete" :disabled="vModel.virtual" name="onDelete" @change="onDataTypeChange">
+          <a-select
+            v-model:value="vModel.onDelete"
+            :disabled="vModel.virtual"
+            name="onDelete"
+            dropdown-class-name="nc-dropdown-on-delete"
+            @change="onDataTypeChange"
+          >
             <a-select-option v-for="(option, index) in onUpdateDeleteOptions" :key="index" :value="option">
               {{ option }}
             </a-select-option>

@@ -21,7 +21,7 @@ if (!vModel.value.meta?.precision) vModel.value.meta.precision = precisions[0].i
   <div class="flex flex-col mt-2 gap-2">
     <div class="flex flex-row space-x-2">
       <a-form-item class="flex w-1/2" label="Precision">
-        <a-select v-model:value="vModel.meta.precision">
+        <a-select v-model:value="vModel.meta.precision" dropdown-class-name="nc-dropdown-precision">
           <a-select-option v-for="(precision, i) of precisions" :key="i" :value="precision.id">
             <div class="flex flex-row items-center">
               <div class="text-xs">

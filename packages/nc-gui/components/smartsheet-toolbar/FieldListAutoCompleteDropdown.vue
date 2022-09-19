@@ -57,6 +57,7 @@ const filterOption = (input: string, option: any) => {
     show-search
     :placeholder="$t('placeholder.selectField')"
     :filter-option="filterOption"
+    dropdown-class-name="nc-dropdown-toolbar-field-list"
   >
     <a-select-option v-for="option in options" :key="option.value" :value="option.value">
       <div class="flex gap-2 items-center items-center h-full">

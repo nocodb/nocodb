@@ -30,7 +30,7 @@ vModel.value.meta = {
     </a-col>
     <a-col :span="24">
       <a-form-item label="Duration Format">
-        <a-select v-model:value="vModel.meta.duration" class="w-52">
+        <a-select v-model:value="vModel.meta.duration" class="w-52" dropdown-class-name="nc-dropdown-duration-option">
           <a-select-option v-for="(duration, i) of durationOptionList" :key="i" :value="duration.id">
             {{ duration.title }}
           </a-select-option>

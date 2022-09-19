@@ -58,7 +58,7 @@ export const genTest = (apiType, dbType) => {
               .clear()
               .type(columnName);
             cy.get(".nc-column-type-input").last().click().type("Formula");
-            cy.getActiveSelection().find('.ant-select-item-option').contains("Formula").click();
+            cy.getActiveSelection('.nc-dropdown-column-type').find('.ant-select-item-option').contains("Formula").click();
             cy.get('textarea.nc-formula-input').click().type(formula, { parseSpecialCharSequences: false });
             cy.get(".ant-btn-primary").contains("Save").should('exist').click();
 

@@ -40,14 +40,14 @@ export function useUIPermission() {
   }
 
   const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
-    let hasPreviewPermission = false
     if (previewAs.value && !skipPreviewAs) {
-      hasPreviewPermission = hasPermission(previewAs.value, true, permission)
+      const hasPreviewPermission = hasPermission(previewAs.value, true, permission)
+
+      if (hasPreviewPermission) return true
     }
 
-    return (
-      hasPreviewPermission ||
-      Object.entries(allRoles.value).some(([role, hasRole]) => hasPermission(role as Role | ProjectRole, hasRole, permission))
+    return Object.entries(allRoles.value).some(([role, hasRole]) =>
+      hasPermission(role as Role | ProjectRole, hasRole, permission),
     )
   }
 

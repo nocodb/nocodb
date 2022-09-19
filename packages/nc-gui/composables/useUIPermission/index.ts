@@ -1,7 +1,7 @@
 import { isString } from '@vueuse/core'
 import type { Permission } from './rolePermissions'
 import rolePermissions from './rolePermissions'
-import { USER_PROJECT_ROLES, computed, useGlobal, useState } from '#imports'
+import { USER_PROJECT_ROLES, useGlobal, useState } from '#imports'
 import type { ProjectRole, Role, Roles } from '~/lib'
 
 export function useUIPermission() {
@@ -9,7 +9,7 @@ export function useUIPermission() {
 
   const projectRoles = useState<Roles<ProjectRole>>(USER_PROJECT_ROLES, () => ({}))
 
-  const baseRoles = computed<Roles>(() => {
+  const allRoles = useState<Roles>('allRoles', () => {
     let userRoles = user.value?.roles
 
     // if string populate key-value paired object
@@ -28,7 +28,7 @@ export function useUIPermission() {
   })
 
   const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
-    let roles = baseRoles.value
+    let roles = { ...allRoles.value }
 
     if (previewAs.value && !skipPreviewAs) {
       roles = {

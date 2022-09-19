@@ -21,10 +21,11 @@ interface Props {
   parentId?: string
   autoSave: boolean
   hookId?: string
+  showLoading?: boolean
   modelValue?: Filter[]
 }
 
-const { nested = false, parentId, autoSave = true, hookId = null, modelValue } = defineProps<Props>()
+const { nested = false, parentId, autoSave = true, hookId = null, modelValue, showLoading = true } = defineProps<Props>()
 
 const emit = defineEmits(['update:filtersLength'])
 
@@ -46,9 +47,7 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGr
   activeView,
   parentId,
   computed(() => autoSave),
-  () => {
-    reloadDataHook.trigger()
-  },
+  () => reloadDataHook.trigger(showLoading),
   modelValue || nestedFilters.value,
   !modelValue,
 )
@@ -134,8 +133,8 @@ defineExpose({
 
 <template>
   <div
-    class="p-6 menu-filter-dropdown bg-gray-50 !border"
-    :class="{ 'shadow-xl min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
+    class="p-4 menu-filter-dropdown bg-gray-50 !border mt-4"
+    :class="{ 'shadow min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
   >
     <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
       <template v-for="(filter, i) in filters" :key="filter.id || i">

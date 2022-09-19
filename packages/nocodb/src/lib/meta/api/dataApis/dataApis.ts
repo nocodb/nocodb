@@ -494,6 +494,7 @@ async function relationDataDelete(req, res) {
     colId: req.params.colId,
     childId: req.params.childId,
     rowId: req.params.rowId,
+    cookie: req,
   });
 
   res.json({ msg: 'success' });
@@ -521,6 +522,7 @@ async function relationDataAdd(req, res) {
     colId: req.params.colId,
     childId: req.params.childId,
     rowId: req.params.rowId,
+    cookie: req,
   });
 
   res.json({ msg: 'success' });

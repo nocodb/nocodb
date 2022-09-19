@@ -513,7 +513,10 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)) {
           const dbDriver = NcConnectionMgrv2.get(base);
           const driverType = dbDriver.clientType();
-          const optionTitles = colBody.colOptions.options.map(el => el.title);
+          const optionTitles = colBody.colOptions.options.map(el => el.title.replace(/'/g, "''"));
+
+          // this is not used for select columns and cause issue for MySQL
+          colBody.dtxs = '';
           // Handle default values
           if (colBody.cdf) {
             if (colBody.uidt === UITypes.SingleSelect) {
@@ -551,13 +554,6 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             NcError.badRequest('Empty options are not allowed!');
           }
 
-          // Handle empty enum/set for mysql (we restrict empty user options beforehand)
-          if (driverType === 'mysql' || driverType === 'mysql2') {
-            if (!colBody.colOptions.options.length && (!colBody.dtxp || colBody.dtxp === '')) {
-              colBody.colOptions.options.push({ title: '' });
-            }
-          }
-
           // Trim end of enum/set
           if (colBody.dt === 'enum' || colBody.dt === 'set') {
             for (const opt of colBody.colOptions.options) {
@@ -578,6 +574,13 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
                   return `'${o.title.replace(/'/gi, '\'\'')}'`;
                 }).join(',')}`
               : '';
+          }
+
+          // Handle empty enum/set for mysql (we restrict empty user options beforehand)
+          if (driverType === 'mysql' || driverType === 'mysql2') {
+            if (!colBody.colOptions.options.length && (!colBody.dtxp || colBody.dtxp === '')) {
+              colBody.dtxp = '\'\'';
+            }
           }
         }
         
@@ -732,7 +735,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       dbDriver: NcConnectionMgrv2.get(base)
     });
 
-    if (column.colOptions?.options) {
+    if (colBody.colOptions?.options) {
       const supportedDrivers = ['mysql', 'mysql2', 'pg', 'mssql', 'sqlite3'];
       const dbDriver = NcConnectionMgrv2.get(base);
       const driverType = dbDriver.clientType();
@@ -751,12 +754,14 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       }
 
       // Handle migrations
-      for (const op of column.colOptions.options.filter(el => el.order === null)) {
-        op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+      if (column.colOptions?.options) {
+        for (const op of column.colOptions.options.filter(el => el.order === null)) {
+          op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+        }
       }
 
       // Handle default values
-      const optionTitles = colBody.colOptions.options.map(el => el.title);
+      const optionTitles = colBody.colOptions.options.map(el => el.title.replace(/'/g, "''"));
       if (colBody.cdf) {
         if (colBody.uidt === UITypes.SingleSelect) {
           if (!optionTitles.includes(colBody.cdf)) {
@@ -794,13 +799,6 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         NcError.badRequest('Empty options are not allowed!');
       }
 
-      // Handle empty enum/set for mysql (we restrict empty user options beforehand)
-      if (driverType === 'mysql' || driverType === 'mysql2') {
-        if (!colBody.colOptions.options.length && (!colBody.dtxp || colBody.dtxp === '')) {
-          colBody.dtxp = '\'\'';
-        }
-      }
-
       // Trim end of enum/set
       if (colBody.dt === 'enum' || colBody.dt === 'set') {
         for (const opt of colBody.colOptions.options) {
@@ -823,26 +821,35 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           : '';
       }
 
-      // Handle option delete
-      for (const option of column.colOptions.options.filter(oldOp => colBody.colOptions.options.find(newOp => newOp.id === oldOp.id) ? false : true)) {
-        if (!supportedDrivers.includes(driverType) && column.uidt === UITypes.MultiSelect) {
-          NcError.badRequest('Your database not yet supported for this operation. Please remove option from records manually before dropping.');
+      // Handle empty enum/set for mysql (we restrict empty user options beforehand)
+      if (driverType === 'mysql' || driverType === 'mysql2') {
+        if (!colBody.colOptions.options.length && (!colBody.dtxp || colBody.dtxp === '')) {
+          colBody.dtxp = '\'\'';
         }
-        if (column.uidt === UITypes.SingleSelect) { 
-          if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [table.table_name, column.column_name, column.column_name, option.title]);
-          } else {
-            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: null });
+      }
+
+      // Handle option delete
+      if (column.colOptions?.options) {
+        for (const option of column.colOptions.options.filter(oldOp => colBody.colOptions.options.find(newOp => newOp.id === oldOp.id) ? false : true)) {
+          if (!supportedDrivers.includes(driverType) && column.uidt === UITypes.MultiSelect) {
+            NcError.badRequest('Your database not yet supported for this operation. Please remove option from records manually before dropping.');
           }
-        } else if (column.uidt === UITypes.MultiSelect) {
-          if (driverType === 'mysql' || driverType === 'mysql2') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.column_name, column.column_name, option.title, option.title, column.column_name]);
-          } else if (driverType === 'pg') {
-            await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_remove(string_to_array(??, ','), ?), ',')`, [table.table_name, column.column_name, column.column_name, option.title]);
-          } else if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), ','), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), ',')) - 2)`, [table.table_name, column.column_name, column.column_name, option.title, column.column_name, option.title]);
-          } else if (driverType === 'sqlite3') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`, [table.table_name, column.column_name, column.column_name, option.title]);
+          if (column.uidt === UITypes.SingleSelect) { 
+            if (driverType === 'mssql') {
+              await dbDriver.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [table.table_name, column.column_name, column.column_name, option.title]);
+            } else {
+              await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: null }, { cookie: req});
+            }
+          } else if (column.uidt === UITypes.MultiSelect) {
+            if (driverType === 'mysql' || driverType === 'mysql2') {
+              await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.column_name, column.column_name, option.title, option.title, column.column_name]);
+            } else if (driverType === 'pg') {
+              await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_remove(string_to_array(??, ','), ?), ',')`, [table.table_name, column.column_name, column.column_name, option.title]);
+            } else if (driverType === 'mssql') {
+              await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), ','), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), ',')) - 2)`, [table.table_name, column.column_name, column.column_name, option.title, column.column_name, option.title]);
+            } else if (driverType === 'sqlite3') {
+              await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`, [table.table_name, column.column_name, column.column_name, option.title]);
+            }
           }
         }
       }
@@ -850,97 +857,99 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       let interchange = [];
 
       // Handle option update
-      const old_titles = column.colOptions.options.map(el => el.title);
-      for (const option of column.colOptions.options.filter(oldOp => colBody.colOptions.options.find(newOp => newOp.id === oldOp.id && newOp.title !== oldOp.title))) {
-        if (!supportedDrivers.includes(driverType) && column.uidt === UITypes.MultiSelect) {
-          NcError.badRequest('Your database not yet supported for this operation. Please remove option from records manually before updating.');
-        }
-
-        let newOp = { ...colBody.colOptions.options.find(el => option.id === el.id) };
-        if (old_titles.includes(newOp.title)) {
-          let def_option = { ...newOp };
-          let title_counter = 1;
-          while (old_titles.includes(newOp.title)) {
-            newOp.title = `${def_option.title}_${title_counter++}`;
+      if (column.colOptions?.options) {
+        const old_titles = column.colOptions.options.map(el => el.title);
+        for (const option of column.colOptions.options.filter(oldOp => colBody.colOptions.options.find(newOp => newOp.id === oldOp.id && newOp.title !== oldOp.title))) {
+          if (!supportedDrivers.includes(driverType) && column.uidt === UITypes.MultiSelect) {
+            NcError.badRequest('Your database not yet supported for this operation. Please remove option from records manually before updating.');
           }
-          interchange.push( {
-            def_option,
-            temp_title: newOp.title
-          } );
-        }
-        
-        // Append new option before editing
-        if ((driverType === 'mysql' || driverType === 'mysql2') && (column.dt === 'enum' || column.dt === 'set')) {
-          column.colOptions.options.push({ title: newOp.title });
 
-          let temp_dtxp = '';
-          if (column.uidt === UITypes.SingleSelect) {
-            temp_dtxp = (column.colOptions?.options.length)
-              ? `${column.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
-              : '';
-          } else if (column.uidt === UITypes.MultiSelect){
-            temp_dtxp = (column.colOptions?.options.length)
-              ? `${column.colOptions.options.map((o) => {
-                  if(o.title.includes(',')) {
-                    NcError.badRequest('Illegal char(\',\') for MultiSelect');
-                    throw new Error('');
+          let newOp = { ...colBody.colOptions.options.find(el => option.id === el.id) };
+          if (old_titles.includes(newOp.title)) {
+            let def_option = { ...newOp };
+            let title_counter = 1;
+            while (old_titles.includes(newOp.title)) {
+              newOp.title = `${def_option.title}_${title_counter++}`;
+            }
+            interchange.push( {
+              def_option,
+              temp_title: newOp.title
+            } );
+          }
+          
+          // Append new option before editing
+          if ((driverType === 'mysql' || driverType === 'mysql2') && (column.dt === 'enum' || column.dt === 'set')) {
+            column.colOptions.options.push({ title: newOp.title });
+
+            let temp_dtxp = '';
+            if (column.uidt === UITypes.SingleSelect) {
+              temp_dtxp = (column.colOptions.options.length)
+                ? `${column.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+                : '';
+            } else if (column.uidt === UITypes.MultiSelect){
+              temp_dtxp = (column.colOptions.options.length)
+                ? `${column.colOptions.options.map((o) => {
+                    if(o.title.includes(',')) {
+                      NcError.badRequest('Illegal char(\',\') for MultiSelect');
+                      throw new Error('');
+                    }
+                    return `'${o.title.replace(/'/gi, '\'\'')}'`;
+                  }).join(',')}`
+                : '';
+            }
+
+            const tableUpdateBody = {
+              ...table,
+              tn: table.table_name,
+              originalColumns: table.columns.map((c) => ({
+                ...c,
+                cn: c.column_name,
+                cno: c.column_name,
+              })),
+              columns: await Promise.all(
+                table.columns.map(async (c) => {
+                  if (c.id === req.params.columnId) {
+                    const res = {
+                      ...c,
+                      ...column,
+                      cn: column.column_name,
+                      cno: c.column_name,
+                      dtxp: temp_dtxp,
+                      altered: Altered.UPDATE_COLUMN,
+                    };
+                    return Promise.resolve(res);
+                  } else {
+                    (c as any).cn = c.column_name;
                   }
-                  return `'${o.title.replace(/'/gi, '\'\'')}'`;
-                }).join(',')}`
-              : '';
+                  return Promise.resolve(c);
+                })
+              ),
+            };
+
+            const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+            await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+          
+            await Column.update(req.params.columnId, {
+              ...column,
+            });
           }
 
-          const tableUpdateBody = {
-            ...table,
-            tn: table.table_name,
-            originalColumns: table.columns.map((c) => ({
-              ...c,
-              cn: c.column_name,
-              cno: c.column_name,
-            })),
-            columns: await Promise.all(
-              table.columns.map(async (c) => {
-                if (c.id === req.params.columnId) {
-                  const res = {
-                    ...c,
-                    ...column,
-                    cn: column.column_name,
-                    cno: c.column_name,
-                    dtxp: temp_dtxp,
-                    altered: Altered.UPDATE_COLUMN,
-                  };
-                  return Promise.resolve(res);
-                } else {
-                  (c as any).cn = c.column_name;
-                }
-                return Promise.resolve(c);
-              })
-            ),
-          };
-
-          const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
-          await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
-        
-          await Column.update(req.params.columnId, {
-            ...column,
-          });
-        }
-
-        if (column.uidt === UITypes.SingleSelect) { 
-          if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.column_name, newOp.title, column.column_name, option.title]);
-          } else {
-            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: newOp.title });
-          }
-        } else if (column.uidt === UITypes.MultiSelect) {
-          if (driverType === 'mysql' || driverType === 'mysql2') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title, option.title, column.column_name]);
-          } else if (driverType === 'pg') {
-            await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title]);
-          } else if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title, column.column_name, option.title, newOp.title]);
-          } else if (driverType === 'sqlite3') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title]);
+          if (column.uidt === UITypes.SingleSelect) { 
+            if (driverType === 'mssql') {
+              await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.column_name, newOp.title, column.column_name, option.title]);
+            } else {
+              await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: newOp.title }, { cookie: req});
+            }
+          } else if (column.uidt === UITypes.MultiSelect) {
+            if (driverType === 'mysql' || driverType === 'mysql2') {
+              await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title, option.title, column.column_name]);
+            } else if (driverType === 'pg') {
+              await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title]);
+            } else if (driverType === 'mssql') {
+              await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title, column.column_name, option.title, newOp.title]);
+            } else if (driverType === 'sqlite3') {
+              await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title]);
+            }
           }
         }
       }
@@ -951,7 +960,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           if (driverType === 'mssql') {
             await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.column_name, newOp.title, column.column_name, ch.temp_title]);
           } else {
-            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${ch.temp_title})` }, { [column.column_name]: newOp.title });
+            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${ch.temp_title})` }, { [column.column_name]: newOp.title }, { cookie: req});
           }
         } else if (column.uidt === UITypes.MultiSelect) {
           if (driverType === 'mysql' || driverType === 'mysql2') {

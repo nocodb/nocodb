@@ -403,6 +403,7 @@ export interface FormType {
   columns?: FormColumnType[];
   fk_model_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';
+  meta?: any;
 }
 
 export interface FormColumnType {
@@ -418,6 +419,7 @@ export interface FormColumnType {
   created_at?: string;
   updated_at?: string;
   description?: string;
+  meta?: any;
 }
 
 export interface PaginatedType {

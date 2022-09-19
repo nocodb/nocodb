@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableType, ViewType } from 'nocodb-sdk'
-import { isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import Cell from '../Cell.vue'
 import VirtualCell from '../VirtualCell.vue'
@@ -122,7 +122,13 @@ export default {
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull">
           <div class="w-[500px] mx-auto">
-            <div v-for="col of fields" :key="col.title" class="mt-2 py-2" :class="`nc-expand-col-${col.title}`">
+            <div
+              v-for="col of fields"
+              v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
+              :key="col.title"
+              class="mt-2 py-2"
+              :class="`nc-expand-col-${col.title}`"
+            >
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
 
               <SmartsheetHeaderCell v-else :column="col" />

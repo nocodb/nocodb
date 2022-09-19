@@ -5,7 +5,7 @@ import {
   ActiveViewInj,
   MetaInj,
   inject,
-  useClipboard,
+  useCopy,
   useGlobal,
   useI18n,
   useProject,
@@ -36,7 +36,7 @@ const { xWhere } = useSmartsheetStoreOrThrow()
 
 const { queryParams } = $(useViewData($$(meta), $$(view), xWhere))
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 let vModel = $(useVModel(props, 'modelValue', emits))
 

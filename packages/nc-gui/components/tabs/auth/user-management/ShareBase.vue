@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, onMounted, useClipboard, useI18n, useNuxtApp, useProject } from '#imports'
+import { extractSdkResponseErrorMsg, onMounted, useCopy, useI18n, useNuxtApp, useProject } from '#imports'
 
 interface ShareBase {
   uuid?: string
@@ -25,7 +25,7 @@ const showEditBaseDropdown = $ref(false)
 
 const { project } = useProject()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const url = $computed(() => (base && base.uuid ? `${dashboardUrl}#/base/${base.uuid}` : null))
 

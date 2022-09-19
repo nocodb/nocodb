@@ -39,6 +39,11 @@ export enum AuditOperationTypes {
 export enum AuditOperationSubTypes {
   UPDATE = 'UPDATE',
   INSERT = 'INSERT',
+  BULK_INSERT = 'BULK_INSERT',
+  BULK_UPDATE = 'BULK_UPDATE',
+  BULK_DELETE = 'BULK_DELETE',
+  LINK_RECORD = 'LINK_RECORD',
+  UNLINK_RECORD = 'UNLINK_RECORD',
   DELETE = 'DELETE',
   CREATED = 'CREATED',
   DELETED = 'DELETED',

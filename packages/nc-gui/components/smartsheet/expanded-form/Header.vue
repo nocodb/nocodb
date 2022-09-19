@@ -55,7 +55,7 @@ const iconColor = '#1890ff'
       <template #title>
         <div class="text-center w-full">{{ $t('general.reload') }}</div>
       </template>
-      <mdi-reload class="cursor-pointer select-none text-gray-500" @click="loadRow" />
+      <mdi-reload v-if="!isNew" class="cursor-pointer select-none text-gray-500" @click="loadRow" />
     </a-tooltip>
     <a-tooltip v-if="!isSqlView" placement="bottom">
       <!--      Toggle comments draw -->

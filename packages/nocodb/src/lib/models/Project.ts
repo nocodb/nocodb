@@ -173,6 +173,7 @@ export default class Project implements ProjectType {
     return null;
   }
 
+  // Todo: Remove the project entry from the connection pool in NcConnectionMgrv2
   // @ts-ignore
   static async softDelete(
     projectId: string,
@@ -273,6 +274,7 @@ export default class Project implements ProjectType {
     );
   }
 
+  // Todo: Remove the project entry from the connection pool in NcConnectionMgrv2
   static async delete(projectId, ncMeta = Noco.ncMeta): Promise<any> {
     const bases = await Base.list({ projectId });
     for (const base of bases) {

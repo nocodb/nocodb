@@ -6295,7 +6295,9 @@
             ]
           }
         },
-        "required": ["title"]
+        "required": [
+          "title"
+        ]
       },
       "TableInfo": {
         "title": "Table",
@@ -7394,7 +7396,8 @@
               "locked",
               "personal"
             ]
-          }
+          },
+          "meta": {}
         }
       },
       "FormColumn": {
@@ -7457,7 +7460,8 @@
           "description": {
             "type": "string",
             "minLength": 1
-          }
+          },
+          "meta": {}
         }
       },
       "Paginated": {

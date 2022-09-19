@@ -157,7 +157,7 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full overflow-auto">
+  <div class="flex flex-col h-full w-full overflow-auto nc-gallery">
     <div class="nc-gallery-container grid gap-2 my-4 px-3">
       <div v-for="record in data" :key="`record-${record.row.id}`">
         <Row :row="record">

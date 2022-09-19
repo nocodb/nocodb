@@ -89,7 +89,9 @@ export const genTest = (apiType, dbType) => {
         cy.url()
           .then((url) => {
             cy.visit('/' + url.split('/').slice(3).join('/').split('?')[0] + '?rowId=99999999');
+            cy.toastWait('Record not found');
             cy.get('.nc-expanded-form-header').should('not.exist');
+            cy.get(viewType === 'grid' ? '.nc-grid' : '.nc-gallery').should('exist');
           });
       });
 

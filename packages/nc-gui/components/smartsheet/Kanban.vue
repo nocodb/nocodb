@@ -108,13 +108,13 @@ function onMoveCallback(event: any) {
 async function onMoveStack(event: any) {
   if (event.moved) {
     const { oldIndex, newIndex } = event.moved
-    const { grp_column_id, stack_meta } = kanbanMetaData.value
+    const { grp_column_id, meta: stack_meta } = kanbanMetaData.value
     groupingFieldColOptions.value[oldIndex].order = newIndex
     groupingFieldColOptions.value[newIndex].order = oldIndex
     const stackMetaObj = JSON.parse(stack_meta as string) || {}
     stackMetaObj[grp_column_id as string] = groupingFieldColOptions.value
     await updateKanbanMeta({
-      stack_meta: stackMetaObj,
+      meta: stackMetaObj,
     })
   }
 }

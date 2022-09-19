@@ -113,7 +113,7 @@ export function useKanbanViewData(
 
     groupingField.value = groupingFieldColumn.value.title!
 
-    const { grp_column_id, stack_meta } = kanbanMetaData.value
+    const { grp_column_id, meta: stack_meta } = kanbanMetaData.value
 
     stackMetaObj.value = stack_meta ? JSON.parse(stack_meta as string) : {}
 
@@ -184,7 +184,7 @@ export function useKanbanViewData(
     if (grp_column_id) {
       stackMetaObj.value[grp_column_id] = groupingFieldColOptions.value
       await updateKanbanMeta({
-        stack_meta: stackMetaObj.value,
+        meta: stackMetaObj.value,
       })
     }
   }

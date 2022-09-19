@@ -171,7 +171,12 @@ watch($$(activeLang), (newLang) => {
             hide-minimap
           />
           <div v-if="activeLang.clients" class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
-            <a-select v-if="activeLang" v-model:value="selectedClient" style="width: 6rem">
+            <a-select
+              v-if="activeLang"
+              v-model:value="selectedClient"
+              style="width: 6rem"
+              dropdown-class-name="nc-dropdown-snippet-active-lang"
+            >
               <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full uppercase" :value="client">
                 {{ client }}
               </a-select-option>

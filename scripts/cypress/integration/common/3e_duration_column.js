@@ -49,11 +49,11 @@ export const genTest = (apiType, dbType) => {
               .clear()
               .type(columnName);
             cy.get(".nc-column-type-input").last().click().type("Duration");
-            cy.getActiveSelection().find('.ant-select-item-option').contains("Duration").click();
+            cy.getActiveSelection('.nc-dropdown-column-type').find('.ant-select-item-option').contains("Duration").click();
 
             // Configure Duration format
             fetchParentFromLabel("Duration Format");
-            cy.getActiveSelection().find('.ant-select-item-option').contains(durationFormat).click();
+            cy.getActiveSelection('.nc-dropdown-duration-option').find('.ant-select-item-option').contains(durationFormat).click();
 
             cy.get(".ant-btn-primary").contains("Save").should('exist').click();
             cy.toastWait(`Column created`);
@@ -85,7 +85,7 @@ export const genTest = (apiType, dbType) => {
               .type(newName);
             // Configure Duration format
             fetchParentFromLabel("Duration Format");
-            cy.getActiveSelection().find('.ant-select-item-option').contains(newDurationFormat).click();
+            cy.getActiveSelection('.nc-dropdown-duration-option').find('.ant-select-item-option').contains(newDurationFormat).click();
 
             cy.get(".ant-btn-primary:visible").contains("Save").click();
 

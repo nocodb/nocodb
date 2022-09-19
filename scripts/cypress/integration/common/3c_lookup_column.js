@@ -53,14 +53,14 @@ export const genTest = (apiType, dbType) => {
               .clear()
               .type(childCol);
             cy.get(".nc-column-type-input").last().click().type("Lookup");
-            cy.getActiveSelection().find('.ant-select-item-option').contains("Lookup").click();
+            cy.getActiveSelection('.nc-dropdown-column-type').find('.ant-select-item-option').contains("Lookup").click();
 
             // Configure Child table & column names
             fetchParentFromLabel("Child table");
-            cy.getActiveSelection().find('.ant-select-item-option').contains(childTable).click();
+            cy.getActiveSelection('.nc-dropdown-relation-table').find('.ant-select-item-option').contains(childTable).click();
 
             fetchParentFromLabel("Child column");
-            cy.getActiveSelection().find('.ant-select-item-option').contains(childCol).click();
+            cy.getActiveSelection('.nc-dropdown-relation-column').find('.ant-select-item-option').contains(childCol).click();
 
             cy.get(".ant-btn-primary").contains("Save").should('exist').click();
             cy.toastWait(`Column created`);

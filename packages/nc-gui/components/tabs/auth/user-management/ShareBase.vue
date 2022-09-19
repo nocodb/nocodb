@@ -210,7 +210,12 @@ onMounted(() => {
         </template>
       </a-dropdown>
 
-      <a-select v-if="base?.uuid" v-model:value="base.role" class="flex nc-shared-base-role">
+      <a-select
+        v-if="base?.uuid"
+        v-model:value="base.role"
+        class="flex nc-shared-base-role"
+        dropdown-class-name="nc-dropdown-share-base-role"
+      >
         <template #suffixIcon>
           <div class="flex flex-row">
             <IcRoundKeyboardArrowDown class="text-black -mt-0.5 h-[1rem]" />

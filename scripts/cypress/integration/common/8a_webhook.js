@@ -36,7 +36,7 @@ function createWebhook(hook, test) {
       .type('{downarrow}')
       .type('{downarrow}')
 
-    cy.getActiveSelection().find('.ant-select-item-option-content').contains('Content-Type').should('exist').click();
+    cy.getActiveSelection('.nc-dropdown-webhook-header').find('.ant-select-item-option-content').contains('Content-Type').should('exist').click();
 
     cy.get("input.nc-input-hook-header-value")
         .should("exist")
@@ -78,7 +78,7 @@ function configureWebhook(hook, test) {
 
     if (hook?.event) {
         cy.get(".nc-text-field-hook-event").should("exist").click();
-        cy.getActiveSelection()
+        cy.getActiveSelection('.nc-dropdown-webhook-event')
             .find(`.ant-select-item`)
             .contains(hook.event)
             .should("exist")

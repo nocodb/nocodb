@@ -143,6 +143,7 @@ onMounted(() => {
             show-search
             class="nc-column-type-input"
             :disabled="isKanban"
+            dropdown-class-name="nc-dropdown-column-type"
             @change="onUidtOrIdTypeChange"
           >
             <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">

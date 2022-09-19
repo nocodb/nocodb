@@ -243,8 +243,10 @@ async function checkSMTPStatus() {
       emailMe.value = false
       // Please activate SMTP plugin in App store for enabling email notification
       message.info(t('msg.toast.formEmailSMTP'))
+      return false
     }
   }
+  return true
 }
 
 function setFormData() {
@@ -263,7 +265,6 @@ function setFormData() {
   } catch (e) {}
 
   emailMe.value = data[state.user.value?.email as string]
-  checkSMTPStatus()
 
   localColumns.value = col
     .filter(
@@ -306,12 +307,13 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   return required || (columnObj && columnObj.rqd && !columnObj.cdf)
 }
 
-function updateEmail() {
+async function updateEmail() {
   try {
+    if (!(await checkSMTPStatus())) return
+
     const data = formViewData.value?.email ? JSON.parse(formViewData.value?.email) : {}
     data[state.user.value?.email as string] = emailMe.value
     formViewData.value!.email = JSON.stringify(data)
-    checkSMTPStatus()
   } catch (e) {}
 }
 
@@ -641,7 +643,7 @@ onMounted(async () => {
                     v-if="isVirtualCol(element)"
                     class="!m-0 gap-0 p-0"
                     :name="element.title"
-                    :rules="[{ required: element.required, message: `${element.title} is required` }]"
+                    :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
                     <SmartsheetVirtualCell
                       v-model="formState[element.title]"
@@ -657,7 +659,7 @@ onMounted(async () => {
                     v-else
                     class="!m-0 gap-0 p-0"
                     :name="element.title"
-                    :rules="[{ required: element.required, message: `${element.title} is required` }]"
+                    :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
                     <SmartsheetCell
                       v-model="formState[element.title]"

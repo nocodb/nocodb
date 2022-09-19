@@ -70,7 +70,7 @@ export const genTest = (apiType, dbType) => {
 
                 // change column type and verify
                 cy.get(".nc-column-type-input").last().click();
-                cy.getActiveSelection().find('.ant-select-item-option').contains("LongText").click();
+                cy.getActiveSelection('.nc-dropdown-column-type').find('.ant-select-item-option').contains("LongText").click();
                 cy.get(".ant-btn-primary:visible").contains("Save").click();
 
                 cy.toastWait("Column updated");

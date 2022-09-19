@@ -62,6 +62,22 @@ export const useGlobal = (): UseGlobalReturn => {
     { immediate: true },
   )
 
+  watch(
+    state.jwtPayload,
+    (nextPayload) => {
+      if (nextPayload) {
+        state.user.value = {
+          id: nextPayload.id,
+          email: nextPayload.email,
+          firstname: nextPayload.firstname,
+          lastname: nextPayload.lastname,
+          roles: nextPayload.roles,
+        }
+      }
+    },
+    { immediate: true },
+  )
+
   const globalState = { ...state, ...getters, ...actions } as UseGlobalReturn
 
   /** provide a fresh state instance into nuxt app */

@@ -60,7 +60,7 @@ export const genTest = (apiType, dbType) => {
             cy.getActiveSelection('.nc-dropdown-relation-table').find('.ant-select-item-option').contains(childTable).click();
 
             fetchParentFromLabel("Child column");
-            cy.getActiveSelection('nc-dropdown-relation-column').find('.ant-select-item-option').contains(childCol).click();
+            cy.getActiveSelection('.nc-dropdown-relation-column').find('.ant-select-item-option').contains(childCol).click();
 
             cy.get(".ant-btn-primary").contains("Save").should('exist').click();
             cy.toastWait(`Column created`);

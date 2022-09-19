@@ -1,5 +1,5 @@
 import { useStorage } from '@vueuse/core'
-import { MemStorage, onScopeDispose, useInjectionState, watch } from '#imports'
+import { MemStorage, onScopeDispose, watch } from '#imports'
 
 interface UseSidebarProps {
   hasSidebar?: boolean
@@ -8,14 +8,16 @@ interface UseSidebarProps {
 }
 
 /**
- * Injection state for sidebars
+ * States for sidebars
  *
- * Use `provideSidebar` to provide the injection state on current component level (will affect all children injections)
- * Use `useSidebar` to use the injection state on current component level
+ * Use `provideSidebar` to provide the state and save to memory or local storage
+ * Use `useSidebar` to use the state
  *
- * If `provideSidebar` is not called explicitly, `useSidebar` will trigger the provider if no injection state can be found
+ * If `provideSidebar` is not called explicitly, `useSidebar` will trigger the provider if no state can be found
+ *
+ * Requires an id to work, id should correspond to the sidebar state you want to create or fetch
  */
-const [setupSidebarStore, useSidebarStore] = useInjectionState(() => new MemStorage(), 'SidebarStore')
+const sidebarStorage = new MemStorage()
 
 const createSidebar = (id: string, props: UseSidebarProps = {}) => {
   const isOpen = ref(props.isOpen ?? false)
@@ -59,18 +61,8 @@ const createSidebar = (id: string, props: UseSidebarProps = {}) => {
   }
 }
 
-const useSidebarStorage = () => {
-  let sidebarStorage = useSidebarStore()
-
-  if (!sidebarStorage) {
-    sidebarStorage = setupSidebarStore()
-  }
-
-  return sidebarStorage
-}
-
 export const provideSidebar = (id: string, props: UseSidebarProps = {}) => {
-  const sidebarStorage = useSidebarStorage()
+  if (!id) throw new Error('provideSidebar requires an id')
 
   onScopeDispose(() => {
     sidebarStorage.remove(id)
@@ -94,8 +86,6 @@ export const provideSidebar = (id: string, props: UseSidebarProps = {}) => {
 
 export function useSidebar(id: string, props: UseSidebarProps = {}) {
   if (!id) throw new Error('useSidebar requires an id')
-
-  const sidebarStorage = useSidebarStorage()
 
   if (sidebarStorage.has(id)) {
     const sidebar = sidebarStorage.get(id)

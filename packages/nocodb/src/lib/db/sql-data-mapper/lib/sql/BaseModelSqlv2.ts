@@ -2102,17 +2102,17 @@ class BaseModelSqlv2 {
               ? customValidators[func[j]]
               : Validator[func[j]]
             : func[j];
+        const columnValue = columns?.[cn] || columns?.[columnTitle];
         const arg =
-          typeof func[j] === 'string' ? columns[cn] + '' : columns[cn];
+          typeof func[j] === 'string' ? columnValue + '' : columnValue;
         if (
           !(fn.constructor.name === 'AsyncFunction'
             ? await fn(arg)
-            : fn(arg)) &&
-          (columns?.[cn] || columns?.[columnTitle])
+            : fn(arg)) && (columnValue)
         ) {
           NcError.badRequest(
             msg[j]
-              .replace(/\{VALUE}/g, columns[cn] || columns[columnTitle])
+              .replace(/\{VALUE}/g, columnValue)
               .replace(/\{cn}/g, columnTitle)
           );
         }

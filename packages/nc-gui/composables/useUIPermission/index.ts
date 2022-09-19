@@ -2,7 +2,7 @@ import { isString } from '@vueuse/core'
 import type { Permission } from './rolePermissions'
 import rolePermissions from './rolePermissions'
 import { USER_PROJECT_ROLES, computed, useGlobal, useState } from '#imports'
-import type { Roles } from '~/lib'
+import type { ProjectRole, Role, Roles } from '~/lib'
 
 export function useUIPermission() {
   const { user, previewAs } = useGlobal()
@@ -27,7 +27,7 @@ export function useUIPermission() {
     }
   })
 
-  const isUIAllowed = (permission: Permission, skipPreviewAs = false) => {
+  const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
     let roles = baseRoles.value
 
     if (previewAs.value && !skipPreviewAs) {
@@ -37,9 +37,13 @@ export function useUIPermission() {
     }
 
     return Object.entries(roles).some(([role, hasRole]) => {
-      const rolePermission = rolePermissions[role as keyof typeof rolePermissions]
+      const rolePermission = rolePermissions[role as Role | ProjectRole]
 
-      return hasRole && (rolePermission === '*' || rolePermission?.[permission as keyof typeof rolePermission])
+      return (
+        hasRole &&
+        rolePermission &&
+        ((isString(rolePermission) && rolePermission === '*') || rolePermission[permission as keyof typeof rolePermission])
+      )
     })
   }
 

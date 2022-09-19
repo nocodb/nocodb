@@ -44,8 +44,9 @@ export default class KanbanView implements KanbanType {
       base_id: view.base_id,
       fk_view_id: view.fk_view_id,
       grp_column_id: view.grp_column_id,
-      // TODO: more
+      stack_meta: view.stack_meta,
     };
+
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id);
       insertObj.project_id = viewRef.project_id;

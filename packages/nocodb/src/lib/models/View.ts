@@ -361,7 +361,7 @@ export default class View implements ViewType {
       let kanbanShowCount = 0;
       let kanbanAttachmentCount = 0;
 
-      if (view.type === ViewTypes.KANBAN) {
+      if (view.type === ViewTypes.KANBAN && !copyFromView) {
         // sort by primary value & attachment first, then by order
         // so that later we can handle control `show` easily
         columns.sort((a, b) => {
@@ -388,7 +388,7 @@ export default class View implements ViewType {
           } else {
             show = false;
           }
-        } else if (view.type === ViewTypes.KANBAN) {
+        } else if (view.type === ViewTypes.KANBAN && !copyFromView) {
           const kanbanView = await KanbanView.get(view_id, ncMeta);
           if (vCol.id === kanbanView?.grp_column_id) {
             // include grouping field if it exists

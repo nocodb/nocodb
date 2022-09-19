@@ -7,7 +7,7 @@ import type { ProjectRole, Role, Roles } from '~/lib'
 export function useUIPermission() {
   const { user, previewAs } = useGlobal()
 
-  const projectRoles = useState<Roles>(USER_PROJECT_ROLES, () => ({}))
+  const projectRoles = useState<Roles<ProjectRole>>(USER_PROJECT_ROLES, () => ({}))
 
   const baseRoles = computed<Roles>(() => {
     let userRoles = user.value?.roles

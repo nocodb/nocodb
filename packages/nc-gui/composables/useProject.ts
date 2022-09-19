@@ -16,7 +16,7 @@ import {
   useTheme,
   watch,
 } from '#imports'
-import type { ProjectMetaInfo, Roles } from '~/lib'
+import type { ProjectMetaInfo, ProjectRole, Roles } from '~/lib'
 import type { ThemeConfig } from '@/composables/useTheme'
 
 const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
@@ -36,7 +36,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
 
   const tables = ref<TableType[]>([])
 
-  const projectRoles = useState<Roles>(USER_PROJECT_ROLES, () => ({}))
+  const projectRoles = useState<Roles<ProjectRole>>(USER_PROJECT_ROLES, () => ({}))
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
 

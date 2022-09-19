@@ -31,7 +31,7 @@ export interface Field {
   system?: boolean
 }
 
-export type Roles = Record<Role | ProjectRole | string, boolean>
+export type Roles<T extends Role | ProjectRole = Role | ProjectRole> = Record<T | string, boolean>
 
 export type Filter = FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string; readOnly?: boolean }
 

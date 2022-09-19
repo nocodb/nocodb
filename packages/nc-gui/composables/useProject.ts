@@ -3,7 +3,6 @@ import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
 import {
-  USER_PROJECT_ROLES,
   computed,
   createEventHook,
   ref,
@@ -11,12 +10,12 @@ import {
   useGlobal,
   useInjectionState,
   useNuxtApp,
+  useRoles,
   useRoute,
-  useState,
   useTheme,
   watch,
 } from '#imports'
-import type { ProjectMetaInfo, ProjectRole, Roles } from '~/lib'
+import type { ProjectMetaInfo } from '~/lib'
 import type { ThemeConfig } from '@/composables/useTheme'
 
 const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
@@ -30,13 +29,13 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
 
   const { setTheme, theme } = useTheme()
 
+  const { projectRoles, loadProjectRoles } = useRoles()
+
   const projectLoadedHook = createEventHook<ProjectType>()
 
   const project = ref<ProjectType>({})
 
   const tables = ref<TableType[]>([])
-
-  const projectRoles = useState<Roles<ProjectRole>>(USER_PROJECT_ROLES, () => ({}))
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
 
@@ -72,26 +71,6 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     }
   }
 
-  async function loadProjectRoles() {
-    projectRoles.value = {}
-
-    if (isSharedBase.value) {
-      const user = await api.auth.me(
-        {},
-        {
-          headers: {
-            'xc-shared-base-id': route.params.projectId,
-          },
-        },
-      )
-
-      projectRoles.value = user.roles
-    } else if (project.value.id) {
-      const user = await api.auth.me({ project_id: project.value.id })
-      projectRoles.value = user.roles
-    }
-  }
-
   async function loadTables() {
     if (project.value.id) {
       const tablesResponse = await api.dbTable.list(project.value.id, {
@@ -121,7 +100,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
       return
     }
 
-    await loadProjectRoles()
+    await loadProjectRoles(project.value.id || (route.params.projectId as string), isSharedBase.value)
 
     await loadTables()
 

@@ -17,6 +17,8 @@ const { data } = toRefs(props)
 
 provide(MetaInj, data as Ref<TableType>)
 
+const { $e } = useNuxtApp()
+
 const columns = computed(() => {
   // Hide hm ltar created for `mm` relations
   return data.value.columns?.filter((col) => !(col.uidt === UITypes.LinkToAnotherRecord && col.system === 1))
@@ -44,6 +46,7 @@ const relatedColumnId = (col: Record<string, any>) =>
   <div
     class="h-full flex flex-col min-w-16 bg-gray-50 rounded-lg border-1 nc-erd-table-node"
     :class="`nc-erd-table-node-${data.table_name}`"
+    @click="$e('c:erd:node-click')"
   >
     <GeneralTooltip modifier-key="Alt">
       <template #title> {{ data.table_name }} </template>

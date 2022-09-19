@@ -6,11 +6,11 @@ export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
   describe(`${apiType.toUpperCase()} ERD`, () => {
-    before(() => {
-      loginPage.loginAndOpenProject(apiType, dbType);
-      cy.openTableTab("Country", 25);
-      cy.saveLocalStorage();
-    });
+    // before(() => {
+    //   loginPage.loginAndOpenProject(apiType, dbType);
+    //   cy.openTableTab("Country", 25);
+    //   cy.saveLocalStorage();
+    // });
 
     beforeEach(() => {
       cy.restoreLocalStorage();

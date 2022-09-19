@@ -674,7 +674,7 @@ export default {
         this.newColumn.table_name = this.nodes.table_name;
 
         // condition is needed not to break camelization when column name is not changed
-        if (this.newColumn.column_name !== this.column.column_name) {
+        if (this.newColumn.column_name !== this.column?.column_name) {
           this.newColumn.title = this.newColumn.column_name;
         }
 

@@ -152,6 +152,7 @@ function onDropZoneClick(e: MouseEvent) {
       <div class="text-3xl">Welcome to NocoDB!</div>
       <div class="prose-lg leading-8">To get started, click on a table in the left pane</div>
     </div>
+
     <div v-else ref="dropZone">
       <general-overlay
         :model-value="true"
@@ -172,6 +173,7 @@ function onDropZoneClick(e: MouseEvent) {
           <span class="flex items-center gap-2"><BiFiletypeJson /> JSON</span> or
           <span class="flex items-center gap-2"><BiFiletypeXlsx /> Excel file here or</span>
         </div>
+
         <a-button type="primary" ghost class="create-table-btn">
           <span class="prose text-[1rem] text-primary z-50" @click.stop="openCreateTable">{{ $t('tooltip.addTable') }}</span>
         </a-button>

@@ -477,7 +477,7 @@ onBeforeUnmount(reset)
     </template>
 
     <div :key="$route.fullPath.split('?')[0]">
-      <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
+      <LazyDashboardSettingsModal v-model="dialogOpen" :open-key="openDialogKey" />
 
       <NuxtPage />
 

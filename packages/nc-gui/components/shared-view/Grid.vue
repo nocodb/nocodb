@@ -29,8 +29,9 @@ if (signedIn.value) {
 
 <template>
   <div class="nc-container flex flex-col h-full mt-1.5 px-12">
-    <SmartsheetToolbar />
-    <SmartsheetGrid />
+    <LazySmartsheetToolbar />
+
+    <LazySmartsheetGrid />
   </div>
 </template>
 

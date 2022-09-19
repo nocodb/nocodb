@@ -8,7 +8,11 @@ export const genTest = (apiType, dbType) => {
         // to retrieve few v-input nodes from their label
         //
         const fetchParentFromLabel = (label) => {
-            cy.get("label").contains(label).parents(".ant-row").click();
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find("label")
+              .contains(label)
+              .parents(".ant-row")
+              .click();
         };
 
         // Run once before test- create project (rest/graphql)

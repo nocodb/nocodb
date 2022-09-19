@@ -8,8 +8,11 @@ export const genTest = (apiType, dbType) => {
         // to retrieve few v-input nodes from their label
         //
         const fetchParentFromLabel = (label) => {
-            cy.get("label").contains(label).parents(".ant-row").click();
-            cy.wait(500);
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find("label")
+              .contains(label)
+              .parents(".ant-row")
+              .click();
         };
 
         // Run once before test- create project (rest/graphql)
@@ -64,7 +67,7 @@ export const genTest = (apiType, dbType) => {
               .find(".nc-column-type-input")
               .last()
               .click()
-              .type("RollUp")
+              .type("Rollup")
             cy.getActiveSelection('.nc-dropdown-column-type')
               .find('.ant-select-item-option')
               .contains("Rollup")
@@ -134,7 +137,7 @@ export const genTest = (apiType, dbType) => {
         it("Add Rollup column (City, City, count) & Delete", () => {
             cy.openTableTab("Country", 25);
 
-            addRollUpColumn("RollUpCol", "City", "City", "count");
+            addRollUpColumn("RollUpCol", "City List", "City", "count");
 
             // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
             // intentionally verifying 4th item, as initial items are being masked out by list scroll down

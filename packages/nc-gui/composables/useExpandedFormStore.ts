@@ -32,7 +32,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const rowStore = useProvideSmartsheetRowStore(meta, row)
   const { sharedView } = useSharedView() as Record<string, any>
   const activeView = inject(ActiveViewInj, ref())
-  const { loadKanbanData } = useKanbanViewData(meta, activeView)
+  const { addRowToStack } = useKanbanViewData(meta, activeView)
 
   // const { updateOrSaveRow, insertRow } = useViewData(meta, activeView as any)
 
@@ -161,7 +161,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       }
 
       if (activeView.value?.type === ViewTypes.KANBAN) {
-        await loadKanbanData()
+        addRowToStack(row.value)
       }
 
       // this.$emit('update:oldRow', { ...this.localState });

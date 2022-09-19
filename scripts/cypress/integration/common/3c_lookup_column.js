@@ -48,21 +48,40 @@ export const genTest = (apiType, dbType) => {
                 force: true,
             });
 
-            cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
+            cy.getActiveMenu(".nc-dropdown-grid-add-column")
+              .find('input.nc-column-name-input')
               .should('exist')
               .clear()
               .type(childCol);
-            cy.get(".nc-column-type-input").last().click().type("Lookup");
-            cy.getActiveSelection('.nc-dropdown-column-type').find('.ant-select-item-option').contains("Lookup").click();
+            // cy.get(".nc-column-type-input").last().click().type("Lookup");
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find(".nc-column-type-input")
+              .last()
+              .click()
+              .type("Lookup");
+            cy.getActiveSelection('.nc-dropdown-column-type')
+              .find('.ant-select-item-option')
+              .contains("Lookup")
+              .click();
 
             // Configure Child table & column names
             fetchParentFromLabel("Child table");
-            cy.getActiveSelection('.nc-dropdown-relation-table').find('.ant-select-item-option').contains(childTable).click();
+            cy.getActiveSelection('.nc-dropdown-relation-table')
+              .find('.ant-select-item-option')
+              .contains(childTable)
+              .click();
 
             fetchParentFromLabel("Child column");
-            cy.getActiveSelection('.nc-dropdown-relation-column').find('.ant-select-item-option').contains(childCol).click();
+            cy.getActiveSelection('.nc-dropdown-relation-column')
+              .find('.ant-select-item-option')
+              .contains(childCol)
+              .click();
 
-            cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            // cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find(".ant-btn-primary:visible")
+              .contains("Save")
+              .click();
             cy.toastWait(`Column created`);
 
             cy.get(`th[data-title="${childCol}"]`).should("exist");

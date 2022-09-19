@@ -37,12 +37,18 @@ export const genTest = (apiType, dbType) => {
         .type(columnName);
 
       // Column type
-      cy.get(".nc-column-type-input").last()
+      // cy.get(".nc-column-type-input").last()
+      //   .click()
+      //   .type("Link");
+      cy.getActiveMenu('.nc-dropdown-grid-add-column')
+        .find(".nc-column-type-input")
+        .last()
         .click()
-        .type("Link");
+        .type("Link")
       cy.getActiveSelection('.nc-dropdown-column-type')
         .find('.ant-select-item-option')
-        .contains("LinkToAnotherRecord").click();
+        .contains("LinkToAnotherRecord")
+        .click();
 
       // relation type (hm/ mm)
       cy.get('.nc-ltar-relation-type')
@@ -62,9 +68,13 @@ export const genTest = (apiType, dbType) => {
         .click();
 
       // Save
-      cy.get(".ant-btn-primary")
+      // cy.get(".ant-btn-primary")
+      //   .contains("Save")
+      //   .should('exist')
+      //   .click();
+      cy.getActiveMenu('.nc-dropdown-grid-add-column')
+        .find(".ant-btn-primary:visible")
         .contains("Save")
-        .should('exist')
         .click();
 
       // Toast

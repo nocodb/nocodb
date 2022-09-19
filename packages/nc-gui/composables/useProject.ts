@@ -42,6 +42,8 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
 
   const projectId = computed(() => (_projectId ? unref(_projectId) : (route.params.projectId as string)))
 
+  const projectAndTablesLoaded = ref(false)
+
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
 
@@ -93,6 +95,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   }
 
   async function loadTables() {
+    projectAndTablesLoaded.value = false
     if (project.value.id) {
       const tablesResponse = await api.dbTable.list(project.value.id, {
         includeM2M: includeM2M.value,
@@ -100,9 +103,11 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
 
       if (tablesResponse.list) tables.value = tablesResponse.list
     }
+    projectAndTablesLoaded.value = true
   }
 
   async function loadProject(id?: string) {
+    projectAndTablesLoaded.value = false
     if (id) {
       project.value = await api.project.read(projectId.value)
     } else if (projectType === 'base') {
@@ -128,6 +133,8 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     setTheme(projectMeta.value?.theme)
 
     projectLoadedHook.trigger(project.value)
+
+    projectAndTablesLoaded.value = true
   }
 
   async function updateProject(data: Partial<ProjectType>) {
@@ -196,6 +203,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     projectLoadedHook: projectLoadedHook.on,
     reset,
     isLoading,
+    projectAndTablesLoaded,
   }
 }, 'useProject')
 

@@ -4,7 +4,7 @@ import { TabMetaInj } from '#imports'
 
 const { getMeta } = useMetas()
 
-const { project, projectLoadedHook } = useProject()
+const { project, projectLoadedHook, projectAndTablesLoaded } = useProject()
 
 const route = useRoute()
 
@@ -15,14 +15,16 @@ const activeTab = inject(
   computed(() => ({} as TabItem)),
 )
 
-if (!project.value.id) {
-  projectLoadedHook(async () => {
-    await getMeta(route.params.title as string, true)
+/** wait until project and table loads since meta load requires table list **/
+watch(
+  projectAndTablesLoaded,
+  (nextVal) => {
+    if (!nextVal) return
+    getMeta(route.params.title as string, true).finally(() => (loading.value = false))
     loading.value = false
-  })
-} else {
-  getMeta(route.params.title as string, true).finally(() => (loading.value = false))
-}
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

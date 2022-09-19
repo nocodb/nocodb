@@ -10,12 +10,16 @@ export default class KanbanView implements KanbanType {
   project_id?: string;
   base_id?: string;
   grp_column_id?: string;
-  stack_meta?: string | object;
+  meta?: string | object;
 
-  // TODO: check these
-  show: boolean;
-  is_default: boolean;
-  order: number;
+  // below fields are not in use at this moment
+  // keep them for time being
+  show?: boolean;
+  order?: number;
+  uuid?: string;
+  public?: boolean;
+  password?: string;
+  show_all_fields?: boolean;
 
   constructor(data: KanbanView) {
     Object.assign(this, data);
@@ -44,7 +48,7 @@ export default class KanbanView implements KanbanType {
       base_id: view.base_id,
       fk_view_id: view.fk_view_id,
       grp_column_id: view.grp_column_id,
-      stack_meta: view.stack_meta,
+      meta: view.meta,
     };
 
     if (!(view.project_id && view.base_id)) {
@@ -74,10 +78,10 @@ export default class KanbanView implements KanbanType {
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     const updateObj = {
       ...body,
-      stack_meta:
-        typeof body.stack_meta === 'string'
-          ? body.stack_meta
-          : JSON.stringify(body.stack_meta ?? {}),
+      meta:
+        typeof body.meta === 'string'
+          ? body.meta
+          : JSON.stringify(body.meta ?? {}),
     };
     if (o) {
       o = { ...o, ...updateObj };

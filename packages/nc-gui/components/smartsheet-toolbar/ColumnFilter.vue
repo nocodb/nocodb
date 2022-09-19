@@ -23,9 +23,10 @@ interface Props {
   hookId?: string
   showLoading?: boolean
   modelValue?: Filter[]
+  webHook?: boolean
 }
 
-const { nested = false, parentId, autoSave = true, hookId = null, modelValue, showLoading = true } = defineProps<Props>()
+const { nested = false, parentId, autoSave = true, hookId = null, modelValue, showLoading = true, webHook } = defineProps<Props>()
 
 const emit = defineEmits(['update:filtersLength'])
 
@@ -101,13 +102,13 @@ const types = computed(() => {
 watch(
   () => activeView.value?.id,
   (n, o) => {
-    if (n !== o) loadFilters(hookId as string)
+    if (n !== o && (hookId || !webHook)) loadFilters(hookId as string)
   },
   { immediate: true },
 )
 
 watch(
-  () => filters.value.length,
+  () => filters.value.length ,
   (length) => {
     emit('update:filtersLength', length ?? 0)
   },
@@ -280,7 +281,7 @@ defineExpose({
           {{ $t('activity.addFilter') }}
         </div>
       </a-button>
-      <a-button class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
+      <a-button class="text-capitalize !text-gray-500" v-if="!webHook" @click.stop="addFilterGroup">
         <div class="flex items-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <!--          Add Filter Group -->

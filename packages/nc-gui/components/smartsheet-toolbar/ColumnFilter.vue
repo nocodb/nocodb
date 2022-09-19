@@ -137,7 +137,7 @@ defineExpose({
     :class="{ 'shadow min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
   >
     <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
-      <template v-for="(filter, i) in filters" :key="filter.id || i">
+      <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
             <MdiCloseBox

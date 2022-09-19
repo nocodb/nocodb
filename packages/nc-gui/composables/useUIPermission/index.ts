@@ -1,7 +1,7 @@
 import { isString } from '@vueuse/core'
 import type { Permission } from './rolePermissions'
 import rolePermissions from './rolePermissions'
-import { useGlobal, useRoles } from '#imports'
+import { createSharedComposable, useGlobal, useRoles } from '#imports'
 import type { ProjectRole, Role } from '~/lib'
 
 const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: Permission | string) => {
@@ -14,9 +14,8 @@ const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: P
   return rolePermission[permission as keyof typeof rolePermission]
 }
 
-export function useUIPermission() {
+export const useUIPermission = createSharedComposable(() => {
   const { previewAs } = useGlobal()
-
   const { allRoles } = useRoles()
 
   const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
@@ -32,4 +31,4 @@ export function useUIPermission() {
   }
 
   return { isUIAllowed }
-}
+})

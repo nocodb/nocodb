@@ -12,6 +12,7 @@ import {
   OpenNewRecordFormHookInj,
   ReadonlyInj,
   inject,
+  onMounted,
   provide,
   useKanbanViewData,
 } from '#imports'
@@ -161,9 +162,9 @@ const handleCollapseStack = async (stackIdx: number) => {
 
 const handleExpandedFormCancel = () => {
   // remove the empty record
-  formattedData.value['Uncategorized'].pop()
+  formattedData.value.Uncategorized.pop()
   // decrease total count by 1
-  countByStack.value['Uncategorized'] -= 1
+  countByStack.value.Uncategorized -= 1
 }
 
 openNewRecordFormHook?.on(async (stackTitle) => {
@@ -173,9 +174,15 @@ openNewRecordFormHook?.on(async (stackTitle) => {
     [groupingField.value]: stackTitle,
   }
   // increase total count by 1
-  countByStack.value['Uncategorized'] += 1
+  countByStack.value.Uncategorized += 1
   // open the expanded form
   expandForm(newRow)
+})
+
+onMounted(() => {
+  // reset state to avoid from showing the previous stacks when switching kanban views
+  groupingFieldColOptions.value = []
+  formattedData.value = {}
 })
 </script>
 

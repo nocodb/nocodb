@@ -53,6 +53,7 @@ const {
   groupingField,
   countByStack,
   deleteStack,
+  removeRowFromUncategorizedStack,
 } = useKanbanViewData(meta, view)
 
 const { isUIAllowed } = useUIPermission()
@@ -158,13 +159,6 @@ const handleDeleteStackConfirmClick = async () => {
 const handleCollapseStack = async (stackIdx: number) => {
   groupingFieldColOptions.value[stackIdx].collapsed = !groupingFieldColOptions.value[stackIdx].collapsed
   await updateKanbanStackMeta()
-}
-
-const handleExpandedFormCancel = () => {
-  // remove the empty record
-  formattedData.value.uncategorized.pop()
-  // decrease total count by 1
-  countByStack.value.uncategorized -= 1
 }
 
 openNewRecordFormHook?.on(async (stackTitle) => {
@@ -358,7 +352,7 @@ onMounted(() => {
     :row="expandedFormRow"
     :state="expandedFormRowState"
     :meta="meta"
-    @cancel="handleExpandedFormCancel"
+    @cancel="removeRowFromUncategorizedStack"
   />
   <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-view-create">
     <template #title>

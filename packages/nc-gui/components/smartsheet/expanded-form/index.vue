@@ -131,7 +131,7 @@ export default {
     <Header :view="view" @cancel="onClose" />
     <div class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
-        <div class="flex-1 overflow-auto scrollbar-thin-dull">
+        <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
           <div class="w-[500px] mx-auto">
             <div
               v-for="col of fields"

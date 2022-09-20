@@ -66,7 +66,7 @@ export const genTest = (apiType, dbType) => {
         // spy on clipboard to verify copied text
         cy.window().then((win) => {
           cy.spy(win.navigator.clipboard, 'writeText').as('copy');
-        })
+        });
 
         // copy url
         cy.get('.nc-copy-row-url').click();
@@ -81,7 +81,8 @@ export const genTest = (apiType, dbType) => {
         cy.url()
           .then((url) => {
             cy.visit('/' + url.split('/').slice(3).join('/').split('?')[0] + '?rowId=2');
-            cy.get('.nc-expanded-form-header').should('exist');
+
+            return cy.get('.nc-expanded-form-header').should('exist');
           });
       });
 
@@ -91,10 +92,26 @@ export const genTest = (apiType, dbType) => {
             cy.visit('/' + url.split('/').slice(3).join('/').split('?')[0] + '?rowId=99999999');
             cy.toastWait('Record not found');
             cy.get('.nc-expanded-form-header').should('not.exist');
-            cy.get(viewType === 'grid' ? '.nc-grid' : '.nc-gallery').should('exist');
+
+            return cy.get(viewType === 'grid' ? '.nc-grid' : '.nc-gallery').should('exist');
           });
       });
 
+
+      it(`Visit a ${viewType} row url and verify nested expanded form`, () => {
+        cy.url()
+          .then((url) => {
+            cy.visit('/' + url.split('/').slice(3).join('/').split('?')[0] + '?rowId=2');
+            cy.get('.nc-expanded-form-header').should('exist');
+
+            cy.get('.nc-form-fields-container').scrollTo(0, 800);
+
+            // todo: click on a LTAR field to open nested expanded form
+            //       and verify copy url functionality
+            // cy.get('.name:contains("City List")').
+            // return cy.wait(100000)
+          });
+      });
 
     };
 

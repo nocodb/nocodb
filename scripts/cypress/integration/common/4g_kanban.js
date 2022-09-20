@@ -1,60 +1,65 @@
 import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
-import {loginPage} from "../../support/page_objects/navigation";
+import { loginPage } from "../../support/page_objects/navigation";
 
 // kanban grouping field configuration
 //
 function configureGroupingField(field, closeMenu = true) {
   cy.get(".nc-kanban-stacked-by-menu-btn").click();
 
-  cy.getActiveMenu('.nc-dropdown-kanban-stacked-by-menu')
-    .should('exist')
-    .find('.nc-kanban-grouping-field-select')
+  cy.getActiveMenu(".nc-dropdown-kanban-stacked-by-menu")
+    .should("exist")
+    .find(".nc-kanban-grouping-field-select")
     .click();
-  cy.get('.ant-select-dropdown:visible')
-    .should('exist')
+  cy.get(".ant-select-dropdown:visible")
+    .should("exist")
     .find(`.ant-select-item`)
     .contains(new RegExp("^" + field + "$", "g"))
-    .should('exist')
+    .should("exist")
     .click();
 
   if (closeMenu) {
-    cy.get('.nc-kanban-stacked-by-menu-btn').click();
+    cy.get(".nc-kanban-stacked-by-menu-btn").click();
   }
 
-  cy.get('.nc-kanban-stacked-by-menu-btn')
+  cy.get(".nc-kanban-stacked-by-menu-btn")
     .contains(`Stacked By ${field}`)
-    .should('exist');
+    .should("exist");
 }
 
 // number of kanban stacks altogether
 //
 function verifyKanbanStackCount(count) {
-  cy.get('.nc-kanban-stack').should('have.length', count);
+  cy.get(".nc-kanban-stack").should("have.length", count);
 }
 
 // order of kanban stacks
 //
 function verifyKanbanStackOrder(order) {
-  cy.get('.nc-kanban-stack').each(($el, index) => {
-    cy.wrap($el).should('contain', order[index]);
+  cy.get(".nc-kanban-stack").each(($el, index) => {
+    cy.wrap($el).should("contain", order[index]);
   });
 }
 
 // kanban stack footer numbers
 //
 function verifyKanbanStackFooterCount(count) {
-  cy.get('.nc-kanban-stack').each(($el, index) => {
-    cy.wrap($el).find('.nc-kanban-data-count').should('contain', `${count[index]} records`);
+  cy.get(".nc-kanban-stack").each(($el, index) => {
+    cy.wrap($el)
+      .find(".nc-kanban-data-count")
+      .should("contain", `${count[index]} records`);
   });
 }
 
 // kanban card count in a stack
 //
 function verifyKanbanStackCardCount(count) {
-  cy.get('.nc-kanban-stack').each(($el, index) => {
-    if(count[index] > 0) {
-      cy.wrap($el).find('.nc-kanban-item').should('exist').should('have.length', count[index]);
+  cy.get(".nc-kanban-stack").each(($el, index) => {
+    if (count[index] > 0) {
+      cy.wrap($el)
+        .find(".nc-kanban-item")
+        .should("exist")
+        .should("have.length", count[index]);
     }
   });
 }
@@ -62,19 +67,27 @@ function verifyKanbanStackCardCount(count) {
 // order of cards within a stack
 //
 function verifyKanbanStackCardOrder(order, stackIndex, cardIndex) {
-  cy.get('.nc-kanban-stack').eq(stackIndex).find('.nc-kanban-item').eq(cardIndex).should('contain', order);
+  cy.get(".nc-kanban-stack")
+    .eq(stackIndex)
+    .find(".nc-kanban-item")
+    .eq(cardIndex)
+    .should("contain", order);
 }
 
 // drag drop kanban card
 //
 function dragAndDropKanbanCard(srcCard, dstCard) {
-  cy.get(`.nc-kanban-item .ant-card :visible:contains("${srcCard}")`).drag(`.nc-kanban-item :visible:contains("${dstCard}")`);
+  cy.get(`.nc-kanban-item .ant-card :visible:contains("${srcCard}")`).drag(
+    `.nc-kanban-item :visible:contains("${dstCard}")`
+  );
 }
 
 // drag drop kanban stack
 //
 function dragAndDropKanbanStack(srcStack, dstStack) {
-  cy.get(`.nc-kanban-stack-head :contains("${srcStack}")`).drag(`.nc-kanban-stack-head :contains("${dstStack}")`);
+  cy.get(`.nc-kanban-stack-head :contains("${srcStack}")`).drag(
+    `.nc-kanban-stack-head :contains("${dstStack}")`
+  );
 }
 
 let localDebug = false;
@@ -91,8 +104,8 @@ export const genTest = (apiType, dbType) => {
         cy.restoreLocalStorage();
         loginPage.loginAndOpenProject(apiType, dbType);
 
-        cy.openTableTab('Film', 25);
-        cy.openTableView('kanban', 'Kanban-1');
+        cy.openTableTab("Film", 25);
+        cy.openTableView("kanban", "Kanban-1");
       }
     });
 
@@ -104,12 +117,10 @@ export const genTest = (apiType, dbType) => {
       cy.saveLocalStorage();
     });
 
-    after(() => {
-    });
-
+    after(() => {});
 
     /**
-      class name specific to kanban
+      class name specific to kanban view
         .nc-kanban-stacked-by-menu-btn
         .nc-dropdown-kanban-stacked-by-menu
         .nc-kanban-add-edit-stack-menu-btn
@@ -118,9 +129,8 @@ export const genTest = (apiType, dbType) => {
         .nc-dropdown-kanban-stack-context-menu
      **/
 
-
     it("Create Kanban view", () => {
-      if(localDebug === false) {
+      if (localDebug === false) {
         cy.openTableTab("Film", 25);
         cy.viewCreate("kanban");
       }
@@ -128,25 +138,32 @@ export const genTest = (apiType, dbType) => {
 
     it("Rename Kanban view", () => {
       cy.viewRename("kanban", 0, "Film Kanban");
-    })
+    });
 
     it("Configure grouping field", () => {
       configureGroupingField("Rating", true);
-    })
+    });
 
     it("Verify kanban stacks", () => {
       verifyKanbanStackCount(6);
-      verifyKanbanStackOrder(["uncategorized", "G", "PG", "PG-13", "R", "NC-17"]);
+      verifyKanbanStackOrder([
+        "uncategorized",
+        "G",
+        "PG",
+        "PG-13",
+        "R",
+        "NC-17",
+      ]);
       verifyKanbanStackFooterCount(["0", "178", "194", "223", "195", "210"]);
       verifyKanbanStackCardCount([0, 25, 25, 25, 25, 25]);
-    })
+    });
 
     it("Hide fields", () => {
       mainPage.hideAllColumns();
-      mainPage.unhideField("Title", 'kanban');
+      mainPage.unhideField("Title", "kanban");
 
       verifyKanbanStackCardCount([0, 25, 25, 25, 25, 25]);
-    })
+    });
 
     it("Verify card order", () => {
       // verify 3 cards from each stack
@@ -169,7 +186,7 @@ export const genTest = (apiType, dbType) => {
       verifyKanbanStackCardOrder("ADAPTATION HOLES", 5, 0);
       verifyKanbanStackCardOrder("ALADDIN CALENDAR", 5, 1);
       verifyKanbanStackCardOrder("ALICE FANTASIA", 5, 2);
-    })
+    });
 
     it.skip("Verify inter-stack drag and drop", () => {
       dragAndDropKanbanCard("ACE GOLDFINGER", "ACADEMY DINOSAUR");
@@ -181,7 +198,7 @@ export const genTest = (apiType, dbType) => {
       verifyKanbanStackCardOrder("ACE GOLDFINGER", 1, 0);
       verifyKanbanStackCardOrder("AFFAIR PREJUDICE", 1, 1);
       verifyKanbanStackCardOrder("ACADEMY DINOSAUR", 2, 0);
-    })
+    });
 
     it.skip("Verify intra-stack drag and drop", () => {
       dragAndDropKanbanCard("ACE GOLDFINGER", "AFFAIR PREJUDICE");
@@ -191,15 +208,36 @@ export const genTest = (apiType, dbType) => {
       dragAndDropKanbanCard("ACE GOLDFINGER", "AFFAIR PREJUDICE");
       verifyKanbanStackCardOrder("ACE GOLDFINGER", 1, 0);
       verifyKanbanStackCardOrder("AFFAIR PREJUDICE", 1, 1);
-    })
+    });
 
     it("Verify stack drag drop", () => {
-      verifyKanbanStackOrder(["uncategorized", "G", "PG", "PG-13", "R", "NC-17"]);
+      verifyKanbanStackOrder([
+        "uncategorized",
+        "G",
+        "PG",
+        "PG-13",
+        "R",
+        "NC-17",
+      ]);
       dragAndDropKanbanStack("PG-13", "R");
-      verifyKanbanStackOrder(["uncategorized", "G", "PG", "R", "PG-13", "NC-17"]);
+      verifyKanbanStackOrder([
+        "uncategorized",
+        "G",
+        "PG",
+        "R",
+        "PG-13",
+        "NC-17",
+      ]);
       dragAndDropKanbanStack("PG-13", "R");
-      verifyKanbanStackOrder(["uncategorized", "G", "PG", "PG-13", "R", "NC-17"]);
-    })
+      verifyKanbanStackOrder([
+        "uncategorized",
+        "G",
+        "PG",
+        "PG-13",
+        "R",
+        "NC-17",
+      ]);
+    });
 
     it("Verify Sort", () => {
       mainPage.sortField("Title", "Z → A");
@@ -213,7 +251,7 @@ export const genTest = (apiType, dbType) => {
       verifyKanbanStackCardOrder("AFFAIR PREJUDICE", 1, 1);
       verifyKanbanStackCardOrder("ACADEMY DINOSAUR", 2, 0);
       verifyKanbanStackCardOrder("AGENT TRUMAN", 2, 1);
-    })
+    });
 
     it("Verify Filter", () => {
       mainPage.filterField("Title", "is like", "BA");
@@ -227,7 +265,7 @@ export const genTest = (apiType, dbType) => {
       verifyKanbanStackCardOrder("AFFAIR PREJUDICE", 1, 1);
       verifyKanbanStackCardOrder("ACADEMY DINOSAUR", 2, 0);
       verifyKanbanStackCardOrder("AGENT TRUMAN", 2, 1);
-    })
+    });
 
     // it("Stack context menu- rename stack", () => {
     //   verifyKanbanStackCount(6);
@@ -239,13 +277,9 @@ export const genTest = (apiType, dbType) => {
     //     .click();
     // })
 
-    it("Stack context menu- delete stack", () => {
+    it("Stack context menu- delete stack", () => {});
 
-    })
-
-    it("Stack context menu- collapse stack", () => {
-
-    })
+    it("Stack context menu- collapse stack", () => {});
 
     it("Copy view", () => {
       mainPage.sortField("Title", "Z → A");
@@ -254,19 +288,26 @@ export const genTest = (apiType, dbType) => {
       cy.viewCopy(1);
 
       // verify copied view
-      cy.get('.nc-kanban-stacked-by-menu-btn')
+      cy.get(".nc-kanban-stacked-by-menu-btn")
         .contains(`Stacked By Rating`)
-        .should('exist');
+        .should("exist");
       verifyKanbanStackCount(6);
-      verifyKanbanStackOrder(["uncategorized", "G", "PG", "PG-13", "R", "NC-17"]);
+      verifyKanbanStackOrder([
+        "uncategorized",
+        "G",
+        "PG",
+        "PG-13",
+        "R",
+        "NC-17",
+      ]);
       verifyKanbanStackFooterCount(["0", "4", "5", "8", "6", "6"]);
       verifyKanbanStackCardOrder("BAREFOOT MANCHURIAN", 1, 0);
       verifyKanbanStackCardOrder("WORST BANGER", 2, 0);
 
       cy.viewDelete(1);
-    })
+    });
 
-    it("Delete Kanban view",  () => {
+    it("Delete Kanban view", () => {
       cy.viewDelete(0);
       cy.closeTableTab("Film");
     });

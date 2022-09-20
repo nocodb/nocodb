@@ -11,6 +11,7 @@ interface Props {
   target?: TeleportProps['to']
   teleportDisabled?: TeleportProps['disabled']
   transition?: boolean
+  lightBackground?: boolean
 }
 
 interface Emits {
@@ -49,8 +50,10 @@ export default {
         vModel ? 'opacity-100' : 'opacity-0 pointer-events-none',
         inline ? 'absolute' : 'fixed',
         transition ? 'transition-opacity duration-200 ease-in-out' : '',
+        lightBackground ? 'bg-gray-100/25' : '',
+        !lightBackground ? 'bg-gray-700/75' : '',
       ]"
-      class="z-100 top-0 left-0 bottom-0 right-0 bg-gray-700/75"
+      class="z-100 top-0 left-0 bottom-0 right-0 bg-gray-100/25"
     >
       <slot :is-open="vModel" />
     </div>

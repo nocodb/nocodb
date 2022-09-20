@@ -60,7 +60,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-restTableOps-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cypress-restViews-run-cache:
       runs-on: ubuntu-20.04
@@ -104,7 +106,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-restViews-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cypress-restRoles-run-cache:
       runs-on: ubuntu-20.04
@@ -148,7 +152,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-restRoles-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cypress-restMisc-run-cache:
       runs-on: ubuntu-20.04
@@ -192,7 +198,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-restMisc-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cypress-xcdb-restTableOps-run-cache:
       runs-on: ubuntu-20.04
@@ -236,7 +244,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-xcdb-restTableOps-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cypress-xcdb-restViews-run-cache:
       runs-on: ubuntu-20.04
@@ -280,7 +290,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-xcdb-restViews-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cypress-xcdb-restRoles-run-cache:
       runs-on: ubuntu-20.04
@@ -324,7 +336,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-xcdb-restRoles-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cypress-xcdb-restMisc-run-cache:
       runs-on: ubuntu-20.04
@@ -368,7 +382,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-xcdb-restMisc-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cypress-pg-restTableOps-run-cache:
       runs-on: ubuntu-20.04
@@ -412,7 +428,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-pg-restTableOps-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cypress-pg-restViews-run-cache:
       runs-on: ubuntu-20.04
@@ -456,7 +474,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-pg-restViews-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cypress-pg-restRoles-run-cache:
       runs-on: ubuntu-20.04
@@ -500,7 +520,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-pg-restRoles-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cypress-pg-restMisc-run-cache:
       runs-on: ubuntu-20.04
@@ -544,7 +566,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cypress-pg-restMisc-run-cache-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cy-quick-sqlite:
       runs-on: ubuntu-20.04
@@ -589,7 +613,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cy-quick-sqlite-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     cy-quick-pg:
       runs-on: ubuntu-20.04
@@ -633,7 +659,9 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: cy-quick-pg-snapshots
-            path: scripts/cypress/screenshots
+            path: |
+              scripts/cypress/screenshots
+              packages/nocodb/noco.db
             retention-days: 2
     unit-tests:
       runs-on: ubuntu-20.04

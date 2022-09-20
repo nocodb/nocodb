@@ -6,12 +6,18 @@ function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+// function verifyExpandFormHeader(title) {
+//   cy.getActiveDrawer(".nc-drawer-expanded-form")
+//     .should("exist")
+//     .find(".nc-expanded-form-header")
+//     .contains(title)
+//     .should("exist");
+// }
+
 function verifyExpandFormHeader(title) {
-  cy.getActiveDrawer(".nc-drawer-expanded-form")
-    .should("exist")
-    .find(".nc-expanded-form-header")
-    .contains(title)
-    .should("exist");
+  cy.get(
+    `.nc-drawer-expanded-form .nc-expanded-form-header :contains("${title}")`
+  ).should("exist");
 }
 
 export const genTest = (apiType, dbType) => {
@@ -19,7 +25,6 @@ export const genTest = (apiType, dbType) => {
 
   describe(`${apiType.toUpperCase()} api - Table views: Expanded form`, () => {
     before(() => {
-      loginPage.loginAndOpenProject(apiType, dbType);
       cy.restoreLocalStorage();
 
       // open a table to work on views

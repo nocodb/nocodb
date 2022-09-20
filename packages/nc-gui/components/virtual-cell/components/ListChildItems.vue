@@ -81,7 +81,7 @@ const expandedFormRow = ref()
 watch(
   () => props.cellValue,
   () => {
-    if (!isNew.value) loadChildrenList()
+    if (!isNew.value && vModel.value) loadChildrenList()
   },
 )
 </script>

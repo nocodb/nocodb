@@ -1,32 +1,40 @@
 ---
-title: "Unit Test"
-description: "How to write unit tests"
-position: 3300
+title: "Writing Tests"
+description: "Overview to testing"
+position: 3250
 category: "Engineering"
-menuTitle: "Unit Test"
+menuTitle: "Tests"
 ---
 
-## Key points
+## Pre-requisites
+- MySQL is preferrable - however we fallback to SQLite
 
-- We use [Mocha](https://mochajs.org/) as our test runner and [chai](https://www.chaijs.com/) as our assertion library.
-- We use [Supertest](https://www.npmjs.com/package/supertest) to test our API endpoints.
+## Setup  
+```
+cp scripts/.env.copy scripts/.env
+open scripts/.env
+
+# Edit the following env variables
+# `DB_USER` : mysql username
+# `DB_PASSWORD` : mysql password
+# `DB_HOST` : mysql host
+# `DB_PORT` : mysql port
+```
+
+## How to run API tests
+```
+cd packages/nocodb
+npm run test:unit
+```
+
+## Key points
 - All individual unit tests are independent of each other. We don't use any shared state between tests.
-- Test environment also includes `sakila` database and any change on `sakila` by a test is reverted before running other tests.
+- Test environment includes `sakila` sample database and any change to it by a test is reverted before running other tests.
 - While running unit tests, it tries to connect to mysql server running on `localhost:3306` with username `root` and password `password`(which can be configured) and if not found, it will use `sqlite` as a fallback, hence no requirement of any sql server to run tests.
 
 ## Walk through of writing a unit test
-
 We will create an `Table` test suite as an example.
 
-### Describing test suite
-
-Create `Table` test suite by using `describe` function of mocha.
-
-```typescript
-export default function () {
-  describe('Table', tableTests);
-}
-```
 
 ### Configure test
 
@@ -147,13 +155,5 @@ The root folder for unit tests is `packages/tests/unit`
   - Use one file per factory.
 
 ## Using sakila db
-
 To use sakila db use `createSakilaProject` from `factory/project` to create a project. This project will be seeded with `sakila` tables.
 
-## Configurations
-
-- For Mysql db configuration, use the following environment variables to configure.
-  - `DB_USER` : mysql username
-  - `DB_PASSWORD` : mysql password
-  - `DB_HOST` : mysql host
-  - `DB_PORT` : mysql port

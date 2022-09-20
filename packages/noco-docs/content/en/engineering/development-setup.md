@@ -6,13 +6,13 @@ category: "Engineering"
 menuTitle: "Development setup"
 ---
 
-### Clone the repo
+## Clone the repo
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb/packages
 ```
 
-### Build SDK
+## Build SDK
 ```
 # build nocodb-sdk
 cd nocodb-sdk
@@ -20,7 +20,7 @@ npm install
 npm run build
 ```
 
-### Build Backend
+## Build Backend
 ```
 # build backend - runs on port 8080
 cd ../nocodb
@@ -28,7 +28,7 @@ npm install
 npm run watch:run
 ```
 
-### Build Frontend
+## Build Frontend
 ```
 # build frontend - runs on port 3000
 cd ../nc-gui
@@ -38,7 +38,7 @@ npm run dev
 
 Any changes made to frontend and backend will be automatically reflected in the browser.
 
-### Cypress
+## Cypress - e2e tests
 Cypress tests are divided into 4 suites
 - SQLite tests
 - Postgres tests
@@ -52,7 +52,7 @@ First 3 suites, each have 4 test category
 - Miscellaneous (Import, i18n, etc)
 
 
-#### MySQL tests (ExtDB project)
+### MySQL tests (ExtDB project)
 ```shell
 # install dependencies(cypress)
 npm install
@@ -75,7 +75,7 @@ npm run cypress:open
 - Miscellaneous : restMisc.js
 ```
 
-#### SQLite tests (XCDB project)
+### SQLite tests (XCDB project)
 ```shell
 # install dependencies(cypress)
 npm install
@@ -98,7 +98,7 @@ npm run cypress:open
 - Miscellaneous : xcdb-restMisc.js
 ```
 
-#### PG tests (ExtDB project)
+### PG tests (ExtDB project)
 ```shell
 # install dependencies(cypress)
 npm install
@@ -121,7 +121,7 @@ npm run cypress:open
 - Miscellaneous : pg-restMisc.js
 ```
 
-#### Quick import tests (SQLite project)
+### Quick import tests (SQLite project)
 ```shell
 # install dependencies(cypress)
 npm install
@@ -144,7 +144,7 @@ npm run cypress:open
 - quickTest.js
 ```
 
-#### Quick import tests (PG)
+### Quick import tests (PG)
 ```shell
 # install dependencies(cypress)
 npm install

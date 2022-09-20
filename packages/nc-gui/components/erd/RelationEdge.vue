@@ -53,12 +53,12 @@ const props = defineProps({
   },
 })
 
-const { column, isSelfRelation, label } = toRefs(props.data)
+const data = toRef(props, 'data')
 
-const isManyToMany = computed(() => column.value?.colOptions?.type === 'mm')
+const isManyToMany = computed(() => data.value.column?.colOptions?.type === 'mm')
 
 const edgePath = computed(() => {
-  if (isSelfRelation.value) {
+  if (data.value.isSelfRelation) {
     const { sourceX, sourceY, targetX, targetY } = props
     const radiusX = (sourceX - targetX) * 0.6
     const radiusY = 50
@@ -112,11 +112,11 @@ export default {
   />
 
   <EdgeText
-    v-if="label?.length > 0"
-    :class="`nc-erd-table-label-${label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`"
+    v-if="data.label?.length > 0"
+    :class="`nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`"
     :x="center[0]"
     :y="center[1]"
-    :label="label"
+    :label="data.label"
     :label-style="{ fill: 'white' }"
     :label-show-bg="true"
     :label-bg-style="{ fill: '#10b981' }"

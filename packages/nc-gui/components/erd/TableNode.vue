@@ -4,8 +4,6 @@ import { Handle, Position } from '@braks/vue-flow'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import MdiView from '~icons/mdi/eye-circle-outline'
-import MdiTableLarge from '~icons/mdi/table-large'
 
 interface Props extends NodeProps {
   data: TableType & { showPkAndFk: boolean; showAllColumns: boolean }
@@ -54,7 +52,7 @@ const relatedColumnId = (col: Record<string, any>) =>
         class="text-gray-600 text-md py-2 border-b-1 border-gray-200 rounded-t-lg w-full pr-3 pl-2 bg-gray-100 font-semibold flex flex-row items-center"
       >
         <MdiTableLarge v-if="data.type === 'table'" class="text-primary" />
-        <MdiView v-else class="text-primary" />
+        <MdiEyeCircleOutline v-else class="text-primary" />
         <div class="flex pl-1.5">
           {{ data.title }}
         </div>

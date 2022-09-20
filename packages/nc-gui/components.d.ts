@@ -190,6 +190,7 @@ declare module '@vue/runtime-core' {
     MdiStarOutline: typeof import('~icons/mdi/star-outline')['default']
     MdiTable: typeof import('~icons/mdi/table')['default']
     MdiTableArrowRight: typeof import('~icons/mdi/table-arrow-right')['default']
+    MdiTableLarge: typeof import('~icons/mdi/table-large')['default']
     MdiText: typeof import('~icons/mdi/text')['default']
     MdiThumbUp: typeof import('~icons/mdi/thumb-up')['default']
     MdiTrashCan: typeof import('~icons/mdi/trash-can')['default']

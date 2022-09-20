@@ -1,7 +1,7 @@
-import { useGlobalState } from './state'
 import { useGlobalActions } from './actions'
-import type { UseGlobalReturn } from './types'
 import { useGlobalGetters } from './getters'
+import { useGlobalState } from './state'
+import type { UseGlobalReturn } from './types'
 import { createGlobalState, useNuxtApp, watch } from '#imports'
 
 /**

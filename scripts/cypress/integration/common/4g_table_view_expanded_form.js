@@ -1,20 +1,30 @@
-import { isTestSuiteActive } from '../../support/page_objects/projectConstants';
+import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import { loginPage } from "../../support/page_objects/navigation";
+import { mainPage } from "../../support/page_objects/mainPage";
 
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function verifyExpandFormHeader(title) {
+  cy.getActiveDrawer(".nc-drawer-expanded-form")
+    .should("exist")
+    .find(".nc-expanded-form-header")
+    .contains(title)
+    .should("exist");
 }
 
 export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
   describe(`${apiType.toUpperCase()} api - Table views: Expanded form`, () => {
-
     before(() => {
+      loginPage.loginAndOpenProject(apiType, dbType);
       cy.restoreLocalStorage();
 
       // open a table to work on views
       //
-      cy.openTableTab('Country', 25);
+      cy.openTableTab("Country", 25);
     });
 
     beforeEach(() => {
@@ -27,7 +37,7 @@ export const genTest = (apiType, dbType) => {
 
     after(() => {
       cy.restoreLocalStorage();
-      cy.closeTableTab('Country');
+      cy.closeTableTab("Country");
       cy.saveLocalStorage();
     });
 
@@ -40,82 +50,144 @@ export const genTest = (apiType, dbType) => {
         cy.get(`.nc-create-${viewType}-view`).click();
 
         // Pop up window, click Submit (accepting default name for view)
-        cy.getActiveModal('.nc-modal-view-create').find('.ant-btn-primary').click();
-        cy.toastWait('View created successfully');
+        cy.getActiveModal(".nc-modal-view-create")
+          .find(".ant-btn-primary")
+          .click();
+        cy.toastWait("View created successfully");
 
         // validate if view was created && contains default name 'Country1'
         cy.get(`.nc-${viewType}-view-item`)
           .contains(`${capitalizeFirstLetter(viewType)}-1`)
-          .should('exist');
+          .should("exist");
+
+        if (viewType === "gallery") {
+          // mainPage.unhideField("City List");
+          cy.get(".nc-fields-menu-btn").click();
+          cy.getActiveMenu(".nc-dropdown-fields-menu")
+            .find(`.nc-fields-list label:contains("City List"):visible`)
+            .click();
+          cy.get(".nc-fields-menu-btn").click();
+
+          cy.get('.ant-card-body [title="City List"]').should("exist");
+          cy.wait(5000);
+        }
       });
 
-
       it(`Expand a row in ${viewType} and verify url`, () => {
-
-        if (viewType === 'grid') {
-          cy.get('.nc-row-expand')
-            .first()
-            .click({ force: true });
-        } else if (viewType === 'gallery') {
-          cy.get('.nc-gallery-container .ant-card')
-            .first()
-            .click({ force: true });
+        // click on first row-expand if grid & first card if its gallery
+        if (viewType === "grid") {
+          cy.get(".nc-row-expand").first().click({ force: true });
+        } else if (viewType === "gallery") {
+          cy.get(".nc-gallery-container .ant-card").first().click();
         }
-        cy.url().should('include', 'rowId=1');
+
+        // ensure expand draw is open
+        verifyExpandFormHeader("Afghanistan");
+        cy.url().should("include", "rowId=1");
 
         // spy on clipboard to verify copied text
+        // creating alias for clipboard
         cy.window().then((win) => {
-          cy.spy(win.navigator.clipboard, 'writeText').as('copy');
+          cy.spy(win.navigator.clipboard, "writeText").as("copy");
         });
 
         // copy url
-        cy.get('.nc-copy-row-url').click();
+        cy.getActiveDrawer(".nc-drawer-expanded-form")
+          .should("exist")
+          .find(".nc-copy-row-url")
+          .click();
 
-        cy.get('@copy').should('be.calledWithMatch', `?rowId=1`);
+        // use alias; verify if clipboard was called with correct text
+        cy.get("@copy").should("be.calledWithMatch", `?rowId=1`);
 
-        cy.get('.nc-expand-form-close-btn').click();
-
+        // close expanded form
+        cy.getActiveDrawer(".nc-drawer-expanded-form")
+          .find(".nc-expand-form-close-btn")
+          .click();
       });
 
       it(`Visit a ${viewType} row url and verify expanded form`, () => {
-        cy.url()
-          .then((url) => {
-            cy.visit('/' + url.split('/').slice(3).join('/').split('?')[0] + '?rowId=2');
+        cy.url().then((url) => {
+          cy.visit(
+            "/" + url.split("/").slice(3).join("/").split("?")[0] + "?rowId=2"
+          );
 
-            return cy.get('.nc-expanded-form-header').should('exist');
-          });
+          verifyExpandFormHeader("Algeria");
+        });
       });
 
       it(`Visit an invalid ${viewType} row url and verify expanded form`, () => {
-        cy.url()
-          .then((url) => {
-            cy.visit('/' + url.split('/').slice(3).join('/').split('?')[0] + '?rowId=99999999');
-            cy.toastWait('Record not found');
-            cy.get('.nc-expanded-form-header').should('not.exist');
+        cy.url().then((url) => {
+          cy.visit(
+            "/" +
+              url.split("/").slice(3).join("/").split("?")[0] +
+              "?rowId=99999999"
+          );
 
-            return cy.get(viewType === 'grid' ? '.nc-grid' : '.nc-gallery').should('exist');
-          });
+          cy.toastWait("Record not found");
+
+          cy.get(`.nc-drawer-expanded-form .ant-drawer-content:visible`).should(
+            "not.exist"
+          );
+
+          // defaults to corresponding grid / gallery view
+          cy.get(viewType === "grid" ? ".nc-grid" : ".nc-gallery").should(
+            "exist"
+          );
+        });
       });
-
 
       it(`Visit a ${viewType} row url and verify nested expanded form`, () => {
-        cy.url()
-          .then((url) => {
-            cy.visit('/' + url.split('/').slice(3).join('/').split('?')[0] + '?rowId=2');
-            cy.get('.nc-expanded-form-header').should('exist');
+        cy.url().then((url) => {
+          cy.visit(
+            "/" + url.split("/").slice(3).join("/").split("?")[0] + "?rowId=1"
+          );
 
-            cy.get('.nc-form-fields-container').scrollTo(0, 800);
+          verifyExpandFormHeader("Afghanistan");
 
-            // todo: click on a LTAR field to open nested expanded form
-            //       and verify copy url functionality
-            // cy.get('.name:contains("City List")').
-            // return cy.wait(100000)
-          });
+          cy.get(".nc-drawer-expanded-form .ant-drawer-content").should(
+            "exist"
+          );
+
+          cy.getActiveDrawer(".nc-drawer-expanded-form")
+            .find(".ant-card-body")
+            .first()
+            .click();
+
+          cy.get(".nc-drawer-expanded-form .ant-drawer-content").should(
+            "have.length",
+            2
+          );
+
+          cy.wait(1000);
+
+          verifyExpandFormHeader("Kabul");
+
+          // close expanded forms
+          cy.getActiveDrawer(".nc-drawer-expanded-form")
+            .find(".ant-btn")
+            .contains("Cancel")
+            .click();
+
+          verifyExpandFormHeader("Afghanistan");
+
+          cy.getActiveDrawer(".nc-drawer-expanded-form")
+            .find(".ant-btn")
+            .contains("Cancel")
+            .click();
+        });
       });
 
+      it("Delete view", () => {
+        cy.get(".nc-view-delete-icon").click({ force: true });
+        cy.getActiveModal(".nc-modal-view-delete")
+          .find(".ant-btn-dangerous")
+          .click();
+        cy.toastWait("View deleted successfully");
+      });
     };
 
-    viewTest('grid');  // grid view
-    viewTest('gallery');  // gallery view
+    viewTest("grid"); // grid view
+    viewTest("gallery"); // gallery view
   });
 };

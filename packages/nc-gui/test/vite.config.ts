@@ -18,10 +18,6 @@ export default defineConfig({
     }),
   ],
   test: {
-    setupFiles: path.resolve(__dirname, './vuetify.config.js'),
-    deps: {
-      inline: ['vuetify'],
-    },
     globals: true,
     environment: 'happy-dom',
   },

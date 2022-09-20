@@ -106,7 +106,7 @@ watch(
       </div>
     </div>
     <div v-else class="relative h-full">
-      <ErdSimpleView :tables="tables" :config="config" />
+      <ErdFlow :tables="tables" :config="config" />
 
       <div
         class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1 nc-erd-context-menu z-50"

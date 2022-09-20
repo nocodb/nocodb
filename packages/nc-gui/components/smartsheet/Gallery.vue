@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { onMounted } from '@vue/runtime-core'
 import { isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -67,17 +68,6 @@ const coverImageColumn: any = $(
       ? meta.value.columnsById[galleryData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
       : {},
   ),
-)
-
-watch(
-  [meta, view],
-  async () => {
-    if (meta?.value && view?.value) {
-      await loadData()
-      await loadGalleryData()
-    }
-  },
-  { immediate: true },
 )
 
 const isRowEmpty = (record: any, col: any) => {
@@ -154,6 +144,11 @@ const expandedFormOnRowIdDlg = computed({
 
 // reload table data reload hook as fallback to rowdatareload
 provide(ReloadRowDataHookInj, reloadViewDataHook)
+
+onMounted(async () => {
+  await loadData()
+  await loadGalleryData()
+})
 </script>
 
 <template>
@@ -170,7 +165,9 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
               <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay class="gallery-carousel" arrows>
                 <template #customPaging>
                   <a>
-                    <div class="pt-[12px]"><div></div></div>
+                    <div class="pt-[12px]">
+                      <div></div>
+                    </div>
                   </a>
                 </template>
                 <template #prevArrow>

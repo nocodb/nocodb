@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
-import { TabMetaInj } from '#imports'
+import { TabMetaInj, watchOnce } from '#imports'
 
 const { getMeta } = useMetas()
 
@@ -15,17 +15,20 @@ const activeTab = inject(
   computed(() => ({} as TabItem)),
 )
 
-/** wait until table list loads since meta load requires table list **/
-watch(
-  () => tables.value.length,
-  (nextVal) => {
-    if (!nextVal) return
-
-    getMeta(route.params.title as string, true).finally(() => (loading.value = false))
-    loading.value = false
-  },
-  { immediate: true },
-)
+if (tables.value.length) {
+  getMeta(route.params.title as string, true).finally(() => (loading.value = false))
+  loading.value = false
+} else {
+  /** wait until table list loads since meta load requires table list **/
+  watchOnce(
+    () => tables.value.length,
+    (nextVal) => {
+      if (!nextVal) return
+      getMeta(route.params.title as string, true).finally(() => (loading.value = false))
+      loading.value = false
+    },
+  )
+}
 </script>
 
 <template>

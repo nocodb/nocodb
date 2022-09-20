@@ -92,6 +92,8 @@ export const genTest = (apiType, dbType) => {
         cy.log(viewURL["combined"]);
 
         cy.wait(["@waitForPageLoad"]);
+        // kludge: additional wait to ensure page load is completed
+        cy.wait(2000);
       });
 
       it(`Share GRID view : ensure we have only one link even if shared multiple times`, () => {

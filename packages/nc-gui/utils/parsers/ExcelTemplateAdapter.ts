@@ -3,7 +3,7 @@ import { UITypes } from 'nocodb-sdk'
 import TemplateGenerator from './TemplateGenerator'
 import { getCheckboxValue, isCheckboxType } from './parserHelpers'
 
-const excelTypeToUidt: Record<any, any> = {
+const excelTypeToUidt: Record<string, UITypes> = {
   d: UITypes.DateTime,
   b: UITypes.Checkbox,
   n: UITypes.Number,
@@ -11,32 +11,46 @@ const excelTypeToUidt: Record<any, any> = {
 }
 
 export default class ExcelTemplateAdapter extends TemplateGenerator {
-  config: Record<string, any>
+  config: {
+    maxRowsToParse: number
+  } & Record<string, any>
+
   name: string
+
   excelData: any
-  project: Record<string, any>
-  data: Record<string, any>
+
+  project: {
+    title: string
+    tables: any[]
+  }
+
+  data: Record<string, any> = {}
+
   wb: any
+
   constructor(name = '', data = {}, parserConfig = {}) {
     super()
     this.config = {
       maxRowsToParse: 500,
       ...parserConfig,
     }
+
     this.name = name
+
     this.excelData = data
+
     this.project = {
       title: this.name,
       tables: [],
     }
-    this.data = {}
   }
 
   async init() {
-    const options: Record<any, boolean> = {
+    const options = {
       cellText: true,
       cellDates: true,
     }
+
     if (this.name.slice(-3) === 'csv') {
       this.wb = read(new TextDecoder().decode(new Uint8Array(this.excelData)), {
         type: 'string',
@@ -51,9 +65,10 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   parse() {
-    const tableNamePrefixRef: any = {}
+    const tableNamePrefixRef: Record<string, any> = {}
+
     for (let i = 0; i < this.wb.SheetNames.length; i++) {
-      const columnNamePrefixRef: Record<any, any> = { id: 0 }
+      const columnNamePrefixRef: Record<string, any> = { id: 0 }
       const sheet: any = this.wb.SheetNames[i]
       let tn: string = (sheet || 'table').replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
 
@@ -62,7 +77,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       }
       tableNamePrefixRef[tn] = 0
 
-      const table: Record<string, any> = { table_name: tn, ref_table_name: tn, columns: [] }
+      const table = { table_name: tn, ref_table_name: tn, columns: [] as any[] }
       this.data[tn] = []
       const ws: any = this.wb.Sheets[sheet]
       const range = utils.decode_range(ws['!ref'])

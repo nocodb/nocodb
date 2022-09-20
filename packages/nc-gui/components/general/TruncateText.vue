@@ -35,7 +35,7 @@ const shortName = computed(() =>
     <template #title>
       <slot></slot>
     </template>
-    <div>{{ shortName }}</div>
+    <div class="w-full">{{ shortName }}</div>
   </a-tooltip>
   <div v-else class="w-full"><slot></slot></div>
   <div ref="text" class="hidden"><slot></slot></div>

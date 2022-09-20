@@ -214,7 +214,7 @@ onMounted(() => {
                         :class="{ capitalize: stack.title === 'uncategorized' }"
                       >
                         <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
-                        <span class="w-full flex">
+                        <span class="w-full flex w-[15px]">
                           <mdi-menu-down class="text-grey text-lg ml-auto" />
                         </span>
                       </div>

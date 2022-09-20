@@ -95,7 +95,7 @@ watch(inputs, () => {
   <div class="w-full">
     <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
       <template #item="{ element, index }">
-        <div class="flex py-1 items-center">
+        <div class="flex py-1 items-center nc-select-option">
           <MdiDragIcon small class="nc-child-draggable-icon handle" />
           <a-dropdown
             v-model:visible="colorMenus[index]"

@@ -55,16 +55,23 @@ From the destination project, go to `Project Metadata`. Under ``Export / Import 
 
 Go to `Project Metadata`, under ``Metadata``, you can see your metadata sync status. If it is out of sync, you can sync the schema. See <a href="./sync-schema">Sync Schema</a> for more.
 
-<img width="1480" alt="image" src="https://user-images.githubusercontent.com/35857179/189116339-22b202ef-7674-4682-bab7-2b8625e13ea2.png">
+<img width="1418" alt="image" src="https://user-images.githubusercontent.com/35809690/191258001-a4385df0-e796-4fa1-8ea4-a25361cd2d91.png">
 
 ## UI Access Control
 
 Go to `Project Metadata`, under ``UI Access Control``, you can control the access to each table by roles. 
 
-<img width="1480" alt="image" src="https://user-images.githubusercontent.com/35857179/189116502-78a0dc75-70cb-4bbe-a676-93af53ecca22.png">
+<img width="1417" alt="image" src="https://user-images.githubusercontent.com/35809690/191258150-3abe8de9-bab9-46fe-9095-01b8815b57f2.png">
+
+## ERD
+
+Go to `Project Metadata`, under ``ERD View``, you can see the ERD of your database.
+
+<img width="1419" alt="image" src="https://user-images.githubusercontent.com/35809690/191258324-18bd4ed0-521b-4480-a3f6-fe4660b8ddd5.png">
+
 
 ## Miscellaneous
 
 Currently only `Show M2M Tables` can be configurated under Miscellaneous.
 
-<img width="1495" alt="image" src="https://user-images.githubusercontent.com/35857179/189116547-3c5ce944-82c0-4068-b91c-60f45b862d32.png">
+<img width="1409" alt="image" src="https://user-images.githubusercontent.com/35809690/191258441-72a12941-2d2b-4a0d-84b8-f7f8783aa4e8.png">

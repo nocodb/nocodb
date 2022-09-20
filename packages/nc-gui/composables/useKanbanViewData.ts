@@ -131,6 +131,13 @@ export function useKanbanViewData(
               ...stackMetaObj.value[grp_column_id][idx],
               ...option,
             }
+            // rename the key in formattedData & countByStack
+            if (option.title !== rest.title) {
+              delete Object.assign(formattedData.value, { [option.title!]: formattedData.value[rest.title!] })[rest.title!]
+              delete Object.assign(countByStack.value, { [option.title!]: countByStack.value[rest.title!] })[rest.title!]
+              // update grouping field value under the edited stack
+              await bulkUpdateGroupingFieldValue(option.title!)
+            }
             isChanged = true
           }
         } else {
@@ -158,6 +165,7 @@ export function useKanbanViewData(
         })
 
       groupingFieldColOptions.value = stackMetaObj.value[grp_column_id]
+
       if (isChanged) {
         await updateKanbanStackMeta()
       }
@@ -271,32 +279,43 @@ export function useKanbanViewData(
     }
   }
 
-  async function deleteStack(stackTitle: string) {
+  async function bulkUpdateGroupingFieldValue(stackTitle: string, moveToUncategorizedStack = false) {
     try {
-      // set groupingField to null for all records under the target stack
+      // set groupingField to target value for all records under the target stack
+      // if isTargetValueNull is true, then it means the cards under stackTitle will move to Uncategorized stack
+      const groupingFieldVal = moveToUncategorizedStack ? null : stackTitle
       await api.dbTableRow.bulkUpdateAll(
         'noco',
         project.value.id!,
         meta.value?.id as string,
         {
-          [groupingField.value]: null,
+          [groupingField.value]: groupingFieldVal,
         },
         {
           where: `(${groupingField.value},eq,${stackTitle})`,
         },
       )
-      // update to groupingField value to null
+      // update to groupingField value to target value
       formattedData.value[stackTitle] = formattedData.value[stackTitle].map((o) => ({
         ...o,
         row: {
           ...o.row,
-          [groupingField.value]: null,
+          [groupingField.value]: groupingFieldVal,
         },
         oldRow: {
           ...o.oldRow,
-          [groupingField.value]: null,
+          [groupingField.value]: o.row[groupingField.value],
         },
       }))
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function deleteStack(stackTitle: string) {
+    try {
+      // set groupingField to null for all records under the target stack
+      await bulkUpdateGroupingFieldValue(stackTitle, true)
       // merge the 'deleted' stack to uncategorized stack
       formattedData.value.uncategorized = [...formattedData.value.uncategorized, ...formattedData.value[stackTitle]]
       countByStack.value.uncategorized += countByStack.value[stackTitle]

@@ -54,24 +54,46 @@ export const genTest = (apiType, dbType) => {
                 force: true,
             });
 
-            cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
+            cy.getActiveMenu(".nc-dropdown-grid-add-column")
+              .find('input.nc-column-name-input')
               .should('exist')
               .clear()
               .type(columnName);
-            cy.get(".nc-column-type-input").last().click().type("RollUp");
-            cy.getActiveSelection('.nc-dropdown-column-type').find('.ant-select-item-option').contains("Rollup").click();
+            // cy.get(".nc-column-type-input").last().click().type("RollUp");
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find(".nc-column-type-input")
+              .last()
+              .click()
+              .type("RollUp")
+            cy.getActiveSelection('.nc-dropdown-column-type')
+              .find('.ant-select-item-option')
+              .contains("Rollup")
+              .click();
 
             // Configure Child table & column names
             fetchParentFromLabel("Child table");
-            cy.getActiveSelection('.nc-dropdown-relation-table').find('.ant-select-item-option').contains(childTable).click();
+            cy.getActiveSelection('.nc-dropdown-relation-table')
+              .find('.ant-select-item-option')
+              .contains(childTable)
+              .click();
 
             fetchParentFromLabel("Child column");
-            cy.getActiveSelection('.nc-dropdown-relation-column').find('.ant-select-item-option').contains(childCol).click();
+            cy.getActiveSelection('.nc-dropdown-relation-column')
+              .find('.ant-select-item-option')
+              .contains(childCol)
+              .click();
 
             fetchParentFromLabel("Aggregate function");
-            cy.getActiveSelection('.nc-dropdown-rollup-function').find('.ant-select-item-option').contains(aggregateFunc).click();
+            cy.getActiveSelection('.nc-dropdown-rollup-function')
+              .find('.ant-select-item-option')
+              .contains(aggregateFunc)
+              .click();
 
-            cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            // cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find(".ant-btn-primary:visible")
+              .contains("Save")
+              .click();
             cy.toastWait(`Column created`);
 
             cy.get(`th[data-title="${columnName}"]`).should("exist");
@@ -85,26 +107,26 @@ export const genTest = (apiType, dbType) => {
 
         // routine to edit column
         //
-        const editColumnByName = (oldName, newName) => {
-            // verify if column exists before delete
-            cy.get(`th:contains(${oldName})`).should("exist");
-
-            // delete opiton visible on mouse-over
-            cy.get(`th:contains(${oldName}) .mdi-menu-down`)
-                .trigger("mouseover")
-                .click();
-
-            // edit/ save on pop-up
-            cy.get(".nc-column-edit").click();
-            cy.get(".nc-column-name-input input").clear().type(newName);
-            cy.get(".nc-col-create-or-edit-card").contains("Save").click();
-
-            cy.toastWait("Successfully updated alias");
-
-            // validate if deleted (column shouldnt exist)
-            cy.get(`th:contains(${oldName})`).should("not.exist");
-            cy.get(`th:contains(${newName})`).should("exist");
-        };
+        // const editColumnByName = (oldName, newName) => {
+        //     // verify if column exists before delete
+        //     cy.get(`th:contains(${oldName})`).should("exist");
+        //
+        //     // delete opiton visible on mouse-over
+        //     cy.get(`th:contains(${oldName}) .mdi-menu-down`)
+        //         .trigger("mouseover")
+        //         .click();
+        //
+        //     // edit/ save on pop-up
+        //     cy.get(".nc-column-edit").click();
+        //     cy.get(".nc-column-name-input input").clear().type(newName);
+        //     cy.get(".nc-col-create-or-edit-card").contains("Save").click();
+        //
+        //     cy.toastWait("Successfully updated alias");
+        //
+        //     // validate if deleted (column shouldnt exist)
+        //     cy.get(`th:contains(${oldName})`).should("not.exist");
+        //     cy.get(`th:contains(${newName})`).should("exist");
+        // };
 
         ///////////////////////////////////////////////////
         // Test case
@@ -134,7 +156,7 @@ export const genTest = (apiType, dbType) => {
                 .contains("2")
                 .should("exist");
 
-            editColumnByName("RollUpCol_1", "RollUpCol_New");
+            // editColumnByName("RollUpCol_1", "RollUpCol_New");
             deleteColumnByName("RollUpCol_New");
         });
     });

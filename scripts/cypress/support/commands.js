@@ -352,26 +352,26 @@ Cypress.Commands.add('renameTable', (oldName, newName) => {
 
 });
 
-Cypress.Commands.add('createColumn', (table, columnName) => {
-  cy.get('.nc-project-tree')
-    .find('.v-list-item__title:contains(Tables)')
-    .should('exist')
-    .first()
-    .click();
-  cy.get('.nc-project-tree')
-    .contains(table)
-    .should('exist')
-    .first()
-    .click({ force: true });
-  cy.get(`.project-tab:contains(${table}):visible`).should('exist');
-  cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({
-    force: true,
-  });
-  cy.get('.nc-column-name-input input').clear().type(columnName);
-  cy.getActiveMenu('Menu_CreateColumn');
-  cy.get('.nc-col-create-or-edit-card').contains('Save').click();
-  cy.get('th:contains(new_column)').should('exist');
-});
+// Cypress.Commands.add('createColumn', (table, columnName) => {
+//   cy.get('.nc-project-tree')
+//     .find('.v-list-item__title:contains(Tables)')
+//     .should('exist')
+//     .first()
+//     .click();
+//   cy.get('.nc-project-tree')
+//     .contains(table)
+//     .should('exist')
+//     .first()
+//     .click({ force: true });
+//   cy.get(`.project-tab:contains(${table}):visible`).should('exist');
+//   cy.get('.v-window-item--active .nc-grid  tr > th:last button').click({
+//     force: true,
+//   });
+//   cy.get('.nc-column-name-input input').clear().type(columnName);
+//   cy.getActiveMenu('Menu_CreateColumn');
+//   cy.get('.nc-col-create-or-edit-card').contains('Save').click();
+//   cy.get('th:contains(new_column)').should('exist');
+// });
 
 Cypress.Commands.add('toastWait', (msg) => {
   cy.get('.ant-message-notice-content:visible', { timeout: 60000 }).contains(msg).should('exist');

@@ -619,6 +619,7 @@ onMounted(async () => {
               :auto-save="false"
               :show-loading="false"
               :hook-id="hook.id"
+              web-hook
             />
           </a-card>
         </a-col>

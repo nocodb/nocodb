@@ -29,7 +29,6 @@ export interface AppInfo {
 
 export interface StoredState {
   token: string | null
-  user: User | null
   lang: keyof typeof Language
   darkMode: boolean
   feedbackForm: FeedbackForm
@@ -43,6 +42,7 @@ export interface StoredState {
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {
   storage: Ref<StoredState>
+  user: Ref<User | null>
   token: WritableComputedRef<StoredState['token']>
   jwtPayload: ComputedRef<(JwtPayload & User) | null>
   timestamp: Ref<number>

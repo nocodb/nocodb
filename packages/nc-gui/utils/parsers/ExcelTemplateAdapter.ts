@@ -1,4 +1,4 @@
-import XLSX from 'xlsx'
+import { SSF, read, utils } from 'xlsx'
 import { UITypes } from 'nocodb-sdk'
 import TemplateGenerator from './TemplateGenerator'
 import { getCheckboxValue, isCheckboxType } from './parserHelpers'
@@ -38,12 +38,12 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       cellDates: true,
     }
     if (this.name.slice(-3) === 'csv') {
-      this.wb = XLSX.read(new TextDecoder().decode(new Uint8Array(this.excelData)), {
+      this.wb = read(new TextDecoder().decode(new Uint8Array(this.excelData)), {
         type: 'string',
         ...options,
       })
     } else {
-      this.wb = XLSX.read(new Uint8Array(this.excelData), {
+      this.wb = read(new Uint8Array(this.excelData), {
         type: 'array',
         ...options,
       })
@@ -65,8 +65,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       const table: Record<string, any> = { table_name: tn, ref_table_name: tn, columns: [] }
       this.data[tn] = []
       const ws: any = this.wb.Sheets[sheet]
-      const range = XLSX.utils.decode_range(ws['!ref'])
-      let rows: any = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, defval: null })
+      const range = utils.decode_range(ws['!ref'])
+      let rows: any = utils.sheet_to_json(ws, { header: 1, blankrows: false, defval: null })
 
       if (this.name.slice(-3) !== 'csv') {
         // fix precision bug & timezone offset issues introduced by xlsx
@@ -77,7 +77,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         const day_ms = 24 * 60 * 60 * 1000
         // handle date1904 property
         const fixImportedDate = (date: Date) => {
-          const parsed = XLSX.SSF.parse_date_code((date.getTime() - dnthresh) / day_ms, {
+          const parsed = SSF.parse_date_code((date.getTime() - dnthresh) / day_ms, {
             date1904: this.wb.Workbook.WBProps.date1904,
           })
           return new Date(parsed.y, parsed.m, parsed.d, parsed.H, parsed.M, parsed.S)
@@ -111,7 +111,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         table.columns.push(column)
 
         // const cellId = `${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`;
-        const cellId = XLSX.utils.encode_cell({
+        const cellId = utils.encode_cell({
           c: range.s.c + col,
           r: columnNameRowExist,
         })
@@ -173,7 +173,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           }
           if (
             rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
-              const cellId = XLSX.utils.encode_cell({
+              const cellId = utils.encode_cell({
                 c: range.s.c + col,
                 r: i + columnNameRowExist,
               })
@@ -188,7 +188,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         } else if (column.uidt === UITypes.DateTime) {
           if (
             rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
-              const cellId = XLSX.utils.encode_cell({
+              const cellId = utils.encode_cell({
                 c: range.s.c + col,
                 r: i + columnNameRowExist,
               })
@@ -209,7 +209,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           if (table.columns[i].uidt === UITypes.Checkbox) {
             rowData[table.columns[i].column_name] = getCheckboxValue(row[i])
           } else if (table.columns[i].uidt === UITypes.Currency) {
-            const cellId = XLSX.utils.encode_cell({
+            const cellId = utils.encode_cell({
               c: range.s.c + i,
               r: rowIndex + columnNameRowExist,
             })

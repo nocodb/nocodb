@@ -91,7 +91,7 @@ const tabsInfo: TabGroup = {
       $e('c:settings:appstore')
     },
   },
-  metaData: {
+  projMetaData: {
     // Project Metadata
     title: t('title.projMeta'),
     icon: MultipleTableIcon,

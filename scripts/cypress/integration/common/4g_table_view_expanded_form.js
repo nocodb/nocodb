@@ -66,6 +66,8 @@ export const genTest = (apiType, dbType) => {
           .should("exist");
 
         if (viewType === "gallery") {
+          cy.intercept('/api/v1/db/meta/galleries/*').as('getGalleryView');
+
           // mainPage.unhideField("City List");
           cy.get(".nc-fields-menu-btn").click();
           cy.getActiveMenu(".nc-dropdown-fields-menu")
@@ -74,7 +76,9 @@ export const genTest = (apiType, dbType) => {
           cy.get(".nc-fields-menu-btn").click();
 
           cy.get('.ant-card-body [title="City List"]').should("exist");
-          cy.wait(5000);
+          // cy.wait(5000);
+
+          cy.wait(['@getGalleryView'])
         }
       });
 
@@ -192,7 +196,7 @@ export const genTest = (apiType, dbType) => {
       });
     };
 
-    viewTest("grid"); // grid view
+    // viewTest("grid"); // grid view
     viewTest("gallery"); // gallery view
   });
 };

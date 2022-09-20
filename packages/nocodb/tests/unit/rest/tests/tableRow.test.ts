@@ -1417,7 +1417,7 @@ function tableTest() {
         ) {
           throw new Error('Wrong number of rows inserted');
         }
-        
+
         // Max 10 rows will be inserted in sqlite
         if (isSqlite(context) && rows.length !== rowAttributes.length) {
           console.log(response.body)
@@ -1441,7 +1441,7 @@ function tableTest() {
     const rowAttributes = Array(400)
       .fill(0)
       .map((index) => generateDefaultRowAttributes({ columns, index }));
-    
+
     await createBulkRows(context, {
       project,
       table,
@@ -1470,7 +1470,7 @@ function tableTest() {
     const rowAttributes = Array(400)
       .fill(0)
       .map((index) => generateDefaultRowAttributes({ columns, index }));
-    
+
     await createBulkRows(context, {
       project,
       table,
@@ -1615,7 +1615,7 @@ function tableTest() {
     }
   })
 
-  // todo: Api does not support fields and sort 
+  // todo: Api does not support fields and sort
   // it.only('Nested row list hm with selected fields', async () => {
   //   const rowId = 1;
 
@@ -1764,7 +1764,7 @@ function tableTest() {
   //     .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
   //     .set('xc-auth', context.token)
   //     .expect(400)
-      
+
 
   //     await request(context.app)
   //     .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
@@ -1794,7 +1794,7 @@ function tableTest() {
     .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
     .set('xc-auth', context.token)
     .expect(200);
-    
+
     if(lisResponseAfterUpdate.body.pageInfo.totalRows !== lisResponseBeforeUpdate.body.pageInfo.totalRows + 1) {
       throw new Error('Wrong list length');
     }
@@ -1875,7 +1875,7 @@ function tableTest() {
     .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
     .set('xc-auth', context.token)
     .expect(200);
-    
+
     if(lisResponseAfterUpdate.body.pageInfo.totalRows !== lisResponseBeforeUpdate.body.pageInfo.totalRows + 1) {
       throw new Error('Wrong list length');
     }
@@ -1923,7 +1923,7 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
     global.touchedSakilaDb = true;
-    
+
     const lisResponseAfterDelete = await request(context.app)
       .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
       .set('xc-auth', context.token)
@@ -1948,7 +1948,7 @@ function tableTest() {
       .delete(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
       .set('xc-auth', context.token)
       .expect(400);
-    
+
     if(!response.body.msg.includes("Column 'customer_id' cannot be null") &&
     !response.body.msg.includes("Cannot add or update a child row")
     ){
@@ -1979,7 +1979,7 @@ function tableTest() {
       .expect(200);
 
     const updatedRow = await getRow(context, {project, table,id: row['Id']})
-    
+
     if(updatedRow['Ltar'].length !== 0){
       throw new Error('Was not deleted')
     }
@@ -2110,6 +2110,54 @@ function tableTest() {
       throw new Error('Wrong error message');
     }
   })
+
+
+
+
+  it.only('Grouped api', async function () {
+    const firstNameColumn = customerColumns.find(
+      (col) => col.title === 'FirstName'
+    );
+
+
+  const  filmTable = await getTable({project: sakilaProject, name: 'film'})
+  const  filmColumns = await filmTable.getColumns();
+
+
+  console.log(firstNameColumn,filmTable,filmColumns)
+
+
+    // const rollupColumn = await createRollupColumn(context, {
+    //   project: sakilaProject,
+    //   title: 'Rollup',
+    //   rollupFunction: 'count',
+    //   table: customerTable,
+    //   relatedTableName: 'rental',
+    //   relatedTableColumnTitle: 'RentalDate',
+    // });
+    //
+    // const visibleColumns = [firstNameColumn];
+    // const sortInfo = `-FirstName, +${rollupColumn.title}`;
+    //
+    // const response = await request(context.app)
+    //   .get(
+    //     `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/group/`
+    //   )
+    //   .set('xc-auth', context.token)
+    //   .query({
+    //     fields: visibleColumns.map((c) => c.title),
+    //     sort: sortInfo,
+    //     column_name: firstNameColumn.column_name,
+    //   })
+    //   .expect(200);
+    //
+    // if (
+    //   response.body.list[4]['first_name'] !== 'WILLIE' ||
+    //   response.body.list[4]['count'] !== 2
+    // )
+    //   throw new Error('Wrong groupby');
+  });
+
 }
 
 export default function () {

@@ -256,7 +256,7 @@ async function getGroupedDataList(model, view: View, req) {
   try {
     data = await nocoExecute(
       requestObj,
-      await baseModel.list(listArgs),
+      await baseModel.groupedList({ ...listArgs, groupColumnId: req.params.columnId }),
       {},
       listArgs
     );
@@ -359,7 +359,7 @@ router.get(
 
 
 router.get(
-  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/grouped',
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/group/:columnId',
   apiMetrics,
   ncMetaAclMw(groupedDataList, 'groupedDataList')
 );

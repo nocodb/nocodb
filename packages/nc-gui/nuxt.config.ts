@@ -14,6 +14,11 @@ export default defineNuxtConfig({
 
   ssr: false,
 
+  app: {
+    /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
+    cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
+  },
+
   css: [
     'virtual:windi.css',
     'virtual:windi-devtools',

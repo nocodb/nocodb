@@ -16,7 +16,7 @@ import {
   useVirtualCell,
 } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required?: boolean | number }>()
+const props = defineProps<{ column: ColumnType; hideMenu?: boolean; required?: boolean | number }>()
 
 const { t } = useI18n()
 

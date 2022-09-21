@@ -13,8 +13,7 @@
         "test/pg-restViews.js",
         "test/pg-restRoles.js",
         "test/pg-restMisc.js",
-        "test/quickTest.js",
-        "test/restMisc.js"
+        "test/quickTest.js"
     ],
     "defaultCommandTimeout": 13000,
     "pageLoadTimeout": 600000,

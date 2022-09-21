@@ -36,7 +36,7 @@ export const genTest = (apiType, dbType) => {
         viewURL[viewName] = $obj.text().trim();
       });
 
-    cy.getActiveModal(".nc-modal-share-view").should("not.exist");
+    cy.getActiveModal(".nc-modal-share-view").should("not.be.visible");
   };
 
   describe(`${apiType.toUpperCase()} api - GRID view (Share)`, () => {

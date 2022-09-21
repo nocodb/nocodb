@@ -103,7 +103,8 @@
       "editor": "সম্পাদক",
       "commenter": "মন্তব্যকারী",
       "viewer": "দর্শক"
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "আইডি",
@@ -157,6 +158,7 @@
     "isNotNull": "নাল নয়"
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "নতুন প্রকল্প",
     "myProject": "আমার প্রকল্প",
     "formTitle": "ফর্ম শিরোনাম",
@@ -406,7 +408,14 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    }
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",

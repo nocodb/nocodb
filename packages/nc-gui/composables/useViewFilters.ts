@@ -3,11 +3,11 @@ import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
   IsPublicInj,
-  ReloadViewDataHookInj,
   computed,
   extractSdkResponseErrorMsg,
   inject,
   ref,
+  useDebounceFn,
   useMetas,
   useNuxtApp,
   useUIPermission,
@@ -23,8 +23,6 @@ export function useViewFilters(
   currentFilters?: Filter[],
   isNestedRoot?: boolean,
 ) {
-  const reloadHook = inject(ReloadViewDataHookInj)
-
   const { nestedFilters } = useSmartsheetStoreOrThrow()
 
   const isPublic = inject(IsPublicInj, ref(false))
@@ -173,8 +171,6 @@ export function useViewFilters(
           fk_parent_id: parentId,
         })
       }
-
-      reloadHook?.trigger()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -182,6 +178,8 @@ export function useViewFilters(
 
     reloadData?.()
   }
+
+  const saveOrUpdateDebounced = useDebounceFn(saveOrUpdate, 500)
 
   const addFilter = () => {
     filters.value.push({ ...placeholderFilter })
@@ -221,5 +219,5 @@ export function useViewFilters(
     },
   )
 
-  return { filters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup }
+  return { filters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup, saveOrUpdateDebounced }
 }

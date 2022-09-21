@@ -44,14 +44,15 @@ const reloadDataHook = inject(ReloadViewDataHookInj)!
 const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
-const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync } = useViewFilters(
-  activeView,
-  parentId,
-  computed(() => autoSave),
-  () => reloadDataHook.trigger(showLoading),
-  modelValue || nestedFilters.value,
-  !modelValue,
-)
+const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync, saveOrUpdateDebounced } =
+  useViewFilters(
+    activeView,
+    parentId,
+    computed(() => autoSave),
+    () => reloadDataHook.trigger(showLoading),
+    modelValue || nestedFilters.value,
+    !modelValue,
+  )
 
 const localNestedFilters = ref()
 
@@ -265,7 +266,7 @@ defineExpose({
               class="nc-filter-value-select"
               :disabled="filter.readOnly"
               @click.stop
-              @input="saveOrUpdate(filter, i)"
+              @input="saveOrUpdateDebounced(filter, i)"
             />
           </template>
         </template>

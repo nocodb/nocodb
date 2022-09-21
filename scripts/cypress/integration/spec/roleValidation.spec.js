@@ -267,7 +267,8 @@ export function _viewMenu(roleType, mode) {
         menuWithSubmenuCount = 2;
         // Get API Snippet and ERD
         menuWithoutSubmenuCount = 2
-        if(mode === 'baseShare') menuWithoutSubmenuCount = 0
+        // ERD
+        if(mode === 'baseShare') menuWithoutSubmenuCount = 1
     } else if (roleType === "commenter" || roleType === "viewer") {
         // Download CSV & Download excel
         menuWithSubmenuCount = 0;

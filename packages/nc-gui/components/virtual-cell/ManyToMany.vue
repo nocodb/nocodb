@@ -95,7 +95,9 @@ const onAttachRecord = () => {
         <template v-if="cells">
           <ItemChip v-for="(cell, i) of cells" :key="i" :item="cell.item" :value="cell.value" @unlink="unlinkRef(cell.item)" />
 
-          <span v-if="cells?.length === 10" class="caption pointer ml-1 grey--text" @click.stop="childListDlg = true">more... </span>
+          <span v-if="cells?.length === 10" class="caption pointer ml-1 grey--text" @click.stop="childListDlg = true"
+            >more...
+          </span>
         </template>
       </div>
 

@@ -103,7 +103,8 @@
       "editor": "편집자",
       "commenter": "해설자",
       "viewer": "뷰어"
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "ID",
@@ -157,6 +158,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "새 프로젝트",
     "myProject": "내 프로젝트",
     "formTitle": "양식 제목",
@@ -406,7 +408,14 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    }
   },
   "tooltip": {
     "saveChanges": "변경 사항 저장",

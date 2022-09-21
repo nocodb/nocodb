@@ -103,7 +103,8 @@
       "editor": "संपादक",
       "commenter": "टिप्पणीकार",
       "viewer": "दर्शक"
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "पहचान",
@@ -157,6 +158,7 @@
     "isNotNull": "निरर्थक नहीं है"
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "नया काम",
     "myProject": "मेरी परियोजनाएं",
     "formTitle": "प्रपत्र शीर्षक",
@@ -406,7 +408,14 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    }
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",

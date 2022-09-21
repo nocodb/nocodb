@@ -103,7 +103,8 @@
       "editor": "עוֹרֵך",
       "commenter": "פרשן",
       "viewer": "צוֹפֶה"
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "תְעוּדַת זֶהוּת",
@@ -157,6 +158,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "פרוייקט חדש",
     "myProject": "הפרויקטים שלי",
     "formTitle": "טופס כותרת",
@@ -406,7 +408,14 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    }
   },
   "tooltip": {
     "saveChanges": "שמור שינויים",

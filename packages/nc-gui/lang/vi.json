@@ -103,7 +103,8 @@
       "editor": "Biên tập viên",
       "commenter": "Bình luận",
       "viewer": "Người xem"
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "TÔI",
@@ -157,6 +158,7 @@
     "isNotNull": "không phải là null."
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "Dự án mới",
     "myProject": "Những dự án của tôi",
     "formTitle": "Tiêu đề mẫu",
@@ -406,7 +408,14 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    }
   },
   "tooltip": {
     "saveChanges": "Lưu thay đổi",

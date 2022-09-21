@@ -103,7 +103,8 @@
       "editor": "Redaktors",
       "commenter": "Komentētājs",
       "viewer": "Skatītājs"
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "ID",
@@ -157,6 +158,7 @@
     "isNotNull": "nav null"
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "Jauns projekts",
     "myProject": "Mani projekti",
     "formTitle": "Formas nosaukums",
@@ -406,7 +408,14 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    }
   },
   "tooltip": {
     "saveChanges": "Saglabāt izmaiņas",

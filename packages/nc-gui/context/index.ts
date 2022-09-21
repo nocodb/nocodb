@@ -24,6 +24,7 @@ export const ReadonlyInj: InjectionKey<boolean> = Symbol('readonly-injection')
 
 /** when bool is passed, it indicates if a loading spinner should be visible while reloading */
 export const ReloadViewDataHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-data-injection')
+export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
 export const ReloadRowDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-row-data-injection')
 export const OpenNewRecordFormHookInj: InjectionKey<EventHook<void>> = Symbol('open-new-record-form-injection')
 export const FieldsInj: InjectionKey<Ref<any[]>> = Symbol('fields-injection')

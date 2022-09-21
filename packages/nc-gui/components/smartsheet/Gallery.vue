@@ -12,7 +12,7 @@ import {
   OpenNewRecordFormHookInj,
   PaginationDataInj,
   ReadonlyInj,
-  ReloadViewDataHookInj,
+  ReloadViewMetaHookInj,
   extractPkFromRow,
   inject,
   provide,
@@ -28,7 +28,7 @@ interface Attachment {
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
-const reloadViewDataHook = inject(ReloadViewDataHookInj)
+const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const expandedFormDlg = ref(false)
@@ -85,17 +85,6 @@ const attachments = (record: any): Array<Attachment> => {
   }
 }
 
-const reloadAttachments = ref(false)
-
-reloadViewDataHook?.on(async () => {
-  await loadData()
-  await loadGalleryData()
-  reloadAttachments.value = true
-  nextTick(() => {
-    reloadAttachments.value = false
-  })
-})
-
 const expandForm = (row: RowType, _state?: Record<string, any>) => {
   if (!isUIAllowed('xcDatatableEditable')) return
 
@@ -142,8 +131,15 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
-// reload table data reload hook as fallback to rowdatareload
-provide(ReloadRowDataHookInj, reloadViewDataHook)
+const reloadAttachments = ref(false)
+
+reloadViewMetaHook?.on(async () => {
+  await loadGalleryData()
+  reloadAttachments.value = true
+  nextTick(() => {
+    reloadAttachments.value = false
+  })
+})
 
 onMounted(async () => {
   await loadData()

@@ -18,3 +18,4 @@ noco.db*
 /docker/main.js
 test_meta.db
 test_sakila.db
+.env

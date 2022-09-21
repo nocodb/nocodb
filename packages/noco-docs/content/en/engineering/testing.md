@@ -12,7 +12,7 @@ menuTitle: "Testing"
 
 - MySQL is preferrable - however we fallback to SQLite
 
-#### Setup  
+### Setup  
 
 - All the tests are in `packages/nocodb` folder, which will be our working directory. Use the following command to get into that folder.
 
@@ -49,24 +49,24 @@ open tests/unit/.env
 
 
 
-## How to run tests
+### How to run tests
 
 ```
 
 npm run test:unit
 ```
 
-## Key points
+### Key points
 
 - All individual unit tests are independent of each other. We don't use any shared state between tests.
 - Test environment includes `sakila` sample database and any change to it by a test is reverted before running other tests.
 - While running unit tests, it tries to connect to mysql server running on `localhost:3306` with username `root` and password `password`(which can be configured) and if not found, it will use `sqlite` as a fallback, hence no requirement of any sql server to run tests.
 
-## Walk through of writing a unit test
+### Walk through of writing a unit test
 
 We will create an `Table` test suite as an example.
 
-### Configure test
+#### Configure test
 
 We will configure `beforeEach` which is called before each test is executed. We will use `init` function from `nocodb/packages/tests/unit/init/index.ts`, which is a helper function which configures the test environment(i.e resetting state, etc.).
 

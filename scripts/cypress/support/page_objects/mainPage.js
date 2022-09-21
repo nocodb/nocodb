@@ -42,35 +42,6 @@ export class _settingsPage {
     cy.get(`[data-menu-id=${menuId}]`).should("exist").click();
   }
 
-  openMiscTab() {
-    // open Project metadata tab
-    //
-    settingsPage.openMenu(settingsPage.PROJ_METADATA);
-    settingsPage.openTab(settingsPage.MISC);
-  }
-
-  toggleShowMMSetting() {
-    // toggle show MM setting
-    //
-    this.openMiscTab();
-    cy.get(".nc-settings-meta-misc").click();
-
-    settingsPage.openTab(settingsPage.TEAM_N_AUTH);
-    this.closeMetaTab();
-  }
-
-  openErdTab() {
-    // open Project metadata tab
-    //
-    settingsPage.openMenu(settingsPage.PROJ_METADATA);
-    settingsPage.openTab(settingsPage.ERD);
-  }
-
-  openTableErdView() {
-    cy.get(".nc-actions-menu-btn").should("exist").click();
-    cy.get(".nc-view-action-erd").should("exist").click();
-  }
-
   openTab(tabId) {
     cy.get(`[data-menu-id=${tabId}]`).should("exist").last().click();
   }
@@ -644,6 +615,35 @@ export class _mainPage {
 
   toggleRightSidebar() {
     cy.get(".nc-toggle-right-navbar").should("exist").click();
+  }
+
+  openMiscTab() {
+    // open Project metadata tab
+    //
+    settingsPage.openMenu(settingsPage.PROJ_METADATA);
+    settingsPage.openTab(settingsPage.MISC);
+  }
+
+  toggleShowMMSetting() {
+    // toggle show MM setting
+    //
+    this.openMiscTab();
+    cy.get(".nc-settings-meta-misc").click();
+
+    settingsPage.openTab(settingsPage.TEAM_N_AUTH);
+    this.closeMetaTab();
+  }
+
+  openErdTab() {
+    // open Project metadata tab
+    //
+    settingsPage.openMenu(settingsPage.PROJ_METADATA);
+    settingsPage.openTab(settingsPage.ERD);
+  }
+
+  openTableErdView() {
+    cy.get(".nc-actions-menu-btn").should("exist").click();
+    cy.get(".nc-view-action-erd").should("exist").click();
   }
 }
 

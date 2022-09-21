@@ -6,22 +6,20 @@ export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
   describe(`${apiType.toUpperCase()} api - Link to another record`, () => {
-
     function fetchParentFromLabel(label) {
       cy.get("label").contains(label).parents(".ant-row").click();
     }
 
     // Insert new row
     function addRow(index, cellValue) {
-      cy.get('.nc-grid-add-new-cell').should('exist').click();
-      mainPage.getCell('Title', index)
-        .dblclick().then(($el) => {
-        cy.wrap($el).find('input')
-          .clear()
-          .type(`${cellValue}{enter}`);
-      });
-      mainPage.getCell('Title', index)
-        .contains(cellValue).should('exist');
+      cy.get(".nc-grid-add-new-cell").should("exist").click();
+      mainPage
+        .getCell("Title", index)
+        .dblclick()
+        .then(($el) => {
+          cy.wrap($el).find("input").clear().type(`${cellValue}{enter}`);
+        });
+      mainPage.getCell("Title", index).contains(cellValue).should("exist");
     }
 
     // Insert LTAR column
@@ -31,8 +29,9 @@ export const genTest = (apiType, dbType) => {
       cy.get(".nc-grid  tr > th:last .nc-icon").click();
 
       // Column name
-      cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
-        .should('exist')
+      cy.getActiveMenu(".nc-dropdown-grid-add-column")
+        .find("input.nc-column-name-input", { timeout: 3000 })
+        .should("exist")
         .clear()
         .type(columnName);
 
@@ -40,30 +39,27 @@ export const genTest = (apiType, dbType) => {
       // cy.get(".nc-column-type-input").last()
       //   .click()
       //   .type("Link");
-      cy.getActiveMenu('.nc-dropdown-grid-add-column')
+      cy.getActiveMenu(".nc-dropdown-grid-add-column")
         .find(".nc-column-type-input")
         .last()
         .click()
-        .type("Link")
-      cy.getActiveSelection('.nc-dropdown-column-type')
-        .find('.ant-select-item-option')
+        .type("Link");
+      cy.getActiveSelection(".nc-dropdown-column-type")
+        .find(".ant-select-item-option")
         .contains("LinkToAnotherRecord")
         .click();
 
       // relation type (hm/ mm)
-      cy.get('.nc-ltar-relation-type')
-        .find('.ant-radio')
-        .eq(relationType==='hm'?0:1)
+      cy.get(".nc-ltar-relation-type")
+        .find(".ant-radio")
+        .eq(relationType === "hm" ? 0 : 1)
         .click();
 
       // Foreign table
       fetchParentFromLabel("Child table");
-      cy.get(".nc-ltar-child-table")
-        .last()
-        .click()
-        .type(foreignTable);
-      cy.getActiveSelection('.nc-dropdown-ltar-child-table')
-        .find('.ant-select-item-option')
+      cy.get(".nc-ltar-child-table").last().click().type(foreignTable);
+      cy.getActiveSelection(".nc-dropdown-ltar-child-table")
+        .find(".ant-select-item-option")
         .contains(foreignTable)
         .click();
 
@@ -72,7 +68,7 @@ export const genTest = (apiType, dbType) => {
       //   .contains("Save")
       //   .should('exist')
       //   .click();
-      cy.getActiveMenu('.nc-dropdown-grid-add-column')
+      cy.getActiveMenu(".nc-dropdown-grid-add-column")
         .find(".ant-btn-primary:visible")
         .contains("Save")
         .click();
@@ -81,16 +77,15 @@ export const genTest = (apiType, dbType) => {
       cy.toastWait(`Column created`);
 
       // Verify
-      cy.get(`th[data-title="${columnName}"]`)
-        .should("exist");
-    };
+      cy.get(`th[data-title="${columnName}"]`).should("exist");
+    }
 
     // Content verification for LTAR cell
     // Validates only 1st chip contents
     //
     function verifyLtarCell(columnName, index, cellValue) {
       cy.get(`:nth-child(${index}) > [data-title="${columnName}"]`)
-        .find('.chip')
+        .find(".chip")
         .eq(0)
         .contains(cellValue)
         .should("exist");
@@ -100,12 +95,14 @@ export const genTest = (apiType, dbType) => {
     //
     function ltarUnlink(columnName, index) {
       // Click on cell to enable unlink icon
-      cy.get(`:nth-child(${index}) > [data-title="${columnName}"]`).last()
-        .click()
+      cy.get(`:nth-child(${index}) > [data-title="${columnName}"]`)
+        .last()
+        .click();
 
       // Click on unlink icon
-      cy.get(`:nth-child(${index}) > [data-title="${columnName}"]`).last()
-        .find('.unlink-icon')
+      cy.get(`:nth-child(${index}) > [data-title="${columnName}"]`)
+        .last()
+        .find(".unlink-icon")
         .should("exist")
         .click();
 
@@ -120,7 +117,7 @@ export const genTest = (apiType, dbType) => {
 
     afterEach(() => {
       cy.saveLocalStorage();
-    })
+    });
 
     beforeEach(() => {
       cy.restoreLocalStorage();
@@ -174,7 +171,8 @@ export const genTest = (apiType, dbType) => {
       cy.get(".nc-add-new-row-btn").click();
 
       // Title
-      cy.get(".nc-expand-col-Title").find(".nc-cell > input")
+      cy.get(".nc-expand-col-Title")
+        .find(".nc-cell > input")
         .should("exist")
         .first()
         .clear()
@@ -186,80 +184,84 @@ export const genTest = (apiType, dbType) => {
       //
 
       // BT
-      cy.get(".nc-expand-col-Sheet1").find(".nc-action-icon")
+      cy.get(".nc-expand-col-Sheet1")
+        .find(".nc-action-icon")
         .should("exist")
         .click({ force: true });
       cy.wait(1000);
       cy.getActiveModal(".nc-modal-link-record")
-        .find('.ant-card').should('exist')
-        .eq(0).click();
+        .find(".ant-card")
+        .should("exist")
+        .eq(0)
+        .click();
 
       // MM
       cy.get(".nc-expand-col-Sheet1.List").find(".ant-btn-primary").click();
       cy.wait(1000);
       cy.getActiveModal(".nc-modal-link-record")
-        .find('.ant-card').should('exist')
-        .eq(0).click();
+        .find(".ant-card")
+        .should("exist")
+        .eq(0)
+        .click();
 
       // HM
-      cy.get(".nc-expand-col-Link2-1hm")
-        .find(".ant-btn-primary")
-        .click();
+      cy.get(".nc-expand-col-Link2-1hm").find(".ant-btn-primary").click();
       cy.wait(1000);
-      cy.getActiveModal()
-        .find('.ant-card').should('exist')
-        .eq(0).click();
+      cy.getActiveModal().find(".ant-card").should("exist").eq(0).click();
 
       // Save row
-      cy.getActiveDrawer()
+      cy.getActiveDrawer(".nc-drawer-expanded-form")
         .find("button")
         .contains("Save row")
-        .click({ force: true });
+        .should("exist")
+        .click();
 
       // Toast
       cy.toastWait("updated successfully");
 
       // Close modal
       cy.get("body").type("{esc}");
-    })
+    });
 
     // In cell insert
     it("Add HM, BT, MM Link, In cell form", () => {
-
       // Insert row with `Title` field, rest of links are empty
       addRow(2, "2b");
 
       // BT
-      mainPage.getCell("Sheet1", 2)
+      mainPage
+        .getCell("Sheet1", 2)
         .find(".nc-action-icon")
         .click({ force: true });
       cy.getActiveModal(".nc-modal-link-record")
-        .find('.ant-card')
-        .should('exist')
+        .find(".ant-card")
+        .should("exist")
         .eq(1)
         .click();
       cy.wait(1000);
 
       // MM
-      mainPage.getCell("Sheet1 List", 2)
+      mainPage
+        .getCell("Sheet1 List", 2)
         .find(".nc-action-icon")
         .last()
         .click({ force: true });
       cy.getActiveModal(".nc-modal-link-record")
-        .find('.ant-card')
-        .should('exist')
+        .find(".ant-card")
+        .should("exist")
         .eq(1)
         .click();
       cy.wait(1000);
 
       // HM
-      mainPage.getCell("Link2-1hm", 2)
+      mainPage
+        .getCell("Link2-1hm", 2)
         .find(".nc-action-icon")
         .last()
         .click({ force: true });
       cy.getActiveModal(".nc-modal-link-record")
-        .find('.ant-card')
-        .should('exist')
+        .find(".ant-card")
+        .should("exist")
         .eq(1)
         .click();
     });
@@ -277,31 +279,36 @@ export const genTest = (apiType, dbType) => {
         .click({ force: true });
       cy.wait(1000);
       cy.getActiveModal(".nc-modal-link-record")
-        .find('.ant-card').should('exist')
-        .eq(2).click();
+        .find(".ant-card")
+        .should("exist")
+        .eq(2)
+        .click();
 
       // MM
-      cy.get(".nc-expand-col-Sheet1.List")
-        .find(".ant-btn-primary").click();
+      cy.get(".nc-expand-col-Sheet1.List").find(".ant-btn-primary").click();
       cy.wait(1000);
       cy.getActiveModal(".nc-modal-link-record")
-        .find('.ant-card').should('exist')
-        .eq(2).click();
+        .find(".ant-card")
+        .should("exist")
+        .eq(2)
+        .click();
       cy.wait(1000);
 
       // HM
-      cy.get(".nc-expand-col-Link2-1hm")
-        .find(".ant-btn-primary").click();
+      cy.get(".nc-expand-col-Link2-1hm").find(".ant-btn-primary").click();
       cy.wait(1000);
       cy.getActiveModal(".nc-modal-link-record")
-        .find('.ant-card').should('exist')
-        .eq(2).click();
+        .find(".ant-card")
+        .should("exist")
+        .eq(2)
+        .click();
       cy.wait(1000);
 
-      cy.getActiveDrawer()
+      cy.getActiveDrawer(".nc-drawer-expanded-form")
         .find("button")
         .contains("Save row")
-        .click({ force: true });
+        .should("exist")
+        .click();
 
       // cy.toastWait("updated successfully");
       cy.toastWait("No columns to update");
@@ -332,7 +339,7 @@ export const genTest = (apiType, dbType) => {
       verifyLtarCell("Sheet2", 2, "2b");
       verifyLtarCell("Sheet2", 3, "2c");
       cy.closeTableTab("Sheet1");
-    })
+    });
 
     it("Unlink", () => {
       cy.openTableTab("Sheet1", 3);

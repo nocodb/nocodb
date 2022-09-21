@@ -205,7 +205,8 @@ function updateRow(index, cellValue) {
   cy.getActiveDrawer(".nc-drawer-expanded-form")
     .find("button")
     .contains("Save row")
-    .click({ force: true });
+    .should("exist")
+    .click();
 
   // partial toast message
   cy.toastWait("updated successfully");

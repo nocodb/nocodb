@@ -18,10 +18,11 @@ export const genTest = (apiType, dbType) => {
       .clear()
       .type(cellValue);
 
-    cy.getActiveDrawer()
+    cy.getActiveDrawer(".nc-drawer-expanded-form")
       .find("button")
       .contains("Save row")
-      .click({ force: true });
+      .should("exist")
+      .click();
 
     cy.toastWait("updated successfully");
     cy.get("body").type("{esc}");
@@ -148,10 +149,11 @@ export const genTest = (apiType, dbType) => {
         .clear()
         .type(updatedRandVal);
 
-      cy.getActiveDrawer()
+      cy.getActiveDrawer(".nc-drawer-expanded-form")
         .find("button")
         .contains("Save row")
-        .click({ force: true });
+        .should("exist")
+        .click();
 
       // partial toast message
       cy.toastWait("updated successfully");

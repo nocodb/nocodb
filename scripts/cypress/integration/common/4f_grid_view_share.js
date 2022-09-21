@@ -396,9 +396,17 @@ export const genTest = (apiType, dbType) => {
         .first()
         .clear({ force: true })
         .type("a");
-      cy.getActiveDrawer().find("button").contains("Save row").click();
+      cy.getActiveDrawer(".nc-drawer-expanded-form")
+        .find("button")
+        .contains("Save row")
+        .should("exist")
+        .click();
       cy.toastWait("updated successfully");
-      cy.getActiveDrawer().find("button").contains("Cancel").click();
+      cy.getActiveDrawer(".nc-drawer-expanded-form")
+        .find("button")
+        .contains("Cancel")
+        .should("exist")
+        .click();
       // add column
       mainPage.addColumn("dummy", "Country");
 

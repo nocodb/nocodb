@@ -38,5 +38,5 @@ export default async function () {
 
   const { token } = await createUser({ app: server }, { roles: 'editor' });
 
-  return { app: server, token, dbConfig: TestDbMngr.dbConfig };
+  return { app: server, token, dbConfig: TestDbMngr.dbConfig, sakilaDbConfig: TestDbMngr.getSakilaDbConfig() };
 }

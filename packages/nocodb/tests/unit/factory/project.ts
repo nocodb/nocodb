@@ -1,27 +1,41 @@
 import request from 'supertest';
 import Project from '../../../src/lib/models/Project';
-import TestDbMngr from '../TestDbMngr';
 
-const externalProjectConfig = {
-  title: 'sakila',
-  bases: [
-    {
-      type: 'mysql2',
+const sakilaProjectConfig = (context) => {
+  let base;
+
+  if(context.sakilaDbConfig.client === 'mysql2'){
+    base = {
+      type: context.sakilaDbConfig.client,
       config: {
-        client: 'mysql2',
+        client: context.sakilaDbConfig.client,
+        connection: context.sakilaDbConfig.connection
+      }
+    };
+  } else {
+    base = {
+      type: context.sakilaDbConfig.client,
+      config: {
+        client: context.sakilaDbConfig.client,
         connection: {
-          host: 'localhost',
-          port: '3306',
-          user: 'root',
-          password: 'password',
-          database: TestDbMngr.sakilaDbName,
+          client: context.sakilaDbConfig.client,
+          connection: context.sakilaDbConfig.connection,
         },
       },
-      inflection_column: 'camelize',
-      inflection_table: 'camelize',
-    },
-  ],
-  external: true,
+    };
+  }
+
+  base = {
+    ...base, 
+    inflection_column: 'camelize',
+    inflection_table: 'camelize',
+  };
+
+  return {
+    title: 'sakila',
+    bases: [base],
+    external: true,
+  }
 };
 
 const defaultProjectValue = {
@@ -47,7 +61,7 @@ const createSakilaProject = async (context) => {
   const response = await request(context.app)
     .post('/api/v1/db/meta/projects/')
     .set('xc-auth', context.token)
-    .send(externalProjectConfig);
+    .send(sakilaProjectConfig(context));
 
   return (await Project.getByTitleOrId(response.body.id)) as Project;
 };

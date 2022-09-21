@@ -1,4 +1,3 @@
-// import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
 import init from '../../init';
@@ -6,6 +5,7 @@ import { createTable, getAllTables } from '../../factory/table';
 import { createProject } from '../../factory/project';
 import { defaultColumns } from '../../factory/column';
 import Model from '../../../../src/lib/models/Model';
+import { expect } from 'chai';
 
 function tableTest() {
   let context;
@@ -26,7 +26,7 @@ function tableTest() {
       .send({})
       .expect(200);
 
-    if (response.body.list.length !== 1) return new Error('Wrong number of tables');
+    expect(response.body.list).to.be.an('array').not.empty;
   });
 
   it('Create table', async function () {

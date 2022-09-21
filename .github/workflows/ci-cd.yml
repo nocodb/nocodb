@@ -673,4 +673,4 @@ jobs:
           run: docker-compose -f ./scripts/docker-compose-cypress.yml up -d
         - name: run unit tests
           working-directory: ./packages/nocodb
-          run: npm run test:unit 
+          run: npm run test:unit

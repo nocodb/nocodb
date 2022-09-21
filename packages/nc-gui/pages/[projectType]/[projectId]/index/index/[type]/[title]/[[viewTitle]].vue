@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
-import { TabMetaInj } from '#imports'
+import { TabMetaInj, until } from '#imports'
 
 const { getMeta } = useMetas()
 
-const { project, projectLoadedHook } = useProject()
+const { tables } = useProject()
 
 const route = useRoute()
 
@@ -15,14 +15,12 @@ const activeTab = inject(
   computed(() => ({} as TabItem)),
 )
 
-if (!project.value.id) {
-  projectLoadedHook(async () => {
-    await getMeta(route.params.title as string, true)
-    loading.value = false
+/** wait until table list loads since meta load requires table list **/
+until(tables)
+  .toMatch((tables) => tables.length > 0)
+  .then(() => {
+    getMeta(route.params.title as string, true).finally(() => (loading.value = false))
   })
-} else {
-  getMeta(route.params.title as string, true).finally(() => (loading.value = false))
-}
 </script>
 
 <template>

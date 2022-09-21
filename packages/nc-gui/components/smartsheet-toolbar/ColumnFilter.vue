@@ -108,7 +108,7 @@ watch(
 )
 
 watch(
-  () => filters.value.length ,
+  () => filters.value.length,
   (length) => {
     emit('update:filtersLength', length ?? 0)
   },
@@ -281,7 +281,7 @@ defineExpose({
           {{ $t('activity.addFilter') }}
         </div>
       </a-button>
-      <a-button class="text-capitalize !text-gray-500" v-if="!webHook" @click.stop="addFilterGroup">
+      <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex items-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <!--          Add Filter Group -->

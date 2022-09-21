@@ -6,12 +6,17 @@ category: "Engineering"
 menuTitle: "i18n translation"
 ---
 
-NocoDB supports many foreign languages & community contributions are now simplified via [Crowdin](https://crowdin.com/)
-Your help in fixing i18n goes a long way supporting NocoDB. Please follow below simple procedure to request corrections to existing translation errors.
+- NocoDB supports 30+ foreign languages & community contributions are now simplified via [Crowdin](https://crowdin.com/).
 
-# Public Contributions
 
-### 1. How to add translation corrections (to existing languages)?
+## How to add / edit translations ?
+
+### Using Github
+- For English, make changes directly to [en.json](https://github.com/nocodb/nocodb/blob/develop/packages/nc-gui/lang/en.json) & commit to `develop`
+- For any other language, use `crowdin` option.
+
+
+### Using Crowdin
 
 - Setup [Crowdin](https://crowdin.com) account
 - Join [NocoDB](https://crowdin.com/project/nocodb) project
@@ -33,10 +38,7 @@ Note: Crowdin provides translation recommendation's as in [4]. Click directly if
   
 ![Screenshot 2022-09-08 at 10 37 38 PM](https://user-images.githubusercontent.com/86527202/189184278-69d688ed-4e5a-4d5a-b629-9f6d10d79346.png)
 
-A GitHub Pull Request will be automatically triggered (periodicity- 6 hours). We will follup on remaining integration work items.
-
----
-
+A GitHub Pull Request will be automatically triggered (periodicity- 6 hours). We will follow up on remaining integration work items.
 
 #### Reference
   
@@ -45,26 +47,9 @@ Refer following articles to get additional details about Crowdin Portal usage
 - [Volunteer Translation Introduction](https://support.crowdin.com/for-volunteer-translators/)
 - [Online Editor](https://support.crowdin.com/online-editor/) 
 
----
 
 
-### 2. How to add a new language ?
-  
-Your native language not in list, we will be glad to support with your help! Request for it [here](https://github.com/nocodb/nocodb/issues/new?assignees=dstala&labels=i18n+translation&template=i18n-translation-request.md&title=%5Bi18n%5D+Language+support+extension-+%3Clanguage+code%3E). We will be glad to take your help to set up translations
-
-
----
-
-# Engineering Contributions (for NocoDB developers & maintainers)
-
-> _This is exclusive to NocoDB developers & maintainers only_
-
-### 1. Adding / Updating a string
-### Add / update key-value
-  - [en] make changes directly to `en.json` & commit to `develop`
-  - [any other language] add changes using `crowdin` portal; procedure described below
-
-### Add a new language
+## How to add a new language ?
 #### GitHub changes
 - Update enumeration in `enums.ts` [packages/nc-gui/lib/enums.ts]
 - Map JSON path in `a.i18n.ts` [packages/nc-gui/plugins/a.i18n.ts]
@@ -80,9 +65,8 @@ Your native language not in list, we will be glad to support with your help! Req
   
 ![Screenshot 2022-09-08 at 10 54 04 PM](https://user-images.githubusercontent.com/86527202/189186632-0b9f5f55-0550-4d8f-a8ae-7e9b9076774e.png)
   
----
 
-### 2. String Categories
+## String Categories
 -   **General**: simple & common tokens (save, cancel, submit, open, close, home, and such)
 -   **Objects**: objects from NocoDB POV (project, table, field, column, view, page, and such)
 -   **Title**: screen headers (compact) (menu headers, modal headers)

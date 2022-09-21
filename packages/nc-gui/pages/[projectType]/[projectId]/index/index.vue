@@ -148,14 +148,4 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 :deep(.ant-tabs-tab-remove) {
   @apply mt-[3px];
 }
-
-.nc-tab-bar {
-  :deep(.nc-fullscreen-icon) {
-    @apply opacity-0 transition;
-  }
-
-  &:hover :deep(.nc-fullscreen-icon) {
-    @apply opacity-100;
-  }
-}
 </style>

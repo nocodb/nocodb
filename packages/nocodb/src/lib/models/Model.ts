@@ -404,7 +404,10 @@ export default class Model implements TableType {
     const insertObj = {};
     for (const col of await this.getColumns()) {
       if (isVirtualCol(col)) continue;
-      const val = data?.[col.column_name] ?? data?.[col.title];
+      const val =
+        data?.[col.column_name] !== undefined
+          ? data?.[col.column_name]
+          : data?.[col.title];
       if (val !== undefined) {
         insertObj[sanitize(col.column_name)] = val;
       }

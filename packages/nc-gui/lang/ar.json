@@ -616,7 +616,20 @@
       "rowUpdateFailed": "فشل تحديث الصف",
       "deleteRowFailed": "فشل في حذف الصف",
       "setFormDataFailed": "فشل في تعيين بيانات النموذج",
-      "formViewUpdateFailed": "فشل تحديث عرض النموذج"
+      "formViewUpdateFailed": "فشل تحديث عرض النموذج",
+      "tableNameRequired": "Table name is required",
+      "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
+      "followingCharactersAreNotAllowed": "Following characters are not allowed",
+      "columnNameRequired": "Column name is required",
+      "projectNameExceeds50Characters": "Project name exceeds 50 characters",
+      "projectNameCannotStartWithSpace": "Project name cannot start with space",
+      "requiredField": "Required field",
+      "ipNotAllowed": "IP not allowed",
+      "targetFileIsNotAnAcceptedFileType": "Target file is not an accepted file type",
+      "theAcceptedFileTypeIsCsv": "The accepted file type is .csv",
+      "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
+      "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
+      "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",

@@ -110,11 +110,10 @@ export default defineNuxtConfig({
   image: {
     dir: 'assets/',
   },
-  autoImports: {
-    dirs: ['./context', './utils', './lib'],
+  imports: {
+    dirs: ['./context/**', './utils/**', './lib/**', './composables/**'],
     imports: [{ name: 'useI18n', from: 'vue-i18n' }],
   },
-
   pageTransition: {
     name: 'page',
     mode: 'out-in',

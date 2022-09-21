@@ -95,7 +95,7 @@ const onAttachRecord = () => {
       <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
           <ItemChip v-for="(cell, i) of cells" :key="i" :item="cell.item" :value="cell.value" @unlink="unlinkRef(cell.item)" />
-          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">
+          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click.stop="childListDlg = true">
             more...
           </span>
         </template>
@@ -103,12 +103,12 @@ const onAttachRecord = () => {
       <div v-if="!isLocked" class="flex justify-end gap-1 min-h-[30px] items-center">
         <MdiArrowExpand
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
-          @click="childListDlg = true"
+          @click.stop="childListDlg = true"
         />
         <MdiPlus
           v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
           class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
-          @click="listItemsDlg = true"
+          @click.stop="listItemsDlg = true"
         />
       </div>
     </template>

@@ -243,7 +243,7 @@ onMounted(() => {
                             </div>
                           </a-menu-item>
                           <a-menu-item
-                            v-if="stack.title !== 'uncategorized'"
+                            v-if="stack.title !== 'uncategorized' && isUIAllowed('xcDatatableEditable')"
                             @click="handleDeleteStackClick(stack.title, stackIdx)"
                           >
                             <div class="py-2 flex gap-2 items-center">

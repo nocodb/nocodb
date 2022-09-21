@@ -210,7 +210,7 @@ export function useKanbanViewData(
   }
 
   async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
-    if (!viewMeta?.value?.id) return
+    if (!viewMeta?.value?.id || !isUIAllowed('xcDatatableEditable')) return
     await $api.dbView.kanbanUpdate(viewMeta.value.id, {
       ...kanbanMetaData.value,
       ...updateObj,

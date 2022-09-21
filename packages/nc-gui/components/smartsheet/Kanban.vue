@@ -8,6 +8,7 @@ import {
   IsGalleryInj,
   IsGridInj,
   IsKanbanInj,
+  IsLockedInj,
   MetaInj,
   OpenNewRecordFormHookInj,
   ReadonlyInj,
@@ -28,6 +29,8 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const reloadKanbanMetaHook = inject(ReloadKanbanMetaHookInj)
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
+
+const isLocked = inject(IsLockedInj, ref(false))
 
 const expandedFormDlg = ref(false)
 
@@ -202,7 +205,7 @@ onMounted(() => {
               v-if="!stack.collapsed"
               :key="stack.id"
               class="mx-4 !bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
-              :class="{ 'not-draggable': stack.id === 'uncategorized' }"
+              :class="{ 'not-draggable': stack.id === 'uncategorized' || isLocked }"
               head-style="padding-bottom: 0px;"
               body-style="padding: 0px; height: 100%;"
             >
@@ -262,6 +265,7 @@ onMounted(() => {
                       draggable=".nc-kanban-item"
                       group="kanban-card"
                       class="h-full"
+                      filter=".not-draggable"
                       @change="onMove($event, stack.title)"
                     >
                       <template #item="{ element: record }">
@@ -271,6 +275,7 @@ onMounted(() => {
                               hoverable
                               :data-stack="stack.title"
                               class="!rounded-lg h-full overflow-hidden break-all max-w-[450px] shadow-lg"
+                              :class="{ 'not-draggable': isLocked }"
                               body-style="padding: 10px;"
                               @click="expandFormClick($event, record)"
                             >
@@ -331,7 +336,7 @@ onMounted(() => {
               :key="`${stack.id}-collapsed`"
               :style="`background-color: ${stack.color} !important`"
               class="nc-kanban-stack nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer h-full !pr-[10px]"
-              :class="{ 'not-draggable': stack.id === 'uncategorized' }"
+              :class="{ 'not-draggable': stack.id === 'uncategorized' || isLocked }"
               body-style="padding: 0px; height: 100%; width: 100%; background: #f0f2f5 !important;"
             >
               <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">

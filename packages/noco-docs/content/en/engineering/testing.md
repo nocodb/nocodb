@@ -30,13 +30,13 @@ npm install
 
 - Add your `env` file with the following command
 
-```
-cp tests/unit/.env.copy tests/unit/.env
+``` bash
+cp tests/unit/.env.sample tests/unit/.env
 ```
 
 - Open the `.env` file
 
-```
+``` bash
 open tests/unit/.env
 ````
 
@@ -47,12 +47,9 @@ open tests/unit/.env
 > DB_HOST : mysql host </br>
 > DB_PORT : mysql port </br>
 
-
-
 ### How to run tests
 
-```
-
+``` bash
 npm run test:unit
 ```
 

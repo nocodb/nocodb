@@ -254,27 +254,27 @@ export function _viewMenu(roleType, mode) {
   // Lock, Download, Upload
   let menuWithSubmenuCount = 3;
 
-    // share view list, webhook, api snippet, erd
-    let menuWithoutSubmenuCount = 4;
+  // share view list, webhook, api snippet, erd
+  let menuWithoutSubmenuCount = 4;
 
   cy.openTableTab(columnName, 25);
 
   let validationString =
     true === roles[roleType].validations.shareView ? "exist" : "not.exist";
 
-    if (roleType === "editor") {
-        // Download / Upload CSV
-        menuWithSubmenuCount = 2;
-        // Get API Snippet and ERD
-        menuWithoutSubmenuCount = 2
-        // ERD
-        if(mode === 'baseShare') menuWithoutSubmenuCount = 1
-    } else if (roleType === "commenter" || roleType === "viewer") {
-        // Download CSV & Download excel
-        menuWithSubmenuCount = 0;
-        // Get API Snippet and ERD
-        menuWithoutSubmenuCount = 2
-    }
+  if (roleType === "editor") {
+    // Download / Upload CSV
+    menuWithSubmenuCount = 2;
+    // Get API Snippet and ERD
+    menuWithoutSubmenuCount = 2;
+    // ERD
+    if (mode === "baseShare") menuWithoutSubmenuCount = 1;
+  } else if (roleType === "commenter" || roleType === "viewer") {
+    // Download CSV & Download excel
+    menuWithSubmenuCount = 0;
+    // Get API Snippet and ERD
+    menuWithoutSubmenuCount = 2;
+  }
 
   // view list field (default GRID view)
   cy.get(`.nc-view-item`).should("exist");

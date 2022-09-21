@@ -219,7 +219,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
-    <SmartsheetToolbarErd v-model:modelValue="showErd" />
+    <SmartsheetToolbarErd v-model="showErd" />
 
     <a-modal
       v-model:visible="sharedViewListDlg"

@@ -69,7 +69,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     }
   } else {
     /** if users are accessing the projects without having enough permissions, redirect to My Projects page */
-    if (to.params.projectId) {
+    if (to.params.projectId && from.params.projectId !== to.params.projectId) {
       const user = await api.auth.me({ project_id: to?.params?.projectId as string })
       if (user?.roles?.user) {
         message.error("You don't have enough permission to access the project.")

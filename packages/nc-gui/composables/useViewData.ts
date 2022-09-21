@@ -1,3 +1,4 @@
+import { ViewTypes } from 'nocodb-sdk'
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
@@ -174,7 +175,9 @@ export function useViewData(
       : await fetchSharedViewData()
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
-    await loadAggCommentsCount()
+    if (viewMeta.value?.type === ViewTypes.GRID) {
+      await loadAggCommentsCount()
+    }
   }
 
   async function loadGalleryData() {

@@ -119,6 +119,13 @@ export class _mainPage {
     // click on New User button, feed details
     cy.get("button.nc-invite-team").click();
 
+    // additional wait to ensure the modal is fully loaded
+    cy.getActiveModal(".nc-modal-invite-user-and-share-base").should("exist");
+    cy.getActiveModal(".nc-modal-invite-user-and-share-base")
+      .find('input[placeholder="E-mail"]')
+      .should("exist");
+    cy.wait(1000);
+
     cy.get('input[placeholder="E-mail"]').type(userCred.username);
 
     cy.get(".ant-select.nc-user-roles").click();

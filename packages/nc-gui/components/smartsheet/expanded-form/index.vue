@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { message } from 'ant-design-vue'
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -17,6 +18,7 @@ import {
   toRef,
   useProvideExpandedFormStore,
   useProvideSmartsheetStore,
+  useRouter,
   useVModel,
   watch,
 } from '#imports'
@@ -29,6 +31,8 @@ interface Props {
   meta: TableType
   loadRow?: boolean
   useMetaFields?: boolean
+  rowId?: string
+  view?: ViewType
 }
 
 const props = defineProps<Props>()
@@ -40,6 +44,8 @@ const row = toRef(props, 'row')
 const state = toRef(props, 'state')
 
 const meta = toRef(props, 'meta')
+
+const router = useRouter()
 
 const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
@@ -54,6 +60,18 @@ const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useP
 
 if (props.loadRow) {
   await loadRow()
+}
+
+if (props.rowId) {
+  try {
+    await loadRow(props.rowId)
+  } catch (e) {
+    if (e.response?.status === 404) {
+      // todo: i18n
+      message.error('Record not found')
+      router.replace({ query: {} })
+    } else throw e
+  }
 }
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
@@ -110,10 +128,10 @@ export default {
     :closable="false"
     class="nc-drawer-expanded-form"
   >
-    <Header @cancel="onClose" />
+    <Header :view="view" @cancel="onClose" />
     <div class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
-        <div class="flex-1 overflow-auto scrollbar-thin-dull">
+        <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
           <div class="w-[500px] mx-auto">
             <div
               v-for="col of fields"

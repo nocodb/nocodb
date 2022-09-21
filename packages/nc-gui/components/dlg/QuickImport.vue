@@ -70,8 +70,8 @@ const isImportTypeCsv = computed(() => importType === 'csv')
 const IsImportTypeExcel = computed(() => importType === 'excel')
 
 const validators = computed(() => ({
-  url: [fieldRequiredValidator, importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
-  maxRowsToParse: [fieldRequiredValidator],
+  url: [fieldRequiredValidator(), importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
+  maxRowsToParse: [fieldRequiredValidator()],
 }))
 
 const { validate, validateInfos } = useForm(importState, validators)

@@ -103,7 +103,8 @@
       "editor": "Editör",
       "commenter": "Yorumcu",
       "viewer": "İzleyici"
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "ID",
@@ -157,6 +158,7 @@
     "isNotNull": "null değil"
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "Yeni proje",
     "myProject": "Benim projelerim",
     "formTitle": "Form başlığı",
@@ -406,7 +408,14 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    }
   },
   "tooltip": {
     "saveChanges": "Değişiklikleri Kaydet",

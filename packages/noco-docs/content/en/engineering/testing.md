@@ -1,16 +1,18 @@
 ---
-title: "Writing Unit Tests"
-description: "Overview to unit testing"
+title: "Writing Tests"
+description: "Overview to testing"
 position: 3250
 category: "Engineering"
-menuTitle: "Unit tests"
+menuTitle: "Testing"
 ---
 
-## Pre-requisites
+## Unit Tests
+
+### Pre-requisites
 
 - MySQL is preferrable - however we fallback to SQLite
 
-## Setup  
+#### Setup  
 
 - All the tests are in `packages/nocodb` folder, which will be our working directory. Use the following command to get into that folder.
 
@@ -24,7 +26,7 @@ cd packages/nocodb
 npm install
 ```
 
-### Environment variables
+#### Environment variables
 
 - Add your `env` file with the following command
 
@@ -88,7 +90,7 @@ beforeEach(async function () {
 });
 ```
 
-### Test case
+#### Test case
 
 We will use `it` function to create a test case. We will use `supertest` to make a request to the server. We use `expect`(`chai`) to assert the response.
 
@@ -110,7 +112,7 @@ it('Get table list', async function () {
 it.only('Get table list', async () => {
 ```
 
-### Integrating the new test suite
+#### Integrating the new test suite
 
 We create a new file `table.test.ts` in `packages/nocodb/tests/unit/rest/tests` directory.
 
@@ -154,7 +156,7 @@ export default function () {
 
 We can then import the `Table` test suite to `Rest` test suite in `packages/nocodb/tests/unit/rest/index.test.ts` file(`Rest` test suite is imported in the root test suite file which is `packages/nocodb/tests/unit/index.test.ts`).
 
-## Folder structure
+### Folder structure
 
 The root folder for unit tests is `packages/tests/unit`
 
@@ -165,7 +167,7 @@ The root folder for unit tests is `packages/tests/unit`
 - `index.test.ts` is the root test suite file which imports all the test suites.
 - `TestDbMngr.ts` is a helper class to manage test databases (i.e. creating, dropping, etc.).
 
-## Patterns to follow
+### Patterns to follow
 
 - **Factories**
   - Use factories for create/update/delete data. No data should be directly create/updated/deleted in the test.
@@ -178,7 +180,7 @@ The root folder for unit tests is `packages/tests/unit`
 
   - Use one file per factory.
 
-## Using sakila db
+### Using sakila db
 To use sakila db use `createSakilaProject` from `factory/project` to create a project. This project will be seeded with `sakila` tables.
 
 ```typescript

@@ -360,7 +360,7 @@ onMounted(() => {
     :meta="meta"
     @cancel="removeRowFromUncategorizedStack"
   />
-  <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-view-create">
+  <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-kanban-delete-stack">
     <template #title>
       <!-- TODO: i18n -->
       Delete stack?

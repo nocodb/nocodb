@@ -47,7 +47,10 @@ function verifyKanbanStackFooterCount(count) {
   cy.get(".nc-kanban-stack").each(($el, index) => {
     cy.wrap($el)
       .find(".nc-kanban-data-count")
-      .should("contain", `${count[index]} records`);
+      .should(
+        "contain",
+        `${count[index]} record${count[index] > 1 ? "s" : ""}`
+      );
   });
 }
 
@@ -99,14 +102,32 @@ export const genTest = (apiType, dbType) => {
 
   describe(`${apiType.toUpperCase()} api - Kanban`, () => {
     before(() => {
-      if (localDebug) {
-        // for standalone tests
-        cy.restoreLocalStorage();
-        loginPage.loginAndOpenProject(apiType, dbType);
-
-        cy.openTableTab("Film", 25);
-        cy.openTableView("kanban", "Kanban-1");
-      }
+      // if (localDebug) {
+      //   // for standalone tests
+      //   cy.restoreLocalStorage();
+      //   loginPage.loginAndOpenProject(apiType, dbType);
+      //
+      //   cy.openTableTab("Film", 25);
+      //   cy.openTableView("kanban", "Kanban-1");
+      //
+      //   cy.saveLocalStorageToFile("kanban");
+      // }
+      // cy.restoreLocalStorageFromFile("kanban");
+      // cy.wait(1000);
+      // cy.visit(
+      //   "http://localhost:3000/#/nc/p_42i93khqhge32z/table/Film/Kanban-1",
+      //   { baseUrl: null }
+      // );
+      // verifyKanbanStackCount(7);
+      // verifyKanbanStackOrder([
+      //   "uncategorized",
+      //   "G",
+      //   "PG",
+      //   "PG-13",
+      //   "R",
+      //   "NC-17",
+      //   "Test",
+      // ]);
     });
 
     beforeEach(() => {
@@ -305,6 +326,155 @@ export const genTest = (apiType, dbType) => {
       verifyKanbanStackCardOrder("WORST BANGER", 2, 0);
 
       cy.viewDelete(1);
+    });
+
+    it("Add stack", () => {
+      cy.get(".nc-kanban-add-edit-stack-menu-btn").should("exist").click();
+      cy.getActiveMenu(".nc-dropdown-kanban-add-edit-stack-menu").should(
+        "be.visible"
+      );
+      cy.getActiveMenu(".nc-dropdown-kanban-add-edit-stack-menu")
+        .find(".ant-btn-dashed")
+        .click();
+      cy.getActiveMenu(".nc-dropdown-kanban-add-edit-stack-menu")
+        .find(".nc-select-option")
+        .last()
+        .click()
+        .type("Test{enter}");
+      verifyKanbanStackCount(7);
+      verifyKanbanStackOrder([
+        "uncategorized",
+        "G",
+        "PG",
+        "PG-13",
+        "R",
+        "NC-17",
+        "Test",
+      ]);
+    });
+
+    it("Collapse stack", () => {
+      cy.get(".nc-kanban-stack-head").last().scrollIntoView();
+      cy.get(".nc-kanban-stack-head").last().click();
+      cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu").should(
+        "be.visible"
+      );
+
+      // collapse stack
+      cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu")
+        .find(".ant-dropdown-menu-item")
+        .contains("Collapse Stack")
+        .click();
+      cy.get(".nc-kanban-collapsed-stack")
+        .should("exist")
+        .should("have.length", 1);
+
+      // expand back
+      cy.get(".nc-kanban-collapsed-stack").click();
+      cy.get(".nc-kanban-collapsed-stack")
+        .should("not.exist")
+        .should("have.length", 0);
+    });
+
+    it("Add record to stack", () => {
+      mainPage.hideAllColumns();
+      mainPage.toggleShowSystemFields();
+      mainPage.unhideField("LanguageId", "kanban");
+      mainPage.unhideField("Title", "kanban");
+
+      cy.get(".nc-kanban-stack-head").last().scrollIntoView();
+      cy.get(".nc-kanban-stack-head").last().click();
+      cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu").should(
+        "be.visible"
+      );
+
+      // add record
+      cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu")
+        .find(".ant-dropdown-menu-item")
+        .contains("Add new record")
+        .click();
+
+      cy.getActiveDrawer(".nc-drawer-expanded-form").should("be.visible");
+      cy.get(".nc-expand-col-Title")
+        .find(".nc-cell > input")
+        .should("exist")
+        .first()
+        .clear()
+        .type("New record");
+      cy.get(".nc-expand-col-LanguageId")
+        .find(".nc-cell > input")
+        .should("exist")
+        .first()
+        .clear()
+        .type("1");
+
+      cy.getActiveDrawer(".nc-drawer-expanded-form")
+        .find("button")
+        .contains("Save row")
+        .click();
+      cy.toastWait("updated successfully");
+      cy.get("body").type("{esc}");
+
+      // verify if the new record is in the stack
+      verifyKanbanStackCount(7);
+      verifyKanbanStackOrder([
+        "uncategorized",
+        "G",
+        "PG",
+        "PG-13",
+        "R",
+        "NC-17",
+        "Test",
+      ]);
+      verifyKanbanStackFooterCount([
+        "0",
+        "178",
+        "194",
+        "223",
+        "195",
+        "210",
+        "1",
+      ]);
+
+      mainPage.toggleShowSystemFields();
+    });
+
+    it("Expand record", () => {
+      // mainPage.toggleShowSystemFields();
+      // mainPage.showAllColumns();
+
+      cy.get(".nc-kanban-stack").eq(1).find(".nc-kanban-item").eq(0).click();
+      cy.get(".nc-expand-col-Title")
+        .find(".nc-cell > input")
+        .then(($el) => {
+          expect($el[0].value).to.have.string("ACE GOLDFINGER");
+        });
+      cy.get("body").type("{esc}");
+    });
+
+    it("Stack context menu- delete stack", () => {
+      cy.get(".nc-kanban-stack-head").last().scrollIntoView();
+      cy.get(".nc-kanban-stack-head").last().click();
+      cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu").should(
+        "be.visible"
+      );
+      cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu")
+        .find(".ant-dropdown-menu-item")
+        .contains("Delete Stack")
+        .click();
+      cy.getActiveModal(".nc-modal-kanban-delete-stack").should("be.visible");
+      cy.getActiveModal(".nc-modal-kanban-delete-stack")
+        .find(".ant-btn-primary")
+        .click();
+      verifyKanbanStackCount(6);
+      verifyKanbanStackOrder([
+        "uncategorized",
+        "G",
+        "PG",
+        "PG-13",
+        "R",
+        "NC-17",
+      ]);
     });
 
     it("Delete Kanban view", () => {

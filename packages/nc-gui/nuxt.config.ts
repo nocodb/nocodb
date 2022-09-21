@@ -51,9 +51,10 @@ export default defineNuxtConfig({
   },
 
   vite: {
-    // todo: minifiy again
     build: {
-      minify: false,
+      commonjsOptions: {
+        ignoreTryCatch: false,
+      },
     },
     plugins: [
       vueI18n({
@@ -82,7 +83,8 @@ export default defineNuxtConfig({
     ],
     define: {
       'process.env.DEBUG': 'false',
-      'process.nextTick': () => {},
+      'process.nextTick': () => {
+      },
     },
     server: {
       watch: {

@@ -103,7 +103,8 @@
       "editor": "Editor.",
       "commenter": "Kommenter.",
       "viewer": "Viewer."
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "ID.",
@@ -157,6 +158,7 @@
     "isNotNull": "er ikke null."
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "Nyt projekt",
     "myProject": "Mine projekter",
     "formTitle": "Form titel",
@@ -406,7 +408,14 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    }
   },
   "tooltip": {
     "saveChanges": "Gem ændringer",

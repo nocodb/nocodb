@@ -103,7 +103,8 @@
       "editor": "محرر",
       "commenter": "معلق",
       "viewer": "مشاهد"
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "هوية",
@@ -157,6 +158,7 @@
     "isNotNull": "ليس فارغاً"
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "مشروع جديد",
     "myProject": "مشاريعي",
     "formTitle": "عنوان النموذج",
@@ -406,7 +408,14 @@
     "linkRecord": "اربط سجل",
     "addNewRecord": "إضافة سجل جديد",
     "useConnectionUrl": "استخدام رابط الاتصال",
-    "toggleCommentsDraw": "تبديل سحب التعليقات"
+    "toggleCommentsDraw": "تبديل سحب التعليقات",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    }
   },
   "tooltip": {
     "saveChanges": "حفظ التغييرات",

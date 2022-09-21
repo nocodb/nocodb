@@ -154,16 +154,28 @@ export function useKanbanViewData(
 
       // handle deleted options
       const columnOptionIds = (groupingFieldColumn.value?.colOptions as SelectOptionsType)?.options.map(({ id }) => id)
-      stackMetaObj.value[grp_column_id]
-        .filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
-        .forEach(({ id }) => {
-          const idx = stackMetaObj.value[grp_column_id].map((ele: Record<string, any>) => ele.id).indexOf(id)
-          if (idx !== -1) {
-            deleteStack(stackMetaObj.value[grp_column_id][idx].title!)
-            stackMetaObj.value[grp_column_id].splice(idx, 1)
+      const cols = stackMetaObj.value[grp_column_id].filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
+      for (const col of cols) {
+        const idx = stackMetaObj.value[grp_column_id].map((ele: Record<string, any>) => ele.id).indexOf(col.id)
+        if (idx !== -1) {
+          stackMetaObj.value[grp_column_id].splice(idx, 1)
+          // there are two cases
+          // 1. delete option from Add / Edit Stack in kanban view
+          // 2. delete option from grid view, then switch to kanban view
+          // for the second case, formattedData.value and countByStack.value would be empty at this moment
+          // however, the data will be correct after rendering
+          if (Object.keys(formattedData.value).length && Object.keys(countByStack.value).length) {
+            // for the first case, no reload is executed.
+            // hence, we set groupingField to null for all records under the target stack
+            await bulkUpdateGroupingFieldValue(col.title!, true)
+            // merge the to-be-deleted stack to uncategorized stack
+            formattedData.value.uncategorized = [...formattedData.value.uncategorized, ...formattedData.value[col.title!]]
+            // update the record count
+            countByStack.value.uncategorized += countByStack.value[col.title!]
           }
-        })
-
+          isChanged = true
+        }
+      }
       groupingFieldColOptions.value = stackMetaObj.value[grp_column_id]
 
       if (isChanged) {
@@ -295,33 +307,50 @@ export function useKanbanViewData(
           where: `(${groupingField.value},eq,${stackTitle})`,
         },
       )
-      // update to groupingField value to target value
-      formattedData.value[stackTitle] = formattedData.value[stackTitle].map((o) => ({
-        ...o,
-        row: {
-          ...o.row,
-          [groupingField.value]: groupingFieldVal,
-        },
-        oldRow: {
-          ...o.oldRow,
-          [groupingField.value]: o.row[groupingField.value],
-        },
-      }))
+      if (stackTitle in formattedData.value) {
+        // update to groupingField value to target value
+        formattedData.value[stackTitle] = formattedData.value[stackTitle].map((o) => ({
+          ...o,
+          row: {
+            ...o.row,
+            [groupingField.value]: groupingFieldVal,
+          },
+          oldRow: {
+            ...o.oldRow,
+            [groupingField.value]: o.row[groupingField.value],
+          },
+        }))
+      }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
-  async function deleteStack(stackTitle: string) {
+  async function deleteStack(stackTitle: string, stackIdx: number) {
+    if (!viewMeta?.value?.id || !groupingFieldColumn.value) return
     try {
       // set groupingField to null for all records under the target stack
       await bulkUpdateGroupingFieldValue(stackTitle, true)
-      // merge the 'deleted' stack to uncategorized stack
+      // merge the to-be-deleted stack to uncategorized stack
       formattedData.value.uncategorized = [...formattedData.value.uncategorized, ...formattedData.value[stackTitle]]
       countByStack.value.uncategorized += countByStack.value[stackTitle]
-      // clear the 'deleted' stack
-      formattedData.value[stackTitle] = []
-      countByStack.value[stackTitle] = 0
+      // clear state for the to-be-deleted stack
+      delete formattedData.value[stackTitle]
+      delete countByStack.value[stackTitle]
+      // delete the stack, i.e. grouping field value
+      const newOptions = (groupingFieldColumn.value.colOptions as SelectOptionsType).options.filter((o) => o.title !== stackTitle)
+      ;(groupingFieldColumn.value.colOptions as SelectOptionsType).options = newOptions
+      await api.dbTableColumn.update(groupingFieldColumn.value.id!, {
+        ...groupingFieldColumn.value,
+        colOptions: {
+          options: newOptions,
+        },
+      } as any)
+
+      // update kanban stack meta
+      stackMetaObj.value[kanbanMetaData.value.grp_column_id!].splice(stackIdx, 1)
+      groupingFieldColOptions.value.splice(stackIdx, 1)
+      await updateKanbanStackMeta()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

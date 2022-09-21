@@ -39,6 +39,8 @@ const deleteStackVModel = ref(false)
 
 const stackToBeDeleted = ref('')
 
+const stackIdxToBeDeleted = ref(0)
+
 const {
   loadKanbanData,
   loadMoreKanbanData,
@@ -146,13 +148,14 @@ const kanbanListRef = (kanbanListElement: HTMLElement) => {
   }
 }
 
-const handleDeleteStackClick = (stackTitle: string) => {
+const handleDeleteStackClick = (stackTitle: string, stackIdx: number) => {
   deleteStackVModel.value = true
   stackToBeDeleted.value = stackTitle
+  stackIdxToBeDeleted.value = stackIdx
 }
 
 const handleDeleteStackConfirmClick = async () => {
-  await deleteStack(stackToBeDeleted.value)
+  await deleteStack(stackToBeDeleted.value, stackIdxToBeDeleted.value)
   deleteStackVModel.value = false
 }
 
@@ -236,7 +239,10 @@ onMounted(() => {
                               Collapse Stack
                             </div>
                           </a-menu-item>
-                          <a-menu-item v-if="stack.title !== 'uncategorized'" @click="handleDeleteStackClick(stack.title)">
+                          <a-menu-item
+                            v-if="stack.title !== 'uncategorized'"
+                            @click="handleDeleteStackClick(stack.title, stackIdx)"
+                          >
                             <div class="py-2 flex gap-2 items-center">
                               <mdi-delete class="text-gray-500" />
                               <!-- TODO: i18n -->

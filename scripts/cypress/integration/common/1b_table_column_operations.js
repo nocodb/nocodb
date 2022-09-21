@@ -73,7 +73,7 @@ export const genTest = (apiType, dbType) => {
           .click();
 
         // fix me! wait till the modal rendering (input highlight) is completed
-        cy.wait(1000);
+        cy.wait(500);
 
         // change column type and verify
         // cy.get(".nc-column-type-input").last().click();

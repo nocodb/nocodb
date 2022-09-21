@@ -411,6 +411,9 @@ const expandedFormOnRowIdDlg = computed({
 
 // reload table data reload hook as fallback to rowdatareload
 provide(ReloadRowDataHookInj, reloadViewDataHook)
+
+// trigger initial data load in grid
+reloadViewDataHook.trigger()
 </script>
 
 <template>

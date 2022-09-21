@@ -37,6 +37,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     if (isPublic.value || isSharedBase.value) {
       sorts.value[i] = sort
       sorts.value = [...sorts.value]
+      reloadHook?.trigger()
       return
     }
 
@@ -75,16 +76,13 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       sorts.value.splice(i, 1)
       sorts.value = [...sorts.value]
 
+      reloadHook?.trigger()
       $e('a:sort:delete')
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
-
-  watch(sorts, () => {
-    reloadHook?.trigger()
-  })
 
   return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate }
 }

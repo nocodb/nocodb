@@ -41,7 +41,7 @@ export function _advSettings(roleType, mode) {
 
     cy.get(`[data-menu-id="teamAndAuth"]`).should("exist");
     cy.get(`[data-menu-id="appStore"]`).should("exist");
-    cy.get(`[data-menu-id="metaData"]`).should("exist");
+    cy.get(`[data-menu-id="projMetaData"]`).should("exist");
     cy.get(`[data-menu-id="audit"]`).should("exist");
 
     settingsPage.closeMenu();
@@ -254,25 +254,26 @@ export function _viewMenu(roleType, mode) {
   // Lock, Download, Upload
   let menuWithSubmenuCount = 3;
 
-  // share view list, webhook
-  let menuWithoutSubmenuCount = 3;
+    // share view list, webhook, api snippet, erd
+    let menuWithoutSubmenuCount = 4;
 
   cy.openTableTab(columnName, 25);
 
   let validationString =
     true === roles[roleType].validations.shareView ? "exist" : "not.exist";
 
-  if (roleType === "editor") {
-    // Download / Upload CSV
-    menuWithSubmenuCount = 2;
-    // Get API Snippet
-    menuWithoutSubmenuCount = 1;
-    if (mode === "baseShare") menuWithoutSubmenuCount = 0;
-  } else if (roleType === "commenter" || roleType === "viewer") {
-    // Download CSV & Download excel
-    menuWithSubmenuCount = 0;
-    menuWithoutSubmenuCount = 2;
-  }
+    if (roleType === "editor") {
+        // Download / Upload CSV
+        menuWithSubmenuCount = 2;
+        // Get API Snippet and ERD
+        menuWithoutSubmenuCount = 2
+        if(mode === 'baseShare') menuWithoutSubmenuCount = 0
+    } else if (roleType === "commenter" || roleType === "viewer") {
+        // Download CSV & Download excel
+        menuWithSubmenuCount = 0;
+        // Get API Snippet and ERD
+        menuWithoutSubmenuCount = 2
+    }
 
   // view list field (default GRID view)
   cy.get(`.nc-view-item`).should("exist");

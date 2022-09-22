@@ -24,7 +24,9 @@ export async function dataList(req: Request, res: Response) {
     const view = await View.getByUUID(req.params.sharedViewUuid);
 
     if (!view) NcError.notFound('Not found');
-    if (view.type !== ViewTypes.GRID) NcError.notFound('Not found');
+    if (view.type !== ViewTypes.GRID && view.type !== ViewTypes.KANBAN) {
+      NcError.notFound('Not found');
+    }
 
     if (view.password && view.password !== req.headers?.['xc-password']) {
       return NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);

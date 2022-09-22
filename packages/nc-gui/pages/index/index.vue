@@ -1,7 +1,9 @@
 <script lang="ts" setup>
-import { useRoute } from '#imports'
+import { useRoute, useSidebar } from '#imports'
 
 const route = useRoute()
+
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 </script>
 
 <template>

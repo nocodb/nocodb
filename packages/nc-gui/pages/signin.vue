@@ -2,6 +2,11 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { definePageMeta, isEmail, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useSidebar } from '#imports'
 
+definePageMeta({
+  requiresAuth: false,
+  title: 'title.headLogin',
+})
+
 const { signIn: _signIn } = useGlobal()
 
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
@@ -9,11 +14,6 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 const { t } = useI18n()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
-
-definePageMeta({
-  requiresAuth: false,
-  title: 'title.headLogin',
-})
 
 const formValidator = ref()
 
@@ -31,6 +31,7 @@ const formRules: Record<string, RuleObject[]> = {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
           if (isEmail(v)) return resolve()
+
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
       },
@@ -50,6 +51,7 @@ async function signIn() {
 
   api.auth.signin(form).then(async ({ token }) => {
     _signIn(token!)
+
     await navigateTo('/')
   })
 }

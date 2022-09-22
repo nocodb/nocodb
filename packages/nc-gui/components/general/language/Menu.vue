@@ -11,7 +11,7 @@ const { locale } = useI18n()
 
 const languages = $computed(() => Object.entries(Language).sort())
 
-const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
+const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
 
 function applyDirection() {
   const targetDirection = isRtlLang ? 'rtl' : 'ltr'

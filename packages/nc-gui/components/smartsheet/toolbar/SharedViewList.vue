@@ -1,11 +1,18 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { Empty, message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, onMounted, useCopy, useI18n, useSmartsheetStoreOrThrow } from '#imports'
+import { Empty } from 'ant-design-vue'
+import {
+  extractSdkResponseErrorMsg,
+  message,
+  onMounted,
+  ref,
+  useCopy,
+  useDashboard,
+  useI18n,
+  useSmartsheetStoreOrThrow,
+} from '#imports'
 import MdiVisibilityOnIcon from '~icons/mdi/visibility'
 import MdiVisibilityOffIcon from '~icons/mdi/visibility-off'
-import MdiCopyIcon from '~icons/mdi/content-copy'
-import MdiDeleteIcon from '~icons/mdi/delete-outline'
 
 interface SharedViewType {
   password: string
@@ -27,12 +34,7 @@ const { dashboardUrl } = useDashboard()
 const sharedViewList = ref<SharedViewType[]>()
 
 const loadSharedViewsList = async () => {
-  const list = await $api.dbViewShare.list(meta.value?.id as string)
-
-  console.log(unref(sharedViewList))
-  console.log(list)
-
-  sharedViewList.value = list
+  sharedViewList.value = await $api.dbViewShare.list(meta.value?.id as string)
 
   // todo: show active view in list separately
   // const index = sharedViewList.value.findIndex((v) => {
@@ -93,7 +95,6 @@ const deleteLink = async (id: string) => {
 <template>
   <div class="w-full">
     <a-table
-      class=""
       size="small"
       :data-source="sharedViewList"
       :pagination="{ position: ['bottomCenter'] }"
@@ -104,6 +105,7 @@ const deleteLink = async (id: string) => {
       <template #emptyText>
         <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
       </template>
+
       <!-- View name -->
       <a-table-column key="title" :title="$t('labels.viewName')" data-index="title">
         <template #default="{ text }">
@@ -112,6 +114,7 @@ const deleteLink = async (id: string) => {
           </div>
         </template>
       </a-table-column>
+
       <!-- View Link -->
       <a-table-column key="title" :title="$t('labels.viewLink')" data-index="title">
         <template #default="{ record }">
@@ -120,6 +123,7 @@ const deleteLink = async (id: string) => {
           </nuxt-link>
         </template>
       </a-table-column>
+
       <!-- Password -->
       <a-table-column key="password" :title="$t('labels.password')" data-index="title">
         <template #default="{ record }">
@@ -134,6 +138,7 @@ const deleteLink = async (id: string) => {
           </div>
         </template>
       </a-table-column>
+
       <a-table-column key="meta" :title="$t('labels.downloadAllowed')" data-index="title">
         <template #default="{ record }">
           <template v-if="'meta' in record">
@@ -141,12 +146,13 @@ const deleteLink = async (id: string) => {
           </template>
         </template>
       </a-table-column>
+
       <!-- Actions -->
       <a-table-column key="id" :title="$t('labels.actions')" data-index="title">
         <template #default="{ record }">
           <div class="text-sm flex gap-2" :title="text">
-            <MdiCopyIcon class="cursor-pointer" @click="copyLink(record)" />
-            <MdiDeleteIcon class="cursor-pointer" @click="deleteLink(record.id)" />
+            <MdiContentCopy class="cursor-pointer" @click="copyLink(record)" />
+            <MdiDeleteOutline class="cursor-pointer" @click="deleteLink(record.id)" />
           </div>
         </template>
       </a-table-column>

@@ -1,14 +1,14 @@
 <!-- File not in use for now -->
 
 <script setup lang="ts">
-import { precisions } from '#imports'
+import { precisions, useVModel } from '#imports'
 
-interface Props {
-  value: Record<string, any>
-}
+const props = defineProps<{
+  value: any
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
+
 const vModel = useVModel(props, 'value', emit)
 
 if (!vModel.value.meta) vModel.value.meta = {}

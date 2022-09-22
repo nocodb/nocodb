@@ -10,7 +10,7 @@
 
     <template #overlay>
       <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
-        <SmartsheetToolbarExportSubActions />
+        <LazySmartsheetToolbarExportSubActions />
       </a-menu>
     </template>
   </a-dropdown>

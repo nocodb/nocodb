@@ -2,17 +2,17 @@
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
-import { message } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
-import RenameableMenuItem from './RenameableMenuItem.vue'
 import {
   ActiveViewInj,
   ViewListInj,
   extractSdkResponseErrorMsg,
   inject,
+  message,
   onMounted,
   ref,
+  resolveComponent,
   useApi,
   useDialog,
   useI18n,
@@ -22,7 +22,6 @@ import {
   viewTypeAlias,
   watch,
 } from '#imports'
-import DlgViewDelete from '~/components/dlg/ViewDelete.vue'
 
 const emits = defineEmits<Emits>()
 
@@ -190,7 +189,7 @@ async function onRename(view: ViewType) {
 function openDeleteDialog(view: Record<string, any>) {
   const isOpen = ref(true)
 
-  const { close } = useDialog(DlgViewDelete, {
+  const { close } = useDialog(resolveComponent('LazyDlgViewDelete') as any, {
     'modelValue': isOpen,
     'view': view,
     'onUpdate:modelValue': closeDialog,
@@ -219,7 +218,7 @@ function openDeleteDialog(view: Record<string, any>) {
 
 <template>
   <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
-    <RenameableMenuItem
+    <LazySmartsheetSidebarRenameableMenuItem
       v-for="(view, index) of views"
       :id="view.id"
       :key="view.id"

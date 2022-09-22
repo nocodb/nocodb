@@ -5,7 +5,6 @@ const reloadData = inject(ReloadViewDataHookInj)!
 
 const { search, meta } = useSmartsheetStoreOrThrow()
 
-// todo: where is this value supposed to come from? it's not in the store
 const isDropdownOpen = ref(false)
 
 const searchDropdown = ref(null)
@@ -33,6 +32,7 @@ function onPressEnter() {
       @click="isDropdownOpen = !isDropdownOpen"
     >
       <MdiMagnify class="text-grey" />
+
       <MdiMenuDown class="text-grey" />
 
       <a-select
@@ -45,6 +45,7 @@ function onPressEnter() {
         class="!absolute top-0 left-0 w-full h-full z-10 !text-xs opacity-0"
       />
     </div>
+
     <a-input
       v-model:value="search.query"
       size="small"

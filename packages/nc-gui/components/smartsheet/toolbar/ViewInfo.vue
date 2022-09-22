@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ActiveViewInj, viewIcons } from '#imports'
+import { ActiveViewInj, inject, viewIcons } from '#imports'
 
 const selectedView = inject(ActiveViewInj)
 </script>
@@ -12,8 +12,9 @@ const selectedView = inject(ActiveViewInj)
       class="nc-view-icon group-hover:hidden"
       :style="{ color: viewIcons[selectedView?.type].color }"
     />
-    <span class="!text-sm font-medium max-w-36 overflow-ellipsis overflow-hidden whitespace-nowrap">{{
-      selectedView?.title
-    }}</span>
+
+    <span class="!text-sm font-medium max-w-36 overflow-ellipsis overflow-hidden whitespace-nowrap">
+      {{ selectedView?.title }}
+    </span>
   </div>
 </template>

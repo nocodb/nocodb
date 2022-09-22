@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { message } from 'ant-design-vue'
 import {
   ActiveViewInj,
   IsLockedInj,
   IsPublicInj,
   extractSdkResponseErrorMsg,
   inject,
+  message,
   ref,
   useI18n,
   useNuxtApp,
@@ -92,10 +92,13 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
             class="nc-view-icon group-hover:hidden"
             :style="{ color: viewIcons[selectedView?.type].color }"
           />
-          <span class="!text-sm font-weight-normal"
-            ><GeneralTruncateText>{{ selectedView?.title }}</GeneralTruncateText></span
-          >
+
+          <span class="!text-sm font-weight-normal">
+            <GeneralTruncateText>{{ selectedView?.title }}</GeneralTruncateText>
+          </span>
+
           <component :is="Icon" class="text-gray-500" :class="`nc-icon-${selectedView?.lock_type}`" />
+
           <MdiMenuDown class="text-grey" />
         </div>
       </a-button>
@@ -122,14 +125,18 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
               <a-menu-item @click="changeLockType(LockType.Collaborative)">
                 <SmartsheetToolbarLockType :type="LockType.Collaborative" />
               </a-menu-item>
+
               <a-menu-item @click="changeLockType(LockType.Locked)">
                 <SmartsheetToolbarLockType :type="LockType.Locked" />
               </a-menu-item>
+
               <a-menu-item @click="changeLockType(LockType.Personal)">
                 <SmartsheetToolbarLockType :type="LockType.Personal" />
               </a-menu-item>
             </a-sub-menu>
+
             <a-menu-divider />
+
             <a-sub-menu key="download">
               <template #title>
                 <!--                Download -->
@@ -145,8 +152,10 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
               </template>
 
               <template #expandIcon></template>
-              <SmartsheetToolbarExportSubActions />
+
+              <LazySmartsheetToolbarExportSubActions />
             </a-sub-menu>
+
             <template v-if="isUIAllowed('csvImport') && !isView && !isPublicView && !isSqlView">
               <a-sub-menu key="upload">
                 <!--                Upload -->
@@ -178,7 +187,9 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
                 </a-menu-item>
               </a-sub-menu>
             </template>
+
             <a-menu-divider />
+
             <a-menu-item v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView">
               <div v-e="['a:actions:shared-view-list']" class="py-2 flex gap-2 items-center" @click="sharedViewListDlg = true">
                 <MdiViewListOutline class="text-gray-500" />
@@ -186,6 +197,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
                 {{ $t('activity.listSharedView') }}
               </div>
             </a-menu-item>
+
             <a-menu-item v-if="!isSqlView">
               <div
                 v-if="isUIAllowed('webhook') && !isView && !isPublicView"
@@ -197,6 +209,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
                 {{ $t('objects.webhooks') }}
               </div>
             </a-menu-item>
+
             <a-menu-item v-if="!isSharedBase && !isPublicView">
               <div v-e="['c:snippet:open']" class="py-2 flex gap-2 items-center" @click="showApiSnippetDrawer = true">
                 <MdiXml class="text-gray-500" />
@@ -215,9 +228,9 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
       </template>
     </a-dropdown>
 
-    <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-only="true" />
+    <LazyDlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-only="true" />
 
-    <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
+    <LazyWebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
     <SmartsheetToolbarErd v-model="showErd" />
 
@@ -228,9 +241,10 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
       :footer="null"
       wrap-class-name="nc-modal-shared-view-list"
     >
-      <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
+      <LazySmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
     </a-modal>
-    <SmartsheetApiSnippet v-model="showApiSnippetDrawer" />
+
+    <LazySmartsheetApiSnippet v-model="showApiSnippetDrawer" />
   </div>
 </template>
 

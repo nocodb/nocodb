@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { dateFormats } from '~/utils'
+import { dateFormats, useVModel } from '#imports'
 
-interface Props {
-  value: Record<string, any>
-}
+const props = defineProps<{
+  value: any
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
+
 const vModel = useVModel(props, 'value', emit)
 
 if (!vModel.value.meta?.date_format) {

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { getMdiIcon } from '@/utils'
+import { computed, getMdiIcon, useVModel, watch } from '#imports'
 
-interface Props {
-  value: Record<string, any>
-}
+const props = defineProps<{
+  value: any
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
+
 const vModel = useVModel(props, 'value', emit)
 
 // cater existing v1 cases
@@ -88,6 +88,7 @@ watch(
                   color: vModel.meta.color,
                 }"
               />
+
               <component
                 :is="getMdiIcon(icon.unchecked)"
                 :style="{
@@ -100,8 +101,9 @@ watch(
       </a-form-item>
     </a-col>
   </a-row>
+
   <a-row class="w-full justify-center">
-    <GeneralColorPicker
+    <LazyGeneralColorPicker
       v-model="picked"
       :row-size="8"
       :colors="['#fcb401', '#faa307', '#f48c06', '#e85d04', '#dc2f02', '#d00000', '#9d0208', '#777']"

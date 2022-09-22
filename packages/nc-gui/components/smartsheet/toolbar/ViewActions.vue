@@ -18,7 +18,6 @@ import { LockType } from '~/lib'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
-import AcountTreeRoundedIcon from '~icons/material-symbols/account-tree-rounded'
 
 const { t } = useI18n()
 
@@ -113,7 +112,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
             >
               <template #title>
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
-                  <SmartsheetToolbarLockType hide-tick :type="selectedView?.lock_type || LockType.Collaborative" />
+                  <LazySmartsheetToolbarLockType hide-tick :type="selectedView?.lock_type || LockType.Collaborative" />
 
                   <MaterialSymbolsChevronRightRounded
                     class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
@@ -123,15 +122,15 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
               <template #expandIcon></template>
               <a-menu-item @click="changeLockType(LockType.Collaborative)">
-                <SmartsheetToolbarLockType :type="LockType.Collaborative" />
+                <LazySmartsheetToolbarLockType :type="LockType.Collaborative" />
               </a-menu-item>
 
               <a-menu-item @click="changeLockType(LockType.Locked)">
-                <SmartsheetToolbarLockType :type="LockType.Locked" />
+                <LazySmartsheetToolbarLockType :type="LockType.Locked" />
               </a-menu-item>
 
               <a-menu-item @click="changeLockType(LockType.Personal)">
-                <SmartsheetToolbarLockType :type="LockType.Personal" />
+                <LazySmartsheetToolbarLockType :type="LockType.Personal" />
               </a-menu-item>
             </a-sub-menu>
 
@@ -217,9 +216,10 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
                 {{ $t('activity.getApiSnippet') }}
               </div>
             </a-menu-item>
+
             <a-menu-item>
               <div v-e="['c:erd:open']" class="py-2 flex gap-2 items-center nc-view-action-erd" @click="showErd = true">
-                <AcountTreeRoundedIcon class="text-gray-500" />
+                <MaterialSymbolsAccountTreeRounded class="text-gray-500" />
                 {{ $t('title.erdView') }}
               </div>
             </a-menu-item>
@@ -232,7 +232,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
     <LazyWebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
-    <SmartsheetToolbarErd v-model="showErd" />
+    <LazySmartsheetToolbarErd v-model="showErd" />
 
     <a-modal
       v-model:visible="sharedViewListDlg"

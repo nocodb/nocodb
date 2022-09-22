@@ -91,6 +91,7 @@ const filterAutoSaveLoc = computed({
           </a-checkbox>
 
           <div class="flex-1" />
+
           <a-button
             v-show="!filterAutoSave"
             v-e="['a:filter:auto-apply']"

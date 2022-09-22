@@ -144,9 +144,11 @@ watch(passwordProtected, (value) => {
     >
       <div class="share-link-box nc-share-link-box bg-primary-50">
         <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
+
         <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
           <MdiOpenInNew class="text-sm text-gray-500 mt-2" />
         </a>
+
         <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
       </div>
 
@@ -154,6 +156,7 @@ watch(passwordProtected, (value) => {
         <a-collapse-panel key="1" :header="$t('general.showOptions')">
           <div class="mb-2">
             <a-checkbox v-model:checked="passwordProtected" class="!text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
+
             <div v-if="passwordProtected" class="flex gap-2 mt-2 mb-4">
               <a-input
                 v-model:value="shared.password"
@@ -162,8 +165,9 @@ watch(passwordProtected, (value) => {
                 type="password"
                 :placeholder="$t('placeholder.password.enter')"
               />
-              <a-button size="small" class="!text-xs" @click="saveShareLinkPassword"
-                >{{ $t('placeholder.password.save') }}
+
+              <a-button size="small" class="!text-xs" @click="saveShareLinkPassword">
+                {{ $t('placeholder.password.save') }}
               </a-button>
             </div>
           </div>

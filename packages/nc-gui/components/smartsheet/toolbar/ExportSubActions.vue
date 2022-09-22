@@ -100,6 +100,7 @@ const exportFile = async (exportType: ExportTypes) => {
       {{ $t('activity.downloadCSV') }}
     </div>
   </a-menu-item>
+
   <a-menu-item>
     <div v-e="['a:actions:download-excel']" class="nc-project-menu-item" @click="exportFile(ExportTypes.EXCEL)">
       <MdiDownloadOutline class="text-gray-500" />

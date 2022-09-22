@@ -101,6 +101,7 @@ export default {
     :d="edgePath"
     :marker-end="markerEnd"
   />
+
   <path
     :id="id"
     :style="style"
@@ -135,6 +136,7 @@ export default {
     :stroke-width="1.5"
     :transform="`rotate(45,${sourceX + 2},${sourceY - 4})`"
   />
+
   <rect
     v-if="isManyToMany"
     class="nc-erd-edge-rect"

@@ -35,8 +35,9 @@ const selectedView = inject(ActiveViewInj)
         </template>
       </a-button>
     </div>
+
     <div class="w-full h-full !py-0 !px-2" style="height: 70vh">
-      <ErdView :table="meta" />
+      <LazyErdView :table="meta" />
     </div>
   </a-modal>
 </template>

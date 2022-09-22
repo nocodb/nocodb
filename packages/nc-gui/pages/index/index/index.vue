@@ -1,17 +1,17 @@
 <script lang="ts" setup>
 import { Empty, Modal } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
 import {
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
   message,
   navigateTo,
+  onBeforeMount,
   projectThemeColors,
   ref,
   themeV2Colors,
-  useLazyAsyncData,
+  useApi,
   useNuxtApp,
   useSidebar,
   useUIPermission,
@@ -23,21 +23,20 @@ definePageMeta({
 
 const { $api, $e } = useNuxtApp()
 
-const {
-  data: projects,
-  pending: isLoading,
-  execute,
-} = useLazyAsyncData(async () => {
-  const response = await $api.project.list({})
-
-  return response.list
-})
+const { api, isLoading } = useApi()
 
 const { isUIAllowed } = useUIPermission()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: true })
 
 const filterQuery = ref('')
+
+const projects = ref<ProjectType[]>()
+
+const loadProjects = async () => {
+  const response = await api.project.list({})
+  projects.value = response.list
+}
 
 const filteredProjects = computed(
   () =>
@@ -57,7 +56,7 @@ const deleteProject = (project: ProjectType) => {
     cancelText: 'No',
     async onOk() {
       try {
-        await $api.project.delete(project.id as string)
+        await api.project.delete(project.id as string)
 
         $e('a:project:delete')
 
@@ -69,10 +68,9 @@ const deleteProject = (project: ProjectType) => {
   })
 }
 
-await execute()
-
 const handleProjectColor = async (projectId: string, color: string) => {
-  const tcolor = tinycolor(color)
+  const tinyColor = await import('tinycolor2').then((d) => d.default)
+  const tcolor = tinyColor(color)
 
   if (tcolor.isValid()) {
     const complement = tcolor.complement()
@@ -97,6 +95,7 @@ const handleProjectColor = async (projectId: string, color: string) => {
 
     if (localProject) {
       localProject.color = color
+
       localProject.meta = JSON.stringify({
         ...meta,
         theme: {
@@ -124,6 +123,8 @@ const customRow = (record: ProjectType) => ({
   },
   class: ['group'],
 })
+
+onBeforeMount(loadProjects)
 </script>
 
 <template>
@@ -143,7 +144,7 @@ const customRow = (record: ProjectType) => ({
             v-e="['a:project:refresh']"
             class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
             :class="isLoading ? '!text-primary' : ''"
-            @click="execute"
+            @click="loadProjects"
           />
         </span>
       </a-tooltip>
@@ -196,18 +197,12 @@ const customRow = (record: ProjectType) => ({
       </a-dropdown>
     </div>
 
-    <TransitionGroup name="layout" mode="out-in">
-      <div v-if="isLoading" key="skeleton">
+    <Transition name="layout" mode="out-in">
+      <div v-if="isLoading">
         <a-skeleton />
       </div>
 
-      <a-table
-        v-else
-        key="table"
-        :custom-row="customRow"
-        :data-source="filteredProjects"
-        :pagination="{ position: ['bottomCenter'] }"
-      >
+      <a-table v-else :custom-row="customRow" :data-source="filteredProjects" :pagination="{ position: ['bottomCenter'] }">
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </template>
@@ -233,12 +228,13 @@ const customRow = (record: ProjectType) => ({
 
                       <template #expandIcon></template>
 
-                      <GeneralColorPicker
+                      <LazyGeneralColorPicker
                         :colors="projectThemeColors"
                         :row-size="9"
                         :advanced="false"
                         @input="handleProjectColor(record.id, $event)"
                       />
+
                       <a-sub-menu key="pick-primary">
                         <template #title>
                           <div class="nc-project-menu-item group !py-0">
@@ -247,7 +243,8 @@ const customRow = (record: ProjectType) => ({
                           </div>
                         </template>
                         <template #expandIcon></template>
-                        <GeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
+
+                        <LazyGeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
                       </a-sub-menu>
                     </a-sub-menu>
                   </template>
@@ -273,7 +270,7 @@ const customRow = (record: ProjectType) => ({
           </template>
         </a-table-column>
       </a-table>
-    </TransitionGroup>
+    </Transition>
   </div>
 </template>
 

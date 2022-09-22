@@ -22,6 +22,7 @@ import {
 import { isMysql, isSqlite } from '../../init/db';
 import Model from '../../../../src/lib/models/Model';
 import Project from '../../../../src/lib/models/Project';
+import { expect } from 'chai';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -353,6 +354,90 @@ function tableTest() {
       (c) => c.title === 'Payment List'
     );
 
+    const nestedFilter = {
+      is_group: true,
+      status: 'create',
+      logical_op: 'and',
+      children: [
+        {
+          fk_column_id: lookupColumn?.id,
+          status: 'create',
+          logical_op: 'and',
+          comparison_op: 'like',
+          value: '%a%',
+        },
+        {
+          fk_column_id: paymentListColumn?.id,
+          status: 'create',
+          logical_op: 'and',
+          comparison_op: 'notempty',
+        },
+      ],
+    };
+
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+      })
+      .expect(200);
+
+    expect(response.body.pageInfo.totalRows).equal(9558)
+
+
+    const ascResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: lookupColumn?.id,
+            direction: 'asc',
+          },
+        ]),
+      })
+      .expect(200);
+
+    expect(ascResponse.body.pageInfo.totalRows).equal(9558)
+    expect(ascResponse.body.list[0][lookupColumn.title]).equal('AARON')
+
+    const descResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: lookupColumn?.id,
+            direction: 'desc',
+          },
+        ]),
+      })
+      .expect(200);
+
+    expect(descResponse.body.pageInfo.totalRows).equal(9558)
+    expect(descResponse.body.list[0][lookupColumn.title]).equal('ZACHARY')
+  });
+
+  it('Get nested sorted filtered table data list with a lookup column with date comparison', async function () {
+    // Since sqlite doesn't support date comparison
+    if(isSqlite(context)) return;
+    const rentalTable = await getTable({project: sakilaProject, name: 'rental'});
+
+    const lookupColumn = await createLookupColumn(context, {
+      project: sakilaProject,
+      title: 'Lookup',
+      table: rentalTable,
+      relatedTableName: customerTable.table_name,
+      relatedTableColumnTitle: 'FirstName',
+    });
+
+    const paymentListColumn = (await rentalTable.getColumns()).find(
+      (c) => c.title === 'Payment List'
+    );
+
     const returnDateColumn = (await rentalTable.getColumns()).find(
       (c) => c.title === 'ReturnDate'
     );
@@ -483,7 +568,7 @@ function tableTest() {
         status: 'create',
         logical_op: 'and',
         comparison_op: 'gte',
-        value: '25',
+        value: 25,
       },
       {
         is_group: true,
@@ -495,7 +580,7 @@ function tableTest() {
             status: 'create',
             logical_op: 'and',
             comparison_op: 'lte',
-            value: '30',
+            value: 30,
           },
           {
             fk_column_id: paymentListColumn?.id,
@@ -512,7 +597,8 @@ function tableTest() {
                 logical_op: 'and',
                 fk_column_id: activeColumn?.id,
                 status: 'create',
-                comparison_op: 'notempty',
+                comparison_op: 'eq',
+                value: 1
               },
             ],
           },
@@ -639,7 +725,7 @@ function tableTest() {
         status: 'create',
         logical_op: 'and',
         comparison_op: 'gte',
-        value: '25',
+        value: 25,
       },
       {
         is_group: true,
@@ -651,7 +737,7 @@ function tableTest() {
             status: 'create',
             logical_op: 'and',
             comparison_op: 'lte',
-            value: '30',
+            value: 30,
           },
           {
             fk_column_id: paymentListColumn?.id,
@@ -668,7 +754,8 @@ function tableTest() {
                 logical_op: 'and',
                 fk_column_id: activeColumn?.id,
                 status: 'create',
-                comparison_op: 'notempty',
+                comparison_op: 'eq',
+                value: 1
               },
             ],
           },
@@ -946,7 +1033,7 @@ function tableTest() {
         status: 'create',
         logical_op: 'and',
         comparison_op: 'gte',
-        value: '25',
+        value: 25,
       },
       {
         is_group: true,
@@ -958,7 +1045,7 @@ function tableTest() {
             status: 'create',
             logical_op: 'and',
             comparison_op: 'lte',
-            value: '30',
+            value: 30,
           },
           {
             fk_column_id: paymentListColumn?.id,
@@ -975,7 +1062,8 @@ function tableTest() {
                 logical_op: 'and',
                 fk_column_id: activeColumn?.id,
                 status: 'create',
-                comparison_op: 'notempty',
+                comparison_op: 'eq',
+                value: 1
               },
             ],
           },
@@ -1343,7 +1431,7 @@ function tableTest() {
   });
 
   it('Bulk update', async function () {
-    // todo: Find why bulk update in sqlite is hanging
+    // todo: Since sqlite doesn't support multiple sql connections, we can't test bulk update in sqlite
     if(isSqlite(context)) {
       return
     }
@@ -1375,10 +1463,6 @@ function tableTest() {
   });
 
   it('Bulk delete', async function () {
-    // todo: Find why bulk delete in sqlite is hanging
-    if(isSqlite(context)) {
-      return
-    }
 
     const table = await createTable(context, project);
     const columns = await table.getColumns();
@@ -1766,6 +1850,9 @@ function tableTest() {
   })
 
   it('Create list mm', async () => {
+    // todo: Foreign key has non nullable clause in sqlite sakila
+    if(isSqlite(context)) return
+
     const rowId = 1;
     const actorTable = await getTable({project: sakilaProject, name: 'actor'});
     const filmListColumn = (await actorTable.getColumns()).find(
@@ -1848,6 +1935,9 @@ function tableTest() {
   })
 
   it('Delete list hm with existing ref row id with non nullable clause', async () => {
+    // todo: Foreign key has non nullable clause in sqlite sakila
+    if(isSqlite(context)) return
+
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
       (column) => column.title === 'Rental List'
@@ -1900,10 +1990,6 @@ function tableTest() {
   })
 
   it('Exclude list hm', async () => {
-    // todo: Find why sqlite not working with this
-    if(isSqlite(context)) {
-      return
-    }
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
       (column) => column.title === 'Rental List'

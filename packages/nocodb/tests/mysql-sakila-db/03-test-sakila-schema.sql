@@ -532,7 +532,7 @@ proc: BEGIN
     DROP TABLE tmpCustomer;
 END;
 
-CREATE FUNCTION IF NOT EXISTS get_customer_balance(p_customer_id INT, p_effective_date DATETIME) RETURNS DECIMAL(5,2)
+CREATE FUNCTION get_customer_balance(p_customer_id INT, p_effective_date DATETIME) RETURNS DECIMAL(5,2)
     DETERMINISTIC
     READS SQL DATA
 BEGIN
@@ -608,7 +608,7 @@ BEGIN
 END;
 
 
-CREATE FUNCTION IF NOT EXISTS inventory_held_by_customer(p_inventory_id INT) RETURNS INT
+CREATE FUNCTION inventory_held_by_customer(p_inventory_id INT) RETURNS INT
 READS SQL DATA
 BEGIN
   DECLARE v_customer_id INT;
@@ -622,7 +622,7 @@ BEGIN
   RETURN v_customer_id;
 END;
 
-CREATE FUNCTION IF NOT EXISTS inventory_in_stock(p_inventory_id INT) RETURNS BOOLEAN
+CREATE FUNCTION inventory_in_stock(p_inventory_id INT) RETURNS BOOLEAN
 READS SQL DATA
 BEGIN
     DECLARE v_rentals INT;

@@ -19,13 +19,16 @@ const createView = async (context, {title, table, type}: {title: string, table: 
     }
   };
 
-  await request(context.app)
+  const response = await request(context.app)
     .post(`/api/v1/db/meta/tables/${table.id}/${viewTypeStr(type)}`)
     .set('xc-auth', context.token)
     .send({
       title,
       type,
     });
+  if(response.status !== 200) {
+    throw new Error('createView',response.body.message);
+  }
 
   const view = await View.getByTitleOrId({fk_model_id: table.id, titleOrId:title}) as View;
   

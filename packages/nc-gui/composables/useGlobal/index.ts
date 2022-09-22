@@ -4,6 +4,8 @@ import { useGlobalState } from './state'
 import type { UseGlobalReturn } from './types'
 import { createGlobalState, useNuxtApp, watch } from '#imports'
 
+export * from './types'
+
 /**
  * Global state is injected by {@link import('~/plugins/state') state} plugin into our nuxt app (available as `$state`).
  * You can still call `useGlobal` to receive the `$state` object and access the global state.

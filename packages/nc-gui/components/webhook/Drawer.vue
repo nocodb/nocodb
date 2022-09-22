@@ -34,8 +34,9 @@ async function editHook(hook: Record<string, any>) {
   >
     <a-layout>
       <a-layout-content class="px-10 py-5 scrollbar-thin-primary">
-        <WebhookEditor v-if="editOrAdd" ref="webhookEditorRef" @back-to-list="editOrAdd = false" />
-        <WebhookList v-else @edit="editHook" @add="editOrAdd = true" />
+        <LazyWebhookEditor v-if="editOrAdd" ref="webhookEditorRef" @back-to-list="editOrAdd = false" />
+
+        <LazyWebhookList v-else @edit="editHook" @add="editOrAdd = true" />
       </a-layout-content>
 
       <a-layout-footer class="!bg-white border-t flex">

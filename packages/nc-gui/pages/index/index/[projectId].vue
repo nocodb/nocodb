@@ -50,6 +50,7 @@ const renameProject = async () => {
 // select and focus title field on load
 onMounted(async () => {
   formState.title = project.value.title as string
+
   await nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {

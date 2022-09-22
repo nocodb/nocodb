@@ -16,7 +16,7 @@ import {
 
 const { $e } = useNuxtApp()
 
-const { api, isLoading } = useApi()
+const { api, isLoading } = useApi({ useGlobalInstance: true })
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 

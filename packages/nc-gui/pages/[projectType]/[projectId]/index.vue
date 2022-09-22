@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import tinycolor from 'tinycolor2'
 import {
   computed,
   definePageMeta,
+  message,
   navigateTo,
   onBeforeMount,
   onBeforeUnmount,
@@ -22,7 +21,7 @@ import {
   useTabs,
   useUIPermission,
 } from '#imports'
-import { TabType } from '~/composables'
+import { TabType } from '~/lib'
 
 definePageMeta({
   hideHeader: true,
@@ -73,11 +72,14 @@ function toggleDialog(value?: boolean, key?: string) {
 }
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: string) => {
+  const tinycolor = await import('tinycolor2').then((d) => d.default)
+
   switch (mode) {
     case 'swatch': {
       const tcolor = tinycolor(color)
       if (tcolor.isValid()) {
         const complement = tcolor.complement()
+
         await saveTheme({
           primaryColor: color,
           accentColor: complement.toHex8String(),
@@ -87,6 +89,7 @@ const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: st
     }
     case 'primary': {
       const tcolor = tinycolor(color)
+
       if (tcolor.isValid()) {
         await saveTheme({
           primaryColor: color,
@@ -96,6 +99,7 @@ const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: st
     }
     case 'accent': {
       const tcolor = tinycolor(color)
+
       if (tcolor.isValid()) {
         await saveTheme({
           accentColor: color,
@@ -325,7 +329,7 @@ onBeforeUnmount(reset)
 
                         <template #expandIcon></template>
 
-                        <GeneralColorPicker
+                        <LazyGeneralColorPicker
                           :colors="projectThemeColors"
                           :row-size="9"
                           :advanced="false"
@@ -348,6 +352,7 @@ onBeforeUnmount(reset)
 
                           <!-- Primary Color -->
                           <template #expandIcon></template>
+
                           <a-sub-menu key="pick-primary">
                             <template #title>
                               <div class="nc-project-menu-item group">
@@ -355,8 +360,10 @@ onBeforeUnmount(reset)
                                 {{ $t('labels.primaryColor') }}
                               </div>
                             </template>
+
                             <template #expandIcon></template>
-                            <GeneralChromeWrapper @input="handleThemeColor('primary', $event)" />
+
+                            <LazyGeneralChromeWrapper @input="handleThemeColor('primary', $event)" />
                           </a-sub-menu>
 
                           <!-- Accent Color -->
@@ -367,8 +374,10 @@ onBeforeUnmount(reset)
                                 {{ $t('labels.accentColor') }}
                               </div>
                             </template>
+
                             <template #expandIcon></template>
-                            <GeneralChromeWrapper @input="handleThemeColor('accent', $event)" />
+
+                            <LazyGeneralChromeWrapper @input="handleThemeColor('accent', $event)" />
                           </a-sub-menu>
                         </a-sub-menu>
                       </a-sub-menu>
@@ -393,7 +402,7 @@ onBeforeUnmount(reset)
 
                       <template #expandIcon></template>
 
-                      <GeneralPreviewAs />
+                      <LazyGeneralPreviewAs />
                     </a-sub-menu>
                   </template>
                   <!-- Language -->
@@ -416,7 +425,8 @@ onBeforeUnmount(reset)
                     </template>
 
                     <template #expandIcon></template>
-                    <GeneralLanguageMenu />
+
+                    <LazyGeneralLanguageMenu />
                   </a-sub-menu>
 
                   <!-- Account -->
@@ -472,7 +482,7 @@ onBeforeUnmount(reset)
           </div>
         </div>
 
-        <DashboardTreeView v-show="isOpen" />
+        <LazyDashboardTreeView v-show="isOpen" />
       </a-layout-sider>
     </template>
 
@@ -481,7 +491,7 @@ onBeforeUnmount(reset)
 
       <NuxtPage />
 
-      <GeneralPreviewAs float />
+      <LazyGeneralPreviewAs float />
     </div>
   </NuxtLayout>
 </template>

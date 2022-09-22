@@ -12,7 +12,6 @@ import {
   message,
   onMounted,
   ref,
-  resolveComponent,
   useApi,
   useDialog,
   useI18n,
@@ -189,7 +188,7 @@ async function onRename(view: ViewType) {
 function openDeleteDialog(view: Record<string, any>) {
   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('LazyDlgViewDelete') as any, {
+  const { close } = useDialog(() => import('~/components/dlg/ViewDelete.vue'), {
     'modelValue': isOpen,
     'view': view,
     'onUpdate:modelValue': closeDialog,

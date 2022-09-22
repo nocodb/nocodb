@@ -100,7 +100,11 @@ watch(inputs, () => {
             overlay-class-name="nc-dropdown-select-color-options"
           >
             <template #overlay>
-              <LazyGeneralColorPicker v-model="element.color" :pick-button="true" @update:model-value="colorMenus[index] = false" />
+              <LazyGeneralColorPicker
+                v-model="element.color"
+                :pick-button="true"
+                @update:model-value="colorMenus[index] = false"
+              />
             </template>
             <MdiArrowDownDropCircle :style="{ 'font-size': '1.5em', 'color': element.color }" class="mr-2" />
           </a-dropdown>

@@ -160,6 +160,10 @@ export default defineNuxtConfig({
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
       { name: 'message', from: 'ant-design-vue/es' },
+      { name: 'Modal', from: 'ant-design-vue/es' },
+      { name: 'Empty', from: 'ant-design-vue/es' },
+      { name: 'Form', from: 'ant-design-vue/es' },
+      { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
     ],
   },
 

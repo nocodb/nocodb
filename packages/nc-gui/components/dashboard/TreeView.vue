@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
-import { Empty } from 'ant-design-vue'
 import GithubButton from 'vue-github-button'
 import {
+  Empty,
   computed,
   inject,
   reactive,
@@ -16,15 +16,9 @@ import {
   useUIPermission,
   watchEffect,
 } from '#imports'
-import DlgAirtableImport from '~/components/dlg/AirtableImport.vue'
-import DlgQuickImport from '~/components/dlg/QuickImport.vue'
-import DlgTableCreate from '~/components/dlg/TableCreate.vue'
-import DlgTableRename from '~/components/dlg/TableRename.vue'
-import { TabType } from '~/composables'
+import { TabType } from '~/lib'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
-import MdiMenuIcon from '~icons/mdi/dots-vertical'
-import MdiDrag from '~icons/mdi/drag-vertical'
 
 const { addTab } = useTabs()
 
@@ -49,7 +43,7 @@ const filterQuery = $ref('')
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null))
 
 const tablesById = $computed(() =>
-  tables.value?.reduce((acc: Record<string, TableType>, table) => {
+  tables.value?.reduce<Record<string, TableType>>((acc, table) => {
     acc[table.id!] = table
 
     return acc
@@ -150,7 +144,7 @@ function openRenameTableDialog(table: TableType, rightClick = false) {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(DlgTableRename, {
+  const { close } = useDialog(() => import('~/components/dlg/TableRename.vue'), {
     'modelValue': isOpen,
     'tableMeta': table,
     'onUpdate:modelValue': closeDialog,
@@ -168,7 +162,7 @@ function openQuickImportDialog(type: string) {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(DlgQuickImport, {
+  const { close } = useDialog(() => import('~/components/dlg/QuickImport.vue'), {
     'modelValue': isOpen,
     'importType': type,
     'onUpdate:modelValue': closeDialog,
@@ -186,7 +180,7 @@ function openAirtableImportDialog() {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(DlgAirtableImport, {
+  const { close } = useDialog(() => import('~/components/dlg/AirtableImport.vue'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
   })
@@ -203,7 +197,7 @@ function openTableCreateDialog() {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(DlgTableCreate, {
+  const { close } = useDialog(() => import('~/components/dlg/TableCreate.vue'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
   })
@@ -320,7 +314,7 @@ function openTableCreateDialog() {
                   <template #title>{{ table.table_name }}</template>
                   <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                     <div class="flex w-auto">
-                      <MdiDrag
+                      <MdiDragVertical
                         v-if="isUIAllowed('treeview-drag-n-drop')"
                         :class="`nc-child-draggable-icon-${table.title}`"
                         class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
@@ -343,7 +337,7 @@ function openTableCreateDialog() {
                       :trigger="['click']"
                       @click.stop
                     >
-                      <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
+                      <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100" />
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
@@ -403,11 +397,11 @@ function openTableCreateDialog() {
     <a-divider class="!my-0" />
 
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
-      <GeneralShareBaseButton
+      <LazyGeneralShareBaseButton
         class="color-transition py-1.5 px-2 text-primary font-bold cursor-pointer select-none hover:text-accent"
       />
 
-      <GeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
       <GithubButton
         class="ml-2 py-1"

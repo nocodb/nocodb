@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Form, message } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import {
   ExcelTemplateAdapter,
   ExcelUrlTemplateAdapter,
+  Form,
   JSONTemplateAdapter,
   JSONUrlTemplateAdapter,
   computed,
@@ -13,6 +13,7 @@ import {
   importCsvUrlValidator,
   importExcelUrlValidator,
   importUrlValidator,
+  message,
   reactive,
   ref,
   useI18n,
@@ -294,7 +295,7 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
       <div class="prose-xl font-weight-bold my-5">{{ importMeta.header }}</div>
 
       <div class="mt-5">
-        <TemplateEditor
+        <LazyTemplateEditor
           v-if="templateEditorModal"
           ref="templateEditorRef"
           :project-template="templateData"
@@ -350,7 +351,7 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
             </template>
 
             <div class="pb-3 pt-3">
-              <MonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
+              <LazyMonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
             </div>
           </a-tab-pane>
 

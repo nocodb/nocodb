@@ -1,6 +1,5 @@
-import { defineNuxtPlugin } from 'nuxt/app'
 import { createI18n } from 'vue-i18n'
-import { nextTick } from 'vue'
+import { defineNuxtPlugin, nextTick } from '#imports'
 import type { Language, NocoI18n } from '~/lib'
 
 let globalI18n: NocoI18n

@@ -12,7 +12,7 @@ const route = useRoute()
 
 const { appInfo, signIn } = useGlobal()
 
-const { api, isLoading, error } = useApi()
+const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 

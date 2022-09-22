@@ -12,6 +12,29 @@ import MdiThumbUp from '~icons/mdi/thumb-up'
 import MdiThumbUpOutline from '~icons/mdi/thumb-up-outline'
 import MdiFlag from '~icons/mdi/flag'
 import MdiFlagOutline from '~icons/mdi/flag-outline'
+import MdiTableLarge from '~icons/mdi/table-large'
+import MdiEyeCircleOutline from '~icons/mdi/eye-circle-outline'
+import MdiAccountGroup from '~icons/mdi/account-group'
+
+export const iconMap = {
+  'mdi-check-bold': MdiCheckBold,
+  'mdi-crop-square': MdiCropSquare,
+  'mdi-check-circle-outline': MdiCheckCircleOutline,
+  'mdi-checkbox-blank-circle-outline': MdiCheckboxBlankCircleOutline,
+  'mdi-star': MdiStar,
+  'mdi-star-outline': MdiStarOutline,
+  'mdi-heart': MdiHeart,
+  'mdi-heart-outline': MdiHeartOutline,
+  'mdi-moon-full': MdiMoonFull,
+  'mdi-moon-new': MdiMoonNew,
+  'mdi-thumb-up': MdiThumbUp,
+  'mdi-thumb-up-outline': MdiThumbUpOutline,
+  'mdi-flag': MdiFlag,
+  'mdi-flag-outline': MdiFlagOutline,
+  'mdi-table-large': MdiTableLarge,
+  'mdi-eye-circle-outline': MdiEyeCircleOutline,
+  'mdi-account-group': MdiAccountGroup,
+} as const
 
 export const getMdiIcon = (type: string): any => {
   switch (type) {
@@ -43,5 +66,11 @@ export const getMdiIcon = (type: string): any => {
       return MdiFlag
     case 'mdi-flag-outline':
       return MdiFlagOutline
+    case 'mdi-table-large':
+      return MdiTableLarge
+    case 'mdi-eye-circle-outline':
+      return MdiEyeCircleOutline
+    case 'mdi-account-group':
+      return MdiAccountGroup
   }
 }

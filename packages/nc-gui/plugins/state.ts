@@ -1,5 +1,5 @@
+import { loadLocaleMessages, setI18nLanguage } from './a.i18n'
 import { defineNuxtPlugin, useApi, useGlobal } from '#imports'
-import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
 
 /**
  * Initialize global state and watches for changes

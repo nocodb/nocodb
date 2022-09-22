@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Modal as AModal } from 'ant-design-vue'
-import { EditModeInj, IsFormInj, ReadonlyInj, computed, inject, ref, useVModel, watch } from '#imports'
+import { Modal as AModal, EditModeInj, IsFormInj, ReadonlyInj, computed, inject, ref, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any> | undefined

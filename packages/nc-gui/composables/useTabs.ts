@@ -1,19 +1,7 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { navigateTo, useProject, useRoute, useState } from '#imports'
-
-export enum TabType {
-  TABLE = 'table',
-  VIEW = 'view',
-  AUTH = 'auth',
-}
-
-export interface TabItem {
-  type: TabType
-  title: string
-  id?: string
-  viewTitle?: string
-  viewId?: string
-}
+import { computed, navigateTo, useProject, useRoute, useRouter, useState } from '#imports'
+import type { TabItem } from '~/lib'
+import { TabType } from '~/lib'
 
 function getPredicate(key: Partial<TabItem>) {
   return (tab: TabItem) =>
@@ -26,7 +14,9 @@ export function useTabs() {
   const tabs = useState<TabItem[]>('tabs', () => [])
 
   const route = useRoute()
+
   const router = useRouter()
+
   const { tables } = useProject()
 
   const projectType = $computed(() => route.params.projectType as string)
@@ -120,7 +110,9 @@ export function useTabs() {
     const tab = typeof key === 'number' ? tabs.value[key] : tabs.value.find(getPredicate(key))
     if (tab) {
       const isActive = tabs.value.indexOf(tab) === activeTabIndex.value
+
       Object.assign(tab, newTabItemProps)
+
       if (isActive && tab.title)
         router.replace({
           params: {

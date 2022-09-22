@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { Form, message } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import type { AuditType } from 'nocodb-sdk'
 import {
+  Form,
   MetaInj,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
   inject,
+  message,
+  onMounted,
   reactive,
   useApi,
   useI18n,
@@ -413,6 +415,7 @@ onMounted(async () => {
         <span class="inline text-xl font-bold">{{ meta.title }} : {{ hook.title || 'Webhooks' }} </span>
       </div>
     </div>
+
     <div>
       <a-button class="mr-3 nc-btn-webhook-test" size="large" @click="testWebhook">
         <div class="flex items-center">
@@ -421,6 +424,7 @@ onMounted(async () => {
           Test Webhook
         </div>
       </a-button>
+
       <a-button class="nc-btn-webhook-save" type="primary" size="large" @click.prevent="saveHooks">
         <div class="flex items-center">
           <MdiContentSave class="mr-2" />
@@ -430,7 +434,9 @@ onMounted(async () => {
       </a-button>
     </div>
   </div>
+
   <a-divider />
+
   <a-form :model="hook" name="create-or-edit-webhook">
     <a-form-item>
       <a-row type="flex">
@@ -445,6 +451,7 @@ onMounted(async () => {
           </a-form-item>
         </a-col>
       </a-row>
+
       <a-row type="flex" :gutter="[16, 16]">
         <a-col :span="12">
           <a-form-item v-bind="validateInfos.eventOperation">
@@ -461,6 +468,7 @@ onMounted(async () => {
             </a-select>
           </a-form-item>
         </a-col>
+
         <a-col :span="12">
           <a-form-item v-bind="validateInfos['notification.type']">
             <a-select
@@ -523,16 +531,20 @@ onMounted(async () => {
         <a-col :span="24">
           <a-tabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="shadow-sm">
             <a-tab-pane key="body" tab="Body">
-              <MonacoEditor v-model="hook.notification.payload.body" :validate="false" class="min-h-60 max-h-80" />
+              <LazyMonacoEditor v-model="hook.notification.payload.body" :validate="false" class="min-h-60 max-h-80" />
             </a-tab-pane>
+
             <a-tab-pane key="params" tab="Params" force-render>
-              <ApiClientParams v-model="hook.notification.payload.parameters" />
+              <LazyApiClientParams v-model="hook.notification.payload.parameters" />
             </a-tab-pane>
+
             <a-tab-pane key="headers" tab="Headers" class="nc-tab-headers">
-              <ApiClientHeaders v-model="hook.notification.payload.headers" />
+              <LazyApiClientHeaders v-model="hook.notification.payload.headers" />
             </a-tab-pane>
+
             <a-tab-pane key="auth" tab="Auth">
-              <MonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" />
+              <LazyMonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" />
+
               <span class="text-gray-500 prose-sm p-2">
                 For more about auth option refer
                 <a class="prose-sm" href="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>.
@@ -545,7 +557,7 @@ onMounted(async () => {
       <a-row v-if="hook.notification.type === 'Slack'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
-            <WebhookChannelMultiSelect
+            <LazyWebhookChannelMultiSelect
               v-if="slackChannels.length > 0"
               v-model="hook.notification.payload.channels"
               :selected-channel-list="hook.notification.payload.channels"
@@ -559,7 +571,7 @@ onMounted(async () => {
       <a-row v-if="hook.notification.type === 'Microsoft Teams'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
-            <WebhookChannelMultiSelect
+            <LazyWebhookChannelMultiSelect
               v-if="teamsChannels.length > 0"
               v-model="hook.notification.payload.channels"
               :selected-channel-list="hook.notification.payload.channels"
@@ -573,7 +585,7 @@ onMounted(async () => {
       <a-row v-if="hook.notification.type === 'Discord'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
-            <WebhookChannelMultiSelect
+            <LazyWebhookChannelMultiSelect
               v-if="discordChannels.length > 0"
               v-model="hook.notification.payload.channels"
               :selected-channel-list="hook.notification.payload.channels"
@@ -587,7 +599,7 @@ onMounted(async () => {
       <a-row v-if="hook.notification.type === 'Mattermost'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
-            <WebhookChannelMultiSelect
+            <LazyWebhookChannelMultiSelect
               v-if="mattermostChannels.length > 0"
               v-model="hook.notification.payload.channels"
               :selected-channel-list="hook.notification.payload.channels"
@@ -603,6 +615,7 @@ onMounted(async () => {
           <a-form-item v-if="input.type === 'LongText'" v-bind="validateInfos[`notification.payload.${input.key}`]">
             <a-textarea v-model:value="hook.notification.payload[input.key]" :placeholder="input.label" size="large" />
           </a-form-item>
+
           <a-form-item v-else v-bind="validateInfos[`notification.payload.${input.key}`]">
             <a-input v-model:value="hook.notification.payload[input.key]" :placeholder="input.label" size="large" />
           </a-form-item>
@@ -613,7 +626,8 @@ onMounted(async () => {
         <a-col :span="24">
           <a-card>
             <a-checkbox v-model:checked="hook.condition" class="nc-check-box-hook-condition">On Condition</a-checkbox>
-            <SmartsheetToolbarColumnFilter
+
+            <LazySmartsheetToolbarColumnFilter
               v-if="hook.condition"
               ref="filterRef"
               :auto-save="false"
@@ -644,7 +658,8 @@ onMounted(async () => {
               </a>
             </div>
           </div>
-          <WebhookTest
+
+          <LazyWebhookTest
             ref="webhookTestRef"
             :hook="{
               ...hook,

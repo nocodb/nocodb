@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Row } from '~/composables'
+import type { Row } from '~/lib'
 import {
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,

@@ -5,13 +5,13 @@ const route = useRoute()
 </script>
 
 <template>
-  <NuxtLayout>
+  <LazyNuxtLayout>
     <div
       class="min-h-[calc(100vh_-_var(--header-height))] h-auto bg-primary bg-opacity-5 flex flex-col lg:flex-row flex-wrap gap-6 py-6 px-12 pt-65px"
     >
       <div class="flex-1 justify-end hidden xl:(flex)">
         <div>
-          <GeneralSponsors />
+          <LazyGeneralSponsors />
         </div>
       </div>
 
@@ -23,15 +23,15 @@ const route = useRoute()
         <template v-if="route.name === 'index-index'">
           <TransitionGroup name="page" mode="out-in">
             <div key="social-card">
-              <GeneralSocialCard />
+              <LazyGeneralSocialCard />
             </div>
 
             <div key="sponsors" class="block mt-0 lg:(!mt-6) xl:hidden">
-              <GeneralSponsors />
+              <LazyGeneralSponsors />
             </div>
           </TransitionGroup>
         </template>
       </div>
     </div>
-  </NuxtLayout>
+  </LazyNuxtLayout>
 </template>

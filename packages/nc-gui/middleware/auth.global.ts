@@ -1,6 +1,6 @@
-import { message } from 'ant-design-vue'
-import { defineNuxtRouteMiddleware, navigateTo } from '#app'
-import { useApi, useGlobal, useRoles } from '#imports'
+import type { Api } from 'nocodb-sdk'
+import type { Actions } from '~/composables'
+import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
 
 /**
  * Global auth middleware
@@ -37,7 +37,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const { allRoles } = useRoles()
 
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
-  if (!state.signedIn && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth()
+  if (!state.signedIn && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
 
   /** if public allow all visitors */
   if (to.meta.public) return
@@ -86,11 +86,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 /**
  * If present, try using google auth data to sign user in before navigating to the next page
  */
-async function tryGoogleAuth() {
-  const { signIn } = useGlobal()
-
-  const { api } = useApi()
-
+async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
   if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
     try {
       const {

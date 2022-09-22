@@ -179,10 +179,14 @@ openNewRecordFormHook?.on(async (stackTitle) => {
   expandForm(newRow)
 })
 
-onMounted(() => {
+onMounted(async () => {
   // reset state to avoid from showing the previous stacks when switching kanban views
   groupingFieldColOptions.value = []
   formattedData.value = {}
+  // load kanban meta
+  await loadKanbanMeta()
+  // load kanban data
+  await loadKanbanData()
 })
 </script>
 

@@ -5,6 +5,7 @@ import { message } from 'ant-design-vue'
 import type { Row } from '~/composables/useViewData'
 import { deepCompare, enumColor } from '~/utils'
 import { useNuxtApp } from '#app'
+import { SharedViewPasswordInj } from '#imports'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
@@ -21,8 +22,13 @@ export function useKanbanViewData(
   const { project } = useProject()
   const { $api } = useNuxtApp()
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+  const { sharedView, sorts: sharedViewSorts, nestedFilters: sharedViewNestedFilters } = useSharedView()
   const { isUIAllowed } = useUIPermission()
   const isPublic = inject(IsPublicInj, ref(false))
+
+  const password = ref<string | null>(null)
+
+  provide(SharedViewPasswordInj, password)
 
   // kanban view meta data
   const kanbanMetaData = useState<KanbanType>('KanbanMetaData', () => ({}))
@@ -80,9 +86,28 @@ export function useKanbanViewData(
       groupingFieldColOptions.value.map(async (option: GroupingFieldColOptionsType) => {
         const where =
           option.title === 'uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
-        const response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-          where,
-        })
+
+        let response
+
+        if (isPublic.value && sharedView.value) {
+          response = (
+            await $api.public.dataList(
+              sharedView.value.uuid!,
+              {
+                where,
+              } as any,
+              {
+                headers: {
+                  'xc-password': password.value,
+                },
+              },
+            )
+          ).data
+        } else {
+          response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+            where,
+          })
+        }
 
         formattedData.value[option.title!] = formatData(response.list)
         countByStack.value[option.title!] = response.pageInfo.totalRows || 0
@@ -96,12 +121,33 @@ export function useKanbanViewData(
     if (stackTitle === 'uncategorized') {
       where = `(${groupingField.value},is,null)`
     }
-    const response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-      ...params,
-      ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-      ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-      where,
-    })
+    let response
+
+    if (isPublic.value && sharedView.value) {
+      response = (
+        await $api.public.dataList(
+          sharedView.value.uuid!,
+          {
+            ...params,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sharedViewSorts.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(sharedViewNestedFilters.value) }),
+            where,
+          } as any,
+          {
+            headers: {
+              'xc-password': password.value,
+            },
+          },
+        )
+      ).data
+    } else {
+      response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+        ...params,
+        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+        where,
+      })
+    }
     formattedData.value[stackTitle] = [...formattedData.value[stackTitle], ...formatData(response.list)]
   }
 

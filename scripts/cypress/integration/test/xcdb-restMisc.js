@@ -18,7 +18,10 @@ const nocoTestSuite = (apiType, dbType) => {
     t01.genTest(apiType, dbType);
 
     t6b.genTest(apiType, dbType);
-    t6d.genTest(apiType, dbType);
+
+    // language verification sufficient to do it once (restMisc.js)
+    // t6d.genTest(apiType, dbType);
+
     // exclude@ncv2 t6c.genTest(apiType, dbType);
     t6f.genTest(apiType, dbType);
     t6g.genTest(apiType, dbType);

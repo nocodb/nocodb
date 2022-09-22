@@ -1,10 +1,6 @@
 <script lang="ts" setup>
-import * as XLSX from 'xlsx'
 import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
-import FileSaver from 'file-saver'
-import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -13,11 +9,14 @@ import {
   MetaInj,
   extractSdkResponseErrorMsg,
   inject,
+  message,
   ref,
+  useI18n,
   useNuxtApp,
   useProject,
   useUIPermission,
 } from '#imports'
+
 const { t } = useI18n()
 
 const sharedViewListDlg = ref(false)
@@ -50,6 +49,9 @@ const exportFile = async (exportType: ExportTypes) => {
   let offset = 0
   let c = 1
   const responseType = exportType === ExportTypes.EXCEL ? 'base64' : 'blob'
+
+  const XLSX = await import('xlsx')
+  const FileSaver = await import('file-saver')
 
   try {
     while (!isNaN(offset) && offset > -1) {

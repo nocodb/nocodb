@@ -1,12 +1,31 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadViewDataHookInj } from '#imports'
+import {
+  ActiveViewInj,
+  FieldsInj,
+  IsPublicInj,
+  MetaInj,
+  ReadonlyInj,
+  ReloadViewDataHookInj,
+  createEventHook,
+  extractSdkResponseErrorMsg,
+  message,
+  provide,
+  ref,
+  useGlobal,
+  useProject,
+  useProvideSmartsheetStore,
+  useSharedView,
+} from '#imports'
 
 const { sharedView, meta, sorts, nestedFilters } = useSharedView()
+
 const { signedIn } = useGlobal()
+
 const { loadProject } = useProject(meta.value?.project_id)
 
-const reloadEventHook = createEventHook<void>()
+useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
+
+const reloadEventHook = createEventHook()
 
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(ReadonlyInj, true)
@@ -14,8 +33,6 @@ provide(MetaInj, meta)
 provide(ActiveViewInj, sharedView)
 provide(FieldsInj, ref(meta.value?.columns || []))
 provide(IsPublicInj, ref(true))
-
-useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
 
 if (signedIn.value) {
   try {

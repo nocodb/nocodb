@@ -1,7 +1,18 @@
 <script setup lang="ts">
-import { useNuxtApp } from 'nuxt/app'
 import type ColumnFilter from './ColumnFilter.vue'
-import { ActiveViewInj, IsLockedInj, IsPublicInj, computed, inject, ref, useGlobal, useViewFilters } from '#imports'
+import {
+  ActiveViewInj,
+  IsLockedInj,
+  IsPublicInj,
+  computed,
+  inject,
+  ref,
+  useGlobal,
+  useNuxtApp,
+  useSmartsheetStoreOrThrow,
+  useViewFilters,
+  watch,
+} from '#imports'
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -16,6 +27,7 @@ const filterComp = ref<typeof ColumnFilter>()
 const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
+
 // todo: avoid duplicate api call by keeping a filter store
 const { filters, loadFilters } = useViewFilters(
   activeView,
@@ -62,8 +74,9 @@ const filterAutoSaveLoc = computed({
         </div>
       </a-button>
     </div>
+
     <template #overlay>
-      <SmartsheetToolbarColumnFilter
+      <LazySmartsheetToolbarColumnFilter
         ref="filterComp"
         class="nc-table-toolbar-menu shadow-lg"
         :auto-save="filterAutoSave"
@@ -88,7 +101,7 @@ const filterAutoSaveLoc = computed({
             Apply changes
           </a-button>
         </div>
-      </SmartsheetToolbarColumnFilter>
+      </LazySmartsheetToolbarColumnFilter>
     </template>
   </a-dropdown>
 </template>

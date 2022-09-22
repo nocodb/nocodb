@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
-import MenuTop from './MenuTop.vue'
-import MenuBottom from './MenuBottom.vue'
-import Toolbar from './toolbar/index.vue'
 import {
   ActiveViewInj,
   MetaInj,
@@ -110,19 +107,19 @@ function onCreate(view: ViewType) {
     class="relative shadow-md h-full"
     theme="light"
   >
-    <Toolbar
+    <LazySmartsheetSidebarToolbar
       v-if="isOpen"
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     />
     <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
-      <MenuTop @open-modal="openModal" @deleted="loadViews" />
+      <LazySmartsheetSidebarMenuTop @open-modal="openModal" @deleted="loadViews" />
 
       <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="!my-3 w-full border-b-1" />
 
-      <MenuBottom @open-modal="openModal" />
+      <LazySmartsheetSidebarMenuBottom @open-modal="openModal" />
     </div>
 
-    <dlg-view-create
+    <LazyDlgViewCreate
       v-if="views"
       v-model="modalOpen"
       :title="viewCreateTitle"

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
-import { computed } from '#imports'
+import { computed, onBeforeMount, useColumnCreateStoreOrThrow, useProject, useVModel } from '#imports'
 
-interface Props {
-  value: Record<string, any>
-}
+const props = defineProps<{
+  value: any
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
+
 const vModel = useVModel(props, 'value', emit)
 
 const { sqlUi, isPg } = useProject()
@@ -58,6 +58,7 @@ onBeforeMount(() => {
           @change="onAlter"
         />
       </a-form-item>
+
       <a-form-item label="PK">
         <a-checkbox
           v-model:checked="vModel.pk"
@@ -66,6 +67,7 @@ onBeforeMount(() => {
           @change="onAlter"
         />
       </a-form-item>
+
       <a-form-item label="AI">
         <a-checkbox
           v-model:checked="vModel.ai"
@@ -74,13 +76,16 @@ onBeforeMount(() => {
           @change="onAlter"
         />
       </a-form-item>
+
       <a-form-item label="UN" :disabled="sqlUi.colPropUNDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
         <a-checkbox v-model:checked="vModel.un" class="nc-column-checkbox-UN" />
       </a-form-item>
+
       <a-form-item label="AU" :disabled="sqlUi.colPropAuDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
         <a-checkbox v-model:checked="vModel.au" class="nc-column-checkbox-AU" />
       </a-form-item>
     </div>
+
     <a-form-item :label="$t('labels.databaseType')" v-bind="validateInfos.dt">
       <a-select v-model:value="vModel.dt" dropdown-class-name="nc-dropdown-db-type" @change="onDataTypeChange">
         <a-select-option v-for="type in dataTypes" :key="type" :value="type">
@@ -88,6 +93,7 @@ onBeforeMount(() => {
         </a-select-option>
       </a-select>
     </a-form-item>
+
     <a-form-item v-if="!hideLength" :label="$t('labels.lengthValue')">
       <a-input
         v-model:value="vModel.dtxp"
@@ -95,9 +101,11 @@ onBeforeMount(() => {
         @input="onAlter"
       />
     </a-form-item>
+
     <a-form-item v-if="sqlUi.showScale(vModel)" label="Scale">
       <a-input v-model:value="vModel.dtxs" :disabled="!sqlUi.columnEditable(vModel)" @input="onAlter" />
     </a-form-item>
+
     <a-form-item :label="$t('placeholder.defaultValue')">
       <a-textarea v-model:value="vModel.cdf" auto-size @input="onAlter(2, true)" />
       <span class="text-gray-400 text-xs">{{ sampleValue }}</span>

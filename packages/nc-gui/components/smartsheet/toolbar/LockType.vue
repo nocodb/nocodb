@@ -2,8 +2,8 @@
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
-
 import { LockType } from '~/lib'
+import { ActiveViewInj, inject } from '#imports'
 
 const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType }>()
 
@@ -35,11 +35,15 @@ const selectedView = inject(ActiveViewInj)
     <div :class="{ 'show-tick': !hideTick }">
       <template v-if="!hideTick">
         <MdiCheck v-if="selectedView?.lock_type === type" />
+
         <span v-else />
       </template>
+
       <div>
         <component :is="types[type].icon" class="text-gray-500" />
+
         {{ $t(types[type].title) }}
+
         <div class="nc-subtitle whitespace-normal">
           {{ $t(types[type].subtitle) }}
         </div>

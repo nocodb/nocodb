@@ -2,7 +2,7 @@
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { ColumnInj, toRef } from '#imports'
+import { ColumnInj, inject, ref, toRef } from '#imports'
 import GenericIcon from '~icons/mdi/square-rounded'
 import HMIcon from '~icons/mdi/table-arrow-right'
 import BTIcon from '~icons/mdi/table-arrow-left'
@@ -14,6 +14,7 @@ import SpecificDBTypeIcon from '~icons/mdi/database-settings'
 import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
 
 const props = defineProps<{ columnMeta?: ColumnType }>()
+
 const columnMeta = toRef(props, 'columnMeta')
 
 const column = inject(ColumnInj, ref(columnMeta)) as Ref<ColumnType & { colOptions: LookupType }>

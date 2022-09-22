@@ -111,9 +111,12 @@ const coverOptions = computed<SelectProps['options']>(() => {
 })
 
 const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
+  h(
+    isVirtualCol(c) ? resolveComponent('LazySmartsheetHeaderVirtualCellIcon') : resolveComponent('LazySmartsheetHeaderCellIcon'),
+    {
+      columnMeta: c,
+    },
+  )
 </script>
 
 <template>
@@ -130,6 +133,7 @@ const getIcon = (c: ColumnType) =>
         </div>
       </a-button>
     </div>
+
     <template #overlay>
       <div
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
@@ -142,11 +146,13 @@ const getIcon = (c: ColumnType) =>
             :options="coverOptions"
             dropdown-class-name="nc-dropdown-cover-image"
             @click.stop
-          ></a-select>
+          />
         </a-card>
+
         <div class="p-1" @click.stop>
           <a-input v-model:value="filterQuery" size="small" :placeholder="$t('placeholder.searchFields')" />
         </div>
+
         <div class="nc-fields-list py-1">
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
@@ -159,10 +165,13 @@ const getIcon = (c: ColumnType) =>
                 >
                   <div class="flex items-center">
                     <component :is="getIcon(metaColumnById[field.fk_column_id])" />
+
                     <span>{{ field.title }}</span>
                   </div>
                 </a-checkbox>
+
                 <div class="flex-1" />
+
                 <MdiDrag class="cursor-move" />
               </div>
             </template>
@@ -176,11 +185,13 @@ const getIcon = (c: ColumnType) =>
             <span class="text-xs"> {{ $t('activity.showSystemFields') }}</span>
           </a-checkbox>
         </div>
+
         <div class="p-2 flex gap-2" @click.stop>
           <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="showAll()">
             <!-- Show All -->
             {{ $t('general.showAll') }}
           </a-button>
+
           <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="hideAll()">
             <!-- Hide All -->
             {{ $t('general.hideAll') }}

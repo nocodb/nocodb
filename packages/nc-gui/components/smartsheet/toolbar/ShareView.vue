@@ -1,17 +1,19 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
 import {
   computed,
   extractSdkResponseErrorMsg,
+  message,
+  ref,
   useCopy,
+  useDashboard,
   useI18n,
   useNuxtApp,
   useProject,
   useSmartsheetStoreOrThrow,
+  useUIPermission,
+  watch,
 } from '#imports'
-import MdiOpenInNewIcon from '~icons/mdi/open-in-new'
-import MdiCopyIcon from '~icons/mdi/content-copy'
 
 const { t } = useI18n()
 
@@ -125,7 +127,7 @@ watch(passwordProtected, (value) => {
       class="nc-btn-share-view nc-toolbar-btn"
     >
       <div class="flex items-center gap-1" @click="genShareLink">
-        <MdiOpenInNewIcon />
+        <MdiOpenInNew />
         <!-- Share View -->
         <span class="!text-sm font-weight-normal"> {{ $t('activity.shareView') }}</span>
       </div>
@@ -143,9 +145,9 @@ watch(passwordProtected, (value) => {
       <div class="share-link-box nc-share-link-box bg-primary-50">
         <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
         <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
-          <MdiOpenInNewIcon class="text-sm text-gray-500 mt-2" />
+          <MdiOpenInNew class="text-sm text-gray-500 mt-2" />
         </a>
-        <MdiCopyIcon v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
+        <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
       </div>
 
       <a-collapse ghost>

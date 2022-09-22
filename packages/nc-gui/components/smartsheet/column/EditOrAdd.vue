@@ -1,7 +1,21 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
-import { IsFormInj, MetaInj, ReloadViewDataHookInj, computed, inject, uiTypes, useMetas, useNuxtApp, watchEffect } from '#imports'
+import {
+  IsFormInj,
+  MetaInj,
+  ReloadViewDataHookInj,
+  computed,
+  inject,
+  message,
+  onMounted,
+  ref,
+  uiTypes,
+  useColumnCreateStoreOrThrow,
+  useI18n,
+  useMetas,
+  useNuxtApp,
+  watchEffect,
+} from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -54,7 +68,7 @@ async function onSubmit() {
 
   if (!saved) return
 
-  // add delay to complete the minimize transition
+  // add delay to complete minimize transition
   setTimeout(() => {
     advancedOptions.value = false
   }, 500)
@@ -79,7 +93,7 @@ watchEffect(() => {
 })
 
 onMounted(() => {
-  if (isEdit.value === false) {
+  if (!isEdit.value) {
     generateNewColumnMeta()
   } else {
     if (formState.value.pk) {
@@ -126,20 +140,21 @@ onMounted(() => {
             </a-select-option>
           </a-select>
         </a-form-item>
-        <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
-        <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
-        <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
-        <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
-        <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
-        <SmartsheetColumnLookupOptions v-if="!isEdit && formState.uidt === UITypes.Lookup" v-model:value="formState" />
-        <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
-        <SmartsheetColumnRollupOptions v-if="!isEdit && formState.uidt === UITypes.Rollup" v-model:value="formState" />
-        <SmartsheetColumnLinkedToAnotherRecordOptions
+
+        <LazySmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
+        <LazySmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
+        <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
+        <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
+        <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
+        <LazySmartsheetColumnLookupOptions v-if="!isEdit && formState.uidt === UITypes.Lookup" v-model:value="formState" />
+        <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
+        <LazySmartsheetColumnRollupOptions v-if="!isEdit && formState.uidt === UITypes.Rollup" v-model:value="formState" />
+        <LazySmartsheetColumnLinkedToAnotherRecordOptions
           v-if="!isEdit && formState.uidt === UITypes.LinkToAnotherRecord"
           v-model:value="formState"
         />
-        <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
-        <SmartsheetColumnSelectOptions
+        <LazySmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
+        <LazySmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
           v-model:value="formState"
         />
@@ -166,7 +181,7 @@ onMounted(() => {
             </span>
           </a-checkbox>
 
-          <SmartsheetColumnAdvancedOptions v-model:value="formState" />
+          <LazySmartsheetColumnAdvancedOptions v-model:value="formState" />
         </div>
       </Transition>
 

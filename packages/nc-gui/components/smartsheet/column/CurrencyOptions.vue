@@ -1,19 +1,26 @@
 <script setup lang="ts">
-import { useProject } from '#imports'
-import { currencyCodes, currencyLocales, validateCurrencyCode, validateCurrencyLocale } from '@/utils'
-
-interface Props {
-  value: Record<string, any>
-}
-
-const props = defineProps<Props>()
-const emit = defineEmits(['update:value'])
-const vModel = useVModel(props, 'value', emit)
+import {
+  computed,
+  currencyCodes,
+  currencyLocales,
+  useProject,
+  useVModel,
+  validateCurrencyCode,
+  validateCurrencyLocale,
+} from '#imports'
 
 interface Option {
   label: string
   value: string
 }
+
+const props = defineProps<{
+  value: any
+}>()
+
+const emit = defineEmits(['update:value'])
+
+const vModel = useVModel(props, 'value', emit)
 
 const validators = {
   'meta.currency_locale': [
@@ -91,6 +98,7 @@ vModel.value.meta = {
         </a-select>
       </a-form-item>
     </a-col>
+
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.currency_code']" label="Currency Code">
         <a-select
@@ -107,6 +115,7 @@ vModel.value.meta = {
         </a-select>
       </a-form-item>
     </a-col>
+
     <a-col v-if="isMoney && isPg">
       <span class="text-[#FB8C00]">{{ message }}</span>
     </a-col>

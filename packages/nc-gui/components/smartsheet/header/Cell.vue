@@ -19,13 +19,16 @@ const editColumnDropdown = ref(false)
 
 <template>
   <div class="flex items-center w-full text-xs text-normal text-gray-500 font-weight-medium" :class="{ 'h-full': column }">
-    <SmartsheetHeaderCellIcon v-if="column" />
+    <LazySmartsheetHeaderCellIcon v-if="column" />
+
     <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
+
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
     <template v-if="!hideMenu">
       <div class="flex-1" />
-      <SmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" @edit="editColumnDropdown = true" />
+
+      <LazySmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" @edit="editColumnDropdown = true" />
     </template>
 
     <a-dropdown
@@ -36,8 +39,9 @@ const editColumnDropdown = ref(false)
       overlay-class-name="nc-dropdown-edit-column"
     >
       <div />
+
       <template #overlay>
-        <SmartsheetColumnEditOrAddProvider
+        <LazySmartsheetColumnEditOrAddProvider
           v-if="editColumnDropdown"
           :column="column"
           class="w-full"

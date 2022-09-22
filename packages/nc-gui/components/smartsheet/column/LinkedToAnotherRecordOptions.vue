@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ModelTypes, MssqlUi, SqliteUi } from 'nocodb-sdk'
-import { MetaInj, inject, useProject } from '#imports'
+import { MetaInj, inject, ref, useProject, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
-interface Props {
-  value: Record<string, any>
-}
+const props = defineProps<{
+  value: any
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
+
 const vModel = useVModel(props, 'value', emit)
 
 const meta = $(inject(MetaInj, ref()))
@@ -57,6 +57,7 @@ const refTables = $computed(() => {
           <a-radio value="mm">Many To Many</a-radio>
         </a-radio-group>
       </a-form-item>
+
       <a-form-item
         class="flex w-full pb-2 mt-4 nc-ltar-child-table"
         :label="$t('labels.childTable')"
@@ -81,6 +82,7 @@ const refTables = $computed(() => {
       @click="advancedOptions = !advancedOptions"
     >
       {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
+
       <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
     </div>
 
@@ -99,6 +101,7 @@ const refTables = $computed(() => {
             </a-select-option>
           </a-select>
         </a-form-item>
+
         <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')">
           <a-select
             v-model:value="vModel.onDelete"
@@ -113,6 +116,7 @@ const refTables = $computed(() => {
           </a-select>
         </a-form-item>
       </div>
+
       <div class="flex flex-row">
         <a-form-item>
           <a-checkbox v-model:checked="vModel.virtual" name="virtual" @change="onDataTypeChange">Virtual Relation</a-checkbox>

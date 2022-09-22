@@ -61,6 +61,7 @@ export const genTest = (apiType, dbType) => {
         };
 
         let langMenu = [
+            "help-translate",
             "ar.json",
             "bn_IN.json",
             "da.json",
@@ -95,11 +96,11 @@ export const genTest = (apiType, dbType) => {
         ];
 
         // Index is the order in which menu options appear
-        for (let i = 0; i < langMenu.length; i++)
+        for (let i = 1; i < langMenu.length; i++)
             langVerification(i, langMenu[i]);
 
         // reset to English
-        langVerification(4, langMenu[4]);
+        langVerification(5, langMenu[5]);
     });
 };
 

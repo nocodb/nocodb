@@ -83,8 +83,7 @@ export default defineNuxtConfig({
     ],
     define: {
       'process.env.DEBUG': 'false',
-      'process.nextTick': () => {
-      },
+      'process.nextTick': () => {},
     },
     server: {
       watch: {

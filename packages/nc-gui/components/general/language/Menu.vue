@@ -39,6 +39,16 @@ onMounted(() => {
 </script>
 
 <template>
+  <a-menu-item class="mt-1 group">
+    <a
+      href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
+      target="_blank"
+      class="caption nc-project-menu-item py-2 text-primary underline hover:opacity-75"
+    >
+      {{ $t('activity.translate') }}
+    </a>
+  </a-menu-item>
+
   <a-menu-item
     v-for="[key, lang] of languages"
     :key="key"
@@ -50,15 +60,5 @@ onMounted(() => {
     <div :class="key === locale ? '!font-semibold !text-primary' : ''" class="nc-project-menu-item capitalize">
       {{ Language[key] || lang }}
     </div>
-  </a-menu-item>
-
-  <a-menu-item class="mt-1">
-    <a
-      href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
-      target="_blank"
-      class="caption py-2 text-primary underline hover:opacity-75"
-    >
-      {{ $t('activity.translate') }}
-    </a>
   </a-menu-item>
 </template>

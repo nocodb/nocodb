@@ -396,6 +396,7 @@ onBeforeUnmount(reset)
                       <div class="nc-project-menu-item group">
                         <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />
                         {{ $t('labels.language') }}
+                        <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
                         <div class="flex-1" />
 
                         <MaterialSymbolsChevronRightRounded

@@ -137,9 +137,6 @@ export default {
   }),
   methods: {
     showColumnEdit() {
-      if (this.column.uidt === UITypes.ID) {
-        return this.$toast.info('Primary key column edit is not allowed.').goAway(3000);
-      }
       this.editColumnMenu = true;
     },
     async deleteColumn() {

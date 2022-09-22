@@ -135,7 +135,10 @@ export default defineNuxtConfig({
 
   autoImports: {
     dirs: ['./context', './utils', './lib'],
-    imports: [{ name: 'useI18n', from: 'vue-i18n' }],
+    imports: [
+      { name: 'useI18n', from: 'vue-i18n' },
+      { name: 'message', from: 'ant-design-vue/es' },
+    ],
   },
 
   pageTransition: {

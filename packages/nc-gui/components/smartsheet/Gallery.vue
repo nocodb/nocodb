@@ -187,9 +187,10 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
                 <template #nextArrow>
                   <div style="z-index: 1"></div>
                 </template>
-                <nuxt-img
+                <LazyNuxtImg
                   v-for="(attachment, index) in attachments(record)"
                   :key="`carousel-${record.row.id}-${index}`"
+                  quality="90"
                   placeholder
                   class="h-52 object-cover"
                   :src="attachment.url"

@@ -22,7 +22,7 @@ export function useKanbanViewData(
   const { project } = useProject()
   const { $api } = useNuxtApp()
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
-  const { sharedView, sorts: sharedViewSorts, nestedFilters: sharedViewNestedFilters } = useSharedView()
+  const { fetchSharedViewData } = useSharedView()
   const { isUIAllowed } = useUIPermission()
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -87,27 +87,11 @@ export function useKanbanViewData(
         const where =
           option.title === 'uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
 
-        let response
-
-        if (isPublic.value && sharedView.value) {
-          response = (
-            await $api.public.dataList(
-              sharedView.value.uuid!,
-              {
-                where,
-              } as any,
-              {
-                headers: {
-                  'xc-password': password.value,
-                },
-              },
-            )
-          ).data
-        } else {
-          response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-            where,
-          })
-        }
+        const response = !isPublic.value
+          ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+              where,
+            })
+          : await fetchSharedViewData()
 
         formattedData.value[option.title!] = formatData(response.list)
         countByStack.value[option.title!] = response.pageInfo.totalRows || 0
@@ -121,33 +105,16 @@ export function useKanbanViewData(
     if (stackTitle === 'uncategorized') {
       where = `(${groupingField.value},is,null)`
     }
-    let response
+    const response = !isPublic.value
+      ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+          ...params,
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          where,
+        })
+      : // TODO: check this
+        await fetchSharedViewData()
 
-    if (isPublic.value && sharedView.value) {
-      response = (
-        await $api.public.dataList(
-          sharedView.value.uuid!,
-          {
-            ...params,
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sharedViewSorts.value) }),
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(sharedViewNestedFilters.value) }),
-            where,
-          } as any,
-          {
-            headers: {
-              'xc-password': password.value,
-            },
-          },
-        )
-      ).data
-    } else {
-      response = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-        ...params,
-        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-        where,
-      })
-    }
     formattedData.value[stackTitle] = [...formattedData.value[stackTitle], ...formatData(response.list)]
   }
 

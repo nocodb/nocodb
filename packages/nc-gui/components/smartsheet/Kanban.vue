@@ -26,7 +26,7 @@ const view = inject(ActiveViewInj, ref())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
-const reloadKanbanMetaHook = inject(ReloadKanbanMetaHookInj)
+const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
@@ -85,7 +85,7 @@ reloadViewDataHook?.on(async () => {
   await loadKanbanData()
 })
 
-reloadKanbanMetaHook?.on(async () => {
+reloadViewMetaHook?.on(async () => {
   await loadKanbanMeta()
 })
 

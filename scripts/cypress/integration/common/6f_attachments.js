@@ -6,9 +6,13 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
     describe(`${apiType.toUpperCase()} Columns of type attachment`, () => {
-        // before(() => {
-        //
-        // });
+        before(() => {
+            cy.restoreLocalStorage();
+            projectsPage.openConfiguredProject(apiType, dbType);
+            cy.openTableTab("Country", 25);
+
+            cy.saveLocalStorage();
+        });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
@@ -45,7 +49,6 @@ export const genTest = (apiType, dbType) => {
         });
 
         it(`Add column of type attachments`, () => {
-            cy.openTableTab("Country", 25);
             mainPage.addColumnWithType("testAttach", "Attachment", "Country");
 
             for (let i = 4; i <= 6; i++) {

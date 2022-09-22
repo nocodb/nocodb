@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { Modal as AModal } from 'ant-design-vue'
-import Editor from '~/components/monaco/Editor.vue'
-import { ReadonlyInj, computed, inject, ref, useVModel, watch } from '#imports'
-import { EditModeInj, IsFormInj } from '~/context'
+import { EditModeInj, IsFormInj, ReadonlyInj, computed, inject, ref, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any> | undefined
@@ -113,7 +111,7 @@ watch(editEnabled, () => {
         </div>
       </div>
 
-      <Editor
+      <LazyMonacoEditor
         :model-value="localValue"
         class="min-w-full w-80"
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"

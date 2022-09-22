@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { Modal } from 'ant-design-vue'
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import {
   ColumnInj,
   IsLockedInj,
   MetaInj,
+  Modal,
   extractSdkResponseErrorMsg,
   inject,
   message,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { enumColor as colors } from '#imports'
+import { enumColor as colors, useGlobal } from '#imports'
 
 const { lang: currentLang } = useGlobal()
 
@@ -26,6 +26,7 @@ const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
           </div>
         </nuxt-link>
       </a-list-item>
+
       <a-list-item>
         <nuxt-link
           v-e="['e:api-docs']"
@@ -42,6 +43,7 @@ const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
           </div>
         </nuxt-link>
       </a-list-item>
+
       <a-list-item>
         <nuxt-link
           v-e="['e:community:github']"
@@ -70,6 +72,7 @@ const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
           </div>
         </nuxt-link>
       </a-list-item>
+
       <a-list-item>
         <nuxt-link
           v-e="['e:community:book-demo']"
@@ -88,6 +91,7 @@ const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
           </div>
         </nuxt-link>
       </a-list-item>
+
       <a-list-item>
         <nuxt-link
           v-e="['e:community:discord']"
@@ -106,6 +110,7 @@ const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
           </div>
         </nuxt-link>
       </a-list-item>
+
       <a-list-item>
         <nuxt-link
           v-e="['e:community:twitter']"
@@ -124,6 +129,7 @@ const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
           </div>
         </nuxt-link>
       </a-list-item>
+
       <a-list-item>
         <nuxt-link
           v-e="['e:hiring']"
@@ -141,6 +147,7 @@ const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
           </div>
         </nuxt-link>
       </a-list-item>
+
       <a-list-item>
         <nuxt-link
           v-e="['e:community:reddit']"

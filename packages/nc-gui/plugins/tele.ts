@@ -1,7 +1,6 @@
-import { defineNuxtPlugin } from 'nuxt/app'
 import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
-import type { UseGlobalReturn } from '~/composables/useGlobal/types'
+import { defineNuxtPlugin, useGlobal, useRoute, useRouter, watch } from '#imports'
 
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {
@@ -75,7 +74,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     }
   }
 
-  watch((nuxtApp.$state as UseGlobalReturn).token, (newToken, oldToken) => {
+  watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
     if (newToken && newToken !== oldToken) init(newToken)
     else if (!newToken) socket.disconnect()
   })

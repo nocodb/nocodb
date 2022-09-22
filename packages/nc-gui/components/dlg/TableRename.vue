@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { watchEffect } from '@vue/runtime-core'
-import { Form, message } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
-import { useI18n } from 'vue-i18n'
-import { useMetas, useProject, useTabs } from '#imports'
-import { extractSdkResponseErrorMsg, validateTableName } from '~/utils'
-import { useNuxtApp } from '#app'
+import {
+  Form,
+  computed,
+  extractSdkResponseErrorMsg,
+  message,
+  nextTick,
+  reactive,
+  useI18n,
+  useMetas,
+  useNuxtApp,
+  useProject,
+  useTabs,
+  validateTableName,
+  watchEffect,
+} from '#imports'
 
 interface Props {
   modelValue?: boolean
@@ -32,14 +41,19 @@ const dialogShow = computed({
 })
 
 const { updateTab } = useTabs()
+
 const { loadTables, tables, project, isMysql, isMssql, isPg } = useProject()
 
 const inputEl = $ref<any>()
+
 let loading = $ref(false)
+
 const useForm = Form.useForm
+
 const formState = reactive({
   title: '',
 })
+
 const validators = computed(() => {
   return {
     title: [
@@ -83,6 +97,7 @@ const validators = computed(() => {
     ],
   }
 })
+
 const { validateInfos } = useForm(formState, validators)
 
 watchEffect(() => {
@@ -102,12 +117,15 @@ const renameTable = async () => {
       project_id: tableMeta?.project_id,
       table_name: formState.title,
     })
+
     dialogShow.value = false
-    loadTables()
+
+    await loadTables()
+
     updateTab({ id: tableMeta?.id }, { title: formState.title })
 
     // update metas
-    setMeta(await $api.dbTable.read(tableMeta?.id as string))
+    await setMeta(await $api.dbTable.read(tableMeta?.id as string))
 
     // Table renamed successfully
     message.success(t('msg.success.tableRenamed'))
@@ -116,6 +134,7 @@ const renameTable = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+
   loading = false
 }
 </script>
@@ -131,12 +150,15 @@ const renameTable = async () => {
   >
     <template #footer>
       <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+
       <a-button key="submit" type="primary" :loading="loading" @click="renameTable">{{ $t('general.submit') }}</a-button>
     </template>
+
     <div class="pl-10 pr-10 pt-5">
       <a-form :model="formState" name="create-new-table-form">
         <!-- hint="Enter table name" -->
         <div class="mb-2">{{ $t('msg.info.enterTableName') }}</div>
+
         <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"

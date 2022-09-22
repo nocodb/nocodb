@@ -143,6 +143,7 @@ watch(isOpen, (n, _o) => {
         <span class="text-slate-500">{{ op.title }}</span>
       </a-tag>
     </a-select-option>
+
     <template #tagRender="{ value: val, onClose }">
       <a-tag
         v-if="options.find((el) => el.title === val)"

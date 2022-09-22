@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { ActiveCellInj, CellValueInj, ColumnInj, RowInj, provide, toRef, useVirtualCell } from '#imports'
-import type { Row } from '~/composables'
+import type { Row } from '~/lib'
 import { NavigateDir } from '~/lib'
 
 const props = defineProps<{

@@ -17,9 +17,10 @@ import {
   ref,
   useMetas,
   useProvideSmartsheetStore,
+  useSidebar,
   watch,
 } from '#imports'
-import type { TabItem } from '~/composables'
+import type { TabItem } from '~/lib'
 
 const { activeTab } = defineProps<{
   activeTab: TabItem
@@ -37,6 +38,7 @@ provide(TabMetaInj, ref(activeTab))
 const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
 
 const reloadEventHook = createEventHook()
+
 const reloadViewMetaEventHook = createEventHook()
 const openNewRecordFormHook = createEventHook()
 

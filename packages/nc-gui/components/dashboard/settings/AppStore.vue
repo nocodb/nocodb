@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import AppInstall from './app-store/AppInstall.vue'
-import MdiEditIcon from '~icons/ic/round-edit'
-import MdiCloseCircleIcon from '~icons/mdi/close-circle-outline'
-import MdiPlusIcon from '~icons/mdi/plus'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import { extractSdkResponseErrorMsg, message, onMounted, useI18n, useNuxtApp } from '#imports'
 
 const { t } = useI18n()
+
 const { $api, $e } = useNuxtApp()
 
-let apps = $ref<null | Array<any>>(null)
+let apps = $ref<null | any[]>(null)
+
 let showPluginUninstallModal = $ref(false)
+
 let showPluginInstallModal = $ref(false)
+
 let pluginApp = $ref<any>(null)
 
 const fetchPluginApps = async () => {
@@ -66,7 +64,7 @@ const showResetPluginModal = async (app: any) => {
 
 onMounted(async () => {
   if (apps === null) {
-    fetchPluginApps()
+    await fetchPluginApps()
   }
 })
 </script>
@@ -80,7 +78,7 @@ onMounted(async () => {
     :footer="null"
     wrap-class-name="nc-modal-plugin-install"
   >
-    <AppInstall
+    <LazyDashboardSettingsAppInstall
       v-if="pluginApp && showPluginInstallModal"
       :id="pluginApp.id"
       @close="showPluginInstallModal = false"
@@ -117,19 +115,21 @@ onMounted(async () => {
       <div class="install-btn flex flex-row justify-end space-x-1">
         <a-button v-if="app.parsedInput" size="small" type="primary" @click="showInstallPluginModal(app)">
           <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-edit">
-            <MdiEditIcon class="pr-0.5" :height="12" />
+            <IcRoundEdit class="pr-0.5" :height="12" />
             Edit
           </div>
         </a-button>
+
         <a-button v-if="app.parsedInput" size="small" outlined @click="showResetPluginModal(app)">
           <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-reset">
-            <MdiCloseCircleIcon />
+            <MdiCloseCircleOutline />
             <div class="flex ml-0.5">Reset</div>
           </div>
         </a-button>
+
         <a-button v-else size="small" type="primary" @click="showInstallPluginModal(app)">
           <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-install">
-            <MdiPlusIcon />
+            <MdiPlus />
             Install
           </div>
         </a-button>
@@ -140,15 +140,19 @@ onMounted(async () => {
           <img
             v-if="app.title !== 'SMTP'"
             class="avatar"
+            alt="logo"
             :style="{
               backgroundColor: app.title === 'SES' ? '#242f3e' : '',
             }"
             :src="app.logo"
           />
+
           <div v-else />
         </div>
+
         <div class="flex flex-col flex-1 w-3/5 pl-3">
           <a-typography-title :level="5">{{ app.title }}</a-typography-title>
+
           {{ app.description }}
         </div>
       </div>

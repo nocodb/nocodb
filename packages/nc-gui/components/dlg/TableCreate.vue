@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { Form } from 'ant-design-vue'
-import { computed, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
-import { TabType } from '~/composables'
+import { Form, computed, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
+import { TabType } from '~/lib'
 
-interface Props {
+const props = defineProps<{
   modelValue: boolean
-}
-
-const props = defineProps<Props>()
+}>()
 
 const emit = defineEmits(['update:modelValue'])
 

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import UserManagement from './auth/UserManagement.vue'
-import ApiTokenManagement from './auth/ApiTokenManagement.vue'
 import { useI18n, useUIPermission } from '#imports'
 
 interface Tab {
@@ -18,13 +16,13 @@ const tabsInfo: Tab[] = [
   {
     title: 'Users Management',
     label: t('title.userMgmt'),
-    body: () => UserManagement,
+    body: () => import('./auth/UserManagement.vue'),
     isUIAllowed: () => isUIAllowed('userMgmtTab'),
   },
   {
     title: 'API Token Management',
     label: t('title.apiTokenMgmt'),
-    body: () => ApiTokenManagement,
+    body: () => import('./auth/ApiTokenManagement.vue'),
     isUIAllowed: () => isUIAllowed('apiTokenTab'),
   },
 ]

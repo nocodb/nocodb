@@ -4,7 +4,7 @@ import { definePageMeta, isEmail, navigateTo, reactive, ref, useApi, useGlobal, 
 
 const { signIn: _signIn } = useGlobal()
 
-const { api, isLoading, error } = useApi()
+const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 

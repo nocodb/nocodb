@@ -1,17 +1,16 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { Empty, message } from 'ant-design-vue'
-import { h, useNuxtApp, useProject } from '#imports'
-import MdiReload from '~icons/mdi/reload'
-import MdiDatabaseSync from '~icons/mdi/database-sync'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import { Empty, extractSdkResponseErrorMsg, h, message, useI18n, useNuxtApp, useProject } from '#imports'
 
 const { $api } = useNuxtApp()
+
 const { project, loadTables } = useProject()
+
 const { t } = useI18n()
 
 let isLoading = $ref(false)
+
 let isDifferent = $ref(false)
+
 let metadiff = $ref<any[]>([])
 
 async function loadMetaDiff() {
@@ -58,6 +57,7 @@ onMounted(async () => {
 })
 
 const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gray-500' }, label)
+
 const columns = [
   {
     // Models
@@ -90,6 +90,7 @@ const columns = [
           </div>
         </a-button>
       </div>
+
       <div class="max-h-600px overflow-y-auto">
         <a-table
           class="w-full"
@@ -105,10 +106,13 @@ const columns = [
           :loading="isLoading"
           bordered
         >
-          <template #emptyText> <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" /> </template
-        ></a-table>
+          <template #emptyText>
+            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+          </template>
+        </a-table>
       </div>
     </div>
+
     <div class="flex place-content-center w-2/5">
       <!--      Sync Now -->
       <div v-if="isDifferent">
@@ -119,9 +123,12 @@ const columns = [
           </div>
         </a-button>
       </div>
+
       <div v-else>
         <!--        Tables metadata is in sync -->
-        <span><a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon /></span>
+        <span>
+          <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon />
+        </span>
       </div>
     </div>
   </div>

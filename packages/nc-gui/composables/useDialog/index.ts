@@ -36,7 +36,7 @@ import { createEventHook, h, ref, toReactive, tryOnScopeDispose, useNuxtApp, wat
  * }
  */
 export function useDialog(
-  componentOrVNode: DefineComponent<any, any, any> | VNode,
+  componentOrVNode: any,
   props: NonNullable<Parameters<typeof h>[1]> = {},
   mountTarget?: Element | ComponentPublicInstance,
 ) {

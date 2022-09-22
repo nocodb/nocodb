@@ -2,8 +2,6 @@
 import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import Modal from './Modal.vue'
-import Carousel from './Carousel.vue'
 import {
   IsFormInj,
   IsGalleryInj,
@@ -130,7 +128,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
     ref="attachmentCellRef"
     class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1"
   >
-    <Carousel />
+    <LazyCellAttachmentCarousel />
 
     <template v-if="isSharedForm || (!isReadonly && !dragging && !!currentCellRef)">
       <general-overlay
@@ -211,7 +209,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
       </div>
     </template>
 
-    <Modal />
+    <LazyCellAttachmentModal />
   </div>
 </template>
 

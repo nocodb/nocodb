@@ -1,5 +1,5 @@
 import { useStorage } from '@vueuse/core'
-import { MemStorage, onScopeDispose, ref, syncRef, toRefs, watch } from '#imports'
+import { createSharedComposable, ref, syncRef, toRefs, watch } from '#imports'
 
 interface UseSidebarProps {
   hasSidebar?: boolean
@@ -13,10 +13,9 @@ interface UseSidebarProps {
  * Requires an id to work, id should correspond to the sidebar state you want to create or fetch
  * If `useSidebar` was not called before it will create a new state if no state can be found for the specified id
  */
-const sidebarStorage = new MemStorage()
-
 const createSidebar = (id: string, props: UseSidebarProps = {}) => {
   const isOpen = ref(props.isOpen ?? false)
+
   const hasSidebar = ref(props.hasSidebar ?? true)
 
   function toggle(state?: boolean) {
@@ -57,25 +56,19 @@ const createSidebar = (id: string, props: UseSidebarProps = {}) => {
   }
 }
 
-export function useSidebar(id: string, props: UseSidebarProps = {}) {
-  if (!id) throw new Error('useSidebar requires an id')
+const leftSidebar = createSharedComposable(() => createSidebar('leftSidebar'))
 
-  if (!sidebarStorage.has(id)) {
-    const sidebar = createSidebar(id, props)
+const rightSidebar = createSharedComposable(() => createSidebar('rightSidebar', { useStorage: true }))
 
-    sidebarStorage.set(id, sidebar)
+export const useSidebar = (id: string, props: UseSidebarProps = {}) => {
+  const sidebar = id.includes('left') ? leftSidebar() : rightSidebar()
 
-    onScopeDispose(() => {
-      sidebarStorage.remove(id)
-    })
+  if (props.isOpen !== undefined) sidebar.isOpen.value = props.isOpen
+  if (props.hasSidebar !== undefined) sidebar.hasSidebar.value = props.hasSidebar
 
-    return sidebar
-  } else {
-    const sidebar = sidebarStorage.get(id)
-
-    if (props.isOpen !== undefined) sidebar.isOpen.value = props.isOpen
-    if (props.hasSidebar !== undefined) sidebar.hasSidebar.value = props.hasSidebar
-
-    return sidebar
-  }
+  return sidebar
 }
+
+export const useLeftSidebar = (props: UseSidebarProps = {}) => useSidebar('left', props)
+
+export const useRightSidebar = (props: UseSidebarProps = {}) => useSidebar('right', props)

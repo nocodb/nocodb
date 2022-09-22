@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { definePageMeta, extractSdkResponseErrorMsg, isEmail, reactive, ref, useApi, useI18n } from '#imports'
+import { definePageMeta, isEmail, reactive, ref, useApi, useI18n } from '#imports'
 
 definePageMeta({
   requiresAuth: false,
 })
 
-const { api, isLoading, error } = useApi()
+const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 

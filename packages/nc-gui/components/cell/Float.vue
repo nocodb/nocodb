@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { inject, useVModel } from '#imports'
-import { EditModeInj } from '~/context'
+import { EditModeInj, inject, useVModel } from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
@@ -32,6 +31,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     step="0.1"
     @blur="editEnabled = false"
   />
+
   <span v-else class="prose-sm">{{ vModel }}</span>
 </template>
 

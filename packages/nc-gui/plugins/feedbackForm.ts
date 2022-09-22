@@ -1,8 +1,9 @@
 import dayjs from 'dayjs'
-import { defineNuxtPlugin } from '#app'
+import { defineNuxtPlugin, useGlobal, useNuxtApp } from '#imports'
 
 const handleFeedbackForm = async () => {
   let { feedbackForm: currentFeedbackForm } = $(useGlobal())
+
   if (!currentFeedbackForm) return
 
   const { $api } = useNuxtApp()
@@ -10,6 +11,7 @@ const handleFeedbackForm = async () => {
   const isFirstTimePolling = !currentFeedbackForm.lastFormPollDate
 
   const now = dayjs()
+
   const lastFormPolledDate = dayjs(currentFeedbackForm.lastFormPollDate)
 
   if (isFirstTimePolling || dayjs.duration(now.diff(lastFormPolledDate)).days() > 0) {

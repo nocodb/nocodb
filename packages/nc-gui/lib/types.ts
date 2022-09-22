@@ -1,6 +1,8 @@
 import type { FilterType } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
-import type { ProjectRole, Role } from './enums'
+import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
+import type { ProjectRole, Role, TabType } from './enums'
+import type { rolePermissions } from './constants'
 
 export interface User {
   id: string
@@ -36,3 +38,35 @@ export type Roles<T extends Role | ProjectRole = Role | ProjectRole> = Record<T 
 export type Filter = FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string; readOnly?: boolean }
 
 export type NocoI18n = I18n<{}, unknown, unknown, string, false>
+
+export interface ThemeConfig extends AntTheme {
+  primaryColor: string
+  accentColor: string
+}
+
+export interface Row {
+  row: Record<string, any>
+  oldRow: Record<string, any>
+  rowMeta: {
+    new?: boolean
+    selected?: boolean
+    commentCount?: number
+    changed?: boolean
+  }
+}
+
+type RolePermissions = Omit<typeof rolePermissions, 'creator' | 'owner' | 'guest' | 'admin'>
+
+type GetKeys<T> = T extends Record<string, any> ? keyof T : never
+
+export type Permission<K extends keyof RolePermissions = keyof RolePermissions> = RolePermissions[K] extends Record<string, any>
+  ? GetKeys<RolePermissions[K]>
+  : never
+
+export interface TabItem {
+  type: TabType
+  title: string
+  id?: string
+  viewTitle?: string
+  viewId?: string
+}

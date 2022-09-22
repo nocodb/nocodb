@@ -1,7 +1,7 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { FilterType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { computed, reactive, useInjectionState, useNuxtApp, useProject, useTemplateRefsList } from '#imports'
+import { computed, reactive, ref, unref, useInjectionState, useNuxtApp, useProject, useTemplateRefsList } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
@@ -12,6 +12,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     initialFilters?: Ref<FilterType[]>,
   ) => {
     const { $api } = useNuxtApp()
+
     const { sqlUi } = useProject()
 
     const cellRefs = useTemplateRefsList<HTMLTableDataCellElement>()
@@ -46,8 +47,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const isSqlView = computed(() => meta.value?.type === 'view')
 
-    const sorts = initalSorts ?? ref<SortType[]>([])
-    const nestedFilters: Ref<FilterType[]> = initialFilters ?? ref<FilterType[]>([])
+    const sorts = ref<SortType[]>(unref(initalSorts) ?? [])
+    const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
     return {
       view,
@@ -74,6 +75,8 @@ export { useProvideSmartsheetStore }
 
 export function useSmartsheetStoreOrThrow() {
   const smartsheetStore = useSmartsheetStore()
+
   if (smartsheetStore == null) throw new Error('Please call `useSmartsheetStore` on the appropriate parent component')
+
   return smartsheetStore
 }

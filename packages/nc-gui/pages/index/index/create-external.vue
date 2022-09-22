@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { Form, Modal } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import {
   CertTypes,
+  Form,
+  Modal,
   SSLUsage,
   clientTypes,
   computed,
@@ -33,7 +34,7 @@ const testSuccess = ref(false)
 
 const form = ref<typeof Form>()
 
-const { api, isLoading } = useApi()
+const { api, isLoading } = useApi({ useGlobalInstance: true })
 
 const { $e } = useNuxtApp()
 

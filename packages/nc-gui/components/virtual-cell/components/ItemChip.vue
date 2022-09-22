@@ -1,14 +1,5 @@
 <script lang="ts" setup>
-import {
-  ActiveCellInj,
-  IsFormInj,
-  ReadonlyInj,
-  defineAsyncComponent,
-  inject,
-  ref,
-  useLTARStoreOrThrow,
-  useUIPermission,
-} from '#imports'
+import { ActiveCellInj, IsFormInj, IsLockedInj, ReadonlyInj, inject, ref, useLTARStoreOrThrow, useUIPermission } from '#imports'
 
 interface Props {
   value?: string | number | boolean
@@ -18,8 +9,6 @@ interface Props {
 const { value, item } = defineProps<Props>()
 
 const emit = defineEmits(['unlink'])
-
-const ExpandedForm: any = defineAsyncComponent(() => import('../../smartsheet/expanded-form/index.vue'))
 
 const { relatedTableMeta } = useLTARStoreOrThrow()!
 
@@ -55,7 +44,7 @@ export default {
     </div>
 
     <Suspense>
-      <ExpandedForm
+      <LazySmartsheetExpandedForm
         v-if="!readOnly && !isLocked && expandedFormDlg"
         v-model="expandedFormDlg"
         :row="{ row: item, rowMeta: {}, oldRow: { ...item } }"

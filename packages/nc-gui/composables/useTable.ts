@@ -1,10 +1,20 @@
-import { Modal, message } from 'ant-design-vue'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { useI18n } from 'vue-i18n'
-import { useNuxtApp } from '#app'
-import { TabType } from '~/composables/useTabs'
-import { SYSTEM_COLUMNS, extractSdkResponseErrorMsg, useProject } from '#imports'
+import {
+  Modal,
+  SYSTEM_COLUMNS,
+  extractSdkResponseErrorMsg,
+  generateUniqueTitle as generateTitle,
+  message,
+  reactive,
+  useI18n,
+  useMetas,
+  useNuxtApp,
+  useProject,
+  useTabs,
+  watch,
+} from '#imports'
+import { TabType } from '~/lib'
 
 export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
@@ -12,11 +22,17 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
     table_name: '',
     columns: SYSTEM_COLUMNS,
   })
+
   const { t } = useI18n()
+
   const { $e, $api } = useNuxtApp()
+
   const { getMeta, removeMeta } = useMetas()
+
   const { loadTables } = useProject()
+
   const { closeTab } = useTabs()
+
   const { sqlUi, project, tables } = useProject()
 
   const createTable = async () => {
@@ -51,11 +67,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
   )
 
   const generateUniqueTitle = () => {
-    let c = 1
-    while (tables?.value?.some((t) => t.title === `Sheet${c}`)) {
-      c++
-    }
-    table.title = `Sheet${c}`
+    table.title = generateTitle('Sheet', tables.value, 'title')
   }
 
   const deleteTable = (table: TableType) => {

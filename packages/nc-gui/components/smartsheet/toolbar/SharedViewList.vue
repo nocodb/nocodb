@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { Empty } from 'ant-design-vue'
 import {
+  Empty,
   extractSdkResponseErrorMsg,
   message,
   onMounted,

@@ -10,19 +10,12 @@ import {
   ReloadRowDataHookInj,
   RowInj,
   computed,
-  defineAsyncComponent,
   inject,
   ref,
   useProvideLTARStore,
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
 } from '#imports'
-
-const ItemChip = defineAsyncComponent(() => import('./components/ItemChip.vue'))
-
-const ListItems = defineAsyncComponent(() => import('./components/ListItems.vue'))
-
-const ListChildItems = defineAsyncComponent(() => import('./components/ListChildItems.vue'))
 
 const column = inject(ColumnInj)!
 
@@ -52,6 +45,7 @@ const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvid
   isNew,
   reloadRowTrigger.trigger,
 )
+
 await loadRelatedTableMeta()
 
 const localCellValue = computed<any[]>(() => {
@@ -94,17 +88,26 @@ const onAttachRecord = () => {
     <template v-if="!isForm">
       <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
-          <ItemChip v-for="(cell, i) of cells" :key="i" :item="cell.item" :value="cell.value" @unlink="unlinkRef(cell.item)" />
+          <LazyVirtualCellComponentsItemChip
+            v-for="(cell, i) of cells"
+            :key="i"
+            :item="cell.item"
+            :value="cell.value"
+            @unlink="unlinkRef(cell.item)"
+          />
+
           <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">
             more...
           </span>
         </template>
       </div>
+
       <div v-if="!isLocked" class="flex justify-end gap-1 min-h-[30px] items-center">
         <MdiArrowExpand
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click="childListDlg = true"
         />
+
         <MdiPlus
           v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
           class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
@@ -113,9 +116,13 @@ const onAttachRecord = () => {
       </div>
     </template>
 
-    <ListItems v-model="listItemsDlg" />
+    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" />
 
-    <ListChildItems v-model="childListDlg" :cell-value="localCellValue" @attach-record="onAttachRecord" />
+    <LazyVirtualCellComponentsListChildItems
+      v-model="childListDlg"
+      :cell-value="localCellValue"
+      @attach-record="onAttachRecord"
+    />
   </div>
 </template>
 

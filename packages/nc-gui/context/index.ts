@@ -2,8 +2,7 @@ import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { useViewData } from '#imports'
-import type { Row } from '~/composables'
-import type { TabItem } from '~/composables/useTabs'
+import type { Row, TabItem } from '~/lib'
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')

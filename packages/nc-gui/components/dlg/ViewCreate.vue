@@ -1,14 +1,24 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import { message } from 'ant-design-vue'
 import type { Form as AntForm } from 'ant-design-vue'
-import { capitalize, inject } from '@vue/runtime-core'
+import { capitalize } from '@vue/runtime-core'
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { useI18n } from 'vue-i18n'
-import { MetaInj, ViewListInj } from '~/context'
-import { generateUniqueTitle } from '~/utils'
-import { computed, nextTick, reactive, unref, useApi, useVModel, watch } from '#imports'
+import {
+  MetaInj,
+  ViewListInj,
+  computed,
+  generateUniqueTitle,
+  inject,
+  message,
+  nextTick,
+  reactive,
+  unref,
+  useApi,
+  useI18n,
+  useVModel,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue: boolean

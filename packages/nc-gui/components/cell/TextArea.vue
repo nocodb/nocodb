@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { computed, inject } from '#imports'
-import { EditModeInj } from '~/context'
+import { EditModeInj, computed, inject } from '#imports'
 
 interface Props {
   modelValue: string | null | undefined
@@ -32,5 +31,6 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
     @keydown.alt.enter.stop
     @keydown.shift.enter.stop
   />
+
   <span v-else>{{ vModel }}</span>
 </template>

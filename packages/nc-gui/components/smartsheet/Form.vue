@@ -25,7 +25,7 @@ import {
   useViewData,
   watch,
 } from '#imports'
-import type { Permission } from '~/composables/useUIPermission/rolePermissions'
+import type { Permission } from '~/lib'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))

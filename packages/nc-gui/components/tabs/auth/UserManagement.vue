@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
 import type { RequestParams } from 'nocodb-sdk'
-import UsersModal from './user-management/UsersModal.vue'
-import FeedbackForm from './user-management/FeedbackForm.vue'
 import {
   extractSdkResponseErrorMsg,
+  message,
   onBeforeMount,
   ref,
   useApi,
@@ -169,13 +167,14 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
   </div>
 
   <div v-else class="flex flex-col w-full px-6">
-    <UsersModal
+    <LazyTabsAuthUserManagementUsersModal
       :key="showUserModal"
       :show="showUserModal"
       :selected-user="selectedUser"
       @closed="showUserModal = false"
       @reload="loadUsers()"
     />
+
     <a-modal
       v-model:visible="showUserDeleteModal"
       :closable="false"
@@ -194,6 +193,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </div>
       </div>
     </a-modal>
+
     <div class="flex flex-row mb-4 mx-4 justify-between pb-2">
       <div class="flex w-1/3">
         <a-input v-model:value="searchText" :placeholder="$t('placeholder.filterByEmail')">
@@ -210,6 +210,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <div class="text-gray-500">{{ $t('general.reload') }}</div>
           </div>
         </a-button>
+
         <a-button
           v-if="isUIAllowed('newUser')"
           v-e="['c:user:invite']"
@@ -226,6 +227,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </a-button>
       </div>
     </div>
+
     <div class="px-5">
       <div class="flex flex-row border-b-1 pb-2 px-2">
         <div class="flex flex-row w-4/6 space-x-1 items-center pl-1">
@@ -262,17 +264,20 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <template #title>
               <span>{{ $t('activity.editUser') }}</span>
             </template>
+
             <a-button type="text" class="!rounded-md nc-user-edit" @click="onEdit(user)">
               <template #icon>
                 <IcRoundEdit class="flex mx-auto h-[1rem] text-gray-500" />
               </template>
             </a-button>
           </a-tooltip>
+
           <!--          Add user to project -->
           <a-tooltip v-if="!user.project_id" placement="bottom">
             <template #title>
               <span>{{ $t('activity.addUserToProject') }}</span>
             </template>
+
             <a-button type="text" class="!rounded-md nc-user-invite" @click="inviteUser(user)">
               <template #icon>
                 <MdiPlus class="flex mx-auto h-[1.1rem] text-gray-500" />
@@ -285,6 +290,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <template #title>
               <span>{{ $t('activity.deleteUser') }}</span>
             </template>
+
             <a-button v-e="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
               <template #icon>
                 <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
@@ -300,6 +306,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
                 </div>
               </a-button>
             </div>
+
             <template #overlay>
               <a-menu>
                 <a-menu-item>
@@ -320,6 +327,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
           </a-dropdown>
         </div>
       </div>
+
       <a-pagination
         v-model:current="currentPage"
         hide-on-single-page
@@ -329,7 +337,8 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         show-less-items
         @change="loadUsers"
       />
-      <FeedbackForm />
+
+      <LazyTabsAuthUserManagementFeedbackForm />
     </div>
   </div>
 </template>

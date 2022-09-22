@@ -2,11 +2,12 @@
 import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
 import type { Card as AntCard } from 'ant-design-vue'
-import { Form, message } from 'ant-design-vue'
 import {
+  Form,
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
+  message,
   nextTick,
   onBeforeUnmount,
   onMounted,
@@ -17,11 +18,9 @@ import {
   watch,
 } from '#imports'
 
-interface Props {
+const { modelValue } = defineProps<{
   modelValue: boolean
-}
-
-const { modelValue } = defineProps<Props>()
+}>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -337,9 +336,9 @@ onBeforeUnmount(() => {
           <!--          This feature is currently in beta and more information can be found here -->
           <div>
             {{ $t('general.betaNote') }}
-            <a class="prose-sm" href="https://github.com/nocodb/nocodb/discussions/2122" target="_blank">{{
-              $t('general.moreInfo')
-            }}</a>
+            <a class="prose-sm" href="https://github.com/nocodb/nocodb/discussions/2122" target="_blank">
+              {{ $t('general.moreInfo') }}
+            </a>
             .
           </div>
         </div>

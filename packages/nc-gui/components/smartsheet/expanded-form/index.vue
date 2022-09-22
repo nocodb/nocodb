@@ -18,7 +18,7 @@ import {
   useVModel,
   watch,
 } from '#imports'
-import type { Row } from '~/composables'
+import type { Row } from '~/lib'
 
 interface Props {
   modelValue?: boolean

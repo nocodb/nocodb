@@ -1,4 +1,4 @@
-import { defineNuxtPlugin } from '#app'
+import { defineNuxtPlugin, getCurrentInstance } from '#imports'
 
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.directive('xc-ver-resize', {
@@ -18,6 +18,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       resizer.addEventListener('mousedown', initDrag, false)
 
       const instance = getCurrentInstance()
+
       const emit =
         instance?.emit ??
         ((arg, data) => {

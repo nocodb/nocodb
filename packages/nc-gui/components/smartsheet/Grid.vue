@@ -34,7 +34,7 @@ import {
   useViewData,
   watch,
 } from '#imports'
-import type { Row } from '~/composables'
+import type { Row } from '~/lib'
 import { NavigateDir } from '~/lib'
 
 const { t } = useI18n()

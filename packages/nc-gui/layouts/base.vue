@@ -65,13 +65,13 @@ hooks.hook('page:finish', () => {
 
         <div class="flex-1" />
 
-        <GeneralReleaseInfo />
+        <LazyGeneralReleaseInfo />
 
         <a-tooltip placement="bottom" :mouse-enter-delay="1">
           <template #title> Switch language</template>
 
           <div class="flex pr-4 items-center text-white">
-            <GeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
+            <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
           </div>
         </a-tooltip>
 
@@ -122,7 +122,7 @@ hooks.hook('page:finish', () => {
       <a-tooltip placement="bottom">
         <template #title> Switch language</template>
 
-        <GeneralLanguage v-if="!signedIn" class="nc-lang-btn" />
+        <LazyGeneralLanguage v-if="!signedIn" class="nc-lang-btn" />
       </a-tooltip>
 
       <div class="w-full h-full overflow-hidden">

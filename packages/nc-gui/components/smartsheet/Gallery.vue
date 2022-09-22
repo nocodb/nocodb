@@ -25,7 +25,7 @@ import {
   useViewData,
   watch,
 } from '#imports'
-import type { Row as RowType } from '~/composables'
+import type { Row as RowType } from '~/lib'
 
 interface Attachment {
   url: string

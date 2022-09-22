@@ -1,22 +1,23 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { SqlUiFactory, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { useProject } from '#imports'
+import { computed, useProject } from '#imports'
 
-export function useColumn(column: Ref<ColumnType>) {
+export function useColumn(column: Ref<ColumnType | undefined>) {
   const { project } = useProject()
 
-  const uiDatatype: ComputedRef<UITypes> = computed(() => column?.value?.uidt as UITypes)
+  const uiDatatype: ComputedRef<UITypes> = computed(() => column.value?.uidt as UITypes)
+
   const abstractType = computed(() => {
     // kludge: CY test hack; column.value is being received NULL during attach cell delete operation
-    return isVirtualCol(column?.value) || !column?.value
+    return (column.value && isVirtualCol(column.value)) || !column.value
       ? null
       : SqlUiFactory.create(
           project.value?.bases?.[0]?.type ? { client: project.value.bases[0].type } : { client: 'mysql2' },
-        ).getAbstractType(column?.value)
+        ).getAbstractType(column.value)
   })
 
-  const dataTypeLow = computed(() => column?.value?.dt?.toLowerCase())
+  const dataTypeLow = computed(() => column.value?.dt?.toLowerCase())
   const isBoolean = computed(() => abstractType.value === 'boolean')
   const isString = computed(() => uiDatatype.value === UITypes.SingleLineText || abstractType.value === 'string')
   const isTextArea = computed(() => uiDatatype.value === UITypes.LongText)
@@ -60,9 +61,7 @@ export function useColumn(column: Ref<ColumnType>) {
   const isManualSaved = computed(() =>
     [UITypes.Currency, UITypes.Year, UITypes.Time, UITypes.Duration].includes(uiDatatype.value),
   )
-  const isPrimary = computed(() => {
-    return column?.value?.pv
-  })
+  const isPrimary = computed(() => column.value?.pv)
 
   return {
     abstractType,

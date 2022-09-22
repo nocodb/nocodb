@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { Empty, Modal } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import {
+  Empty,
+  Modal,
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,

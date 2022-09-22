@@ -10,18 +10,13 @@ import {
   ReloadRowDataHookInj,
   RowInj,
   computed,
+  createEventHook,
   inject,
   ref,
   useProvideLTARStore,
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
 } from '#imports'
-
-const ItemChip = defineAsyncComponent(() => import('./components/ItemChip.vue'))
-
-const ListItems = defineAsyncComponent(() => import('./components/ListItems.vue'))
-
-const ListChildItems = defineAsyncComponent(() => import('./components/ListChildItems.vue'))
 
 const column = inject(ColumnInj)!
 
@@ -44,6 +39,7 @@ const childListDlg = ref(false)
 const { isUIAllowed } = useUIPermission()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
+
 const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
@@ -93,7 +89,13 @@ const onAttachRecord = () => {
     <template v-if="!isForm">
       <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
-          <ItemChip v-for="(cell, i) of cells" :key="i" :item="cell.item" :value="cell.value" @unlink="unlinkRef(cell.item)" />
+          <LazyVirtualCellComponentsItemChip
+            v-for="(cell, i) of cells"
+            :key="i"
+            :item="cell.item"
+            :value="cell.value"
+            @unlink="unlinkRef(cell.item)"
+          />
 
           <span v-if="cells?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
         </template>
@@ -113,9 +115,13 @@ const onAttachRecord = () => {
       </div>
     </template>
 
-    <ListItems v-model="listItemsDlg" />
+    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" />
 
-    <ListChildItems v-model="childListDlg" :cell-value="localCellValue" @attach-record="onAttachRecord" />
+    <LazyVirtualCellComponentsListChildItems
+      v-model="childListDlg"
+      :cell-value="localCellValue"
+      @attach-record="onAttachRecord"
+    />
   </div>
 </template>
 

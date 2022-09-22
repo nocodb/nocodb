@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { navigateTo } from '#app'
-import { computed, useGlobal, useProject, useRoute, useSidebar } from '#imports'
+import { computed, navigateTo, useGlobal, useProject, useRoute, useSidebar } from '#imports'
 
 const { signOut, signedIn, user, currentVersion } = useGlobal()
 

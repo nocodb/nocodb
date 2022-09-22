@@ -1,20 +1,34 @@
 import type { SortType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { message } from 'ant-design-vue'
-import { IsPublicInj, ReloadViewDataHookInj, extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
+import {
+  IsPublicInj,
+  ReloadViewDataHookInj,
+  extractSdkResponseErrorMsg,
+  inject,
+  message,
+  ref,
+  useNuxtApp,
+  useProject,
+  useSharedView,
+  useSmartsheetStoreOrThrow,
+  useUIPermission,
+  watch,
+} from '#imports'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
   const { sharedView } = useSharedView()
+
   const { sorts } = useSmartsheetStoreOrThrow()
-
-  const reloadHook = inject(ReloadViewDataHookInj)
-
-  const isPublic = inject(IsPublicInj, ref(false))
 
   const { $api, $e } = useNuxtApp()
 
   const { isUIAllowed } = useUIPermission()
+
   const { isSharedBase } = useProject()
+
+  const reloadHook = inject(ReloadViewDataHookInj)
+
+  const isPublic = inject(IsPublicInj, ref(false))
 
   const loadSorts = async () => {
     if (isPublic.value) {

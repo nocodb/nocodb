@@ -2,7 +2,7 @@
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, computed, inject, ref, resolveComponent } from '#imports'
+import { MetaInj, computed, inject, ref } from '#imports'
 
 const { modelValue, isSort } = defineProps<{
   modelValue?: string
@@ -26,7 +26,7 @@ const options = computed<SelectProps['options']>(() =>
         return !(
           c.uidt === UITypes.LinkToAnotherRecord && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO
         )
-        /** ignore vutual fields which are system fields ( mm relation ) */
+        /** ignore virtual fields which are system fields ( mm relation ) */
       } else {
         return !c.colOptions || !c.system
       }
@@ -34,14 +34,9 @@ const options = computed<SelectProps['options']>(() =>
     .map((c: ColumnType) => ({
       value: c.id,
       label: c.title,
-      icon: h(
-        isVirtualCol(c)
-          ? resolveComponent('LazySmartsheetHeaderVirtualCellIcon')
-          : resolveComponent('LazySmartsheetHeaderCellIcon'),
-        {
-          columnMeta: c,
-        },
-      ),
+      icon: h(isVirtualCol(c) ? () => import('../header/VirtualCellIcon.vue') : () => import('../header/CellIcon.vue'), {
+        columnMeta: c,
+      }),
       c,
     })),
 )

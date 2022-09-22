@@ -70,3 +70,9 @@ export enum LockType {
   Locked = 'locked',
   Collaborative = 'collaborative',
 }
+
+export enum TabType {
+  TABLE = 'table',
+  VIEW = 'view',
+  AUTH = 'auth',
+}

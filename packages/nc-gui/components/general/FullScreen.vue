@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { useSidebar } from '#imports'
+import { computed, useSidebar } from '#imports'
 
 const rightSidebar = useSidebar('nc-right-sidebar')
+
 const leftSidebar = useSidebar('nc-left-sidebar')
 
 const isSidebarsOpen = computed({

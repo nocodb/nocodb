@@ -15,8 +15,7 @@ import {
   useTheme,
   watch,
 } from '#imports'
-import type { ProjectMetaInfo } from '~/lib'
-import type { ThemeConfig } from '@/composables/useTheme'
+import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
 
 const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   const { $e } = useNuxtApp()
@@ -87,6 +86,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     } else if (projectType === 'base') {
       try {
         const baseData = await api.public.sharedBaseGet(route.params.projectId as string)
+
         project.value = await api.project.read(baseData.project_id!)
       } catch (e: any) {
         if (e?.response?.status === 404) {

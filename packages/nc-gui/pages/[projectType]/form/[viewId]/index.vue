@@ -37,7 +37,10 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
       class="bg-white relative flex flex-col justify-center gap-2 w-full lg:max-w-1/2 max-w-500px m-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
     >
       <template v-if="sharedFormView">
-        <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+        <LazyGeneralNocoIcon
+          class="color-transition hover:(ring ring-accent)"
+          :class="[isLoading ? 'animated-bg-gradient' : '']"
+        />
 
         <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView?.heading }}</h1>
 
@@ -71,14 +74,14 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
             <div class="nc-form h-full max-w-3/4 mx-auto">
               <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col my-6 gap-2">
                 <div class="flex nc-form-column-label">
-                  <SmartsheetHeaderVirtualCell
+                  <LazySmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(field)"
                     :column="{ ...field, title: field.label || field.title }"
                     :required="isRequired(field, field.required)"
                     :hide-menu="true"
                   />
 
-                  <SmartsheetHeaderCell
+                  <LazySmartsheetHeaderCell
                     v-else
                     :column="{ ...field, title: field.label || field.title }"
                     :required="isRequired(field, field.required)"
@@ -87,7 +90,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                 </div>
 
                 <div v-if="isVirtualCol(field)" class="mt-0">
-                  <SmartsheetVirtualCell
+                  <LazySmartsheetVirtualCell
                     class="mt-0 nc-input"
                     :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
                     :column="field"
@@ -103,7 +106,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                 </div>
 
                 <div v-else class="mt-0">
-                  <SmartsheetCell
+                  <LazySmartsheetCell
                     v-model="formState[field.title]"
                     class="nc-input"
                     :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"

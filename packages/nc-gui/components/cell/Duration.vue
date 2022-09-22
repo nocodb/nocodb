@@ -1,6 +1,14 @@
 <script setup lang="ts">
-import { ColumnInj, computed, convertDurationToSeconds, convertMS2Duration, durationOptions, inject, ref } from '#imports'
-import { EditModeInj } from '~/context'
+import {
+  ColumnInj,
+  EditModeInj,
+  computed,
+  convertDurationToSeconds,
+  convertMS2Duration,
+  durationOptions,
+  inject,
+  ref,
+} from '#imports'
 
 interface Props {
   modelValue: number | string | null | undefined
@@ -72,7 +80,9 @@ const submitDuration = () => {
       @keypress="checkDurationFormat($event)"
       @keydown.enter="submitDuration"
     />
+
     <span v-else> {{ localState }}</span>
+
     <div v-if="showWarningMessage" class="duration-warning">
       <!-- TODO: i18n -->
       Please enter a number

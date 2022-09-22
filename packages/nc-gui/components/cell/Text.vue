@@ -25,5 +25,6 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     class="h-full w-full outline-none bg-transparent"
     @blur="editEnabled = false"
   />
+
   <span v-else>{{ vModel }}</span>
 </template>

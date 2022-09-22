@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import { Empty, Form, message } from 'ant-design-vue'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
+  Empty,
+  Form,
   MetaInj,
   ReloadViewDataHookInj,
   computed,
@@ -12,6 +13,7 @@ import {
   fieldRequiredValidator,
   getUIDTIcon,
   inject,
+  message,
   nextTick,
   onMounted,
   reactive,
@@ -22,7 +24,7 @@ import {
   useTabs,
   useTemplateRefsList,
 } from '#imports'
-import { TabType } from '~/composables'
+import { TabType } from '~/lib'
 
 const { quickImportType, projectTemplate, importData, importColumns, importOnly, maxRowsToParse } = defineProps<Props>()
 
@@ -546,6 +548,7 @@ function handleEditableTnChange(idx: number) {
           available for import
         </p>
       </a-form>
+
       <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel" class="template-collapse" accordion>
         <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
           <template #header>
@@ -603,6 +606,7 @@ function handleEditableTnChange(idx: number) {
         </a-collapse-panel>
       </a-collapse>
     </a-card>
+
     <a-card v-else>
       <a-form :model="data" name="template-editor-form" @keydown.enter="emit('import')">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">

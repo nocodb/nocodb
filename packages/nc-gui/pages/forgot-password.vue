@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { definePageMeta, extractSdkResponseErrorMsg, isEmail, reactive, ref, useApi, useI18n } from '#imports'
 
+definePageMeta({
+  requiresAuth: false,
+})
+
 const { api, isLoading } = useApi()
 
 const { t } = useI18n()
-
-definePageMeta({
-  requiresAuth: false,
-  title: 'title.resetPassword',
-})
 
 let error = $ref<string | null>(null)
 

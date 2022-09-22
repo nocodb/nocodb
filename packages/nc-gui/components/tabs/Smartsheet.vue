@@ -10,6 +10,7 @@ import {
   OpenNewRecordFormHookInj,
   ReloadKanbanMetaHookInj,
   ReloadViewDataHookInj,
+  ReloadViewMetaHookInj,
   computed,
   inject,
   provide,

@@ -11,6 +11,7 @@ const {
   setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
 const t8a = require("../common/8a_webhook");
+const t9b = require("../common/9b_ERD");
 
 const nocoTestSuite = (apiType, dbType) => {
   setCurrentMode(apiType, dbType);
@@ -31,7 +32,7 @@ const nocoTestSuite = (apiType, dbType) => {
   t6f.genTest(apiType, dbType);
 
   // ERD:
-  // t9b.genTest(apiType, dbType);
+  t9b.genTest(apiType, dbType);
 
   // Webhook tests
   t8a.genTest(apiType, dbType);

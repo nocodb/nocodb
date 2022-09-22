@@ -16,17 +16,17 @@ import { importData, importLTARData } from './readAndProcessData';
 dayjs.extend(utc);
 
 const selectColors = {
-  "blue": "#cfdfff",
-  "cyan": "#d0f0fd",
-  "teal": "#c2f5e9",
-  "green": "#d1f7c4",
-  "orange": "#fee2d5",
-  "yellow": "#ffeab6",
-  "red": "#ffdce5",
-  "pink": "#ffdaf6",
-  "purple": "#ede2fe",
-  "gray": "#eee"
-}
+  blue: '#cfdfff',
+  cyan: '#d0f0fd',
+  teal: '#c2f5e9',
+  green: '#d1f7c4',
+  orange: '#fee2d5',
+  yellow: '#ffeab6',
+  red: '#ffdce5',
+  pink: '#ffdaf6',
+  purple: '#ede2fe',
+  gray: '#eee',
+};
 
 export default async (
   syncDB: AirtableSyncConfig,
@@ -411,13 +411,15 @@ export default async (
           // TODO fix record mapping (this causes every record to map first option, we can't handle them using data api as they don't provide option id within data we might instead get the correct mapping from schema file )
           let dupNo = 1;
           const defaultName = (value as any).name;
-          while (options.find(el => el.title === (value as any).name)) {
+          while (options.find((el) => el.title === (value as any).name)) {
             (value as any).name = `${defaultName}_${dupNo++}`;
           }
           options.push({
             order: order++,
             title: (value as any).name,
-            color: selectColors[(value as any).color] ? selectColors[(value as any).color] : null
+            color: selectColors[(value as any).color]
+              ? selectColors[(value as any).color]
+              : null,
           });
 
           sMap.addToMappingTbl(
@@ -538,9 +540,11 @@ export default async (
           case 'select':
           case 'multiSelect':
             ncCol.colOptions = {
-              options: [...colOptions.data]
-            }
-            ncCol.dtxp = colOptions.data.map(el => `'${el.title}'`).join(',');
+              options: [...colOptions.data],
+            };
+            // if options are empty, configure '' as default option
+            ncCol.dtxp =
+              colOptions.data.map((el) => `'${el.title}'`).join(',') || "''";
             break;
           case undefined:
             break;
@@ -1362,12 +1366,14 @@ export default async (
           break;
 
         case UITypes.MultiSelect:
-          rec[key] = value.map((v) => {
-            if (v === '') {
-              return 'nc_empty';
-            }
-            return `${v.replace(/,/g, '.')}`;
-          }).join(',');
+          rec[key] = value
+            .map((v) => {
+              if (v === '') {
+                return 'nc_empty';
+              }
+              return `${v.replace(/,/g, '.')}`;
+            })
+            .join(',');
           break;
 
         case UITypes.Attachment:
@@ -2215,6 +2221,7 @@ export default async (
             logDetailed,
             records: recordsMap[ncTbl.id],
             atNcAliasRef,
+            ncLinkMappingTable,
           });
         }
 

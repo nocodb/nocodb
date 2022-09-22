@@ -136,6 +136,7 @@ export async function importLTARData({
   logBasic = (_str) => {},
   records,
   atNcAliasRef,
+  ncLinkMappingTable,
 }: {
   projectName: string;
   table: { title?: string; id?: string };
@@ -151,6 +152,7 @@ export async function importLTARData({
       [ncTitle: string]: string;
     };
   };
+  ncLinkMappingTable: Record<string, Record<string, any>>[];
 }) {
   const assocTableMetas: Array<{
     modelMeta: { id?: string; title?: string };
@@ -181,6 +183,9 @@ export async function importLTARData({
 
     // skip if already inserted
     if (colMeta.colOptions.fk_mm_model_id in insertedAssocRef) continue;
+
+    // self links: skip if the column under consideration is the add-on column NocoDB creates
+    if (ncLinkMappingTable.every((a) => a.nc.title !== colMeta.title)) continue;
 
     // mark as inserted
     insertedAssocRef[colMeta.colOptions.fk_mm_model_id] = true;

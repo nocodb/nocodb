@@ -187,7 +187,7 @@ export class _projectsPage {
 
             if (cred.databaseType === 1) {
                 cy.get('.nc-extdb-db-type').should('exist').click();
-                cy.getActiveSelection().find('.ant-select-item-option').contains("PostgreSQL").click();
+                cy.getActiveSelection('.nc-dropdown-ext-db-type').find('.ant-select-item-option').contains("PostgreSQL").click();
             }
 
             if (cred.databaseName !== "") {

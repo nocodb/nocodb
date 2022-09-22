@@ -1,29 +1,53 @@
 import type { MaybeRef } from '@vueuse/core'
-import { SqlUiFactory } from 'nocodb-sdk'
 import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
-import { useNuxtApp, useRoute } from '#app'
-import type { ProjectMetaInfo } from '~/lib'
+import { SqlUiFactory } from 'nocodb-sdk'
+import { isString } from '@vueuse/core'
+import {
+  USER_PROJECT_ROLES,
+  computed,
+  createEventHook,
+  ref,
+  useApi,
+  useGlobal,
+  useInjectionState,
+  useNuxtApp,
+  useRoute,
+  useState,
+  useTheme,
+  watch,
+} from '#imports'
+import type { ProjectMetaInfo, Roles } from '~/lib'
 import type { ThemeConfig } from '@/composables/useTheme'
-import { useInjectionState } from '#imports'
 
 const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
-  const { $api, $e } = useNuxtApp()
+  const { $e } = useNuxtApp()
+
+  const { api, isLoading } = useApi()
+
   const route = useRoute()
+
   const { includeM2M } = useGlobal()
+
   const { setTheme, theme } = useTheme()
 
-  const projectId = computed(() => (_projectId ? unref(_projectId) : (route.params.projectId as string)))
+  const projectLoadedHook = createEventHook<ProjectType>()
+
   const project = ref<ProjectType>({})
+
   const tables = ref<TableType[]>([])
-  const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
+
+  const projectRoles = useState<Roles>(USER_PROJECT_ROLES, () => ({}))
+
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
+
+  const projectId = computed(() => (_projectId ? unref(_projectId) : (route.params.projectId as string)))
 
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
 
-  const projectMeta = computed(() => {
+  const projectMeta = computed<Record<string, any>>(() => {
     try {
-      return typeof project.value.meta === 'string' ? JSON.parse(project.value.meta) : project.value.meta
+      return isString(project.value.meta) ? JSON.parse(project.value.meta) : project.value.meta
     } catch (e) {
       return {}
     }
@@ -40,17 +64,19 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   const isPg = computed(() => projectBaseType === 'pg')
   const isSharedBase = computed(() => projectType === 'base')
 
+  const router = useRouter()
+
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
-      const data = await $api.project.metaGet(project.value.id!, {}, {})
-      projectMetaInfo.value = data
+      projectMetaInfo.value = await api.project.metaGet(project.value.id!, {}, {})
     }
   }
 
   async function loadProjectRoles() {
     projectRoles.value = {}
+
     if (isSharedBase.value) {
-      const user = await $api.auth.me(
+      const user = await api.auth.me(
         {},
         {
           headers: {
@@ -58,34 +84,50 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
           },
         },
       )
+
       projectRoles.value = user.roles
     } else if (project.value.id) {
-      const user = await $api.auth.me({ project_id: project.value.id })
+      const user = await api.auth.me({ project_id: project.value.id })
       projectRoles.value = user.roles
     }
   }
 
   async function loadTables() {
     if (project.value.id) {
-      const tablesResponse = await $api.dbTable.list(project.value.id, {
+      const tablesResponse = await api.dbTable.list(project.value.id, {
         includeM2M: includeM2M.value,
       })
+
       if (tablesResponse.list) tables.value = tablesResponse.list
     }
   }
 
-  async function loadProject() {
-    if (projectType === 'base') {
-      const baseData = await $api.public.sharedBaseGet(route.params.projectId as string)
-      project.value = await $api.project.read(baseData.project_id!)
+  async function loadProject(id?: string) {
+    if (id) {
+      project.value = await api.project.read(projectId.value)
+    } else if (projectType === 'base') {
+      try {
+        const baseData = await api.public.sharedBaseGet(route.params.projectId as string)
+        project.value = await api.project.read(baseData.project_id!)
+      } catch (e: any) {
+        if (e?.response?.status === 404) {
+          return router.push('/error/404')
+        }
+        throw e
+      }
     } else if (projectId.value) {
-      project.value = await $api.project.read(projectId.value)
+      project.value = await api.project.read(projectId.value)
     } else {
       return
     }
+
     await loadProjectRoles()
+
     await loadTables()
+
     setTheme(projectMeta.value?.theme)
+
+    projectLoadedHook.trigger(project.value)
   }
 
   async function updateProject(data: Partial<ProjectType>) {
@@ -93,15 +135,13 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
       return
     }
     if (data.meta && typeof data.meta === 'string') {
-      await $api.project.update(projectId.value, data)
+      await api.project.update(projectId.value, data)
     } else {
-      await $api.project.update(projectId.value, { ...data, meta: JSON.stringify(data.meta) })
+      await api.project.update(projectId.value, { ...data, meta: JSON.stringify(data.meta) })
     }
   }
 
   async function saveTheme(_theme: Partial<ThemeConfig>) {
-    $e('c:themes:change')
-
     const fullTheme = {
       primaryColor: theme.value.primaryColor,
       accentColor: theme.value.accentColor,
@@ -115,25 +155,27 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
         theme: fullTheme,
       },
     })
+
     setTheme(fullTheme)
+
+    $e('c:themes:change')
   }
 
   watch(
     () => route.params,
-    (v) => {
-      if (!v?.projectId) {
+    (next) => {
+      if (!next.projectId) {
         setTheme()
       }
     },
   )
 
-  // TODO useProject should only called inside a project for now this doesn't work
-  onScopeDispose(() => {
+  const reset = () => {
     project.value = {}
     tables.value = []
     projectMetaInfo.value = undefined
     projectRoles.value = {}
-  })
+  }
 
   return {
     project,
@@ -151,6 +193,9 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     projectMetaInfo,
     projectMeta,
     saveTheme,
+    projectLoadedHook: projectLoadedHook.on,
+    reset,
+    isLoading,
   }
 }, 'useProject')
 

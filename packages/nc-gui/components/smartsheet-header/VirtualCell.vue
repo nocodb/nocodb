@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
-import { useI18n } from 'vue-i18n'
 import {
   ColumnInj,
   IsFormInj,
@@ -11,12 +10,13 @@ import {
   provide,
   ref,
   toRef,
+  useI18n,
   useMetas,
   useUIPermission,
   useVirtualCell,
 } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required?: boolean | number }>()
+const props = defineProps<{ column: ColumnType; hideMenu?: boolean; required?: boolean | number }>()
 
 const { t } = useI18n()
 
@@ -32,7 +32,7 @@ const { metas } = useMetas()
 
 const { isUIAllowed } = useUIPermission()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -115,7 +115,13 @@ const tooltipMsg = computed(() => {
       <SmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
     </template>
 
-    <a-dropdown v-model:visible="editColumnDropdown" class="h-full" :trigger="['click']" placement="bottomRight">
+    <a-dropdown
+      v-model:visible="editColumnDropdown"
+      class="h-full"
+      :trigger="['click']"
+      placement="bottomRight"
+      overlay-class-name="nc-dropdown-edit-column"
+    >
       <div />
       <template #overlay>
         <SmartsheetColumnEditOrAddProvider

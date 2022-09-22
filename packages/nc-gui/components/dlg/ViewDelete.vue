@@ -48,7 +48,7 @@ async function onDelete() {
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" class="!top-[35%]" :confirm-loading="isLoading">
+  <a-modal v-model:visible="vModel" class="!top-[35%]" :confirm-loading="isLoading" wrap-class-name="nc-modal-view-delete">
     <template #title> {{ $t('general.delete') }} {{ $t('objects.view') }} </template>
 
     {{ $t('msg.info.deleteViewConfirmation') }}

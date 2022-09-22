@@ -1,4 +1,4 @@
-import path from 'path'
+import { dirname, resolve } from 'node:path'
 import { defineNuxtConfig } from 'nuxt'
 import vueI18n from '@intlify/vite-plugin-vue-i18n'
 import Icons from 'unplugin-icons/vite'
@@ -13,9 +13,12 @@ export default defineNuxtConfig({
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge'],
 
   ssr: false,
+
   app: {
+    /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
     cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
   },
+
   css: [
     'virtual:windi.css',
     'virtual:windi-devtools',
@@ -48,13 +51,14 @@ export default defineNuxtConfig({
   },
 
   vite: {
-    // todo: minifiy again
     build: {
-      minify: false,
+      commonjsOptions: {
+        ignoreTryCatch: false,
+      },
     },
     plugins: [
       vueI18n({
-        include: path.resolve(__dirname, './lang'),
+        include: [resolve(dirname('./lang/**'))],
         runtimeOnly: false,
       }),
       Icons({
@@ -103,6 +107,7 @@ export default defineNuxtConfig({
       },
     },
   },
+
   experimental: {
     reactivityTransform: true,
   },
@@ -110,6 +115,7 @@ export default defineNuxtConfig({
   image: {
     dir: 'assets/',
   },
+
   autoImports: {
     dirs: ['./context', './utils', './lib'],
     imports: [{ name: 'useI18n', from: 'vue-i18n' }],

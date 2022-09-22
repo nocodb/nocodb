@@ -19,7 +19,7 @@ const { api, isLoading } = useApi()
 
 const { t } = useI18n()
 
-useSidebar({ hasSidebar: false })
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 definePageMeta({
   requiresAuth: false,
@@ -152,7 +152,7 @@ function resetError() {
 
   .password {
     input {
-      @apply !border-none;
+      @apply !border-none !m-0;
     }
   }
 

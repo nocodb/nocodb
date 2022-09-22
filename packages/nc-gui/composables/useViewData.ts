@@ -1,8 +1,7 @@
+import { ViewTypes } from 'nocodb-sdk'
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { useNuxtApp } from '#app'
 import {
   IsPublicInj,
   NOCO,
@@ -10,6 +9,8 @@ import {
   extractSdkResponseErrorMsg,
   getHTMLEncodedText,
   useApi,
+  useI18n,
+  useNuxtApp,
   useProject,
   useUIPermission,
 } from '#imports'
@@ -33,8 +34,8 @@ export interface Row {
 }
 
 export function useViewData(
-  meta: Ref<TableType> | ComputedRef<TableType> | undefined,
-  viewMeta: Ref<ViewType & { id: string }> | ComputedRef<ViewType & { id: string }> | undefined,
+  meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
+  viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
   where?: ComputedRef<string | undefined>,
 ) {
   if (!meta) {
@@ -47,8 +48,7 @@ export function useViewData(
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
   const galleryData = ref<GalleryType>()
   const formColumnData = ref<FormType>()
-  // todo: missing properties on FormType (success_msg, show_blank_form,
-  const formViewData = ref<FormType & { success_msg?: string; show_blank_form?: boolean }>()
+  const formViewData = ref<FormType>()
   const formattedData = ref<Row[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
@@ -153,19 +153,19 @@ export function useViewData(
 
     aggCommentCount.value = await $api.utils.commentCount({
       ids,
-      fk_model_id: meta?.value.id as string,
+      fk_model_id: meta.value?.id as string,
     })
 
     for (const row of formattedData.value) {
-      const id = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
+      const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
       row.rowMeta.commentCount = aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
     }
   }
 
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
-    if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
+    if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
     const response = !isPublic.value
-      ? await api.dbViewRow.list('noco', project.value.id!, meta!.value.id!, viewMeta!.value.id, {
+      ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
           ...queryParams.value,
           ...params,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
@@ -175,7 +175,9 @@ export function useViewData(
       : await fetchSharedViewData()
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
-    await loadAggCommentsCount()
+    if (viewMeta.value?.type === ViewTypes.GRID) {
+      await loadAggCommentsCount()
+    }
   }
 
   async function loadGalleryData() {
@@ -196,7 +198,7 @@ export function useViewData(
       const insertedData = await $api.dbViewRow.create(
         NOCO,
         project?.value.id as string,
-        meta?.value.id as string,
+        meta.value?.id as string,
         viewMeta?.value?.id as string,
         insertObj,
       )
@@ -216,12 +218,12 @@ export function useViewData(
 
   async function updateRowProperty(toUpdate: Row, property: string) {
     try {
-      const id = extractPkFromRow(toUpdate.row, meta?.value.columns as ColumnType[])
+      const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
 
       const updatedRowData = await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
-        meta?.value.id as string,
+        meta.value?.id as string,
         viewMeta?.value?.id as string,
         id,
         {
@@ -235,7 +237,7 @@ export function useViewData(
       // audit
       $api.utils
         .auditRowUpdate(id, {
-          fk_model_id: meta?.value.id as string,
+          fk_model_id: meta.value?.id as string,
           column_name: property,
           row_id: id,
           value: getHTMLEncodedText(toUpdate.row[property]),
@@ -273,8 +275,8 @@ export function useViewData(
     const res: any = await $api.dbViewRow.delete(
       'noco',
       project.value.id as string,
-      meta?.value.id as string,
-      viewMeta?.value.id as string,
+      meta.value?.id as string,
+      viewMeta.value?.id as string,
       id,
     )
 
@@ -295,7 +297,7 @@ export function useViewData(
       if (!row.rowMeta.new) {
         const id = meta?.value?.columns
           ?.filter((c) => c.pk)
-          .map((c) => row.row[c.title as any])
+          .map((c) => row.row[c.title!])
           .join('___')
 
         const deleted = await deleteRowById(id as string)
@@ -362,7 +364,7 @@ export function useViewData(
         ?.map((c: Record<string, any>) => ({
           ...c,
           fk_column_id: c.id,
-          fk_view_id: viewMeta.value.id,
+          fk_view_id: viewMeta.value?.id,
           ...(fieldById[c.id] ? fieldById[c.id] : {}),
           order: (fieldById[c.id] && fieldById[c.id].order) || order++,
           id: fieldById[c.id] && fieldById[c.id].id,

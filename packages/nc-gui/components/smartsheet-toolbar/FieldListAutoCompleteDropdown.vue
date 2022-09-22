@@ -2,8 +2,7 @@
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { computed } from 'vue'
-import { MetaInj } from '~/context'
+import { MetaInj, computed } from '#imports'
 import VirtualCellIcon from '~/components/smartsheet-header/VirtualCellIcon.vue'
 import CellIcon from '~/components/smartsheet-header/CellIcon.vue'
 
@@ -16,39 +15,13 @@ const { modelValue, isSort } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const localValue = computed({
   get: () => modelValue,
   set: (val) => emit('update:modelValue', val),
 })
 
-/* export default {
-  name: 'FieldListAutoCompleteDropdown',
-  props: {
-    columns: Array,
-    value: String,
-  },
-  computed: {
-    localValue: {
-      set(v) {
-        this.$emit('input', v)
-      },
-      get() {
-        return this.value
-      },
-    },
-  },
-  mounted() {
-    const autocompleteInput = this.$refs.field.$refs.input
-    autocompleteInput.addEventListener('focus', this.onFocus, true)
-  },
-  methods: {
-    onFocus(e) {
-      this.$refs.field.isMenuActive = true // open item list
-    },
-  },
-} */
 const options = computed<SelectProps['options']>(() =>
   meta?.value?.columns
     ?.filter((c: ColumnType) => {
@@ -84,6 +57,7 @@ const filterOption = (input: string, option: any) => {
     show-search
     :placeholder="$t('placeholder.selectField')"
     :filter-option="filterOption"
+    dropdown-class-name="nc-dropdown-toolbar-field-list"
   >
     <a-select-option v-for="option in options" :key="option.value" :value="option.value">
       <div class="flex gap-2 items-center items-center h-full">

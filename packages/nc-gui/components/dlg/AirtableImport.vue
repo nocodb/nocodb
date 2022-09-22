@@ -65,8 +65,8 @@ const syncSource = ref({
 })
 
 const validators = computed(() => ({
-  'details.apiKey': [fieldRequiredValidator],
-  'details.syncSourceUrlOrId': [fieldRequiredValidator],
+  'details.apiKey': [fieldRequiredValidator()],
+  'details.syncSourceUrlOrId': [fieldRequiredValidator()],
 }))
 
 const dialogShow = computed({
@@ -208,9 +208,10 @@ onMounted(async () => {
   socket.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
 
-    // FIXME: this doesn't work
     await nextTick(() => {
-      ;(logRef.value?.$el as HTMLDivElement).scrollTo()
+      const container: HTMLDivElement = logRef.value?.$el?.firstElementChild
+      if (!container) return
+      container.scrollTop = container.scrollHeight
     })
 
     if (d.status === 'COMPLETED') {
@@ -231,7 +232,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" class="p-2" @keydown.esc="dialogShow = false">
+  <a-modal
+    v-model:visible="dialogShow"
+    width="max(30vw, 600px)"
+    class="p-2"
+    wrap-class-name="nc-modal-airtable-import"
+    @keydown.esc="dialogShow = false"
+  >
     <div class="px-5">
       <!--      Quick Import -->
       <div class="mt-5 prose-xl font-weight-bold">{{ $t('title.quickImport') }} - AIRTABLE</div>
@@ -245,7 +252,8 @@ onBeforeUnmount(() => {
             href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials"
             class="prose-sm underline text-grey text-xs"
             target="_blank"
-            >{{ $t('msg.info.airtable.credentials') }}
+          >
+            {{ $t('msg.info.airtable.credentials') }}
           </a>
         </div>
 
@@ -280,30 +288,30 @@ onBeforeUnmount(() => {
 
           <!--          Import Secondary Views -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncViews">{{
-              $t('labels.importSecondaryViews')
-            }}</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncViews">
+              {{ $t('labels.importSecondaryViews') }}
+            </a-checkbox>
           </div>
 
           <!--          Import Rollup Columns -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncRollup">{{
-              $t('labels.importRollupColumns')
-            }}</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncRollup">
+              {{ $t('labels.importRollupColumns') }}
+            </a-checkbox>
           </div>
 
           <!--          Import Lookup Columns -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncLookup">{{
-              $t('labels.importLookupColumns')
-            }}</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncLookup">
+              {{ $t('labels.importLookupColumns') }}
+            </a-checkbox>
           </div>
 
           <!--          Import Attachment Columns -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">{{
-              $t('labels.importAttachmentColumns')
-            }}</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncAttachment">
+              {{ $t('labels.importAttachmentColumns') }}
+            </a-checkbox>
           </div>
 
           <!--          Import Formula Columns -->
@@ -311,9 +319,9 @@ onBeforeUnmount(() => {
             <template #title>
               <span>Coming Soon!</span>
             </template>
-            <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>{{
-              $t('labels.importFormulaColumns')
-            }}</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>
+              {{ $t('labels.importFormulaColumns') }}
+            </a-checkbox>
           </a-tooltip>
         </a-form>
 
@@ -321,8 +329,8 @@ onBeforeUnmount(() => {
 
         <!--        Questions / Help - Reach out here -->
         <div>
-          <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank"
-            >{{ $t('general.questions') }} / {{ $t('general.help') }} - {{ $t('general.reachOut') }}</a
+          <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">
+            {{ $t('general.questions') }} / {{ $t('general.help') }} - {{ $t('general.reachOut') }}</a
           >
 
           <br />
@@ -331,8 +339,8 @@ onBeforeUnmount(() => {
             {{ $t('general.betaNote') }}
             <a class="prose-sm" href="https://github.com/nocodb/nocodb/discussions/2122" target="_blank">{{
               $t('general.moreInfo')
-            }}</a
-            >.
+            }}</a>
+            .
           </div>
         </div>
       </div>
@@ -385,7 +393,7 @@ onBeforeUnmount(() => {
         <!--        Import -->
         <a-button
           key="submit"
-          v-t="['c:sync-airtable:save-and-sync']"
+          v-e="['c:sync-airtable:save-and-sync']"
           type="primary"
           class="nc-btn-airtable-import"
           :disabled="disableImportButton"

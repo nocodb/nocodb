@@ -628,11 +628,13 @@ export default class Model implements TableType {
           ],
         }
       );
-      await NocoCache.set(
-        `${CacheScope.MODEL}:${project_id}:${aliasOrId}`,
-        model.id
-      );
-      await NocoCache.set(`${CacheScope.MODEL}:${model.id}`, model);
+      if (model) {
+        await NocoCache.set(
+          `${CacheScope.MODEL}:${project_id}:${aliasOrId}`,
+          model.id
+        );
+        await NocoCache.set(`${CacheScope.MODEL}:${model.id}`, model);
+      }
       return model && new Model(model);
     }
     return modelId && this.get(modelId);

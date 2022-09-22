@@ -67,7 +67,7 @@ const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
     :placeholder="placeholder"
     :allow-clear="!readOnly"
     :input-read-only="true"
-    :dropdown-class-name="randomClass"
+    :dropdown-class-name="`${randomClass} nc-picker-date`"
     :open="readOnly ? false : open"
     @click="open = !open"
   >

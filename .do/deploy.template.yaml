@@ -1,0 +1,24 @@
+spec:
+  name: nocodb
+  services:
+  - name: nocodb
+    image:
+      registry_type: DOCKER_HUB
+      registry: nocodb
+      repository: nocodb
+      tag: latest
+    run_command: "./server/scripts/digitalocean-postbuild.sh"
+    instance_size_slug: "basic-s"
+    health_check:
+      initial_delay_seconds: 10
+      http_path: /api/health
+    envs:
+    - key: NODE_ENV
+      value: "production"
+    - key: DATABASE_URL
+      scope: RUN_TIME
+      value: ${postgres.DATABASE_URL}
+  databases:
+    - name: postgres
+      engine: PG
+      production: false

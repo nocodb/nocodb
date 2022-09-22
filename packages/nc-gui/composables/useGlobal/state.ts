@@ -4,7 +4,7 @@ import type { JwtPayload } from 'jwt-decode'
 import type { AppInfo, State, StoredState } from './types'
 import { BASE_URL } from '~/lib'
 import { computed, ref, toRefs, useCounter, useNuxtApp, useTimestamp } from '#imports'
-import type { User } from '~/lib'
+import type { Language, User } from '~/lib'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */
@@ -22,15 +22,15 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
 
   /**
    * Set initial language based on browser settings.
-   * If the user has not set a preferred language, we fallback to 'en'.
+   * If the user has not set a preferred language, we fall back to 'en'.
    * If the user has set a preferred language, we try to find a matching locale in the available locales.
    */
-  const preferredLanguage = preferredLanguages.reduce((locale, language) => {
+  const preferredLanguage = preferredLanguages.reduce<keyof typeof Language>((locale, language) => {
     /** split language to language and code, e.g. en-GB -> [en, GB] */
     const [lang, code] = language.split(/[_-]/)
 
     /** find all locales that match the language */
-    let availableLocales = i18n.availableLocales.filter((locale) => locale.startsWith(lang))
+    let availableLocales = i18n.global.availableLocales.filter((locale) => locale.startsWith(lang))
 
     /** If we can match more than one locale, we check if the code of the language matches as well */
     if (availableLocales.length > 1) {
@@ -41,7 +41,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     const availableLocale = availableLocales[0]
 
     /** if we found a matching locale, return it */
-    if (availableLocale) locale = availableLocale
+    if (availableLocale) locale = availableLocale as keyof typeof Language
 
     return locale
   }, 'en' /** fallback locale */)
@@ -49,7 +49,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** State */
   const initialState: StoredState = {
     token: null,
-    user: null,
     lang: preferredLanguage,
     darkMode: prefersDarkMode,
     feedbackForm: {
@@ -102,6 +101,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** global error */
   const error = ref()
 
+  /** our local user object */
+  const user = ref<User | null>(null)
+
   return {
     ...toRefs(storage.value),
     storage,
@@ -110,6 +112,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     timestamp,
     runningRequests,
     error,
+    user,
     appInfo,
   }
 }

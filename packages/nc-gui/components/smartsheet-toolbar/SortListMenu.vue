@@ -14,14 +14,14 @@ import {
   watch,
 } from '#imports'
 
-const meta = inject(MetaInj)
-const view = inject(ActiveViewInj)
+const meta = inject(MetaInj, ref())
+const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
 const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
-const columns = computed(() => meta?.value?.columns || [])
+const columns = computed(() => meta.value?.columns || [])
 
 const columnByID = computed(() =>
   columns.value.reduce((obj, col) => {
@@ -32,7 +32,7 @@ const columnByID = computed(() =>
 )
 
 watch(
-  () => (view?.value as any)?.id,
+  () => view.value?.id,
   () => {
     loadSorts()
   },
@@ -41,9 +41,9 @@ watch(
 </script>
 
 <template>
-  <a-dropdown offset-y class="" :trigger="['click']" overlay-class-name="sort-menu-overlay">
+  <a-dropdown offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu">
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
-      <a-button v-t="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
+      <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
         ><div class="flex items-center gap-1">
           <MdiSort />
           <!-- Sort -->
@@ -71,9 +71,9 @@ watch(
               v-model:value="sort.direction"
               class="shrink grow-0 nc-sort-dir-select !text-xs"
               :label="$t('labels.operation')"
+              dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir"
               @click.stop
               @select="saveOrUpdate(sort, i)"
-              dropdown-class-name="sort-dir-dropdown"
             >
               <a-select-option
                 v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"

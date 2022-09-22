@@ -10,6 +10,12 @@ export function useMetas() {
   const { tables } = useProject()
 
   const metas = useState<{ [idOrTitle: string]: TableType | any }>('metas', () => ({}))
+
+  const metasWithIdAsKey = computed<Record<string, TableType>>(() => {
+    const idEntries = Object.entries(metas.value).filter(([k, v]) => k === v.id)
+    return Object.fromEntries(idEntries)
+  })
+
   const loadingState = useState<Record<string, boolean>>('metas-loading-state', () => ({}))
 
   const setMeta = async (model: any) => {
@@ -91,5 +97,5 @@ export function useMetas() {
     }
   }
 
-  return { getMeta, clearAllMeta, metas, removeMeta, setMeta }
+  return { getMeta, clearAllMeta, metas, metasWithIdAsKey, removeMeta, setMeta }
 }

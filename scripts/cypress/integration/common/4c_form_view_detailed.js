@@ -58,37 +58,27 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            mainPage.tabReset();
+            // standalone test
             // loginPage.loginAndOpenProject(apiType, dbType);
-
-            // kludge: wait for page load to finish
-            cy.wait(2000);
-            // close team & auth tab
-            cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            cy.wait(1000);
 
             // open a table to work on views
             //
+            cy.restoreLocalStorage();
             cy.openTableTab("Country", 25);
-            mainPage.toggleRightSidebar();
-
-            cy.saveLocalStorage();
-            cy.wait(500);
         });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
-            cy.wait(500);
-
-            // fix me!
-            window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
         });
 
         afterEach(() => {
+            cy.saveLocalStorage();
         });
 
         after(() => {
+            cy.restoreLocalStorage();
             cy.closeTableTab("Country");
+            cy.saveLocalStorage();
         });
 
         // Common routine to create/edit/delete GRID & GALLERY view
@@ -96,11 +86,12 @@ export const genTest = (apiType, dbType) => {
         //
         const viewTest = (viewType) => {
             it(`Create ${viewType} view`, () => {
+
                 // click on 'Grid/Gallery' button on Views bar
                 cy.get(`.nc-create-${viewType}-view`).click();
 
                 // Pop up window, click Submit (accepting default name for view)
-                cy.getActiveModal().find("button:contains(Submit)").click();
+                cy.getActiveModal(".nc-modal-view-create").find("button:contains(Submit)").click();
 
                 cy.toastWait("View created successfully");
 
@@ -385,42 +376,16 @@ export const genTest = (apiType, dbType) => {
 
                 // validate if form has appeared again
                 validateFormHeader();
-
-                // // verify URL & copy it for subsequent test
-                // cy.url().should("contain", `Country/Form-1`);
-                // cy.url().then((url) => {
-                //     cy.log(url);
-                //     formViewURL = url;
-                // });
-                //
-                // cy.wait(300);
             });
 
-            // it.skip(`Validate ${viewType}: URL validation after re-access`, () => {
-            //     // visit URL
-            //     cy.log(formViewURL);
-            //
-            //     cy.visit(formViewURL, {
-            //         baseUrl: null,
-            //     });
-            //
-            //     // New form appeared? Header & description should exist
-            //     validateFormHeader();
-            // });
-
             it(`Delete ${viewType} view`, () => {
-                // cy.visit("/");
-                // cy.wait(5000);
-                // projectsPage.openConfiguredProject(apiType, dbType);
-                // cy.openTableTab("Country", 25);
-
                 // number of view entries should be 2 before we delete
                 cy.get(".nc-view-item").its("length").should("eq", 2);
 
                 // click on delete icon (becomes visible on hovering mouse)
                 cy.get(".nc-view-delete-icon").click({ force: true });
                 cy.wait(1000)
-                cy.getActiveModal().find('.ant-btn-dangerous').click();
+                cy.getActiveModal(".nc-modal-view-delete").find('.ant-btn-dangerous').click();
                 cy.toastWait("View deleted successfully");
 
                 // confirm if the number of veiw entries is reduced by 1
@@ -437,7 +402,7 @@ export const genTest = (apiType, dbType) => {
                 cy.get(".ant-checkbox").should('exist').eq(13).click({ force: true });
 
                 mainPage.getCell("Country", 10).rightclick({ force: true });
-                cy.getActiveMenu()
+                cy.getActiveMenu(".nc-dropdown-grid-context-menu")
                   .contains("Delete Selected Rows")
                   .click({ force: true });
             });

@@ -78,16 +78,24 @@ const container = computed(() =>
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref()
 
+/** reload children list whenever cell value changes and list is visible */
 watch(
   () => props.cellValue,
   () => {
-    if (!isNew.value) loadChildrenList()
+    if (!isNew.value && vModel.value) loadChildrenList()
   },
 )
 </script>
 
 <template>
-  <component :is="container" v-model:visible="vModel" :footer="null" title="Child list" :body-style="{ padding: 0 }">
+  <component
+    :is="container"
+    v-model:visible="vModel"
+    :footer="null"
+    title="Child list"
+    :body-style="{ padding: 0 }"
+    wrap-class-name="nc-modal-child-list"
+  >
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
         <div class="flex-1" />

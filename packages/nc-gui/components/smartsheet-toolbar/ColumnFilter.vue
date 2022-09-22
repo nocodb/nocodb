@@ -21,10 +21,12 @@ interface Props {
   parentId?: string
   autoSave: boolean
   hookId?: string
+  showLoading?: boolean
   modelValue?: Filter[]
+  webHook?: boolean
 }
 
-const { nested = false, parentId, autoSave = true, hookId = null, modelValue } = defineProps<Props>()
+const { nested = false, parentId, autoSave = true, hookId = null, modelValue, showLoading = true, webHook } = defineProps<Props>()
 
 const emit = defineEmits(['update:filtersLength'])
 
@@ -33,9 +35,9 @@ const logicalOps = [
   { value: 'or', text: 'OR' },
 ]
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
-const activeView = inject(ActiveViewInj)!
+const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
@@ -46,9 +48,7 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGr
   activeView,
   parentId,
   computed(() => autoSave),
-  () => {
-    reloadDataHook.trigger()
-  },
+  () => reloadDataHook.trigger(showLoading),
   modelValue || nestedFilters.value,
   !modelValue,
 )
@@ -102,7 +102,7 @@ const types = computed(() => {
 watch(
   () => activeView.value?.id,
   (n, o) => {
-    if (n !== o) loadFilters(hookId as string)
+    if (n !== o && (hookId || !webHook)) loadFilters(hookId as string)
   },
   { immediate: true },
 )
@@ -134,11 +134,11 @@ defineExpose({
 
 <template>
   <div
-    class="p-6 menu-filter-dropdown bg-gray-50 !border"
-    :class="{ 'shadow-xl min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
+    class="p-4 menu-filter-dropdown bg-gray-50 !border mt-4"
+    :class="{ 'shadow min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
   >
     <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
-      <template v-for="(filter, i) in filters" :key="filter.id || i">
+      <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
             <MdiCloseBox
@@ -156,6 +156,7 @@ defineExpose({
                 :dropdown-match-select-width="false"
                 class="shrink grow-0"
                 placeholder="Group op"
+                dropdown-class-name="nc-dropdown-filter-logical-op-group"
                 @click.stop
                 @change="saveOrUpdate(filter, i)"
               >
@@ -203,6 +204,7 @@ defineExpose({
               class="h-full"
               hide-details
               :disabled="filter.readOnly"
+              dropdown-class-name="nc-dropdown-filter-logical-op"
               @click.stop
               @change="filterUpdateCondition(filter, i)"
             >
@@ -230,6 +232,7 @@ defineExpose({
               variant="solo"
               :disabled="filter.readOnly"
               hide-details
+              dropdown-class-name="nc-dropdown-filter-comp-op"
               @change="filterUpdateCondition(filter, i)"
             >
               <a-select-option v-for="compOp in comparisonOpList" :key="compOp.value" :value="compOp.value" class="">
@@ -278,7 +281,7 @@ defineExpose({
           {{ $t('activity.addFilter') }}
         </div>
       </a-button>
-      <a-button class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
+      <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex items-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <!--          Add Filter Group -->

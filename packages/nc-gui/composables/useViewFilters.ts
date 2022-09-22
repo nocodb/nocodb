@@ -1,4 +1,4 @@
-import type { ViewType } from 'nocodb-sdk'
+import type { FilterType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
@@ -16,7 +16,7 @@ import {
 import type { Filter } from '~/lib'
 
 export function useViewFilters(
-  view: Ref<ViewType> | undefined,
+  view: Ref<ViewType | undefined>,
   parentId?: string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
@@ -46,7 +46,6 @@ export function useViewFilters(
         if (isNestedRoot) nestedFilters.value = value
 
         nestedFilters.value = [...nestedFilters.value]
-        reloadHook?.trigger()
         return
       }
 
@@ -69,13 +68,14 @@ export function useViewFilters(
         if (parentId) {
           filters.value = await $api.dbTableFilter.childrenRead(parentId)
         } else {
-          filters.value = (await $api.dbTableWebhookFilter.read(hookId as string)) as any
+          // todo: return type is incorrect
+          filters.value = (await $api.dbTableWebhookFilter.read(hookId!)) as unknown as Filter[]
         }
       } else {
         if (parentId) {
           filters.value = await $api.dbTableFilter.childrenRead(parentId)
         } else {
-          filters.value = await $api.dbTableFilter.read(view?.value?.id as string)
+          filters.value = await $api.dbTableFilter.read(view.value!.id!)
         }
       }
     } catch (e: any) {
@@ -99,12 +99,12 @@ export function useViewFilters(
             filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
               ...filter,
               fk_parent_id: parentId,
-            })) as any
+            })) as unknown as FilterType
           } else {
-            filters.value[+i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
+            filters.value[+i] = await $api.dbTableFilter.create(view?.value?.id as string, {
               ...filter,
               fk_parent_id: parentId,
-            })) as any
+            })
           }
         }
       }
@@ -149,7 +149,7 @@ export function useViewFilters(
   }
 
   const saveOrUpdate = async (filter: Filter, i: number, force = false) => {
-    if (!view?.value) return
+    if (!view.value) return
 
     try {
       if (nestedMode.value) {
@@ -168,11 +168,13 @@ export function useViewFilters(
         })
       } else {
         // todo: return type of dbTableFilter is void?
-        filters.value[i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
+        filters.value[i] = await $api.dbTableFilter.create(view.value.id!, {
           ...filter,
           fk_parent_id: parentId,
-        })) as any
+        })
       }
+
+      reloadHook?.trigger()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -182,12 +184,12 @@ export function useViewFilters(
   }
 
   const addFilter = () => {
-    filters.value.push(placeholderFilter)
+    filters.value.push({ ...placeholderFilter })
     $e('a:filter:add', { length: filters.value.length })
   }
 
   const addFilterGroup = async () => {
-    const child = placeholderFilter
+    const child = { ...placeholderFilter }
     const placeHolderGroupFilter: Filter = {
       is_group: true,
       status: 'create',

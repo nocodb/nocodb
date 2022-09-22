@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
+import type { RequestParams } from 'nocodb-sdk'
 import UsersModal from './user-management/UsersModal.vue'
 import FeedbackForm from './user-management/FeedbackForm.vue'
 import {
   extractSdkResponseErrorMsg,
-  onMounted,
-  projectRoleTagColors,
+  onBeforeMount,
   ref,
   useApi,
-  useClipboard,
+  useCopy,
   useDashboard,
+  useI18n,
   useNuxtApp,
   useProject,
   useUIPermission,
@@ -26,7 +26,7 @@ const { api } = useApi()
 
 const { project } = useProject()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -61,7 +61,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
         offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
         query: searchText.value,
       },
-    } as any)
+    } as RequestParams)
     if (!response.users) return
 
     totalRows = response.users.pageInfo.totalRows ?? 0
@@ -150,11 +150,13 @@ const copyInviteUrl = (user: User) => {
   $e('c:user:copy-url')
 }
 
-onMounted(() => {
+onBeforeMount(async () => {
   if (!users) {
     isLoading = true
 
-    loadUsers().finally(() => (isLoading = false))
+    await loadUsers()
+
+    isLoading = false
   }
 })
 
@@ -162,9 +164,10 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
 </script>
 
 <template>
-  <div v-if="isLoading" class="h-full w-full flex flex-row justify-center mt-42">
+  <div v-if="isLoading" class="h-full w-full flex items-center justify-center">
     <a-spin size="large" />
   </div>
+
   <div v-else class="flex flex-col w-full px-6">
     <UsersModal
       :key="showUserModal"
@@ -173,7 +176,14 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
       @closed="showUserModal = false"
       @reload="loadUsers()"
     />
-    <a-modal v-model:visible="showUserDeleteModal" :closable="false" width="28rem" centered :footer="null">
+    <a-modal
+      v-model:visible="showUserDeleteModal"
+      :closable="false"
+      width="28rem"
+      centered
+      :footer="null"
+      wrap-class-name="nc-modal-delete-user"
+    >
       <div class="flex flex-col h-full">
         <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
           This action will remove this user from this project
@@ -194,7 +204,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
       </div>
 
       <div class="flex flex-row space-x-1">
-        <a-button v-t="['a:user:reload']" size="middle" type="text" @click="loadUsers()">
+        <a-button v-e="['a:user:reload']" size="middle" type="text" @click="loadUsers()">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiReload class="text-gray-500" />
             <div class="text-gray-500">{{ $t('general.reload') }}</div>
@@ -202,7 +212,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </a-button>
         <a-button
           v-if="isUIAllowed('newUser')"
-          v-t="['c:user:invite']"
+          v-e="['c:user:invite']"
           size="middle"
           type="primary"
           ghost
@@ -275,14 +285,14 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <template #title>
               <span>{{ $t('activity.deleteUser') }}</span>
             </template>
-            <a-button v-t="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
+            <a-button v-e="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
               <template #icon>
                 <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
               </template>
             </a-button>
           </a-tooltip>
 
-          <a-dropdown :trigger="['click']" class="flex" placement="bottomRight">
+          <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
             <div class="flex flex-row items-center">
               <a-button type="text" class="!px-0">
                 <div class="flex flex-row items-center h-[1.2rem]">

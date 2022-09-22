@@ -772,6 +772,28 @@ export default class Column<T = any> implements ColumnType {
       await NocoCache.del(`${CacheScope.GALLERY_VIEW_COLUMN}:${col.id}`);
     }
 
+    // Get LTAR columns in which current column is referenced as foreign key
+    const ltarColumns = await ncMeta.metaList2(
+      null,
+      null,
+      MetaTable.COL_RELATIONS,
+      {
+        xcCondition: {
+          _or: [
+            { fk_child_column_id: { eq: col.id } },
+            { fk_parent_column_id: { eq: col.id } },
+            { fk_mm_child_column_id: { eq: col.id } },
+            { fk_mm_parent_column_id: { eq: col.id } },
+          ],
+        },
+      }
+    );
+
+    // Delete LTAR columns in which current column is referenced as foreign key
+    for (const ltarColumn of ltarColumns) {
+      await Column.delete(ltarColumn.fk_column_id, ncMeta);
+    }
+
     // Columns
     await ncMeta.metaDelete(null, null, MetaTable.COLUMNS, col.id);
     await NocoCache.deepDel(

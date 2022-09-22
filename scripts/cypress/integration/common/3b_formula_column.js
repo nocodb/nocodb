@@ -11,28 +11,22 @@ export const genTest = (apiType, dbType) => {
     describe(`${apiType.toUpperCase()} api - FORMULA`, () => {
         // Run once before test- create project (rest/graphql)
         //
-        before(() => {
-            // loginPage.loginAndOpenProject(apiType, dbType)
-
-            mainPage.tabReset();
-            // open a table to work on views
-            //
-
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
-
-            cy.openTableTab("City", 25);
-        });
+        // before(() => {
+        //     // loginPage.loginAndOpenProject(apiType, dbType)
+        //     cy.openTableTab("City", 25);
+        // });
 
         beforeEach(() => {
-        });
+            cy.restoreLocalStorage();
+        })
 
-        after(() => {
-            cy.closeTableTab("City");
-        });
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
+        // after(() => {
+        //     cy.closeTableTab("City");
+        // });
 
         // Given rowname & expected result for first 10 entries, validate
         // NOTE: Scroll issue with Cypress automation, to fix
@@ -59,14 +53,29 @@ export const genTest = (apiType, dbType) => {
                 force: true,
             });
 
-            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+            cy.getActiveMenu(".nc-dropdown-grid-add-column").find('input.nc-column-name-input', { timeout: 3000 })
               .should('exist')
               .clear()
               .type(columnName);
-            cy.get(".nc-column-type-input").last().click().type("Formula");
-            cy.getActiveSelection().find('.ant-select-item-option').contains("Formula").click();
-            cy.get('textarea.nc-formula-input').click().type(formula, { parseSpecialCharSequences: false });
-            cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            // cy.get(".nc-column-type-input").last().click().type("Formula");
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find(".nc-column-type-input")
+              .last()
+              .click()
+              .type("Formula");
+            cy.getActiveSelection('.nc-dropdown-column-type')
+              .find('.ant-select-item-option')
+              .contains("Formula")
+              .click();
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find('textarea.nc-formula-input')
+              .click()
+              .type(formula, { parseSpecialCharSequences: false });
+            // cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            cy.getActiveMenu('.nc-dropdown-grid-add-column')
+              .find(".ant-btn-primary:visible")
+              .contains("Save")
+              .click();
 
             // cy.toastWait(`Column created`);
             cy.closeTableTab("City");
@@ -88,10 +97,13 @@ export const genTest = (apiType, dbType) => {
               .trigger("mouseover", { force: true })
               .click({ force: true });
 
-            cy.get(".nc-column-edit").click();
-            cy.get(".nc-column-edit").should("not.be.visible");
+            // cy.get(".nc-column-edit").click();
+            // cy.get(".nc-column-edit").should("not.be.visible");
+            cy.getActiveMenu(".nc-dropdown-column-operations")
+              .find(".nc-column-edit")
+              .click();
 
-            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+            cy.getActiveMenu(".nc-dropdown-edit-column").find('input.nc-column-name-input', { timeout: 3000 })
               .should('exist')
               .clear()
               .type(newName);
@@ -168,6 +180,8 @@ export const genTest = (apiType, dbType) => {
         }
 
         it("Formula: ADD, AVG, LEN", () => {
+            cy.openTableTab("City", 25);
+
             addFormulaBasedColumn(
                 "NC_MATH_0",
                 "ADD({CityId}, {CountryId}) + AVG({CityId}, {CountryId}) + LEN({City})"
@@ -228,6 +242,8 @@ export const genTest = (apiType, dbType) => {
             if (dbType === 'mysql') editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
             else editColumnByName("NC_MATH_1", "NC_NOW", `NOW()`);
             deleteColumnByName("NC_NOW");
+
+            cy.closeTableTab("City");
         });
     });
 };

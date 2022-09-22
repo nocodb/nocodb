@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import { Form, message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { MetaInj, extractSdkResponseErrorMsg, fieldRequiredValidator, inject, reactive, useApi, useNuxtApp } from '#imports'
+import type { Ref } from 'vue'
+import type { AuditType } from 'nocodb-sdk'
+import {
+  MetaInj,
+  extractSdkResponseErrorMsg,
+  fieldRequiredValidator,
+  inject,
+  reactive,
+  useApi,
+  useI18n,
+  useNuxtApp,
+} from '#imports'
 
 const emit = defineEmits(['backToList', 'editOrAdd'])
 
@@ -11,7 +21,7 @@ const { $e } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const useForm = Form.useForm
 
@@ -174,28 +184,28 @@ const methodList = ref([
 
 const validators = computed(() => {
   return {
-    'title': [fieldRequiredValidator],
-    'eventOperation': [fieldRequiredValidator],
-    'notification.type': [fieldRequiredValidator],
+    'title': [fieldRequiredValidator()],
+    'eventOperation': [fieldRequiredValidator()],
+    'notification.type': [fieldRequiredValidator()],
     ...(hook.notification.type === 'URL' && {
-      'notification.payload.method': [fieldRequiredValidator],
-      'notification.payload.path': [fieldRequiredValidator],
+      'notification.payload.method': [fieldRequiredValidator()],
+      'notification.payload.path': [fieldRequiredValidator()],
     }),
     ...(hook.notification.type === 'Email' && {
-      'notification.payload.to': [fieldRequiredValidator],
-      'notification.payload.subject': [fieldRequiredValidator],
-      'notification.payload.body': [fieldRequiredValidator],
+      'notification.payload.to': [fieldRequiredValidator()],
+      'notification.payload.subject': [fieldRequiredValidator()],
+      'notification.payload.body': [fieldRequiredValidator()],
     }),
     ...((hook.notification.type === 'Slack' ||
       hook.notification.type === 'Microsoft Teams' ||
       hook.notification.type === 'Discord' ||
       hook.notification.type === 'Mattermost') && {
-      'notification.payload.channels': [fieldRequiredValidator],
-      'notification.payload.body': [fieldRequiredValidator],
+      'notification.payload.channels': [fieldRequiredValidator()],
+      'notification.payload.body': [fieldRequiredValidator()],
     }),
     ...((hook.notification.type === 'Twilio' || hook.notification.type === 'Whatsapp Twilio') && {
-      'notification.payload.body': [fieldRequiredValidator],
-      'notification.payload.to': [fieldRequiredValidator],
+      'notification.payload.body': [fieldRequiredValidator()],
+      'notification.payload.to': [fieldRequiredValidator()],
     }),
   }
 })
@@ -254,28 +264,28 @@ async function onEventChange() {
 
   hook.notification.payload = payload
 
-  let channels: Record<string, any>[] | null = null
+  let channels: Ref<Record<string, any>[] | null> = ref(null)
 
   switch (hook.notification.type) {
     case 'Slack':
-      channels = slackChannels as any
+      channels = slackChannels
       break
     case 'Microsoft Teams':
-      channels = teamsChannels as any
+      channels = teamsChannels
       break
     case 'Discord':
-      channels = discordChannels as any
+      channels = discordChannels
       break
     case 'Mattermost':
-      channels = mattermostChannels as any
+      channels = mattermostChannels
       break
   }
 
   if (channels) {
     hook.notification.payload.webhook_url =
       hook.notification.payload.webhook_url &&
-      hook.notification.payload.webhook_url.map((v: Record<string, any>) =>
-        channels?.find((s: Record<string, any>) => v.webhook_url === s.webhook_url),
+      hook.notification.payload.webhook_url.map((v: { webhook_url: string }) =>
+        channels.value?.find((s) => v.webhook_url === s.webhook_url),
       )
   }
 
@@ -289,13 +299,21 @@ async function onEventChange() {
 
 async function loadPluginList() {
   try {
-    const plugins = (await api.plugin.list()).list as any
-    apps.value = plugins.reduce((o: Record<string, any>[], p: Record<string, any>) => {
-      p.tags = p.tags ? p.tags.split(',') : []
-      p.parsedInput = p.input && JSON.parse(p.input)
-      o[p.title] = p
+    const plugins = (await api.plugin.list()).list!
+
+    apps.value = plugins.reduce((o, p) => {
+      const plugin: { title: string; tags: string[]; parsedInput: Record<string, any> } = {
+        title: '',
+        tags: [],
+        parsedInput: {},
+        ...(p as any),
+      }
+      plugin.tags = p.tags ? p.tags.split(',') : []
+      plugin.parsedInput = p.input && JSON.parse(p.input)
+      o[plugin.title] = plugin
+
       return o
-    }, {})
+    }, {} as Record<string, any>)
 
     if (hook.event && hook.operation) {
       hook.eventOperation = `${hook.event} ${hook.operation}`
@@ -330,13 +348,13 @@ async function saveHooks() {
         },
       })
     } else {
-      res = await api.dbTableWebhook.create(meta!.value.id!, {
+      res = await api.dbTableWebhook.create(meta.value!.id!, {
         ...hook,
         notification: {
           ...hook.notification,
           payload: hook.notification.payload,
         },
-      } as any)
+      } as AuditType)
     }
 
     if (!hook.id && res) {
@@ -435,6 +453,7 @@ onMounted(async () => {
               size="large"
               :placeholder="$t('general.event')"
               class="nc-text-field-hook-event"
+              dropdown-class-name="nc-dropdown-webhook-event"
             >
               <a-select-option v-for="(event, i) in eventList" :key="i" :value="event.value.join(' ')">
                 {{ event.text.join(' ') }}
@@ -449,6 +468,7 @@ onMounted(async () => {
               size="large"
               class="nc-select-hook-notification-type"
               :placeholder="$t('general.notification')"
+              dropdown-class-name="nc-dropdown-webhook-notification"
               @change="onNotTypeChange(true)"
             >
               <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
@@ -479,7 +499,12 @@ onMounted(async () => {
 
       <a-row v-if="hook.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 0]">
         <a-col :span="6">
-          <a-select v-model:value="hook.notification.payload.method" size="large" class="nc-select-hook-url-method">
+          <a-select
+            v-model:value="hook.notification.payload.method"
+            size="large"
+            class="nc-select-hook-url-method"
+            dropdown-class-name="nc-dropdown-hook-notification-url-method"
+          >
             <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">{{ method.title }}</a-select-option>
           </a-select>
         </a-col>
@@ -588,7 +613,14 @@ onMounted(async () => {
         <a-col :span="24">
           <a-card>
             <a-checkbox v-model:checked="hook.condition" class="nc-check-box-hook-condition">On Condition</a-checkbox>
-            <SmartsheetToolbarColumnFilter v-if="hook.condition" ref="filterRef" :auto-save="false" :hook-id="hook.id" />
+            <SmartsheetToolbarColumnFilter
+              v-if="hook.condition"
+              ref="filterRef"
+              :auto-save="false"
+              :show-loading="false"
+              :hook-id="hook.id"
+              web-hook
+            />
           </a-card>
         </a-col>
       </a-row>

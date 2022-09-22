@@ -1,5 +1,6 @@
 {
   "private": true,
+  "web-types": "web-types.json",
   "scripts": {
     "build": "nuxi build",
     "dev": "nuxi dev",
@@ -14,12 +15,14 @@
     "postinstall": "node scripts/updateNuxtRouting.js"
   },
   "dependencies": {
+    "@braks/vue-flow": "^0.4.39",
     "@ckpack/vue-color": "^1.2.0",
     "@vuelidate/core": "^2.0.0-alpha.44",
     "@vuelidate/validators": "^2.0.0-alpha.31",
     "@vueuse/core": "^9.0.2",
     "@vueuse/integrations": "^9.0.2",
     "ant-design-vue": "^3.2.11",
+    "dagre": "^0.8.5",
     "dayjs": "^1.11.3",
     "file-saver": "^2.0.5",
     "httpsnippet": "^2.0.0",
@@ -37,7 +40,7 @@
     "unique-names-generator": "^4.7.1",
     "vue-dompurify-html": "^3.0.0",
     "vue-github-button": "^3.0.3",
-    "vue-i18n": "^9.1.10",
+    "vue-i18n": "^9.2.2",
     "vuedraggable": "^4.1.0",
     "xlsx": "^0.17.3"
   },
@@ -57,9 +60,11 @@
     "@iconify-json/mi": "^1.1.2",
     "@iconify-json/ph": "^1.1.2",
     "@iconify-json/ri": "^1.1.3",
+    "@iconify-json/system-uicons": "^1.1.4",
     "@intlify/vite-plugin-vue-i18n": "^6.0.1",
     "@nuxt/image-edge": "^1.0.0-27657146.da85542",
     "@types/axios": "^0.14.0",
+    "@types/dagre": "^0.7.48",
     "@types/file-saver": "^2.0.5",
     "@types/papaparse": "^5.3.2",
     "@types/sortablejs": "^1.13.0",

@@ -3,6 +3,7 @@ import Model from '../../../models/Model';
 import { nocoExecute } from 'nc-help';
 import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
+import { NcError } from '../../helpers/catchError';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import View from '../../../models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
@@ -10,6 +11,7 @@ import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 
+// todo: Handle the error case where view doesnt belong to model
 async function dataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   res.json(await getDataList(model, view, req));
@@ -46,6 +48,7 @@ async function dataCount(req: Request, res: Response) {
   res.json({ count });
 }
 
+// todo: Handle the error case where view doesnt belong to model
 async function dataInsert(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
@@ -81,6 +84,8 @@ async function dataDelete(req: Request, res: Response) {
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
   });
+
+  // todo: Should have error http status code
   const message = await baseModel.hasLTARData(req.params.rowId, model);
   if (message.length) {
     res.json({ message });
@@ -88,6 +93,7 @@ async function dataDelete(req: Request, res: Response) {
   }
   res.json(await baseModel.delByPk(req.params.rowId, null, req));
 }
+
 async function getDataList(model, view: View, req) {
   const base = await Base.get(model.base_id);
 
@@ -186,10 +192,16 @@ async function dataRead(req: Request, res: Response) {
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
+  const row = await baseModel.readByPk(req.params.rowId);
+
+  if (!row) {
+    NcError.notFound();
+  }
+
   res.json(
     await nocoExecute(
       await getAst({ model, query: req.query, view }),
-      await baseModel.readByPk(req.params.rowId),
+      row,
       {},
       {}
     )
@@ -209,6 +221,7 @@ async function dataExist(req: Request, res: Response) {
 
   res.json(await baseModel.exist(req.params.rowId));
 }
+
 const router = Router({ mergeParams: true });
 
 // table data crud apis

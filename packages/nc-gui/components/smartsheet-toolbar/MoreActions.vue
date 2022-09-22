@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import * as XLSX from 'xlsx'
+import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
 import { message } from 'ant-design-vue'
@@ -29,11 +30,11 @@ const { project } = useProject()
 
 const { $api } = useNuxtApp()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref([]))
 
-const selectedView = inject(ActiveViewInj)
+const selectedView = inject(ActiveViewInj, ref())
 
 const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
@@ -60,8 +61,8 @@ const exportFile = async (exportType: ExportTypes) => {
         res = await $api.dbViewRow.export(
           'noco',
           project?.value.title as string,
-          meta?.value.title as string,
-          selectedView?.value.title as string,
+          meta.value?.title as string,
+          selectedView.value?.title as string,
           exportType,
           {
             responseType,
@@ -71,16 +72,16 @@ const exportFile = async (exportType: ExportTypes) => {
               sortArrJson: JSON.stringify(sorts.value),
               filterArrJson: JSON.stringify(nestedFilters.value),
             },
-          } as any,
+          } as RequestParams,
         )
       }
       const { data, headers } = res
       if (exportType === ExportTypes.EXCEL) {
         const workbook = XLSX.read(data, { type: 'base64' })
-        XLSX.writeFile(workbook, `${meta?.value.title}_exported_${c++}.xlsx`)
+        XLSX.writeFile(workbook, `${meta.value?.title}_exported_${c++}.xlsx`)
       } else if (exportType === ExportTypes.CSV) {
         const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
-        FileSaver.saveAs(blob, `${meta?.value.title}_exported_${c++}.csv`)
+        FileSaver.saveAs(blob, `${meta.value?.title}_exported_${c++}.csv`)
       }
       offset = +headers['nc-export-offset']
       if (offset > -1) {
@@ -100,7 +101,7 @@ const exportFile = async (exportType: ExportTypes) => {
 <template>
   <div>
     <a-dropdown>
-      <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
+      <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-1 items-center">
           <MdiFlashOutline />
 
@@ -114,13 +115,13 @@ const exportFile = async (exportType: ExportTypes) => {
       <template #overlay>
         <div class="bg-gray-50 py-2 shadow-lg !border">
           <div>
-            <div v-t="['a:actions:download-csv']" class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
+            <div v-e="['a:actions:download-csv']" class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
               <MdiDownloadOutline class="text-gray-500" />
               <!-- Download as CSV -->
               {{ $t('activity.downloadCSV') }}
             </div>
 
-            <div v-t="['a:actions:download-excel']" class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)">
+            <div v-e="['a:actions:download-excel']" class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)">
               <MdiDownloadOutline class="text-gray-500" />
               <!-- Download as XLSX -->
               {{ $t('activity.downloadExcel') }}
@@ -128,7 +129,7 @@ const exportFile = async (exportType: ExportTypes) => {
 
             <div
               v-if="isUIAllowed('csvImport') && !isView && !isPublicView"
-              v-t="['a:actions:upload-csv']"
+              v-e="['a:actions:upload-csv']"
               class="nc-menu-item"
               :class="{ disabled: isLocked }"
               @click="!isLocked ? (quickImportDialog = true) : {}"
@@ -140,7 +141,7 @@ const exportFile = async (exportType: ExportTypes) => {
 
             <div
               v-if="isUIAllowed('sharedViewList') && !isView && !isPublicView"
-              v-t="['a:actions:shared-view-list']"
+              v-e="['a:actions:shared-view-list']"
               class="nc-menu-item"
               @click="sharedViewListDlg = true"
             >
@@ -150,7 +151,7 @@ const exportFile = async (exportType: ExportTypes) => {
             </div>
             <div
               v-if="isUIAllowed('webhook') && !isView && !isPublicView"
-              v-t="['c:actions:webhook']"
+              v-e="['c:actions:webhook']"
               class="nc-menu-item"
               @click="showWebhookDrawer = true"
             >
@@ -166,7 +167,13 @@ const exportFile = async (exportType: ExportTypes) => {
 
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
-    <a-modal v-model:visible="sharedViewListDlg" :title="$t('activity.listSharedView')" width="max(900px,60vw)" :footer="null">
+    <a-modal
+      v-model:visible="sharedViewListDlg"
+      :title="$t('activity.listSharedView')"
+      width="max(900px,60vw)"
+      :footer="null"
+      wrap-class-name="nc-modal-shared-view-list"
+    >
       <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
     </a-modal>
   </div>

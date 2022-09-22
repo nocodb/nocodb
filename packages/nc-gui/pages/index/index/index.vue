@@ -9,6 +9,7 @@ import {
   navigateTo,
   projectThemeColors,
   ref,
+  themeV2Colors,
   useApi,
   useNuxtApp,
   useSidebar,
@@ -25,7 +26,7 @@ const { api, isLoading } = useApi()
 
 const { isUIAllowed } = useUIPermission()
 
-useSidebar({ hasSidebar: true, isOpen: true })
+useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: true })
 
 const filterQuery = ref('')
 
@@ -48,6 +49,7 @@ const deleteProject = (project: ProjectType) => {
 
   Modal.confirm({
     title: `Do you want to delete '${project.title}' project?`,
+    wrapClassName: 'nc-modal-project-delete',
     okText: 'Yes',
     okType: 'danger',
     cancelText: 'No',
@@ -69,10 +71,14 @@ await loadProjects()
 
 const handleProjectColor = async (projectId: string, color: string) => {
   const tcolor = tinycolor(color)
+
   if (tcolor.isValid()) {
     const complement = tcolor.complement()
+
     const project: ProjectType = await $api.project.read(projectId)
+
     const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+
     await $api.project.update(projectId, {
       color,
       meta: JSON.stringify({
@@ -83,8 +89,10 @@ const handleProjectColor = async (projectId: string, color: string) => {
         },
       }),
     })
+
     // Update local project
     const localProject = projects.value?.find((p) => p.id === projectId)
+
     if (localProject) {
       localProject.color = color
       localProject.meta = JSON.stringify({
@@ -99,9 +107,21 @@ const handleProjectColor = async (projectId: string, color: string) => {
 }
 
 const getProjectPrimary = (project: ProjectType) => {
-  const meta = project?.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
-  return meta?.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
+  if (!project) return
+
+  const meta = project.meta && typeof project.meta === 'string' ? JSON.parse(project.meta) : project.meta || {}
+
+  return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
 }
+
+const customRow = (record: ProjectType) => ({
+  onClick: async () => {
+    await navigateTo(`/nc/${record.id}`)
+
+    $e('a:project:open')
+  },
+  class: ['group'],
+})
 </script>
 
 <template>
@@ -118,7 +138,7 @@ const getProjectPrimary = (project: ProjectType) => {
           :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
         >
           <MdiRefresh
-            v-t="['a:project:refresh']"
+            v-e="['a:project:refresh']"
             class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
             :class="isLoading ? '!text-primary' : ''"
             @click="loadProjects"
@@ -136,7 +156,7 @@ const getProjectPrimary = (project: ProjectType) => {
 
       <div class="flex-1" />
 
-      <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']">
+      <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']" overlay-class-name="nc-dropdown-create-project">
         <button class="nc-new-project-menu">
           <span class="flex items-center w-full">
             {{ $t('title.newProj') }}
@@ -148,7 +168,7 @@ const getProjectPrimary = (project: ProjectType) => {
           <a-menu class="!py-0 rounded">
             <a-menu-item>
               <div
-                v-t="['c:project:create:xcdb']"
+                v-e="['c:project:create:xcdb']"
                 class="nc-project-menu-item group nc-create-xc-db-project"
                 @click="navigateTo('/create')"
               >
@@ -160,7 +180,7 @@ const getProjectPrimary = (project: ProjectType) => {
 
             <a-menu-item>
               <div
-                v-t="['c:project:create:extdb']"
+                v-e="['c:project:create:extdb']"
                 class="nc-project-menu-item group nc-create-external-db-project"
                 @click="navigateTo('/create-external')"
               >
@@ -175,28 +195,21 @@ const getProjectPrimary = (project: ProjectType) => {
     </div>
 
     <TransitionGroup name="layout" mode="out-in">
-      <div v-if="isLoading">
+      <div v-if="isLoading" key="skeleton">
         <a-skeleton />
       </div>
 
       <a-table
         v-else
-        :custom-row="
-          (record) => ({
-            onClick: () => {
-              $e('a:project:open')
-
-              navigateTo(`/nc/${record.id}`)
-            },
-            class: ['group'],
-          })
-        "
+        key="table"
+        :custom-row="customRow"
         :data-source="filteredProjects"
         :pagination="{ position: ['bottomCenter'] }"
       >
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </template>
+
         <!-- Title -->
         <a-table-column key="title" :title="$t('general.title')" data-index="title">
           <template #default="{ text, record }">
@@ -251,7 +264,7 @@ const getProjectPrimary = (project: ProjectType) => {
         <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
           <template #default="{ text, record }">
             <div class="flex items-center gap-2">
-              <MdiEditOutline v-t="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
+              <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
 
               <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
             </div>

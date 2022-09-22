@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getMdiIcon } from '@/utils'
+import { getMdiIcon } from '#imports'
 
 interface Props {
   value: Record<string, any>
@@ -72,7 +72,7 @@ watch(
   <a-row :gutter="8">
     <a-col :span="12">
       <a-form-item label="Icon">
-        <a-select v-model:value="vModel.meta.iconIdx" class="w-52">
+        <a-select v-model:value="vModel.meta.iconIdx" class="w-52" dropdown-class-name="nc-dropdown-rating-icon">
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
             <div class="flex items-center">
               <component
@@ -95,7 +95,7 @@ watch(
     </a-col>
     <a-col :span="12">
       <a-form-item label="Max">
-        <a-select v-model:value="vModel.meta.max" class="w-52">
+        <a-select v-model:value="vModel.meta.max" class="w-52" dropdown-class-name="nc-dropdown-rating-color">
           <a-select-option v-for="(v, i) in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" :key="i" :value="v">
             {{ v }}
           </a-select-option>

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
 import { TabType } from '~/composables'
-import { TabMetaInj, provide, useGlobal, useSidebar, useTabs } from '#imports'
+import { TabMetaInj, provide, useGlobal, useProject, useSidebar, useTabs } from '#imports'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
+
+const { isLoading: isLoadingProject } = useProject()
 
 const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
@@ -23,7 +25,7 @@ const icon = (tab: TabItem) => {
   }
 }
 
-const { isOpen, toggle } = useSidebar()
+const { isOpen, toggle } = useSidebar('nc-left-sidebar')
 
 function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
   if (action === 'remove') closeTab(targetKey)
@@ -33,13 +35,13 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 <template>
   <div class="h-full w-full nc-container">
     <div class="h-full w-full flex flex-col">
-      <div class="flex items-end !min-h-[var(--header-height)] !bg-primary">
+      <div class="flex items-end !min-h-[var(--header-height)] !bg-primary nc-tab-bar">
         <div
           v-if="!isOpen"
           class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row py-2 px-3"
         >
           <MdiMenu
-            v-t="['c:grid:toggle-navdraw']"
+            v-e="['c:grid:toggle-navdraw']"
             class="cursor-pointer transform transition-transform duration-500 text-white"
             :class="{ 'rotate-180': !isOpen }"
             @click="toggle(!isOpen)"
@@ -71,13 +73,21 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
           <div v-show="isLoading" class="flex items-center gap-2 ml-3 text-gray-200">
             {{ $t('general.loading') }}
 
-            <MdiLoading :class="{ 'animate-infinite animate-spin': isLoading }" />
+            <MdiLoading class="animate-infinite animate-spin" />
           </div>
         </div>
+
+        <GeneralFullScreen class="nc-fullscreen-icon" />
       </div>
 
       <div class="w-full min-h-[300px] flex-auto">
-        <NuxtPage />
+        <div v-show="!isLoadingProject" class="w-full h-full">
+          <NuxtPage />
+        </div>
+
+        <div v-show="isLoadingProject" class="w-full h-full flex justify-center items-center">
+          <a-spin size="large" />
+        </div>
       </div>
     </div>
   </div>
@@ -134,6 +144,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
 :deep(.ant-menu-submenu::after) {
   @apply !border-none;
 }
+
 :deep(.ant-tabs-tab-remove) {
   @apply mt-[3px];
 }

@@ -1,16 +1,11 @@
 <script lang="ts" setup>
-import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { Empty, message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { onMounted, useSmartsheetStoreOrThrow } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg, onMounted, useCopy, useI18n, useSmartsheetStoreOrThrow } from '#imports'
 import MdiVisibilityOnIcon from '~icons/mdi/visibility'
 import MdiVisibilityOffIcon from '~icons/mdi/visibility-off'
 import MdiCopyIcon from '~icons/mdi/content-copy'
 import MdiDeleteIcon from '~icons/mdi/delete-outline'
-
-const { t } = useI18n()
 
 interface SharedViewType {
   password: string
@@ -21,9 +16,11 @@ interface SharedViewType {
   showPassword?: boolean
 }
 
+const { t } = useI18n()
+
 const { $api, meta } = useSmartsheetStoreOrThrow()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const { dashboardUrl } = useDashboard()
 

@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import UserManagement from './auth/UserManagement.vue'
 import ApiTokenManagement from './auth/ApiTokenManagement.vue'
-import { useUIPermission } from '#imports'
+import { useI18n, useUIPermission } from '#imports'
 
 interface Tab {
   title: string
   label: string
   body: any
-  isUIAllowed: boolean
+  isUIAllowed: () => boolean
 }
+
 const { t } = useI18n()
 
 const { isUIAllowed } = useUIPermission()
@@ -19,24 +19,22 @@ const tabsInfo: Tab[] = [
     title: 'Users Management',
     label: t('title.userMgmt'),
     body: () => UserManagement,
-    isUIAllowed: isUIAllowed('userMgmtTab'),
+    isUIAllowed: () => isUIAllowed('userMgmtTab'),
   },
   {
     title: 'API Token Management',
     label: t('title.apiTokenMgmt'),
     body: () => ApiTokenManagement,
-    isUIAllowed: isUIAllowed('apiTokenTab'),
+    isUIAllowed: () => isUIAllowed('apiTokenTab'),
   },
 ]
-
-// const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
 const selectedTabKey = $ref(0)
 const selectedTab = $computed(() => tabsInfo[selectedTabKey])
 </script>
 
 <template>
-  <div v-if="selectedTab.isUIAllowed">
+  <div v-if="selectedTab.isUIAllowed()">
     <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs !mx-6">
       <a-tab-pane v-for="(tab, key) of tabsInfo" :key="key" class="select-none">
         <template #tab>

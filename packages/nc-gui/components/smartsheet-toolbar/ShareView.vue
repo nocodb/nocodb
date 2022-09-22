@@ -1,9 +1,15 @@
 <script lang="ts" setup>
-import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { computed, extractSdkResponseErrorMsg, useNuxtApp, useProject, useSmartsheetStoreOrThrow } from '#imports'
+import {
+  computed,
+  extractSdkResponseErrorMsg,
+  useCopy,
+  useI18n,
+  useNuxtApp,
+  useProject,
+  useSmartsheetStoreOrThrow,
+} from '#imports'
 import MdiOpenInNewIcon from '~icons/mdi/open-in-new'
 import MdiCopyIcon from '~icons/mdi/content-copy'
 
@@ -11,7 +17,7 @@ const { t } = useI18n()
 
 const { view, $api } = useSmartsheetStoreOrThrow()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const { $e } = useNuxtApp()
 
@@ -39,7 +45,7 @@ const allowCSVDownload = computed({
 })
 
 const genShareLink = async () => {
-  shared.value = await $api.dbViewShare.create(view.value.id as string)
+  shared.value = await $api.dbViewShare.create(view.value?.id as string)
   shared.value.meta =
     shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
   passwordProtected.value = shared.value.password !== null && shared.value.password !== ''
@@ -69,7 +75,7 @@ async function saveAllowCSVDownload() {
     const meta = shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
     await $api.dbViewShare.update(shared.value.id, {
       meta,
-    } as any)
+    })
     // Successfully updated
     message.success(t('msg.success.updated'))
   } catch (e: any) {
@@ -114,7 +120,7 @@ watch(passwordProtected, (value) => {
   <div>
     <a-button
       v-if="isUIAllowed('share-view') && !isSharedBase"
-      v-t="['c:view:share']"
+      v-e="['c:view:share']"
       outlined
       class="nc-btn-share-view nc-toolbar-btn"
     >
@@ -132,14 +138,14 @@ watch(passwordProtected, (value) => {
       :title="$t('msg.info.privateLink')"
       :footer="null"
       width="min(100vw,640px)"
+      wrap-class-name="nc-modal-share-view"
     >
       <div class="share-link-box nc-share-link-box bg-primary-50">
         <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
-        <!--        <v-spacer /> -->
-        <a v-t="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
+        <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
           <MdiOpenInNewIcon class="text-sm text-gray-500 mt-2" />
         </a>
-        <MdiCopyIcon v-t="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
+        <MdiCopyIcon v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
       </div>
 
       <a-collapse ghost>

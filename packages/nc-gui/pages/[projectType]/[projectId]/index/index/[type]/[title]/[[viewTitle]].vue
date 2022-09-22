@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
-import { TabMetaInj } from '#imports'
+import { TabMetaInj, until } from '#imports'
 
 const { getMeta } = useMetas()
+
+const { tables } = useProject()
+
 const route = useRoute()
+
 const loading = ref(true)
 
 const activeTab = inject(
@@ -11,9 +15,12 @@ const activeTab = inject(
   computed(() => ({} as TabItem)),
 )
 
-getMeta(route.params.title as string, true).finally(() => {
-  loading.value = false
-})
+/** wait until table list loads since meta load requires table list **/
+until(tables)
+  .toMatch((tables) => tables.length > 0)
+  .then(() => {
+    getMeta(route.params.title as string, true).finally(() => (loading.value = false))
+  })
 </script>
 
 <template>
@@ -22,5 +29,3 @@ getMeta(route.params.title as string, true).finally(() => {
   </div>
   <TabsSmartsheet v-else :key="route.params.title" :active-tab="activeTab" />
 </template>
-
-<style scoped></style>

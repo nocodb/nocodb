@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { inject, useMetas, useProject } from '#imports'
-import { MetaInj } from '~/context'
+import { MetaInj, inject, useMetas, useProject } from '#imports'
 
 interface Props {
   value: Record<string, any>
@@ -11,7 +10,7 @@ const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
 const vModel = useVModel(props, 'value', emit)
 
-const meta = $(inject(MetaInj)!)
+const meta = $(inject(MetaInj, ref()))
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
 
@@ -51,7 +50,7 @@ const refTables = $computed(() => {
   }
 
   return (
-    meta.columns
+    meta?.columns
       ?.filter((c: any) => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions.type !== 'bt' && !c.system)
       .map((c) => ({
         col: c.colOptions,
@@ -76,7 +75,11 @@ const columns = $computed(() => {
   <div class="p-6 w-full flex flex-col border-2 mb-2 mt-4">
     <div class="w-full flex flex-row space-x-2">
       <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.childTable')" v-bind="validateInfos.fk_relation_column_id">
-        <a-select v-model:value="vModel.fk_relation_column_id" dropdown-class-name="!w-64" @change="onDataTypeChange">
+        <a-select
+          v-model:value="vModel.fk_relation_column_id"
+          dropdown-class-name="!w-64 nc-dropdown-relation-table"
+          @change="onDataTypeChange"
+        >
           <a-select-option v-for="(table, index) in refTables" :key="index" :value="table.col.fk_column_id">
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">
               <div class="font-semibold text-xs">{{ table.column.title }}</div>
@@ -88,7 +91,12 @@ const columns = $computed(() => {
         </a-select>
       </a-form-item>
       <a-form-item class="flex w-1/2" :label="$t('labels.childColumn')" v-bind="validateInfos.fk_rollup_column_id">
-        <a-select v-model:value="vModel.fk_rollup_column_id" name="fk_rollup_column_id" @change="onDataTypeChange">
+        <a-select
+          v-model:value="vModel.fk_rollup_column_id"
+          name="fk_rollup_column_id"
+          dropdown-class-name="nc-dropdown-relation-column"
+          @change="onDataTypeChange"
+        >
           <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
             {{ column.title }}
           </a-select-option>
@@ -96,7 +104,11 @@ const columns = $computed(() => {
       </a-form-item>
     </div>
     <a-form-item label="Aggregate function" v-bind="validateInfos.rollup_function">
-      <a-select v-model:value="vModel.rollup_function" @change="onDataTypeChange">
+      <a-select
+        v-model:value="vModel.rollup_function"
+        dropdown-class-name="nc-dropdown-rollup-function"
+        @change="onDataTypeChange"
+      >
         <a-select-option v-for="(func, index) of aggrFunctionsList" :key="index" :value="func.value">
           {{ func.text }}
         </a-select-option>

@@ -5,7 +5,7 @@ import { ActiveViewInj, IsLockedInj, IsPublicInj, computed, inject, ref, useGlob
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const activeView = inject(ActiveViewInj)
+const activeView = inject(ActiveViewInj, ref())
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -51,9 +51,9 @@ const filterAutoSaveLoc = computed({
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']">
+  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-filter-menu">
     <div :class="{ 'nc-badge nc-active-btn': filtersLength }">
-      <a-button v-t="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
+      <a-button v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn txt-sm" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <MdiFilterOutline />
           <!-- Filter -->
@@ -80,7 +80,7 @@ const filterAutoSaveLoc = computed({
           <div class="flex-1" />
           <a-button
             v-show="!filterAutoSave"
-            v-t="['a:filter:auto-apply']"
+            v-e="['a:filter:auto-apply']"
             size="small"
             class="text-xs ml-2"
             @click="applyChanges"

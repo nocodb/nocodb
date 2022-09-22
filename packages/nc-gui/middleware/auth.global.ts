@@ -11,7 +11,9 @@ import { useApi, useGlobal, useRoles } from '#imports'
  * the user is redirected to the home page.
  *
  * By default, we assume that auth is required
- * If not required, mark the page as
+ * If not required, mark the page as requiresAuth: false
+ *
+ * @example
  * ```
  * definePageMeta({
  *   requiresAuth: false
@@ -19,18 +21,12 @@ import { useApi, useGlobal, useRoles } from '#imports'
  * ```
  *
  * If auth should be circumvented completely mark the page as public
- * ```
- * definePageMeta({
- *   public: true
- * })
- * ```
  *
  * @example
  * ```
  * definePageMeta({
- *  requiresAuth: false,
- *  ...
- *  })
+ *   public: true
+ * })
  * ```
  */
 export default defineNuxtRouteMiddleware(async (to, from) => {

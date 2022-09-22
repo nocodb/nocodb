@@ -9,6 +9,7 @@ import {
   MetaInj,
   OpenNewRecordFormHookInj,
   ReloadViewDataHookInj,
+  ReloadViewMetaHookInj,
   computed,
   inject,
   provide,

@@ -11,6 +11,7 @@ import hash from 'object-hash';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import tinycolor from 'tinycolor2';
 import { importData, importLTARData } from './readAndProcessData';
 
 dayjs.extend(utc);
@@ -453,7 +454,7 @@ export default async (
             title: (value as any).name,
             color: selectColors[(value as any).color]
               ? selectColors[(value as any).color]
-              : null,
+              : tinycolor.random().toHexString(),
           });
 
           sMap.addToMappingTbl(

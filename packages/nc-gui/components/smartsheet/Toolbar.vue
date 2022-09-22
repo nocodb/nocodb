@@ -36,9 +36,11 @@ const { allowCSVDownload } = useSharedView()
 
     <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 
-    <SmartsheetToolbarShareView v-if="(isForm || isGrid) && !isPublic" />
+    <SmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban) && !isPublic" />
 
-    <SmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
+    <SmartsheetToolbarExport
+      v-if="(!isPublic && !isUIAllowed('dataInsert') && !isKanban) || (isPublic && allowCSVDownload && !isKanban)"
+    />
     <div class="flex-1" />
 
     <SmartsheetToolbarReload v-if="!isPublic && !isForm" class="mx-1" />

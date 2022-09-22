@@ -28,15 +28,15 @@ if (signedIn.value) {
   try {
     await loadProject()
   } catch (e: any) {
-    console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 </script>
 
 <template>
-  <div class="nc-container flex flex-col h-full mt-1.5 px-12">
+  <div class="nc-container h-full mt-1.5 px-12">
     <SmartsheetToolbar />
     <SmartsheetKanban />
   </div>
 </template>
+

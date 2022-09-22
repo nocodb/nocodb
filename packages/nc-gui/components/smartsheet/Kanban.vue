@@ -209,7 +209,10 @@ onMounted(async () => {
               v-if="!stack.collapsed"
               :key="stack.id"
               class="mx-4 !bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
-              :class="{ 'not-draggable': stack.id === 'uncategorized' || isLocked }"
+              :class="{
+                'not-draggable': stack.id === 'uncategorized' || isLocked || !isUIAllowed('xcDatatableEditable'),
+                '!cursor-default': isLocked || !isUIAllowed('xcDatatableEditable'),
+              }"
               head-style="padding-bottom: 0px;"
               body-style="padding: 0px; height: 100%;"
             >
@@ -231,6 +234,7 @@ onMounted(async () => {
                       <template #overlay>
                         <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
                           <a-menu-item
+                            v-if="isUIAllowed('xcDatatableEditable')"
                             @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
                           >
                             <div class="py-2 flex gap-2 items-center">
@@ -279,7 +283,10 @@ onMounted(async () => {
                               hoverable
                               :data-stack="stack.title"
                               class="!rounded-lg h-full overflow-hidden break-all max-w-[450px] shadow-lg"
-                              :class="{ 'not-draggable': isLocked }"
+                              :class="{
+                                'not-draggable': isLocked || !isUIAllowed('xcDatatableEditable'),
+                                '!cursor-default': isLocked || !isUIAllowed('xcDatatableEditable'),
+                              }"
                               body-style="padding: 10px;"
                               @click="expandFormClick($event, record)"
                             >
@@ -340,7 +347,9 @@ onMounted(async () => {
               :key="`${stack.id}-collapsed`"
               :style="`background-color: ${stack.color} !important`"
               class="nc-kanban-stack nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer h-full !pr-[10px]"
-              :class="{ 'not-draggable': stack.id === 'uncategorized' || isLocked }"
+              :class="{
+                'not-draggable': stack.id === 'uncategorized' || isLocked || !isUIAllowed('xcDatatableEditable'),
+              }"
               body-style="padding: 0px; height: 100%; width: 100%; background: #f0f2f5 !important;"
             >
               <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">

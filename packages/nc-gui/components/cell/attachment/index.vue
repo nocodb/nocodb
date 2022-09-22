@@ -180,7 +180,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
 
-            <nuxt-img
+            <LazyNuxtImg
               v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)"
               quality="75"
               placeholder

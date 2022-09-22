@@ -1,16 +1,17 @@
 <script lang="ts" setup>
-import { Empty, Modal, message } from 'ant-design-vue'
+import { Empty, Modal } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import {
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
+  message,
   navigateTo,
   projectThemeColors,
   ref,
   themeV2Colors,
-  useApi,
+  useLazyAsyncData,
   useNuxtApp,
   useSidebar,
   useUIPermission,
@@ -22,20 +23,21 @@ definePageMeta({
 
 const { $api, $e } = useNuxtApp()
 
-const { api, isLoading } = useApi()
+const {
+  data: projects,
+  pending: isLoading,
+  execute,
+} = useLazyAsyncData(async () => {
+  const response = await $api.project.list({})
+
+  return response.list
+})
 
 const { isUIAllowed } = useUIPermission()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: true })
 
 const filterQuery = ref('')
-
-const projects = ref<ProjectType[]>()
-
-const loadProjects = async () => {
-  const response = await api.project.list({})
-  projects.value = response.list
-}
 
 const filteredProjects = computed(
   () =>
@@ -55,7 +57,7 @@ const deleteProject = (project: ProjectType) => {
     cancelText: 'No',
     async onOk() {
       try {
-        await api.project.delete(project.id as string)
+        await $api.project.delete(project.id as string)
 
         $e('a:project:delete')
 
@@ -67,7 +69,7 @@ const deleteProject = (project: ProjectType) => {
   })
 }
 
-await loadProjects()
+await execute()
 
 const handleProjectColor = async (projectId: string, color: string) => {
   const tcolor = tinycolor(color)
@@ -126,7 +128,7 @@ const customRow = (record: ProjectType) => ({
 
 <template>
   <div class="bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)">
-    <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+    <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
 
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
       <!-- My Projects -->
@@ -141,7 +143,7 @@ const customRow = (record: ProjectType) => ({
             v-e="['a:project:refresh']"
             class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
             :class="isLoading ? '!text-primary' : ''"
-            @click="loadProjects"
+            @click="execute"
           />
         </span>
       </a-tooltip>

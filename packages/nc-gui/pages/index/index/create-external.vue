@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Form, Modal, message } from 'ant-design-vue'
+import { Form, Modal } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import {
   CertTypes,
@@ -11,6 +11,7 @@ import {
   generateUniqueName,
   getDefaultConnectionConfig,
   getTestDatabaseName,
+  message,
   navigateTo,
   nextTick,
   onMounted,
@@ -24,8 +25,7 @@ import {
   watch,
 } from '#imports'
 import { ClientType } from '~/lib'
-import { DefaultConnection, SQLiteConnection } from '~/utils'
-import type { ProjectCreateForm } from '~/utils'
+import type { DefaultConnection, ProjectCreateForm } from '~/utils'
 
 const useForm = Form.useForm
 
@@ -318,9 +318,10 @@ watch(
 )
 
 // select and focus title field on load
-onMounted(() => {
-  formState.title = generateUniqueName()
-  nextTick(() => {
+onMounted(async () => {
+  formState.title = await generateUniqueName()
+
+  await nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
@@ -335,7 +336,7 @@ onMounted(() => {
   <div
     class="create-external bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
   >
-    <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+    <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
 
     <div
       class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full bg-white cursor-pointer"
@@ -377,34 +378,28 @@ onMounted(() => {
         :label="$t('labels.sqliteFile')"
         v-bind="validateInfos['dataSource.connection.connection.filename']"
       >
-        <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
+        <a-input v-model:value="formState.dataSource.connection.connection.filename" />
       </a-form-item>
 
       <template v-else>
         <!-- Host Address -->
         <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
-          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).host" class="nc-extdb-host-address" />
+          <a-input v-model:value="formState.dataSource.connection.host" class="nc-extdb-host-address" />
         </a-form-item>
 
         <!-- Port Number -->
         <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
-          <a-input-number
-            v-model:value="(formState.dataSource.connection as DefaultConnection).port"
-            class="!w-full nc-extdb-host-port"
-          />
+          <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full nc-extdb-host-port" />
         </a-form-item>
 
         <!-- Username -->
         <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
-          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).user" class="nc-extdb-host-user" />
+          <a-input v-model:value="formState.dataSource.connection.user" class="nc-extdb-host-user" />
         </a-form-item>
 
         <!-- Password -->
         <a-form-item :label="$t('labels.password')">
-          <a-input-password
-            v-model:value="(formState.dataSource.connection as DefaultConnection).password"
-            class="nc-extdb-host-password"
-          />
+          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
         </a-form-item>
 
         <!-- Database -->
@@ -557,7 +552,7 @@ onMounted(() => {
       wrap-class-name="nc-modal-edit-connection-json"
       @ok="handleOk"
     >
-      <MonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
+      <LazyMonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
     </a-modal>
 
     <!--    Use Connection URL -->

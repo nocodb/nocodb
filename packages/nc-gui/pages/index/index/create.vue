@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { Form } from 'ant-design-vue'
-import { message } from 'ant-design-vue'
 import {
   extractSdkResponseErrorMsg,
+  message,
   navigateTo,
   nextTick,
   onMounted,
@@ -66,7 +66,7 @@ onMounted(async () => {
   <div
     class="create bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
   >
-    <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+    <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
 
     <div
       class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full bg-white cursor-pointer"

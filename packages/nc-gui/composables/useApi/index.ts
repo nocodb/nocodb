@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import type { CreateApiOptions, UseApiProps, UseApiReturn } from './types'
 import { addAxiosInterceptors } from './interceptors'
 import { BASE_URL } from '~/lib'
-import { createEventHook, ref, unref, useCounter, useGlobal, useNuxtApp } from '#imports'
+import { createEventHook, extractSdkResponseErrorMsg, ref, unref, useCounter, useGlobal, useNuxtApp } from '#imports'
 
 export function createApiInstance<SecurityDataType = any>({ baseURL = BASE_URL }: CreateApiOptions = {}): Api<SecurityDataType> {
   const { appInfo } = $(useGlobal())
@@ -106,9 +106,9 @@ export function useApi<Data = any, RequestConfig = any>({
         ...unref(axiosConfig),
       }
     },
-    (requestError) => {
+    async (requestError) => {
       errorHook.trigger(requestError)
-      error.value = requestError
+      error.value = await extractSdkResponseErrorMsg(requestError)
 
       response.value = null
 

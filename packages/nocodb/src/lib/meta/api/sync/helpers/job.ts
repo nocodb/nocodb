@@ -16,6 +16,7 @@ import { importData, importLTARData } from './readAndProcessData';
 dayjs.extend(utc);
 
 const selectColors = {
+  // normal
   blue: '#cfdfff',
   cyan: '#d0f0fd',
   teal: '#c2f5e9',
@@ -26,6 +27,39 @@ const selectColors = {
   pink: '#ffdaf6',
   purple: '#ede2fe',
   gray: '#eee',
+  // medium
+  blueMedium: '#9cc7ff',
+  cyanMedium: '#77d1f3',
+  tealMedium: '#72ddc3',
+  greenMedium: '#93e088',
+  orangeMedium: '#ffa981',
+  yellowMedium: '#ffd66e',
+  redMedium: '#ff9eb7',
+  pinkMedium: '#f99de2',
+  purpleMedium: '#cdb0ff',
+  grayMedium: '#ccc',
+  // dark
+  blueDark: '#2d7ff9',
+  cyanDark: '#18bfff',
+  tealDark: '#20d9d2',
+  greenDark: '#20c933',
+  orangeDark: '#ff6f2c',
+  yellowDark: '#fcb400',
+  redDark: '#f82b60',
+  pinkDark: '#ff08c2',
+  purpleDark: '#8b46ff',
+  grayDark: '#666',
+  // darker
+  blueDarker: '#2750ae',
+  cyanDarker: '#0b76b7',
+  tealDarker: '#06a09b',
+  greenDarker: '#338a17',
+  orangeDarker: '#d74d26',
+  yellowDarker: '#b87503',
+  redDarker: '#ba1e45',
+  pinkDarker: '#b2158b',
+  purpleDarker: '#6b1cb0',
+  grayDarker: '#444',
 };
 
 export default async (

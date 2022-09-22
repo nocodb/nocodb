@@ -2,9 +2,7 @@
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, computed } from '#imports'
-import VirtualCellIcon from '~/components/smartsheet-header/VirtualCellIcon.vue'
-import CellIcon from '~/components/smartsheet-header/CellIcon.vue'
+import { MetaInj, computed, inject, ref, resolveComponent } from '#imports'
 
 interface Props {
   modelValue?: string
@@ -38,9 +36,12 @@ const options = computed<SelectProps['options']>(() =>
     .map((c: ColumnType) => ({
       value: c.id,
       label: c.title,
-      icon: h(isVirtualCol(c) ? VirtualCellIcon : CellIcon, {
-        columnMeta: c,
-      }),
+      icon: h(
+        isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
+        {
+          columnMeta: c,
+        },
+      ),
       c,
     })),
 )

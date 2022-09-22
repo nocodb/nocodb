@@ -54,6 +54,21 @@ export default defineNuxtConfig({
       commonjsOptions: {
         ignoreTryCatch: true,
       },
+      minify: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            const chunks = ['ant-design-vue', 'nocodb-sdk', 'vue-router', 'vue-i18n']
+            if (id.includes('/node_modules/')) {
+              for (const chunkName of chunks) {
+                if (id.includes(chunkName)) {
+                  return chunkName
+                }
+              }
+            }
+          },
+        },
+      },
     },
     plugins: [
       vueI18n({

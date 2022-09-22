@@ -1,5 +1,4 @@
 import { dirname, resolve } from 'node:path'
-import { defineNuxtConfig } from 'nuxt'
 import vueI18n from '@intlify/vite-plugin-vue-i18n'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
@@ -53,7 +52,7 @@ export default defineNuxtConfig({
   vite: {
     build: {
       commonjsOptions: {
-        ignoreTryCatch: false,
+        ignoreTryCatch: true,
       },
     },
     plugins: [
@@ -101,6 +100,7 @@ export default defineNuxtConfig({
       'process.env.DEBUG': 'false',
       'process.nextTick': () => {},
       'process.env.ANT_MESSAGE_DURATION': process.env.ANT_MESSAGE_DURATION,
+      'process.env.NC_BACKEND_URL': process.env.NC_BACKEND_URL,
     },
     server: {
       watch: {
@@ -133,8 +133,8 @@ export default defineNuxtConfig({
     dir: 'assets/',
   },
 
-  autoImports: {
-    dirs: ['./context', './utils', './lib'],
+  imports: {
+    dirs: ['./context', './utils', './lib', './composables/**'],
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
       { name: 'message', from: 'ant-design-vue/es' },

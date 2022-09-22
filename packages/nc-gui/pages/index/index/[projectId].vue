@@ -1,27 +1,25 @@
 <script lang="ts" setup>
 import type { Form } from 'ant-design-vue'
-import { message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import {
   extractSdkResponseErrorMsg,
+  message,
   navigateTo,
   nextTick,
   onMounted,
   projectTitleValidator,
   reactive,
   ref,
-  useApi,
+  useProject,
   useRoute,
   useSidebar,
 } from '#imports'
-
-const { isLoading } = useApi()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 
-const { project, loadProject, updateProject } = useProject(route.params.projectId as string)
+const { project, loadProject, updateProject, isLoading } = useProject(route.params.projectId as string)
 
 await loadProject()
 
@@ -69,7 +67,7 @@ onMounted(async () => {
   <div
     class="update-project bg-white relative flex-auto flex flex-col justify-center gap-2 p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
   >
-    <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+    <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
 
     <div
       class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full bg-white cursor-pointer"

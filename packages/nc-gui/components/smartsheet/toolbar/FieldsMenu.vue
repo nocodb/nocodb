@@ -13,12 +13,11 @@ import {
   computed,
   inject,
   ref,
+  resolveComponent,
   useNuxtApp,
   useViewColumns,
   watch,
 } from '#imports'
-import CellIcon from '~/components/smartsheet-header/CellIcon.vue'
-import VirtualCellIcon from '~/components/smartsheet-header/VirtualCellIcon.vue'
 
 const meta = inject(MetaInj, ref())
 
@@ -89,9 +88,9 @@ const coverImageColumnId = computed({
   get: () =>
     activeView.value?.type === ViewTypes.GALLERY ? (activeView.value?.view as GalleryType).fk_cover_image_col_id : undefined,
   set: async (val) => {
-    if (val && activeView.value.type === ViewTypes.GALLERY && activeView.value.id && activeView.value.view) {
-      await $api.dbView.galleryUpdate(activeView.value.id, {
-        ...activeView.value.view,
+    if (val && activeView.value?.type === ViewTypes.GALLERY && activeView.value?.id && activeView.value?.view) {
+      await $api.dbView.galleryUpdate(activeView.value?.id, {
+        ...activeView.value?.view,
         fk_cover_image_col_id: val,
       })
       ;(activeView.value?.view as GalleryType).fk_cover_image_col_id = val
@@ -112,7 +111,7 @@ const coverOptions = computed<SelectProps['options']>(() => {
 })
 
 const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? VirtualCellIcon : CellIcon, {
+  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: c,
   })
 </script>

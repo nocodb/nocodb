@@ -17,6 +17,7 @@ import {
   ReadonlyInj,
   ReloadViewDataHookInj,
   createEventHook,
+  extractPkFromRow,
   inject,
   onClickOutside,
   onMounted,
@@ -27,6 +28,7 @@ import {
   useEventListener,
   useGridViewColumnWidth,
   useI18n,
+  useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
   useViewData,
@@ -52,6 +54,9 @@ const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook()
 
 const { isUIAllowed } = useUIPermission()
 const hasEditPermission = isUIAllowed('xcDatatableEditable')
+
+const route = useRoute()
+const router = useRouter()
 
 // todo: get from parent ( inject or use prop )
 const isView = false
@@ -130,10 +135,21 @@ reloadViewDataHook?.on(async (shouldShowLoading) => {
 const skipRowRemovalOnCancel = ref(false)
 
 const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) => {
-  expandedFormRow.value = row
-  expandedFormRowState.value = state
-  expandedFormDlg.value = true
-  skipRowRemovalOnCancel.value = !fromToolbar
+  const rowId = extractPkFromRow(row.row, meta.value.columns)
+
+  if (rowId) {
+    router.push({
+      query: {
+        ...route.query,
+        rowId,
+      },
+    })
+  } else {
+    expandedFormRow.value = row
+    expandedFormRowState.value = state
+    expandedFormDlg.value = true
+    skipRowRemovalOnCancel.value = !fromToolbar
+  }
 }
 
 openNewRecordFormHook?.on(async () => {
@@ -377,6 +393,27 @@ onBeforeUnmount(async () => {
     }
   }
 })
+
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!route.query.rowId
+  },
+  set(val) {
+    if (!val)
+      router.push({
+        query: {
+          ...route.query,
+          rowId: undefined,
+        },
+      })
+  },
+})
+
+// reload table data reload hook as fallback to rowdatareload
+provide(ReloadRowDataHookInj, reloadViewDataHook)
+
+// trigger initial data load in grid
+reloadViewDataHook.trigger()
 </script>
 
 <template>
@@ -611,11 +648,22 @@ onBeforeUnmount(async () => {
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
+      :view="view"
       @update:model-value="
         () => {
           if (!skipRowRemovalOnCancel) removeRowIfNew(expandedFormRow)
         }
       "
+    />
+
+    <SmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg"
+      :key="route.query.rowId"
+      v-model="expandedFormOnRowIdDlg"
+      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :meta="meta"
+      :row-id="route.query.rowId"
+      :view="view"
     />
   </div>
 </template>

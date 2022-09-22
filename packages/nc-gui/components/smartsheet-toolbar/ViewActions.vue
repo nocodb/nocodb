@@ -18,6 +18,7 @@ import { LockType } from '~/lib'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
+import AcountTreeRoundedIcon from '~icons/material-symbols/account-tree-rounded'
 
 const { t } = useI18n()
 
@@ -36,6 +37,8 @@ const isLocked = inject(IsLockedInj)
 const showWebhookDrawer = ref(false)
 
 const showApiSnippetDrawer = ref(false)
+
+const showErd = ref(false)
 
 const quickImportDialog = ref(false)
 
@@ -160,9 +163,8 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
                 </template>
 
                 <template #expandIcon></template>
-                <a-menu-item>
+                <a-menu-item v-if="isUIAllowed('csvImport') && !isView && !isPublicView">
                   <div
-                    v-if="isUIAllowed('csvImport') && !isView && !isPublicView"
                     v-e="['a:actions:upload-csv']"
                     class="nc-project-menu-item"
                     :class="{ disabled: isLocked }"
@@ -177,13 +179,8 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
               </a-sub-menu>
             </template>
             <a-menu-divider />
-            <a-menu-item>
-              <div
-                v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView"
-                v-e="['a:actions:shared-view-list']"
-                class="py-2 flex gap-2 items-center"
-                @click="sharedViewListDlg = true"
-              >
+            <a-menu-item v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView">
+              <div v-e="['a:actions:shared-view-list']" class="py-2 flex gap-2 items-center" @click="sharedViewListDlg = true">
                 <MdiViewListOutline class="text-gray-500" />
                 <!-- Shared View List -->
                 {{ $t('activity.listSharedView') }}
@@ -200,16 +197,17 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
                 {{ $t('objects.webhooks') }}
               </div>
             </a-menu-item>
-            <a-menu-item>
-              <div
-                v-if="!isSharedBase && !isPublicView"
-                v-e="['c:snippet:open']"
-                class="py-2 flex gap-2 items-center"
-                @click="showApiSnippetDrawer = true"
-              >
+            <a-menu-item v-if="!isSharedBase && !isPublicView">
+              <div v-e="['c:snippet:open']" class="py-2 flex gap-2 items-center" @click="showApiSnippetDrawer = true">
                 <MdiXml class="text-gray-500" />
                 <!-- Get API Snippet -->
                 {{ $t('activity.getApiSnippet') }}
+              </div>
+            </a-menu-item>
+            <a-menu-item>
+              <div v-e="['c:erd:open']" class="py-2 flex gap-2 items-center nc-view-action-erd" @click="showErd = true">
+                <AcountTreeRoundedIcon class="text-gray-500" />
+                {{ $t('title.erdView') }}
               </div>
             </a-menu-item>
           </a-menu-item-group>
@@ -220,6 +218,8 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
     <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-only="true" />
 
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
+
+    <SmartsheetToolbarErd v-model="showErd" />
 
     <a-modal
       v-model:visible="sharedViewListDlg"

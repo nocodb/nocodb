@@ -1,4 +1,6 @@
 @import 'ant-design-vue/dist/antd.variable.min.css';
+@import '@braks/vue-flow/dist/style.css';
+@import '@braks/vue-flow/dist/theme-default.css';
 
 :root {
   --header-height: 42px;
@@ -247,4 +249,9 @@ a {
 
 .ant-dropdown-menu-submenu-title{
   @apply !pr-2;
+}
+
+.vue-flow__minimap {
+  transform: scale(75%);
+  transform-origin: bottom right;
 }

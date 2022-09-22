@@ -65,8 +65,8 @@ const syncSource = ref({
 })
 
 const validators = computed(() => ({
-  'details.apiKey': [fieldRequiredValidator],
-  'details.syncSourceUrlOrId': [fieldRequiredValidator],
+  'details.apiKey': [fieldRequiredValidator()],
+  'details.syncSourceUrlOrId': [fieldRequiredValidator()],
 }))
 
 const dialogShow = computed({

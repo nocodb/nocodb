@@ -6169,6 +6169,12 @@
           },
           "project_id": {
             "type": "string"
+          },
+          "mm": {
+            "type": [
+              "boolean",
+              "number"
+            ]
           }
         },
         "required": [

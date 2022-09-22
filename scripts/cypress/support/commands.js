@@ -222,13 +222,16 @@ Cypress.Commands.add("saveLocalStorage", (name) => {
   cy.printLocalStorage();
 });
 
-Cypress.Commands.add("restoreLocalStorage", (name) => {
+const restoreLocalStorage = () => {
   Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
     localStorage.setItem(key, LOCAL_STORAGE_MEMORY[key]);
   });
 
   cy.printLocalStorage();
-});
+};
+
+Cypress.Commands.add("restoreLocalStorage", restoreLocalStorage);
+// Cypress.on("window:before:load", restoreLocalStorage);
 
 Cypress.Commands.add("deleteLocalStorage", () => {
   Object.keys(LOCAL_STORAGE_MEMORY).forEach((key) => {
@@ -236,33 +239,10 @@ Cypress.Commands.add("deleteLocalStorage", () => {
   });
 });
 
-// saveLocalStorageToFile
-Cypress.Commands.add("saveLocalStorageToFile", (name) => {
-  LOCAL_STORAGE_MEMORY_v2 = {};
-  Object.keys(localStorage).forEach((key) => {
-    LOCAL_STORAGE_MEMORY_v2[key] = localStorage[key];
-  });
-  cy.writeFile(
-    `scripts/cypress/fixtures/${name}.json`,
-    LOCAL_STORAGE_MEMORY_v2
-  );
-});
-
-// restoreLocalStorageFromFile
-Cypress.Commands.add("restoreLocalStorageFromFile", (name) => {
-  cy.readFile(`scripts/cypress/fixtures/${name}.json`).then((data) => {
-    Object.keys(data).forEach((key) => {
-      localStorage.setItem(key, data[key]);
-    });
-  });
-
-  cy.saveLocalStorage();
-});
-
 Cypress.Commands.add("printLocalStorage", () => {
-  cy.task("log", `[printLocalStorage]`);
-  cy.task("log", JSON.stringify(localStorage, null, 2));
-  cy.task("log", JSON.stringify(LOCAL_STORAGE_MEMORY, null, 2));
+  // cy.task('log', `[printLocalStorage]`);
+  // cy.task('log', JSON.stringify(localStorage, null, 2));
+  // cy.task('log', JSON.stringify(LOCAL_STORAGE_MEMORY, null, 2));
 });
 
 Cypress.Commands.add("getActiveModal", (wrapperSelector) => {
@@ -387,9 +367,10 @@ Cypress.Commands.add("renameTable", (oldName, newName) => {
 // });
 
 Cypress.Commands.add("toastWait", (msg) => {
-  cy.get(".ant-message-notice-content:visible", { timeout: 60000 })
-    .contains(msg)
-    .should("exist");
+  // cy.get('.ant-message-notice-content:visible', { timout: 30000 }).should('exist')
+  cy.get(`.ant-message-notice-content:visible:contains("${msg}")`, {
+    timeout: 30000,
+  }).should("exist");
   cy.get(".ant-message-notice-content:visible", { timeout: 12000 }).should(
     "not.exist"
   );
@@ -501,78 +482,6 @@ Cypress.Commands.add("signOut", () => {
 
   cy.wait(5000);
   cy.get('button:contains("SIGN")').should("exist");
-});
-
-// View basic routines
-//
-function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-// viewCreate
-//  : viewType: grid, gallery, kanban, form
-//  : creates view with default name
-//
-Cypress.Commands.add("viewCreate", (viewType) => {
-  // click on 'Grid/Gallery/Form/Kanban' button on Views bar
-  cy.get(`.nc-create-${viewType}-view`).click();
-
-  // Pop up window, click Submit (accepting default name for view)
-  cy.getActiveModal(".nc-modal-view-create").find(".ant-btn-primary").click();
-  cy.toastWait("View created successfully");
-
-  // validate if view was created && contains default name 'Country1'
-  cy.get(`.nc-${viewType}-view-item`)
-    .contains(`${capitalizeFirstLetter(viewType)}-1`)
-    .should("exist");
-});
-
-// viewDelete
-//  : delete view by index (0-based, exclude default view)
-//
-Cypress.Commands.add("viewDelete", (viewIndex) => {
-  // click on delete icon (becomes visible on hovering mouse)
-  cy.get(".nc-view-delete-icon").eq(viewIndex).click({ force: true });
-  cy.wait(300);
-
-  // click on 'Delete' button on confirmation modal
-  cy.getActiveModal(".nc-modal-view-delete").find(".ant-btn-dangerous").click();
-  cy.toastWait("View deleted successfully");
-});
-
-// viewDuplicate
-//  : duplicate view by index (0-based, *include* default view)
-//
-Cypress.Commands.add("viewCopy", (viewIndex) => {
-  // click on delete icon (becomes visible on hovering mouse)
-  cy.get(".nc-view-copy-icon").eq(viewIndex).click({ force: true });
-  cy.wait(300);
-
-  // click on 'Delete' button on confirmation modal
-  cy.getActiveModal(".nc-modal-view-create").find(".ant-btn-primary").click();
-  cy.toastWait("View created successfully");
-});
-
-// viewRename
-//  : rename view by index (0-based, exclude default view)
-//
-Cypress.Commands.add("viewRename", (viewType, viewIndex, newName) => {
-  // click on edit-icon (becomes visible on hovering mouse)
-  cy.get(`.nc-${viewType}-view-item`).eq(viewIndex).dblclick();
-
-  // feed new name
-  cy.get(`.nc-${viewType}-view-item input`).clear().type(`${newName}{enter}`);
-  cy.toastWait("View renamed successfully");
-
-  // validate
-  cy.get(`.nc-${viewType}-view-item`).contains(`${newName}`).should("exist");
-});
-
-// openTableView
-//  : open view by type & name
-//
-Cypress.Commands.add("openTableView", (viewType, viewName) => {
-  cy.get(`.nc-${viewType}-view-item`).contains(`${viewName}`).click();
 });
 
 // Drag n Drop

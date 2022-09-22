@@ -66,6 +66,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   })
 
+  const primaryKey = computed(() => {
+    return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+  })
+
   // actions
   const loadCommentsAndLogs = async () => {
     if (!row.value) return
@@ -179,13 +183,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return data
   }
 
-  const loadRow = async () => {
+  const loadRow = async (rowId?: string) => {
     const record = await $api.dbTableRow.read(
       NOCO,
       (project?.value?.id || sharedView.value.view.project_id) as string,
       meta.value.title,
-      extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]),
+      rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]),
     )
+
     Object.assign(row.value, {
       row: record,
       oldRow: { ...record },
@@ -209,6 +214,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     save,
     changedColumns,
     loadRow,
+    primaryKey,
   }
 }, 'expanded-form-store')
 

@@ -5,6 +5,7 @@ import AppStore from './AppStore.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Misc from './Misc.vue'
+import Erd from './Erd.vue'
 import { useNuxtApp } from '#app'
 import { useI18n, useUIPermission, useVModel, watch } from '#imports'
 import ApiTokenManagement from '~/components/tabs/auth/ApiTokenManagement.vue'
@@ -90,7 +91,7 @@ const tabsInfo: TabGroup = {
       $e('c:settings:appstore')
     },
   },
-  metaData: {
+  projMetaData: {
     // Project Metadata
     title: t('title.projMeta'),
     icon: MultipleTableIcon,
@@ -106,6 +107,13 @@ const tabsInfo: TabGroup = {
         body: UIAcl,
         onClick: () => {
           $e('c:table:ui-acl')
+        },
+      },
+      erd: {
+        title: t('title.erdView'),
+        body: Erd,
+        onClick: () => {
+          $e('c:settings:erd')
         },
       },
       misc: {

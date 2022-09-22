@@ -46,7 +46,6 @@ export function useViewFilters(
         if (isNestedRoot) nestedFilters.value = value
 
         nestedFilters.value = [...nestedFilters.value]
-        reloadHook?.trigger()
         return
       }
 
@@ -174,6 +173,8 @@ export function useViewFilters(
           fk_parent_id: parentId,
         })
       }
+
+      reloadHook?.trigger()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))

@@ -36,6 +36,7 @@ provide(TabMetaInj, ref(activeTab))
 const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
 
 const reloadEventHook = createEventHook<void>()
+const reloadViewMetaEventHook = createEventHook<void>()
 const openNewRecordFormHook = createEventHook<void>()
 const reloadKanbanMetaHook = createEventHook<void>()
 
@@ -50,6 +51,7 @@ provide(ActiveViewInj, activeView)
 provide(IsLockedInj, isLocked)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(ReloadKanbanMetaHookInj, reloadKanbanMetaHook)
+provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
@@ -71,7 +73,7 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
 
             <SmartsheetGallery v-else-if="isGallery" />
 
-            <SmartsheetForm v-else-if="isForm" />
+            <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
             <SmartsheetKanban v-else-if="isKanban" />
           </div>

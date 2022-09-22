@@ -14,6 +14,11 @@ export default defineNuxtConfig({
 
   ssr: false,
 
+  app: {
+    /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
+    cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
+  },
+
   css: [
     'virtual:windi.css',
     'virtual:windi-devtools',
@@ -46,9 +51,10 @@ export default defineNuxtConfig({
   },
 
   vite: {
-    // todo: minifiy again
     build: {
-      minify: false,
+      commonjsOptions: {
+        ignoreTryCatch: false,
+      },
     },
     plugins: [
       vueI18n({
@@ -77,7 +83,8 @@ export default defineNuxtConfig({
     ],
     define: {
       'process.env.DEBUG': 'false',
-      'process.nextTick': () => {},
+      'process.nextTick': () => {
+      },
     },
     server: {
       watch: {

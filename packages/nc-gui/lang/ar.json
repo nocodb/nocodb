@@ -103,7 +103,8 @@
       "editor": "محرر",
       "commenter": "معلق",
       "viewer": "مشاهد"
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "هوية",
@@ -157,6 +158,7 @@
     "isNotNull": "ليس فارغاً"
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "مشروع جديد",
     "myProject": "مشاريعي",
     "formTitle": "عنوان النموذج",
@@ -406,7 +408,14 @@
     "linkRecord": "اربط سجل",
     "addNewRecord": "إضافة سجل جديد",
     "useConnectionUrl": "استخدام رابط الاتصال",
-    "toggleCommentsDraw": "تبديل سحب التعليقات"
+    "toggleCommentsDraw": "تبديل سحب التعليقات",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    }
   },
   "tooltip": {
     "saveChanges": "حفظ التغييرات",
@@ -616,7 +625,20 @@
       "rowUpdateFailed": "فشل تحديث الصف",
       "deleteRowFailed": "فشل في حذف الصف",
       "setFormDataFailed": "فشل في تعيين بيانات النموذج",
-      "formViewUpdateFailed": "فشل تحديث عرض النموذج"
+      "formViewUpdateFailed": "فشل تحديث عرض النموذج",
+      "tableNameRequired": "Table name is required",
+      "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
+      "followingCharactersAreNotAllowed": "Following characters are not allowed",
+      "columnNameRequired": "Column name is required",
+      "projectNameExceeds50Characters": "Project name exceeds 50 characters",
+      "projectNameCannotStartWithSpace": "Project name cannot start with space",
+      "requiredField": "Required field",
+      "ipNotAllowed": "IP not allowed",
+      "targetFileIsNotAnAcceptedFileType": "Target file is not an accepted file type",
+      "theAcceptedFileTypeIsCsv": "The accepted file type is .csv",
+      "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
+      "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
+      "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",

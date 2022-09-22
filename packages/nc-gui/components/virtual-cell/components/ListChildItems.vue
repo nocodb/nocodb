@@ -78,10 +78,11 @@ const container = computed(() =>
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref()
 
+/** reload children list whenever cell value changes and list is visible */
 watch(
   () => props.cellValue,
   () => {
-    if (!isNew.value) loadChildrenList()
+    if (!isNew.value && vModel.value) loadChildrenList()
   },
 )
 </script>

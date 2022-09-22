@@ -103,7 +103,8 @@
       "editor": "সম্পাদক",
       "commenter": "মন্তব্যকারী",
       "viewer": "দর্শক"
-    }
+    },
+    "sqlVIew": "SQL View"
   },
   "datatype": {
     "ID": "আইডি",
@@ -157,6 +158,7 @@
     "isNotNull": "নাল নয়"
   },
   "title": {
+    "erdView": "ERD View",
     "newProj": "নতুন প্রকল্প",
     "myProject": "আমার প্রকল্প",
     "formTitle": "ফর্ম শিরোনাম",
@@ -406,7 +408,14 @@
     "linkRecord": "Link record",
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
-    "toggleCommentsDraw": "Toggle comments draw"
+    "toggleCommentsDraw": "Toggle comments draw",
+    "erd": {
+      "showColumns": "Show Columns",
+      "showPkAndFk": "Show Primary and Foreign Keys",
+      "showSqlViews": "Show SQL Views",
+      "showMMTables": "Show Many to Many tables",
+      "showJunctionTableNames": "Show Junction Table Names"
+    }
   },
   "tooltip": {
     "saveChanges": "परिवर्तनों को सुरक्षित करें",
@@ -616,7 +625,20 @@
       "rowUpdateFailed": "Row update failed",
       "deleteRowFailed": "Failed to delete row",
       "setFormDataFailed": "Failed to set form data",
-      "formViewUpdateFailed": "Failed to update form view"
+      "formViewUpdateFailed": "Failed to update form view",
+      "tableNameRequired": "Table name is required",
+      "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
+      "followingCharactersAreNotAllowed": "Following characters are not allowed",
+      "columnNameRequired": "Column name is required",
+      "projectNameExceeds50Characters": "Project name exceeds 50 characters",
+      "projectNameCannotStartWithSpace": "Project name cannot start with space",
+      "requiredField": "Required field",
+      "ipNotAllowed": "IP not allowed",
+      "targetFileIsNotAnAcceptedFileType": "Target file is not an accepted file type",
+      "theAcceptedFileTypeIsCsv": "The accepted file type is .csv",
+      "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
+      "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
+      "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",

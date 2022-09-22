@@ -16,7 +16,7 @@ export class _settingsPage {
     // menu
     this.TEAM_N_AUTH = "teamAndAuth";
     this.APPSTORE = "appStore";
-    this.PROJ_METADATA = "metaData";
+    this.PROJ_METADATA = "projMetaData";
     this.AUDIT = "audit";
 
     // submenu
@@ -26,6 +26,8 @@ export class _settingsPage {
     this.METADATA = "metaData";
     this.UI_ACCESS_CONTROL = "acl";
     this.AUDIT_LOG = "audit";
+    this.ERD = "erd";
+    this.MISC = "misc";
   }
 
   openMenu(menuId) {
@@ -118,6 +120,13 @@ export class _mainPage {
 
     // click on New User button, feed details
     cy.get("button.nc-invite-team").click();
+
+    // additional wait to ensure the modal is fully loaded
+    cy.getActiveModal(".nc-modal-invite-user-and-share-base").should("exist");
+    cy.getActiveModal(".nc-modal-invite-user-and-share-base")
+      .find('input[placeholder="E-mail"]')
+      .should("exist");
+    cy.wait(1000);
 
     cy.get('input[placeholder="E-mail"]').type(userCred.username);
 
@@ -645,6 +654,35 @@ export class _mainPage {
 
   toggleRightSidebar() {
     cy.get(".nc-toggle-right-navbar").should("exist").click();
+  }
+
+  openMiscTab() {
+    // open Project metadata tab
+    //
+    settingsPage.openMenu(settingsPage.PROJ_METADATA);
+    settingsPage.openTab(settingsPage.MISC);
+  }
+
+  toggleShowMMSetting() {
+    // toggle show MM setting
+    //
+    this.openMiscTab();
+    cy.get(".nc-settings-meta-misc").click();
+
+    settingsPage.openTab(settingsPage.TEAM_N_AUTH);
+    this.closeMetaTab();
+  }
+
+  openErdTab() {
+    // open Project metadata tab
+    //
+    settingsPage.openMenu(settingsPage.PROJ_METADATA);
+    settingsPage.openTab(settingsPage.ERD);
+  }
+
+  openTableErdView() {
+    cy.get(".nc-actions-menu-btn").should("exist").click();
+    cy.get(".nc-view-action-erd").should("exist").click();
   }
 }
 

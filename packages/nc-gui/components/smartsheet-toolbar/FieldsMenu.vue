@@ -26,6 +26,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
+const reloadViewMetaHook = inject(ReloadViewMetaHookInj)!
+
 const rootFields = inject(FieldsInj)
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -93,7 +95,7 @@ const coverImageColumnId = computed({
         fk_cover_image_col_id: val,
       })
       ;(activeView.value?.view as GalleryType).fk_cover_image_col_id = val
-      reloadDataHook.trigger()
+      reloadViewMetaHook.trigger()
     }
   },
 })

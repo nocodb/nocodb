@@ -9,7 +9,7 @@ const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || ro
 <template>
   <a-config-provider>
     <NuxtLayout :name="disableBaseLayout ? false : 'base'">
-      <NuxtPage />
+      <NuxtPage keepalive :page-key="$route.fullPath.split('?')[0]" />
     </NuxtLayout>
   </a-config-provider>
 </template>

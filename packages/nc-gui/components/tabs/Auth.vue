@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useI18n, useUIPermission } from '#imports'
+import type { ComputedRef } from 'vue'
+import { computed, useI18n, useUIPermission } from '#imports'
 
 interface Tab {
   title: string
   label: string
-  body: any
-  isUIAllowed: () => boolean
+  isUIAllowed: ComputedRef<boolean>
 }
 
 const { t } = useI18n()
@@ -16,14 +16,12 @@ const tabsInfo: Tab[] = [
   {
     title: 'Users Management',
     label: t('title.userMgmt'),
-    body: () => import('./auth/UserManagement.vue'),
-    isUIAllowed: () => isUIAllowed('userMgmtTab'),
+    isUIAllowed: computed(() => isUIAllowed('userMgmtTab')),
   },
   {
     title: 'API Token Management',
     label: t('title.apiTokenMgmt'),
-    body: () => import('./auth/ApiTokenManagement.vue'),
-    isUIAllowed: () => isUIAllowed('apiTokenTab'),
+    isUIAllowed: computed(() => isUIAllowed('apiTokenTab')),
   },
 ]
 
@@ -32,7 +30,7 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKey])
 </script>
 
 <template>
-  <div v-if="selectedTab.isUIAllowed()">
+  <div v-if="selectedTab.isUIAllowed">
     <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs !mx-6">
       <a-tab-pane v-for="(tab, key) of tabsInfo" :key="key" class="select-none">
         <template #tab>
@@ -44,7 +42,13 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKey])
     </a-tabs>
 
     <div class="mx-4 py-6 mt-2">
-      <component :is="selectedTab.body()" />
+      <template v-if="selectedTabKey === 0">
+        <LazyTabsAuthUserManagement />
+      </template>
+
+      <template v-else>
+        <LazyTabsAuthApiTokenManagement />
+      </template>
     </div>
   </div>
 </template>

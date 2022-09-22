@@ -1,5 +1,5 @@
 import type { Api } from 'nocodb-sdk'
-import type { Actions } from '~/composables'
+import type { Actions } from '~/composables/useGlobal/types'
 import { defineNuxtRouteMiddleware, message, navigateTo, useApi, useGlobal, useRoles } from '#imports'
 
 /**
@@ -43,7 +43,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if (to.meta.public) return
 
   /** if shared base allow without validating */
-  if (to.params?.projectType === 'base') return
+  if (to.params.projectType === 'base') return
 
   /** if auth is required or unspecified (same as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
@@ -74,7 +74,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
     /** if users are accessing the projects without having enough permissions, redirect to My Projects page */
     if (to.params.projectId && from.params.projectId !== to.params.projectId) {
-      const user = await api.auth.me({ project_id: to?.params?.projectId as string })
+      const user = await api.auth.me({ project_id: to.params.projectId as string })
 
       if (user?.roles?.user) {
         message.error("You don't have enough permission to access the project.")

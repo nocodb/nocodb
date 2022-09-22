@@ -14,6 +14,7 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
+  useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
 
@@ -165,9 +166,9 @@ const exportFile = async (exportType: ExportTypes) => {
       </template>
     </a-dropdown>
 
-    <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-only="true" />
+    <LazyDlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-only="true" />
 
-    <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
+    <LazyWebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
     <a-modal
       v-model:visible="sharedViewListDlg"
@@ -176,7 +177,7 @@ const exportFile = async (exportType: ExportTypes) => {
       :footer="null"
       wrap-class-name="nc-modal-shared-view-list"
     >
-      <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
+      <LazySmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
     </a-modal>
   </div>
 </template>

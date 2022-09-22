@@ -661,6 +661,7 @@ function handleEditableTnChange(idx: number) {
               <template #emptyText>
                 <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
               </template>
+
               <template #headerCell="{ column }">
                 <template v-if="column.key === 'column_name'">
                   <span>

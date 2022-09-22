@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import { ref, useGlobal, useMetas, useProject, watch } from '#imports'
 
 const { table } = defineProps<{ table?: TableType }>()
 
 const { includeM2M } = useGlobal()
 
 const { tables: projectTables } = useProject()
-const tables = ref<TableType[]>([])
+
 const { metas, getMeta } = useMetas()
+
+const tables = ref<TableType[]>([])
 
 let isLoading = $ref(true)
 const showAdvancedOptions = ref(false)
@@ -105,8 +108,9 @@ watch(
         <a-spin size="large" />
       </div>
     </div>
+
     <div v-else class="relative h-full">
-      <ErdFlow :tables="tables" :config="config" />
+      <LazyErdFlow :tables="tables" :config="config" />
 
       <div
         class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1 nc-erd-context-menu z-50"

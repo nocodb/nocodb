@@ -135,7 +135,7 @@ reloadViewDataHook?.on(async (shouldShowLoading) => {
 const skipRowRemovalOnCancel = ref(false)
 
 const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) => {
-  const rowId = extractPkFromRow(row.row, meta.value.columns)
+  const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   if (rowId) {
     router.push({
@@ -653,7 +653,7 @@ reloadViewDataHook.trigger()
       @update:model-value="!skipRowRemovalOnCancel && removeRowIfNew(expandedFormRow)"
     />
 
-    <SmartsheetExpandedForm
+    <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg"
       :key="route.query.rowId"
       v-model="expandedFormOnRowIdDlg"

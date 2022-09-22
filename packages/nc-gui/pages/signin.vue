@@ -65,7 +65,10 @@ function resetError() {
       <div
         class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
-        <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+        <LazyGeneralNocoIcon
+          class="color-transition hover:(ring ring-accent)"
+          :class="[isLoading ? 'animated-bg-gradient' : '']"
+        />
 
         <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 

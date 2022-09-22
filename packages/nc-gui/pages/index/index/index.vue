@@ -14,7 +14,6 @@ import {
   themeV2Colors,
   useApi,
   useNuxtApp,
-  useSidebar,
   useUIPermission,
 } from '#imports'
 
@@ -27,8 +26,6 @@ const { $api, $e } = useNuxtApp()
 const { api, isLoading } = useApi()
 
 const { isUIAllowed } = useUIPermission()
-
-useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: true })
 
 const filterQuery = ref('')
 
@@ -243,6 +240,7 @@ onBeforeMount(loadProjects)
                             Custom Color
                           </div>
                         </template>
+
                         <template #expandIcon></template>
 
                         <LazyGeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />

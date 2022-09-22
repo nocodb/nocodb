@@ -142,7 +142,6 @@ declare module '@vue/runtime-core' {
     MdiMoonFull: typeof import('~icons/mdi/moon-full')['default']
     MdiNumeric: typeof import('~icons/mdi/numeric')['default']
     MdiOpenInNew: typeof import('~icons/mdi/open-in-new')['default']
-    MdiOpenInNewIcon: typeof import('~icons/mdi/open-in-new-icon')['default']
     MdiPencil: typeof import('~icons/mdi/pencil')['default']
     MdiPlus: typeof import('~icons/mdi/plus')['default']
     MdiPlusOutline: typeof import('~icons/mdi/plus-outline')['default']

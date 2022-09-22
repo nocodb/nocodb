@@ -6,12 +6,15 @@ import {
   computed,
   createEventHook,
   ref,
+  tryOnScopeDispose,
+  unref,
   useApi,
   useGlobal,
   useInjectionState,
   useNuxtApp,
   useRoles,
   useRoute,
+  useRouter,
   useTheme,
   watch,
 } from '#imports'
@@ -27,6 +30,8 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   const { includeM2M } = useGlobal()
 
   const { setTheme, theme } = useTheme()
+
+  const router = useRouter()
 
   const { projectRoles, loadProjectRoles } = useRoles()
 
@@ -62,17 +67,15 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   const isPg = computed(() => projectBaseType === 'pg')
   const isSharedBase = computed(() => projectType === 'base')
 
-  const router = useRouter()
-
   async function loadProjectMetaInfo(force?: boolean) {
     if (!projectMetaInfo.value || force) {
       projectMetaInfo.value = await api.project.metaGet(project.value.id!, {}, {})
     }
   }
 
-  async function loadTables() {
-    if (project.value.id) {
-      const tablesResponse = await api.dbTable.list(project.value.id, {
+  async function loadTables(id?: string) {
+    if (id || project.value.id) {
+      const tablesResponse = await api.dbTable.list((id || project.value.id)!, {
         includeM2M: includeM2M.value,
       })
 
@@ -82,7 +85,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
 
   async function loadProject(id?: string) {
     if (id) {
-      project.value = await api.project.read(projectId.value)
+      project.value = await api.project.read(id)
     } else if (projectType === 'base') {
       try {
         const baseData = await api.public.sharedBaseGet(route.params.projectId as string)
@@ -101,16 +104,15 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     }
 
     await loadProjectRoles(
-      project.value.id || (route.params.projectId as string),
-      isSharedBase.value,
+      id || project.value.id || (route.params.projectId as string), isSharedBase.value,
       route.params.projectId as string,
     )
 
-    await loadTables()
+    await loadTables(id)
 
     setTheme(projectMeta.value?.theme)
 
-    projectLoadedHook.trigger(project.value)
+    return projectLoadedHook.trigger(project.value)
   }
 
   async function updateProject(data: Partial<ProjectType>) {
@@ -188,7 +190,11 @@ export function useProject(projectId?: MaybeRef<string>) {
   const state = use()
 
   if (!state) {
-    return setup(projectId)
+    const setupState = setup(projectId)
+
+    tryOnScopeDispose(setupState.reset)
+
+    return setupState
   }
 
   return state

@@ -150,7 +150,7 @@ onKeyStroke(
 clearTabs()
 
 onBeforeMount(async () => {
-  await loadProject()
+  await loadProject(route.params.projectId as string)
 
   if (!route.params.type && isUIAllowed('teamAndAuth')) {
     addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
@@ -486,10 +486,10 @@ onBeforeUnmount(reset)
       </a-layout-sider>
     </template>
 
-    <div :key="$route.fullPath.split('?')[0]">
+    <div>
       <LazyDashboardSettingsModal v-model="dialogOpen" :open-key="openDialogKey" />
 
-      <NuxtPage />
+      <NuxtPage :page-key="project.id" />
 
       <LazyGeneralPreviewAs float />
     </div>

@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import Cell from '../Cell.vue'
-import VirtualCell from '../VirtualCell.vue'
-import Comments from './Comments.vue'
-import Header from './Header.vue'
 import {
+  message,
   FieldsInj,
   IsFormInj,
   MetaInj,
@@ -128,7 +124,8 @@ export default {
     :closable="false"
     class="nc-drawer-expanded-form"
   >
-    <Header :view="view" @cancel="onClose" />
+    <LazySmartsheetExpandedFormHeader :view="view" @cancel="onClose" />
+
     <div class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
@@ -145,9 +142,9 @@ export default {
               <SmartsheetHeaderCell v-else :column="col" />
 
               <div class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2">
-                <VirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
+                <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
 
-                <Cell
+                <LazySmartsheetCell
                   v-else
                   v-model="row.row[col.title]"
                   :column="col"
@@ -161,7 +158,7 @@ export default {
 
         <div v-if="!isNew" class="nc-comments-drawer min-w-0 min-h-full max-h-full" :class="{ active: commentsDrawer }">
           <div class="h-full">
-            <Comments v-if="commentsDrawer" />
+            <LazySmartsheetExpandedFormComments v-if="commentsDrawer" />
           </div>
         </div>
       </div>

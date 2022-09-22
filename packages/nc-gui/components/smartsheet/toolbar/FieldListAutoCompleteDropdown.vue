@@ -4,12 +4,10 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { MetaInj, computed, inject, ref, resolveComponent } from '#imports'
 
-interface Props {
+const { modelValue, isSort } = defineProps<{
   modelValue?: string
   isSort?: boolean
-}
-
-const { modelValue, isSort } = defineProps<Props>()
+}>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -21,7 +19,7 @@ const localValue = computed({
 })
 
 const options = computed<SelectProps['options']>(() =>
-  meta?.value?.columns
+  meta.value?.columns
     ?.filter((c: ColumnType) => {
       /** ignore hasmany and manytomany relations if it's using within sort menu */
       if (isSort) {
@@ -37,7 +35,9 @@ const options = computed<SelectProps['options']>(() =>
       value: c.id,
       label: c.title,
       icon: h(
-        isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
+        isVirtualCol(c)
+          ? resolveComponent('LazySmartsheetHeaderVirtualCellIcon')
+          : resolveComponent('LazySmartsheetHeaderCellIcon'),
         {
           columnMeta: c,
         },
@@ -63,6 +63,7 @@ const filterOption = (input: string, option: any) => {
     <a-select-option v-for="option in options" :key="option.value" :value="option.value">
       <div class="flex gap-2 items-center items-center h-full">
         <component :is="option.icon" class="min-w-5 !mx-0" />
+
         <span class="min-w-0"> {{ option.label }}</span>
       </div>
     </a-select-option>

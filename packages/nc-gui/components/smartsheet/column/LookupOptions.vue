@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import { MetaInj } from '#imports'
+import { MetaInj, inject, ref, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
 
-interface Props {
-  value: Record<string, any>
-}
+const props = defineProps<{
+  value: any
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
+
 const vModel = useVModel(props, 'value', emit)
 
 const meta = $(inject(MetaInj, ref()))
@@ -77,6 +77,7 @@ const columns = $computed(() => {
           </a-select-option>
         </a-select>
       </a-form-item>
+
       <a-form-item class="flex w-1/2" :label="$t('labels.childColumn')" v-bind="validateInfos.fk_lookup_column_id">
         <a-select
           v-model:value="vModel.fk_lookup_column_id"

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { durationOptions } from '@/utils'
+import { durationOptions, useVModel } from '#imports'
 
-interface Props {
-  value: Record<string, any>
-}
+const props = defineProps<{
+  value: any
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
+
 const vModel = useVModel(props, 'value', emit)
 
 const durationOptionList =
@@ -28,6 +28,7 @@ vModel.value.meta = {
     <a-col :span="24">
       <span class="prose-sm mt-2">A duration of time in minutes or seconds (e.g. 1:23).</span>
     </a-col>
+
     <a-col :span="24">
       <a-form-item label="Duration Format">
         <a-select v-model:value="vModel.meta.duration" class="w-52" dropdown-class-name="nc-dropdown-duration-option">

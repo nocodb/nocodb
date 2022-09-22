@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ReloadViewDataHookInj, inject } from '#imports'
+import { ReloadViewDataHookInj, inject, useNuxtApp } from '#imports'
 
 const { $e } = useNuxtApp()
+
 const reloadHook = inject(ReloadViewDataHookInj)!
 
 const onClick = () => {

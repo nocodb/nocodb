@@ -1,8 +1,18 @@
 <script lang="ts" setup>
-import { Modal, message } from 'ant-design-vue'
+import { Modal } from 'ant-design-vue'
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { ColumnInj, IsLockedInj, MetaInj, extractSdkResponseErrorMsg, inject, useI18n, useMetas, useNuxtApp } from '#imports'
+import {
+  ColumnInj,
+  IsLockedInj,
+  MetaInj,
+  extractSdkResponseErrorMsg,
+  inject,
+  message,
+  useI18n,
+  useMetas,
+  useNuxtApp,
+} from '#imports'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
 

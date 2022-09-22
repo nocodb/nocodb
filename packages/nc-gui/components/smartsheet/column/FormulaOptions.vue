@@ -16,15 +16,16 @@ import {
   onMounted,
   useColumnCreateStoreOrThrow,
   useDebounceFn,
+  useVModel,
   validateDateWithUnknownFormat,
 } from '#imports'
 
-interface Props {
-  value: Record<string, any>
-}
+const props = defineProps<{
+  value: any
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
+
 const vModel = useVModel(props, 'value', emit)
 
 const { setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
@@ -619,6 +620,7 @@ onMounted(() => {
         @change="handleInputDeb"
       />
     </a-form-item>
+
     <div class="text-gray-600 mt-2 mb-4 prose-sm">
       Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out
       <a class="prose-sm" href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">
@@ -644,16 +646,19 @@ onMounted(() => {
                   <a-col :span="6">
                     <span class="prose-sm text-gray-600">{{ item.text }}</span>
                   </a-col>
+
                   <a-col :span="18">
                     <div v-if="item.type === 'function'" class="text-xs text-gray-500">
                       {{ item.description }} <br /><br />
                       Syntax: <br />
                       {{ item.syntax }} <br /><br />
                       Examples: <br />
+
                       <div v-for="(example, idx) of item.examples" :key="idx">
                         <div>({{ idx + 1 }}): {{ example }}</div>
                       </div>
                     </div>
+
                     <div v-if="item.type === 'column'" class="float-right mr-5 -mt-2">
                       <a-badge-ribbon :text="item.uidt" color="gray" />
                     </div>
@@ -663,7 +668,9 @@ onMounted(() => {
 
               <template #avatar>
                 <mdi-function v-if="item.type === 'function'" class="text-lg" />
+
                 <mdi-calculator v-if="item.type === 'op'" class="text-lg" />
+
                 <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
               </template>
             </a-list-item-meta>

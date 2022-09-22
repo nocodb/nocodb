@@ -1,18 +1,14 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { enumColor } from '@/utils'
-import MdiDragIcon from '~icons/mdi/drag-vertical'
-import MdiArrowDownDropCircle from '~icons/mdi/arrow-down-drop-circle'
-import MdiClose from '~icons/mdi/close'
-import MdiPlusIcon from '~icons/mdi/plus'
+import { enumColor, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
 
-interface Props {
-  value: Record<string, any>
-}
+const props = defineProps<{
+  value: any
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
+
 const vModel = useVModel(props, 'value', emit)
 
 const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
@@ -96,19 +92,21 @@ watch(inputs, () => {
     <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
       <template #item="{ element, index }">
         <div class="flex py-1 items-center">
-          <MdiDragIcon small class="nc-child-draggable-icon handle" />
+          <MdiDragVertical small class="nc-child-draggable-icon handle" />
+
           <a-dropdown
             v-model:visible="colorMenus[index]"
             :trigger="['click']"
             overlay-class-name="nc-dropdown-select-color-options"
           >
             <template #overlay>
-              <GeneralColorPicker v-model="element.color" :pick-button="true" @update:model-value="colorMenus[index] = false" />
+              <LazyGeneralColorPicker v-model="element.color" :pick-button="true" @update:model-value="colorMenus[index] = false" />
             </template>
             <MdiArrowDownDropCircle :style="{ 'font-size': '1.5em', 'color': element.color }" class="mr-2" />
           </a-dropdown>
 
           <a-input ref="inputs" v-model:value="element.title" class="caption" />
+
           <MdiClose class="ml-2" :style="{ color: 'red' }" @click="removeOption(index)" />
         </div>
       </template>
@@ -116,9 +114,10 @@ watch(inputs, () => {
         <div v-if="validateInfos?.['colOptions.options']?.help?.[0]?.[0]" class="text-error text-[10px] my-2">
           {{ validateInfos['colOptions.options'].help[0][0] }}
         </div>
+
         <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
           <div class="flex items-center">
-            <MdiPlusIcon />
+            <MdiPlus />
             <span class="flex-auto">Add option</span>
           </div>
         </a-button>
@@ -126,5 +125,3 @@ watch(inputs, () => {
     </Draggable>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

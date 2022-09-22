@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -19,6 +18,7 @@ import {
   createEventHook,
   extractPkFromRow,
   inject,
+  message,
   onClickOutside,
   onMounted,
   provide,
@@ -53,7 +53,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const { isUIAllowed } = useUIPermission()
-const hasEditPermission = isUIAllowed('xcDatatableEditable')
+const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
 const route = useRoute()
 const router = useRouter()
@@ -466,9 +466,9 @@ reloadViewDataHook.trigger()
                 @xcresized="resizingCol = null"
               >
                 <div class="w-full h-full bg-gray-100 flex items-center">
-                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readOnly" />
+                  <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readOnly" />
 
-                  <SmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly" />
+                  <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly" />
                 </div>
               </th>
               <th
@@ -487,7 +487,7 @@ reloadViewDataHook.trigger()
                   </div>
 
                   <template #overlay>
-                    <SmartsheetColumnEditOrAddProvider
+                    <LazySmartsheetColumnEditOrAddProvider
                       v-if="addColumnDropdown"
                       @submit="addColumnDropdown = false"
                       @cancel="addColumnDropdown = false"
@@ -500,7 +500,7 @@ reloadViewDataHook.trigger()
             </tr>
           </thead>
           <tbody>
-            <SmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
+            <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
@@ -558,7 +558,7 @@ reloadViewDataHook.trigger()
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
                     <div class="w-full h-full">
-                      <SmartsheetVirtualCell
+                      <LazySmartsheetVirtualCell
                         v-if="isVirtualCol(columnObj)"
                         v-model="row.row[columnObj.title]"
                         :column="columnObj"
@@ -567,7 +567,7 @@ reloadViewDataHook.trigger()
                         @navigate="onNavigate"
                       />
 
-                      <SmartsheetCell
+                      <LazySmartsheetCell
                         v-else
                         v-model="row.row[columnObj.title]"
                         :column="columnObj"
@@ -588,7 +588,7 @@ reloadViewDataHook.trigger()
                   </td>
                 </tr>
               </template>
-            </SmartsheetRow>
+            </LazySmartsheetRow>
 
             <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable') && !isSqlView">
               <td
@@ -641,7 +641,7 @@ reloadViewDataHook.trigger()
       </a-dropdown>
     </div>
 
-    <SmartsheetPagination />
+    <LazySmartsheetPagination />
 
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"

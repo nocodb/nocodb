@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
 import {
   ActiveViewInj,
   IsFormInj,
   IsGalleryInj,
   MetaInj,
+  ReloadViewDataHookInj,
   computed,
+  createEventHook,
   extractSdkResponseErrorMsg,
   inject,
+  message,
   onClickOutside,
   provide,
   reactive,
@@ -39,7 +41,7 @@ const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
-const formState: Record<any, any> = reactive({})
+const formState = reactive({})
 
 const secondsRemain = ref(0)
 
@@ -51,7 +53,8 @@ const view = inject(ActiveViewInj, ref())
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
 
-const reloadEventHook = createEventHook<void>()
+const reloadEventHook = createEventHook<boolean | void>()
+
 provide(ReloadViewDataHookInj, reloadEventHook)
 
 reloadEventHook.on(async () => {
@@ -446,13 +449,13 @@ onMounted(async () => {
           >
             <div class="flex">
               <div class="flex flex-row flex-1">
-                <SmartsheetHeaderVirtualCell
+                <LazySmartsheetHeaderVirtualCell
                   v-if="isVirtualCol(element)"
                   :column="{ ...element, title: element.label || element.title }"
                   :required="isRequired(element, element.required)"
                   :hide-menu="true"
                 />
-                <SmartsheetHeaderCell
+                <LazySmartsheetHeaderCell
                   v-else
                   class="w-full"
                   :column="{ ...element, title: element.label || element.title }"
@@ -461,7 +464,7 @@ onMounted(async () => {
                 />
               </div>
               <div class="flex flex-row">
-                <mdi-drag-vertical class="flex flex-1" />
+                <MdiDragVertical class="flex flex-1" />
               </div>
             </div>
           </a-card>
@@ -480,7 +483,7 @@ onMounted(async () => {
               </div>
             </a-button>
             <template #overlay>
-              <SmartsheetColumnEditOrAddProvider
+              <LazySmartsheetColumnEditOrAddProvider
                 v-if="showColumnDropdown"
                 @submit="submitCallback"
                 @cancel="showColumnDropdown = false"
@@ -625,13 +628,13 @@ onMounted(async () => {
                     </div>
                   </template>
                   <div>
-                    <SmartsheetHeaderVirtualCell
+                    <LazySmartsheetHeaderVirtualCell
                       v-if="isVirtualCol(element)"
                       :column="{ ...element, title: element.label || element.title }"
                       :required="isRequired(element, element.required)"
                       :hide-menu="true"
                     />
-                    <SmartsheetHeaderCell
+                    <LazySmartsheetHeaderCell
                       v-else
                       :column="{ ...element, title: element.label || element.title }"
                       :required="isRequired(element, element.required)"
@@ -645,7 +648,7 @@ onMounted(async () => {
                     :name="element.title"
                     :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
-                    <SmartsheetVirtualCell
+                    <LazySmartsheetVirtualCell
                       v-model="formState[element.title]"
                       :row="row"
                       class="nc-input"
@@ -661,7 +664,7 @@ onMounted(async () => {
                     :name="element.title"
                     :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
-                    <SmartsheetCell
+                    <LazySmartsheetCell
                       v-model="formState[element.title]"
                       class="nc-input"
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"

@@ -1,15 +1,25 @@
 <script lang="ts" setup>
 import type { Row } from '~/composables'
-import { ReloadRowDataHookInj, useProvideSmartsheetRowStore, useSmartsheetStoreOrThrow } from '#imports'
+import {
+  ReloadRowDataHookInj,
+  ReloadViewDataHookInj,
+  createEventHook,
+  inject,
+  provide,
+  toRef,
+  useProvideSmartsheetRowStore,
+  useSmartsheetStoreOrThrow,
+  watch,
+} from '#imports'
 
-interface Props {
+const props = defineProps<{
   row: Row
-}
+}>()
 
-const props = defineProps<Props>()
 const currentRow = toRef(props, 'row')
 
 const { meta } = useSmartsheetStoreOrThrow()
+
 const { isNew, state, syncLTARRefs } = useProvideSmartsheetRowStore(meta, currentRow)
 
 // on changing isNew(new record insert) status sync LTAR cell values

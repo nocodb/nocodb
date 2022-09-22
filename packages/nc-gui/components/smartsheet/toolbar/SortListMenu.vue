@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
 import {
   ActiveViewInj,
   IsLockedInj,
@@ -43,9 +42,10 @@ watch(
 <template>
   <a-dropdown offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-sort-menu">
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
-      <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
-        ><div class="flex items-center gap-1">
+      <a-button v-e="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked">
+        <div class="flex items-center gap-1">
           <MdiSort />
+
           <!-- Sort -->
           <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
           <MdiMenuDown class="text-grey" />
@@ -58,7 +58,7 @@ watch(
           <template v-for="(sort, i) in sorts || []" :key="i">
             <MdiCloseBox class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
 
-            <FieldListAutoCompleteDropdown
+            <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               v-model="sort.fk_column_id"
               class="caption nc-sort-field-select"
               :columns="columns"
@@ -85,6 +85,7 @@ watch(
             </a-select>
           </template>
         </div>
+
         <a-button class="text-capitalize mb-1 mt-4" type="primary" ghost @click.stop="addSort">
           <div class="flex gap-1 items-center">
             <MdiPlus />

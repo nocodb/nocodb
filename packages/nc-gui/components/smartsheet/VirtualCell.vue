@@ -4,30 +4,14 @@ import { ActiveCellInj, CellValueInj, ColumnInj, RowInj, provide, toRef, useVirt
 import type { Row } from '~/composables'
 import { NavigateDir } from '~/lib'
 
-const props = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue', 'navigate'])
-
-const HasMany = defineAsyncComponent(() => import('../virtual-cell/HasMany.vue'))
-
-const ManyToMany = defineAsyncComponent(() => import('../virtual-cell/ManyToMany.vue'))
-
-const BelongsTo = defineAsyncComponent(() => import('../virtual-cell/BelongsTo.vue'))
-
-const Rollup = defineAsyncComponent(() => import('../virtual-cell/Rollup.vue') as any)
-
-const Formula = defineAsyncComponent(() => import('../virtual-cell/Formula.vue'))
-
-const Count = defineAsyncComponent(() => import('../virtual-cell/Count.vue'))
-
-const Lookup = defineAsyncComponent(() => import('../virtual-cell/Lookup.vue') as any)
-
-interface Props {
+const props = defineProps<{
   column: ColumnType
   modelValue: any
   row: Row
   active?: boolean
-}
+}>()
+
+const emit = defineEmits(['update:modelValue', 'navigate'])
 
 const column = toRef(props, 'column')
 const active = toRef(props, 'active', false)
@@ -47,12 +31,12 @@ const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualC
     @keydown.stop.enter.exact="emit('navigate', NavigateDir.NEXT)"
     @keydown.stop.shift.enter.exact="emit('navigate', NavigateDir.PREV)"
   >
-    <HasMany v-if="isHm" />
-    <ManyToMany v-else-if="isMm" />
-    <BelongsTo v-else-if="isBt" />
-    <Rollup v-else-if="isRollup" />
-    <Formula v-else-if="isFormula" />
-    <Count v-else-if="isCount" />
-    <Lookup v-else-if="isLookup" />
+    <LazyVirtualCellHasMany v-if="isHm" />
+    <LazyVirtualCellManyToMany v-else-if="isMm" />
+    <LazyVirtualCellBelongsTo v-else-if="isBt" />
+    <LazyVirtualCellRollup v-else-if="isRollup" />
+    <LazyVirtualCellFormula v-else-if="isFormula" />
+    <LazyVirtualCellCount v-else-if="isCount" />
+    <LazyVirtualCellLookup v-else-if="isLookup" />
   </div>
 </template>

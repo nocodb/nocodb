@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
 import {
   ActiveViewInj,
   MetaInj,
@@ -62,21 +61,6 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     comparison: filter.comparison_op,
   })
 }
-
-// todo : filter based on type
-// const filterComparisonOp = (f) =>
-//   comparisonOp.filter((op) => {
-//     // if (
-//     //   f &&
-//     //   f.fk_column_id &&
-//     //   this.columnsById[f.fk_column_id] &&
-//     //   this.columnsById[f.fk_column_id].uidt === UITypes.LinkToAnotherRecord &&
-//     //   this.columnsById[f.fk_column_id].uidt === UITypes.Lookup
-//     // ) {
-//     //   return !['notempty', 'empty', 'notnull', 'null'].includes(op.value)
-//     // }
-//     return true
-//   })
 
 const columns = computed(() => meta.value?.columns)
 
@@ -167,7 +151,7 @@ defineExpose({
             </div>
             <span class="col-span-3" />
             <div class="col-span-5">
-              <SmartsheetToolbarColumnFilter
+              <LazySmartsheetToolbarColumnFilter
                 v-if="filter.id || filter.children"
                 ref="localNestedFilters"
                 v-model="filter.children"
@@ -178,21 +162,12 @@ defineExpose({
             </div>
           </template>
           <template v-else>
-            <!--                        <v-icon
-                                      v-if="!filter.readOnly"
-                                      :key="`${i}_3`"
-                                      small
-                                      class="nc-filter-item-remove-btn"
-                                      @click.stop="deleteFilter(filter, i)"
-                                    >
-                                      mdi-close-box
-                                    </v-icon> -->
-
             <MdiCloseBox
               v-if="!filter.readOnly"
               class="nc-filter-item-remove-btn text-grey self-center"
               @click.stop="deleteFilter(filter, i)"
             />
+
             <span v-else />
 
             <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
@@ -213,7 +188,7 @@ defineExpose({
               </a-select-option>
             </a-select>
 
-            <FieldListAutoCompleteDropdown
+            <LazySmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
               class="nc-filter-field-select"
@@ -239,18 +214,9 @@ defineExpose({
                 {{ compOp.text }}
               </a-select-option>
             </a-select>
-            <!--
-            todo: filter based on column type
 
-            item-value="value"
-            item-text="text"
-            :items="filterComparisonOp(filter)" -->
-
-            <!--              <template #item="{ item }"> -->
-            <!--                <span class="caption font-weight-regular">{{ item.text }}</span> -->
-            <!--              </template> -->
-            <!--            </v-select> -->
             <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="`span${i}`" />
+
             <a-checkbox
               v-else-if="types[filter.field] === 'boolean'"
               v-model:checked="filter.value"
@@ -258,6 +224,7 @@ defineExpose({
               :disabled="filter.readOnly"
               @change="saveOrUpdate(filter, i)"
             />
+
             <a-input
               v-else
               :key="`${i}_7`"
@@ -275,15 +242,14 @@ defineExpose({
     <div class="flex gap-2 mb-2 mt-4">
       <a-button class="elevation-0 text-capitalize" type="primary" ghost @click.stop="addFilter">
         <div class="flex items-center gap-1">
-          <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <MdiPlus />
           <!-- Add Filter -->
           {{ $t('activity.addFilter') }}
         </div>
       </a-button>
+
       <a-button v-if="!webHook" class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex items-center gap-1">
-          <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <!--          Add Filter Group -->
           <MdiPlus />
           {{ $t('activity.addFilterGroup') }}

@@ -99,7 +99,7 @@ const tooltipMsg = computed(() => {
 
 <template>
   <div class="flex items-center w-full text-xs text-gray-500 font-weight-medium" :class="{ 'h-full': column }">
-    <SmartsheetHeaderVirtualCellIcon v-if="column" />
+    <LazySmartsheetHeaderVirtualCellIcon v-if="column" />
 
     <a-tooltip placement="bottom">
       <template #title>
@@ -112,7 +112,8 @@ const tooltipMsg = computed(() => {
 
     <template v-if="!hideMenu">
       <div class="flex-1" />
-      <SmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
+
+      <LazySmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
     </template>
 
     <a-dropdown
@@ -123,8 +124,9 @@ const tooltipMsg = computed(() => {
       overlay-class-name="nc-dropdown-edit-column"
     >
       <div />
+
       <template #overlay>
-        <SmartsheetColumnEditOrAddProvider
+        <LazySmartsheetColumnEditOrAddProvider
           v-if="editColumnDropdown"
           :column="column"
           class="w-full"

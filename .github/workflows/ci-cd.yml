@@ -19,8 +19,8 @@ on:
             - ".github/workflows/ci-cd.yml"
 jobs:
     cypress-restTableOps-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -64,8 +64,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cypress-restViews-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -109,8 +109,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cypress-restRoles-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -154,8 +154,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cypress-restMisc-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -199,8 +199,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cypress-xcdb-restTableOps-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -244,8 +244,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cypress-xcdb-restViews-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -289,8 +289,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cypress-xcdb-restRoles-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -334,8 +334,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cypress-xcdb-restMisc-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -379,8 +379,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cypress-pg-restTableOps-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -424,8 +424,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cypress-pg-restViews-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -469,8 +469,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cypress-pg-restRoles-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -514,8 +514,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cypress-pg-restMisc-run-cache:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -559,8 +559,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cy-quick-sqlite:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -605,8 +605,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     cy-quick-pg:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -650,8 +650,8 @@ jobs:
             path: scripts/cypress/screenshots
             retention-days: 2
     unit-tests:
-      if: !github.event.pull_request.draft
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1

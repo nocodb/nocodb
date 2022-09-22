@@ -5,7 +5,7 @@ const route = useRoute()
 </script>
 
 <template>
-  <LazyNuxtLayout>
+  <NuxtLayout>
     <div
       class="min-h-[calc(100vh_-_var(--header-height))] h-auto bg-primary bg-opacity-5 flex flex-col lg:flex-row flex-wrap gap-6 py-6 px-12 pt-65px"
     >
@@ -33,5 +33,5 @@ const route = useRoute()
         </template>
       </div>
     </div>
-  </LazyNuxtLayout>
+  </NuxtLayout>
 </template>

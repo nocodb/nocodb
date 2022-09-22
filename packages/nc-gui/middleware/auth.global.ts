@@ -32,7 +32,7 @@ import { useApi, useGlobal, useRoles } from '#imports'
 export default defineNuxtRouteMiddleware(async (to, from) => {
   const state = useGlobal()
 
-  const { api } = useApi()
+  const { api } = useApi({ useGlobalInstance: true })
 
   const { allRoles } = useRoles()
 

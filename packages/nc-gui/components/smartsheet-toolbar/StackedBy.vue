@@ -48,7 +48,7 @@ const groupingFieldColumnId = computed({
       })
       await loadKanbanMeta()
       await loadKanbanData()
-      ;(activeView.value.view as KanbanType).grp_column_id = val
+      ;(activeView.value?.view as KanbanType).grp_column_id = val
     }
   },
 })

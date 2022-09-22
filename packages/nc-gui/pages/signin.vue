@@ -1,21 +1,10 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
-import {
-  definePageMeta,
-  extractSdkResponseErrorMsg,
-  isEmail,
-  navigateTo,
-  reactive,
-  ref,
-  useApi,
-  useGlobal,
-  useI18n,
-  useSidebar,
-} from '#imports'
+import { definePageMeta, isEmail, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useSidebar } from '#imports'
 
 const { signIn: _signIn } = useGlobal()
 
-const { api, isLoading } = useApi()
+const { api, isLoading, error } = useApi()
 
 const { t } = useI18n()
 
@@ -27,8 +16,6 @@ definePageMeta({
 })
 
 const formValidator = ref()
-
-let error = $ref<string | null>(null)
 
 const form = reactive({
   email: '',
@@ -61,20 +48,14 @@ async function signIn() {
 
   resetError()
 
-  api.auth
-    .signin(form)
-    .then(async ({ token }) => {
-      _signIn(token!)
-      await navigateTo('/')
-    })
-    .catch(async (err) => {
-      // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
-      error = await extractSdkResponseErrorMsg(err)
-    })
+  api.auth.signin(form).then(async ({ token }) => {
+    _signIn(token!)
+    await navigateTo('/')
+  })
 }
 
 function resetError() {
-  if (error) error = null
+  if (error.value) error.value = null
 }
 </script>
 

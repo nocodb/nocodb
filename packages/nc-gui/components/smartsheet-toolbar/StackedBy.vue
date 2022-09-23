@@ -83,8 +83,9 @@ const handleChange = () => {
       <a-button v-e="['c:stacked-by']" class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <mdi-arrow-down-drop-circle-outline />
-          <!-- TODO: i18n -->
-          <span class="text-capitalize !text-sm font-weight-normal">Stacked By {{ groupingField }}</span>
+          <span class="text-capitalize !text-sm font-weight-normal">
+            {{ $t('activity.kanban.stackedBy', { groupingField }) }}
+          </span>
           <MdiMenuDown class="text-grey" />
         </div>
       </a-button>
@@ -96,8 +97,7 @@ const handleChange = () => {
         @click.stop
       >
         <div>
-          <!-- TODO: i18n -->
-          <span class="font-bold">Choose a Grouping Field</span>
+          <span class="font-bold"> {{ $t('activity.kanban.chooseGroupingField') }}</span>
           <a-divider class="!my-2" />
         </div>
         <div class="nc-fields-list py-1">

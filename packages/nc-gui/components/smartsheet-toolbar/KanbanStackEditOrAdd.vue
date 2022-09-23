@@ -36,8 +36,7 @@ provide(IsKanbanInj, ref(true))
         <div class="flex items-center gap-1">
           <mdi-plus-circle-outline />
           <span class="text-capitalize !text-sm font-weight-normal">
-            <!-- TODO: i18n -->
-            Add / Edit Stack
+            {{ $t('activity.kanban.addOrEditStack') }}
           </span>
           <MdiMenuDown class="text-grey" />
         </div>

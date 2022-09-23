@@ -275,15 +275,13 @@ onMounted(async () => {
                           >
                             <div class="py-2 flex gap-2 items-center">
                               <mdi-plus class="text-gray-500" />
-                              <!-- TODO: i18n -->
-                              Add new record
+                              {{ $t('activity.addNewRecord') }}
                             </div>
                           </a-menu-item>
                           <a-menu-item @click="handleCollapseStack(stackIdx)">
                             <div class="py-2 flex gap-2 items-center">
                               <mdi-arrow-collapse class="text-gray-500" />
-                              <!-- TODO: i18n -->
-                              Collapse Stack
+                              {{ $t('activity.kanban.collapseStack') }}
                             </div>
                           </a-menu-item>
                           <a-menu-item
@@ -292,8 +290,7 @@ onMounted(async () => {
                           >
                             <div class="py-2 flex gap-2 items-center">
                               <mdi-delete class="text-gray-500" />
-                              <!-- TODO: i18n -->
-                              Delete Stack
+                              {{ $t('activity.kanban.deleteStack') }}
                             </div>
                           </a-menu-item>
                         </a-menu>
@@ -425,13 +422,10 @@ onMounted(async () => {
   />
   <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-kanban-delete-stack">
     <template #title>
-      <!-- TODO: i18n -->
-      Delete stack?
+      {{ $t('activity.deleteKanbanStack') }}
     </template>
     <div>
-      <!-- TODO: i18n -->
-      Deleting this stack will also remove the select option `{{ stackToBeDeleted }}` from the `{{ groupingField }}`. The records
-      will move to the uncategorized stack.
+      {{ $t('msg.info.deleteKanbanStackConfirmation', { stackToBeDeleted, groupingField }) }}
     </div>
     <template #footer>
       <a-button key="back" @click="deleteStackVModel = false">{{ $t('general.cancel') }}</a-button>

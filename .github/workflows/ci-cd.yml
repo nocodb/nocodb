@@ -1,5 +1,6 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Trigger configuration : https://gist.github.com/myobie/671d2f2a1e503efa0c05e7b865c26a9d
 
 name: "CI/CD"
 on:
@@ -11,7 +12,6 @@ on:
             - "packages/nocodb/**"
             - ".github/workflows/ci-cd.yml"
     pull_request:
-        types: [ready_for_review]
         branches: [develop]
         paths:
             - "packages/nc-gui/**"
@@ -21,6 +21,7 @@ on:
 jobs:
     cypress-restTableOps-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -65,6 +66,7 @@ jobs:
             retention-days: 2
     cypress-restViews-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -109,6 +111,7 @@ jobs:
             retention-days: 2
     cypress-restRoles-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -153,6 +156,7 @@ jobs:
             retention-days: 2
     cypress-restMisc-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -197,6 +201,7 @@ jobs:
             retention-days: 2
     cypress-xcdb-restTableOps-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -241,6 +246,7 @@ jobs:
             retention-days: 2
     cypress-xcdb-restViews-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -285,6 +291,7 @@ jobs:
             retention-days: 2
     cypress-xcdb-restRoles-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -329,6 +336,7 @@ jobs:
             retention-days: 2
     cypress-xcdb-restMisc-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -373,6 +381,7 @@ jobs:
             retention-days: 2
     cypress-pg-restTableOps-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -417,6 +426,7 @@ jobs:
             retention-days: 2
     cypress-pg-restViews-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -461,6 +471,7 @@ jobs:
             retention-days: 2
     cypress-pg-restRoles-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -505,6 +516,7 @@ jobs:
             retention-days: 2
     cypress-pg-restMisc-run-cache:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -549,6 +561,7 @@ jobs:
             retention-days: 2
     cy-quick-sqlite:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -594,6 +607,7 @@ jobs:
             retention-days: 2
     cy-quick-pg:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1
@@ -638,6 +652,7 @@ jobs:
             retention-days: 2
     unit-tests:
       runs-on: ubuntu-20.04
+      if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
           uses: actions/setup-node@v1

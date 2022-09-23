@@ -379,9 +379,10 @@ export interface KanbanColumnType {
 export interface KanbanType {
   id?: string;
   title?: string;
+  alias?: string;
   columns?: KanbanColumnType[];
   fk_model_id?: string;
-  grp_column_id?: string;
+  grp_column_id?: string | null;
   meta?: string | object;
 }
 

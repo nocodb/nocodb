@@ -7319,6 +7319,9 @@
           "title": {
             "type": "string"
           },
+          "alias": {
+            "type": "string"
+          },
           "columns": {
             "type": "array",
             "items": {
@@ -7329,7 +7332,10 @@
             "type": "string"
           },
           "grp_column_id": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "meta": {
             "type": [

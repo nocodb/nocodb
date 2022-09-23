@@ -8,21 +8,21 @@ let t4e = require("../common/4e_form_view_share");
 let t4f = require("../common/4f_grid_view_share");
 let t4g = require("../common/4g_table_view_expanded_form");
 const {
-    setCurrentMode,
+  setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
 
 const nocoTestSuite = (apiType, dbType) => {
-    setCurrentMode(apiType, dbType);
-    t01.genTest(apiType, dbType);
+  setCurrentMode(apiType, dbType);
+  t01.genTest(apiType, dbType);
 
-    // place plugin related activities at top
-    t4c.genTest(apiType, dbType);
-    t4a.genTest(apiType, dbType);
-    t4b.genTest(apiType, dbType);
-    t4d.genTest(apiType, dbType);
-    t4e.genTest(apiType, dbType);
-    t4f.genTest(apiType, dbType);
-    t4g.genTest(apiType, dbType);
+  // place plugin related activities at top
+  t4c.genTest(apiType, dbType);
+  t4a.genTest(apiType, dbType);
+  t4b.genTest(apiType, dbType);
+  t4d.genTest(apiType, dbType);
+  t4e.genTest(apiType, dbType);
+  t4f.genTest(apiType, dbType);
+  t4g.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "mysql");

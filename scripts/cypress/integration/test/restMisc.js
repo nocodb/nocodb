@@ -10,31 +10,31 @@ let t7a = require("../common/7a_create_project_from_excel");
 let t8a = require("../common/8a_webhook");
 let t9b = require("../common/9b_ERD");
 const {
-    setCurrentMode,
+  setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
 
 const nocoTestSuite = (apiType, dbType) => {
-    setCurrentMode(apiType, dbType);
-    t01.genTest(apiType, dbType);
-    
-    t6b.genTest(apiType, dbType);
-    t6d.genTest(apiType, dbType);
-    // exclude@ncv2 t6c.genTest(apiType, dbType);
-    t6f.genTest(apiType, dbType);
+  setCurrentMode(apiType, dbType);
+  t01.genTest(apiType, dbType);
 
-    t9b.genTest(apiType, dbType);
+  t6b.genTest(apiType, dbType);
+  t6d.genTest(apiType, dbType);
+  // exclude@ncv2 t6c.genTest(apiType, dbType);
+  t6f.genTest(apiType, dbType);
 
-    t6g.genTest(apiType, dbType);
-    
-    // webhook tests
-    t8a.genTest(apiType, dbType)
-    
-    // **deletes created project, hence place it @ end
-    t6e.genTest(apiType, dbType);
-    
-    // intended to keep this after earlier project deletion
-    // creates project using excel & deletes it
-    t7a.genTest(apiType, dbType);
+  t9b.genTest(apiType, dbType);
+
+  t6g.genTest(apiType, dbType);
+
+  // webhook tests
+  t8a.genTest(apiType, dbType);
+
+  // **deletes created project, hence place it @ end
+  t6e.genTest(apiType, dbType);
+
+  // intended to keep this after earlier project deletion
+  // creates project using excel & deletes it
+  t7a.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "mysql");

@@ -10,7 +10,7 @@ const nocoTestSuite = (apiType, dbType) => {
   t9a.genTest(apiType, dbType, "CY_QUICK");
 
   // AT Import verification
-  t7b.genTest(apiType, dbType)
+  t7b.genTest(apiType, dbType);
   t9a.genTest(apiType, dbType, "AT_IMPORT");
 };
 

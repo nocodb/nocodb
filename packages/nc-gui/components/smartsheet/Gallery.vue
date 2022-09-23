@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { onMounted } from '@vue/runtime-core'
+import type { ColumnType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -85,10 +86,10 @@ const attachments = (record: any): Array<Attachment> => {
   }
 }
 
-const expandForm = (row: RowType, _state?: Record<string, any>) => {
+const expandForm = (row: RowType, state?: Record<string, any>) => {
   if (!isUIAllowed('xcDatatableEditable')) return
 
-  const rowId = extractPkFromRow(row.row, meta.value.columns)
+  const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (rowId) {
     router.push({

@@ -135,7 +135,9 @@ reloadViewDataHook?.on(async (shouldShowLoading) => {
 const skipRowRemovalOnCancel = ref(false)
 
 const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) => {
-  const rowId = extractPkFromRow(row.row, meta.value.columns)
+  if (!isUIAllowed('xcDatatableEditable')) return
+
+  const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (rowId) {
     router.push({

@@ -1,4 +1,14 @@
-import type { Api, ExportTypes, FilterType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
+import type {
+  Api,
+  ExportTypes,
+  FilterType,
+  KanbanType,
+  PaginatedType,
+  RequestParams,
+  SortType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 
@@ -12,11 +22,11 @@ export function useSharedView() {
   const sorts = useState<SortType[]>('sorts', () => [])
   const password = useState<string | undefined>('password', () => undefined)
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
-  const meta = useState<TableType | undefined>('meta', () => undefined)
+  const meta = useState<TableType | KanbanType | undefined>('meta', () => undefined)
 
   const formColumns = computed(
     () =>
-      meta.value?.columns
+      (meta.value as TableType)?.columns
         ?.filter(
           (f: Record<string, any>) =>
             f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,

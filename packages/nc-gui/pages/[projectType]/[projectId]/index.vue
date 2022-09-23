@@ -34,7 +34,7 @@ const route = useRoute()
 
 const router = useRouter()
 
-const { appInfo, token, signOut, signedIn, user } = useGlobal()
+const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
 
 const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme, loadProject, reset } = useProject()
 
@@ -186,7 +186,12 @@ onBeforeUnmount(reset)
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
             @click="navigateTo('/')"
           >
-            <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            <a-tooltip placement="bottom">
+              <template #title>
+                {{ currentVersion }}
+              </template>
+              <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            </a-tooltip>
           </div>
 
           <a
@@ -195,7 +200,12 @@ onBeforeUnmount(reset)
             href="https://github.com/nocodb/nocodb"
             target="_blank"
           >
-            <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            <a-tooltip placement="bottom">
+              <template #title>
+                {{ currentVersion }}
+              </template>
+              <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            </a-tooltip>
           </a>
 
           <a-dropdown

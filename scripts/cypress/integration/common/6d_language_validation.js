@@ -1,3 +1,5 @@
+import { projectsPage } from "../../support/page_objects/navigation";
+
 const { mainPage } = require("../../support/page_objects/mainPage");
 const { loginPage } = require("../../support/page_objects/navigation");
 const { roles } = require("../../support/page_objects/projectConstants");
@@ -22,15 +24,21 @@ export const genTest = (apiType, dbType) => {
     });
 
     after(() => {
-      cy.restoreLocalStorage();
-      cy.get(".nc-menu-accounts").should("exist").click();
-      cy.getActiveMenu(".nc-dropdown-user-accounts-menu")
-        .find(".ant-dropdown-menu-item")
-        .eq(1)
-        .click();
+      // // sign out
+      // //
+      // cy.restoreLocalStorage();
+      // cy.get(".nc-menu-accounts").should("exist").click();
+      // cy.getActiveMenu(".nc-dropdown-user-accounts-menu")
+      //   .find(".ant-dropdown-menu-item")
+      //   .eq(1)
+      //   .click();
+      //
+      // cy.wait(5000);
+      // cy.get('button:contains("SIGN")').should("exist");
+      // cy.saveLocalStorage();
 
-      cy.wait(5000);
-      cy.get('button:contains("SIGN")').should("exist");
+      cy.restoreLocalStorage();
+      projectsPage.openConfiguredProject(apiType, dbType);
       cy.saveLocalStorage();
     });
 

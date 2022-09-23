@@ -246,7 +246,8 @@ export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
   describe(`Webhook`, () => {
     before(() => {
-      loginPage.loginAndOpenProject(apiType, dbType);
+      // loginPage.loginAndOpenProject(apiType, dbType);
+      cy.restoreLocalStorage();
       cy.createTable("Temp");
       cy.saveLocalStorage();
     });

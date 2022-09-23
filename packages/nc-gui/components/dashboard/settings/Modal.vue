@@ -56,40 +56,42 @@ const tabsInfo: TabGroup = {
     subTabs: {
       ...(isUIAllowed('userMgmtTab')
         ? {
-          usersManagement: {
-            // Users Management
-            title: t('title.userMgmt'),
-            body: UserManagement,
-          },
-        }
+            usersManagement: {
+              // Users Management
+              title: t('title.userMgmt'),
+              body: UserManagement,
+            },
+          }
         : {}),
       ...(isUIAllowed('apiTokenTab')
         ? {
-          apiTokenManagement: {
-            // API Tokens Management
-            title: t('title.apiTokenMgmt'),
-            body: ApiTokenManagement,
-          },
-        }
+            apiTokenManagement: {
+              // API Tokens Management
+              title: t('title.apiTokenMgmt'),
+              body: ApiTokenManagement,
+            },
+          }
         : {}),
     },
     onClick: () => {
       $e('c:settings:team-auth')
     },
-  }, ...(isUIAllowed('appStore')
+  },
+  ...(isUIAllowed('appStore')
     ? {
-      appStore: {
-        // App Store
-        title: t('title.appStore'),
-        icon: StoreFrontOutline,
-        subTabs: {
-          new: {
-            title: 'Apps',
-            body: AppStore,
+        appStore: {
+          // App Store
+          title: t('title.appStore'),
+          icon: StoreFrontOutline,
+          subTabs: {
+            new: {
+              title: 'Apps',
+              body: AppStore,
+            },
           },
-        },
-        onClick: () => {
-          $e('c:settings:appstore')
+          onClick: () => {
+            $e('c:settings:appstore')
+          },
         },
       }
     : {}),

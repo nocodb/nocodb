@@ -9,8 +9,8 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="p-4 h-full overflow-auto">
-    <h1>{{ $t('label.appStore') }}</h1>
+  <div class="p-10 h-full overflow-auto">
+    <h1 class="text-3xl text-center mb-11">{{ $t('title.appStore') }}</h1>
     <AppStore />
   </div>
 </template>

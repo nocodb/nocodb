@@ -13,6 +13,8 @@ const hasSider = ref(false)
 
 const sidebar = ref<HTMLDivElement>()
 
+const { isUIAllowed } = useUIPermission()
+
 const logout = () => {
   signOut()
   navigateTo('/signin')
@@ -84,6 +86,19 @@ hooks.hook('page:finish', () => {
                     <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                     <span class="prose group-hover:text-primary"> {{ email }}</span>
+                  </nuxt-link>
+                </a-menu-item>
+
+                <a-menu-divider class="!m-0" />
+                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
+                  <nuxt-link
+                    v-e="['c:settings:appstore', { page: true }]"
+                    class="nc-project-menu-item group !no-underline"
+                    to="/apps"
+                  >
+                    <MdiStorefrontOutline class="mt-1 group-hover:text-accent" />&nbsp;
+
+                    <span class="prose group-hover:text-primary">{{ $t('title.appStore') }}</span>
                   </nuxt-link>
                 </a-menu-item>
 

@@ -7,7 +7,7 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
     before(() => {
-      loginPage.loginAndOpenProject(apiType, dbType);
+      loginPage.signIn(roles.owner.credentials);
       cy.saveLocalStorage();
     });
 

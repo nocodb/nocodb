@@ -17,10 +17,14 @@ const rolePermissions = {
 
   // Project role permissions
   [ProjectRole.Creator]: {
-    exclude: ['appStore'],
+    exclude: {
+      appStore: true,
+    },
   },
   [ProjectRole.Owner]: {
-    exclude: ['appStore'],
+    exclude: {
+      appStore: true,
+    },
   },
   [ProjectRole.Editor]: {
     include: {

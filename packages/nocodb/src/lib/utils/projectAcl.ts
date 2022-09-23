@@ -1,8 +1,24 @@
 export default {
-  owner: '*',
-  creator: '*',
+  owner: {
+    exclude: {
+      pluginList:true,
+      pluginTest:true,
+      pluginRead:true,
+      pluginUpdate:true,
+      isPluginActive:true,
+    },
+  },
+  creator: {
+    exclude: {
+      pluginList:true,
+      pluginTest:true,
+      pluginRead:true,
+      pluginUpdate:true,
+      isPluginActive:true,
+    },
+  },
   guest: {},
-  editor: {
+  editor:{ include: {
     hideAllColumns: true,
     showAllColumns: true,
     auditRowUpdate: true,
@@ -137,7 +153,9 @@ export default {
     upload: true,
     uploadViaURL: true,
   },
+  },
   commenter: {
+    include: {
     formViewGet: true,
     passwordChange: true,
     // project
@@ -192,7 +210,9 @@ export default {
     xcExportAsCsv: true,
     dataCount: true,
   },
+  },
   viewer: {
+    include: {
     formViewGet: true,
     passwordChange: true,
     // project
@@ -243,12 +263,16 @@ export default {
     xcExportAsCsv: true,
     dataCount: true
   },
+  },
   user_new: {
-    passwordChange: true,
-    projectList: true,
+    include: {
+      passwordChange: true,
+      projectList: true,
+    }
   },
   super: '*',
   user: {
+    include : {
     upload: true,
     uploadViaURL: true,
     passwordChange: true,
@@ -268,6 +292,7 @@ export default {
     xcMetaTablesImportZipToLocalFsAndDb: true,
     xcMetaTablesExportDbToZip: true,
     auditRowUpdate: true,
+  },
   },
 };
 

@@ -26,24 +26,13 @@ function createWebhook(hook, test) {
   cy.get(".nc-input-hook-header-key")
     .should("exist")
     .click()
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}");
+    .type("Content-Type{enter}");
 
-  cy.getActiveSelection(".nc-dropdown-webhook-header")
-    .find(".ant-select-item-option-content")
-    .contains("Content-Type")
-    .should("exist")
-    .click();
+  // cy.getActiveSelection(".nc-dropdown-webhook-header")
+  //   .find(".ant-select-item-option-content")
+  //   .contains("Content-Type")
+  //   .should("exist")
+  //   .click();
 
   cy.get("input.nc-input-hook-header-value")
     .should("exist")

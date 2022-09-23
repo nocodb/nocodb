@@ -149,7 +149,7 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
   //   .contains(tn)
   //   .should('exist')
   //   .click();
-  cy.wait(3000);
+  // cy.wait(3000);
 
   cy.get(".xc-row-table.nc-grid").should("exist");
 

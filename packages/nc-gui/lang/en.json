@@ -67,7 +67,8 @@
     "reachOut": "Reach out here",
     "betaNote": "This feature is currently in beta.",
     "moreInfo": "More information can be found here",
-    "logs": "Logs"
+    "logs": "Logs",
+    "groupingField": "Grouping Field"
   },
   "objects": {
     "project": "Project",

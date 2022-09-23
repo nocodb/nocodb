@@ -109,7 +109,7 @@ const handleChange = () => {
               placeholder="Select a Grouping Field"
               @change="handleChange"
               @click.stop
-            ></a-select>
+            />
           </div>
         </div>
       </div>

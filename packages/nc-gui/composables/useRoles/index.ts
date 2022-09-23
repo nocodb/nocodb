@@ -37,7 +37,7 @@ export const useRoles = createSharedComposable(() => {
     ...projectRoles.value,
   }))
 
-  async function loadProjectRoles(projectId: string, isSharedBase: boolean) {
+  async function loadProjectRoles(projectId: string, isSharedBase?: boolean, sharedBaseId?: string) {
     projectRoles.value = {}
 
     if (isSharedBase) {
@@ -45,7 +45,7 @@ export const useRoles = createSharedComposable(() => {
         {},
         {
           headers: {
-            'xc-shared-base-id': projectId,
+            'xc-shared-base-id': sharedBaseId,
           },
         },
       )

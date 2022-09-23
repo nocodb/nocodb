@@ -100,7 +100,11 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
       return
     }
 
-    await loadProjectRoles(project.value.id || (route.params.projectId as string), isSharedBase.value)
+    await loadProjectRoles(
+      project.value.id || (route.params.projectId as string),
+      isSharedBase.value,
+      route.params.projectId as string,
+    )
 
     await loadTables()
 

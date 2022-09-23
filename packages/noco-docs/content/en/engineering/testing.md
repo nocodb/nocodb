@@ -6,41 +6,64 @@ category: "Engineering"
 menuTitle: "Testing"
 ---
 
-## API Tests
+## Unit Tests
 
 ### Pre-requisites
+
 - MySQL is preferrable - however we fallback to SQLite
 
 ### Setup  
-```
-cp scripts/.env.copy scripts/.env
-open scripts/.env
 
-# Edit the following env variables
-# `DB_USER` : mysql username
-# `DB_PASSWORD` : mysql password
-# `DB_HOST` : mysql host
-# `DB_PORT` : mysql port
-```
+- All the tests are in `packages/nocodb` folder, which will be our working directory. Use the following command to get into that folder.
 
-### Running tests
-```
+```bash
 cd packages/nocodb
+```
+
+- Install the dependencies for `nocodb` package
+
+```bash
+npm install
+```
+
+#### Environment variables
+
+- Add your `env` file with the following command
+
+``` bash
+cp tests/unit/.env.sample tests/unit/.env
+```
+
+- Open the `.env` file
+
+``` bash
+open tests/unit/.env
+````
+
+- Configure the following variables
+
+> DB_USER : mysql username </br>
+> DB_PASSWORD : mysql password </br>
+> DB_HOST : mysql host </br>
+> DB_PORT : mysql port </br>
+
+### How to run tests
+
+``` bash
 npm run test:unit
 ```
 
-### Notes 
+### Key points
 
-#### Key points
 - All individual unit tests are independent of each other. We don't use any shared state between tests.
 - Test environment includes `sakila` sample database and any change to it by a test is reverted before running other tests.
 - While running unit tests, it tries to connect to mysql server running on `localhost:3306` with username `root` and password `password`(which can be configured) and if not found, it will use `sqlite` as a fallback, hence no requirement of any sql server to run tests.
 
-#### Walk through of writing a unit test
+### Walk through of writing a unit test
+
 We will create an `Table` test suite as an example.
 
-
-##### Configure test
+#### Configure test
 
 We will configure `beforeEach` which is called before each test is executed. We will use `init` function from `nocodb/packages/tests/unit/init/index.ts`, which is a helper function which configures the test environment(i.e resetting state, etc.).
 
@@ -64,7 +87,7 @@ beforeEach(async function () {
 });
 ```
 
-##### Test case
+#### Test case
 
 We will use `it` function to create a test case. We will use `supertest` to make a request to the server. We use `expect`(`chai`) to assert the response.
 
@@ -80,7 +103,13 @@ it('Get table list', async function () {
 });
 ```
 
-##### Integrating the new test suite
+> NOTE: We can also run individual test by using `.only` in `describe` or `it` function and the running the test command.
+
+```typescript
+it.only('Get table list', async () => {
+```
+
+#### Integrating the new test suite
 
 We create a new file `table.test.ts` in `packages/nocodb/tests/unit/rest/tests` directory.
 
@@ -124,17 +153,7 @@ export default function () {
 
 We can then import the `Table` test suite to `Rest` test suite in `packages/nocodb/tests/unit/rest/index.test.ts` file(`Rest` test suite is imported in the root test suite file which is `packages/nocodb/tests/unit/index.test.ts`).
 
-#### Running test
-
-To run tests, run `npm run test:unit` in `packages/nocodb` directory.
-
-> NOTE: We can also run individual test by using `.only` in `describe` or `it` function and the running the test command.
-
-```typescript
-it.only('Get table list', async () => {
-```
-
-#### Folder structure
+### Folder structure
 
 The root folder for unit tests is `packages/tests/unit`
 
@@ -145,7 +164,7 @@ The root folder for unit tests is `packages/tests/unit`
 - `index.test.ts` is the root test suite file which imports all the test suites.
 - `TestDbMngr.ts` is a helper class to manage test databases (i.e. creating, dropping, etc.).
 
-#### Patterns to follow
+### Patterns to follow
 
 - **Factories**
   - Use factories for create/update/delete data. No data should be directly create/updated/deleted in the test.
@@ -158,10 +177,35 @@ The root folder for unit tests is `packages/tests/unit`
 
   - Use one file per factory.
 
-#### Using sakila db
+### Using sakila db
 To use sakila db use `createSakilaProject` from `factory/project` to create a project. This project will be seeded with `sakila` tables.
 
+```typescript
 
+function tableTest() {
+  let context;
+  let sakilaProject: Project;
+  let customerTable: Model;
+
+  beforeEach(async function () {
+    context = await init();
+
+    sakilaProject = await createSakilaProject(context);
+
+    customerTable = await getTable({project: sakilaProject, name: 'customer'})
+  });
+
+  it('Get table data list', async function () {
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}`)
+      .set('xc-auth', context.token)
+      .send({})
+      .expect(200);
+
+    expect(response.body.list[0]['FirstName']).to.equal('MARY');
+  });
+}
+```
 
 ## Cypress Tests
 

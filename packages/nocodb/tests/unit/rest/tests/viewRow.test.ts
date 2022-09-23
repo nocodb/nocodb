@@ -10,6 +10,7 @@ import { ColumnType, UITypes, ViewTypes } from 'nocodb-sdk';
 import { createView } from '../../factory/view';
 import { createColumn, createLookupColumn, createLtarColumn, createRollupColumn, updateViewColumn } from '../../factory/column';
 import { createChildRow, createRow, getOneRow, getRow } from '../../factory/row';
+import { expect } from 'chai';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -262,10 +263,6 @@ function viewRowTests() {
       (c) => c.title === 'Payment List'
     );
 
-    const returnDateColumn = (await rentalTable.getColumns()).find(
-      (c) => c.title === 'ReturnDate'
-    );
-
     const nestedFilter = {
       is_group: true,
       status: 'create',
@@ -284,20 +281,6 @@ function viewRowTests() {
           logical_op: 'and',
           comparison_op: 'notempty',
         },
-        {
-          is_group: true,
-          status: 'create',
-          logical_op: 'and',
-          children: [
-            {
-              logical_op: 'and',
-              fk_column_id: returnDateColumn?.id,
-              status: 'create',
-              comparison_op: 'gte',
-              value: '2005-06-02 04:33',
-            },
-          ],
-        },
       ],
     };
 
@@ -308,11 +291,7 @@ function viewRowTests() {
         filterArrJson: JSON.stringify([nestedFilter]),
       });
     
-    if (response.body.pageInfo.totalRows !== 9133)
-      throw new Error('Wrong number of rows');
-
-    if (response.body.list[0][lookupColumn.title] !== 'ANDREW')
-      throw new Error('Wrong filter');
+    expect(response.body.pageInfo.totalRows).equal(9558)
 
     const ascResponse = await request(context.app)
       .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}`)
@@ -328,13 +307,8 @@ function viewRowTests() {
       })
       .expect(200);
 
-    if (ascResponse.body.pageInfo.totalRows !== 9133)
-      throw new Error('Wrong number of rows asc');
-
-    if (ascResponse.body.list[0][lookupColumn.title] !== 'AARON') {
-      console.log(ascResponse.body.list[0][lookupColumn.title]);
-      throw new Error('Wrong filter asc');
-    }
+    expect(ascResponse.body.pageInfo.totalRows).equal(9558)
+    expect(ascResponse.body.list[0][lookupColumn.title]).equal('AARON')
 
     const descResponse = await request(context.app)
       .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}/views/${view.id}`)
@@ -350,11 +324,8 @@ function viewRowTests() {
       })
       .expect(200);
 
-    if (descResponse.body.pageInfo.totalRows !== 9133)
-      throw new Error('Wrong number of rows desc');
-
-    if (descResponse.body.list[0][lookupColumn.title] !== 'ZACHARY')
-      throw new Error('Wrong filter desc');
+    expect(descResponse.body.pageInfo.totalRows).equal(9558)
+    expect(descResponse.body.list[0][lookupColumn.title]).equal('ZACHARY')
   }
 
   it('Get nested sorted filtered table data list with a lookup column gallery', async function () {
@@ -399,7 +370,7 @@ function viewRowTests() {
         status: 'create',
         logical_op: 'and',
         comparison_op: 'gte',
-        value: '25',
+        value: 25,
       },
       {
         is_group: true,
@@ -411,7 +382,7 @@ function viewRowTests() {
             status: 'create',
             logical_op: 'and',
             comparison_op: 'lte',
-            value: '30',
+            value: 30,
           },
           {
             fk_column_id: paymentListColumn?.id,
@@ -428,7 +399,8 @@ function viewRowTests() {
                 logical_op: 'and',
                 fk_column_id: activeColumn?.id,
                 status: 'create',
-                comparison_op: 'notempty',
+                comparison_op: 'eq',
+                value: 1
               },
             ],
           },
@@ -451,8 +423,7 @@ function viewRowTests() {
       })
       .expect(200);
 
-    if (ascResponse.body.pageInfo.totalRows !== 594)
-      throw new Error('Wrong number of rows');
+    expect(ascResponse.body.pageInfo.totalRows).equal(594);
 
     if (ascResponse.body.list[0][rollupColumn.title] !== 12) {
       throw new Error('Wrong filter');
@@ -648,7 +619,7 @@ function viewRowTests() {
         status: 'create',
         logical_op: 'and',
         comparison_op: 'gte',
-        value: '25',
+        value: 25,
       },
       {
         is_group: true,
@@ -660,7 +631,7 @@ function viewRowTests() {
             status: 'create',
             logical_op: 'and',
             comparison_op: 'lte',
-            value: '30',
+            value: 30,
           },
           {
             fk_column_id: paymentListColumn?.id,
@@ -677,7 +648,8 @@ function viewRowTests() {
                 logical_op: 'and',
                 fk_column_id: activeColumn?.id,
                 status: 'create',
-                comparison_op: 'notempty',
+                comparison_op: 'eq',
+                value: 1
               },
             ],
           },

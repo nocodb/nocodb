@@ -225,6 +225,7 @@ export default class View implements ViewType {
     view: Partial<View> &
       Partial<FormView | GridView | GalleryView | KanbanView> & {
         copy_from_id?: string;
+        grp_column_id?: string;
         created_at?;
         updated_at?;
       },
@@ -310,12 +311,8 @@ export default class View implements ViewType {
         );
         break;
       case ViewTypes.KANBAN:
-        // Preset a grouping field by choosing the first single select field
-        // TODO: let users to choose in kanban create modal
-        const singleSelectColumns = columns.filter(
-          (c) => c.uidt === UITypes.SingleSelect
-        )[0];
-        (view as KanbanView).grp_column_id = singleSelectColumns?.id;
+        // set grouping field
+        (view as KanbanView).grp_column_id = view.grp_column_id;
 
         await KanbanView.insert(
           {

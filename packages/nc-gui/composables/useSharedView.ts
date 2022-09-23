@@ -1,4 +1,4 @@
-import type { ExportTypes, FilterType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, ExportTypes, FilterType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 
@@ -53,7 +53,7 @@ export function useSharedView() {
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
   }
 
-  const fetchSharedViewData = async () => {
+  const fetchSharedViewData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
     if (!sharedView.value) return
 
     const page = paginationData.value.page || 1
@@ -65,6 +65,7 @@ export function useSharedView() {
         offset: (page - 1) * pageSize,
         filterArrJson: JSON.stringify(nestedFilters.value),
         sortArrJson: JSON.stringify(sorts.value),
+        ...params,
       } as any,
       {
         headers: {
@@ -72,7 +73,6 @@ export function useSharedView() {
         },
       },
     )
-
     return data
   }
 

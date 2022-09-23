@@ -112,8 +112,7 @@ export function useKanbanViewData(
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where,
         })
-      : // TODO: check this
-        await fetchSharedViewData()
+      : await fetchSharedViewData(params)
 
     formattedData.value[stackTitle] = [...formattedData.value[stackTitle], ...formatData(response.list)]
   }

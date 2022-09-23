@@ -12,15 +12,15 @@ const rolePermissions = {
       projectCreate: true,
       projectActions: true,
       projectSettings: true,
-    }
+    },
   },
 
   // Project role permissions
   [ProjectRole.Creator]: {
-    exclude: ["appStore"]
+    exclude: ['appStore'],
   },
   [ProjectRole.Owner]: {
-    exclude: ["appStore"]
+    exclude: ['appStore'],
   },
   [ProjectRole.Editor]: {
     include: {
@@ -40,22 +40,22 @@ const rolePermissions = {
       apiDocs: true,
       projectSettings: true,
       newUser: false,
-    }
+    },
   },
   [ProjectRole.Commenter]: {
     include: {
-    smartSheet: true,
-    column: true,
-    rowComments: true,
-    projectSettings: true,
-  },
+      smartSheet: true,
+      column: true,
+      rowComments: true,
+      projectSettings: true,
+    },
   },
   [ProjectRole.Viewer]: {
     include: {
-    smartSheet: true,
-    column: true,
-    projectSettings: true,
-  },
+      smartSheet: true,
+      column: true,
+      projectSettings: true,
+    },
   },
 } as const
 

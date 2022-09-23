@@ -1,6 +1,6 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
 import type { UseGlobalReturn } from './composables/useGlobal/types'
-import type { NocoI18n, Roles } from './lib'
+import type { NocoI18n } from './lib'
 import type { TabType } from './composables'
 
 declare module '#app/nuxt' {

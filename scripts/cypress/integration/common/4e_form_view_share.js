@@ -100,7 +100,7 @@ export const genTest = (apiType, dbType) => {
           .should("exist")
           .then(($obj) => {
             // http://localhost:8080/api/v1/db/public/shared-view/761f0200-e72c-487a-85bf-615d0d277054/rows?offset=0&filterArrJson=[]&sortArrJson=[]
-            cy.intercept("/api/v1/db/public/shared-view/*").as(
+            cy.intercept("/api/v1/db/public/shared-view/**").as(
               "waitForPageLoad"
             );
 

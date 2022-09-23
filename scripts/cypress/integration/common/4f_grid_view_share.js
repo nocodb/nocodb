@@ -82,7 +82,9 @@ export const genTest = (apiType, dbType) => {
       });
 
       it(`Share ${viewType.toUpperCase()} hide, sort, filter & verify`, () => {
-        cy.intercept("/api/v1/db/meta/audits/comments/*").as("waitForPageLoad");
+        cy.intercept("/api/v1/db/meta/audits/comments/**").as(
+          "waitForPageLoad"
+        );
 
         cy.get(`.nc-view-item.nc-${viewType}-view-item`)
           .contains("Grid-1")

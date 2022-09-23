@@ -1,14 +1,24 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
-import type { Form as AntForm } from 'ant-design-vue'
+import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import { capitalize, inject } from '@vue/runtime-core'
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
-import { MetaInj, ViewListInj } from '~/context'
-import { generateUniqueTitle } from '~/utils'
-import { computed, nextTick, reactive, unref, useApi, useVModel, watch } from '#imports'
+import {
+  FieldsInj,
+  MetaInj,
+  ViewListInj,
+  computed,
+  generateUniqueTitle,
+  nextTick,
+  reactive,
+  unref,
+  useApi,
+  useVModel,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -26,6 +36,7 @@ interface Form {
   title: string
   type: ViewTypes
   copy_from_id: string | null
+  grp_column_id: string | null
 }
 
 const props = defineProps<Props>()
@@ -46,10 +57,13 @@ const meta = inject(MetaInj, ref())
 
 const viewList = inject(ViewListInj)
 
+const fields = inject(FieldsInj, ref([]))
+
 const form = reactive<Form>({
   title: props.title || '',
   type: props.type,
   copy_from_id: null,
+  grp_column_id: null,
 })
 
 const formRules = [
@@ -65,6 +79,11 @@ const formRules = [
       }),
     message: 'View name should be unique',
   },
+]
+
+const groupingFieldColumnRules = [
+  // name is required
+  { required: true, message: `${t('general.groupingField')} ${t('general.required')}` },
 ]
 
 const typeAlias = computed(
@@ -139,6 +158,17 @@ async function onSubmit() {
     vModel.value = false
   }
 }
+
+const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
+  return fields.value
+    .filter((el) => el.uidt === UITypes.SingleSelect)
+    .map((field) => {
+      return {
+        value: field.id,
+        label: field.title,
+      }
+    })
+})
 </script>
 
 <template>
@@ -150,6 +180,15 @@ async function onSubmit() {
     <a-form ref="formValidator" layout="vertical" :model="form">
       <a-form-item :label="$t('labels.viewName')" name="title" :rules="formRules">
         <a-input ref="inputEl" v-model:value="form.title" autofocus @keydown.enter="onSubmit" />
+      </a-form-item>
+      <a-form-item v-if="form.type === ViewTypes.KANBAN" name="grp_column_id" :rules="groupingFieldColumnRules">
+        <a-select
+          v-model:value="form.grp_column_id"
+          class="w-full nc-kanban-grouping-field-select"
+          :options="singleSelectFieldOptions"
+          placeholder="Select a Grouping Field"
+          not-found-content="No Single Select Field can be found. Please create one first."
+        />
       </a-form-item>
     </a-form>
 

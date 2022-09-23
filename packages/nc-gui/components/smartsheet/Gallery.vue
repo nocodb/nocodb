@@ -29,6 +29,7 @@ interface Attachment {
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const expandedFormDlg = ref(false)
@@ -85,7 +86,7 @@ const attachments = (record: any): Array<Attachment> => {
   }
 }
 
-const expandForm = (row: RowType, _state?: Record<string, any>) => {
+const expandForm = (row: RowType, state?: Record<string, any>) => {
   if (!isUIAllowed('xcDatatableEditable')) return
 
   const rowId = extractPkFromRow(row.row, meta.value.columns)
@@ -139,6 +140,9 @@ reloadViewMetaHook?.on(async () => {
   nextTick(() => {
     reloadAttachments.value = false
   })
+})
+reloadViewDataHook?.on(async () => {
+  await loadData()
 })
 
 onMounted(async () => {

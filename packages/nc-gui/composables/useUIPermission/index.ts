@@ -11,6 +11,15 @@ const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: P
 
   if (isString(rolePermission) && rolePermission === '*') return true
 
+
+  // todo: type correction
+  if('include' in rolePermission[permission as keyof typeof rolePermission]){
+    return rolePermission[permission as keyof typeof rolePermission].include[permission]
+  }
+  if('exclude' in rolePermission[permission as keyof typeof rolePermission]){
+    return !rolePermission[permission as keyof typeof rolePermission].exclude[permission]
+  }
+
   return rolePermission[permission as keyof typeof rolePermission]
 }
 

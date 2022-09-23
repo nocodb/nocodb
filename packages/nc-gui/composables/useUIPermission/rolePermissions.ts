@@ -8,42 +8,54 @@ const rolePermissions = {
   [Role.Admin]: {},
   [Role.Guest]: {},
   [Role.User]: {
-    projectCreate: true,
-    projectActions: true,
-    projectSettings: true,
+    include: {
+      projectCreate: true,
+      projectActions: true,
+      projectSettings: true,
+    }
   },
 
   // Project role permissions
-  [ProjectRole.Creator]: '*',
-  [ProjectRole.Owner]: '*',
+  [ProjectRole.Creator]: {
+    exclude: ["appStore"]
+  },
+  [ProjectRole.Owner]: {
+    exclude: ["appStore"]
+  },
   [ProjectRole.Editor]: {
-    smartSheet: true,
-    xcDatatableEditable: true,
-    column: true,
-    tableAttachment: true,
-    tableRowUpdate: true,
-    dataInsert: true,
-    rowComments: true,
-    gridViewOptions: true,
-    sortSync: true,
-    fieldsSync: true,
-    gridColUpdate: true,
-    filterSync: true,
-    csvImport: true,
-    apiDocs: true,
-    projectSettings: true,
-    newUser: false,
+    include: {
+      smartSheet: true,
+      xcDatatableEditable: true,
+      column: true,
+      tableAttachment: true,
+      tableRowUpdate: true,
+      dataInsert: true,
+      rowComments: true,
+      gridViewOptions: true,
+      sortSync: true,
+      fieldsSync: true,
+      gridColUpdate: true,
+      filterSync: true,
+      csvImport: true,
+      apiDocs: true,
+      projectSettings: true,
+      newUser: false,
+    }
   },
   [ProjectRole.Commenter]: {
+    include: {
     smartSheet: true,
     column: true,
     rowComments: true,
     projectSettings: true,
   },
+  },
   [ProjectRole.Viewer]: {
+    include: {
     smartSheet: true,
     column: true,
     projectSettings: true,
+  },
   },
 } as const
 

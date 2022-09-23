@@ -13,8 +13,8 @@ export const genTest = (apiType, dbType) => {
 
   describe(`${apiType.toUpperCase()} ERD`, () => {
     before(() => {
-    //   loginPage.loginAndOpenProject(apiType, dbType);
-    //   cy.openTableTab("Country", 25);
+      loginPage.loginAndOpenProject(apiType, dbType);
+      cy.openTableTab("Country", 25);
       projectId = getProjectString()
       cy.log('erd:getProjectString' + projectId)
       if (dbType === "postgres") {
@@ -47,7 +47,7 @@ export const genTest = (apiType, dbType) => {
     // Test cases
 
     it(`Enable MM setting Open Table ERD`, () => {
-      cy.openTableTab("Country", 25);
+      // cy.openTableTab("Country", 25);
       mainPage.toggleShowMMSetting();
       
       mainPage.openErdTab();

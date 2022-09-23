@@ -84,6 +84,7 @@ export default defineNuxtConfig({
     define: {
       'process.env.DEBUG': 'false',
       'process.nextTick': () => {},
+      'process.env.ANT_MESSAGE_DURATION': process.env.ANT_MESSAGE_DURATION,
     },
     server: {
       watch: {
@@ -115,10 +116,12 @@ export default defineNuxtConfig({
   image: {
     dir: 'assets/',
   },
-  imports: {
-    dirs: ['./context/**', './utils/**', './lib/**', './composables/**'],
+
+  autoImports: {
+    dirs: ['./context', './utils', './lib'],
     imports: [{ name: 'useI18n', from: 'vue-i18n' }],
   },
+
   pageTransition: {
     name: 'page',
     mode: 'out-in',

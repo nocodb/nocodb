@@ -6,24 +6,3 @@ node_modules
 .output
 .env
 dist
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless
-
-# IDE / Editor
-.idea
-
-# Service worker
-sw.*
-
-# macOS
-.DS_Store
-
-# Vim swap files
-*.swp
-
-# IDE
-.vscode/

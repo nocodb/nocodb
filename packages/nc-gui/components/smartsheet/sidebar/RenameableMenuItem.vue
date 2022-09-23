@@ -2,7 +2,7 @@
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { IsLockedInj, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel, viewIcons } from '#imports'
+import { IsLockedInj, inject, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel, viewIcons } from '#imports'
 
 interface Props {
   view: ViewType
@@ -21,7 +21,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const vModel = useVModel(props, 'view', emits) as WritableComputedRef<any>
+const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { is_default: boolean }>
 
 const { $e } = useNuxtApp()
 

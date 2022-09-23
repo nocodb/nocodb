@@ -3,7 +3,7 @@ import { enumColor as colors } from '#imports'
 
 const { lang: currentLang } = useGlobal()
 
-const isRtlLang = $computed(() => ['fa'].includes(currentLang.value))
+const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
 </script>
 
 <template>

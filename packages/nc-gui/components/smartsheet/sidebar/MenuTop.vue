@@ -32,8 +32,6 @@ interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
 
   (event: 'deleted'): void
-
-  (event: 'sorted'): void
 }
 
 const { $e } = useNuxtApp()

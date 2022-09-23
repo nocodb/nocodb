@@ -14,6 +14,7 @@ import {
   useRoute,
   useRouter,
   useSidebar,
+  useUIPermission,
   useViews,
   watch,
 } from '#imports'
@@ -114,7 +115,7 @@ function onCreate(view: ViewType) {
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     />
     <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
-      <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
+      <MenuTop @open-modal="openModal" @deleted="loadViews" />
 
       <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="!my-3 w-full border-b-1" />
 

@@ -2,7 +2,7 @@ import { useGlobalState } from './state'
 import { useGlobalActions } from './actions'
 import type { UseGlobalReturn } from './types'
 import { useGlobalGetters } from './getters'
-import { useNuxtApp, watch } from '#imports'
+import { createGlobalState, useNuxtApp, watch } from '#imports'
 
 /**
  * Global state is injected by {@link import('~/plugins/state') state} plugin into our nuxt app (available as `$state`).
@@ -34,11 +34,8 @@ import { useNuxtApp, watch } from '#imports'
  * console.log(state.isLoading.value) // isLoading = true if any api request is still running
  * ```
  */
-export const useGlobal = (): UseGlobalReturn => {
-  const { $state, provide } = useNuxtApp()
-
-  /** If state already exists, return it */
-  if (typeof $state !== 'undefined') return $state
+export const useGlobal = createGlobalState((): UseGlobalReturn => {
+  const { provide } = useNuxtApp()
 
   const state = useGlobalState()
 
@@ -84,4 +81,4 @@ export const useGlobal = (): UseGlobalReturn => {
   provide('state', globalState)
 
   return globalState
-}
+})

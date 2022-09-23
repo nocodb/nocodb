@@ -35,8 +35,11 @@ if (signedIn.value) {
 
 <template>
   <div class="nc-container h-full mt-1.5 px-12">
-    <SmartsheetToolbar />
-    <SmartsheetKanban />
+    <div class="flex flex-col h-full flex-1 min-w-0">
+      <SmartsheetToolbar />
+      <div class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
+        <SmartsheetKanban />
+      </div>
+    </div>
   </div>
 </template>
-

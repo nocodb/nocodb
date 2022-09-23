@@ -12,6 +12,7 @@ import {
   OpenNewRecordFormHookInj,
   PaginationDataInj,
   ReadonlyInj,
+  ReloadRowDataHookInj,
   ReloadViewMetaHookInj,
   extractPkFromRow,
   inject,
@@ -149,6 +150,9 @@ onMounted(async () => {
   await loadData()
   await loadGalleryData()
 })
+
+// provide view data reload hook as fallback to row data reload
+provide(ReloadRowDataHookInj, reloadViewDataHook)
 </script>
 
 <template>

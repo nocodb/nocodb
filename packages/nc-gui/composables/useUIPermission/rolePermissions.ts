@@ -4,9 +4,7 @@ const rolePermissions = {
   // general role permissions
   /** todo: enable wildcard permission
    *  limited permission  due to unexpected behaviour in shared base if opened in same window  */
-  [Role.Super]: {
-    projectTheme: true,
-  },
+  [Role.Super]: '*',
   [Role.Admin]: {},
   [Role.Guest]: {},
   [Role.User]: {

@@ -97,6 +97,9 @@ export class _projectsPage {
   // for external database, {databaseType, hostAddress, portNumber, username, password, databaseName}
 
   openConfiguredProject(apiType, dbType) {
+    // http://localhost:8080/api/v1/db/meta/projects/p_kfxgmcd5jpyrje/users?limit=10&offset=0&query=
+    cy.intercept("/**/users?limit=*&offset=*&query=*").as("waitForPageLoad");
+
     if (dbType === "mysql") {
       projectsPage.openProject(staticProjects.externalREST.basic.name);
     } else if (dbType === "xcdb") {
@@ -106,7 +109,9 @@ export class _projectsPage {
     }
 
     // kludge: wait for page load to finish
-    cy.wait(4000);
+    // cy.wait(4000);
+    cy.wait("@waitForPageLoad");
+
     // close team & auth tab
     cy.get("button.ant-tabs-tab-remove").should("exist").click();
     cy.wait(1000);

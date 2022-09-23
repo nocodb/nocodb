@@ -480,8 +480,8 @@ Cypress.Commands.add("signOut", () => {
     .eq(1)
     .click();
 
-  cy.wait(5000);
-  cy.get('button:contains("SIGN")').should("exist");
+  // cy.wait(5000);
+  cy.get('button:contains("SIGN IN")').should("exist");
 });
 
 // Drag n Drop

@@ -77,7 +77,7 @@ export const genTest = (apiType, dbType) => {
 
       mainPage.shareView().click();
 
-      cy.wait(5000);
+      // cy.wait(5000);
 
       // copy link text, visit URL
       cy.getActiveModal(".nc-modal-share-view")
@@ -85,6 +85,10 @@ export const genTest = (apiType, dbType) => {
         .contains("/nc/form/", { timeout: 10000 })
         .should("exist")
         .then(($obj) => {
+          cy.intercept("/api/v1/db/public/shared-view/**").as(
+            "waitForSharedViewLoad"
+          );
+
           let linkText = $obj.text().trim();
           cy.log(linkText);
 
@@ -93,10 +97,12 @@ export const genTest = (apiType, dbType) => {
           cy.visit(linkText, {
             baseUrl: null,
           });
-          cy.wait(5000);
+          // cy.wait(5000);
+          cy.wait(["@waitForSharedViewLoad"]);
 
           // wait for share view page to load!
           cy.get(".nc-form").should("exist");
+          cy.get("button:contains(Submit)").should("exist");
 
           // fill form
           // 0: Country
@@ -128,7 +134,7 @@ export const genTest = (apiType, dbType) => {
       // projectsPage.openConfiguredProject(apiType, dbType);
 
       cy.openTableTab("Country", 25);
-      cy.wait(1000);
+      // cy.wait(1000);
 
       mainPage.filterField("testAttach", "is not null", null);
       mainPage.hideField("LastUpdate");

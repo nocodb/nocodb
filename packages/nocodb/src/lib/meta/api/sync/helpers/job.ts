@@ -11,22 +11,57 @@ import hash from 'object-hash';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import tinycolor from 'tinycolor2';
 import { importData, importLTARData } from './readAndProcessData';
 
 dayjs.extend(utc);
 
 const selectColors = {
-  "blue": "#cfdfff",
-  "cyan": "#d0f0fd",
-  "teal": "#c2f5e9",
-  "green": "#d1f7c4",
-  "orange": "#fee2d5",
-  "yellow": "#ffeab6",
-  "red": "#ffdce5",
-  "pink": "#ffdaf6",
-  "purple": "#ede2fe",
-  "gray": "#eee"
-}
+  // normal
+  blue: '#cfdfff',
+  cyan: '#d0f0fd',
+  teal: '#c2f5e9',
+  green: '#d1f7c4',
+  orange: '#fee2d5',
+  yellow: '#ffeab6',
+  red: '#ffdce5',
+  pink: '#ffdaf6',
+  purple: '#ede2fe',
+  gray: '#eee',
+  // medium
+  blueMedium: '#9cc7ff',
+  cyanMedium: '#77d1f3',
+  tealMedium: '#72ddc3',
+  greenMedium: '#93e088',
+  orangeMedium: '#ffa981',
+  yellowMedium: '#ffd66e',
+  redMedium: '#ff9eb7',
+  pinkMedium: '#f99de2',
+  purpleMedium: '#cdb0ff',
+  grayMedium: '#ccc',
+  // dark
+  blueDark: '#2d7ff9',
+  cyanDark: '#18bfff',
+  tealDark: '#20d9d2',
+  greenDark: '#20c933',
+  orangeDark: '#ff6f2c',
+  yellowDark: '#fcb400',
+  redDark: '#f82b60',
+  pinkDark: '#ff08c2',
+  purpleDark: '#8b46ff',
+  grayDark: '#666',
+  // darker
+  blueDarker: '#2750ae',
+  cyanDarker: '#0b76b7',
+  tealDarker: '#06a09b',
+  greenDarker: '#338a17',
+  orangeDarker: '#d74d26',
+  yellowDarker: '#b87503',
+  redDarker: '#ba1e45',
+  pinkDarker: '#b2158b',
+  purpleDarker: '#6b1cb0',
+  grayDarker: '#444',
+};
 
 export default async (
   syncDB: AirtableSyncConfig,
@@ -411,13 +446,15 @@ export default async (
           // TODO fix record mapping (this causes every record to map first option, we can't handle them using data api as they don't provide option id within data we might instead get the correct mapping from schema file )
           let dupNo = 1;
           const defaultName = (value as any).name;
-          while (options.find(el => el.title === (value as any).name)) {
+          while (options.find((el) => el.title === (value as any).name)) {
             (value as any).name = `${defaultName}_${dupNo++}`;
           }
           options.push({
             order: order++,
             title: (value as any).name,
-            color: selectColors[(value as any).color] ? selectColors[(value as any).color] : null
+            color: selectColors[(value as any).color]
+              ? selectColors[(value as any).color]
+              : tinycolor.random().toHexString(),
           });
 
           sMap.addToMappingTbl(
@@ -538,9 +575,11 @@ export default async (
           case 'select':
           case 'multiSelect':
             ncCol.colOptions = {
-              options: [...colOptions.data]
-            }
-            ncCol.dtxp = colOptions.data.map(el => `'${el.title}'`).join(',');
+              options: [...colOptions.data],
+            };
+            // if options are empty, configure '' as default option
+            ncCol.dtxp =
+              colOptions.data.map((el) => `'${el.title}'`).join(',') || "''";
             break;
           case undefined:
             break;
@@ -1362,12 +1401,14 @@ export default async (
           break;
 
         case UITypes.MultiSelect:
-          rec[key] = value.map((v) => {
-            if (v === '') {
-              return 'nc_empty';
-            }
-            return `${v.replace(/,/g, '.')}`;
-          }).join(',');
+          rec[key] = value
+            .map((v) => {
+              if (v === '') {
+                return 'nc_empty';
+              }
+              return `${v.replace(/,/g, '.')}`;
+            })
+            .join(',');
           break;
 
         case UITypes.Attachment:
@@ -2215,6 +2256,7 @@ export default async (
             logDetailed,
             records: recordsMap[ncTbl.id],
             atNcAliasRef,
+            ncLinkMappingTable,
           });
         }
 

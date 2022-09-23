@@ -5,6 +5,7 @@ import type { SelectProps } from 'ant-design-vue'
 import {
   ActiveViewInj,
   IsLockedInj,
+  IsPublicInj,
   MetaInj,
   ReloadViewDataHookInj,
   computed,
@@ -18,6 +19,8 @@ import {
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
+
+const IsPublic = inject(IsPublicInj, ref(false))
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
@@ -70,7 +73,12 @@ const handleChange = () => {
 </script>
 
 <template>
-  <a-dropdown v-model:visible="stackedByDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-kanban-stacked-by-menu">
+  <a-dropdown
+    v-if="!IsPublic"
+    v-model:visible="stackedByDropdown"
+    :trigger="['click']"
+    overlay-class-name="nc-dropdown-kanban-stacked-by-menu"
+  >
     <div class="nc-kanban-btn">
       <a-button v-e="['c:stacked-by']" class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">

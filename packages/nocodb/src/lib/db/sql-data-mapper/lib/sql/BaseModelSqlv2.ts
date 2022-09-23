@@ -1381,9 +1381,10 @@ class BaseModelSqlv2 {
 
       const query = this.dbDriver(this.tnPath).insert(insertObj);
       if (this.isPg || this.isMssql) {
-        query.returning(
-          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`
-        );
+        this.model?.primaryKey &&
+          query.returning(
+            `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`
+          );
         response = await this.extractRawQueryAndExec(query);
       }
 

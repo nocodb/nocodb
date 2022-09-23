@@ -1,14 +1,14 @@
 import { ConfigProvider } from 'ant-design-vue'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import tinycolor from 'tinycolor2'
-import { hexToRGB, themeV2Colors, useCssVar, useInjectionState } from '#imports'
+import { createGlobalState, hexToRGB, ref, themeV2Colors, useCssVar } from '#imports'
 
 export interface ThemeConfig extends AntTheme {
   primaryColor: string
   accentColor: string
 }
 
-const [setup, use] = useInjectionState((config?: Partial<ThemeConfig>) => {
+export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
   const primaryColor = useCssVar('--color-primary', typeof document !== 'undefined' ? document.documentElement : null)
   const accentColor = useCssVar('--color-accent', typeof document !== 'undefined' ? document.documentElement : null)
 
@@ -46,18 +46,4 @@ const [setup, use] = useInjectionState((config?: Partial<ThemeConfig>) => {
     theme: currentTheme,
     setTheme,
   }
-}, 'theme')
-
-export const provideTheme = setup
-
-export function useTheme(config?: Partial<ThemeConfig>) {
-  const theme = use()
-
-  if (!theme) {
-    return setup(config)
-  } else {
-    if (config) theme.setTheme(config)
-  }
-
-  return theme
-}
+})

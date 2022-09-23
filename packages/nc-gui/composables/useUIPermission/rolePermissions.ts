@@ -1,13 +1,24 @@
+import { ProjectRole, Role } from '~/lib'
+
 const rolePermissions = {
+  // general role permissions
   /** todo: enable wildcard permission
    *  limited permission  due to unexpected behaviour in shared base if opened in same window  */
-  super: {
+  [Role.Super]: {
     projectTheme: true,
   },
-  creator: '*',
-  owner: '*',
-  guest: {},
-  editor: {
+  [Role.Admin]: {},
+  [Role.Guest]: {},
+  [Role.User]: {
+    projectCreate: true,
+    projectActions: true,
+    projectSettings: true,
+  },
+
+  // Project role permissions
+  [ProjectRole.Creator]: '*',
+  [ProjectRole.Owner]: '*',
+  [ProjectRole.Editor]: {
     smartSheet: true,
     xcDatatableEditable: true,
     column: true,
@@ -25,32 +36,25 @@ const rolePermissions = {
     projectSettings: true,
     newUser: false,
   },
-  commenter: {
+  [ProjectRole.Commenter]: {
     smartSheet: true,
     column: true,
     rowComments: true,
     projectSettings: true,
   },
-  viewer: {
+  [ProjectRole.Viewer]: {
     smartSheet: true,
     column: true,
     projectSettings: true,
   },
-  user: {
-    projectCreate: true,
-    projectActions: true,
-    projectSettings: true,
-  },
 } as const
 
-export default rolePermissions
+type RolePermissions = Omit<typeof rolePermissions, 'creator' | 'owner' | 'guest' | 'admin'>
 
 type GetKeys<T> = T extends Record<string, any> ? keyof T : never
 
-export type Permission<T extends typeof rolePermissions = typeof rolePermissions, K extends keyof T = keyof T> = K extends
-  | 'creator'
-  | 'owner'
-  ? T[K]
-  : never | T[K] extends Record<string, any>
-  ? GetKeys<T[K]>
+export type Permission<K extends keyof RolePermissions = keyof RolePermissions> = RolePermissions[K] extends Record<string, any>
+  ? GetKeys<RolePermissions[K]>
   : never
+
+export default rolePermissions

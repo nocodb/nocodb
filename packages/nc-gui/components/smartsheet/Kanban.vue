@@ -9,6 +9,7 @@ import {
   IsGridInj,
   IsKanbanInj,
   IsLockedInj,
+  IsPublicInj,
   MetaInj,
   OpenNewRecordFormHookInj,
   ReadonlyInj,
@@ -31,6 +32,8 @@ const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const isLocked = inject(IsLockedInj, ref(false))
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const expandedFormDlg = ref(false)
 
@@ -164,7 +167,9 @@ const handleDeleteStackConfirmClick = async () => {
 
 const handleCollapseStack = async (stackIdx: number) => {
   groupingFieldColOptions.value[stackIdx].collapsed = !groupingFieldColOptions.value[stackIdx].collapsed
-  await updateKanbanStackMeta()
+  if (!isPublic.value) {
+    await updateKanbanStackMeta()
+  }
 }
 
 openNewRecordFormHook?.on(async (stackTitle) => {

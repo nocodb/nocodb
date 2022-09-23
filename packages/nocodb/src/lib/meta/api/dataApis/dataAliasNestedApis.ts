@@ -4,10 +4,14 @@ import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
-import { getColumnByIdOrName, getViewAndModelFromRequestByAliasOrId } from './helpers'
+import {
+  getColumnByIdOrName,
+  getViewAndModelFromRequestByAliasOrId,
+} from './helpers';
 import { NcError } from '../../helpers/catchError';
 import apiMetrics from '../../helpers/apiMetrics';
 
+// todo: handle case where the given column is not ltar
 export async function mmList(req: Request, res: Response, next) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
@@ -157,6 +161,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
   );
 }
 
+// todo: handle case where the given column is not ltar
 export async function hmList(req: Request, res: Response, next) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   if (!model) return next(new Error('Table not found'));
@@ -212,12 +217,14 @@ async function relationDataRemove(req, res) {
     colId: column.id,
     childId: req.params.refRowId,
     rowId: req.params.rowId,
+    cookie: req,
   });
 
   res.json({ msg: 'success' });
 }
 
 //@ts-ignore
+// todo: Give proper error message when reference row is already related and handle duplicate ref row id in hm
 async function relationDataAdd(req, res) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   if (!model) NcError.notFound('Table not found');
@@ -235,11 +242,11 @@ async function relationDataAdd(req, res) {
     colId: column.id,
     childId: req.params.refRowId,
     rowId: req.params.rowId,
+    cookie: req,
   });
 
   res.json({ msg: 'success' });
 }
-
 
 const router = Router({ mergeParams: true });
 

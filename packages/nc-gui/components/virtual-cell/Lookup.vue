@@ -2,7 +2,18 @@
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { CellValueInj, ColumnInj, MetaInj, ReadonlyInj, computed, inject, provide, useColumn, useMetas } from '#imports'
+import {
+  CellUrlDisableOverlayInj,
+  CellValueInj,
+  ColumnInj,
+  MetaInj,
+  ReadonlyInj,
+  computed,
+  inject,
+  provide,
+  useColumn,
+  useMetas,
+} from '#imports'
 
 const { metas, getMeta } = useMetas()
 
@@ -10,13 +21,13 @@ provide(ReadonlyInj, true)
 
 const column = inject(ColumnInj)! as Ref<ColumnType & { colOptions: LookupType }>
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const value = inject(CellValueInj)
 
 const arrValue = computed(() => (Array.isArray(value?.value) ? value?.value : [value?.value]) ?? [])
 
-const relationColumn = meta?.value.columns?.find((c) => c.id === column.value.colOptions?.fk_relation_column_id) as ColumnType & {
+const relationColumn = meta.value?.columns?.find((c) => c.id === column.value.colOptions?.fk_relation_column_id) as ColumnType & {
   colOptions: LinkToAnotherRecordType
 }
 
@@ -32,6 +43,7 @@ const lookupColumn = computed<any>(
 )
 
 provide(MetaInj, lookupTableMeta)
+provide(CellUrlDisableOverlayInj, ref(true))
 
 const lookupColumnMetaProps = useColumn(lookupColumn)
 </script>

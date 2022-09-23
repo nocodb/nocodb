@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ModelTypes, MssqlUi, SqliteUi } from 'nocodb-sdk'
-import { inject, useProject } from '#imports'
-import { MetaInj } from '~/context'
+import { MetaInj, inject, useProject } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
@@ -13,7 +12,7 @@ const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
 const vModel = useVModel(props, 'value', emit)
 
-const meta = $(inject(MetaInj)!)
+const meta = $(inject(MetaInj, ref()))
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
 
@@ -25,10 +24,10 @@ setAdditionalValidations({
 
 const onUpdateDeleteOptions = sqlUi === MssqlUi ? ['NO ACTION'] : ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
 
-if (!vModel.value.parentId) vModel.value.parentId = meta.id
+if (!vModel.value.parentId) vModel.value.parentId = meta?.id
 if (!vModel.value.childId) vModel.value.childId = null
-if (!vModel.value.childColumn) vModel.value.childColumn = `${meta.table_name}_id`
-if (!vModel.value.childTable) vModel.value.childTable = meta.table_name
+if (!vModel.value.childColumn) vModel.value.childColumn = `${meta?.table_name}_id`
+if (!vModel.value.childTable) vModel.value.childTable = meta?.table_name
 if (!vModel.value.parentTable) vModel.value.parentTable = vModel.value.rtn || ''
 if (!vModel.value.parentColumn) vModel.value.parentColumn = vModel.value.rcn || ''
 
@@ -67,6 +66,7 @@ const refTables = $computed(() => {
           v-model:value="vModel.childId"
           show-search
           :filter-option="(value, option) => option.key.toLowerCase().includes(value.toLowerCase())"
+          dropdown-class-name="nc-dropdown-ltar-child-table"
           @change="onDataTypeChange"
         >
           <a-select-option v-for="table in refTables" :key="table.title" :value="table.id">
@@ -87,14 +87,26 @@ const refTables = $computed(() => {
     <div v-if="advancedOptions" class="flex flex-col p-6 gap-4 border-2 mt-2">
       <div class="flex flex-row space-x-2">
         <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
-          <a-select v-model:value="vModel.onUpdate" :disabled="vModel.virtual" name="onUpdate" @change="onDataTypeChange">
+          <a-select
+            v-model:value="vModel.onUpdate"
+            :disabled="vModel.virtual"
+            name="onUpdate"
+            dropdown-class-name="nc-dropdown-on-update"
+            @change="onDataTypeChange"
+          >
             <a-select-option v-for="(option, index) in onUpdateDeleteOptions" :key="index" :value="option">
               {{ option }}
             </a-select-option>
           </a-select>
         </a-form-item>
         <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')">
-          <a-select v-model:value="vModel.onDelete" :disabled="vModel.virtual" name="onDelete" @change="onDataTypeChange">
+          <a-select
+            v-model:value="vModel.onDelete"
+            :disabled="vModel.virtual"
+            name="onDelete"
+            dropdown-class-name="nc-dropdown-on-delete"
+            @change="onDataTypeChange"
+          >
             <a-select-option v-for="(option, index) in onUpdateDeleteOptions" :key="index" :value="option">
               {{ option }}
             </a-select-option>

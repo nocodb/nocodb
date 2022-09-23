@@ -14,7 +14,7 @@ const onClick = () => {
   <a-tooltip placement="bottom">
     <template #title> {{ $t('activity.addRow') }} </template>
     <div
-      v-t="['c:row:add:grid-top']"
+      v-e="['c:row:add:grid-top']"
       :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
       class="nc-add-new-row-btn flex align-center"
     >

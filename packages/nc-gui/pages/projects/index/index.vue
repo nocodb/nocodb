@@ -71,7 +71,7 @@ const formatTitle = (title: string) =>
     <div v-for="(project, i) of projects" :key="project.id" class="group flex flex-col items-center gap-2">
       <div class="thumbnail" :style="{ '--thumbnail-color': getColorByIndex(i) }" @click="openProject(project)">
         {{ formatTitle(project.title) }}
-        <a-dropdown @click.stop>
+        <a-dropdown overlay-class-name="nc-dropdown-project-operations" @click.stop>
           <MdiMenuDown class="menu-icon" />
           <template #overlay>
             <a-menu>

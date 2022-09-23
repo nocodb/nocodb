@@ -1,9 +1,9 @@
 import { message } from 'ant-design-vue'
 import FileSaver from 'file-saver'
-import { useI18n } from 'vue-i18n'
 import {
   ColumnInj,
   EditModeInj,
+  IsFormInj,
   IsPublicInj,
   MetaInj,
   NOCO,
@@ -14,11 +14,11 @@ import {
   ref,
   useApi,
   useFileDialog,
+  useI18n,
   useInjectionState,
   useProject,
   watch,
 } from '#imports'
-import { IsFormInj } from '~/context'
 import MdiPdfBox from '~icons/mdi/pdf-box'
 import MdiFileWordOutline from '~icons/mdi/file-word-outline'
 import MdiFilePowerpointBox from '~icons/mdi/file-powerpoint-box'
@@ -40,9 +40,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const isForm = inject(IsFormInj, ref(false))
 
-    const meta = inject(MetaInj)!
+    const meta = inject(MetaInj, ref())
 
-    const column = inject(ColumnInj)!
+    const column = inject(ColumnInj, ref())
 
     const editEnabled = inject(EditModeInj, ref(false))
 
@@ -119,7 +119,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         try {
           const data = await api.storage.upload(
             {
-              path: [NOCO, project.value.title, meta.value.title, column.value.title].join('/'),
+              path: [NOCO, project.value.title, meta.value?.title, column.value?.title].join('/'),
             },
             {
               files: file,

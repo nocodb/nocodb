@@ -6069,6 +6069,12 @@
           },
           "project_id": {
             "type": "string"
+          },
+          "mm": {
+            "type": [
+              "boolean",
+              "number"
+            ]
           }
         },
         "required": [
@@ -6195,7 +6201,9 @@
             ]
           }
         },
-        "required": ["title"]
+        "required": [
+          "title"
+        ]
       },
       "TableInfo": {
         "title": "Table",
@@ -7283,7 +7291,8 @@
               "locked",
               "personal"
             ]
-          }
+          },
+          "meta": {}
         }
       },
       "FormColumn": {
@@ -7346,7 +7355,8 @@
           "description": {
             "type": "string",
             "minLength": 1
-          }
+          },
+          "meta": {}
         }
       },
       "Paginated": {

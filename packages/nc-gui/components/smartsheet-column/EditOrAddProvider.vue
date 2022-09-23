@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { inject } from '#imports'
-import { MetaInj } from '~/context'
+import { MetaInj, inject } from '#imports'
 
 interface Props {
   column?: Ref<ColumnType & { meta: any }>
@@ -12,14 +11,10 @@ const props = defineProps<Props>()
 
 const emit = defineEmits(['submit', 'cancel'])
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
-if (props?.column) {
-  const column = toRef(props, 'column')
-  useProvideColumnCreateStore(meta as Ref<TableType>, column)
-} else {
-  useProvideColumnCreateStore(meta as Ref<TableType>)
-}
+const column = toRef(props, 'column')
+useProvideColumnCreateStore(meta, column as Ref<ColumnType | undefined>)
 </script>
 
 <template>

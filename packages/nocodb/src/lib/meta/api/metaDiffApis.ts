@@ -34,6 +34,11 @@ export enum MetaDiffType {
   TABLE_VIRTUAL_M2M_REMOVE = 'TABLE_VIRTUAL_M2M_REMOVE',
 }
 
+const applyChangesPriorityOrder = [
+  MetaDiffType.VIEW_COLUMN_REMOVE,
+  MetaDiffType.TABLE_RELATION_REMOVE,
+];
+
 type MetaDiff = {
   title?: string;
   table_name: string;
@@ -549,6 +554,15 @@ export async function metaDiffSync(req, res) {
   // const relations = (await sqlClient.relationListAll())?.data?.list;
 
   for (const { table_name, detectedChanges } of changes) {
+    // reorder changes to apply relation remove changes
+    // before column remove to avoid foreign key constraint error
+    detectedChanges.sort((a, b) => {
+      return (
+        applyChangesPriorityOrder.indexOf(b.type) -
+        applyChangesPriorityOrder.indexOf(a.type)
+      );
+    });
+
     for (const change of detectedChanges) {
       switch (change.type) {
         case MetaDiffType.TABLE_NEW:

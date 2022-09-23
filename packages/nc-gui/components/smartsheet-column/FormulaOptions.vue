@@ -41,7 +41,7 @@ enum JSEPNode {
   ARRAY_EXP = 'ArrayExpression',
 }
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const columns = computed(() => meta?.value?.columns || [])
 
@@ -102,7 +102,7 @@ const suggestionsList = computed(() => {
         if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
         // v1 logic? skip the current column
         if (!column) return true
-        return column.value.id !== c.id
+        return column.value?.id !== c.id
       })
       .map((c: any) => ({
         text: c.title,
@@ -238,7 +238,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
   } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
     if (
       columns.value
-        .filter((c: Record<string, any>) => !column || column.value.id !== c.id)
+        .filter((c: Record<string, any>) => !column || column.value?.id !== c.id)
         .every((c: Record<string, any>) => c.title !== parsedTree.name)
     ) {
       errors.add(`Column '${parsedTree.name}' is not available`)
@@ -249,7 +249,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
 
     // get all formula columns excluding itself
     const formulaPaths = columns.value
-      .filter((c: Record<string, any>) => c.id !== column?.value.id && c.uidt === UITypes.Formula)
+      .filter((c: Record<string, any>) => c.id !== column.value?.id && c.uidt === UITypes.Formula)
       .reduce((res: Record<string, any>[], c: Record<string, any>) => {
         // in `formula`, get all the target neighbours
         // i.e. all column id (e.g. cl_xxxxxxxxxxxxxx) with formula type
@@ -265,9 +265,9 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
     // include target formula column (i.e. the one to be saved if applicable)
     const targetFormulaCol = columns.value.find((c: ColumnType) => c.title === parsedTree.name && c.uidt === UITypes.Formula)
 
-    if (targetFormulaCol && column?.value.id) {
+    if (targetFormulaCol && column.value?.id) {
       formulaPaths.push({
-        [column?.value?.id as string]: [targetFormulaCol.id],
+        [column.value?.id as string]: [targetFormulaCol.id],
       })
     }
     const vertices = formulaPaths.length

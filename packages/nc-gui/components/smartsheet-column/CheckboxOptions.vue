@@ -78,7 +78,7 @@ watch(
   <a-row>
     <a-col :span="24">
       <a-form-item label="Icon">
-        <a-select v-model:value="vModel.meta.iconIdx" class="w-52">
+        <a-select v-model:value="vModel.meta.iconIdx" class="w-52" dropdown-class-name="nc-dropdown-checkbox-icon">
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
             <div class="flex items-center">
               <component

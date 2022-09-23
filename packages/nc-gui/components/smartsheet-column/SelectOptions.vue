@@ -97,7 +97,11 @@ watch(inputs, () => {
       <template #item="{ element, index }">
         <div class="flex py-1 items-center">
           <MdiDragIcon small class="nc-child-draggable-icon handle" />
-          <a-dropdown v-model:visible="colorMenus[index]" :trigger="['click']">
+          <a-dropdown
+            v-model:visible="colorMenus[index]"
+            :trigger="['click']"
+            overlay-class-name="nc-dropdown-select-color-options"
+          >
             <template #overlay>
               <GeneralColorPicker v-model="element.color" :pick-button="true" @update:model-value="colorMenus[index] = false" />
             </template>

@@ -67,7 +67,7 @@ watch(
     :placeholder="isDateInvalid ? 'Invalid date' : ''"
     :allow-clear="!readOnly"
     :input-read-only="true"
-    :dropdown-class-name="randomClass"
+    :dropdown-class-name="`${randomClass} nc-picker-datetime`"
     :open="readOnly ? false : open"
     :disabled="readOnly"
     @click="open = !open"

@@ -1,10 +1,7 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
-import type { I18n } from 'vue-i18n'
 import type { UseGlobalReturn } from './composables/useGlobal/types'
-
-import type en from './lang/en.json'
-
-type MessageSchema = typeof en
+import type { NocoI18n } from './lib'
+import type { TabType } from './composables'
 
 declare module '#app/nuxt' {
   interface NuxtApp {
@@ -21,7 +18,7 @@ declare module '#app/nuxt' {
 
 declare module '@vue/runtime-core' {
   interface App {
-    i18n: I18n<MessageSchema, unknown, unknown, false>['global']
+    i18n: NocoI18n
   }
 }
 
@@ -31,5 +28,16 @@ declare module 'vue-router' {
     public?: boolean
     hideHeader?: boolean
     title?: string
+  }
+
+  interface RouteParams {
+    projectId: string
+    projectType: 'base' | 'nc' | string
+    type: TabType
+    title: string
+    viewId: string
+    viewTitle: string
+    baseId: string
+    token: string
   }
 }

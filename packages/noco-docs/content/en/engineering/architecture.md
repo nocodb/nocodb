@@ -1,9 +1,9 @@
 ---
-title: "NocoDB architecture"
+title: "Architecture Overview"
 description: "Simple overview of NocoDB architecture"
 position: 3000
 category: "Engineering"
-menuTitle: "NocoDB architecture"
+menuTitle: "Architecture Overview"
 ---
 
 By default, if `NC_DB` is not specified, then SQLite will be used to store your meta data. We suggest users to separate the meta data and user data in different databases.

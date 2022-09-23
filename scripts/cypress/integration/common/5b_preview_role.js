@@ -35,7 +35,7 @@ export const genTest = (apiType, dbType, roleType) => {
             cy.wait(3000);
 
             settingsPage.openProjectMenu();
-            cy.getActiveMenu().find(`[data-submenu-id="preview-as"]`).should('exist').click()
+            cy.getActiveMenu(".nc-dropdown-project-menu").find(`[data-submenu-id="preview-as"]`).should('exist').click()
             cy.wait(1000)
             cy.get('.ant-dropdown-menu-submenu').eq(4).find(`[data-menu-id="editor"]`).should('exist').click()
 

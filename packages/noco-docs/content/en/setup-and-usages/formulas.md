@@ -8,7 +8,7 @@ menuTitle: "Formulas"
 
 ## Adding formula column
 
-![Formula](https://user-images.githubusercontent.com/86527202/144246227-42c44df6-7e3e-4b2c-9bb9-a3c213bcad20.png)
+<img width="990" alt="image" src="https://user-images.githubusercontent.com/35857179/189108950-fba76e31-8ae4-4108-916b-e413c841f451.png">
 
 ### 1. Click on '+' (Add column)
 
@@ -24,6 +24,12 @@ menuTitle: "Formulas"
 - Nested formula (formula equation referring to another formula column) is supported
 
 ### 5. Click on 'Save'
+
+## Editing formula column 
+
+Unlike other column types, formula cells cannot be modified by double-clicking since the value is generated based on the formula. Instead, the vaule can be changed by updating the formula in the column setting.
+
+<img width="253" alt="image" src="https://user-images.githubusercontent.com/35857179/189109486-4d41f2b7-0a19-46ef-8bb4-a8d1aabd3592.png">
 
 ## Available Formula Features
 

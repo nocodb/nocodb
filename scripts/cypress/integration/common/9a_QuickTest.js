@@ -40,7 +40,7 @@ let cn = [ "Name", "Notes", "Status", "Tags", "Done", "Date", "Phone",
 
 function openWebhook(index) {
     cy.get('.nc-actions-menu-btn').should('exist').click();
-    cy.getActiveMenu().find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
+    cy.getActiveMenu(".nc-dropdown-actions-menu").find('.ant-dropdown-menu-title-content').contains('Webhooks').click()
 
     cy.get(".nc-hook").eq(index).click();
 }
@@ -81,8 +81,6 @@ export const genTest = (apiType, dbType, testMode) => {
         }
 
         before(() => {
-            cy.restoreLocalStorage();
-
             if( testMode === 'CY_QUICK') {
                 // cy.task("copyFile")
                 loginPage.signIn(roles.owner.credentials);
@@ -93,28 +91,31 @@ export const genTest = (apiType, dbType, testMode) => {
                 // close team & auth tab
                 cy.get('button.ant-tabs-tab-remove').should('exist').click();
                 cy.wait(1000);
-
-                cy.saveLocalStorage();
             }
+            else {
+                cy.restoreLocalStorage();
+            }
+
+            cy.openTableTab("Film", 3)
+            cy.saveLocalStorage();
+
         });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
         })
 
-        // afterEach(() => {
-        //     cy.saveLocalStorage();
-        // })
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
 
         after(() => {
             cy.restoreLocalStorage();
-
-            // sign out
             cy.signOut();
+            cy.saveLocalStorage();
         });
 
         it("Verify Schema", () => {
-            cy.openTableTab("Film", 3)
 
             // verify if all tables exist
             for(let i=0; i<tn.length; i++) {
@@ -129,7 +130,6 @@ export const genTest = (apiType, dbType, testMode) => {
         });
 
         it("Verify Data types", () => {
-            cy.openTableTab("Film", 3);
 
             // normal cells
             for (let [key, value] of Object.entries(records)) {
@@ -188,12 +188,9 @@ export const genTest = (apiType, dbType, testMode) => {
                 mainPage.getCell("Producer", cellIdx).find('.chip').eq(1).contains(records2.Producer[1]).should('exist')
             }
 
-            cy.closeTableTab("Film");
         });
 
         it("Verify Views & Shared base", () => {
-            cy.openTableTab("Film", 3);
-            mainPage.toggleRightSidebar();
             cy.get('.nc-form-view-item:visible')
                 .should('exist')
                 .eq(0)
@@ -333,7 +330,6 @@ export const genTest = (apiType, dbType, testMode) => {
 
         it("Verify Fields, Filter & Sort", () => {
             cy.openTableTab("Actor", 25);
-            mainPage.toggleRightSidebar();
 
             cy.get(".nc-grid-view-item").eq(1).click()
 
@@ -348,11 +344,11 @@ export const genTest = (apiType, dbType, testMode) => {
             cy.wait(2000);
             cy.get(".nc-fields-menu-btn").click()
 
-            cy.getActiveMenu().find(`[type="checkbox"]`).eq(0).should('be.checked')
-            cy.getActiveMenu().find(`[type="checkbox"]`).eq(1).should('be.checked')
-            cy.getActiveMenu().find(`[type="checkbox"]`).eq(2).should('not.be.checked')
-            cy.getActiveMenu().find(`[type="checkbox"]`).eq(3).should('be.checked')
-            cy.getActiveMenu().find(`[type="checkbox"]`).eq(4).should('be.checked')
+            cy.getActiveMenu(".nc-dropdown-fields-menu").find(`[type="checkbox"]`).eq(0).should('be.checked')
+            cy.getActiveMenu(".nc-dropdown-fields-menu").find(`[type="checkbox"]`).eq(1).should('be.checked')
+            cy.getActiveMenu(".nc-dropdown-fields-menu").find(`[type="checkbox"]`).eq(2).should('not.be.checked')
+            cy.getActiveMenu(".nc-dropdown-fields-menu").find(`[type="checkbox"]`).eq(3).should('be.checked')
+            cy.getActiveMenu(".nc-dropdown-fields-menu").find(`[type="checkbox"]`).eq(4).should('be.checked')
             cy.get(".nc-fields-menu-btn").click();
 
             cy.get(".nc-sort-menu-btn").click();
@@ -387,7 +383,6 @@ export const genTest = (apiType, dbType, testMode) => {
             if( testMode === 'CY_QUICK') {
 
                 cy.openTableTab("Producer", 3)
-                mainPage.toggleRightSidebar();
 
                 cy.get('.nc-grid-view-item').should('have.length', 4)
                 cy.get('.nc-form-view-item').should('have.length', 4)
@@ -416,7 +411,7 @@ export const genTest = (apiType, dbType, testMode) => {
                   .last()
                   .click();
 
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-project-delete")
                   .find("button")
                   .contains("Submit")
                   .should("exist")

@@ -5,28 +5,25 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
     describe(`${apiType.toUpperCase()} api - Table: belongs to, link record`, () => {
-        before(() => {
-            cy.fileHook();
-            mainPage.tabReset();
-            //
-            // // kludge: wait for page load to finish
-            // cy.wait(1000);
-            // // close team & auth tab
-            // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            // cy.wait(1000);
-
-            cy.openTableTab("Country", 25);
-        });
+        // before(() => {
+        //     cy.restoreLocalStorage();
+        //     cy.openTableTab("Country", 25);
+        // });
 
         beforeEach(() => {
-            cy.fileHook();
+            cy.restoreLocalStorage();
         });
 
-        after(() => {
-          cy.closeTableTab("City");
-        });
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
+        // after(() => {
+        //   cy.closeTableTab("City");
+        // });
 
         it("URL validation", () => {
+            cy.openTableTab("Country", 25);
             // column name validation
             // cy.get(`.project-tab:contains(Country):visible`).should("exist");
             // URL validation
@@ -59,26 +56,26 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("Expand Link record, validate", () => {
-            cy.getActiveModal()
+            cy.getActiveModal(".nc-modal-child-list")
                 .find("button:contains(Link to 'City')")
                 .click()
                 .then(() => {
 
                     // Link record form validation
-                    cy.getActiveModal().contains("Link record").should("exist");
-                    cy.getActiveModal()
+                    cy.getActiveModal(".nc-modal-link-record").contains("Link record").should("exist");
+                    cy.getActiveModal(".nc-modal-link-record")
                         .find(".nc-reload")
                         .should("exist");
-                    cy.getActiveModal()
+                    cy.getActiveModal(".nc-modal-link-record")
                         .find('button:contains("Add new record")')
                         .should("exist");
-                    cy.getActiveModal()
+                    cy.getActiveModal(".nc-modal-link-record")
                         .find(".ant-card")
                         .eq(0)
                         .contains("A Corua (La Corua)")
                         .should("exist");
 
-                    cy.getActiveModal()
+                    cy.getActiveModal(".nc-modal-link-record")
                         .find("button.ant-modal-close")
                         .click();
                         // .then(() => {
@@ -103,6 +100,8 @@ export const genTest = (apiType, dbType) => {
             .find('.nc-virtual-cell > .chips-wrapper > .chips > .group > .name')
             .contains("Saudi Arabia")
             .should('exist');
+
+          cy.closeTableTab("City");
         })
     });
 };

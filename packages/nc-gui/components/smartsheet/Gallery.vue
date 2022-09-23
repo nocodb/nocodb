@@ -1,8 +1,6 @@
 <script lang="ts" setup>
+import { onMounted } from '@vue/runtime-core'
 import { isVirtualCol } from 'nocodb-sdk'
-import { inject, provide, useViewData } from '#imports'
-import Row from '~/components/smartsheet/Row.vue'
-import type { Row as RowType } from '~/composables'
 import {
   ActiveViewInj,
   ChangePageInj,
@@ -14,16 +12,23 @@ import {
   OpenNewRecordFormHookInj,
   PaginationDataInj,
   ReadonlyInj,
-} from '~/context'
+  ReloadViewMetaHookInj,
+  extractPkFromRow,
+  inject,
+  provide,
+  useViewData,
+} from '#imports'
+import Row from '~/components/smartsheet/Row.vue'
+import type { Row as RowType } from '~/composables'
 import ImageIcon from '~icons/mdi/file-image-box'
 
 interface Attachment {
   url: string
 }
 
-const meta = inject(MetaInj)
-const view = inject(ActiveViewInj)
-const reloadViewDataHook = inject(ReloadViewDataHookInj)
+const meta = inject(MetaInj, ref())
+const view = inject(ActiveViewInj, ref())
+const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const expandedFormDlg = ref(false)
@@ -38,7 +43,7 @@ const {
   galleryData,
   changePage,
   addEmptyRow,
-} = useViewData(meta, view as any)
+} = useViewData(meta, view)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -51,25 +56,18 @@ provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
+const route = useRoute()
+
+const router = useRouter()
+
 const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== galleryData.value?.fk_cover_image_col_id))
 
 const coverImageColumn: any = $(
   computed(() =>
-    meta?.value.columnsById
+    meta.value?.columnsById
       ? meta.value.columnsById[galleryData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
       : {},
   ),
-)
-
-watch(
-  [meta, view],
-  async () => {
-    if (meta?.value && view?.value) {
-      await loadData()
-      await loadGalleryData()
-    }
-  },
-  { immediate: true },
 )
 
 const isRowEmpty = (record: any, col: any) => {
@@ -87,22 +85,23 @@ const attachments = (record: any): Array<Attachment> => {
   }
 }
 
-const reloadAttachments = ref(false)
-
-reloadViewDataHook?.on(async () => {
-  await loadData()
-  await loadGalleryData()
-  reloadAttachments.value = true
-  nextTick(() => {
-    reloadAttachments.value = false
-  })
-})
-
-const expandForm = (row: RowType, state?: Record<string, any>) => {
+const expandForm = (row: RowType, _state?: Record<string, any>) => {
   if (!isUIAllowed('xcDatatableEditable')) return
-  expandedFormRow.value = row
-  expandedFormRowState.value = state
-  expandedFormDlg.value = true
+
+  const rowId = extractPkFromRow(row.row, meta.value.columns)
+
+  if (rowId) {
+    router.push({
+      query: {
+        ...route.query,
+        rowId,
+      },
+    })
+  } else {
+    expandedFormRow.value = row
+    expandedFormRowState.value = state
+    expandedFormDlg.value = true
+  }
 }
 
 const expandFormClick = async (e: MouseEvent, row: RowType) => {
@@ -116,10 +115,40 @@ openNewRecordFormHook?.on(async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
 })
+
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!route.query.rowId
+  },
+  set(val) {
+    if (!val)
+      router.push({
+        query: {
+          ...route.query,
+          rowId: undefined,
+        },
+      })
+  },
+})
+
+const reloadAttachments = ref(false)
+
+reloadViewMetaHook?.on(async () => {
+  await loadGalleryData()
+  reloadAttachments.value = true
+  nextTick(() => {
+    reloadAttachments.value = false
+  })
+})
+
+onMounted(async () => {
+  await loadData()
+  await loadGalleryData()
+})
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full overflow-auto">
+  <div class="flex flex-col h-full w-full overflow-auto nc-gallery">
     <div class="nc-gallery-container grid gap-2 my-4 px-3">
       <div v-for="record in data" :key="`record-${record.row.id}`">
         <Row :row="record">
@@ -132,7 +161,9 @@ openNewRecordFormHook?.on(async () => {
               <a-carousel v-if="!reloadAttachments && attachments(record).length" autoplay class="gallery-carousel" arrows>
                 <template #customPaging>
                   <a>
-                    <div class="pt-[12px]"><div></div></div>
+                    <div class="pt-[12px]">
+                      <div></div>
+                    </div>
                   </a>
                 </template>
                 <template #prevArrow>
@@ -144,7 +175,7 @@ openNewRecordFormHook?.on(async () => {
                 <img
                   v-for="(attachment, index) in attachments(record)"
                   :key="`carousel-${record.row.id}-${index}`"
-                  class="h-52"
+                  class="h-52 object-cover"
                   :src="attachment.url"
                 />
               </a-carousel>
@@ -183,6 +214,17 @@ openNewRecordFormHook?.on(async () => {
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
+      :view="view"
+    />
+
+    <SmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg"
+      :key="route.query.rowId"
+      v-model="expandedFormOnRowIdDlg"
+      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :meta="meta"
+      :row-id="route.query.rowId"
+      :view="view"
     />
   </div>
 </template>
@@ -192,14 +234,17 @@ openNewRecordFormHook?.on(async () => {
   grid-auto-rows: 1fr;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 }
-:depp(.slick-dots li button) {
+
+:deep(.slick-dots li button) {
   background-color: black;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-dots) {
   position: relative;
   height: auto;
   bottom: 0px;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
   background: #000;
   border: 0;
@@ -215,15 +260,18 @@ openNewRecordFormHook?.on(async () => {
   transition: all 0.5s;
   width: 100%;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
   opacity: 1;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-prev) {
   left: 0;
   height: 100%;
   top: 12px;
   width: 50%;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-next) {
   right: 0;
   height: 100%;

@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { toRef } from 'vue'
-import { ColumnInj } from '~/context'
+import { ColumnInj, toRef, useColumn } from '#imports'
 import FilePhoneIcon from '~icons/mdi/file-phone'
-import { useColumn } from '#imports'
 import KeyIcon from '~icons/mdi/key-variant'
 import JSONIcon from '~icons/mdi/code-json'
 import ClockIcon from '~icons/mdi/clock-time-five'
-// import FKIcon from '~icons/mdi/link-variant'
 import WebIcon from '~icons/mdi/web'
 import TextAreaIcon from '~icons/mdi/card-text-outline'
 import StringIcon from '~icons/mdi/alpha-a-box-outline'
@@ -65,11 +62,7 @@ const icon = computed(() => {
     return DecimalIcon
   } else if (additionalColMeta.isPhoneNumber.value) {
     return FilePhoneIcon
-  }
-  // else if(additionalColMeta.isForeignKey) {
-  //   return FKIcon
-  // }
-  else if (additionalColMeta.isURL.value) {
+  } else if (additionalColMeta.isURL.value) {
     return WebIcon
   } else if (additionalColMeta.isCurrency.value) {
     return CurrencyIcon

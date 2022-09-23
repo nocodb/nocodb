@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useClipboard } from '@vueuse/core'
-import { useI18n } from 'vue-i18n'
+import { extractSdkResponseErrorMsg, useCopy, useI18n } from '#imports'
 import KebabIcon from '~icons/ic/baseline-more-vert'
 import MdiPlusIcon from '~icons/mdi/plus'
 import CloseIcon from '~icons/material-symbols/close-rounded'
@@ -11,18 +10,18 @@ import VisibilityOpenIcon from '~icons/material-symbols/visibility'
 import VisibilityCloseIcon from '~icons/material-symbols/visibility-off'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import MdiContentCopyIcon from '~icons/mdi/content-copy'
-import { extractSdkResponseErrorMsg } from '~/utils'
 
-const { t } = useI18n()
 interface ApiToken extends ApiTokenType {
   show?: boolean
 }
+
+const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
 const { project } = $(useProject())
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 let tokensInfo = $ref<ApiToken[] | undefined>([])
 
@@ -98,7 +97,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="showNewTokenModal" :closable="false" width="28rem" centered :footer="null">
+  <a-modal
+    v-model:visible="showNewTokenModal"
+    :closable="false"
+    width="28rem"
+    centered
+    :footer="null"
+    wrap-class-name="nc-modal-generate-token"
+  >
     <div class="relative flex flex-col h-full">
       <a-button type="text" class="!absolute top-0 right-0 rounded-md -mt-2 -mr-3" @click="showNewTokenModal = false">
         <template #icon>
@@ -131,7 +137,14 @@ onMounted(() => {
       </a-form>
     </div>
   </a-modal>
-  <a-modal v-model:visible="showDeleteTokenModal" :closable="false" width="28rem" centered :footer="null">
+  <a-modal
+    v-model:visible="showDeleteTokenModal"
+    :closable="false"
+    width="28rem"
+    centered
+    :footer="null"
+    wrap-class-name="nc-modal-delete-token"
+  >
     <div class="flex flex-col h-full">
       <div class="flex flex-row justify-center mt-2 text-center w-full text-base">This action will remove this API Token</div>
       <div class="flex mt-6 justify-center space-x-2">
@@ -195,7 +208,7 @@ onMounted(() => {
               </a-button>
             </a-tooltip>
 
-            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight">
+            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-api-token-mgmt">
               <div class="flex flex-row items-center">
                 <a-button type="text" class="!px-0">
                   <div class="flex flex-row items-center h-[1.2rem]">

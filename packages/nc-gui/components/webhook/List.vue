@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { MetaInj } from '~/context'
-import { inject, onMounted, ref, useNuxtApp } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import { MetaInj, extractSdkResponseErrorMsg, inject, onMounted, ref, useI18n, useNuxtApp } from '#imports'
 
 const emit = defineEmits(['edit', 'add'])
 
@@ -13,11 +10,11 @@ const { $api, $e } = useNuxtApp()
 
 const hooks = ref<Record<string, any>[]>([])
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
 async function loadHooksList() {
   try {
-    const hookList = (await $api.dbTableWebhook.list(meta?.value.id as string)).list as Record<string, any>[]
+    const hookList = (await $api.dbTableWebhook.list(meta.value?.id as string)).list as Record<string, any>[]
     hooks.value = hookList.map((hook) => {
       hook.notification = hook.notification && JSON.parse(hook.notification)
       return hook
@@ -58,7 +55,7 @@ onMounted(() => {
     <div class="mb-2">
       <div class="float-left font-bold text-xl mt-2 mb-4">{{ meta.title }} : Webhooks</div>
       <a-button
-        v-t="['c:webhook:add']"
+        v-e="['c:webhook:add']"
         class="float-right nc-btn-create-webhook"
         type="primary"
         size="large"

@@ -1,27 +1,22 @@
 <script setup lang="ts">
 import { Form, message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import ShareBase from './ShareBase.vue'
 import {
   computed,
   extractSdkResponseErrorMsg,
   isEmail,
   onMounted,
+  projectRoleTagColors,
   projectRoles,
   ref,
-  useClipboard,
+  useCopy,
   useDashboard,
+  useI18n,
   useNuxtApp,
   useProject,
 } from '#imports'
 import type { User } from '~/lib'
 import { ProjectRole } from '~/lib'
-
-const { show, selectedUser } = defineProps<Props>()
-
-const emit = defineEmits(['closed', 'reload'])
-
-const { t } = useI18n()
 
 interface Props {
   show: boolean
@@ -34,9 +29,15 @@ interface Users {
   invitationToken?: string
 }
 
+const { show, selectedUser } = defineProps<Props>()
+
+const emit = defineEmits(['closed', 'reload'])
+
+const { t } = useI18n()
+
 const { project } = useProject()
 const { $api, $e } = useNuxtApp()
-const { copy } = useClipboard()
+const { copy } = useCopy()
 const { dashboardUrl } = $(useDashboard())
 
 const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
@@ -69,7 +70,8 @@ const { validateInfos } = useForm(usersData, validators)
 onMounted(() => {
   if (!usersData.emails && selectedUser?.email) {
     usersData.emails = selectedUser.email
-    usersData.role = selectedUser.roles
+    // todo: types not matching, probably a bug here?
+    usersData.role = selectedUser.roles as any
   }
 })
 
@@ -130,7 +132,15 @@ const clickInviteMore = () => {
 </script>
 
 <template>
-  <a-modal :footer="null" centered :visible="show" :closable="false" width="max(50vw, 44rem)" @cancel="emit('closed')">
+  <a-modal
+    :footer="null"
+    centered
+    :visible="show"
+    :closable="false"
+    width="max(50vw, 44rem)"
+    wrap-class-name="nc-modal-invite-user-and-share-base"
+    @cancel="emit('closed')"
+  >
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
         <a-typography-title class="select-none" :level="4"> {{ $t('activity.share') }}: {{ project.title }} </a-typography-title>
@@ -211,7 +221,7 @@ const clickInviteMore = () => {
                 <div class="flex flex-col w-1/4">
                   <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
-                    <a-select v-model:value="usersData.role" class="nc-user-roles">
+                    <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
                       <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role" class="nc-role-option">
                         <div class="flex flex-row h-full justify-start items-center">
                           <div

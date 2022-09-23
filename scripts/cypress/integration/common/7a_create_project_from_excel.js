@@ -68,11 +68,9 @@ export const genTest = (apiType, dbType) => {
 
     describe(`Import from excel`, () => {
         before(() => {
-
             // loginPage.signIn(roles.owner.credentials);
 
             cy.restoreLocalStorage();
-            cy.wait(1000);
 
             cy.task("readSheetList", {
                 file: `./scripts/cypress/fixtures/${filepath}`,
@@ -89,24 +87,26 @@ export const genTest = (apiType, dbType) => {
                 sheetData = rows;
             });
 
-            // loginPage.signIn(roles.owner.credentials);
+            cy.visit("/")
             projectsPage.createProject({ dbType: "none", apiType: "REST", name: "importSample" }, {})
             cy.wait(4000);
 
             cy.saveLocalStorage();
-            cy.wait(1000);
         });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
         });
+
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
 
         it("File Upload: Upload excel as template", () => {
 
             cy.get('.nc-add-new-table').should('exist').trigger('mouseover')
             cy.get('.nc-import-menu').should('exist').click()
-            cy.getActiveMenu().find('.ant-dropdown-menu-item').contains('Microsoft Excel').click()
+            cy.getActiveMenu(".nc-dropdown-import-menu").find('.ant-dropdown-menu-item').contains('Microsoft Excel').click()
 
             cy.get(".nc-input-import").should('exist').find('input').attachFile(filepath);
             cy.toastWait("Uploaded file simple.xlsx successfully");
@@ -264,24 +264,6 @@ export const genTest = (apiType, dbType) => {
                         .should("exist");
             }
             cy.closeTableTab("Sheet1");
-        });
-
-        after(() => {
-            // delete project once all operations are completed
-            // mainPage.toolBarTopLeft(mainPage.HOME).click();
-            // projectsPage.deleteProject("importSample");
-
-            // cy.get('.nc-noco-brand-icon').click();
-            //
-            // cy.get(`.nc-action-btn`)
-            //   .should("exist")
-            //   .last()
-            //   .click();
-            //
-            // cy.getActiveModal()
-            //   .find(".ant-btn-dangerous")
-            //   .should("exist")
-            //   .click();
         });
     });
 };

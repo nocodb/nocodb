@@ -9,33 +9,22 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
     describe(`${apiType.toUpperCase()} Upload/ Download CSV`, () => {
-        before(() => {
-
-            // kludge: wait for page load to finish
-            cy.wait(2000);
-            // close team & auth tab
-            cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            cy.wait(1000);
-
-            cy.openTableTab("Country", 25);
-            cy.wait(1000);
-
-            cy.saveLocalStorage();
-            cy.wait(1000);
-        });
+        // before(() => {
+        //     // standalone test
+        //     // loginPage.loginAndOpenProject(apiType, dbType);
+        // });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
         });
 
-        after(() => {
-            cy.closeTableTab("Country");
+        afterEach(() => {
             cy.saveLocalStorage();
-            cy.wait(1000);
-        });
+        })
 
         it("Download verification- base view, default columns", () => {
+            cy.openTableTab("Country", 25);
+
             mainPage.hideField("LastUpdate");
             const verifyCsv = (retrievedRecords) => {
                 // expected output, statically configured
@@ -78,6 +67,8 @@ export const genTest = (apiType, dbType) => {
             // download & verify
             mainPage.downloadAndVerifyCsv(`Country_exported_1.csv`, verifyCsv);
             mainPage.unhideField("LastUpdate");
+
+            cy.closeTableTab("Country");
         });
     });
 };

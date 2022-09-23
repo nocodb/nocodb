@@ -1,10 +1,7 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useNuxtApp } from '#app'
-import { computed, inject, useMetas, watchEffect } from '#imports'
-import { IsFormInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-import { uiTypes } from '~/utils/columnUtils'
+import { IsFormInj, MetaInj, ReloadViewDataHookInj, computed, inject, uiTypes, useMetas, useNuxtApp, watchEffect } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -20,7 +17,7 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -48,7 +45,7 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
 })
 
 const reloadMetaAndData = async () => {
-  await getMeta(meta?.value.id as string, true)
+  await getMeta(meta.value?.id as string, true)
   reloadDataTrigger?.trigger()
 }
 
@@ -100,11 +97,11 @@ onMounted(() => {
 
 <template>
   <div
-    class="w-[400px] max-h-[95vh] bg-gray-50 shadow-lg p-6 overflow-auto !border"
+    class="w-[400px] bg-gray-50 shadow p-4 overflow-auto border"
     :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
     @click.stop
   >
-    <a-form v-if="formState" v-model="formState" name="column-create-or-edit" layout="vertical">
+    <a-form v-if="formState" v-model="formState" no-style name="column-create-or-edit" layout="vertical">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
           <a-input ref="antInput" v-model:value="formState.title" class="nc-column-name-input" @input="onAlter(8)" />
@@ -114,7 +111,13 @@ onMounted(() => {
           v-if="!(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
           :label="$t('labels.columnType')"
         >
-          <a-select v-model:value="formState.uidt" show-search class="nc-column-type-input" @change="onUidtOrIdTypeChange">
+          <a-select
+            v-model:value="formState.uidt"
+            show-search
+            class="nc-column-type-input"
+            dropdown-class-name="nc-dropdown-column-type"
+            @change="onUidtOrIdTypeChange"
+          >
             <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
               <div class="flex gap-1 items-center">
                 <component :is="opt.icon" class="text-grey" />
@@ -141,6 +144,7 @@ onMounted(() => {
           v-model:value="formState"
         />
       </div>
+
       <div
         v-if="!isVirtualCol(formState.uidt)"
         class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
@@ -150,18 +154,22 @@ onMounted(() => {
         <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
       </div>
 
-      <div class="overflow-hidden" :class="advancedOptions ? 'h-min mb-2' : 'h-0'">
-        <a-checkbox
-          v-if="formState.meta && columnToValidate.includes(formState.uidt)"
-          v-model:checked="formState.meta.validate"
-          class="ml-1 mb-1"
-        >
-          <span class="text-[10px] text-gray-600">
-            {{ `Accept only valid ${formState.uidt}` }}
-          </span>
-        </a-checkbox>
-        <SmartsheetColumnAdvancedOptions v-model:value="formState" />
-      </div>
+      <Transition name="layout" mode="out-in">
+        <div v-if="advancedOptions" class="overflow-hidden">
+          <a-checkbox
+            v-if="formState.meta && columnToValidate.includes(formState.uidt)"
+            v-model:checked="formState.meta.validate"
+            class="ml-1 mb-1"
+          >
+            <span class="text-[10px] text-gray-600">
+              {{ `Accept only valid ${formState.uidt}` }}
+            </span>
+          </a-checkbox>
+
+          <SmartsheetColumnAdvancedOptions v-model:value="formState" />
+        </div>
+      </Transition>
+
       <a-form-item>
         <div class="flex justify-end gap-1 mt-4">
           <a-button html-type="button" @click="emit('cancel')">

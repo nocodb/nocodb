@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
-import { useI18n } from 'vue-i18n'
 import {
   computed,
   definePageMeta,
   navigateTo,
+  onBeforeMount,
+  onBeforeUnmount,
   onKeyStroke,
   openLink,
   projectThemeColors,
   provide,
-  provideSidebar,
   ref,
-  useClipboard,
+  useCopy,
   useGlobal,
+  useI18n,
   useProject,
   useRoute,
+  useRouter,
+  useSidebar,
   useTabs,
   useUIPermission,
 } from '#imports'
@@ -25,26 +28,28 @@ definePageMeta({
   hideHeader: true,
 })
 
+const { t } = useI18n()
+
 const route = useRoute()
 
 const router = useRouter()
 
 const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
-const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme } = useProject()
+const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme, loadProject, reset } = useProject()
 
-const { addTab, clearTabs } = useTabs()
+const { clearTabs, addTab } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const isLocked = ref(false)
 
 provide('TreeViewIsLockedInj', isLocked)
 
 // create a new sidebar state
-const { isOpen, toggle } = provideSidebar({ isOpen: true })
+const { isOpen, toggle } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
 const dialogOpen = ref(false)
 
@@ -62,26 +67,10 @@ const logout = () => {
   navigateTo('/signin')
 }
 
-onKeyStroke(
-  'Escape',
-  () => {
-    dropdownOpen.value = false
-  },
-  { eventName: 'keydown' },
-)
-
-clearTabs()
-
 function toggleDialog(value?: boolean, key?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
   openDialogKey.value = key
 }
-
-await loadProject()
-
-await loadTables()
-
-const { t } = useI18n()
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: string) => {
   switch (mode) {
@@ -117,10 +106,6 @@ const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: st
   }
 }
 
-if (!route.params.type && isUIAllowed('teamAndAuth')) {
-  addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
-}
-
 const copyProjectInfo = async () => {
   try {
     await loadProjectMetaInfo()
@@ -134,7 +119,7 @@ const copyProjectInfo = async () => {
     // Copied to clipboard
     message.info(t('msg.info.copiedToClipboard'))
   } catch (e: any) {
-    console.log(e)
+    console.error(e)
     message.error(e.message)
   }
 }
@@ -145,16 +130,36 @@ const copyAuthToken = async () => {
     // Copied to clipboard
     message.info(t('msg.info.copiedToClipboard'))
   } catch (e: any) {
-    console.log(e)
+    console.error(e)
     message.error(e.message)
   }
 }
 
-/** If v1 url found navigate to corresponding new url */
-const { type, name, view } = route.query
-if (type && name) {
-  router.replace(`/nc/${route.params.projectId}/${type}/${name}${view ? `/${view}` : ''}`)
-}
+onKeyStroke(
+  'Escape',
+  () => {
+    dropdownOpen.value = false
+  },
+  { eventName: 'keydown' },
+)
+
+clearTabs()
+
+onBeforeMount(async () => {
+  await loadProject()
+
+  if (!route.params.type && isUIAllowed('teamAndAuth')) {
+    addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
+  }
+
+  /** If v1 url found navigate to corresponding new url */
+  const { type, name, view } = route.query
+  if (type && name) {
+    await router.replace(`/nc/${route.params.projectId}/${type}/${name}${view ? `/${view}` : ''}`)
+  }
+})
+
+onBeforeUnmount(reset)
 </script>
 
 <template>
@@ -177,7 +182,7 @@ if (type && name) {
         >
           <div
             v-if="isOpen && !isSharedBase"
-            v-t="['c:navbar:home']"
+            v-e="['c:navbar:home']"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
             @click="navigateTo('/')"
           >
@@ -193,7 +198,12 @@ if (type && name) {
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </a>
 
-          <a-dropdown class="h-full min-w-0 flex-1" :trigger="['click']" placement="bottom">
+          <a-dropdown
+            class="h-full min-w-0 flex-1"
+            :trigger="['click']"
+            placement="bottom"
+            overlay-class-name="nc-dropdown-project-menu"
+          >
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
@@ -240,7 +250,7 @@ if (type && name) {
                     <!-- Copy Project Info -->
                     <a-menu-item key="copy">
                       <div
-                        v-t="['c:navbar:user:copy-proj-info']"
+                        v-e="['c:navbar:user:copy-proj-info']"
                         class="nc-project-menu-item group"
                         @click.stop="copyProjectInfo"
                       >
@@ -255,7 +265,7 @@ if (type && name) {
                     <a-menu-item key="api">
                       <div
                         v-if="isUIAllowed('apiDocs')"
-                        v-t="['e:api-docs']"
+                        v-e="['e:api-docs']"
                         class="nc-project-menu-item group"
                         @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                       >
@@ -266,7 +276,7 @@ if (type && name) {
 
                     <!-- Copy Auth Token -->
                     <a-menu-item key="copy">
-                      <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                      <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
                         <MdiScriptTextKeyOutline class="group-hover:text-accent" />
                         {{ $t('activity.account.authToken') }}
                       </div>
@@ -278,7 +288,7 @@ if (type && name) {
                     <a-menu-item key="teamAndSettings">
                       <div
                         v-if="isUIAllowed('settings')"
-                        v-t="['c:navdraw:project-settings']"
+                        v-e="['c:navdraw:project-settings']"
                         class="nc-project-menu-item group"
                         @click="toggleDialog(true, 'teamAndAuth')"
                       >
@@ -359,7 +369,7 @@ if (type && name) {
                     <!-- Preview As -->
                     <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as">
                       <template #title>
-                        <div v-t="['c:navdraw:preview-as']" class="nc-project-menu-item group">
+                        <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group">
                           <MdiFileEyeOutline class="group-hover:text-accent" />
                           {{ $t('activity.previewAs') }}
 
@@ -386,6 +396,7 @@ if (type && name) {
                       <div class="nc-project-menu-item group">
                         <MaterialSymbolsTranslate class="group-hover:text-accent nc-language" />
                         {{ $t('labels.language') }}
+                        <div class="flex items-center text-gray-400 text-xs">(Community Translated)</div>
                         <div class="flex-1" />
 
                         <MaterialSymbolsChevronRightRounded
@@ -416,7 +427,7 @@ if (type && name) {
                       <template #expandIcon></template>
 
                       <a-menu-item key="0" class="!rounded-t">
-                        <nuxt-link v-t="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
+                        <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
                           <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                           <span class="prose-sm">{{ email }}</span>
@@ -424,7 +435,7 @@ if (type && name) {
                       </a-menu-item>
 
                       <a-menu-item key="1" class="!rounded-b">
-                        <div v-t="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
+                        <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">
                           <MdiLogout class="group-hover:(!text-accent)" />&nbsp;
 
                           <span class="prose-sm nc-user-menu-signout">
@@ -443,7 +454,7 @@ if (type && name) {
             class="nc-sidebar-left-toggle-icon hover:after:(bg-primary bg-opacity-75) group nc-sidebar-add-row flex items-center px-2"
           >
             <MdiBackburger
-              v-t="['c:grid:toggle-navdraw']"
+              v-e="['c:grid:toggle-navdraw']"
               class="cursor-pointer transform transition-transform duration-500"
               :class="{ 'rotate-180': !isOpen }"
               @click="toggle(!isOpen)"
@@ -455,7 +466,7 @@ if (type && name) {
       </a-layout-sider>
     </template>
 
-    <div :key="$route.fullPath">
+    <div :key="$route.fullPath.split('?')[0]">
       <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
 
       <NuxtPage />

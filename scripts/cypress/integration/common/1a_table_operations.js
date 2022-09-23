@@ -7,18 +7,25 @@ export const genTest = (apiType, dbType) => {
     describe(`${
         dbType === "xcdb" ? "Meta - " : ""
     }${apiType.toUpperCase()} api - Table`, () => {
-        before(() => {
-            cy.saveLocalStorage();
-            cy.wait(1000);
-        });
+        // before(() => {
+        //     // standalone test
+        //     // loginPage.loginAndOpenProject(apiType, dbType);
+        //
+        //     // open a table to work on views
+        //     //
+        //     // cy.restoreLocalStorage();
+        // });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
         });
 
-        after(() => {
-        });
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
+        // after(() => {
+        // });
 
         const name = "tablex";
 

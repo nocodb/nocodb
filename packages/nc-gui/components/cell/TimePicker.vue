@@ -79,7 +79,7 @@ watch(
     :allow-clear="!readOnly"
     :input-read-only="true"
     :open="readOnly ? false : open"
-    :popup-class-name="randomClass"
+    :popup-class-name="`${randomClass} nc-picker-time`"
     @click="open = !open"
     @ok="open = !open"
   >

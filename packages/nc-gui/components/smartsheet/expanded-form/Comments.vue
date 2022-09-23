@@ -57,7 +57,7 @@ watch(
     <div class="p-0">
       <div class="flex justify-center">
         <!--        Comments only -->
-        <a-checkbox v-model:checked="commentsOnly" v-t="['c:row-expand:comment-only']" @change="loadCommentsAndLogs"
+        <a-checkbox v-model:checked="commentsOnly" v-e="['c:row-expand:comment-only']" @change="loadCommentsAndLogs"
           >{{ $t('labels.commentsOnly') }}<span class="text-[11px] text-gray-500"></span>
         </a-checkbox>
       </div>

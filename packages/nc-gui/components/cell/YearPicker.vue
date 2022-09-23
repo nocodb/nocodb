@@ -66,7 +66,7 @@ const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
     :allow-clear="!readOnly"
     :input-read-only="true"
     :open="readOnly ? false : open"
-    :dropdown-class-name="randomClass"
+    :dropdown-class-name="`${randomClass} nc-picker-year`"
     @click="open = !open"
     @change="open = !open"
   >

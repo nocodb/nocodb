@@ -40,7 +40,7 @@ onMounted(async () => await fetchReleaseInfo())
 
 <template>
   <div v-if="releaseAlert" class="flex items-center">
-    <a-dropdown :trigger="['click']" placement="bottom">
+    <a-dropdown :trigger="['click']" placement="bottom" overlay-class-name="nc-dropdown-upgrade-menu">
       <a-button class="!bg-primary !border-none">
         <div class="flex gap-1 items-center text-white">
           <span class="text-sm font-weight-medium">{{ $t('activity.upgrade.available') }}</span>

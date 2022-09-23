@@ -15,25 +15,24 @@ export const genTest = (apiType, dbType) => {
         //
         before(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
-
-            mainPage.tabReset();
 
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
-
-            // toggle right navbar (open)
-            // cy.get('.nc-toggle-right-navbar').should('exist').click();
         });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
-            cy.wait(1000);
+        });
+
+        afterEach(() => {
+            cy.saveLocalStorage();
         });
 
         after(() => {
+            cy.restoreLocalStorage();
             cy.closeTableTab("Country");
+            cy.saveLocalStorage();
         });
 
         // Common routine to create/edit/delete GRID & GALLERY view
@@ -45,11 +44,8 @@ export const genTest = (apiType, dbType) => {
                 cy.get(`.nc-create-${viewType}-view`).click();
 
                 // Pop up window, click Submit (accepting default name for view)
-                cy.getActiveModal().find(".ant-btn-primary").click();
+                cy.getActiveModal(".nc-modal-view-create").find(".ant-btn-primary").click();
                 cy.toastWait("View created successfully");
-
-                // kludge: right navbar closes abruptly. force it open again
-                // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
 
                 // validate if view was created && contains default name 'Country1'
                 cy.get(`.nc-${viewType}-view-item`)
@@ -67,9 +63,6 @@ export const genTest = (apiType, dbType) => {
                     .type(`${viewType}View-1{enter}`);
                 cy.toastWait("View renamed successfully");
 
-                // kludge: right navbar closes abruptly. force it open again
-                // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
-
                 // validate
                 cy.get(`.nc-${viewType}-view-item`)
                     .contains(`${viewType}View-1`)
@@ -83,11 +76,8 @@ export const genTest = (apiType, dbType) => {
                 // click on delete icon (becomes visible on hovering mouse)
                 cy.get(".nc-view-delete-icon").click({ force: true });
                 cy.wait(300)
-                cy.getActiveModal().find('.ant-btn-dangerous').click();
+                cy.getActiveModal(".nc-modal-view-delete").find('.ant-btn-dangerous').click();
                 cy.toastWait("View deleted successfully");
-
-                // kludge: right navbar closes abruptly. force it open again
-                // window.localStorage.setItem('nc-right-sidebar', '{"isOpen":true,"hasSidebar":true}')
 
                 // confirm if the number of veiw entries is reduced by 1
                 cy.get(".nc-view-item").its("length").should("eq", 1);

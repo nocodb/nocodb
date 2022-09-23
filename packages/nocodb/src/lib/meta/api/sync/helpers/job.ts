@@ -198,7 +198,7 @@ export default async (
     multiCollaborator: UITypes.Collaborator,
     date: UITypes.Date,
     phone: UITypes.PhoneNumber,
-    number: UITypes.Number,
+    number: UITypes.Decimal,
     rating: UITypes.Rating,
     formula: UITypes.Formula,
     rollup: UITypes.Rollup,

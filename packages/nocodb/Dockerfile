@@ -28,7 +28,7 @@ COPY ./package*.json ./
 COPY ./docker/main.js ./docker/main.js
 # copy all tgz files to the container image
 COPY nc-lib-gui-*.tgz ./ 
-#COPY ./docker/start.sh /usr/src/appEntry/start.s
+#COPY ./docker/start.sh /usr/src/appEntry/start.sh
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
 
 # install production dependencies,

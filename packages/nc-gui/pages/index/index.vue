@@ -22,11 +22,11 @@ const route = useRoute()
       <div class="flex flex-1 justify-between gap-6 lg:block">
         <template v-if="route.name === 'index-index'">
           <TransitionGroup name="page" mode="out-in">
-            <div>
+            <div key="social-card">
               <GeneralSocialCard />
             </div>
 
-            <div class="block mt-0 lg:(!mt-6) xl:hidden">
+            <div key="sponsors" class="block mt-0 lg:(!mt-6) xl:hidden">
               <GeneralSponsors />
             </div>
           </TransitionGroup>

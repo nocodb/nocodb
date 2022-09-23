@@ -1,4 +1,5 @@
 import { defineNuxtPlugin, useApi, useGlobal } from '#imports'
+import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
 
 /**
  * Initialize global state and watches for changes
@@ -12,13 +13,18 @@ import { defineNuxtPlugin, useApi, useGlobal } from '#imports'
  * console.log($state.lang.value) // 'en'
  * ```
  */
-export default defineNuxtPlugin(async (nuxtApp) => {
+export default defineNuxtPlugin(async () => {
   const state = useGlobal()
 
   const { api } = useApi()
 
+  const currentLang = state.lang.value
+
+  /** force load initial locale messages */
+  await loadLocaleMessages(currentLang)
+
   /** set i18n locale to stored language */
-  nuxtApp.vueApp.i18n.locale.value = state.lang.value
+  await setI18nLanguage(currentLang)
 
   try {
     state.appInfo.value = await api.utils.appInfo()

@@ -1,4 +1,4 @@
-import type { ColumnType, LinkToAnotherRecordType, PaginatedType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { Modal, message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
@@ -46,10 +46,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const isPublic: boolean = $(inject(IsPublicInj, ref(false)))
 
-    const colOptions = $computed(() => column?.value.colOptions as LinkToAnotherRecordType)
+    const colOptions = $computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
     const { sharedView } = useSharedView() as Record<string, any>
-    const projectId = project?.value?.id || sharedView.value?.view?.project_id
+    const projectId = project.value?.id || sharedView.value?.view?.project_id
 
     // getters
     const meta = computed(() => metas?.value?.[column?.value?.fk_model_id as string])
@@ -73,18 +73,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     }
 
     const loadRelatedTableMeta = async () => {
-      await getMeta(colOptions?.fk_related_model_id as string)
+      await getMeta(colOptions.fk_related_model_id as string)
     }
 
     const relatedTablePrimaryValueProp = computed(() => {
-      return (relatedTableMeta?.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
+      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
     })
 
     const relatedTablePrimaryKeyProps = computed(() => {
-      return relatedTableMeta?.value?.columns?.filter((c) => c.pk)?.map((c) => c.title) ?? []
+      return relatedTableMeta.value?.columns?.filter((c) => c.pk)?.map((c) => c.title) ?? []
     })
     const primaryValueProp = computed(() => {
-      return (meta?.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
+      return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
     })
 
     const loadChildrenExcludedList = async () => {
@@ -93,7 +93,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           const route = useRoute()
           childrenExcludedList.value = await $api.public.dataRelationList(
             route.params.viewId as string,
-            column?.value?.id,
+            column.value.id,
             {},
             {
               headers: {
@@ -106,7 +106,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                   childrenExcludedListPagination.query &&
                   `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
                 fields: [relatedTablePrimaryValueProp.value, ...relatedTablePrimaryKeyProps.value],
-              } as any,
+              } as RequestParams,
             },
           )
 

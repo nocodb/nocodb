@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import HTTPSnippet from 'httpsnippet'
-import { useClipboard } from '@vueuse/core'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { ActiveViewInj, MetaInj } from '~/context'
-import { inject, useGlobal, useProject, useSmartsheetStoreOrThrow, useVModel, useViewData } from '#imports'
+import {
+  ActiveViewInj,
+  MetaInj,
+  inject,
+  useCopy,
+  useGlobal,
+  useI18n,
+  useProject,
+  useSmartsheetStoreOrThrow,
+  useVModel,
+  useViewData,
+} from '#imports'
 
 const props = defineProps<Props>()
 
@@ -20,15 +28,15 @@ const { project } = $(useProject())
 
 const { appInfo, token } = $(useGlobal())
 
-const meta = $(inject(MetaInj)!)
+const meta = $(inject(MetaInj, ref()))
 
-const view = $(inject(ActiveViewInj)!)
+const view = $(inject(ActiveViewInj, ref()))
 
 const { xWhere } = useSmartsheetStoreOrThrow()
 
-const { queryParams } = $(useViewData($$(meta), view as any, xWhere))
+const { queryParams } = $(useViewData($$(meta), $$(view), xWhere))
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 let vModel = $(useVModel(props, 'modelValue', emits))
 
@@ -136,7 +144,7 @@ watch($$(activeLang), (newLang) => {
 <template>
   <a-drawer
     v-model:visible="vModel"
-    class="h-full relative"
+    class="h-full relative nc-drawer-api-snippet"
     style="color: red"
     placement="right"
     size="large"
@@ -163,13 +171,18 @@ watch($$(activeLang), (newLang) => {
             hide-minimap
           />
           <div v-if="activeLang.clients" class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
-            <a-select v-if="activeLang" v-model:value="selectedClient" style="width: 6rem">
+            <a-select
+              v-if="activeLang"
+              v-model:value="selectedClient"
+              style="width: 6rem"
+              dropdown-class-name="nc-dropdown-snippet-active-lang"
+            >
               <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full uppercase" :value="client">
                 {{ client }}
               </a-select-option>
             </a-select>
             <a-button
-              v-t="[
+              v-e="[
                 'c:snippet:copy',
                 { client: activeLang?.clients && (selectedClient || activeLang?.clients[0]), lang: activeLang?.name },
               ]"
@@ -181,7 +194,7 @@ watch($$(activeLang), (newLang) => {
 
           <div class="absolute bottom-4 flex flex-row justify-center w-[95%]">
             <a
-              v-t="['e:hiring']"
+              v-e="['e:hiring']"
               class="px-4 py-2 ! rounded shadow"
               href="https://angel.co/company/nocodb"
               target="_blank"

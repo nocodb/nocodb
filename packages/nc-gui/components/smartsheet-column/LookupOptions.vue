@@ -11,7 +11,7 @@ const props = defineProps<Props>()
 const emit = defineEmits(['update:value'])
 const vModel = useVModel(props, 'value', emit)
 
-const meta = $(inject(MetaInj)!)
+const meta = $(inject(MetaInj, ref()))
 
 const { setAdditionalValidations, validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
 
@@ -38,7 +38,7 @@ const refTables = $computed(() => {
     return []
   }
 
-  return meta.columns
+  return meta?.columns
     ?.filter((c: any) => c.uidt === UITypes.LinkToAnotherRecord && !c.system)
     .map((c: ColumnType) => ({
       col: c.colOptions,
@@ -62,7 +62,11 @@ const columns = $computed(() => {
   <div class="p-6 w-full flex flex-col border-2 mb-2 mt-4">
     <div class="w-full flex flex-row space-x-2">
       <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.childTable')" v-bind="validateInfos.fk_relation_column_id">
-        <a-select v-model:value="vModel.fk_relation_column_id" dropdown-class-name="!w-64" @change="onDataTypeChange">
+        <a-select
+          v-model:value="vModel.fk_relation_column_id"
+          dropdown-class-name="!w-64 nc-dropdown-relation-table"
+          @change="onDataTypeChange"
+        >
           <a-select-option v-for="(table, index) in refTables" :key="index" :value="table.col.fk_column_id">
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">
               <div class="font-semibold text-xs">{{ table.column.title }}</div>
@@ -74,7 +78,12 @@ const columns = $computed(() => {
         </a-select>
       </a-form-item>
       <a-form-item class="flex w-1/2" :label="$t('labels.childColumn')" v-bind="validateInfos.fk_lookup_column_id">
-        <a-select v-model:value="vModel.fk_lookup_column_id" name="fk_lookup_column_id" @change="onDataTypeChange">
+        <a-select
+          v-model:value="vModel.fk_lookup_column_id"
+          name="fk_lookup_column_id"
+          dropdown-class-name="nc-dropdown-relation-column"
+          @change="onDataTypeChange"
+        >
           <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
             {{ column.title }}
           </a-select-option>

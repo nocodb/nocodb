@@ -23,25 +23,27 @@ export const genTest = (apiType, dbType) => {
 
     describe("Static user creations (different roles)", () => {
         before(() => {
-            mainPage.tabReset();
+            // standalone test
+            // loginPage.loginAndOpenProject(apiType, dbType);
 
-            // kludge: wait for page load to finish
-            cy.wait(4000);
-            // close team & auth tab
-            cy.get('button.ant-tabs-tab-remove').should('exist').click();
-            cy.wait(1000);
-
+            // open a table to work on views
+            //
+            cy.restoreLocalStorage();
             settingsPage.openMenu(settingsPage.TEAM_N_AUTH)
-
-            cy.saveLocalStorage();
         });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
         });
 
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
         after(() => {
+            cy.restoreLocalStorage();
             cy.signOut();
+            cy.saveLocalStorage();
         });
 
         const addUser = (user) => {
@@ -116,7 +118,7 @@ export const genTest = (apiType, dbType) => {
         describe(`User role validation`, () => {
 
             before(() => {
-                // cy.restoreLocalStorage();
+                cy.restoreLocalStorage();
                 cy.visit(mainPage.roleURL[roleType])
                 cy.wait(5000);
 
@@ -175,9 +177,14 @@ export const genTest = (apiType, dbType) => {
                 cy.restoreLocalStorage();
             });
 
+            afterEach(() => {
+                cy.saveLocalStorage();
+            })
+
             after(() => {
-                // sign out
+                cy.restoreLocalStorage();
                 cy.signOut();
+                cy.saveLocalStorage();
             });
 
             ///////////////////////////////////////////////////////

@@ -9,24 +9,21 @@ export const genTest = (apiType, dbType) => {
         //
         before(() => {
             cy.restoreLocalStorage();
-            cy.wait(500);
-
-            mainPage.tabReset();
-
-            // open a table to work on views
-            //
             cy.openTableTab("Country", 25);
         });
 
         beforeEach(() => {
             cy.restoreLocalStorage();
-            cy.wait(500);
+        });
+
+        afterEach(() => {
+            cy.saveLocalStorage();
         });
 
         after(() => {
             cy.restoreLocalStorage();
-            cy.wait(500)
             cy.closeTableTab("Country");
+            cy.saveLocalStorage();
         });
 
         const lockViewTest = (enabled) => {
@@ -37,7 +34,7 @@ export const genTest = (apiType, dbType) => {
                 // on menu, collaboration view appears first (at index 0)
                 // followed by Locked view (at index 1)
                 cy.get(".nc-actions-menu-btn").click();
-                cy.getActiveMenu().find('.ant-dropdown-menu-submenu').eq(0).click();
+                cy.getActiveMenu(".nc-dropdown-actions-menu").find('.ant-dropdown-menu-submenu').eq(0).click();
                 cy.wait(1000);
                 cy.get('.nc-locked-menu-item').contains(menuOption).should('exist').click();
 

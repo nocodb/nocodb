@@ -8,14 +8,13 @@ menuTitle: 'Code Snippets'
 
 ## Overview
 
-Open a Project, Select a Table and Click `Get API Snippet` on the bottom right area. 
+In the table toolbar, click Table name button and click `Get API Snippet`.
 
-<img width="1335" alt="image" src="https://user-images.githubusercontent.com/35857179/166663362-43ffe3cc-1053-4bf6-a65e-e4b8bae69fcb.png">
+<img width="468" alt="image" src="https://user-images.githubusercontent.com/35857179/189104172-4f7f6b6d-cae1-431e-8a7a-26127cf8a791.png">
 
 A modal box will be shown with sample code snippet for List API.
 
-![image](https://user-images.githubusercontent.com/35857179/166663478-3f802012-7bdc-4265-9ffe-6e51c4bcf4cd.png)
-
+<img width="1498" alt="image" src="https://user-images.githubusercontent.com/35857179/189104418-cfa38ec0-ee91-4e72-83e1-6e28ab0311d1.png">
 
 ## Supported Snippet
 

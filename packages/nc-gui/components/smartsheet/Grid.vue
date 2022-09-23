@@ -2,9 +2,9 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
 import {
   ActiveViewInj,
+  CellUrlDisableOverlayInj,
   ChangePageInj,
   FieldsInj,
   IsFormInj,
@@ -17,15 +17,18 @@ import {
   ReadonlyInj,
   ReloadViewDataHookInj,
   createEventHook,
-  enumColor,
+  extractPkFromRow,
   inject,
   onClickOutside,
   onMounted,
   provide,
   reactive,
   ref,
+  useCopy,
   useEventListener,
   useGridViewColumnWidth,
+  useI18n,
+  useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
   useViewData,
@@ -36,9 +39,9 @@ import { NavigateDir } from '~/lib'
 
 const { t } = useI18n()
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
 
-const view = inject(ActiveViewInj)
+const view = inject(ActiveViewInj, ref())
 
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
@@ -51,6 +54,9 @@ const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook()
 
 const { isUIAllowed } = useUIPermission()
 const hasEditPermission = isUIAllowed('xcDatatableEditable')
+
+const route = useRoute()
+const router = useRouter()
 
 // todo: get from parent ( inject or use prop )
 const isView = false
@@ -92,9 +98,12 @@ const {
   deleteSelectedRows,
   selectedAllRecords,
   removeRowIfNew,
-} = useViewData(meta, view as any, xWhere)
+} = useViewData(meta, view, xWhere)
 
-const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
+const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
+
+const { copy } = useCopy()
+
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
@@ -109,17 +118,38 @@ provide(ChangePageInj, changePage)
 
 provide(ReadonlyInj, !hasEditPermission)
 
-reloadViewDataHook?.on(async () => {
+const disableUrlOverlay = ref(false)
+provide(CellUrlDisableOverlayInj, disableUrlOverlay)
+
+const showLoading = ref(true)
+
+reloadViewDataHook?.on(async (shouldShowLoading) => {
+  // set value if spinner should be hidden
+  showLoading.value = !!shouldShowLoading
   await loadData()
+
+  // reset to default (showing spinner on load)
+  showLoading.value = true
 })
 
 const skipRowRemovalOnCancel = ref(false)
 
 const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) => {
-  expandedFormRow.value = row
-  expandedFormRowState.value = state
-  expandedFormDlg.value = true
-  skipRowRemovalOnCancel.value = !fromToolbar
+  const rowId = extractPkFromRow(row.row, meta.value.columns)
+
+  if (rowId) {
+    router.push({
+      query: {
+        ...route.query,
+        rowId,
+      },
+    })
+  } else {
+    expandedFormRow.value = row
+    expandedFormRowState.value = state
+    expandedFormDlg.value = true
+    skipRowRemovalOnCancel.value = !fromToolbar
+  }
 }
 
 openNewRecordFormHook?.on(async () => {
@@ -133,9 +163,9 @@ const selectCell = (row: number, col: number) => {
 }
 
 watch(
-  () => (view?.value as any)?.id,
-  async (n?: string, o?: string) => {
-    if (n && o && n !== o) {
+  () => view.value?.id,
+  async (next, old) => {
+    if (next && old && next !== old) {
       await loadData()
     }
   },
@@ -175,8 +205,6 @@ const clearCell = async (ctx: { row: number; col: number }) => {
   await updateOrSaveRow(rowObj, columnObj.title)
 }
 
-const { copy } = useClipboard()
-
 const makeEditable = (row: Row, col: ColumnType) => {
   if (!hasEditPermission || editEnabled || isView) {
     return
@@ -201,6 +229,10 @@ const makeEditable = (row: Row, col: ColumnType) => {
 
 /** handle keypress events */
 const onKeyDown = async (e: KeyboardEvent) => {
+  if (e.key === 'Alt') {
+    disableUrlOverlay.value = true
+    return
+  }
   if (selected.row === null || selected.col === null) return
   /** on tab key press navigate through cells */
   switch (e.key) {
@@ -284,8 +316,14 @@ const onKeyDown = async (e: KeyboardEvent) => {
       break
   }
 }
+const onKeyUp = async (e: KeyboardEvent) => {
+  if (e.key === 'Alt') {
+    disableUrlOverlay.value = false
+  }
+}
 
 useEventListener(document, 'keydown', onKeyDown)
+useEventListener(document, 'keyup', onKeyUp)
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
@@ -346,7 +384,7 @@ onBeforeUnmount(async () => {
     /** if existing row check updated cell and invoke update method */
     if (currentRow.rowMeta.changed) {
       currentRow.rowMeta.changed = false
-      for (const field of meta?.value.columns ?? []) {
+      for (const field of meta.value?.columns ?? []) {
         if (isVirtualCol(field)) continue
         if (currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
           await updateOrSaveRow(currentRow, field.title!)
@@ -355,15 +393,42 @@ onBeforeUnmount(async () => {
     }
   }
 })
+
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!route.query.rowId
+  },
+  set(val) {
+    if (!val)
+      router.push({
+        query: {
+          ...route.query,
+          rowId: undefined,
+        },
+      })
+  },
+})
+
+// reload table data reload hook as fallback to rowdatareload
+provide(ReloadRowDataHookInj, reloadViewDataHook)
+
+// trigger initial data load in grid
+reloadViewDataHook.trigger()
 </script>
 
 <template>
   <div class="flex flex-col h-full min-h-0 w-full">
-    <div v-if="isLoading" class="flex items-center justify-center h-full w-full">
-      <a-spin size="large" />
-    </div>
-    <div v-else class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
-      <a-dropdown v-model:visible="contextMenu" :trigger="isSqlView ? [] : ['contextmenu']">
+    <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
+      <div class="flex items-center justify-center h-full w-full">
+        <a-spin size="large" />
+      </div>
+    </general-overlay>
+    <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
+      <a-dropdown
+        v-model:visible="contextMenu"
+        :trigger="isSqlView ? [] : ['contextmenu']"
+        overlay-class-name="nc-dropdown-grid-context-menu"
+      >
         <table
           ref="smartTable"
           class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
@@ -407,11 +472,15 @@ onBeforeUnmount(async () => {
               </th>
               <th
                 v-if="!readOnly && !isLocked && isUIAllowed('add-column') && !isSqlView"
-                v-t="['c:column:add']"
+                v-e="['c:column:add']"
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
               >
-                <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
+                <a-dropdown
+                  v-model:visible="addColumnDropdown"
+                  :trigger="['click']"
+                  overlay-class-name="nc-dropdown-grid-add-column"
+                >
                   <div class="h-full w-[60px] flex items-center justify-center">
                     <MdiPlus class="text-sm nc-column-add" />
                   </div>
@@ -464,7 +533,7 @@ onBeforeUnmount(async () => {
                           class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
                         >
                           <MdiArrowExpand
-                            v-t="['c:row-expand']"
+                            v-e="['c:row-expand']"
                             class="select-none transform hover:(text-accent scale-120) nc-row-expand"
                             @click="expandForm(row, state)"
                           />
@@ -522,7 +591,7 @@ onBeforeUnmount(async () => {
 
             <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable') && !isSqlView">
               <td
-                v-t="['c:row:add:grid-bottom']"
+                v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
                 class="text-left pointer nc-grid-add-new-cell cursor-pointer"
                 @click="addEmptyRow()"
@@ -542,14 +611,14 @@ onBeforeUnmount(async () => {
         <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
-              <div v-t="['a:row:delete']" class="nc-project-menu-item">
+              <div v-e="['a:row:delete']" class="nc-project-menu-item">
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
               </div>
             </a-menu-item>
 
             <a-menu-item @click="deleteSelectedRows">
-              <div v-t="['a:row:delete-bulk']" class="nc-project-menu-item">
+              <div v-e="['a:row:delete-bulk']" class="nc-project-menu-item">
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
               </div>
@@ -557,11 +626,11 @@ onBeforeUnmount(async () => {
 
             <!--            Clear cell -->
             <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)">
-              <div v-t="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
+              <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
             <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              <div v-t="['a:row:insert']" class="nc-project-menu-item">
+              <div v-e="['a:row:insert']" class="nc-project-menu-item">
                 <!-- Insert New Row -->
                 {{ $t('activity.insertRow') }}
               </div>
@@ -579,11 +648,22 @@ onBeforeUnmount(async () => {
       :row="expandedFormRow"
       :state="expandedFormRowState"
       :meta="meta"
+      :view="view"
       @update:model-value="
         () => {
           if (!skipRowRemovalOnCancel) removeRowIfNew(expandedFormRow)
         }
       "
+    />
+
+    <SmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg"
+      :key="route.query.rowId"
+      v-model="expandedFormOnRowIdDlg"
+      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :meta="meta"
+      :row-id="route.query.rowId"
+      :view="view"
     />
   </div>
 </template>

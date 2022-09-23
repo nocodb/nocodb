@@ -54,7 +54,7 @@ const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvid
 )
 await loadRelatedTableMeta()
 
-const localCellValue = computed(() => {
+const localCellValue = computed<any[]>(() => {
   if (cellValue?.value) {
     return cellValue?.value ?? []
   } else if (isNew.value) {
@@ -64,7 +64,7 @@ const localCellValue = computed(() => {
 })
 
 const cells = computed(() =>
-  localCellValue.value.reduce((acc: any[], curr: any) => {
+  localCellValue.value.reduce((acc, curr) => {
     if (!relatedTablePrimaryValueProp.value) return acc
 
     const value = curr[relatedTablePrimaryValueProp.value]
@@ -72,15 +72,20 @@ const cells = computed(() =>
     if (!value) return acc
 
     return [...acc, { value, item: curr }]
-  }, [] as any[]),
+  }, []),
 )
 
 const unlinkRef = async (rec: Record<string, any>) => {
   if (isNew.value) {
-    removeLTARRef(rec, column?.value as ColumnType)
+    await removeLTARRef(rec, column.value)
   } else {
     await unlink(rec)
   }
+}
+
+const onAttachRecord = () => {
+  childListDlg.value = false
+  listItemsDlg.value = true
 }
 </script>
 
@@ -110,16 +115,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
 
     <ListItems v-model="listItemsDlg" />
 
-    <ListChildItems
-      v-model="childListDlg"
-      :cell-value="localCellValue"
-      @attach-record="
-        () => {
-          childListDlg = false
-          listItemsDlg = true
-        }
-      "
-    />
+    <ListChildItems v-model="childListDlg" :cell-value="localCellValue" @attach-record="onAttachRecord" />
   </div>
 </template>
 

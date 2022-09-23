@@ -18,7 +18,7 @@ const { $e } = useNuxtApp()
 
 const { api, isLoading } = useApi()
 
-useSidebar({ hasSidebar: false })
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const nameValidationRules = [
   {

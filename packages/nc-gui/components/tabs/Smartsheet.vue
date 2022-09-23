@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
 import SmartsheetGrid from '../smartsheet/Grid.vue'
 import {
   ActiveViewInj,
@@ -10,6 +9,7 @@ import {
   MetaInj,
   OpenNewRecordFormHookInj,
   ReloadViewDataHookInj,
+  ReloadViewMetaHookInj,
   computed,
   inject,
   provide,
@@ -18,7 +18,6 @@ import {
   useProvideSmartsheetStore,
   watch,
 } from '#imports'
-
 import type { TabItem } from '~/composables'
 
 const { activeTab } = defineProps<{
@@ -37,18 +36,20 @@ provide(TabMetaInj, ref(activeTab))
 const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
 
 const reloadEventHook = createEventHook<void>()
+const reloadViewMetaEventHook = createEventHook<void>()
 const openNewRecordFormHook = createEventHook<void>()
 
-const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
+const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
 // provide the sidebar injection state
-provideSidebar({ storageKey: 'nc-right-sidebar' })
+provideSidebar('nc-right-sidebar', { useStorage: true, isOpen: true })
 
 // todo: move to store
 provide(MetaInj, meta)
 provide(ActiveViewInj, activeView)
 provide(IsLockedInj, isLocked)
 provide(ReloadViewDataHookInj, reloadEventHook)
+provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
@@ -70,7 +71,7 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
 
             <SmartsheetGallery v-else-if="isGallery" />
 
-            <SmartsheetForm v-else-if="isForm" />
+            <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
           </div>
         </div>
       </template>

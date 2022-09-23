@@ -87,7 +87,7 @@ export const genTest = (apiType, dbType) => {
             cy.snipActiveModal(`Modal_createView_${viewType}`);
 
             // Pop up window, click Submit (accepting default name for view)
-            cy.getActiveModal().find("button:contains(Submit)").click();
+            cy.getActiveModal(".nc-modal-view-create").find("button:contains(Submit)").click();
 
             cy.toastWait("View created successfully");
         }

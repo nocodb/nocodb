@@ -20,11 +20,13 @@ import {
 import CellIcon from '~/components/smartsheet-header/CellIcon.vue'
 import VirtualCellIcon from '~/components/smartsheet-header/VirtualCellIcon.vue'
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
-const activeView = inject(ActiveViewInj)!
+const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
+
+const reloadViewMetaHook = inject(ReloadViewMetaHookInj)!
 
 const rootFields = inject(FieldsInj)
 
@@ -48,7 +50,7 @@ const {
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
 watch(
-  () => (activeView.value as any)?.id,
+  () => activeView.value?.id,
   async (newVal, oldVal) => {
     if (newVal !== oldVal && meta.value) {
       await loadViewColumns()
@@ -93,7 +95,7 @@ const coverImageColumnId = computed({
         fk_cover_image_col_id: val,
       })
       ;(activeView.value?.view as GalleryType).fk_cover_image_col_id = val
-      reloadDataHook.trigger()
+      reloadViewMetaHook.trigger()
     }
   },
 })
@@ -116,9 +118,9 @@ const getIcon = (c: ColumnType) =>
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']">
+  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-fields-menu">
     <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
-      <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
+      <a-button v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex items-center gap-1">
           <MdiEyeOffOutline />
 
@@ -135,7 +137,13 @@ const getIcon = (c: ColumnType) =>
         @click.stop
       >
         <a-card v-if="activeView.type === ViewTypes.GALLERY" size="small" title="Cover image">
-          <a-select v-model:value="coverImageColumnId" class="w-full" :options="coverOptions" @click.stop></a-select>
+          <a-select
+            v-model:value="coverImageColumnId"
+            class="w-full"
+            :options="coverOptions"
+            dropdown-class-name="nc-dropdown-cover-image"
+            @click.stop
+          ></a-select>
         </a-card>
         <div class="p-1" @click.stop>
           <a-input v-model:value="filterQuery" size="small" :placeholder="$t('placeholder.searchFields')" />
@@ -146,7 +154,7 @@ const getIcon = (c: ColumnType) =>
               <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex items-center" @click.stop>
                 <a-checkbox
                   v-model:checked="field.show"
-                  v-t="['a:fields:show-hide']"
+                  v-e="['a:fields:show-hide']"
                   class="shrink"
                   @change="saveOrUpdate(field, index)"
                 >

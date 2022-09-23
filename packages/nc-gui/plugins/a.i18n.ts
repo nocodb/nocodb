@@ -1,9 +1,11 @@
 import { defineNuxtPlugin } from 'nuxt/app'
 import { createI18n } from 'vue-i18n'
+import { nextTick } from 'vue'
+import type { Language, NocoI18n } from '~/lib'
 
-let i18n: ReturnType<typeof createI18n>
+let globalI18n: NocoI18n
 
-export const createI18nPlugin = async () =>
+export const createI18nPlugin = async (): Promise<NocoI18n> =>
   createI18n({
     locale: 'en', // Set the initial locale
 
@@ -12,45 +14,32 @@ export const createI18nPlugin = async () =>
     legacy: false, // disable legacy API (we use the composition API and inject utilities)
 
     globalInjection: true, // enable global injection, so all utilities are injected into all components
-
-    // Associate each locale to a content file
-    messages: {
-      en: await import('~/lang/en.json'),
-      zh_HK: await import('~/lang/zh_HK.json'),
-      zh_TW: await import('~/lang/zh_TW.json'),
-      zh_CN: await import('~/lang/zh_CN.json'),
-      ja: await import('~/lang/ja.json'),
-      fr: await import('~/lang/fr.json'),
-      es: await import('~/lang/es.json'),
-      de: await import('~/lang/de.json'),
-      id: await import('~/lang/id.json'),
-      it_IT: await import('~/lang/it_IT.json'),
-      ko: await import('~/lang/ko.json'),
-      lv: await import('~/lang/lv.json'),
-      nl: await import('~/lang/nl.json'),
-      ru: await import('~/lang/ru.json'),
-      sv: await import('~/lang/sv.json'),
-      da: await import('~/lang/da.json'),
-      vi: await import('~/lang/vi.json'),
-      no: await import('~/lang/no.json'),
-      iw: await import('~/lang/iw.json'),
-      fi: await import('~/lang/fi.json'),
-      uk: await import('~/lang/uk.json'),
-      hr: await import('~/lang/hr.json'),
-      th: await import('~/lang/th.json'),
-      sl: await import('~/lang/sl.json'),
-      pt_BR: await import('~/lang/pt_BR.json'),
-      fa: await import('~/lang/fa.json'),
-      tr: await import('~/lang/tr.json'),
-    },
   })
 
+export const getI18n = () => globalI18n
+
+export async function setI18nLanguage(locale: keyof typeof Language, i18n = globalI18n) {
+  if (!i18n.global.availableLocales.includes(locale)) {
+    await loadLocaleMessages(locale)
+  }
+
+  i18n.global.locale.value = locale
+}
+
+export async function loadLocaleMessages(locale: keyof typeof Language, i18n: NocoI18n = globalI18n) {
+  // load locale messages with dynamic import
+  const messages = await import(`../lang/${locale}.json`)
+
+  // set locale and locale message
+  i18n.global.setLocaleMessage(locale, messages.default)
+
+  return nextTick()
+}
+
 export default defineNuxtPlugin(async (nuxtApp) => {
-  i18n = (await createI18nPlugin()) as any
+  globalI18n = await createI18nPlugin()
 
-  nuxtApp.vueApp.i18n = i18n.global as any
+  nuxtApp.vueApp.i18n = globalI18n
 
-  nuxtApp.vueApp.use(i18n)
+  nuxtApp.vueApp.use(globalI18n)
 })
-
-export const getI18n = () => i18n

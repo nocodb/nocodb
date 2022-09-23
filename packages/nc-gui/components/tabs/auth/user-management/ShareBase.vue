@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { onMounted, useClipboard, useNuxtApp, useProject } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
-
-const { t } = useI18n()
+import { extractSdkResponseErrorMsg, onMounted, useCopy, useI18n, useNuxtApp, useProject } from '#imports'
 
 interface ShareBase {
   uuid?: string
@@ -17,6 +13,8 @@ enum ShareBaseRole {
   Viewer = 'viewer',
 }
 
+const { t } = useI18n()
+
 const { dashboardUrl } = $(useDashboard())
 
 const { $api, $e } = useNuxtApp()
@@ -27,7 +25,7 @@ const showEditBaseDropdown = $ref(false)
 
 const { project } = useProject()
 
-const { copy } = useClipboard()
+const { copy } = useCopy()
 
 const url = $computed(() => (base && base.uuid ? `${dashboardUrl}#/base/${base.uuid}` : null))
 
@@ -35,8 +33,7 @@ const loadBase = async () => {
   try {
     if (!project.value.id) return
 
-    // todo: response is missing roles in type
-    const res = (await $api.project.sharedBaseGet(project.value.id)) as any
+    const res = await $api.project.sharedBaseGet(project.value.id)
 
     base = {
       uuid: res.uuid,
@@ -52,10 +49,9 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
   try {
     if (!project.value.id) return
 
-    // todo: return type void?
-    const res = (await $api.project.sharedBaseUpdate(project.value.id, {
+    const res = await $api.project.sharedBaseUpdate(project.value.id, {
       roles: role,
-    })) as any
+    })
 
     base = res ?? {}
     base!.role = role
@@ -195,7 +191,7 @@ onMounted(() => {
     <!--    Generate publicly shareable readonly base -->
     <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">{{ $t('msg.info.generatePublicShareableReadonlyBase') }}</div>
     <div class="mt-4 flex flex-row justify-between mx-1">
-      <a-dropdown v-model="showEditBaseDropdown" class="flex">
+      <a-dropdown v-model="showEditBaseDropdown" class="flex" overlay-class-name="nc-dropdown-shared-base-toggle">
         <a-button>
           <div class="flex flex-row items-center space-x-2 nc-disable-shared-base">
             <div v-if="base?.uuid">{{ $t('activity.shareBase.enable') }}</div>
@@ -214,7 +210,12 @@ onMounted(() => {
         </template>
       </a-dropdown>
 
-      <a-select v-if="base?.uuid" v-model:value="base.role" class="flex nc-shared-base-role">
+      <a-select
+        v-if="base?.uuid"
+        v-model:value="base.role"
+        class="flex nc-shared-base-role"
+        dropdown-class-name="nc-dropdown-share-base-role"
+      >
         <template #suffixIcon>
           <div class="flex flex-row">
             <IcRoundKeyboardArrowDown class="text-black -mt-0.5 h-[1rem]" />

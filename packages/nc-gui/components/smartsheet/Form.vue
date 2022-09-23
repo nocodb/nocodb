@@ -2,8 +2,6 @@
 import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import {
   ActiveViewInj,
   IsFormInj,
@@ -18,12 +16,14 @@ import {
   ref,
   useDebounceFn,
   useGlobal,
+  useI18n,
   useNuxtApp,
   useUIPermission,
   useViewColumns,
   useViewData,
   watch,
 } from '#imports'
+import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
@@ -45,11 +45,11 @@ const secondsRemain = ref(0)
 
 const isEditable = isUIAllowed('editFormView' as Permission)
 
-const meta = inject(MetaInj)!
+const meta = inject(MetaInj, ref())
 
-const view = inject(ActiveViewInj)
+const view = inject(ActiveViewInj, ref())
 
-const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view as any)
+const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
 
 const reloadEventHook = createEventHook<void>()
 provide(ReloadViewDataHookInj, reloadEventHook)
@@ -59,7 +59,7 @@ reloadEventHook.on(async () => {
   setFormData()
 })
 
-const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, async () => reloadEventHook.trigger())
+const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta, async () => reloadEventHook.trigger())
 
 const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   meta,
@@ -243,8 +243,10 @@ async function checkSMTPStatus() {
       emailMe.value = false
       // Please activate SMTP plugin in App store for enabling email notification
       message.info(t('msg.toast.formEmailSMTP'))
+      return false
     }
   }
+  return true
 }
 
 function setFormData() {
@@ -252,10 +254,9 @@ function setFormData() {
 
   formViewData.value = {
     ...formViewData.value,
-    submit_another_form: !!(formViewData?.value?.submit_another_form ?? 0),
-    // todo: show_blank_form missing from FormType
-    show_blank_form: !!((formViewData?.value as any)?.show_blank_form ?? 0),
-  } as any
+    submit_another_form: !!(formViewData.value?.submit_another_form ?? 0),
+    show_blank_form: !!(formViewData.value?.show_blank_form ?? 0),
+  }
 
   // email me
   let data: Record<string, boolean> = {}
@@ -264,7 +265,6 @@ function setFormData() {
   } catch (e) {}
 
   emailMe.value = data[state.user.value?.email as string]
-  checkSMTPStatus()
 
   localColumns.value = col
     .filter(
@@ -307,12 +307,13 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   return required || (columnObj && columnObj.rqd && !columnObj.cdf)
 }
 
-function updateEmail() {
+async function updateEmail() {
   try {
-    const data = JSON.parse(formViewData.value?.email) || {}
+    if (!(await checkSMTPStatus())) return
+
+    const data = formViewData.value?.email ? JSON.parse(formViewData.value?.email) : {}
     data[state.user.value?.email as string] = emailMe.value
     formViewData.value!.email = JSON.stringify(data)
-    checkSMTPStatus()
   } catch (e) {}
 }
 
@@ -338,7 +339,7 @@ const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
 }, 250)
 
 watch(submitted, (v) => {
-  if (v && (formViewData?.value as any)?.show_blank_form) {
+  if (v && formViewData.value?.show_blank_form) {
     secondsRemain.value = 5
     const intvl = setInterval(() => {
       if (--secondsRemain.value < 0) {
@@ -470,7 +471,7 @@ onMounted(async () => {
             <!-- Drag and drop fields here to hide -->
             {{ $t('msg.info.dragDropHide') }}
           </div>
-          <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']">
+          <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']" overlay-class-name="nc-dropdown-form-add-column">
             <a-button type="link" class="w-full caption mt-2" size="large" @click.stop="showColumnDropdown = true">
               <div class="flex items-center prose-sm justify-center text-gray-400">
                 <mdi-plus />
@@ -591,7 +592,7 @@ onMounted(async () => {
 
                           <a-switch
                             v-model:checked="element.required"
-                            v-t="['a:form-view:field:mark-required']"
+                            v-e="['a:form-view:field:mark-required']"
                             size="small"
                             class="ml-2"
                             @change="updateColMeta(element)"
@@ -642,7 +643,7 @@ onMounted(async () => {
                     v-if="isVirtualCol(element)"
                     class="!m-0 gap-0 p-0"
                     :name="element.title"
-                    :rules="[{ required: element.required, message: `${element.title} is required` }]"
+                    :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
                     <SmartsheetVirtualCell
                       v-model="formState[element.title]"
@@ -658,7 +659,7 @@ onMounted(async () => {
                     v-else
                     class="!m-0 gap-0 p-0"
                     :name="element.title"
-                    :rules="[{ required: element.required, message: `${element.title} is required` }]"
+                    :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
                     <SmartsheetCell
                       v-model="formState[element.title]"
@@ -715,7 +716,7 @@ onMounted(async () => {
               <!-- Show "Submit Another Form" button -->
               <a-switch
                 v-model:checked="formViewData.submit_another_form"
-                v-t="[`a:form-view:submit-another-form`]"
+                v-e="[`a:form-view:submit-another-form`]"
                 size="small"
                 class="nc-form-checkbox-submit-another-form"
                 @change="updateView"
@@ -727,7 +728,7 @@ onMounted(async () => {
               <!-- Show a blank form after 5 seconds -->
               <a-switch
                 v-model:checked="formViewData.show_blank_form"
-                v-t="[`a:form-view:show-blank-form`]"
+                v-e="[`a:form-view:show-blank-form`]"
                 size="small"
                 class="nc-form-checkbox-show-blank-form"
                 @change="updateView"
@@ -738,7 +739,7 @@ onMounted(async () => {
             <div class="my-4">
               <a-switch
                 v-model:checked="emailMe"
-                v-t="[`a:form-view:email-me`]"
+                v-e="[`a:form-view:email-me`]"
                 size="small"
                 class="nc-form-checkbox-send-email"
                 @change="onEmailChange"

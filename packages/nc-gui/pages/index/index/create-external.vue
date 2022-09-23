@@ -37,7 +37,7 @@ const { api, isLoading } = useApi()
 
 const { $e } = useNuxtApp()
 
-useSidebar({ hasSidebar: false })
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const { t } = useI18n()
 
@@ -73,20 +73,20 @@ const validators = computed(() => {
       projectTitleValidator,
     ],
     'extraParameters': [extraParameterValidator],
-    'dataSource.client': [fieldRequiredValidator],
+    'dataSource.client': [fieldRequiredValidator()],
     ...(formState.dataSource.client === ClientType.SQLITE
       ? {
-          'dataSource.connection.connection.filename': [fieldRequiredValidator],
+          'dataSource.connection.connection.filename': [fieldRequiredValidator()],
         }
       : {
-          'dataSource.connection.host': [fieldRequiredValidator],
-          'dataSource.connection.port': [fieldRequiredValidator],
-          'dataSource.connection.user': [fieldRequiredValidator],
-          'dataSource.connection.password': [fieldRequiredValidator],
-          'dataSource.connection.database': [fieldRequiredValidator],
+          'dataSource.connection.host': [fieldRequiredValidator()],
+          'dataSource.connection.port': [fieldRequiredValidator()],
+          'dataSource.connection.user': [fieldRequiredValidator()],
+          'dataSource.connection.password': [fieldRequiredValidator()],
+          'dataSource.connection.database': [fieldRequiredValidator()],
           ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
             ? {
-                'dataSource.searchPath.0': [fieldRequiredValidator],
+                'dataSource.searchPath.0': [fieldRequiredValidator()],
               }
             : {}),
         }),
@@ -359,7 +359,12 @@ onMounted(() => {
       </a-form-item>
 
       <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
-        <a-select v-model:value="formState.dataSource.client" class="nc-extdb-db-type" @change="onClientChange">
+        <a-select
+          v-model:value="formState.dataSource.client"
+          class="nc-extdb-db-type"
+          dropdown-class-name="nc-dropdown-ext-db-type"
+          @change="onClientChange"
+        >
           <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
             >{{ client.text }}
           </a-select-option>
@@ -433,7 +438,7 @@ onMounted(() => {
               </div>
             </template>
             <a-form-item label="SSL mode">
-              <a-select v-model:value="formState.sslUse" @select="onSSLModeChange">
+              <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
                 <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
               </a-select>
             </a-form-item>
@@ -505,13 +510,19 @@ onMounted(() => {
             <a-divider />
 
             <a-form-item :label="$t('labels.inflection.tableName')">
-              <a-select v-model:value="formState.inflection.inflectionTable">
+              <a-select
+                v-model:value="formState.inflection.inflectionTable"
+                dropdown-class-name="nc-dropdown-inflection-table-name"
+              >
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
 
             <a-form-item :label="$t('labels.inflection.columnName')">
-              <a-select v-model:value="formState.inflection.inflectionColumn">
+              <a-select
+                v-model:value="formState.inflection.inflectionColumn"
+                dropdown-class-name="nc-dropdown-inflection-column-name"
+              >
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
@@ -539,7 +550,13 @@ onMounted(() => {
       </a-form-item>
     </a-form>
 
-    <a-modal v-model:visible="configEditDlg" :title="$t('activity.editConnJson')" width="600px" @ok="handleOk">
+    <a-modal
+      v-model:visible="configEditDlg"
+      :title="$t('activity.editConnJson')"
+      width="600px"
+      wrap-class-name="nc-modal-edit-connection-json"
+      @ok="handleOk"
+    >
       <MonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
     </a-modal>
 
@@ -550,6 +567,7 @@ onMounted(() => {
       width="600px"
       :ok-text="$t('general.ok')"
       :cancel-text="$t('general.cancel')"
+      wrap-class-name="nc-modal-connection-url"
       @ok="handleImportURL"
     >
       <a-input v-model:value="importURL" />

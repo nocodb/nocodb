@@ -13,6 +13,7 @@ import {
   ref,
   useRoute,
   useRouter,
+  useSidebar,
   useViews,
   watch,
 } from '#imports'
@@ -34,7 +35,7 @@ const { $e } = useNuxtApp()
 provide(ViewListInj, views)
 
 /** Sidebar visible */
-const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
+const { isOpen } = useSidebar('nc-right-sidebar', { isOpen: true })
 
 const sidebarCollapsed = computed(() => !isOpen.value)
 
@@ -92,7 +93,6 @@ function openModal({ type, title = '', copyViewId }: { type: ViewTypes; title: s
 /** Handle view creation */
 function onCreate(view: ViewType) {
   views.value.push(view)
-  activeView.value = view
   router.push({ params: { viewTitle: view.title || '' } })
   modalOpen = false
   $e('a:view:create', { view: view.type })

@@ -1,6 +1,7 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import { FormColumnType } from 'nocodb-sdk';
+import { deserializeJSON, serializeJSON } from '../utils/serialize';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
@@ -18,6 +19,7 @@ export default class FormViewColumn implements FormColumnType {
   fk_column_id?: string;
   project_id?: string;
   base_id?: string;
+  meta?: string | Record<string, any>;
 
   constructor(data: FormViewColumn) {
     Object.assign(this, data);
@@ -25,28 +27,35 @@ export default class FormViewColumn implements FormColumnType {
 
   uuid?: any;
 
-  public static async get(formViewId: string, ncMeta = Noco.ncMeta) {
-    let view =
-      formViewId &&
+  public static async get(formViewColumnId: string, ncMeta = Noco.ncMeta) {
+    let viewColumn =
+      formViewColumnId &&
       (await NocoCache.get(
-        `${CacheScope.FORM_VIEW_COLUMN}:${formViewId}`,
+        `${CacheScope.FORM_VIEW_COLUMN}:${formViewColumnId}`,
         CacheGetType.TYPE_OBJECT
       ));
-    if (!view) {
-      view = await ncMeta.metaGet2(
+    if (!viewColumn) {
+      viewColumn = await ncMeta.metaGet2(
         null,
         null,
         MetaTable.FORM_VIEW_COLUMNS,
-        formViewId
+        formViewColumnId
       );
+      viewColumn.meta =
+        viewColumn.meta && typeof viewColumn.meta === 'string'
+          ? JSON.parse(viewColumn.meta)
+          : viewColumn.meta;
     }
-    await NocoCache.set(`${CacheScope.FORM_VIEW_COLUMN}:${formViewId}`, view);
+    await NocoCache.set(
+      `${CacheScope.FORM_VIEW_COLUMN}:${formViewColumnId}`,
+      viewColumn
+    );
 
-    return view && new FormViewColumn(view);
+    return viewColumn && new FormViewColumn(viewColumn);
   }
 
   static async insert(column: Partial<FormViewColumn>, ncMeta = Noco.ncMeta) {
-    const insertObj = {
+    const insertObj: Partial<FormViewColumn> = {
       fk_view_id: column.fk_view_id,
       fk_column_id: column.fk_column_id,
       order: await ncMeta.metaGetNextOrder(MetaTable.FORM_VIEW_COLUMNS, {
@@ -60,6 +69,10 @@ export default class FormViewColumn implements FormColumnType {
       description: column.description,
       required: column.required,
     };
+
+    if (column.meta) {
+      insertObj.meta = serializeJSON(column.meta);
+    }
 
     if (!(column.project_id && column.base_id)) {
       const viewRef = await View.get(column.fk_view_id, ncMeta);
@@ -113,6 +126,11 @@ export default class FormViewColumn implements FormColumnType {
           },
         }
       );
+
+      for (const viewColumn of viewColumns) {
+        viewColumn.meta = deserializeJSON(viewColumn.meta);
+      }
+
       await NocoCache.setList(
         CacheScope.FORM_VIEW_COLUMN,
         [viewId],
@@ -139,7 +157,9 @@ export default class FormViewColumn implements FormColumnType {
       'required',
       'show',
       'order',
+      'meta',
     ]);
+
     // get existing cache
     const key = `${CacheScope.FORM_VIEW_COLUMN}:${columnId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -148,6 +168,11 @@ export default class FormViewColumn implements FormColumnType {
       // set cache
       await NocoCache.set(key, o);
     }
+
+    if (insertObj.meta) {
+      insertObj.meta = serializeJSON(insertObj.meta);
+    }
+
     // update meta
     await ncMeta.metaUpdate(
       null,

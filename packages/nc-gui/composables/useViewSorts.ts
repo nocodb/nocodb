@@ -1,12 +1,9 @@
-import type { GalleryType, GridType, KanbanType, SortType } from 'nocodb-sdk'
+import type { SortType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { IsPublicInj, ReloadViewDataHookInj, extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 
-export function useViewSorts(
-  view: Ref<(GridType | KanbanType | GalleryType) & { id?: string }> | undefined,
-  reloadData?: () => void,
-) {
+export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
   const { sharedView } = useSharedView()
   const { sorts } = useSmartsheetStoreOrThrow()
 
@@ -21,14 +18,15 @@ export function useViewSorts(
 
   const loadSorts = async () => {
     if (isPublic.value) {
-      const sharedSorts = sharedView.value?.sorts || []
+      // todo: sorts missing on `ViewType`
+      const sharedSorts = (sharedView.value as any)?.sorts || []
       sorts.value = [...sharedSorts]
       return
     }
 
     try {
       if (!view?.value) return
-      sorts.value = ((await $api.dbTableSort.list(view?.value?.id as string)) as any)?.sorts?.list
+      sorts.value = (await $api.dbTableSort.list(view.value!.id!)).sorts?.list || []
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -39,6 +37,7 @@ export function useViewSorts(
     if (isPublic.value || isSharedBase.value) {
       sorts.value[i] = sort
       sorts.value = [...sorts.value]
+      reloadHook?.trigger()
       return
     }
 
@@ -48,7 +47,7 @@ export function useViewSorts(
           await $api.dbTableSort.update(sort.id, sort)
           $e('sort-updated')
         } else {
-          sorts.value[i] = (await $api.dbTableSort.create(view?.value?.id as string, sort)) as any
+          sorts.value[i] = (await $api.dbTableSort.create(view.value?.id as string, sort)) as unknown as SortType
         }
       }
       reloadData?.()
@@ -77,16 +76,13 @@ export function useViewSorts(
       sorts.value.splice(i, 1)
       sorts.value = [...sorts.value]
 
+      reloadHook?.trigger()
       $e('a:sort:delete')
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
-
-  watch(sorts, () => {
-    reloadHook?.trigger()
-  })
 
   return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate }
 }

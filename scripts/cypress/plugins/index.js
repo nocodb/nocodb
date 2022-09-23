@@ -77,6 +77,9 @@ module.exports = (on, config) => {
             _pgExec(query);
             return null;
         },
+        pgExecTest: (query) => {
+            return _pgExecTest(query);
+        }
     });
 
     let server, port, close
@@ -199,6 +202,32 @@ function _pgExec(query) {
     client.query(query, (err, res) => {
         console.log(err, res);
         client.end();
+    });
+}
+
+
+function _pgExecTest(query, retryCount = 60) {
+    return new Promise((resolve, reject) => {
+        // open pg client connection
+        const client = new Client(pg_credentials);
+
+        client.connect().catch(() => {
+            client.end();
+        });
+
+        // query & terminate
+        client.query(query, (err, res) => {
+            if (err) {
+                if (retryCount--)
+                    return setTimeout(() => _pgExecTest(query, retryCount).then(resolve).catch(reject), 2000);
+                else
+                    reject(err);
+            }
+
+            console.log('==== success ===', res);
+            resolve(true);
+            client.end();
+        });
     });
 }
 

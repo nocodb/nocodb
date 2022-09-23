@@ -2,8 +2,6 @@ import { isTestSuiteActive } from '../../support/page_objects/projectConstants'
 import { mainPage } from '../../support/page_objects/mainPage'
 import { loginPage } from '../../support/page_objects/navigation'
 
-let storedURL = ''
-
 const formTitle = '4G Survey Form'
 const formDescription = '4G Survey Form Description'
 
@@ -62,11 +60,6 @@ export const genTest = (apiType, dbType) => {
       cy.get('.nc-form-drag-LastUpdate').drag('.nc-form-drag-City')
 
       cy.get('[title="Address List"]').drag('.nc-drag-n-drop-to-hide')
-
-      // store base URL- to re-visit and delete form view later
-      cy.url().then((url) => {
-        storedURL = url
-      })
     })
 
     it(`Share form view`, () => {

@@ -37,9 +37,9 @@ const reloadViewDataTrigger = inject(ReloadViewDataHookInj)!
 // override reload trigger and use it to reload row
 const reloadHook = createEventHook()
 
-reloadHook.on(() => {
+reloadHook.on((shouldShowLoading: boolean) => {
   if (isNew.value) return
-  reloadViewDataTrigger?.trigger()
+  reloadViewDataTrigger?.trigger(shouldShowLoading)
 })
 
 provide(ReloadRowDataHookInj, reloadHook)

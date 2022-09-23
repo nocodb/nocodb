@@ -430,7 +430,12 @@ watch([() => selected.row, () => selected.col], ([row, col]) => {
           </thead>
           <!-- this prevent select text from field if not in edit mode -->
           <tbody ref="tbodyEl" @selectstart.prevent>
-            <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
+            <LazySmartsheetRow
+              v-for="(row, rowIndex) of data"
+              ref="rowRefs"
+              :key="extractPkFromRow(row.row, meta.columns) ?? rowIndex"
+              :row="row"
+            >
               <template #default="{ state }">
                 <tr class="nc-grid-row">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">

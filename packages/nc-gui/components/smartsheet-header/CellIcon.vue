@@ -11,8 +11,8 @@ import TextAreaIcon from '~icons/mdi/card-text-outline'
 import StringIcon from '~icons/mdi/alpha-a-box-outline'
 import BooleanIcon from '~icons/mdi/check-box-outline'
 import CalendarIcon from '~icons/mdi/calendar'
-import SingleSelectIcon from '~icons/mdi/radiobox-marked'
-import MultiSelectIcon from '~icons/mdi/checkbox-multiple-marked'
+import SingleSelectIcon from '~icons/mdi/arrow-down-drop-circle'
+import MultiSelectIcon from '~icons/mdi/format-list-bulleted-square'
 import DatetimeIcon from '~icons/mdi/calendar-clock'
 import RatingIcon from '~icons/mdi/star'
 import GenericIcon from '~icons/mdi/square-rounded'
@@ -23,6 +23,7 @@ import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
 import PercentIcon from '~icons/mdi/percent-outline'
 import DecimalIcon from '~icons/mdi/decimal'
 import SpecificDBTypeIcon from '~icons/mdi/database-settings'
+import DurationIcon from '~icons/mdi/timer-outline'
 
 const props = defineProps<{ columnMeta?: ColumnType }>()
 
@@ -66,6 +67,8 @@ const icon = computed(() => {
     return WebIcon
   } else if (additionalColMeta.isCurrency.value) {
     return CurrencyIcon
+  } else if (additionalColMeta.isDuration.value) {
+    return DurationIcon
   } else if (additionalColMeta.isPercent.value) {
     return PercentIcon
   } else if (additionalColMeta.isInt.value || additionalColMeta.isFloat.value) {

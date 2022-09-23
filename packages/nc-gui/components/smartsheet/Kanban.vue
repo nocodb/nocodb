@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
+import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -46,6 +47,10 @@ const deleteStackVModel = ref(false)
 const stackToBeDeleted = ref('')
 
 const stackIdxToBeDeleted = ref(0)
+
+const route = useRoute()
+
+const router = useRouter()
 
 const {
   loadKanbanData,
@@ -94,14 +99,40 @@ reloadViewMetaHook?.on(async () => {
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   if (!isUIAllowed('xcDatatableEditable')) return
-  expandedFormRow.value = row
-  expandedFormRowState.value = state
-  expandedFormDlg.value = true
+
+  const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+
+  if (rowId) {
+    router.push({
+      query: {
+        ...route.query,
+        rowId,
+      },
+    })
+  } else {
+    expandedFormRow.value = row
+    expandedFormRowState.value = state
+    expandedFormDlg.value = true
+  }
 }
 
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!route.query.rowId
+  },
+  set(val) {
+    if (!val)
+      router.push({
+        query: {
+          ...route.query,
+          rowId: undefined,
+        },
+      })
+  },
+})
+
 const expandFormClick = async (e: MouseEvent, row: RowType) => {
-  const target = e.target as HTMLElement
-  if (target && !target.closest('.gallery-carousel')) {
+  if (e.target as HTMLElement) {
     expandForm(row)
   }
 }
@@ -382,6 +413,15 @@ onMounted(async () => {
     :state="expandedFormRowState"
     :meta="meta"
     @cancel="removeRowFromUncategorizedStack"
+  />
+  <SmartsheetExpandedForm
+    v-if="expandedFormOnRowIdDlg"
+    :key="route.query.rowId"
+    v-model="expandedFormOnRowIdDlg"
+    :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+    :meta="meta"
+    :row-id="route.query.rowId"
+    :view="view"
   />
   <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-kanban-delete-stack">
     <template #title>

@@ -3,9 +3,7 @@ import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, 
 import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
 import type { Row } from '~/composables/useViewData'
-import { deepCompare, enumColor } from '~/utils'
-import { useNuxtApp } from '#app'
-import { SharedViewPasswordInj } from '#imports'
+import { SharedViewPasswordInj, deepCompare, enumColor, useNuxtApp } from '#imports'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 

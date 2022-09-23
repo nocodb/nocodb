@@ -22,7 +22,7 @@ export function useKanbanViewData(
   const { project } = useProject()
   const { $api } = useNuxtApp()
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
-  const { fetchSharedViewData } = useSharedView()
+  const { sharedView, fetchSharedViewData } = useSharedView()
   const { isUIAllowed } = useUIPermission()
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -119,7 +119,9 @@ export function useKanbanViewData(
 
   async function loadKanbanMeta() {
     if (!viewMeta?.value?.id || !meta?.value?.columns) return
-    kanbanMetaData.value = await $api.dbView.kanbanRead(viewMeta.value.id)
+    kanbanMetaData.value = isPublic.value
+      ? (sharedView.value?.view as KanbanType)
+      : await $api.dbView.kanbanRead(viewMeta.value.id)
     // set groupingField
     groupingFieldColumn.value = meta.value.columns.filter((f: ColumnType) => f.id === kanbanMetaData.value.grp_column_id)[0] || {}
 

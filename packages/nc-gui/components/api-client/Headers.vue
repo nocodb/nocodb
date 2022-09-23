@@ -93,8 +93,9 @@ const deleteHeaderRow = (idx: number) => vModel.value.splice(idx, 1)
                 placeholder="Key"
                 class="nc-input-hook-header-key"
                 dropdown-class-name="nc-dropdown-webhook-header"
+                show-search
               >
-                <a-select-option v-for="(header, i) in headerList" :key="i" :value="header">
+                <a-select-option v-for="header in headerList" :key="header" :value="header">
                   {{ header }}
                 </a-select-option>
               </a-select>

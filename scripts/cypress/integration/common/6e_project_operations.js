@@ -7,9 +7,8 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
     before(() => {
-      cy.restoreLocalStorage();
-      cy.visit("/");
-      cy.wait(4000);
+      loginPage.signIn(roles.owner.credentials);
+      cy.saveLocalStorage();
     });
 
     beforeEach(() => {

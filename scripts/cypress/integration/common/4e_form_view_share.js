@@ -92,7 +92,6 @@ export const genTest = (apiType, dbType) => {
 
         cy.wait(2000);
         mainPage.shareView().click();
-
         // copy link text, visit URL
         cy.getActiveModal(".nc-modal-share-view")
           .should("exist")
@@ -100,6 +99,11 @@ export const genTest = (apiType, dbType) => {
           .contains("/nc/form/", { timeout: 10000 })
           .should("exist")
           .then(($obj) => {
+            // http://localhost:8080/api/v1/db/public/shared-view/761f0200-e72c-487a-85bf-615d0d277054/rows?offset=0&filterArrJson=[]&sortArrJson=[]
+            cy.intercept("/api/v1/db/public/shared-view/**").as(
+              "waitForPageLoad"
+            );
+
             let linkText = $obj.text().trim();
             cy.log(linkText);
 
@@ -108,7 +112,8 @@ export const genTest = (apiType, dbType) => {
             cy.visit(linkText, {
               baseUrl: null,
             });
-            cy.wait(5000);
+            // cy.wait(5000);
+            cy.wait(["@waitForPageLoad"], { times: 2 });
 
             // wait for share view page to load!
 

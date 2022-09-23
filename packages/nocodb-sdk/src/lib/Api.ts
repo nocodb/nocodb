@@ -136,7 +136,7 @@ export interface ViewType {
   show_system_fields?: boolean;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   type?: number;
-  view?: FormType | GridType | GalleryType;
+  view?: FormType | GridType | GalleryType | KanbanType;
 }
 
 export interface TableInfoType {

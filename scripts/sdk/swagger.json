@@ -6297,6 +6297,9 @@
               },
               {
                 "$ref": "#/components/schemas/Gallery"
+              },
+              {
+                "$ref": "#/components/schemas/Kanban"
               }
             ]
           }

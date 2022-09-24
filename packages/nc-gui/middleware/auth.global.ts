@@ -37,7 +37,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const { allRoles } = useRoles()
 
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
-  if (!state.signedIn && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
+  if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
 
   /** if public allow all visitors */
   if (to.meta.public) return
@@ -89,22 +89,26 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
  * If present, try using google auth data to sign user in before navigating to the next page
  */
 async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
-  if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
-    try {
-      const {
-        data: { token },
-      } = await api.instance.post(
-        `/auth/${window.location.search.includes('state=github') ? 'github' : 'google'}/genTokenByCode${window.location.search}`,
-      )
+  if (process.client) {
+    if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
+      try {
+        const {
+          data: { token },
+        } = await api.instance.post(
+          `/auth/${window.location.search.includes('state=github') ? 'github' : 'google'}/genTokenByCode${
+            window.location.search
+          }`,
+        )
 
-      signIn(token)
-    } catch (e: any) {
-      if (e.response && e.response.data && e.response.data.msg) {
-        message.error({ content: e.response.data.msg })
+        signIn(token)
+      } catch (e: any) {
+        if (e.response && e.response.data && e.response.data.msg) {
+          message.error({ content: e.response.data.msg })
+        }
       }
-    }
 
-    const newURL = window.location.href.split('?')[0]
-    window.history.pushState('object', document.title, newURL)
+      const newURL = window.location.href.split('?')[0]
+      window.history.pushState('object', document.title, newURL)
+    }
   }
 }

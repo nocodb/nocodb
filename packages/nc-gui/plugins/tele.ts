@@ -8,7 +8,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   const route = useRoute()
 
-  const { appInfo } = $(useGlobal())
+  const state = useGlobal()
 
   let socket: Socket
 
@@ -16,7 +16,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     try {
       if (socket) socket.disconnect()
 
-      const url = new URL(appInfo.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
+      const url = new URL(state.appInfo.value.ncSiteUrl, window.location.href.split(/[?#]/)[0]).href
 
       socket = io(url, {
         extraHeaders: { 'xc-auth': token },
@@ -28,8 +28,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     } catch {}
   }
 
-  if (nuxtApp.$state.signedIn.value) {
-    await init(nuxtApp.$state.token.value)
+  if (state.signedIn.value && state.token.value) {
+    await init(state.token.value)
   }
 
   router.afterEach((to, from) => {
@@ -78,7 +78,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     }
   }
 
-  watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
+  watch(state.token, (newToken, oldToken) => {
     if (newToken && newToken !== oldToken) init(newToken)
     else if (!newToken) socket.disconnect()
   })

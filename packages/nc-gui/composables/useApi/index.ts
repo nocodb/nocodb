@@ -74,6 +74,7 @@ export function useApi<Data = any, RequestConfig = any>({
   function onRequestFinish() {
     /** local count */
     dec()
+
     /** global count */
     nuxtApp.$state.runningRequests.dec()
 

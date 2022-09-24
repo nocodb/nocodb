@@ -2,17 +2,17 @@ import dayjs from 'dayjs'
 import { defineNuxtPlugin, useGlobal, useNuxtApp } from '#imports'
 
 const handleFeedbackForm = async () => {
-  let { feedbackForm: currentFeedbackForm } = $(useGlobal())
+  const { feedbackForm: currentFeedbackForm, signedIn } = useGlobal()
 
-  if (!currentFeedbackForm) return
+  if (!currentFeedbackForm.value || !signedIn.value) return
 
   const { $api } = useNuxtApp()
 
-  const isFirstTimePolling = !currentFeedbackForm.lastFormPollDate
+  const isFirstTimePolling = !currentFeedbackForm.value.lastFormPollDate
 
   const now = dayjs()
 
-  const lastFormPolledDate = dayjs(currentFeedbackForm.lastFormPollDate)
+  const lastFormPolledDate = dayjs(currentFeedbackForm.value.lastFormPollDate)
 
   if (isFirstTimePolling || dayjs.duration(now.diff(lastFormPolledDate)).days() > 0) {
     $api.instance
@@ -21,13 +21,13 @@ const handleFeedbackForm = async () => {
         try {
           const { data: feedbackForm } = response
           if (!feedbackForm.error) {
-            const isFetchedFormDuplicate = currentFeedbackForm.url === feedbackForm.url
+            const isFetchedFormDuplicate = currentFeedbackForm.value.url === feedbackForm.url
 
-            currentFeedbackForm = {
+            currentFeedbackForm.value = {
               url: feedbackForm.url,
               lastFormPollDate: now.toISOString(),
               createdAt: feedbackForm.created_at,
-              isHidden: isFetchedFormDuplicate ? currentFeedbackForm.isHidden : false,
+              isHidden: isFetchedFormDuplicate ? currentFeedbackForm.value.isHidden : false,
             }
           }
         } catch (e) {}

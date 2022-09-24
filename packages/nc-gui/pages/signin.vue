@@ -44,7 +44,14 @@ const formRules: Record<string, RuleObject[]> = {
   ],
 }
 
-async function signIn() {
+async function signIn(e: MouseEvent) {
+  console.log('clicked')
+
+  e.stopImmediatePropagation()
+  e.preventDefault()
+
+  console.log('clicked')
+
   if (!formValidator.value.validate()) return
 
   resetError()
@@ -114,12 +121,7 @@ function resetError() {
           </div>
 
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-            <button
-              data-cy="nc-form-signin__submit"
-              data-nc="nc-form-signin__submit"
-              class="scaling-btn bg-opacity-100"
-              type="submit"
-            >
+            <button data-cy="nc-form-signin__submit" class="scaling-btn bg-opacity-100">
               <span class="flex items-center gap-2">
                 <MdiLogin />
                 {{ $t('general.signIn') }}

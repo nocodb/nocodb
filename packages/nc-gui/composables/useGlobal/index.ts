@@ -2,7 +2,7 @@ import { useGlobalActions } from './actions'
 import { useGlobalGetters } from './getters'
 import { useGlobalState } from './state'
 import type { UseGlobalReturn } from './types'
-import { createGlobalState, useNuxtApp, watch } from '#imports'
+import { createGlobalState, watch } from '#imports'
 
 export * from './types'
 
@@ -37,8 +37,6 @@ export * from './types'
  * ```
  */
 export const useGlobal = createGlobalState((): UseGlobalReturn => {
-  const { provide } = useNuxtApp()
-
   const state = useGlobalState()
 
   const getters = useGlobalGetters(state)
@@ -77,10 +75,5 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
     { immediate: true },
   )
 
-  const globalState = { ...state, ...getters, ...actions } as UseGlobalReturn
-
-  /** provide a fresh state instance into nuxt app */
-  provide('state', globalState)
-
-  return globalState
+  return { ...state, ...getters, ...actions } as UseGlobalReturn
 })

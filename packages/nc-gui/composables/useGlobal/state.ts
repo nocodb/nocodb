@@ -1,4 +1,3 @@
-import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
 import type { AppInfo, State, StoredState } from './types'
 import { BASE_URL, computed, ref, toRefs, useCounter, useJwt, useNuxtApp, usePreferredLanguages, useTimestamp } from '#imports'
@@ -63,7 +62,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
-  const storage = useStorage<StoredState>(storageKey, initialState, localStorage, { mergeDefaults: true })
+  const storage = ref(initialState)
 
   /** force turn off of dark mode, regardless of previously stored settings */
   storage.value.darkMode = false

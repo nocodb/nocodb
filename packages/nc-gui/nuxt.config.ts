@@ -11,7 +11,7 @@ import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfil
 export default defineNuxtConfig({
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image-edge'],
 
-  ssr: false,
+  ssr: true,
 
   app: {
     pageTransition: {
@@ -27,13 +27,7 @@ export default defineNuxtConfig({
     cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
   },
 
-  css: [
-    'virtual:windi.css',
-    'virtual:windi-devtools',
-    '~/assets/style/fonts.css',
-    '~/assets/css/global.css',
-    '~/assets/style.scss',
-  ],
+  css: ['virtual:windi.css', '~/assets/style/fonts.css', '~/assets/css/global.css', '~/assets/style.scss'],
 
   meta: {
     title: 'NocoDB',

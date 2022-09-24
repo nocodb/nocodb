@@ -1,5 +1,7 @@
-import { defineNuxtPlugin, useApi, useGlobal } from '#imports'
-import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
+import { loadLocaleMessages, setI18nLanguage } from './a.i18n'
+import { defineNuxtPlugin, useApi, useGlobal, watch } from '#imports'
+import { useUnstorage } from '~/composables/useUnstorage'
+import type { StoredState } from '~/composables/useGlobal'
 import { Language, LanguageAlias } from '~/lib'
 
 /**
@@ -14,8 +16,10 @@ import { Language, LanguageAlias } from '~/lib'
  * console.log($state.lang.value) // 'en'
  * ```
  */
-export default defineNuxtPlugin(async () => {
+export default defineNuxtPlugin(async (nuxt) => {
   const state = useGlobal()
+
+  nuxt.provide('state', state)
 
   const { api } = useApi({ useGlobalInstance: true })
 
@@ -29,6 +33,17 @@ export default defineNuxtPlugin(async () => {
 
   /** set i18n locale to stored language */
   await setI18nLanguage(currentLang)
+
+  const storedState = await useUnstorage.getItem('global:state')
+  state.storage.value = { ...state.storage.value, ...(storedState as StoredState) }
+
+  watch(
+    state.storage,
+    (nextState) => {
+      useUnstorage.setItem('global:state', nextState)
+    },
+    { deep: true, flush: 'post' },
+  )
 
   try {
     state.appInfo.value = await api.utils.appInfo()

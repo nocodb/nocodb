@@ -1,7 +1,16 @@
 import { ProjectRole, Role } from '~/lib'
 
-const rolePermissions: Record<Role | ProjectRole, '*' | Partial<Record<'include' | 'exclude', Record<string, boolean>>>> = {
+const rolePermissions = {
   // general role permissions
+
+  /**
+   * Each permission value means the following
+   * `*` - which is wildcard, means all permissions are allowed
+   *  `include` - which is an object, means only the permissions listed in the object are allowed
+   *  `exclude` - which is an object, means all permissions are allowed except the ones listed in the object
+   *  `undefined` or `{}` - which is the default value, means no permissions are allowed
+   * */
+
   /** todo: enable wildcard permission
    *  limited permission  due to unexpected behaviour in shared base if opened in same window  */
   [Role.Super]: '*',
@@ -63,11 +72,11 @@ const rolePermissions: Record<Role | ProjectRole, '*' | Partial<Record<'include'
   },
 } as const
 
-type RolePermissions = Omit<typeof rolePermissions, 'creator' | 'owner' | 'guest' | 'admin'>
+type RolePermissions = Omit<typeof rolePermissions, 'guest' | 'admin' | 'super'>
 
-type GetKeys<T> = T extends Record<string, any> ? keyof T : never
+type GetKeys<T> = T extends Record<any, Record<infer Key, boolean>> ? Key : never
 
-export type Permission<K extends keyof RolePermissions = keyof RolePermissions> = RolePermissions[K] extends Record<string, any>
+export type Permission<K extends keyof RolePermissions = keyof RolePermissions> = RolePermissions[K] extends Record<any, any>
   ? GetKeys<RolePermissions[K]>
   : never
 

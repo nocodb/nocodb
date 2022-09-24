@@ -1,9 +1,7 @@
 <script lang="ts" setup>
-import { computed, navigateTo, ref, useGlobal, useNuxtApp, useProject, useRoute } from '#imports'
+import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute } from '#imports'
 
 const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
-
-const { isSharedBase } = useProject()
 
 const route = useRoute()
 
@@ -75,7 +73,7 @@ hooks.hook('page:finish', () => {
           </div>
         </a-tooltip>
 
-        <template v-if="signedIn && !isSharedBase">
+        <template v-if="signedIn">
           <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white" @click.prevent />
 

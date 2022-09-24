@@ -247,8 +247,8 @@ onMounted(async () => {
                 'not-draggable': stack.id === 'uncategorized' || isLocked || !isUIAllowed('xcDatatableEditable'),
                 '!cursor-default': isLocked || !isUIAllowed('xcDatatableEditable'),
               }"
-              head-style="padding-bottom: 0px;"
-              body-style="padding: 0px; height: 100%;"
+              :head-style="{ paddingBottom: '0px' }"
+              :body-style="{ padding: '0px', height: '100%' }"
             >
               <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
               <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="p-4" />
@@ -318,7 +318,7 @@ onMounted(async () => {
                                 'not-draggable': isLocked || !isUIAllowed('xcDatatableEditable'),
                                 '!cursor-default': isLocked || !isUIAllowed('xcDatatableEditable'),
                               }"
-                              body-style="padding: 10px;"
+                              :body-style="{ padding: '10px' }"
                               @click="expandFormClick($event, record)"
                             >
                               <div
@@ -381,7 +381,7 @@ onMounted(async () => {
               :class="{
                 'not-draggable': stack.id === 'uncategorized' || isLocked || !isUIAllowed('xcDatatableEditable'),
               }"
-              body-style="padding: 0px; height: 100%; width: 100%; background: #f0f2f5 !important;"
+              :body-style="{ padding: '0px', height: '100%', width: '100%', background: '#f0f2f5 !important' }"
             >
               <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
                 <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="!w-[150px] pl-5" :paragraph="false" />

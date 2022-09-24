@@ -102,7 +102,7 @@ export const genTest = (apiType, dbType) => {
       disableTableAccess("CustomerList", "commenter");
       disableTableAccess("CustomerList", "viewer");
 
-      cy.get("button.nc-acl-save").click({ force: true });
+      cy.get("button.nc-acl-save").click();
       cy.toastWait("Updated UI ACL for tables successfully");
 
       mainPage.closeMetaTab();
@@ -110,13 +110,15 @@ export const genTest = (apiType, dbType) => {
   });
 
   const roleValidation = (roleType) => {
+    let clear;
+
     describe(`User role validation`, () => {
       before(() => {
         cy.restoreLocalStorage();
         cy.visit(mainPage.roleURL[roleType]);
-        cy.wait(5000);
+        // cy.wait(5000);
 
-        cy.get('button:contains("SIGN UP")').should("exist");
+        cy.get('button:contains("SIGN UP"):visible').should("exist");
         cy.get('input[type="text"]', { timeout: 20000 }).type(
           roles[roleType].credentials.username
         );
@@ -125,11 +127,11 @@ export const genTest = (apiType, dbType) => {
         );
         cy.get('button:contains("SIGN UP")').click();
 
-        cy.wait(3000);
+        // cy.wait(3000);
 
-        cy.get(".nc-project-page-title")
-          .contains("My Projects")
-          .should("be.visible");
+        cy.get(`.nc-project-page-title:contains("My Projects"):visible`).should(
+          "exist"
+        );
 
         if (dbType === "xcdb") {
           if ("rest" == apiType)
@@ -149,12 +151,15 @@ export const genTest = (apiType, dbType) => {
         if (roleType === "creator") {
           // kludge: wait for page load to finish
           // close team & auth tab
-          cy.wait(2000);
+          cy.wait(500);
           cy.get("button.ant-tabs-tab-remove").should("exist").click();
-          cy.wait(1000);
+          cy.wait(500);
         }
 
         cy.saveLocalStorage();
+
+        clear = Cypress.LocalStorage.clear;
+        Cypress.LocalStorage.clear = () => {};
       });
 
       beforeEach(() => {
@@ -169,6 +174,8 @@ export const genTest = (apiType, dbType) => {
         cy.restoreLocalStorage();
         cy.signOut();
         cy.saveLocalStorage();
+
+        Cypress.LocalStorage.clear = clear;
       });
 
       ///////////////////////////////////////////////////////

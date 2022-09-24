@@ -203,7 +203,7 @@ export function _editComment(roleType, mode) {
 
   cy.openTableTab(columnName, 25);
 
-  cy.wait(1000);
+  // cy.wait(1000);
 
   // click on comment icon & type comment
   //
@@ -214,7 +214,7 @@ export function _editComment(roleType, mode) {
   //      Everyone else: Comment added/read successfully
   //
 
-  cy.wait(3000);
+  // cy.wait(3000);
 
   if ("viewer" === roleType) {
     cy.getActiveDrawer(".nc-drawer-expanded-form")

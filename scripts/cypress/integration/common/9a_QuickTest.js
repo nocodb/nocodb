@@ -89,6 +89,8 @@ function verifyWebhook(config) {
 }
 
 export const genTest = (apiType, dbType, testMode) => {
+  let clear;
+
   if (!isTestSuiteActive(apiType, dbType)) return;
   describe(`Quick Tests`, () => {
     let cellIdx = 1;
@@ -115,6 +117,9 @@ export const genTest = (apiType, dbType, testMode) => {
 
       cy.openTableTab("Film", 3);
       cy.saveLocalStorage();
+
+      clear = Cypress.LocalStorage.clear;
+      Cypress.LocalStorage.clear = () => {};
     });
 
     beforeEach(() => {
@@ -129,6 +134,8 @@ export const genTest = (apiType, dbType, testMode) => {
       cy.restoreLocalStorage();
       cy.signOut();
       cy.saveLocalStorage();
+
+      Cypress.LocalStorage.clear = clear;
     });
 
     it("Verify Schema", () => {

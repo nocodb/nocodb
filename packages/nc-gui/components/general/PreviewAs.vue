@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { message } from 'ant-design-vue'
 import { onUnmounted, ref, useEventListener, useGlobal, useI18n, useNuxtApp, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
@@ -54,7 +55,8 @@ onUnmounted(() => {
 /** reload page on preview-as change */
 watch(previewAs, (newRole) => {
   $e('a:navdraw:preview', { role: newRole })
-  window.location.reload()
+  // todo: i18n
+  message.info(`Previewing as ${newRole}`)
 })
 </script>
 

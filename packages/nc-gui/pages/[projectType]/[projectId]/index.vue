@@ -486,10 +486,10 @@ onBeforeUnmount(reset)
       </a-layout-sider>
     </template>
 
-    <div>
+    <div :key="$route.fullPath.split('?')[0]">
       <LazyDashboardSettingsModal v-model="dialogOpen" :open-key="openDialogKey" />
 
-      <NuxtPage :page-key="project.id" />
+      <NuxtPage />
 
       <LazyGeneralPreviewAs float />
     </div>

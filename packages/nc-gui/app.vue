@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, useRoute } from '#imports'
+import { computed, useRoute, useTheme } from '#imports'
 
 const route = useRoute()
 
 const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || route.path.startsWith('/nc/form'))
+
+useTheme()
 </script>
 
 <template>

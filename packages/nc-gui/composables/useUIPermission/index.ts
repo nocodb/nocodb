@@ -28,9 +28,7 @@ export const useUIPermission = createSharedComposable(() => {
 
   const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
     if (previewAs.value && !skipPreviewAs) {
-      const hasPreviewPermission = hasPermission(previewAs.value, true, permission)
-
-      if (hasPreviewPermission) return true
+      return hasPermission(previewAs.value, true, permission)
     }
 
     return Object.entries(allRoles.value).some(([role, hasRole]) =>

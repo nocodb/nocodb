@@ -63,7 +63,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
   watch(
     () => table.title,
     (title) => {
-      table.table_name = `${project?.value?.prefix || ''}${title}`
+      table.table_name = `${title}`
     },
   )
 

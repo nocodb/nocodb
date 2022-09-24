@@ -90,6 +90,7 @@ export async function tableList(req: Request, res: Response<TableListType>) {
 export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const project = await Project.getWithInfo(req.params.projectId);
   let base = project.bases[0];
+
   if (req.params.baseId) {
     base = project.bases.find((b) => b.id === req.params.baseId);
   }
@@ -103,7 +104,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     );
   }
 
-  if (project.prefix) {
+  if (base.is_meta && project.prefix) {
     if (!req.body.table_name.startsWith(project.prefix)) {
       req.body.table_name = `${project.prefix}_${req.body.table_name}`;
     }
@@ -228,14 +229,14 @@ export async function tableUpdate(req: Request<any, any>, res) {
 
   const project = await Project.getWithInfo(req.body.project_id);
   const base = project.bases.find((b) => b.id === model.base_id);
-
+  
   if (!req.body.table_name) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'
     );
   }
 
-  if (project.prefix) {
+  if (base.is_meta && project.prefix) {
     if (!req.body.table_name.startsWith(project.prefix)) {
       req.body.table_name = `${project.prefix}${req.body.table_name}`;
     }

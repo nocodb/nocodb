@@ -1,7 +1,6 @@
 import { message } from 'ant-design-vue'
 import { defineNuxtRouteMiddleware, navigateTo } from '#app'
-import { useApi, useGlobal } from '#imports'
-import { useRoles } from '~/composables'
+import { useApi, useGlobal, useRoles } from '#imports'
 
 /**
  * Global auth middleware

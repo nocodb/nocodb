@@ -44,7 +44,7 @@ const refTables = $computed(() => {
     return []
   }
 
-  return tables.filter((t) => t.type === ModelTypes.TABLE)
+  return tables.filter((t) => t.type === ModelTypes.TABLE && t.base_id === meta?.base_id)
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())

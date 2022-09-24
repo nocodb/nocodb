@@ -89,7 +89,7 @@ export function useKanbanViewData(
           ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
               where,
             })
-          : await fetchSharedViewData()
+          : await fetchSharedViewData({ where })
 
         formattedData.value[option.title!] = formatData(response.list)
         countByStack.value[option.title!] = response.pageInfo.totalRows || 0

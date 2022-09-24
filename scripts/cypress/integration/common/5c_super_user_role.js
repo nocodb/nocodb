@@ -2,9 +2,10 @@ import { loginPage } from '../../support/page_objects/navigation';
 import { roles } from '../../support/page_objects/projectConstants';
 
 export const genTest = (apiType, dbType) => {
-  describe(`${apiType.toUpperCase()} api - Table views: Create/Edit/Delete`, () => {
+  describe(`${apiType.toUpperCase()} api - Super user test`, () => {
     before(() => {
       loginPage.signIn(roles.owner.credentials);
+      cy.saveLocalStorage();
     });
 
     beforeEach(() => {

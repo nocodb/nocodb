@@ -269,7 +269,7 @@ export const genTest = (apiType, dbType) => {
         }
       });
 
-      it(`[${roles[roleType].name}] App store accessiblility`, () => {
+      it(`[${roles[roleType].name}] App store accessibility`, () => {
         cy.visit("/#/apps").then(r =>{
           cy.toastWait('You don\'t have enough permission to access the page.')
         })

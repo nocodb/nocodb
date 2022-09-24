@@ -200,7 +200,6 @@ onMounted(async () => {
 
   // connect event does not provide data
   socket.on('connect', () => {
-    console.log(socket?.id)
     console.log('socket connected')
   })
 

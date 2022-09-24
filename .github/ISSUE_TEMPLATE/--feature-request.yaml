@@ -1,5 +1,5 @@
 name: 🔦 Feature request
-description: New feature for NocoDB
+description: Suggest a new/missing feature for NocoDB
 title: "🔦 Feature: "
 labels: [Type : Feature]
 assignees:
@@ -12,7 +12,7 @@ body:
 
 - type: checkboxes
   attributes:
-    label: Please confirm if feature request doesn't exists already ?
+    label: Please confirm if feature request does NOT exists already ?
     description: We kindly ask that you [search](https://github.com/nocodb/nocodb/issues?q=is%3Aissue+sort%3Acreated-desc+) to see if an issue already exists for your feature
     options:
     - label: I confirm there is no existing issue for this

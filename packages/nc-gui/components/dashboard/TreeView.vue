@@ -8,6 +8,7 @@ import {
   inject,
   reactive,
   ref,
+  resolveComponent,
   useDialog,
   useNuxtApp,
   useProject,
@@ -144,7 +145,7 @@ function openRenameTableDialog(table: TableType, rightClick = false) {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(() => import('~/components/dlg/TableRename.vue'), {
+  const { close } = useDialog(resolveComponent('DlgTableRename'), {
     'modelValue': isOpen,
     'tableMeta': table,
     'onUpdate:modelValue': closeDialog,
@@ -162,7 +163,7 @@ function openQuickImportDialog(type: string) {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(() => import('~/components/dlg/QuickImport.vue'), {
+  const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
     'onUpdate:modelValue': closeDialog,
@@ -180,7 +181,7 @@ function openAirtableImportDialog() {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(() => import('~/components/dlg/AirtableImport.vue'), {
+  const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
   })
@@ -197,7 +198,7 @@ function openTableCreateDialog() {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(() => import('~/components/dlg/TableCreate.vue'), {
+  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
   })

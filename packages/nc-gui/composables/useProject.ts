@@ -1,4 +1,3 @@
-import type { MaybeRef } from '@vueuse/core'
 import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
@@ -6,8 +5,6 @@ import {
   computed,
   createEventHook,
   ref,
-  tryOnScopeDispose,
-  unref,
   useApi,
   useGlobal,
   useInjectionState,
@@ -16,11 +13,10 @@ import {
   useRoute,
   useRouter,
   useTheme,
-  watch,
 } from '#imports'
 import type { ProjectMetaInfo, ThemeConfig } from '~/lib'
 
-const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
+const [setup, use] = useInjectionState(() => {
   const { $e } = useNuxtApp()
 
   const { api, isLoading } = useApi()
@@ -43,7 +39,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
 
-  const projectId = computed(() => (_projectId ? unref(_projectId) : (route.params.projectId as string)))
+  const projectId = computed(() => route.params.projectId as string)
 
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
@@ -73,9 +69,9 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     }
   }
 
-  async function loadTables(id?: string) {
-    if (id || project.value.id) {
-      const tablesResponse = await api.dbTable.list((id || project.value.id)!, {
+  async function loadTables() {
+    if (project.value.id) {
+      const tablesResponse = await api.dbTable.list(project.value.id, {
         includeM2M: includeM2M.value,
       })
 
@@ -83,10 +79,8 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     }
   }
 
-  async function loadProject(id?: string) {
-    if (id) {
-      project.value = await api.project.read(id)
-    } else if (projectType === 'base') {
+  async function loadProject() {
+    if (projectType === 'base') {
       try {
         const baseData = await api.public.sharedBaseGet(route.params.projectId as string)
 
@@ -100,15 +94,13 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     } else if (projectId.value) {
       project.value = await api.project.read(projectId.value)
     } else {
+      console.warn('Project id not found')
       return
     }
 
-    await loadProjectRoles(
-      id || project.value.id || (route.params.projectId as string), isSharedBase.value,
-      route.params.projectId as string,
-    )
+    await loadProjectRoles(project.value.id || projectId.value, isSharedBase.value, projectId.value)
 
-    await loadTables(id)
+    await loadTables()
 
     setTheme(projectMeta.value?.theme)
 
@@ -146,20 +138,12 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     $e('c:themes:change')
   }
 
-  watch(
-    () => route.params,
-    (next) => {
-      if (!next.projectId) {
-        setTheme()
-      }
-    },
-  )
-
   const reset = () => {
     project.value = {}
     tables.value = []
     projectMetaInfo.value = undefined
     projectRoles.value = {}
+    setTheme()
   }
 
   return {
@@ -186,15 +170,11 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
 
 export const provideProject = setup
 
-export function useProject(projectId?: MaybeRef<string>) {
+export function useProject() {
   const state = use()
 
   if (!state) {
-    const setupState = setup(projectId)
-
-    tryOnScopeDispose(setupState.reset)
-
-    return setupState
+    return setup()
   }
 
   return state

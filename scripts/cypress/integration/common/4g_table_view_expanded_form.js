@@ -23,13 +23,18 @@ function verifyExpandFormHeader(title) {
 export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
+  let clear;
+
   describe(`${apiType.toUpperCase()} api - Table views: Expanded form`, () => {
     before(() => {
       cy.restoreLocalStorage();
 
       // open a table to work on views
       //
-      cy.openTableTab("Country", 25);
+      cy.openTableTab('Country', 25);
+
+      clear = Cypress.LocalStorage.clear;
+      Cypress.LocalStorage.clear = () => {}
     });
 
     beforeEach(() => {
@@ -44,6 +49,7 @@ export const genTest = (apiType, dbType) => {
       cy.restoreLocalStorage();
       cy.closeTableTab("Country");
       cy.saveLocalStorage();
+      Cypress.LocalStorage.clear = clear;
     });
 
     // Common routine to create/edit/delete GRID & GALLERY view

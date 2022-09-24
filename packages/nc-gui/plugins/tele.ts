@@ -41,15 +41,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     })
   })
 
-  /**
-   * unreachable code?
-      if (socket) {
-        socket.emit('page', {
-          path: route.matched[0].path + (route.query && route.query.type ? `?type=${route.query.type}` : ''),
-        })
-      }
-   */
-
   const tele = {
     emit(evt: string, data: Record<string, any>) {
       // debugger

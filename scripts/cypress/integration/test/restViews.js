@@ -15,7 +15,8 @@ const {
 const nocoTestSuite = (apiType, dbType) => {
   setCurrentMode(apiType, dbType);
   t01.genTest(apiType, dbType);
-  // // place plugin related activities at top
+
+  // place plugin related activities at top
   t4c.genTest(apiType, dbType);
   t4a.genTest(apiType, dbType);
   t4b.genTest(apiType, dbType);

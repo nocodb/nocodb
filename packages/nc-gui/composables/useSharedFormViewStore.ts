@@ -30,7 +30,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedView = ref<ViewType>()
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
-  const columns = ref<(ColumnType & { required?: boolean; show?: boolean })[]>()
+  const columns = ref<(ColumnType & { required?: boolean; show?: boolean; label?: string })[]>()
 
   const { api, isLoading } = useApi()
 

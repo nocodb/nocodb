@@ -2,6 +2,7 @@ export enum Role {
   Super = 'super',
   Admin = 'admin',
   User = 'user',
+  Guest = 'guest',
 }
 
 export enum ProjectRole {

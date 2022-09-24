@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, navigateTo, ref, useGlobal, useNuxtApp, useProject, useRoute } from '#imports'
 
-const { signOut, signedIn, isLoading, user } = useGlobal()
+const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
 
 const { isSharedBase } = useProject()
 
@@ -45,7 +45,12 @@ hooks.hook('page:finish', () => {
           class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
           @click="navigateTo('/')"
         >
-          <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+          <a-tooltip placement="bottom">
+            <template #title>
+              {{ currentVersion }}
+            </template>
+            <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+          </a-tooltip>
         </div>
 
         <div class="!text-white flex justify-center">

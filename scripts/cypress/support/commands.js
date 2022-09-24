@@ -149,7 +149,9 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
   //   .contains(tn)
   //   .should('exist')
   //   .click();
-  cy.wait(3000);
+
+  // for some tables, linked records are not available immediately
+  cy.wait(1000);
 
   cy.get(".xc-row-table.nc-grid").should("exist");
 
@@ -480,8 +482,8 @@ Cypress.Commands.add("signOut", () => {
     .eq(1)
     .click();
 
-  cy.wait(5000);
-  cy.get('button:contains("SIGN")').should("exist");
+  // cy.wait(5000);
+  cy.get('button:contains("SIGN IN")').should("exist");
 });
 
 // Drag n Drop

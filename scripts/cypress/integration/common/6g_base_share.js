@@ -56,12 +56,12 @@ export const genTest = (apiType, dbType) => {
   };
 
   describe(`${apiType.toUpperCase()} Base VIEW share`, () => {
-    before(() => {
-      // loginPage.loginAndOpenProject(apiType, dbType);
-      cy.restoreLocalStorage();
-      cy.openTableTab("Country", 25);
-      cy.saveLocalStorage();
-    });
+    // before(() => {
+    //   // loginPage.loginAndOpenProject(apiType, dbType);
+    //   cy.restoreLocalStorage();
+    //   cy.openTableTab("Country", 25);
+    //   cy.saveLocalStorage();
+    // });
 
     beforeEach(() => {
       cy.restoreLocalStorage();
@@ -72,6 +72,8 @@ export const genTest = (apiType, dbType) => {
     });
 
     it(`Generate base share URL`, () => {
+      cy.openTableTab("Country", 25);
+
       // click SHARE
       cy.get(".nc-share-base:visible").should("exist").click();
 

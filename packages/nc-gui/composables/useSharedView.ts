@@ -10,14 +10,16 @@ import type {
   ViewType,
 } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { useNuxtApp } from '#app'
+import { useGlobal, useNuxtApp } from '#imports'
 
 export function useSharedView() {
   const nestedFilters = useState<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>(
     'nestedFilters',
     () => [],
   )
-  const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: 25 }))
+  const { appInfo } = $(useGlobal())
+  const appInfoDefaultLimit = appInfo.defaultLimit || 25
+  const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: appInfoDefaultLimit }))
   const sharedView = useState<ViewType | undefined>('sharedView', () => undefined)
   const sorts = useState<SortType[]>('sorts', () => [])
   const password = useState<string | undefined>('password', () => undefined)
@@ -67,7 +69,7 @@ export function useSharedView() {
     if (!sharedView.value) return
 
     const page = paginationData.value.page || 1
-    const pageSize = paginationData.value.pageSize || 25
+    const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
 
     const { data } = await $api.public.dataList(
       sharedView.value.uuid!,

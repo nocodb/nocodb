@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ProjectType } from 'nocodb-sdk'
+import tinycolor from 'tinycolor2'
 import {
   Empty,
   Modal,
@@ -67,8 +68,7 @@ const deleteProject = (project: ProjectType) => {
 }
 
 const handleProjectColor = async (projectId: string, color: string) => {
-  const tinyColor = await import('tinycolor2').then((d) => d.default)
-  const tcolor = tinyColor(color)
+  const tcolor = tinycolor(color)
 
   if (tcolor.isValid()) {
     const complement = tcolor.complement()

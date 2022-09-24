@@ -5,6 +5,7 @@ import { Role } from '~/lib'
 definePageMeta({
   requiresAuth: true,
   allowedRoles: [Role.Super],
+  title: 'title.appStore',
 })
 </script>
 

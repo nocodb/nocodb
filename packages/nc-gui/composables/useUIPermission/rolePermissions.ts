@@ -1,6 +1,6 @@
 import { ProjectRole, Role } from '~/lib'
 
-const rolePermissions = {
+const rolePermissions: Record<Role | ProjectRole, '*' | Partial<Record<'include' | 'exclude', Record<string, boolean>>>> = {
   // general role permissions
   /** todo: enable wildcard permission
    *  limited permission  due to unexpected behaviour in shared base if opened in same window  */

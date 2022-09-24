@@ -12,10 +12,10 @@ const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: P
   if (isString(rolePermission) && rolePermission === '*') return true
 
   // todo: type correction
-  if ('include' in rolePermission) {
+  if ('include' in rolePermission && rolePermission.include) {
     return rolePermission.include[permission]
   }
-  if ('exclude' in rolePermission) {
+  if ('exclude' in rolePermission && rolePermission.exclude) {
     return !rolePermission.exclude[permission]
   }
 

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import AppStore from '~/components/dashboard/settings/AppStore.vue'
 import { Role } from '~/lib'
+import { definePageMeta } from '#imports'
 
 definePageMeta({
   requiresAuth: true,
@@ -12,8 +12,7 @@ definePageMeta({
 <template>
   <div class="p-10 h-full overflow-auto">
     <h1 class="text-3xl text-center mb-11 nc-app-store-title">{{ $t('title.appStore') }}</h1>
-    <AppStore />
+
+    <LazyDashboardSettingsAppStore />
   </div>
 </template>
-
-<style scoped></style>

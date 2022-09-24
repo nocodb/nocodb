@@ -1,6 +1,17 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
-import { message, ref, useDialog, useDropZone, useFileDialog, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
+import {
+  message,
+  ref,
+  resolveComponent,
+  useDialog,
+  useDropZone,
+  useFileDialog,
+  useNuxtApp,
+  useProject,
+  useUIPermission,
+  watch,
+} from '#imports'
 
 const dropZone = ref<HTMLDivElement>()
 
@@ -83,7 +94,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 
   const isOpen = ref(true)
 
-  const { close, vNode } = useDialog(() => import('~/components/dlg/QuickImport.vue'), {
+  const { close, vNode } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
     'onUpdate:modelValue': closeDialog,
@@ -114,7 +125,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 
 function openCreateTable() {
   const isOpen = ref(true)
-  const { close } = useDialog(() => import('~/components/dlg/TableCreate.vue'), {
+  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
   })

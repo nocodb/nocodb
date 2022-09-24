@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import tinycolor from 'tinycolor2'
 import {
   computed,
   definePageMeta,
@@ -72,8 +73,6 @@ function toggleDialog(value?: boolean, key?: string) {
 }
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: string) => {
-  const tinycolor = await import('tinycolor2').then((d) => d.default)
-
   switch (mode) {
     case 'swatch': {
       const tcolor = tinycolor(color)

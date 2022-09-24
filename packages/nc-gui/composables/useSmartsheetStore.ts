@@ -1,12 +1,12 @@
 import { ViewTypes } from 'nocodb-sdk'
-import type { FilterType, SortType, TableType, ViewType } from 'nocodb-sdk'
+import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { computed, reactive, useInjectionState, useNuxtApp, useProject, useTemplateRefsList } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
     view: Ref<ViewType | undefined>,
-    meta: Ref<TableType | undefined>,
+    meta: Ref<TableType | KanbanType | undefined>,
     shared = false,
     initalSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,

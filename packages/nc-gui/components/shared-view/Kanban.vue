@@ -4,10 +4,6 @@ import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadView
 
 const { sharedView, meta, sorts, nestedFilters } = useSharedView()
 
-const { signedIn } = useGlobal()
-
-const { loadProject } = useProject(meta.value?.project_id)
-
 const reloadEventHook = createEventHook<void>()
 
 provide(ReloadViewDataHookInj, reloadEventHook)
@@ -23,14 +19,6 @@ provide(FieldsInj, ref(meta.value?.columns || []))
 provide(IsPublicInj, ref(true))
 
 useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
-
-if (signedIn.value) {
-  try {
-    await loadProject()
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
 </script>
 
 <template>

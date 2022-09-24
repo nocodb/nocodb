@@ -19,7 +19,6 @@ import {
   provide,
   useKanbanViewData,
 } from '#imports'
-import Row from '~/components/smartsheet/Row.vue'
 import type { Row as RowType } from '~/composables'
 
 const meta = inject(MetaInj, ref())
@@ -100,7 +99,7 @@ reloadViewMetaHook?.on(async () => {
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   if (!isUIAllowed('xcDatatableEditable')) return
 
-  const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+  const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   if (rowId) {
     router.push({
@@ -311,7 +310,7 @@ onMounted(async () => {
                     >
                       <template #item="{ element: record }">
                         <div class="nc-kanban-item py-2 px-[15px]">
-                          <Row :row="record">
+                          <SmartsheetRow :row="record">
                             <a-card
                               hoverable
                               :data-stack="stack.title"
@@ -355,7 +354,7 @@ onMounted(async () => {
                                 </div>
                               </div>
                             </a-card>
-                          </Row>
+                          </SmartsheetRow>
                         </div>
                       </template>
                     </Draggable>

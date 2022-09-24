@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import { message } from 'ant-design-vue'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
-import { capitalize, inject } from '@vue/runtime-core'
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
+import { message } from 'ant-design-vue'
+import { capitalize, inject } from '@vue/runtime-core'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
 import {
@@ -36,6 +36,7 @@ interface Form {
   title: string
   type: ViewTypes
   copy_from_id: string | null
+  // for kanban view only
   grp_column_id: string | null
 }
 
@@ -66,7 +67,7 @@ const form = reactive<Form>({
   grp_column_id: null,
 })
 
-const formRules = [
+const viewNameRules = [
   // name is required
   { required: true, message: `${t('labels.viewName')} ${t('general.required')}` },
   // name is unique
@@ -178,7 +179,7 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
     </template>
 
     <a-form ref="formValidator" layout="vertical" :model="form">
-      <a-form-item :label="$t('labels.viewName')" name="title" :rules="formRules">
+      <a-form-item :label="$t('labels.viewName')" name="title" :rules="viewNameRules">
         <a-input ref="inputEl" v-model:value="form.title" autofocus @keydown.enter="onSubmit" />
       </a-form-item>
       <a-form-item v-if="form.type === ViewTypes.KANBAN" name="grp_column_id" :rules="groupingFieldColumnRules">

@@ -174,7 +174,7 @@ export const genTest = (apiType, dbType) => {
       ///////////////////////////////////////////////////////
       // Test suite
 
-      it.skip(`[${roles[roleType].name}] Left navigation menu, New User add`, () => {
+      it(`[${roles[roleType].name}] Left navigation menu, New User add`, () => {
         // project configuration settings
         //
         if (roleType !== "owner") {
@@ -182,7 +182,7 @@ export const genTest = (apiType, dbType) => {
         }
       });
 
-      it.skip(`[${roles[roleType].name}] Access control`, () => {
+      it(`[${roles[roleType].name}] Access control`, () => {
         // Access control validation
         //
         if (roleType !== "owner") {
@@ -190,7 +190,7 @@ export const genTest = (apiType, dbType) => {
         }
       });
 
-      it.skip(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, () => {
+      it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, () => {
         // Schema related validations
         //  - Add/delete table
         //  - Add/Update/delete column
@@ -200,7 +200,7 @@ export const genTest = (apiType, dbType) => {
         }
       });
 
-      it.skip(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, () => {
+      it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, () => {
         // Table data related validations
         //  - Add/delete/modify row
         //
@@ -209,7 +209,7 @@ export const genTest = (apiType, dbType) => {
         }
       });
 
-      it.skip(`[${roles[roleType].name}] Comments: view/add`, () => {
+      it(`[${roles[roleType].name}] Comments: view/add`, () => {
         // read &/ update comment
         //      Viewer: only allowed to read
         //      Everyone else: read &/ update
@@ -219,7 +219,7 @@ export const genTest = (apiType, dbType) => {
         }
       });
 
-      it.skip(`[${roles[roleType].name}] Right navigation menu, share view`, () => {
+      it(`[${roles[roleType].name}] Right navigation menu, share view`, () => {
         // right navigation menu bar
         //      Editor/Viewer/Commenter : can only view 'existing' views
         //      Rest: can create/edit
@@ -228,7 +228,7 @@ export const genTest = (apiType, dbType) => {
         }
       });
 
-      it.skip(`[${roles[roleType].name}] Download files`, () => {
+      it(`[${roles[roleType].name}] Download files`, () => {
         // to be fixed
         if (
           roleType === "commenter" ||
@@ -270,13 +270,15 @@ export const genTest = (apiType, dbType) => {
       });
 
       it(`[${roles[roleType].name}] App store accessiblility`, () => {
-        cy.visit("/#/apps");
+        cy.visit("/#/apps").then(r =>{
+          cy.toastWait('You don\'t have enough permission to access the page.')
+        })
       });
     });
   };
 
   // skip owner validation as rest of the cases pretty much cover the same
-  roleValidation("owner");
+  // roleValidation("owner");
   roleValidation("creator");
   roleValidation("editor");
   roleValidation("commenter");

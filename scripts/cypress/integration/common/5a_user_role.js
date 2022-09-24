@@ -102,7 +102,7 @@ export const genTest = (apiType, dbType) => {
       disableTableAccess("CustomerList", "commenter");
       disableTableAccess("CustomerList", "viewer");
 
-      cy.get("button.nc-acl-save").click({ force: true });
+      cy.get("button.nc-acl-save").click();
       cy.toastWait("Updated UI ACL for tables successfully");
 
       mainPage.closeMetaTab();

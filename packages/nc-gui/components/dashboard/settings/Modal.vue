@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import { useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
+import { resolveComponent, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
 import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
@@ -50,7 +50,7 @@ const tabsInfo: TabGroup = {
             usersManagement: {
               // Users Management
               title: t('title.userMgmt'),
-              body: () => import('../../tabs/auth/UserManagement.vue'),
+              body: resolveComponent('TabsAuthUserManagement'),
             },
           }
         : {}),
@@ -59,7 +59,7 @@ const tabsInfo: TabGroup = {
             apiTokenManagement: {
               // API Tokens Management
               title: t('title.apiTokenMgmt'),
-              body: () => import('../../tabs/auth/ApiTokenManagement.vue'),
+              body: resolveComponent('TabsAuthApiTokenManagement'),
             },
           }
         : {}),
@@ -77,7 +77,7 @@ const tabsInfo: TabGroup = {
           subTabs: {
             new: {
               title: 'Apps',
-              body: () => import('./AppStore.vue'),
+              body: resolveComponent('DashboardSettingsAppStore'),
             },
           },
           onClick: () => {
@@ -94,26 +94,26 @@ const tabsInfo: TabGroup = {
       metaData: {
         // Metadata
         title: t('title.metadata'),
-        body: () => import('./Metadata.vue'),
+        body: resolveComponent('DashboardSettingsMetadata'),
       },
       acl: {
         // UI Access Control
         title: t('title.uiACL'),
-        body: () => import('./UIAcl.vue'),
+        body: resolveComponent('DashboardSettingsUIAcl'),
         onClick: () => {
           $e('c:table:ui-acl')
         },
       },
       erd: {
         title: t('title.erdView'),
-        body: () => import('./Erd.vue'),
+        body: resolveComponent('DashboardSettingsErd'),
         onClick: () => {
           $e('c:settings:erd')
         },
       },
       misc: {
         title: t('general.misc'),
-        body: () => import('./Misc.vue'),
+        body: resolveComponent('DashboardSettingsMisc'),
       },
     },
     onClick: () => {
@@ -128,7 +128,7 @@ const tabsInfo: TabGroup = {
       audit: {
         // Audit
         title: t('title.audit'),
-        body: () => import('./AuditTab.vue'),
+        body: resolveComponent('DashboardSettingsAuditTab'),
       },
     },
     onClick: () => {

@@ -34,6 +34,7 @@ const { allowCSVDownload } = useSharedView()
     <LazySmartsheetToolbarShareView v-if="(isForm || isGrid) && !isPublic" />
 
     <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
+
     <div class="flex-1" />
 
     <LazySmartsheetToolbarReload v-if="!isPublic && !isForm" class="mx-1" />

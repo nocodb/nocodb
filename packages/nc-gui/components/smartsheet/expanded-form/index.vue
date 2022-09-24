@@ -137,9 +137,9 @@ export default {
               class="mt-2 py-2"
               :class="`nc-expand-col-${col.title}`"
             >
-              <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+              <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
 
-              <SmartsheetHeaderCell v-else :column="col" />
+              <LazySmartsheetHeaderCell v-else :column="col" />
 
               <div class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2">
                 <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />

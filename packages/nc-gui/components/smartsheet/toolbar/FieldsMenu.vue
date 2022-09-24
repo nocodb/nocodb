@@ -13,7 +13,6 @@ import {
   computed,
   inject,
   ref,
-  resolveComponent,
   useNuxtApp,
   useViewColumns,
   watch,

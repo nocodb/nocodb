@@ -41,7 +41,7 @@ export function useViewData(
 
   const { api, isLoading, error } = useApi()
 
-const { appInfo } = $(useGlobal())
+  const { appInfo } = $(useGlobal())
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
-import { TabMetaInj, iconMap, provide, useGlobal, useSidebar, useTabs } from '#imports'
+import { TabMetaInj, iconMap, provide, useGlobal, useProject, useSidebar, useTabs } from '#imports'
+
+const { isLoading: isLoadingProject } = useProject()
 
 const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
@@ -79,8 +81,12 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
       </div>
 
       <div class="w-full min-h-[300px] flex-auto">
-        <div class="w-full h-full">
+        <div v-show="!isLoadingProject" class="w-full h-full">
           <NuxtPage />
+        </div>
+
+        <div v-show="isLoadingProject" class="w-full h-full flex justify-center items-center">
+          <a-spin size="large" />
         </div>
       </div>
     </div>

@@ -150,7 +150,7 @@ onKeyStroke(
 clearTabs()
 
 onBeforeMount(async () => {
-  await loadProject(route.params.projectId as string)
+  await loadProject()
 
   if (!route.params.type && isUIAllowed('teamAndAuth')) {
     addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })

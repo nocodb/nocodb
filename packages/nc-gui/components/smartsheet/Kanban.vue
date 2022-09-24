@@ -269,6 +269,7 @@ onMounted(async () => {
                         <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
                           <a-menu-item
                             v-if="isUIAllowed('xcDatatableEditable')"
+                            v-e="['c:kanban:add-new-record']"
                             @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
                           >
                             <div class="py-2 flex gap-2 items-center">
@@ -276,7 +277,7 @@ onMounted(async () => {
                               {{ $t('activity.addNewRecord') }}
                             </div>
                           </a-menu-item>
-                          <a-menu-item @click="handleCollapseStack(stackIdx)">
+                          <a-menu-item v-e="['c:kanban:collapse-stack']" @click="handleCollapseStack(stackIdx)">
                             <div class="py-2 flex gap-2 items-center">
                               <mdi-arrow-collapse class="text-gray-500" />
                               {{ $t('activity.kanban.collapseStack') }}
@@ -284,6 +285,7 @@ onMounted(async () => {
                           </a-menu-item>
                           <a-menu-item
                             v-if="stack.title !== 'uncategorized' && isUIAllowed('xcDatatableEditable')"
+                            v-e="['c:kanban:delete-stack']"
                             @click="handleDeleteStackClick(stack.title, stackIdx)"
                           >
                             <div class="py-2 flex gap-2 items-center">
@@ -426,8 +428,10 @@ onMounted(async () => {
       {{ $t('msg.info.deleteKanbanStackConfirmation', { stackToBeDeleted, groupingField }) }}
     </div>
     <template #footer>
-      <a-button key="back" @click="deleteStackVModel = false">{{ $t('general.cancel') }}</a-button>
-      <a-button key="submit" type="primary" @click="handleDeleteStackConfirmClick">
+      <a-button key="back" v-e="['c:kanban:cancel-delete-stack']" @click="deleteStackVModel = false">
+        {{ $t('general.cancel') }}
+      </a-button>
+      <a-button key="submit" v-e="['c:kanban:confirm-delete-stack']" type="primary" @click="handleDeleteStackConfirmClick">
         {{ $t('general.delete') }}
       </a-button>
     </template>

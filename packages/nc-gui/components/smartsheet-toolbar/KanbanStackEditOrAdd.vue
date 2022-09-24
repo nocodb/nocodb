@@ -29,7 +29,7 @@ provide(IsKanbanInj, ref(true))
   >
     <div class="nc-kanban-btn">
       <a-button
-        v-e="['c:kanban-stack-edit-or-add']"
+        v-e="['c:kanban:edit-or-add-stack']"
         class="nc-kanban-add-edit-stack-menu-btn nc-toolbar-btn"
         :disabled="isLocked"
       >

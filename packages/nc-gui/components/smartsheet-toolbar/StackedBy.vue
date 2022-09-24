@@ -80,7 +80,11 @@ const handleChange = () => {
     overlay-class-name="nc-dropdown-kanban-stacked-by-menu"
   >
     <div class="nc-kanban-btn">
-      <a-button v-e="['c:stacked-by']" class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
+      <a-button
+        v-e="['c:kanban:change-grouping-field']"
+        class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn"
+        :disabled="isLocked"
+      >
         <div class="flex items-center gap-1">
           <mdi-arrow-down-drop-circle-outline />
           <span class="text-capitalize !text-sm font-weight-normal">

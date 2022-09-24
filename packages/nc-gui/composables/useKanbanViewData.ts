@@ -18,7 +18,7 @@ export function useKanbanViewData(
   const { t } = useI18n()
   const { api } = useApi()
   const { project } = useProject()
-  const { $api } = useNuxtApp()
+  const { $e, $api } = useNuxtApp()
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
   const { sharedView, fetchSharedViewData } = useSharedView()
   const { isUIAllowed } = useUIPermission()
@@ -363,6 +363,7 @@ export function useKanbanViewData(
       stackMetaObj.value[kanbanMetaData.value.grp_column_id!].splice(stackIdx, 1)
       groupingFieldColOptions.value.splice(stackIdx, 1)
       await updateKanbanStackMeta()
+      $e('a:kanban:delete-stack')
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

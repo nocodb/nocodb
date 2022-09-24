@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import { ReadonlyInj, inject, ref, useProject, watch } from '#imports'
 
 interface Props {
-  modelValue: string | null | undefined
+  modelValue?: string | null
 }
 
 const { modelValue } = defineProps<Props>()

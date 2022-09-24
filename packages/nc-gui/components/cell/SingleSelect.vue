@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionsType } from 'nocodb-sdk'
-import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject, ref, useEventListener, watch } from '#imports'
+import { ActiveCellInj, ColumnInj, IsKanbanInj, ReadonlyInj, computed, inject, ref, useEventListener, watch } from '#imports'
 
 interface Props {
   modelValue?: string | undefined
@@ -20,6 +20,8 @@ const active = inject(ActiveCellInj, ref(false))
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
+
+const isKanban = inject(IsKanbanInj, ref(false))
 
 const vModel = computed({
   get: () => modelValue,
@@ -80,7 +82,7 @@ watch(isOpen, (n, _o) => {
   >
     <a-select-option v-for="op of options" :key="op.title" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
-        <span class="text-slate-500">{{ op.title }}</span>
+        <span class="text-slate-500" :class="{ 'text-sm': isKanban }">{{ op.title }}</span>
       </a-tag>
     </a-select-option>
   </a-select>
@@ -88,8 +90,7 @@ watch(isOpen, (n, _o) => {
 
 <style scoped lang="scss">
 .rounded-tag {
-  padding: 0px 12px;
-  border-radius: 12px;
+  @apply py-0 px-[12px] rounded-[12px];
 }
 :deep(.ant-tag) {
   @apply "rounded-tag";

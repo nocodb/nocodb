@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
+import DataSources from './DataSources.vue'
 import { resolveComponent, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
 import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
@@ -91,6 +92,10 @@ const tabsInfo: TabGroup = {
     title: t('title.projMeta'),
     icon: MultipleTableIcon,
     subTabs: {
+      dataSources: {
+        title: 'Data Sources',
+        body: DataSources,
+      },
       metaData: {
         // Metadata
         title: t('title.metadata'),

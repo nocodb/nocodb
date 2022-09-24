@@ -30,7 +30,7 @@ const { addTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
-const { tables, loadTables, isSharedBase } = useProject()
+const { bases, tables, loadTables, isSharedBase } = useProject()
 
 const { activeTab } = useTabs()
 
@@ -198,7 +198,8 @@ function openAirtableImportDialog() {
   }
 }
 
-function openTableCreateDialog() {
+function openTableCreateDialog(baseId?: string) {
+  if (!baseId) return
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
@@ -206,6 +207,7 @@ function openTableCreateDialog() {
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
+    'baseId': baseId,
   })
 
   function closeDialog() {
@@ -282,7 +284,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           <div
             v-if="isUIAllowed('table-create')"
             class="group flex items-center gap-2 pl-5 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
-            @click="openTableCreateDialog"
+            @click="openTableCreateDialog(bases[0].id)"
           >
             <MdiPlus />
 
@@ -353,72 +355,242 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
           <div v-if="tables.length" class="transition-height duration-200 overflow-hidden">
             <div :key="key" ref="menuRef" class="border-none sortable-list">
-              <div
-                v-for="table of tables"
-                :key="table.id"
-                v-e="['a:table:open']"
-                :class="[
-                  { hidden: !filteredTables?.includes(table), active: activeTable === table.title },
-                  `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
-                ]"
-                class="nc-tree-item text-sm cursor-pointer group"
-                :data-order="table.order"
-                :data-id="table.id"
-                :data-testid="`tree-view-table-${table.title}`"
-                @click="addTableTab(table)"
-              >
-                <GeneralTooltip class="pl-5 pr-3 py-2" modifier-key="Alt">
-                  <template #title>{{ table.table_name }}</template>
+              <div v-for="[index, base] of Object.entries(bases)" :key="`${base.id}-index`">
+                <div v-if="index === '0'">
+                  <div
+                    v-for="table of tables.filter((table) => table.base_id === base.id)"
+                    :key="table.id"
+                    v-e="['a:table:open']"
+                    :class="[
+                      { hidden: !filteredTables?.includes(table), active: activeTable === table.title },
+                      `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
+                    ]"
+                    class="nc-tree-item text-sm cursor-pointer group"
+                    :data-order="table.order"
+                    :data-id="table.id"
+                    :data-testid="`tree-view-table-${table.title}`"
+                    @click="addTableTab(table)"
+                  >
+                    <GeneralTooltip class="pl-5 pr-3 py-2" modifier-key="Alt">
+                      <template #title>{{ table.table_name }}</template>
+                      <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+                        <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
+                          <MdiDragVertical
+                            v-if="isUIAllowed('treeview-drag-n-drop')"
+                            :class="`nc-child-draggable-icon-${table.title}`"
+                            class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
+                            @click.stop.prevent
+                          />
 
-                  <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
-                    <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-                      <MdiDragVertical
-                        v-if="isUIAllowed('treeview-drag-n-drop')"
-                        :class="`nc-child-draggable-icon-${table.title}`"
-                        class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
-                        @click.stop.prevent
-                      />
+                          <component
+                            :is="icon(table)"
+                            class="nc-view-icon text-xs"
+                            :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                          />
+                        </div>
 
-                      <component
-                        :is="icon(table)"
-                        class="nc-view-icon text-xs"
-                        :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
-                      />
-                    </div>
+                        <div class="nc-tbl-title flex-1">
+                          <GeneralTruncateText>{{ table.title }}</GeneralTruncateText>
+                        </div>
 
-                    <div class="nc-tbl-title flex-1">
-                      <GeneralTruncateText>{{ table.title }}</GeneralTruncateText>
-                    </div>
+                        <a-dropdown
+                          v-if="!isSharedBase && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
+                          :trigger="['click']"
+                          @click.stop
+                        >
+                          <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100" />
 
-                    <a-dropdown
-                      v-if="!isSharedBase && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
-                      :trigger="['click']"
-                      @click.stop
-                    >
-                      <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100" />
+                          <template #overlay>
+                            <a-menu class="!py-0 rounded text-sm">
+                              <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table)">
+                                <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
+                                  {{ $t('general.rename') }}
+                                </div>
+                              </a-menu-item>
 
-                      <template #overlay>
-                        <a-menu class="!py-0 rounded text-sm">
-                          <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table)">
-                            <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
-                              {{ $t('general.rename') }}
-                            </div>
-                          </a-menu-item>
-
-                          <a-menu-item
-                            v-if="isUIAllowed('table-delete')"
-                            :data-testid="`sidebar-table-delete-${table.title}`"
-                            @click="deleteTable(table)"
-                          >
-                            <div class="nc-project-menu-item">
-                              {{ $t('general.delete') }}
-                            </div>
-                          </a-menu-item>
-                        </a-menu>
-                      </template>
-                    </a-dropdown>
+                              <a-menu-item
+                                v-if="isUIAllowed('table-delete')"
+                                :data-testid="`sidebar-table-delete-${table.title}`"
+                                @click="deleteTable(table)"
+                              >
+                                <div class="nc-project-menu-item">
+                                  {{ $t('general.delete') }}
+                                </div>
+                              </a-menu-item>
+                            </a-menu>
+                          </template>
+                        </a-dropdown>
+                      </div>
+                    </GeneralTooltip>
                   </div>
-                </GeneralTooltip>
+                </div>
+                <a-collapse v-else expand-icon-position="right" :bordered="false" ghost>
+                  <a-collapse-panel :key="index">
+                    <template #header>
+                      <div v-if="index !== '0'" class="flex items-center gap-2">
+                        <MdiDatabaseOutline />
+                        {{ base.alias || '' }}
+                        ({{ base.type || '' }})
+                      </div>
+                    </template>
+                    <div
+                      v-if="isUIAllowed('table-create')"
+                      class="group flex items-center gap-2 pl-5 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+                      @click="openTableCreateDialog(base.id)"
+                    >
+                      <MdiPlus />
+
+                      <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{
+                        $t('tooltip.addTable')
+                      }}</span>
+
+                      <a-dropdown
+                        v-if="!isSharedBase"
+                        :trigger="['click']"
+                        overlay-class-name="nc-dropdown-import-menu"
+                        @click.stop
+                      >
+                        <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu" />
+
+                        <template #overlay>
+                          <a-menu class="!py-0 rounded text-sm">
+                            <!--                  Quick Import From -->
+                            <a-menu-item-group :title="$t('title.quickImportFrom')" class="!px-0 !mx-0">
+                              <a-menu-item
+                                v-if="isUIAllowed('airtableImport')"
+                                key="quick-import-airtable"
+                                @click="openAirtableImportDialog"
+                              >
+                                <div class="color-transition nc-project-menu-item group">
+                                  <MdiTableLarge class="group-hover:text-accent" />
+                                  Airtable
+                                </div>
+                              </a-menu-item>
+
+                              <a-menu-item
+                                v-if="isUIAllowed('csvImport')"
+                                key="quick-import-csv"
+                                @click="openQuickImportDialog('csv')"
+                              >
+                                <div class="color-transition nc-project-menu-item group">
+                                  <MdiFileDocumentOutline class="group-hover:text-accent" />
+                                  CSV file
+                                </div>
+                              </a-menu-item>
+
+                              <a-menu-item
+                                v-if="isUIAllowed('jsonImport')"
+                                key="quick-import-json"
+                                @click="openQuickImportDialog('json')"
+                              >
+                                <div class="color-transition nc-project-menu-item group">
+                                  <MdiCodeJson class="group-hover:text-accent" />
+                                  JSON file
+                                </div>
+                              </a-menu-item>
+
+                              <a-menu-item
+                                v-if="isUIAllowed('excelImport')"
+                                key="quick-import-excel"
+                                @click="openQuickImportDialog('excel')"
+                              >
+                                <div class="color-transition nc-project-menu-item group">
+                                  <MdiFileExcel class="group-hover:text-accent" />
+                                  Microsoft Excel
+                                </div>
+                              </a-menu-item>
+                            </a-menu-item-group>
+
+                            <a-menu-divider class="my-0" />
+
+                            <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
+                              <a
+                                v-e="['e:datasource:import-request']"
+                                href="https://github.com/nocodb/nocodb/issues/2052"
+                                target="_blank"
+                                class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
+                              >
+                                <MdiOpenInNew class="group-hover:text-accent" />
+                                <!-- Request a data source you need? -->
+                                {{ $t('labels.requestDataSource') }}
+                              </a>
+                            </a-menu-item>
+                          </a-menu>
+                        </template>
+                      </a-dropdown>
+                    </div>
+                    <div
+                      v-for="table of tables.filter((table) => table.base_id === base.id)"
+                      :key="table.id"
+                      v-e="['a:table:open']"
+                      :class="[
+                        { hidden: !filteredTables?.includes(table), active: activeTable === table.title },
+                        `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
+                      ]"
+                      class="nc-tree-item text-sm cursor-pointer group"
+                      :data-order="table.order"
+                      :data-id="table.id"
+                      :data-testid="`tree-view-table-${table.title}`"
+                      @click="addTableTab(table)"
+                    >
+                      <GeneralTooltip wrapper-class="pl-5 pr-3 py-2" modifier-key="Alt">
+                        <template #title>{{ table.table_name }}</template>
+                        <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+                          <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
+                            <MdiDragVertical
+                              v-if="isUIAllowed('treeview-drag-n-drop')"
+                              :class="`nc-child-draggable-icon-${table.title}`"
+                              class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
+                              @click.stop.prevent
+                            />
+
+                            <component
+                              :is="icon(table)"
+                              class="nc-view-icon text-xs"
+                              :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                            />
+                          </div>
+
+                          <div class="nc-tbl-title flex-1">
+                            <GeneralTruncateText>{{ table.title }}</GeneralTruncateText>
+                          </div>
+
+                          <a-dropdown
+                            v-if="!isSharedBase && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
+                            :trigger="['click']"
+                            @click.stop
+                          >
+                            <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
+
+                            <template #overlay>
+                              <a-menu class="!py-0 rounded text-sm">
+                                <a-menu-item
+                                  v-if="isUIAllowed('table-rename')"
+                                  :data-testid="`sidebar-table-rename-${table.title}`"
+                                  @click="openRenameTableDialog(table)"
+                                >
+                                  <div class="nc-project-menu-item">
+                                    {{ $t('general.rename') }}
+                                  </div>
+                                </a-menu-item>
+
+                                <a-menu-item
+                                  v-if="isUIAllowed('table-delete')"
+                                  :data-testid="`sidebar-table-delete-${table.title}`"
+                                  @click="deleteTable(table)"
+                                >
+                                  <div class="nc-project-menu-item">
+                                    {{ $t('general.delete') }}
+                                  </div>
+                                </a-menu-item>
+                              </a-menu>
+                            </template>
+                          </a-dropdown>
+                        </div>
+                      </GeneralTooltip>
+                    </div>
+                  </a-collapse-panel>
+                </a-collapse>
               </div>
             </div>
           </div>
@@ -575,5 +747,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 :deep(.ant-dropdown-menu-title-content) {
   @apply !p-0;
+}
+
+:deep(.ant-collapse-content-box) {
+  @apply !p-0;
+}
+
+:deep(.ant-collapse-header) {
+  @apply !border-0 !border-y-1;
 }
 </style>

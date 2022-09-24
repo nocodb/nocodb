@@ -16,7 +16,7 @@ import {
 } from '#imports'
 import { TabType } from '~/lib'
 
-export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
+export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?: string) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
@@ -34,7 +34,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
   const { closeTab } = useTabs()
   const { sqlUis, project, tables } = useProject()
 
-  const sqlUi = ref(sqlUis.value[0])
+  const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
 
   const createTable = async () => {
     if (!sqlUi?.value) return
@@ -49,7 +49,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
     })
 
     try {
-      const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
+      const tableMeta = await $api.base.tableCreate(project?.value?.id as string, baseId as string, {
         ...table,
         columns,
       })

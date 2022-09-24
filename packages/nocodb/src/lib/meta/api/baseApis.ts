@@ -126,14 +126,14 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
       return t;
     });
 
-  // TODO add base prefix
-  /* filter based on prefix 
-  if (project?.prefix) {
+
+  /* filter based on prefix */
+  if (base.is_meta && project?.prefix) {
     tables = tables.filter((t) => {
       return t?.tn?.startsWith(project?.prefix);
     });
   }
-  */
+  
 
   info.tablesCount = tables.length;
 
@@ -297,7 +297,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
     });
 
   /* filter based on prefix */
-  if (project?.prefix) {
+  if (base.is_meta && project?.prefix) {
     views = tables.filter((t) => {
       return t?.tn?.startsWith(project?.prefix);
     });

@@ -24,8 +24,11 @@ until(tables)
 </script>
 
 <template>
-  <div v-if="loading" class="flex items-center justify-center h-full w-full">
-    <a-spin size="large" />
+  <div class="w-full h-full">
+    <div v-if="loading" class="flex items-center justify-center h-full w-full">
+      <a-spin size="large" />
+    </div>
+
+    <LazyTabsSmartsheet v-else :key="route.params.title" :active-tab="activeTab" />
   </div>
-  <LazyTabsSmartsheet v-else :key="route.params.title" :active-tab="activeTab" />
 </template>

@@ -25,7 +25,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     // getters
     const isLocked = computed(() => view.value?.lock_type === 'locked')
-    const isPkAvail = computed(() => meta.value?.columns?.some((c) => c.pk))
+    const isPkAvail = computed(() => (meta.value as TableType)?.columns?.some((c) => c.pk))
     const isGrid = computed(() => view.value?.type === ViewTypes.GRID)
     const isForm = computed(() => view.value?.type === ViewTypes.FORM)
     const isGallery = computed(() => view.value?.type === ViewTypes.GALLERY)
@@ -33,7 +33,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isSharedForm = computed(() => isForm.value && shared)
     const xWhere = computed(() => {
       let where
-      const col = meta.value?.columns?.find(({ id }) => id === search.field) || meta.value?.columns?.find((v) => v.pv)
+      const col =
+        (meta.value as TableType)?.columns?.find(({ id }) => id === search.field) ||
+        (meta.value as TableType)?.columns?.find((v) => v.pv)
       if (!col) return
 
       if (!search.query.trim()) return
@@ -45,7 +47,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       return where
     })
 
-    const isSqlView = computed(() => meta.value?.type === 'view')
+    const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
     const sorts = initalSorts ?? ref<SortType[]>([])
     const nestedFilters: Ref<FilterType[]> = initialFilters ?? ref<FilterType[]>([])

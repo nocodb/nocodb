@@ -14,8 +14,8 @@ const rolePermissions = {
   /** todo: enable wildcard permission
    *  limited permission  due to unexpected behaviour in shared base if opened in same window  */
   [Role.Super]: '*',
-  [Role.Admin]: {},
-  [Role.Guest]: {},
+  [Role.Admin]: {} as Record<string, boolean>,
+  [Role.Guest]: {} as Record<string, boolean>,
   [Role.User]: {
     include: {
       projectCreate: true,

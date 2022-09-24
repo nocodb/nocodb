@@ -1,7 +1,9 @@
 <script lang="ts" setup>
-import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute } from '#imports'
+import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
 
 const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
+
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 

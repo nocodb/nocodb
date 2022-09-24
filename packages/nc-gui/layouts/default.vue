@@ -6,7 +6,7 @@ const route = useRoute()
 
 const { te, t } = useI18n()
 
-const { hasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: false })
+const { hasSidebar } = useSidebar('nc-left-sidebar')
 
 useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)} | NocoDB` : 'NocoDB')
 </script>

@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import Project from '../../models/Project';
-import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
+import { BaseListType, ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
-import syncMigration from '../helpers/syncMigration';
+import { syncBaseMigration } from '../helpers/syncMigration';
 import { IGNORE_TABLES } from '../../utils/common/BaseApiBuilder';
 import Column from '../../models/Column';
 import Model from '../../models/Model';
@@ -39,18 +39,19 @@ export async function baseUpdate(
 
 export async function baseList(
   req: Request<any, any, any>,
-  res: Response<ProjectListType>,
+  res: Response<BaseListType>,
   next
 ) {
   try {
-    const projects = await Project.list(req.query);
+    const bases = await Base.list({ projectId: req.params.projectId });
 
     res // todo: pagination
-      .json(
-        new PagedResponseImpl(projects, {
-          count: projects.length,
-          limit: projects.length,
-        })
+      .json({
+          bases: new PagedResponseImpl(bases, {
+            count: bases.length,
+            limit: bases.length,
+          })
+        }
       );
   } catch (e) {
     console.log(e);
@@ -71,9 +72,14 @@ export async function baseDelete(
 async function baseCreate(req: Request<any, any>, res) {
   // type | base | projectId
   const baseBody = req.body;
-  const base = await Base.createBase(baseBody);
-  const project = await base.getProject();
-  await syncMigration(project);
+  const project = await Project.getWithInfo(req.params.projectId);
+  const base = await Base.createBase({
+    ...baseBody,
+    type: baseBody.config?.client,
+    projectId: project.id,
+  });
+
+  await syncBaseMigration(project, base);
 
   const info = await populateMeta(base, project);
   
@@ -120,12 +126,14 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
       return t;
     });
 
-  /* filter based on prefix */
+  // TODO add base prefix
+  /* filter based on prefix 
   if (project?.prefix) {
     tables = tables.filter((t) => {
       return t?.tn?.startsWith(project?.prefix);
     });
   }
+  */
 
   info.tablesCount = tables.length;
 

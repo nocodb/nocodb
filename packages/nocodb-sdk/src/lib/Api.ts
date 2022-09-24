@@ -2010,6 +2010,46 @@ export class Api<
         format: 'json',
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name MetaDiffSync
+     * @request POST:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
+     * @response `200` `any` OK
+     */
+    metaDiffSync: (
+      projectId: string,
+      baseId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
+     * @name MetaDiffGet
+     * @request GET:/api/v1/db/meta/projects/{projectId}/meta-diff/{baseId}
+     * @response `200` `any` OK
+     */
+    metaDiffGet: (
+      projectId: string,
+      baseId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/meta-diff/${baseId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
   };
   dbTable = {
     /**

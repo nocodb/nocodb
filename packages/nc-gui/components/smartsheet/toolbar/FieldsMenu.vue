@@ -13,6 +13,7 @@ import {
   computed,
   inject,
   ref,
+  resolveComponent,
   useNuxtApp,
   useViewColumns,
   watch,
@@ -110,7 +111,7 @@ const coverOptions = computed<SelectProps['options']>(() => {
 })
 
 const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? () => import('../header/VirtualCellIcon.vue') : () => import('../header/CellIcon.vue'), {
+  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: c,
   })
 </script>

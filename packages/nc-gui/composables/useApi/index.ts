@@ -126,9 +126,9 @@ export function useApi<Data = any, RequestConfig = any>({
 
       return Promise.resolve(apiResponse)
     },
-    (apiError) => {
+    async (apiError) => {
       errorHook.trigger(apiError)
-      error.value = apiError
+      error.value = await extractSdkResponseErrorMsg(apiError)
 
       onRequestFinish()
 

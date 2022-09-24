@@ -6,51 +6,71 @@ export const SYSTEM_COLUMNS = ['id', 'title', 'created_at', 'updated_at']
 
 export const BASE_URL = process.env.NC_BACKEND_URL || (process.env.NODE_ENV === 'production' ? '..' : 'http://localhost:8080')
 
+/**
+ * Each permission value means the following
+ * `*` - which is wildcard, means all permissions are allowed
+ *  `include` - which is an object, means only the permissions listed in the object are allowed
+ *  `exclude` - which is an object, means all permissions are allowed except the ones listed in the object
+ *  `undefined` or `{}` - which is the default value, means no permissions are allowed
+ * */
 export const rolePermissions = {
   // general role permissions
-  /** todo: enable wildcard permission
-   *  limited permission  due to unexpected behaviour in shared base if opened in same window  */
-  [Role.Super]: {
-    projectTheme: true,
-  },
-  [Role.Admin]: {},
-  [Role.Guest]: {},
+
+  [Role.Super]: '*',
+  [Role.Admin]: {} as Record<string, boolean>,
+  [Role.Guest]: {} as Record<string, boolean>,
   [Role.User]: {
-    projectCreate: true,
-    projectActions: true,
-    projectSettings: true,
+    include: {
+      projectCreate: true,
+      projectActions: true,
+      projectSettings: true,
+    },
   },
 
   // Project role permissions
-  [ProjectRole.Creator]: '*',
-  [ProjectRole.Owner]: '*',
+  [ProjectRole.Creator]: {
+    exclude: {
+      appStore: true,
+    },
+  },
+  [ProjectRole.Owner]: {
+    exclude: {
+      appStore: true,
+    },
+  },
   [ProjectRole.Editor]: {
-    smartSheet: true,
-    xcDatatableEditable: true,
-    column: true,
-    tableAttachment: true,
-    tableRowUpdate: true,
-    dataInsert: true,
-    rowComments: true,
-    gridViewOptions: true,
-    sortSync: true,
-    fieldsSync: true,
-    gridColUpdate: true,
-    filterSync: true,
-    csvImport: true,
-    apiDocs: true,
-    projectSettings: true,
-    newUser: false,
+    include: {
+      smartSheet: true,
+      xcDatatableEditable: true,
+      column: true,
+      tableAttachment: true,
+      tableRowUpdate: true,
+      dataInsert: true,
+      rowComments: true,
+      gridViewOptions: true,
+      sortSync: true,
+      fieldsSync: true,
+      gridColUpdate: true,
+      filterSync: true,
+      csvImport: true,
+      apiDocs: true,
+      projectSettings: true,
+      newUser: false,
+    },
   },
   [ProjectRole.Commenter]: {
-    smartSheet: true,
-    column: true,
-    rowComments: true,
-    projectSettings: true,
+    include: {
+      smartSheet: true,
+      column: true,
+      rowComments: true,
+      projectSettings: true,
+    },
   },
   [ProjectRole.Viewer]: {
-    smartSheet: true,
-    column: true,
-    projectSettings: true,
+    include: {
+      smartSheet: true,
+      column: true,
+      projectSettings: true,
+    },
   },
 } as const

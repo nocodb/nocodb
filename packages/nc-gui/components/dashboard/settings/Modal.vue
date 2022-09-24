@@ -77,20 +77,24 @@ const tabsInfo: TabGroup = {
       $e('c:settings:team-auth')
     },
   },
-  appStore: {
-    // App Store
-    title: t('title.appStore'),
-    icon: StoreFrontOutline,
-    subTabs: {
-      new: {
-        title: 'Apps',
-        body: AppStore,
-      },
-    },
-    onClick: () => {
-      $e('c:settings:appstore')
-    },
-  },
+  ...(isUIAllowed('appStore')
+    ? {
+        appStore: {
+          // App Store
+          title: t('title.appStore'),
+          icon: StoreFrontOutline,
+          subTabs: {
+            new: {
+              title: 'Apps',
+              body: AppStore,
+            },
+          },
+          onClick: () => {
+            $e('c:settings:appstore')
+          },
+        },
+      }
+    : {}),
   projMetaData: {
     // Project Metadata
     title: t('title.projMeta'),

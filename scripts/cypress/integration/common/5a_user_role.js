@@ -184,13 +184,17 @@ export const genTest = (apiType, dbType) => {
       it(`[${roles[roleType].name}] Left navigation menu, New User add`, () => {
         // project configuration settings
         //
-        _advSettings(roleType, "userRole");
+        if (roleType !== "owner") {
+          _advSettings(roleType, "userRole");
+        }
       });
 
       it(`[${roles[roleType].name}] Access control`, () => {
         // Access control validation
         //
-        _accessControl(roleType, "userRole");
+        if (roleType !== "owner") {
+          _accessControl(roleType, "userRole");
+        }
       });
 
       it(`[${roles[roleType].name}] Schema: create table, add/modify/delete column`, () => {
@@ -198,14 +202,18 @@ export const genTest = (apiType, dbType) => {
         //  - Add/delete table
         //  - Add/Update/delete column
         //
-        _editSchema(roleType, "userRole");
+        if (roleType !== "owner") {
+          _editSchema(roleType, "userRole");
+        }
       });
 
       it(`[${roles[roleType].name}] Data: add/modify/delete row, update cell contents`, () => {
         // Table data related validations
         //  - Add/delete/modify row
         //
-        _editData(roleType, "userRole");
+        if (roleType !== "owner") {
+          _editData(roleType, "userRole");
+        }
       });
 
       it(`[${roles[roleType].name}] Comments: view/add`, () => {
@@ -213,19 +221,27 @@ export const genTest = (apiType, dbType) => {
         //      Viewer: only allowed to read
         //      Everyone else: read &/ update
         //
-        _editComment(roleType, "userRole");
+        if (roleType !== "owner") {
+          _editComment(roleType, "userRole");
+        }
       });
 
       it(`[${roles[roleType].name}] Right navigation menu, share view`, () => {
         // right navigation menu bar
         //      Editor/Viewer/Commenter : can only view 'existing' views
         //      Rest: can create/edit
-        _viewMenu(roleType, "userRole");
+        if (roleType !== "owner") {
+          _viewMenu(roleType, "userRole");
+        }
       });
 
       it(`[${roles[roleType].name}] Download files`, () => {
         // to be fixed
-        if (roleType === "commenter" || roleType === "viewer") {
+        if (
+          roleType === "commenter" ||
+          roleType === "viewer" ||
+          roleType === "owner"
+        ) {
         } else {
           // viewer & commenter doesn't contain hideField option in ncv2
           // #ID, City, LastUpdate, City => Address, Country <= City, +
@@ -259,11 +275,17 @@ export const genTest = (apiType, dbType) => {
           mainPage.unhideField("LastUpdate");
         }
       });
+
+      it(`[${roles[roleType].name}] App store accessibility`, () => {
+        cy.visit("/#/apps").then(r =>{
+          cy.toastWait('You don\'t have enough permission to access the page.')
+        })
+      });
     });
   };
 
   // skip owner validation as rest of the cases pretty much cover the same
-  // roleValidation('owner')
+  // roleValidation("owner");
   roleValidation("creator");
   roleValidation("editor");
   roleValidation("commenter");

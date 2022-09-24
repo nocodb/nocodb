@@ -57,7 +57,11 @@ export default function (handlerFn, permissionName) {
           return (
             hasRole &&
             projectAcl[name] &&
-            (projectAcl[name] === '*' || projectAcl[name][permissionName])
+            (projectAcl[name] === '*' ||
+              (projectAcl[name].exclude &&
+                !projectAcl[name].exclude[permissionName]) ||
+              (projectAcl[name].include &&
+                projectAcl[name].include[permissionName]))
           );
         });
       if (!isAllowed) {

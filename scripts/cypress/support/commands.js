@@ -479,7 +479,7 @@ Cypress.Commands.add("signOut", () => {
   cy.get(".nc-menu-accounts", { timeout: 30000 }).should("exist").click();
   cy.getActiveMenu(".nc-dropdown-user-accounts-menu")
     .find(".ant-dropdown-menu-item")
-    .eq(1)
+    .last()
     .click();
 
   // cy.wait(5000);

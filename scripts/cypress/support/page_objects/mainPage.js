@@ -256,13 +256,21 @@ export class _mainPage {
       .trigger("mouseover", { force: true })
       .click({ force: true });
 
-    cy.wait(500);
+    // cy.wait(500);
+    // cy.get(".nc-column-delete").click();
+    cy.getActiveMenu(".nc-dropdown-column-operations")
+      .find(".nc-column-delete")
+      .click();
 
-    cy.get(".nc-column-delete").click();
-    cy.wait(500);
-    cy.get(".nc-column-delete").should("not.be.visible");
-    cy.get(".ant-btn-dangerous:visible").contains("Delete").click();
-    cy.wait(500);
+    // cy.wait(500);
+    // cy.get(".nc-column-delete").should("not.be.visible");
+    // cy.get(".ant-btn-dangerous:visible").contains("Delete").click();
+    // cy.wait(500);
+
+    cy.getActiveModal(".nc-modal-column-delete")
+      .find(".ant-btn-dangerous:visible")
+      .contains("Delete")
+      .click();
 
     cy.get(`th:contains(${colName})`).should("not.exist");
   };

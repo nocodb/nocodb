@@ -87,12 +87,12 @@ export const genTest = (apiType, dbType) => {
         sheetData = rows;
       });
 
-      cy.visit("/");
+      // cy.visit("/");
       projectsPage.createProject(
         { dbType: "none", apiType: "REST", name: "importSample" },
         {}
       );
-      cy.wait(4000);
+      // cy.wait(4000);
 
       cy.saveLocalStorage();
     });
@@ -122,6 +122,11 @@ export const genTest = (apiType, dbType) => {
     });
 
     it("File Upload: Verify pre-load template page", () => {
+      // http://localhost:8080/api/v1/db/meta/audits/comments/count?ids[]=1&ids[]=2&fk_model_id=md_fq1vxy2181bzp0
+      cy.intercept("/api/v1/db/meta/audits/comments/count*").as(
+        "waitForPageLoad"
+      );
+
       cy.getActiveModal()
         .find(".ant-collapse-item")
         .then((sheets) => {
@@ -171,7 +176,8 @@ export const genTest = (apiType, dbType) => {
       cy.getActiveModal().find(".ant-btn-primary").click();
 
       // wait for page to get loaded (issue observed in CI-CD)
-      cy.wait(5000);
+      // cy.wait(5000);
+      cy.wait("@waitForPageLoad");
     });
 
     it("File Upload: Verify loaded data", () => {

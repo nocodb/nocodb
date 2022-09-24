@@ -27,15 +27,12 @@ export const genTest = (apiType, dbType) => {
       // clean up newly added rows into Country table operations
       // this auto verifies successfull addition of rows to table as well
       mainPage.getPagination(5).click();
-      // kludge: flicker on load
-      cy.wait(3000);
 
       // wait for page rendering to complete
       cy.get(".nc-grid-row").should("have.length", 10);
-      // mainPage
-      //     .getRow(10)
-      //     .find(".mdi-checkbox-blank-outline")
-      //     .click({ force: true });
+
+      // kludge: flicker on load
+      // cy.wait(3000);
 
       mainPage.getCell("Country", 10).rightclick();
       cy.getActiveMenu(".nc-dropdown-grid-context-menu")
@@ -129,12 +126,7 @@ export const genTest = (apiType, dbType) => {
     it(`Filter column which contain only attachments, download CSV`, () => {
       // come back to main window
       loginPage.loginAndOpenProject(apiType, dbType);
-      // cy.visit('/')
-      // cy.wait(5000)
-      // projectsPage.openConfiguredProject(apiType, dbType);
-
       cy.openTableTab("Country", 25);
-      // cy.wait(1000);
 
       mainPage.filterField("testAttach", "is not null", null);
       mainPage.hideField("LastUpdate");

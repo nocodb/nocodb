@@ -173,7 +173,7 @@ Cypress.Commands.add("closeTableTab", (tn) => {
     .click();
 
   // subsequent tab open commands will fail if tab is not closed completely
-  cy.wait(1000);
+  cy.wait(100);
 });
 
 Cypress.Commands.add("openOrCreateGqlProject", (_args) => {
@@ -484,6 +484,13 @@ Cypress.Commands.add("signOut", () => {
 
   // cy.wait(5000);
   cy.get('button:contains("SIGN IN")').should("exist");
+});
+
+// Navigation
+//
+Cypress.Commands.add("gotoProjectsPage", () => {
+  cy.get(".nc-noco-brand-icon").should("exist").click();
+  cy.get(`.nc-project-page-title:contains("My Projects")`).should("exist");
 });
 
 // Drag n Drop

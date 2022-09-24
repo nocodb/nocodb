@@ -21,12 +21,15 @@ export const genTest = (apiType, dbType) => {
   const permissionValidation = (roleType) => {
     it(`${roleType}: Visit base shared URL`, () => {
       cy.log(linkText);
+      // http://localhost:8080/api/v1/db/meta/projects/p_4ufoizgrorwyey/tables?includeM2M=false
+      cy.intercept("/api/v1/db/meta/projects/**").as("waitForPageLoad");
 
       // visit URL & wait for page load to complete
       cy.visit(linkText, {
         baseUrl: null,
       });
-      cy.wait(5000);
+      cy.wait(["@waitForPageLoad"]);
+      // cy.wait(5000);
     });
 
     it(`${roleType}: Validate access permissions: advance menu`, () => {

@@ -3,7 +3,7 @@ import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadView
 
 const { sharedView, meta, sorts, nestedFilters } = useSharedView()
 
-const reloadEventHook = createEventHook<void>()
+const reloadEventHook = createEventHook()
 
 provide(ReloadViewDataHookInj, reloadEventHook)
 

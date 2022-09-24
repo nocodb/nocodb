@@ -55,11 +55,11 @@ export interface Row {
   }
 }
 
-type RolePermissions = Omit<typeof rolePermissions, 'creator' | 'owner' | 'guest' | 'admin'>
+type RolePermissions = Omit<typeof rolePermissions, 'guest' | 'admin' | 'super'>
 
-type GetKeys<T> = T extends Record<string, any> ? keyof T : never
+type GetKeys<T> = T extends Record<any, Record<infer Key, boolean>> ? Key : never
 
-export type Permission<K extends keyof RolePermissions = keyof RolePermissions> = RolePermissions[K] extends Record<string, any>
+export type Permission<K extends keyof RolePermissions = keyof RolePermissions> = RolePermissions[K] extends Record<any, any>
   ? GetKeys<RolePermissions[K]>
   : never
 

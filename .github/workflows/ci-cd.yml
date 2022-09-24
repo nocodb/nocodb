@@ -715,6 +715,34 @@ jobs:
               ${{ runner.os }}-build-${{ env.cache-name }}-
               ${{ runner.os }}-build-
               ${{ runner.os }}-
+        - name: Cache nocodb node modules
+          uses: actions/cache@v2
+          env:
+            cache-name: cache-nocodb-node-modules
+
+          with:
+            # npm cache files are stored in `~/.npm` on Linux/macOS
+            path: ./packages/nocodb/node_modules
+            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('packages/nocodb/package-lock.json') }}
+            restore-keys: |
+              ${{ runner.os }}-build-${{ env.cache-name }}-
+              ${{ runner.os }}-build-
+              ${{ runner.os }}-
+
+        - name: Cache nc-gui node modules
+          uses: actions/cache@v2
+          env:
+            cache-name: cache-nc-gui-node-modules
+
+          with:
+            # npm cache files are stored in `~/.npm` on Linux/macOS
+            path: ./packages/nocodb/node_modules
+            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('packages/nocodb/package-lock.json') }}
+            restore-keys: |
+              ${{ runner.os }}-build-${{ env.cache-name }}-
+              ${{ runner.os }}-build-
+              ${{ runner.os }}-
+
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run

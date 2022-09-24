@@ -1,4 +1,4 @@
-import type { DefineComponent, VNode } from '@vue/runtime-dom'
+import type { VNode } from '@vue/runtime-dom'
 import { isVNode, render } from '@vue/runtime-dom'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import { isClient } from '@vueuse/core'

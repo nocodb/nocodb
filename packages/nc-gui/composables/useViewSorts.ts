@@ -12,7 +12,6 @@ import {
   useSharedView,
   useSmartsheetStoreOrThrow,
   useUIPermission,
-  watch,
 } from '#imports'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {

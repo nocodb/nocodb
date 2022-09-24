@@ -104,7 +104,7 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
     })
   } else {
     expandedFormRow.value = row
-    expandedFormRowState.value = _state
+    expandedFormRowState.value = state
     expandedFormDlg.value = true
   }
 }

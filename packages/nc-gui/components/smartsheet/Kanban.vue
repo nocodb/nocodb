@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
-import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,

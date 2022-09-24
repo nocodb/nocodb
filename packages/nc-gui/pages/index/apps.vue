@@ -11,7 +11,7 @@ definePageMeta({
 
 <template>
   <div class="p-10 h-full overflow-auto">
-    <h1 class="text-3xl text-center mb-11">{{ $t('title.appStore') }}</h1>
+    <h1 class="text-3xl text-center mb-11 nc-app-store-title">{{ $t('title.appStore') }}</h1>
     <AppStore />
   </div>
 </template>

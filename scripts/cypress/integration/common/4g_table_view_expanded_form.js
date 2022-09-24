@@ -23,13 +23,18 @@ function verifyExpandFormHeader(title) {
 export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
+  let clear;
+
   describe(`${apiType.toUpperCase()} api - Table views: Expanded form`, () => {
     before(() => {
       cy.restoreLocalStorage();
 
       // open a table to work on views
       //
-      cy.openTableTab("Country", 25);
+      cy.openTableTab('Country', 25);
+
+      clear = Cypress.LocalStorage.clear;
+      Cypress.LocalStorage.clear = () => {}
     });
 
     beforeEach(() => {
@@ -44,6 +49,7 @@ export const genTest = (apiType, dbType) => {
       cy.restoreLocalStorage();
       cy.closeTableTab("Country");
       cy.saveLocalStorage();
+      Cypress.LocalStorage.clear = clear;
     });
 
     // Common routine to create/edit/delete GRID & GALLERY view
@@ -66,7 +72,8 @@ export const genTest = (apiType, dbType) => {
           .should("exist");
 
         if (viewType === "gallery") {
-          // cy.intercept('/api/v1/db/meta/galleries/*').as('getGalleryView');
+          // http://localhost:8080/api/v1/db/data/noco/p_4ufoizgrorwyey/md_g0zc9d40w8zpmy/views/vw_xauikhkm8r49fy?offset=0&limit=25
+          cy.intercept("/api/v1/db/data/noco/**").as("getGalleryViewData");
 
           // mainPage.unhideField("City List");
           cy.get(".nc-fields-menu-btn").click();
@@ -75,9 +82,8 @@ export const genTest = (apiType, dbType) => {
             .click();
           cy.get(".nc-fields-menu-btn").click();
 
+          cy.wait(["@getGalleryViewData"]);
           cy.get('.ant-card-body [title="City List"]').should("exist");
-          cy.wait(1000);
-          // cy.wait(['@getGalleryView'])
         }
       });
 

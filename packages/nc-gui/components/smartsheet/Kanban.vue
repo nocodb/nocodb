@@ -260,7 +260,7 @@ onMounted(async () => {
                         class="flex items-center cursor-pointer w-full"
                         :class="{ capitalize: stack.title === 'uncategorized' }"
                       >
-                        <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
+                        <LazyGeneralTruncateText>{{ stack.title }}</LazyGeneralTruncateText>
                         <span class="w-full flex w-[15px]">
                           <mdi-menu-down class="text-grey text-lg ml-auto" />
                         </span>
@@ -309,7 +309,7 @@ onMounted(async () => {
                     >
                       <template #item="{ element: record }">
                         <div class="nc-kanban-item py-2 px-[15px]">
-                          <SmartsheetRow :row="record">
+                          <LazySmartsheetRow :row="record">
                             <a-card
                               hoverable
                               :data-stack="stack.title"
@@ -328,8 +328,8 @@ onMounted(async () => {
                               >
                                 <div v-if="!isRowEmpty(record, col)" class="flex flex-row w-full justify-start pt-2">
                                   <div class="w-full text-gray-600">
-                                    <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-                                    <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+                                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
                                   </div>
                                 </div>
                                 <div
@@ -337,13 +337,13 @@ onMounted(async () => {
                                   class="flex flex-row w-full items-center justify-start"
                                   :class="{ 'pt-2 pl-2': col.uidt !== UITypes.SingleSelect }"
                                 >
-                                  <SmartsheetVirtualCell
+                                  <LazySmartsheetVirtualCell
                                     v-if="isVirtualCol(col)"
                                     v-model="record.row[col.title]"
                                     :column="col"
                                     :row="record"
                                   />
-                                  <SmartsheetCell
+                                  <LazySmartsheetCell
                                     v-else
                                     v-model="record.row[col.title]"
                                     :column="col"
@@ -353,7 +353,7 @@ onMounted(async () => {
                                 </div>
                               </div>
                             </a-card>
-                          </SmartsheetRow>
+                          </LazySmartsheetRow>
                         </div>
                       </template>
                     </Draggable>
@@ -387,7 +387,7 @@ onMounted(async () => {
                 <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="!w-[150px] pl-5" :paragraph="false" />
                 <div v-else class="nc-kanban-data-count mt-[7px] mx-[10px]">
                   <div class="float-right flex gap-2 items-center cursor-pointer font-bold">
-                    <GeneralTruncateText>{{ stack.title }}</GeneralTruncateText>
+                    <LazyGeneralTruncateText>{{ stack.title }}</LazyGeneralTruncateText>
                     <mdi-menu-down class="text-grey text-lg" />
                   </div>
                   {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
@@ -401,7 +401,7 @@ onMounted(async () => {
     </div>
   </div>
   <div class="flex-1" />
-  <SmartsheetExpandedForm
+  <LazySmartsheetExpandedForm
     v-if="expandedFormRow && expandedFormDlg"
     v-model="expandedFormDlg"
     :row="expandedFormRow"
@@ -409,7 +409,7 @@ onMounted(async () => {
     :meta="meta"
     @cancel="removeRowFromUncategorizedStack"
   />
-  <SmartsheetExpandedForm
+  <LazySmartsheetExpandedForm
     v-if="expandedFormOnRowIdDlg"
     :key="route.query.rowId"
     v-model="expandedFormOnRowIdDlg"

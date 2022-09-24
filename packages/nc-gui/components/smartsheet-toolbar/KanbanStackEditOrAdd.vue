@@ -34,7 +34,7 @@ provide(IsKanbanInj, ref(true))
         :disabled="isLocked"
       >
         <div class="flex items-center gap-1">
-          <mdi-plus-circle-outline />
+          <MdiPlusCircleOutline />
           <span class="text-capitalize !text-sm font-weight-normal">
             {{ $t('activity.kanban.addOrEditStack') }}
           </span>
@@ -43,7 +43,7 @@ provide(IsKanbanInj, ref(true))
       </a-button>
     </div>
     <template #overlay>
-      <SmartsheetColumnEditOrAddProvider
+      <LazySmartsheetColumnEditOrAddProvider
         v-if="addOrEditStackDropdown"
         :column="groupingFieldColumn"
         @submit="handleSubmit"

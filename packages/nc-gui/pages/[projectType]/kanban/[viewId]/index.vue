@@ -27,8 +27,8 @@ try {
 <template>
   <NuxtLayout id="content" class="flex" name="shared-view">
     <div v-if="showPassword">
-      <SharedViewAskPassword v-model="showPassword" />
+      <LazySharedViewAskPassword v-model="showPassword" />
     </div>
-    <SharedViewKanban v-else />
+    <LazySharedViewKanban v-else />
   </NuxtLayout>
 </template>

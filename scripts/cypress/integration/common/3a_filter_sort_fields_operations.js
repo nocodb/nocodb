@@ -47,7 +47,7 @@ export const genTest = (apiType, dbType) => {
     //
     it("Add row using tool header button", () => {
       // http://localhost:8080/api/v1/db/meta/audits/comments/count?ids[]=101&ids[]=102&ids[]=103&ids[]=104&ids[]=105&ids[]=106&ids[]=107&ids[]=108&ids[]=109&fk_model_id=md_zfkb9v3mzky958
-      cy.intercept("/api/v1/db/meta/audits/comments/count").as(
+      cy.intercept("/api/v1/db/meta/audits/comments/count*").as(
         "waitForPageLoad"
       );
 

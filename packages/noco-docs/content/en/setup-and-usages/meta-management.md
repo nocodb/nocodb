@@ -69,9 +69,14 @@ Go to `Project Metadata`, under ``ERD View``, you can see the ERD of your databa
 
 <img width="1419" alt="image" src="https://user-images.githubusercontent.com/35809690/191258324-18bd4ed0-521b-4480-a3f6-fe4660b8ddd5.png">
 
+### Junction table names within ERD
+
+- Enable `Show M2M Tables` within Miscellaneous tab
+- Double click on `Show Columns` to see additional checkboxes get enabled.
+  - Enabling which you should be able to see junction tables and their table names.
 
 ## Miscellaneous
+- Enabling, `Show M2M Tables` will show junction tables between many to many tables.
 
-Currently only `Show M2M Tables` can be configurated under Miscellaneous.
 
 <img width="1409" alt="image" src="https://user-images.githubusercontent.com/35809690/191258441-72a12941-2d2b-4a0d-84b8-f7f8783aa4e8.png">

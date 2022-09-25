@@ -92,7 +92,6 @@ export const genTest = (apiType, dbType) => {
         { dbType: "none", apiType: "REST", name: "importSample" },
         {}
       );
-      // cy.wait(4000);
 
       cy.saveLocalStorage();
     });
@@ -176,7 +175,6 @@ export const genTest = (apiType, dbType) => {
       cy.getActiveModal().find(".ant-btn-primary").click();
 
       // wait for page to get loaded (issue observed in CI-CD)
-      // cy.wait(5000);
       cy.wait("@waitForPageLoad");
     });
 

@@ -53,7 +53,6 @@ export const genTest = (apiType, dbType) => {
       //
       cy.get("thead > tr > th.ant-table-cell").should("have.length", 5);
 
-      // cy.wait(1000);
       cy.wait("@waitForPageLoad");
 
       // Audit table entries

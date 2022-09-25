@@ -78,11 +78,8 @@ export class _loginPage {
     //     projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
     // }
     //
-    // // kludge: wait for page load to finish
-    // cy.wait(2000);
     // // close team & auth tab
     // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-    // cy.wait(1000);
   }
 }
 
@@ -108,14 +105,11 @@ export class _projectsPage {
       projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
     }
 
-    // kludge: wait for page load to finish
-    // cy.wait(4000);
     cy.wait("@waitForPageLoad");
 
     // close team & auth tab
     cy.get("button.ant-tabs-tab-remove").should("exist").click();
     cy.get("button.ant-tabs-tab-remove").should("not.exist");
-    // cy.wait(1000);
   }
 
   // Open existing project
@@ -212,7 +206,6 @@ export class _projectsPage {
       // Create project
       cy.contains("Ok & Save Project", { timeout: 20000 }).click();
 
-      // cy.wait(5000);
       // takes a while to load project
       this.waitHomePageLoad();
 

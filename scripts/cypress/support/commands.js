@@ -47,16 +47,12 @@ Cypress.Commands.add("signinOrSignup", (_args) => {
     _args
   );
 
-  cy.wait(1000);
-
   // signin/signup
   cy.get("body").then(($body) => {
-    // cy.wait(1000)
     cy.url().then((url) => {
       if (!url.includes("/projects")) {
         // handle initial load
         if ($body.find(".welcome-page").length > 0) {
-          cy.wait(8000);
           cy.get("body").trigger("mousemove");
           cy.snip("LetsBegin");
           cy.contains("Let's Begin").click();
@@ -421,7 +417,6 @@ Cypress.Commands.add("snip", (filename) => {
   ) {
     let storeName = `${screenShotDb.length}_${filename}`;
     screenShotDb.push(filename);
-    // cy.wait(1000);
     cy.screenshot(storeName, { overwrite: true });
   }
 });
@@ -434,7 +429,6 @@ Cypress.Commands.add("snipActiveModal", (filename) => {
   ) {
     let storeName = `${screenShotDb.length}_${filename}`;
     screenShotDb.push(filename);
-    // cy.wait(1000);
     // cy.getActiveModal().screenshot(filename, {
     //     padding: 0,
     //     overwrite: true,
@@ -451,7 +445,6 @@ Cypress.Commands.add("snipActiveMenu", (filename) => {
   ) {
     let storeName = `${screenShotDb.length}_${filename}`;
     screenShotDb.push(filename);
-    // cy.wait(1000);
     // cy.getActiveMenu().screenshot(filename, {
     //     padding: 0,
     //     overwrite: true,
@@ -477,7 +470,6 @@ Cypress.Commands.add("signOut", () => {
     .last()
     .click();
 
-  // cy.wait(5000);
   cy.get('button:contains("SIGN IN")').should("exist");
 });
 

@@ -128,7 +128,6 @@ export class _mainPage {
     cy.getActiveModal(".nc-modal-invite-user-and-share-base")
       .find('input[placeholder="E-mail"]')
       .should("exist");
-    // cy.wait(1000);
 
     cy.getActiveModal(".nc-modal-invite-user-and-share-base")
       .find('input[placeholder="E-mail"]')
@@ -261,16 +260,13 @@ export class _mainPage {
       .trigger("mouseover", { force: true })
       .click({ force: true });
 
-    // cy.wait(500);
     // cy.get(".nc-column-delete").click();
     cy.getActiveMenu(".nc-dropdown-column-operations")
       .find(".nc-column-delete")
       .click();
 
-    // cy.wait(500);
     // cy.get(".nc-column-delete").should("not.be.visible");
     // cy.get(".ant-btn-dangerous:visible").contains("Delete").click();
-    // cy.wait(500);
 
     cy.getActiveModal(".nc-modal-column-delete")
       .find(".ant-btn-dangerous:visible")
@@ -523,7 +519,6 @@ export class _mainPage {
         .find(".nc-project-menu-item")
         .contains("Download")
         .click();
-      // cy.wait(1000);
       cy.get(".nc-project-menu-item:contains('Download as CSV')")
         .should("exist")
         .click();
@@ -601,7 +596,6 @@ export class _mainPage {
     cy.intercept("GET", "/api/v1/db/meta/projects/**").as("metaSync");
 
     cy.get(".nc-btn-metasync-reload").should("exist").click();
-    // cy.wait(2000);
     cy.wait("@metaSync");
 
     cy.get(`.nc-metasync-row-${tbl}:contains(${msg})`).should("exist");

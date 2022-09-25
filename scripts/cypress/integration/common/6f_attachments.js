@@ -31,9 +31,6 @@ export const genTest = (apiType, dbType) => {
       // wait for page rendering to complete
       cy.get(".nc-grid-row").should("have.length", 10);
 
-      // kludge: flicker on load
-      // cy.wait(3000);
-
       mainPage.getCell("Country", 10).rightclick();
       cy.getActiveMenu(".nc-dropdown-grid-context-menu")
         .contains("Delete Row")
@@ -74,8 +71,6 @@ export const genTest = (apiType, dbType) => {
 
       mainPage.shareView().click();
 
-      // cy.wait(5000);
-
       // copy link text, visit URL
       cy.getActiveModal(".nc-modal-share-view")
         .find(".share-link-box")
@@ -94,7 +89,6 @@ export const genTest = (apiType, dbType) => {
           cy.visit(linkText, {
             baseUrl: null,
           });
-          // cy.wait(5000);
           cy.wait(["@waitForSharedViewLoad"]);
 
           // wait for share view page to load!

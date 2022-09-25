@@ -53,7 +53,6 @@ export const genTest = (apiType, dbType) => {
 
       // add a row to end of Country table
       cy.get(".nc-add-new-row-btn").click();
-      // cy.wait(1000);
       cy.get(".nc-expand-col-Country")
         .find(".nc-cell > input")
         .first()
@@ -78,8 +77,6 @@ export const genTest = (apiType, dbType) => {
 
       // verify
       mainPage.getPagination(5).click();
-      // kludge: flicker on load
-      // cy.wait(3000);
       cy.wait("@waitForPageLoad");
 
       mainPage.getCell("Country", 10).contains("Test Country").should("exist");

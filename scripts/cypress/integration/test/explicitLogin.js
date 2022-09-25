@@ -27,7 +27,6 @@ export const genTest = (apiType, dbType) => {
         .then(() => {
           let query = `ALTER TABLE "actor" RENAME TO "${projId}actor"`;
           cy.task("sqliteExec", query);
-          cy.wait(1000);
         });
     });
   });

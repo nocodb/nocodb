@@ -94,6 +94,11 @@ export const genTest = (apiType, dbType) => {
     // Unlink LTAR cell
     //
     function ltarUnlink(columnName, index) {
+      // http://localhost:8080/api/v1/db/meta/audits/comments/count?ids[]=1&fk_model_id=md_f4y7jp89pe8vkt
+      cy.intercept("GET", `/api/v1/db/meta/audits/comments/count?**`).as(
+        "unlinkCount"
+      );
+
       // Click on cell to enable unlink icon
       cy.get(`:nth-child(${index}) > [data-title="${columnName}"]`)
         .last()
@@ -107,7 +112,7 @@ export const genTest = (apiType, dbType) => {
         .click();
 
       // Glitch; hence wait
-      cy.wait(1000);
+      cy.wait("@unlinkCount");
     }
 
     // before(() => {

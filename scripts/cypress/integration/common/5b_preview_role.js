@@ -59,8 +59,6 @@ export const genTest = (apiType, dbType, roleType) => {
     after(() => {
       // cy.get(".nc-preview-reset").click({ force: true });
       cy.get(".mdi-exit-to-app").click();
-      // cy.wait(20000)
-
       // wait for page rendering to complete
       cy.get(".nc-grid-row", { timeout: 25000 }).should("have.length", 25);
 

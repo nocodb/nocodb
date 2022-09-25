@@ -22,8 +22,6 @@ export const genTest = (apiType, dbType) => {
     //   .click();
     mainPage.shareView().click({ force: true });
 
-    cy.wait(5000);
-
     // wait, as URL initially will be /undefined
     cy.getActiveModal(".nc-modal-share-view")
       .find(".share-link-box")
@@ -136,7 +134,6 @@ export const genTest = (apiType, dbType) => {
         cy.visit(viewURL["combined"], {
           baseUrl: null,
         });
-        cy.wait(5000);
 
         // wait for page rendering to complete
         cy.get(".nc-grid-row").should("have.length", 18);
@@ -353,7 +350,6 @@ export const genTest = (apiType, dbType) => {
         cy.visit(storedURL, {
           baseUrl: null,
         });
-        cy.wait(5000);
 
         // number of view entries should be 2 before we delete
         cy.get(".nc-view-item").its("length").should("eq", 2);
@@ -390,12 +386,9 @@ export const genTest = (apiType, dbType) => {
       cy.visit(storedURL, {
         baseUrl: null,
       });
-      cy.wait(5000);
 
       // delete row
       mainPage.getPagination(5).click();
-      // kludge: flicker on load
-      cy.wait(3000);
 
       // wait for page rendering to complete
       cy.get(".nc-grid-row").should("have.length", 10);
@@ -439,7 +432,6 @@ export const genTest = (apiType, dbType) => {
       cy.visit(viewURL["rowColUpdate"], {
         baseUrl: null,
       });
-      cy.wait(5000);
 
       //5
       // wait for public view page to load!

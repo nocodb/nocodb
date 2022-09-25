@@ -107,8 +107,6 @@ export const genTest = (apiType, dbType) => {
         .contains("ACADEMY DINOSAUR", { timeout: 2000 })
         .click()
         .then(() => {
-          // wait to ensure pop up appears before we proceed further
-          cy.wait(1000);
           // Link card validation
           cy.getActiveDrawer(".nc-drawer-expanded-form")
             .find(".text-lg")

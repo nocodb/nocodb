@@ -29,7 +29,6 @@ export const genTest = (apiType, dbType) => {
         baseUrl: null,
       });
       cy.wait(["@waitForPageLoad"]);
-      // cy.wait(5000);
     });
 
     it(`${roleType}: Validate access permissions: advance menu`, () => {

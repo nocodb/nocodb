@@ -126,10 +126,9 @@ export class _mainPage {
     cy.getActiveModal(".nc-modal-invite-user-and-share-base")
       .find('input[placeholder="E-mail"]')
       .should("exist");
-    cy.wait(1000);
+    // cy.wait(1000);
 
-    cy.get('input[placeholder="E-mail"]').type(userCred.username);
-
+    cy.get('input[placeholder="E-mail"]:visible').type(userCred.username);
     cy.get(".ant-select.nc-user-roles").click();
 
     // opt-in requested role & submit
@@ -518,9 +517,8 @@ export class _mainPage {
         .find(".nc-project-menu-item")
         .contains("Download")
         .click();
-      cy.wait(1000);
-      cy.get(".nc-project-menu-item")
-        .contains("Download as CSV")
+      // cy.wait(1000);
+      cy.get(".nc-project-menu-item:contains('Download as CSV')")
         .should("exist")
         .click();
     }
@@ -593,9 +591,14 @@ export class _mainPage {
   }
 
   metaSyncValidate(tbl, msg) {
+    // http://localhost:8080/api/v1/db/meta/projects/p_bxp57hmks0n5o2/meta-diff
+    cy.intercept("GET", "/api/v1/db/meta/projects/*").as("metaSync");
+
     cy.get(".nc-btn-metasync-reload").should("exist").click();
-    cy.wait(2000);
-    cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("exist");
+    // cy.wait(2000);
+    cy.wait("@metaSync");
+
+    cy.get(`.nc-metasync-row-${tbl}:contains(${msg})`).should("exist");
     cy.get(".nc-btn-metasync-sync-now")
       .should("exist")
       .click()

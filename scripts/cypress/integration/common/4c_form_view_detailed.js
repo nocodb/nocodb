@@ -324,7 +324,7 @@ export const genTest = (apiType, dbType) => {
 
         // open form view & enable "email me" option
         cy.openTableTab("Country", 25);
-        cy.wait(1000);
+        // cy.wait(1000);
 
         cy.get(`.nc-view-item.nc-${viewType}-view-item`)
           .contains("Form-1")
@@ -338,7 +338,7 @@ export const genTest = (apiType, dbType) => {
         settingsPage.openMenu(settingsPage.APPSTORE);
         mainPage.resetSMTP();
 
-        cy.wait(300);
+        // cy.wait(300);
         cy.openTableTab("Country", 25);
       });
 
@@ -383,7 +383,7 @@ export const genTest = (apiType, dbType) => {
 
         // click on delete icon (becomes visible on hovering mouse)
         cy.get(".nc-view-delete-icon").click({ force: true });
-        cy.wait(1000);
+        // cy.wait(1000);
         cy.getActiveModal(".nc-modal-view-delete")
           .find(".ant-btn-dangerous")
           .click();

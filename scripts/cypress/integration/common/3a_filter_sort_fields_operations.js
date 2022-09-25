@@ -46,9 +46,14 @@ export const genTest = (apiType, dbType) => {
     // create new row using + button in header
     //
     it("Add row using tool header button", () => {
+      // http://localhost:8080/api/v1/db/meta/audits/comments/count?ids[]=101&ids[]=102&ids[]=103&ids[]=104&ids[]=105&ids[]=106&ids[]=107&ids[]=108&ids[]=109&fk_model_id=md_zfkb9v3mzky958
+      cy.intercept("/api/v1/db/meta/audits/comments/count").as(
+        "waitForPageLoad"
+      );
+
       // add a row to end of Country table
       cy.get(".nc-add-new-row-btn").click();
-      cy.wait(1000);
+      // cy.wait(1000);
       cy.get(".nc-expand-col-Country")
         .find(".nc-cell > input")
         .first()
@@ -74,7 +79,9 @@ export const genTest = (apiType, dbType) => {
       // verify
       mainPage.getPagination(5).click();
       // kludge: flicker on load
-      cy.wait(3000);
+      // cy.wait(3000);
+      cy.wait("@waitForPageLoad");
+
       mainPage.getCell("Country", 10).contains("Test Country").should("exist");
     });
 

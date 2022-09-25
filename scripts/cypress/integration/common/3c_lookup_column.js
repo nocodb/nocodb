@@ -63,7 +63,8 @@ export const genTest = (apiType, dbType) => {
         .contains("Lookup")
         .click();
 
-      // wait for re-rendering & title selection to re-appear
+      // fix me! wait till the modal rendering (input highlight) is completed
+      // focus shifts back to the input field to select text after the dropdown is rendered
       cy.wait(500);
 
       // Configure Child table & column names

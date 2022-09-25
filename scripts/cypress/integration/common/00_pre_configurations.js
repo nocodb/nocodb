@@ -241,10 +241,11 @@ export const genTest = (apiType, dbType) => {
         }
 
         // kludge: wait for page load to finish
-        cy.wait(2000);
+        // cy.wait(2000);
         // close team & auth tab
         cy.get("button.ant-tabs-tab-remove").should("exist").click();
-        cy.wait(1000);
+        cy.get("button.ant-tabs-tab-remove").should("not.exist");
+        // cy.wait(1000);
 
         // first instance of updating local storage information
         cy.saveLocalStorage();

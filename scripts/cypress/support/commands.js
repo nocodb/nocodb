@@ -288,9 +288,7 @@ Cypress.Commands.add("getActivePicker", (dropdownSelector) => {
 
 Cypress.Commands.add("createTable", (name) => {
   cy.task("log", `[createTableTab] ${name}`);
-  cy.wait(1000);
   cy.get(".nc-add-new-table").should("exist").click();
-  cy.wait(1000);
   cy.getActiveModal(".nc-modal-table-create")
     .find(`input[type="text"]:visible`)
     .click()
@@ -300,12 +298,9 @@ Cypress.Commands.add("createTable", (name) => {
   cy.getActiveModal(".nc-modal-table-create")
     .find("button.ant-btn-primary:visible")
     .click();
-  cy.wait(1000);
   cy.get(".xc-row-table.nc-grid").should("exist");
-  // cy.get('.ant-tabs-tab-active > .ant-tabs-tab-btn').contains(name).should("exist");
   cy.url().should("contain", `table/${name}`);
   cy.get(`.nc-project-tree-tbl-${name}`).should("exist");
-  cy.wait(1000);
 });
 
 Cypress.Commands.add("deleteTable", (name, dbType) => {
@@ -426,7 +421,7 @@ Cypress.Commands.add("snip", (filename) => {
   ) {
     let storeName = `${screenShotDb.length}_${filename}`;
     screenShotDb.push(filename);
-    cy.wait(1000);
+    // cy.wait(1000);
     cy.screenshot(storeName, { overwrite: true });
   }
 });
@@ -439,7 +434,7 @@ Cypress.Commands.add("snipActiveModal", (filename) => {
   ) {
     let storeName = `${screenShotDb.length}_${filename}`;
     screenShotDb.push(filename);
-    cy.wait(1000);
+    // cy.wait(1000);
     // cy.getActiveModal().screenshot(filename, {
     //     padding: 0,
     //     overwrite: true,
@@ -456,7 +451,7 @@ Cypress.Commands.add("snipActiveMenu", (filename) => {
   ) {
     let storeName = `${screenShotDb.length}_${filename}`;
     screenShotDb.push(filename);
-    cy.wait(1000);
+    // cy.wait(1000);
     // cy.getActiveMenu().screenshot(filename, {
     //     padding: 0,
     //     overwrite: true,

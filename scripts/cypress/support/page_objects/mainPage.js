@@ -592,7 +592,7 @@ export class _mainPage {
 
   metaSyncValidate(tbl, msg) {
     // http://localhost:8080/api/v1/db/meta/projects/p_bxp57hmks0n5o2/meta-diff
-    cy.intercept("GET", "/api/v1/db/meta/projects/*").as("metaSync");
+    cy.intercept("GET", "/api/v1/db/meta/projects/**").as("metaSync");
 
     cy.get(".nc-btn-metasync-reload").should("exist").click();
     // cy.wait(2000);

@@ -8,6 +8,7 @@ import {
   inject,
   provide,
   ref,
+  useNuxtApp,
   useRoute,
   useRouter,
   useSidebar,
@@ -102,7 +103,7 @@ function onCreate(view: ViewType) {
     ref="sidebar"
     :collapsed="sidebarCollapsed"
     collapsiple
-    collapsed-width="50"
+    collapsed-width="0"
     width="250"
     class="relative shadow-md h-full"
     theme="light"

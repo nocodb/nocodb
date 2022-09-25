@@ -15,6 +15,7 @@ import {
   inject,
   provide,
   ref,
+  toRef,
   useMetas,
   useProvideSmartsheetStore,
   useSidebar,
@@ -22,24 +23,24 @@ import {
 } from '#imports'
 import type { TabItem } from '~/lib'
 
-const { activeTab } = defineProps<{
+const props = defineProps<{
   activeTab: TabItem
 }>()
 
 const { metas } = useMetas()
 
-const activeView = ref()
+const activeTab = toRef(props, 'activeTab')
 
-const el = ref()
+const activeView = ref()
 
 const fields = ref<ColumnType[]>([])
 
-provide(TabMetaInj, ref(activeTab))
-const meta = computed<TableType>(() => metas.value?.[activeTab?.id as string])
+const meta = computed<TableType | undefined>(() => metas.value[activeTab.value.id!])
 
 const reloadEventHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook()
+
 const openNewRecordFormHook = createEventHook()
 
 const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView, meta)
@@ -56,6 +57,7 @@ provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
+provide(TabMetaInj, activeTab)
 
 const treeViewIsLockedInj = inject('TreeViewIsLockedInj', ref(false))
 
@@ -71,7 +73,7 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
         <template v-if="meta">
           <div class="flex flex-1 min-h-0">
             <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
-              <LazySmartsheetGrid v-if="isGrid" :ref="el" />
+              <LazySmartsheetGrid v-if="isGrid" />
 
               <LazySmartsheetGallery v-else-if="isGallery" />
 

@@ -14,6 +14,15 @@ export default defineNuxtConfig({
   ssr: false,
 
   app: {
+    pageTransition: {
+      name: 'page',
+      mode: 'out-in',
+    },
+    layoutTransition: {
+      name: 'layout',
+      mode: 'out-in',
+    },
+
     /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
     cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
   },
@@ -165,14 +174,5 @@ export default defineNuxtConfig({
       { name: 'Form', from: 'ant-design-vue/es' },
       { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
     ],
-  },
-
-  pageTransition: {
-    name: 'page',
-    mode: 'out-in',
-  },
-  layoutTransition: {
-    name: 'layout',
-    mode: 'out-in',
   },
 })

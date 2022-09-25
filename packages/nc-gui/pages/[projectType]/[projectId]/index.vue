@@ -61,6 +61,8 @@ const dialogOpen = ref(false)
 
 const openDialogKey = ref<string>()
 
+const dataSourcesState = ref<string>()
+
 const dropdownOpen = ref(false)
 
 /** Sidebar ref */
@@ -73,10 +75,13 @@ const logout = () => {
   navigateTo('/signin')
 }
 
-function toggleDialog(value?: boolean, key?: string) {
+function toggleDialog(value?: boolean, key?: string, dsState?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
   openDialogKey.value = key
+  dataSourcesState.value = dsState
 }
+
+provide(ToggleDialogInj, toggleDialog)
 
 const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
   switch (mode) {
@@ -559,12 +564,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </div>
 
-        <LazyDashboardTreeView />
+        <LazyDashboardTreeView @create-base-dlg="toggleDialog(true, 'dataSources')" />
       </a-layout-sider>
     </template>
 
-    <div>
-      <LazyDashboardSettingsModal v-model="dialogOpen" :open-key="openDialogKey" />
+    <div :key="$route.fullPath.split('?')[0]">
+      <LazyDashboardSettingsModal v-model="dialogOpen" :open-key="openDialogKey" :data-sources-state="dataSourcesState" />
 
       <NuxtPage :page-key="$route.params.projectId" />
 

@@ -13,6 +13,12 @@ import {
   viewIcons,
 } from '#imports'
 
+interface Props {
+  baseId: string
+}
+
+const props = defineProps<Props>()
+
 const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
@@ -32,8 +38,9 @@ const searchInput = $ref('')
 const filteredTables = computed(() =>
   tables.filter(
     (el) =>
-      (typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.toLowerCase())) ||
-      (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.toLowerCase())),
+      el?.base_id === props.baseId &&
+      ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.toLowerCase())) ||
+        (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.toLowerCase()))),
   ),
 )
 

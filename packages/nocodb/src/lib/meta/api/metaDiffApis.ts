@@ -42,6 +42,7 @@ const applyChangesPriorityOrder = [
 type MetaDiff = {
   title?: string;
   table_name: string;
+  base_id: string;
   type: ModelTypes;
   detectedChanges: Array<MetaDiffChange>;
 };
@@ -157,6 +158,7 @@ async function getMetaDiff(
     if (oldMetaIdx === -1) {
       changes.push({
         table_name: table.tn,
+        base_id: base.id,
         type: ModelTypes.TABLE,
         detectedChanges: [
           {
@@ -175,6 +177,7 @@ async function getMetaDiff(
     const tableProp: MetaDiff = {
       title: oldMeta.title,
       table_name: table.tn,
+      base_id: base.id,
       type: ModelTypes.TABLE,
       detectedChanges: [],
     };
@@ -245,6 +248,7 @@ async function getMetaDiff(
   for (const model of oldTableMetas) {
     changes.push({
       table_name: model.table_name,
+      base_id: base.id,
       type: ModelTypes.TABLE,
       detectedChanges: [
         {
@@ -430,6 +434,7 @@ async function getMetaDiff(
     if (oldMetaIdx === -1) {
       changes.push({
         table_name: view.tn,
+        base_id: base.id,
         type: ModelTypes.VIEW,
         detectedChanges: [
           {
@@ -448,6 +453,7 @@ async function getMetaDiff(
     const tableProp: MetaDiff = {
       title: oldMeta.title,
       table_name: view.tn,
+      base_id: base.id,
       type: ModelTypes.VIEW,
       detectedChanges: [],
     };
@@ -514,6 +520,7 @@ async function getMetaDiff(
   for (const model of oldViewMetas) {
     changes.push({
       table_name: model.table_name,
+      base_id: base.id,
       type: ModelTypes.TABLE,
       detectedChanges: [
         {

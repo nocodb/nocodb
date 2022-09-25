@@ -49,13 +49,11 @@ const validators = {
   ],
 }
 
-const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, isPg } = useColumnCreateStoreOrThrow()
 
 setAdditionalValidations({
   ...validators,
 })
-
-const { isPg } = useProject()
 
 const currencyList = currencyCodes || []
 

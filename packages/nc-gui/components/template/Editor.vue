@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { Empty, Form, message } from 'ant-design-vue'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
@@ -426,16 +426,26 @@ async function importTemplate() {
           }
         }
 
-        // set pk & rqd if ID is provided
         if (table.columns) {
           for (const column of table.columns) {
+            // set pk & rqd if ID is provided
             if (column.column_name?.toLowerCase() === 'id' && !('pk' in column)) {
               column.pk = true
               column.rqd = true
-              break
+            }
+            if (!isSystemColumn(column) && column.uidt !== UITypes.SingleSelect && column.uidt !== UITypes.MultiSelect) {
+              // reset dtxp if the final data type is not single / multi select
+              // otherwise, it'll fail when column is being inserted
+              // e.g. import -> detect as single / multi select -> switch to SingleLineText
+              column.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(column.dt)
+            } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
+              // remove .dt for single select / multi select
+              // otherwise, it'll fail when column is being inserted
+              delete column.dt
             }
           }
         }
+
         const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
           table_name: table.ref_table_name,
           // leave title empty to get a generated one based on ref_table_name

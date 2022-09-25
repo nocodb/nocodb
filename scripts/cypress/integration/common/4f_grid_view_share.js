@@ -18,7 +18,7 @@ export const genTest = (apiType, dbType) => {
   const generateViewLink = (viewName) => {
     mainPage.shareView().click();
 
-    cy.wait(1000);
+    // cy.wait(1000);
 
     // wait, as URL initially will be /undefined
     cy.getActiveModal(".nc-modal-share-view")
@@ -45,6 +45,9 @@ export const genTest = (apiType, dbType) => {
     before(() => {
       cy.restoreLocalStorage();
       cy.openTableTab("Address", 25);
+
+      // http://localhost:8080/api/v1/db/public/shared-view/e8964174-13ca-451f-bf06-0b8750037dd8/rows?offset=0&filterArrJson=[]&sortArrJson=[]
+      cy.intercept("/api/v1/db/public/shared-view/**").as("waitForFormLoad");
     });
 
     beforeEach(() => {
@@ -129,7 +132,8 @@ export const genTest = (apiType, dbType) => {
         cy.visit(viewURL["combined"], {
           baseUrl: null,
         });
-        cy.wait(5000);
+        // cy.wait(5000);
+        cy.wait(["@waitForFormLoad"]);
 
         // wait for page rendering to complete
         cy.get(".nc-grid-row").should("have.length", 18);
@@ -421,7 +425,8 @@ export const genTest = (apiType, dbType) => {
       cy.visit(viewURL["rowColUpdate"], {
         baseUrl: null,
       });
-      cy.wait(5000);
+      // cy.wait(5000);
+      cy.wait(["@waitForFormLoad"]);
 
       // wait for public view page to load!
       // wait for page rendering to complete
@@ -448,10 +453,16 @@ export const genTest = (apiType, dbType) => {
       loginPage.loginAndOpenProject(apiType, dbType);
       cy.openTableTab("Country", 25);
 
+      // http://localhost:8080/api/v1/db/meta/audits/comments/count?ids[]=101&ids[]=102&ids[]=103&ids[]=104&ids[]=105&ids[]=106&ids[]=107&ids[]=108&ids[]=109&fk_model_id=md_zfkb9v3mzky958
+      cy.intercept("/api/v1/db/meta/audits/comments/count*").as(
+        "waitForPageLoad"
+      );
+
       // delete row
       mainPage.getPagination(5).click();
       // kludge: flicker on load
-      cy.wait(3000);
+      // cy.wait(3000);
+      cy.wait(["@waitForPageLoad"]);
 
       // wait for page rendering to complete
       cy.get(".nc-grid-row").should("have.length", 10);

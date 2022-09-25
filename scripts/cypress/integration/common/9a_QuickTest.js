@@ -106,8 +106,6 @@ export const genTest = (apiType, dbType, testMode) => {
         loginPage.signIn(roles.owner.credentials);
         projectsPage.openProject("sample");
 
-        // kludge: wait for page load to finish
-        cy.wait(2000);
         // close team & auth tab
         cy.get("button.ant-tabs-tab-remove").should("exist").click();
         cy.wait(1000);

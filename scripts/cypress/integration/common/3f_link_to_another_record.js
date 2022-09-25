@@ -193,7 +193,7 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-action-icon")
         .should("exist")
         .click({ force: true });
-      cy.wait(1000);
+      // cy.wait(1000);
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
@@ -202,7 +202,7 @@ export const genTest = (apiType, dbType) => {
 
       // MM
       cy.get(".nc-expand-col-Sheet1.List").find(".ant-btn-primary").click();
-      cy.wait(1000);
+      // cy.wait(1000);
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
@@ -212,7 +212,7 @@ export const genTest = (apiType, dbType) => {
       // HM
       cy.get(".nc-expand-col-Link2-1hm").find(".ant-btn-primary").click();
       cy.wait(1000);
-      cy.getActiveModal().find(".ant-card").should("exist").eq(0).click();
+      cy.getActiveModal(".nc-modal-link-record).find(".ant-card").should("exist").eq(0).click();
 
       // Save row
       cy.getActiveDrawer(".nc-drawer-expanded-form")
@@ -277,7 +277,7 @@ export const genTest = (apiType, dbType) => {
       cy.get(".nc-row-expand").eq(2).click({ force: true });
 
       // BT
-      cy.wait(1000);
+      // cy.wait(1000);
       cy.get(".nc-expand-col-Sheet1")
         .find(".nc-action-icon")
         .should("exist")
@@ -291,7 +291,7 @@ export const genTest = (apiType, dbType) => {
 
       // MM
       cy.get(".nc-expand-col-Sheet1.List").find(".ant-btn-primary").click();
-      cy.wait(1000);
+      // cy.wait(1000);
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
@@ -301,13 +301,13 @@ export const genTest = (apiType, dbType) => {
 
       // HM
       cy.get(".nc-expand-col-Link2-1hm").find(".ant-btn-primary").click();
-      cy.wait(1000);
+      // cy.wait(1000);
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(2)
         .click();
-      cy.wait(1000);
+      // cy.wait(1000);
 
       cy.getActiveDrawer(".nc-drawer-expanded-form")
         .find("button")

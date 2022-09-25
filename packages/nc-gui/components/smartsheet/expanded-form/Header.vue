@@ -67,12 +67,7 @@ const copyRecordUrl = () => {
         {{ table }}
       </template>
       -->
-      <template v-if="primaryValue"
-        >:
-        {{
-          primaryValue + 'something https://github.com/nocodb/nocodb/issues/3647 https://github.com/nocodb/nocodb/issues/3647 '
-        }}</template
-      >
+      <template v-if="primaryValue">: {{ primaryValue }}</template>
     </h5>
 
     <div class="flex-1" />

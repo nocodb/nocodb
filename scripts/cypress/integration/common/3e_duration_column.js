@@ -123,7 +123,6 @@ export const genTest = (apiType, dbType) => {
     ) => {
       if (isNewRow) {
         cy.get(".nc-add-new-row-btn:visible").should("exist");
-        cy.wait(500);
         cy.get(".nc-add-new-row-btn").click();
       } else {
         // mainPage.getRow(index).find(".nc-row-expand-icon").click({ force: true });

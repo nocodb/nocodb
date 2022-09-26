@@ -5,6 +5,8 @@ import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
+  let waitTime = 2000;
+
   describe(`${apiType.toUpperCase()} api - Link to another record`, () => {
     function fetchParentFromLabel(label) {
       cy.get("label").contains(label).parents(".ant-row").click();
@@ -291,8 +293,8 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-action-icon")
         .should("exist")
         .click({ force: true });
-      // cy.wait(1000);
-      cy.wait("@waitForCardLoad");
+      cy.wait(waitTime);
+      // cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
@@ -301,8 +303,8 @@ export const genTest = (apiType, dbType) => {
 
       // MM
       cy.get(".nc-expand-col-Sheet1.List").find(".ant-btn-primary").click();
-      // cy.wait(1000);
-      cy.wait("@waitForCardLoad");
+      cy.wait(waitTime);
+      // cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
@@ -312,8 +314,8 @@ export const genTest = (apiType, dbType) => {
 
       // HM
       cy.get(".nc-expand-col-Link2-1hm").find(".ant-btn-primary").click();
-      // cy.wait(1000);
-      cy.wait("@waitForCardLoad");
+      cy.wait(waitTime);
+      // cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")

@@ -2,7 +2,7 @@
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { ColumnInj, inject, ref, toRef } from '#imports'
+import { ColumnInj, MetaInj, computed, inject, isBt, isHm, isLookup, isMm, isRollup, ref, toRef } from '#imports'
 import GenericIcon from '~icons/mdi/square-rounded'
 import HMIcon from '~icons/mdi/table-arrow-right'
 import BTIcon from '~icons/mdi/table-arrow-left'
@@ -22,9 +22,7 @@ const column = inject(ColumnInj, ref(columnMeta)) as Ref<ColumnType & { colOptio
 let relationColumn: ColumnType & { colOptions: LookupType }
 
 if (column) {
-  const { isLookup, isBt, isRollup, isMm, isHm } = useVirtualCell(column as Ref<ColumnType>)
-
-  if (isLookup || isBt || isRollup || isMm || isHm) {
+  if (isLookup(column.value) || isBt(column.value) || isRollup(column.value) || isMm(column.value) || isHm(column.value)) {
     const meta = inject(MetaInj, ref())
 
     relationColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_relation_column_id) as ColumnType & {
@@ -34,9 +32,9 @@ if (column) {
 }
 
 const icon = computed(() => {
-  switch (column?.value?.uidt) {
+  switch (column.value?.uidt) {
     case UITypes.LinkToAnotherRecord:
-      switch ((column?.value?.colOptions as LinkToAnotherRecordType)?.type) {
+      switch ((column.value?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
           return { icon: MMIcon, color: 'text-accent' }
         case RelationTypes.HAS_MANY:

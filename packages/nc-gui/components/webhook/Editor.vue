@@ -4,18 +4,27 @@ import type { AuditType } from 'nocodb-sdk'
 import {
   Form,
   MetaInj,
+  computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
   inject,
   message,
   onMounted,
   reactive,
+  ref,
   useApi,
   useI18n,
   useNuxtApp,
+  watch,
 } from '#imports'
 
-const emit = defineEmits(['backToList', 'editOrAdd'])
+interface Props {
+  hook?: Record<string, any>
+}
+
+const props = defineProps<Props>()
+
+const emit = defineEmits(['backToList'])
 
 const { t } = useI18n()
 
@@ -155,16 +164,13 @@ const formInput = ref({
   ],
 })
 
-const eventList = ref([
-  // {text: ["Before", "Insert"], value: ['before', 'insert']},
+const eventList = [
   { text: ['After', 'Insert'], value: ['after', 'insert'] },
-  // {text: ["Before", "Update"], value: ['before', 'update']},
   { text: ['After', 'Update'], value: ['after', 'update'] },
-  // {text: ["Before", "Delete"], value: ['before', 'delete']},
   { text: ['After', 'Delete'], value: ['after', 'delete'] },
-])
+]
 
-const notificationList = ref([
+const notificationList = [
   { type: 'URL' },
   { type: 'Email' },
   { type: 'Slack' },
@@ -173,16 +179,16 @@ const notificationList = ref([
   { type: 'Mattermost' },
   { type: 'Twilio' },
   { type: 'Whatsapp Twilio' },
-])
+]
 
-const methodList = ref([
+const methodList = [
   { title: 'GET' },
   { title: 'POST' },
   { title: 'DELETE' },
   { title: 'PUT' },
   { title: 'HEAD' },
   { title: 'PATCH' },
-])
+]
 
 const validators = computed(() => {
   return {
@@ -386,11 +392,6 @@ async function testWebhook() {
   await webhookTestRef.value.testWebhook()
 }
 
-defineExpose({
-  onEventChange,
-  setHook,
-})
-
 watch(
   () => hook.eventOperation,
   () => {
@@ -402,9 +403,18 @@ watch(
   },
 )
 
-onMounted(async () => {
-  await loadPluginList()
-})
+watch(
+  () => props.hook,
+  () => {
+    if (props.hook) {
+      setHook(props.hook)
+      onEventChange()
+    }
+  },
+  { immediate: true },
+)
+
+onMounted(loadPluginList)
 </script>
 
 <template>
@@ -513,7 +523,9 @@ onMounted(async () => {
             class="nc-select-hook-url-method"
             dropdown-class-name="nc-dropdown-hook-notification-url-method"
           >
-            <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">{{ method.title }}</a-select-option>
+            <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
+              {{ method.title }}
+            </a-select-option>
           </a-select>
         </a-col>
 
@@ -625,7 +637,13 @@ onMounted(async () => {
       <a-row class="mb-5" type="flex">
         <a-col :span="24">
           <a-card>
-            <a-checkbox v-model:checked="hook.condition" class="nc-check-box-hook-condition">On Condition</a-checkbox>
+            <a-checkbox
+              :checked="Boolean(hook.condition)"
+              class="nc-check-box-hook-condition"
+              @update:checked="hook.condition = $event"
+            >
+              On Condition
+            </a-checkbox>
 
             <LazySmartsheetToolbarColumnFilter
               v-if="hook.condition"

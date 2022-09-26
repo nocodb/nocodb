@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref, useVModel } from '#imports'
+
 interface Props {
   modelValue: boolean
 }
@@ -9,16 +11,13 @@ const emits = defineEmits(['update:modelValue'])
 
 const editOrAdd = ref(false)
 
-const webhookEditorRef = ref()
-
 const vModel = useVModel(props, 'modelValue', emits)
+
+const currentHook = ref<Record<string, any>>()
 
 async function editHook(hook: Record<string, any>) {
   editOrAdd.value = true
-  nextTick(async () => {
-    webhookEditorRef.value.setHook(hook)
-    await webhookEditorRef.value.onEventChange()
-  })
+  currentHook.value = hook
 }
 </script>
 
@@ -34,7 +33,7 @@ async function editHook(hook: Record<string, any>) {
   >
     <a-layout>
       <a-layout-content class="px-10 py-5 scrollbar-thin-primary">
-        <LazyWebhookEditor v-if="editOrAdd" ref="webhookEditorRef" @back-to-list="editOrAdd = false" />
+        <LazyWebhookEditor v-if="editOrAdd" :hook="currentHook" @back-to-list="editOrAdd = false" />
 
         <LazyWebhookList v-else @edit="editHook" @add="editOrAdd = true" />
       </a-layout-content>

@@ -102,7 +102,7 @@ const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useG
 const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange, selected } = useMultiSelect(
   fields,
   data,
-  editEnabled,
+  $$(editEnabled),
   isPkAvail,
   clearCell,
   makeEditable,

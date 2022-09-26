@@ -168,7 +168,7 @@ export function useMultiSelect(
         break
       /** on delete key press clear cell */
       case 'Delete':
-        if (!editEnabled) {
+        if (!unref(editEnabled)) {
           e.preventDefault()
           clearRangeRows()
           await clearCell(selected as { row: number; col: number })
@@ -224,7 +224,7 @@ export function useMultiSelect(
             cptext = rowObj.row[columnObj.title] || ''
           }
 
-          if ((!editEnabled && e.metaKey) || e.ctrlKey) {
+          if ((!unref(editEnabled) && e.metaKey) || e.ctrlKey) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
@@ -233,7 +233,7 @@ export function useMultiSelect(
             }
           }
 
-          if (editEnabled || e.ctrlKey || e.altKey || e.metaKey) {
+          if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
             return
           }
 

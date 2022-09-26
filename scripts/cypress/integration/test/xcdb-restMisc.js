@@ -13,7 +13,6 @@ const t9b = require("../common/9b_ERD");
 const {
   setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
-const t9b = require("../common/9b_ERD");
 
 const nocoTestSuite = (apiType, dbType) => {
   setCurrentMode(apiType, dbType);

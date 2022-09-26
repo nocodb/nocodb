@@ -1,36 +1,24 @@
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { computed } from '#imports'
+import { computed, isBt, isCount, isFormula, isHm, isLookup, isMm, isRollup } from '#imports'
+import HasMany from '~/components/virtual-cell/HasMany.vue'
+import ManyToMany from '~/components/virtual-cell/ManyToMany.vue'
+import BelongsTo from '~/components/virtual-cell/BelongsTo.vue'
+import Lookup from '~/components/virtual-cell/Lookup.vue'
+import Rollup from '~/components/virtual-cell/Rollup.vue'
+import Formula from '~/components/virtual-cell/Formula.vue'
+import Count from '~/components/virtual-cell/Count.vue'
 
 export function useVirtualCell(column: Ref<ColumnType | undefined>) {
-  const isHm = computed(
-    () =>
-      column.value?.uidt === UITypes.LinkToAnotherRecord &&
-      (<LinkToAnotherRecordType>column.value?.colOptions).type === RelationTypes.HAS_MANY,
-  )
-  const isMm = computed(
-    () =>
-      column.value?.uidt === UITypes.LinkToAnotherRecord &&
-      (<LinkToAnotherRecordType>column.value?.colOptions).type === RelationTypes.MANY_TO_MANY,
-  )
-  const isBt = computed(
-    () =>
-      column.value?.uidt === UITypes.LinkToAnotherRecord &&
-      (<LinkToAnotherRecordType>column.value?.colOptions).type === RelationTypes.BELONGS_TO,
-  )
-  const isLookup = computed(() => column.value?.uidt === UITypes.Lookup)
-  const isRollup = computed(() => column.value?.uidt === UITypes.Rollup)
-  const isFormula = computed(() => column.value?.uidt === UITypes.Formula)
-  const isCount = computed(() => column.value?.uidt === UITypes.Count)
+  return computed(() => {
+    if (!column.value) return null
 
-  return {
-    isHm,
-    isMm,
-    isBt,
-    isLookup,
-    isRollup,
-    isFormula,
-    isCount,
-  }
+    if (isHm(column.value)) return HasMany
+    if (isMm(column.value)) return ManyToMany
+    if (isBt(column.value)) return BelongsTo
+    if (isLookup(column.value)) return Lookup
+    if (isRollup(column.value)) return Rollup
+    if (isFormula(column.value)) return Formula
+    if (isCount(column.value)) return Count
+  })
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
+import { SqlUiFactory, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -8,13 +8,38 @@ import {
   IsFormInj,
   IsLockedInj,
   IsPublicInj,
+  ReadonlyInj,
   computed,
   inject,
+  isAttachment,
+  isAutoSaved,
+  isBoolean,
+  isCurrency,
+  isDate,
+  isDateTime,
+  isDecimal,
+  isDuration,
+  isEmail,
+  isFloat,
+  isInt,
+  isJSON,
+  isManualSaved,
+  isMultiSelect,
+  isPercent,
+  isPhoneNumber,
+  isPrimary,
+  isRating,
+  isSingleSelect,
+  isString,
+  isTextArea,
+  isTime,
+  isURL,
+  isYear,
   provide,
   ref,
   toRef,
-  useColumn,
   useDebounceFn,
+  useProject,
   useSmartsheetRowStoreOrThrow,
   useVModel,
 } from '#imports'
@@ -48,9 +73,7 @@ provide(EditModeInj, useVModel(props, 'editEnabled', emit))
 
 provide(ActiveCellInj, active)
 
-if (readOnly?.value) {
-  provide(ReadonlyInj, readOnly.value)
-}
+provide(ReadonlyInj, readOnly.value)
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -60,29 +83,21 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const syncValue = useDebounceFn(function () {
+const { project } = useProject()
+
+const abstractType = computed(() => {
+  // kludge: CY test hack; column.value is being received NULL during attach cell delete operation
+  return (column.value && isVirtualCol(column.value)) || !column.value
+    ? null
+    : SqlUiFactory.create(
+        project.value?.bases?.[0]?.type ? { client: project.value.bases[0].type } : { client: 'mysql2' },
+      ).getAbstractType(column.value)
+})
+
+const syncValue = useDebounceFn(() => {
   currentRow.value.rowMeta.changed = false
   emit('save')
 }, 1000)
-
-const isAutoSaved = $computed(() => {
-  return [
-    UITypes.SingleLineText,
-    UITypes.LongText,
-    UITypes.PhoneNumber,
-    UITypes.Email,
-    UITypes.URL,
-    UITypes.Number,
-    UITypes.Decimal,
-    UITypes.Percent,
-    UITypes.Count,
-    UITypes.AutoNumber,
-    UITypes.SpecificDBType,
-    UITypes.Geometry,
-  ].includes(column?.value?.uidt as UITypes)
-})
-
-const isManualSaved = $computed(() => [UITypes.Currency, UITypes.Duration].includes(column?.value?.uidt as UITypes))
 
 const vModel = computed({
   get: () => props.modelValue,
@@ -90,9 +105,9 @@ const vModel = computed({
     if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
       emit('update:modelValue', val)
-      if (isAutoSaved) {
+      if (isAutoSaved(column.value)) {
         syncValue()
-      } else if (!isManualSaved) {
+      } else if (!isManualSaved(column.value)) {
         emit('save')
         currentRow.value.rowMeta.changed = true
       }
@@ -100,33 +115,8 @@ const vModel = computed({
   },
 })
 
-const {
-  isPrimary,
-  isURL,
-  isEmail,
-  isJSON,
-  isDate,
-  isYear,
-  isDateTime,
-  isTime,
-  isBoolean,
-  isDuration,
-  isRating,
-  isCurrency,
-  isAttachment,
-  isTextArea,
-  isString,
-  isInt,
-  isFloat,
-  isDecimal,
-  isSingleSelect,
-  isMultiSelect,
-  isPercent,
-  isPhoneNumber,
-} = useColumn(column)
-
 const syncAndNavigate = (dir: NavigateDir) => {
-  if (isJSON.value) return
+  if (isJSON(column.value)) return
 
   if (currentRow.value.rowMeta.changed) {
     emit('save')
@@ -139,7 +129,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
 <template>
   <div
     class="nc-cell w-full h-full"
-    :class="{ 'text-blue-600': isPrimary && !virtual && !isForm }"
+    :class="{ 'text-blue-600': isPrimary(column) && !virtual && !isForm }"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up
@@ -147,28 +137,32 @@ const syncAndNavigate = (dir: NavigateDir) => {
     @keydown.stop.enter.exact="syncAndNavigate(NavigateDir.NEXT)"
     @keydown.stop.shift.enter.exact="syncAndNavigate(NavigateDir.PREV)"
   >
-    <LazyCellTextArea v-if="isTextArea" v-model="vModel" />
-    <LazyCellCheckbox v-else-if="isBoolean" v-model="vModel" />
-    <LazyCellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />
-    <LazyCellSingleSelect v-else-if="isSingleSelect" v-model="vModel" />
-    <LazyCellMultiSelect v-else-if="isMultiSelect" v-model="vModel" />
-    <LazyCellDatePicker v-else-if="isDate" v-model="vModel" />
-    <LazyCellYearPicker v-else-if="isYear" v-model="vModel" />
-    <LazyCellDateTimePicker v-else-if="isDateTime" v-model="vModel" />
-    <LazyCellTimePicker v-else-if="isTime" v-model="vModel" />
-    <LazyCellRating v-else-if="isRating" v-model="vModel" />
-    <LazyCellDuration v-else-if="isDuration" v-model="vModel" />
-    <LazyCellEmail v-else-if="isEmail" v-model="vModel" />
-    <LazyCellUrl v-else-if="isURL" v-model="vModel" />
-    <LazyCellPhoneNumber v-else-if="isPhoneNumber" v-model="vModel" />
-    <LazyCellPercent v-else-if="isPercent" v-model="vModel" />
-    <LazyCellCurrency v-else-if="isCurrency" v-model="vModel" />
-    <LazyCellDecimal v-else-if="isDecimal" v-model="vModel" />
-    <LazyCellInteger v-else-if="isInt" v-model="vModel" />
-    <LazyCellFloat v-else-if="isFloat" v-model="vModel" />
-    <LazyCellText v-else-if="isString" v-model="vModel" />
-    <LazyCellJson v-else-if="isJSON" v-model="vModel" />
+    <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
+    <LazyCellCheckbox v-else-if="isBoolean(column)" v-model="vModel" />
+    <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
+    <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" />
+    <LazyCellMultiSelect v-else-if="isMultiSelect(column)" v-model="vModel" />
+    <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" />
+    <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" />
+    <LazyCellDateTimePicker v-else-if="isDateTime(column, abstractType)" v-model="vModel" />
+    <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" />
+    <LazyCellRating v-else-if="isRating(column)" v-model="vModel" />
+    <LazyCellDuration v-else-if="isDuration(column)" v-model="vModel" />
+    <LazyCellEmail v-else-if="isEmail(column)" v-model="vModel" />
+    <LazyCellUrl v-else-if="isURL(column)" v-model="vModel" />
+    <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" v-model="vModel" />
+    <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
+    <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" />
+    <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />
+    <LazyCellInteger v-else-if="isInt(column, abstractType)" v-model="vModel" />
+    <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" />
+    <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
+    <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
     <LazyCellText v-else v-model="vModel" />
-    <div v-if="(isLocked || (isPublic && readOnly && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
+    <div
+      v-if="(isLocked || (isPublic && readOnly && !isForm)) && !isAttachment(column)"
+      class="nc-locked-overlay"
+      @click.stop.prevent
+    />
   </div>
 </template>

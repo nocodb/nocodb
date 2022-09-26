@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { definePageMeta, isEmail, reactive, ref, useApi, useI18n } from '#imports'
+import { definePageMeta, reactive, ref, useApi, useI18n, validateEmail } from '#imports'
 
 definePageMeta({
   requiresAuth: false,
@@ -25,7 +25,7 @@ const formRules = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (isEmail(v)) return resolve(true)
+          if (validateEmail(v)) return resolve(true)
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
       },

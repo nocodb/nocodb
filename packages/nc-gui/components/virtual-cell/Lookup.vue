@@ -44,8 +44,6 @@ const lookupColumn = computed<any>(
 
 provide(MetaInj, lookupTableMeta)
 provide(CellUrlDisableOverlayInj, ref(true))
-
-const lookupColumnMetaProps = useColumn(lookupColumn)
 </script>
 
 <template>
@@ -76,7 +74,7 @@ const lookupColumnMetaProps = useColumn(lookupColumn)
           :key="i"
           class="min-w-max"
           :class="{
-            'bg-gray-100 px-1 rounded-full flex-1': !lookupColumnMetaProps.isAttachment,
+            'bg-gray-100 px-1 rounded-full flex-1': !isAttachment(lookupColumn),
             ' border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
               lookupColumn.uidt,
             ),

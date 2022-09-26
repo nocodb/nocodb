@@ -22,7 +22,7 @@ provide(ActiveCellInj, active)
 provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))
 
-const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
+const virtualCell = useVirtualCell(column)
 </script>
 
 <template>
@@ -31,12 +31,6 @@ const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualC
     @keydown.stop.enter.exact="emit('navigate', NavigateDir.NEXT)"
     @keydown.stop.shift.enter.exact="emit('navigate', NavigateDir.PREV)"
   >
-    <LazyVirtualCellHasMany v-if="isHm" />
-    <LazyVirtualCellManyToMany v-else-if="isMm" />
-    <LazyVirtualCellBelongsTo v-else-if="isBt" />
-    <LazyVirtualCellRollup v-else-if="isRollup" />
-    <LazyVirtualCellFormula v-else-if="isFormula" />
-    <LazyVirtualCellCount v-else-if="isCount" />
-    <LazyVirtualCellLookup v-else-if="isLookup" />
+    <component :is="virtualCell" />
   </div>
 </template>

@@ -313,6 +313,7 @@ function openTableCreateDialog() {
               >
                 <GeneralTooltip wrapper-class="pl-5 pr-3 py-2" modifier-key="Alt">
                   <template #title>{{ table.table_name }}</template>
+
                   <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                     <div class="flex w-auto">
                       <MdiDragVertical

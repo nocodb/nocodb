@@ -240,6 +240,8 @@ export const genTest = (apiType, dbType) => {
         }
 
         // close team & auth tab
+        // DOM element gets detached- might be a flicker on load; Hence additional wait
+        cy.wait(1000);
         cy.get("button.ant-tabs-tab-remove").should("exist").click();
         cy.get("button.ant-tabs-tab-remove").should("not.exist");
 

@@ -2353,21 +2353,24 @@ class BaseModelSqlv2 {
         NcError.notImplemented('Grouping for virtual columns not implemented');
 
       // extract distinct group column values
-      let groupingValues;
+      let groupingValues: Set<any>;
       if (args.options?.length) {
-        groupingValues = args.options;
+        groupingValues = new Set(args.options);
       } else if (column.uidt === UITypes.SingleSelect) {
         const colOptions = await column.getColOptions<
           SelectOption[] & { options }
         >();
-        groupingValues = colOptions.options.map((opt) => opt.title);
+        groupingValues = new Set(colOptions.options.map((opt) => opt.title));
       } else {
-        groupingValues = (
-          await this.dbDriver(this.model.table_name)
-            .select(column.column_name)
-            .distinct()
-        ).map((row) => row[column.column_name]);
+        groupingValues = new Set(
+          (
+            await this.dbDriver(this.model.table_name)
+              .select(column.column_name)
+              .distinct()
+          ).map((row) => row[column.column_name])
+        );
       }
+      groupingValues.add(null);
 
       const qb = this.dbDriver(this.model.table_name);
       qb.limit(+rest?.limit || 25);
@@ -2451,7 +2454,7 @@ class BaseModelSqlv2 {
               this.isSqlite
                 ? this.dbDriver.select().from(nullListQb)
                 : nullListQb,
-              ...groupingValues.map((r) => {
+              ...[...groupingValues].map((r) => {
                 const query = qb.clone().where(column.title, r);
 
                 return this.isSqlite
@@ -2471,13 +2474,22 @@ class BaseModelSqlv2 {
         return d;
       });
 
-      // todo: handle null values
-      const groupedResult: Record<string, Record<string, unknown>[]> =
-        _.groupBy(result, column.title);
+      const groupedResult = result.reduce<Map<string | number | null, any[]>>(
+        (aggObj, row) => {
+          if (!aggObj.has(row[column.title])) {
+            aggObj.set(row[column.title], []);
+          }
 
-      const r = groupingValues.map((key) => ({
+          aggObj.get(row[column.title]).push(row);
+
+          return aggObj;
+        },
+        new Map()
+      );
+
+      const r = [...groupingValues].map((key) => ({
         key,
-        value: groupedResult[key] ?? [],
+        value: groupedResult.get(key) ?? [],
       }));
 
       return r;

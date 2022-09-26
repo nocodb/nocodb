@@ -10,6 +10,7 @@ import NcConfigFactory, {
 import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
+import { feedbackFormGet } from 'nc-help';
 
 const versionCache = {
   releaseVersion: null,
@@ -19,6 +20,7 @@ const versionCache = {
 export async function testConnection(req: Request, res: Response) {
   res.json(await SqlMgrv2.testConnection(req.body));
 }
+
 export async function appInfo(req: Request, res: Response) {
   const projectHasAdmin = !(await User.isFirst());
   const result = {
@@ -80,17 +82,8 @@ export async function versionInfo(_req: Request, res: Response) {
   res.json(response);
 }
 
-export async function feedbackFormGet(_req: Request, res: Response) {
-  axios
-    .get('https://nocodb.com/api/v1/feedback_form', {
-      timeout: 5000,
-    })
-    .then((response) => {
-      res.json(response.data);
-    })
-    .catch((e) => {
-      res.json({ error: e.message });
-    });
+export function feedbackFormGetHandler(_req: Request, res: Response) {
+  res.json(feedbackFormGet());
 }
 
 export async function appHealth(_: Request, res: Response) {
@@ -188,6 +181,6 @@ export default (router) => {
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
   router.get('/api/v1/version', catchError(versionInfo));
   router.get('/api/v1/health', catchError(appHealth));
-  router.get('/api/v1/feedback_form', catchError(feedbackFormGet));
+  router.get('/api/v1/feedback_form', catchError(feedbackFormGetHandler));
   router.post('/api/v1/url_to_config', catchError(urlToDbConfig));
 };

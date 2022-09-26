@@ -16,23 +16,12 @@ function createWebhook(hook, test) {
   cy.get(".nc-btn-create-webhook").should("exist").click();
 
   // hardcode "Content-type: application/json"
-  cy.get(".ant-tabs-tab-btn").contains("Headers").should("exist").click();
-
-  // kludge : as neither scrollIntoView nor scrollTo didn't yield any results
-  // cy.getActiveSelection().find('.ant-select-item').contains('Content-Type).scrollIntoView();
-  // cy.getActiveSelection().find('.rc-virtual-list').scrollTo('center');
-  // cy.getActiveSelection().select('Content-Type', { force: true });
+  cy.get(`.ant-tabs-tab-btn:contains("Headers")`).should("exist").click();
 
   cy.get(".nc-input-hook-header-key")
     .should("exist")
     .click()
     .type("Content-Type{enter}");
-
-  // cy.getActiveSelection(".nc-dropdown-webhook-header")
-  //   .find(".ant-select-item-option-content")
-  //   .contains("Content-Type")
-  //   .should("exist")
-  //   .click();
 
   cy.get("input.nc-input-hook-header-value")
     .should("exist")

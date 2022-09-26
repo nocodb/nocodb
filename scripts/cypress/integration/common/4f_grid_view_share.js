@@ -33,12 +33,14 @@ export const genTest = (apiType, dbType) => {
         // viewURL.push($obj.text())
         viewURL[viewName] = $obj.text().trim();
 
-        // wait till the modal is closed
-        // cy.get(`.nc-modal-share-view .ant-modal-content`).should("not.be.visible");
-        cy.get(".nc-modal-share-view .ant-modal-content", {
-          timeout: 12000,
-        }).should("not.be.visible");
+        // // wait till the modal is closed
+        // // cy.get(`.nc-modal-share-view .ant-modal-content`).should("not.be.visible");
+        // cy.get(".nc-modal-share-view .ant-modal-content", {
+        //   timeout: 12000,
+        // }).should("not.be.visible");
       });
+    // wait till modal is closed
+    cy.getActiveModal(".nc-modal-share-view").should("not.be.visible");
   };
 
   describe(`${apiType.toUpperCase()} api - GRID view (Share)`, () => {

@@ -1,7 +1,26 @@
 <script lang="ts" setup>
+import { useRouter } from 'vue-router'
 import { navigateTo } from '#app'
 const { isLoading, currentVersion } = useGlobal()
 const { sharedView } = useSharedView()
+const router = useRouter()
+
+if (window.parent !== window) {
+  const notifyLocationChange = (value: string) =>
+    window.parent.postMessage(
+      {
+        event: 'locationchange',
+        payload: { value },
+      },
+      '*',
+    )
+
+  router.afterEach((to) => notifyLocationChange(location.origin + to.fullPath))
+  window.addEventListener('beforeunload', () => {
+    const { href } = document.activeElement as { href?: string }
+    if (href) notifyLocationChange(href)
+  })
+}
 </script>
 
 <script lang="ts">

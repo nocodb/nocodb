@@ -80,7 +80,7 @@ const columns = [
     key: 'created_at',
     sort: 'desc',
     customRender: (value: { text: string }) =>
-      h(ATooltip, { placement: 'bottom', title: h('span', {}, value.text) }, () => timeAgo(value.text)),
+      h(ATooltip, { placement: 'bottom', title: h('span', {}, timeAgo(value.text)) }, () => value.text),
   },
 ]
 </script>

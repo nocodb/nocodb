@@ -115,10 +115,7 @@ export const genTest = (apiType, dbType) => {
       cy.wait("@unlinkCount");
     }
 
-    before(() => {
-      // http://localhost:8080/api/v1/db/data/noco/p_0l53e1xgsxlecb/md_mn4xgb2jnq16a7?limit=10&offset=0&where=&fields[]=Title&fields[]=Id
-      cy.intercept("GET", `/api/v1/db/data/noco/**`).as("waitForCardLoad");
-    });
+    before(() => {});
 
     afterEach(() => {
       cy.saveLocalStorage();
@@ -169,6 +166,9 @@ export const genTest = (apiType, dbType) => {
     // Expand form [Add new row]
     //
     it("Add HM, BT, MM Link, Expand form", () => {
+      // http://localhost:8080/api/v1/db/data/noco/p_0l53e1xgsxlecb/md_mn4xgb2jnq16a7?limit=10&offset=0&where=&fields[]=Title&fields[]=Id
+      cy.intercept("GET", `/api/v1/db/data/noco/**`).as("waitForCardLoad");
+
       cy.openTableTab("Sheet2", 0);
 
       // Click on `Add new row` button
@@ -280,6 +280,9 @@ export const genTest = (apiType, dbType) => {
 
     // Existing row, expand record
     it("Add HM, BT, MM Link, expand record", () => {
+      // http://localhost:8080/api/v1/db/data/noco/p_0l53e1xgsxlecb/md_mn4xgb2jnq16a7?limit=10&offset=0&where=&fields[]=Title&fields[]=Id
+      cy.intercept("GET", `/api/v1/db/data/noco/**`).as("waitForCardLoad");
+
       addRow(3, "2c");
       cy.get(".nc-row-expand").eq(2).click({ force: true });
 
@@ -289,7 +292,8 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-action-icon")
         .should("exist")
         .click({ force: true });
-      cy.wait(1000);
+      // cy.wait(1000);
+      cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
@@ -298,7 +302,8 @@ export const genTest = (apiType, dbType) => {
 
       // MM
       cy.get(".nc-expand-col-Sheet1.List").find(".ant-btn-primary").click();
-      cy.wait(1000);
+      // cy.wait(1000);
+      cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
@@ -308,7 +313,8 @@ export const genTest = (apiType, dbType) => {
 
       // HM
       cy.get(".nc-expand-col-Link2-1hm").find(".ant-btn-primary").click();
-      cy.wait(1000);
+      // cy.wait(1000);
+      cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")

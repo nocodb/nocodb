@@ -222,15 +222,11 @@ async function dataExist(req: Request, res: Response) {
   res.json(await baseModel.exist(req.params.rowId));
 }
 
-
-
 // todo: Handle the error case where view doesnt belong to model
 async function groupedDataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   res.json(await getGroupedDataList(model, view, req));
 }
-
-
 
 async function getGroupedDataList(model, view: View, req) {
   const base = await Base.get(model.base_id);
@@ -252,28 +248,40 @@ async function getGroupedDataList(model, view: View, req) {
   } catch (e) {}
 
   let data = [];
-  let count = 0;
+  // let count = 0
   try {
+    const groupedData = await baseModel.groupedList({
+      ...listArgs,
+      groupColumnId: req.params.columnId,
+    });
     data = await nocoExecute(
-      requestObj,
-      await baseModel.groupedList({ ...listArgs, groupColumnId: req.params.columnId }),
+      { key: 1, value: requestObj },
+      groupedData,
       {},
       listArgs
     );
-    count = await baseModel.count(listArgs);
+    const countArr = await baseModel.groupedListCount({
+      ...listArgs,
+      groupColumnId: req.params.columnId,
+    });
+    data = data.map((item) => {
+      // todo: use map to avoid loop
+      const count = countArr.find(
+        (countItem) => countItem.key === item.key
+      )?.count;
+
+      item.value = new PagedResponseImpl(item.value, {
+        ...req.query,
+        count,
+      });
+      return item;
+    });
   } catch (e) {
     // show empty result instead of throwing error here
     // e.g. search some text in a numeric field
   }
-
-  return new PagedResponseImpl(data, {
-    ...req.query,
-    count,
-  });
+  return data;
 }
-
-
-
 
 const router = Router({ mergeParams: true });
 
@@ -294,6 +302,12 @@ router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/groupby',
   apiMetrics,
   ncMetaAclMw(dataGroupBy, 'dataGroupBy')
+);
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/group/:columnId',
+  apiMetrics,
+  ncMetaAclMw(groupedDataList, 'groupedDataList')
 );
 
 router.get(
@@ -356,7 +370,6 @@ router.get(
   apiMetrics,
   ncMetaAclMw(dataGroupBy, 'dataGroupBy')
 );
-
 
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/group/:columnId',

@@ -2123,39 +2123,33 @@ function tableTest() {
   const  filmTable = await getTable({project: sakilaProject, name: 'film'})
   const  filmColumns = await filmTable.getColumns();
 
+    const ratingColumn = filmColumns.find(c => c.column_name === 'rating');
 
-  console.log(firstNameColumn,filmTable,filmColumns)
 
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/Film/group/${ratingColumn.id}`
+      )
+      .set('xc-auth', context.token)
+      .expect(200)
 
-    // const rollupColumn = await createRollupColumn(context, {
-    //   project: sakilaProject,
-    //   title: 'Rollup',
-    //   rollupFunction: 'count',
-    //   table: customerTable,
-    //   relatedTableName: 'rental',
-    //   relatedTableColumnTitle: 'RentalDate',
-    // });
-    //
-    // const visibleColumns = [firstNameColumn];
-    // const sortInfo = `-FirstName, +${rollupColumn.title}`;
-    //
-    // const response = await request(context.app)
-    //   .get(
-    //     `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/group/`
-    //   )
-    //   .set('xc-auth', context.token)
-    //   .query({
-    //     fields: visibleColumns.map((c) => c.title),
-    //     sort: sortInfo,
-    //     column_name: firstNameColumn.column_name,
-    //   })
-    //   .expect(200);
-    //
-    // if (
-    //   response.body.list[4]['first_name'] !== 'WILLIE' ||
-    //   response.body.list[4]['count'] !== 2
-    // )
-    //   throw new Error('Wrong groupby');
+    expect(response.body).to.be.an('array')
+    expect(response.body).to.be.have.length(5)
+    expect(response.body[0]).to.have.property('key')
+    expect(response.body[0]).to.have.property('value')
+    expect(response.body[0]).to.have.property('value')
+      .and.to.be.an('object')
+      .and.to.have.property('list')
+      .and.to.be.an('array')
+    expect(response.body[0]).to.have.property('key')
+      .and.to.be.a('string')
+    expect(response.body[0].value).to.have.property('pageInfo')
+      .and.to.be.an('object')
+      .and.to.have.property('totalRows')
+      .and.to.be.a('number')
+
+    // todo: test with filter and sort
+
   });
 
 }

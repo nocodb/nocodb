@@ -2405,6 +2405,31 @@ export class Api<
      * No description
      *
      * @tags DB table row
+     * @name GroupedDataList
+     * @summary Table Group by Column
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId}
+     * @response `200` `any` OK
+     */
+    groupedDataList: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      columnId: string,
+      query?: { fields?: any[]; sort?: any[]; where?: string; nested?: any },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/group/${columnId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
      * @name Read
      * @summary Table row read
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
@@ -2765,6 +2790,32 @@ export class Api<
       }),
   };
   dbViewRow = {
+    /**
+     * No description
+     *
+     * @tags DB view row
+     * @name GroupedDataList
+     * @summary Table Group by Column
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}
+     * @response `200` `any` OK
+     */
+    groupedDataList: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      viewName: string,
+      columnId: string,
+      query?: { fields?: any[]; sort?: any[]; where?: string; nested?: any },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/group/${columnId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
     /**
      * No description
      *

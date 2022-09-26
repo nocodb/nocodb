@@ -18,11 +18,8 @@ export const genTest = (apiType, dbType) => {
     before(() => {
       mainPage.tabReset();
 
-      // // kludge: wait for page load to finish
-      // cy.wait(1000);
       // // close team & auth tab
       // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-      // cy.wait(1000);
 
       cy.createTable(tableName);
     });
@@ -126,7 +123,6 @@ export const genTest = (apiType, dbType) => {
     ) => {
       if (isNewRow) {
         cy.get(".nc-add-new-row-btn:visible").should("exist");
-        cy.wait(500);
         cy.get(".nc-add-new-row-btn").click();
       } else {
         // mainPage.getRow(index).find(".nc-row-expand-icon").click({ force: true });

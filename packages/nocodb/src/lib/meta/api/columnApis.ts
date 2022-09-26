@@ -646,7 +646,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
 
   await table.getColumns();
 
-  Audit.insert({
+  await Audit.insert({
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.CREATED,
@@ -911,7 +911,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
               ]);
             } else {
               await baseModel.bulkUpdateAll(
-                { where: `(${column.title},eq,${option.title})` },
+                { where: `(${column.column_name},eq,${option.title})` },
                 { [column.column_name]: null },
                 { cookie: req }
               );
@@ -966,7 +966,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         }
       }
 
-      let interchange = [];
+      const interchange = [];
 
       // Handle option update
       if (column.colOptions?.options) {
@@ -985,11 +985,11 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
             );
           }
 
-          let newOp = {
+          const newOp = {
             ...colBody.colOptions.options.find((el) => option.id === el.id),
           };
           if (old_titles.includes(newOp.title)) {
-            let def_option = { ...newOp };
+            const def_option = { ...newOp };
             let title_counter = 1;
             while (old_titles.includes(newOp.title)) {
               newOp.title = `${def_option.title}_${title_counter++}`;
@@ -1077,7 +1077,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
               ]);
             } else {
               await baseModel.bulkUpdateAll(
-                { where: `(${column.title},eq,${option.title})` },
+                { where: `(${column.column_name},eq,${option.title})` },
                 { [column.column_name]: newOp.title },
                 { cookie: req }
               );
@@ -1138,7 +1138,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       }
 
       for (const ch of interchange) {
-        let newOp = ch.def_option;
+        const newOp = ch.def_option;
         if (column.uidt === UITypes.SingleSelect) {
           if (driverType === 'mssql') {
             await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
@@ -1150,7 +1150,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
             ]);
           } else {
             await baseModel.bulkUpdateAll(
-              { where: `(${column.title},eq,${ch.temp_title})` },
+              { where: `(${column.column_name},eq,${ch.temp_title})` },
               { [column.column_name]: newOp.title },
               { cookie: req }
             );
@@ -1327,7 +1327,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       ...colBody,
     });
   }
-  Audit.insert({
+  await Audit.insert({
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.UPDATED,
@@ -1526,7 +1526,7 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
     }
   }
 
-  Audit.insert({
+  await Audit.insert({
     project_id: base.project_id,
     op_type: AuditOperationTypes.TABLE_COLUMN,
     op_sub_type: AuditOperationSubTypes.DELETED,

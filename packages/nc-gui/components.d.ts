@@ -192,6 +192,8 @@ declare module '@vue/runtime-core' {
     MdiSort: typeof import('~icons/mdi/sort')['default']
     MdiStar: typeof import('~icons/mdi/star')['default']
     MdiStarOutline: typeof import('~icons/mdi/star-outline')['default']
+    MdiStorefrontOutline: typeof import('~icons/mdi/storefront-outline')['default']
+    MdiStorefrontSutline: typeof import('~icons/mdi/storefront-sutline')['default']
     MdiTable: typeof import('~icons/mdi/table')['default']
     MdiTableArrowRight: typeof import('~icons/mdi/table-arrow-right')['default']
     MdiTableLarge: typeof import('~icons/mdi/table-large')['default']

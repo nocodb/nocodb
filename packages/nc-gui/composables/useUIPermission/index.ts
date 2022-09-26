@@ -11,6 +11,14 @@ const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: P
 
   if (isString(rolePermission) && rolePermission === '*') return true
 
+  if ('include' in rolePermission && rolePermission.include) {
+    return !!rolePermission.include[permission as keyof typeof rolePermission.include]
+  }
+
+  if ('exclude' in rolePermission && rolePermission.exclude) {
+    return !rolePermission.exclude[permission as keyof typeof rolePermission.exclude]
+  }
+
   return rolePermission[permission as keyof typeof rolePermission]
 }
 
@@ -20,9 +28,7 @@ export const useUIPermission = createSharedComposable(() => {
 
   const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
     if (previewAs.value && !skipPreviewAs) {
-      const hasPreviewPermission = hasPermission(previewAs.value, true, permission)
-
-      if (hasPreviewPermission) return true
+      return hasPermission(previewAs.value, true, permission)
     }
 
     return Object.entries(allRoles.value).some(([role, hasRole]) =>

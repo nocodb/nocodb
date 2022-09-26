@@ -178,7 +178,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     base_id: base.id,
   });
 
-  Audit.insert({
+  await Audit.insert({
     project_id: project.id,
     op_type: AuditOperationTypes.TABLE,
     op_sub_type: AuditOperationSubTypes.CREATED,
@@ -348,7 +348,7 @@ export async function tableDelete(req: Request, res: Response) {
     });
   }
 
-  Audit.insert({
+  await Audit.insert({
     project_id: project.id,
     op_type: AuditOperationTypes.TABLE,
     op_sub_type: AuditOperationSubTypes.DELETED,

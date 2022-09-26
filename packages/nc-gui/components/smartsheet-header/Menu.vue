@@ -23,6 +23,7 @@ const { getMeta } = useMetas()
 const deleteColumn = () =>
   Modal.confirm({
     title: h('div', ['Do you want to delete ', h('span', { class: 'font-weight-bold' }, [column?.value?.title]), ' column ?']),
+    wrapClassName: 'nc-modal-column-delete',
     okText: t('general.delete'),
     okType: 'danger',
     cancelText: t('general.cancel'),

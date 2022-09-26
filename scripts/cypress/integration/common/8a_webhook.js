@@ -116,7 +116,6 @@ function configureWebhook(hook, test) {
       .contains(new RegExp("^" + hook.condition.column + "$", "g"))
       .should("exist")
       .click();
-    cy.wait(1000);
 
     cy.get(".nc-filter-operation-select").should("exist").last().click();
     cy.get(".ant-select-dropdown:visible")
@@ -162,8 +161,9 @@ function clearServerData() {
 function addNewRow(index, cellValue) {
   cy.get(".nc-add-new-row-btn:visible").should("exist");
   cy.get(".nc-add-new-row-btn").click();
-  cy.wait(1000);
+
   cy.get(".nc-expand-col-Title")
+    .should("exist")
     .find(".nc-cell > input")
     .first()
     .type(cellValue);
@@ -185,6 +185,7 @@ function updateRow(index, cellValue) {
     .click({ force: true });
 
   cy.get(".nc-expand-col-Title")
+    .should("exist")
     .find(".nc-cell > input")
     .should("exist")
     .first()
@@ -207,7 +208,7 @@ function updateRow(index, cellValue) {
 
 function verifyHookTrigger(count, lastValue) {
   // allow message to be received
-  cy.wait(500);
+  cy.wait(100);
 
   cy.request("http://localhost:9090/hook/count").then((msg) => {
     cy.log(msg.body);

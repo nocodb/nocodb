@@ -27,15 +27,9 @@ export const genTest = (apiType, dbType) => {
       // clean up newly added rows into Country table operations
       // this auto verifies successfull addition of rows to table as well
       mainPage.getPagination(5).click();
-      // kludge: flicker on load
-      cy.wait(3000);
 
       // wait for page rendering to complete
       cy.get(".nc-grid-row").should("have.length", 10);
-      // mainPage
-      //     .getRow(10)
-      //     .find(".mdi-checkbox-blank-outline")
-      //     .click({ force: true });
 
       mainPage.getCell("Country", 10).rightclick();
       cy.getActiveMenu(".nc-dropdown-grid-context-menu")
@@ -77,8 +71,6 @@ export const genTest = (apiType, dbType) => {
 
       mainPage.shareView().click();
 
-      // cy.wait(5000);
-
       // copy link text, visit URL
       cy.getActiveModal(".nc-modal-share-view")
         .find(".share-link-box")
@@ -97,7 +89,6 @@ export const genTest = (apiType, dbType) => {
           cy.visit(linkText, {
             baseUrl: null,
           });
-          // cy.wait(5000);
           cy.wait(["@waitForSharedViewLoad"]);
 
           // wait for share view page to load!
@@ -129,12 +120,7 @@ export const genTest = (apiType, dbType) => {
     it(`Filter column which contain only attachments, download CSV`, () => {
       // come back to main window
       loginPage.loginAndOpenProject(apiType, dbType);
-      // cy.visit('/')
-      // cy.wait(5000)
-      // projectsPage.openConfiguredProject(apiType, dbType);
-
       cy.openTableTab("Country", 25);
-      // cy.wait(1000);
 
       mainPage.filterField("testAttach", "is not null", null);
       mainPage.hideField("LastUpdate");

@@ -125,8 +125,6 @@ export function useMultiSelect(
   })
 
   const onKeyDown = async (e: KeyboardEvent) => {
-    if (selected.row === null || selected.col === null) return
-
     if (
       !isNaN(selectedRows.startRow) &&
       !isNaN(selectedRows.startCol) &&
@@ -137,6 +135,8 @@ export function useMultiSelect(
       selected.row = selectedRows.startRow
       selected.col = selectedRows.startCol
     }
+
+    if (selected.row === null || selected.col === null) return
 
     /** on tab key press navigate through cells */
     switch (e.key) {

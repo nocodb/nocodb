@@ -287,6 +287,9 @@ export const genTest = (apiType, dbType) => {
       addRow(3, "2c");
       cy.get(".nc-row-expand").eq(2).click({ force: true });
 
+      // wait for page render to complete
+      cy.get('button:contains("Save row"):visible').should("exist");
+
       // BT
       cy.wait(1000);
       cy.get(".nc-expand-col-Sheet1")

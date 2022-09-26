@@ -37,9 +37,9 @@ export const genTest = (apiType, dbType) => {
 
         // wait till the modal is closed
         // cy.get(`.nc-modal-share-view .ant-modal-content`).should("not.be.visible");
-        cy.get(".nc-modal-share-view .ant-modal-content :visible", {
+        cy.get(".nc-modal-share-view .ant-modal-content", {
           timeout: 12000,
-        }).should("not.exist");
+        }).should("not.be.visible");
       });
   };
 

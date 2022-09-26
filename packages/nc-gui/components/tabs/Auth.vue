@@ -26,6 +26,7 @@ const tabsInfo: Tab[] = [
 ]
 
 const selectedTabKey = $ref(0)
+
 const selectedTab = $computed(() => tabsInfo[selectedTabKey])
 </script>
 

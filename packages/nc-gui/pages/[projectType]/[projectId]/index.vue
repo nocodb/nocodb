@@ -8,6 +8,7 @@ import {
   onBeforeMount,
   onBeforeUnmount,
   onKeyStroke,
+  onMounted,
   openLink,
   projectThemeColors,
   provide,
@@ -49,7 +50,7 @@ const isLocked = ref(false)
 provide('TreeViewIsLockedInj', isLocked)
 
 // create a new sidebar state
-const { isOpen, toggle } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
+const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: false })
 
 const dialogOpen = ref(false)
 
@@ -160,6 +161,11 @@ onBeforeMount(async () => {
   if (type && name) {
     await router.replace(`/nc/${route.params.projectId}/${type}/${name}${view ? `/${view}` : ''}`)
   }
+})
+
+onMounted(() => {
+  toggle(true)
+  toggleHasSidebar(true)
 })
 
 onBeforeUnmount(reset)
@@ -481,7 +487,7 @@ onBeforeUnmount(reset)
           </div>
         </div>
 
-        <LazyDashboardTreeView v-show="isOpen" />
+        <LazyDashboardTreeView />
       </a-layout-sider>
     </template>
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
+import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar, useUIPermission } from '#imports'
 
 const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
 

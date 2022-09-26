@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
-import { TabMetaInj, iconMap, provide, useGlobal, useProject, useSidebar, useTabs } from '#imports'
-
-const { isLoading: isLoadingProject } = useProject()
+import { TabMetaInj, iconMap, provide, useGlobal, useSidebar, useTabs } from '#imports'
 
 const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 

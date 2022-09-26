@@ -31,10 +31,10 @@ export const genTest = (apiType, dbType) => {
 
       // open a table to work on views
       //
-      cy.openTableTab('Country', 25);
+      cy.openTableTab("Country", 25);
 
       clear = Cypress.LocalStorage.clear;
-      Cypress.LocalStorage.clear = () => {}
+      Cypress.LocalStorage.clear = () => {};
     });
 
     beforeEach(() => {
@@ -91,6 +91,9 @@ export const genTest = (apiType, dbType) => {
         // click on first row-expand if grid & first card if its gallery
         if (viewType === "grid") {
           cy.get(".nc-row-expand").first().click({ force: true });
+
+          // wait for page render to complete
+          cy.get('button:contains("Save row"):visible').should("exist");
         } else if (viewType === "gallery") {
           cy.get(".nc-gallery-container .ant-card").first().click();
         }

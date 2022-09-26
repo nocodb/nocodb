@@ -267,7 +267,7 @@ async function getGroupedDataList(model, view: View, req) {
     data = data.map((item) => {
       // todo: use map to avoid loop
       const count = countArr.find(
-        (countItem) => countItem.key === item.key
+        (countItem) => countItem.key || 'null' === item.key
       )?.count;
 
       item.value = new PagedResponseImpl(item.value, {

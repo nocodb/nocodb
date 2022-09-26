@@ -37,7 +37,10 @@ export const genTest = (apiType, dbType) => {
       });
 
     // wait till the modal is closed
-    cy.get(`.nc-modal-share-view .ant-modal-content`).should("not.be.visible");
+    // cy.get(`.nc-modal-share-view .ant-modal-content`).should("not.be.visible");
+    cy.get(".nc-modal-share-view .ant-modal-content :visible", {
+      timeout: 12000,
+    }).should("not.exist");
   };
 
   describe(`${apiType.toUpperCase()} api - GRID view (Share)`, () => {

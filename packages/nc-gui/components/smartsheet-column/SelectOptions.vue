@@ -6,21 +6,29 @@ import MdiDragIcon from '~icons/mdi/drag-vertical'
 import MdiArrowDownDropCircle from '~icons/mdi/arrow-down-drop-circle'
 import MdiClose from '~icons/mdi/close'
 import MdiPlusIcon from '~icons/mdi/plus'
+import { IsKanbanInj } from '#imports'
 
 interface Props {
   value: Record<string, any>
 }
 
 const props = defineProps<Props>()
+
 const emit = defineEmits(['update:value'])
+
 const vModel = useVModel(props, 'value', emit)
 
 const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
 let options = $ref<any[]>([])
+
 const colorMenus = $ref<any>({})
+
 const colors = $ref(enumColor.light)
+
 const inputs = ref()
+
+const isKanban = inject(IsKanbanInj, ref(false))
 
 const validators = {
   'colOptions.options': [
@@ -96,7 +104,7 @@ watch(inputs, () => {
     <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
       <template #item="{ element, index }">
         <div class="flex py-1 items-center nc-select-option">
-          <MdiDragIcon small class="nc-child-draggable-icon handle" />
+          <MdiDragIcon v-if="!isKanban" small class="nc-child-draggable-icon handle" />
           <a-dropdown
             v-model:visible="colorMenus[index]"
             :trigger="['click']"

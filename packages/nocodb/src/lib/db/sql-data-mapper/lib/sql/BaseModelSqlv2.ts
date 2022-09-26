@@ -409,7 +409,7 @@ class BaseModelSqlv2 {
                     .where(_wherePk(parentTable.primaryKeys, p))
                 );
               // todo: sanitize
-              query.limit(+rest?.limit || 20);
+              query.limit(+rest?.limit || 25);
               query.offset(+rest?.offset || 0);
 
               return this.isSqlite ? this.dbDriver.select().from(query) : query;
@@ -514,7 +514,7 @@ class BaseModelSqlv2 {
           .where(_wherePk(parentTable.primaryKeys, id))
       );
       // todo: sanitize
-      qb.limit(+rest?.limit || 20);
+      qb.limit(+rest?.limit || 25);
       qb.offset(+rest?.offset || 0);
 
       await childModel.selectObject({ qb });
@@ -617,7 +617,7 @@ class BaseModelSqlv2 {
           .select(this.dbDriver.raw('? as ??', [id, GROUP_COL]));
 
         // todo: sanitize
-        query.limit(+rest?.limit || 20);
+        query.limit(+rest?.limit || 25);
         query.offset(+rest?.offset || 0);
 
         return this.isSqlite ? this.dbDriver.select().from(query) : query;
@@ -682,7 +682,7 @@ class BaseModelSqlv2 {
 
     await childModel.selectObject({ qb });
     // todo: sanitize
-    qb.limit(+rest?.limit || 20);
+    qb.limit(+rest?.limit || 25);
     qb.offset(+rest?.offset || 0);
 
     const children = await this.extractRawQueryAndExec(qb);
@@ -2344,6 +2344,7 @@ class BaseModelSqlv2 {
     }[]
   > {
     try {
+      const { where, ...rest } = this._getListArgs(args as any);
       const column = await this.model
         .getColumns()
         .then((cols) => cols?.find((col) => col.id === args.groupColumnId));
@@ -2368,16 +2369,15 @@ class BaseModelSqlv2 {
       }
 
       const qb = this.dbDriver(this.model.table_name);
-
-      qb.limit(+args?.limit || 20);
-      qb.offset(+args?.offset || 0);
+      qb.limit(+rest?.limit || 25);
+      qb.offset(+rest?.offset || 0);
 
       await this.selectObject({ qb });
 
       // todo: refactor and move to a method (applyFilterAndSort)
       const aliasColObjMap = await this.model.getAliasColObjMap();
       let sorts = extractSortsObject(args?.sort, aliasColObjMap);
-      const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+      const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
       // todo: replace with view id
       if (!args.ignoreFilterSort && this.viewId) {
         await conditionV2(
@@ -2679,7 +2679,7 @@ function extractCondition(nestedArrayConditions, aliasColObjMap) {
 function applyPaginate(
   query,
   {
-    limit = 20,
+    limit = 25,
     offset = 0,
     ignoreLimit = false,
   }: XcFilter & { ignoreLimit?: boolean }

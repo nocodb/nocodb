@@ -44,13 +44,13 @@ export default class Audit implements AuditType {
       forceAwait: process.env['TEST'] === 'true',
     }
   ) {
-    if (!audit.project_id && audit.fk_model_id) {
-      audit.project_id = (
-        await Model.getByIdOrName({ id: audit.fk_model_id }, ncMeta)
-      ).project_id;
-    }
-
     const insertAudit = async () => {
+      if (!audit.project_id && audit.fk_model_id) {
+        audit.project_id = (
+          await Model.getByIdOrName({ id: audit.fk_model_id }, ncMeta)
+        ).project_id;
+      }
+
       return await ncMeta.metaInsert2(null, null, MetaTable.AUDIT, {
         user: audit.user,
         ip: audit.ip,

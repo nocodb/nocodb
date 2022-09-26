@@ -80,21 +80,27 @@ export function useKanbanViewData(
     formattedData.value = {}
     countByStack.value = {}
 
-    await Promise.all(
-      groupingFieldColOptions.value.map(async (option: GroupingFieldColOptionsType) => {
-        const where =
-          option.title === 'uncategorized' ? `(${groupingField.value},is,null)` : `(${groupingField.value},eq,${option.title})`
+    let res
 
-        const response = !isPublic.value
-          ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-              where,
-            })
-          : await fetchSharedViewData({ where })
+    if (isPublic.value) {
+      // TODO: we need a public API for groupedDataList instead of fetchSharedViewData
+    } else {
+      res = await api.dbViewRow.groupedDataList(
+        'noco',
+        project.value.id!,
+        meta.value!.id!,
+        viewMeta.value!.id!,
+        groupingFieldColumn!.value!.id!,
+        {},
+        {},
+      )
+    }
 
-        formattedData.value[option.title!] = formatData(response.list)
-        countByStack.value[option.title!] = response.pageInfo.totalRows || 0
-      }),
-    )
+    for (const data of res) {
+      const key = data.key === 'null' ? 'uncategorized' : data.key
+      formattedData.value[key] = formatData(data.value.list)
+      countByStack.value[key] = data.value.pageInfo.totalRows || 0
+    }
   }
 
   async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {

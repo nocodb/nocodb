@@ -110,7 +110,7 @@ export default class TestDbMngr {
       await TestDbMngr.resetMetaSqlite();
       TestDbMngr.metaKnex = knex(TestDbMngr.getMetaDbConfig());
       return
-    } 
+    }
 
     TestDbMngr.metaKnex = knex(TestDbMngr.getDbConfigWithNoDb());
     await TestDbMngr.resetDatabase(TestDbMngr.metaKnex, TestDbMngr.dbName);
@@ -129,12 +129,12 @@ export default class TestDbMngr {
       await TestDbMngr.seedSakila();
       TestDbMngr.sakilaKnex = knex(TestDbMngr.getSakilaDbConfig());
       return
-    } 
-    
+    }
+
     TestDbMngr.sakilaKnex = knex(TestDbMngr.getDbConfigWithNoDb());
     await TestDbMngr.resetDatabase(TestDbMngr.sakilaKnex, TestDbMngr.sakilaDbName);
     await TestDbMngr.sakilaKnex.destroy();
-    
+
     TestDbMngr.sakilaKnex = knex(TestDbMngr.getSakilaDbConfig());
     await TestDbMngr.useDatabase(TestDbMngr.sakilaKnex, TestDbMngr.sakilaDbName);
   }
@@ -217,7 +217,7 @@ export default class TestDbMngr {
     return sakilaDbConfig;
   }
 
-  static async seedSakila() {     
+  static async seedSakila() {
     const testsDir = __dirname.replace('tests/unit', 'tests');
 
     if(TestDbMngr.isSqlite()){

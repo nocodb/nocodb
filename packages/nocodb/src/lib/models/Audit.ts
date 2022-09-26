@@ -69,8 +69,7 @@ export default class Audit implements AuditType {
     };
 
     if (forceAwait) {
-      const auditRec = await insertAudit();
-      return auditRec;
+      return await insertAudit();
     } else {
       insertAudit();
     }

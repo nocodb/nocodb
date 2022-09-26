@@ -91,7 +91,7 @@ const vModel = computed({
   set: (val) => {
     if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
-      emit('update:modelValue', val)
+      emit('update:modelValue', val === '' ? null : val)
       if (isAutoSaved) {
         syncValue()
       } else if (!isManualSaved) {

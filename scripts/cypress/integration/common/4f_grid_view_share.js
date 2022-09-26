@@ -18,8 +18,6 @@ export const genTest = (apiType, dbType) => {
   const generateViewLink = (viewName) => {
     mainPage.shareView().click();
 
-    // cy.wait(1000);
-
     // wait, as URL initially will be /undefined
     cy.getActiveModal(".nc-modal-share-view")
       .find(".share-link-box")
@@ -101,7 +99,6 @@ export const genTest = (apiType, dbType) => {
 
         cy.wait(["@waitForPageLoad"]);
         // kludge: additional wait to ensure page load is completed
-        // cy.wait(2000);
       });
 
       it(`Share GRID view : ensure we have only one link even if shared multiple times`, () => {
@@ -133,7 +130,6 @@ export const genTest = (apiType, dbType) => {
         cy.visit(viewURL["combined"], {
           baseUrl: null,
         });
-        // cy.wait(5000);
         cy.wait(["@waitForFormLoad"]);
 
         // wait for page rendering to complete
@@ -426,7 +422,6 @@ export const genTest = (apiType, dbType) => {
       cy.visit(viewURL["rowColUpdate"], {
         baseUrl: null,
       });
-      // cy.wait(5000);
       cy.wait(["@waitForFormLoad"]);
 
       // wait for public view page to load!
@@ -462,7 +457,6 @@ export const genTest = (apiType, dbType) => {
       // delete row
       mainPage.getPagination(5).click();
       // kludge: flicker on load
-      // cy.wait(3000);
       cy.wait(["@waitForPageLoad"]);
 
       // wait for page rendering to complete

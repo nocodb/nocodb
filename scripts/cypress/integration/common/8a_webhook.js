@@ -184,6 +184,9 @@ function updateRow(index, cellValue) {
     .eq(index - 1)
     .click({ force: true });
 
+  // wait for page render to complete
+  cy.get('button:contains("Save row"):visible').should("exist");
+
   cy.get(".nc-expand-col-Title")
     .should("exist")
     .find(".nc-cell > input")

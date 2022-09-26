@@ -143,6 +143,9 @@ export const genTest = (apiType, dbType) => {
         .trigger("mouseover", { force: true });
       cy.get(".nc-row-expand").click({ force: true });
 
+      // wait for page render to complete
+      cy.get('button:contains("Save row"):visible').should("exist");
+
       cy.get(".nc-expand-col-Title")
         .find(".nc-cell > input")
         .should("exist")

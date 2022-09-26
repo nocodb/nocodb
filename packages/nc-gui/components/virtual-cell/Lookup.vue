@@ -10,9 +10,11 @@ import {
   ReadonlyInj,
   computed,
   inject,
+  isAttachment,
   provide,
-  useColumn,
+  ref,
   useMetas,
+  watch,
 } from '#imports'
 
 const { metas, getMeta } = useMetas()
@@ -27,13 +29,22 @@ const value = inject(CellValueInj)
 
 const arrValue = computed(() => (Array.isArray(value?.value) ? value?.value : [value?.value]) ?? [])
 
-const relationColumn = meta.value?.columns?.find((c) => c.id === column.value.colOptions?.fk_relation_column_id) as ColumnType & {
-  colOptions: LinkToAnotherRecordType
-}
+const relationColumn = computed(
+  () =>
+    meta.value?.columns?.find((c) => c.id === column.value.colOptions?.fk_relation_column_id) as ColumnType & {
+      colOptions: LinkToAnotherRecordType
+    },
+)
 
-await getMeta(relationColumn.colOptions.fk_related_model_id!)
+watch(
+  relationColumn,
+  async () => {
+    await getMeta(relationColumn.value.colOptions.fk_related_model_id!)
+  },
+  { immediate: true },
+)
 
-const lookupTableMeta = computed(() => metas.value[relationColumn.colOptions.fk_related_model_id!])
+const lookupTableMeta = computed(() => metas.value[relationColumn.value.colOptions.fk_related_model_id!])
 
 const lookupColumn = computed<any>(
   () =>

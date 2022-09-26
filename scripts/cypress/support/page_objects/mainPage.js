@@ -488,11 +488,10 @@ export class _mainPage {
         // one of the row would contain seggregation header ('other views)
         if (5 == $tableRow[0].childElementCount) {
           cy.wrap($tableRow).find(".nc-icon").last().click();
-          cy.wait(100);
+          cy.toastWait("Deleted shared view successfully");
         }
       })
       .then(() => {
-        cy.toastWait("Deleted shared view successfully");
         cy.getActiveModal()
           .find("button.ant-modal-close")
           .should("exist")

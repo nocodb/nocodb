@@ -2334,8 +2334,7 @@ class BaseModelSqlv2 {
     args: {
       groupColumnId: string;
       ignoreFilterSort?: boolean;
-      sortArr?: any;
-      filterArr?: any;
+      options?: (string | number | null | boolean)[];
     } & Partial<XcFilter>
   ): Promise<
     {
@@ -2355,7 +2354,9 @@ class BaseModelSqlv2 {
 
       // extract distinct group column values
       let groupingValues;
-      if (column.uidt === UITypes.SingleSelect) {
+      if (args.options?.length) {
+        groupingValues = args.options;
+      } else if (column.uidt === UITypes.SingleSelect) {
         const colOptions = await column.getColOptions<
           SelectOption[] & { options }
         >();
@@ -2474,9 +2475,9 @@ class BaseModelSqlv2 {
       const groupedResult: Record<string, Record<string, unknown>[]> =
         _.groupBy(result, column.title);
 
-      const r = Object.entries(groupedResult).map(([key, value]) => ({
+      const r = groupingValues.map((key) => ({
         key,
-        value,
+        value: groupedResult[key] ?? [],
       }));
 
       return r;

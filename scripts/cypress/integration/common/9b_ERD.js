@@ -13,7 +13,10 @@ export const genTest = (apiType, dbType) => {
 
   describe(`${apiType.toUpperCase()} ERD`, () => {
     before(() => {
-      loginPage.loginAndOpenProject(apiType, dbType);
+      cy.restoreLocalStorage();
+      
+      // loginPage.loginAndOpenProject(apiType, dbType);
+      
       cy.openTableTab("Country", 25);
       projectId = getProjectString()
       cy.log('erd:getProjectString' + projectId)

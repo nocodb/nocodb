@@ -45,9 +45,6 @@ export const genTest = (apiType, dbType) => {
     before(() => {
       cy.restoreLocalStorage();
       cy.openTableTab("Address", 25);
-
-      // http://localhost:8080/api/v1/db/public/shared-view/e8964174-13ca-451f-bf06-0b8750037dd8/rows?offset=0&filterArrJson=[]&sortArrJson=[]
-      cy.intercept("/api/v1/db/public/shared-view/**").as("waitForFormLoad");
     });
 
     beforeEach(() => {
@@ -100,7 +97,7 @@ export const genTest = (apiType, dbType) => {
 
         cy.wait(["@waitForPageLoad"]);
         // kludge: additional wait to ensure page load is completed
-        cy.wait(2000);
+        // cy.wait(2000);
       });
 
       it(`Share GRID view : ensure we have only one link even if shared multiple times`, () => {

@@ -212,7 +212,11 @@ export const genTest = (apiType, dbType) => {
       // HM
       cy.get(".nc-expand-col-Link2-1hm").find(".ant-btn-primary").click();
       cy.wait(1000);
-      cy.getActiveModal(".nc-modal-link-record).find(".ant-card").should("exist").eq(0).click();
+      cy.getActiveModal(".nc-modal-link-record")
+        .find(".ant-card")
+        .should("exist")
+        .eq(0)
+        .click();
 
       // Save row
       cy.getActiveDrawer(".nc-drawer-expanded-form")

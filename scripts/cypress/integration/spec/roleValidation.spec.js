@@ -162,6 +162,10 @@ export function _editData(roleType, mode) {
       .eq(0)
       .trigger("mouseover", { force: true });
     cy.get(".nc-row-expand").should("exist").eq(10).click({ force: true });
+
+    // wait for page render to complete
+    cy.get('button:contains("Save row"):visible').should("exist");
+
     cy.getActiveDrawer(".nc-drawer-expanded-form")
       .find("button")
       .contains("Save row")
@@ -175,6 +179,10 @@ export function _editData(roleType, mode) {
     // update cell contents option using row expander should be disabled
     //
     cy.get(".nc-row-expand").should("exist").eq(10).click({ force: true });
+
+    // wait for page render to complete
+    cy.get('button:contains("Save row"):visible').should("exist");
+
     cy.getActiveDrawer(".nc-drawer-expanded-form")
       .find("button:disabled")
       .contains("Save row")

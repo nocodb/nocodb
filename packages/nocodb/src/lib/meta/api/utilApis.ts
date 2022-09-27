@@ -37,6 +37,7 @@ export async function appInfo(req: Request, res: Response) {
     connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
     canCreateProjectWithoutExternalDB:
       !process.env.NC_PROJECT_WITHOUT_EXTERNAL_DB_DISABLED,
+    useFinnTheme: !!process.env.NC_USE_FINN,
     version: packageVersion,
     defaultLimit: Math.max(
       Math.min(

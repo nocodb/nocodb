@@ -27,6 +27,7 @@ export interface AppInfo {
   teleEnabled: boolean
   type: string
   version: string
+  useFinnTheme: boolean
 }
 
 export interface StoredState {

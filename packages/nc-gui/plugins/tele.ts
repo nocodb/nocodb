@@ -58,6 +58,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       if (vnode.el) vnode.el.addEventListener('click', getListener(binding))
       else el.addEventListener('click', getListener(binding))
     },
+    beforeUnmount(el, binding, vnode) {
+      if (vnode.el) vnode.el.removeEventListener('click', getListener(binding))
+      else el.removeEventListener('click', getListener(binding))
+    },
   })
 
   function getListener(binding: any) {

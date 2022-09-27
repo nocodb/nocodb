@@ -38,6 +38,8 @@ export default defineNuxtPlugin((nuxtApp) => {
         document.documentElement.addEventListener('mouseup', stopDrag, false)
       }
 
+      ;(el as any).initDrag = initDrag
+
       let width: number | string
 
       // emit event on dragging
@@ -54,6 +56,13 @@ export default defineNuxtPlugin((nuxtApp) => {
         document.documentElement.removeEventListener('mouseup', stopDrag, false)
         emit('xcresize', width)
         emit('xcresized')
+      }
+    },
+    beforeUnmount: (el: Element) => {
+      const resizer = el.querySelector('.resizer')
+
+      if (resizer) {
+        resizer.removeEventListener('mousedown', (el as any).initDrag, false)
       }
     },
   })

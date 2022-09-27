@@ -108,7 +108,6 @@ function onCreate(view: ViewType) {
     class="relative shadow-md h-full"
     theme="light"
   >
-    {{ isOpen }}
     <LazySmartsheetSidebarToolbar
       v-if="isOpen"
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"

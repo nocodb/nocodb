@@ -285,13 +285,18 @@ export const genTest = (apiType, dbType) => {
       cy.intercept("GET", `/api/v1/db/data/noco/**`).as("waitForCardLoad");
 
       addRow(3, "2c");
+
+      cy.wait(waitTime);
+
       cy.get(".nc-row-expand").eq(2).click({ force: true });
+
+      cy.wait(waitTime);
 
       // wait for page render to complete
       cy.get('button:contains("Save row"):visible').should("exist");
 
       // BT
-      cy.wait(1000);
+      cy.wait(waitTime);
       cy.get(".nc-expand-col-Sheet1")
         .find(".nc-action-icon")
         .should("exist")
@@ -313,7 +318,7 @@ export const genTest = (apiType, dbType) => {
         .should("exist")
         .eq(2)
         .click();
-      cy.wait(1000);
+      cy.wait(waitTime);
 
       // HM
       cy.get(".nc-expand-col-Link2-1hm").find(".ant-btn-primary").click();
@@ -324,7 +329,7 @@ export const genTest = (apiType, dbType) => {
         .should("exist")
         .eq(2)
         .click();
-      cy.wait(1000);
+      cy.wait(waitTime);
 
       cy.getActiveDrawer(".nc-drawer-expanded-form")
         .find("button")

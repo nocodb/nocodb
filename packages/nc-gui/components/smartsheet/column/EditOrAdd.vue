@@ -115,7 +115,7 @@ onMounted(() => {
     :class="{ '!w-[600px]': formState.uidt === UITypes.Formula }"
     @click.stop
   >
-    <a-form v-if="formState" v-model="formState" no-style name="column-create-or-edit" layout="vertical">
+    <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
           <a-input ref="antInput" v-model:value="formState.title" class="nc-column-name-input" @input="onAlter(8)" />
@@ -191,6 +191,7 @@ onMounted(() => {
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
+
           <a-button html-type="submit" type="primary" @click.prevent="onSubmit">
             <!-- Save -->
             {{ $t('general.save') }}

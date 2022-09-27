@@ -39,12 +39,17 @@ export const genTest = (apiType, dbType) => {
     cy.getActiveModal(".nc-modal-share-view").should("not.be.visible");
   };
 
+  let clear;
+
   describe(`${apiType.toUpperCase()} api - GRID view (Share)`, () => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
       cy.restoreLocalStorage();
       cy.openTableTab("Address", 25);
+
+      clear = Cypress.LocalStorage.clear;
+      Cypress.LocalStorage.clear = () => {};
     });
 
     beforeEach(() => {
@@ -61,6 +66,8 @@ export const genTest = (apiType, dbType) => {
       cy.restoreLocalStorage();
       cy.closeTableTab("Address");
       cy.saveLocalStorage();
+
+      Cypress.LocalStorage.clear = clear;
     });
 
     // Common routine to create/edit/delete GRID & GALLERY view

@@ -206,6 +206,8 @@ export class _mainPage {
   addColumn = (colName, tableName) => {
     cy.get(".nc-column-add").click();
 
+    cy.wait(2000);
+
     cy.getActiveMenu(".nc-dropdown-grid-add-column:has(.nc-column-name-input)")
       .find("input.nc-column-name-input")
       .should("exist")
@@ -217,11 +219,16 @@ export class _mainPage {
       .should("exist")
       .click();
     cy.toastWait(`Column created`);
+
+    cy.wait(2000);
+
     cy.get(`th[data-title="${colName}"]`).should("exist");
   };
 
   addColumnWithType = (colName, colType, tableName) => {
     cy.get(".nc-column-add").click();
+
+    cy.wait(2000);
 
     cy.getActiveMenu(".nc-dropdown-grid-add-column:has(.nc-column-name-input)")
       .find("input.nc-column-name-input")
@@ -244,6 +251,9 @@ export class _mainPage {
       .click();
 
     cy.toastWait(`Column created`);
+
+    cy.wait(2000);
+
     cy.get(`th[data-title="${colName}"]`).should("exist");
   };
 

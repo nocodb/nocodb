@@ -29,6 +29,36 @@ import { isXcdb, isPostgres } from "./page_objects/projectConstants";
 
 require("@4tw/cypress-drag-drop");
 
+// recursively gets an element, returning only after it's determined to be attached to the DOM for good
+Cypress.Commands.add('getSettled', (selector, opts = {}) => {
+  const retries = opts.retries || 3;
+  const delay = opts.delay || 300;
+
+  const isAttached = (resolve, count = 0) => {
+      const el = Cypress.$(selector);
+
+      // is element attached to the DOM?
+      count = Cypress.dom.isAttached(el) ? count + 1 : 0;
+
+      // hit our base case, return the element
+      if (count >= retries) {
+          return resolve(el);
+      }
+
+      // retry after a bit of a delay
+      setTimeout(() => isAttached(resolve, count), delay);
+  };
+
+  // wrap, so we can chain cypress commands off the result
+  return cy.wrap(null).then(() => {
+      return new Cypress.Promise((resolve) => {
+          return isAttached(resolve, 0);
+      }).then((el) => {
+          return cy.wrap(el);
+      });
+  });
+});
+
 // for waiting until page load
 Cypress.Commands.add("waitForSpinners", () => {
   cy.visit("http://localhost:3000/signup", {
@@ -252,9 +282,9 @@ Cypress.Commands.add("getActiveModal", (wrapperSelector) => {
 
 Cypress.Commands.add("getActiveMenu", (overlaySelector) => {
   if (overlaySelector) {
-    return cy.get(`${overlaySelector} .ant-dropdown-content:visible`);
+    return cy.getSettled(`${overlaySelector} .ant-dropdown-content:visible`);
   }
-  return cy.get(".ant-dropdown-content:visible").last();
+  return cy.getSettled(".ant-dropdown-content:visible").last();
 });
 
 Cypress.Commands.add("getActivePopUp", () => {

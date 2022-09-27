@@ -239,9 +239,8 @@ export const genTest = (apiType, dbType) => {
           cy_createProjectBlock(proj, apiType, dbType);
         }
 
-        cy.wait(2000);
         // close team & auth tab
-        cy.get("button.ant-tabs-tab-remove").should("be.visible").click();
+        cy.getSettled("button.ant-tabs-tab-remove").should("be.visible").click();
         cy.get("button.ant-tabs-tab-remove").should("not.exist");
 
         // first instance of updating local storage information

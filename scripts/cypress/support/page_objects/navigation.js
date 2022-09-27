@@ -107,10 +107,8 @@ export class _projectsPage {
 
     cy.wait("@waitForPageLoad");
 
-    cy.wait(2000);
-    
     // close team & auth tab
-    cy.get("button.ant-tabs-tab-remove").should("be.visible").click();
+    cy.getSettled("button.ant-tabs-tab-remove").should("be.visible").click();
     cy.get("button.ant-tabs-tab-remove").should("not.exist");
   }
 

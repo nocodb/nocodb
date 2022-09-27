@@ -2361,6 +2361,7 @@ class BaseModelSqlv2 {
           SelectOption[] & { options }
         >();
         groupingValues = new Set(colOptions.options.map((opt) => opt.title));
+        groupingValues.add(null);
       } else {
         groupingValues = new Set(
           (
@@ -2369,8 +2370,8 @@ class BaseModelSqlv2 {
               .distinct()
           ).map((row) => row[column.column_name])
         );
+        groupingValues.add(null);
       }
-      groupingValues.add(null);
 
       const qb = this.dbDriver(this.model.table_name);
       qb.limit(+rest?.limit || 25);

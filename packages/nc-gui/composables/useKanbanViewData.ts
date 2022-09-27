@@ -97,7 +97,7 @@ export function useKanbanViewData(
     }
 
     for (const data of res) {
-      const key = data.key === 'null' ? 'uncategorized' : data.key
+      const key = data.key === null ? 'uncategorized' : data.key
       formattedData.value[key] = formatData(data.value.list)
       countByStack.value[key] = data.value.pageInfo.totalRows || 0
     }

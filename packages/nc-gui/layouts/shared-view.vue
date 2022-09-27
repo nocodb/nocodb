@@ -6,6 +6,11 @@ const router = useRouter()
 
 onMounted(() => {
   // check if we are inside an iframe
+  // if we are, communicate to the parent page whenever we navigate to a new url,
+  // so that the parent page can respond to it properly.
+  // E.g. by making the browser navigate to that url, and not just the iframe.
+  // This is useful for integrating NocoDB into other products,
+  // such as Outline (https://github.com/outline/outline/pull/4184).
   if (window.parent !== window) {
     const notifyLocationChange = (value: string) =>
       window.parent.postMessage(

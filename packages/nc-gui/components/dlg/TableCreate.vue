@@ -21,7 +21,7 @@ const { addTab } = useTabs()
 
 const { loadTables, isMysql, isMssql, isPg } = useProject()
 
-const { table, createTable, generateUniqueTitle, tables, project } = useTable(async (table) => {
+const { table, createTable, tables, project } = useTable(async (table) => {
   await loadTables()
 
   addTab({
@@ -73,8 +73,6 @@ const systemColumnsCheckboxInfo = SYSTEM_COLUMNS.map((c, index) => ({
 }))
 
 onMounted(() => {
-  generateUniqueTitle()
-
   inputEl.value?.focus()
 })
 </script>

@@ -22,6 +22,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
   const createTable = async () => {
     if (!sqlUi?.value) return
     const columns = sqlUi?.value?.getNewTableColumns().filter((col) => {
+      delete col.title // determine column title on backend
       if (col.column_name === 'id' && table.columns.includes('id_ag')) {
         Object.assign(col, sqlUi?.value?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
         col.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(col.dt)
@@ -49,14 +50,6 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
       table.table_name = `${project?.value?.prefix || ''}${title}`
     },
   )
-
-  const generateUniqueTitle = () => {
-    let c = 1
-    while (tables?.value?.some((t) => t.title === `Sheet${c}`)) {
-      c++
-    }
-    table.title = `Sheet${c}`
-  }
 
   const deleteTable = (table: TableType) => {
     $e('c:table:delete')
@@ -112,5 +105,5 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
     })
   }
 
-  return { table, createTable, generateUniqueTitle, tables, project, deleteTable }
+  return { table, createTable, tables, project, deleteTable }
 }

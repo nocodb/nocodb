@@ -13,7 +13,7 @@ import {
   useSidebar,
 } from '#imports'
 
-const { signIn: _signIn } = useGlobal()
+const { signIn: _signIn, appInfo } = useGlobal()
 
 const { api, isLoading } = useApi()
 
@@ -76,6 +76,11 @@ async function signIn() {
 function resetError() {
   if (error) error = null
 }
+
+const isSignupAllowed = () => {
+  return !appInfo?.value?.noSignUp || appInfo?.value?.firstUser
+}
+
 </script>
 
 <template>
@@ -126,7 +131,7 @@ function resetError() {
               </span>
             </button>
 
-            <div class="text-end prose-sm">
+            <div class="text-end prose-sm" v-if="isSignupAllowed()">
               {{ $t('msg.info.signUp.dontHaveAccount') }}
               <nuxt-link to="/signup">{{ $t('general.signUp') }}</nuxt-link>
             </div>

@@ -67,6 +67,8 @@ const form = reactive<Form>({
   grp_column_id: null,
 })
 
+const singleSelectFieldOptions = ref<SelectProps['options']>([])
+
 const viewNameRules = [
   // name is required
   { required: true, message: `${t('labels.viewName')} ${t('general.required')}` },
@@ -109,6 +111,19 @@ function init() {
 
   if (props.selectedViewId) {
     form.copy_from_id = props.selectedViewId
+  }
+
+  // preset the grouping field column
+  if (form.type === ViewTypes.KANBAN) {
+    singleSelectFieldOptions.value = fields.value
+      .filter((el) => el.uidt === UITypes.SingleSelect)
+      .map((field) => {
+        return {
+          value: field.id,
+          label: field.title,
+        }
+      })
+    form.grp_column_id = singleSelectFieldOptions.value?.[0]?.value as string
   }
 
   nextTick(() => {
@@ -158,22 +173,6 @@ async function onSubmit() {
 
     vModel.value = false
   }
-}
-
-const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
-  return fields.value
-    .filter((el) => el.uidt === UITypes.SingleSelect)
-    .map((field) => {
-      return {
-        value: field.id,
-        label: field.title,
-      }
-    })
-})
-
-if (form.type === ViewTypes.KANBAN) {
-  // preset the grouping field column
-  form.grp_column_id = singleSelectFieldOptions.value?.[0]?.value as string
 }
 </script>
 

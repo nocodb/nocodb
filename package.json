@@ -24,7 +24,7 @@
     "start:xcdb-api:cache-v1-backup": "npm run build:common ; cd ./packages/nocodb; npm install ../nocodb-sdk; npm install; NC_DISABLE_TELE=true NC_INFLECTION=camelize DATABASE_URL=sqlite:../../../scripts/cypress/fixtures/sqlite-sakila/sakila.db npm run watch:run:cypress",
     "start:xcdb-api:cache": "npm run build:common ; cd ./packages/nocodb; npm install ../nocodb-sdk; npm install; NC_EXPORT_MAX_TIMEOUT=60000 NC_DISABLE_TELE=true NC_INFLECTION=camelize DATABASE_URL=sqlite:../../../scripts/cypress/fixtures/sqlite-sakila/sakila.db npm run watch:run:cypress",
     "start:web-v1-backup": "npm run build:common ; cd ./packages/nc-gui; npm install ../nocodb-sdk; npm install; npm run dev",
-    "start:web": "npm run build:common ; cd ./packages/nc-gui; npm install ../nocodb-sdk; npm install; ANT_MESSAGE_DURATION=0.2 npm run dev",
+    "start:web": "npm run build:common ; cd ./packages/nc-gui; npm install ../nocodb-sdk; npm install; ANT_MESSAGE_DURATION=1 npm run dev",
     "cypress-v1-backup:run": "cypress run --config-file ./scripts/cypress/cypress.json",
     "cypress-v1-backup:open": "cypress open --config-file ./scripts/cypress/cypress.json",
     "cypress:run": "cypress run --config-file ./scripts/cypress/cypress.json",

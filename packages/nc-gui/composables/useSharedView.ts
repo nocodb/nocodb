@@ -88,6 +88,31 @@ export function useSharedView() {
     return data
   }
 
+  const fetchSharedViewGroupedData = async (columnId: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
+    if (!sharedView.value) return
+
+    const page = paginationData.value.page || 1
+    const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
+
+    const data = await $api.public.groupedDataList(
+      sharedView.value.uuid!,
+      columnId,
+      {
+        offset: (page - 1) * pageSize,
+        filterArrJson: JSON.stringify(nestedFilters.value),
+        sortArrJson: JSON.stringify(sorts.value),
+        ...params,
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+    console.log(data)
+    return data
+  }
+
   const exportFile = async (
     fields: any[],
     offset: number,
@@ -115,6 +140,7 @@ export function useSharedView() {
     meta,
     nestedFilters,
     fetchSharedViewData,
+    fetchSharedViewGroupedData,
     paginationData,
     sorts,
     exportFile,

@@ -911,7 +911,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
               ]);
             } else {
               await baseModel.bulkUpdateAll(
-                { where: `(${column.column_name},eq,${option.title})` },
+                { where: `(${column.title},eq,${option.title})` },
                 { [column.column_name]: null },
                 { cookie: req }
               );
@@ -1077,7 +1077,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
               ]);
             } else {
               await baseModel.bulkUpdateAll(
-                { where: `(${column.column_name},eq,${option.title})` },
+                { where: `(${column.title},eq,${option.title})` },
                 { [column.column_name]: newOp.title },
                 { cookie: req }
               );
@@ -1150,7 +1150,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
             ]);
           } else {
             await baseModel.bulkUpdateAll(
-              { where: `(${column.column_name},eq,${ch.temp_title})` },
+              { where: `(${column.title},eq,${ch.temp_title})` },
               { [column.column_name]: newOp.title },
               { cookie: req }
             );

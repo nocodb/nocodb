@@ -12,6 +12,7 @@ export interface FeedbackForm {
 }
 
 export interface AppInfo {
+  canCreateProjectWithoutExternalDB: boolean
   ncSiteUrl: string
   authType: 'jwt' | 'none'
   connectToExternalDB: boolean

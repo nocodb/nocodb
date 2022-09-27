@@ -26,6 +26,8 @@ const { api, isLoading } = useApi()
 
 const { isUIAllowed } = useUIPermission()
 
+const $state = useGlobal()
+
 useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: true })
 
 const filterQuery = ref('')
@@ -122,6 +124,14 @@ const customRow = (record: ProjectType) => ({
   },
   class: ['group'],
 })
+
+const canCreateProjectWithoutExternalDB = () => {
+  return $state?.appInfo?.value?.canCreateProjectWithoutExternalDB
+}
+
+const canConnectToExternalDB = () => {
+  return $state?.appInfo?.value?.connectToExternalDB
+}
 </script>
 
 <template>
@@ -156,7 +166,11 @@ const customRow = (record: ProjectType) => ({
 
       <div class="flex-1" />
 
-      <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']" overlay-class-name="nc-dropdown-create-project">
+      <a-dropdown
+        v-if="isUIAllowed('projectCreate', true) && (canCreateProjectWithoutExternalDB() || canConnectToExternalDB())"
+        :trigger="['click']"
+        overlay-class-name="nc-dropdown-create-project"
+      >
         <button class="nc-new-project-menu">
           <span class="flex items-center w-full">
             {{ $t('title.newProj') }}
@@ -168,6 +182,7 @@ const customRow = (record: ProjectType) => ({
           <a-menu class="!py-0 rounded">
             <a-menu-item>
               <div
+                v-if="canCreateProjectWithoutExternalDB()"
                 v-e="['c:project:create:xcdb']"
                 class="nc-project-menu-item group nc-create-xc-db-project"
                 @click="navigateTo('/create')"
@@ -180,6 +195,7 @@ const customRow = (record: ProjectType) => ({
 
             <a-menu-item>
               <div
+                v-if="canConnectToExternalDB()"
                 v-e="['c:project:create:extdb']"
                 class="nc-project-menu-item group nc-create-external-db-project"
                 @click="navigateTo('/create-external')"

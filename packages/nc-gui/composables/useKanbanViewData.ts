@@ -138,7 +138,7 @@ export function useKanbanViewData(
     if (stackMetaObj.value && grp_column_id && stackMetaObj.value[grp_column_id]) {
       // keep the existing order (index of the array) but update the values done outside kanban
       let isChanged = false
-      for (const option of (groupingFieldColumn.value.colOptions as SelectOptionsType).options) {
+      for (const option of (groupingFieldColumn.value.colOptions as SelectOptionsType)?.options ?? []) {
         const idx = stackMetaObj.value[grp_column_id].findIndex((ele) => ele.id === option.id)
         if (idx !== -1) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -366,8 +366,8 @@ export function useKanbanViewData(
       } as any)
 
       // update kanban stack meta
-      stackMetaObj.value[kanbanMetaData.value.grp_column_id!].splice(stackIdx, 1)
       groupingFieldColOptions.value.splice(stackIdx, 1)
+      stackMetaObj.value[kanbanMetaData.value.grp_column_id!] = groupingFieldColOptions.value
       await updateKanbanStackMeta()
       $e('a:kanban:delete-stack')
     } catch (e: any) {

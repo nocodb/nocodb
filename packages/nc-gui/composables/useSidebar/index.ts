@@ -27,7 +27,9 @@ const createSidebar = (id: string, props: UseSidebarProps = {}) => {
   }
 
   if (props.useStorage) {
-    const storage = toRefs(useStorage(id, { isOpen, hasSidebar }, localStorage, { mergeDefaults: true }).value)
+    const storage = toRefs(
+      useStorage(id, { isOpen: isOpen.value, hasSidebar: hasSidebar.value }, localStorage, { mergeDefaults: true }).value,
+    )
     isOpen.value = storage.isOpen.value
     hasSidebar.value = storage.hasSidebar.value
 
@@ -61,7 +63,9 @@ const createSidebar = (id: string, props: UseSidebarProps = {}) => {
 
 const leftSidebar = createSharedComposable(() => createSidebar('leftSidebar'))
 
-const rightSidebar = createSharedComposable(() => createSidebar('rightSidebar', { useStorage: true, isOpen: true }))
+const rightSidebar = createSharedComposable(() =>
+  createSidebar('rightSidebar', { useStorage: true, isOpen: true, hasSidebar: true }),
+)
 
 export const useSidebar = (id: string, props: UseSidebarProps = {}) => {
   const sidebar = id.includes('left') ? leftSidebar() : rightSidebar()

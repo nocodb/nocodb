@@ -2357,10 +2357,12 @@ class BaseModelSqlv2 {
       if (args.options?.length) {
         groupingValues = new Set(args.options);
       } else if (column.uidt === UITypes.SingleSelect) {
-        const colOptions = await column.getColOptions<
-          SelectOption[] & { options }
-        >();
-        groupingValues = new Set(colOptions.options.map((opt) => opt.title));
+        const colOptions = await column.getColOptions<{
+          options: SelectOption[];
+        }>();
+        groupingValues = new Set(
+          (colOptions?.options ?? []).map((opt) => opt.title)
+        );
         groupingValues.add(null);
       } else {
         groupingValues = new Set(

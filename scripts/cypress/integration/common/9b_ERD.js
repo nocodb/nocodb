@@ -1,4 +1,4 @@
-import { mainPage } from "../../support/page_objects/mainPage";
+import { mainPage, settingsPage } from "../../support/page_objects/mainPage";
 import {loginPage} from "../../support/page_objects/navigation";
 import { isTestSuiteActive, mysqlSakilaSqlViews, mysqlSakilaTables, pgSakilaSqlViews, pgSakilaTables, sqliteSakilaSqlViews } from "../../support/page_objects/projectConstants";
 
@@ -59,6 +59,11 @@ export const genTest = (apiType, dbType) => {
 
     it(`Verify ERD Context menu in all table view`, () => {
       mainPage.openErdTab();
+      cy.wait(2000)
+      // todo: Edges are not rendering properly in cypress in first render
+      settingsPage.openTab(settingsPage.UI_ACCESS_CONTROL)
+      settingsPage.openTab(settingsPage.ERD)
+
       cy.get('.nc-erd-context-menu').should('be.visible');
       cy.get('.nc-erd-context-menu').get('.nc-erd-histogram').should('be.visible');
       cy.get('.nc-erd-context-menu').find('.ant-checkbox').should('have.length', 3);
@@ -68,6 +73,10 @@ export const genTest = (apiType, dbType) => {
 
       cy.get('.nc-erd-context-menu').find('.nc-erd-showColumns-label').dblclick();
       cy.get('.nc-erd-context-menu').find('.ant-checkbox').should('have.length', 5);
+
+      // todo: Enabling and disabling showJunctionTableNames rerenders `mm` edges since `mm` edges is not getting rendered in cypress
+      cy.get('.nc-erd-context-menu').get('.nc-erd-showJunctionTableNames-checkbox').click();
+      cy.get('.nc-erd-context-menu').get('.nc-erd-showJunctionTableNames-checkbox').click();
     });
 
     it("Verify ERD of all tables view and verify columns of actor and payment with default config", () => {
@@ -310,6 +319,10 @@ export const genTest = (apiType, dbType) => {
       // disable showViews
       cy.get('.nc-erd-context-menu').get('.nc-erd-showViews-checkbox').click();
       cy.get('.nc-erd-context-menu').get('.nc-erd-showMMTables-checkbox').click();
+
+      // Enabling and disabling showJunctionTableNames rerenders `mm` edges since `mm` edges is not getting rendered in cypress
+      cy.get('.nc-erd-context-menu').get('.nc-erd-showJunctionTableNames-checkbox').click();
+      cy.get('.nc-erd-context-menu').get('.nc-erd-showJunctionTableNames-checkbox').click();
 
       if(dbType === "mysql") {
         cy.get('.nc-erd-vue-flow').find('.nc-erd-table-node').should('have.length', 16)

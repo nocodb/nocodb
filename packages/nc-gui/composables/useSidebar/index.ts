@@ -27,7 +27,7 @@ const createSidebar = (id: string, props: UseSidebarProps = {}) => {
   }
 
   if (props.useStorage) {
-    const storage = toRefs(useStorage(id, { isOpen, hasSidebar }, localStorage).value)
+    const storage = toRefs(useStorage(id, { isOpen, hasSidebar }, localStorage, { mergeDefaults: true }).value)
     isOpen.value = storage.isOpen.value
     hasSidebar.value = storage.hasSidebar.value
 

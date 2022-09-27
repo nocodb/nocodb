@@ -99,6 +99,10 @@ export async function projectDelete(
 
 async function projectCreate(req: Request<any, any>, res) {
   const projectBody = req.body;
+  if (!isProjectTypeSupported(projectBody)) {
+    NcError.badRequest('This type of project is not supported.');
+  }
+
   if (!projectBody.external) {
     const ranId = nanoid();
     projectBody.prefix = `nc_${ranId}__`;
@@ -153,6 +157,13 @@ async function projectCreate(req: Request<any, any>, res) {
   Tele.emit('evt', { evt_type: 'project:rest' });
 
   res.json(project);
+}
+
+function isProjectTypeSupported({ external }) {
+  return (
+    (external && !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED) ||
+    (!external && !process.env.NC_PROJECT_WITHOUT_EXTERNAL_DB_DISABLED)
+  );
 }
 
 async function populateMeta(base: Base, project: Project): Promise<any> {

@@ -169,7 +169,7 @@ export const genTest = (apiType, dbType) => {
 
     function cy_createProjectBlock(proj, apiType, dbType) {
       // click home button
-      cy.get(".nc-noco-brand-icon").click();
+      cy.getSettled(".nc-noco-brand-icon").click();
       cy.get(".ant-table-content").then((obj) => {
         // if project already created, open
         // else, create a new one

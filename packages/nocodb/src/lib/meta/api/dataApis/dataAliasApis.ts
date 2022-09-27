@@ -246,6 +246,9 @@ async function getGroupedDataList(model, view: View, req) {
   try {
     listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
   } catch (e) {}
+  try {
+    listArgs.options = JSON.parse(listArgs.optionsArrJson);
+  } catch (e) {}
 
   let data = [];
   // let count = 0
@@ -266,13 +269,13 @@ async function getGroupedDataList(model, view: View, req) {
     });
     data = data.map((item) => {
       // todo: use map to avoid loop
-      const count = countArr.find(
-        (countItem) => countItem.key || 'null' === item.key
-      )?.count;
+      const count =
+        countArr.find((countItem) => countItem.key || 'null' === item.key)
+          ?.count ?? 0;
 
       item.value = new PagedResponseImpl(item.value, {
         ...req.query,
-        count,
+        count: count,
       });
       return item;
     });

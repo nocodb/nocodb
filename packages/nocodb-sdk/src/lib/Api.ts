@@ -3075,6 +3075,28 @@ export class Api<
      * No description
      *
      * @tags Public
+     * @name GroupedDataList
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}
+     * @response `200` `any` OK
+     */
+    groupedDataList: (
+      sharedViewUuid: string,
+      columnId: string,
+      query?: { limit?: string; offset?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/group/${columnId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
      * @name DataList
      * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
      * @response `200` `any` OK

@@ -4372,6 +4372,67 @@
         ]
       }
     },
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "public-grouped-data-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "offset"
+          }
+        ]
+      }
+    },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/rows": {
       "parameters": [
         {

@@ -170,6 +170,11 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
       }
     })
 })
+
+if (form.type === ViewTypes.KANBAN) {
+  // preset the grouping field column
+  form.grp_column_id = singleSelectFieldOptions.value?.[0]?.value as string
+}
 </script>
 
 <template>

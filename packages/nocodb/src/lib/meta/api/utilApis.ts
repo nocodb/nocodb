@@ -83,7 +83,9 @@ export async function versionInfo(_req: Request, res: Response) {
 }
 
 export function feedbackFormGet(_req: Request, res: Response) {
-  res.json(feedbackForm());
+  feedbackForm()
+    .then((form) => res.json(form))
+    .catch((e) => res.json({ error: e.message }));
 }
 
 export async function appHealth(_: Request, res: Response) {

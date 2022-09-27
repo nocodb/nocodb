@@ -5,7 +5,8 @@ import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
-  let waitTime = 6000;
+  // tbd: this needs a proper fix
+  let waitTime = 5500;
 
   describe(`${apiType.toUpperCase()} api - Link to another record`, () => {
     function fetchParentFromLabel(label) {

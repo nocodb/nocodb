@@ -20,7 +20,7 @@ export function useKanbanViewData(
   const { project } = useProject()
   const { $e, $api } = useNuxtApp()
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
-  const { sharedView, fetchSharedViewData } = useSharedView()
+  const { sharedView, fetchSharedViewData, fetchSharedViewGroupedData } = useSharedView()
   const { isUIAllowed } = useUIPermission()
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -83,7 +83,7 @@ export function useKanbanViewData(
     let res
 
     if (isPublic.value) {
-      // TODO: we need a public API for groupedDataList instead of fetchSharedViewData
+      res = await fetchSharedViewGroupedData(groupingFieldColumn!.value!.id!)
     } else {
       res = await api.dbViewRow.groupedDataList(
         'noco',

@@ -2445,23 +2445,19 @@ class BaseModelSqlv2 {
         qb.orderBy('created_at');
       }
 
-      const nullListQb = qb.clone().whereNull(column.title);
-
       const groupedQb = this.dbDriver.from(
         this.dbDriver
           .unionAll(
-            [
-              this.isSqlite
-                ? this.dbDriver.select().from(nullListQb)
-                : nullListQb,
-              ...[...groupingValues].map((r) => {
-                const query = qb.clone().where(column.title, r);
+            [...groupingValues].map((r) => {
+              const query = qb.clone();
+              if (r === null) {
+                query.whereNull(column.title);
+              } else {
+                query.where(column.title, r);
+              }
 
-                return this.isSqlite
-                  ? this.dbDriver.select().from(query)
-                  : query;
-              }),
-            ],
+              return this.isSqlite ? this.dbDriver.select().from(query) : query;
+            }),
             !this.isSqlite
           )
           .as('__nc_grouped_list')

@@ -9,6 +9,7 @@ import {
   reactive,
   ref,
   useDialog,
+  useGlobal,
   useNuxtApp,
   useProject,
   useTable,
@@ -59,6 +60,8 @@ const tablesById = $computed(() =>
 const filteredTables = $computed(() =>
   tables.value?.filter((table) => !filterQuery || table.title.toLowerCase().includes(filterQuery.toLowerCase())),
 )
+
+const { appInfo } = useGlobal()
 
 let sortable: Sortable
 
@@ -410,6 +413,7 @@ function openTableCreateDialog() {
       <GeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
       <GithubButton
+        v-if="!appInfo.useFinnTheme"
         class="ml-2 py-1"
         href="https://github.com/nocodb/nocodb"
         data-icon="octicon-star"

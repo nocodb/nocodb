@@ -90,6 +90,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     teleEnabled: true,
     type: 'nocodb',
     version: '0.0.0',
+    useFinnTheme: false,
   })
 
   /** reactive token payload */

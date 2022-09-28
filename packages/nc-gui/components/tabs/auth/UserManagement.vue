@@ -10,6 +10,7 @@ import {
   useApi,
   useCopy,
   useDashboard,
+  useGlobal,
   useI18n,
   useNuxtApp,
   useProject,
@@ -29,6 +30,8 @@ const { project } = useProject()
 const { copy } = useCopy()
 
 const { isUIAllowed } = useUIPermission()
+
+const { appInfo } = useGlobal()
 
 const { dashboardUrl } = $(useDashboard())
 
@@ -329,7 +332,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         show-less-items
         @change="loadUsers"
       />
-      <FeedbackForm />
+      <FeedbackForm v-if="!appInfo.useFinnTheme" />
     </div>
   </div>
 </template>

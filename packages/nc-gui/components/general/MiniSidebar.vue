@@ -2,7 +2,7 @@
 import { navigateTo } from '#app'
 import { computed, useGlobal, useProject, useRoute, useSidebar } from '#imports'
 
-const { signOut, signedIn, user, currentVersion } = useGlobal()
+const { signOut, signedIn, user } = useGlobal()
 
 const { isOpen } = useSidebar('nc-mini-sidebar', { isOpen: true })
 
@@ -30,12 +30,7 @@ const logout = () => {
   >
     <a-dropdown placement="bottom" :trigger="['click']" overlay-class-name="nc-dropdown">
       <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon">
-        <a-tooltip placement="bottom">
-          <template #title>
-            {{ currentVersion }}
-          </template>
-          <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-        </a-tooltip>
+        <NocoHeaderLogo />
       </div>
 
       <template v-if="signedIn" #overlay>

@@ -23,6 +23,7 @@ import {
   useUIPermission,
 } from '#imports'
 import { TabType } from '~/composables'
+import NocoHeaderLogo from '~/components/general/NocoHeaderLogo.vue'
 
 definePageMeta({
   hideHeader: true,
@@ -34,7 +35,7 @@ const route = useRoute()
 
 const router = useRouter()
 
-const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
+const { appInfo, token, signOut, signedIn, user } = useGlobal()
 
 const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme, loadProject, reset } = useProject()
 
@@ -183,29 +184,21 @@ onBeforeUnmount(reset)
           <div
             v-if="isOpen && !isSharedBase"
             v-e="['c:navbar:home']"
-            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
+            class="transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
+            :class="appInfo.useFinnTheme ? 'w-[90px] min-w-[90px]' : 'w-[40px] min-w-[40px]'"
             @click="navigateTo('/')"
           >
-            <a-tooltip placement="bottom">
-              <template #title>
-                {{ currentVersion }}
-              </template>
-              <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-            </a-tooltip>
+            <NocoHeaderLogo />
           </div>
 
           <a
             v-if="isOpen && isSharedBase"
-            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
+            class="transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
+            :class="appInfo.useFinnTheme ? 'w-[90px] min-w-[90px]' : 'w-[40px] min-w-[40px]'"
             href="https://github.com/nocodb/nocodb"
             target="_blank"
           >
-            <a-tooltip placement="bottom">
-              <template #title>
-                {{ currentVersion }}
-              </template>
-              <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-            </a-tooltip>
+            <NocoHeaderLogo />
           </a>
 
           <a-dropdown

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { enumColor as colors } from '#imports'
+import { enumColor as colors, useGlobal } from '#imports'
 
-const { lang: currentLang } = useGlobal()
+const { lang: currentLang, appInfo } = useGlobal()
 
 const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
 </script>
@@ -38,103 +38,105 @@ const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
           </div>
         </nuxt-link>
       </a-list-item>
-      <a-list-item>
-        <nuxt-link
-          v-e="['e:community:github']"
-          class="text-primary !no-underline !text-current"
-          to="https://github.com/nocodb/nocodb"
-          target="_blank"
-        >
-          <div class="flex items-center text-sm">
-            <mdi-github class="mx-3 text-lg" />
-            <div v-if="isRtlLang">
-              <!-- us on Github -->
-              {{ $t('labels.community.starUs2') }}
-              <!-- Star -->
-              {{ $t('labels.community.starUs1') }}
-              <mdi-star-outline />
+      <template v-if="!appInfo.useFinnTheme">
+        <a-list-item>
+          <nuxt-link
+            v-e="['e:community:github']"
+            class="text-primary !no-underline !text-current"
+            to="https://github.com/nocodb/nocodb"
+            target="_blank"
+          >
+            <div class="flex items-center text-sm">
+              <mdi-github class="mx-3 text-lg" />
+              <div v-if="isRtlLang">
+                <!-- us on Github -->
+                {{ $t('labels.community.starUs2') }}
+                <!-- Star -->
+                {{ $t('labels.community.starUs1') }}
+                <mdi-star-outline />
+              </div>
+              <div v-else class="flex items-center">
+                <!-- Star -->
+                {{ $t('labels.community.starUs1') }}
+                {{ ' ' }}
+                <!-- us on Github -->
+                {{ $t('labels.community.starUs2') }}
+              </div>
             </div>
-            <div v-else class="flex items-center">
-              <!-- Star -->
-              {{ $t('labels.community.starUs1') }}
-              {{ ' ' }}
-              <!-- us on Github -->
-              {{ $t('labels.community.starUs2') }}
+          </nuxt-link>
+        </a-list-item>
+        <a-list-item>
+          <nuxt-link
+            v-e="['e:community:book-demo']"
+            class="!no-underline !text-current"
+            to="https://calendly.com/nocodb-meeting"
+            target="_blank"
+          >
+            <div class="flex items-center text-sm">
+              <mdi-calendar-month class="mx-3 text-lg" :color="colors.dark[3 % colors.dark.length]" />
+              <!-- Book a Free DEMO -->
+              <div>
+                {{ $t('labels.community.bookDemo') }}
+              </div>
             </div>
-          </div>
-        </nuxt-link>
-      </a-list-item>
-      <a-list-item>
-        <nuxt-link
-          v-e="['e:community:book-demo']"
-          class="!no-underline !text-current"
-          to="https://calendly.com/nocodb-meeting"
-          target="_blank"
-        >
-          <div class="flex items-center text-sm">
-            <mdi-calendar-month class="mx-3 text-lg" :color="colors.dark[3 % colors.dark.length]" />
-            <!-- Book a Free DEMO -->
-            <div>
-              {{ $t('labels.community.bookDemo') }}
+          </nuxt-link>
+        </a-list-item>
+        <a-list-item>
+          <nuxt-link
+            v-e="['e:community:discord']"
+            class="!no-underline !text-current"
+            to="https://discord.gg/5RgZmkW"
+            target="_blank"
+          >
+            <div class="flex items-center text-sm">
+              <mdi-discord class="mx-3 text-lg" :color="colors.dark[0 % colors.dark.length]" />
+              <!-- Get your questions answered -->
+              <div>
+                {{ $t('labels.community.getAnswered') }}
+              </div>
             </div>
-          </div>
-        </nuxt-link>
-      </a-list-item>
-      <a-list-item>
-        <nuxt-link
-          v-e="['e:community:discord']"
-          class="!no-underline !text-current"
-          to="https://discord.gg/5RgZmkW"
-          target="_blank"
-        >
-          <div class="flex items-center text-sm">
-            <mdi-discord class="mx-3 text-lg" :color="colors.dark[0 % colors.dark.length]" />
-            <!-- Get your questions answered -->
-            <div>
-              {{ $t('labels.community.getAnswered') }}
+          </nuxt-link>
+        </a-list-item>
+        <a-list-item>
+          <nuxt-link
+            v-e="['e:community:twitter']"
+            class="!no-underline !text-current"
+            to="https://twitter.com/NocoDB"
+            target="_blank"
+          >
+            <div class="flex items-center text-sm">
+              <mdi-twitter class="mx-3 text-lg" :color="colors.dark[1 % colors.dark.length]" />
+              <!-- Follow NocoDB -->
+              <div>
+                {{ $t('labels.community.followNocodb') }}
+              </div>
             </div>
-          </div>
-        </nuxt-link>
-      </a-list-item>
-      <a-list-item>
-        <nuxt-link
-          v-e="['e:community:twitter']"
-          class="!no-underline !text-current"
-          to="https://twitter.com/NocoDB"
-          target="_blank"
-        >
-          <div class="flex items-center text-sm">
-            <mdi-twitter class="mx-3 text-lg" :color="colors.dark[1 % colors.dark.length]" />
-            <!-- Follow NocoDB -->
-            <div>
-              {{ $t('labels.community.followNocodb') }}
+          </nuxt-link>
+        </a-list-item>
+        <a-list-item>
+          <nuxt-link v-e="['e:hiring']" class="!no-underline !text-current" target="_blank" to="http://careers.nocodb.com">
+            <div class="flex items-center text-sm">
+              <!--            todo:  i18n -->
+              <div class="ml-3">
+                🚀 <span class="ml-3">{{ $t('labels.weAreHiring') }}!!!</span>
+              </div>
             </div>
-          </div>
-        </nuxt-link>
-      </a-list-item>
-      <a-list-item>
-        <nuxt-link v-e="['e:hiring']" class="!no-underline !text-current" target="_blank" to="http://careers.nocodb.com">
-          <div class="flex items-center text-sm">
-            <!--            todo:  i18n -->
-            <div class="ml-3">
-              🚀 <span class="ml-3">{{ $t('labels.weAreHiring') }}!!!</span>
+          </nuxt-link>
+        </a-list-item>
+        <a-list-item>
+          <nuxt-link
+            v-e="['e:community:reddit']"
+            class="!no-underline !text-current"
+            target="_blank"
+            to="https://www.reddit.com/r/NocoDB/"
+          >
+            <div class="ml-3 flex items-center text-sm">
+              <LogosRedditIcon />
+              <span class="ml-4">/r/NocoDB/</span>
             </div>
-          </div>
-        </nuxt-link>
-      </a-list-item>
-      <a-list-item>
-        <nuxt-link
-          v-e="['e:community:reddit']"
-          class="!no-underline !text-current"
-          target="_blank"
-          to="https://www.reddit.com/r/NocoDB/"
-        >
-          <div class="ml-3 flex items-center text-sm">
-            <LogosRedditIcon />
-            <span class="ml-4">/r/NocoDB/</span>
-          </div>
-        </nuxt-link>
-      </a-list-item>
+          </nuxt-link>
+        </a-list-item>
+      </template>
     </a-list>
   </a-card>
 </template>

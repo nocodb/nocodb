@@ -1,5 +1,5 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { computed, navigateTo, useProject, useRoute, useRouter, useState } from '#imports'
+import { computed, navigateTo, ref, useInjectionState, useProject, useRoute, useRouter, watch } from '#imports'
 import type { TabItem } from '~/lib'
 import { TabType } from '~/lib'
 
@@ -10,8 +10,8 @@ function getPredicate(key: Partial<TabItem>) {
     (!('type' in key) || tab.type === key.type)
 }
 
-export function useTabs() {
-  const tabs = useState<TabItem[]>('tabs', () => [])
+const [setup, use] = useInjectionState(() => {
+  const tabs = ref<TabItem[]>([])
 
   const route = useRoute()
 
@@ -21,28 +21,32 @@ export function useTabs() {
 
   const projectType = $computed(() => route.params.projectType as string)
 
+  const previousActiveTabIndex = ref(-1)
   const activeTabIndex: WritableComputedRef<number> = computed({
     get() {
-      if ((route.name as string)?.startsWith('projectType-projectId-index-index-type-title-viewTitle') && tables.value?.length) {
-        const tab: Partial<TabItem> = { type: route.params.type as TabType, title: route.params.title as string }
+      const routeName = route.name as string
 
-        const id = tables.value?.find((t) => t.title === tab.title)?.id
+      if (routeName.startsWith('projectType-projectId-index-index-type-title-viewTitle') && tables.value.length) {
+        const tab: TabItem = { type: route.params.type as TabType, title: route.params.title as string }
 
-        if (!id) return -1
+        const currentTable = tables.value.find((t) => t.title === tab.title)
 
-        tab.id = id as string
+        if (!currentTable) return -1
+
+        tab.id = currentTable.id
 
         let index = tabs.value.findIndex((t) => t.id === tab.id)
 
         if (index === -1) {
-          tabs.value.push(tab as TabItem)
+          tabs.value.push(tab)
           index = tabs.value.length - 1
         }
 
         return index
-      } else if ((route.name as string)?.startsWith('nc-projectId-index-index-auth')) {
+      } else if (routeName.startsWith('nc-projectId-index-index-auth')) {
         return tabs.value.findIndex((t) => t.type === 'auth')
       }
+
       // by default, it's showing Team & Auth
       return 0
     },
@@ -53,9 +57,14 @@ export function useTabs() {
         const tab = tabs.value[index]
 
         if (!tab) return
+
         return navigateToTab(tab)
       }
     },
+  })
+
+  watch(activeTabIndex, (_, old) => {
+    previousActiveTabIndex.value = old
   })
 
   const activeTab = computed(() => tabs.value?.[activeTabIndex.value])
@@ -79,15 +88,19 @@ export function useTabs() {
 
   const closeTab = async (key: number | Partial<TabItem>) => {
     const index = typeof key === 'number' ? key : tabs.value.findIndex(getPredicate(key))
+
     if (activeTabIndex.value === index) {
       let newTabIndex = index - 1
+
       if (newTabIndex < 0 && tabs.value?.length > 1) newTabIndex = index + 1
+
       if (newTabIndex === -1) {
         await navigateTo(`/${projectType}/${route.params.projectId}`)
       } else {
         await navigateToTab(tabs.value?.[newTabIndex])
       }
     }
+
     tabs.value.splice(index, 1)
   }
 
@@ -108,8 +121,9 @@ export function useTabs() {
 
   const updateTab = (key: number | Partial<TabItem>, newTabItemProps: Partial<TabItem>) => {
     const tab = typeof key === 'number' ? tabs.value[key] : tabs.value.find(getPredicate(key))
+
     if (tab) {
-      const isActive = tabs.value.indexOf(tab) === activeTabIndex.value
+      const isActive = tabs.value.indexOf(tab) === previousActiveTabIndex.value
 
       Object.assign(tab, newTabItemProps)
 
@@ -123,4 +137,14 @@ export function useTabs() {
   }
 
   return { tabs, addTab, activeTabIndex, activeTab, clearTabs, closeTab, updateTab }
+})
+
+export function useTabs() {
+  const state = use()
+
+  if (!state) {
+    return setup()
+  }
+
+  return state
 }

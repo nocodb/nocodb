@@ -100,21 +100,27 @@ const validators = computed(() => {
 
 const { validateInfos } = useForm(formState, validators)
 
-watchEffect(() => {
-  if (tableMeta?.title) formState.title = tableMeta?.title
-  // todo: replace setTimeout and follow better approach
-  nextTick(() => {
-    const input = inputEl?.$el
-    input.setSelectionRange(0, formState.title.length)
-    input.focus()
-  })
-})
+watchEffect(
+  () => {
+    if (tableMeta?.title) formState.title = `${tableMeta.title}`
+
+    // todo: replace setTimeout and follow better approach
+    nextTick(() => {
+      const input = inputEl?.$el
+      input.setSelectionRange(0, formState.title.length)
+      input.focus()
+    })
+  },
+  { flush: 'post' },
+)
 
 const renameTable = async () => {
+  if (!tableMeta) return
+
   loading = true
   try {
-    await $api.dbTable.update(tableMeta?.id as string, {
-      project_id: tableMeta?.project_id,
+    await $api.dbTable.update(tableMeta.id as string, {
+      project_id: tableMeta.project_id,
       table_name: formState.title,
     })
 
@@ -122,10 +128,10 @@ const renameTable = async () => {
 
     await loadTables()
 
-    updateTab({ id: tableMeta?.id }, { title: formState.title })
+    updateTab({ id: tableMeta.id }, { title: formState.title })
 
     // update metas
-    await setMeta(await $api.dbTable.read(tableMeta?.id as string))
+    await setMeta(await $api.dbTable.read(tableMeta.id as string))
 
     // Table renamed successfully
     message.success(t('msg.success.tableRenamed'))

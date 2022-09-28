@@ -487,7 +487,8 @@ reloadViewDataHook.trigger()
                   </div>
 
                   <template #overlay>
-                    <LazySmartsheetColumnEditOrAddProvider
+                    <SmartsheetColumnEditOrAddProvider
+                      v-if="addColumnDropdown"
                       @submit="addColumnDropdown = false"
                       @cancel="addColumnDropdown = false"
                       @click.stop

@@ -3,7 +3,7 @@ import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { Form as AntForm } from 'ant-design-vue'
 import { capitalize } from '@vue/runtime-core'
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 import {
   MetaInj,
   ViewListInj,

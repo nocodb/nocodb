@@ -7,6 +7,7 @@ export const genTest = (apiType, dbType) => {
 
   // tbd: this needs a proper fix
   let waitTime = 2000;
+  let clear;
 
   describe(`${apiType.toUpperCase()} api - Link to another record`, () => {
     function fetchParentFromLabel(label) {
@@ -118,10 +119,12 @@ export const genTest = (apiType, dbType) => {
       cy.wait("@unlinkCount");
     }
 
-    // before(() => {
-    //   // required for standalone test
-    //   // loginPage.loginAndOpenProject(apiType, dbType);
-    // });
+    before(() => {
+      cy.restoreLocalStorage();
+
+      clear = Cypress.LocalStorage.clear;
+      Cypress.LocalStorage.clear = () => {};
+    });
 
     afterEach(() => {
       cy.saveLocalStorage();
@@ -144,6 +147,8 @@ export const genTest = (apiType, dbType) => {
 
       cy.deleteTable("Sheet2");
       cy.saveLocalStorage();
+
+      Cypress.LocalStorage.clear = clear;
     });
 
     ///////////////////////////////////////////////////

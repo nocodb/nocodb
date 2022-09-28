@@ -6,7 +6,7 @@ export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
   // tbd: this needs a proper fix
-  let waitTime = 5500;
+  let waitTime = 2000;
 
   describe(`${apiType.toUpperCase()} api - Link to another record`, () => {
     function fetchParentFromLabel(label) {
@@ -309,6 +309,7 @@ export const genTest = (apiType, dbType) => {
         .should("exist")
         .eq(2)
         .click();
+      cy.wait(waitTime);
 
       // MM
       cy.get(".nc-expand-col-Sheet1.List").find(".ant-btn-primary").click();

@@ -34,7 +34,7 @@ const activeView = ref()
 
 const fields = ref<ColumnType[]>([])
 
-const meta = computed<TableType | undefined>(() => metas.value[activeTab.value.id!])
+const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
 
 const reloadEventHook = createEventHook()
 

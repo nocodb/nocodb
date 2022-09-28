@@ -180,6 +180,7 @@ export const genTest = (apiType, dbType) => {
       // Click on `Add new row` button
       cy.get(".nc-add-new-row-btn:visible").should("exist");
       cy.get(".nc-add-new-row-btn").click();
+      cy.wait(waitTime);
 
       // Title
       cy.get(".nc-expand-col-Title")
@@ -199,29 +200,32 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-action-icon")
         .should("exist")
         .click({ force: true });
-      // cy.wait(1000);
+      cy.wait(waitTime);
       cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(0)
         .click();
+      cy.wait(waitTime);
 
       // MM
       cy.get(".nc-expand-col-Sheet1.List").find(".ant-btn-primary").click();
-      // cy.wait(1000);
+      cy.wait(waitTime);
       cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(0)
         .click();
+      cy.wait(waitTime);
 
       // HM
       cy.get(".nc-expand-col-Link2-1hm").find(".ant-btn-primary").click();
-      // cy.wait(1000);
+      cy.wait(waitTime);
       cy.wait("@waitForCardLoad");
       cy.getActiveModal().find(".ant-card").should("exist").eq(0).click();
+      cy.wait(waitTime);
 
       // Save row
       cy.getActiveDrawer(".nc-drawer-expanded-form")
@@ -247,12 +251,13 @@ export const genTest = (apiType, dbType) => {
         .getCell("Sheet1", 2)
         .find(".nc-action-icon")
         .click({ force: true });
+      cy.wait(waitTime);
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(1)
         .click();
-      cy.wait(1000);
+      cy.wait(waitTime);
 
       // MM
       mainPage
@@ -260,12 +265,13 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-action-icon")
         .last()
         .click({ force: true });
+      cy.wait(waitTime);
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(1)
         .click();
-      cy.wait(1000);
+      cy.wait(waitTime);
 
       // HM
       mainPage
@@ -273,11 +279,13 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-action-icon")
         .last()
         .click({ force: true });
+      cy.wait(waitTime);
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(1)
         .click();
+      cy.wait(waitTime);
     });
 
     // Existing row, expand record
@@ -288,9 +296,7 @@ export const genTest = (apiType, dbType) => {
       addRow(3, "2c");
 
       cy.wait(waitTime);
-
       cy.get(".nc-row-expand").eq(2).click({ force: true });
-
       cy.wait(waitTime);
 
       // wait for page render to complete

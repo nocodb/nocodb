@@ -62,15 +62,11 @@ const copyRecordUrl = () => {
         {{ meta.title }}
       </template>
 
-      <!-- todo: table doesn't exist?
-      <template v-else>
-        {{ table }}
-      </template>
-      -->
       <template v-if="primaryValue">: {{ primaryValue }}</template>
     </h5>
 
     <div class="flex-1" />
+
     <a-tooltip placement="bottom">
       <template #title>
         <div class="text-center w-full">{{ $t('general.reload') }}</div>
@@ -88,6 +84,7 @@ const copyRecordUrl = () => {
         @click="copyRecordUrl"
       />
     </a-tooltip>
+
     <a-tooltip v-if="!isSqlView" placement="bottom">
       <!--      Toggle comments draw -->
       <template #title>

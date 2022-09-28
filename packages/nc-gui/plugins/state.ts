@@ -17,7 +17,7 @@ import { Language, LanguageAlias } from '~/lib'
 export default defineNuxtPlugin(async () => {
   const state = useGlobal()
 
-  const { api } = useApi()
+  const { api } = useApi({ useGlobalInstance: true })
 
   let currentLang = state.lang.value
 

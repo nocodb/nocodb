@@ -169,7 +169,7 @@ export const genTest = (apiType, dbType) => {
 
     function cy_createProjectBlock(proj, apiType, dbType) {
       // click home button
-      cy.get(".nc-noco-brand-icon").click();
+      cy.getSettled(".nc-noco-brand-icon").click();
       cy.get(".ant-table-content").then((obj) => {
         // if project already created, open
         // else, create a new one
@@ -240,7 +240,13 @@ export const genTest = (apiType, dbType) => {
         }
 
         // close team & auth tab
-        cy.get("button.ant-tabs-tab-remove").should("exist").click();
+
+        // wait for tab to be rendered completely
+        cy.wait(2000);
+
+        cy.getSettled("button.ant-tabs-tab-remove")
+          .should("be.visible")
+          .click();
         cy.get("button.ant-tabs-tab-remove").should("not.exist");
 
         // first instance of updating local storage information

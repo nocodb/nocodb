@@ -21,10 +21,11 @@ const { isUIAllowed } = useUIPermission()
     >
       <div class="flex items-center space-x-1">
         <MdiAccountPlusOutline class="mr-1 nc-share-base" />
+
         <div>{{ $t('activity.inviteTeam') }}</div>
       </div>
     </div>
 
-    <TabsAuthUserManagementUsersModal :key="showUserModal" :show="showUserModal" @closed="showUserModal = false" />
+    <LazyTabsAuthUserManagementUsersModal :key="showUserModal" :show="showUserModal" @closed="showUserModal = false" />
   </div>
 </template>

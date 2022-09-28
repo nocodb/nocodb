@@ -1,4 +1,4 @@
-import type { DefineComponent, VNode } from '@vue/runtime-dom'
+import type { VNode } from '@vue/runtime-dom'
 import { isVNode, render } from '@vue/runtime-dom'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import { isClient } from '@vueuse/core'
@@ -36,7 +36,7 @@ import { createEventHook, h, ref, toReactive, tryOnScopeDispose, useNuxtApp, wat
  * }
  */
 export function useDialog(
-  componentOrVNode: DefineComponent<any, any, any> | VNode,
+  componentOrVNode: any,
   props: NonNullable<Parameters<typeof h>[1]> = {},
   mountTarget?: Element | ComponentPublicInstance,
 ) {
@@ -86,7 +86,9 @@ export function useDialog(
       render(null, domNode)
 
       setTimeout(() => {
-        ;(mountTarget as HTMLElement)!.removeChild(domNode)
+        try {
+          ;(mountTarget as HTMLElement)?.removeChild(domNode)
+        } catch (e) {}
       }, 100)
 
       closeHook.trigger()

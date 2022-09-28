@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { message } from 'ant-design-vue'
 import {
   CellUrlDisableOverlayInj,
   ColumnInj,
@@ -8,6 +7,7 @@ import {
   computed,
   inject,
   isValidURL,
+  message,
   ref,
   useCellUrlConfig,
   useI18n,
@@ -77,14 +77,19 @@ watch(
 
     <nuxt-link
       v-else-if="isValid && !cellUrlOptions?.overlay"
+      no-prefetch
+      no-rel
       class="z-3 text-sm underline hover:opacity-75"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
     >
       {{ value }}
     </nuxt-link>
+
     <nuxt-link
       v-else-if="isValid && !disableOverlay && cellUrlOptions?.overlay"
+      no-prefetch
+      no-rel
       class="z-3 w-full h-full text-center !no-underline hover:opacity-75"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"

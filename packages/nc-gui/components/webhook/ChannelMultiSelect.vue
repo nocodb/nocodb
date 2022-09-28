@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from '@vue/runtime-core'
+import { onMounted, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: Record<string, any>[]

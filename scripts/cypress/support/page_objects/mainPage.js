@@ -204,11 +204,11 @@ export class _mainPage {
   };
 
   addColumn = (colName, tableName) => {
-    cy.get(".nc-column-add").click({
-      force: true,
-    });
+    cy.get(".nc-column-add").click();
 
-    cy.getActiveMenu(".nc-dropdown-grid-add-column")
+    cy.wait(2000);
+
+    cy.getActiveMenu(".nc-dropdown-grid-add-column:has(.nc-column-name-input)")
       .find("input.nc-column-name-input")
       .should("exist")
       .clear()
@@ -219,22 +219,24 @@ export class _mainPage {
       .should("exist")
       .click();
     cy.toastWait(`Column created`);
+
+    cy.wait(2000);
+
     cy.get(`th[data-title="${colName}"]`).should("exist");
   };
 
   addColumnWithType = (colName, colType, tableName) => {
-    cy.get(".nc-column-add").click({
-      force: true,
-    });
+    cy.get(".nc-column-add").click();
 
-    cy.getActiveMenu(".nc-dropdown-grid-add-column")
+    cy.wait(2000);
+
+    cy.getActiveMenu(".nc-dropdown-grid-add-column:has(.nc-column-name-input)")
       .find("input.nc-column-name-input")
       .should("exist")
       .clear()
       .type(colName);
 
     // change column type and verify
-    // cy.get(".nc-column-type-input").last().click();
     cy.getActiveMenu(".nc-dropdown-grid-add-column")
       .find(".nc-column-type-input")
       .last()
@@ -243,13 +245,15 @@ export class _mainPage {
       .find(".ant-select-item-option")
       .contains(colType)
       .click();
-    // cy.get(".ant-btn-primary:visible").contains("Save").click();
     cy.getActiveMenu(".nc-dropdown-grid-add-column")
       .find(".ant-btn-primary:visible")
       .contains("Save")
       .click();
 
     cy.toastWait(`Column created`);
+
+    cy.wait(2000);
+
     cy.get(`th[data-title="${colName}"]`).should("exist");
   };
 
@@ -396,7 +400,7 @@ export class _mainPage {
       .find(".ant-btn-primary")
       .contains("Add Sort Option")
       .click();
-    cy.getActiveMenu(".nc-dropdown-sort-menu")
+    cy.getActiveMenu(".nc-dropdown-sort-menu:has(.nc-sort-field-select div)")
       .find(".nc-sort-field-select div")
       .first()
       .click();
@@ -434,7 +438,8 @@ export class _mainPage {
       .find(".ant-btn-primary")
       .contains("Add Filter")
       .click();
-    cy.getActiveMenu(".nc-dropdown-filter-menu")
+
+    cy.getActiveMenu(".nc-dropdown-filter-menu:has(.nc-filter-field-select)")
       .find(".nc-filter-field-select")
       .should("exist")
       .last()
@@ -488,11 +493,10 @@ export class _mainPage {
         // one of the row would contain seggregation header ('other views)
         if (5 == $tableRow[0].childElementCount) {
           cy.wrap($tableRow).find(".nc-icon").last().click();
-          cy.wait(100);
+          cy.toastWait("Deleted shared view successfully");
         }
       })
       .then(() => {
-        cy.toastWait("Deleted shared view successfully");
         cy.getActiveModal()
           .find("button.ant-modal-close")
           .should("exist")

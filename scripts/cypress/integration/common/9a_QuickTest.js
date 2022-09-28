@@ -56,13 +56,18 @@ let cn = [
 ];
 
 function openWebhook(index) {
+  // http://localhost:8080/api/v1/db/meta/tables/md_dx81kkfdso115u/hooks
+  cy.intercept("GET", "/api/v1/db/meta/tables/*/hooks").as("getHooks");
+
   cy.get(".nc-actions-menu-btn").should("exist").click();
   cy.getActiveMenu(".nc-dropdown-actions-menu")
     .find(".ant-dropdown-menu-title-content")
     .contains("Webhooks")
     .click();
 
-  cy.get(".nc-hook").eq(index).click();
+  cy.wait("@getHooks");
+
+  cy.get(`.nc-hook:eq(${index})`).should("exist").click();
 }
 
 // to be invoked after open

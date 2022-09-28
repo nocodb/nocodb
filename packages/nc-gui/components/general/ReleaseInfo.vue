@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, onMounted } from '#imports'
+import { computed, extractSdkResponseErrorMsg, message, onMounted, useGlobal, useNuxtApp } from '#imports'
 
 const { $api } = useNuxtApp()
 
@@ -47,22 +46,38 @@ onMounted(async () => await fetchReleaseInfo())
           <mdi-menu-down />
         </div>
       </a-button>
+
       <template #overlay>
         <div class="mt-1 bg-white shadow-lg !border">
-          <nuxt-link class="!text-primary !no-underline" to="https://github.com/nocodb/nocodb/releases" target="_blank">
+          <nuxt-link
+            no-prefetch
+            no-rel
+            class="!text-primary !no-underline"
+            to="https://github.com/nocodb/nocodb/releases"
+            target="_blank"
+          >
             <div class="nc-menu-item">
               <mdi-script-text-outline />
               {{ latestRelease }} {{ $t('activity.upgrade.releaseNote') }}
             </div>
           </nuxt-link>
-          <nuxt-link class="!text-primary !no-underline" to="https://docs.nocodb.com/getting-started/upgrading" target="_blank">
+
+          <nuxt-link
+            no-prefetch
+            no-rel
+            class="!text-primary !no-underline"
+            to="https://docs.nocodb.com/getting-started/upgrading"
+            target="_blank"
+          >
             <div class="nc-menu-item">
               <mdi-rocket-launch-outline />
               <!-- How to upgrade? -->
               {{ $t('activity.upgrade.howTo') }}
             </div>
           </nuxt-link>
+
           <a-divider class="!m-0" />
+
           <div class="nc-menu-item" @click="releaseAlert = false">
             <mdi-close />
             <!-- Hide menu -->

@@ -99,11 +99,12 @@ const typeAlias = computed(
     }[props.type]),
 )
 
-watch(vModel, (value) => value && init())
-
 watch(
   () => props.type,
-  (newType) => (form.type = newType),
+  (newType) => {
+    form.type = newType
+    init()
+  },
 )
 
 function init() {

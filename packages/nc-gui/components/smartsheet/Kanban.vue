@@ -145,7 +145,7 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
 }
 
 /** Block dragging the stack to first index (reserved for uncategorized) **/
-function onMoveCallback(event: any) {
+function onMoveCallback(event: { draggedContext: { futureIndex: number } }) {
   if (event.draggedContext.futureIndex === 0) {
     return false
   }

@@ -326,7 +326,9 @@ const expandedFormOnRowIdDlg = computed({
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 // trigger initial data load in grid
-reloadViewDataHook.trigger()
+// reloadViewDataHook.trigger()
+
+watch(meta, () => reloadViewDataHook.trigger(), { immediate: true })
 </script>
 
 <template>

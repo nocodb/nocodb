@@ -7,6 +7,7 @@ export function useViews(meta: MaybeRef<TableType | undefined>) {
 
   const { $api } = useNuxtApp()
 
+
   const loadViews = async () => {
     const _meta = unref(meta)
 
@@ -18,7 +19,7 @@ export function useViews(meta: MaybeRef<TableType | undefined>) {
     }
   }
 
-  watch(() => meta, loadViews, { immediate: true })
+  watch(meta, loadViews, { immediate: true })
 
   return { views: $$(views), loadViews }
 }

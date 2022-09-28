@@ -35,7 +35,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel'])
 
-const row = toRef(props, 'row')
+const row = ref(props.row)
 
 const state = toRef(props, 'state')
 

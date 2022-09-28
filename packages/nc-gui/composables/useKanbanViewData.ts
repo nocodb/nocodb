@@ -66,6 +66,8 @@ export function useKanbanViewData(
   // stack meta in object format
   const stackMetaObj = useState<Record<string, GroupingFieldColOptionsType[]>>('KanbanStackMetaObj', () => ({}))
 
+  const shouldScrollToRight = ref(false)
+
   const formatData = (list: Record<string, any>[]) =>
     list.map((row) => ({
       row: { ...row },
@@ -138,6 +140,7 @@ export function useKanbanViewData(
     if (stackMetaObj.value && grp_column_id && stackMetaObj.value[grp_column_id]) {
       // keep the existing order (index of the array) but update the values done outside kanban
       let isChanged = false
+      let hasNewOptionsAdded = false
       for (const option of (groupingFieldColumn.value.colOptions as SelectOptionsType)?.options ?? []) {
         const idx = stackMetaObj.value[grp_column_id].findIndex((ele) => ele.id === option.id)
         if (idx !== -1) {
@@ -167,6 +170,7 @@ export function useKanbanViewData(
           formattedData.value[option.title!] = []
           countByStack.value[option.title!] = 0
           isChanged = true
+          hasNewOptionsAdded = true
         }
       }
 
@@ -198,6 +202,9 @@ export function useKanbanViewData(
 
       if (isChanged) {
         await updateKanbanStackMeta()
+        if (hasNewOptionsAdded) {
+          shouldScrollToRight.value = true
+        }
       }
     } else {
       // build stack meta
@@ -420,5 +427,6 @@ export function useKanbanViewData(
     deleteStack,
     updateKanbanStackMeta,
     removeRowFromUncategorizedStack,
+    shouldScrollToRight,
   }
 }

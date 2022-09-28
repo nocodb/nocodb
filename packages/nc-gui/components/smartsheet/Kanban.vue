@@ -65,6 +65,7 @@ const {
   countByStack,
   deleteStack,
   removeRowFromUncategorizedStack,
+  shouldScrollToRight,
 } = useKanbanViewData(meta, view)
 
 const { isUIAllowed } = useUIPermission()
@@ -72,12 +73,20 @@ const { isUIAllowed } = useUIPermission()
 const { appInfo } = $(useGlobal())
 
 provide(IsFormInj, ref(false))
+
 provide(IsGalleryInj, ref(false))
+
 provide(IsGridInj, ref(false))
+
 provide(IsKanbanInj, ref(true))
+
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
+
+const kanbanContainerRef = ref()
+
+let isMounted = false
 
 const isRowEmpty = (record: any, col: any) => {
   const val = record.row[col.title]
@@ -221,12 +230,31 @@ onMounted(async () => {
   await loadKanbanMeta()
   // load kanban data
   await loadKanbanData()
+  // update isMounted for below watcher
+  isMounted = true
 })
+
+watch(
+  () => shouldScrollToRight.value,
+  () => {
+    // use `isMounted` to avoid scrolling from switching from other views
+    // i.e. scroll only when a new option is added within kanban view
+    if (isMounted && shouldScrollToRight.value) {
+      // horizontally scroll to the end of the kanban container
+      kanbanContainerRef.value.scrollTo({
+        left: kanbanContainerRef.value.scrollWidth,
+        behavior: 'smooth',
+      })
+      // reset shouldScrollToRight
+      shouldScrollToRight.value = false
+    }
+  },
+)
 </script>
 
 <template>
   <div class="flex h-full bg-white px-2">
-    <div class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
+    <div ref="kanbanContainerRef" class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
       <Draggable
         v-model="groupingFieldColOptions"
         class="flex gap-4"

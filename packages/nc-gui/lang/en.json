@@ -421,7 +421,7 @@
     "kanban": {
       "collapseStack": "Collapse Stack",
       "deleteStack": "Delete Stack",
-      "stackedBy": "Stacked By {groupingField}",
+      "stackedBy": "Stacked By",
       "chooseGroupingField": "Choose a Grouping Field",
       "addOrEditStack": "Add / Edit Stack"
     }

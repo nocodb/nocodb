@@ -14,7 +14,7 @@ export const generateUniqueTitle = <T extends Record<string, any> = Record<strin
   predicate: keyof T,
 ) => {
   let c = 1
-  while (arr.some((item) => item[predicate] === (`${title}-${c}` as keyof T))) {
+  while (arr.some((item) => item[predicate].includes(`${title}-${c}` as keyof T))) {
     c++
   }
 

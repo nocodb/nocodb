@@ -22,12 +22,11 @@ import {
   onClickOutside,
   onMounted,
   provide,
-  reactive,
   ref,
-  useCopy,
   useEventListener,
   useGridViewColumnWidth,
   useI18n,
+  useMultiSelect,
   useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
@@ -61,11 +60,11 @@ const router = useRouter()
 // todo: get from parent ( inject or use prop )
 const isView = false
 
-const selected = reactive<{ row: number | null; col: number | null }>({ row: null, col: null })
-
 let editEnabled = $ref(false)
 
 const { xWhere, isPkAvail, cellRefs, isSqlView } = useSmartsheetStoreOrThrow()
+
+const visibleColLength = $computed(() => fields.value?.length)
 
 const addColumnDropdown = ref(false)
 
@@ -84,8 +83,6 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-const visibleColLength = $computed(() => fields.value?.length)
-
 const {
   isLoading,
   loadData,
@@ -102,7 +99,14 @@ const {
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 
-const { copy } = useCopy()
+const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange, selected } = useMultiSelect(
+  fields,
+  data,
+  $$(editEnabled),
+  isPkAvail,
+  clearCell,
+  makeEditable,
+)
 
 onMounted(loadGridViewColumns)
 
@@ -157,11 +161,6 @@ openNewRecordFormHook?.on(async () => {
   expandForm(newRow, undefined, true)
 })
 
-const selectCell = (row: number, col: number) => {
-  selected.row = row
-  selected.col = col
-}
-
 watch(
   () => view.value?.id,
   async (next, old) => {
@@ -192,7 +191,7 @@ watch(contextMenu, () => {
   }
 })
 
-const clearCell = async (ctx: { row: number; col: number }) => {
+async function clearCell(ctx: { row: number; col: number }) {
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
@@ -205,135 +204,49 @@ const clearCell = async (ctx: { row: number; col: number }) => {
   await updateOrSaveRow(rowObj, columnObj.title)
 }
 
-const makeEditable = (row: Row, col: ColumnType) => {
+function makeEditable(row: Row, col: ColumnType) {
   if (!hasEditPermission || editEnabled || isView) {
     return
   }
+
   if (!isPkAvail.value && !row.rowMeta.new) {
     // Update not allowed for table which doesn't have primary Key
     message.info(t('msg.info.updateNotAllowedWithoutPK'))
     return
   }
+
   if (col.ai) {
     // Auto Increment field is not editable
     message.info(t('msg.info.autoIncFieldNotEditable'))
     return
   }
+
   if (col.pk && !row.rowMeta.new) {
     // Editing primary key not supported
     message.info(t('msg.info.editingPKnotSupported'))
     return
   }
+
   return (editEnabled = true)
 }
 
 /** handle keypress events */
-const onKeyDown = async (e: KeyboardEvent) => {
-  if (e.key === 'Alt') {
-    disableUrlOverlay.value = true
-    return
-  }
-  if (selected.row === null || selected.col === null) return
-  /** on tab key press navigate through cells */
-  switch (e.key) {
-    case 'Tab':
-      e.preventDefault()
-      if (e.shiftKey) {
-        if (selected.col > 0) {
-          selected.col--
-        } else if (selected.row > 0) {
-          selected.row--
-          selected.col = visibleColLength - 1
-        }
-      } else {
-        if (selected.col < visibleColLength - 1) {
-          selected.col++
-        } else if (selected.row < data.value.length - 1) {
-          selected.row++
-          selected.col = 0
-        }
-      }
-      break
-    /** on enter key press make cell editable */
-    case 'Enter':
-      e.preventDefault()
-      makeEditable(data.value[selected.row], fields.value[selected.col])
-      break
-    /** on delete key press clear cell */
-    case 'Delete':
-      if (!editEnabled) {
-        e.preventDefault()
-        await clearCell(selected as { row: number; col: number })
-      }
-      break
-    /** on arrow key press navigate through cells */
-    case 'ArrowRight':
-      e.preventDefault()
-      if (selected.col < visibleColLength - 1) selected.col++
-      break
-    case 'ArrowLeft':
-      e.preventDefault()
-      if (selected.col > 0) selected.col--
-      break
-    case 'ArrowUp':
-      e.preventDefault()
-      if (selected.row > 0) selected.row--
-      break
-    case 'ArrowDown':
-      e.preventDefault()
-      if (selected.row < data.value.length - 1) selected.row++
-      break
-    default:
-      {
-        const rowObj = data.value[selected.row]
-        const columnObj = fields.value[selected.col]
-
-        if ((!editEnabled && e.metaKey) || e.ctrlKey) {
-          switch (e.keyCode) {
-            // copy - ctrl/cmd +c
-            case 67:
-              await copy(rowObj.row[columnObj.title] || '')
-              break
-          }
-        }
-
-        if (editEnabled || e.ctrlKey || e.altKey || e.metaKey) {
-          return
-        }
-
-        /** on letter key press make cell editable and empty */
-        if (e?.key?.length === 1) {
-          if (!isPkAvail && !rowObj.rowMeta.new) {
-            // Update not allowed for table which doesn't have primary Key
-            return message.info(t('msg.info.updateNotAllowedWithoutPK'))
-          }
-          if (makeEditable(rowObj, columnObj)) {
-            rowObj.row[columnObj.title] = ''
-          }
-          // editEnabled = true
-        }
-      }
-      break
-  }
-}
-const onKeyUp = async (e: KeyboardEvent) => {
+useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   if (e.key === 'Alt') {
     disableUrlOverlay.value = false
   }
-}
-
-useEventListener(document, 'keydown', onKeyDown)
-useEventListener(document, 'keyup', onKeyUp)
+})
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
+
 onClickOutside(smartTable, () => {
+  clearRangeRows()
   if (selected.col === null) return
 
   const activeCol = fields.value[selected.col]
 
   if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
-
   selected.row = null
   selected.col = null
 })
@@ -499,7 +412,8 @@ reloadViewDataHook.trigger()
               </th>
             </tr>
           </thead>
-          <tbody>
+          <!-- this prevent select text from field if not in edit mode -->
+          <tbody @selectstart.prevent>
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">
@@ -548,13 +462,17 @@ reloadViewDataHook.trigger()
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
-                      active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex,
+                      active:
+                        (isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex) ||
+                        (isUIAllowed('xcDatatableEditable') && selectedRange(rowIndex, colIndex)),
                     }"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
                     @click="selectCell(rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
+                    @mousedown="startSelectRange($event, rowIndex, colIndex)"
+                    @mouseover="selectBlock(rowIndex, colIndex)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
                     <div class="w-full h-full">

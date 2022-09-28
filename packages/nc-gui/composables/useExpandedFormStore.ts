@@ -39,9 +39,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const changedColumns = ref(new Set<string>())
 
   const { project } = useProject()
+
   const rowStore = useProvideSmartsheetRowStore(meta, row)
-  const { sharedView } = useSharedView() as Record<string, any>
+
   const activeView = inject(ActiveViewInj, ref())
+
   const { addRowToStack } = useKanbanViewStoreOrThrow()
 
   const { sharedView } = useSharedView()

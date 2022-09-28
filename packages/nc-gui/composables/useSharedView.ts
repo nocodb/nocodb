@@ -31,7 +31,7 @@ export function useSharedView() {
   const password = useState<string | undefined>('password', () => undefined)
 
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
-  
+
   const meta = useState<TableType | KanbanType | undefined>('meta', () => undefined)
 
   const formColumns = computed(

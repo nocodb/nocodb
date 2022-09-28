@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { enumColor, onMounted, useColumnCreateStoreOrThrow, useVModel, watch, IsKanbanInj } from '#imports'
+import { IsKanbanInj, enumColor, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -97,7 +97,7 @@ watch(inputs, () => {
     <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
       <template #item="{ element, index }">
         <div class="flex py-1 items-center nc-select-option">
-          <MdiDragIcon v-if="!isKanban" small class="nc-child-draggable-icon handle" />
+          <MdiDragVertical v-if="!isKanban" small class="nc-child-draggable-icon handle" />
           <a-dropdown
             v-model:visible="colorMenus[index]"
             :trigger="['click']"

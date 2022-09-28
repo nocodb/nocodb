@@ -76,6 +76,7 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
               <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
               <LazySmartsheetKanban v-else-if="isKanban" />
+            </div>
           </div>
         </template>
       </Transition>

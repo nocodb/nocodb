@@ -39,12 +39,3 @@ const shortName = computed(() =>
   <div v-else class="w-full"><slot></slot></div>
   <div ref="text" class="hidden"><slot></slot></div>
 </template>
-
-  <div v-else>
-    <slot />
-  </div>
-
-  <div ref="text" class="hidden">
-    <slot />
-  </div>
-</template>

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,

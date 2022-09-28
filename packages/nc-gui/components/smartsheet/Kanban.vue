@@ -255,6 +255,7 @@ watch(
 <template>
   <div class="flex h-full bg-white px-2">
     <div ref="kanbanContainerRef" class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
+      <!-- Draggable Stack -->
       <Draggable
         v-model="groupingFieldColOptions"
         class="flex gap-4"
@@ -269,6 +270,7 @@ watch(
       >
         <template #item="{ element: stack, index: stackIdx }">
           <div class="nc-kanban-stack" :class="{ 'w-[50px]': stack.collapsed }">
+            <!-- Non Collapsed Stacks -->
             <a-card
               v-if="!stack.collapsed"
               :key="stack.id"
@@ -280,8 +282,13 @@ watch(
               :head-style="{ paddingBottom: '0px' }"
               :body-style="{ padding: '0px', height: '100%' }"
             >
+              <!-- Header Color Bar -->
               <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
+
+              <!-- Skeleton -->
               <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="p-4" />
+
+              <!-- Stack -->
               <a-layout v-else class="!bg-[#f0f2f5]">
                 <a-layout-header>
                   <div class="nc-kanban-stack-head font-bold flex items-center px-[15px]">
@@ -328,8 +335,10 @@ watch(
                     </a-dropdown>
                   </div>
                 </a-layout-header>
+
                 <a-layout-content class="overflow-y-hidden">
                   <div :ref="kanbanListRef" class="nc-kanban-list h-full overflow-y-auto" :data-stack-title="stack.title">
+                    <!-- Draggable Record Card -->
                     <Draggable
                       v-model="formattedData[stack.title]"
                       item-key="row.Id"
@@ -360,12 +369,15 @@ watch(
                                 :key="`record-${record.row.id}-${col.id}`"
                                 class="flex flex-col rounded-lg w-full"
                               >
+                                <!-- Smartsheet Header (Virtual) Cell -->
                                 <div v-if="!isRowEmpty(record, col)" class="flex flex-row w-full justify-start pt-2">
                                   <div class="w-full text-gray-400">
                                     <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
                                     <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
                                   </div>
                                 </div>
+
+                                <!--  Smartsheet (Virtual) Cell -->
                                 <div
                                   v-if="!isRowEmpty(record, col)"
                                   class="flex flex-row w-full items-center justify-start"
@@ -395,13 +407,16 @@ watch(
                     </Draggable>
                   </div>
                 </a-layout-content>
+
                 <a-layout-footer>
                   <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
+                    <!-- Stack Title -->
                     <mdi-plus
                       v-if="!isPublic"
                       class="text-pint-500 text-lg text-primary cursor-pointer"
                       @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
                     />
+                    <!-- Record Count -->
                     <div class="nc-kanban-data-count">
                       {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
                       {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
@@ -410,6 +425,8 @@ watch(
                 </a-layout-footer>
               </a-layout>
             </a-card>
+
+            <!-- Collapsed Stacks -->
             <a-card
               v-else
               :key="`${stack.id}-collapsed`"
@@ -421,12 +438,16 @@ watch(
               :body-style="{ padding: '0px', height: '100%', width: '100%', background: '#f0f2f5 !important' }"
             >
               <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
+                <!-- Skeleton -->
                 <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="!w-[150px] pl-5" :paragraph="false" />
+
                 <div v-else class="nc-kanban-data-count mt-[12px] mx-[10px]">
+                  <!--  Stack title -->
                   <div class="float-right flex gap-2 items-center cursor-pointer font-bold">
                     <LazyGeneralTruncateText>{{ stack.title }}</LazyGeneralTruncateText>
                     <mdi-menu-down class="text-grey text-lg" />
                   </div>
+                  <!-- Record Count -->
                   {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
                   {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
                 </div>
@@ -437,7 +458,9 @@ watch(
       </Draggable>
     </div>
   </div>
+
   <div class="flex-1" />
+
   <LazySmartsheetExpandedForm
     v-if="expandedFormRow && expandedFormDlg"
     v-model="expandedFormDlg"
@@ -446,6 +469,7 @@ watch(
     :meta="meta"
     @cancel="removeRowFromUncategorizedStack"
   />
+
   <LazySmartsheetExpandedForm
     v-if="expandedFormOnRowIdDlg"
     :key="route.query.rowId"
@@ -455,6 +479,7 @@ watch(
     :row-id="route.query.rowId"
     :view="view"
   />
+
   <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-kanban-delete-stack">
     <template #title>
       {{ $t('activity.deleteKanbanStack') }}

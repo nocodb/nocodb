@@ -2,7 +2,7 @@ import type { ComputedRef, Ref } from 'vue'
 import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
-import type { Row } from '~/composables/useViewData'
+import type { Row } from '~/lib'
 import { SharedViewPasswordInj, deepCompare, enumColor, useInjectionState, useNuxtApp } from '#imports'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
@@ -449,7 +449,7 @@ export { useProvideKanbanViewStore }
 export function useKanbanViewStoreOrThrow() {
   const kanbanViewStore = useKanbanViewStore()
 
-  if (kanbanViewStore == null) throw new Error('Please call `useKanbanViewStore` on the appropriate parent component')
+  if (kanbanViewStore == null) throw new Error('Please call `useProvideKanbanViewStore` on the appropriate parent component')
 
   return kanbanViewStore
 }

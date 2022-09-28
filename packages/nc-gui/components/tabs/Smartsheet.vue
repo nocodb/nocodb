@@ -17,6 +17,7 @@ import {
   ref,
   toRef,
   useMetas,
+  useProvideKanbanViewStore,
   useProvideSmartsheetStore,
   watch,
 } from '#imports'
@@ -43,6 +44,8 @@ const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetSt
 const openNewRecordFormHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook()
+
+useProvideKanbanViewStore(meta, activeView)
 
 // todo: move to store
 provide(MetaInj, meta)

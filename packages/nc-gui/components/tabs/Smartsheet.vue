@@ -18,7 +18,6 @@ import {
   toRef,
   useMetas,
   useProvideSmartsheetStore,
-  useSidebar,
   watch,
 } from '#imports'
 import type { TabItem } from '~/lib'

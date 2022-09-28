@@ -89,7 +89,7 @@ const onAttachRecord = () => {
     <template v-if="!isForm">
       <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
-          <LazyVirtualCellComponentsItemChip
+          <VirtualCellComponentsItemChip
             v-for="(cell, i) of cells"
             :key="i"
             :item="cell.item"

@@ -76,11 +76,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
     <div class="chips flex items-center flex-1">
       <template v-if="value && relatedTablePrimaryValueProp">
-        <LazyVirtualCellComponentsItemChip
-          :item="value"
-          :value="value[relatedTablePrimaryValueProp]"
-          @unlink="unlinkRef(value)"
-        />
+        <VirtualCellComponentsItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlinkRef(value)" />
       </template>
     </div>
 

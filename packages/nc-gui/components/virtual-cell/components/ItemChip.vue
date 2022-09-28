@@ -44,7 +44,7 @@ export default {
     </div>
 
     <Suspense>
-      <LazySmartsheetExpandedForm
+      <SmartsheetExpandedForm
         v-if="!readOnly && !isLocked && expandedFormDlg"
         v-model="expandedFormDlg"
         :row="{ row: item, rowMeta: {}, oldRow: { ...item } }"

@@ -50,12 +50,12 @@ PackageVersion: **0.90.0**
 - In it you will notice advanced features are all available for free.
     - ACL
     - Collaboration
-    - Advanced views : Form View, Gallery view, Kanban (coming soon)
-    - Share view, 
-    - Embed view 
-    - Password protected view,
+    - Advanced Views : Form View, Gallery View & Kanban View
+    - Share View
+    - Embed View 
+    - Password protected View
     - Automations
-    - API token support.    
+    - API Token Support
 - And we would never move these features from free to an enterprise version of NocoDB.
 - There is no limitations to number of projects, rows or columns either.
 

@@ -109,7 +109,6 @@ export function useSharedView() {
         },
       },
     )
-    console.log(data)
     return data
   }
 

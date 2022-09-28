@@ -359,14 +359,25 @@ export default class View implements ViewType {
       let kanbanAttachmentCount = 0;
 
       if (view.type === ViewTypes.KANBAN && !copyFromView) {
-        // sort by primary value & attachment first, then by order
+        // sort by primary value & attachment first, then by singleLineText & Number
         // so that later we can handle control `show` easily
         columns.sort((a, b) => {
           const primaryValueOrder = b.pv - a.pv;
           const attachmentOrder =
             +(b.uidt === UITypes.Attachment) - +(a.uidt === UITypes.Attachment);
+          const singleLineTextOrder =
+            +(b.uidt === UITypes.SingleLineText) -
+            +(a.uidt === UITypes.SingleLineText);
+          const numberOrder =
+            +(b.uidt === UITypes.Number) - +(a.uidt === UITypes.Number);
           const defaultOrder = b.order - a.order;
-          return primaryValueOrder || attachmentOrder || defaultOrder;
+          return (
+            primaryValueOrder ||
+            attachmentOrder ||
+            singleLineTextOrder ||
+            numberOrder ||
+            defaultOrder
+          );
         });
       }
 

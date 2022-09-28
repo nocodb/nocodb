@@ -41,7 +41,7 @@ const editColumnDropdown = ref(false)
       <div />
 
       <template #overlay>
-        <LazySmartsheetColumnEditOrAddProvider
+        <SmartsheetColumnEditOrAddProvider
           v-if="editColumnDropdown"
           :column="column"
           class="w-full"

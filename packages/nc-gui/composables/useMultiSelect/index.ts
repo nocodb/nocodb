@@ -1,6 +1,6 @@
 import type { MaybeRef } from '@vueuse/core'
-import { message } from 'ant-design-vue'
-import { reactive, unref, useCopy, useEventListener, useI18n } from '#imports'
+import { UITypes } from 'nocodb-sdk'
+import { message, reactive, unref, useCopy, useEventListener, useI18n } from '#imports'
 
 interface SelectedBlock {
   row: number | null
@@ -213,7 +213,11 @@ export function useMultiSelect(
 
             cprows.forEach((row) => {
               cpcols.forEach((col) => {
-                cptext = `${cptext} ${row.row[col.title]} \t`
+                // todo: JSON stringify the attachment cell and LTAR contents for copy
+                // filter attachment cells and LATR cells from copy
+                if (col.uidt === UITypes.Attachment || col.uidt === UITypes.LinkToAnotherRecord) {
+                  cptext = `${cptext} ${row.row[col.title]} \t`
+                }
               })
 
               cptext = `${cptext.trim()}\n`

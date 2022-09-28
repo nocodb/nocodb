@@ -129,7 +129,9 @@ const deleteLink = async (id: string) => {
         <template #default="{ record }">
           <div class="flex items-center items-center gap-1">
             <template v-if="record.password">
-              <span class="h-min max-w-[250px]">{{ record.showPassword ? record.password : Array(record.password.length + 1).join("*") }}</span>
+              <span class="h-min max-w-[250px]">{{
+                record.showPassword ? record.password : Array(record.password.length + 1).join('*')
+              }}</span>
               <component
                 :is="record.showPassword ? MdiVisibilityOffIcon : MdiVisibilityOnIcon"
                 @click="record.showPassword = !record.showPassword"

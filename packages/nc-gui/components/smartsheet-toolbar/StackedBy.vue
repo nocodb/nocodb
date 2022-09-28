@@ -88,7 +88,8 @@ const handleChange = () => {
         <div class="flex items-center gap-1">
           <mdi-arrow-down-drop-circle-outline />
           <span class="text-capitalize !text-sm font-weight-normal">
-            {{ $t('activity.kanban.stackedBy', { groupingField }) }}
+            {{ $t('activity.kanban.stackedBy') }}
+            <span class="font-bold">{{ groupingField }}</span>
           </span>
           <MdiMenuDown class="text-grey" />
         </div>

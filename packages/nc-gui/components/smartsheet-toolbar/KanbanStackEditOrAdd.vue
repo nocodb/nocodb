@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import { ActiveViewInj, IsLockedInj, MetaInj, useKanbanViewData } from '#imports'
-
-const meta = inject(MetaInj, ref())
-
-const activeView = inject(ActiveViewInj, ref())
+import { IsLockedInj, useKanbanViewStoreOrThrow } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
-const { groupingFieldColumn } = useKanbanViewData(meta, activeView)
+const { groupingFieldColumn } = useKanbanViewStoreOrThrow()
 
 const isLocked = inject(IsLockedInj, ref(false))
 

@@ -11,7 +11,7 @@ import {
   computed,
   inject,
   ref,
-  useKanbanViewData,
+  useKanbanViewStoreOrThrow,
   useViewColumns,
   watch,
 } from '#imports'
@@ -28,7 +28,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { fields, loadViewColumns, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
-const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewData(meta, activeView)
+const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
 const stackedByDropdown = ref(false)
 

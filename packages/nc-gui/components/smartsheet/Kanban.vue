@@ -16,7 +16,7 @@ import {
   inject,
   onMounted,
   provide,
-  useKanbanViewData,
+  useProvideKanbanViewStore,
 } from '#imports'
 import type { Row as RowType } from '~/composables'
 
@@ -66,7 +66,7 @@ const {
   deleteStack,
   removeRowFromUncategorizedStack,
   shouldScrollToRight,
-} = useKanbanViewData(meta, view)
+} = useProvideKanbanViewStore(meta, view)
 
 const { isUIAllowed } = useUIPermission()
 

@@ -11,7 +11,7 @@ import {
   getHTMLEncodedText,
   useApi,
   useInjectionState,
-  useKanbanViewData,
+  useKanbanViewStoreOrThrow,
   useNuxtApp,
   useProject,
   useProvideSmartsheetRowStore,
@@ -32,7 +32,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const rowStore = useProvideSmartsheetRowStore(meta, row)
   const { sharedView } = useSharedView() as Record<string, any>
   const activeView = inject(ActiveViewInj, ref())
-  const { addRowToStack } = useKanbanViewData(meta, activeView)
+  const { addRowToStack } = useKanbanViewStoreOrThrow()
 
   // const { updateOrSaveRow, insertRow } = useViewData(meta, activeView as any)
 

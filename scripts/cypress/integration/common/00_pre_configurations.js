@@ -164,7 +164,7 @@ export const genTest = (apiType, dbType) => {
 
     it("Admin SignUp", () => {
       cy.task("log", "This will be output to the terminal");
-      loginPage.signUp(roles.owner.credentials);
+      loginPage.signIn(roles.owner.credentials);
     });
 
     function cy_createProjectBlock(proj, apiType, dbType) {
@@ -240,6 +240,7 @@ export const genTest = (apiType, dbType) => {
         }
 
         // close team & auth tab
+        cy.wait(2000);
         cy.get("button.ant-tabs-tab-remove").should("exist").click();
         cy.get("button.ant-tabs-tab-remove").should("not.exist");
 

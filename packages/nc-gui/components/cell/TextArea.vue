@@ -3,7 +3,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { EditModeInj, computed, inject } from '#imports'
 
 interface Props {
-  modelValue: string | null | undefined
+  modelValue?: string | null
 }
 
 const { modelValue } = defineProps<Props>()

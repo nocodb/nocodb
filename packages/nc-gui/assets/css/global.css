@@ -23,3 +23,10 @@ Apply Vazirmatn for rtl
 .rtl .v-application .ml-n1 {
 	margin-left: 0px !important;
 }
+
+/*
+For Drag and Drop
+*/
+.grabbing * {
+	cursor: grabbing;
+}

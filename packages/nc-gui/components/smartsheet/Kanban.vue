@@ -263,6 +263,8 @@ watch(
         draggable=".nc-kanban-stack"
         filter=".not-draggable"
         :move="onMoveCallback"
+        @start="(e) => e.target.classList.add('grabbing')"
+        @end="(e) => e.target.classList.remove('grabbing')"
         @change="onMoveStack($event)"
       >
         <template #item="{ element: stack, index: stackIdx }">
@@ -335,6 +337,8 @@ watch(
                       group="kanban-card"
                       class="h-full"
                       filter=".not-draggable"
+                      @start="(e) => e.target.classList.add('grabbing')"
+                      @end="(e) => e.target.classList.remove('grabbing')"
                       @change="onMove($event, stack.title)"
                     >
                       <template #item="{ element: record }">

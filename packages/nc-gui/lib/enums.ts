@@ -55,6 +55,11 @@ export enum Language {
   'zh-Hant' = '繁體中文',
 }
 
+export enum LanguageAlias {
+  zn_CN = 'zh-Hans',
+  zh_TW = 'zh-Hant',
+}
+
 export enum NavigateDir {
   NEXT,
   PREV,

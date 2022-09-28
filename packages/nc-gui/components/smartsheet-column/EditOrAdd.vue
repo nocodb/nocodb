@@ -87,6 +87,7 @@ onMounted(() => {
       emit('cancel')
     }
   }
+  formState.value.public = !!formState.value.public
 
   // for cases like formula
   if (formState.value && !formState.value.column_name) {
@@ -126,6 +127,13 @@ onMounted(() => {
             </a-select-option>
           </a-select>
         </a-form-item>
+        <div v-if="formState.uidt === UITypes.Attachment">
+          <a-tooltip>
+            <template #title>{{ $t('tooltip.onlyS3') }}</template>
+            <a-switch v-model:checked="formState.public" :disabled="isEdit"></a-switch>
+            {{ $t('labels.isPublic') }}
+          </a-tooltip>
+        </div>
         <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
         <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
         <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />

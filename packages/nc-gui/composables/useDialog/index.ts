@@ -86,7 +86,9 @@ export function useDialog(
       render(null, domNode)
 
       setTimeout(() => {
-        ;(mountTarget as HTMLElement)!.removeChild(domNode)
+        try {
+          ;(mountTarget as HTMLElement)?.removeChild(domNode)
+        } catch (e) {}
       }, 100)
 
       closeHook.trigger()

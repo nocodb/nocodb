@@ -1,8 +1,6 @@
 import { isString } from '@vueuse/core'
-import type { Permission } from './rolePermissions'
-import rolePermissions from './rolePermissions'
-import { createSharedComposable, useGlobal, useRoles } from '#imports'
-import type { ProjectRole, Role } from '~/lib'
+import { createSharedComposable, rolePermissions, useGlobal, useRoles } from '#imports'
+import type { Permission, ProjectRole, Role } from '~/lib'
 
 const hasPermission = (role: Role | ProjectRole, hasRole: boolean, permission: Permission | string) => {
   const rolePermission = rolePermissions[role]

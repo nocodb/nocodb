@@ -62,6 +62,9 @@ export const genTest = (apiType, dbType) => {
         // enable "Submit another form" check box
         cy.get("button.nc-form-checkbox-show-blank-form").click();
 
+        // [kludge] CI-CD: title is being rendered initially in disabled state
+        cy.wait(2000);
+
         // Update header & add some description, verify
         cy.get(".nc-form")
           .find('[placeholder="Form Title"]')

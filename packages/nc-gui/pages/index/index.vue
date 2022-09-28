@@ -1,7 +1,9 @@
 <script lang="ts" setup>
-import { useRoute } from '#imports'
+import { useRoute, useSidebar } from '#imports'
 
 const route = useRoute()
+
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 </script>
 
 <template>
@@ -11,7 +13,7 @@ const route = useRoute()
     >
       <div class="flex-1 justify-end hidden xl:(flex)">
         <div>
-          <GeneralSponsors />
+          <LazyGeneralSponsors />
         </div>
       </div>
 
@@ -23,11 +25,11 @@ const route = useRoute()
         <template v-if="route.name === 'index-index'">
           <TransitionGroup name="page" mode="out-in">
             <div key="social-card">
-              <GeneralSocialCard />
+              <LazyGeneralSocialCard />
             </div>
 
             <div key="sponsors" class="block mt-0 lg:(!mt-6) xl:hidden">
-              <GeneralSponsors />
+              <LazyGeneralSponsors />
             </div>
           </TransitionGroup>
         </template>

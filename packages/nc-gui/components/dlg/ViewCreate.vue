@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import type { Form as AntForm, SelectProps } from 'ant-design-vue'
+import type { Form as AntForm } from 'ant-design-vue'
+import { capitalize } from '@vue/runtime-core'
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
-import { capitalize, inject } from '@vue/runtime-core'
-import { UITypes, ViewTypes } from 'nocodb-sdk'
-import { useI18n } from 'vue-i18n'
+import { ViewTypes } from 'nocodb-sdk'
 import {
-  FieldsInj,
   MetaInj,
   ViewListInj,
   computed,
   generateUniqueTitle,
+  inject,
+  message,
   nextTick,
   reactive,
   unref,
   useApi,
+  useI18n,
   useVModel,
   watch,
 } from '#imports'

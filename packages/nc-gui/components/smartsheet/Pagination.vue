@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, inject } from '#imports'
-import { ChangePageInj, PaginationDataInj } from '~/context'
+import { ChangePageInj, PaginationDataInj, computed, inject } from '#imports'
 
 const paginatedData = inject(PaginationDataInj)!
 

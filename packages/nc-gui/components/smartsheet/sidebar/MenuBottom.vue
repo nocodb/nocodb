@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { useNuxtApp } from '#app'
-import { useSmartsheetStoreOrThrow, useUIPermission, viewIcons } from '#imports'
+import { useNuxtApp, useSmartsheetStoreOrThrow, useUIPermission, viewIcons } from '#imports'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void

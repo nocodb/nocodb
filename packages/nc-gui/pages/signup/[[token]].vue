@@ -1,22 +1,9 @@
 <script setup lang="ts">
 import { validatePassword } from 'nocodb-sdk'
-import {
-  definePageMeta,
-  extractSdkResponseErrorMsg,
-  isEmail,
-  navigateTo,
-  reactive,
-  ref,
-  useApi,
-  useGlobal,
-  useI18n,
-  useNuxtApp,
-  useRoute,
-} from '#imports'
+import { definePageMeta, isEmail, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useNuxtApp, useRoute } from '#imports'
 
 definePageMeta({
   requiresAuth: false,
-  title: 'general.signUp',
 })
 
 const { $e } = useNuxtApp()
@@ -25,13 +12,11 @@ const route = useRoute()
 
 const { appInfo, signIn } = useGlobal()
 
-const { api, isLoading } = useApi()
+const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
 const formValidator = ref()
-
-let error = $ref<string | null>(null)
 
 const subscribe = ref(false)
 
@@ -80,22 +65,17 @@ async function signUp() {
 
   data.ignore_subscribe = !subscribe.value
 
-  api.auth
-    .signup(data)
-    .then(async ({ token }) => {
-      signIn(token!)
+  api.auth.signup(data).then(async ({ token }) => {
+    signIn(token!)
 
-      await navigateTo('/')
+    await navigateTo('/')
 
-      $e('a:auth:sign-up')
-    })
-    .catch(async (err) => {
-      error = await extractSdkResponseErrorMsg(err)
-    })
+    $e('a:auth:sign-up')
+  })
 }
 
 function resetError() {
-  if (error) error = null
+  if (error.value) error.value = null
 }
 </script>
 
@@ -105,7 +85,10 @@ function resetError() {
       <div
         class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
-        <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+        <LazyGeneralNocoIcon
+          class="color-transition hover:(ring ring-accent)"
+          :class="[isLoading ? 'animated-bg-gradient' : '']"
+        />
 
         <h1 class="prose-2xl font-bold self-center my-4">
           {{ $t('general.signUp') }}

@@ -1,34 +1,21 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
-import {
-  definePageMeta,
-  extractSdkResponseErrorMsg,
-  isEmail,
-  navigateTo,
-  reactive,
-  ref,
-  useApi,
-  useGlobal,
-  useI18n,
-  useSidebar,
-} from '#imports'
-
-const { signIn: _signIn } = useGlobal()
-
-const { api, isLoading } = useApi()
-
-const { t } = useI18n()
-
-useSidebar('nc-left-sidebar', { hasSidebar: false })
+import { definePageMeta, isEmail, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useSidebar } from '#imports'
 
 definePageMeta({
   requiresAuth: false,
   title: 'title.headLogin',
 })
 
-const formValidator = ref()
+const { signIn: _signIn } = useGlobal()
 
-let error = $ref<string | null>(null)
+const { api, isLoading, error } = useApi({ useGlobalInstance: true })
+
+const { t } = useI18n()
+
+useSidebar('nc-left-sidebar', { hasSidebar: false })
+
+const formValidator = ref()
 
 const form = reactive({
   email: '',
@@ -44,6 +31,7 @@ const formRules: Record<string, RuleObject[]> = {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
           if (isEmail(v)) return resolve()
+
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
       },
@@ -61,20 +49,15 @@ async function signIn() {
 
   resetError()
 
-  api.auth
-    .signin(form)
-    .then(async ({ token }) => {
-      _signIn(token!)
-      await navigateTo('/')
-    })
-    .catch(async (err) => {
-      // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
-      error = await extractSdkResponseErrorMsg(err)
-    })
+  api.auth.signin(form).then(async ({ token }) => {
+    _signIn(token!)
+
+    await navigateTo('/')
+  })
 }
 
 function resetError() {
-  if (error) error = null
+  if (error.value) error.value = null
 }
 </script>
 
@@ -84,7 +67,10 @@ function resetError() {
       <div
         class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
-        <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+        <LazyGeneralNocoIcon
+          class="color-transition hover:(ring ring-accent)"
+          :class="[isLoading ? 'animated-bg-gradient' : '']"
+        />
 
         <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 

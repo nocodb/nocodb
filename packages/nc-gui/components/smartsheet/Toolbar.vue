@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { IsPublicInj, useSharedView, useSidebar, useSmartsheetStoreOrThrow } from '#imports'
-import ToggleDrawer from '~/components/smartsheet/sidebar/toolbar/ToggleDrawer.vue'
+import { IsPublicInj, inject, ref, useSharedView, useSidebar, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
 
 const { isGrid, isForm, isGallery, isKanban, isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -18,40 +17,40 @@ const { allowCSVDownload } = useSharedView()
     class="nc-table-toolbar w-full py-1 flex gap-1 items-center h-[var(--toolbar-height)] px-2 border-b overflow-x-hidden"
     style="z-index: 7"
   >
-    <SmartsheetToolbarViewActions
+    <LazySmartsheetToolbarViewActions
       v-if="(isGrid || isGallery || isKanban) && !isPublic && isUIAllowed('dataInsert')"
       :show-system-fields="false"
       class="ml-1"
     />
 
-    <SmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
+    <LazySmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
 
-    <SmartsheetToolbarStackedBy v-if="isKanban" />
+    <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
-    <SmartsheetToolbarKanbanStackEditOrAdd v-if="isKanban" />
+    <LazySmartsheetToolbarKanbanStackEditOrAdd v-if="isKanban" />
 
-    <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban" :show-system-fields="false" class="ml-1" />
+    <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban" :show-system-fields="false" class="ml-1" />
 
-    <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban" />
+    <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban" />
 
-    <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+    <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 
-    <SmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban) && !isPublic" />
+    <LazySmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban) && !isPublic" />
 
-    <SmartsheetToolbarExport
+    <LazySmartsheetToolbarExport
       v-if="(!isPublic && !isUIAllowed('dataInsert') && !isKanban) || (isPublic && allowCSVDownload && !isKanban)"
     />
     <div class="flex-1" />
 
-    <SmartsheetToolbarReload v-if="!isPublic && !isForm" class="mx-1" />
+    <LazySmartsheetToolbarReload v-if="!isPublic && !isForm" class="mx-1" />
 
-    <SmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert') && !isPublic && !isForm && !isSqlView" class="mx-1" />
+    <LazySmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert') && !isPublic && !isForm && !isSqlView" class="mx-1" />
 
-    <SmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink mr-2 ml-2" />
+    <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink mr-2 ml-2" />
 
     <template v-if="!isOpen && !isPublic">
       <div class="border-l-1 pl-3">
-        <ToggleDrawer class="mr-2" />
+        <LazySmartsheetSidebarToolbarToggleDrawer class="mr-2" />
       </div>
     </template>
   </div>

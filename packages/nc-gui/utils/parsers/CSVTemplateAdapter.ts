@@ -1,4 +1,4 @@
-import Papaparse from 'papaparse'
+import { parse } from 'papaparse'
 import TemplateGenerator from './TemplateGenerator'
 
 export default class CSVTemplateAdapter extends TemplateGenerator {
@@ -24,7 +24,7 @@ export default class CSVTemplateAdapter extends TemplateGenerator {
   }
 
   async init() {
-    this.csv = Papaparse.parse(this.csvData, { header: true })
+    this.csv = parse(this.csvData, { header: true })
   }
 
   parseData() {

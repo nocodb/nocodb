@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { onMounted } from '@vue/runtime-core'
 import type { ColumnType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
 import {
@@ -14,15 +13,20 @@ import {
   PaginationDataInj,
   ReadonlyInj,
   ReloadRowDataHookInj,
+  ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
+  computed,
+  createEventHook,
   extractPkFromRow,
   inject,
+  nextTick,
+  onMounted,
   provide,
+  ref,
+  useUIPermission,
   useViewData,
 } from '#imports'
-import Row from '~/components/smartsheet/Row.vue'
-import type { Row as RowType } from '~/composables'
-import ImageIcon from '~icons/mdi/file-image-box'
+import type { Row as RowType } from '~/lib'
 
 interface Attachment {
   url: string
@@ -80,7 +84,7 @@ const isRowEmpty = (record: any, col: any) => {
   return Array.isArray(val) && val.length === 0
 }
 
-const attachments = (record: any): Array<Attachment> => {
+const attachments = (record: any): Attachment[] => {
   try {
     return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
   } catch (e) {
@@ -91,7 +95,7 @@ const attachments = (record: any): Array<Attachment> => {
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   if (!isUIAllowed('xcDatatableEditable')) return
 
-  const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+  const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   if (rowId) {
     router.push({
@@ -138,7 +142,9 @@ const reloadAttachments = ref(false)
 
 reloadViewMetaHook?.on(async () => {
   await loadGalleryData()
+
   reloadAttachments.value = true
+
   nextTick(() => {
     reloadAttachments.value = false
   })
@@ -149,6 +155,7 @@ reloadViewDataHook?.on(async () => {
 
 onMounted(async () => {
   await loadData()
+
   await loadGalleryData()
 })
 
@@ -160,7 +167,7 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
   <div class="flex flex-col h-full w-full overflow-auto nc-gallery">
     <div class="nc-gallery-container grid gap-2 my-4 px-3">
       <div v-for="record in data" :key="`record-${record.row.id}`">
-        <Row :row="record">
+        <LazySmartsheetRow :row="record">
           <a-card
             hoverable
             class="!rounded-lg h-full overflow-hidden break-all max-w-[450px]"
@@ -175,20 +182,26 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
                     </div>
                   </a>
                 </template>
+
                 <template #prevArrow>
                   <div style="z-index: 1"></div>
                 </template>
+
                 <template #nextArrow>
                   <div style="z-index: 1"></div>
                 </template>
-                <img
+
+                <LazyNuxtImg
                   v-for="(attachment, index) in attachments(record)"
                   :key="`carousel-${record.row.id}-${index}`"
+                  quality="90"
+                  placeholder
                   class="h-52 object-cover"
                   :src="attachment.url"
                 />
               </a-carousel>
-              <ImageIcon v-else class="w-full h-48 my-4 text-cool-gray-200" />
+
+              <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
             </template>
 
             <div
@@ -198,26 +211,43 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
             >
               <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
                 <div class="w-full text-gray-600">
-                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-                  <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                  <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+
+                  <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
                 </div>
               </div>
 
               <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
                 <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
+
                 <template v-else>
-                  <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="record.row[col.title]" :column="col" :row="record" />
-                  <SmartsheetCell v-else v-model="record.row[col.title]" :column="col" :edit-enabled="false" :read-only="true" />
+                  <LazySmartsheetVirtualCell
+                    v-if="isVirtualCol(col)"
+                    v-model="record.row[col.title]"
+                    :column="col"
+                    :row="record"
+                  />
+
+                  <LazySmartsheetCell
+                    v-else
+                    v-model="record.row[col.title]"
+                    :column="col"
+                    :edit-enabled="false"
+                    :read-only="true"
+                  />
                 </template>
               </div>
             </div>
           </a-card>
-        </Row>
+        </LazySmartsheetRow>
       </div>
     </div>
+
     <div class="flex-1" />
-    <SmartsheetPagination />
-    <SmartsheetExpandedForm
+
+    <LazySmartsheetPagination />
+
+    <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"
       v-model="expandedFormDlg"
       :row="expandedFormRow"
@@ -226,7 +256,7 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
       :view="view"
     />
 
-    <SmartsheetExpandedForm
+    <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg"
       :key="route.query.rowId"
       v-model="expandedFormOnRowIdDlg"

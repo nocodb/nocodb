@@ -80,7 +80,7 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "happy-dom": "^6.0.3",
-    "nuxt": "3.0.0-rc.4",
+    "nuxt": "^3.0.0-rc.11",
     "nuxt-windicss": "^2.5.0",
     "prettier": "^2.7.1",
     "sass": "^1.53.0",

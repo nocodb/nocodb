@@ -1,13 +1,13 @@
 import useVuelidate from '@vuelidate/core'
 import { minLength, required } from '@vuelidate/validators'
 import type { Ref } from 'vue'
-import { message } from 'ant-design-vue'
 import type { ColumnType, FormType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   SharedViewPasswordInj,
   computed,
   extractSdkResponseErrorMsg,
+  message,
   provide,
   ref,
   useApi,

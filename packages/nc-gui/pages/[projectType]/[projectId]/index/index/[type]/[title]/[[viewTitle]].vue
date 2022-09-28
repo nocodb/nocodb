@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { TabItem } from '~/composables'
-import { TabMetaInj, until } from '#imports'
+import type { TabItem } from '~/lib'
+import { TabMetaInj, computed, inject, ref, until, useMetas, useProject, useRoute } from '#imports'
 
 const { getMeta } = useMetas()
 
@@ -24,8 +24,11 @@ until(tables)
 </script>
 
 <template>
-  <div v-if="loading" class="flex items-center justify-center h-full w-full">
-    <a-spin size="large" />
+  <div class="w-full h-full">
+    <div v-if="loading" class="flex items-center justify-center h-full w-full">
+      <a-spin size="large" />
+    </div>
+
+    <LazyTabsSmartsheet v-else :key="route.params.title" :active-tab="activeTab" />
   </div>
-  <TabsSmartsheet v-else :key="route.params.title" :active-tab="activeTab" />
 </template>

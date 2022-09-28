@@ -1,12 +1,7 @@
 import { ConfigProvider } from 'ant-design-vue'
-import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import tinycolor from 'tinycolor2'
 import { createGlobalState, hexToRGB, ref, themeV2Colors, useCssVar } from '#imports'
-
-export interface ThemeConfig extends AntTheme {
-  primaryColor: string
-  accentColor: string
-}
+import type { ThemeConfig } from '~/lib'
 
 export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
   const primaryColor = useCssVar('--color-primary', typeof document !== 'undefined' ? document.documentElement : null)

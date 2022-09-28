@@ -1,12 +1,12 @@
 import type { FilterType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { message } from 'ant-design-vue'
 import {
   IsPublicInj,
   ReloadViewDataHookInj,
   computed,
   extractSdkResponseErrorMsg,
   inject,
+  message,
   ref,
   useMetas,
   useNuxtApp,
@@ -34,6 +34,7 @@ export function useViewFilters(
   const { isUIAllowed } = useUIPermission()
 
   const { metas } = useMetas()
+
   const _filters = ref<Filter[]>([])
 
   const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync' || !isUIAllowed('filterChildrenRead')))

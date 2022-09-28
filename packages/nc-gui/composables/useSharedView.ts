@@ -10,20 +10,28 @@ import type {
   ViewType,
 } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { useGlobal, useNuxtApp } from '#imports'
+import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
 export function useSharedView() {
   const nestedFilters = useState<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>(
     'nestedFilters',
     () => [],
   )
+
   const { appInfo } = $(useGlobal())
+
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
+
   const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: appInfoDefaultLimit }))
+
   const sharedView = useState<ViewType | undefined>('sharedView', () => undefined)
+
   const sorts = useState<SortType[]>('sorts', () => [])
+
   const password = useState<string | undefined>('password', () => undefined)
+
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
+  
   const meta = useState<TableType | KanbanType | undefined>('meta', () => undefined)
 
   const formColumns = computed(
@@ -38,6 +46,7 @@ export function useSharedView() {
   )
 
   const { $api } = useNuxtApp()
+
   const { setMeta } = useMetas()
 
   const loadSharedView = async (viewId: string, localPassword: string | undefined = undefined) => {
@@ -59,7 +68,7 @@ export function useSharedView() {
       .map((c) => ({ ...c, order: order++ }))
       .sort((a, b) => a.order - b.order)
 
-    setMeta(viewMeta.model)
+    await setMeta(viewMeta.model)
 
     const relatedMetas = { ...viewMeta.relatedMetas }
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))

@@ -45,7 +45,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full h-full border-none outline-none"
+    class="w-full h-full border-none outline-none px-2"
     @blur="editEnabled = false"
   />
 

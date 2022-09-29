@@ -73,7 +73,13 @@ watch(
 
 <template>
   <div class="flex flex-row items-center justify-between">
-    <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm w-full" @blur="editEnabled = false" />
+    <input
+      v-if="editEnabled"
+      :ref="focus"
+      v-model="vModel"
+      class="outline-none text-sm w-full px-2"
+      @blur="editEnabled = false"
+    />
 
     <nuxt-link
       v-else-if="isValid && !cellUrlOptions?.overlay"

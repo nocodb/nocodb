@@ -62,7 +62,7 @@ watch(
     v-model:value="localState"
     :show-time="true"
     :bordered="false"
-    class="!w-full px-1"
+    class="!w-full !px-0 !border-none"
     format="YYYY-MM-DD HH:mm"
     :placeholder="isDateInvalid ? 'Invalid date' : ''"
     :allow-clear="!readOnly"

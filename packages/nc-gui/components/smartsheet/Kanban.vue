@@ -294,15 +294,15 @@ watch(
                   <div class="nc-kanban-stack-head font-bold flex items-center px-[15px]">
                     <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-kanban-stack-context-menu">
                       <div
-                        class="flex items-center cursor-pointer w-full"
-                        :class="{ capitalize: stack.title === 'uncategorized' }"
+                        class="flex items-center w-full"
+                        :class="{ 'capitalize': stack.title === 'uncategorized', 'cursor-pointer': !isLocked }"
                       >
                         <LazyGeneralTruncateText>{{ stack.title }}</LazyGeneralTruncateText>
-                        <span class="w-full flex w-[15px]">
+                        <span v-if="!isLocked" class="w-full flex w-[15px]">
                           <mdi-menu-down class="text-grey text-lg ml-auto" />
                         </span>
                       </div>
-                      <template #overlay>
+                      <template v-if="!isLocked" #overlay>
                         <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
                           <a-menu-item
                             v-if="isUIAllowed('xcDatatableEditable')"

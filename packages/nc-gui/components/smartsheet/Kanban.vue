@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
-import { isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -381,6 +381,7 @@ watch(
                                 <div
                                   v-if="!isRowEmpty(record, col)"
                                   class="flex flex-row w-full items-center justify-start pl-[6px]"
+                                  :class="{ '!ml-[-12px]': col.uidt === UITypes.SingleSelect }"
                                 >
                                   <LazySmartsheetVirtualCell
                                     v-if="isVirtualCol(col)"

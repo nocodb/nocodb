@@ -75,7 +75,6 @@ watch(isOpen, (n, _o) => {
     :open="isOpen"
     :disabled="readOnly"
     :show-arrow="!readOnly && (active || vModel === null)"
-    :class="{ '!ml-[-12px]': readOnly }"
     dropdown-class-name="nc-dropdown-single-select-cell"
     @select="isOpen = false"
     @keydown="handleKeys"

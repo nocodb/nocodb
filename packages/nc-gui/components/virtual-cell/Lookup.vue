@@ -49,7 +49,7 @@ const lookupColumnMetaProps = useColumn(lookupColumn)
 </script>
 
 <template>
-  <div class="h-full flex gap-1">
+  <div class="h-full flex gap-1 overflow-x-auto p-1">
     <template v-if="lookupColumn">
       <!-- Render virtual cell -->
       <div v-if="isVirtualCol(lookupColumn)">

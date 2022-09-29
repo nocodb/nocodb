@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ViewType, ViewTypes } from 'nocodb-sdk'
+import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import {
   IsLockedInj,
@@ -23,7 +23,7 @@ interface Emits {
   (event: 'changeView', view: Record<string, any>): void
   (event: 'rename', view: ViewType): void
   (event: 'delete', view: ViewType): void
-  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
+  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
 }
 
 const props = defineProps<Props>()
@@ -101,7 +101,12 @@ function focusInput(el: HTMLInputElement) {
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
 function onDuplicate() {
-  emits('openModal', { type: vModel.value.type!, title: vModel.value.title, copyViewId: vModel.value.id })
+  emits('openModal', {
+    type: vModel.value.type!,
+    title: vModel.value.title,
+    copyViewId: vModel.value.id,
+    groupingFieldColumnId: (vModel.value.view as KanbanType).grp_column_id!,
+  })
 
   $e('c:view:copy', { view: vModel.value.type })
 }

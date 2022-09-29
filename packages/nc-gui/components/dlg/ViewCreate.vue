@@ -25,6 +25,7 @@ interface Props {
   type: ViewTypes
   title?: string
   selectedViewId?: string
+  groupingFieldColumnId?: string
 }
 
 interface Emits {
@@ -123,7 +124,13 @@ function init() {
           label: field.title,
         }
       })
-    form.grp_column_id = singleSelectFieldOptions.value?.[0]?.value as string
+    if (props.groupingFieldColumnId) {
+      // take from the one from copy view
+      form.grp_column_id = props.groupingFieldColumnId
+    } else {
+      // take the first option
+      form.grp_column_id = singleSelectFieldOptions.value?.[0]?.value as string
+    }
   }
 
   nextTick(() => {
@@ -186,11 +193,17 @@ async function onSubmit() {
       <a-form-item :label="$t('labels.viewName')" name="title" :rules="viewNameRules">
         <a-input ref="inputEl" v-model:value="form.title" autofocus @keydown.enter="onSubmit" />
       </a-form-item>
-      <a-form-item v-if="form.type === ViewTypes.KANBAN" name="grp_column_id" :rules="groupingFieldColumnRules">
+      <a-form-item
+        v-if="form.type === ViewTypes.KANBAN"
+        :label="$t('general.groupingField')"
+        name="grp_column_id"
+        :rules="groupingFieldColumnRules"
+      >
         <a-select
           v-model:value="form.grp_column_id"
           class="w-full nc-kanban-grouping-field-select"
           :options="singleSelectFieldOptions"
+          :disabled="props.groupingFieldColumnId"
           placeholder="Select a Grouping Field"
           not-found-content="No Single Select Field can be found. Please create one first."
         />

@@ -19,6 +19,7 @@ import {
   _topRightMenu,
   enableTableAccess,
   _accessControl,
+  disableTableAccess,
 } from "../spec/roleValidation.spec";
 
 export const genTest = (apiType, dbType, roleType) => {
@@ -27,52 +28,72 @@ export const genTest = (apiType, dbType, roleType) => {
   ///////////////////////////////////////////////////////////
   //// Test Suite
 
+  let clear;
+
+  function configureAcl() {
+    // open Project metadata tab
+    //
+    settingsPage.openMenu(settingsPage.PROJ_METADATA);
+    settingsPage.openTab(settingsPage.UI_ACCESS_CONTROL);
+
+    // validate if it has 19 entries representing tables & views
+    if (isPostgres()) cy.get(".nc-acl-table-row").should("have.length", 24);
+    else if (isXcdb()) cy.get(".nc-acl-table-row").should("have.length", 19);
+    else cy.get(".nc-acl-table-row").should("have.length", 19);
+
+    // disable table & view access
+    //
+    disableTableAccess("Language", "editor");
+    disableTableAccess("Language", "commenter");
+    disableTableAccess("Language", "viewer");
+
+    disableTableAccess("CustomerList", "editor");
+    disableTableAccess("CustomerList", "commenter");
+    disableTableAccess("CustomerList", "viewer");
+
+    cy.get("button.nc-acl-save").click();
+    cy.toastWait("Updated UI ACL for tables successfully");
+
+    mainPage.closeMetaTab();
+  }
+
   describe("Role preview validations", () => {
     // Sign in/ open project
     before(() => {
+      // cy.restoreLocalStorage();
       loginPage.loginAndOpenProject(apiType, dbType);
-      cy.openTableTab("City", 25);
 
-      cy.wait(3000);
+      clear = Cypress.LocalStorage.clear;
+      Cypress.LocalStorage.clear = () => {};
+
+      // configureAcl();
+
+      cy.openTableTab("City", 25);
 
       settingsPage.openProjectMenu();
       cy.getActiveMenu(".nc-dropdown-project-menu")
         .find(`[data-submenu-id="preview-as"]`)
         .should("exist")
         .click();
-      cy.wait(1000);
-      cy.get(".ant-dropdown-menu-submenu")
-        .eq(4)
-        .find(`[data-menu-id="editor"]`)
+
+      cy.get(".nc-role-preview-menu").should("have.length", 3);
+      cy.get(`.nc-role-preview-menu:contains("Editor")`)
         .should("exist")
         .click();
-
-      cy.wait(10000);
-
-      cy.saveLocalStorage();
-    });
-
-    beforeEach(() => {
-      cy.restoreLocalStorage();
     });
 
     after(() => {
-      // cy.get(".nc-preview-reset").click({ force: true });
-      cy.get(".mdi-exit-to-app").click();
+      cy.get(".nc-preview-btn-exit-to-app").click();
+
       // wait for page rendering to complete
       cy.get(".nc-grid-row", { timeout: 25000 }).should("have.length", 25);
 
-      // cy.get('.nc-preview-reset:visible').should('not-exist')
-
-      // mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').should('not.exist')
-      // cy.get('.nc-preview-reset').should('not-exist')
       cy.closeTableTab("City");
 
       // open Project metadata tab
       //
-      mainPage.navigationDraw(mainPage.PROJ_METADATA).click();
-      // cy.get(".nc-exp-imp-metadata").dblclick({ force: true });
-      cy.get(".nc-ui-acl-tab").click({ force: true });
+      settingsPage.openMenu(settingsPage.PROJ_METADATA);
+      settingsPage.openTab(settingsPage.UI_ACCESS_CONTROL);
 
       // validate if it has 19 entries representing tables & views
       if (isPostgres()) cy.get(".nc-acl-table-row").should("have.length", 24);
@@ -81,13 +102,15 @@ export const genTest = (apiType, dbType, roleType) => {
 
       // restore access
       //
-      enableTableAccess("language", "editor");
-      enableTableAccess("language", "commenter");
-      enableTableAccess("language", "viewer");
+      enableTableAccess("Language", "editor");
+      enableTableAccess("Language", "commenter");
+      enableTableAccess("Language", "viewer");
 
-      enableTableAccess("customerlist", "editor");
-      enableTableAccess("customerlist", "commenter");
-      enableTableAccess("customerlist", "viewer");
+      enableTableAccess("CustomerList", "editor");
+      enableTableAccess("CustomerList", "commenter");
+      enableTableAccess("CustomerList", "viewer");
+      cy.saveLocalStorage();
+      Cypress.LocalStorage.clear = clear;
     });
 
     const genTestSub = (roleType) => {
@@ -97,9 +120,6 @@ export const genTest = (apiType, dbType, roleType) => {
           .find(`[type="radio"][value="${roleType}"]`)
           .should("exist")
           .click();
-
-        cy.wait(5000);
-        cy.saveLocalStorage();
       });
 
       it(`Role preview: ${roleType}: Advance settings`, () => {
@@ -134,13 +154,6 @@ export const genTest = (apiType, dbType, roleType) => {
         //      Editor/Viewer/Commenter : can only view 'existing' views
         //      Rest: can create/edit
         _viewMenu(roleType, "preview");
-      });
-
-      it(`Role preview: ${roleType}: Top Right Menu bar`, () => {
-        // Share button is conditional
-        // Rest are static/ mandatory
-        //
-        _topRightMenu(roleType, "preview");
       });
 
       it(`Role preview: ${roleType}: Edit Schema`, () => {

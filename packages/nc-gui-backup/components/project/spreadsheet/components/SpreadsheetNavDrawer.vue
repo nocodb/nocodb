@@ -357,8 +357,6 @@ export default {
   name: 'SpreadsheetNavDrawer',
   components: { WebhookSlider, CodeSnippet, CreateViewDialog, draggable, FlipCard },
   props: {
-    setLastOpenedView: Function,
-    lastOpenedViewMap: Object,
     extraViewParams: Object,
     showAdvanceOptions: Boolean,
     isView: Boolean,
@@ -463,7 +461,7 @@ export default {
         let id;
         if (this.views) {
           const view = this.views.find(v => v.id === this.$route.query.view);
-          id = (view && view.id) || this.lastOpenedViewMap[this.table] || ((this.views && this.views[0]) || {}).id;
+          id = (view && view.id) || ((this.views && this.views[0]) || {}).id;
         }
         return id;
       },
@@ -492,7 +490,6 @@ export default {
       }
     },
     selectedViewIdLocal(id) {
-      this.$emit('setLastOpenedView', this.table, id)
       this.onViewIdChange(id);
     },
   },
@@ -524,8 +521,31 @@ export default {
     },
     onViewIdChange(id) {
       const selectedView = this.views && this.views.find(v => v.id === id);
+      // const queryParams = {}
       this.$emit('update:selectedViewId', id);
       this.$emit('update:selectedView', selectedView);
+      // if (selectedView.type === 'table') {
+      //   return;
+      // }
+      // try {
+      //   queryParams = JSON.parse(selectedView.query_params) || {}
+      // } catch (e) {
+      //   // console.log(e)
+      // }
+      // this.$emit('update:filters', queryParams.filters || [])
+      // this.$emit('update:sortList', queryParams.sortList || [])
+      // this.$emit('update:fieldsOrder', queryParams.fieldsOrder || [])
+      // this.$emit('update:viewStatus', queryParams.viewStatus || {})
+      // this.$emit('update:columnsWidth', queryParams.columnsWidth || {})
+      // this.$emit('update:extraViewParams', queryParams.extraViewParams || {})
+      // this.$emit('update:coverImageField', queryParams.coverImageField)
+      // this.$emit('update:groupingField', queryParams.groupingField)
+      // this.$emit('update:showSystemFields', queryParams.showSystemFields)
+      // if (queryParams.showFields) {
+      //   this.$emit('update:showFields', queryParams.showFields)
+      // } else {
+      //   this.$emit('mapFieldsAndShowFields')
+      // }
       this.$emit('loadTableData');
     },
     openCreateViewDlg(type) {
@@ -571,6 +591,15 @@ export default {
         await this.$api.dbViewShare.update(this.shareLink.id, {
           password: this.shareLink.password,
         });
+
+        // await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        //   { dbAlias: this.nodes.dbAlias },
+        //   'updateSharedViewLinkPassword',
+        //   {
+        //     id: this.shareLink.id,
+        //     password: this.shareLink.password
+        //   }
+        // ])
         this.$toast.success('Successfully updated').goAway(3000);
       } catch (e) {
         this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000);
@@ -600,9 +629,39 @@ export default {
       }
     },
     async loadViews() {
+      // this.viewsList = await this.sqlOp(
+      //   {
+      //     dbAlias: this.nodes.dbAlias
+      //   },
+      //   'xcVirtualTableList',
+      //   {
+      //     tn: this.table
+      //   }
+      // )
+      // this.selectedViewIdLocal = this.viewsList && this.viewsList[0] && this.viewsList[0].id
+
+      // this.viewsList = []
+
       const views = (await this.$api.dbView.list(this.meta.id)).list;
       this.$emit('update:views', views);
     },
+    // async onViewChange() {
+    //   let query_params = {}
+    //   try {
+    //     console.log(this.selectedView)
+    //     query_params = JSON.parse(this.selectedView.query_params);
+    //   } catch (e) {
+    //     console.log(e)
+    //   }
+    //   this.$emit('update:filters', query_params.filters || []);
+    //   this.$emit('update:sortList', query_params.sortList || []);
+    //   if (query_params.showFields) {
+    //     this.$emit('update:showFields', query_params.showFields);
+    //   } else {
+    //     this.$emit('mapFieldsAndShowFields');
+    //   }
+    //   this.$emit('loadTableData');
+    // },
     copyapiUrlToClipboard() {
       copyTextToClipboard(this.currentApiUrl);
       this.clipboardSuccessHandler();
@@ -611,6 +670,8 @@ export default {
       if (!view.edit) {
         return;
       }
+
+      // const oldTitle = view.title
 
       this.$set(view, 'edit', false);
       if (view.title_temp === view.title) {
@@ -621,6 +682,14 @@ export default {
         return;
       }
       try {
+        // if (this.selectedViewIdLocal === view.id) {
+        //   await this.$router.push({
+        //     query: {
+        //       ...this.$route.query,
+        //       view: view.title_temp
+        //     }
+        //   })
+        // }
         this.$set(view, 'title', view.title_temp);
         await this.$api.dbView.update(view.id, {
           title: view.title,

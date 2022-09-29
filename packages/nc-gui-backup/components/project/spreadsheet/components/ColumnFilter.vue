@@ -92,12 +92,16 @@
 
             <field-list-auto-complete-dropdown
               :key="i + '_7'"
+
               v-model="filter.fk_column_id"
               class="caption nc-filter-field-select"
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
-              @input="filter.value = null"
+              @change="
+                filter.value = null;
+                saveOrUpdate(filter, i);
+              "
             />
 
             <v-select
@@ -122,7 +126,7 @@
               </template>
             </v-select>
             <span v-else :key="i + '_8'" />
-            <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="i + '_5'" />
+            <span v-if="isValuelessFilter(filter)" :key="i + '_5'" />
             <filter-value-input
               v-else-if="filter && filter.fk_column_id"
               :key="i + '_9'"
@@ -438,34 +442,41 @@ export default {
         comparison: filter.comparison_op,
       });
     },
+    isValuelessFilter(filter) {
+      return ['notempty', 'empty', 'notnull', 'null'].includes(filter.comparison_op);
+    },
+    isFilterValueEmpty(filter) {
+      return filter.value == null || filter.value === '';
+    },
     async saveOrUpdate(filter, i) {
-      if (!filter.is_group && (filter.value == null || filter.value === '')) {
-        return;
-      }
-
       if (this.shared || !this._isUIAllowed('filterSync')) {
-        // this.$emit('input', this.filters.filter(f => f.fk_column_id && f.comparison_op))
         this.$emit('updated');
       } else if (!this.autoApply) {
         filter.status = 'update';
-      } else if (filter.id) {
-        await this.$api.dbTableFilter.update(filter.id, {
-          ...filter,
-          fk_parent_id: this.parentId,
-        });
-
-        this.$emit('updated');
       } else {
-        this.$set(
-          this.filters,
-          i,
-          await this.$api.dbTableFilter.create(this.viewId, {
+        if (!filter.is_group && !this.isValuelessFilter(filter) && this.isFilterValueEmpty(filter)) {
+          return;
+        }
+
+        if (filter.id) {
+          await this.$api.dbTableFilter.update(filter.id, {
             ...filter,
             fk_parent_id: this.parentId,
-          })
-        );
+          });
 
-        this.$emit('updated');
+          this.$emit('updated');
+        } else {
+          this.$set(
+            this.filters,
+            i,
+            await this.$api.dbTableFilter.create(this.viewId, {
+              ...filter,
+              fk_parent_id: this.parentId,
+            })
+          );
+
+          this.$emit('updated');
+        }
       }
     },
     async deleteFilter(filter, i) {

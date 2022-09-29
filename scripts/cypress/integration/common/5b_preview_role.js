@@ -27,36 +27,42 @@ export const genTest = (apiType, dbType, roleType) => {
   ///////////////////////////////////////////////////////////
   //// Test Suite
 
+  let clear;
+
   describe("Role preview validations", () => {
     // Sign in/ open project
     before(() => {
       loginPage.loginAndOpenProject(apiType, dbType);
       cy.openTableTab("City", 25);
 
-      cy.wait(3000);
-
       settingsPage.openProjectMenu();
       cy.getActiveMenu(".nc-dropdown-project-menu")
         .find(`[data-submenu-id="preview-as"]`)
         .should("exist")
         .click();
-      cy.wait(1000);
       cy.get(".ant-dropdown-menu-submenu")
         .eq(4)
         .find(`[data-menu-id="editor"]`)
         .should("exist")
         .click();
-
-      cy.wait(10000);
-
       cy.saveLocalStorage();
+
+      clear = Cypress.LocalStorage.clear;
+      Cypress.LocalStorage.clear = () => {};
     });
 
     beforeEach(() => {
       cy.restoreLocalStorage();
     });
 
+    afterEach(() => {
+      cy.saveLocalStorage();
+      Cypress.LocalStorage.clear = clear;
+    });
+
     after(() => {
+      cy.restoreLocalStorage();
+
       // cy.get(".nc-preview-reset").click({ force: true });
       cy.get(".mdi-exit-to-app").click();
       // wait for page rendering to complete
@@ -88,6 +94,8 @@ export const genTest = (apiType, dbType, roleType) => {
       enableTableAccess("customerlist", "editor");
       enableTableAccess("customerlist", "commenter");
       enableTableAccess("customerlist", "viewer");
+
+      cy.saveLocalStorage();
     });
 
     const genTestSub = (roleType) => {
@@ -97,9 +105,6 @@ export const genTest = (apiType, dbType, roleType) => {
           .find(`[type="radio"][value="${roleType}"]`)
           .should("exist")
           .click();
-
-        cy.wait(5000);
-        cy.saveLocalStorage();
       });
 
       it(`Role preview: ${roleType}: Advance settings`, () => {

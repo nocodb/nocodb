@@ -205,6 +205,7 @@
     "viewLink": "View Link",
     "columnName": "Column Name",
     "columnType": "Column Type",
+    "isPublic": "Is public?",
     "roleName": "Role Name",
     "roleDescription": "Role Description",
     "databaseType": "Type in Database",
@@ -443,7 +444,8 @@
     "clearMetadata": "Clear all metadata from meta tables.",
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
-    "clientCA": "Select CA file"
+    "clientCA": "Select CA file",
+    "onlyS3": "Only works with S3 plugin"
   },
   "placeholder": {
     "projName": "Enter Project Name",

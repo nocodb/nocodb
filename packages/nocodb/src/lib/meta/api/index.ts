@@ -28,6 +28,7 @@ import metaDiffApis from './metaDiffApis';
 import cacheApis from './cacheApis';
 import apiTokenApis from './apiTokenApis';
 import hookFilterApis from './hookFilterApis';
+import testApis from './testApis';
 import {
   bulkDataAliasApis,
   dataAliasApis,
@@ -57,6 +58,9 @@ export default function (router: Router, server) {
   projectApis(router);
   utilApis(router);
 
+  if(process.env['TEST'] === 'true') {
+    router.use(testApis);
+  }
   router.use(columnApis);
   router.use(exportApis);
   router.use(dataApis);

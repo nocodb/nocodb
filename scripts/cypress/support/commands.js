@@ -29,6 +29,40 @@ import { isXcdb, isPostgres } from "./page_objects/projectConstants";
 
 require("@4tw/cypress-drag-drop");
 
+let LOCAL_STORAGE_MEMORY = {};
+let LOCAL_STORAGE_MEMORY_v2 = {};
+
+Cypress.Commands.add('setup', ({ dbType }) => {
+  cy.request('GET', 'http://localhost:8080/api/v1/meta/test/reset').then((response) => {
+    LOCAL_STORAGE_MEMORY = {
+      "nocodb-gui-v2": JSON.stringify({
+        "token": response.body.token,
+        darkMode: false,
+      })
+    }
+    cy.restoreLocalStorage().then(() => {
+      console.log('setup done', localStorage.getItem('nocodb-gui-v2'))
+      let project;
+
+      if(dbType === "postgres") {
+        const pgProject = response.body.projects.find((project) => project.title === 'pgExtREST');
+        project = pgProject;
+      }
+
+      cy.visit(`http://localhost:3000/#/nc/${project.id}/auth`, {
+        retryOnNetworkFailure: true,
+        timeout: 1200000,
+        headers: {
+          "Accept-Encoding": "gzip, deflate",
+        }
+      }).then(() => {
+        return {token: response.body.token, project}
+      });
+
+    })
+  })
+});
+
 // recursively gets an element, returning only after it's determined to be attached to the DOM for good
 Cypress.Commands.add("getSettled", (selector, opts = {}) => {
   const retries = opts.retries || 3;
@@ -242,9 +276,6 @@ Cypress.Commands.add("openOrCreateGqlProject", (_args) => {
   });
   cy.url({ timeout: 20000 }).should("contain", "#/nc/");
 });
-
-let LOCAL_STORAGE_MEMORY = {};
-let LOCAL_STORAGE_MEMORY_v2 = {};
 
 Cypress.Commands.add("saveLocalStorage", (name) => {
   LOCAL_STORAGE_MEMORY = {};

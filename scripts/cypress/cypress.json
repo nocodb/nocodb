@@ -14,7 +14,8 @@
         "test/pg-restRoles.js",
         "test/pg-restMisc.js",
         "test/quickTest.js",
-        "test/db-independent.js"
+        "test/db-independent.js",
+        "test/pg-restMiscV2.js"
     ],
     "defaultCommandTimeout": 13000,
     "pageLoadTimeout": 600000,

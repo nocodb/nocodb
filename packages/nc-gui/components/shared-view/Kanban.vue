@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadViewDataHookInj } from '#imports'
+import {
+  ActiveViewInj,
+  FieldsInj,
+  IsPublicInj,
+  MetaInj,
+  ReadonlyInj,
+  ReloadViewDataHookInj,
+  useProvideKanbanViewStore,
+} from '#imports'
 
 const { sharedView, meta, sorts, nestedFilters } = useSharedView()
 
@@ -18,6 +26,8 @@ provide(FieldsInj, ref(meta.value?.columns || []))
 provide(IsPublicInj, ref(true))
 
 useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
+
+useProvideKanbanViewStore(meta, sharedView, true)
 </script>
 
 <template>

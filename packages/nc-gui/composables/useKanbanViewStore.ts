@@ -9,8 +9,9 @@ type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
 const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
   (
-    meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
-    viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
+    meta: Ref<TableType | KanbanType | undefined>,
+    viewMeta: Ref<ViewType | KanbanType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
+    shared = false,
   ) => {
     if (!meta) {
       throw new Error('Table meta is not available')
@@ -30,7 +31,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { isUIAllowed } = useUIPermission()
 
-    const isPublic = inject(IsPublicInj, ref(false))
+    const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 
     const password = ref<string | null>(null)
 
@@ -138,7 +139,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         : await $api.dbView.kanbanRead(viewMeta.value.id)
       // set groupingField
       groupingFieldColumn.value =
-        meta.value.columns.filter((f: ColumnType) => f.id === kanbanMetaData.value.grp_column_id)[0] || {}
+        (meta.value.columns as ColumnType[]).filter((f) => f.id === kanbanMetaData.value.grp_column_id)[0] || {}
 
       groupingField.value = groupingFieldColumn.value.title!
 
@@ -253,9 +254,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     async function insertRow(row: Record<string, any>, rowIndex = formattedData.value.uncatgorized?.length) {
       try {
-        const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
+        const insertObj = (meta?.value?.columns as ColumnType[]).reduce((o: Record<string, any>, col) => {
           if (!col.ai && row?.[col.title as string] !== null) {
-            o[col.title as string] = row?.[col.title as string]
+            o[col.title!] = row?.[col.title as string]
           }
           return o
         }, {})
@@ -421,9 +422,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         }
       } else {
         // update existing record
-        const targetPrimaryKey = extractPkFromRow(row.row, meta!.value!.columns!)
+        const targetPrimaryKey = extractPkFromRow(row.row, meta!.value!.columns as ColumnType[])
         const idxToUpdate = formattedData.value[stackTitle].findIndex(
-          (ele) => extractPkFromRow(ele.row, meta!.value!.columns!) === targetPrimaryKey,
+          (ele) => extractPkFromRow(ele.row, meta!.value!.columns as ColumnType[]) === targetPrimaryKey,
         )
         if (idxToUpdate !== -1) {
           // update the row in formattedData

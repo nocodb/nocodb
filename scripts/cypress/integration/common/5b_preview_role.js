@@ -106,9 +106,9 @@ export const genTest = (apiType, dbType, roleType) => {
       enableTableAccess("Language", "commenter");
       enableTableAccess("Language", "viewer");
 
-      enableTableAccess("Customerlist", "editor");
-      enableTableAccess("Customerlist", "commenter");
-      enableTableAccess("Customerlist", "viewer");
+      enableTableAccess("CustomerList", "editor");
+      enableTableAccess("CustomerList", "commenter");
+      enableTableAccess("CustomerList", "viewer");
       cy.saveLocalStorage();
       Cypress.LocalStorage.clear = clear;
     });

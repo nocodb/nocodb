@@ -3,7 +3,7 @@ import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, 
 import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
 import type { Row } from '~/lib'
-import { SharedViewPasswordInj, deepCompare, enumColor, useInjectionState, useNuxtApp } from '#imports'
+import { SharedViewPasswordInj, deepCompare, enumColor, extractPkFromRow, useInjectionState, useNuxtApp } from '#imports'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
@@ -402,15 +402,41 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       return formattedData.value.uncategorized[addAfter]
     }
 
-    function addRowToStack(row: Row) {
+    function addOrEditStackRow(row: Row, isNewRow: boolean) {
       const stackTitle = row.row[groupingField.value] ?? 'uncategorized'
-      if (stackTitle) {
-        // push the row to target stack
-        formattedData.value[stackTitle].push(row)
-        // increase the current count in the target stack by 1
-        countByStack.value[stackTitle] += 1
-        // clear the one under uncategorized since we don't reload the view
-        removeRowFromUncategorizedStack()
+      const oldStackTitle = row.oldRow[groupingField.value] ?? 'uncategorized'
+
+      if (isNewRow) {
+        // add a new record
+        if (stackTitle) {
+          // push the row to target stack
+          formattedData.value[stackTitle].push(row)
+          // increase the current count in the target stack by 1
+          countByStack.value[stackTitle] += 1
+          // clear the one under uncategorized since we don't reload the view
+          removeRowFromUncategorizedStack()
+        } else {
+          // data will be still in Uncategorized stack
+          // no action is required
+        }
+      } else {
+        // update existing record
+        const targetPrimaryKey = extractPkFromRow(row.row, meta!.value!.columns!)
+        const idxToUpdate = formattedData.value[stackTitle].findIndex(
+          (ele) => extractPkFromRow(ele.row, meta!.value!.columns!) === targetPrimaryKey,
+        )
+        if (idxToUpdate !== -1) {
+          // update the row in formattedData
+          formattedData.value[stackTitle][idxToUpdate] = row
+        }
+        if (stackTitle !== oldStackTitle) {
+          // remove old row from countByStack & formattedData
+          countByStack.value[oldStackTitle] -= 1
+          formattedData.value[oldStackTitle].pop()
+          // add new row to countByStack & formattedData
+          countByStack.value[stackTitle] += 1
+          formattedData.value[stackTitle].push(row)
+        }
       }
     }
 
@@ -434,7 +460,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       groupingFieldColumn,
       updateOrSaveRow,
       addEmptyRow,
-      addRowToStack,
+      addOrEditStackRow,
       deleteStack,
       updateKanbanStackMeta,
       removeRowFromUncategorizedStack,

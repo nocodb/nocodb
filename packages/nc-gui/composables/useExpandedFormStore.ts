@@ -44,7 +44,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const activeView = inject(ActiveViewInj, ref())
 
-  const { addRowToStack } = useKanbanViewStoreOrThrow()
+  const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
   const { sharedView } = useSharedView()
 
@@ -140,7 +140,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         return obj
       }, {} as Record<string, any>)
 
-      if (row.value.rowMeta?.new) {
+      const isNewRow = row.value.rowMeta?.new ?? false
+
+      if (isNewRow) {
         data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, updateOrInsertObj)
 
         Object.assign(row.value, {
@@ -180,7 +182,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       }
 
       if (activeView.value?.type === ViewTypes.KANBAN) {
-        addRowToStack(row.value)
+        addOrEditStackRow(row.value, isNewRow)
       }
 
       message.success(`${primaryValue.value || 'Row'} updated successfully.`)

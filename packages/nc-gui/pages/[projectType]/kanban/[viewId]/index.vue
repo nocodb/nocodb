@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
+import { definePageMeta } from '#imports'
 
 definePageMeta({
   public: true,

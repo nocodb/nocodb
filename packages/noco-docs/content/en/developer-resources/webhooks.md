@@ -10,17 +10,31 @@ menuTitle: "Webhooks"
 
 Some types of notifications can be triggered by a webhook after a particular event.
 
-- Open a Project, Select a table and Click 'More' > 'Webhooks'.
+### Open `View menu`, click on `Webhooks`
+  
+![Screenshot 2022-09-14 at 10 32 13 AM](https://user-images.githubusercontent.com/86527202/190064555-77d2444e-250e-4c26-bf65-4bccde166c25.png)
 
-![Screenshot 2022-02-22 at 11 16 18 AM](https://user-images.githubusercontent.com/86527202/155085373-f9b438ed-98c3-4fb1-9209-1bb52736a35d.png)
+<!-- ![Screenshot 2022-02-22 at 11 16 18 AM](https://user-images.githubusercontent.com/86527202/155085373-f9b438ed-98c3-4fb1-9209-1bb52736a35d.png) -->
 
-- Click 'Create webhook'
+### Click `Add new webhook`
+  
+![Screenshot 2022-09-14 at 10 33 15 AM](https://user-images.githubusercontent.com/86527202/190064639-c51038bc-cfd0-4f5a-aece-3bade55ae994.png)
 
-![image](https://user-images.githubusercontent.com/35857179/166660074-0a896ec9-9cd8-403e-a713-61c2cefbae28.png)
+<!-- ![image](https://user-images.githubusercontent.com/35857179/166660074-0a896ec9-9cd8-403e-a713-61c2cefbae28.png) -->
 
-- Configure the webhook
+### Configure Webhook
+  - General configurations
+    - Webhook Name
+    - Webhook Trigger
+    - Webhook Type
+  - Webhook Type specific configuration : additional configuration details depending on webhook type selected
+  - Webhook Conditional Trigger
+    - Only records meeting the criteria will trigger webhook   
+  
+![Screenshot 2022-09-14 at 10 35 39 AM](https://user-images.githubusercontent.com/86527202/190064668-37245025-81f6-491c-b639-83c8fd131bc3.png)
 
-![image](https://user-images.githubusercontent.com/35857179/166660248-a3c81a34-4334-48c2-846a-65759d761559.png)
+
+<!-- ![image](https://user-images.githubusercontent.com/35857179/166660248-a3c81a34-4334-48c2-846a-65759d761559.png) -->
 
 
 ## Triggers
@@ -96,13 +110,15 @@ Detailed procedure for discord webhook described [here](https://support.discord.
 ### 2. Install Plugin
 
 -   Open 'App Store' (under Settings), hover over Discord tile. Click 'Install'.
-
-![Screenshot 2022-02-22 at 11 30 36 AM](https://user-images.githubusercontent.com/86527202/155085257-5bdde1d9-d7b5-471d-bf44-3c3920e7b853.png)
+  
+![Screenshot 2022-09-14 at 10 47 59 AM](https://user-images.githubusercontent.com/86527202/190066333-04bab4eb-f114-48e5-b3f9-6327cadb1ca7.png)
+<!-- ![Screenshot 2022-02-22 at 11 30 36 AM](https://user-images.githubusercontent.com/86527202/155085257-5bdde1d9-d7b5-471d-bf44-3c3920e7b853.png) -->
 
 -   Provide a name of your choice (not to be confused with Discord Channel name).
 -   Paste Discord Webhook URL copied from Step (1.) above.
-
-![Screenshot 2022-02-22 at 11 31 21 AM](https://user-images.githubusercontent.com/86527202/155085287-f5e45aab-fd33-4138-a7a9-6eddc6dc140b.png)
+  
+![Screenshot 2022-09-14 at 10 52 14 AM](https://user-images.githubusercontent.com/86527202/190066365-90e3136b-db24-4514-aa89-c1fb371b33ee.png)
+<!-- ![Screenshot 2022-02-22 at 11 31 21 AM](https://user-images.githubusercontent.com/86527202/155085287-f5e45aab-fd33-4138-a7a9-6eddc6dc140b.png) -->
 
 ### 3. Configure 
 
@@ -154,14 +170,18 @@ Detailed procedure for discord webhook described [here](https://support.discord.
 ### 2. Install Plugin
 
 -   Open 'App Store' (under Settings), hover over 'Microsoft Teams' tile. Click 'Install'.
+  
+![Screenshot 2022-09-14 at 10 53 22 AM](https://user-images.githubusercontent.com/86527202/190066409-03311add-3b36-4521-acf7-dba5ffdef3fb.png)
 
-![Screenshot 2022-02-22 at 7 32 52 PM](https://user-images.githubusercontent.com/86527202/155148122-60844b42-7d2a-4c0f-9778-a5bc4f9c0107.png)
+<!-- ![Screenshot 2022-02-22 at 7 32 52 PM](https://user-images.githubusercontent.com/86527202/155148122-60844b42-7d2a-4c0f-9778-a5bc4f9c0107.png) -->
 
 
 -   Provide a name of your choice (not to be confused with Teams Channel name).
 -   Paste MS Teams Webhook URL copied from Step (1.) above.
+  
+![Screenshot 2022-09-14 at 10 53 31 AM](https://user-images.githubusercontent.com/86527202/190066430-838eaa69-ac2c-49ce-a0eb-d84c97964f8b.png)
 
-<img width="414" alt="154971222-7fe2c25a-d8c6-46b0-ba1e-a05ff1cf6537" src="https://user-images.githubusercontent.com/86527202/155095720-ff1c052c-a4a7-4c10-8f30-d779dac336f3.png">
+<!-- <img width="414" alt="154971222-7fe2c25a-d8c6-46b0-ba1e-a05ff1cf6537" src="https://user-images.githubusercontent.com/86527202/155095720-ff1c052c-a4a7-4c10-8f30-d779dac336f3.png"> -->
 
 ### 3. Configure 
 

@@ -18,3 +18,5 @@ noco.db*
 /docker/main.js
 # IDE
 .vscode/
+test_meta.db
+test_sakila.db

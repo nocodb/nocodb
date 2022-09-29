@@ -18,19 +18,19 @@ import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
 import Column from './Column';
 import NocoCache from '../cache/NocoCache';
-import extractProps from '../meta/helpers/extractProps';
+import { extractProps } from '../meta/helpers/extractProps';
 
 const { v4: uuidv4 } = require('uuid');
 export default class View implements ViewType {
   id?: string;
-  title?: string;
+  title: string;
   uuid?: string;
   password?: string;
   show: boolean;
   is_default: boolean;
   order: number;
   type: ViewTypes;
-  lock_type?: string;
+  lock_type?: ViewType['lock_type'];
 
   fk_model_id: string;
   model?: Model;
@@ -337,8 +337,19 @@ export default class View implements ViewType {
     }
     {
       let order = 1;
+      let galleryShowLimit = 0;
       for (const vCol of columns) {
         let show = 'show' in vCol ? vCol.show : true;
+
+        if (view.type === ViewTypes.GALLERY) {
+          const galleryView = await GalleryView.get(view_id, ncMeta);
+          if (vCol.id === galleryView.fk_cover_image_col_id || vCol.pv || galleryShowLimit < 3) {
+            show = true;
+            galleryShowLimit++;
+          } else {
+            show = false;
+          }
+        }
 
         // if columns is list of virtual columns then get the parent column
         const col = vCol.fk_column_id
@@ -468,7 +479,7 @@ export default class View implements ViewType {
   static async getColumns(
     viewId: string,
     ncMeta = Noco.ncMeta
-  ): Promise<Array<GridViewColumn | any>> {
+  ): Promise<Array<GridViewColumn | FormViewColumn | GalleryViewColumn>> {
     let columns: Array<GridViewColumn | any> = [];
     const view = await this.get(viewId, ncMeta);
 
@@ -497,8 +508,8 @@ export default class View implements ViewType {
     viewId: string,
     colId: string,
     colData: {
-      order: number;
-      show: boolean;
+      order?: number;
+      show?: boolean;
     },
     ncMeta = Noco.ncMeta
   ): Promise<Array<GridViewColumn | any>> {
@@ -524,10 +535,7 @@ export default class View implements ViewType {
         cacheScope = CacheScope.FORM_VIEW_COLUMN;
         break;
     }
-    const updateObj = {
-      order: colData.order,
-      show: colData.show,
-    };
+    const updateObj = extractProps(colData, ['order', 'show']);
     // get existing cache
     const key = `${cacheScope}:${colId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -551,9 +559,10 @@ export default class View implements ViewType {
       show: boolean;
     },
     ncMeta = Noco.ncMeta
-  ): Promise<Array<GridViewColumn | any>> {
+  ): Promise<GridViewColumn | FormViewColumn | GalleryViewColumn | any> {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
+    console.log(table);
 
     const existingCol = await ncMeta.metaGet2(null, null, table, {
       fk_view_id: viewId,
@@ -573,7 +582,39 @@ export default class View implements ViewType {
       );
       return { ...existingCol, ...colData };
     } else {
-      return await ncMeta.metaInsert2(null, null, table, {
+      switch (view.type) {
+        case ViewTypes.GRID:
+          return await GridViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
+        case ViewTypes.GALLERY:
+          return await GalleryViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
+        case ViewTypes.KANBAN:
+          // TODO: Use the following when KanbanViewColumn is ready to avoid cache issue
+          // return await KanbanViewColumn.insert({
+          //   fk_view_id: viewId,
+          //   fk_column_id: fkColId,
+          //   order: colData.order,
+          //   show: colData.show,
+          // });
+          break;
+        case ViewTypes.FORM:
+          return await FormViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
+      }
+      return await ncMeta.metaInsert2(view.project_id, view.base_id, table, {
         fk_view_id: viewId,
         fk_column_id: fkColId,
         order: colData.order,
@@ -853,6 +894,15 @@ export default class View implements ViewType {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
     const scope = this.extractViewColumnsTableNameScope(view);
+
+    const columns = await view
+      .getModel(ncMeta)
+      .then((meta) => meta.getColumns());
+    const viewColumns = await this.getColumns(viewId, ncMeta);
+    const availableColumnsInView = viewColumns.map(
+      (column) => column.fk_column_id
+    );
+
     // get existing cache
     const dataList = await NocoCache.getList(scope, [viewId]);
     if (dataList?.length) {
@@ -865,24 +915,52 @@ export default class View implements ViewType {
         }
       }
     }
-    return await ncMeta.metaUpdate(
-      null,
-      null,
-      table,
-      { show: true },
-      {
-        fk_view_id: viewId,
-      },
-      ignoreColdIds?.length
-        ? {
-            _not: {
-              fk_column_id: {
-                in: ignoreColdIds,
-              },
-            },
-          }
-        : null
-    );
+
+    // insert or update view column
+    for (const col of columns) {
+      if (ignoreColdIds?.includes(col.id)) continue;
+
+      const colIndex = availableColumnsInView.indexOf(col.id);
+      if (colIndex > -1) {
+        await this.updateColumn(
+          viewId,
+          viewColumns[colIndex].id,
+          { show: true },
+          ncMeta
+        );
+      } else {
+        await this.insertColumn(
+          {
+            view_id: viewId,
+            order: await ncMeta.metaGetNextOrder(table, {
+              fk_view_id: viewId,
+            }),
+            show: true,
+            fk_column_id: col.id,
+          },
+          ncMeta
+        );
+      }
+
+      // return await ncMeta.metaUpdate(
+      //   null,
+      //   null,
+      //   table,
+      //   { show: true },
+      //   {
+      //     fk_view_id: viewId,
+      //   },
+      //   ignoreColdIds?.length
+      //     ? {
+      //         _not: {
+      //           fk_column_id: {
+      //             in: ignoreColdIds,
+      //           },
+      //         },
+      //       }
+      //     : null
+      // );
+    }
   }
 
   static async hideAllColumns(

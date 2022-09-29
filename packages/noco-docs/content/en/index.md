@@ -58,6 +58,6 @@ Most internet businesses equip themselves with either spreadsheet or a database 
 ## Our Mission
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
 
-# How can I contribute to NocoDB's development ?
+## How can I contribute to NocoDB's development ?
 
 Please refer to [here](https://github.com/nocodb/nocodb/blob/develop/.github/CONTRIBUTING.md) for the contribution guidelines.

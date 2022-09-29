@@ -30,6 +30,7 @@ on:
         required: true
 #       GITHUB_TOKEN:
 #         required: true
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -50,13 +51,14 @@ jobs:
       - run: |
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
           cd packages/nocodb-sdk &&
-          npm install && npm run build && npm publish &&
+          npm ci && npm run build && npm publish &&
           cd ../.. &&
-          sleep 30 &&
+          sleep 60 &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
           cd packages/nc-gui &&
-          npm install &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy:jsdeliver &&
+          npm ci &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy:publish &&
           cd ../.. &&
           sleep 60 &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && npm install && npm run obfuscate:build:publish
@@ -69,9 +71,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          #          commit-message: Update report
-          #          committer: GitHub <noreply@github.com>
-          #          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           signoff: true
           branch: 'release/${{ github.event.inputs.tag || inputs.tag }}'
           delete-branch: true

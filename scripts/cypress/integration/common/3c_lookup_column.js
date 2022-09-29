@@ -2,108 +2,127 @@ import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
-    if (!isTestSuiteActive(apiType, dbType)) return;
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-    describe(`${apiType.toUpperCase()} api - LookUp column`, () => {
-        // to retrieve few v-input nodes from their label
-        //
-        const fetchParentFromLabel = (label) => {
-            cy.get("label").contains(label).parents(".v-input").click();
-        };
+  describe(`${apiType.toUpperCase()} api - LookUp column`, () => {
+    // to retrieve few v-input nodes from their label
+    //
+    const fetchParentFromLabel = (label) => {
+      cy.get("label").contains(label).parents(".ant-row").click();
+    };
 
-        // Run once before test- create project (rest/graphql)
-        //
-        before(() => {
-            mainPage.tabReset();
-            // open a table to work on views
-            //
-            cy.openTableTab("City", 25);
-        });
+    // Run once before test- create project (rest/graphql)
+    //
+    // before(() => {
+    //     cy.fileHook();
+    //     mainPage.tabReset();
+    //     // open a table to work on views
+    //     //
+    //
+    //     // // kludge: wait for page load to finish
+    //     // cy.wait(1000);
+    //     // // close team & auth tab
+    //     // cy.get('button.ant-tabs-tab-remove').should('exist').click();
+    //     // cy.wait(1000);
+    //
+    //     cy.openTableTab("City", 25);
+    // });
 
-        after(() => {
-            cy.closeTableTab("City");
-        });
-
-        // Routine to create a new look up column
-        //
-        const addLookUpColumn = (childTable, childCol) => {
-            // (+) icon at end of column header (to add a new column)
-            // opens up a pop up window
-            //
-            cy.get(".new-column-header").click();
-
-            // Redundant to feed column name. as alias is displayed & referred for
-            cy.get(".nc-column-name-input input").clear().type(childCol);
-
-            // Column data type: to be set to lookup in this context
-            cy.get(".nc-ui-dt-dropdown").click();
-            cy.getActiveMenu().contains("Lookup").click();
-
-            // Configure Child table & column names
-            fetchParentFromLabel("Child table");
-            cy.getActiveMenu().contains(childTable).click();
-
-            fetchParentFromLabel("Child column");
-            cy.getActiveMenu().contains(childCol).click();
-
-            cy.snipActiveMenu("LookUp");
-
-            // click on Save
-            cy.get(".nc-col-create-or-edit-card").contains("Save").click();
-
-            // Verify if column exists.
-            //
-            cy.get(`th:contains(${childCol})`).should("exist");
-        };
-
-        // routine to delete column
-        //
-        const deleteColumnByName = (childCol) => {
-            // verify if column exists before delete
-            cy.get(`th:contains(${childCol})`).should("exist");
-
-            // delete opiton visible on mouse-over
-            cy.get(`th:contains(${childCol}) .mdi-menu-down`)
-                .trigger("mouseover")
-                .click();
-
-            // delete/ confirm on pop-up
-            cy.get(".nc-column-delete").click();
-            cy.getActiveModal().find("button:contains(Confirm)").click();
-
-            // validate if deleted (column shouldnt exist)
-            cy.get(`th:contains(${childCol})`).should("not.exist");
-        };
-
-        ///////////////////////////////////////////////////
-        // Test case
-
-        it("Add Lookup column (Address, PostalCode) & Delete", () => {
-            addLookUpColumn("Address", "PostalCode");
-
-            // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
-            cy.get(`tbody > :nth-child(1) > [data-col="PostalCode"]`)
-                .contains("4166")
-                .should("exist");
-
-            deleteColumnByName("PostalCode");
-        });
-
-        it.skip("Add Lookup column (Country, CountryId) & Delete", () => {
-            addLookUpColumn("Country", "CountryId");
-
-            // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
-            cy.get(`tbody > :nth-child(1) > [data-col="CountryId"]`)
-                .contains("87")
-                .should("exist");
-
-            deleteColumnByName("CountryId");
-        });
+    beforeEach(() => {
+      cy.restoreLocalStorage();
     });
-};
 
-// genTest('rest', false)
-// genTest('graphql', false)
+    afterEach(() => {
+      cy.saveLocalStorage();
+    });
+
+    // after(() => {
+    //     cy.closeTableTab("City");
+    // });
+
+    // Routine to create a new look up column
+    //
+    const addLookUpColumn = (childTable, childCol) => {
+      cy.get(".nc-grid  tr > th:last .nc-icon").click({
+        force: true,
+      });
+
+      cy.getActiveMenu(".nc-dropdown-grid-add-column")
+        .find("input.nc-column-name-input")
+        .should("exist")
+        .clear()
+        .type(childCol);
+      // cy.get(".nc-column-type-input").last().click().type("Lookup");
+      cy.getActiveMenu(".nc-dropdown-grid-add-column")
+        .find(".nc-column-type-input")
+        .last()
+        .click()
+        .type("Lookup");
+      cy.getActiveSelection(".nc-dropdown-column-type")
+        .find(".ant-select-item-option")
+        .contains("Lookup")
+        .click();
+
+      // wait for re-rendering & title selection to re-appear
+      cy.wait(500);
+
+      // Configure Child table & column names
+      fetchParentFromLabel("Child table");
+      cy.getActiveSelection(".nc-dropdown-relation-table")
+        .find(".ant-select-item-option")
+        .contains(childTable)
+        .click();
+
+      fetchParentFromLabel("Child column");
+      cy.getActiveSelection(".nc-dropdown-relation-column")
+        .find(".ant-select-item-option")
+        .contains(childCol)
+        .click();
+
+      // cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+      cy.getActiveMenu(".nc-dropdown-grid-add-column")
+        .find(".ant-btn-primary:visible")
+        .contains("Save")
+        .click();
+      cy.toastWait(`Column created`);
+
+      cy.get(`th[data-title="${childCol}"]`).should("exist");
+    };
+
+    // routine to delete column
+    //
+    const deleteColumnByName = (childCol) => {
+      mainPage.deleteColumn(childCol);
+    };
+
+    ///////////////////////////////////////////////////
+    // Test case
+
+    it("Add Lookup column (Address, PostalCode) & Delete", () => {
+      cy.openTableTab("City", 25);
+
+      addLookUpColumn("Address", "PostalCode");
+
+      // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
+      mainPage.getCell("PostalCode", 1).contains("4166").should("exist");
+
+      deleteColumnByName("PostalCode");
+
+      cy.closeTableTab("City");
+    });
+
+    it.skip("Add Lookup column (Country, CountryId) & Delete", () => {
+      addLookUpColumn("Country", "CountryId");
+
+      // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
+      cy.get(`tbody > :nth-child(1) > [data-col="CountryId"]`)
+        .contains("87")
+        .should("exist");
+
+      deleteColumnByName("CountryId");
+    });
+  });
+};
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

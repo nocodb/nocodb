@@ -113,7 +113,7 @@ export const staticProjects = {
         config: defaultDbParams,
     },
     pgExternalREST: {
-        basic: { dbType: "external", apiType: "REST", name: "pgExternalREST" },
+        basic: { dbType: "external", apiType: "REST", name: "pgExtREST" },
         config: defaultPgDbParams,
     },
     pgExternalGQL: {
@@ -156,3 +156,13 @@ export function setProjectString(projStr) {
 export function getProjectString() {
     return xcdbProjectString;
 }
+
+const sakilaTables = [
+    'actor', 'address', 'category', 'city', 'country', 'customer', 'film', 'film_text', 'language', 'payment', 'rental', 'staff'
+]
+
+const sakilaSqlViews = [
+    'actor_info', 'customer_list', 'film_list', 'nicer_but_slower_film_list', 'sales_by_film_category', 'sales_by_store', 'staff_list'
+]
+
+export { sakilaTables, sakilaSqlViews }

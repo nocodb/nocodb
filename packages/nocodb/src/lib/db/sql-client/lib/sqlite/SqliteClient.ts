@@ -1965,13 +1965,13 @@ class SqliteClient extends KnexClient {
       query = existingQuery ? ',' : '';
       query += this.genQuery(`?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? ` DEFAULT ${n.cdf}` : ' ';
+      query += n.cdf ? (n.cdf.includes(',') ? ` DEFAULT ('${n.cdf}')` : ` DEFAULT ${n.cdf}`) : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
     } else if (change === 1) {
       shouldSanitize = true;
       query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.dtxp && n.dt !== 'text' ? `(${n.dtxp})` : '';
-      query += n.cdf ? ` DEFAULT ${n.cdf}` : ' ';
+      query += n.cdf ? (n.cdf.includes(',') ? ` DEFAULT ('${n.cdf}')` : ` DEFAULT ${n.cdf}`) : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {

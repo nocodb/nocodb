@@ -9,14 +9,6 @@
         "test/xcdb-restViews.js",
         "test/xcdb-restRoles.js",
         "test/xcdb-restMisc.js",
-        "test/gqlTableOps.js",
-        "test/gqlViews.js",
-        "test/gqlRoles.js",
-        "test/gqlMisc.js",
-        "test/xcdb-gqlTableOps.js",
-        "test/xcdb-gqlViews.js",
-        "test/xcdb-gqlRoles.js",
-        "test/xcdb-gqlMisc.js",
         "test/pg-restTableOps.js",
         "test/pg-restViews.js",
         "test/pg-restRoles.js",
@@ -29,15 +21,13 @@
     "viewportHeight": 1000,
     "video": false,
     "retries": 0,
-    "screenshotOnRunFailure": false,
+    "screenshotOnRunFailure": true,
     "numTestsKeptInMemory": 0,
     "experimentalInteractiveRunEvents": true,
     "env": {
         "testMode": [
             { "apiType": "rest", "dbType": "xcdb" },
-            { "apiType": "graphql", "dbType": "xcdb" },
             { "apiType": "rest", "dbType": "mysql" },
-            { "apiType": "graphql", "dbType": "mysql" },
             { "apiType": "rest", "dbType": "postgres" }
         ],
         "db": {

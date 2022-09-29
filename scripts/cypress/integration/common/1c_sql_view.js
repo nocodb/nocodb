@@ -10,9 +10,18 @@ export const genTest = (apiType, dbType) => {
     describe(`${apiType.toUpperCase()} SQL Views`, () => {
         // Run once before test- create project (rest/graphql)
         //
-        before(() => {
-            mainPage.tabReset();
-        });
+        // before(() => {
+        //     cy.fileHook();
+        //     mainPage.tabReset();
+        // });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+        })
+
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
 
         it(`XCDB: SQL View Column operations`, () => {
             // Open one of the views & verify validity of first two entries
@@ -133,7 +142,7 @@ export const genTest = (apiType, dbType) => {
             }
         });
 
-        it(`SQL View List`, () => {
+        it.skip(`SQL View List`, () => {
             // confirm if other views exist
             //
             cy.openViewsTab("CustomerList", 25);
@@ -162,10 +171,6 @@ export const genTest = (apiType, dbType) => {
                 cy.openViewsTab("StaffList", 2);
                 cy.closeViewsTab("StaffList");
             }
-        });
-
-        after(() => {
-            // void
         });
     });
 };

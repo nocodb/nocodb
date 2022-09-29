@@ -72,11 +72,19 @@ export default class GalleryViewColumn {
       id
     );
 
-    await NocoCache.appendToList(
-      CacheScope.GALLERY_VIEW_COLUMN,
-      [column.fk_view_id],
-      `${CacheScope.GALLERY_VIEW_COLUMN}:${id}`
-    );
+    // if cache is not present skip pushing it into the list to avoid unexpected behaviour
+    if (
+      (
+        await NocoCache.getList(CacheScope.GALLERY_VIEW_COLUMN, [
+          column.fk_view_id,
+        ])
+      )?.length
+    )
+      await NocoCache.appendToList(
+        CacheScope.GALLERY_VIEW_COLUMN,
+        [column.fk_view_id],
+        `${CacheScope.GALLERY_VIEW_COLUMN}:${id}`
+      );
 
     return this.get(id, ncMeta);
   }

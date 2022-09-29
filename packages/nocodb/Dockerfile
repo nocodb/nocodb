@@ -28,7 +28,7 @@ COPY ./package*.json ./
 COPY ./docker/main.js ./docker/main.js
 # copy all tgz files to the container image
 COPY nc-lib-gui-*.tgz ./ 
-#COPY ./docker/start.sh /usr/src/appEntry/start.s
+#COPY ./docker/start.sh /usr/src/appEntry/start.sh
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
 
 # install production dependencies,
@@ -47,6 +47,7 @@ FROM alpine:3.12
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER 0.6
+ENV NODE_ENV production
 ENV PORT 8080
 ENV NC_TOOL_DIR=/usr/app/data/
 

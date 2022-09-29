@@ -3,6 +3,7 @@ import Model from '../../../models/Model';
 import { nocoExecute } from 'nc-help';
 import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
+// import { NcError } from '../../helpers/catchError';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import View from '../../../models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
@@ -10,6 +11,7 @@ import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 
+// todo: Handle the error case where view doesnt belong to model
 async function dataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   res.json(await getDataList(model, view, req));
@@ -46,6 +48,7 @@ async function dataCount(req: Request, res: Response) {
   res.json({ count });
 }
 
+// todo: Handle the error case where view doesnt belong to model
 async function dataInsert(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
@@ -81,6 +84,8 @@ async function dataDelete(req: Request, res: Response) {
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
   });
+
+  // todo: Should have error http status code
   const message = await baseModel.hasLTARData(req.params.rowId, model);
   if (message.length) {
     res.json({ message });
@@ -108,14 +113,20 @@ async function getDataList(model, view: View, req) {
     listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
   } catch (e) {}
 
-  const data = await nocoExecute(
-    requestObj,
-    await baseModel.list(listArgs),
-    {},
-    listArgs
-  );
-
-  const count = await baseModel.count(listArgs);
+  let data = [];
+  let count = 0;
+  try {
+    data = await nocoExecute(
+      requestObj,
+      await baseModel.list(listArgs),
+      {},
+      listArgs
+    );
+    count = await baseModel.count(listArgs);
+  } catch (e) {
+    // show empty result instead of throwing error here
+    // e.g. search some text in a numeric field
+  }
 
   return new PagedResponseImpl(data, {
     ...req.query,
@@ -208,6 +219,7 @@ async function dataExist(req: Request, res: Response) {
 
   res.json(await baseModel.exist(req.params.rowId));
 }
+
 const router = Router({ mergeParams: true });
 
 // table data crud apis

@@ -1,3 +1,5 @@
+import FormViewColumn from '../../../../models/FormViewColumn';
+import GalleryViewColumn from '../../../../models/GalleryViewColumn';
 import Noco from '../../../../Noco';
 import Model from '../../../../models/Model';
 import swaggerBase from './swagger-base.json';
@@ -62,5 +64,5 @@ export default async function getSwaggerJSON(
 
 export interface SwaggerView {
   view: View;
-  columns: Array<GridViewColumn>;
+  columns: Array<GridViewColumn | GalleryViewColumn | FormViewColumn>;
 }

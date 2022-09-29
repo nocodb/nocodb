@@ -1,62 +1,17 @@
-<template>
-  <section class="section container">
-    <div class="box">
-      <h1 class="title is-1">Page not found</h1>
-      <div class="notification is-danger">
-        <button class="delete" />
-        Page not found
-      </div>
-    </div>
-  </section>
-</template>
+<script lang="ts" setup>
+import { definePageMeta } from '#imports'
 
-<script>
-export default {
-  directives: {},
-  components: {},
-  validate({ params }) {
-    return true;
-  },
-  props: {},
-  data() {
-    return {};
-  },
-  head() {
-    return {};
-  },
-  computed: {},
-  watch: {},
-  created() {},
-  mounted() {},
-  beforeDestroy() {},
-  methods: {},
-  beforeCreated() {},
-  destroy() {},
-};
+definePageMeta({
+  requiresAuth: false,
+  public: true,
+})
 </script>
 
-<style scoped></style>
-<!--
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
--->
+<template>
+  <div class="w-full h-[300px] flex justify-center items-center text-4xl">
+    <div class="text-gray-400 flex gap-2 items-center">
+      <MdiWarning />
+      Page Not Found
+    </div>
+  </div>
+</template>

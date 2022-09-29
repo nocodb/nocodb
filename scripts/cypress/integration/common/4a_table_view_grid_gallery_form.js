@@ -1,6 +1,10 @@
 import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
@@ -10,14 +14,25 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
-            mainPage.tabReset();
+            cy.restoreLocalStorage();
+
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
         });
 
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+        });
+
+        afterEach(() => {
+            cy.saveLocalStorage();
+        });
+
         after(() => {
+            cy.restoreLocalStorage();
             cy.closeTableTab("Country");
+            cy.saveLocalStorage();
         });
 
         // Common routine to create/edit/delete GRID & GALLERY view
@@ -29,28 +44,23 @@ export const genTest = (apiType, dbType) => {
                 cy.get(`.nc-create-${viewType}-view`).click();
 
                 // Pop up window, click Submit (accepting default name for view)
-                cy.getActiveModal().find("button:contains(Submit)").click();
+                cy.getActiveModal(".nc-modal-view-create").find(".ant-btn-primary").click();
                 cy.toastWait("View created successfully");
 
-                // validate if view was creted && contains default name 'Country1'
+                // validate if view was created && contains default name 'Country1'
                 cy.get(`.nc-${viewType}-view-item`)
-                    .contains("Country1")
+                    .contains(`${capitalizeFirstLetter(viewType)}-1`)
                     .should("exist");
-
-                cy.snip(`View_${viewType}`);
             });
 
             it(`Edit ${viewType} view name`, () => {
                 // click on edit-icon (becomes visible on hovering mouse)
-                cy.get(".nc-view-edit-icon").last().click({
-                    force: true,
-                    timeout: 1000,
-                });
+                cy.get(`.nc-${viewType}-view-item`).last().dblclick();
 
                 // feed new name
-                cy.get(`.nc-${viewType}-view-item input`).type(
-                    `${viewType}View-1{enter}`
-                );
+                cy.get(`.nc-${viewType}-view-item input`)
+                    .clear()
+                    .type(`${viewType}View-1{enter}`);
                 cy.toastWait("View renamed successfully");
 
                 // validate
@@ -65,6 +75,8 @@ export const genTest = (apiType, dbType) => {
 
                 // click on delete icon (becomes visible on hovering mouse)
                 cy.get(".nc-view-delete-icon").click({ force: true });
+                cy.wait(300)
+                cy.getActiveModal(".nc-modal-view-delete").find('.ant-btn-dangerous').click();
                 cy.toastWait("View deleted successfully");
 
                 // confirm if the number of veiw entries is reduced by 1
@@ -73,10 +85,9 @@ export const genTest = (apiType, dbType) => {
         };
 
         // below four scenario's will be invoked twice, once for rest & then for graphql
-        viewTest("grid");
-        viewTest("gallery");
-        viewTest("form");
-        // viewTest("kanban");
+        viewTest("grid");  // grid view
+        viewTest("gallery");  // gallery view
+        viewTest("form");  // form view
     });
 };
 

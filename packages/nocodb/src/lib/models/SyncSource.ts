@@ -1,6 +1,6 @@
 import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
-import extractProps from '../meta/helpers/extractProps';
+import { extractProps } from '../meta/helpers/extractProps';
 import User from './User';
 
 export default class SyncSource {

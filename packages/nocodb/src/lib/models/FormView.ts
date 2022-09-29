@@ -1,6 +1,7 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import { FormType } from 'nocodb-sdk';
+import { deserializeJSON, serializeJSON } from '../utils/serialize';
 import FormViewColumn from './FormViewColumn';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
@@ -26,6 +27,7 @@ export default class FormView implements FormType {
 
   project_id?: string;
   base_id?: string;
+  meta?: string | Record<string, any>;
 
   constructor(data: FormView) {
     Object.assign(this, data);
@@ -42,7 +44,10 @@ export default class FormView implements FormType {
       view = await ncMeta.metaGet2(null, null, MetaTable.FORM_VIEW, {
         fk_view_id: viewId,
       });
-      await NocoCache.set(`${CacheScope.FORM_VIEW}:${viewId}`, view);
+      if (view) {
+        view.meta = deserializeJSON(view.meta);
+        await NocoCache.set(`${CacheScope.FORM_VIEW}:${viewId}`, view);
+      }
     }
     return view && new FormView(view);
   }
@@ -62,6 +67,7 @@ export default class FormView implements FormType {
       logo_url: view.logo_url,
       submit_another_form: view.submit_another_form,
       show_blank_form: view.show_blank_form,
+      meta: serializeJSON(view.meta),
     };
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id);
@@ -92,8 +98,10 @@ export default class FormView implements FormType {
       o.logo_url = body.logo_url;
       o.submit_another_form = body.submit_another_form;
       o.show_blank_form = body.show_blank_form;
+      o.meta = body.meta;
       // set cache
       await NocoCache.set(key, o);
+      o.meta = serializeJSON(body.meta);
     }
     // update meta
     return await ncMeta.metaUpdate(

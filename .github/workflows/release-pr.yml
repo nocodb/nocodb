@@ -119,7 +119,7 @@ jobs:
             #### Windows
 
             ```bash
-            iwp http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-win-arm64.exe
+            iwr http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-win-arm64.exe
             .\Noco-win-arm64.exe
             ```
 

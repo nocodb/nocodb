@@ -7,24 +7,41 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Language support`, () => {
         before(() => {
-            loginPage.signIn(roles.owner.credentials)
-            // mainPage.toolBarTopLeft(mainPage.HOME).click();
-            cy.screenshot("Debug 6d-1", { overwrite: true });
+            cy.restoreLocalStorage();
+
+            cy.visit("/")
+            cy.wait(5000);
         });
+
+        beforeEach(() => {
+            cy.restoreLocalStorage();
+        })
+
+        afterEach(() => {
+            cy.saveLocalStorage();
+        })
+
+        after(() => {
+            cy.restoreLocalStorage();
+            cy.get('.nc-menu-accounts').should('exist').click();
+            cy.getActiveMenu('.nc-dropdown-user-accounts-menu').find('.ant-dropdown-menu-item').eq(1).click();
+
+            cy.wait(5000);
+            cy.get('button:contains("SIGN")').should('exist')
+            cy.saveLocalStorage();
+        })
 
         const langVerification = (idx, lang) => {
             // pick json from the file specified
             it(`Language verification: ${lang} > Projects page`, () => {
                 let json = require(`../../../../packages/nc-gui/lang/${lang}`);
 
+                cy.wait(500);
                 // toggle menu as per index
-                cy.get(".nc-menu-translate").click();
-
-                cy.snipActiveMenu("Menu_Translation");
-
-                cy.getActiveMenu().find(".v-list-item").eq(idx).click();
-
-                cy.screenshot("Debug 6d-2", { overwrite: true });
+                cy.get(".nc-menu-translate").should('exist').last().click();
+                cy.wait(500);
+                cy.getActiveMenu(".nc-dropdown-menu-translate").find(".ant-dropdown-menu-item").eq(idx).click();
+                cy.wait(200);
 
                 // basic validations
                 // 1. Page title: "My Projects"
@@ -44,6 +61,8 @@ export const genTest = (apiType, dbType) => {
         };
 
         let langMenu = [
+            "ar.json",
+            "bn_IN.json",
             "da.json",
             "de.json",
             "en.json",
@@ -51,15 +70,18 @@ export const genTest = (apiType, dbType) => {
             "fa.json",
             "fi.json",
             "fr.json",
+            "he.json",
+            "hi.json",
             "hr.json",
             "id.json",
-            "it_IT.json",
-            "iw.json",
+            "it.json",
             "ja.json",
             "ko.json",
             "lv.json",
             "nl.json",
             "no.json",
+            "pl.json",
+            "pt.json",
             "pt_BR.json",
             "ru.json",
             "sl.json",
@@ -68,14 +90,16 @@ export const genTest = (apiType, dbType) => {
             "tr.json",
             "uk.json",
             "vi.json",
-            "zh_CN.json",
-            "zh_HK.json",
-            "zh_TW.json",
+            "zh-Hans.json",
+            "zh-Hant.json",
         ];
 
         // Index is the order in which menu options appear
         for (let i = 0; i < langMenu.length; i++)
             langVerification(i, langMenu[i]);
+
+        // reset to English
+        langVerification(4, langMenu[4]);
     });
 };
 

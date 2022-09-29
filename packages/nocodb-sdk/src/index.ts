@@ -1,6 +1,7 @@
 export * from './lib/XcUIBuilder';
 export * from './lib/XcNotification';
 export * from './lib/Api';
+export { Api as Api2 } from './lib/Api2';
 export * from './lib/sqlUi';
 export * from './lib/globals';
 export * from './lib/helperFunctions';

@@ -6,6 +6,7 @@ import Hook from '../../models/Hook';
 import Filter from '../../models/Filter';
 import HookLog from '../../models/HookLog';
 import { HookLogType } from 'nocodb-sdk';
+import FormView from '../../models/FormView';
 
 export function parseBody(template: string, data: any): string {
   if (!template) {
@@ -268,16 +269,11 @@ export function _transformSubmittedFormDataForEmail(
   // @ts-ignore
   formView,
   // @ts-ignore
-  columns: Column[]
+  columns: (Column<any> & FormView<any>)[]
 ) {
   const transformedData = { ...data };
 
   for (const col of columns) {
-    if (!formView.query_params?.showFields?.[col.title]) {
-      delete transformedData[col.title];
-      continue;
-    }
-
     if (col.uidt === 'Attachment') {
       if (typeof transformedData[col.title] === 'string') {
         transformedData[col.title] = JSON.parse(transformedData[col.title]);
@@ -301,6 +297,7 @@ export function _transformSubmittedFormDataForEmail(
       transformedData[col.title] = JSON.stringify(transformedData[col.title]);
     }
   }
+  return transformedData;
 }
 
 function parseHrtimeToMilliSeconds(hrtime) {

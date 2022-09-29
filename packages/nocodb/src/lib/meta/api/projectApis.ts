@@ -23,6 +23,7 @@ import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { extractAndGenerateManyToManyRelations } from './metaDiffApis';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { extractPropsAndSanitize } from '../helpers/extractProps';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -46,10 +47,18 @@ export async function projectUpdate(
   req: Request<any, any, any>,
   res: Response<ProjectListType>
 ) {
-  // only support updating title at this moment
-  const data: any = {
-    title: DOMPurify.sanitize(req?.body?.title),
-  };
+  const project = await Project.getWithInfo(req.params.projectId);
+
+  const data: Partial<Project> = extractPropsAndSanitize(req?.body, [
+    'title',
+    'meta',
+    'color',
+  ]);
+
+  if (data?.title && project.title !== data.title && await Project.getByTitle(data.title)) {
+    NcError.badRequest('Project title already in use');
+  }
+
   const result = await Project.update(req.params.projectId, data);
   Tele.emit('evt', { evt_type: 'project:update' });
   res.json(result);
@@ -90,6 +99,10 @@ export async function projectDelete(
 
 async function projectCreate(req: Request<any, any>, res) {
   const projectBody = req.body;
+  if (!isProjectTypeSupported(projectBody)) {
+    NcError.badRequest('This type of project is not supported.');
+  }
+
   if (!projectBody.external) {
     const ranId = nanoid();
     projectBody.prefix = `nc_${ranId}__`;
@@ -144,6 +157,13 @@ async function projectCreate(req: Request<any, any>, res) {
   Tele.emit('evt', { evt_type: 'project:rest' });
 
   res.json(project);
+}
+
+function isProjectTypeSupported({ external }) {
+  return (
+    (external && !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED) ||
+    (!external && !process.env.NC_PROJECT_WITHOUT_EXTERNAL_DB_DISABLED)
+  );
 }
 
 async function populateMeta(base: Base, project: Project): Promise<any> {

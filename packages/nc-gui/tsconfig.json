@@ -1,0 +1,27 @@
+{
+  "extends": "./.nuxt/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "incremental": false,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "noUnusedLocals": false,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": [
+      "@intlify/vite-plugin-vue-i18n/client",
+      "vue-i18n",
+      "unplugin-icons/types/vue",
+      "nuxt-windicss",
+      "vite/client",
+      "@nuxt/image-edge"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".output"
+  ]
+}

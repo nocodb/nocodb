@@ -117,6 +117,7 @@ class BaseModelSqlv2 {
     return !!(await qb.where(_wherePk(pks, id)).first());
   }
 
+  // todo: add support for sortArrJson
   public async findOne(
     args: {
       where?: string;
@@ -144,7 +145,6 @@ class BaseModelSqlv2 {
           is_group: true,
           logical_op: 'and',
         }),
-        ...(args.filterArr || []),
       ],
       qb,
       this.dbDriver
@@ -206,7 +206,6 @@ class BaseModelSqlv2 {
             is_group: true,
             logical_op: 'and',
           }),
-          ...(args.filterArr || []),
         ],
         qb,
         this.dbDriver
@@ -231,7 +230,6 @@ class BaseModelSqlv2 {
             is_group: true,
             logical_op: 'and',
           }),
-          ...(args.filterArr || []),
         ],
         qb,
         this.dbDriver
@@ -323,6 +321,7 @@ class BaseModelSqlv2 {
     return (this.isPg ? res.rows[0] : res[0][0] ?? res[0]).count;
   }
 
+  // todo: add support for sortArrJson and filterArrJson
   async groupBy(
     args: {
       where?: string;
@@ -992,7 +991,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    const data = await this.extractRawQueryAndExec(qb);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1031,7 +1030,8 @@ class BaseModelSqlv2 {
             .select(cn)
             // .where(childTable.primaryKey.cn, cid)
             .where(_wherePk(childTable.primaryKeys, cid))
-        ).orWhereNull(rcn);
+            .whereNotNull(cn)
+        );
       })
       .count(`*`, { as: 'count' });
 
@@ -1093,7 +1093,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    const data = await this.extractRawQueryAndExec(qb);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1583,9 +1583,9 @@ class BaseModelSqlv2 {
           switch (colOptions.type) {
             case RelationTypes.BELONGS_TO:
               {
-                const parentCol = await colOptions.getChildColumn();
-                insertObj[parentCol.column_name] =
-                  nestedData?.[parentCol.title];
+                const childCol = await colOptions.getChildColumn();
+                const parentCol = await colOptions.getParentColumn();
+                insertObj[childCol.column_name] = nestedData?.[parentCol.title];
               }
               break;
             case RelationTypes.HAS_MANY:
@@ -1694,8 +1694,10 @@ class BaseModelSqlv2 {
     datas: any[],
     {
       chunkSize: _chunkSize = 100,
+      cookie,
     }: {
       chunkSize?: number;
+      cookie?: any;
     } = {}
   ) {
     try {
@@ -1726,7 +1728,7 @@ class BaseModelSqlv2 {
         .batchInsert(this.model.table_name, insertDatas, chunkSize)
         .returning(this.model.primaryKey?.column_name);
 
-      // await this.afterInsertb(insertDatas, null);
+      await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
 
       return response;
     } catch (e) {
@@ -1742,7 +1744,7 @@ class BaseModelSqlv2 {
     }
   }
 
-  async bulkUpdate(datas: any[]) {
+  async bulkUpdate(datas: any[], { cookie }: { cookie?: any } = {}) {
     let transaction;
     try {
       const updateDatas = await Promise.all(
@@ -1769,7 +1771,7 @@ class BaseModelSqlv2 {
         res.push(response);
       }
 
-      // await this.afterUpdateb(res, transaction);
+      await this.afterBulkUpdate(updateDatas.length, this.dbDriver, cookie);
       transaction.commit();
 
       return res;
@@ -1783,13 +1785,14 @@ class BaseModelSqlv2 {
 
   async bulkUpdateAll(
     args: { where?: string; filterArr?: Filter[] } = {},
-    data
+    data,
+    { cookie }: { cookie?: any } = {}
   ) {
+    let queryResponse;
     try {
       const updateData = await this.model.mapAliasToColumn(data);
       await this.validate(updateData);
       const pkValues = await this._extractPksValues(updateData);
-      let res = null;
       if (pkValues) {
         // pk is specified - by pass
       } else {
@@ -1811,21 +1814,25 @@ class BaseModelSqlv2 {
               is_group: true,
               logical_op: 'and',
             }),
-            ...(args.filterArr || []),
           ],
           qb,
           this.dbDriver
         );
+
         qb.update(updateData);
-        res = ((await this.extractRawQueryAndExec(qb)) as any).count;
+        queryResponse = ((await this.extractRawQueryAndExec(qb)) as any).count;
       }
-      return res;
+
+      const count = queryResponse ?? 0;
+      await this.afterBulkUpdate(count, this.dbDriver, cookie);
+
+      return count;
     } catch (e) {
       throw e;
     }
   }
 
-  async bulkDelete(ids: any[]) {
+  async bulkDelete(ids: any[], { cookie }: { cookie?: any } = {}) {
     let transaction;
     try {
       transaction = await this.dbDriver.transaction();
@@ -1844,6 +1851,8 @@ class BaseModelSqlv2 {
 
       transaction.commit();
 
+      await this.afterBulkDelete(ids.length, this.dbDriver, cookie);
+
       return res;
     } catch (e) {
       if (transaction) transaction.rollback();
@@ -1853,7 +1862,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  async bulkDeleteAll(args: { where?: string; filterArr?: Filter[] } = {}) {
+  async bulkDeleteAll(
+    args: { where?: string; filterArr?: Filter[] } = {},
+    { cookie }: { cookie?: any } = {}
+  ) {
     try {
       await this.model.getColumns();
       const { where } = this._getListArgs(args);
@@ -1873,13 +1885,16 @@ class BaseModelSqlv2 {
             is_group: true,
             logical_op: 'and',
           }),
-          ...(args.filterArr || []),
         ],
         qb,
         this.dbDriver
       );
       qb.del();
-      return ((await this.extractRawQueryAndExec(qb)) as any).count;
+      const count = ((await this.extractRawQueryAndExec(qb)) as any).count;
+
+      await this.afterBulkDelete(count, this.dbDriver, cookie);
+
+      return count;
     } catch (e) {
       throw e;
     }
@@ -1897,7 +1912,7 @@ class BaseModelSqlv2 {
     await this.handleHooks('After.insert', data, req);
     // if (req?.headers?.['xc-gui']) {
     const id = this._extractPksValues(data);
-    Audit.insert({
+    await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
       op_type: AuditOperationTypes.DATA,
@@ -1910,6 +1925,48 @@ class BaseModelSqlv2 {
       user: req?.user?.email,
     });
     // }
+  }
+
+  public async afterBulkUpdate(count: number, _trx: any, req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.BULK_UPDATE,
+      description: DOMPurify.sanitize(
+        `${count} records bulk updated in ${this.model.title}`
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+  }
+
+  public async afterBulkDelete(count: number, _trx: any, req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.BULK_DELETE,
+      description: DOMPurify.sanitize(
+        `${count} records bulk deleted in ${this.model.title}`
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
+  }
+
+  public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.BULK_INSERT,
+      description: DOMPurify.sanitize(
+        `${data.length} records bulk inserted into ${this.model.title}`
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
   }
 
   public async beforeUpdate(data: any, _trx: any, req): Promise<void> {
@@ -1927,6 +1984,18 @@ class BaseModelSqlv2 {
 
   public async afterUpdate(data: any, _trx: any, req): Promise<void> {
     await this.auditRowUpdate(req);
+    // const id = this._extractPksValues(data);
+    // Audit.insert({
+    //   fk_model_id: this.model.id,
+    //   row_id: id,
+    //   op_type: AuditOperationTypes.DATA,
+    //   op_sub_type: AuditOperationSubTypes.UPDATE,
+    //   description: DOMPurify.sanitize(`${id} updated in ${this.model.title}`),
+    //   // details: JSON.stringify(data),
+    //   ip: req?.clientIp,
+    //   user: req?.user?.email,
+    // });
+
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
@@ -1991,7 +2060,8 @@ class BaseModelSqlv2 {
 
   public async afterDelete(id: any, _trx: any, req): Promise<void> {
     // if (req?.headers?.['xc-gui']) {
-    Audit.insert({
+    // const id = req?.params?.id;
+    await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
       op_type: AuditOperationTypes.DATA,
@@ -2014,6 +2084,46 @@ class BaseModelSqlv2 {
     if (hookName === 'After.insert' && view.type === ViewTypes.FORM) {
       try {
         const formView = await view.getView<FormView>();
+        const { columns } = await FormView.getWithInfo(formView.fk_view_id);
+        const allColumns = await this.model.getColumns();
+        const fieldById = columns.reduce(
+          (o: Record<string, any>, f: Record<string, any>) => ({
+            ...o,
+            [f.fk_column_id]: f,
+          }),
+          {}
+        );
+        let order = 1;
+        const filteredColumns = allColumns
+          ?.map((c: Record<string, any>) => ({
+            ...c,
+            fk_column_id: c.id,
+            fk_view_id: formView.fk_view_id,
+            ...(fieldById[c.id] ? fieldById[c.id] : {}),
+            order: (fieldById[c.id] && fieldById[c.id].order) || order++,
+            id: fieldById[c.id] && fieldById[c.id].id,
+          }))
+          .sort(
+            (a: Record<string, any>, b: Record<string, any>) =>
+              a.order - b.order
+          )
+          .filter(
+            (f: Record<string, any>) =>
+              f.show &&
+              f.uidt !== UITypes.Rollup &&
+              f.uidt !== UITypes.Lookup &&
+              f.uidt !== UITypes.Formula &&
+              f.uidt !== UITypes.SpecificDBType
+          )
+          .sort(
+            (a: Record<string, any>, b: Record<string, any>) =>
+              a.order - b.order
+          )
+          .map((c: Record<string, any>) => ({
+            ...c,
+            required: !!(c.required || 0),
+          }));
+
         const emails = Object.entries(JSON.parse(formView?.email) || {})
           .filter((a) => a[1])
           .map((a) => a[0]);
@@ -2021,9 +2131,8 @@ class BaseModelSqlv2 {
           const transformedData = _transformSubmittedFormDataForEmail(
             data,
             formView,
-            await this.model.getColumns()
+            filteredColumns
           );
-          // todo: notification template
           (await NcPluginMgrv2.emailAdapter())?.mailSend({
             to: emails.join(','),
             subject: 'NocoDB Form',
@@ -2125,10 +2234,12 @@ class BaseModelSqlv2 {
     colId,
     rowId,
     childId,
+    cookie,
   }: {
     colId: string;
     rowId: string;
     childId: string;
+    cookie?: any;
   }) {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
@@ -2195,16 +2306,35 @@ class BaseModelSqlv2 {
         }
         break;
     }
+
+    await this.afterAddChild(rowId, childId, cookie);
+  }
+
+  public async afterAddChild(rowId, childId, req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+      row_id: rowId,
+      description: DOMPurify.sanitize(
+        `Record [id:${childId}] record linked with record [id:${rowId}] record in ${this.model.title}`
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
   }
 
   async removeChild({
     colId,
     rowId,
     childId,
+    cookie,
   }: {
     colId: string;
     rowId: string;
     childId: string;
+    cookie?: any;
   }) {
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
@@ -2269,6 +2399,23 @@ class BaseModelSqlv2 {
         }
         break;
     }
+
+    await this.afterRemoveChild(rowId, childId, cookie);
+  }
+
+  public async afterRemoveChild(rowId, childId, req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+      row_id: rowId,
+      description: DOMPurify.sanitize(
+        `Record [id:${childId}] record unlinked with record [id:${rowId}] record in ${this.model.title}`
+      ),
+      // details: JSON.stringify(data),
+      ip: req?.clientIp,
+      user: req?.user?.email,
+    });
   }
 
   @generateS3SignedUrls()
@@ -2281,7 +2428,7 @@ class BaseModelSqlv2 {
     }
     return this.isPg
       ? (await this.dbDriver.raw(query))?.rows
-      : query.slice(0, 6) === 'select'
+      : query.slice(0, 6) === 'select' && !this.isMssql
       ? await this.dbDriver.from(
           this.dbDriver.raw(query).wrap('(', ') __nc_alias')
         )

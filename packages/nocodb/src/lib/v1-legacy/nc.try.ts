@@ -8,6 +8,7 @@ import Noco from '../Noco';
 export default async function (dbUrl): Promise<void> {
   const server = express();
   server.use(cors());
+  server.enable('trust proxy');
 
   server.set('view engine', 'ejs');
 

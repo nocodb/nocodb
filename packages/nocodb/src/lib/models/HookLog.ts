@@ -1,6 +1,6 @@
 import { MetaTable } from '../utils/globals';
 import Noco from '../Noco';
-import extractProps from '../meta/helpers/extractProps';
+import { extractProps } from '../meta/helpers/extractProps';
 import Hook from './Hook';
 import { HookLogType } from 'nocodb-sdk';
 

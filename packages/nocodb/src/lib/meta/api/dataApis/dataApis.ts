@@ -452,14 +452,20 @@ async function getDataList(model, view: View, req) {
     listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
   } catch (e) {}
 
-  const data = await nocoExecute(
-    requestObj,
-    await baseModel.list(listArgs),
-    {},
-    listArgs
-  );
-
-  const count = await baseModel.count(listArgs);
+  let data = [];
+  let count = 0;
+  try {
+    data = await nocoExecute(
+      requestObj,
+      await baseModel.list(listArgs),
+      {},
+      listArgs
+    );
+    count = await baseModel.count(listArgs);
+  } catch (e) {
+    // show empty result instead of throwing error here
+    // e.g. search some text in a numeric field
+  }
 
   return new PagedResponseImpl(data, {
     count,
@@ -488,6 +494,7 @@ async function relationDataDelete(req, res) {
     colId: req.params.colId,
     childId: req.params.childId,
     rowId: req.params.rowId,
+    cookie: req,
   });
 
   res.json({ msg: 'success' });
@@ -515,6 +522,7 @@ async function relationDataAdd(req, res) {
     colId: req.params.colId,
     childId: req.params.childId,
     rowId: req.params.rowId,
+    cookie: req,
   });
 
   res.json({ msg: 'success' });

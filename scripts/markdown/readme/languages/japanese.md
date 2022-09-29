@@ -53,10 +53,10 @@ MySQL、PostgreSQL、SQL Server、SQLite＆Mariadbをスマートスプレッド
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
-- If this input is absent, we fallback to SQLite. In order too persist sqlite, you can mount `/usr/app/data/`. 
+- NocoDBは入力としてデータベースが必要です:[本番環境設定](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup)を参照してください。
+- この入力がない場合、SQLiteにフォールバックする。SQLiteを持続させるために、`/usr/app/data/`をマウントします。
 
-  Example:
+  例:
 
   ```
   docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
@@ -133,13 +133,13 @@ npm start
 - ⚡ ビューを作成する：グリッド、ギャラリー、カンバン、ガント、フォーム
 - ⚡ シェアビュー：Public＆Password Protected.
 - ⚡ パーソナル＆ロックビュー
-- ⚡ 画像を細胞にアップロードする（S3、Minio、GCP、Azure、Digitalocean、Linode、Ovh、Backblaze で動作します）。
+- ⚡ 画像をセルにアップロードする（S3、Minio、GCP、Azure、Digitalocean、Linode、Ovh、Backblaze で動作します）。
 - ⚡ ロール：所有者、作成者、エディタ、コメンタ、ビューア、コメンタ、カスタムロール。
 - ⚡ アクセス制御：データベース、テーブル＆カラムレベルでも微細に粒度のアクセス制御。
 
 ### ワークフロー自動化のための App Store
 
-- ⚡ チャット：マイクロソフトチーム、たるみ、不和、マッピー
+- ⚡ チャット：マイクロソフトチーム、Slack、Discord、マッピー
 - ⚡ メール：SMTP、SE、MailChimp
 - ⚡ SMS：Twilio.
 - ⚡ whatsapp.
@@ -158,7 +158,7 @@ NoCodb には、スプレッドシートビューと外部データベースの�
 
 ## Docker
 
-#### Example MySQL
+#### MySQLの例
 
 ```
 docker run -d -p 8080:8080 \
@@ -167,7 +167,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example Postgres
+#### Postgresの例
 
 ```
 docker run -d -p 8080:8080 \
@@ -176,7 +176,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Example SQL Server
+#### SQL Serverの例
 
 ```
 docker run -d -p 8080:8080 \
@@ -195,22 +195,22 @@ cd mysql or pg or mssql
 docker-compose up -d
 ```
 
-## Environment variables
+## 環境変数
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+[環境変数](https://docs.nocodb.com/getting-started/installation#environment-variables)をご参照ください
 
-# Development setup
+# 開発セットアップ
 
-Please refer to [Development Setup](https://docs-dev.nocodb.com/engineering/development-setup)
+[開発セットアップ](https://docs-dev.nocodb.com/engineering/development-setup)をご参照ください
 
-# Contributing
+# コントリビュート
 
-Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
+[コントリビューションガイド](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md)をご参照ください。
 
 # なぜこれを構築しているのですか？
 
-ほとんどのインターネットビジネスは、彼らのビジネスニーズを解決するためにスプレッドシートまたはデータベースのどちらかでそれ自体を装備しています。スプレッドシートは 1 日ごとに 10 億+人間によって使用されます。ただし、コンピューティングに関してより強力なツールであるデータベースの同様のスピードで作業しているような方法です。これを SaaS 製品で解決しようとすると、恐ろしいアクセス制御、ベンダーロック、データロック、突然の価格が変更され、最も重要なことに将来可能なものに関するガラスの天井を意味しています。
+ほとんどのインターネットビジネスは、ビジネスニーズを解決するためにスプレッドシートかデータベースのどちらかを装備しています。表計算ソフトは、毎日10億人以上の人が共同作業で使っています。しかし、コンピューティングに関しては、より強力なツールであるデータベースで同様のスピードで作業するのは、かなり遅れています。SaaSでこれを解決しようとすると、ひどいアクセスコントロール、ベンダーの囲い込み、データの囲い込み、突然の価格変更、そして最も重要なことは、将来的に何が可能かというガラスの天井を意味することになるのです。
 
 # 私たちの使命
 
-私たちの使命は、世界ですべての単一のインターネットビジネスにオープンソースであるデータベースのための最も強力なノーコードインターフェースを提供することです。これは強力なコンピューティングツールへのアクセスを民主化するだけでなく、インターネット上で急進的な厄介な建築能力を持つ 10 億+人をもたらします。
+私たちの使命は、データベース用の最も強力なノーコードインターフェイスを、世界中のすべてのインターネットビジネスにオープンソースで提供することです。これは、強力なコンピューティングツールへのアクセスを民主化するだけでなく、インターネット上で根本的な改造と構築の能力を持つ10億人以上の人々を生み出すでしょう。

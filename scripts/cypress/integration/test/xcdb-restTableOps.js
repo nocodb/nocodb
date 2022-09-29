@@ -1,4 +1,3 @@
-let t0 = require("./explicitLogin");
 let t01 = require("../common/00_pre_configurations");
 let t1a = require("../common/1a_table_operations");
 let t1b = require("../common/1b_table_column_operations");
@@ -16,22 +15,14 @@ const {
     setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
 
-// use 0 as mode to execute individual files (debug mode, skip pre-configs)
-// use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
-const executionMode = 1;
-
 const nocoTestSuite = (apiType, dbType) => {
     setCurrentMode(apiType, dbType);
-    if (0 == executionMode) {
-        t0.genTest(apiType, dbType);
-    } else {
-        t01.genTest(apiType, dbType);
-    }
+    t01.genTest(apiType, dbType);
 
     t1a.genTest(apiType, dbType);
     t1b.genTest(apiType, dbType);
     t1c.genTest(apiType, dbType);
-    // ncv2@fixme t1d.genTest(apiType, dbType);
+    // NcGUI v2 t1d.genTest(apiType, dbType);
     t1e.genTest(apiType, dbType);
     t2a.genTest(apiType, dbType);
     t2b.genTest(apiType, dbType);
@@ -39,7 +30,7 @@ const nocoTestSuite = (apiType, dbType) => {
     t3b.genTest(apiType, dbType);
     t3c.genTest(apiType, dbType);
     t3d.genTest(apiType, dbType);
-    t3e.genTest(apiType, dbType);
+    // NcGUI v2 t3e.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "xcdb");

@@ -71,6 +71,7 @@ export default class Plugin implements PluginType {
       o = { ...o, ...updateObj };
       // set cache
       await NocoCache.set(key, o);
+      await NocoCache.set(`${CacheScope.PLUGIN}:${o.title}`, o);
     }
     // set meta
     await Noco.ncMeta.metaUpdate(

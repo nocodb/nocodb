@@ -4,8 +4,7 @@ import { RelationTypes, UITypes } from 'nocodb-sdk';
 import Model from '../../models/Model';
 import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../models/LookupColumn';
-import MultiSelectColumn from '../../models/MultiSelectColumn';
-import SingleSelectColumn from '../../models/SingleSelectColumn';
+import SelectOption from '../../models/SelectOption';
 
 export default async function populateSamplePayload(
   viewOrModel: View | Model,
@@ -105,7 +104,7 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       break;
     case UITypes.MultiSelect:
       {
-        const colOpt = await column.getColOptions<MultiSelectColumn[]>();
+        const colOpt = await column.getColOptions<SelectOption[]>();
         return (
           colOpt?.[0]?.title ||
           column?.dtxp?.split(',')?.[0]?.replace(/^['"]|['"]$/g, '')
@@ -114,7 +113,7 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       break;
     case UITypes.SingleSelect:
       {
-        const colOpt = await column.getColOptions<SingleSelectColumn[]>();
+        const colOpt = await column.getColOptions<SelectOption[]>();
         return (
           colOpt?.[0]?.title ||
           column?.dtxp?.split(',')?.[0]?.replace(/^['"]|['"]$/g, '')

@@ -8,7 +8,7 @@ menuTitle: "Formulas"
 
 ## Adding formula column
 
-![Formula](https://user-images.githubusercontent.com/86527202/144246227-42c44df6-7e3e-4b2c-9bb9-a3c213bcad20.png)
+<img width="990" alt="image" src="https://user-images.githubusercontent.com/35857179/189108950-fba76e31-8ae4-4108-916b-e413c841f451.png">
 
 ### 1. Click on '+' (Add column)
 
@@ -24,6 +24,12 @@ menuTitle: "Formulas"
 - Nested formula (formula equation referring to another formula column) is supported
 
 ### 5. Click on 'Save'
+
+## Editing formula column 
+
+Unlike other column types, formula cells cannot be modified by double-clicking since the value is generated based on the formula. Instead, the vaule can be changed by updating the formula in the column setting.
+
+<img width="253" alt="image" src="https://user-images.githubusercontent.com/35857179/189109486-4d41f2b7-0a19-46ef-8bb4-a8d1aabd3592.png">
 
 ## Available Formula Features
 
@@ -90,6 +96,10 @@ Example: ({Column1} + ({Column2} * {Column3}) / (3 - $Column4$ ))
 |  |  | `DATEADD(date, 1, 'month')` | Supposing {DATE_COL} is 2022-03-14 03:14. The result is 2022-04-14 03:14. | DateTime columns and negative values are supported. Example: `DATEADD(DATE_TIME_COL, -1, 'month')` |
 |  |  | `DATEADD(date, 1, 'year')` | Supposing {DATE_COL} is 2022-03-14 03:14. The result is 2023-03-14 03:14. | DateTime columns and negative values are supported. Example: `DATEADD(DATE_TIME_COL, -1, 'year')` |
 |  |  | `IF(NOW() < DATEADD(date,10,'day'), "true", "false")` | If the current date is less than {DATE_COL} plus 10 days, it returns true. Otherwise, it returns false. | DateTime columns and negative values are supported. |
+|  |  | `IF(NOW() < DATEADD(date,10,'day'), "true", "false")` | If the current date is less than {DATE_COL} plus 10 days, it returns true. Otherwise, it returns false. | DateTime columns and negative values are supported. |
+| **WEEKDAY** | `WEEKDAY(date, [startDayOfWeek])` | `WEEKDAY(NOW())` | If today is Monday, it returns 0 | Returns the day of the week as an integer between 0 and 6 inclusive starting from Monday by default. You can optionally change the start day of the week by specifying in the second argument |
+|  |  | `WEEKDAY(NOW(), "sunday")` | If today is Monday, it returns 1 | Get the week day of NOW() with the first day set as sunday |
+
 ### Logical Operators
 
 | Operator | Sample               | Description              |

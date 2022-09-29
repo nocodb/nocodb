@@ -2379,13 +2379,13 @@ class MssqlClient extends KnexClient {
     return this.schema ? `${this.schema}.${t}` : t;
   }
 
-  alterTableRemoveColumn(t, n, o, existingQuery) {
+  alterTableRemoveColumn(t, n, _o, existingQuery) {
     const shouldSanitize = true;
     let query = existingQuery ? ';' : '';
     if (n.cdf) {
       query += this.genQuery(
         `\nALTER TABLE ?? DROP CONSTRAINT ??;`,
-        [this.getTnPath(t), o.default_constraint_name || `DF_${t}_${n.cn}`],
+        [this.getTnPath(t), n.default_constraint_name || `DF_${t}_${n.cn}`],
         shouldSanitize
       );
     }
@@ -2624,6 +2624,10 @@ function getDefaultValue(n) {
         return n.cdf;
       }
       return JSON.stringify(n.cdf);
+      break;
+    case 'text':
+    case 'ntext':
+      return `'${n.cdf}'`;
       break;
     default:
       return JSON.stringify(n.cdf);

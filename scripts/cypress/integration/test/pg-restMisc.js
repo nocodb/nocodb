@@ -12,22 +12,13 @@ const {
 } = require("../../support/page_objects/projectConstants");
 const t8a = require("../common/8a_webhook");
 
-// use 0 as mode to execute individual files (debug mode, skip pre-configs)
-// use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
-const executionMode = 1;
-
 const nocoTestSuite = (apiType, dbType) => {
     setCurrentMode(apiType, dbType);
-    if (0 == executionMode) {
-        t0.genTest(apiType, dbType);
-    } else {
-        t01.genTest(apiType, dbType);
-    }
+    t01.genTest(apiType, dbType);
 
     t6b.genTest(apiType, dbType);
-    // language validation kept common under REST MISC Suite
-    // t6d.genTest(apiType, dbType);
-    // ncv2@fixme t6c.genTest(apiType, dbType);
+    t6d.genTest(apiType, dbType);
+    // exclude@ncv2 t6c.genTest(apiType, dbType);
     t6f.genTest(apiType, dbType);
     t6g.genTest(apiType, dbType);
 
@@ -39,7 +30,7 @@ const nocoTestSuite = (apiType, dbType) => {
 
     // intended to keep this after earlier project deletion
     // creates project using excel & deletes it
-    // ncv2@fixme t7a.genTest(apiType, dbType);
+    t7a.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "postgres");

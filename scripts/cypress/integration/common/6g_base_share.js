@@ -3,84 +3,101 @@ import { projectsPage } from "../../support/page_objects/navigation";
 import { loginPage } from "../../support/page_objects/navigation";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 import {
-    _advSettings,
-    _editSchema,
-    _editData,
-    _editComment,
-    _viewMenu,
-    _topRightMenu,
+  _advSettings,
+  _editSchema,
+  _editData,
+  _editComment,
+  _viewMenu,
+  _topRightMenu,
 } from "../spec/roleValidation.spec";
+import { linkSync } from "fs";
 
+// fix me
 let linkText = "";
 
 export const genTest = (apiType, dbType) => {
-    if (!isTestSuiteActive(apiType, dbType)) return;
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-    const permissionValidation = (roleType) => {
-        it(`${roleType}: Visit base shared URL`, () => {
-            cy.log(linkText);
+  const permissionValidation = (roleType) => {
+    it(`${roleType}: Visit base shared URL`, () => {
+      cy.log(linkText);
 
-            // visit URL & wait for page load to complete
-            cy.visit(linkText, {
-                baseUrl: null,
-            });
-            cy.wait(5000);
+      // visit URL & wait for page load to complete
+      cy.visit(linkText, {
+        baseUrl: null,
+      });
+      cy.wait(5000);
+    });
 
-            projectsPage.waitHomePageLoad();
+    it(`${roleType}: Validate access permissions: advance menu`, () => {
+      // cy.restoreLocalStorage();
+      _advSettings(roleType, "baseShare");
+    });
 
-            cy.closeTableTab("Actor");
-        });
+    it(`${roleType}: Validate access permissions: edit schema`, () => {
+      // cy.restoreLocalStorage();
+      _editSchema(roleType, "baseShare");
+    });
 
-        it(`${roleType}: Validate access permissions: advance menu`, () => {
-            _advSettings(roleType, false);
-        });
+    it(`${roleType}: Validate access permissions: edit data`, () => {
+      // cy.restoreLocalStorage();
+      _editData(roleType, "baseShare");
+    });
 
-        it(`${roleType}: Validate access permissions: edit schema`, () => {
-            _editSchema(roleType, false);
-        });
+    it(`${roleType}: Validate access permissions: edit comments`, () => {
+      // cy.restoreLocalStorage();
+      _editComment(roleType, "baseShare");
+    });
 
-        it(`${roleType}: Validate access permissions: edit data`, () => {
-            _editData(roleType, false);
-        });
+    it(`${roleType}: Validate access permissions: view's menu`, () => {
+      // cy.restoreLocalStorage();
+      _viewMenu(roleType, "baseShare");
+    });
+  };
 
-        it(`${roleType}: Validate access permissions: edit comments`, () => {
-            _editComment(roleType, false);
-        });
+  describe(`${apiType.toUpperCase()} Base VIEW share`, () => {
+    before(() => {
+      // loginPage.loginAndOpenProject(apiType, dbType);
+      cy.restoreLocalStorage();
+      cy.openTableTab("Country", 25);
+      cy.saveLocalStorage();
+    });
 
-        it(`${roleType}: Validate access permissions: view's menu`, () => {
-            _viewMenu(roleType, false, 1);
-        });
-    };
+    beforeEach(() => {
+      cy.restoreLocalStorage();
+    });
 
-    describe(`${apiType.toUpperCase()} Base VIEW share`, () => {
-        before(() => {
-            mainPage.tabReset();
-        });
+    afterEach(() => {
+      cy.saveLocalStorage();
+    });
 
-        it(`Generate base share URL`, () => {
-            // click SHARE
-            cy.get(".nc-topright-menu").find(".nc-menu-share").click();
+    it(`Generate base share URL`, () => {
+      // click SHARE
+      cy.get(".nc-share-base:visible").should("exist").click();
 
-            cy.snipActiveModal("Modal_BaseShare");
+      // Click on readonly base text
+      cy.getActiveModal().find(".nc-disable-shared-base").click();
 
-            // Click on readonly base text
-            cy.getActiveModal().find(".nc-disable-shared-base").click();
+      cy.getActiveMenu(".nc-dropdown-shared-base-toggle")
+        .find(".ant-dropdown-menu-title-content")
+        .contains("Anyone with the link")
+        .click();
 
-            // Select 'Readonly link'
-            cy.snipActiveMenu("Menu_ShareLink");
-            cy.getActiveMenu()
-                .find(".caption")
-                .contains("Anyone with the link")
-                .click();
+      cy.getActiveModal().find(".nc-shared-base-role").click();
 
-            // Copy URL
-            cy.getActiveModal()
-                .find(".nc-url")
-                .then(($obj) => {
-                    cy.log($obj[0]);
-                    linkText = $obj[0].innerText.trim();
+      cy.getActiveSelection(".nc-dropdown-share-base-role")
+        .find(".ant-select-item")
+        .eq(1)
+        .click();
 
-                    const htmlFile = `
+      // Copy URL
+      cy.getActiveModal(".nc-modal-invite-user-and-share-base")
+        .find(".nc-url")
+        .then(($obj) => {
+          cy.log($obj[0]);
+          linkText = $obj[0].innerText.trim();
+
+          const htmlFile = `
 <!DOCTYPE html>
 <html>
 <body>
@@ -96,63 +113,71 @@ style="background: transparent; "></iframe>
 </body>
 </html>
             `;
-                    cy.writeFile(
-                        "scripts/cypress/fixtures/sampleFiles/iFrame.html",
-                        htmlFile
-                    );
-                });
+          cy.writeFile(
+            "scripts/cypress/fixtures/sampleFiles/iFrame.html",
+            htmlFile
+          );
         });
 
-        permissionValidation("viewer");
+      cy.log(linkText);
 
-        it("Update to EDITOR base share link", () => {
-            loginPage.loginAndOpenProject(apiType, dbType);
-
-            // click SHARE
-            cy.get(".nc-topright-menu").find(".nc-menu-share").click();
-
-            cy.getActiveModal().find(".nc-shared-base-role").click();
-
-            cy.getActiveMenu()
-                .find('[role="menuitem"]')
-                .contains("Editor")
-                .click();
-        });
-
-        permissionValidation("editor");
-
-        it("Generate & verify embed HTML IFrame", { baseUrl: null }, () => {
-            // open iFrame html
-            cy.visit("scripts/cypress/fixtures/sampleFiles/iFrame.html");
-
-            // wait for iFrame to load
-            cy.frameLoaded(".nc-embed");
-
-            // for GQL- additionally close GQL Client window
-            if (apiType === "graphql") {
-                cy.iframe()
-                    .find(`[title="Graphql Client"] > button.mdi-close`)
-                    .click();
-            }
-
-            // validation for base menu opitons
-            cy.iframe().find(".nc-project-tree").should("exist");
-            cy.iframe().find(".nc-fields-menu-btn").should("exist");
-            cy.iframe().find(".nc-sort-menu-btn").should("exist");
-            cy.iframe().find(".nc-filter-menu-btn").should("exist");
-            cy.iframe().find(".nc-actions-menu-btn").should("exist");
-
-            // validate data (row-1)
-            mainPage
-                .getIFrameCell("FirstName", 1)
-                .contains("PENELOPE")
-                .should("exist");
-            mainPage
-                .getIFrameCell("LastName", 1)
-                .contains("GUINESS")
-                .should("exist");
-        });
+      cy.signOut();
     });
+
+    permissionValidation("viewer");
+
+    it("Update to EDITOR base share link", () => {
+      loginPage.loginAndOpenProject(apiType, dbType);
+
+      // click SHARE
+      cy.get(".nc-share-base:visible").should("exist").click();
+
+      cy.getActiveModal().find(".nc-shared-base-role").click();
+
+      cy.getActiveSelection(".nc-dropdown-share-base-role")
+        .find(".ant-select-item")
+        .eq(0)
+        .click();
+
+      cy.signOut();
+    });
+
+    permissionValidation("editor");
+  });
+
+  describe(`${apiType.toUpperCase()} iFrame Test`, () => {
+    // https://docs.cypress.io/api/commands/visit#Prefixes
+    it("Generate & verify embed HTML IFrame", { baseUrl: null }, () => {
+      let filePath = "scripts/cypress/fixtures/sampleFiles/iFrame.html";
+      cy.log(filePath);
+      cy.visit(filePath, { baseUrl: null });
+
+      // wait for iFrame to load
+      cy.frameLoaded(".nc-embed");
+
+      // cy.openTableTab("Country", 25);
+      cy.iframe()
+        .find(`.nc-project-tree-tbl-Actor`, { timeout: 10000 })
+        .should("exist")
+        .first()
+        .click({ force: true });
+
+      // validation for base menu opitons
+      cy.iframe().find(".nc-project-tree").should("exist");
+      cy.iframe().find(".nc-fields-menu-btn").should("exist");
+      cy.iframe().find(".nc-sort-menu-btn").should("exist");
+      cy.iframe().find(".nc-filter-menu-btn").should("exist");
+      cy.iframe().find(".nc-actions-menu-btn").should("exist");
+
+      // validate data (row-1)
+      cy.iframe()
+        .find(`.nc-grid-cell:eq(1):contains("PENELOPE")`)
+        .should("exist");
+      cy.iframe()
+        .find(`.nc-grid-cell:eq(2):contains("GUINESS")`)
+        .should("exist");
+    });
+  });
 };
 
 /**

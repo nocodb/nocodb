@@ -1,7 +1,7 @@
 import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import { GridColumnType } from 'nocodb-sdk';
-import extractProps from '../meta/helpers/extractProps';
+import { extractProps } from '../meta/helpers/extractProps';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
 
@@ -93,11 +93,19 @@ export default class GridViewColumn implements GridColumnType {
 
     await NocoCache.set(`${CacheScope.GRID_VIEW_COLUMN}:${fk_column_id}`, id);
 
-    await NocoCache.appendToList(
-      CacheScope.GRID_VIEW_COLUMN,
-      [column.fk_view_id],
-      `${CacheScope.GRID_VIEW_COLUMN}:${id}`
-    );
+    // if cache is not present skip pushing it into the list to avoid unexpected behaviour
+    if (
+      (
+        await NocoCache.getList(CacheScope.GRID_VIEW_COLUMN, [
+          column.fk_view_id,
+        ])
+      )?.length
+    )
+      await NocoCache.appendToList(
+        CacheScope.GRID_VIEW_COLUMN,
+        [column.fk_view_id],
+        `${CacheScope.GRID_VIEW_COLUMN}:${id}`
+      );
 
     return this.get(id, ncMeta);
   }

@@ -29,6 +29,7 @@ const dfs = function(dir) {
     var res = [];
     var list = fs.readdirSync(dir);
     list.forEach(function(file) {
+        if (['node_modules', 'build'].includes(file)) return;
         file = dir + '/' + file;
         var stat = fs.statSync(file);
         if (stat && stat.isDirectory()) {
@@ -44,10 +45,9 @@ const dfs = function(dir) {
 }
 
 const searchAndReplace = (target) => {
-    const dirPath = path.resolve(path.join(__dirname, '..', 'packages'))
-    let list = dfs(dirPath)
-    list = [
-        ...list,
+    let list = [
+        ...dfs(path.resolve(path.join(__dirname, '..', 'packages', 'nc-gui'))),
+        ...dfs(path.resolve(path.join(__dirname, '..', 'packages', 'nocodb'))),
         path.join(__dirname, '..', 'packages', 'nc-gui', 'package.json'),
         path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')
     ]

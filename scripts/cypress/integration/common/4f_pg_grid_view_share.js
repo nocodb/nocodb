@@ -25,13 +25,13 @@ export const genTest = (apiType, dbType) => {
         cy.wait(5000);
         
         // wait, as URL initially will be /undefined
-        cy.getActiveModal()
+        cy.getActiveModal(".nc-modal-share-view")
             .find(".share-link-box")
             .contains("/nc/view/", { timeout: 10000 })
             .should("exist");
 
         // copy link text, visit URL
-        cy.getActiveModal()
+        cy.getActiveModal(".nc-modal-share-view")
             .find(".share-link-box")
             .contains("/nc/view/", { timeout: 10000 })
             .then(($obj) => {
@@ -45,6 +45,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             // open a table to work on views
             //
@@ -74,7 +75,7 @@ export const genTest = (apiType, dbType) => {
             it(`Create ${viewType.toUpperCase()} view`, () => {
                 // create a normal public view
                 cy.get(`.nc-create-${viewType}-view`).click();
-                cy.getActiveModal().find("button:contains(Submit)").click();
+                cy.getActiveModal(".nc-modal-view-create").find("button:contains(Submit)").click();
                 cy.toastWait("View created successfully");
 
                 // store base URL- to re-visit and delete form view later
@@ -286,16 +287,16 @@ export const genTest = (apiType, dbType) => {
                     .find("button.mdi-arrow-expand")
                     .click();
 
-                cy.getActiveModal().find("button.mdi-reload").should("exist");
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-child-list").find("button.mdi-reload").should("exist");
+                cy.getActiveModal(".nc-modal-child-list")
                     .find("button")
                     .contains("Link to")
                     .should("not.exist");
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-child-list")
                     .find(".child-card")
                     .contains("2")
                     .should("exist");
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-child-list")
                     .find(".child-card")
                     .find("button")
                     .should("not.exist");
@@ -339,8 +340,8 @@ export const genTest = (apiType, dbType) => {
                     .find("button.mdi-arrow-expand")
                     .click();
 
-                cy.getActiveModal().find("button.mdi-reload").should("exist");
-                cy.getActiveModal()
+                cy.getActiveModal(".nc-modal-child-list").find("button.mdi-reload").should("exist");
+                cy.getActiveModal(".nc-modal-child-list")
                     .find("button")
                     .contains("Link to")
                     .should("not.exist");
@@ -371,6 +372,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Grid view/ row-column update verification`, () => {
         before(() => {
+            cy.fileHook();
             // Address table has belongs to, has many & many-to-many
             cy.openTableTab("Country", 25);
 
@@ -402,7 +404,7 @@ export const genTest = (apiType, dbType) => {
                 .find(".mdi-checkbox-blank-outline")
                 .click({ force: true });
             mainPage.getCell("Country", 10).rightclick();
-            cy.getActiveMenu().contains("Delete Selected Row").click();
+            cy.getActiveMenu(".nc-dropdown-grid-context-menu").contains("Delete Selected Row").click();
 
             // delete column
             cy.get(`th:contains('dummy') .mdi-menu-down`)
@@ -421,7 +423,7 @@ export const genTest = (apiType, dbType) => {
 
         it(`Generate default Shared GRID view URL`, () => {
             // add row
-            cy.get(".nc-add-new-row-btn").click({ force: true });
+            cy.get(".nc-add-new-row-btn").click();
             cy.get("#data-table-form-Country > input")
                 .first()
                 .click()

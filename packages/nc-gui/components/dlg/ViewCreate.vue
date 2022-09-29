@@ -58,8 +58,6 @@ const meta = inject(MetaInj, ref())
 
 const viewList = inject(ViewListInj)
 
-const fields = inject(FieldsInj, ref([]))
-
 const form = reactive<Form>({
   title: props.title || '',
   type: props.type,
@@ -99,11 +97,12 @@ const typeAlias = computed(
     }[props.type]),
 )
 
+watch(vModel, (value) => value && init())
+
 watch(
   () => props.type,
   (newType) => {
     form.type = newType
-    init()
   },
 )
 
@@ -115,9 +114,9 @@ function init() {
   }
 
   // preset the grouping field column
-  if (form.type === ViewTypes.KANBAN) {
-    singleSelectFieldOptions.value = fields.value
-      .filter((el) => el.uidt === UITypes.SingleSelect)
+  if (props.type === ViewTypes.KANBAN) {
+    singleSelectFieldOptions.value = meta
+      .value!.columns!.filter((el) => el.uidt === UITypes.SingleSelect)
       .map((field) => {
         return {
           value: field.id,

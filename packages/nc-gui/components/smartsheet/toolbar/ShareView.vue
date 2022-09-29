@@ -173,7 +173,11 @@ watch(passwordProtected, (value) => {
           </div>
           <div>
             <!-- Allow Download -->
-            <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="!text-xs">
+            <a-checkbox
+              v-if="shared && (shared.type === ViewTypes.GRID || shared.type === ViewTypes.KANBAN)"
+              v-model:checked="allowCSVDownload"
+              class="!text-xs"
+            >
               {{ $t('labels.downloadAllowed') }}
             </a-checkbox>
           </div>

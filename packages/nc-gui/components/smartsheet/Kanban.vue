@@ -276,7 +276,7 @@ watch(
               :key="stack.id"
               class="mx-4 !bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
               :class="{
-                'not-draggable': stack.id === 'uncategorized' || isLocked || !isUIAllowed('xcDatatableEditable'),
+                'not-draggable': stack.id === 'uncategorized' || isLocked || isPublic || !isUIAllowed('xcDatatableEditable'),
                 '!cursor-default': isLocked || !isUIAllowed('xcDatatableEditable'),
               }"
               :head-style="{ paddingBottom: '0px' }"
@@ -305,7 +305,7 @@ watch(
                       <template v-if="!isLocked" #overlay>
                         <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
                           <a-menu-item
-                            v-if="isUIAllowed('xcDatatableEditable')"
+                            v-if="isUIAllowed('xcDatatableEditable') && !isPublic"
                             v-e="['c:kanban:add-new-record']"
                             @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
                           >
@@ -321,7 +321,7 @@ watch(
                             </div>
                           </a-menu-item>
                           <a-menu-item
-                            v-if="stack.title !== 'uncategorized' && isUIAllowed('xcDatatableEditable')"
+                            v-if="stack.title !== 'uncategorized' && !isPublic && isUIAllowed('xcDatatableEditable')"
                             v-e="['c:kanban:delete-stack']"
                             @click="handleDeleteStackClick(stack.title, stackIdx)"
                           >
@@ -358,8 +358,8 @@ watch(
                               :data-stack="stack.title"
                               class="!rounded-lg h-full overflow-hidden break-all max-w-[450px] shadow-lg"
                               :class="{
-                                'not-draggable': isLocked || !isUIAllowed('xcDatatableEditable'),
-                                '!cursor-default': isLocked || !isUIAllowed('xcDatatableEditable'),
+                                'not-draggable': isLocked || !isUIAllowed('xcDatatableEditable') || isPublic,
+                                '!cursor-default': isLocked || !isUIAllowed('xcDatatableEditable') || isPublic,
                               }"
                               :body-style="{ padding: '10px' }"
                               @click="expandFormClick($event, record)"
@@ -433,7 +433,7 @@ watch(
               :style="`background-color: ${stack.color} !important`"
               class="nc-kanban-stack nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer h-full !pr-[10px]"
               :class="{
-                'not-draggable': stack.id === 'uncategorized' || isLocked || !isUIAllowed('xcDatatableEditable'),
+                'not-draggable': stack.id === 'uncategorized' || isLocked || isPublic || !isUIAllowed('xcDatatableEditable'),
               }"
               :body-style="{ padding: '0px', height: '100%', width: '100%', background: '#f0f2f5 !important' }"
             >

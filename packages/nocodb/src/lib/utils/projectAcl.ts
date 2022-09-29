@@ -75,6 +75,7 @@ export default {
       gridColumnUpdate: true,
       galleryViewGet: true,
       kanbanViewGet: true,
+      groupedDataList: true,
 
       // old
       xcTableAndViewList: true,
@@ -188,6 +189,7 @@ export default {
 
       alleryViewGet: true,
       kanbanViewGet: true,
+      groupedDataList: true,
 
       xcTableAndViewList: true,
       xcVirtualTableList: true,
@@ -239,6 +241,7 @@ export default {
 
       galleryViewGet: true,
       kanbanViewGet: true,
+      groupedDataList: true,
 
       mmList: true,
       hmList: true,

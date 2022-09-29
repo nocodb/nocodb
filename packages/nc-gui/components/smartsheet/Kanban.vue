@@ -18,7 +18,7 @@ import {
   provide,
   useKanbanViewStoreOrThrow,
 } from '#imports'
-import type { Row as RowType } from '~/composables'
+import type { Row as RowType } from '~/lib'
 
 const meta = inject(MetaInj, ref())
 

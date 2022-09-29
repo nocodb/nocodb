@@ -18,14 +18,16 @@ export const genTest = (apiType, dbType) => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
-      mainPage.tabReset();
+      cy.restoreLocalStorage();
       mainPage.openMetaTab();
     });
 
-    beforeEach(() => {});
+    beforeEach(() => {
+      cy.restoreLocalStorage();
+    });
 
-    after(() => {
-      // mainPage.closeMetaTab();
+    afterEach(() => {
+      cy.saveLocalStorage();
     });
 
     it(`Create table`, () => {

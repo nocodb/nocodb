@@ -166,3 +166,7 @@ npm run cypress:open
 # run test script
 - quickTest.js
 ```
+
+## Enabling CI-CD for draft PR
+CI-CD will be triggered on moving a PR from draft state to `Ready for review` state & on pushing changes to `Develop`. To verify CI-CD before requesting for review, add label `trigger-CI` on Draft PR. 
+

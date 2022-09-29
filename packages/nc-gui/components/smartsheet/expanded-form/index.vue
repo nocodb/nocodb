@@ -156,6 +156,7 @@ export default {
                   v-model="row.row[col.title]"
                   :column="col"
                   :edit-enabled="true"
+                  :active="true"
                   @update:model-value="changedColumns.add(col.title)"
                 />
               </div>

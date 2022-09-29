@@ -161,16 +161,6 @@ openNewRecordFormHook?.on(async () => {
   expandForm(newRow, undefined, true)
 })
 
-watch(
-  () => view.value?.id,
-  async (next, old) => {
-    if (next && old && next !== old) {
-      await loadData()
-    }
-  },
-  { immediate: true },
-)
-
 const onresize = (colID: string, event: any) => {
   updateWidth(colID, event.detail)
 }
@@ -239,14 +229,13 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
-
 onClickOutside(smartTable, () => {
-  clearRangeRows()
   if (selected.col === null) return
 
   const activeCol = fields.value[selected.col]
 
   if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
+
   selected.row = null
   selected.col = null
 })
@@ -328,7 +317,15 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 // trigger initial data load in grid
 // reloadViewDataHook.trigger()
 
-watch(meta, () => reloadViewDataHook.trigger(), { immediate: true })
+watch(
+  () => view.value?.id,
+  async (next, old) => {
+    if (next && next !== old) {
+      await loadData()
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -414,8 +411,7 @@ watch(meta, () => reloadViewDataHook.trigger(), { immediate: true })
               </th>
             </tr>
           </thead>
-          <!-- this prevent select text from field if not in edit mode -->
-          <tbody @selectstart.prevent>
+          <tbody>
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">
@@ -464,17 +460,13 @@ watch(meta, () => reloadViewDataHook.trigger(), { immediate: true })
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
-                      active:
-                        (isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex) ||
-                        (isUIAllowed('xcDatatableEditable') && selectedRange(rowIndex, colIndex)),
+                      active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex,
                     }"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
                     @click="selectCell(rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
-                    @mousedown="startSelectRange($event, rowIndex, colIndex)"
-                    @mouseover="selectBlock(rowIndex, colIndex)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
                     <div class="w-full h-full">

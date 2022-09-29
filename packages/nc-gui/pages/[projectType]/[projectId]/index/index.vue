@@ -79,7 +79,7 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
       </div>
 
       <div class="w-full min-h-[300px] flex-auto">
-        <NuxtPage pageKey="test"/>
+        <NuxtPage :pageKey="$route.params.type" />
       </div>
     </div>
   </div>

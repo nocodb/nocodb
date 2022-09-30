@@ -690,6 +690,10 @@ function viewRowTests() {
     await testCreateRowView(ViewTypes.FORM);
   });
 
+  it('Create table row kanban', async function () {
+    await testCreateRowView(ViewTypes.KANBAN);
+  });
+
   const testCreateRowViewWithWrongView = async (viewType: ViewTypes) => {
     const table = await createTable(context, project);
     const nonRelatedView = await createView(context, {

@@ -152,7 +152,7 @@ export const genTest = (apiType, dbType) => {
           cy.getSettled("button.ant-tabs-tab-remove")
             .should("be.visible")
             .click();
-          cy.wait(500);
+          cy.wait(2000);
         }
 
         cy.saveLocalStorage();

@@ -110,6 +110,7 @@ export class _projectsPage {
     // close team & auth tab
     cy.getSettled("button.ant-tabs-tab-remove").should("be.visible").click();
     cy.get("button.ant-tabs-tab-remove").should("not.exist");
+    cy.wait(2000);
   }
 
   // Open existing project

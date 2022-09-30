@@ -725,6 +725,10 @@ function viewRowTests() {
     await testCreateRowViewWithWrongView(ViewTypes.FORM);
   });
 
+  it('Create table row wrong kanban id', async function () {
+    await testCreateRowViewWithWrongView(ViewTypes.KANBAN);
+  });
+
   // todo: Test that all the columns needed to be shown in the view are returned
 
   const testFindOneSortedDataWithRequiredColumns = async (

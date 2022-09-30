@@ -126,7 +126,7 @@ export default defineComponent({
     return () => {
       if (!column.value) return null
 
-      return h(renderIcon(column.value, abstractType.value), { class: 'text-grey mx-1 !text-sm' })
+      return h(renderIcon(column.value, abstractType.value), { class: 'text-grey mx-1 !text-xs' })
     }
   },
 })

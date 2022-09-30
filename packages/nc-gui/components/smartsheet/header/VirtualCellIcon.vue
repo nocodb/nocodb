@@ -34,7 +34,7 @@ if (column) {
 const icon = computed(() => {
   switch (column.value?.uidt) {
     case UITypes.LinkToAnotherRecord:
-      switch ((column.value?.colOptions as LinkToAnotherRecordType)?.type) {
+      switch ((column.value.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
           return { icon: MMIcon, color: 'text-accent' }
         case RelationTypes.HAS_MANY:

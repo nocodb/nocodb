@@ -1,6 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
 import type { PropType } from '@vue/runtime-core'
-import { isVirtualCol } from 'nocodb-sdk'
 import {
   ColumnInj,
   computed,
@@ -122,10 +121,7 @@ export default defineComponent({
 
     const { sqlUi } = useProject()
 
-    const abstractType = computed(() => {
-      // kludge: CY test hack; column is being received NULL during attach cell delete operation
-      return (column.value && isVirtualCol(column.value)) || !column.value ? null : sqlUi.value.getAbstractType(column.value)
-    })
+    const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
     return () => {
       if (!column.value) return null

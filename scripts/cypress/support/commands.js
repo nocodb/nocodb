@@ -42,6 +42,9 @@ Cypress.Commands.add('setup', ({ dbType }) => {
     }
     cy.restoreLocalStorage().then(() => {
       console.log('setup done', localStorage.getItem('nocodb-gui-v2'))
+
+      Cypress.LocalStorage.clear = () => {};
+      
       let project;
 
       if(dbType === "postgres") {

@@ -473,6 +473,7 @@ watch(
                     @dblclick="makeEditable(row, columnObj)"
                     @mousedown="startSelectRange($event, rowIndex, colIndex)"
                     @mouseover="selectBlock(rowIndex, colIndex)"
+                    @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
                     <div class="w-full h-full">
                       <LazySmartsheetVirtualCell

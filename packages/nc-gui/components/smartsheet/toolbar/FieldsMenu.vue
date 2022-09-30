@@ -86,14 +86,16 @@ const onMove = (_event: { moved: { newIndex: number } }) => {
 
 const coverImageColumnId = computed({
   get: () =>
-    activeView.value?.type === ViewTypes.GALLERY ? (activeView.value?.view as GalleryType).fk_cover_image_col_id : undefined,
+    activeView.value?.type === ViewTypes.GALLERY && activeView.value?.view
+      ? (activeView.value?.view as GalleryType).fk_cover_image_col_id
+      : undefined,
   set: async (val) => {
     if (val && activeView.value?.type === ViewTypes.GALLERY && activeView.value?.id && activeView.value?.view) {
       await $api.dbView.galleryUpdate(activeView.value?.id, {
         ...activeView.value?.view,
         fk_cover_image_col_id: val,
       })
-      ;(activeView.value?.view as GalleryType).fk_cover_image_col_id = val
+      ;(activeView.value.view as GalleryType).fk_cover_image_col_id = val
       reloadViewMetaHook.trigger()
     }
   },
@@ -140,7 +142,7 @@ const getIcon = (c: ColumnType) =>
           <a-select
             v-model:value="coverImageColumnId"
             class="w-full"
-            :options="coverOptions"
+            :options="coverOptions ?? []"
             dropdown-class-name="nc-dropdown-cover-image"
             @click.stop
           />
@@ -203,6 +205,7 @@ const getIcon = (c: ColumnType) =>
 :deep(.ant-checkbox-inner) {
   @apply transform scale-60;
 }
+
 :deep(.ant-checkbox) {
   @apply top-auto;
 }

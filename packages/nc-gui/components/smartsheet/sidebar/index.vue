@@ -94,8 +94,8 @@ function openModal({ type, title = '', copyViewId }: { type: ViewTypes; title: s
 }
 
 /** Handle view creation */
-function onCreate(view: ViewType) {
-  views.value.push(view)
+async function onCreate(view: ViewType) {
+  await loadViews()
   router.push({ params: { viewTitle: view.title || '' } })
   modalOpen = false
   $e('a:view:create', { view: view.type })

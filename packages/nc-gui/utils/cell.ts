@@ -1,14 +1,5 @@
-import type { ColumnType, ProjectType } from 'nocodb-sdk'
-import { SqlUiFactory, UITypes, isVirtualCol } from 'nocodb-sdk'
-
-export const abstractType = (column: ColumnType, project: ProjectType) => {
-  // kludge: CY test hack; column.value is being received NULL during attach cell delete operation
-  return (column && isVirtualCol(column)) || !column
-    ? null
-    : SqlUiFactory.create(project.bases?.[0]?.type ? { client: project.bases[0].type } : { client: 'mysql2' }).getAbstractType(
-        column,
-      )
-}
+import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 
 export const dataTypeLow = (column: ColumnType) => column.dt?.toLowerCase()
 export const isBoolean = (abstractType: any) => abstractType === 'boolean'

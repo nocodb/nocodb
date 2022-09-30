@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { SqlUiFactory, isVirtualCol, UITypes } from 'nocodb-sdk'
+import { isVirtualCol, UITypes } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -82,15 +82,11 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const { project } = useProject()
+const { sqlUi } = useProject()
 
 const abstractType = computed(() => {
   // kludge: CY test hack; column.value is being received NULL during attach cell delete operation
-  return (column.value && isVirtualCol(column.value)) || !column.value
-    ? null
-    : SqlUiFactory.create(
-        project.value?.bases?.[0]?.type ? { client: project.value.bases[0].type } : { client: 'mysql2' },
-      ).getAbstractType(column.value)
+  return (column.value && isVirtualCol(column.value)) || !column.value ? null : sqlUi.value.getAbstractType(column.value)
 })
 
 const syncValue = useDebounceFn(() => {

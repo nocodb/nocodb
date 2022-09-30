@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { RelationTypes, UITypes, getSystemColumns, isVirtualCol, ViewTypes } from 'nocodb-sdk'
+import { RelationTypes, UITypes, ViewTypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   IsFormInj,
@@ -377,7 +377,7 @@ onMounted(async () => {
 })
 
 watch(view, (nextView) => {
-  if(nextView?.type === ViewTypes.FORM) {
+  if (nextView?.type === ViewTypes.FORM) {
     reloadEventHook.trigger()
   }
 })

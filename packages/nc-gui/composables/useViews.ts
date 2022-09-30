@@ -7,7 +7,6 @@ export function useViews(meta: MaybeRef<TableType | undefined>) {
 
   const { $api } = useNuxtApp()
 
-
   const loadViews = async () => {
     const _meta = unref(meta)
 

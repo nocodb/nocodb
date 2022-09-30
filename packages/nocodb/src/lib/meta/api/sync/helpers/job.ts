@@ -579,7 +579,7 @@ export default async (
             };
             // if options are empty, configure '' as default option
             ncCol.dtxp =
-              colOptions.data.map((el) => `'${el.title}'`).join(',') || "''";
+              colOptions.data.map((el) => `'${el.title.replace(/'/gi, "''")}'`).join(',') || "''";
             break;
           case undefined:
             break;

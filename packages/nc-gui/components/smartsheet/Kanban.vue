@@ -490,11 +490,19 @@ watch(contextMenu, () => {
         <!-- Drop down Menu -->
         <template v-if="!isLocked && !isPublic && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
+            <a-menu-item v-if="contextMenuTarget" @click="expandForm(contextMenuTarget)">
+              <div v-e="['a:kanban:expand-record']" class="nc-project-menu-item nc-kanban-context-menu-item">
+                <MdiArrowExpand class="flex" />
+                <!-- Expand Record -->
+                {{ $t('activity.expandRecord') }}
+              </div>
+            </a-menu-item>
+            <a-divider class="!m-0 !p-0" />
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget)">
-              <div v-e="['a:row:delete']" class="nc-kanban-context-menu-item">
+              <div v-e="['a:kanban:delete-record']" class="nc-project-menu-item nc-kanban-context-menu-item">
                 <MdiDeleteOutline class="flex" />
-                <!-- Delete Row -->
-                {{ $t('activity.deleteRow') }}
+                <!-- Delete Record -->
+                {{ $t('activity.deleteRecord') }}
               </div>
             </a-menu-item>
           </a-menu>

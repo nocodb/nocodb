@@ -411,6 +411,8 @@
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
     "toggleCommentsDraw": "Toggle comments draw",
+    "expandRecord": "Expand Record",
+    "deleteRecord": "Delete Record",
     "erd": {
       "showColumns": "Show Columns",
       "showPkAndFk": "Show Primary and Foreign Keys",

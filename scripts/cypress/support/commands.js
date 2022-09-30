@@ -45,8 +45,11 @@ Cypress.Commands.add('setup', ({ dbType }) => {
       let project;
 
       if(dbType === "postgres") {
-        const pgProject = response.body.projects.find((project) => project.title === 'pgExtREST');
-        project = pgProject;
+        project = response.body.projects.find((project) => project.title === 'pgExtREST');
+      }
+
+      if(dbType === "mysql") {
+        project = response.body.projects.find((project) => project.title === 'externalREST');
       }
 
       cy.visit(`http://localhost:3000/#/nc/${project.id}/auth`, {

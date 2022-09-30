@@ -6,7 +6,6 @@ import {
   ColumnInj,
   FormInj,
   RowInj,
-  computed,
   isBt,
   isCount,
   isFormula,
@@ -19,13 +18,6 @@ import {
 } from '#imports'
 import type { Row } from '~/lib'
 import { NavigateDir } from '~/lib'
-import HasMany from '~/components/virtual-cell/HasMany.vue'
-import ManyToMany from '~/components/virtual-cell/ManyToMany.vue'
-import BelongsTo from '~/components/virtual-cell/BelongsTo.vue'
-import Lookup from '~/components/virtual-cell/Lookup.vue'
-import Rollup from '~/components/virtual-cell/Rollup.vue'
-import Formula from '~/components/virtual-cell/Formula.vue'
-import Count from '~/components/virtual-cell/Count.vue'
 
 const props = defineProps<{
   column: ColumnType
@@ -45,20 +37,6 @@ provide(ActiveCellInj, active)
 provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))
 
-const isForm = inject(IsFormInj, ref(false))
-
-const virtualCell = computed(() => {
-  if (!column.value) return null
-
-  if (isHm(column.value)) return HasMany
-  if (isMm(column.value)) return ManyToMany
-  if (isBt(column.value)) return BelongsTo
-  if (isLookup(column.value)) return Lookup
-  if (isRollup(column.value)) return Rollup
-  if (isFormula(column.value)) return Formula
-  if (isCount(column.value)) return Count
-})
-
 function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
   emit('navigate', dir)
 
@@ -72,6 +50,12 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
-    <component :is="virtualCell" />
+    <LazyVirtualCellHasMany v-if="isHm(column)" />
+    <LazyVirtualCellManyToMany v-else-if="isMm(column)" />
+    <LazyVirtualCellBelongsTo v-else-if="isBt(column)" />
+    <LazyVirtualCellRollup v-else-if="isRollup(column)" />
+    <LazyVirtualCellFormula v-else-if="isFormula(column)" />
+    <LazyVirtualCellCount v-else-if="isCount(column)" />
+    <LazyVirtualCellLookup v-else-if="isLookup(column)" />
   </div>
 </template>

@@ -397,6 +397,40 @@ function viewRowTests() {
     await testAscSortedViewDataList(customerGridView);
   });
 
+  const testAscSortedGroupedViewDataList = async (view: View) => {
+    const ratingColumn = filmColumns.find((c) => c.title === 'Rating');
+
+    const titleColumn = filmColumns.find((col) => col.title === 'Title');
+
+    const visibleColumns = [titleColumn];
+
+    const sortInfo = [{ fk_column_id: titleColumn.id, direction: 'asc' }];
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sortArrJson: JSON.stringify(sortInfo),
+      })
+      .expect(200);
+
+    expect(response.body).to.be.an('array');
+
+    // PG, R, NC-17, G, PG-17, null (uncategorized)
+    expect(response.body).to.be.have.length(6);
+
+    expect(
+      response.body.find((e) => e.key === 'PG').value.list[0].Title
+    ).to.equal('ACADEMY DINOSAUR');
+  };
+
+  it('Get asc sorted table data list with required columns kanban', async function () {
+    await testAscSortedGroupedViewDataList(filmKanbanView);
+  });
+
   const testGetViewDataListWithRequiredColumnsAndFilter = async (
     viewType: ViewTypes
   ) => {

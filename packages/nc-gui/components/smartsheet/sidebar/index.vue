@@ -72,6 +72,10 @@ watch(
           })
         }
       }
+    } else {
+      if (nextViews?.length && activeView.value !== nextViews[0]) {
+        activeView.value = nextViews[0]
+      }
     }
     /** if active view is not found, set it to first view */
     if (!activeView.value && nextViews.length) {

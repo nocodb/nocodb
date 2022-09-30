@@ -295,7 +295,8 @@ onBeforeUnmount(reset)
 
                     <!-- Copy Auth Token -->
                     <a-menu-item key="copy">
-                      <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                      <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group"
+                           @click.stop="copyAuthToken">
                         <MdiScriptTextKeyOutline class="group-hover:text-accent" />
                         {{ $t('activity.account.authToken') }}
                       </div>
@@ -452,7 +453,8 @@ onBeforeUnmount(reset)
                       <template #expandIcon></template>
 
                       <a-menu-item key="0" class="!rounded-t">
-                        <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
+                        <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline"
+                                   to="/user">
                           <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                           <span class="prose-sm">{{ email }}</span>
@@ -494,7 +496,7 @@ onBeforeUnmount(reset)
     <div>
       <LazyDashboardSettingsModal v-model="dialogOpen" :open-key="openDialogKey" />
 
-      <NuxtPage  pageKey="test"/>
+      <NuxtPage :page-key="$route.params.projectId" />
 
       <LazyGeneralPreviewAs float />
     </div>

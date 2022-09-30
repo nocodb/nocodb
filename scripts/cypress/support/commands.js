@@ -199,7 +199,7 @@ Cypress.Commands.add("closeTableTab", (tn) => {
     .click();
 
   // subsequent tab open commands will fail if tab is not closed completely
-  cy.wait(100);
+  cy.wait(2000)
 });
 
 Cypress.Commands.add("openOrCreateGqlProject", (_args) => {

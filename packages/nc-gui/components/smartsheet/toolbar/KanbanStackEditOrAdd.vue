@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IsLockedInj, useKanbanViewStoreOrThrow } from '#imports'
+import { IsLockedInj, IsPublicInj, useKanbanViewStoreOrThrow } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -8,6 +8,8 @@ const { groupingFieldColumn } = useKanbanViewStoreOrThrow()
 const isLocked = inject(IsLockedInj, ref(false))
 
 const addOrEditStackDropdown = ref(false)
+
+const IsPublic = inject(IsPublicInj, ref(false))
 
 const handleSubmit = async () => {
   addOrEditStackDropdown.value = false
@@ -18,7 +20,7 @@ provide(IsKanbanInj, ref(true))
 
 <template>
   <a-dropdown
-    v-if="isUIAllowed('edit-column')"
+    v-if="!IsPublic && isUIAllowed('edit-column')"
     v-model:visible="addOrEditStackDropdown"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-kanban-add-edit-stack-menu"

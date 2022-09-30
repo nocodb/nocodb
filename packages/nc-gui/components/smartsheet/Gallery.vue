@@ -160,9 +160,10 @@ onMounted(async () => {
 // provide view data reload hook as fallback to row data reload
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
-watch(view, (nextView) => {
-  if (nextView?.type === ViewTypes.FORM) {
-    reloadEventHook.trigger()
+watch(view, async (nextView) => {
+  if (nextView?.type === ViewTypes.GALLERY) {
+    await loadData()
+    await loadGalleryData()
   }
 })
 </script>

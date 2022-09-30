@@ -43,8 +43,6 @@ const { api } = useApi()
 
 const router = useRouter()
 
-const route = useRoute()
-
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
 
@@ -225,7 +223,7 @@ watch(views, (nextViews) => {
 <template>
   <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
     <LazySmartsheetSidebarRenameableMenuItem
-      v-for="(view, index) of views"
+      v-for="view of views"
       :id="view.id"
       :key="view.id"
       :view="view"
@@ -233,8 +231,7 @@ watch(views, (nextViews) => {
       class="transition-all ease-in duration-300"
       :class="{
         'bg-gray-100': isMarked === view.id,
-        'active':
-          (route.params.viewTitle && route.params.viewTitle === view.title) || (route.params.viewTitle === '' && index === 0),
+        'active': activeView.id === view.id,
         [`nc-view-item nc-${viewTypeAlias[view.type] || view.type}-view-item`]: true,
       }"
       @change-view="changeView"

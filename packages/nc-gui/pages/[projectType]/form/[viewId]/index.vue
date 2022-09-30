@@ -14,7 +14,6 @@ const {
   passwordDlg,
   password,
   loadSharedView,
-  isLoading,
 } = useSharedFormStoreOrThrow()
 
 function isRequired(_columnObj: Record<string, any>, required = false) {

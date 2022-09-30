@@ -230,6 +230,7 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 onClickOutside(smartTable, () => {
+  clearRangeRows()
   if (selected.col === null) return
 
   const activeCol = fields.value[selected.col]
@@ -411,7 +412,8 @@ watch(
               </th>
             </tr>
           </thead>
-          <tbody>
+          <!-- this prevent select text from field if not in edit mode -->
+          <tbody @selectstart.prevent>
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">
@@ -460,14 +462,17 @@ watch(
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
-                      active: isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex,
+                      active:
+                        (isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex) ||
+                        (isUIAllowed('xcDatatableEditable') && selectedRange(rowIndex, colIndex)),
                     }"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
                     @click="selectCell(rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
-                    @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
+                    @mousedown="startSelectRange($event, rowIndex, colIndex)"
+                    @mouseover="selectBlock(rowIndex, colIndex)"
                   >
                     <div class="w-full h-full">
                       <LazySmartsheetVirtualCell
@@ -483,12 +488,7 @@ watch(
                         v-else
                         v-model="row.row[columnObj.title]"
                         :column="columnObj"
-                        :edit-enabled="
-                          isUIAllowed('xcDatatableEditable') &&
-                          editEnabled &&
-                          selected.col === colIndex &&
-                          selected.row === rowIndex
-                        "
+                        :edit-enabled="hasEditPermission && editEnabled && selected.col === colIndex && selected.row === rowIndex"
                         :row-index="rowIndex"
                         :active="selected.col === colIndex && selected.row === rowIndex"
                         @update:edit-enabled="editEnabled = false"
@@ -502,7 +502,7 @@ watch(
               </template>
             </LazySmartsheetRow>
 
-            <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable') && !isSqlView">
+            <tr v-if="!isView && !isLocked && hasEditPermission && !isSqlView">
               <td
                 v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
@@ -521,7 +521,7 @@ watch(
           </tbody>
         </table>
 
-        <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
+        <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
               <div v-e="['a:row:delete']" class="nc-project-menu-item">

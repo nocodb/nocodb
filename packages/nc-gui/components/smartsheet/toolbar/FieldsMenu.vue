@@ -142,7 +142,7 @@ const getIcon = (c: ColumnType) =>
           <a-select
             v-model:value="coverImageColumnId"
             class="w-full"
-            :options="coverOptions ?? []"
+            :options="coverOptions"
             dropdown-class-name="nc-dropdown-cover-image"
             @click.stop
           />

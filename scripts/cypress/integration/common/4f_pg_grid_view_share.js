@@ -15,6 +15,70 @@ let viewURL = {};
 export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
+  function verifyLtarCell(columnName, index, cellValue, options) {
+    if (cellValue !== "")
+      cy.get(`:nth-child(${index}) > [data-title="${columnName}"]`)
+        .find(".chip")
+        .eq(0)
+        .contains(cellValue)
+        .should("exist");
+
+    mainPage
+      .getCell(columnName, index)
+      .click()
+      .find(".nc-icon.nc-unlink-icon")
+      .should(options.unlink ? "exist" : "not.exist");
+    mainPage
+      .getCell(columnName, index)
+      .click()
+      .find(".nc-icon.nc-plus")
+      .should(options.plus ? "exist" : "not.exist");
+    mainPage
+      .getCell(columnName, index)
+      .click()
+      .find(".nc-icon.nc-arrow-expand")
+      .should(options.expand ? "exist" : "not.exist");
+  }
+
+  function actionLtarCell(columnName, index, button) {
+    mainPage
+      .getCell(columnName, index)
+      .click()
+      .find(`.nc-icon${button}`)
+      .click();
+  }
+
+  function verifyChildListCard(cardValue, options) {
+    // reload button
+    cy.getActiveModal(".nc-modal-child-list")
+      .find(`[data-cy="nc-child-list-reload"]`)
+      .should(options.reload ? "exist" : "not.exist");
+
+    // link-to button
+    cy.getActiveModal(".nc-modal-child-list")
+      .find(`[data-cy="nc-child-list-button-link-to"]`)
+      .should(options.linkTo ? "exist" : "not.exist");
+
+    // child card
+    //  - contents : should exist
+    //  - link-to button : should not exist
+    //  - delete button : should not exist
+    if (cardValue !== "")
+      cy.getActiveModal(".nc-modal-child-list")
+        .find(".child-card")
+        .contains(cardValue)
+        .should("exist");
+
+    cy.getActiveModal(".nc-modal-child-list")
+      .find(".child-card")
+      .find(`[data-cy="nc-child-list-icon-unlink"]`)
+      .should(options.unlink ? "exist" : "not.exist");
+    cy.getActiveModal(".nc-modal-child-list")
+      .find(".child-card")
+      .find(`[data-cy="nc-child-list-icon-delete"]`)
+      .should(opitons.delete ? "exist" : "not.exist");
+  }
+
   const generateViewLink = (viewName) => {
     mainPage.shareView().click();
 
@@ -208,10 +272,10 @@ export const genTest = (apiType, dbType) => {
 
       it(`Share ${viewType.toUpperCase()} view : Enable sort`, () => {
         // Sort menu operations (Country Column, Z->A)
-        mainPage.sortField("Address", "Z → A");
+        mainPage.sortField("Address", "A → Z");
         mainPage
           .getCell("Address", 1)
-          .contains("669 Firozabad Loop")
+          .contains("1013 Tabuk Boulevard")
           .should("exist");
       });
 
@@ -222,7 +286,7 @@ export const genTest = (apiType, dbType) => {
         cy.get(".nc-grid-row").should("have.length", 3);
         mainPage
           .getCell("Address", 1)
-          .contains("1888 Kabul Drive")
+          .contains("1294 Firozabad Drive")
           .should("exist");
       });
 
@@ -232,7 +296,7 @@ export const genTest = (apiType, dbType) => {
           // expected output, statically configured
           let storedRecords = [
             `Address,District,PostalCode,Phone,Location,Customer List,Staff List,City,Staff List`,
-            `1888 Kabul Drive,,20936,,1,,Ife,,`,
+            `1294 Firozabad Drive,,70618,,2,,Pingxiang,,`,
             `1661 Abha Drive,,14400,,1,,Pudukkottai,,`,
           ];
 
@@ -247,13 +311,18 @@ export const genTest = (apiType, dbType) => {
             expect(strCol[2]).to.be.equal(retCol[2]);
           }
         };
-        mainPage.downloadAndVerifyCsv(`Address_exported_1.csv`, verifyCsv);
+        mainPage.downloadAndVerifyCsvFromSharedView(
+          `Address_exported_1.csv`,
+          verifyCsv
+        );
         mainPage.unhideField("LastUpdate");
       });
 
       it(`Share ${viewType.toUpperCase()} view : Delete Filter`, () => {
         // Remove sort and Validate
         mainPage.filterReset();
+        mainPage.clearSort();
+
         mainPage
           .getCell("Address", 1)
           .contains("669 Firozabad Loop")
@@ -265,89 +334,47 @@ export const genTest = (apiType, dbType) => {
         cy.get('[data-title="Customer List"]').should("exist");
         cy.get('[data-title="Staff List"]').should("exist");
         cy.get('[data-title="City"]').should("exist");
-        cy.get('[data-title="Staff List"]').should("exist");
+        cy.get('[data-title="Staff List1"]').should("exist");
 
         // has many field validation
-        mainPage
-          .getCell("Customer List", 3)
-          .click()
-          .find(".nc-icon.nc-unlink-icon")
-          .should("not.exist");
-        mainPage
-          .getCell("Customer List", 3)
-          .click()
-          .find(".nc-icon.nc-action-icon.nc-plus")
-          .should("not.exist");
-        mainPage
-          .getCell("Customer List", 3)
-          .click()
-          .find("button.mdi-arrow-expand")
-          .click();
-
-        cy.getActiveModal(".nc-modal-child-list")
-          .find("button.mdi-reload")
-          .should("exist");
-        cy.getActiveModal(".nc-modal-child-list")
-          .find("button")
-          .contains("Link to")
-          .should("not.exist");
-        cy.getActiveModal(".nc-modal-child-list")
-          .find(".child-card")
-          .contains("2")
-          .should("exist");
-        cy.getActiveModal(".nc-modal-child-list")
-          .find(".child-card")
-          .find("button")
-          .should("not.exist");
+        verifyLtarCell("Customer List", 1, "1", {
+          unlink: false,
+          plus: false,
+          expand: true,
+        });
+        actionLtarCell("Customer List", 1, ".nc-arrow-expand");
+        verifyChildListCard("1", {
+          reload: true,
+          linkTo: false,
+          unlink: false,
+          delete: false,
+        });
         cy.get("body").type("{esc}");
       });
 
       it(`Share GRID view : Virtual column validation > belongs to`, () => {
         // belongs to field validation
-        mainPage
-          .getCell("City", 1)
-          .click()
-          .find(".nc-icon.nc-unlink-icon")
-          .should("not.exist");
-        mainPage
-          .getCell("City", 1)
-          .click()
-          .find(".nc-icon.nc-action-icon.nc-arrow-expand")
-          .should("not.exist");
-        mainPage
-          .getCell("City", 1)
-          .find(".chips")
-          .contains("Kanchrapara")
-          .should("exist");
+        verifyLtarCell("City", 1, "al-Ayn", {
+          unlink: false,
+          plus: false,
+          expand: false,
+        });
       });
 
       it(`Share GRID view : Virtual column validation > many to many`, () => {
-        // many-to-many field validation
-        mainPage
-          .getCell("Staff List", 1)
-          .click()
-          .find(".nc-icon.nc-unlink-icon")
-          .should("not.exist");
-        mainPage
-          .getCell("Staff List", 1)
-          .click()
-          .find(".nc-icon.nc-action-icon.nc-plus")
-          .should("not.exist");
-
-        mainPage
-          .getCell("Staff List", 1)
-          .click()
-          .find(".nc-icon.nc-action-icon.nc-arrow-expand")
-          .click({ force: true });
-
-        // // reload button
-        // Fix me : ncv2@fixme
-        // cy.getActiveModal().find(".nc-icon").should("exist");
-        // cy.getActiveModal()
-        //     .find("button")
-        //     .contains("Link to")
-        //     .should("not.exist");
-        // cy.get('button.ant-modal-close:visible').last().click();
+        // many to many field verification
+        verifyLtarCell("Staff List1", 1, "", {
+          unlink: false,
+          plus: false,
+          expand: true,
+        });
+        actionLtarCell("Staff List1", 1, ".nc-arrow-expand");
+        verifyChildListCard("", {
+          reload: true,
+          linkTo: false,
+          unlink: false,
+          delete: false,
+        });
       });
 
       it(`Delete ${viewType.toUpperCase()} view`, () => {

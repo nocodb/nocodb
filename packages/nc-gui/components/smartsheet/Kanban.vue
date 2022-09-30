@@ -488,7 +488,7 @@ watch(contextMenu, () => {
           </template>
         </Draggable>
         <!-- Drop down Menu -->
-        <template v-if="!isLocked && hasEditPermission" #overlay>
+        <template v-if="!isLocked && !isPublic && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget)">
               <div v-e="['a:row:delete']" class="nc-project-menu-item">

@@ -2258,10 +2258,6 @@ function tableTest() {
   });
 
   it('Get grouped data list', async function () {
-    const firstNameColumn = customerColumns.find(
-      (col) => col.title === 'FirstName'
-    );
-
     const filmTable = await getTable({ project: sakilaProject, name: 'film' });
 
     const filmColumns = await filmTable.getColumns();

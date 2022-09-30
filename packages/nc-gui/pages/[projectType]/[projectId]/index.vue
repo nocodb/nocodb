@@ -186,7 +186,7 @@ onBeforeUnmount(reset)
       >
         <div
           style="height: var(--header-height)"
-          :class="isOpen ? 'pl-6' : ''"
+          :class="isOpen ? 'pl-4' : ''"
           class="flex items-center !bg-primary text-white px-1 gap-2"
         >
           <div

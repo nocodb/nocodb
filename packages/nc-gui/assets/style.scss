@@ -168,6 +168,28 @@ a {
   transform: translate(-100%, 0);
 }
 
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: all 400ms ease;
+}
+
+.slide-right-enter-from,
+.slide-right-leave-to {
+  transform: translate(100%, 0%);
+  opacity: 0;
+}
+
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: all 400ms ease;
+}
+
+.slide-left-enter-from,
+.slide-left-leave-to {
+  transform: translate(-100%, 0%);
+  opacity: 0;
+}
+
 .glow-enter-active,
 .glow-leave-active {
   @apply transition-all duration-300 ease-in-out;

@@ -30,32 +30,32 @@ import { isXcdb, isPostgres } from "./page_objects/projectConstants";
 require("@4tw/cypress-drag-drop");
 
 // recursively gets an element, returning only after it's determined to be attached to the DOM for good
-Cypress.Commands.add('getSettled', (selector, opts = {}) => {
+Cypress.Commands.add("getSettled", (selector, opts = {}) => {
   const retries = opts.retries || 3;
   const delay = opts.delay || 400;
 
   const isAttached = (resolve, count = 0) => {
-      const el = Cypress.$(selector);
+    const el = Cypress.$(selector);
 
-      // is element attached to the DOM?
-      count = Cypress.dom.isAttached(el) ? count + 1 : 0;
+    // is element attached to the DOM?
+    count = Cypress.dom.isAttached(el) ? count + 1 : 0;
 
-      // hit our base case, return the element
-      if (count >= retries) {
-          return resolve(el);
-      }
+    // hit our base case, return the element
+    if (count >= retries) {
+      return resolve(el);
+    }
 
-      // retry after a bit of a delay
-      setTimeout(() => isAttached(resolve, count), delay);
+    // retry after a bit of a delay
+    setTimeout(() => isAttached(resolve, count), delay);
   };
 
   // wrap, so we can chain cypress commands off the result
   return cy.wrap(null).then(() => {
-      return new Cypress.Promise((resolve) => {
-          return isAttached(resolve, 0);
-      }).then((el) => {
-          return cy.wrap(el);
-      });
+    return new Cypress.Promise((resolve) => {
+      return isAttached(resolve, 0);
+    }).then((el) => {
+      return cy.wrap(el);
+    });
   });
 });
 
@@ -278,6 +278,10 @@ Cypress.Commands.add("getActiveModal", (wrapperSelector) => {
     return cy.get(`${wrapperSelector} .ant-modal-content:visible`).last();
   }
   return cy.get(".ant-modal-content:visible").last();
+});
+
+Cypress.Commands.add("closeActiveModal", (wrapperSelector) => {
+  cy.getActiveModal(wrapperSelector).find(".ant-modal-close-x").click();
 });
 
 Cypress.Commands.add("getActiveMenu", (overlaySelector) => {

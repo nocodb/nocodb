@@ -27,17 +27,17 @@ export const genTest = (apiType, dbType) => {
       .getCell(columnName, index)
       .click()
       .find(".nc-icon.nc-unlink-icon")
-      .should(options.unlink ? "exist" : "not.exist");
+      .should(`${options.unlink ? "exist" : "not.exist"}`);
     mainPage
       .getCell(columnName, index)
       .click()
       .find(".nc-icon.nc-plus")
-      .should(options.plus ? "exist" : "not.exist");
+      .should(`${options.plus ? "exist" : "not.exist"}`);
     mainPage
       .getCell(columnName, index)
       .click()
       .find(".nc-icon.nc-arrow-expand")
-      .should(options.expand ? "exist" : "not.exist");
+      .should(`${options.expand ? "exist" : "not.exist"}`);
   }
 
   function actionLtarCell(columnName, index, button) {
@@ -45,38 +45,38 @@ export const genTest = (apiType, dbType) => {
       .getCell(columnName, index)
       .click()
       .find(`.nc-icon${button}`)
-      .click();
+      .click({ force: true });
   }
 
   function verifyChildListCard(cardValue, options) {
     // reload button
     cy.getActiveModal(".nc-modal-child-list")
       .find(`[data-cy="nc-child-list-reload"]`)
-      .should(options.reload ? "exist" : "not.exist");
+      .should(`${options.reload ? "exist" : "not.exist"}`);
 
     // link-to button
     cy.getActiveModal(".nc-modal-child-list")
       .find(`[data-cy="nc-child-list-button-link-to"]`)
-      .should(options.linkTo ? "exist" : "not.exist");
+      .should(`${options.linkTo ? "exist" : "not.exist"}`);
 
     // child card
     //  - contents : should exist
     //  - link-to button : should not exist
     //  - delete button : should not exist
-    if (cardValue !== "")
+    if (cardValue !== "") {
       cy.getActiveModal(".nc-modal-child-list")
-        .find(".child-card")
+        .find(".ant-card")
         .contains(cardValue)
         .should("exist");
-
-    cy.getActiveModal(".nc-modal-child-list")
-      .find(".child-card")
-      .find(`[data-cy="nc-child-list-icon-unlink"]`)
-      .should(options.unlink ? "exist" : "not.exist");
-    cy.getActiveModal(".nc-modal-child-list")
-      .find(".child-card")
-      .find(`[data-cy="nc-child-list-icon-delete"]`)
-      .should(opitons.delete ? "exist" : "not.exist");
+      cy.getActiveModal(".nc-modal-child-list")
+        .find(".ant-card")
+        .find(`[data-cy="nc-child-list-icon-unlink"]`)
+        .should(`${options.unlink ? "exist" : "not.exist"}`);
+      cy.getActiveModal(".nc-modal-child-list")
+        .find(".ant-card")
+        .find(`[data-cy="nc-child-list-icon-delete"]`)
+        .should(`${options.delete ? "exist" : "not.exist"}`);
+    }
   }
 
   const generateViewLink = (viewName) => {
@@ -349,7 +349,7 @@ export const genTest = (apiType, dbType) => {
           unlink: false,
           delete: false,
         });
-        cy.get("body").type("{esc}");
+        cy.closeActiveModal(".nc-modal-child-list");
       });
 
       it(`Share GRID view : Virtual column validation > belongs to`, () => {

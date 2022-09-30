@@ -23,7 +23,7 @@ const isPgSakilaToBeReset = async () => {
   const audits =
     sakilaProject && (await Audit.projectAuditList(sakilaProject.id, {}));
 
-  return audits.length > 0;
+  return audits?.length > 0;
 };
 
 const resetPgSakila = async () => {

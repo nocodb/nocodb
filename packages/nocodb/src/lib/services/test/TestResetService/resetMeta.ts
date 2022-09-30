@@ -1,15 +1,13 @@
 import Model from '../../../models/Model';
 import Project from '../../../models/Project';
-import { orderedMetaTables } from '../../../utils/globals';
+import { orderedMetaTables, sakilaTableNames } from '../../../utils/globals';
 
 const disableForeignKeyChecks = async (knex) => {
   await knex.raw('PRAGMA foreign_keys = OFF');
-  // await this.knex.raw(`SET FOREIGN_KEY_CHECKS = 0`);
 };
 
 const enableForeignKeyChecks = async (knex) => {
   await knex.raw(`PRAGMA foreign_keys = ON;`);
-  // await this.knex.raw(`SET FOREIGN_KEY_CHECKS = 1`);
 };
 
 const dropTablesAllNonExternalProjects = async (knex) => {
@@ -28,7 +26,9 @@ const dropTablesAllNonExternalProjects = async (knex) => {
           base_id: base.id!,
         });
         models.forEach((model) => {
-          userCreatedTableNames.push(model.table_name);
+          if (!sakilaTableNames.includes(model.table_name)) {
+            userCreatedTableNames.push(model.table_name);
+          }
         });
       })
   );

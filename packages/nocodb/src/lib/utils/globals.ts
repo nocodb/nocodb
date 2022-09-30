@@ -74,6 +74,32 @@ export const orderedMetaTables = [
   MetaTable.PROJECT,
 ];
 
+export const sakilaTableNames = [
+  'actor',
+  'address',
+  'category',
+  'city',
+  'country',
+  'customer',
+  'film',
+  'film_actor',
+  'film_category',
+  'film_text',
+  'inventory',
+  'language',
+  'payment',
+  'rental',
+  'staff',
+  'store',
+  'actor_info',
+  'customer_list',
+  'film_list',
+  'nicer_but_slower_film_list',
+  'sales_by_film_category',
+  'sales_by_store',
+  'staff_list',
+];
+
 export enum CacheScope {
   PROJECT = 'project',
   BASE = 'base',

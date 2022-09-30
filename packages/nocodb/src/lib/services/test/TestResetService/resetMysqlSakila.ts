@@ -10,10 +10,10 @@ const config = {
     port: 3306,
     user: 'root',
     password: 'password',
-    database: 'sakila',
+    database: 'test_sakila',
+    multipleStatements: true,
+    dateStrings: true,
   },
-  meta: { dbtype: '' },
-  pool: { min: 0, max: 5 },
 };
 
 const isMysqlSakilaToBeReset = async () => {
@@ -22,18 +22,18 @@ const isMysqlSakilaToBeReset = async () => {
   const audits =
     sakilaProject && (await Audit.projectAuditList(sakilaProject.id, {}));
 
-  return audits.length > 0;
+  return audits?.length > 0;
 };
 
 const resetMysqlSakila = async () => {
   const knexClient = knex(config);
 
   try {
-    await knexClient.raw(`DROP DATABASE sakila`);
+    await knexClient.raw(`DROP DATABASE test_sakila`);
   } catch (e) {
     console.log('Error dropping db', e);
   }
-  await knexClient.raw(`CREATE DATABASE sakila`);
+  await knexClient.raw(`CREATE DATABASE test_sakila`);
 
   const testsDir = __dirname.replace(
     '/src/lib/services/test/TestResetService',
@@ -41,10 +41,10 @@ const resetMysqlSakila = async () => {
   );
 
   const schemaFile = fs
-    .readFileSync(`${testsDir}/mysql-sakila-db/01-mysql-sakila-schema.sql`)
+    .readFileSync(`${testsDir}/mysql-sakila-db/03-test-sakila-schema.sql`)
     .toString();
   const dataFile = fs
-    .readFileSync(`${testsDir}/mysql-sakila-db/02-mysql-sakila-insert-data.sql`)
+    .readFileSync(`${testsDir}/mysql-sakila-db/04-test-sakila-data.sql`)
     .toString();
   await knexClient.raw(schemaFile);
   await knexClient.raw(dataFile);

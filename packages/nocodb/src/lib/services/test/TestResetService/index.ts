@@ -7,6 +7,7 @@ import createProjects from './createProjects';
 import { isPgSakilaToBeReset, resetPgSakila } from './resetPgSakila';
 import createUser from './createUser';
 import resetMeta from './resetMeta';
+import { isMysqlSakilaToBeReset, resetMysqlSakila } from './resetMysqlSakila';
 
 export class TestResetService {
   private knex: Knex | null = null;
@@ -21,6 +22,10 @@ export class TestResetService {
 
       if (await isPgSakilaToBeReset()) {
         await resetPgSakila();
+      }
+
+      if (await isMysqlSakilaToBeReset()) {
+        await resetMysqlSakila();
       }
 
       await resetMeta(this.knex);

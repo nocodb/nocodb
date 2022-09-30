@@ -35,13 +35,21 @@ const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
 
 function viewRowTests() {
   let context;
+  // projects
   let project: Project;
   let sakilaProject: Project;
+  // models
   let customerTable: Model;
+  let filmTable: Model;
+  // columns
   let customerColumns;
+  let filmColumns;
+  // views
   let customerGridView: View;
   let customerGalleryView: View;
   let customerFormView: View;
+  // use film table because it has single select field
+  let filmKanbanView: View;
 
   beforeEach(async function () {
     context = await init();
@@ -67,9 +75,20 @@ function viewRowTests() {
       table: customerTable,
       type: ViewTypes.FORM,
     });
+
+    filmTable = await getTable({
+      project: sakilaProject,
+      name: 'film',
+    });
+    filmColumns = await filmTable.getColumns();
+    filmKanbanView = await createView(context, {
+      title: 'Film Kanban',
+      table: customerTable,
+      type: ViewTypes.KANBAN,
+    });
   });
 
-  const testGetViewRowListGallery = async (view: View) => {
+  const testGetViewRowList = async (view: View) => {
     const response = await request(context.app)
       .get(
         `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/views/${view.id}`
@@ -86,16 +105,34 @@ function viewRowTests() {
     }
   };
 
+  const testGetViewRowListKanban = async (view: View) => {
+    const ratingColumn = filmColumns.find((c) => c.column_name === 'rating');
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/Film/group/${ratingColumn.id}`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if (response.body.length !== 6) {
+      throw new Error('View row list is not correct');
+    }
+  };
+
   it('Get view row list gallery', async () => {
-    await testGetViewRowListGallery(customerGalleryView);
+    await testGetViewRowList(customerGalleryView);
+  });
+
+  it('Get view row list kanban', async () => {
+    await testGetViewRowListKanban(filmKanbanView);
   });
 
   it('Get view row list form', async () => {
-    await testGetViewRowListGallery(customerFormView);
+    await testGetViewRowList(customerFormView);
   });
 
   it('Get view row list grid', async () => {
-    await testGetViewRowListGallery(customerGridView);
+    await testGetViewRowList(customerGridView);
   });
 
   const testGetViewDataListWithRequiredColumns = async (view: View) => {
@@ -1288,5 +1325,5 @@ function viewRowTests() {
 }
 
 export default function () {
-  describe.only('ViewRow', viewRowTests);
+  describe('ViewRow', viewRowTests);
 }

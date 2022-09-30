@@ -109,14 +109,27 @@ function viewRowTests() {
     const ratingColumn = filmColumns.find((c) => c.column_name === 'rating');
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/Film/group/${ratingColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`
       )
       .set('xc-auth', context.token)
       .expect(200);
 
-    if (response.body.length !== 6) {
-      throw new Error('View row list is not correct');
-    }
+    expect(response.body).to.be.an('array');
+    // PG, R, NC-17, G, PG-17, null (uncategorized)
+    expect(response.body).to.be.have.length(6);
+    expect(response.body[0]).to.have.property('key');
+    expect(response.body[0]).to.have.property('value');
+    expect(response.body[0])
+      .to.have.property('value')
+      .and.to.be.an('object')
+      .and.to.have.property('list')
+      .and.to.be.an('array');
+    expect(response.body[0]).to.have.property('key').and.to.be.a('string');
+    expect(response.body[0].value)
+      .to.have.property('pageInfo')
+      .and.to.be.an('object')
+      .and.to.have.property('totalRows')
+      .and.to.be.a('number');
   };
 
   it('Get view row list gallery', async () => {

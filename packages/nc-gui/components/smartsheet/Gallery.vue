@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isVirtualCol } from 'nocodb-sdk'
+import { isVirtualCol, ViewTypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   ChangePageInj,
@@ -159,6 +159,14 @@ onMounted(async () => {
 
 // provide view data reload hook as fallback to row data reload
 provide(ReloadRowDataHookInj, reloadViewDataHook)
+
+
+
+watch(view, (nextView) => {
+  if (nextView?.type === ViewTypes.FORM) {
+    reloadEventHook.trigger()
+  }
+})
 </script>
 
 <template>

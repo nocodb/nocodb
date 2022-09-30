@@ -126,7 +126,7 @@ watch(expandedFormDlg, (nexVal) => {
           {{ $t('activity.addNewRecord') }}
         </a-button>
       </div>
-      <template v-if="childrenExcludedList?.pageInfo?.totalRows">
+      <template v-if="childrenExcludedList?.list?.length">
         <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12">
           <a-card
             v-for="(refRow, i) in childrenExcludedList?.list ?? []"

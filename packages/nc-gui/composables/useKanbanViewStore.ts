@@ -441,11 +441,69 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
     }
 
+    function removeRowFromTargetStack(row: Row) {
+      // primary key of Row to be deleted
+      const targetPrimaryKey = extractPkFromRow(row.row, meta!.value!.columns as ColumnType[])
+      // stack title of Row to be deleted
+      const stackTitle = row.row[groupingField.value] ?? 'uncategorized'
+      // remove target row from formattedData
+      formattedData.value[stackTitle] = formattedData.value[stackTitle].filter(
+        (ele) => extractPkFromRow(ele.row, meta!.value!.columns as ColumnType[]) !== targetPrimaryKey,
+      )
+      // decrease countByStack of target stack by 1
+      countByStack.value[stackTitle] -= 1
+    }
+
     function removeRowFromUncategorizedStack() {
       // remove the last record
       formattedData.value.uncategorized.pop()
       // decrease total count by 1
       countByStack.value.uncategorized -= 1
+    }
+
+    async function deleteRow(row: Row) {
+      try {
+        if (!row.rowMeta.new) {
+          const id = (meta?.value?.columns as ColumnType[])
+            ?.filter((c) => c.pk)
+            .map((c) => row.row[c.title!])
+            .join('___')
+
+          const deleted = await deleteRowById(id as string)
+          if (!deleted) {
+            return
+          }
+        }
+
+        // remove deleted row from state
+        removeRowFromTargetStack(row)
+      } catch (e: any) {
+        message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+      }
+    }
+
+    async function deleteRowById(id: string) {
+      if (!id) {
+        throw new Error("Delete not allowed for table which doesn't have primary Key")
+      }
+
+      const res: any = await $api.dbViewRow.delete(
+        'noco',
+        project.value.id as string,
+        meta.value?.id as string,
+        viewMeta.value?.id as string,
+        id,
+      )
+
+      if (res.message) {
+        message.info(
+          `Row delete failed: ${`Unable to delete row with ID ${id} because of the following:
+              \n${res.message.join('\n')}.\n
+              Clear the data first & try again`})}`,
+        )
+        return false
+      }
+      return true
     }
 
     return {
@@ -466,6 +524,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       updateKanbanStackMeta,
       removeRowFromUncategorizedStack,
       shouldScrollToRight,
+      deleteRow,
     }
   },
   'kanban-view-store',

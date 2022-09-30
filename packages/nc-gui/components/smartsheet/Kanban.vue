@@ -66,6 +66,7 @@ const {
   deleteStack,
   removeRowFromUncategorizedStack,
   shouldScrollToRight,
+  deleteRow,
 } = useKanbanViewStoreOrThrow()
 
 const { isUIAllowed } = useUIPermission()
@@ -81,6 +82,8 @@ provide(IsGridInj, ref(false))
 provide(IsKanbanInj, ref(true))
 
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
+
+const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
@@ -105,7 +108,7 @@ reloadViewMetaHook?.on(async () => {
 })
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
-  if (!isUIAllowed('xcDatatableEditable')) return
+  if (!hasEditPermission) return
 
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
@@ -120,6 +123,25 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
     expandedFormRow.value = row
     expandedFormRowState.value = state
     expandedFormDlg.value = true
+  }
+}
+
+const _contextMenu = ref(false)
+const contextMenu = computed({
+  get: () => _contextMenu.value,
+  set: (val) => {
+    if (hasEditPermission) {
+      _contextMenu.value = val
+    }
+  },
+})
+
+const contextMenuTarget = ref<RowType | null>(null)
+
+const showContextMenu = (e: MouseEvent, target?: RowType) => {
+  e.preventDefault()
+  if (target) {
+    contextMenuTarget.value = target
   }
 }
 
@@ -250,212 +272,233 @@ watch(
     }
   },
 )
+
+// reset context menu target on hide
+watch(contextMenu, () => {
+  if (!contextMenu.value) {
+    contextMenuTarget.value = null
+  }
+})
 </script>
 
 <template>
   <div class="flex h-full bg-white px-2">
     <div ref="kanbanContainerRef" class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
-      <!-- Draggable Stack -->
-      <Draggable
-        v-model="groupingFieldColOptions"
-        class="flex gap-4"
-        item-key="id"
-        group="kanban-stack"
-        draggable=".nc-kanban-stack"
-        filter=".not-draggable"
-        :move="onMoveCallback"
-        @start="(e) => e.target.classList.add('grabbing')"
-        @end="(e) => e.target.classList.remove('grabbing')"
-        @change="onMoveStack($event)"
-      >
-        <template #item="{ element: stack, index: stackIdx }">
-          <div class="nc-kanban-stack" :class="{ 'w-[50px]': stack.collapsed }">
-            <!-- Non Collapsed Stacks -->
-            <a-card
-              v-if="!stack.collapsed"
-              :key="stack.id"
-              class="mx-4 !bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
-              :class="{
-                'not-draggable': stack.id === 'uncategorized' || isLocked || isPublic || !isUIAllowed('xcDatatableEditable'),
-                '!cursor-default': isLocked || !isUIAllowed('xcDatatableEditable'),
-              }"
-              :head-style="{ paddingBottom: '0px' }"
-              :body-style="{ padding: '0px', height: '100%' }"
-            >
-              <!-- Header Color Bar -->
-              <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
+      <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']" overlay-class-name="nc-dropdown-kanban-context-menu">
+        <!-- Draggable Stack -->
+        <Draggable
+          v-model="groupingFieldColOptions"
+          class="flex gap-4"
+          item-key="id"
+          group="kanban-stack"
+          draggable=".nc-kanban-stack"
+          filter=".not-draggable"
+          :move="onMoveCallback"
+          @start="(e) => e.target.classList.add('grabbing')"
+          @end="(e) => e.target.classList.remove('grabbing')"
+          @change="onMoveStack($event)"
+        >
+          <template #item="{ element: stack, index: stackIdx }">
+            <div class="nc-kanban-stack" :class="{ 'w-[50px]': stack.collapsed }">
+              <!-- Non Collapsed Stacks -->
+              <a-card
+                v-if="!stack.collapsed"
+                :key="stack.id"
+                class="mx-4 !bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
+                :class="{
+                  'not-draggable': stack.id === 'uncategorized' || isLocked || isPublic || !hasEditPermission,
+                  '!cursor-default': isLocked || !hasEditPermission,
+                }"
+                :head-style="{ paddingBottom: '0px' }"
+                :body-style="{ padding: '0px', height: '100%' }"
+              >
+                <!-- Header Color Bar -->
+                <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
 
-              <!-- Skeleton -->
-              <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="p-4" />
+                <!-- Skeleton -->
+                <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="p-4" />
 
-              <!-- Stack -->
-              <a-layout v-else class="!bg-[#f0f2f5]">
-                <a-layout-header>
-                  <div class="nc-kanban-stack-head font-bold flex items-center px-[15px]">
-                    <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-kanban-stack-context-menu">
-                      <div
-                        class="flex items-center w-full"
-                        :class="{ 'capitalize': stack.title === 'uncategorized', 'cursor-pointer': !isLocked }"
-                      >
-                        <LazyGeneralTruncateText>{{ stack.title }}</LazyGeneralTruncateText>
-                        <span v-if="!isLocked" class="w-full flex w-[15px]">
-                          <mdi-menu-down class="text-grey text-lg ml-auto" />
-                        </span>
-                      </div>
-                      <template v-if="!isLocked" #overlay>
-                        <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
-                          <a-menu-item
-                            v-if="isUIAllowed('xcDatatableEditable') && !isPublic"
-                            v-e="['c:kanban:add-new-record']"
-                            @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
-                          >
-                            <div class="py-2 flex gap-2 items-center">
-                              <mdi-plus class="text-gray-500" />
-                              {{ $t('activity.addNewRecord') }}
-                            </div>
-                          </a-menu-item>
-                          <a-menu-item v-e="['c:kanban:collapse-stack']" @click="handleCollapseStack(stackIdx)">
-                            <div class="py-2 flex gap-2 items-center">
-                              <mdi-arrow-collapse class="text-gray-500" />
-                              {{ $t('activity.kanban.collapseStack') }}
-                            </div>
-                          </a-menu-item>
-                          <a-menu-item
-                            v-if="stack.title !== 'uncategorized' && !isPublic && isUIAllowed('xcDatatableEditable')"
-                            v-e="['c:kanban:delete-stack']"
-                            @click="handleDeleteStackClick(stack.title, stackIdx)"
-                          >
-                            <div class="py-2 flex gap-2 items-center">
-                              <mdi-delete class="text-gray-500" />
-                              {{ $t('activity.kanban.deleteStack') }}
-                            </div>
-                          </a-menu-item>
-                        </a-menu>
-                      </template>
-                    </a-dropdown>
-                  </div>
-                </a-layout-header>
-
-                <a-layout-content class="overflow-y-hidden">
-                  <div :ref="kanbanListRef" class="nc-kanban-list h-full overflow-y-auto" :data-stack-title="stack.title">
-                    <!-- Draggable Record Card -->
-                    <Draggable
-                      v-model="formattedData[stack.title]"
-                      item-key="row.Id"
-                      draggable=".nc-kanban-item"
-                      group="kanban-card"
-                      class="h-full"
-                      filter=".not-draggable"
-                      @start="(e) => e.target.classList.add('grabbing')"
-                      @end="(e) => e.target.classList.remove('grabbing')"
-                      @change="onMove($event, stack.title)"
-                    >
-                      <template #item="{ element: record }">
-                        <div class="nc-kanban-item py-2 px-[15px]">
-                          <LazySmartsheetRow :row="record">
-                            <a-card
-                              hoverable
-                              :data-stack="stack.title"
-                              class="!rounded-lg h-full overflow-hidden break-all max-w-[450px] shadow-lg"
-                              :class="{
-                                'not-draggable': isLocked || !isUIAllowed('xcDatatableEditable') || isPublic,
-                                '!cursor-default': isLocked || !isUIAllowed('xcDatatableEditable') || isPublic,
-                              }"
-                              :body-style="{ padding: '10px' }"
-                              @click="expandFormClick($event, record)"
+                <!-- Stack -->
+                <a-layout v-else class="!bg-[#f0f2f5]">
+                  <a-layout-header>
+                    <div class="nc-kanban-stack-head font-bold flex items-center px-[15px]">
+                      <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-kanban-stack-context-menu">
+                        <div
+                          class="flex items-center w-full"
+                          :class="{ 'capitalize': stack.title === 'uncategorized', 'cursor-pointer': !isLocked }"
+                        >
+                          <LazyGeneralTruncateText>{{ stack.title }}</LazyGeneralTruncateText>
+                          <span v-if="!isLocked" class="w-full flex w-[15px]">
+                            <mdi-menu-down class="text-grey text-lg ml-auto" />
+                          </span>
+                        </div>
+                        <template v-if="!isLocked" #overlay>
+                          <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
+                            <a-menu-item
+                              v-if="hasEditPermission && !isPublic"
+                              v-e="['c:kanban:add-new-record']"
+                              @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
                             >
-                              <div
-                                v-for="col in fields"
-                                :key="`record-${record.row.id}-${col.id}`"
-                                class="flex flex-col rounded-lg w-full"
+                              <div class="py-2 flex gap-2 items-center">
+                                <mdi-plus class="text-gray-500" />
+                                {{ $t('activity.addNewRecord') }}
+                              </div>
+                            </a-menu-item>
+                            <a-menu-item v-e="['c:kanban:collapse-stack']" @click="handleCollapseStack(stackIdx)">
+                              <div class="py-2 flex gap-2 items-center">
+                                <mdi-arrow-collapse class="text-gray-500" />
+                                {{ $t('activity.kanban.collapseStack') }}
+                              </div>
+                            </a-menu-item>
+                            <a-menu-item
+                              v-if="stack.title !== 'uncategorized' && !isPublic && hasEditPermission"
+                              v-e="['c:kanban:delete-stack']"
+                              @click="handleDeleteStackClick(stack.title, stackIdx)"
+                            >
+                              <div class="py-2 flex gap-2 items-center">
+                                <mdi-delete class="text-gray-500" />
+                                {{ $t('activity.kanban.deleteStack') }}
+                              </div>
+                            </a-menu-item>
+                          </a-menu>
+                        </template>
+                      </a-dropdown>
+                    </div>
+                  </a-layout-header>
+
+                  <a-layout-content class="overflow-y-hidden">
+                    <div :ref="kanbanListRef" class="nc-kanban-list h-full overflow-y-auto" :data-stack-title="stack.title">
+                      <!-- Draggable Record Card -->
+                      <Draggable
+                        v-model="formattedData[stack.title]"
+                        item-key="row.Id"
+                        draggable=".nc-kanban-item"
+                        group="kanban-card"
+                        class="h-full"
+                        filter=".not-draggable"
+                        @start="(e) => e.target.classList.add('grabbing')"
+                        @end="(e) => e.target.classList.remove('grabbing')"
+                        @change="onMove($event, stack.title)"
+                      >
+                        <template #item="{ element: record }">
+                          <div class="nc-kanban-item py-2 px-[15px]">
+                            <LazySmartsheetRow :row="record">
+                              <a-card
+                                hoverable
+                                :data-stack="stack.title"
+                                class="!rounded-lg h-full overflow-hidden break-all max-w-[450px] shadow-lg"
+                                :class="{
+                                  'not-draggable': isLocked || !hasEditPermission || isPublic,
+                                  '!cursor-default': isLocked || !hasEditPermission || isPublic,
+                                }"
+                                :body-style="{ padding: '10px' }"
+                                @click="expandFormClick($event, record)"
+                                @contextmenu="showContextMenu($event, record)"
                               >
-                                <!-- Smartsheet Header (Virtual) Cell -->
-                                <div v-if="!isRowEmpty(record, col)" class="flex flex-row w-full justify-start pt-2">
-                                  <div class="w-full text-gray-400">
-                                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-                                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                <div
+                                  v-for="col in fields"
+                                  :key="`record-${record.row.id}-${col.id}`"
+                                  class="flex flex-col rounded-lg w-full"
+                                >
+                                  <!-- Smartsheet Header (Virtual) Cell -->
+                                  <div v-if="!isRowEmpty(record, col)" class="flex flex-row w-full justify-start pt-2">
+                                    <div class="w-full text-gray-400">
+                                      <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+                                      <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                    </div>
+                                  </div>
+
+                                  <!--  Smartsheet (Virtual) Cell -->
+                                  <div
+                                    v-if="!isRowEmpty(record, col)"
+                                    class="flex flex-row w-full items-center justify-start pl-[6px]"
+                                    :class="{ '!ml-[-12px]': col.uidt === UITypes.SingleSelect }"
+                                  >
+                                    <LazySmartsheetVirtualCell
+                                      v-if="isVirtualCol(col)"
+                                      v-model="record.row[col.title]"
+                                      class="text-sm pt-1"
+                                      :column="col"
+                                      :row="record"
+                                    />
+                                    <LazySmartsheetCell
+                                      v-else
+                                      v-model="record.row[col.title]"
+                                      class="text-sm pt-1"
+                                      :column="col"
+                                      :edit-enabled="false"
+                                      :read-only="true"
+                                    />
                                   </div>
                                 </div>
-
-                                <!--  Smartsheet (Virtual) Cell -->
-                                <div
-                                  v-if="!isRowEmpty(record, col)"
-                                  class="flex flex-row w-full items-center justify-start pl-[6px]"
-                                  :class="{ '!ml-[-12px]': col.uidt === UITypes.SingleSelect }"
-                                >
-                                  <LazySmartsheetVirtualCell
-                                    v-if="isVirtualCol(col)"
-                                    v-model="record.row[col.title]"
-                                    class="text-sm pt-1"
-                                    :column="col"
-                                    :row="record"
-                                  />
-                                  <LazySmartsheetCell
-                                    v-else
-                                    v-model="record.row[col.title]"
-                                    class="text-sm pt-1"
-                                    :column="col"
-                                    :edit-enabled="false"
-                                    :read-only="true"
-                                  />
-                                </div>
-                              </div>
-                            </a-card>
-                          </LazySmartsheetRow>
-                        </div>
-                      </template>
-                    </Draggable>
-                  </div>
-                </a-layout-content>
-
-                <a-layout-footer>
-                  <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
-                    <!-- Stack Title -->
-                    <mdi-plus
-                      v-if="!isPublic"
-                      class="text-pint-500 text-lg text-primary cursor-pointer"
-                      @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
-                    />
-                    <!-- Record Count -->
-                    <div class="nc-kanban-data-count">
-                      {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
-                      {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
+                              </a-card>
+                            </LazySmartsheetRow>
+                          </div>
+                        </template>
+                      </Draggable>
                     </div>
-                  </div>
-                </a-layout-footer>
-              </a-layout>
-            </a-card>
+                  </a-layout-content>
 
-            <!-- Collapsed Stacks -->
-            <a-card
-              v-else
-              :key="`${stack.id}-collapsed`"
-              :style="`background-color: ${stack.color} !important`"
-              class="nc-kanban-stack nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer h-full !pr-[10px]"
-              :class="{
-                'not-draggable': stack.id === 'uncategorized' || isLocked || isPublic || !isUIAllowed('xcDatatableEditable'),
-              }"
-              :body-style="{ padding: '0px', height: '100%', width: '100%', background: '#f0f2f5 !important' }"
-            >
-              <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
-                <!-- Skeleton -->
-                <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="!w-[150px] pl-5" :paragraph="false" />
+                  <a-layout-footer>
+                    <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
+                      <!-- Stack Title -->
+                      <mdi-plus
+                        v-if="!isPublic"
+                        class="text-pint-500 text-lg text-primary cursor-pointer"
+                        @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
+                      />
+                      <!-- Record Count -->
+                      <div class="nc-kanban-data-count">
+                        {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
+                        {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
+                      </div>
+                    </div>
+                  </a-layout-footer>
+                </a-layout>
+              </a-card>
 
-                <div v-else class="nc-kanban-data-count mt-[12px] mx-[10px]">
-                  <!--  Stack title -->
-                  <div class="float-right flex gap-2 items-center cursor-pointer font-bold">
-                    <LazyGeneralTruncateText>{{ stack.title }}</LazyGeneralTruncateText>
-                    <mdi-menu-down class="text-grey text-lg" />
+              <!-- Collapsed Stacks -->
+              <a-card
+                v-else
+                :key="`${stack.id}-collapsed`"
+                :style="`background-color: ${stack.color} !important`"
+                class="nc-kanban-stack nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer h-full !pr-[10px]"
+                :class="{
+                  'not-draggable': stack.id === 'uncategorized' || isLocked || isPublic || !hasEditPermission,
+                }"
+                :body-style="{ padding: '0px', height: '100%', width: '100%', background: '#f0f2f5 !important' }"
+              >
+                <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
+                  <!-- Skeleton -->
+                  <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="!w-[150px] pl-5" :paragraph="false" />
+
+                  <div v-else class="nc-kanban-data-count mt-[12px] mx-[10px]">
+                    <!--  Stack title -->
+                    <div class="float-right flex gap-2 items-center cursor-pointer font-bold">
+                      <LazyGeneralTruncateText>{{ stack.title }}</LazyGeneralTruncateText>
+                      <mdi-menu-down class="text-grey text-lg" />
+                    </div>
+                    <!-- Record Count -->
+                    {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
+                    {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>
-                  <!-- Record Count -->
-                  {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
-                  {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
                 </div>
+              </a-card>
+            </div>
+          </template>
+        </Draggable>
+        <!-- Drop down Menu -->
+        <template v-if="!isLocked && hasEditPermission" #overlay>
+          <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
+            <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget)">
+              <div v-e="['a:row:delete']" class="nc-project-menu-item">
+                <!-- Delete Row -->
+                {{ $t('activity.deleteRow') }}
               </div>
-            </a-card>
-          </div>
+            </a-menu-item>
+          </a-menu>
         </template>
-      </Draggable>
+      </a-dropdown>
     </div>
   </div>
 

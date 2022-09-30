@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
@@ -171,6 +171,10 @@ const syncAndNavigate = (dir: NavigateDir) => {
     <CellText v-else-if="isString" v-model="vModel" />
     <CellJson v-else-if="isJSON" v-model="vModel" />
     <CellText v-else v-model="vModel" />
-    <div v-if="(isLocked || (isPublic && readOnly && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
+    <div
+      v-if="(isLocked || isSystemColumn(column) || (isPublic && readOnly && !isForm)) && !isAttachment"
+      class="nc-locked-overlay"
+      @click.stop.prevent
+    />
   </div>
 </template>

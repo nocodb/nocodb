@@ -29,7 +29,6 @@ const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
     .map((c) => c.title)
     .sort()
     .join(',');
-
   return responseColumnsListStr === customerColumnsListStr;
 };
 
@@ -83,7 +82,7 @@ function viewRowTests() {
     filmColumns = await filmTable.getColumns();
     filmKanbanView = await createView(context, {
       title: 'Film Kanban',
-      table: customerTable,
+      table: filmTable,
       type: ViewTypes.KANBAN,
     });
   });
@@ -107,6 +106,7 @@ function viewRowTests() {
 
   const testGetViewRowListKanban = async (view: View) => {
     const ratingColumn = filmColumns.find((c) => c.column_name === 'rating');
+
     const response = await request(context.app)
       .get(
         `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`
@@ -190,6 +190,39 @@ function viewRowTests() {
 
   it('Get view data list with required columns grid', async () => {
     await testGetViewDataListWithRequiredColumns(customerGridView);
+  });
+
+  const testGetGroupedViewDataListWithRequiredColumns = async (view: View) => {
+    const requiredColumns = filmColumns
+      .filter((_, index) => index < 3)
+      .filter((c: ColumnType) => c.uidt !== UITypes.ForeignKey);
+
+    const ratingColumn = filmColumns.find((c) => c.column_name === 'rating');
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: requiredColumns.map((c) => c.title),
+      })
+      .expect(200);
+
+    expect(response.body).to.be.an('array');
+
+    // PG, R, NC-17, G, PG-17, null (uncategorized)
+    expect(response.body).to.be.have.length(6);
+
+    expect(
+      Object.keys(response.body.find((e) => e.key === 'NC-17').value.list[0])
+        .sort()
+        .join(',')
+    ).to.equal('FilmId,Title');
+  };
+
+  it('Get grouped view data list with required columns kanban', async () => {
+    await testGetGroupedViewDataListWithRequiredColumns(filmKanbanView);
   });
 
   const testDescSortedViewDataList = async (view: View) => {

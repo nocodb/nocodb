@@ -55,10 +55,11 @@ Cypress.Commands.add('setup', ({ dbType }) => {
         headers: {
           "Accept-Encoding": "gzip, deflate",
         }
-      }).then(() => {
+      })
+      .getSettled('.nc-noco-brand-icon', {delay: 100}).should('be.visible')
+      .then(() => {
         return {token: response.body.token, project}
       });
-
     })
   })
 });

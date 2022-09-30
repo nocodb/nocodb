@@ -494,7 +494,7 @@ onBeforeUnmount(reset)
     <div>
       <LazyDashboardSettingsModal v-model="dialogOpen" :open-key="openDialogKey" />
 
-      <NuxtPage :page-key="$route.params.projectId" />
+      <NuxtPage :transition="false" :page-key="$route.params.projectId" />
 
       <LazyGeneralPreviewAs float />
     </div>

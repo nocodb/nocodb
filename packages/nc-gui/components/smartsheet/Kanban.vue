@@ -491,7 +491,8 @@ watch(contextMenu, () => {
         <template v-if="!isLocked && !isPublic && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget)">
-              <div v-e="['a:row:delete']" class="nc-project-menu-item">
+              <div v-e="['a:row:delete']" class="nc-kanban-context-menu-item">
+                <MdiDeleteOutline class="flex" />
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
               </div>

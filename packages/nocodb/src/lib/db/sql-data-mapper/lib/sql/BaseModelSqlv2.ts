@@ -831,8 +831,7 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
-    qb.first();
-    return (await this.extractRawQueryAndExec(qb))?.count;
+    return (await qb.first())?.count;
   }
 
   // todo: naming & optimizing
@@ -937,8 +936,8 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
-    qb.first();
-    return (await this.extractRawQueryAndExec(qb))?.count;
+
+    return (await qb.first())?.count;
   }
 
   // todo: naming & optimizing
@@ -1039,8 +1038,7 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
-    qb.first();
-    return (await this.extractRawQueryAndExec(qb))?.count;
+    return (await qb.first())?.count;
   }
 
   // todo: naming & optimizing

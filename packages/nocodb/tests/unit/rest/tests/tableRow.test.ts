@@ -2257,7 +2257,7 @@ function tableTest() {
     }
   });
 
-  it('Group list api', async function () {
+  it('Get grouped data list', async function () {
     const firstNameColumn = customerColumns.find(
       (col) => col.title === 'FirstName'
     );
@@ -2270,7 +2270,7 @@ function tableTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/Film/group/${ratingColumn.id}`
+        `/api/v1/db/data/noco/${sakilaProject.id}/Film/group/${ratingColumn.id}`
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -2291,8 +2291,6 @@ function tableTest() {
       .and.to.be.an('object')
       .and.to.have.property('totalRows')
       .and.to.be.a('number');
-
-    // todo: test with filter and sort
   });
 }
 

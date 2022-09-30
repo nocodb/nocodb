@@ -20,6 +20,8 @@ const { $e } = useNuxtApp()
 
 const { getColorByIndex } = useColors(true)
 
+const { isUIAllowed } = useUIPermission()
+
 const openProject = async (project: ProjectType) => {
   await navigateTo(`/nc/${project.id}`)
   $e('a:project:open', { count: projects.length })
@@ -31,6 +33,16 @@ const formatTitle = (title: string) =>
     .map((w) => w[0])
     .slice(0, 2)
     .join('')
+
+const $state = useGlobal()
+
+const canCreateProjectWithoutExternalDB = () => {
+  return $state?.appInfo?.value?.canCreateProjectWithoutExternalDB
+}
+
+const canConnectToExternalDB = () => {
+  return $state?.appInfo?.value?.connectToExternalDB
+}
 </script>
 
 <template>
@@ -49,8 +61,12 @@ const formatTitle = (title: string) =>
             {{ $t('title.newProj') }}
           </div>
         </template>
-        <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
+        <v-list
+          v-if="isUIAllowed('projectCreate', true) && (canCreateProjectWithoutExternalDB() || canConnectToExternalDB())"
+          class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2"
+        >
           <div
+            v-if="canCreateProjectWithoutExternalDB()"
             class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
             @click="navigateTo('/project/create')"
           >
@@ -58,6 +74,7 @@ const formatTitle = (title: string) =>
             <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
           </div>
           <div
+            v-if="canConnectToExternalDB()"
             class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
             @click="navigateTo('/project/create-external')"
           >

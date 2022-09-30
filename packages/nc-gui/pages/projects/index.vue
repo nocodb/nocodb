@@ -36,6 +36,8 @@ const route = useRoute()
 
 const { $api } = useNuxtApp()
 
+const { isUIAllowed } = useUIPermission()
+
 const response = await $api.project.list({})
 const projects = $ref(response.list)
 const activePage = $ref(navDrawerOptions[0].title)
@@ -57,6 +59,16 @@ const deleteProject = (project: ProjectType) => {
     },
   })
 }
+
+const $state = useGlobal()
+
+const canCreateProjectWithoutExternalDB = () => {
+  return $state?.appInfo?.value?.canCreateProjectWithoutExternalDB
+}
+
+const canConnectToExternalDB = () => {
+  return $state?.appInfo?.value?.connectToExternalDB
+}
 </script>
 
 <template>
@@ -75,8 +87,12 @@ const deleteProject = (project: ProjectType) => {
               </div>
             </template>
 
-            <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
+            <v-list
+              v-if="isUIAllowed('projectCreate', true) && (canCreateProjectWithoutExternalDB() || canConnectToExternalDB())"
+              class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2"
+            >
               <div
+                v-if="canCreateProjectWithoutExternalDB()"
                 class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
                 @click="navigateTo('/project/create')"
               >
@@ -84,6 +100,7 @@ const deleteProject = (project: ProjectType) => {
                 <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
               </div>
               <div
+                v-if="canConnectToExternalDB()"
                 class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
                 @click="navigateTo('/project/create-external')"
               >

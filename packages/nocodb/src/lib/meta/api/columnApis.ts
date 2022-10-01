@@ -524,20 +524,28 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           // Handle default values
           if (colBody.cdf) {
             if (colBody.uidt === UITypes.SingleSelect) {
-              if (!optionTitles.includes(colBody.cdf)) {
+              if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
                 NcError.badRequest(
                   `Default value '${colBody.cdf}' is not a select option.`
                 );
               }
             } else {
               for (const cdf of colBody.cdf.split(',')) {
-                if (!optionTitles.includes(cdf)) {
+                if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
                   NcError.badRequest(
                     `Default value '${cdf}' is not a select option.`
                   );
                 }
               }
             }
+
+            // handle single quote for default value
+            if (driverType === 'mysql' || driverType === 'mysql2') {
+              colBody.cdf = colBody.cdf.replace(/'/g, "\'");
+            } else {
+              colBody.cdf = colBody.cdf.replace(/'/g, "''");
+            }
+
             if (driverType === 'pg') {
               colBody.cdf = `'${colBody.cdf}'`;
             }
@@ -812,20 +820,28 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       );
       if (colBody.cdf) {
         if (colBody.uidt === UITypes.SingleSelect) {
-          if (!optionTitles.includes(colBody.cdf)) {
+          if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
             NcError.badRequest(
               `Default value '${colBody.cdf}' is not a select option.`
             );
           }
         } else {
           for (const cdf of colBody.cdf.split(',')) {
-            if (!optionTitles.includes(cdf)) {
+            if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
               NcError.badRequest(
                 `Default value '${cdf}' is not a select option.`
               );
             }
           }
         }
+
+        // handle single quote for default value
+        if (driverType === 'mysql' || driverType === 'mysql2') {
+          colBody.cdf = colBody.cdf.replace(/'/g, "\'");
+        } else {
+          colBody.cdf = colBody.cdf.replace(/'/g, "''");
+        }
+
         if (driverType === 'pg') {
           colBody.cdf = `'${colBody.cdf}'`;
         }

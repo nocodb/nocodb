@@ -131,14 +131,14 @@ watch(
                     @click="baseAction(record.id, DataSourcesSubTab.ERD)"
                   />
                 </a-tooltip>
-                <a-tooltip>
+                <a-tooltip v-if="!record.is_meta">
                   <template #title>Edit</template>
                   <MdiEditOutline
                     class="nc-action-btn cursor-pointer outline-0"
                     @click="baseAction(record.id, DataSourcesSubTab.Edit)"
                   />
                 </a-tooltip>
-                <a-tooltip>
+                <a-tooltip v-if="!record.is_meta">
                   <template #title>Delete</template>
                   <MdiDeleteOutline class="nc-action-btn cursor-pointer outline-0" />
                 </a-tooltip>

@@ -55,10 +55,7 @@ function resetError() {
       <div
         class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
-        <LazyGeneralNocoIcon
-          class="color-transition hover:(ring ring-accent)"
-          :class="[isLoading ? 'animated-bg-gradient' : '']"
-        />
+        <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :animate="isLoading" />
 
         <div class="self-center flex flex-col justify-center items-center text-center gap-2">
           <h1 class="prose-2xl font-bold my-4 w-full">{{ $t('title.resetPassword') }}</h1>

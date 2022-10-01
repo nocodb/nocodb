@@ -1,9 +1,7 @@
 <script setup lang="ts">
-interface Props {
+const props = defineProps<{
   baseId: string
-}
-
-const props = defineProps<Props>()
+}>()
 </script>
 
 <template>

@@ -2,6 +2,7 @@
 import { Empty } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
 import CreateBase from './data-sources/CreateBase.vue'
+import EditBase from './data-sources/EditBase.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
@@ -147,7 +148,7 @@ watch(
         </a-table>
       </div>
       <div v-else-if="props.state === DataSourcesSubTab.New" class="max-h-600px overflow-y-auto">
-        <CreateBase />
+        <CreateBase @base-created="loadBases" />
       </div>
       <div v-else-if="props.state === DataSourcesSubTab.Metadata" class="max-h-600px overflow-y-auto">
         <Metadata :base-id="activeBaseId" />
@@ -157,6 +158,9 @@ watch(
       </div>
       <div v-else-if="props.state === DataSourcesSubTab.ERD" class="max-h-600px overflow-y-auto">
         <Erd :base-id="activeBaseId" />
+      </div>
+      <div v-else-if="props.state === DataSourcesSubTab.Edit" class="max-h-600px overflow-y-auto">
+        <EditBase :base-id="activeBaseId" @base-updated="loadBases" />
       </div>
     </div>
   </div>

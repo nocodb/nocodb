@@ -11,6 +11,7 @@ import { BaseType } from 'nocodb-sdk';
 import NocoCache from '../cache/NocoCache';
 import CryptoJS from 'crypto-js';
 import { extractProps } from '../meta/helpers/extractProps';
+import { NcError } from '../meta/helpers/catchError';
 
 // todo: hide credentials
 export default class Base implements BaseType {
@@ -63,6 +64,67 @@ export default class Base implements BaseType {
 
     return this.get(id, ncMeta);
   }
+
+  public static async updateBase(
+    baseId: string,
+    base: BaseType & { id: string; projectId: string; created_at?; updated_at? },
+    ncMeta = Noco.ncMeta
+  ) {
+    const oldBase = await Base.get(baseId, ncMeta);
+
+    if (!oldBase) NcError.badRequest('Wrong base id!');
+
+    await ncMeta.metaDelete(null, null, MetaTable.BASES, {
+      id: baseId,
+    });
+
+    await NocoCache.deepDel(
+      CacheScope.BASE,
+      `${CacheScope.BASE}:${baseId}`,
+      CacheDelDirection.PARENT_TO_CHILD
+    );
+
+    const insertObj = extractProps(base, [
+      'id',
+      'alias',
+      'config',
+      'type',
+      'is_meta',
+      'created_at',
+      'updated_at',
+      'inflection_column',
+      'inflection_table',
+    ]);
+    insertObj.config = CryptoJS.AES.encrypt(
+      JSON.stringify(base.config),
+      Noco.getConfig()?.auth?.jwt?.secret
+    ).toString();
+
+    const { id } = await ncMeta.metaInsert2(
+      base.projectId,
+      null,
+      MetaTable.BASES,
+      insertObj
+    );
+    await NocoCache.appendToList(
+      CacheScope.BASE,
+      [base.projectId],
+      `${CacheScope.BASE}:${id}`
+    );
+
+    return this.get(id, ncMeta);
+  }
+
+  /*
+  await ncMeta.metaDelete(null, null, MetaTable.COL_LOOKUP, {
+          fk_column_id: colId,
+        });
+        await NocoCache.deepDel(
+          CacheScope.COL_LOOKUP,
+          `${CacheScope.COL_LOOKUP}:${colId}`,
+          CacheDelDirection.CHILD_TO_PARENT
+        );
+  */
 
   static async list(
     args: { projectId: string },

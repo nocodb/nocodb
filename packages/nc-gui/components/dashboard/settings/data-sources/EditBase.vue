@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { BaseType } from 'nocodb-sdk'
 import { Form, Modal, message } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import {
@@ -8,10 +9,8 @@ import {
   computed,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
-  generateUniqueName,
   getDefaultConnectionConfig,
   getTestDatabaseName,
-  nextTick,
   onMounted,
   projectTitleValidator,
   readFile,
@@ -25,7 +24,11 @@ import { ClientType } from '~/lib'
 import { DefaultConnection, SQLiteConnection } from '~/utils'
 import type { ProjectCreateForm } from '~/utils'
 
-const emit = defineEmits(['baseCreated'])
+const props = defineProps<{
+  baseId: string
+}>()
+
+const emit = defineEmits(['baseUpdated'])
 
 const { project, loadProject } = useProject()
 
@@ -43,7 +46,7 @@ const { t } = useI18n()
 
 const toggleDialog = inject(ToggleDialogInj, () => {})
 
-let formState = $ref<ProjectCreateForm>({
+const formState = ref<ProjectCreateForm>({
   title: '',
   dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
@@ -76,7 +79,7 @@ const validators = computed(() => {
     ],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
-    ...(formState.dataSource.client === ClientType.SQLITE
+    ...(formState.value.dataSource.client === ClientType.SQLITE
       ? {
           'dataSource.connection.connection.filename': [fieldRequiredValidator()],
         }
@@ -86,7 +89,7 @@ const validators = computed(() => {
           'dataSource.connection.user': [fieldRequiredValidator()],
           'dataSource.connection.password': [fieldRequiredValidator()],
           'dataSource.connection.database': [fieldRequiredValidator()],
-          ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
+          ...([ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client)
             ? {
                 'dataSource.searchPath.0': [fieldRequiredValidator()],
               }
@@ -97,18 +100,13 @@ const validators = computed(() => {
 
 const { validate, validateInfos } = useForm(formState, validators)
 
-const populateName = (v: string) => {
-  formState.dataSource.connection.database = `${v.trim()}_noco`
-}
-
 const onClientChange = () => {
-  formState.dataSource = { ...getDefaultConnectionConfig(formState.dataSource.client) }
-  populateName(formState.title)
+  formState.value.dataSource = { ...getDefaultConnectionConfig(formState.value.dataSource.client) }
 }
 
 const onSSLModeChange = ((mode: SSLUsage) => {
-  if (formState.dataSource.client !== ClientType.SQLITE) {
-    const connection = formState.dataSource.connection as DefaultConnection
+  if (formState.value.dataSource.client !== ClientType.SQLITE) {
+    const connection = formState.value.dataSource.connection as DefaultConnection
     switch (mode) {
       case SSLUsage.No:
         delete connection.ssl
@@ -128,26 +126,26 @@ const onSSLModeChange = ((mode: SSLUsage) => {
 }) as SelectHandler
 
 const updateSSLUse = () => {
-  if (formState.dataSource.client !== ClientType.SQLITE) {
-    const connection = formState.dataSource.connection as DefaultConnection
+  if (formState.value.dataSource.client !== ClientType.SQLITE) {
+    const connection = formState.value.dataSource.connection as DefaultConnection
     if (connection.ssl) {
       if (typeof connection.ssl === 'string') {
-        formState.sslUse = SSLUsage.Allowed
+        formState.value.sslUse = SSLUsage.Allowed
       } else {
-        formState.sslUse = SSLUsage.Preferred
+        formState.value.sslUse = SSLUsage.Preferred
       }
     } else {
-      formState.sslUse = SSLUsage.No
+      formState.value.sslUse = SSLUsage.No
     }
   }
 }
 
 const addNewParam = () => {
-  formState.extraParameters.push({ key: '', value: '' })
+  formState.value.extraParameters.push({ key: '', value: '' })
 }
 
 const removeParam = (index: number) => {
-  formState.extraParameters.splice(index, 1)
+  formState.value.extraParameters.splice(index, 1)
 }
 
 const inflectionTypes = ['camelize', 'none']
@@ -163,26 +161,26 @@ const onFileSelect = (key: CertTypes, el?: HTMLInputElement) => {
   if (!el) return
 
   readFile(el, (content) => {
-    if ('ssl' in formState.dataSource.connection && typeof formState.dataSource.connection.ssl === 'object')
-      formState.dataSource.connection.ssl[key] = content ?? ''
+    if ('ssl' in formState.value.dataSource.connection && typeof formState.value.dataSource.connection.ssl === 'object')
+      formState.value.dataSource.connection.ssl[key] = content ?? ''
   })
 }
 
 const sslFilesRequired = computed(
-  () => !!formState.sslUse && formState.sslUse !== SSLUsage.No && formState.sslUse !== SSLUsage.Allowed,
+  () => !!formState.value.sslUse && formState.value.sslUse !== SSLUsage.No && formState.value.sslUse !== SSLUsage.Allowed,
 )
 
 function getConnectionConfig() {
-  const extraParameters = Object.fromEntries(new Map(formState.extraParameters.map((object) => [object.key, object.value])))
+  const extraParameters = Object.fromEntries(new Map(formState.value.extraParameters.map((object) => [object.key, object.value])))
 
   const connection = {
-    ...formState.dataSource.connection,
+    ...formState.value.dataSource.connection,
     ...extraParameters,
   }
 
   if ('ssl' in connection && connection.ssl) {
     if (
-      formState.sslUse === SSLUsage.No ||
+      formState.value.sslUse === SSLUsage.No ||
       (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => v === null || v === undefined))
     ) {
       delete connection.ssl
@@ -195,7 +193,7 @@ const focusInvalidInput = () => {
   form.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
-const createBase = async () => {
+const editBase = async () => {
   try {
     await validate()
   } catch (e) {
@@ -208,21 +206,21 @@ const createBase = async () => {
 
     const connection = getConnectionConfig()
 
-    const config = { ...formState.dataSource, connection }
+    const config = { ...formState.value.dataSource, connection }
 
-    await api.base.create(project.value?.id, {
-      alias: formState.title,
-      type: formState.dataSource.client,
+    await api.base.update(project.value?.id, props.baseId, {
+      alias: formState.value.title,
+      type: formState.value.dataSource.client,
       config,
-      inflection_column: formState.inflection.inflectionColumn,
-      inflection_table: formState.inflection.inflectionTable,
+      inflection_column: formState.value.inflection.inflectionColumn,
+      inflection_table: formState.value.inflection.inflectionTable,
     })
 
-    $e('a:base:create:extdb')
+    $e('a:base:edit:extdb')
 
     await loadProject()
-    emit('baseCreated')
-    message.success('Base created!')
+    emit('baseUpdated')
+    message.success('Base updated!')
     toggleDialog(true, 'dataSources', '')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -237,18 +235,18 @@ const testConnection = async () => {
     return
   }
 
-  $e('a:base:create:extdb:test-connection', [])
+  $e('a:base:edit:extdb:test-connection', [])
 
   try {
-    if (formState.dataSource.client === ClientType.SQLITE) {
+    if (formState.value.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
     } else {
       const connection = getConnectionConfig()
 
-      connection.database = getTestDatabaseName(formState.dataSource)!
+      connection.database = getTestDatabaseName(formState.value.dataSource)!
 
       const testConnectionConfig = {
-        ...formState.dataSource,
+        ...formState.value.dataSource,
         connection,
       }
 
@@ -262,10 +260,10 @@ const testConnection = async () => {
           icon: null,
           type: 'success',
 
-          okText: 'Ok & Add Base',
+          okText: 'Ok & Edit Base',
           okType: 'primary',
           cancelText: t('general.cancel'),
-          onOk: createBase,
+          onOk: editBase,
         })
       } else {
         testSuccess.value = false
@@ -286,8 +284,8 @@ const handleImportURL = async () => {
   const connectionConfig = await api.utils.urlToConfig({ url: importURL.value })
 
   if (connectionConfig) {
-    formState.dataSource.client = connectionConfig.client
-    formState.dataSource.connection = { ...connectionConfig.connection }
+    formState.value.dataSource.client = connectionConfig.client
+    formState.value.dataSource.connection = { ...connectionConfig.connection }
   } else {
     message.error(t('msg.error.invalidURL'))
   }
@@ -296,40 +294,46 @@ const handleImportURL = async () => {
 }
 
 const handleEditJSON = () => {
-  customFormState.value = { ...formState }
+  customFormState.value = formState.value
   configEditDlg.value = true
 }
 
 const handleOk = () => {
-  formState = { ...customFormState.value }
+  formState.value = customFormState.value
   configEditDlg.value = false
   updateSSLUse()
 }
 
 // reset test status on config change
 watch(
-  () => formState.dataSource,
+  () => formState.value.dataSource,
   () => (testSuccess.value = false),
   { deep: true },
 )
 
-// populate database name based on title
-watch(
-  () => formState.title,
-  (v) => populateName(v),
-)
-
-// select and focus title field on load
+// load base config
 onMounted(async () => {
-  formState.title = await generateUniqueName()
-  nextTick(() => {
-    // todo: replace setTimeout and follow better approach
-    setTimeout(() => {
-      const input = form.value?.$el?.querySelector('input[type=text]')
-      input.setSelectionRange(0, formState.title.length)
-      input.focus()
-    }, 500)
-  })
+  if (project.value?.id) {
+    const definedParameters = ['host', 'port', 'user', 'password', 'database']
+
+    const activeBase = (await api.base.read(project.value?.id, props.baseId)) as BaseType
+
+    const tempParameters = Object.entries(activeBase.config.connection)
+      .filter(([key]) => !definedParameters.includes(key))
+      .map(([key, value]) => ({ key: key as string, value: value as string }))
+
+    formState.value = {
+      title: activeBase.alias || '',
+      dataSource: activeBase.config,
+      inflection: {
+        inflectionColumn: activeBase.inflection_column,
+        inflectionTable: activeBase.inflection_table,
+      },
+      extraParameters: tempParameters,
+      sslUse: SSLUsage.No,
+    }
+    updateSSLUse()
+  }
 })
 </script>
 
@@ -337,7 +341,7 @@ onMounted(async () => {
   <div
     class="create-external bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
   >
-    <h1 class="prose-2xl font-bold self-center my-4">New Base</h1>
+    <h1 class="prose-2xl font-bold self-center my-4">Edit Base</h1>
 
     <a-form
       ref="form"
@@ -536,7 +540,7 @@ onMounted(async () => {
             {{ $t('activity.testDbConn') }}
           </a-button>
 
-          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !shadow" @click="createBase">
+          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !shadow" @click="editBase">
             {{ $t('general.submit') }}
           </a-button>
         </div>

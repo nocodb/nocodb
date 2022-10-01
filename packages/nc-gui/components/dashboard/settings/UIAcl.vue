@@ -13,11 +13,9 @@ import {
   viewIcons,
 } from '#imports'
 
-interface Props {
+const props = defineProps<{
   baseId: string
-}
-
-const props = defineProps<Props>()
+}>()
 
 const { t } = useI18n()
 

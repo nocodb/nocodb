@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { Empty, extractSdkResponseErrorMsg, h, message, useI18n, useNuxtApp, useProject } from '#imports'
 
-interface Props {
+const props = defineProps<{
   baseId: string
-}
-
-const props = defineProps<Props>()
+}>()
 
 const { $api } = useNuxtApp()
 

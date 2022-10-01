@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Project from '../../models/Project';
-import { BaseListType, ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
+import { BaseListType, ModelTypes, UITypes } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { syncBaseMigration } from '../helpers/syncMigration';
 import { IGNORE_TABLES } from '../../utils/common/BaseApiBuilder';
@@ -13,7 +13,6 @@ import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
-import { NcError } from '../helpers/catchError';
 import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { extractAndGenerateManyToManyRelations } from './metaDiffApis';
@@ -25,16 +24,33 @@ export async function baseGet(
 ) {
   const base = await Base.get(req.params.baseId);
 
-  delete base.config;
+  base.config = base.getConnectionConfig();
 
   res.json(base);
 }
 
 export async function baseUpdate(
-  _req: Request<any, any, any>,
-  _res: Response<ProjectListType>
+  req: Request<any, any, any>,
+  res: Response<any>
 ) {
-  NcError.badRequest('Base update not yet supported');
+  const baseBody = req.body;
+  const project = await Project.getWithInfo(req.params.projectId);
+  const base = await Base.updateBase(req.params.baseId,
+    {
+      ...baseBody,
+      type: baseBody.config?.client,
+      projectId: project.id,
+      id: req.params.baseId,
+    }
+  );
+
+  delete base.config;
+
+  Tele.emit('evt', {
+    evt_type: 'base:updated'
+  });
+
+  res.json(base);
 }
 
 export async function baseList(

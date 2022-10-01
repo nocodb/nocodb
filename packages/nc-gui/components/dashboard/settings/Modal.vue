@@ -162,6 +162,13 @@ watch(
 )
 
 watch(
+  () => props.dataSourcesState,
+  (nextState) => {
+    dataSourcesState.value = nextState || ''
+  },
+)
+
+watch(
   () => props.modelValue,
   () => {
     dataSourcesState.value = props.dataSourcesState || ''

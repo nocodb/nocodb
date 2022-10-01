@@ -2608,6 +2608,20 @@
             },
             "in": "query",
             "name": "where"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit"
           }
         ],
         "responses": {

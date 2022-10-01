@@ -11,6 +11,8 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
+const { isPg } = useProject()
+
 const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
 let options = $ref<any[]>([])
@@ -76,6 +78,11 @@ onMounted(() => {
   // Support for older options
   for (const op of options.filter((el) => el.order === null)) {
     op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+  }
+
+  // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
+  if (isPg.value && vModel.value.cdf) {
+    vModel.value.cdf = vModel.value.cdf.substring(vModel.value.cdf.indexOf(`'`) + 1, vModel.value.cdf.lastIndexOf(`'`))
   }
 })
 

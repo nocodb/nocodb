@@ -31,7 +31,8 @@ export const genTest = (apiType, dbType) => {
       .find(".share-link-box")
       .contains("/nc/view/", { timeout: 10000 })
       .then(($obj) => {
-        cy.get("body").type("{esc}");
+        // cy.get("body").type("{esc}");
+        cy.closeActiveModal(".nc-modal-share-view");
         // viewURL.push($obj.text())
         viewURL[viewName] = $obj.text().trim();
       });

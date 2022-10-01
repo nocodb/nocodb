@@ -395,7 +395,7 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const rows = await this.raw(
-        `select table_name FROM all_tables WHERE owner='${args.databaseName}'`
+        `select table_name as tn FROM all_tables WHERE owner='${args.databaseName}'`
       );
       for (let i = 0; i < rows.length; i++) {
         let el = rows[i];

@@ -214,9 +214,9 @@ export const genTest = (apiType, dbType) => {
         // submit button & validate
         cy.get(".nc-form").find("button").contains("Submit").click();
 
-        cy.get(".ant-alert-message")
-          .contains("Successfully submitted form data")
-          .should("exist");
+        cy.get(
+          ".ant-alert-message :contains('Successfully submitted form data')"
+        ).should("exist");
 
         // end of test removes newly added rows from table. that step validates if row was successfully added.
       });
@@ -238,9 +238,9 @@ export const genTest = (apiType, dbType) => {
 
         // submit button & validate
         cy.get(".nc-form").find("button").contains("Submit").click();
-        cy.get(".ant-alert-message")
-          .contains("Congratulations!")
-          .should("exist");
+        cy.get(".ant-alert-message :contains('Congratulations!')").should(
+          "exist"
+        );
 
         // end of test removes newly added rows from table. that step validates if row was successfully added.
       });
@@ -262,9 +262,9 @@ export const genTest = (apiType, dbType) => {
 
         // submit button & validate
         cy.get(".nc-form").find("button").contains("Submit").click();
-        cy.get(".ant-alert-message")
-          .contains("Congratulations")
-          .should("exist");
+        cy.get(".ant-alert-message :contains('Congratulations!')").should(
+          "exist"
+        );
         cy.get("button")
           .contains("Submit Another Form")
           .should("exist")
@@ -288,8 +288,7 @@ export const genTest = (apiType, dbType) => {
 
         // submit button & validate
         cy.get(".nc-form").find("button").contains("Submit").click();
-        cy.get(".ant-alert-message")
-          .contains("Congratulations")
+        cy.get(".ant-alert-message :contains('Congratulations!')")
           .should("exist")
           .then(() => {
             // validate if form has appeared again

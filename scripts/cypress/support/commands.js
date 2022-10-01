@@ -179,7 +179,7 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
   // for some tables, linked records are not available immediately
   cy.wait(1000);
 
-  cy.get(".xc-row-table.nc-grid").should("exist");
+  cy.get(".xc-row-table.nc-grid", { timeout: 30000 }).should("exist");
 
   // wait for page rendering to complete
   if (rc != 0) {
@@ -199,7 +199,7 @@ Cypress.Commands.add("closeTableTab", (tn) => {
     .click();
 
   // subsequent tab open commands will fail if tab is not closed completely
-  cy.wait(100);
+  cy.wait(2000)
 });
 
 Cypress.Commands.add("openOrCreateGqlProject", (_args) => {

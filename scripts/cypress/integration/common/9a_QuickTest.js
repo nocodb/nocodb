@@ -115,7 +115,7 @@ export const genTest = (apiType, dbType, testMode) => {
         cy.wait(2000);
         // close team & auth tab
         cy.get("button.ant-tabs-tab-remove").should("exist").click();
-        cy.wait(1000);
+        cy.wait(2000);
       } else {
         cy.restoreLocalStorage();
       }

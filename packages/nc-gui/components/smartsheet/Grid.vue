@@ -161,16 +161,6 @@ openNewRecordFormHook?.on(async () => {
   expandForm(newRow, undefined, true)
 })
 
-watch(
-  () => view.value?.id,
-  async (next, old) => {
-    if (next && old && next !== old) {
-      await loadData()
-    }
-  },
-  { immediate: true },
-)
-
 const onresize = (colID: string, event: any) => {
   updateWidth(colID, event.detail)
 }
@@ -239,7 +229,6 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
-
 onClickOutside(smartTable, () => {
   clearRangeRows()
   if (selected.col === null) return
@@ -247,6 +236,7 @@ onClickOutside(smartTable, () => {
   const activeCol = fields.value[selected.col]
 
   if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
+
   selected.row = null
   selected.col = null
 })
@@ -326,7 +316,17 @@ const expandedFormOnRowIdDlg = computed({
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 // trigger initial data load in grid
-reloadViewDataHook.trigger()
+// reloadViewDataHook.trigger()
+
+watch(
+  () => view.value?.id,
+  async (next, old) => {
+    if (next && next !== old) {
+      await loadData()
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -489,12 +489,7 @@ reloadViewDataHook.trigger()
                         v-else
                         v-model="row.row[columnObj.title]"
                         :column="columnObj"
-                        :edit-enabled="
-                          isUIAllowed('xcDatatableEditable') &&
-                          editEnabled &&
-                          selected.col === colIndex &&
-                          selected.row === rowIndex
-                        "
+                        :edit-enabled="hasEditPermission && editEnabled && selected.col === colIndex && selected.row === rowIndex"
                         :row-index="rowIndex"
                         :active="selected.col === colIndex && selected.row === rowIndex"
                         @update:edit-enabled="editEnabled = false"
@@ -508,7 +503,7 @@ reloadViewDataHook.trigger()
               </template>
             </LazySmartsheetRow>
 
-            <tr v-if="!isView && !isLocked && isUIAllowed('xcDatatableEditable') && !isSqlView">
+            <tr v-if="!isView && !isLocked && hasEditPermission && !isSqlView">
               <td
                 v-e="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
@@ -527,7 +522,7 @@ reloadViewDataHook.trigger()
           </tbody>
         </table>
 
-        <template v-if="!isLocked && isUIAllowed('xcDatatableEditable')" #overlay>
+        <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
               <div v-e="['a:row:delete']" class="nc-project-menu-item">

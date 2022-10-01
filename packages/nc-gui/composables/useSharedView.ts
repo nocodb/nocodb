@@ -3,10 +3,7 @@ import { UITypes } from 'nocodb-sdk'
 import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
 export function useSharedView() {
-  const nestedFilters = useState<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>(
-    'nestedFilters',
-    () => [],
-  )
+  const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
   const { appInfo } = $(useGlobal())
 
@@ -16,7 +13,7 @@ export function useSharedView() {
 
   const sharedView = useState<ViewType | undefined>('sharedView', () => undefined)
 
-  const sorts = useState<SortType[]>('sorts', () => [])
+  const sorts = ref<SortType[]>([])
 
   const password = useState<string | undefined>('password', () => undefined)
 
@@ -64,7 +61,7 @@ export function useSharedView() {
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
   }
 
-  const fetchSharedViewData = async () => {
+  const fetchSharedViewData = async ({ sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] }) => {
     if (!sharedView.value) return
 
     const page = paginationData.value.page || 1
@@ -74,8 +71,8 @@ export function useSharedView() {
       sharedView.value.uuid!,
       {
         offset: (page - 1) * pageSize,
-        filterArrJson: JSON.stringify(nestedFilters.value),
-        sortArrJson: JSON.stringify(sorts.value),
+        filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
       } as any,
       {
         headers: {

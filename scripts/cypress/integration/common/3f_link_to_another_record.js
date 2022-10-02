@@ -6,7 +6,7 @@ export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
   // tbd: this needs a proper fix
-  let waitTime = 2000;
+  let waitTime = 0;
   let clear;
 
   describe(`${apiType.toUpperCase()} api - Link to another record`, () => {

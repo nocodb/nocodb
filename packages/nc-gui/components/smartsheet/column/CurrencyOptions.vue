@@ -62,7 +62,7 @@ const currencyLocaleList = currencyLocales() || []
 const isMoney = computed(() => vModel.value.dt === 'money')
 
 const message = computed(() => {
-  if (isMoney.value && isPg) return "PostgreSQL 'money' type has own currency settings"
+  if (isMoney.value && isPg.value) return "PostgreSQL 'money' type has own currency settings"
   return ''
 })
 

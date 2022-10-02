@@ -54,9 +54,7 @@ export const genTest = (apiType, dbType) => {
         .contains("Rollup")
         .click();
 
-      // fix me! wait till the modal rendering (input highlight) is completed
-      // focus shifts back to the input field to select text after the dropdown is rendered
-      cy.wait(500);
+      cy.inputHighlightRenderWait();
 
       // Configure Child table & column names
       fetchParentFromLabel("Child table");

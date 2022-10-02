@@ -410,6 +410,12 @@ Cypress.Commands.add("toastWait", (msg) => {
   );
 });
 
+Cypress.Commands.add("inputHighlightRenderWait", (selector) => {
+  // fix me! wait till the modal rendering (input highlight) is completed
+  // focus shifts back to the input field to select text after the dropdown is rendered
+  cy.wait(500);
+});
+
 // vn: view name
 // rc: expected row count. validate row count if rc!=0
 Cypress.Commands.add("openViewsTab", (vn, rc) => {

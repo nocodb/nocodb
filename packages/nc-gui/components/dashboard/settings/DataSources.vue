@@ -21,8 +21,8 @@ const emits = defineEmits(['update:state', 'update:reload'])
 const vModel = useVModel(props, 'state', emits)
 const vReload = useVModel(props, 'reload', emits)
 
-const { $api } = useNuxtApp()
-const { project } = useProject()
+const { $api, $e } = useNuxtApp()
+const { project, loadProject } = useProject()
 
 let sources = $ref<BaseType[]>([])
 let activeBaseId = $ref('')
@@ -65,6 +65,30 @@ async function loadMetaDiff() {
 const baseAction = (baseId: string, action: string) => {
   activeBaseId = baseId
   vModel.value = action
+}
+
+const deleteBase = (base: BaseType) => {
+  $e('c:base:delete')
+
+  Modal.confirm({
+    title: `Do you want to delete '${base.alias}' project?`,
+    wrapClassName: 'nc-modal-base-delete',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    async onOk() {
+      try {
+        await $api.base.delete(base.project_id as string, base.id as string)
+
+        $e('a:base:delete')
+
+        sources.splice(sources.indexOf(base), 1)
+        await loadProject()
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
 }
 
 onMounted(async () => {
@@ -140,7 +164,7 @@ watch(
                 </a-tooltip>
                 <a-tooltip v-if="!record.is_meta">
                   <template #title>Delete</template>
-                  <MdiDeleteOutline class="nc-action-btn cursor-pointer outline-0" />
+                  <MdiDeleteOutline class="nc-action-btn cursor-pointer outline-0" @click="deleteBase(record)" />
                 </a-tooltip>
               </div>
             </template>

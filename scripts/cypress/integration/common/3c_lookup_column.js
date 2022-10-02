@@ -11,18 +11,7 @@ export const genTest = (apiType, dbType) => {
       cy.get("label").contains(label).parents(".ant-row").click();
     };
 
-    // Run once before test- create project (rest/graphql)
-    //
     // before(() => {
-    //     cy.fileHook();
-    //     mainPage.tabReset();
-    //     // open a table to work on views
-    //     //
-    //
-    //     // // close team & auth tab
-    //     // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-    //
-    //     cy.openTableTab("City", 25);
     // });
 
     beforeEach(() => {

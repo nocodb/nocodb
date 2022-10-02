@@ -615,17 +615,7 @@ export class _mainPage {
     });
   }
 
-  tabReset() {
-    // temporary disable (kludge)
-    // mainPage.toolBarTopLeft(mainPage.HOME).click({ force: true });
-    // cy.get(".project-row").should("exist").click({ force: true });
-    // projectsPage.waitHomePageLoad();
-    // option-2
-    // cy.openTableTab("Country", 0);
-    // cy.get(".mdi-close").click({ multiple: true });
-    // cy.get("button.ant-tabs-tab-remove").click({ multiple: true });
-    // cy.get('.ant-tabs-tab-remove').should('not.exist')
-  }
+  tabReset() {}
 
   toggleRightSidebar() {
     cy.get(".nc-toggle-right-navbar").should("exist").click();

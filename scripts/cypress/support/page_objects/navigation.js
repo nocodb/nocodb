@@ -70,16 +70,6 @@ export class _loginPage {
   loginAndOpenProject(apiType, dbType) {
     loginPage.signIn(roles.owner.credentials);
     projectsPage.openConfiguredProject(apiType, dbType);
-    // if (dbType === "mysql") {
-    //     projectsPage.openProject(staticProjects.externalREST.basic.name);
-    // } else if (dbType === "xcdb") {
-    //     projectsPage.openProject(staticProjects.sampleREST.basic.name);
-    // } else if (dbType === "postgres") {
-    //     projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
-    // }
-    //
-    // // close team & auth tab
-    // cy.get('button.ant-tabs-tab-remove').should('exist').click();
   }
 }
 
@@ -108,9 +98,7 @@ export class _projectsPage {
     cy.wait("@waitForPageLoad");
 
     // close team & auth tab
-    cy.getSettled("button.ant-tabs-tab-remove").should("be.visible").click();
-    cy.get("button.ant-tabs-tab-remove").should("not.exist");
-    cy.wait(2000);
+    cy.closeTableTab();
   }
 
   // Open existing project

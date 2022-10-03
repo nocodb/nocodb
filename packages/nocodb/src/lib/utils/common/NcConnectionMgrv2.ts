@@ -118,6 +118,7 @@ export default class NcConnectionMgrv2 {
         ...defaultConnectionOptions,
         ...connectionConfig,
         connection: {
+          multipleStatements: true,
           ...defaultConnectionConfig,
           ...connectionConfig.connection,
           typeCast(_field, next) {

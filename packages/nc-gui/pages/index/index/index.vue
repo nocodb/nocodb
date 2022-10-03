@@ -1,18 +1,20 @@
 <script lang="ts" setup>
-import { Empty, Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import {
+  Empty,
+  Modal,
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
+  message,
   navigateTo,
+  onBeforeMount,
   projectThemeColors,
   ref,
   themeV2Colors,
   useApi,
   useNuxtApp,
-  useSidebar,
   useUIPermission,
 } from '#imports'
 
@@ -25,8 +27,6 @@ const { $api, $e } = useNuxtApp()
 const { api, isLoading } = useApi()
 
 const { isUIAllowed } = useUIPermission()
-
-useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: true })
 
 const filterQuery = ref('')
 
@@ -67,8 +67,6 @@ const deleteProject = (project: ProjectType) => {
   })
 }
 
-await loadProjects()
-
 const handleProjectColor = async (projectId: string, color: string) => {
   const tcolor = tinycolor(color)
 
@@ -95,6 +93,7 @@ const handleProjectColor = async (projectId: string, color: string) => {
 
     if (localProject) {
       localProject.color = color
+
       localProject.meta = JSON.stringify({
         ...meta,
         theme: {
@@ -122,12 +121,12 @@ const customRow = (record: ProjectType) => ({
   },
   class: ['group'],
 })
+
+onBeforeMount(loadProjects)
 </script>
 
 <template>
   <div class="bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)">
-    <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
-
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
       <!-- My Projects -->
       <span class="text-4xl nc-project-page-title">{{ $t('title.myProject') }}</span>
@@ -194,18 +193,12 @@ const customRow = (record: ProjectType) => ({
       </a-dropdown>
     </div>
 
-    <TransitionGroup name="layout" mode="out-in">
-      <div v-if="isLoading" key="skeleton">
+    <Transition name="layout" mode="out-in">
+      <div v-if="isLoading">
         <a-skeleton />
       </div>
 
-      <a-table
-        v-else
-        key="table"
-        :custom-row="customRow"
-        :data-source="filteredProjects"
-        :pagination="{ position: ['bottomCenter'] }"
-      >
+      <a-table v-else :custom-row="customRow" :data-source="filteredProjects" :pagination="{ position: ['bottomCenter'] }">
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </template>
@@ -231,12 +224,13 @@ const customRow = (record: ProjectType) => ({
 
                       <template #expandIcon></template>
 
-                      <GeneralColorPicker
+                      <LazyGeneralColorPicker
                         :colors="projectThemeColors"
                         :row-size="9"
                         :advanced="false"
                         @input="handleProjectColor(record.id, $event)"
                       />
+
                       <a-sub-menu key="pick-primary">
                         <template #title>
                           <div class="nc-project-menu-item group !py-0">
@@ -244,8 +238,10 @@ const customRow = (record: ProjectType) => ({
                             Custom Color
                           </div>
                         </template>
+
                         <template #expandIcon></template>
-                        <GeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
+
+                        <LazyGeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
                       </a-sub-menu>
                     </a-sub-menu>
                   </template>
@@ -271,7 +267,7 @@ const customRow = (record: ProjectType) => ({
           </template>
         </a-table-column>
       </a-table>
-    </TransitionGroup>
+    </Transition>
   </div>
 </template>
 

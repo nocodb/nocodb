@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
-import MenuTop from './MenuTop.vue'
-import MenuBottom from './MenuBottom.vue'
-import Toolbar from './toolbar/index.vue'
 import {
   ActiveViewInj,
   MetaInj,
@@ -11,6 +8,7 @@ import {
   inject,
   provide,
   ref,
+  useNuxtApp,
   useRoute,
   useRouter,
   useSidebar,
@@ -36,7 +34,7 @@ const { $e } = useNuxtApp()
 provide(ViewListInj, views)
 
 /** Sidebar visible */
-const { isOpen } = useSidebar('nc-right-sidebar', { isOpen: true })
+const { isOpen } = useSidebar('nc-right-sidebar')
 
 const sidebarCollapsed = computed(() => !isOpen.value)
 
@@ -74,6 +72,10 @@ watch(
           })
         }
       }
+    } else {
+      if (nextViews?.length && activeView.value !== nextViews[0]) {
+        activeView.value = nextViews[0]
+      }
     }
     /** if active view is not found, set it to first view */
     if (!activeView.value && nextViews.length) {
@@ -92,8 +94,8 @@ function openModal({ type, title = '', copyViewId }: { type: ViewTypes; title: s
 }
 
 /** Handle view creation */
-function onCreate(view: ViewType) {
-  views.value.push(view)
+async function onCreate(view: ViewType) {
+  await loadViews()
   router.push({ params: { viewTitle: view.title || '' } })
   modalOpen = false
   $e('a:view:create', { view: view.type })
@@ -105,24 +107,24 @@ function onCreate(view: ViewType) {
     ref="sidebar"
     :collapsed="sidebarCollapsed"
     collapsiple
-    collapsed-width="50"
+    collapsed-width="0"
     width="250"
     class="relative shadow-md h-full"
     theme="light"
   >
-    <Toolbar
+    <LazySmartsheetSidebarToolbar
       v-if="isOpen"
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     />
     <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
-      <MenuTop @open-modal="openModal" @deleted="loadViews" />
+      <LazySmartsheetSidebarMenuTop @open-modal="openModal" @deleted="loadViews" />
 
       <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="!my-3 w-full border-b-1" />
 
-      <MenuBottom @open-modal="openModal" />
+      <LazySmartsheetSidebarMenuBottom @open-modal="openModal" />
     </div>
 
-    <dlg-view-create
+    <LazyDlgViewCreate
       v-if="views"
       v-model="modalOpen"
       :title="viewCreateTitle"

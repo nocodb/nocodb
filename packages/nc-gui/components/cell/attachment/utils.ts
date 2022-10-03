@@ -1,5 +1,3 @@
-import { message } from 'ant-design-vue'
-import FileSaver from 'file-saver'
 import {
   ColumnInj,
   EditModeInj,
@@ -11,6 +9,7 @@ import {
   computed,
   inject,
   isImage,
+  message,
   ref,
   useApi,
   useFileDialog,
@@ -146,7 +145,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     /** download a file */
     async function downloadFile(item: Record<string, any>) {
-      FileSaver.saveAs(item.url || item.data, item.title)
+      ;(await import('file-saver')).saveAs(item.url || item.data, item.title)
     }
 
     const FileIcon = (icon: string) => {

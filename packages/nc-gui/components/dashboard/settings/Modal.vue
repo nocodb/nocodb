@@ -1,19 +1,10 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import AuditTab from './AuditTab.vue'
-import AppStore from './AppStore.vue'
-import Metadata from './Metadata.vue'
-import UIAcl from './UIAcl.vue'
-import Misc from './Misc.vue'
-import Erd from './Erd.vue'
-import { useNuxtApp } from '#app'
-import { useI18n, useUIPermission, useVModel, watch } from '#imports'
-import ApiTokenManagement from '~/components/tabs/auth/ApiTokenManagement.vue'
-import UserManagement from '~/components/tabs/auth/UserManagement.vue'
+import { resolveComponent, useI18n, useNuxtApp, useUIPermission, useVModel, watch } from '#imports'
 import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
-import NootbookOutline from '~icons/mdi/notebook-outline'
+import NotebookOutline from '~icons/mdi/notebook-outline'
 
 interface Props {
   modelValue: boolean
@@ -59,7 +50,7 @@ const tabsInfo: TabGroup = {
             usersManagement: {
               // Users Management
               title: t('title.userMgmt'),
-              body: UserManagement,
+              body: resolveComponent('TabsAuthUserManagement'),
             },
           }
         : {}),
@@ -68,7 +59,7 @@ const tabsInfo: TabGroup = {
             apiTokenManagement: {
               // API Tokens Management
               title: t('title.apiTokenMgmt'),
-              body: ApiTokenManagement,
+              body: resolveComponent('TabsAuthApiTokenManagement'),
             },
           }
         : {}),
@@ -86,7 +77,7 @@ const tabsInfo: TabGroup = {
           subTabs: {
             new: {
               title: 'Apps',
-              body: AppStore,
+              body: resolveComponent('DashboardSettingsAppStore'),
             },
           },
           onClick: () => {
@@ -103,26 +94,26 @@ const tabsInfo: TabGroup = {
       metaData: {
         // Metadata
         title: t('title.metadata'),
-        body: Metadata,
+        body: resolveComponent('DashboardSettingsMetadata'),
       },
       acl: {
         // UI Access Control
         title: t('title.uiACL'),
-        body: UIAcl,
+        body: resolveComponent('DashboardSettingsUIAcl'),
         onClick: () => {
           $e('c:table:ui-acl')
         },
       },
       erd: {
         title: t('title.erdView'),
-        body: Erd,
+        body: resolveComponent('DashboardSettingsErd'),
         onClick: () => {
           $e('c:settings:erd')
         },
       },
       misc: {
         title: t('general.misc'),
-        body: Misc,
+        body: resolveComponent('DashboardSettingsMisc'),
       },
     },
     onClick: () => {
@@ -132,12 +123,12 @@ const tabsInfo: TabGroup = {
   audit: {
     // Audit
     title: t('title.audit'),
-    icon: NootbookOutline,
+    icon: NotebookOutline,
     subTabs: {
       audit: {
         // Audit
         title: t('title.audit'),
-        body: AuditTab,
+        body: resolveComponent('DashboardSettingsAuditTab'),
       },
     },
     onClick: () => {

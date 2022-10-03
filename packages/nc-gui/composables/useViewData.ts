@@ -1,20 +1,25 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { message } from 'ant-design-vue'
 import {
   IsPublicInj,
   NOCO,
+  computed,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   getHTMLEncodedText,
+  message,
+  ref,
   useApi,
   useGlobal,
   useI18n,
   useNuxtApp,
   useProject,
+  useSharedView,
+  useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
+import type { Row } from '~/lib'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -22,17 +27,6 @@ const formatData = (list: Record<string, any>[]) =>
     oldRow: { ...row },
     rowMeta: {},
   }))
-
-export interface Row {
-  row: Record<string, any>
-  oldRow: Record<string, any>
-  rowMeta: {
-    new?: boolean
-    selected?: boolean
-    commentCount?: number
-    changed?: boolean
-  }
-}
 
 export function useViewData(
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
@@ -44,21 +38,32 @@ export function useViewData(
   }
 
   const { t } = useI18n()
+
   const { api, isLoading, error } = useApi()
+
   const { appInfo } = $(useGlobal())
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
+
   const galleryData = ref<GalleryType>()
+
   const formColumnData = ref<FormType>()
+
   const formViewData = ref<FormType>()
+
   const formattedData = ref<Row[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
+
   const { project, isSharedBase } = useProject()
+
   const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
+
   const { $api, $e } = useNuxtApp()
+
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+
   const { isUIAllowed } = useUIPermission()
 
   const paginationData = computed({
@@ -175,7 +180,7 @@ export function useViewData(
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where: where?.value,
         })
-      : await fetchSharedViewData()
+      : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
     if (viewMeta.value?.type === ViewTypes.GRID) {
@@ -266,7 +271,10 @@ export function useViewData(
 
   async function changePage(page: number) {
     paginationData.value.page = page
-    await loadData({ offset: (page - 1) * (paginationData.value.pageSize || appInfoDefaultLimit), where: where?.value } as any)
+    await loadData({
+      offset: (page - 1) * (paginationData.value.pageSize || appInfoDefaultLimit),
+      where: where?.value,
+    } as any)
     $e('a:grid:pagination')
   }
 

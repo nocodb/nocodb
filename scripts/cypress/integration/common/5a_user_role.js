@@ -116,7 +116,6 @@ export const genTest = (apiType, dbType) => {
       before(() => {
         cy.restoreLocalStorage();
         cy.visit(mainPage.roleURL[roleType]);
-        // cy.wait(5000);
 
         cy.get('button:contains("SIGN UP"):visible').should("exist");
         cy.get('input[type="text"]', { timeout: 20000 }).type(
@@ -126,9 +125,6 @@ export const genTest = (apiType, dbType) => {
           roles[roleType].credentials.password
         );
         cy.get('button:contains("SIGN UP")').click();
-
-        // cy.wait(3000);
-
         cy.get(`.nc-project-page-title:contains("My Projects"):visible`).should(
           "exist"
         );
@@ -151,9 +147,12 @@ export const genTest = (apiType, dbType) => {
         if (roleType === "creator") {
           // kludge: wait for page load to finish
           // close team & auth tab
-          cy.wait(500);
-          cy.get("button.ant-tabs-tab-remove").should("exist").click();
-          cy.wait(500);
+          // cy.wait(500);
+          // cy.get("button.ant-tabs-tab-remove").should("exist").click();
+          cy.getSettled("button.ant-tabs-tab-remove")
+            .should("be.visible")
+            .click();
+          cy.wait(2000);
         }
 
         cy.saveLocalStorage();
@@ -277,9 +276,9 @@ export const genTest = (apiType, dbType) => {
       });
 
       it(`[${roles[roleType].name}] App store accessibility`, () => {
-        cy.visit("/#/apps").then(r =>{
-          cy.toastWait('You don\'t have enough permission to access the page.')
-        })
+        cy.visit("/#/apps").then((r) => {
+          cy.toastWait("You don't have enough permission to access the page.");
+        });
       });
     });
   };

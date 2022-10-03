@@ -80,18 +80,20 @@ export function validateColumnName(v: string, isGQL = false) {
 }
 
 export const projectTitleValidator = {
-  validator: (rule: any, value: any, callback: (errMsg?: string) => void) => {
+  validator: (rule: any, value: any) => {
     const { t } = getI18n().global
-    if (value?.length > 50) {
-      // callback('Project name exceeds 50 characters')
-      callback(t('msg.error.projectNameExceeds50Characters'))
-    }
-    if (value[0] === ' ') {
-      // callback('Project name cannot start with space')
-      callback(t('msg.error.projectNameCannotStartWithSpace'))
-    }
 
-    callback()
+    return new Promise((resolve, reject) => {
+      if (value?.length > 50) {
+        reject(new Error(t('msg.error.projectNameExceeds50Characters')))
+      }
+
+      if (value[0] === ' ') {
+        reject(new Error(t('msg.error.projectNameCannotStartWithSpace')))
+      }
+
+      resolve(true)
+    })
   },
 }
 

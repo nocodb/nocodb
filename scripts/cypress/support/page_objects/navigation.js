@@ -78,11 +78,8 @@ export class _loginPage {
     //     projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
     // }
     //
-    // // kludge: wait for page load to finish
-    // cy.wait(2000);
     // // close team & auth tab
     // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-    // cy.wait(1000);
   }
 }
 
@@ -108,13 +105,12 @@ export class _projectsPage {
       projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
     }
 
-    // kludge: wait for page load to finish
-    // cy.wait(4000);
     cy.wait("@waitForPageLoad");
 
     // close team & auth tab
-    cy.get("button.ant-tabs-tab-remove").should("exist").click();
-    cy.wait(1000);
+    cy.getSettled("button.ant-tabs-tab-remove").should("be.visible").click();
+    cy.get("button.ant-tabs-tab-remove").should("not.exist");
+    cy.wait(2000);
   }
 
   // Open existing project
@@ -155,6 +151,8 @@ export class _projectsPage {
       cy.get(".nc-metadb-project-name").should("exist");
       cy.contains("button", "Create").should("exist");
 
+      // fix me! wait till the modal rendering (input highlight) is completed
+      // focus shifts back to the input field to select text after the dropdown is rendered
       cy.wait(1000);
 
       // feed project name
@@ -185,7 +183,8 @@ export class _projectsPage {
       cy.get(".nc-extdb-proj-name").should("exist");
       cy.get(".nc-extdb-btn-test-connection").should("exist");
 
-      // CY goes too fast at times, so wait for the page to load
+      // fix me! wait till the modal rendering (input highlight) is completed
+      // focus shifts back to the input field to select text after the dropdown is rendered
       cy.wait(1000);
 
       cy.get(".nc-extdb-proj-name").clear().type(projectName);
@@ -208,7 +207,6 @@ export class _projectsPage {
       // Create project
       cy.contains("Ok & Save Project", { timeout: 20000 }).click();
 
-      cy.wait(5000);
       // takes a while to load project
       this.waitHomePageLoad();
 

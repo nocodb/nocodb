@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { computed, navigateTo, ref, useGlobal, useNuxtApp, useProject, useRoute } from '#imports'
+import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar, useUIPermission } from '#imports'
 
 const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
 
-const { isSharedBase } = useProject()
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 
@@ -65,17 +65,17 @@ hooks.hook('page:finish', () => {
 
         <div class="flex-1" />
 
-        <GeneralReleaseInfo />
+        <LazyGeneralReleaseInfo />
 
         <a-tooltip placement="bottom" :mouse-enter-delay="1">
           <template #title> Switch language</template>
 
           <div class="flex pr-4 items-center text-white">
-            <GeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
+            <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
           </div>
         </a-tooltip>
 
-        <template v-if="signedIn && !isSharedBase">
+        <template v-if="signedIn">
           <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white" @click.prevent />
 
@@ -122,7 +122,7 @@ hooks.hook('page:finish', () => {
       <a-tooltip placement="bottom">
         <template #title> Switch language</template>
 
-        <GeneralLanguage v-if="!signedIn" class="nc-lang-btn" />
+        <LazyGeneralLanguage v-if="!signedIn" class="nc-lang-btn" />
       </a-tooltip>
 
       <div class="w-full h-full overflow-hidden">

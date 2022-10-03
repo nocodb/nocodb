@@ -4,6 +4,7 @@ import { Handle, Position } from '@braks/vue-flow'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { MetaInj, computed, provide, toRefs, useNuxtApp } from '#imports'
 
 interface Props extends NodeProps {
   data: TableType & { showPkAndFk: boolean; showAllColumns: boolean }
@@ -58,6 +59,7 @@ const relatedColumnId = (col: Record<string, any>) =>
         </div>
       </div>
     </GeneralTooltip>
+
     <div>
       <div
         v-for="col in pkAndFkColumns"
@@ -65,7 +67,7 @@ const relatedColumnId = (col: Record<string, any>) =>
         class="w-full border-b-1 py-2 border-gray-100 keys"
         :class="`nc-erd-table-node-${data.table_name}-column-${col.column_name}`"
       >
-        <SmartsheetHeaderCell v-if="col" :column="col" :hide-menu="true" />
+        <LazySmartsheetHeaderCell v-if="col" :column="col" :hide-menu="true" />
       </div>
 
       <div class="w-full mb-1"></div>
@@ -93,16 +95,18 @@ const relatedColumnId = (col: Record<string, any>) =>
               type="target"
               :position="Position.Left"
             />
-            <SmartsheetHeaderVirtualCell :column="col" :hide-menu="true" />
+
+            <LazySmartsheetHeaderVirtualCell :column="col" :hide-menu="true" />
           </div>
-          <SmartsheetHeaderVirtualCell
+
+          <LazySmartsheetHeaderVirtualCell
             v-else-if="isVirtualCol(col)"
             :column="col"
             :hide-menu="true"
             :class="`nc-erd-table-node-${data.table_name}-column-${col.column_name}`"
           />
 
-          <SmartsheetHeaderCell
+          <LazySmartsheetHeaderCell
             v-else
             :column="col"
             :hide-menu="true"

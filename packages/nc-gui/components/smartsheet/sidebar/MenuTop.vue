@@ -2,17 +2,17 @@
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
-import { message } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
-import RenameableMenuItem from './RenameableMenuItem.vue'
 import {
   ActiveViewInj,
   ViewListInj,
   extractSdkResponseErrorMsg,
   inject,
+  message,
   onMounted,
   ref,
+  resolveComponent,
   useApi,
   useDialog,
   useI18n,
@@ -22,7 +22,6 @@ import {
   viewTypeAlias,
   watch,
 } from '#imports'
-import DlgViewDelete from '~/components/dlg/ViewDelete.vue'
 
 const emits = defineEmits<Emits>()
 
@@ -43,8 +42,6 @@ const views = inject<Ref<ViewType[]>>(ViewListInj, ref([]))
 const { api } = useApi()
 
 const router = useRouter()
-
-const route = useRoute()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -190,7 +187,7 @@ async function onRename(view: ViewType) {
 function openDeleteDialog(view: Record<string, any>) {
   const isOpen = ref(true)
 
-  const { close } = useDialog(DlgViewDelete, {
+  const { close } = useDialog(resolveComponent('DlgViewDelete'), {
     'modelValue': isOpen,
     'view': view,
     'onUpdate:modelValue': closeDialog,
@@ -215,12 +212,18 @@ function openDeleteDialog(view: Record<string, any>) {
     close(1000)
   }
 }
+
+watch(views, (nextViews) => {
+  if (nextViews?.length && (!activeView.value || !nextViews.includes(activeView.value))) {
+    activeView.value = nextViews[0]
+  }
+})
 </script>
 
 <template>
   <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
-    <RenameableMenuItem
-      v-for="(view, index) of views"
+    <LazySmartsheetSidebarRenameableMenuItem
+      v-for="view of views"
       :id="view.id"
       :key="view.id"
       :view="view"
@@ -228,8 +231,7 @@ function openDeleteDialog(view: Record<string, any>) {
       class="transition-all ease-in duration-300"
       :class="{
         'bg-gray-100': isMarked === view.id,
-        'active':
-          (route.params.viewTitle && route.params.viewTitle === view.title) || (route.params.viewTitle === '' && index === 0),
+        'active': activeView.id === view.id,
         [`nc-view-item nc-${viewTypeAlias[view.type] || view.type}-view-item`]: true,
       }"
       @change-view="changeView"

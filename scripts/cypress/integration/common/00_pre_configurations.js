@@ -169,7 +169,7 @@ export const genTest = (apiType, dbType) => {
 
     function cy_createProjectBlock(proj, apiType, dbType) {
       // click home button
-      cy.get(".nc-noco-brand-icon").click();
+      cy.getSettled(".nc-noco-brand-icon").click();
       cy.get(".ant-table-content").then((obj) => {
         // if project already created, open
         // else, create a new one
@@ -187,7 +187,6 @@ export const genTest = (apiType, dbType) => {
           }
         } else {
           projectsPage.createProject(proj.basic, proj.config);
-          // cy.wait(5000);
           if (dbType === "xcdb") {
             // store base URL- to re-visit and delete form view later
             let projId;
@@ -240,11 +239,16 @@ export const genTest = (apiType, dbType) => {
           cy_createProjectBlock(proj, apiType, dbType);
         }
 
-        // kludge: wait for page load to finish
-        cy.wait(2000);
         // close team & auth tab
-        cy.get("button.ant-tabs-tab-remove").should("exist").click();
-        cy.wait(1000);
+
+        // wait for tab to be rendered completely
+        cy.wait(2000);
+
+        cy.getSettled("button.ant-tabs-tab-remove")
+          .should("be.visible")
+          .click();
+        cy.get("button.ant-tabs-tab-remove").should("not.exist");
+        cy.wait(2000);
 
         // first instance of updating local storage information
         cy.saveLocalStorage();

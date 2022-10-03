@@ -5,6 +5,10 @@ import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
+  // tbd: this needs a proper fix
+  let waitTime = 2000;
+  let clear;
+
   describe(`${apiType.toUpperCase()} api - Link to another record`, () => {
     function fetchParentFromLabel(label) {
       cy.get("label").contains(label).parents(".ant-row").click();
@@ -94,6 +98,11 @@ export const genTest = (apiType, dbType) => {
     // Unlink LTAR cell
     //
     function ltarUnlink(columnName, index) {
+      // http://localhost:8080/api/v1/db/meta/audits/comments/count?ids[]=1&fk_model_id=md_f4y7jp89pe8vkt
+      cy.intercept("GET", `/api/v1/db/meta/audits/comments/count?**`).as(
+        "unlinkCount"
+      );
+
       // Click on cell to enable unlink icon
       cy.get(`:nth-child(${index}) > [data-title="${columnName}"]`)
         .last()
@@ -107,13 +116,15 @@ export const genTest = (apiType, dbType) => {
         .click();
 
       // Glitch; hence wait
-      cy.wait(1000);
+      cy.wait("@unlinkCount");
     }
 
-    // before(() => {
-    //   // required for standalone test
-    //   // loginPage.loginAndOpenProject(apiType, dbType);
-    // });
+    before(() => {
+      cy.restoreLocalStorage();
+
+      clear = Cypress.LocalStorage.clear;
+      Cypress.LocalStorage.clear = () => {};
+    });
 
     afterEach(() => {
       cy.saveLocalStorage();
@@ -136,6 +147,8 @@ export const genTest = (apiType, dbType) => {
 
       cy.deleteTable("Sheet2");
       cy.saveLocalStorage();
+
+      Cypress.LocalStorage.clear = clear;
     });
 
     ///////////////////////////////////////////////////
@@ -164,11 +177,15 @@ export const genTest = (apiType, dbType) => {
     // Expand form [Add new row]
     //
     it("Add HM, BT, MM Link, Expand form", () => {
+      // http://localhost:8080/api/v1/db/data/noco/p_0l53e1xgsxlecb/md_mn4xgb2jnq16a7?limit=10&offset=0&where=&fields[]=Title&fields[]=Id
+      cy.intercept("GET", `/api/v1/db/data/noco/**`).as("waitForCardLoad");
+
       cy.openTableTab("Sheet2", 0);
 
       // Click on `Add new row` button
       cy.get(".nc-add-new-row-btn:visible").should("exist");
       cy.get(".nc-add-new-row-btn").click();
+      cy.wait(waitTime);
 
       // Title
       cy.get(".nc-expand-col-Title")
@@ -188,26 +205,32 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-action-icon")
         .should("exist")
         .click({ force: true });
-      cy.wait(1000);
+      cy.wait(waitTime);
+      cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(0)
         .click();
+      cy.wait(waitTime);
 
       // MM
       cy.get(".nc-expand-col-Sheet1.List").find(".ant-btn-primary").click();
-      cy.wait(1000);
+      cy.wait(waitTime);
+      cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(0)
         .click();
+      cy.wait(waitTime);
 
       // HM
       cy.get(".nc-expand-col-Link2-1hm").find(".ant-btn-primary").click();
-      cy.wait(1000);
+      cy.wait(waitTime);
+      cy.wait("@waitForCardLoad");
       cy.getActiveModal().find(".ant-card").should("exist").eq(0).click();
+      cy.wait(waitTime);
 
       // Save row
       cy.getActiveDrawer(".nc-drawer-expanded-form")
@@ -233,12 +256,13 @@ export const genTest = (apiType, dbType) => {
         .getCell("Sheet1", 2)
         .find(".nc-action-icon")
         .click({ force: true });
+      cy.wait(waitTime);
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(1)
         .click();
-      cy.wait(1000);
+      cy.wait(waitTime);
 
       // MM
       mainPage
@@ -246,12 +270,13 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-action-icon")
         .last()
         .click({ force: true });
+      cy.wait(waitTime);
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(1)
         .click();
-      cy.wait(1000);
+      cy.wait(waitTime);
 
       // HM
       mainPage
@@ -259,50 +284,65 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-action-icon")
         .last()
         .click({ force: true });
+      cy.wait(waitTime);
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(1)
         .click();
+      cy.wait(waitTime);
     });
 
     // Existing row, expand record
     it("Add HM, BT, MM Link, expand record", () => {
+      // http://localhost:8080/api/v1/db/data/noco/p_0l53e1xgsxlecb/md_mn4xgb2jnq16a7?limit=10&offset=0&where=&fields[]=Title&fields[]=Id
+      cy.intercept("GET", `/api/v1/db/data/noco/**`).as("waitForCardLoad");
+
       addRow(3, "2c");
+
+      cy.wait(waitTime);
       cy.get(".nc-row-expand").eq(2).click({ force: true });
+      cy.wait(waitTime);
+
+      // wait for page render to complete
+      cy.get('button:contains("Save row"):visible').should("exist");
 
       // BT
-      cy.wait(1000);
+      cy.wait(waitTime);
       cy.get(".nc-expand-col-Sheet1")
         .find(".nc-action-icon")
         .should("exist")
         .click({ force: true });
-      cy.wait(1000);
+      cy.wait(waitTime);
+      // cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(2)
         .click();
+      cy.wait(waitTime);
 
       // MM
       cy.get(".nc-expand-col-Sheet1.List").find(".ant-btn-primary").click();
-      cy.wait(1000);
+      cy.wait(waitTime);
+      // cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(2)
         .click();
-      cy.wait(1000);
+      cy.wait(waitTime);
 
       // HM
       cy.get(".nc-expand-col-Link2-1hm").find(".ant-btn-primary").click();
-      cy.wait(1000);
+      cy.wait(waitTime);
+      // cy.wait("@waitForCardLoad");
       cy.getActiveModal(".nc-modal-link-record")
         .find(".ant-card")
         .should("exist")
         .eq(2)
         .click();
-      cy.wait(1000);
+      cy.wait(waitTime);
 
       cy.getActiveDrawer(".nc-drawer-expanded-form")
         .find("button")

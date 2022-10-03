@@ -214,9 +214,9 @@ export const genTest = (apiType, dbType) => {
         // submit button & validate
         cy.get(".nc-form").find("button").contains("Submit").click();
 
-        cy.get(".ant-alert-message")
-          .contains("Successfully submitted form data")
-          .should("exist");
+        cy.get(
+          ".ant-alert-message :contains('Successfully submitted form data')"
+        ).should("exist");
 
         // end of test removes newly added rows from table. that step validates if row was successfully added.
       });
@@ -238,9 +238,9 @@ export const genTest = (apiType, dbType) => {
 
         // submit button & validate
         cy.get(".nc-form").find("button").contains("Submit").click();
-        cy.get(".ant-alert-message")
-          .contains("Congratulations!")
-          .should("exist");
+        cy.get(".ant-alert-message :contains('Congratulations!')").should(
+          "exist"
+        );
 
         // end of test removes newly added rows from table. that step validates if row was successfully added.
       });
@@ -262,9 +262,9 @@ export const genTest = (apiType, dbType) => {
 
         // submit button & validate
         cy.get(".nc-form").find("button").contains("Submit").click();
-        cy.get(".ant-alert-message")
-          .contains("Congratulations")
-          .should("exist");
+        cy.get(".ant-alert-message :contains('Congratulations!')").should(
+          "exist"
+        );
         cy.get("button")
           .contains("Submit Another Form")
           .should("exist")
@@ -288,8 +288,7 @@ export const genTest = (apiType, dbType) => {
 
         // submit button & validate
         cy.get(".nc-form").find("button").contains("Submit").click();
-        cy.get(".ant-alert-message")
-          .contains("Congratulations")
+        cy.get(".ant-alert-message :contains('Congratulations!')")
           .should("exist")
           .then(() => {
             // validate if form has appeared again
@@ -324,7 +323,6 @@ export const genTest = (apiType, dbType) => {
 
         // open form view & enable "email me" option
         cy.openTableTab("Country", 25);
-        cy.wait(1000);
 
         cy.get(`.nc-view-item.nc-${viewType}-view-item`)
           .contains("Form-1")
@@ -338,7 +336,6 @@ export const genTest = (apiType, dbType) => {
         settingsPage.openMenu(settingsPage.APPSTORE);
         mainPage.resetSMTP();
 
-        cy.wait(300);
         cy.openTableTab("Country", 25);
       });
 
@@ -383,7 +380,6 @@ export const genTest = (apiType, dbType) => {
 
         // click on delete icon (becomes visible on hovering mouse)
         cy.get(".nc-view-delete-icon").click({ force: true });
-        cy.wait(1000);
         cy.getActiveModal(".nc-modal-view-delete")
           .find(".ant-btn-dangerous")
           .click();

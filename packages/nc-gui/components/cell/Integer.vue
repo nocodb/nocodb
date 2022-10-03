@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { inject, useVModel } from '#imports'
-import { EditModeInj } from '~/context'
+import { EditModeInj, inject, useVModel } from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
@@ -36,6 +35,7 @@ function onKeyDown(evt: KeyboardEvent) {
     @blur="editEnabled = false"
     @keydown="onKeyDown"
   />
+
   <span v-else class="prose-sm">{{ vModel }}</span>
 </template>
 

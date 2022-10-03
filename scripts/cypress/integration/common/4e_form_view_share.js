@@ -62,6 +62,9 @@ export const genTest = (apiType, dbType) => {
         // enable "Submit another form" check box
         cy.get("button.nc-form-checkbox-show-blank-form").click();
 
+        // [kludge] CI-CD: title is being rendered initially in disabled state
+        cy.wait(2000);
+
         // Update header & add some description, verify
         cy.get(".nc-form")
           .find('[placeholder="Form Title"]')
@@ -112,7 +115,6 @@ export const genTest = (apiType, dbType) => {
             cy.visit(linkText, {
               baseUrl: null,
             });
-            // cy.wait(5000);
             cy.wait(["@waitForPageLoad"], { times: 2 });
 
             // wait for share view page to load!
@@ -208,8 +210,6 @@ export const genTest = (apiType, dbType) => {
         // // clean up newly added rows into Country table operations
         // // this auto verifies successfull addition of rows to table as well
         // mainPage.getPagination(25).click();
-        // // kludge: flicker on load
-        // cy.wait(3000)
         //
         // cy.get(".nc-grid-row").should("have.length", 1);
         // cy.get(".ant-checkbox").should('exist').eq(1).click({ force: true });

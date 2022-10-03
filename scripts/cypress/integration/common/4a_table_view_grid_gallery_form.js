@@ -77,7 +77,6 @@ export const genTest = (apiType, dbType) => {
 
         // click on delete icon (becomes visible on hovering mouse)
         cy.get(".nc-view-delete-icon").click({ force: true });
-        cy.wait(300);
         cy.getActiveModal(".nc-modal-view-delete")
           .find(".ant-btn-dangerous")
           .click();

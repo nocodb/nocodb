@@ -1,8 +1,17 @@
 <script lang="ts" setup>
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { IsLockedInj, inject, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel, viewIcons } from '#imports'
+import {
+  IsLockedInj,
+  inject,
+  message,
+  onKeyStroke,
+  useDebounceFn,
+  useNuxtApp,
+  useUIPermission,
+  useVModel,
+  viewIcons,
+} from '#imports'
 
 interface Props {
   view: ViewType
@@ -168,7 +177,7 @@ function onStopEdit() {
       <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown="onKeyDown($event)" />
 
       <div v-else>
-        <GeneralTruncateText>{{ vModel.alias || vModel.title }}</GeneralTruncateText>
+        <LazyGeneralTruncateText>{{ vModel.alias || vModel.title }}</LazyGeneralTruncateText>
       </div>
 
       <div class="flex-1" />

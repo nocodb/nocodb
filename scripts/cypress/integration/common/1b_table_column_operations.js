@@ -10,6 +10,9 @@ export const genTest = (apiType, dbType) => {
   function addNewRow(index, cellValue) {
     cy.get(".nc-add-new-row-btn:visible").should("exist");
     cy.get(".nc-add-new-row-btn").click();
+
+    cy.wait(2000);
+
     // cy.get("#data-table-form-Title > input").first().type(cellValue);
     cy.get(".nc-expand-col-Title")
       .find(".nc-cell > input")
@@ -73,6 +76,7 @@ export const genTest = (apiType, dbType) => {
           .click();
 
         // fix me! wait till the modal rendering (input highlight) is completed
+        // focus shifts back to the input field to select text after the dropdown is rendered
         cy.wait(500);
 
         // change column type and verify
@@ -141,6 +145,9 @@ export const genTest = (apiType, dbType) => {
         .eq(0)
         .trigger("mouseover", { force: true });
       cy.get(".nc-row-expand").click({ force: true });
+
+      // wait for page render to complete
+      cy.get('button:contains("Save row"):visible').should("exist");
 
       cy.get(".nc-expand-col-Title")
         .find(".nc-cell > input")

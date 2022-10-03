@@ -119,18 +119,22 @@ export class _mainPage {
     );
 
     // click on New User button, feed details
-    cy.get("button.nc-invite-team").click();
+    cy.getActiveModal(".nc-modal-settings")
+      .find("button.nc-invite-team")
+      .click();
 
     // additional wait to ensure the modal is fully loaded
     cy.getActiveModal(".nc-modal-invite-user-and-share-base").should("exist");
     cy.getActiveModal(".nc-modal-invite-user-and-share-base")
       .find('input[placeholder="E-mail"]')
       .should("exist");
-    cy.wait(1000);
 
-    cy.get('input[placeholder="E-mail"]').type(userCred.username);
-
-    cy.get(".ant-select.nc-user-roles").click();
+    cy.getActiveModal(".nc-modal-invite-user-and-share-base")
+      .find('input[placeholder="E-mail"]')
+      .type(userCred.username);
+    cy.getActiveModal(".nc-modal-invite-user-and-share-base")
+      .find(".ant-select.nc-user-roles")
+      .click();
 
     // opt-in requested role & submit
     // cy.getActiveSelection().contains(roleType).click({force: true});
@@ -200,11 +204,11 @@ export class _mainPage {
   };
 
   addColumn = (colName, tableName) => {
-    cy.get(".nc-column-add").click({
-      force: true,
-    });
+    cy.get(".nc-column-add").click();
 
-    cy.getActiveMenu(".nc-dropdown-grid-add-column")
+    cy.wait(2000);
+
+    cy.getActiveMenu(".nc-dropdown-grid-add-column:has(.nc-column-name-input)")
       .find("input.nc-column-name-input")
       .should("exist")
       .clear()
@@ -215,22 +219,24 @@ export class _mainPage {
       .should("exist")
       .click();
     cy.toastWait(`Column created`);
+
+    cy.wait(2000);
+
     cy.get(`th[data-title="${colName}"]`).should("exist");
   };
 
   addColumnWithType = (colName, colType, tableName) => {
-    cy.get(".nc-column-add").click({
-      force: true,
-    });
+    cy.get(".nc-column-add").click();
 
-    cy.getActiveMenu(".nc-dropdown-grid-add-column")
+    cy.wait(2000);
+
+    cy.getActiveMenu(".nc-dropdown-grid-add-column:has(.nc-column-name-input)")
       .find("input.nc-column-name-input")
       .should("exist")
       .clear()
       .type(colName);
 
     // change column type and verify
-    // cy.get(".nc-column-type-input").last().click();
     cy.getActiveMenu(".nc-dropdown-grid-add-column")
       .find(".nc-column-type-input")
       .last()
@@ -239,13 +245,15 @@ export class _mainPage {
       .find(".ant-select-item-option")
       .contains(colType)
       .click();
-    // cy.get(".ant-btn-primary:visible").contains("Save").click();
     cy.getActiveMenu(".nc-dropdown-grid-add-column")
       .find(".ant-btn-primary:visible")
       .contains("Save")
       .click();
 
     cy.toastWait(`Column created`);
+
+    cy.wait(2000);
+
     cy.get(`th[data-title="${colName}"]`).should("exist");
   };
 
@@ -256,16 +264,13 @@ export class _mainPage {
       .trigger("mouseover", { force: true })
       .click({ force: true });
 
-    // cy.wait(500);
     // cy.get(".nc-column-delete").click();
     cy.getActiveMenu(".nc-dropdown-column-operations")
       .find(".nc-column-delete")
       .click();
 
-    // cy.wait(500);
     // cy.get(".nc-column-delete").should("not.be.visible");
     // cy.get(".ant-btn-dangerous:visible").contains("Delete").click();
-    // cy.wait(500);
 
     cy.getActiveModal(".nc-modal-column-delete")
       .find(".ant-btn-dangerous:visible")
@@ -395,7 +400,7 @@ export class _mainPage {
       .find(".ant-btn-primary")
       .contains("Add Sort Option")
       .click();
-    cy.getActiveMenu(".nc-dropdown-sort-menu")
+    cy.getActiveMenu(".nc-dropdown-sort-menu:has(.nc-sort-field-select div)")
       .find(".nc-sort-field-select div")
       .first()
       .click();
@@ -433,7 +438,8 @@ export class _mainPage {
       .find(".ant-btn-primary")
       .contains("Add Filter")
       .click();
-    cy.getActiveMenu(".nc-dropdown-filter-menu")
+
+    cy.getActiveMenu(".nc-dropdown-filter-menu:has(.nc-filter-field-select)")
       .find(".nc-filter-field-select")
       .should("exist")
       .last()
@@ -487,11 +493,10 @@ export class _mainPage {
         // one of the row would contain seggregation header ('other views)
         if (5 == $tableRow[0].childElementCount) {
           cy.wrap($tableRow).find(".nc-icon").last().click();
-          cy.wait(100);
+          cy.toastWait("Deleted shared view successfully");
         }
       })
       .then(() => {
-        cy.toastWait("Deleted shared view successfully");
         cy.getActiveModal()
           .find("button.ant-modal-close")
           .should("exist")
@@ -518,9 +523,7 @@ export class _mainPage {
         .find(".nc-project-menu-item")
         .contains("Download")
         .click();
-      cy.wait(1000);
-      cy.get(".nc-project-menu-item")
-        .contains("Download as CSV")
+      cy.get(".nc-project-menu-item:contains('Download as CSV')")
         .should("exist")
         .click();
     }
@@ -542,8 +545,7 @@ export class _mainPage {
 
   downloadAndVerifyCsvFromSharedView = (filename, verifyCsv) => {
     cy.get(".nc-actions-menu-btn").click();
-    cy.get(".nc-project-menu-item")
-      .contains("Download as CSV")
+    cy.get(".nc-project-menu-item:contains('Download as CSV')")
       .should("exist")
       .click();
 
@@ -593,9 +595,13 @@ export class _mainPage {
   }
 
   metaSyncValidate(tbl, msg) {
+    // http://localhost:8080/api/v1/db/meta/projects/p_bxp57hmks0n5o2/meta-diff
+    cy.intercept("GET", "/api/v1/db/meta/projects/**").as("metaSync");
+
     cy.get(".nc-btn-metasync-reload").should("exist").click();
-    cy.wait(2000);
-    cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("exist");
+    cy.wait("@metaSync");
+
+    cy.get(`.nc-metasync-row-${tbl}:contains(${msg})`).should("exist");
     cy.get(".nc-btn-metasync-sync-now")
       .should("exist")
       .click()

@@ -8,11 +8,11 @@ let t6f = require("../common/6f_attachments");
 let t6g = require("../common/6g_base_share");
 let t7a = require("../common/7a_create_project_from_excel");
 let t8a = require("../common/8a_webhook");
+const t9b = require("../common/9b_ERD");
 
 const {
   setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
-const t9b = require("../common/9b_ERD");
 
 const nocoTestSuite = (apiType, dbType) => {
   setCurrentMode(apiType, dbType);
@@ -33,7 +33,7 @@ const nocoTestSuite = (apiType, dbType) => {
   t6f.genTest(apiType, dbType);
 
   // ERD:
-  // t9b.genTest(apiType, dbType);
+  t9b.genTest(apiType, dbType);
 
   // Webhook tests
   t8a.genTest(apiType, dbType);

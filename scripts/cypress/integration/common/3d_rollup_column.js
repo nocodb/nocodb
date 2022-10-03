@@ -9,7 +9,6 @@ export const genTest = (apiType, dbType) => {
     //
     const fetchParentFromLabel = (label) => {
       cy.get("label").contains(label).parents(".ant-row").click();
-      cy.wait(500);
     };
 
     // Run once before test- create project (rest/graphql)
@@ -18,12 +17,8 @@ export const genTest = (apiType, dbType) => {
     //     cy.fileHook();
     //     mainPage.tabReset();
     //
-    //     // // kludge: wait for page load to finish
-    //     // cy.wait(1000);
     //     // // close team & auth tab
     //     // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-    //     // cy.wait(1000);
-    //
     //     // open a table to work on views
     //     //
     //     cy.openTableTab("Country", 25);
@@ -69,7 +64,8 @@ export const genTest = (apiType, dbType) => {
         .contains("Rollup")
         .click();
 
-      // wait for re-rendering & title selection to re-appear
+      // fix me! wait till the modal rendering (input highlight) is completed
+      // focus shifts back to the input field to select text after the dropdown is rendered
       cy.wait(500);
 
       // Configure Child table & column names

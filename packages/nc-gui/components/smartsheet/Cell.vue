@@ -82,9 +82,7 @@ const isAutoSaved = $computed(() => {
   ].includes(column?.value?.uidt as UITypes)
 })
 
-const isManualSaved = $computed(() => {
-  return [UITypes.Currency, UITypes.Duration].includes(column?.value?.uidt as UITypes)
-})
+const isManualSaved = $computed(() => [UITypes.Currency, UITypes.Duration].includes(column?.value?.uidt as UITypes))
 
 const vModel = computed({
   get: () => props.modelValue,
@@ -149,28 +147,28 @@ const syncAndNavigate = (dir: NavigateDir) => {
     @keydown.stop.enter.exact="syncAndNavigate(NavigateDir.NEXT)"
     @keydown.stop.shift.enter.exact="syncAndNavigate(NavigateDir.PREV)"
   >
-    <CellTextArea v-if="isTextArea" v-model="vModel" />
-    <CellCheckbox v-else-if="isBoolean" v-model="vModel" />
-    <CellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />
-    <CellSingleSelect v-else-if="isSingleSelect" v-model="vModel" />
-    <CellMultiSelect v-else-if="isMultiSelect" v-model="vModel" />
-    <CellDatePicker v-else-if="isDate" v-model="vModel" />
-    <CellYearPicker v-else-if="isYear" v-model="vModel" />
-    <CellDateTimePicker v-else-if="isDateTime" v-model="vModel" />
-    <CellTimePicker v-else-if="isTime" v-model="vModel" />
-    <CellRating v-else-if="isRating" v-model="vModel" />
-    <CellDuration v-else-if="isDuration" v-model="vModel" />
-    <CellEmail v-else-if="isEmail" v-model="vModel" />
-    <CellUrl v-else-if="isURL" v-model="vModel" />
-    <CellPhoneNumber v-else-if="isPhoneNumber" v-model="vModel" />
-    <CellPercent v-else-if="isPercent" v-model="vModel" />
-    <CellCurrency v-else-if="isCurrency" v-model="vModel" />
-    <CellDecimal v-else-if="isDecimal" v-model="vModel" />
-    <CellInteger v-else-if="isInt" v-model="vModel" />
-    <CellFloat v-else-if="isFloat" v-model="vModel" />
-    <CellText v-else-if="isString" v-model="vModel" />
-    <CellJson v-else-if="isJSON" v-model="vModel" />
-    <CellText v-else v-model="vModel" />
+    <LazyCellTextArea v-if="isTextArea" v-model="vModel" />
+    <LazyCellCheckbox v-else-if="isBoolean" v-model="vModel" />
+    <LazyCellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />
+    <LazyCellSingleSelect v-else-if="isSingleSelect" v-model="vModel" />
+    <LazyCellMultiSelect v-else-if="isMultiSelect" v-model="vModel" />
+    <LazyCellDatePicker v-else-if="isDate" v-model="vModel" />
+    <LazyCellYearPicker v-else-if="isYear" v-model="vModel" />
+    <LazyCellDateTimePicker v-else-if="isDateTime" v-model="vModel" />
+    <LazyCellTimePicker v-else-if="isTime" v-model="vModel" />
+    <LazyCellRating v-else-if="isRating" v-model="vModel" />
+    <LazyCellDuration v-else-if="isDuration" v-model="vModel" />
+    <LazyCellEmail v-else-if="isEmail" v-model="vModel" />
+    <LazyCellUrl v-else-if="isURL" v-model="vModel" />
+    <LazyCellPhoneNumber v-else-if="isPhoneNumber" v-model="vModel" />
+    <LazyCellPercent v-else-if="isPercent" v-model="vModel" />
+    <LazyCellCurrency v-else-if="isCurrency" v-model="vModel" />
+    <LazyCellDecimal v-else-if="isDecimal" v-model="vModel" />
+    <LazyCellInteger v-else-if="isInt" v-model="vModel" />
+    <LazyCellFloat v-else-if="isFloat" v-model="vModel" />
+    <LazyCellText v-else-if="isString" v-model="vModel" />
+    <LazyCellJson v-else-if="isJSON" v-model="vModel" />
+    <LazyCellText v-else v-model="vModel" />
     <div v-if="(isLocked || (isPublic && readOnly && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
   </div>
 </template>

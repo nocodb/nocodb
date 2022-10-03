@@ -123,7 +123,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         }
         columnNamePrefixRef[cn] = 0
 
-        let column: Record<string, any> = {
+        const column: Record<string, any> = {
           column_name: cn,
           ref_column_name: cn,
         }
@@ -137,9 +137,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
 
         const { sqlUi } = useProject()
-
-        // enrich data type for Template Editor to process
-        column = { ...column, ...sqlUi?.value?.getDataTypeForUiType({ uidt: column.uidt }) }
 
         // todo: optimize
         if (column.uidt === UITypes.SingleLineText) {
@@ -189,7 +186,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   column.uidt = UITypes.SingleSelect
                 }
                 // set dtxp here so that users can have the options even they switch the type from other types to SingleSelect
-                // once it's set, dtxp needs to be reset if the final column type is not MultiSelect
+                // once it's set, dtxp needs to be reset if the final column type is not SingleSelect
                 column.dtxp = `'${uniqueVals.join("','")}'`
               }
             }

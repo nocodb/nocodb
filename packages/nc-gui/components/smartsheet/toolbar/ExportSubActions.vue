@@ -45,7 +45,10 @@ const exportFile = async (exportType: ExportTypes) => {
       let res
       if (isPublicView.value) {
         const { exportFile: sharedViewExportFile } = useSharedView()
-        res = await sharedViewExportFile(fields.value, offset, exportType, responseType)
+        res = await sharedViewExportFile(fields.value, offset, exportType, responseType, {
+          sortsArr: sorts.value,
+          filtersArr: nestedFilters.value,
+        })
       } else {
         res = await $api.dbViewRow.export(
           'noco',

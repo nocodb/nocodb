@@ -18,7 +18,7 @@ export function useViews(meta: MaybeRef<TableType | undefined>) {
     }
   }
 
-  watch(() => meta, loadViews, { immediate: true })
+  watch(meta, loadViews, { immediate: true })
 
   return { views: $$(views), loadViews }
 }

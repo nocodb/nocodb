@@ -13,10 +13,7 @@ import { UITypes } from 'nocodb-sdk'
 import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
 export function useSharedView() {
-  const nestedFilters = useState<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>(
-    'nestedFilters',
-    () => [],
-  )
+  const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
   const { appInfo } = $(useGlobal())
 
@@ -26,7 +23,7 @@ export function useSharedView() {
 
   const sharedView = useState<ViewType | undefined>('sharedView', () => undefined)
 
-  const sorts = useState<SortType[]>('sorts', () => [])
+  const sorts = ref<SortType[]>([])
 
   const password = useState<string | undefined>('password', () => undefined)
 
@@ -74,7 +71,7 @@ export function useSharedView() {
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
   }
 
-  const fetchSharedViewData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
+  const fetchSharedViewData = async ({ sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] }) => {
     if (!sharedView.value) return
 
     const page = paginationData.value.page || 1
@@ -84,9 +81,8 @@ export function useSharedView() {
       sharedView.value.uuid!,
       {
         offset: (page - 1) * pageSize,
-        filterArrJson: JSON.stringify(nestedFilters.value),
-        sortArrJson: JSON.stringify(sorts.value),
-        ...params,
+        filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
       } as any,
       {
         headers: {
@@ -126,15 +122,15 @@ export function useSharedView() {
     offset: number,
     type: ExportTypes.EXCEL | ExportTypes.CSV,
     responseType: 'base64' | 'blob',
+    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] },
   ) => {
     return await $api.public.csvExport(sharedView.value!.uuid!, type, {
       format: responseType,
       query: {
         fields: fields.map((field) => field.title),
         offset,
-        sortArrJson: JSON.stringify(sorts.value),
-
-        filterArrJson: JSON.stringify(nestedFilters.value),
+        filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
       },
       headers: {
         'xc-password': password.value,

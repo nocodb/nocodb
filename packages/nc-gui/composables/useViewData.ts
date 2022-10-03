@@ -180,7 +180,7 @@ export function useViewData(
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where: where?.value,
         })
-      : await fetchSharedViewData()
+      : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
     if (viewMeta.value?.type === ViewTypes.GRID) {
@@ -271,7 +271,10 @@ export function useViewData(
 
   async function changePage(page: number) {
     paginationData.value.page = page
-    await loadData({ offset: (page - 1) * (paginationData.value.pageSize || appInfoDefaultLimit), where: where?.value } as any)
+    await loadData({
+      offset: (page - 1) * (paginationData.value.pageSize || appInfoDefaultLimit),
+      where: where?.value,
+    } as any)
     $e('a:grid:pagination')
   }
 

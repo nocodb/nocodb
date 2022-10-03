@@ -14,7 +14,6 @@ const {
   passwordDlg,
   password,
   loadSharedView,
-  isLoading,
 } = useSharedFormStoreOrThrow()
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
@@ -37,10 +36,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
       class="bg-white relative flex flex-col justify-center gap-2 w-full lg:max-w-1/2 max-w-500px m-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
     >
       <template v-if="sharedFormView">
-        <LazyGeneralNocoIcon
-          class="color-transition hover:(ring ring-accent)"
-          :class="[isLoading ? 'animated-bg-gradient' : '']"
-        />
+        <img width="90" height="90" alt="NocoDB" class="mx-auto" src="~/assets/img/icons/512x512.png" />
 
         <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView?.heading }}</h1>
 

@@ -2216,6 +2216,42 @@ function tableTest() {
     }
   });
 
+  it('Exclude list bt', async () => {
+    const rowId = 1;
+    const addressTable = await getTable({project: sakilaProject, name: 'address'});
+    const cityColumn = (await addressTable.getColumns()).find(
+      (column) => column.title === 'City'
+    )!;
+
+    const response = await request(context.app)
+    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`)
+    .set('xc-auth', context.token)
+    .expect(200);
+
+    expect(response.body.pageInfo.totalRows).equal(599)
+    expect(response.body.list[0]['City']).equal('A Corua (La Corua)')
+  })
+
+  it('Exclude list bt with offset', async () => {
+    const rowId = 1;
+    const addressTable = await getTable({project: sakilaProject, name: 'address'});
+    const cityColumn = (await addressTable.getColumns()).find(
+      (column) => column.title === 'City'
+    )!;
+
+    const response = await request(context.app)
+    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${addressTable.id}/${rowId}/bt/${cityColumn.id}/exclude`)
+    .set('xc-auth', context.token)
+    .query({
+      limit: 40,
+      offset: 60
+    })
+    .expect(200);
+
+    expect(response.body.pageInfo.totalRows).equal(599)
+    expect(response.body.list[0]['City']).equal('Baybay')
+  })
+
   it('Create nested hm relation with invalid table id', async () => {
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(

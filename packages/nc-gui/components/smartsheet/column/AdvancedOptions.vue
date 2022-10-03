@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
-import { computed, onBeforeMount, useColumnCreateStoreOrThrow, useProject, useVModel } from '#imports'
+import { computed, useColumnCreateStoreOrThrow, useProject, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -10,7 +10,7 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { sqlUi, isPg } = useProject()
+const { sqlUi } = useProject()
 
 const { onAlter, onDataTypeChange, validateInfos } = useColumnCreateStoreOrThrow()
 
@@ -38,13 +38,6 @@ vModel.value.pk = !!vModel.value.pk
 vModel.value.un = !!vModel.value.un
 vModel.value.ai = !!vModel.value.ai
 vModel.value.au = !!vModel.value.au
-
-onBeforeMount(() => {
-  // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-  if (isPg.value && vModel.value.cdf) {
-    vModel.value.cdf = vModel.value.cdf.substring(vModel.value.cdf.indexOf(`'`) + 1, vModel.value.cdf.lastIndexOf(`'`))
-  }
-})
 </script>
 
 <template>

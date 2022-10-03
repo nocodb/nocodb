@@ -2311,7 +2311,13 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      query?: { fields?: any[]; sort?: any[]; where?: string },
+      query?: {
+        fields?: any[];
+        sort?: any[];
+        where?: string;
+        offset?: string;
+        limit?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

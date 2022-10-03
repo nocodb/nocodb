@@ -584,8 +584,7 @@ export class _mainPage {
 
   downloadAndVerifyCsvFromSharedView = (filename, verifyCsv) => {
     cy.get(".nc-actions-menu-btn").click();
-    cy.get(".nc-project-menu-item")
-      .contains("Download as CSV")
+    cy.get(".nc-project-menu-item:contains('Download as CSV')")
       .should("exist")
       .click();
 

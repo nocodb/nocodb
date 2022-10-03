@@ -82,7 +82,7 @@ watch(previewAs, (newRole) => {
       <div class="divider -ml-4" />
 
       <!-- Close -->
-      <div class="flex items-center gap-2 cursor-pointer" @click="previewAs = null">
+      <div class="flex items-center gap-2 cursor-pointer nc-preview-btn-exit-to-app" @click="previewAs = null">
         <MdiExitToApp />
         {{ $t('general.close') }}
       </div>
@@ -91,7 +91,7 @@ watch(previewAs, (newRole) => {
 
   <template v-else>
     <template v-for="role of roleList" :key="role.value">
-      <a-menu-item @click="previewAs = role.value">
+      <a-menu-item class="nc-role-preview-menu" @click="previewAs = role.value">
         <div class="nc-project-menu-item group">
           <component :is="roleIcon[role.value]" class="group-hover:text-accent" />
 

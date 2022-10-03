@@ -11,6 +11,8 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
+const { isPg, isMysql } = useProject()
+
 const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
 let options = $ref<any[]>([])
@@ -20,6 +22,7 @@ const colorMenus = $ref<any>({})
 const colors = $ref(enumColor.light)
 
 const inputs = ref()
+const defaultOption = ref()
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
@@ -50,6 +53,49 @@ setAdditionalValidations({
   ...validators,
 })
 
+onMounted(() => {
+  if (!vModel.value.colOptions?.options) {
+    vModel.value.colOptions = {
+      options: [],
+    }
+  }
+  options = vModel.value.colOptions.options
+  // Support for older options
+  for (const op of options.filter((el) => el.order === null)) {
+    op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+  }
+
+  if (vModel.value.cdf) {
+    // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
+    if (isPg.value) {
+      vModel.value.cdf = vModel.value.cdf.substring(vModel.value.cdf.indexOf(`'`) + 1, vModel.value.cdf.lastIndexOf(`'`))
+    }
+
+    // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
+    if (!isMysql.value) {
+      vModel.value.cdf = vModel.value.cdf.replace(/''/g, "'")
+    }
+  }
+
+  const fndDefaultOption = options.find((el) => el.title === vModel.value.cdf)
+  if (fndDefaultOption) {
+    defaultOption.value = fndDefaultOption
+  }
+})
+
+const optionChanged = (changedId: string) => {
+  if (changedId === defaultOption.value?.id) {
+    vModel.value.cdf = defaultOption.value.title
+  }
+}
+
+const optionDropped = (changedId: string) => {
+  if (changedId === defaultOption.value?.id) {
+    vModel.value.cdf = null
+    defaultOption.value = null
+  }
+}
+
 const getNextColor = () => {
   let tempColor = colors[0]
   if (options.length && options[options.length - 1].color) {
@@ -68,21 +114,10 @@ const addNewOption = () => {
 }
 
 const removeOption = (index: number) => {
+  const optionId = options[index]?.id
   options.splice(index, 1)
+  optionDropped(optionId)
 }
-
-onMounted(() => {
-  if (!vModel.value.colOptions?.options) {
-    vModel.value.colOptions = {
-      options: [],
-    }
-  }
-  options = vModel.value.colOptions.options
-  // Support for older options
-  for (const op of options.filter((el) => el.order === null)) {
-    op.title = op.title.replace(/^'/, '').replace(/'$/, '')
-  }
-})
 
 // focus last created input
 watch(inputs, () => {
@@ -113,7 +148,7 @@ watch(inputs, () => {
             <MdiArrowDownDropCircle :style="{ 'font-size': '1.5em', 'color': element.color }" class="mr-2" />
           </a-dropdown>
 
-          <a-input ref="inputs" v-model:value="element.title" class="caption" />
+          <a-input ref="inputs" v-model:value="element.title" class="caption" @change="optionChanged(element.id)" />
 
           <MdiClose class="ml-2" :style="{ color: 'red' }" @click="removeOption(index)" />
         </div>

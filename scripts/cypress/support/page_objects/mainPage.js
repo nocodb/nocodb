@@ -1,3 +1,4 @@
+import { debug } from "console";
 import { projectsPage } from "./navigation";
 
 const path = require("path");
@@ -184,6 +185,7 @@ export class _mainPage {
 
   getCell = (columnHeader, cellNumber) => {
     return cy
+      .wait(400)    
       .get(`:nth-child(${cellNumber}) > [data-title="${columnHeader}"]`)
       .last();
   };
@@ -203,13 +205,85 @@ export class _mainPage {
     return cy.get(".xc-row-table").find("tr").eq(rowIndex);
   };
 
+  addRow = (index, cellValue) => {
+    cy.get(".nc-grid-add-new-cell").should("exist").click();
+    cy.log(`Add new row ${index} ${cellValue}`);
+    return this
+      .getCell("Title", index)
+      .dblclick()
+      .then(($el) => {
+        cy.wait(300).wrap($el).find("input", {delay: 50}).clear().type(`${cellValue}{enter}`)
+      })
+      .then(() => {
+        this.getCell("Title", index).contains(cellValue).should("exist");
+      })
+  }
+
+  verifyCell = ({columnName, index, cellValue}) => {
+    return cy.getSettled(`:nth-child(${index}) > [data-title="${columnName}"]`)
+      .contains(cellValue)
+      .should("exist");
+  }
+
+  verifyCellDoesNotExist = ({columnName, index}) => {
+    return cy.getSettled(`:nth-child(${index}) > [data-title="${columnName}"]`)
+      .find(".ant-tag")
+      .should("not.exist");
+  }
+
+  deleteRow = (index, colTitle = "Title") => {
+    return this
+      .getCell(colTitle, index)
+      .rightclick()
+      .then(() => {
+        return cy.get('[data-cy="row-delete"]').should("be.visible").click();
+      })
+  }
+
+  selectSingleOptionOfRow = ({index, cellValue, columnName }) => {
+    return this
+      .getCell(columnName, index)
+      .click()
+      .getSettled('.ant-select-item-option-content').contains(cellValue).click()
+      .then(() => {
+        return this.getCell(columnName, index).contains(cellValue).should("exist").click();
+      });
+  }
+
+  clearSelectedSingleOptionOfRow = ({index, columnName}) => {
+    return this
+    .getCell(columnName, index)
+    .dblclick()
+    .getSettled('.ant-select-clear').click()
+  }
+
+  // todo: fix clearAlreadySelected
+  selectMultipleOptionOfRow = ({index, cellValue, columnName, clearAlreadySelected}) => {
+    return this
+      .getCell(columnName, index)
+      .click()
+      // .then(() => {
+        // if(clearAlreadySelected){
+        //   if(cy.find(".ant-select-item-option-selected").then(($el) => cy.wrap($el).length > 0).catch) {
+        //     return cy.get(".ant-select-item-option-selected").click({multiple: true})
+        //   }
+        // }
+
+      //   return cy
+      // })
+      .getSettled('.ant-select-item-option-content').contains(cellValue).click()
+      .then(() => {
+        return this.getCell(columnName, index).contains(cellValue).should("exist").click();
+      })
+  }
+
   addColumn = (colName, tableName) => {
     cy.get(".nc-column-add").click();
 
     cy.wait(2000);
 
     cy.getActiveMenu(".nc-dropdown-grid-add-column:has(.nc-column-name-input)")
-      .find("input.nc-column-name-input")
+      .getSettled("input.nc-column-name-input")
       .should("exist")
       .clear()
       .type(colName);
@@ -255,6 +329,46 @@ export class _mainPage {
     cy.wait(2000);
 
     cy.get(`th[data-title="${colName}"]`).should("exist");
+  };
+
+  createSelectColumn = ({type, title}) => {
+    cy.get(".nc-grid  tr > th:last .nc-icon").click();
+    
+    // Column title
+    cy.getActiveMenu(".nc-dropdown-grid-add-column")
+      .find("input.nc-column-name-input")
+      .should("exist")
+      .clear()
+      .type(title);
+
+    cy.getActiveMenu(".nc-dropdown-grid-add-column")
+      .find(".nc-column-type-input")
+      .last()
+      .click()
+      .type(title);
+
+    cy.getActiveSelection(".nc-dropdown-column-type")
+      .find(".ant-select-item-option")
+      .contains(type)
+      .click();
+
+    cy.get('[data-cy="select-column-add-select-option"]').should("be.visible").click();
+    cy.get('[data-cy="select-column-option-input-0"]').should("be.visible").click().type("Option 1");
+
+    cy.get('[data-cy="select-column-add-select-option"]').should("be.visible").click();
+    cy.get('[data-cy="select-column-option-input-1"]').should("be.visible").click().type("Option 2");
+
+    cy.get('[data-cy="column-save-button"]').should("be.visible").click();
+
+    return cy.getSettled(`[data-title=${title}]`).should("be.visible")
+  }
+
+  verifyColumn = (colName) => {
+    cy.get(`th[data-title="${colName}"]`).should("exist");
+  };
+
+  verifyColumnDoesNotExist = (colName) => {
+    cy.get(`th[data-title="${colName}"]`).should("not.exist");
   };
 
   deleteColumn = (colName) => {

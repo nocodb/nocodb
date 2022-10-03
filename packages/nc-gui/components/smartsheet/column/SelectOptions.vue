@@ -126,8 +126,14 @@ watch(inputs, () => {
   <div class="w-full">
     <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
       <template #item="{ element, index }">
-        <div class="flex py-1 items-center">
-          <MdiDragVertical small class="nc-child-draggable-icon handle" />
+        <div class="flex py-1 items-center" :class="`select-column-option-${index}`" :data-cy="`select-column-option-${index}`">
+          <div
+            class="flex nc-child-draggable-icon handle my-auto"
+            :class="`select-column-option-drag-handle-${index}`"
+            :data-cy="`select-column-option-drag-handle-${index}`"
+          >
+            <MdiDragVertical small />
+          </div>
 
           <a-dropdown
             v-model:visible="colorMenus[index]"
@@ -144,9 +150,20 @@ watch(inputs, () => {
             <MdiArrowDownDropCircle :style="{ 'font-size': '1.5em', 'color': element.color }" class="mr-2" />
           </a-dropdown>
 
-          <a-input ref="inputs" v-model:value="element.title" class="caption" @change="optionChanged(element.id)" />
+          <a-input
+            ref="inputs"
+            v-model:value="element.title"
+            class="caption"
+            :data-cy="`select-column-option-input-${index}`"
+            @change="optionChanged(element.id)"
+          />
 
-          <MdiClose class="ml-2" :style="{ color: 'red' }" @click="removeOption(index)" />
+          <MdiClose
+            class="ml-2"
+            :style="{ color: 'red' }"
+            :data-cy="`select-column-option-remove-${index}`"
+            @click="removeOption(index)"
+          />
         </div>
       </template>
       <template #footer>
@@ -154,7 +171,7 @@ watch(inputs, () => {
           {{ validateInfos['colOptions.options'].help[0][0] }}
         </div>
 
-        <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
+        <a-button type="dashed" class="w-full caption mt-2" data-cy="select-column-add-select-option" @click="addNewOption()">
           <div class="flex items-center">
             <MdiPlus />
             <span class="flex-auto">Add option</span>

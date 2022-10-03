@@ -373,6 +373,7 @@ watch(
                 :key="col.title"
                 v-xc-ver-resize
                 :data-col="col.id"
+                :data-cy="`column-${col.title}`"
                 :data-title="col.title"
                 @xcresize="onresize(col.id, $event)"
                 @xcresizing="onXcResizing(col.title, $event)"
@@ -525,7 +526,7 @@ watch(
         <template v-if="!isLocked && hasEditPermission" #overlay>
           <a-menu class="shadow !rounded !py-0" @click="contextMenu = false">
             <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)">
-              <div v-e="['a:row:delete']" class="nc-project-menu-item">
+              <div v-e="['a:row:delete']" class="nc-project-menu-item" data-cy="row-delete">
                 <!-- Delete Row -->
                 {{ $t('activity.deleteRow') }}
               </div>

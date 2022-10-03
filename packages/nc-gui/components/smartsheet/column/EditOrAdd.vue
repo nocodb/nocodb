@@ -192,7 +192,7 @@ onMounted(() => {
             {{ $t('general.cancel') }}
           </a-button>
 
-          <a-button html-type="submit" type="primary" @click.prevent="onSubmit">
+          <a-button html-type="submit" type="primary" data-cy="column-save-button" @click.prevent="onSubmit">
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

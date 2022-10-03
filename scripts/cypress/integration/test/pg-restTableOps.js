@@ -13,6 +13,7 @@ let t3c = require("../common/3c_lookup_column");
 let t3d = require("../common/3d_rollup_column");
 let t3e = require("../common/3e_duration_column");
 let t3f = require("../common/3f_link_to_another_record");
+let t3g = require("../common/3g_single_select");
 const {
   setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
@@ -21,6 +22,7 @@ const nocoTestSuite = (apiType, dbType) => {
   setCurrentMode(apiType, dbType);
   t01.genTest(apiType, dbType);
 
+  t3g.genTest(apiType, dbType);
   t1a.genTest(apiType, dbType);
   t1b.genTest(apiType, dbType);
   t1c.genTest(apiType, dbType);

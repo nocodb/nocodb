@@ -73,11 +73,14 @@ const setAsPrimaryValue = async () => {
 
 <template>
   <a-dropdown v-if="!isLocked" placement="bottomRight" :trigger="['click']" overlay-class-name="nc-dropdown-column-operations">
-    <MdiMenuDown class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
+    <MdiMenuDown
+      :data-cy="`column-${column?.title}-menu-dropdown-button`"
+      class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0"
+    />
 
     <template #overlay>
       <a-menu class="shadow bg-white">
-        <a-menu-item @click="emit('edit')">
+        <a-menu-item data-cy="column-menu-edit" @click="emit('edit')">
           <div class="nc-column-edit nc-header-menu-item">
             <MdiPencil class="text-primary" />
             <!-- Edit -->
@@ -85,7 +88,7 @@ const setAsPrimaryValue = async () => {
           </div>
         </a-menu-item>
 
-        <a-menu-item v-if="!virtual" @click="setAsPrimaryValue">
+        <a-menu-item v-if="!virtual" data-cy="column-menu-set-primary" @click="setAsPrimaryValue">
           <div class="nc-column-set-primary nc-header-menu-item">
             <MdiStar class="text-primary" />
 
@@ -95,7 +98,7 @@ const setAsPrimaryValue = async () => {
           </div>
         </a-menu-item>
 
-        <a-menu-item @click="deleteColumn">
+        <a-menu-item data-cy="column-menu-delete" @click="deleteColumn">
           <div class="nc-column-delete nc-header-menu-item">
             <MdiDeleteOutline class="text-error" />
             <!-- Delete -->

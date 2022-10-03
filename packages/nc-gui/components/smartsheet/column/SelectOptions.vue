@@ -84,13 +84,13 @@ onMounted(() => {
 })
 
 const optionChanged = (changedId: string) => {
-  if (changedId === defaultOption.value?.id) {
+  if (changedId && changedId === defaultOption.value?.id) {
     vModel.value.cdf = defaultOption.value.title
   }
 }
 
 const optionDropped = (changedId: string) => {
-  if (changedId === defaultOption.value?.id) {
+  if (changedId && changedId === defaultOption.value?.id) {
     vModel.value.cdf = null
     defaultOption.value = null
   }

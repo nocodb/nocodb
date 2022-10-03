@@ -1514,7 +1514,7 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
       NcError.notImplemented();
       break;
     }
-    // @ts-expect-error
+    // @ts-ignore
     case UITypes.SingleSelect: {
       if (column.uidt === UITypes.SingleSelect) {
         if (await KanbanView.IsColumnBeingUsedAsGroupingField(column.id)) {

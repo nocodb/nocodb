@@ -455,7 +455,7 @@ watch(view, async (nextView) => {
                 v-else
                 :key="`${stack.id}-collapsed`"
                 :style="`background-color: ${stack.color} !important`"
-                class="nc-kanban-stack nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer h-full !pr-[10px]"
+                class="nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer h-full !pr-[10px]"
                 :class="{
                   'not-draggable': stack.id === 'uncategorized' || isLocked || isPublic || !hasEditPermission,
                 }"

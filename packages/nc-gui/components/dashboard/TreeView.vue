@@ -145,7 +145,7 @@ const addTableTab = (table: TableType) => {
   addTab({ title: table.title, id: table.id, type: table.type as TabType })
 }
 
-function openRenameTableDialog(table: TableType, baseId: string, rightClick = false) {
+function openRenameTableDialog(table: TableType, baseId?: string, rightClick = false) {
   $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
 
   const isOpen = ref(true)
@@ -153,7 +153,7 @@ function openRenameTableDialog(table: TableType, baseId: string, rightClick = fa
   const { close } = useDialog(resolveComponent('DlgTableRename'), {
     'modelValue': isOpen,
     'tableMeta': table,
-    'baseId': baseId,
+    'baseId': baseId || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -164,7 +164,7 @@ function openRenameTableDialog(table: TableType, baseId: string, rightClick = fa
   }
 }
 
-function openQuickImportDialog(type: string) {
+function openQuickImportDialog(type: string, baseId?: string) {
   $e(`a:actions:import-${type}`)
 
   const isOpen = ref(true)
@@ -172,6 +172,7 @@ function openQuickImportDialog(type: string) {
   const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
+    'baseId': baseId || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -182,13 +183,14 @@ function openQuickImportDialog(type: string) {
   }
 }
 
-function openAirtableImportDialog() {
+function openAirtableImportDialog(baseId?: string) {
   $e('a:actions:import-airtable')
 
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
+    'baseId': baseId || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -200,15 +202,14 @@ function openAirtableImportDialog() {
 }
 
 function openTableCreateDialog(baseId?: string) {
-  if (!baseId) return
   $e('c:table:create:navdraw')
 
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
+    'baseId': baseId || bases.value[0].id,
     'onUpdate:modelValue': closeDialog,
-    'baseId': baseId,
   })
 
   function closeDialog() {
@@ -301,7 +302,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     <a-menu-item
                       v-if="isUIAllowed('airtableImport')"
                       key="quick-import-airtable"
-                      @click="openAirtableImportDialog"
+                      @click="openAirtableImportDialog(bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
                         <MdiTableLarge class="group-hover:text-accent" />
@@ -309,14 +310,22 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                       </div>
                     </a-menu-item>
 
-                    <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv" @click="openQuickImportDialog('csv')">
+                    <a-menu-item
+                      v-if="isUIAllowed('csvImport')"
+                      key="quick-import-csv"
+                      @click="openQuickImportDialog('csv', bases[0].id)"
+                    >
                       <div class="color-transition nc-project-menu-item group">
                         <MdiFileDocumentOutline class="group-hover:text-accent" />
                         CSV file
                       </div>
                     </a-menu-item>
 
-                    <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json" @click="openQuickImportDialog('json')">
+                    <a-menu-item
+                      v-if="isUIAllowed('jsonImport')"
+                      key="quick-import-json"
+                      @click="openQuickImportDialog('json', bases[0].id)"
+                    >
                       <div class="color-transition nc-project-menu-item group">
                         <MdiCodeJson class="group-hover:text-accent" />
                         JSON file
@@ -326,7 +335,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     <a-menu-item
                       v-if="isUIAllowed('excelImport')"
                       key="quick-import-excel"
-                      @click="openQuickImportDialog('excel')"
+                      @click="openQuickImportDialog('excel', bases[0].id)"
                     >
                       <div class="color-transition nc-project-menu-item group">
                         <MdiFileExcel class="group-hover:text-accent" />
@@ -460,7 +469,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                               <a-menu-item
                                 v-if="isUIAllowed('airtableImport')"
                                 key="quick-import-airtable"
-                                @click="openAirtableImportDialog"
+                                @click="openAirtableImportDialog(base.id)"
                               >
                                 <div class="color-transition nc-project-menu-item group">
                                   <MdiTableLarge class="group-hover:text-accent" />
@@ -471,7 +480,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                               <a-menu-item
                                 v-if="isUIAllowed('csvImport')"
                                 key="quick-import-csv"
-                                @click="openQuickImportDialog('csv')"
+                                @click="openQuickImportDialog('csv', base.id)"
                               >
                                 <div class="color-transition nc-project-menu-item group">
                                   <MdiFileDocumentOutline class="group-hover:text-accent" />
@@ -482,7 +491,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                               <a-menu-item
                                 v-if="isUIAllowed('jsonImport')"
                                 key="quick-import-json"
-                                @click="openQuickImportDialog('json')"
+                                @click="openQuickImportDialog('json', base.id)"
                               >
                                 <div class="color-transition nc-project-menu-item group">
                                   <MdiCodeJson class="group-hover:text-accent" />
@@ -493,7 +502,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                               <a-menu-item
                                 v-if="isUIAllowed('excelImport')"
                                 key="quick-import-excel"
-                                @click="openQuickImportDialog('excel')"
+                                @click="openQuickImportDialog('excel', base.id)"
                               >
                                 <div class="color-transition nc-project-menu-item group">
                                   <MdiFileExcel class="group-hover:text-accent" />

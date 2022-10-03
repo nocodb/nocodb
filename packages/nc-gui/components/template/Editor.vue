@@ -30,7 +30,8 @@ import {
 } from '#imports'
 import { TabType } from '~/lib'
 
-const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse } = defineProps<Props>()
+const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId } =
+  defineProps<Props>()
 
 const emit = defineEmits(['import'])
 
@@ -45,6 +46,7 @@ interface Props {
   importColumns: any[]
   importDataOnly: boolean
   maxRowsToParse: number
+  baseId: string
 }
 
 interface Option {
@@ -397,7 +399,7 @@ async function importTemplate() {
     try {
       isImporting.value = true
 
-      const tableName = meta.value?.title
+      const tableId = meta.value?.id
       const projectName = project.value.title!
 
       await Promise.all(
@@ -436,8 +438,8 @@ async function importTemplate() {
                   return res
                 }, {}),
               )
-              await $api.dbTableRow.bulkCreate('noco', projectName, tableName!, batchData)
-              updateImportTips(projectName, tableName!, progress, total)
+              await $api.dbTableRow.bulkCreate('noco', projectName, tableId!, batchData)
+              updateImportTips(projectName, tableId!, progress, total)
               progress += batchData.length
             }
           })(key),
@@ -497,8 +499,7 @@ async function importTemplate() {
             }
           }
         }
-
-        const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
+        const tableMeta = await $api.base.tableCreate(project?.value?.id as string, baseId as string, {
           table_name: table.table_name,
           // leave title empty to get a generated one based on table_name
           title: '',
@@ -534,7 +535,7 @@ async function importTemplate() {
                 for (let i = 0; i < data.length; i += offset) {
                   updateImportTips(projectName, tableMeta.title, progress, total)
                   const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
-                  await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.title, batchData)
+                  await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.id, batchData)
                   progress += batchData.length
                 }
                 updateImportTips(projectName, tableMeta.title, total, total)

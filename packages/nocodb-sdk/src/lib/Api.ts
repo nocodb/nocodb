@@ -1992,6 +1992,32 @@ export class Api<
      * No description
      *
      * @tags Base
+     * @name TableList
+     * @request GET:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
+     * @response `200` `TableListType`
+     */
+    tableList: (
+      projectId: string,
+      baseId: string,
+      query?: {
+        page?: number;
+        pageSize?: number;
+        sort?: string;
+        includeM2M?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TableListType, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/${baseId}/tables`,
+        method: 'GET',
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Base
      * @name TableCreate
      * @request POST:/api/v1/db/meta/projects/{projectId}/{baseId}/tables
      * @response `200` `TableType` OK

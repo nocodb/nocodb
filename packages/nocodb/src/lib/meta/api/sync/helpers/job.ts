@@ -214,7 +214,7 @@ export default async (
   }
 
   function getRootDbType() {
-    return ncCreatedProjectSchema?.bases[0]?.type;
+    return ncCreatedProjectSchema?.bases.find((el) => el.id === syncDB.baseId)?.type;
   }
 
   // base mapping table
@@ -312,7 +312,7 @@ export default async (
   // @ts-ignore
   async function nc_DumpTableSchema() {
     console.log('[');
-    const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
+    const ncTblList = await api.base.tableList(ncCreatedProjectSchema.id, syncDB.baseId);
     for (let i = 0; i < ncTblList.list.length; i++) {
       const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
       console.log(JSON.stringify(ncTbl, null, 2));
@@ -611,11 +611,12 @@ export default async (
     for (let idx = 0; idx < tables.length; idx++) {
       logBasic(`:: [${idx + 1}/${tables.length}] ${tables[idx].title}`);
 
-      logDetailed(`NC API: dbTable.create ${tables[idx].title}`);
+      logDetailed(`NC API: base.tableCreate ${tables[idx].title}`);
 
       let _perfStart = recordPerfStart();
-      const table: any = await api.dbTable.create(
+      const table: any = await api.base.tableCreate(
         ncCreatedProjectSchema.id,
+        syncDB.baseId,
         tables[idx]
       );
       recordPerfStats(_perfStart, 'dbTable.create');
@@ -2171,6 +2172,7 @@ export default async (
     } else {
       await nocoGetProject(syncDB.projectId);
       syncDB.projectName = ncCreatedProjectSchema?.title;
+      syncDB.baseId = syncDB.baseId || ncCreatedProjectSchema.bases[0].id;
       logDetailed('Getting existing project meta');
     }
 
@@ -2228,8 +2230,8 @@ export default async (
       try {
         // await nc_DumpTableSchema();
         const _perfStart = recordPerfStart();
-        const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
-        recordPerfStats(_perfStart, 'dbTable.list');
+        const ncTblList = await api.base.tableList(ncCreatedProjectSchema.id, syncDB.baseId);
+        recordPerfStats(_perfStart, 'base.tableList');
 
         logBasic('Reading Records...');
 
@@ -2385,6 +2387,7 @@ export interface AirtableSyncConfig {
   authToken: string;
   projectName?: string;
   projectId?: string;
+  baseId?: string;
   apiKey: string;
   shareId: string;
   options: {

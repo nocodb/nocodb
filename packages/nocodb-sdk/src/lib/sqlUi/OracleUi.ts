@@ -1,21 +1,51 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
 
+const dbTypes = [
+  'CHAR',
+  'VARCHAR',
+  'VARCHAR2',
+
+  'NUMBER',
+  'NCHAR',
+  'NVARCHAR2',
+  'CLOB',
+  'NCLOB',
+  'BINARY_FLOAT',
+  'BINARY_DOUBLE',
+
+  'DATE',
+
+  'TIMESTAMP',
+  'TIMESTAMP WITH LOCAL TIME ZONE',
+  'TIMESTAMP WITH TIME ZONE',
+
+  'BLOB',
+  'CLOB',
+  'NCLOB',
+  'BFILE',
+
+  'RAW',
+  'LONG RAW',
+
+  'ROWID',
+  'UROWID',
+
+  'XMLType',
+  'UriType',
+];
 export class OracleUi {
   static getNewTableColumns(): any[] {
     return [
       {
-        column_name: 'id',
+        column_name: 'ID',
         title: 'Id',
-        dt: 'integer',
-        dtx: 'integer',
-        ct: 'int(11)',
-        nrqd: false,
+        dt: 'NUMBER',
         rqd: true,
         ck: false,
         pk: true,
         un: false,
-        ai: false,
+        ai: true,
         cdf: null,
         clen: null,
         np: null,
@@ -28,11 +58,9 @@ export class OracleUi {
         uicn: '',
       },
       {
-        column_name: 'title',
+        column_name: 'TITLE',
         title: 'Title',
-        dt: 'varchar',
-        dtx: 'specificType',
-        ct: 'varchar(45)',
+        dt: 'VARCHAR2',
         nrqd: true,
         rqd: false,
         ck: false,
@@ -91,10 +119,8 @@ export class OracleUi {
 
   static getNewColumn(suffix) {
     return {
-      column_name: 'title' + suffix,
-      dt: 'varchar',
-      dtx: 'specificType',
-      ct: 'varchar(45)',
+      column_name: 'TITLE' + suffix,
+      dt: 'VARCHAR2',
       nrqd: true,
       rqd: false,
       ck: false,
@@ -113,122 +139,6 @@ export class OracleUi {
       uicn: '',
     };
   }
-
-  // static getDefaultLengthForDatatype(type) {
-  //   switch (type) {
-  //     case "int":
-  //       return 11;
-  //       break;
-  //     case "tinyint":
-  //       return 1;
-  //       break;
-  //     case "smallint":
-  //       return 5;
-  //       break;
-  //
-  //     case "mediumint":
-  //       return 9;
-  //       break;
-  //     case "bigint":
-  //       return 20;
-  //       break;
-  //     case "bit":
-  //       return 64;
-  //       break;
-  //     case "boolean":
-  //       return '';
-  //       break;
-  //     case "float":
-  //       return 12;
-  //       break;
-  //     case "decimal":
-  //       return 10;
-  //       break;
-  //     case "double":
-  //       return 22;
-  //       break;
-  //     case "serial":
-  //       return 20;
-  //       break;
-  //     case "date":
-  //       return '';
-  //       break;
-  //     case "datetime":
-  //     case "timestamp":
-  //       return 6;
-  //       break;
-  //     case "time":
-  //       return '';
-  //       break;
-  //     case "year":
-  //       return '';
-  //       break;
-  //     case "char":
-  //       return 255;
-  //       break;
-  //     case "varchar":
-  //       return 45;
-  //       break;
-  //     case "nchar":
-  //       return 255;
-  //       break;
-  //     case "text":
-  //       return '';
-  //       break;
-  //     case "tinytext":
-  //       return '';
-  //       break;
-  //     case "mediumtext":
-  //       return '';
-  //       break;
-  //     case "longtext":
-  //       return ''
-  //       break;
-  //     case "binary":
-  //       return 255;
-  //       break;
-  //     case "varbinary":
-  //       return 65500;
-  //       break;
-  //     case "blob":
-  //       return '';
-  //       break;
-  //     case "tinyblob":
-  //       return '';
-  //       break;
-  //     case "mediumblob":
-  //       return '';
-  //       break;
-  //     case "longblob":
-  //       return '';
-  //       break;
-  //     case "enum":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "set":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "geometry":
-  //       return '';
-  //     case "point":
-  //       return '';
-  //     case "linestring":
-  //       return '';
-  //     case "polygon":
-  //       return '';
-  //     case "multipoint":
-  //       return '';
-  //     case "multilinestring":
-  //       return '';
-  //     case "multipolygon":
-  //       return '';
-  //     case "json":
-  //       return ''
-  //       break;
-  //
-  //   }
-  //
-  // }
 
   static getDefaultLengthForDatatype(type) {
     switch (type) {
@@ -304,69 +214,18 @@ export class OracleUi {
 
   static getDefaultScaleForDatatype(type): any {
     switch (type) {
-      case 'integer':
-      case 'bfile':
-      case 'binary rowid':
-      case 'binary double':
-      case 'binary_float':
-      case 'blob':
-      case 'canoical':
-      case 'cfile':
-      case 'char':
-      case 'clob':
-      case 'content pointer':
-      case 'contigous array':
-      case 'date':
-      case 'decimal':
-      case 'double precision':
-      case 'float':
-      case 'interval day to second':
-      case 'interval year to month':
-      case 'lob pointer':
-      case 'long':
-      case 'long raw':
-      case 'named collection':
-      case 'named object':
-      case 'nchar':
-      case 'nclob':
-      case 'number':
-      case 'nvarchar2':
-      case 'octet':
-      case 'oid':
-      case 'pointer':
-      case 'raw':
-      case 'real':
-      case 'ref':
-      case 'ref cursor':
-      case 'rowid':
-      case 'signed binary integer':
-      case 'smallint':
-      case 'table':
-      case 'time':
-      case 'time with tz':
-      case 'timestamp':
-      case 'timestamp with local time zone':
-      case 'timestamp with local tz':
-      case 'timestamp with timezone':
-      case 'timestamp with tz':
-      case 'unsigned binary integer':
-      case 'urowid':
-      case 'varchar':
-      case 'varchar2':
-      case 'varray':
-      case 'varying array':
+      case 'VARCHAR2':
+      case 'VARCHAR':
+      case 'NVARCHAR2':
+      case 'NCHAR':
+        return 45;
         return ' ';
     }
   }
 
   static colPropAIDisabled(col, columns) {
     // console.log(col);
-    if (
-      col.dt === 'int4' ||
-      col.dt === 'integer' ||
-      col.dt === 'bigint' ||
-      col.dt === 'smallint'
-    ) {
+    if (col.dt === 'NUMBER') {
       for (let i = 0; i < columns.length; ++i) {
         if (columns[i].cn !== col.cn && columns[i].ai) {
           return true;
@@ -928,6 +787,318 @@ export class OracleUi {
         break;
     }
     return colProp;
+  }
+
+  // Ref - https://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm#CNCPT513
+
+  static getDataTypeListForUiType(col: { uidt?: UITypes }, idType: IDType) {
+    [
+      'CHAR',
+      'VARCHAR',
+      'VARCHAR2',
+
+      'NUMBER',
+      'NCHAR',
+      'NVARCHAR2',
+      'CLOB',
+      'NCLOB',
+      'BINARY_FLOAT',
+      'BINARY_DOUBLE',
+
+      'DATE',
+
+      'TIMESTAMP',
+      'TIMESTAMP WITH LOCAL TIME ZONE',
+      'TIMESTAMP WITH TIME ZONE',
+
+      'BLOB',
+      'CLOB',
+      'NCLOB',
+      'BFILE',
+
+      'RAW',
+      'LONG RAW',
+
+      'ROWID',
+      'UROWID',
+
+      'XMLType',
+      'UriType',
+    ];
+
+    switch (col.uidt) {
+      case 'ID':
+        if (idType === 'AG') {
+          return ['char', 'character', 'character varying'];
+        } else if (idType === 'AI') {
+          return ['NUMBER'];
+        } else {
+          return dbTypes;
+        }
+      case 'ForeignKey':
+        return dbTypes;
+
+      case 'SingleLineText':
+      case 'LongText':
+      case 'Collaborator':
+        return [
+          'CHAR',
+          'VARCHAR',
+          'VARCHAR2',
+          'NCHAR',
+          'NVARCHAR2',
+          'CLOB',
+          'NCLOB',
+        ];
+      case 'Attachment':
+        return [
+          'CHAR',
+          'VARCHAR',
+          'VARCHAR2',
+          'NCHAR',
+          'NVARCHAR2',
+          'CLOB',
+          'NCLOB',
+        ];
+      case 'JSON':
+        return [
+          'CHAR',
+          'VARCHAR',
+          'VARCHAR2',
+          'NCHAR',
+          'NVARCHAR2',
+          'CLOB',
+          'NCLOB',
+        ];
+      case 'Checkbox':
+        return [
+          'bit',
+          'bool',
+          'int2',
+          'int4',
+          'int8',
+          'boolean',
+          'smallint',
+          'int',
+          'integer',
+          'bigint',
+          'bigserial',
+          'char',
+          'int4range',
+          'int8range',
+          'serial',
+          'serial2',
+          'serial8',
+        ];
+
+      case 'MultiSelect':
+        return [
+          'CHAR',
+          'VARCHAR',
+          'VARCHAR2',
+          'NCHAR',
+          'NVARCHAR2',
+          'CLOB',
+          'NCLOB',
+        ];
+
+      case 'SingleSelect':
+        return [
+          'CHAR',
+          'VARCHAR',
+          'VARCHAR2',
+          'NCHAR',
+          'NVARCHAR2',
+          'CLOB',
+          'NCLOB',
+        ];
+
+      case 'Year':
+        return ['int'];
+
+      case 'Time':
+        return [
+          'time',
+          'time without time zone',
+          'timestamp',
+          'timestamp without time zone',
+          'timestamptz',
+          'timestamp with time zone',
+          'timetz',
+          'time with time zone',
+        ];
+
+      case 'PhoneNumber':
+      case 'Email':
+        return ['character varying'];
+
+      case 'URL':
+        return ['character varying', 'text'];
+
+      case 'Number':
+        return ['NUMBER'];
+
+      case 'Decimal':
+        return ['NUMBER'];
+
+      case 'Currency':
+        return [
+          'int',
+          'integer',
+          'bigint',
+          'bigserial',
+          'int2',
+          'int4',
+          'int8',
+          'serial',
+          'serial2',
+          'serial8',
+          'double precision',
+          'money',
+          'float4',
+          'float8',
+          'numeric',
+        ];
+
+      case 'Percent':
+        return [
+          'int',
+          'integer',
+          'bigint',
+          'bigserial',
+          'int2',
+          'int4',
+          'int8',
+          'serial',
+          'serial2',
+          'serial8',
+          'double precision',
+          'float4',
+          'float8',
+          'smallint',
+          'smallserial',
+          'numeric',
+        ];
+
+      case 'Duration':
+        return [
+          'int',
+          'integer',
+          'bigint',
+          'bigserial',
+          'int2',
+          'int4',
+          'int8',
+          'serial',
+          'serial2',
+          'serial8',
+          'double precision',
+          'float4',
+          'float8',
+          'smallint',
+          'smallserial',
+          'numeric',
+        ];
+
+      case 'Rating':
+        return [
+          'int',
+          'integer',
+          'bigint',
+          'bigserial',
+          'int2',
+          'int4',
+          'int8',
+          'serial',
+          'serial2',
+          'serial8',
+          'double precision',
+          'float4',
+          'float8',
+          'smallint',
+          'smallserial',
+          'numeric',
+        ];
+
+      case 'Formula':
+        return ['text', 'character varying'];
+
+      case 'Rollup':
+        return ['character varying'];
+
+      case 'Count':
+        return [
+          'int',
+          'integer',
+          'bigint',
+          'bigserial',
+          'int2',
+          'int4',
+          'int8',
+          'serial',
+          'serial2',
+          'serial8',
+          'smallint',
+          'smallserial',
+        ];
+
+      case 'Lookup':
+        return ['character varying'];
+
+      case 'Date':
+        return [
+          'date',
+          'timestamp',
+          'timestamp without time zone',
+          'timestamptz',
+          'timestamp with time zone',
+        ];
+
+      case 'DateTime':
+      case 'CreateTime':
+      case 'LastModifiedTime':
+        return [
+          'timestamp',
+          'timestamp without time zone',
+          'timestamptz',
+          'timestamp with time zone',
+        ];
+
+      case 'AutoNumber':
+        return [
+          'int',
+          'integer',
+          'bigint',
+          'bigserial',
+          'int2',
+          'int4',
+          'int8',
+          'serial',
+          'serial2',
+          'serial8',
+          'smallint',
+          'smallserial',
+        ];
+
+      case 'Barcode':
+        return ['character varying'];
+
+      case 'Geometry':
+        return [
+          'polygon',
+          'point',
+          'circle',
+          'box',
+          'line',
+          'lseg',
+          'path',
+          'circle',
+        ];
+
+      case 'Button':
+      default:
+        return dbTypes;
+    }
   }
 
   static getUnsupportedFnList() {

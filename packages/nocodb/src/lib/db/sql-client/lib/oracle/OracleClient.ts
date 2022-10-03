@@ -997,7 +997,7 @@ class OracleClient extends KnexClient {
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
         el = mapKeys(el, (_v, k) => k.toLowerCase());
-        el.view_name = el.object_name;
+        el.view_name = el.view_name || el.object_name;
         response[i] = el;
       }
 

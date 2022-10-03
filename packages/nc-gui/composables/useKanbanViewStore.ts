@@ -196,12 +196,19 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             // 2. delete option from grid view, then switch to kanban view
             // for the second case, formattedData.value and countByStack.value would be empty at this moment
             // however, the data will be correct after rendering
-            if (Object.keys(formattedData.value).length && Object.keys(countByStack.value).length) {
+            if (
+              Object.keys(formattedData.value).length &&
+              Object.keys(countByStack.value).length &&
+              col.title! in formattedData.value
+            ) {
               // for the first case, no reload is executed.
               // hence, we set groupingField to null for all records under the target stack
               await bulkUpdateGroupingFieldValue(col.title!, true)
               // merge the to-be-deleted stack to uncategorized stack
-              formattedData.value.uncategorized = [...formattedData.value.uncategorized, ...formattedData.value[col.title!]]
+              formattedData.value.uncategorized = [
+                ...(formattedData.value.uncategorized || []),
+                ...formattedData.value[col.title!],
+              ]
               // update the record count
               countByStack.value.uncategorized += countByStack.value[col.title!]
             }

@@ -34,6 +34,7 @@ import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import FormulaColumn from '../../models/FormulaColumn';
+import KanbanView from '../../models/KanbanView';
 import { MetaTable } from '../../utils/globals';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
@@ -541,7 +542,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
 
             // handle single quote for default value
             if (driverType === 'mysql' || driverType === 'mysql2') {
-              colBody.cdf = colBody.cdf.replace(/'/g, "\'");
+              colBody.cdf = colBody.cdf.replace(/'/g, "'");
             } else {
               colBody.cdf = colBody.cdf.replace(/'/g, "''");
             }
@@ -837,7 +838,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
 
         // handle single quote for default value
         if (driverType === 'mysql' || driverType === 'mysql2') {
-          colBody.cdf = colBody.cdf.replace(/'/g, "\'");
+          colBody.cdf = colBody.cdf.replace(/'/g, "'");
         } else {
           colBody.cdf = colBody.cdf.replace(/'/g, "''");
         }
@@ -1509,9 +1510,21 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
       }
       Tele.emit('evt', { evt_type: 'raltion:deleted' });
       break;
-    case UITypes.ForeignKey:
+    case UITypes.ForeignKey: {
       NcError.notImplemented();
       break;
+    }
+    // @ts-expect-error
+    case UITypes.SingleSelect: {
+      if (column.uidt === UITypes.SingleSelect) {
+        if (await KanbanView.IsColumnBeingUsedAsGroupingField(column.id)) {
+          NcError.badRequest(
+            `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`
+          );
+        }
+      }
+      /* falls through to default */
+    }
     default: {
       const tableUpdateBody = {
         ...table,

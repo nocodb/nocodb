@@ -42,6 +42,21 @@ export default class KanbanView implements KanbanType {
     return view && new KanbanView(view);
   }
 
+  public static async IsColumnBeingUsedAsGroupingField(
+    columnId: string,
+    ncMeta = Noco.ncMeta
+  ) {
+    return (
+      (
+        await ncMeta.metaList2(null, null, MetaTable.KANBAN_VIEW, {
+          condition: {
+            grp_column_id: columnId,
+          },
+        })
+      ).length > 0
+    );
+  }
+
   static async insert(view: Partial<KanbanView>, ncMeta = Noco.ncMeta) {
     const insertObj = {
       project_id: view.project_id,

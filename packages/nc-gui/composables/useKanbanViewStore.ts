@@ -127,7 +127,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             where,
           })
-        : await fetchSharedViewData(params)
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 
       formattedData.value[stackTitle] = [...formattedData.value[stackTitle], ...formatData(response.list)]
     }

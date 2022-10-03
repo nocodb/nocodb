@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -88,8 +88,6 @@ const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 const fields = inject(FieldsInj, ref([]))
 
 const kanbanContainerRef = ref()
-
-let isMounted = false
 
 const isRowEmpty = (record: any, col: any) => {
   const val = record.row[col.title]
@@ -245,24 +243,26 @@ openNewRecordFormHook?.on(async (stackTitle) => {
 })
 
 onMounted(async () => {
-  // reset state to avoid from showing the previous stacks when switching kanban views
-  groupingFieldColOptions.value = []
-  formattedData.value = {}
-  // load kanban meta
   await loadKanbanMeta()
-  // load kanban data
   await loadKanbanData()
-  // update isMounted for below watcher
-  isMounted = true
 })
 
-watch(
-  () => shouldScrollToRight.value,
-  () => {
-    // use `isMounted` to avoid scrolling from switching from other views
-    // i.e. scroll only when a new option is added within kanban view
-    if (isMounted && shouldScrollToRight.value) {
-      // horizontally scroll to the end of the kanban container
+// reset context menu target on hide
+watch(contextMenu, () => {
+  if (!contextMenu.value) {
+    contextMenuTarget.value = null
+  }
+})
+
+watch(view, async (nextView) => {
+  if (nextView?.type === ViewTypes.KANBAN) {
+    // load kanban meta
+    await loadKanbanMeta()
+    // load kanban data
+    await loadKanbanData()
+    // horizontally scroll to the end of the kanban container
+    // when a new option is added within kanban view
+    if (shouldScrollToRight.value) {
       kanbanContainerRef.value.scrollTo({
         left: kanbanContainerRef.value.scrollWidth,
         behavior: 'smooth',
@@ -270,13 +270,6 @@ watch(
       // reset shouldScrollToRight
       shouldScrollToRight.value = false
     }
-  },
-)
-
-// reset context menu target on hide
-watch(contextMenu, () => {
-  if (!contextMenu.value) {
-    contextMenuTarget.value = null
   }
 })
 </script>

@@ -436,14 +436,10 @@ async function importTemplate() {
               column.rqd = true
             }
             if (!isSystemColumn(column) && column.uidt !== UITypes.SingleSelect && column.uidt !== UITypes.MultiSelect) {
-              // reset dtxp if the final data type is not single / multi select
-              // otherwise, it'll fail when column is being inserted
+              // delete dtxp if the final data type is not single & multi select
               // e.g. import -> detect as single / multi select -> switch to SingleLineText
-              column.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(column.dt)
-            } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
-              // remove .dt for single select / multi select
-              // otherwise, it'll fail when column is being inserted
-              delete column.dt
+              // the correct dtxp will be generated during column creation
+              delete column.dtxp
             }
           }
         }

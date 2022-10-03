@@ -616,7 +616,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           <template v-if="contextMenuTarget.type === 'table'">
             <a-menu-item
               v-if="isUIAllowed('table-rename')"
-              @click="openRenameTableDialog(contextMenuTarget.value, base.id, true)"
+              @click="openRenameTableDialog(contextMenuTarget.value, bases[0].id, true)"
             >
               <div class="nc-project-menu-item">
                 {{ $t('general.rename') }}

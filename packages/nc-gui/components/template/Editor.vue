@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { Empty, Form, message } from 'ant-design-vue'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   Empty,

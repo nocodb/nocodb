@@ -326,7 +326,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
 
 # License 
 <p>
-This project is licensed under the <a href="./LICENSE">AGPLv3</a>.</p>
+This project is licensed under the license <a href="./LICENSE">AGPLv3</a>.</p>
 <br>
 
 # Contributors

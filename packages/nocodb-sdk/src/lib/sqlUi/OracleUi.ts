@@ -660,7 +660,7 @@ export class OracleUi {
         {
           const isAutoIncId = idType === 'AI';
           const isAutoGenId = idType === 'AG';
-          colProp.dt = isAutoGenId ? 'varchar' : 'integer';
+          colProp.dt = isAutoGenId ? 'VARCHAR2' : 'NUMBER';
           colProp.pk = true;
           colProp.un = isAutoIncId;
           colProp.ai = isAutoIncId;
@@ -669,43 +669,43 @@ export class OracleUi {
         }
         break;
       case 'ForeignKey':
-        colProp.dt = 'varchar';
+        colProp.dt = 'NUMBER';
         break;
       case 'SingleLineText':
-        colProp.dt = 'varchar';
+        colProp.dt = 'VARCHAR2';
         break;
       case 'LongText':
-        colProp.dt = 'clob';
+        colProp.dt = 'CLOB';
         break;
       case 'Attachment':
-        colProp.dt = 'clob';
+        colProp.dt = 'CLOB';
         break;
       case 'Checkbox':
-        colProp.dt = 'tinyint';
+        colProp.dt = 'NUMBER';
         colProp.dtxp = 1;
         colProp.cdf = '0';
         break;
       case 'MultiSelect':
-        colProp.dt = 'varchar2';
+        colProp.dt = 'VARCHAR2';
         break;
       case 'SingleSelect':
-        colProp.dt = 'varchar2';
+        colProp.dt = 'VARCHAR2';
         break;
       case 'Collaborator':
-        colProp.dt = 'varchar';
+        colProp.dt = 'VARCHAR2';
         break;
       case 'Date':
-        colProp.dt = 'varchar';
+        colProp.dt = 'DATE';
 
         break;
       case 'Year':
-        colProp.dt = 'year';
+        colProp.dt = 'NUMBER';
         break;
       case 'Time':
-        colProp.dt = 'time';
+        colProp.dt = 'DATE';
         break;
       case 'PhoneNumber':
-        colProp.dt = 'varchar';
+        colProp.dt = 'VARCHAR2';
         colProp.validate = {
           func: ['isMobilePhone'],
           args: [''],
@@ -713,7 +713,7 @@ export class OracleUi {
         };
         break;
       case 'Email':
-        colProp.dt = 'varchar';
+        colProp.dt = 'VARCHAR2';
         colProp.validate = {
           func: ['isEmail'],
           args: [''],
@@ -721,7 +721,7 @@ export class OracleUi {
         };
         break;
       case 'URL':
-        colProp.dt = 'varchar';
+        colProp.dt = 'VARCHAR2';
         colProp.validate = {
           func: ['isURL'],
           args: [''],
@@ -729,13 +729,13 @@ export class OracleUi {
         };
         break;
       case 'Number':
-        colProp.dt = 'integer';
+        colProp.dt = 'NUMBER';
         break;
       case 'Decimal':
-        colProp.dt = 'decimal';
+        colProp.dt = 'NUMBER';
         break;
       case 'Currency':
-        colProp.dt = 'decimal';
+        colProp.dt = 'NUMBER';
         colProp.validate = {
           func: ['isCurrency'],
           args: [''],
@@ -743,47 +743,47 @@ export class OracleUi {
         };
         break;
       case 'Percent':
-        colProp.dt = 'double';
+        colProp.dt = 'NUMBER';
         break;
       case 'Duration':
-        colProp.dt = 'integer';
+        colProp.dt = 'NUMBER';
         break;
       case 'Rating':
-        colProp.dt = 'integer';
+        colProp.dt = 'NUMBER';
         colProp.cdf = '0';
         break;
       case 'Formula':
-        colProp.dt = 'varchar';
+        colProp.dt = 'VARCHAR2';
         break;
       case 'Rollup':
-        colProp.dt = 'varchar';
+        colProp.dt = 'VARCHAR2';
         break;
       case 'Count':
-        colProp.dt = 'integer';
+        colProp.dt = 'NUMBER';
         break;
       case 'Lookup':
-        colProp.dt = 'varchar';
+        colProp.dt = 'VARCHAR2';
         break;
       case 'DateTime':
-        colProp.dt = 'timestamp';
+        colProp.dt = 'TIMESTAMP';
         break;
       case 'CreateTime':
-        colProp.dt = 'timestamp';
+        colProp.dt = 'TIMESTAMP';
         break;
       case 'LastModifiedTime':
-        colProp.dt = 'timestamp';
+        colProp.dt = 'TIMESTAMP';
         break;
       case 'AutoNumber':
-        colProp.dt = 'integer';
+        colProp.dt = 'NUMBER';
         break;
       case 'Barcode':
         colProp.dt = 'varchar';
         break;
       case 'Button':
-        colProp.dt = 'varchar';
+        colProp.dt = 'VARCHAR2';
         break;
       default:
-        colProp.dt = 'varchar';
+        colProp.dt = 'VARCHAR2';
         break;
     }
     return colProp;
@@ -792,44 +792,10 @@ export class OracleUi {
   // Ref - https://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm#CNCPT513
 
   static getDataTypeListForUiType(col: { uidt?: UITypes }, idType: IDType) {
-    [
-      'CHAR',
-      'VARCHAR',
-      'VARCHAR2',
-
-      'NUMBER',
-      'NCHAR',
-      'NVARCHAR2',
-      'CLOB',
-      'NCLOB',
-      'BINARY_FLOAT',
-      'BINARY_DOUBLE',
-
-      'DATE',
-
-      'TIMESTAMP',
-      'TIMESTAMP WITH LOCAL TIME ZONE',
-      'TIMESTAMP WITH TIME ZONE',
-
-      'BLOB',
-      'CLOB',
-      'NCLOB',
-      'BFILE',
-
-      'RAW',
-      'LONG RAW',
-
-      'ROWID',
-      'UROWID',
-
-      'XMLType',
-      'UriType',
-    ];
-
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {
-          return ['char', 'character', 'character varying'];
+          return ['VARCHAR2', 'VARCHAR', 'NCHAR', 'NVARCHAR2'];
         } else if (idType === 'AI') {
           return ['NUMBER'];
         } else {
@@ -871,25 +837,7 @@ export class OracleUi {
           'NCLOB',
         ];
       case 'Checkbox':
-        return [
-          'bit',
-          'bool',
-          'int2',
-          'int4',
-          'int8',
-          'boolean',
-          'smallint',
-          'int',
-          'integer',
-          'bigint',
-          'bigserial',
-          'char',
-          'int4range',
-          'int8range',
-          'serial',
-          'serial2',
-          'serial8',
-        ];
+        return ['NUMBER'];
 
       case 'MultiSelect':
         return [
@@ -914,26 +862,33 @@ export class OracleUi {
         ];
 
       case 'Year':
-        return ['int'];
+        return ['NUMBER'];
 
       case 'Time':
-        return [
-          'time',
-          'time without time zone',
-          'timestamp',
-          'timestamp without time zone',
-          'timestamptz',
-          'timestamp with time zone',
-          'timetz',
-          'time with time zone',
-        ];
+        return ['DATE', 'VARCHAR', 'VARCHAR2'];
 
       case 'PhoneNumber':
       case 'Email':
-        return ['character varying'];
+        return [
+          'CHAR',
+          'VARCHAR',
+          'VARCHAR2',
+          'NCHAR',
+          'NVARCHAR2',
+          'CLOB',
+          'NCLOB',
+        ];
 
       case 'URL':
-        return ['character varying', 'text'];
+        return [
+          'CHAR',
+          'VARCHAR',
+          'VARCHAR2',
+          'NCHAR',
+          'NVARCHAR2',
+          'CLOB',
+          'NCLOB',
+        ];
 
       case 'Number':
         return ['NUMBER'];
@@ -942,157 +897,37 @@ export class OracleUi {
         return ['NUMBER'];
 
       case 'Currency':
-        return [
-          'int',
-          'integer',
-          'bigint',
-          'bigserial',
-          'int2',
-          'int4',
-          'int8',
-          'serial',
-          'serial2',
-          'serial8',
-          'double precision',
-          'money',
-          'float4',
-          'float8',
-          'numeric',
-        ];
-
+        return ['NUMBER'];
       case 'Percent':
-        return [
-          'int',
-          'integer',
-          'bigint',
-          'bigserial',
-          'int2',
-          'int4',
-          'int8',
-          'serial',
-          'serial2',
-          'serial8',
-          'double precision',
-          'float4',
-          'float8',
-          'smallint',
-          'smallserial',
-          'numeric',
-        ];
+        return ['NUMBER'];
 
       case 'Duration':
-        return [
-          'int',
-          'integer',
-          'bigint',
-          'bigserial',
-          'int2',
-          'int4',
-          'int8',
-          'serial',
-          'serial2',
-          'serial8',
-          'double precision',
-          'float4',
-          'float8',
-          'smallint',
-          'smallserial',
-          'numeric',
-        ];
+        return ['NUMBER'];
 
       case 'Rating':
-        return [
-          'int',
-          'integer',
-          'bigint',
-          'bigserial',
-          'int2',
-          'int4',
-          'int8',
-          'serial',
-          'serial2',
-          'serial8',
-          'double precision',
-          'float4',
-          'float8',
-          'smallint',
-          'smallserial',
-          'numeric',
-        ];
-
-      case 'Formula':
-        return ['text', 'character varying'];
-
-      case 'Rollup':
-        return ['character varying'];
+        return ['NUMBER'];
 
       case 'Count':
-        return [
-          'int',
-          'integer',
-          'bigint',
-          'bigserial',
-          'int2',
-          'int4',
-          'int8',
-          'serial',
-          'serial2',
-          'serial8',
-          'smallint',
-          'smallserial',
-        ];
-
-      case 'Lookup':
-        return ['character varying'];
+        return ['NUMBER'];
 
       case 'Date':
         return [
-          'date',
-          'timestamp',
-          'timestamp without time zone',
-          'timestamptz',
-          'timestamp with time zone',
+          'DATE',
+
+          'TIMESTAMP',
+          'TIMESTAMP WITH LOCAL TIME ZONE',
+          'TIMESTAMP WITH TIME ZONE',
         ];
 
       case 'DateTime':
       case 'CreateTime':
       case 'LastModifiedTime':
         return [
-          'timestamp',
-          'timestamp without time zone',
-          'timestamptz',
-          'timestamp with time zone',
-        ];
+          'DATE',
 
-      case 'AutoNumber':
-        return [
-          'int',
-          'integer',
-          'bigint',
-          'bigserial',
-          'int2',
-          'int4',
-          'int8',
-          'serial',
-          'serial2',
-          'serial8',
-          'smallint',
-          'smallserial',
-        ];
-
-      case 'Barcode':
-        return ['character varying'];
-
-      case 'Geometry':
-        return [
-          'polygon',
-          'point',
-          'circle',
-          'box',
-          'line',
-          'lseg',
-          'path',
-          'circle',
+          'TIMESTAMP',
+          'TIMESTAMP WITH LOCAL TIME ZONE',
+          'TIMESTAMP WITH TIME ZONE',
         ];
 
       case 'Button':

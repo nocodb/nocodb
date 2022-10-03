@@ -1558,6 +1558,8 @@ class BaseModelSqlv2 {
       let response;
       // const driver = trx ? trx : this.dbDriver;
 
+      this.processInsertObject(insertObj);
+
       const query = this.dbDriver(this.tnPath).insert(insertObj);
       if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
@@ -1621,6 +1623,24 @@ class BaseModelSqlv2 {
       await this.errorInsert(e, data, trx, cookie);
       throw e;
     }
+  }
+
+  private processInsertObject(insertObj: Record<string, any>) {
+    // if oracle use `TO_DATE` function to parse date STRING
+    if (this.isOracle) {
+      for (const col of this.model.columns) {
+        if (
+          col.dt === 'DATE' &&
+          col.uidt === UITypes.Date &&
+          insertObj[col.column_name]
+        ) {
+          insertObj[col.column_name] = this.dbDriver.raw(
+            `TO_DATE('${insertObj[col.column_name]}','YYYY-MM-DD')`
+          );
+        }
+      }
+    }
+    // todo: do the same for datetime & time
   }
 
   async delByPk(id, trx?, cookie?) {

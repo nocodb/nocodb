@@ -263,6 +263,7 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 - [Contributing](#contributing)
 - [Why are we building this?](#why-are-we-building-this)
 - [Our Mission](#our-mission)
+- [License](#license)
 - [Contributors](#contributors)
 
 # Features
@@ -322,6 +323,11 @@ Most internet businesses equip themselves with either spreadsheet or a database 
 
 # Our Mission
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
+
+# License 
+<p>
+This project is Licensed under the <a href="./LICENSE">GNU License</a>. Please go through the License atleast once before making your contribution. </p>
+<br>
 
 # Contributors
 [//]: contributor-faces

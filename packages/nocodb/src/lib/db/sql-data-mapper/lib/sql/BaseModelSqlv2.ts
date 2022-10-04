@@ -1567,6 +1567,20 @@ class BaseModelSqlv2 {
         );
         response = await this.execAndParse(query);
       }
+      /* todo: find a proper way to extract inserted id using returning
+               https://stackoverflow.com/questions/63667930/insert-and-return-value-in-oracle
+     else if (this.isOracle) {
+    response = await this.dbDriver.raw(    `
+      DECLARE
+         id1   NUMBER;
+      BEGIN
+         ${query.toQuery()}
+         RETURNING ?? INTO id1;
+         DBMS_OUTPUT.PUT_LINE(id1);
+      END;`,
+                [this.model.primaryKey.column_name]
+              );
+      }*/
 
       const ai = this.model.columns.find((c) => c.ai);
 
@@ -1590,7 +1604,7 @@ class BaseModelSqlv2 {
         }
 
         if (ai) {
-          if (this.isSqlite) {
+          if (this.isSqlite || this.isOracle) {
             // sqlite doesnt return id after insert
             id = (
               await this.dbDriver(this.tnPath)
@@ -1630,17 +1644,25 @@ class BaseModelSqlv2 {
     if (this.isOracle) {
       for (const col of this.model.columns) {
         if (
-          col.dt === 'DATE' &&
+          (col.dt === 'DATE' || col.dt.startsWith('TIMESTAMP')) &&
           col.uidt === UITypes.Date &&
           insertObj[col.column_name]
         ) {
           insertObj[col.column_name] = this.dbDriver.raw(
             `TO_DATE('${insertObj[col.column_name]}','YYYY-MM-DD')`
           );
+        } else if (
+          (col.dt === 'DATE' || col.dt.startsWith('TIMESTAMP')) &&
+          col.uidt === UITypes.DateTime &&
+          insertObj[col.column_name]
+        ) {
+          // ref - https://docs.oracle.com/cd/B19306_01/server.102/b14200/sql_elements004.htm#i34924
+          insertObj[col.column_name] = this.dbDriver.raw(
+            `TO_DATE('${insertObj[col.column_name]}','yyyy-MM-dd HH24:mi:ss')`
+          );
         }
       }
     }
-    // todo: do the same for datetime & time
   }
 
   async delByPk(id, trx?, cookie?) {

@@ -3,6 +3,7 @@ import { minLength, required } from '@vuelidate/validators'
 import type { Ref } from 'vue'
 import type { ColumnType, FormType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { isString } from '@vueuse/core'
 import {
   SharedViewPasswordInj,
   computed,
@@ -31,6 +32,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
   const columns = ref<(ColumnType & { required?: boolean; show?: boolean; label?: string })[]>()
+  const sharedViewMeta = ref<any>({})
 
   const { api, isLoading } = useApi()
 
@@ -64,6 +66,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       sharedFormView.value = viewMeta.view
       meta.value = viewMeta.model
       columns.value = viewMeta.model?.columns
+
+      const _sharedViewMeta = (viewMeta as any).meta
+      sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
 
       await setMeta(viewMeta.model)
 
@@ -205,6 +210,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     secondsRemain,
     passwordDlg,
     isLoading,
+    sharedViewMeta,
   }
 }, 'expanded-form-store')
 

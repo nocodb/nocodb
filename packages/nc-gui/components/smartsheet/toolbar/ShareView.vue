@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
+import { isString } from '@vueuse/core'
 import {
   computed,
   extractSdkResponseErrorMsg,
@@ -15,6 +16,21 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
+import type { ThemeConfig } from '~/lib'
+
+interface SharedViewMeta extends Record<string, any> {
+  surveyMode?: boolean
+  theme?: Partial<ThemeConfig>
+  allowCSVDownload?: boolean
+}
+
+interface SharedView {
+  uuid?: string
+  id: string
+  password: string | null
+  type?: ViewTypes
+  meta: SharedViewMeta
+}
 
 const { theme } = useTheme()
 
@@ -36,29 +52,39 @@ let showShareModel = $ref(false)
 
 const passwordProtected = ref(false)
 
-const surveyMode = ref(false)
-
-const withTheme = ref(false)
-
-const shared = ref()
+const shared = ref<SharedView>({ id: '', meta: {}, password: null })
 
 const allowCSVDownload = computed({
-  get() {
-    return !!(shared.value?.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta)
-      ?.allowCSVDownload
-  },
-  set(allow) {
-    shared.value.meta = { allowCSVDownload: allow }
+  get: () => !!shared.value.meta.allowCSVDownload,
+  set: (allow) => {
+    shared.value.meta = { ...shared.value.meta, allowCSVDownload: allow }
     saveAllowCSVDownload()
+  },
+})
+
+const surveyMode = computed({
+  get: () => !!shared.value.meta.surveyMode,
+  set: (survey) => {
+    shared.value.meta = { ...shared.value.meta, surveyMode: survey }
+    saveSurveyMode()
+  },
+})
+
+const viewTheme = computed({
+  get: () => !!shared.value.meta.theme,
+  set: (hasTheme) => {
+    shared.value.meta = { ...shared.value.meta, theme: hasTheme ? { ...theme.value } : undefined }
+    saveTheme()
   },
 })
 
 const genShareLink = async () => {
   if (!view.value?.id) return
 
-  shared.value = await $api.dbViewShare.create(view.value.id)
-  shared.value.meta =
-    shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
+  const response = (await $api.dbViewShare.create(view.value.id)) as SharedView
+  const meta = isString(response.meta) ? JSON.parse(response.meta) : response.meta
+
+  shared.value = { ...response, meta }
 
   passwordProtected.value = shared.value.password !== null && shared.value.password !== ''
 
@@ -80,24 +106,27 @@ const sharedViewUrl = computed(() => {
       viewType = 'view'
   }
 
-  let url = `${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}`
-
-  /** if survey mode is enabled, append survey path segment */
-  if (surveyMode.value) {
-    url = `${url}/survey`
-  }
-
-  /** if theme is enabled, append theme query params */
-  if (withTheme.value) {
-    url = `${url}?theme=${theme.value.primaryColor.replace('#', '')},${theme.value.accentColor.replace('#', '')}`
-  }
-
-  return url
+  return `${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}`
 })
 
 async function saveAllowCSVDownload() {
+  await updateSharedViewMeta()
+  $e(`a:view:share:${allowCSVDownload.value ? 'enable' : 'disable'}-csv-download`)
+}
+
+async function saveSurveyMode() {
+  await updateSharedViewMeta()
+  $e(`a:view:share:${surveyMode.value ? 'enable' : 'disable'}-survey-mode`)
+}
+
+async function saveTheme() {
+  await updateSharedViewMeta()
+  $e(`a:view:share:${viewTheme.value ? 'enable' : 'disable'}-theme`)
+}
+
+async function updateSharedViewMeta() {
   try {
-    const meta = shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
+    const meta = shared.value.meta && isString(shared.value.meta) ? JSON.parse(shared.value.meta) : shared.value.meta
 
     await $api.dbViewShare.update(shared.value.id, {
       meta,
@@ -108,14 +137,12 @@ async function saveAllowCSVDownload() {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
-  if (allowCSVDownload.value) {
-    $e('a:view:share:enable-csv-download')
-  } else {
-    $e('a:view:share:disable-csv-download')
-  }
+  return true
 }
 
 const saveShareLinkPassword = async () => {
+  if (!shared.value.password) return
+
   try {
     await $api.dbViewShare.update(shared.value.id, {
       password: shared.value.password,
@@ -129,9 +156,9 @@ const saveShareLinkPassword = async () => {
   $e('a:view:share:enable-pwd')
 }
 
-const copyLink = () => {
+const copyLink = async () => {
   if (sharedViewUrl.value) {
-    copy(sharedViewUrl.value)
+    await copy(sharedViewUrl.value)
 
     // Copied to clipboard
     message.success(t('msg.info.copiedToClipboard'))
@@ -195,7 +222,7 @@ watch(passwordProtected, (value) => {
 
           <div>
             <!-- todo: i18n -->
-            <a-checkbox v-model:checked="withTheme" class="!text-xs"> Use Theme </a-checkbox>
+            <a-checkbox v-model:checked="viewTheme" class="!text-xs"> Use Theme </a-checkbox>
           </div>
 
           <div>

@@ -144,12 +144,12 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
       </div>
     </template>
 
-    <div class="h-1/2 w-full">
+    <div class="h-1/2 w-full flex items-center px-4 md:px-0">
       <Transition :name="`slide-${transitionName}`" mode="out-in">
         <div
           ref="el"
           :key="field.title"
-          class="color-transition bg-white dark:bg-slate-700 flex flex-col justify-center gap-4 w-full max-w-[max(33%,600px)] m-auto px-8 pt-8 pb-4 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+          class="color-transition flex flex-col justify-center gap-4 w-full max-w-[max(33%,600px)] m-auto"
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
             <div class="flex nc-form-column-label">
@@ -195,39 +195,43 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
             </div>
           </div>
 
-          <div v-if="(!isFirst || !isLast) && !submitted" class="flex w-full text-lg mt-2">
-            <a-tooltip v-if="!isFirst" title="Go to previous" :mouse-enter-delay="1" :mouse-leave-delay="0">
-              <button
-                class="group color-transition transform hover:scale-110 absolute left-1 top-1/2 md:static"
-                @click="goPrevious"
-              >
-                <MdiChevronLeft class="group-hover:text-accent text-2xl md:text-md" />
-              </button>
-            </a-tooltip>
-
-            <div class="flex-1">
+          <div class="ml-1 mt-2 flex w-full text-lg">
+            <div class="flex-1 flex justify-center">
               <div v-if="isLast && !submitted && !v$.$invalid" class="text-center my-4">
-                <button type="submit" class="scaling-btn prose-sm" @click="submitForm">
+                <button type="submit" class="uppercase scaling-btn prose-sm" @click="submitForm">
                   {{ $t('general.submit') }}
                 </button>
               </div>
-            </div>
 
-            <a-tooltip
-              v-if="!isLast"
-              placement="bottom"
-              :title="v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : 'Go to next'"
-              :mouse-enter-delay="0.2"
-              :mouse-leave-delay="0"
-            >
-              <button class="group color-transition transform absolute right-1 top-1/2 md:static hover:scale-110" @click="goNext">
-                <TransitionGroup name="slide-left" mode="out-in">
-                  <MdiCloseCircleOutline v-if="v$.localState[field.title]?.$error" class="text-red-500 text-2xl md:text-md" />
-                  <MdiChevronRight v-else class="group-hover:text-accent text-2xl md:text-md" />
-                </TransitionGroup>
-              </button>
-            </a-tooltip>
+              <div v-else class="flex items-center gap-3">
+                <a-tooltip
+                  :title="v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : 'Go to next'"
+                  :mouse-enter-delay="0.25"
+                  :mouse-leave-delay="0"
+                >
+                  <button
+                    class="bg-opacity-100 scaling-btn flex items-center gap-1"
+                    :class="v$.localState[field.title]?.$error ? 'after:!bg-gray-100 after:!ring-red-500' : ''"
+                    @click="goNext"
+                  >
+                    <Transition name="fade">
+                      <span v-if="!v$.localState[field.title]?.$error" class="uppercase text-white">Ok</span>
+                    </Transition>
+
+                    <Transition name="slide-right" mode="out-in">
+                      <MdiCloseCircleOutline v-if="v$.localState[field.title]?.$error" class="text-red-500 md:text-md" />
+                      <MdiCheck v-else class="text-white md:text-md" />
+                    </Transition>
+                  </button>
+                </a-tooltip>
+
+                <!-- todo: i18n -->
+                <div class="text-sm flex items-center gap-1">Press Enter <MaterialSymbolsKeyboardReturn class="mt-1" /></div>
+              </div>
+            </div>
           </div>
+
+          <div class="text-right text-gray-500">{{ index + 1 }} / {{ formColumns?.length }}</div>
 
           <Transition name="layout">
             <div v-if="submitted" class="flex flex-col justify-center text-center">
@@ -255,8 +259,27 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
       </Transition>
     </div>
 
-    <div class="absolute bottom-12 right-12 flex flex-col">
-      <div>{{ index + 1 }} / {{ formColumns?.length }}</div>
+    <div
+      class="color-transition shadow-sm absolute bottom-12 right-12 flex items-center bg-white border dark:bg-slate-500 rounded divide-x-1"
+    >
+      <a-tooltip title="Go to previous" :mouse-enter-delay="0.25" :mouse-leave-delay="0">
+        <button class="p-0.5 flex items-center group color-transition" @click="goPrevious">
+          <MdiChevronLeft :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'" class="text-2xl md:text-md" />
+        </button>
+      </a-tooltip>
+
+      <a-tooltip
+        :title="v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : 'Go to next'"
+        :mouse-enter-delay="0.25"
+        :mouse-leave-delay="0"
+      >
+        <button class="p-0.5 flex items-center group color-transition" @click="goNext">
+          <MdiChevronRight
+            :class="isLast || v$.localState[field.title]?.$error ? 'text-gray-300' : 'group-hover:text-accent'"
+            class="text-2xl md:text-md"
+          />
+        </button>
+      </a-tooltip>
     </div>
   </div>
 </template>
@@ -268,7 +291,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
 
 .nc-form-column-label {
   > * {
-    @apply !prose-lg dark:text-slate-300;
+    @apply !prose-lg;
   }
 
   .nc-icon {

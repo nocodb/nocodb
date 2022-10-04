@@ -2036,11 +2036,11 @@ class OracleClient extends KnexClient {
       } else {
         query += ` ${n.cn} ${n.dt}`;
       }
-
-      query += n.dtxp && n.dtxp !== ' ' ? `(${n.dtxp}` : '';
-      query += scale ? `,${scale}` : '';
-      query += n.dtxp && n.dtxp !== ' ' ? ')' : '';
-
+      if (!['CLOB', 'NCLOB'].includes(n.dt)) {
+        query += n.dtxp && n.dtxp !== ' ' ? `(${n.dtxp}` : '';
+        query += scale ? `,${scale}` : '';
+        query += n.dtxp && n.dtxp !== ' ' ? ')' : '';
+      }
       // todo: `IDENTITY` is not supported in older version,
       //        add a fallback with sequence or trigger
       if (n.ai) {
@@ -2052,9 +2052,11 @@ class OracleClient extends KnexClient {
     } else if (change === 1) {
       query += ` ADD  ${n.cn} ${n.dt}`;
 
-      query += n.dtxp && n.dtxp !== ' ' ? `(${n.dtxp}` : '';
-      query += scale ? `,${scale}` : '';
-      query += n.dtxp && n.dtxp !== ' ' ? ')' : '';
+      if (!['CLOB', 'NCLOB'].includes(n.dt)) {
+        query += n.dtxp && n.dtxp !== ' ' ? `(${n.dtxp}` : '';
+        query += scale ? `,${scale}` : '';
+        query += n.dtxp && n.dtxp !== ' ' ? ')' : '';
+      }
 
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += defaultValue ? ` DEFAULT ${defaultValue}` : ' ';

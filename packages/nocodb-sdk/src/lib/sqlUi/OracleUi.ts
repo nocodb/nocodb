@@ -1,6 +1,7 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
 
+// Ref - https://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm#CNCPT513
 const dbTypes = [
   'CHAR',
   'VARCHAR',
@@ -526,10 +527,10 @@ export class OracleUi {
         colProp.cdf = '0';
         break;
       case 'MultiSelect':
-        colProp.dt = 'VARCHAR2';
+        colProp.dt = 'CLOB';
         break;
       case 'SingleSelect':
-        colProp.dt = 'VARCHAR2';
+        colProp.dt = 'CLOB';
         break;
       case 'Collaborator':
         colProp.dt = 'VARCHAR2';
@@ -629,7 +630,6 @@ export class OracleUi {
     return colProp;
   }
 
-  // Ref - https://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm#CNCPT513
   static getDataTypeListForUiType(col: { uidt?: UITypes }, idType: IDType) {
     switch (col.uidt) {
       case 'ID':
@@ -679,26 +679,8 @@ export class OracleUi {
         return ['NUMBER'];
 
       case 'MultiSelect':
-        return [
-          'CHAR',
-          'VARCHAR',
-          'VARCHAR2',
-          'NCHAR',
-          'NVARCHAR2',
-          'CLOB',
-          'NCLOB',
-        ];
-
       case 'SingleSelect':
-        return [
-          'CHAR',
-          'VARCHAR',
-          'VARCHAR2',
-          'NCHAR',
-          'NVARCHAR2',
-          'CLOB',
-          'NCLOB',
-        ];
+        return ['CLOB', 'NCLOB'];
 
       case 'Year':
         return ['NUMBER'];

@@ -214,11 +214,11 @@ a {
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-accent;
+    @apply !border-0 transform scale-110 ring ring-accent ring-opacity-100;
   }
 
   &:active::after {
-    @apply ring ring-accent;
+    @apply ring ring-accent ring-opacity-100;
   }
 }
 

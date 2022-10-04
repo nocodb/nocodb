@@ -31,7 +31,7 @@ const onClick = () => {
 
 <template>
   <div
-    class="overflow-y-auto overflow-x-hidden flex flex-wrap color-transition nc-form-view relative md:bg-primary bg-opacity-10 dark:(bg-slate-900) h-full min-h-[600px] nc-form-signin"
+    class="overflow-y-auto overflow-x-hidden flex flex-wrap color-transition nc-form-view relative bg-primary bg-opacity-10 dark:(bg-slate-900) h-full min-h-[600px]"
   >
     <NuxtPage />
 
@@ -90,12 +90,12 @@ p {
 
 .nc-form-view {
   .nc-input {
-    @apply w-full rounded p-2 min-h-[40px] flex items-center border-solid border-1 border-primary dark:border-slate-200;
+    @apply w-full rounded p-2 min-h-[40px] flex items-center border-solid border-1 border-gray-300 dark:border-slate-200;
 
     input,
     &.nc-virtual-cell,
     > div {
-      @apply dark:(bg-slate-400 text-slate-900);
+      @apply bg-white dark:(bg-slate-500 text-white);
 
       .nc-icon {
         @apply dark:text-slate-900;
@@ -109,10 +109,16 @@ p {
 }
 
 .nc-cell {
-  @apply dark:bg-slate-400;
+  @apply bg-white dark:bg-slate-500;
 
   .nc-attachment-cell > div {
     @apply dark:(bg-slate-100);
+  }
+}
+
+.nc-form-column-label {
+  > * {
+    @apply dark:text-slate-300;
   }
 }
 </style>

@@ -101,6 +101,8 @@ declare module '@vue/runtime-core' {
     MaterialSymbolsChevronRightRounded: typeof import('~icons/material-symbols/chevron-right-rounded')['default']
     MaterialSymbolsCloseRounded: typeof import('~icons/material-symbols/close-rounded')['default']
     MaterialSymbolsFileCopyOutline: typeof import('~icons/material-symbols/file-copy-outline')['default']
+    MaterialSymbolsKeyboardReturn: typeof import('~icons/material-symbols/keyboard-return')['default']
+    MaterialSymbolsLightModeOutline: typeof import('~icons/material-symbols/light-mode-outline')['default']
     MaterialSymbolsRocketLaunchOutline: typeof import('~icons/material-symbols/rocket-launch-outline')['default']
     MaterialSymbolsSendOutline: typeof import('~icons/material-symbols/send-outline')['default']
     MaterialSymbolsTranslate: typeof import('~icons/material-symbols/translate')['default']

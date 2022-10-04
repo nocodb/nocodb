@@ -27,7 +27,7 @@ interface SharedViewMeta extends Record<string, any> {
 interface SharedView {
   uuid?: string
   id: string
-  password: string | null
+  password?: string
   type?: ViewTypes
   meta: SharedViewMeta
 }
@@ -52,7 +52,7 @@ let showShareModel = $ref(false)
 
 const passwordProtected = ref(false)
 
-const shared = ref<SharedView>({ id: '', meta: {}, password: null })
+const shared = ref<SharedView>({ id: '', meta: {}, password: undefined })
 
 const allowCSVDownload = computed({
   get: () => !!shared.value.meta.allowCSVDownload,
@@ -86,7 +86,7 @@ const genShareLink = async () => {
 
   shared.value = { ...response, meta }
 
-  passwordProtected.value = shared.value.password !== null && shared.value.password !== ''
+  passwordProtected.value = !!shared.value.password && shared.value.password !== ''
 
   showShareModel = true
 }
@@ -141,8 +141,6 @@ async function updateSharedViewMeta() {
 }
 
 const saveShareLinkPassword = async () => {
-  if (!shared.value.password) return
-
   try {
     await $api.dbViewShare.update(shared.value.id, {
       password: shared.value.password,

@@ -205,8 +205,10 @@ export async function columnAdd(
                 childColumn: fkColName,
                 childTable: child.table_name,
                 parentTable: parent.table_name,
-                onDelete: 'NO ACTION',
-                onUpdate: 'NO ACTION',
+                onDelete:
+                  'onDelete' in colBody ? colBody.onDelete : 'NO ACTION',
+                onUpdate:
+                  'onUpdate' in colBody ? colBody.onUpdate : 'NO ACTION',
                 type: 'real',
                 parentColumn: parent.primaryKey.column_name,
                 foreignKeyName,

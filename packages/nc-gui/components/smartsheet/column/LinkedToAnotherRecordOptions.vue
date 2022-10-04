@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ModelTypes, MssqlUi, SqliteUi } from 'nocodb-sdk'
+import {ModelTypes, MssqlUi, OracleUi, SqliteUi} from 'nocodb-sdk'
 import { MetaInj, inject, ref, useProject, useVModel } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
@@ -22,7 +22,11 @@ setAdditionalValidations({
   childId: [{ required: true, message: 'Required' }],
 })
 
-const onUpdateDeleteOptions = sqlUi === MssqlUi ? ['NO ACTION'] : ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
+let onUpdateDeleteOptions:(string|null)[] = sqlUi === MssqlUi ? ['NO ACTION'] : ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
+
+if(sqlUi === OracleUi){
+  onUpdateDeleteOptions = [null ,'CASCADE']
+}
 
 if (!vModel.value.parentId) vModel.value.parentId = meta?.id
 if (!vModel.value.childId) vModel.value.childId = null

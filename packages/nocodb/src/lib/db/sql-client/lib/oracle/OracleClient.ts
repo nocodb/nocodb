@@ -2051,7 +2051,7 @@ class OracleClient extends KnexClient {
         query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
       }
     } else if (change === 1) {
-      query += ` ADD  ${n.cn} ${n.dt}`;
+      query += this.genQuery(` ADD  ?? ${n.dt}`, [n.cn]);
 
       if (!['CLOB', 'NCLOB'].includes(n.dt)) {
         query += n.dtxp && n.dtxp !== ' ' ? `(${n.dtxp}` : '';

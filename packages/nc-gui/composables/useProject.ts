@@ -82,6 +82,10 @@ export const useProject = createSharedComposable(() => {
     return ['mysql', ClientType.MYSQL].includes(getBaseType(baseId))
   }
 
+  function isOracle(baseId?: string) {
+    return getBaseType(baseId) === 'oracledb'
+  }
+
   function isMssql(baseId?: string) {
     return getBaseType(baseId) === 'mssql'
   }
@@ -204,6 +208,7 @@ export const useProject = createSharedComposable(() => {
     loadTables,
     isMysql,
     isMssql,
+    isOracle,
     isPg,
     sqlUis,
     isSharedBase,

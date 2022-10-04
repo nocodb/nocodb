@@ -1644,18 +1644,16 @@ class BaseModelSqlv2 {
     if (this.isOracle) {
       for (const col of this.model.columns) {
         if (
-          (col.dt === 'DATE' || col.dt.startsWith('TIMESTAMP')) &&
-          col.uidt === UITypes.Date &&
-          insertObj[col.column_name]
-        ) {
+          !insertObj[col.column_name] ||
+          !(col.dt === 'DATE' || col.dt.startsWith('TIMESTAMP'))
+        )
+          continue;
+
+        if (col.uidt === UITypes.Date) {
           insertObj[col.column_name] = this.dbDriver.raw(
             `TO_DATE('${insertObj[col.column_name]}','YYYY-MM-DD')`
           );
-        } else if (
-          (col.dt === 'DATE' || col.dt.startsWith('TIMESTAMP')) &&
-          col.uidt === UITypes.DateTime &&
-          insertObj[col.column_name]
-        ) {
+        } else if (col.uidt === UITypes.DateTime || col.uidt === UITypes.Time) {
           // ref - https://docs.oracle.com/cd/B19306_01/server.102/b14200/sql_elements004.htm#i34924
           insertObj[col.column_name] = this.dbDriver.raw(
             `TO_DATE('${insertObj[col.column_name]}','yyyy-MM-dd HH24:mi:ss')`

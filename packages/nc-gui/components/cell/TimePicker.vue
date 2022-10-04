@@ -11,7 +11,7 @@ const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMysql } = useProject()
+const { isMysql, isOracle } = useProject()
 
 const { showNull } = useGlobal()
 
@@ -25,7 +25,7 @@ const column = inject(ColumnInj)!
 
 let isTimeInvalid = $ref(false)
 
-const dateFormat = isMysql(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+const dateFormat = isMysql(column.value.base_id) || isOracle(column.value.base_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
 const localState = $computed({
   get() {

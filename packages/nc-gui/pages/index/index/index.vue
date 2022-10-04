@@ -198,8 +198,7 @@ onBeforeMount(loadProjects)
         <a-skeleton />
       </div>
 
-      <a-table
-        v-else :custom-row="customRow" :data-source="filteredProjects" :pagination="{ position: ['bottomCenter'] }">
+      <a-table v-else :custom-row="customRow" :data-source="filteredProjects" :pagination="{ position: ['bottomCenter'] }">
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </template>

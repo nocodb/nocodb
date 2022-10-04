@@ -17,7 +17,6 @@ import {
   useDialog,
   useI18n,
   useNuxtApp,
-  useRoute,
   useRouter,
   viewTypeAlias,
   watch,

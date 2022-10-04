@@ -412,18 +412,25 @@ export default class Model implements TableType {
     return insertObj;
   }
 
-  static async updateTableNameAndAlias(
+  static async updateAliasAndTableName(
     tableId,
     title: string,
+    table_name: string,
     ncMeta = Noco.ncMeta
   ) {
-    if (!title) NcError.badRequest("Missing 'title' property in body");
+    if (!title) {
+      NcError.badRequest("Missing 'title' property in body");
+    }
+    if (!table_name) {
+      NcError.badRequest("Missing 'table_name' property in body");
+    }
     // get existing cache
     const key = `${CacheScope.MODEL}:${tableId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     // update alias
     if (o) {
-      o.table_name = o.title = title;
+      o.title = title;
+      o.table_name = table_name;
       // set cache
       await NocoCache.set(key, o);
     }
@@ -434,7 +441,7 @@ export default class Model implements TableType {
       MetaTable.MODELS,
       {
         title,
-        table_name: title,
+        table_name,
       },
       tableId
     );

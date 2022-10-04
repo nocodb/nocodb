@@ -232,8 +232,19 @@ export default async function sortV2(
           break;
         }
       default:
-        qb.orderBy(sanitize(column.column_name), sort.direction || 'asc');
+      {
+        const clientType = knex.clientType();
+        if (clientType === 'mssql') {
+          qb
+            .orderBy(sanitize(knex.raw('LEN(??)', [column.column_name])))
+            .orderBy(sanitize(column.column_name), sort.direction || 'asc');
+        } else {
+          qb
+            .orderBy(sanitize(knex.raw('LENGTH(??)', [column.column_name])))
+            .orderBy(sanitize(column.column_name), sort.direction || 'asc');
+        }
         break;
+      }
     }
   }
 }

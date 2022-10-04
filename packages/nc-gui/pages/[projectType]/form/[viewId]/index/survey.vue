@@ -145,7 +145,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
     </template>
 
     <div class="h-1/2 w-full flex items-center px-4 md:px-0">
-      <Transition :name="`slide-${transitionName}`" mode="out-in">
+      <Transition :name="`slide-${transitionName}`" :duration="1000" mode="out-in">
         <div
           ref="el"
           :key="field.title"

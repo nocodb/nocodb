@@ -111,7 +111,7 @@ const resetError = () => {
           </a-form-item>
 
           <div class="flex flex-wrap gap-4 items-center mt-4 md:justify-between w-full">
-            <button class="submit" type="submit">
+            <button class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
                 <MdiKeyChange />
                 {{ $t('activity.changePwd') }}
@@ -130,17 +130,13 @@ const resetError = () => {
 
   .ant-input-affix-wrapper,
   .ant-input {
-    @apply !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+    @apply !appearance-none my-1 border-1 border-solid border-primary border-opacity-50 rounded;
   }
 
   .password {
     input {
       @apply !border-none;
     }
-  }
-
-  .submit {
-    @apply ml-1 border border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:(bg-primary bg-opacity-75);
   }
 }
 </style>

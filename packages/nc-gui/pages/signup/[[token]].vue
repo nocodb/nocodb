@@ -85,7 +85,7 @@ function resetError() {
       <div
         class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
-        <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :animate="isLoading" />
+        <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent) hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
         <h1 class="prose-2xl font-bold self-center my-4">
           {{ $t('general.signUp') }}
@@ -122,7 +122,7 @@ function resetError() {
           </a-form-item>
 
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4">
-            <button class="submit" type="submit">
+            <button class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
                 <MaterialSymbolsRocketLaunchOutline />
 
@@ -133,7 +133,7 @@ function resetError() {
             <a
               v-if="appInfo.googleAuthEnabled"
               :href="`${api.instance.defaults.baseURL}/auth/google`"
-              class="submit after:(!bg-white) !text-primary border-1 border-primary !no-underline"
+              class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
             >
               <span class="flex items-center gap-2">
                 <LogosGoogleGmail />
@@ -146,7 +146,7 @@ function resetError() {
               <a-switch
                 v-model:checked="subscribe"
                 size="small"
-                class="my-1 hover:(ring ring-accent) focus:(!ring !ring-accent)"
+                class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
               />
               <div class="prose-xs text-gray-500">Subscribe to our weekly newsletter</div>
             </div>
@@ -172,30 +172,12 @@ function resetError() {
 .signup {
   .ant-input-affix-wrapper,
   .ant-input {
-    @apply !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+    @apply !appearance-none my-1 border-1 border-solid border-primary border-opacity-50 rounded;
   }
 
   .password {
     input {
       @apply !border-none !m-0;
-    }
-  }
-
-  .submit {
-    @apply z-1 relative color-transition rounded p-3 text-white shadow;
-
-    &::after {
-      @apply rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
-      content: '';
-      z-index: -1;
-    }
-
-    &:hover::after {
-      @apply transform scale-110 ring ring-accent;
-    }
-
-    &:active::after {
-      @apply ring ring-accent;
     }
   }
 }

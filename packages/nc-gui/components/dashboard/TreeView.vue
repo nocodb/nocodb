@@ -522,7 +522,7 @@ function openTableCreateDialog() {
 }
 
 :deep(.ant-dropdown-menu-item) {
-  @apply !py-0 active:(ring ring-accent);
+  @apply !py-0 active:(ring ring-accent ring-opacity-100);
 }
 
 :deep(.ant-dropdown-menu-title-content) {

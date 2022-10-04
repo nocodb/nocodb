@@ -9,7 +9,7 @@ import { openLink } from '#imports'
     @click="openLink('https://github.com/nocodb/nocodb')"
   >
     <span class="rounded">
-      <GeneralNocoIcon class="!relative !top-0" width="32" height="32" />
+      <GeneralNocoIcon class="!relative !top-0" :width="32" :height="32" />
     </span>
 
     <span>Powered by NocoDB</span>

@@ -6,6 +6,7 @@ import {
   DropZoneRef,
   computed,
   onKeyStroke,
+  onMounted,
   provide,
   ref,
   useEventListener,
@@ -85,6 +86,8 @@ function transition(direction: TransitionDirection) {
 
   setTimeout(() => {
     isTransitioning.value = false
+
+    setTimeout(focusInput, 100)
   }, 1000)
 }
 
@@ -113,6 +116,19 @@ async function goPrevious() {
   goToPrevious()
 }
 
+function focusInput() {
+  if (document && typeof document !== 'undefined') {
+    const inputEl =
+      (document.querySelector('.nc-cell input') as HTMLInputElement) ||
+      (document.querySelector('.nc-cell textarea') as HTMLTextAreaElement)
+
+    if (inputEl) {
+      inputEl.select()
+      inputEl.focus()
+    }
+  }
+}
+
 useEventListener('wheel', (event) => {
   if (Math.abs(event.deltaX) < Math.abs(event.deltaY)) {
     // Scrolling more vertically than horizontally
@@ -130,6 +146,8 @@ useEventListener('wheel', (event) => {
 
 onKeyStroke(['ArrowLeft', 'ArrowDown'], goPrevious)
 onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
+
+onMounted(focusInput)
 </script>
 
 <template>

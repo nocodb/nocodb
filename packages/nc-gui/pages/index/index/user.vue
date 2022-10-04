@@ -81,6 +81,7 @@ const resetError = () => {
 
     <a-form
       ref="formValidator"
+      data-cy="nc-user-settings-form"
       layout="vertical"
       class="change-password lg:max-w-3/4 w-full !mx-auto"
       no-style
@@ -88,8 +89,8 @@ const resetError = () => {
       @finish="passwordChange"
     >
       <Transition name="layout">
-        <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
-          <div class="flex items-center gap-2 justify-center">
+        <div v-if="error" class="mx-auto mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
+          <div data-cy="nc-user-settings-form__error" class="flex items-center gap-2 justify-center">
             <MaterialSymbolsWarning />
             {{ error }}
           </div>
@@ -99,6 +100,7 @@ const resetError = () => {
       <a-form-item :label="$t('placeholder.password.current')" name="currentPassword" :rules="formRules.currentPassword">
         <a-input-password
           v-model:value="form.currentPassword"
+          data-cy="nc-user-settings-form__current-password"
           size="large"
           class="password"
           :placeholder="$t('placeholder.password.current')"
@@ -109,6 +111,7 @@ const resetError = () => {
       <a-form-item :label="$t('placeholder.password.new')" name="password" :rules="formRules.password">
         <a-input-password
           v-model:value="form.password"
+          data-cy="nc-user-settings-form__new-password"
           size="large"
           class="password"
           :placeholder="$t('placeholder.password.new')"
@@ -119,6 +122,7 @@ const resetError = () => {
       <a-form-item :label="$t('placeholder.password.confirm')" name="passwordRepeat" :rules="formRules.passwordRepeat">
         <a-input-password
           v-model:value="form.passwordRepeat"
+          data-cy="nc-user-settings-form__new-password-repeat"
           size="large"
           class="password"
           :placeholder="$t('placeholder.password.confirm')"
@@ -127,7 +131,7 @@ const resetError = () => {
       </a-form-item>
 
       <div class="text-center">
-        <button class="scaling-btn bg-opacity-100" type="submit">
+        <button data-cy="nc-user-settings-form__submit" class="scaling-btn bg-opacity-100" type="submit">
           <span class="flex items-center gap-2">
             <MdiKeyChange />
             {{ $t('activity.changePwd') }}

@@ -138,12 +138,8 @@ const syncAndNavigate = (dir: NavigateDir) => {
   <div
     class="nc-cell w-full"
     :class="[`nc-cell-${(column?.uidt || 'default').toLowerCase()}`, { 'text-blue-600': isPrimary && !virtual && !isForm }]"
-    @keydown.stop.left
-    @keydown.stop.right
-    @keydown.stop.up
-    @keydown.stop.down
-    @keydown.stop.enter.exact="syncAndNavigate(NavigateDir.NEXT)"
-    @keydown.stop.shift.enter.exact="syncAndNavigate(NavigateDir.PREV)"
+    @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT)"
+    @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV)"
   >
     <LazyCellTextArea v-if="isTextArea" v-model="vModel" />
     <LazyCellCheckbox v-else-if="isBoolean" v-model="vModel" />

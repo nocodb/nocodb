@@ -136,7 +136,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
   <div ref="el" class="w-full min-h-2/3 grid grid-rows-2">
     <template v-if="sharedFormView">
       <div class="max-w-[max(33%,600px)] m-auto flex flex-col justify-end">
-        <h1 class="prose-2xl font-bold my-4">{{ sharedFormView.heading }}</h1>
+        <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
 
         <h2 class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4">
           {{ sharedFormView.subheading }}
@@ -226,7 +226,9 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
                 </a-tooltip>
 
                 <!-- todo: i18n -->
-                <div class="text-sm flex items-center gap-1">Press Enter <MaterialSymbolsKeyboardReturn class="mt-1" /></div>
+                <div class="text-sm text-gray-500 flex items-center gap-1">
+                  Press Enter <MaterialSymbolsKeyboardReturn class="mt-1" />
+                </div>
               </div>
             </div>
           </div>

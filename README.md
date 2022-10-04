@@ -1,6 +1,6 @@
 <h1 align="center" style="border-bottom: none">
     <b>
-        <a href="https://www.nocodb.com">NocoDB</a><br>
+        <a href="https://www.nocodb.com"><img src="/packages/nc-gui/public/icon.png" width="80" /><br>NocoDB</a><br>
     </b>
     The Open Source Airtable Alternative <br>
 </h1>

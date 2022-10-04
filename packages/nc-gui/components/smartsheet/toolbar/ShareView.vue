@@ -167,10 +167,10 @@ watch(passwordProtected, (value) => {
       size="small"
       :title="$t('msg.info.privateLink')"
       :footer="null"
-      width="min(100vw,640px)"
+      width="min(100vw,720px)"
       wrap-class-name="nc-modal-share-view"
     >
-      <div class="share-link-box nc-share-link-box bg-primary-50">
+      <div class="share-link-box nc-share-link-box !bg-primary !bg-opacity-5 ring-1 ring-accent ring-opacity-100">
         <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
 
         <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
@@ -180,48 +180,50 @@ watch(passwordProtected, (value) => {
         <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
       </div>
 
-      <a-collapse ghost>
-        <a-collapse-panel key="1" :header="$t('general.showOptions')">
-          <div class="flex flex-col gap-2">
-            <div>
-              <!-- Survey Mode; todo: i18n -->
-              <a-checkbox v-if="shared.type === ViewTypes.FORM" v-model:checked="surveyMode" class="!text-xs">
-                Use Survey Mode
-              </a-checkbox>
-            </div>
+      <div class="px-1 mt-2 flex flex-col gap-3">
+        <!-- todo: i18n -->
+        <div class="text-gray-500 border-b-1">Options</div>
 
-            <div>
-              <!-- todo: i18n -->
-              <a-checkbox v-model:checked="withTheme" class="!text-xs"> Use Theme </a-checkbox>
-            </div>
+        <div class="px-1 flex flex-col gap-2">
+          <div>
+            <!-- Survey Mode; todo: i18n -->
+            <a-checkbox v-if="shared.type === ViewTypes.FORM" v-model:checked="surveyMode" class="!text-xs">
+              Use Survey Mode
+            </a-checkbox>
+          </div>
 
-            <div>
-              <!-- Password Protection -->
-              <a-checkbox v-model:checked="passwordProtected" class="!text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
-              <div v-if="passwordProtected" class="flex gap-2 mt-2 mb-4">
-                <a-input
-                  v-model:value="shared.password"
-                  size="small"
-                  class="!text-xs max-w-[250px]"
-                  type="password"
-                  :placeholder="$t('placeholder.password.enter')"/>
+          <div>
+            <!-- todo: i18n -->
+            <a-checkbox v-model:checked="withTheme" class="!text-xs"> Use Theme </a-checkbox>
+          </div>
 
+          <div>
+            <!-- Password Protection -->
+            <a-checkbox v-model:checked="passwordProtected" class="!text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
 
-                <a-button size="small" class="!text-xs" @click="saveShareLinkPassword">
-                  {{ $t('placeholder.password.save') }}
-                </a-button>
-              </div>
-            </div>
+            <div v-if="passwordProtected" class="ml-6 flex gap-2 mt-2 mb-4">
+              <a-input
+                v-model:value="shared.password"
+                size="small"
+                class="!text-xs max-w-[250px]"
+                type="password"
+                :placeholder="$t('placeholder.password.enter')"
+              />
 
-            <div>
-              <!-- Allow Download -->
-              <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="!text-xs">
-                {{ $t('labels.downloadAllowed') }}
-              </a-checkbox>
+              <a-button size="small" class="!text-xs" @click="saveShareLinkPassword">
+                {{ $t('placeholder.password.save') }}
+              </a-button>
             </div>
           </div>
-        </a-collapse-panel>
-      </a-collapse>
+
+          <div>
+            <!-- Allow Download -->
+            <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="!text-xs">
+              {{ $t('labels.downloadAllowed') }}
+            </a-checkbox>
+          </div>
+        </div>
+      </div>
     </a-modal>
   </div>
 </template>

@@ -126,7 +126,7 @@ onBeforeMount(loadProjects)
 </script>
 
 <template>
-  <div class="bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)">
+  <div class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)">
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
       <!-- My Projects -->
       <span class="text-4xl nc-project-page-title">{{ $t('title.myProject') }}</span>
@@ -198,7 +198,8 @@ onBeforeMount(loadProjects)
         <a-skeleton />
       </div>
 
-      <a-table v-else :custom-row="customRow" :data-source="filteredProjects" :pagination="{ position: ['bottomCenter'] }">
+      <a-table
+        v-else :custom-row="customRow" :data-source="filteredProjects" :pagination="{ position: ['bottomCenter'] }">
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </template>

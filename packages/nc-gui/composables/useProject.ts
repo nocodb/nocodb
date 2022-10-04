@@ -79,7 +79,7 @@ const [setup, use] = useInjectionState(() => {
     }
   }
 
-  async function loadProject() {
+  async function loadProject(withTheme = true) {
     if (projectType === 'base') {
       try {
         const baseData = await api.public.sharedBaseGet(route.params.projectId as string)
@@ -102,7 +102,7 @@ const [setup, use] = useInjectionState(() => {
 
     await loadTables()
 
-    setTheme(projectMeta.value?.theme)
+    if (withTheme) setTheme(projectMeta.value?.theme)
 
     return projectLoadedHook.trigger(project.value)
   }

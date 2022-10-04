@@ -14,6 +14,7 @@ import {
   useProject,
   useTable,
   useTabs,
+  useToggle,
   useUIPermission,
   watchEffect,
 } from '#imports'
@@ -32,6 +33,8 @@ const { activeTab } = useTabs()
 const { deleteTable } = useTable()
 
 const { isUIAllowed } = useUIPermission()
+
+const [searchActive, toggleSearchActive] = useToggle()
 
 const isLocked = inject('TreeViewIsLockedInj')
 
@@ -126,8 +129,6 @@ const contextMenuTarget = reactive<{ type?: 'table' | 'main'; value?: any }>({})
 const setMenuContext = (type: 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
-
-  // $e('c:table:create:navdraw:right-click')
 }
 
 const reloadTables = async () => {
@@ -215,12 +216,26 @@ function openTableCreateDialog() {
   <div class="nc-treeview-container flex flex-col">
     <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
       <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col scrollbar-thin-dull" :class="{ 'mb-[20px]': isSharedBase }">
-        <div class="py-1 px-3 flex w-full items-center gap-1 cursor-pointer" @contextmenu="setMenuContext('main')">
-          <span class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
-            {{ $t('objects.tables') }}
+        <div class="min-h-[36px] py-1 px-3 flex w-full items-center gap-1 cursor-pointer" @contextmenu="setMenuContext('main')">
+          <Transition name="slide-left" mode="out-in">
+            <a-input
+              v-if="searchActive"
+              v-model:value="filterQuery"
+              class="flex-1 rounded"
+              :placeholder="$t('placeholder.searchProjectTree')"
+            />
 
-            <template v-if="tables?.length"> ({{ tables.length }}) </template>
-          </span>
+            <span v-else class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
+              {{ $t('objects.tables') }}
+
+              <template v-if="tables?.length"> ({{ tables.length }}) </template>
+            </span>
+          </Transition>
+
+          <Transition name="layout" mode="out-in">
+            <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="toggleSearchActive(false)" />
+            <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+          </Transition>
         </div>
 
         <div class="flex-1">

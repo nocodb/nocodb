@@ -133,23 +133,25 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
 </script>
 
 <template>
-  <div ref="el" class="w-full min-h-2/3 grid grid-rows-2">
+  <div ref="el" class="w-full grid grid-rows-2">
     <template v-if="sharedFormView">
-      <div class="max-w-[max(33%,600px)] m-auto flex flex-col justify-end">
-        <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
+      <div class="max-w-[max(33%,600px)] mx-auto">
+        <div class="h-33vh flex flex-col justify-end">
+          <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
 
-        <h2 class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4">
-          {{ sharedFormView.subheading }}
-        </h2>
+          <h2 class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4">
+            {{ sharedFormView.subheading }}
+          </h2>
+        </div>
       </div>
     </template>
 
-    <div class="h-1/2 w-full flex items-center px-4 md:px-0">
+    <div class="h-full w-full flex items-center px-4 md:px-0">
       <Transition :name="`slide-${transitionName}`" :duration="1000" mode="out-in">
         <div
           ref="el"
           :key="field.title"
-          class="color-transition flex flex-col justify-center gap-4 w-full max-w-[max(33%,600px)] m-auto"
+          class="color-transition h-full flex flex-col justify-center gap-4 w-full max-w-[max(33%,600px)] m-auto"
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
             <div class="flex nc-form-column-label">
@@ -190,7 +192,9 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
                   {{ error.$message }}
                 </div>
 
-                {{ field.description }}
+                <div class="block">
+                  {{ field.description }}
+                </div>
               </div>
             </div>
           </div>
@@ -233,9 +237,9 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
             </div>
           </div>
 
-          <div class="mt-12 select-none text-center text-gray-500 dark:text-slate-200">
-            {{ index + 1 }} / {{ formColumns?.length }}
-          </div>
+          <div class="flex-1" />
+
+          <div class="select-none text-center text-gray-500 dark:text-slate-200">{{ index + 1 }} / {{ formColumns?.length }}</div>
 
           <Transition name="layout">
             <div v-if="submitted" class="flex flex-col justify-center text-center">

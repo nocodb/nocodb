@@ -215,10 +215,13 @@ defineExpose({
               </a-select-option>
             </a-select>
 
-            <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="`span${i}`" />
+            <span
+              v-if="filter.comparison_op && ['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)"
+              :key="`span${i}`"
+            />
 
             <a-checkbox
-              v-else-if="types[filter.field] === 'boolean'"
+              v-else-if="filter.field && types[filter.field] === 'boolean'"
               v-model:checked="filter.value"
               dense
               :disabled="filter.readOnly"

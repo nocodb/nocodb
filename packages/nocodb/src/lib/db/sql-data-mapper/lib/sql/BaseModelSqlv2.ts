@@ -2056,9 +2056,9 @@ class BaseModelSqlv2 {
     await this.handleHooks('Before.delete', data, req);
   }
 
-  public async afterDelete(id: any, _trx: any, req): Promise<void> {
+  public async afterDelete(data: any, _trx: any, req): Promise<void> {
     // if (req?.headers?.['xc-gui']) {
-    // const id = req?.params?.id;
+    const id = req?.params?.id;
     await Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
@@ -2070,7 +2070,7 @@ class BaseModelSqlv2 {
       user: req?.user?.email,
     });
     // }
-    await this.handleHooks('After.delete', id, req);
+    await this.handleHooks('After.delete', data, req);
   }
 
   private async handleHooks(hookName, data, req): Promise<void> {

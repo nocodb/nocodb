@@ -1607,9 +1607,7 @@ class BaseModelSqlv2 {
           if (this.isSqlite || this.isOracle) {
             // sqlite doesnt return id after insert
             id = (
-              await this.dbDriver(this.tnPath)
-                .select(ai.column_name)
-                .max(ai.column_name, { as: 'id' })
+              await this.dbDriver(this.tnPath).max(ai.column_name, { as: 'id' })
             )[0].id;
           } else if (this.isSnowflake) {
             id = (

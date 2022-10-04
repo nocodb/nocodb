@@ -483,7 +483,8 @@ class OracleClient extends KnexClient {
       seq.sequence_name,
       CASE
         WHEN seq.sequence_name IS NOT NULL
-        AND p.constraint_type = 'P' THEN 1
+           AND p.constraint_type = 'P' THEN 1
+        WHEN c.IDENTITY_COLUMN = 'YES' THEN 1
         ELSE 0
       END as ai,
       c.table_name as tn,

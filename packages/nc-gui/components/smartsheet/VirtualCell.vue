@@ -28,8 +28,8 @@ const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualC
 <template>
   <div
     class="nc-virtual-cell w-full"
-    @keydown.stop.enter.exact="emit('navigate', NavigateDir.NEXT)"
-    @keydown.stop.shift.enter.exact="emit('navigate', NavigateDir.PREV)"
+    @keydown.enter.exact="emit('navigate', NavigateDir.NEXT)"
+    @keydown.shift.enter.exact="emit('navigate', NavigateDir.PREV)"
   >
     <LazyVirtualCellHasMany v-if="isHm" />
     <LazyVirtualCellManyToMany v-else-if="isMm" />

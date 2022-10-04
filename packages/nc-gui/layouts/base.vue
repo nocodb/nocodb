@@ -44,6 +44,7 @@ hooks.hook('page:finish', () => {
         <div
           v-if="!route.params.projectType"
           v-e="['c:navbar:home']"
+          data-cy="nc-noco-brand-icon"
           class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
           @click="navigateTo('/')"
         >

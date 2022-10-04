@@ -8,6 +8,8 @@ export const genTest = (apiType, dbType) => {
 
     describe('User settings test', () => {
         it('Visit user settings', () => {
+            cy.get("[data-cy='nc-noco-brand-icon']").click();
+
             cy.get("[data-cy='nc-menu-accounts']").click();
             cy.get("[data-cy='nc-menu-accounts__user-settings']").click();
 

@@ -70,16 +70,6 @@ export class _loginPage {
   loginAndOpenProject(apiType, dbType) {
     loginPage.signIn(roles.owner.credentials);
     projectsPage.openConfiguredProject(apiType, dbType);
-    // if (dbType === "mysql") {
-    //     projectsPage.openProject(staticProjects.externalREST.basic.name);
-    // } else if (dbType === "xcdb") {
-    //     projectsPage.openProject(staticProjects.sampleREST.basic.name);
-    // } else if (dbType === "postgres") {
-    //     projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
-    // }
-    //
-    // // close team & auth tab
-    // cy.get('button.ant-tabs-tab-remove').should('exist').click();
   }
 }
 
@@ -108,9 +98,7 @@ export class _projectsPage {
     cy.wait("@waitForPageLoad");
 
     // close team & auth tab
-    cy.getSettled("button.ant-tabs-tab-remove").should("be.visible").click();
-    cy.get("button.ant-tabs-tab-remove").should("not.exist");
-    cy.wait(2000);
+    cy.closeTableTab();
   }
 
   // Open existing project
@@ -151,9 +139,7 @@ export class _projectsPage {
       cy.get(".nc-metadb-project-name").should("exist");
       cy.contains("button", "Create").should("exist");
 
-      // fix me! wait till the modal rendering (input highlight) is completed
-      // focus shifts back to the input field to select text after the dropdown is rendered
-      cy.wait(1000);
+      cy.inputHighlightRenderWait();
 
       // feed project name
       cy.get(".nc-metadb-project-name", { timeout: 20000 })
@@ -183,9 +169,7 @@ export class _projectsPage {
       cy.get(".nc-extdb-proj-name").should("exist");
       cy.get(".nc-extdb-btn-test-connection").should("exist");
 
-      // fix me! wait till the modal rendering (input highlight) is completed
-      // focus shifts back to the input field to select text after the dropdown is rendered
-      cy.wait(1000);
+      cy.inputHighlightRenderWait();
 
       cy.get(".nc-extdb-proj-name").clear().type(projectName);
 

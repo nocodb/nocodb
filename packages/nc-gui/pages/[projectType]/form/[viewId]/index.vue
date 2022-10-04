@@ -43,7 +43,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
     <NuxtPage />
 
     <div class="flex w-full items-end mt-12">
-      <GeneralPoweredBy />
+      <GeneralPoweredBy :dark="isDark" />
     </div>
 
     <div

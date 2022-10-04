@@ -133,10 +133,10 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
 </script>
 
 <template>
-  <div ref="el" class="w-full min-h-2/3 flex flex-auto flex-col justify-center items-center">
+  <div ref="el" class="w-full min-h-2/3 grid grid-rows-2">
     <template v-if="sharedFormView">
-      <div class="min-h-1 h-1/3 w-full flex flex-col justify-end">
-        <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
+      <div class="max-w-[max(33%,600px)] m-auto flex flex-col justify-end">
+        <h1 class="prose-2xl font-bold my-4">{{ sharedFormView.heading }}</h1>
 
         <h2 class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4">
           {{ sharedFormView.subheading }}
@@ -195,7 +195,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
             </div>
           </div>
 
-          <div class="ml-1 mt-2 flex w-full text-lg">
+          <div class="ml-1 mt-4 flex w-full text-lg">
             <div class="flex-1 flex justify-center">
               <div v-if="isLast && !submitted && !v$.$invalid" class="text-center my-4">
                 <button type="submit" class="uppercase scaling-btn prose-sm" @click="submitForm">
@@ -231,7 +231,9 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
             </div>
           </div>
 
-          <div class="text-right text-gray-500">{{ index + 1 }} / {{ formColumns?.length }}</div>
+          <div class="mt-12 select-none text-center text-gray-500 dark:text-slate-200">
+            {{ index + 1 }} / {{ formColumns?.length }}
+          </div>
 
           <Transition name="layout">
             <div v-if="submitted" class="flex flex-col justify-center text-center">
@@ -260,7 +262,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
     </div>
 
     <div
-      class="color-transition shadow-sm absolute bottom-12 right-12 flex items-center bg-white border dark:bg-slate-500 rounded divide-x-1"
+      class="color-transition shadow-sm absolute bottom-18 right-1/2 transform translate-x-[50%] md:bottom-4 md:(right-12 transform-none) flex items-center bg-white border dark:bg-slate-500 rounded divide-x-1"
     >
       <a-tooltip title="Go to previous" :mouse-enter-delay="0.25" :mouse-leave-delay="0">
         <button class="p-0.5 flex items-center group color-transition" @click="goPrevious">

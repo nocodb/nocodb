@@ -2012,14 +2012,6 @@ class OracleClient extends KnexClient {
   }
 
   alterTableColumn(t, n, o, existingQuery, change = 2) {
-    // CREATE TABLE test1 ( id integer NOT NULL, title varchar NULL);
-
-    //   CREATE TABLE CHINOOK.NEWTABLE_1 (
-    //     ID INTEGER NOT NULL,
-    //     TITLE VARCHAR(100),
-    //     CONSTRAINT NEWTABLE_1_PK PRIMARY KEY (ID)
-    // );
-
     const scale = parseInt(n.dtxs) ? parseInt(n.dtxs) : null;
 
     let query = existingQuery ? ',' : '';
@@ -2031,11 +2023,11 @@ class OracleClient extends KnexClient {
         switch (n.dt) {
           case 'NUMBER':
           default:
-            query += ` ${n.cn} NUMBER `;
+            query += this.genQuery(` ?? NUMBER `, [n.cn]);
             break;
         }
       } else {
-        query += ` ${n.cn} ${n.dt}`;
+        query += this.genQuery(` ?? ${n.dt}`, [n.cn]);
       }
       if (!['CLOB', 'NCLOB'].includes(n.dt)) {
         query += n.dtxp && n.dtxp !== ' ' ? `(${n.dtxp}` : '';

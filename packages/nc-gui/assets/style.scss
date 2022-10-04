@@ -271,3 +271,7 @@ a {
   transform: scale(75%);
   transform-origin: bottom right;
 }
+
+.nc-toolbar-btn {
+  @apply shadow-sm rounded !border border-slate-300 color-transition;
+}

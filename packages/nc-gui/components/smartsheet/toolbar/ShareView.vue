@@ -153,8 +153,9 @@ watch(passwordProtected, (value) => {
       v-e="['c:view:share']"
       outlined
       class="nc-btn-share-view nc-toolbar-btn"
+      @click="genShareLink"
     >
-      <div class="flex items-center gap-1" @click="genShareLink">
+      <div class="flex items-center gap-1">
         <MdiOpenInNew />
         <!-- Share View -->
         <span class="!text-sm font-weight-normal"> {{ $t('activity.shareView') }}</span>

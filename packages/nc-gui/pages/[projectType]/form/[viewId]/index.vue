@@ -27,15 +27,13 @@ const shouldRedirect = (to: string) => {
   if (sharedViewMeta.value.surveyMode) {
     if (!to.includes('survey')) navigateTo(`/nc/form/${route.params.viewId}/survey`)
   } else {
-    navigateTo(`/nc/form/${route.params.viewId}`)
+    if (to.includes('survey')) navigateTo(`/nc/form/${route.params.viewId}`)
   }
 }
 
 shouldRedirect(route.name as string)
 
-router.afterEach((to) => {
-  shouldRedirect(to.name as string)
-})
+router.afterEach((to) => shouldRedirect(to.name as string))
 </script>
 
 <template>
@@ -82,8 +80,8 @@ p {
     > div {
       @apply bg-white dark:(bg-slate-500 text-white);
 
-      .nc-icon {
-        @apply dark:text-slate-900;
+      .ant-btn {
+        @apply dark:(bg-slate-300);
       }
 
       .chip {

@@ -555,6 +555,7 @@ watch(view, (nextView) => {
                 />
               </a-form-item>
             </div>
+
             <div v-else class="px-4 ml-3 w-full text-bold text-md">{{ formViewData.subheading || '---' }}</div>
 
             <Draggable
@@ -575,7 +576,7 @@ watch(view, (nextView) => {
                   :class="[
                     `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                     {
-                      'border-1': activeRow === element.title,
+                      'bg-primary bg-opacity-5 ring-0.5 ring-accent ring-opacity-100': activeRow === element.title,
                     },
                   ]"
                   @click="activeRow = element.title"
@@ -584,62 +585,53 @@ watch(view, (nextView) => {
                     v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)"
                     class="absolute flex top-2 right-2"
                   >
-                    <mdi-eye-off-outline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
+                    <MdiEyeOffOutline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
                   </div>
 
-                  <template v-if="activeRow === element.title">
-                    <div class="flex">
-                      <div
-                        class="flex flex-1 opacity-0 align-center gap-2"
-                        :class="{ 'opacity-100': activeRow === element.title }"
+                  <div v-if="activeRow === element.title" class="flex flex-col gap-3 mb-3">
+                    <div class="flex gap-2 items-center">
+                      <span
+                        class="text-gray-500 mr-2 nc-form-input-required"
+                        @click="
+                          () => {
+                            element.required = !element.required
+                            updateColMeta(element)
+                          }
+                        "
                       >
-                        <div class="items-center flex">
-                          <span
-                            class="text-xs text-gray-500 mr-2 nc-form-input-required"
-                            @click="
-                              () => {
-                                element.required = !element.required
-                                updateColMeta(element)
-                              }
-                            "
-                          >
-                            {{ $t('general.required') }}
-                          </span>
+                        {{ $t('general.required') }}
+                      </span>
 
-                          <a-switch
-                            v-model:checked="element.required"
-                            v-e="['a:form-view:field:mark-required']"
-                            size="small"
-                            class="ml-2"
-                            @change="updateColMeta(element)"
-                          />
-                        </div>
-                      </div>
+                      <a-switch
+                        v-model:checked="element.required"
+                        v-e="['a:form-view:field:mark-required']"
+                        size="small"
+                        @change="updateColMeta(element)"
+                      />
                     </div>
 
-                    <div class="my-3">
-                      <a-form-item class="my-0 w-1/2 !mb-1">
-                        <a-input
-                          v-model:value="element.label"
-                          size="small"
-                          class="form-meta-input !bg-[#dbdbdb] nc-form-input-label"
-                          :placeholder="$t('msg.info.formInput')"
-                          @change="updateColMeta(element)"
-                        >
-                        </a-input>
-                      </a-form-item>
+                    <a-form-item class="my-0 w-1/2 !mb-1">
+                      <a-input
+                        v-model:value="element.label"
+                        type="text"
+                        class="form-meta-input nc-form-input-label"
+                        :placeholder="$t('msg.info.formInput')"
+                        @change="updateColMeta(element)"
+                      >
+                      </a-input>
+                    </a-form-item>
 
-                      <a-form-item class="mt-2 mb-0 w-1/2 !mb-1">
-                        <a-input
-                          v-model:value="element.description"
-                          size="small"
-                          class="form-meta-input !bg-[#dbdbdb] text-sm nc-form-input-help-text"
-                          :placeholder="$t('msg.info.formHelpText')"
-                          @change="updateColMeta(element)"
-                        />
-                      </a-form-item>
-                    </div>
-                  </template>
+                    <a-form-item class="mt-2 mb-0 w-1/2 !mb-1">
+                      <a-input
+                        v-model:value="element.description"
+                        type="text"
+                        class="form-meta-input text-sm nc-form-input-help-text"
+                        :placeholder="$t('msg.info.formHelpText')"
+                        @change="updateColMeta(element)"
+                      />
+                    </a-form-item>
+                  </div>
+
                   <div>
                     <LazySmartsheetHeaderVirtualCell
                       v-if="isVirtualCol(element)"
@@ -647,6 +639,7 @@ watch(view, (nextView) => {
                       :required="isRequired(element, element.required)"
                       :hide-menu="true"
                     />
+
                     <LazySmartsheetHeaderCell
                       v-else
                       :column="{ ...element, title: element.label || element.title }"
@@ -658,6 +651,7 @@ watch(view, (nextView) => {
                   <a-form-item
                     v-if="isVirtualCol(element)"
                     :name="element.title"
+                    class="!mb-0"
                     :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
                     <LazySmartsheetVirtualCell
@@ -673,6 +667,7 @@ watch(view, (nextView) => {
                   <a-form-item
                     v-else
                     :name="element.title"
+                    class="!mb-0"
                     :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
                   >
                     <LazySmartsheetCell
@@ -685,7 +680,7 @@ watch(view, (nextView) => {
                     />
                   </a-form-item>
 
-                  <span class="text-gray-500 text-xs -mt-1 block">{{ element.description }}</span>
+                  <div class="text-gray-500 text-xs">{{ element.description }}</div>
                 </div>
               </template>
 
@@ -700,7 +695,7 @@ watch(view, (nextView) => {
             </Draggable>
 
             <div class="justify-center flex mt-6">
-              <button type="submit" class="scaling-btn nc-form-submit" @click="submitForm">
+              <button type="submit" class="uppercase scaling-btn nc-form-submit" @click="submitForm">
                 {{ $t('general.submit') }}
               </button>
             </div>

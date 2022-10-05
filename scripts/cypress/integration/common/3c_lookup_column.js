@@ -11,18 +11,7 @@ export const genTest = (apiType, dbType) => {
       cy.get("label").contains(label).parents(".ant-row").click();
     };
 
-    // Run once before test- create project (rest/graphql)
-    //
     // before(() => {
-    //     cy.fileHook();
-    //     mainPage.tabReset();
-    //     // open a table to work on views
-    //     //
-    //
-    //     // // close team & auth tab
-    //     // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-    //
-    //     cy.openTableTab("City", 25);
     // });
 
     beforeEach(() => {
@@ -60,9 +49,7 @@ export const genTest = (apiType, dbType) => {
         .contains("Lookup")
         .click();
 
-      // fix me! wait till the modal rendering (input highlight) is completed
-      // focus shifts back to the input field to select text after the dropdown is rendered
-      cy.wait(500);
+      cy.inputHighlightRenderWait();
 
       // Configure Child table & column names
       fetchParentFromLabel("Child table");

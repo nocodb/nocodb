@@ -1,6 +1,6 @@
 <h1 align="center" style="border-bottom: none">
     <b>
-        <a href="https://www.nocodb.com">NocoDB</a><br>
+        <a href="https://www.nocodb.com"><img src="/packages/nc-gui/public/icon.png" width="80" /><br>NocoDB</a><br>
     </b>
     The Open Source Airtable Alternative <br>
 </h1>
@@ -263,6 +263,7 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 - [Contributing](#contributing)
 - [Why are we building this?](#why-are-we-building-this)
 - [Our Mission](#our-mission)
+- [License](#license)
 - [Contributors](#contributors)
 
 # Features
@@ -322,6 +323,11 @@ Most internet businesses equip themselves with either spreadsheet or a database 
 
 # Our Mission
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
+
+# License 
+<p>
+This project is licensed under <a href="./LICENSE">AGPLv3</a>.</p>
+<br>
 
 # Contributors
 [//]: contributor-faces

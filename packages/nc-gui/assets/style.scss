@@ -100,7 +100,7 @@ a {
 }
 
 .animated-bg-gradient {
-  background: linear-gradient(122deg, #6f3381, #81c7d4, #fedfe1, #9ee59e);
+  background: linear-gradient(122deg, #6f3381, #ec4899, #fedfe1, #4351e8);
   background-size: 800% 800%;
 
   -webkit-animation: gradient 4s ease infinite;
@@ -166,6 +166,28 @@ a {
 .slide-enter-from,
 .slide-leave-to {
   transform: translate(-100%, 0);
+}
+
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: all 400ms ease;
+}
+
+.slide-right-enter-from,
+.slide-right-leave-to {
+  transform: translate(100%, 0%);
+  opacity: 0;
+}
+
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: all 400ms ease;
+}
+
+.slide-left-enter-from,
+.slide-left-leave-to {
+  transform: translate(-100%, 0%);
+  opacity: 0;
 }
 
 .glow-enter-active,

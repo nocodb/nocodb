@@ -135,7 +135,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
         v-model="isOverDropZone"
         inline
         :target="currentCellRef"
-        class="text-white text-lg ring ring-accent bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
+        class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
       >
         <MaterialSymbolsFileCopyOutline class="text-accent" /> Drop here
       </general-overlay>
@@ -217,7 +217,7 @@ const { isSharedForm } = useSmartsheetStoreOrThrow()
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply w-[50px] h-[50px] min-h-[50px] min-w-[50px];
+      @apply w-[50px] h-[50px] min-h-[50px] min-w-[50px] ring-1 ring-gray-300 rounded;
     }
 
     .ghost,

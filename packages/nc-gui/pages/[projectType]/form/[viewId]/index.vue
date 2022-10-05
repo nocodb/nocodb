@@ -121,7 +121,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
               </div>
 
               <div class="text-center my-9">
-                <button type="submit" class="submit" @click="submitForm">
+                <button type="submit" class="scaling-btn bg-opacity-100" @click="submitForm">
                   {{ $t('general.submit') }}
                 </button>
               </div>
@@ -161,24 +161,6 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 .nc-form-view {
   .nc-input {
     @apply w-full rounded p-2 min-h-[40px] flex items-center border-solid border-1 border-primary;
-  }
-
-  .submit {
-    @apply z-1 relative color-transition rounded p-3 text-white shadow-sm;
-
-    &::after {
-      @apply rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
-      content: '';
-      z-index: -1;
-    }
-
-    &:hover::after {
-      @apply transform scale-110 ring ring-accent;
-    }
-
-    &:active::after {
-      @apply ring ring-accent;
-    }
   }
 }
 </style>

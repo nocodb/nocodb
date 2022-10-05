@@ -134,7 +134,7 @@ hooks.hook('page:finish', () => {
 
 <style lang="scss">
 .nc-lang-btn {
-  @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white active:(ring ring-accent) hover:(ring ring-accent);
+  @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white ring-opacity-100 active:(ring ring-accent) hover:(ring ring-accent);
 
   &::after {
     @apply rounded-full absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
@@ -143,11 +143,11 @@ hooks.hook('page:finish', () => {
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-accent;
+    @apply transform scale-110 ring ring-accent ring-opacity-100;
   }
 
   &:active::after {
-    @apply ring ring-accent;
+    @apply ring ring-accent ring-opacity-100;
   }
 }
 </style>

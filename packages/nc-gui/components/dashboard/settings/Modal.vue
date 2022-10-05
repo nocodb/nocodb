@@ -252,10 +252,10 @@ watch(
               <a-breadcrumb-item v-else @click="dataSourcesState = ''">Data Sources</a-breadcrumb-item>
               <a-breadcrumb-item v-if="dataSourcesState !== ''">{{ dataSourcesState }}</a-breadcrumb-item>
             </a-breadcrumb>
-            <div v-if="dataSourcesState === ''" class="flex flex-row justify-end items-center w-full">
+            <div v-if="dataSourcesState === ''" class="flex flex-row justify-end items-center w-full gap-1">
               <a-button class="self-start nc-btn-new-datasource" @click="dataSourcesState = DataSourcesSubTab.New">
-                <div v-if="dataSourcesState === ''" class="flex items-center gap-2 text-gray-600 font-light">
-                  <MdiDatabaseOutline class="text-lg group-hover:text-accent" />
+                <div v-if="dataSourcesState === ''" class="flex items-center gap-2 text-primary font-light">
+                  <MdiDatabasePlusOutline class="text-lg group-hover:text-accent" />
                   New
                 </div>
               </a-button>

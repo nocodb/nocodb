@@ -44,6 +44,8 @@ const [searchActive, toggleSearchActive] = useToggle()
 
 let key = $ref(0)
 
+const activeKey = ref([])
+
 const menuRef = $ref<HTMLLIElement>()
 
 let filterQuery = $ref('')
@@ -434,7 +436,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     </GeneralTooltip>
                   </div>
                 </div>
-                <a-collapse v-else expand-icon-position="right" :bordered="false" ghost>
+                <a-collapse v-else v-model:activeKey="activeKey" expand-icon-position="right" :bordered="false" accordion ghost>
                   <a-collapse-panel :key="index">
                     <template #header>
                       <div v-if="index !== '0'" class="flex items-center gap-2">
@@ -771,6 +773,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 }
 
 :deep(.ant-collapse-header) {
-  @apply !border-0 !border-y-1;
+  @apply !border-0;
 }
 </style>

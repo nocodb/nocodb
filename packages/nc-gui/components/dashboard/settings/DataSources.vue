@@ -133,39 +133,47 @@ watch(
           <a-table-column key="action" :title="$t('labels.actions')" :width="180">
             <template #default="{ record }">
               <div class="flex items-center gap-2">
-                <a-tooltip>
-                  <template #title>Sync Metadata {{ metadiffbases.includes(record.id) ? '(Out of sync)' : '' }}</template>
-                  <MdiDatabaseSync
-                    class="nc-action-btn cursor-pointer outline-0"
-                    :class="metadiffbases.includes(record.id) ? 'text-primary' : ''"
-                    @click="baseAction(record.id, DataSourcesSubTab.Metadata)"
-                  />
-                </a-tooltip>
-                <a-tooltip>
-                  <template #title>UI ACL</template>
-                  <MdiDatabaseLockOutline
-                    class="nc-action-btn cursor-pointer outline-0"
-                    @click="baseAction(record.id, DataSourcesSubTab.UIAcl)"
-                  />
-                </a-tooltip>
-                <a-tooltip>
-                  <template #title>ERD</template>
-                  <MdiGraphOutline
-                    class="nc-action-btn cursor-pointer outline-0"
-                    @click="baseAction(record.id, DataSourcesSubTab.ERD)"
-                  />
-                </a-tooltip>
-                <a-tooltip v-if="!record.is_meta">
-                  <template #title>Edit</template>
-                  <MdiEditOutline
-                    class="nc-action-btn cursor-pointer outline-0"
-                    @click="baseAction(record.id, DataSourcesSubTab.Edit)"
-                  />
-                </a-tooltip>
-                <a-tooltip v-if="!record.is_meta">
-                  <template #title>Delete</template>
-                  <MdiDeleteOutline class="nc-action-btn cursor-pointer outline-0" @click="deleteBase(record)" />
-                </a-tooltip>
+                <a-button
+                  class="nc-action-btn cursor-pointer outline-0"
+                  @click="baseAction(record.id, DataSourcesSubTab.Metadata)"
+                >
+                  <div class="flex items-center gap-2 text-gray-600 font-light">
+                    <a-tooltip v-if="metadiffbases.includes(record.id)">
+                      <template #title>Out of sync</template>
+                      <MdiDatabaseSync class="text-lg group-hover:text-accent text-primary" />
+                    </a-tooltip>
+                    <MdiDatabaseSync v-else class="text-lg group-hover:text-accent" />
+                    Sync Metadata
+                  </div>
+                </a-button>
+                <a-button class="nc-action-btn cursor-pointer outline-0" @click="baseAction(record.id, DataSourcesSubTab.UIAcl)">
+                  <div class="flex items-center gap-2 text-gray-600 font-light">
+                    <MdiDatabaseLockOutline class="text-lg group-hover:text-accent" />
+                    UI ACL
+                  </div>
+                </a-button>
+                <a-button class="nc-action-btn cursor-pointer outline-0" @click="baseAction(record.id, DataSourcesSubTab.ERD)">
+                  <div class="flex items-center gap-2 text-gray-600 font-light">
+                    <MdiGraphOutline class="text-lg group-hover:text-accent" />
+                    ERD
+                  </div>
+                </a-button>
+                <a-button
+                  v-if="!record.is_meta"
+                  class="nc-action-btn cursor-pointer outline-0"
+                  @click="baseAction(record.id, DataSourcesSubTab.Edit)"
+                >
+                  <div class="flex items-center gap-2 text-gray-600 font-light">
+                    <MdiEditOutline class="text-lg group-hover:text-accent" />
+                    Edit
+                  </div>
+                </a-button>
+                <a-button v-if="!record.is_meta" class="nc-action-btn cursor-pointer outline-0" @click="deleteBase(record)">
+                  <div class="flex items-center gap-2 text-red-500 font-light">
+                    <MdiDeleteOutline class="text-lg group-hover:text-accent" />
+                    Delete
+                  </div>
+                </a-button>
               </div>
             </template>
           </a-table-column>

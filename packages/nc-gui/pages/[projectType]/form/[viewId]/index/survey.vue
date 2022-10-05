@@ -22,7 +22,7 @@ enum TransitionDirection {
 
 const { md } = useBreakpoints(breakpointsTailwind)
 
-const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView } = useSharedFormStoreOrThrow()
+const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView, onReset } = useSharedFormStoreOrThrow()
 
 const isTransitioning = ref(false)
 
@@ -46,7 +46,7 @@ const steps = computed(() => {
   }, [])
 })
 
-const { index, goToPrevious, goToNext, isFirst, isLast } = useStepper(steps)
+const { index, goToPrevious, goToNext, isFirst, isLast, goTo } = useStepper(steps)
 
 const field = computed(() => formColumns.value?.[index.value])
 
@@ -118,6 +118,15 @@ function focusInput() {
     }
   }
 }
+
+function resetForm() {
+  v$.value.$reset()
+  submitted.value = false
+  transition(TransitionDirection.Right)
+  goTo(steps.value[0])
+}
+
+onReset(resetForm)
 
 onKeyStroke(['ArrowLeft', 'ArrowDown'], goPrevious)
 onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
@@ -276,7 +285,7 @@ onMounted(() => {
                 </p>
 
                 <div v-if="sharedFormView?.submit_another_form" class="text-center">
-                  <a-button type="primary" @click="submitted = false"> Submit Another Form</a-button>
+                  <button type="button" class="scaling-btn bg-opacity-100" @click="resetForm">Submit Another Form</button>
                 </div>
               </div>
             </div>

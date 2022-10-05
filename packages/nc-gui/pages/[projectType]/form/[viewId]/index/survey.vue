@@ -142,9 +142,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="el" class="w-full grid grid-rows-2">
+  <div ref="el" class="w-full grid">
     <template v-if="sharedFormView">
-      <div class="max-w-[max(33%,600px)] mx-auto">
+      <div class="max-h-33vh max-w-[max(33%,600px)] mx-auto">
         <div class="h-33vh flex flex-col justify-end">
           <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
 
@@ -216,7 +216,7 @@ onMounted(() => {
                 </button>
               </div>
 
-              <div v-else class="flex items-center gap-3">
+              <div v-else-if="!submitted" class="flex items-center gap-3">
                 <a-tooltip
                   :title="v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : 'Go to next'"
                   :mouse-enter-delay="0.25"
@@ -246,22 +246,31 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="flex-1" />
+          <template v-if="!submitted">
+            <div class="flex-1" />
 
-          <div class="select-none text-center text-gray-500 dark:text-slate-200">{{ index + 1 }} / {{ formColumns?.length }}</div>
+            <div class="select-none text-center text-gray-500 dark:text-slate-200">
+              {{ index + 1 }} / {{ formColumns?.length }}
+            </div>
+          </template>
 
-          <Transition name="layout">
-            <div v-if="submitted" class="flex flex-col justify-center text-center">
-              <h2 class="prose-xl mb-2">Thank you!</h2>
+          <Transition name="slide-left">
+            <div v-if="submitted" class="flex flex-col justify-center items-center text-center">
+              <div class="text-lg px-6 py-3 bg-green-300 text-gray-700 rounded">
+                <template v-if="sharedFormView?.success_msg">
+                  {{ sharedFormView?.success_msg }}
+                </template>
 
-              <div v-if="sharedFormView" class="min-w-350px mt-3">
-                <a-alert
-                  type="success"
-                  class="my-4 text-center"
-                  outlined
-                  :message="sharedFormView.success_msg || 'Successfully submitted form data'"
-                />
+                <template v-else>
+                  <div class="flex flex-col gap-1">
+                    <div>Thank you!</div>
 
+                    <div>You have successfully submitted the form data.</div>
+                  </div>
+                </template>
+              </div>
+
+              <div v-if="sharedFormView" class="mt-3">
                 <p v-if="sharedFormView?.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
                   New form will be loaded after {{ secondsRemain }} seconds
                 </p>

@@ -1,4 +1,5 @@
 import BaseModelXcMeta from './BaseModelXcMeta';
+import { UITypes } from 'nocodb-sdk';
 
 class ModelXcMetaOracle extends BaseModelXcMeta {
   /**
@@ -270,75 +271,34 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
 
   getAbstractType(col): any {
     switch ((col.dt || col.dt).toLowerCase()) {
-      case 'integer':
-        return 'integer';
-      case 'bfile':
-      case 'binary rowid':
-      case 'binary double':
-      case 'binary_float':
+      case 'CHAR':
+      case 'VARCHAR':
+      case 'VARCHAR2':
+      case 'NCHAR':
+      case 'NVARCHAR2':
         return 'string';
-      case 'blob':
-        return 'blob';
-      case 'canoical':
-      case 'cfile':
-      case 'char':
-      case 'clob':
-      case 'content pointer':
-      case 'contigous array':
-        return 'string';
-      case 'date':
-        return 'date';
-      case 'decimal':
-      case 'double precision':
-      case 'float':
+      case 'NUMBER':
+      case 'BINARY_FLOAT':
+      case 'BINARY_DOUBLE':
         return 'float';
-      case 'interval day to second':
-      case 'interval year to month':
-        return 'string';
-      case 'lob pointer':
-        return 'string';
-      case 'long':
-        return 'integer';
-      case 'long raw':
-        return 'string';
-      case 'named collection':
-      case 'named object':
-      case 'nchar':
-      case 'nclob':
-        return 'string';
-      case 'nvarchar2':
-      case 'oid':
-      case 'pointer':
-      case 'raw':
-        return 'string';
-      case 'real':
-      case 'number':
-        return 'float';
-      case 'ref':
-      case 'ref cursor':
-      case 'rowid':
-      case 'signed binary integer':
-        return 'string';
-      case 'smallint':
-        return 'integer';
-      case 'table':
-        return 'string';
-      case 'time':
-      case 'time with tz':
-        return 'time';
-      case 'timestamp':
-      case 'timestamp with local time zone':
-      case 'timestamp with local tz':
-      case 'timestamp with timezone':
-      case 'timestamp with tz':
+      case 'CLOB':
+      case 'NCLOB':
+        return 'text';
+
+      case 'DATE':
+      case 'TIMESTAMP':
+      case 'TIMESTAMP WITH LOCAL TIME ZONE':
+      case 'TIMESTAMP WITH TIME ZONE':
         return 'datetime';
-      case 'unsigned binary integer':
-      case 'urowid':
-      case 'varchar':
-      case 'varchar2':
-        return 'string';
-      case 'varray':
-      case 'varying array':
+
+      case 'BLOB':
+      case 'BFILE':
+      case 'RAW':
+      case 'LONG RAW':
+      case 'ROWID':
+      case 'UROWID':
+      case 'XMLType':
+      case 'UriType':
         return 'string';
     }
   }
@@ -346,31 +306,27 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
   getUIDataType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
-        return 'Number';
+        return UITypes.Number;
       case 'boolean':
-        return 'Checkbox';
+        return UITypes.Checkbox;
       case 'float':
-        return 'Decimal';
+        return UITypes.Number;
       case 'date':
-        return 'Date';
+        return UITypes.Date;
       case 'datetime':
-        return 'DateTime';
+        return UITypes.DateTime;
       case 'time':
-        return 'Time';
+        return UITypes.Time;
       case 'year':
-        return 'Year';
+        return UITypes.Year;
       case 'string':
-        return 'SingleLineText';
-      case 'text':
-        return 'LongText';
+        return UITypes.SingleLineText;
       case 'blob':
-        return 'Attachment';
-      case 'enum':
-        return 'SingleSelect';
-      case 'set':
-        return 'MultiSelect';
-      case 'json':
-        return 'LongText';
+        return UITypes.LongText;
+      case 'text':
+        return UITypes.LongText;
+      default:
+        return UITypes.SpecificDBType;
     }
   }
 

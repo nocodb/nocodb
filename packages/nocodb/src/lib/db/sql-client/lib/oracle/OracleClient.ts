@@ -583,6 +583,9 @@ class OracleClient extends KnexClient {
 
         el.au = false;
 
+        // remove any precision or scale value from datatype
+        el.dt = el.dt?.replace(/\([\d,]+\)$/, '');
+
         response[i] = el;
       }
 

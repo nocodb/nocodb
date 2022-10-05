@@ -2,12 +2,20 @@ import UITypes from '../UITypes';
 import { IDType } from './index';
 
 // Ref - https://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm#CNCPT513
+// https://docs.oracle.com/cd/B19306_01/olap.102/b14346/dml_datatypes002.htm
 const dbTypes = [
   'CHAR',
   'VARCHAR',
   'VARCHAR2',
 
   'NUMBER',
+
+  'INTEGER',
+  'SHORTINTEGER',
+  'LONGINTEGER',
+  'DECIMAL',
+  'SHORTDECIMAL',
+
   'NCHAR',
   'NVARCHAR2',
   'CLOB',
@@ -35,6 +43,7 @@ const dbTypes = [
   'XMLType',
   'UriType',
 ];
+
 export class OracleUi {
   static getNewTableColumns(): any[] {
     return [
@@ -435,6 +444,13 @@ export class OracleUi {
       case 'NCLOB':
         return 'string';
 
+      case 'INTEGER':
+      case 'SHORTINTEGER':
+      case 'LONGINTEGER':
+        return 'integer';
+
+      case 'DECIMAL':
+      case 'SHORTDECIMAL':
       case 'NUMBER':
       case 'BINARY_FLOAT':
       case 'BINARY_DOUBLE':
@@ -573,10 +589,10 @@ export class OracleUi {
         colProp.dt = 'NUMBER';
         break;
       case 'Decimal':
-        colProp.dt = 'NUMBER';
+        colProp.dt = 'DECIMAL';
         break;
       case 'Currency':
-        colProp.dt = 'NUMBER';
+        colProp.dt = 'DECIMAL';
         colProp.validate = {
           func: ['isCurrency'],
           args: [''],
@@ -712,13 +728,13 @@ export class OracleUi {
         ];
 
       case 'Number':
-        return ['NUMBER'];
+        return ['INTEGER', 'SHORTINTEGER', 'LONGINTEGER', 'NUMBER'];
 
       case 'Decimal':
-        return ['NUMBER'];
+        return ['DECIMAL', 'SHORTDECIMAL', 'NUMBER'];
 
       case 'Currency':
-        return ['NUMBER'];
+        return ['DECIMAL', 'SHORTDECIMAL', 'NUMBER'];
       case 'Percent':
         return ['NUMBER'];
 
@@ -734,7 +750,6 @@ export class OracleUi {
       case 'Date':
         return [
           'DATE',
-
           'TIMESTAMP',
           'TIMESTAMP WITH LOCAL TIME ZONE',
           'TIMESTAMP WITH TIME ZONE',
@@ -745,7 +760,6 @@ export class OracleUi {
       case 'LastModifiedTime':
         return [
           'DATE',
-
           'TIMESTAMP',
           'TIMESTAMP WITH LOCAL TIME ZONE',
           'TIMESTAMP WITH TIME ZONE',

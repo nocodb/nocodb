@@ -214,7 +214,7 @@ a {
   }
 
   &:hover::after {
-    @apply !border-0 transform scale-110 ring ring-accent;
+    @apply transform scale-110 ring ring-accent;
   }
 
   &:active::after {

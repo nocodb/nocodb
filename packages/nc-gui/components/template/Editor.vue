@@ -89,7 +89,11 @@ const uiTypeOptions = ref<Option[]>(
 
 const srcDestMapping = ref<Record<string, any>[]>([])
 
-const data = reactive<{ title: string | null; name: string; tables: (TableType & { ref_table_name: string })[] }>({
+const data = reactive<{
+  title: string | null
+  name: string
+  tables: (TableType & { ref_table_name: string; columns: (ColumnType & { _disableSelect?: boolean })[] })[]
+}>({
   title: null,
   name: 'Project Name',
   tables: [],
@@ -543,6 +547,10 @@ function handleEditableTnChange(idx: number) {
   }
   setEditableTn(idx, false)
 }
+
+function isSelectDisabled(uidt: string, disableSelect = false) {
+  return (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) && disableSelect
+}
 </script>
 
 <template>
@@ -655,7 +663,6 @@ function handleEditableTnChange(idx: number) {
                 <mdi-delete-outline v-if="data.tables.length > 1" class="text-lg mr-8" @click.stop="deleteTable(tableIdx)" />
               </a-tooltip>
             </template>
-
             <a-table
               v-if="table.columns && table.columns.length"
               class="template-form"
@@ -702,10 +709,23 @@ function handleEditableTnChange(idx: number) {
                       v-model:value="record.uidt"
                       class="w-52"
                       show-search
-                      :options="uiTypeOptions"
                       :filter-option="filterOption"
                       dropdown-class-name="nc-dropdown-template-uidt"
-                    />
+                    >
+                      <a-select-option
+                        v-for="(option, i) of uiTypeOptions"
+                        :key="i"
+                        :value="option.value"
+                        :disabled="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)"
+                      >
+                        <a-tooltip placement="right">
+                          <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
+                            The field is too large to be converted to {{ option.label }}
+                          </template>
+                          {{ option.label }}
+                        </a-tooltip>
+                      </a-select-option>
+                    </a-select>
                   </a-form-item>
                 </template>
 

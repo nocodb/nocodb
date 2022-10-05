@@ -2,35 +2,18 @@ import { isTestSuiteActive } from '../../support/page_objects/projectConstants'
 import { mainPage } from '../../support/page_objects/mainPage'
 import { loginPage } from '../../support/page_objects/navigation'
 
-const formTitle = '4G Survey Form'
-const formDescription = '4G Survey Form Description'
+const formTitle = '4H Survey Form'
+const formDescription = '4H Survey Form Description'
 
 export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return
 
   describe(`${apiType.toUpperCase()} api - FORM view (Share)`, () => {
     before(() => {
-      // loginPage.loginAndOpenProject(apiType, dbType);
-      cy.restoreLocalStorage()
       cy.openTableTab('City', 25)
     })
 
-    beforeEach(() => {
-      cy.restoreLocalStorage()
-    })
-
-    afterEach(() => {
-      cy.saveLocalStorage()
-    })
-
-    after(() => {
-      cy.restoreLocalStorage()
-      cy.closeTableTab('City')
-      cy.saveLocalStorage()
-    })
-
     it(`Create form view`, () => {
-      // click on create grid view button
       cy.get(`.nc-create form-view`).click()
 
       // Pop up window, click Submit (accepting default name for view)

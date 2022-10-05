@@ -7,7 +7,7 @@ definePageMeta({
   title: 'title.headLogin',
 })
 
-const { signIn: _signIn } = useGlobal()
+const { signIn: _signIn, appInfo } = useGlobal()
 
 const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
@@ -121,6 +121,19 @@ function resetError() {
             </div>
           </div>
         </a-form>
+        <div>
+          <a-button
+            v-if="appInfo.googleAuthEnabled"
+            :href="`${appInfo.ncSiteUrl}/auth/google`"
+            outlined
+            large
+            elevation-10
+            block
+            color="blue"
+          >
+            <b>Sign In with Google</b>
+          </a-button>
+        </div>
       </div>
     </div>
   </NuxtLayout>

@@ -204,7 +204,8 @@ onBeforeMount(loadProjects)
         <a-skeleton />
       </div>
 
-      <a-table v-else
+      <a-table
+        v-else
         :custom-row="customRow"
         :data-source="filteredProjects"
         :pagination="{ position: ['bottomCenter'] }"

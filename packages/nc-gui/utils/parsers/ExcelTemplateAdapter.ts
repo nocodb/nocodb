@@ -154,7 +154,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               column.uidt = UITypes.Checkbox
             } else {
               if (vals.some((v: any) => v && v.toString().includes(','))) {
-                let flattenedVals = vals.flatMap((v: any) =>
+                const flattenedVals = vals.flatMap((v: any) =>
                   v
                     ? v
                         .toString()

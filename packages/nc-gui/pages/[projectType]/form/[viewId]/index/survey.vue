@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { SwipeDirection } from '@vueuse/core'
+import { SwipeDirection, breakpointsTailwind } from '@vueuse/core'
 import {
   DropZoneRef,
   computed,
@@ -9,7 +9,7 @@ import {
   onMounted,
   provide,
   ref,
-  useEventListener,
+  useBreakpoints,
   usePointerSwipe,
   useSharedFormStoreOrThrow,
   useStepper,
@@ -20,6 +20,8 @@ enum TransitionDirection {
   Right = 'right',
 }
 
+const { md } = useBreakpoints(breakpointsTailwind)
+
 const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView } = useSharedFormStoreOrThrow()
 
 const isTransitioning = ref(false)
@@ -27,18 +29,6 @@ const isTransitioning = ref(false)
 const transitionName = ref<TransitionDirection>(TransitionDirection.Left)
 
 const el = ref<HTMLDivElement>()
-
-const { direction } = usePointerSwipe(el, {
-  onSwipe: () => {
-    if (isTransitioning.value) return
-
-    if (direction.value === SwipeDirection.LEFT) {
-      goNext()
-    } else if (direction.value === SwipeDirection.RIGHT) {
-      goPrevious()
-    }
-  },
-})
 
 provide(DropZoneRef, el)
 
@@ -129,25 +119,26 @@ function focusInput() {
   }
 }
 
-useEventListener('wheel', (event) => {
-  if (Math.abs(event.deltaX) < Math.abs(event.deltaY)) {
-    // Scrolling more vertically than horizontally
-    return
-  }
-
-  if (isTransitioning.value) return
-
-  if (event.deltaX < -15) {
-    goPrevious()
-  } else if (event.deltaX > 15) {
-    goNext()
-  }
-})
-
 onKeyStroke(['ArrowLeft', 'ArrowDown'], goPrevious)
 onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
 
-onMounted(focusInput)
+onMounted(() => {
+  focusInput()
+
+  if (!md.value) {
+    const { direction } = usePointerSwipe(el, {
+      onSwipe: () => {
+        if (isTransitioning.value) return
+
+        if (direction.value === SwipeDirection.LEFT) {
+          goNext()
+        } else if (direction.value === SwipeDirection.RIGHT) {
+          goPrevious()
+        }
+      },
+    })
+  }
+})
 </script>
 
 <template>
@@ -248,7 +239,7 @@ onMounted(focusInput)
                 </a-tooltip>
 
                 <!-- todo: i18n -->
-                <div class="text-sm text-gray-500 flex items-center gap-1">
+                <div class="hidden md:flex text-sm text-gray-500 items-center gap-1">
                   Press Enter <MaterialSymbolsKeyboardReturn class="mt-1" />
                 </div>
               </div>

@@ -14,7 +14,7 @@ import {
   OpenNewRecordFormHookInj,
   ReadonlyInj,
   inject,
-  onMounted,
+  onBeforeMount,
   provide,
   useKanbanViewStoreOrThrow,
 } from '#imports'
@@ -242,7 +242,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
   expandForm(newRow)
 })
 
-onMounted(async () => {
+onBeforeMount(async () => {
   await loadKanbanMeta()
   await loadKanbanData()
 })

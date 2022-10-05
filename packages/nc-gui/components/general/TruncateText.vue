@@ -38,6 +38,10 @@ const shortName = computed(() =>
     </template>
     <div class="w-full">{{ shortName }}</div>
   </a-tooltip>
-  <div v-else class="w-full"><slot></slot></div>
-  <div ref="text" class="hidden"><slot></slot></div>
+  <div v-else class="w-full">
+    <slot />
+  </div>
+  <div ref="text" class="hidden">
+    <slot />
+  </div>
 </template>

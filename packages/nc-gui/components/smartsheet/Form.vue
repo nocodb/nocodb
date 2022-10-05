@@ -97,13 +97,17 @@ const activeRow = ref('')
 
 const { t } = useI18n()
 
-function updateView() {
-  if ((formViewData.value?.subheading?.length || 0) > 255) {
-    message.error(t('msg.error.formDescriptionTooLong'))
-    return
-  }
-  updateFormView(formViewData.value)
-}
+const updateView = useDebounceFn(
+  () => {
+    if ((formViewData.value?.subheading?.length || 0) > 255) {
+      return message.error(t('msg.error.formDescriptionTooLong'))
+    }
+
+    updateFormView(formViewData.value)
+  },
+  500,
+  { maxWait: 5000 },
+)
 
 async function submitForm() {
   try {

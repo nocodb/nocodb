@@ -7,6 +7,7 @@ import { isString } from '@vueuse/core'
 import {
   SharedViewPasswordInj,
   computed,
+  createEventHook,
   extractSdkResponseErrorMsg,
   message,
   provide,
@@ -33,6 +34,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const meta = ref<TableType>()
   const columns = ref<(ColumnType & { required?: boolean; show?: boolean; label?: string })[]>()
   const sharedViewMeta = ref<any>({})
+  const formResetHook = createEventHook<void>()
 
   const { api, isLoading } = useApi()
 
@@ -179,6 +181,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         if (secondsRemain.value < 0) {
           submitted.value = false
 
+          formResetHook.trigger()
+
           clearInterval(intvl)
         }
       }, 1000)
@@ -211,6 +215,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     passwordDlg,
     isLoading,
     sharedViewMeta,
+    onReset: formResetHook.on,
   }
 }, 'expanded-form-store')
 

@@ -46,6 +46,7 @@ function verifyKanbanStackOrder(order) {
 function verifyKanbanStackFooterCount(count) {
   cy.get(".nc-kanban-stack").each(($el, index) => {
     cy.wrap($el)
+      .scrollIntoView()
       .find(".nc-kanban-data-count")
       .should(
         "contain",
@@ -329,6 +330,7 @@ export const genTest = (apiType, dbType) => {
     });
 
     it("Add stack", () => {
+      cy.viewOpen("kanban", 0);
       cy.get(".nc-kanban-add-edit-stack-menu-btn").should("exist").click();
       cy.getActiveMenu(".nc-dropdown-kanban-add-edit-stack-menu").should(
         "be.visible"
@@ -371,9 +373,7 @@ export const genTest = (apiType, dbType) => {
 
       // expand back
       cy.get(".nc-kanban-collapsed-stack").click();
-      cy.get(".nc-kanban-collapsed-stack")
-        .should("not.exist")
-        .should("have.length", 0);
+      cy.get(".nc-kanban-collapsed-stack").should("not.exist");
     });
 
     it("Add record to stack", () => {
@@ -426,15 +426,7 @@ export const genTest = (apiType, dbType) => {
         "NC-17",
         "Test",
       ]);
-      verifyKanbanStackFooterCount([
-        "0",
-        "178",
-        "194",
-        "223",
-        "195",
-        "210",
-        "1",
-      ]);
+      verifyKanbanStackFooterCount(["0", "4", "5", "8", "6", "6", "1"]);
 
       mainPage.toggleShowSystemFields();
     });
@@ -447,7 +439,7 @@ export const genTest = (apiType, dbType) => {
       cy.get(".nc-expand-col-Title")
         .find(".nc-cell > input")
         .then(($el) => {
-          expect($el[0].value).to.have.string("ACE GOLDFINGER");
+          expect($el[0].value).to.have.string("BAREFOOT MANCHURIAN");
         });
       cy.get("body").type("{esc}");
     });
@@ -475,6 +467,7 @@ export const genTest = (apiType, dbType) => {
         "R",
         "NC-17",
       ]);
+      verifyKanbanStackFooterCount(["1", "4", "5", "8", "6", "6"]);
     });
 
     it("Delete Kanban view", () => {

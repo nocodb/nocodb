@@ -592,6 +592,14 @@ Cypress.Commands.add("viewRename", (viewType, viewIndex, newName) => {
   cy.get(`.nc-${viewType}-view-item`).contains(`${newName}`).should("exist");
 });
 
+// viewOpen
+//  : open view by index (0-based, exclude default view)
+//
+Cypress.Commands.add("viewOpen", (viewType, viewIndex) => {
+  // click on view
+  cy.get(`.nc-${viewType}-view-item`).eq(viewIndex).click();
+});
+
 // openTableView
 //  : open view by type & name
 //

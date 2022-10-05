@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { srcDestMappingColumns, tableColumns } from './utils'
@@ -29,6 +31,8 @@ import { TabType } from '~/lib'
 const { quickImportType, projectTemplate, importData, importColumns, importOnly, maxRowsToParse } = defineProps<Props>()
 
 const emit = defineEmits(['import'])
+
+dayjs.extend(utc)
 
 const { t } = useI18n()
 
@@ -222,13 +226,19 @@ function setEditableTn(tableIdx: number, val: boolean) {
 
 function remapColNames(batchData: any[], columns: ColumnType[]) {
   return batchData.map((data) =>
-    (columns || []).reduce(
-      (aggObj, col: Record<string, any>) => ({
+    (columns || []).reduce((aggObj, col: Record<string, any>) => {
+      let d = data[col.ref_column_name || col.column_name]
+      // TODO: handle Date format
+      if (col.uidt === UITypes.DateTime && d) {
+        d = dayjs(data[col.ref_column_name || col.column_name])
+          .utc()
+          .format('YYYY-MM-DD HH:mm')
+      }
+      return {
         ...aggObj,
-        [col.column_name]: data[col.ref_column_name || col.column_name],
-      }),
-      {},
-    ),
+        [col.column_name]: d,
+      }
+    }, {}),
   )
 }
 

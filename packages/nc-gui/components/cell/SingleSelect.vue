@@ -69,7 +69,7 @@ watch(isOpen, (n, _o) => {
   <a-select
     ref="aselect"
     v-model:value="vModel"
-    class="w-full 2"
+    class="w-full"
     :allow-clear="!column.rqd && active"
     :bordered="false"
     :open="isOpen"

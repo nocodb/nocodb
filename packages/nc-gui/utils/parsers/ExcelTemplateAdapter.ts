@@ -136,8 +136,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         const cellProps = ws[cellId] || {}
         column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
 
-        const { sqlUi } = useProject()
-
         // todo: optimize
         if (column.uidt === UITypes.SingleLineText) {
           // check for long text

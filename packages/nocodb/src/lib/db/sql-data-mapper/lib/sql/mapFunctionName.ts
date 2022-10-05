@@ -3,6 +3,7 @@ import mssql from './functionMappings/mssql';
 import mysql from './functionMappings/mysql';
 import pg from './functionMappings/pg';
 import sqlite from './functionMappings/sqlite';
+import oracle from './functionMappings/oracle';
 import { Knex } from 'knex';
 
 export interface MapFnArgs {
@@ -36,6 +37,9 @@ const mapFunctionName = (args: MapFnArgs): any => {
     case 'sqlite':
     case 'sqlite3':
       val = sqlite[name] || name;
+      break;
+    case 'oracledb':
+      val = oracle[name] || name;
       break;
   }
 

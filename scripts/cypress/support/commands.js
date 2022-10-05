@@ -189,17 +189,24 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
 
 Cypress.Commands.add("closeTableTab", (tn) => {
   cy.task("log", `[closeTableTab] ${tn}`);
-  cy.get(".ant-tabs-tab-btn")
-    .contains(tn)
-    .should("exist")
-    .parent()
-    .parent()
-    .parent()
-    .find("button")
-    .click();
 
+  if (tn) {
+    // request to close specific tab
+    cy.get(".ant-tabs-tab-btn")
+      .contains(tn)
+      .should("exist")
+      .parent()
+      .parent()
+      .parent()
+      .find("button")
+      .click();
+  } else {
+    // lone tab active; close it
+    cy.getSettled("button.ant-tabs-tab-remove").should("be.visible").click();
+    cy.get("button.ant-tabs-tab-remove").should("not.exist");
+  }
   // subsequent tab open commands will fail if tab is not closed completely
-  cy.wait(2000)
+  cy.wait(2000);
 });
 
 Cypress.Commands.add("openOrCreateGqlProject", (_args) => {
@@ -401,6 +408,12 @@ Cypress.Commands.add("toastWait", (msg) => {
   cy.get(".ant-message-notice-content:visible", { timeout: 12000 }).should(
     "not.exist"
   );
+});
+
+Cypress.Commands.add("inputHighlightRenderWait", (selector) => {
+  // fix me! wait till the modal rendering (input highlight) is completed
+  // focus shifts back to the input field to select text after the dropdown is rendered
+  cy.wait(500);
 });
 
 // vn: view name

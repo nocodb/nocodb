@@ -65,6 +65,10 @@ export default defineConfig({
         primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
       },
+      ringColor: {
+        primary: 'rgba(var(--color-primary), var(--tw-ring-opacity))',
+        accent: 'rgba(var(--color-accent), var(--tw-ring-opacity))',
+      },
       colors: {
         ...windiColors,
         ...themeColors,

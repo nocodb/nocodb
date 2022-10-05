@@ -55,10 +55,7 @@ function resetError() {
       <div
         class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
-        <LazyGeneralNocoIcon
-          class="color-transition hover:(ring ring-accent)"
-          :class="[isLoading ? 'animated-bg-gradient' : '']"
-        />
+        <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
         <div class="self-center flex flex-col justify-center items-center text-center gap-2">
           <h1 class="prose-2xl font-bold my-4 w-full">{{ $t('title.resetPassword') }}</h1>
@@ -92,7 +89,7 @@ function resetError() {
           </a-form-item>
 
           <div class="self-center flex flex-col gap-4 items-center justify-center w-full">
-            <button class="submit" type="submit">
+            <button class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
                 <MdiLogin />
                 {{ $t('activity.sendEmail') }}
@@ -114,25 +111,7 @@ function resetError() {
 .forgot-password {
   .ant-input-affix-wrapper,
   .ant-input {
-    @apply !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
-  }
-
-  .submit {
-    @apply z-1 relative color-transition rounded p-3 text-white shadow;
-
-    &::after {
-      @apply rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
-      content: '';
-      z-index: -1;
-    }
-
-    &:hover::after {
-      @apply transform scale-110 ring ring-accent;
-    }
-
-    &:active::after {
-      @apply ring ring-accent;
-    }
+    @apply !appearance-none my-1 border-1 border-solid border-primary border-opacity-50 rounded;
   }
 }
 </style>

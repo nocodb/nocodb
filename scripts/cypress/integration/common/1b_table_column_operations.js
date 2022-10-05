@@ -75,9 +75,7 @@ export const genTest = (apiType, dbType) => {
           .find(".nc-column-edit")
           .click();
 
-        // fix me! wait till the modal rendering (input highlight) is completed
-        // focus shifts back to the input field to select text after the dropdown is rendered
-        cy.wait(500);
+        cy.inputHighlightRenderWait();
 
         // change column type and verify
         // cy.get(".nc-column-type-input").last().click();

@@ -243,12 +243,7 @@ export const genTest = (apiType, dbType) => {
 
         // wait for tab to be rendered completely
         cy.wait(2000);
-
-        cy.getSettled("button.ant-tabs-tab-remove")
-          .should("be.visible")
-          .click();
-        cy.get("button.ant-tabs-tab-remove").should("not.exist");
-        cy.wait(2000);
+        cy.closeTableTab();
 
         // first instance of updating local storage information
         cy.saveLocalStorage();

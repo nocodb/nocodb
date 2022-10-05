@@ -145,14 +145,7 @@ export const genTest = (apiType, dbType) => {
         }
 
         if (roleType === "creator") {
-          // kludge: wait for page load to finish
-          // close team & auth tab
-          // cy.wait(500);
-          // cy.get("button.ant-tabs-tab-remove").should("exist").click();
-          cy.getSettled("button.ant-tabs-tab-remove")
-            .should("be.visible")
-            .click();
-          cy.wait(2000);
+          cy.closeTableTab();
         }
 
         cy.saveLocalStorage();

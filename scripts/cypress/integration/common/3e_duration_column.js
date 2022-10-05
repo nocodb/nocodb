@@ -57,9 +57,7 @@ export const genTest = (apiType, dbType) => {
         .contains("Duration")
         .click();
 
-      // fix me! wait till the modal rendering (input highlight) is completed
-      // focus shifts back to the input field to select text after the dropdown is rendered
-      cy.wait(500);
+      cy.inputHighlightRenderWait();
 
       // Configure Duration format
       fetchParentFromLabel("Duration Format");
@@ -101,9 +99,7 @@ export const genTest = (apiType, dbType) => {
         .clear()
         .type(newName);
 
-      // fix me! wait till the modal rendering (input highlight) is completed
-      // focus shifts back to the input field to select text after the dropdown is rendered
-      cy.wait(500);
+      cy.inputHighlightRenderWait();
 
       // Configure Duration format
       fetchParentFromLabel("Duration Format");

@@ -113,9 +113,7 @@ export const genTest = (apiType, dbType, testMode) => {
 
         // kludge: wait for page load to finish
         cy.wait(2000);
-        // close team & auth tab
-        cy.get("button.ant-tabs-tab-remove").should("exist").click();
-        cy.wait(2000);
+        cy.closeTableTab();
       } else {
         cy.restoreLocalStorage();
       }

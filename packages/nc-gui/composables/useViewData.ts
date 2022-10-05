@@ -21,6 +21,13 @@ import {
 } from '#imports'
 import type { Row } from '~/lib'
 
+const formatData = (list: Row[]) =>
+  list.map((row) => ({
+    row: { ...row },
+    oldRow: { ...row },
+    rowMeta: {},
+  }))
+
 export function useViewData(
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
@@ -58,13 +65,6 @@ export function useViewData(
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
   const { isUIAllowed } = useUIPermission()
-
-  const formatData = (list: Record<string, any>[]) =>
-    list.map((row) => ({
-      row: { ...row },
-      oldRow: { ...row },
-      rowMeta: {},
-    }))
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),

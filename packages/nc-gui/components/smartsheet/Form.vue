@@ -415,7 +415,7 @@ watch(view, (nextView) => {
           <button
             v-if="hiddenColumns.length"
             type="button"
-            class="nc-form-add-all color-transition bg-white transform hover:(text-primary bg-primary bg-opacity-5 ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 border-b-2 border-slate-300 shadow-sm rounded"
+            class="nc-form-add-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
             @click="addAllColumns"
           >
             <!-- Add all -->
@@ -425,7 +425,7 @@ watch(view, (nextView) => {
           <button
             v-if="localColumns.length"
             type="button"
-            class="nc-form-remove-all color-transition bg-white transform hover:(text-primary bg-primary bg-opacity-5 ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 border-b-2 border-slate-300 shadow-sm rounded"
+            class="nc-form-remove-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
             @click="removeAllColumns"
           >
             <!-- Remove all -->

@@ -7,28 +7,22 @@ const dbTypes = [
   'CHAR',
   'VARCHAR',
   'VARCHAR2',
-
   'NUMBER',
-
   'INTEGER',
   'SHORTINTEGER',
   'LONGINTEGER',
   'DECIMAL',
   'SHORTDECIMAL',
-
   'NCHAR',
   'NVARCHAR2',
   'CLOB',
   'NCLOB',
   'BINARY_FLOAT',
   'BINARY_DOUBLE',
-
   'DATE',
-
   'TIMESTAMP',
   'TIMESTAMP WITH LOCAL TIME ZONE',
   'TIMESTAMP WITH TIME ZONE',
-
   'BLOB',
   'CLOB',
   'NCLOB',
@@ -116,6 +110,25 @@ export class OracleUi {
 
   static getDefaultLengthForDatatype(type) {
     switch (type) {
+      case 'NUMBER':
+      case 'INTEGER':
+      case 'LONGINTEGER':
+        return 11;
+
+      case 'DECIMAL':
+        return 10;
+
+      case 'SHORTDECIMAL':
+        return 5;
+
+      case 'CHAR':
+        return 255;
+
+      case 'VARCHAR':
+      case 'VARCHAR2':
+        return 255;
+      case 'NCHAR':
+        return 255;
       default:
         return '';
     }
@@ -124,11 +137,17 @@ export class OracleUi {
   static getDefaultLengthIsDisabled(type): any {
     switch (type) {
       case 'NUMBER':
+      case 'INTEGER':
+      case 'LONGINTEGER':
+      case 'DECIMAL':
+      case 'SHORTDECIMAL':
+      case 'CHAR':
       case 'VARCHAR':
       case 'VARCHAR2':
-        return true;
-      default:
+      case 'NCHAR':
         return false;
+      default:
+        return true;
     }
   }
 
@@ -141,17 +160,17 @@ export class OracleUi {
 
   static getDefaultScaleForDatatype(type): any {
     switch (type) {
-      case 'VARCHAR2':
-      case 'VARCHAR':
-      case 'NVARCHAR2':
-      case 'NCHAR':
-        return 45;
+      case 'DECIMAL':
+      case 'SHORTDECIMAL':
+        return 2;
+      default:
+        return '';
     }
   }
 
   static colPropAIDisabled(col, columns) {
     // console.log(col);
-    if (col.dt === 'NUMBER') {
+    if (['INTEGER', 'SHORTINTEGER', 'LONGINTEGER'].includes(col.dt)) {
       for (let i = 0; i < columns.length; ++i) {
         if (columns[i].cn !== col.cn && columns[i].ai) {
           return true;
@@ -169,13 +188,19 @@ export class OracleUi {
 
   static onCheckboxChangeAI(col) {
     console.log(col);
-    if (col.dt === 'NUMBER') {
+    if (['INTEGER', 'SHORTINTEGER', 'LONGINTEGER'].includes(col.dt)) {
       col.altered = col.altered || 2;
     }
   }
 
-  static showScale(_columnObj) {
-    return false;
+  static showScale(columnObj) {
+    return (
+      columnObj.dt === 'DECIMAL' ||
+      columnObj.dt === 'NUMBER' ||
+      columnObj.dt === 'BINARY_FLOAT' ||
+      columnObj.dt === 'BINARY_DOUBLE' ||
+      columnObj.dt === 'SHORTDECIMAL'
+    );
   }
 
   static removeUnsigned(columns) {
@@ -463,8 +488,6 @@ export class OracleUi {
         return 'datetime';
 
       case 'BLOB':
-      case 'CLOB':
-      case 'NCLOB':
       case 'BFILE':
         return 'blob';
 
@@ -634,7 +657,7 @@ export class OracleUi {
         colProp.dt = 'NUMBER';
         break;
       case 'Barcode':
-        colProp.dt = 'varchar';
+        colProp.dt = 'VARCHAR2';
         break;
       case 'Button':
         colProp.dt = 'VARCHAR2';
@@ -652,7 +675,7 @@ export class OracleUi {
         if (idType === 'AG') {
           return ['VARCHAR2', 'VARCHAR', 'NCHAR', 'NVARCHAR2'];
         } else if (idType === 'AI') {
-          return ['NUMBER'];
+          return ['NUMBER', 'INTEGER', 'SHORTINTEGER', 'LONGINTEGER'];
         } else {
           return dbTypes;
         }
@@ -692,7 +715,7 @@ export class OracleUi {
           'NCLOB',
         ];
       case 'Checkbox':
-        return ['NUMBER'];
+        return ['NUMBER', 'INTEGER', 'SHORTINTEGER', 'LONGINTEGER'];
 
       case 'MultiSelect':
       case 'SingleSelect':
@@ -728,7 +751,14 @@ export class OracleUi {
         ];
 
       case 'Number':
-        return ['INTEGER', 'SHORTINTEGER', 'LONGINTEGER', 'NUMBER'];
+        return [
+          'INTEGER',
+          'SHORTINTEGER',
+          'LONGINTEGER',
+          'NUMBER',
+          'BINARY_FLOAT',
+          'BINARY_DOUBLE',
+        ];
 
       case 'Decimal':
         return ['DECIMAL', 'SHORTDECIMAL', 'NUMBER'];
@@ -742,7 +772,7 @@ export class OracleUi {
         return ['NUMBER'];
 
       case 'Rating':
-        return ['NUMBER'];
+        return ['NUMBER', 'SHORTINTEGER', 'LONGINTEGER', 'NUMBER'];
 
       case 'Count':
         return ['NUMBER'];

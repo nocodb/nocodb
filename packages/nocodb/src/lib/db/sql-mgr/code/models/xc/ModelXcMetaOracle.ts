@@ -280,7 +280,14 @@ class ModelXcMetaOracle extends BaseModelXcMeta {
       case 'NUMBER':
       case 'BINARY_FLOAT':
       case 'BINARY_DOUBLE':
+      case 'DECIMAL':
+      case 'SHORTDECIMAL':
         return 'float';
+
+      case 'INTEGER':
+      case 'SHORTINTEGER':
+      case 'LONGINTEGER':
+        return 'integer';
       case 'CLOB':
       case 'NCLOB':
         return 'text';

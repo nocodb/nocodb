@@ -144,10 +144,14 @@ const resetError = () => {
 
 <style lang="scss">
 .change-password {
-  .create {
-    .ant-input-affix-wrapper,
-    .ant-input {
-      @apply !appearance-none my-1 border-1 border-solid border-primary border-opacity-50 rounded;
+  .ant-input-affix-wrapper,
+  .ant-input {
+    @apply !appearance-none my-1 border-1 border-solid border-primary border-opacity-50 rounded;
+  }
+
+  .password {
+    input {
+      @apply !border-none !m-0;
     }
   }
 }

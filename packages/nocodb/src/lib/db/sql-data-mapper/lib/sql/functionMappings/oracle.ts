@@ -76,6 +76,21 @@ const pg = {
       )} + 7, 7) ${colAlias}`
     );
   },
+  // AND: (args: MapFnArgs) => {
+  //   return args.knex.raw(
+  //     `CASE WHEN ${commonFns.AND({
+  //       ...args,
+  //       colAlias: '',
+  //     })} THEN 1 ELSE 0 END${args.colAlias}`
+  //   );
+  // },
+  // OR: (args: MapFnArgs) => {
+  //   return args.knex.raw(
+  //     `CASE WHEN ${commonFns.OR({ ...args, colAlias: '' })} THEN 1 ELSE 0 END${
+  //       args.colAlias
+  //     }`
+  //   );
+  // },
 };
 
 export default pg;

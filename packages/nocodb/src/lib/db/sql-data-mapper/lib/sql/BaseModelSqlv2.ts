@@ -1641,6 +1641,17 @@ class BaseModelSqlv2 {
     // if oracle use `TO_DATE` function to parse date STRING
     if (this.isOracle) {
       for (const col of this.model.columns) {
+        if (!(col.column_name in insertObj)) continue;
+
+        if (col.uidt === UITypes.Checkbox) {
+          // convert boolean to number since oracle doesn't have boolean type
+          insertObj[col.column_name] =
+            typeof insertObj[col.column_name] === 'boolean'
+              ? +insertObj[col.column_name]
+              : insertObj[col.column_name];
+          continue;
+        }
+
         if (
           !insertObj[col.column_name] ||
           !(col.dt === 'DATE' || col.dt.startsWith('TIMESTAMP'))

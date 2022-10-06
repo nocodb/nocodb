@@ -40,7 +40,7 @@ if (!notFound.value) {
 
 <template>
   <NuxtLayout>
-    <NuxtPage />
+    <NuxtPage v-if="!passwordDlg" />
 
     <a-modal
       v-model:visible="passwordDlg"

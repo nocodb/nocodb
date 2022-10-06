@@ -58,12 +58,12 @@ provide(MetaInj, meta)
 const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
 
 if (props.loadRow) {
-  loadRow()
+  await loadRow()
 }
 
 if (props.rowId) {
   try {
-    loadRow(props.rowId)
+    await loadRow(props.rowId)
   } catch (e: any) {
     if (e.response?.status === 404) {
       // todo: i18n

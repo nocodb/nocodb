@@ -167,7 +167,7 @@ const getUIDTIcon = (uidt: UITypes | string) => {
   ).icon
 }
 
-const isColumnRequired = (col: ColumnType) => col.rqd && (col.cdf === null || col.cdf === undefined ) && !col.ai
+const isColumnRequired = (col: ColumnType) => col.rqd && !col.cdf && !col.ai
 
 const isColumnRequiredAndNull = (col: ColumnType, row: Record<string, any>) => {
   return isColumnRequired(col) && (row[col.title!] === undefined || row[col.title!] === null)

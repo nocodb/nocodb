@@ -143,7 +143,7 @@ const isNumericField = computed(() => {
 
 <template>
   <div
-    class="nc-cell w-full h-fl"
+    class="nc-cell w-full h-full"
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },

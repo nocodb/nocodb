@@ -37,7 +37,7 @@ const attachmentCellRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const currentCellRef = dropZoneInjection && dropZoneInjection.value ? ref() : dropZoneInjection
+const currentCellRef = ref<Element | undefined>(dropZoneInjection.value)
 
 const { cellRefs, isSharedForm } = useSmartsheetStoreOrThrow()!
 
@@ -60,6 +60,7 @@ const {
 watch(
   [() => rowIndex, isForm, attachmentCellRef],
   () => {
+    console.log(dropZoneInjection.value, currentCellRef.value)
     if (dropZoneInjection?.value) return
 
     if (!rowIndex && (isForm.value || isGallery.value)) {
@@ -87,7 +88,7 @@ const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, is
 
 const { state: rowState } = useSmartsheetRowStoreOrThrow()
 
-const { isOverDropZone } = useDropZone(currentCellRef, onDrop)
+const { isOverDropZone } = useDropZone(currentCellRef as any, onDrop)
 
 /** on new value, reparse our stored attachments */
 watch(

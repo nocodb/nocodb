@@ -1,10 +1,12 @@
-import 'mocha';
-import request from 'supertest';
-import init from '../../init/index';
-import { createProject, createSharedBase } from '../../factory/project';
-import { beforeEach } from 'mocha';
-import { Exception } from 'handlebars';
-import Project from '../../../../src/lib/models/Project';
+import 'mocha'
+import request from 'supertest'
+import { createTable } from '../../factory/table'
+import init from '../../init/index'
+import { createProject, createSharedBase } from '../../factory/project'
+import { beforeEach } from 'mocha'
+import { Exception } from 'handlebars'
+import Project from '../../../../src/lib/models/Project'
+import { expect } from 'chai'
 
 function projectTest() {
   let context;
@@ -260,7 +262,39 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send()
       .expect(200);
-  });
+  })
+
+
+  it.only('Get all projects meta', async () => {
+    await createTable(context, project, { table_name: 'table1', title: 'table1' })
+    await createTable(context, project, { table_name: 'table2', title: 'table2' })
+    await createTable(context, project, { table_name: 'table3', title: 'table3' })
+
+    await request(context.app)
+      .get(`/api/v1/all_meta`)
+      .set('xc-auth', context.token)
+      .send({})
+      .expect(200)
+      .then(res => {
+        expect(res.body).to.have.all.keys('userCount', 'sharedBaseCount', 'projectCount','projects')
+        expect(res.body).to.have.property('projectCount').to.eq(1)
+        expect(res.body).to.have.property('projects').to.be.an('array')
+        expect(res.body.projects[0].tableCount.table).to.be.eq(3)
+        expect(res.body).to.have.nested.property('projects[0].tableCount.table').to.be.a('number')
+        expect(res.body).to.have.nested.property('projects[0].tableCount.view').to.be.a('number')
+        expect(res.body).to.have.nested.property('projects[0].viewCount').to.be.an('object').have.keys('formCount', 'gridCount', 'galleryCount', 'kanbanCount', 'total', 'sharedFormCount', 'sharedGridCount', 'sharedGalleryCount', 'sharedKanbanCount', 'sharedTotal', 'sharedPasswordProtected')
+        expect(res.body.projects[0]).have.keys(
+          'webhookCount',
+          'filterCount',
+          'sortCount',
+          'userCount',
+          'rowCount',
+          'tableCount',
+          'viewCount'
+        )
+        expect(res.body).to.have.nested.property('projects[0].rowCount').to.be.an('array')
+      })
+  })
 }
 
 export default function () {

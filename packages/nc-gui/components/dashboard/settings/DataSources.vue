@@ -6,7 +6,7 @@ import EditBase from './data-sources/EditBase.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import Erd from './Erd.vue'
-import { DataSourcesSubTab } from '~/lib'
+import { ClientType, DataSourcesSubTab } from '~/lib'
 import { useNuxtApp, useProject } from '#imports'
 
 interface Props {
@@ -18,7 +18,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:state', 'update:reload'])
 
-const vModel = useVModel(props, 'state', emits)
+const vState = useVModel(props, 'state', emits)
 const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $e } = useNuxtApp()
@@ -27,6 +27,7 @@ const { project, loadProject } = useProject()
 let sources = $ref<BaseType[]>([])
 let activeBaseId = $ref('')
 let metadiffbases = $ref<string[]>([])
+let clientType = $ref<ClientType>(ClientType.MYSQL)
 
 async function loadBases() {
   try {
@@ -64,7 +65,7 @@ async function loadMetaDiff() {
 
 const baseAction = (baseId: string, action: string) => {
   activeBaseId = baseId
-  vModel.value = action
+  vState.value = action
 }
 
 const deleteBase = (base: BaseType) => {
@@ -105,12 +106,37 @@ watch(
     }
   },
 )
+
+watch(
+  vState,
+  (newState) => {
+    switch (newState) {
+      case ClientType.MYSQL:
+        clientType = ClientType.MYSQL
+        vState.value = DataSourcesSubTab.New
+        break
+      case ClientType.PG:
+        clientType = ClientType.PG
+        vState.value = DataSourcesSubTab.New
+        break
+      case ClientType.SQLITE:
+        clientType = ClientType.SQLITE
+        vState.value = DataSourcesSubTab.New
+        break
+      case ClientType.MSSQL:
+        clientType = ClientType.MSSQL
+        vState.value = DataSourcesSubTab.New
+        break
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
   <div class="flex flex-row w-full">
     <div class="flex flex-col w-full">
-      <div v-if="props.state === ''" class="max-h-600px overflow-y-auto">
+      <div v-if="vState === ''" class="max-h-600px overflow-y-auto">
         <a-table
           class="w-full"
           size="small"
@@ -127,7 +153,10 @@ watch(
           <template #emptyText> <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" /> </template>
           <a-table-column key="alias" title="Name" data-index="alias">
             <template #default="{ text, record }">
-              {{ record.is_meta ? 'BASE' : text }} <span class="text-gray-400 text-xs">({{ record.type }})</span>
+              <div class="flex items-center gap-1">
+                <GeneralBaseLogo :base-type="record.type" />
+                {{ record.is_meta ? 'BASE' : text }} <span class="text-gray-400 text-xs">({{ record.type }})</span>
+              </div>
             </template>
           </a-table-column>
           <a-table-column key="action" :title="$t('labels.actions')" :width="180">
@@ -140,7 +169,7 @@ watch(
                   <div class="flex items-center gap-2 text-gray-600 font-light">
                     <a-tooltip v-if="metadiffbases.includes(record.id)">
                       <template #title>Out of sync</template>
-                      <MdiDatabaseSync class="text-lg group-hover:text-accent text-primary" />
+                      <MdiDatabaseAlert class="text-lg group-hover:text-accent text-primary" />
                     </a-tooltip>
                     <MdiDatabaseSync v-else class="text-lg group-hover:text-accent" />
                     Sync Metadata
@@ -179,19 +208,19 @@ watch(
           </a-table-column>
         </a-table>
       </div>
-      <div v-else-if="props.state === DataSourcesSubTab.New" class="max-h-600px overflow-y-auto">
-        <CreateBase @base-created="loadBases" />
+      <div v-else-if="vState === DataSourcesSubTab.New" class="max-h-600px overflow-y-auto">
+        <CreateBase :connection-type="clientType" @base-created="loadBases" />
       </div>
-      <div v-else-if="props.state === DataSourcesSubTab.Metadata" class="max-h-600px overflow-y-auto">
+      <div v-else-if="vState === DataSourcesSubTab.Metadata" class="max-h-600px overflow-y-auto">
         <Metadata :base-id="activeBaseId" />
       </div>
-      <div v-else-if="props.state === DataSourcesSubTab.UIAcl" class="max-h-600px overflow-y-auto">
+      <div v-else-if="vState === DataSourcesSubTab.UIAcl" class="max-h-600px overflow-y-auto">
         <UIAcl :base-id="activeBaseId" />
       </div>
-      <div v-else-if="props.state === DataSourcesSubTab.ERD" class="max-h-600px overflow-y-auto">
+      <div v-else-if="vState === DataSourcesSubTab.ERD" class="max-h-600px overflow-y-auto">
         <Erd :base-id="activeBaseId" />
       </div>
-      <div v-else-if="props.state === DataSourcesSubTab.Edit" class="max-h-600px overflow-y-auto">
+      <div v-else-if="vState === DataSourcesSubTab.Edit" class="max-h-600px overflow-y-auto">
         <EditBase :base-id="activeBaseId" @base-updated="loadBases" />
       </div>
     </div>

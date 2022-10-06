@@ -129,6 +129,8 @@ export default defineNuxtConfig({
               'ph',
               'ri',
               'system-uicons',
+              'vscode-icons',
+              'simple-icons',
             ],
           }),
         ],

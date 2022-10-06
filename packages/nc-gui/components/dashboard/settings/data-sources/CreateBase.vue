@@ -25,6 +25,8 @@ import { ClientType } from '~/lib'
 import { DefaultConnection, SQLiteConnection } from '~/utils'
 import type { ProjectCreateForm } from '~/utils'
 
+const { connectionType } = defineProps<{ connectionType: ClientType }>()
+
 const emit = defineEmits(['baseCreated'])
 
 const { project, loadProject } = useProject()
@@ -331,6 +333,15 @@ onMounted(async () => {
     }, 500)
   })
 })
+
+watch(
+  () => connectionType,
+  (v) => {
+    formState.dataSource.client = v
+    onClientChange()
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

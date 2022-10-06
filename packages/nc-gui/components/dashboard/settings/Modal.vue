@@ -14,8 +14,8 @@ import { DataSourcesSubTab } from '~~/lib'
 
 interface Props {
   modelValue: boolean
-  openKey?: string
-  dataSourcesState?: string
+  openKey: string
+  dataSourcesState: string
 }
 
 interface SubTabGroup {
@@ -37,9 +37,13 @@ interface TabGroup {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue', 'update:openKey', 'update:dataSourcesState'])
 
 const vModel = useVModel(props, 'modelValue', emits)
+
+const vOpenKey = useVModel(props, 'openKey', emits)
+
+const vDataState = useVModel(props, 'dataSourcesState', emits)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -47,7 +51,6 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const dataSourcesState = ref(props.dataSourcesState)
 const dataSourcesReload = ref(false)
 
 const tabsInfo: TabGroup = {
@@ -103,7 +106,7 @@ const tabsInfo: TabGroup = {
       },
     },
     onClick: () => {
-      dataSourcesState.value = ''
+      vDataState.value = ''
       $e('c:settings:data-sources')
     },
   },
@@ -141,7 +144,13 @@ const tabsInfo: TabGroup = {
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
 // Array of keys of tabs which are selected. In our case will be only one.
-let selectedTabKeys = $ref<string[]>([firstKeyOfObject(tabsInfo)])
+const selectedTabKeys = $computed<string[]>({
+  get: () => [Object.keys(tabsInfo).find((key) => key === vOpenKey.value) || firstKeyOfObject(tabsInfo)],
+  set: (value) => {
+    vOpenKey.value = value[0]
+  },
+})
+
 const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
 
 let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab.subTabs)])
@@ -152,29 +161,6 @@ watch(
   (newTabKey) => {
     selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey].subTabs)]
   },
-)
-
-watch(
-  () => props.openKey,
-  (nextOpenKey) => {
-    selectedTabKeys = [Object.keys(tabsInfo).find((key) => key === nextOpenKey) || firstKeyOfObject(tabsInfo)]
-  },
-)
-
-watch(
-  () => props.dataSourcesState,
-  (nextState) => {
-    dataSourcesState.value = nextState || ''
-  },
-)
-
-watch(
-  () => props.modelValue,
-  () => {
-    dataSourcesState.value = props.dataSourcesState || ''
-    selectedTabKeys = [Object.keys(tabsInfo).find((key) => key === props.openKey) || firstKeyOfObject(tabsInfo)]
-  },
-  { immediate: true },
 )
 </script>
 
@@ -246,15 +232,15 @@ watch(
         <div v-else>
           <div class="flex items-center">
             <a-breadcrumb class="w-full cursor-pointer">
-              <a-breadcrumb-item v-if="dataSourcesState !== ''" @click="dataSourcesState = ''">
+              <a-breadcrumb-item v-if="vDataState !== ''" @click="vDataState = ''">
                 <a class="!no-underline">Data Sources</a>
               </a-breadcrumb-item>
-              <a-breadcrumb-item v-else @click="dataSourcesState = ''">Data Sources</a-breadcrumb-item>
-              <a-breadcrumb-item v-if="dataSourcesState !== ''">{{ dataSourcesState }}</a-breadcrumb-item>
+              <a-breadcrumb-item v-else @click="vDataState = ''">Data Sources</a-breadcrumb-item>
+              <a-breadcrumb-item v-if="vDataState !== ''">{{ vDataState }}</a-breadcrumb-item>
             </a-breadcrumb>
-            <div v-if="dataSourcesState === ''" class="flex flex-row justify-end items-center w-full gap-1">
-              <a-button class="self-start nc-btn-new-datasource" @click="dataSourcesState = DataSourcesSubTab.New">
-                <div v-if="dataSourcesState === ''" class="flex items-center gap-2 text-primary font-light">
+            <div v-if="vDataState === ''" class="flex flex-row justify-end items-center w-full gap-1">
+              <a-button class="self-start nc-btn-new-datasource" @click="vDataState = DataSourcesSubTab.New">
+                <div v-if="vDataState === ''" class="flex items-center gap-2 text-primary font-light">
                   <MdiDatabasePlusOutline class="text-lg group-hover:text-accent" />
                   New
                 </div>
@@ -278,7 +264,7 @@ watch(
         <component
           :is="selectedSubTab?.body"
           v-if="selectedSubTabKeys[0] === 'dataSources'"
-          v-model:state="dataSourcesState"
+          v-model:state="vDataState"
           v-model:reload="dataSourcesReload"
           class="px-2 pb-2"
           :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"

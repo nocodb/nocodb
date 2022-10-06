@@ -86,6 +86,8 @@ declare module '@vue/runtime-core' {
     IcTwotoneWidthFull: typeof import('~icons/ic/twotone-width-full')['default']
     IcTwotoneWidthNormal: typeof import('~icons/ic/twotone-width-normal')['default']
     LogosGoogleGmail: typeof import('~icons/logos/google-gmail')['default']
+    LogosMysql: typeof import('~icons/logos/mysql')['default']
+    LogosPostgresql: typeof import('~icons/logos/postgresql')['default']
     LogosRedditIcon: typeof import('~icons/logos/reddit-icon')['default']
     LogosSwagger: typeof import('~icons/logos/swagger')['default']
     MaterialSymbolsAccountTreeRounded: typeof import('~icons/material-symbols/account-tree-rounded')['default']
@@ -145,6 +147,7 @@ declare module '@vue/runtime-core' {
     MdiContentSave: typeof import('~icons/mdi/content-save')['default']
     MdiContentSaveEdit: typeof import('~icons/mdi/content-save-edit')['default']
     MdiCurrencyUsd: typeof import('~icons/mdi/currency-usd')['default']
+    MdiDatabaseAlert: typeof import('~icons/mdi/database-alert')['default']
     MdiDatabaseLockOutline: typeof import('~icons/mdi/database-lock-outline')['default']
     MdiDatabaseOutline: typeof import('~icons/mdi/database-outline')['default']
     MdiDatabasePlusOutline: typeof import('~icons/mdi/database-plus-outline')['default']
@@ -240,7 +243,10 @@ declare module '@vue/runtime-core' {
     MiCircleWarning: typeof import('~icons/mi/circle-warning')['default']
     PhCloudLightningDuotone: typeof import('~icons/ph/cloud-lightning-duotone')['default']
     PhFileCsv: typeof import('~icons/ph/file-csv')['default']
+    RiTeamFill: typeof import('~icons/ri/team-fill')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SimpleIconsMicrosoftsqlserver: typeof import('~icons/simple-icons/microsoftsqlserver')['default']
+    VscodeIconsFileTypeSqlite: typeof import('~icons/vscode-icons/file-type-sqlite')['default']
   }
 }

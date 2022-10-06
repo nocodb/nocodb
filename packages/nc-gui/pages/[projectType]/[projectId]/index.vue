@@ -59,9 +59,9 @@ const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { has
 
 const dialogOpen = ref(false)
 
-const openDialogKey = ref<string>()
+const openDialogKey = ref<string>('')
 
-const dataSourcesState = ref<string>()
+const dataSourcesState = ref<string>('')
 
 const dropdownOpen = ref(false)
 
@@ -77,8 +77,8 @@ const logout = () => {
 
 function toggleDialog(value?: boolean, key?: string, dsState?: string) {
   dialogOpen.value = value ?? !dialogOpen.value
-  openDialogKey.value = key
-  dataSourcesState.value = dsState
+  openDialogKey.value = key || ''
+  dataSourcesState.value = dsState || ''
 }
 
 provide(ToggleDialogInj, toggleDialog)
@@ -569,7 +569,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     </template>
 
     <div :key="$route.fullPath.split('?')[0]">
-      <LazyDashboardSettingsModal v-model="dialogOpen" :open-key="openDialogKey" :data-sources-state="dataSourcesState" />
+      <LazyDashboardSettingsModal
+        v-model:model-value="dialogOpen"
+        v-model:open-key="openDialogKey"
+        v-model:data-sources-state="dataSourcesState"
+      />
 
       <NuxtPage :page-key="$route.params.projectId" />
 

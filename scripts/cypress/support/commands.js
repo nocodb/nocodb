@@ -163,19 +163,8 @@ Cypress.Commands.add("refreshTableTab", () => {
   cy.toastWait("Tables refreshed");
 });
 
-// tn: table name
-// rc: row count. validate row count if rc!=0
-Cypress.Commands.add("openTableTab", (tn, rc) => {
-  cy.task("log", `[openTableTab] ${tn} ${rc}`);
-
-  cy.get(`.nc-project-tree-tbl-${tn}`).should("exist").first().click();
-
-  // kludge to make new tab active
-  // cy.get('.ant-tabs-tab-btn')
-  //   .contains(tn)
-  //   .should('exist')
-  //   .click();
-
+// Wait for grid view render
+Cypress.Commands.add("gridWait", (rc) => {
   // for some tables, linked records are not available immediately
   cy.wait(1000);
 
@@ -185,6 +174,14 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
   if (rc != 0) {
     cy.get(".nc-grid-row").should("have.length", rc);
   }
+})
+
+// tn: table name
+// rc: row count. validate row count if rc!=0
+Cypress.Commands.add("openTableTab", (tn, rc) => {
+  cy.task("log", `[openTableTab] ${tn} ${rc}`);
+  cy.get(`.nc-project-tree-tbl-${tn}`).should("exist").first().click();
+  cy.gridWait(rc);
 });
 
 Cypress.Commands.add("closeTableTab", (tn) => {

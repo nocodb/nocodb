@@ -14,6 +14,7 @@ import {
   ref,
   themeV2Colors,
   useApi,
+  useGlobal,
   useNuxtApp,
   useUIPermission,
 } from '#imports'
@@ -31,6 +32,8 @@ const { isUIAllowed } = useUIPermission()
 const filterQuery = ref('')
 
 const projects = ref<ProjectType[]>()
+
+const { appInfo } = useGlobal()
 
 const loadProjects = async () => {
   const response = await api.project.list({})
@@ -177,7 +180,7 @@ onBeforeMount(loadProjects)
               </div>
             </a-menu-item>
 
-            <a-menu-item>
+            <a-menu-item v-if="appInfo.connectToExternalDB">
               <div
                 v-e="['c:project:create:extdb']"
                 class="nc-project-menu-item group nc-create-external-db-project"

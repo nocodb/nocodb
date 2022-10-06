@@ -55,7 +55,11 @@ export async function projectUpdate(
     'color',
   ]);
 
-  if (data?.title && project.title !== data.title && await Project.getByTitle(data.title)) {
+  if (
+    data?.title &&
+    project.title !== data.title &&
+    (await Project.getByTitle(data.title))
+  ) {
     NcError.badRequest('Project title already in use');
   }
 
@@ -114,6 +118,9 @@ async function projectCreate(req: Request<any, any>, res) {
       },
     ];
   } else {
+    if (process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED) {
+      NcError.badRequest('Connecting to external db is disabled');
+    }
     projectBody.is_meta = false;
   }
 

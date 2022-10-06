@@ -25,6 +25,7 @@ import {
   useProject,
   useTabs,
   useTemplateRefsList,
+  getDateFormat,
 } from '#imports'
 import { TabType } from '~/lib'
 
@@ -225,11 +226,20 @@ function setEditableTn(tableIdx: number, val: boolean) {
 }
 
 function remapColNames(batchData: any[], columns: ColumnType[]) {
+  const dateFormatMap: Record<number, string> = {}
   return batchData.map((data) =>
     (columns || []).reduce((aggObj, col: Record<string, any>) => {
       let d = data[col.ref_column_name || col.column_name]
-      // TODO: handle Date format
-      if (col.uidt === UITypes.DateTime && d) {
+      if (col.uidt === UITypes.Date && d) {
+        let dateFormat
+        if (col.key in dateFormatMap) {
+          dateFormat = dateFormatMap[col.key]
+        } else {
+          dateFormat = getDateFormat(d)
+          dateFormatMap[col.key] = dateFormat
+        }
+        d = dayjs(d).utc().format(dateFormat)
+      } else if (col.uidt === UITypes.DateTime && d) {
         d = dayjs(data[col.ref_column_name || col.column_name])
           .utc()
           .format('YYYY-MM-DD HH:mm')

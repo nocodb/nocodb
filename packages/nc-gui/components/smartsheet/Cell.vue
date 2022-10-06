@@ -126,6 +126,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   <div
     class="nc-cell w-full"
     :class="[`nc-cell-${(column?.uidt || 'default').toLowerCase()}`, { 'text-blue-600': isPrimary && !virtual && !isForm }]"
+    :data-pw="`cell-${column?.title}-${rowIndex}`"
     @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
   >

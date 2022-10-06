@@ -28,8 +28,8 @@ export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
     accentColor.value = themeAccent.isValid() ? hexToRGB(themeAccent.toHex8String()) : hexToRGB(themeV2Colors.pink['500'])
 
     currentTheme.value = {
-      primaryColor: themePrimary.toHex8String().toUpperCase(),
-      accentColor: themeAccent.toHex8String().toUpperCase(),
+      primaryColor: themePrimary.toHex8String().toUpperCase().slice(0, -2),
+      accentColor: themeAccent.toHex8String().toUpperCase().slice(0, -2),
     }
 
     ConfigProvider.config({

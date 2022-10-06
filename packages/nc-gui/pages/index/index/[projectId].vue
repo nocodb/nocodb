@@ -5,21 +5,17 @@ import {
   extractSdkResponseErrorMsg,
   message,
   navigateTo,
-  nextTick,
-  onMounted,
   projectTitleValidator,
   reactive,
   ref,
+  tryOnMounted,
   useProject,
   useRoute,
-  useSidebar,
 } from '#imports'
-
-useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 
-const { project, loadProject, updateProject, isLoading } = useProject()
+const { project, loadProject, updateProject, isLoading, projectLoadedHook } = useProject()
 
 loadProject(false)
 
@@ -48,18 +44,18 @@ const renameProject = async () => {
 }
 
 // select and focus title field on load
-onMounted(async () => {
+projectLoadedHook(async () => {
   formState.title = project.value.title as string
 
-  await nextTick(() => {
+  tryOnMounted(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
 
-      input.setSelectionRange(0, formState.title?.length)
-
       input.focus()
-    }, 500)
+
+      input.setSelectionRange(0, formState.title?.length)
+    }, 150)
   })
 })
 </script>
@@ -80,6 +76,7 @@ onMounted(async () => {
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.editProject') }}</h1>
 
     <a-skeleton v-if="isLoading" />
+
     <a-form
       v-else
       ref="form"

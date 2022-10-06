@@ -25,6 +25,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const submitted = ref(false)
   const passwordDlg = ref(false)
   const password = ref<string | null>(null)
+  const passwordError = ref<string | null>(null)
   const secondsRemain = ref(0)
 
   provide(SharedViewPasswordInj, password)
@@ -55,6 +56,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord),
   )
   const loadSharedView = async () => {
+    passwordError.value = null
+
     try {
       const viewMeta = await api.public.sharedViewMetaGet(sharedViewId, {
         headers: {
@@ -82,6 +85,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         notFound.value = true
       } else if ((await extractSdkResponseErrorMsg(e)) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
         passwordDlg.value = true
+
+        if (password.value) passwordError.value = 'Something went wrong. Please check your credentials.'
       }
     }
   }
@@ -196,6 +201,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }
   })
 
+  watch(password, (next, prev) => {
+    if (next !== prev && passwordError.value) passwordError.value = null
+  })
+
   return {
     sharedView,
     sharedFormView,
@@ -210,6 +219,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     formState,
     notFound,
     password,
+    passwordError,
     submitted,
     secondsRemain,
     passwordDlg,

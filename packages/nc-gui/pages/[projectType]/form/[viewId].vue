@@ -22,7 +22,7 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 
-const { loadSharedView, sharedView, meta, notFound, password, passwordDlg } = useProvideSharedFormStore(
+const { loadSharedView, sharedView, meta, notFound, password, passwordDlg, passwordError } = useProvideSharedFormStore(
   route.params.viewId as string,
 )
 
@@ -45,23 +45,28 @@ if (!notFound.value) {
     <a-modal
       v-model:visible="passwordDlg"
       :closable="false"
-      width="28rem"
+      width="min(100%, 450px)"
       centered
       :footer="null"
       :mask-closable="false"
       wrap-class-name="nc-modal-shared-form-password-dlg"
       @close="passwordDlg = false"
     >
-      <div class="w-full flex flex-col">
-        <a-typography-title :level="4">This shared view is protected</a-typography-title>
+      <div class="w-full flex flex-col gap-4">
+        <!-- todo: i18n -->
+        <h2 class="text-xl font-semibold">This shared view is protected</h2>
 
-        <a-form ref="formRef" :model="{ password }" class="mt-2" @finish="loadSharedView">
+        <a-form ref="formRef" :model="{ password }" @finish="loadSharedView">
           <a-form-item name="password" :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]">
             <a-input-password v-model:value="password" :placeholder="$t('msg.info.signUp.enterPassword')" />
           </a-form-item>
 
+          <Transition name="layout">
+            <div v-if="passwordError" class="mb-2 text-sm text-red-500">{{ passwordError }}</div>
+          </Transition>
+
           <!-- Unlock -->
-          <a-button type="primary" html-type="submit">{{ $t('general.unlock') }}</a-button>
+          <button type="submit" class="mt-4 scaling-btn bg-opacity-100">{{ $t('general.unlock') }}</button>
         </a-form>
       </div>
     </a-modal>
@@ -81,6 +86,19 @@ if (!notFound.value) {
 
     .nc-attachment-cell-dropzone {
       @apply rounded bg-gray-400/75;
+    }
+  }
+}
+
+.nc-modal-shared-form-password-dlg {
+  .ant-input-affix-wrapper,
+  .ant-input {
+    @apply !appearance-none my-1 border-1 border-solid border-primary border-opacity-50 rounded;
+  }
+
+  .password {
+    input {
+      @apply !border-none !m-0;
     }
   }
 }

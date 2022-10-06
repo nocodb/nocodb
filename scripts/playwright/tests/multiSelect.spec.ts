@@ -25,7 +25,7 @@ test.describe.serial('Multi select', () => {
     await grid.cell.selectOption.select({index: 0, columnHeader: 'MultiSelect', option: 'Option 2', multiSelect: true});
     await grid.cell.selectOption.verify({index: 0, columnHeader: 'MultiSelect', option: 'Option 2', multiSelect: true});
 
-    await grid.addNewRow({index: 0, title: "Row 0"});
+    await grid.addNewRow({index: 1, title: "Row 1"});
     await grid.cell.selectOption.select({index: 1, columnHeader: 'MultiSelect', option: 'Option 1', multiSelect: true});
 
     await grid.cell.selectOption.clear({index: 0, columnHeader: 'MultiSelect', multiSelect: true});

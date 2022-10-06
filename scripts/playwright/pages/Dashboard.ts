@@ -32,5 +32,6 @@ export class DashboardPage {
     await this.page.locator('button:has-text("Submit")').click();
 
     await expect(this.page).toHaveURL(`http://localhost:3000/#/nc/${this.project.id}/table/${title}`);
+    await this.page.locator('[pw-data="grid-load-spinner"]').waitFor({ state: 'hidden' });
   }
 }

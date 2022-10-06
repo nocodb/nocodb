@@ -11,7 +11,7 @@ export class CellPageObject {
   }
 
   get({index, columnHeader}: {index: number, columnHeader: string}): Locator {
-    return this.page.locator(`tr.nc-grid-row:nth-child(${index + 1}) > [data-title="${columnHeader}"]`);
+    return this.page.locator(`td[data-pw="cell-${columnHeader}-${index}"]`);
   }
 
   async click({index, columnHeader}: {index: number, columnHeader: string}) {

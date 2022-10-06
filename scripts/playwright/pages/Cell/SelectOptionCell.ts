@@ -20,6 +20,8 @@ export class SelectOptionCellPageObject {
     if(multiSelect) await this.cell.get({index, columnHeader}).click();
 
     await this.cell.page.locator(`.nc-dropdown-single-select-cell`).nth(index).waitFor({state: 'hidden'});
+    // todo: Remove this wait. Should be solved by adding pw-data-attribute with cell info to the a-select-option of the cell
+    await this.cell.page.waitForTimeout(200);
   }
 
   async clear({index, columnHeader, multiSelect}: {index: number, columnHeader: string, multiSelect?: boolean}) {

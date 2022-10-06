@@ -185,11 +185,11 @@ async function onMoveStack(event: any) {
 async function onMove(event: any, stackKey: string) {
   if (event.added) {
     const ele = event.added.element
-    ele.row[groupingField.value] = stackKey === 'uncategorized' ? null : stackKey
-    countByStack.value[stackKey] += 1
+    ele.row[groupingField.value] = stackKey
+    countByStack.value.set(stackKey, countByStack.value.get(stackKey)! + 1)
     await updateOrSaveRow(ele)
   } else if (event.removed) {
-    countByStack.value[stackKey] -= 1
+    countByStack.value.set(stackKey, countByStack.value.get(stackKey)! - 1)
   }
 }
 
@@ -197,7 +197,7 @@ const kanbanListScrollHandler = async (e: any) => {
   if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight) {
     const stackTitle = e.target.getAttribute('data-stack-title')
     const pageSize = appInfo.defaultLimit || 25
-    const page = Math.ceil(formattedData.value[stackTitle].length / pageSize)
+    const page = Math.ceil(formattedData.value.get(stackTitle)!.length / pageSize)
     await loadMoreKanbanData(stackTitle, { offset: page * pageSize })
   }
 }
@@ -234,7 +234,7 @@ openNewRecordFormHook?.on(async (stackTitle) => {
     [groupingField.value]: stackTitle,
   }
   // increase total count by 1
-  countByStack.value.uncategorized += 1
+  countByStack.value.set(null, countByStack.value.get(null)! + 1)
   // open the expanded form
   expandForm(newRow)
 })
@@ -296,7 +296,7 @@ watch(view, async (nextView) => {
                 :key="stack.id"
                 class="mx-4 !bg-[#f0f2f5] flex flex-col w-[280px] h-full rounded-[12px]"
                 :class="{
-                  'not-draggable': stack.id === 'uncategorized' || isLocked || isPublic || !hasEditPermission,
+                  'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                   '!cursor-default': isLocked || !hasEditPermission,
                 }"
                 :head-style="{ paddingBottom: '0px' }"
@@ -306,7 +306,7 @@ watch(view, async (nextView) => {
                 <div :style="`background-color: ${stack.color}`" class="nc-kanban-stack-head-color h-[10px]"></div>
 
                 <!-- Skeleton -->
-                <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="p-4" />
+                <a-skeleton v-if="!formattedData.get(stack.title) || !countByStack" class="p-4" />
 
                 <!-- Stack -->
                 <a-layout v-else class="!bg-[#f0f2f5]">
@@ -315,9 +315,9 @@ watch(view, async (nextView) => {
                       <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-kanban-stack-context-menu">
                         <div
                           class="flex items-center w-full"
-                          :class="{ 'capitalize': stack.title === 'uncategorized', 'cursor-pointer': !isLocked }"
+                          :class="{ 'capitalize': stack.title === null, 'cursor-pointer': !isLocked }"
                         >
-                          <LazyGeneralTruncateText>{{ stack.title }}</LazyGeneralTruncateText>
+                          <LazyGeneralTruncateText>{{ stack.title ?? 'uncategorized' }}</LazyGeneralTruncateText>
                           <span v-if="!isLocked" class="w-full flex w-[15px]">
                             <mdi-menu-down class="text-grey text-lg ml-auto" />
                           </span>
@@ -327,7 +327,7 @@ watch(view, async (nextView) => {
                             <a-menu-item
                               v-if="hasEditPermission && !isPublic"
                               v-e="['c:kanban:add-new-record']"
-                              @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
+                              @click="openNewRecordFormHook.trigger(stack.title === null ? null : stack.title)"
                             >
                               <div class="py-2 flex gap-2 items-center">
                                 <mdi-plus class="text-gray-500" />
@@ -341,7 +341,7 @@ watch(view, async (nextView) => {
                               </div>
                             </a-menu-item>
                             <a-menu-item
-                              v-if="stack.title !== 'uncategorized' && !isPublic && hasEditPermission"
+                              v-if="stack.title !== null && !isPublic && hasEditPermission"
                               v-e="['c:kanban:delete-stack']"
                               @click="handleDeleteStackClick(stack.title, stackIdx)"
                             >
@@ -360,7 +360,7 @@ watch(view, async (nextView) => {
                     <div :ref="kanbanListRef" class="nc-kanban-list h-full overflow-y-auto" :data-stack-title="stack.title">
                       <!-- Draggable Record Card -->
                       <Draggable
-                        v-model="formattedData[stack.title]"
+                        :list="formattedData.get(stack.title)"
                         item-key="row.Id"
                         draggable=".nc-kanban-item"
                         group="kanban-card"
@@ -430,7 +430,7 @@ watch(view, async (nextView) => {
                   </a-layout-content>
 
                   <a-layout-footer>
-                    <div v-if="formattedData[stack.title] && countByStack[stack.title] >= 0" class="mt-5 text-center">
+                    <div v-if="formattedData.get(stack.title) && countByStack.get(stack.title) >= 0" class="mt-5 text-center">
                       <!-- Stack Title -->
                       <mdi-plus
                         v-if="!isPublic"
@@ -439,8 +439,8 @@ watch(view, async (nextView) => {
                       />
                       <!-- Record Count -->
                       <div class="nc-kanban-data-count">
-                        {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
-                        {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
+                        {{ formattedData.get(stack.title).length }} / {{ countByStack.get(stack.title) }}
+                        {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                       </div>
                     </div>
                   </a-layout-footer>
@@ -454,13 +454,17 @@ watch(view, async (nextView) => {
                 :style="`background-color: ${stack.color} !important`"
                 class="nc-kanban-collapsed-stack mx-4 flex items-center w-[300px] h-[50px] rounded-[12px] cursor-pointer h-full !pr-[10px]"
                 :class="{
-                  'not-draggable': stack.id === 'uncategorized' || isLocked || isPublic || !hasEditPermission,
+                  'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                 }"
                 :body-style="{ padding: '0px', height: '100%', width: '100%', background: '#f0f2f5 !important' }"
               >
                 <div class="items-center justify-between" @click="handleCollapseStack(stackIdx)">
                   <!-- Skeleton -->
-                  <a-skeleton v-if="!formattedData[stack.title] || !countByStack" class="!w-[150px] pl-5" :paragraph="false" />
+                  <a-skeleton
+                    v-if="!formattedData.get(stack.title) || !countByStack"
+                    class="!w-[150px] pl-5"
+                    :paragraph="false"
+                  />
 
                   <div v-else class="nc-kanban-data-count mt-[12px] mx-[10px]">
                     <!--  Stack title -->
@@ -469,8 +473,8 @@ watch(view, async (nextView) => {
                       <mdi-menu-down class="text-grey text-lg" />
                     </div>
                     <!-- Record Count -->
-                    {{ formattedData[stack.title].length }} / {{ countByStack[stack.title] }}
-                    {{ countByStack[stack.title] !== 1 ? $t('objects.records') : $t('objects.record') }}
+                    {{ formattedData.get(stack.title).length }} / {{ countByStack.get(stack.title) }}
+                    {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                   </div>
                 </div>
               </a-card>

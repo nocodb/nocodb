@@ -56,7 +56,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     //     ...
     //   ],
     // }
-    const formattedData = ref<Record<string, Row[]>>({})
+    const formattedData = ref<Map<string | null, Row[]>>(new Map<string | null, Row[]>())
 
     // countByStack structure
     // {
@@ -64,7 +64,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     //   [val1]: 10,
     //   [val2]: 20
     // }
-    const countByStack = ref<Record<string, number>>({})
+    const countByStack = ref<Map<string | null, number>>(new Map<string | null, number>())
 
     // grouping field title
     const groupingField = ref<string>('')
@@ -88,8 +88,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
 
       // reset formattedData & countByStack to avoid storing previous data after changing grouping field
-      formattedData.value = {}
-      countByStack.value = {}
+      formattedData.value = new Map<string | null, Row[]>()
+      countByStack.value = new Map<string | null, number>()
 
       let res
 
@@ -108,16 +108,16 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
 
       for (const data of res) {
-        const key = data.key === null ? 'uncategorized' : data.key
-        formattedData.value[key] = formatData(data.value.list)
-        countByStack.value[key] = data.value.pageInfo.totalRows || 0
+        const key = data.key
+        formattedData.value.set(key, formatData(data.value.list))
+        countByStack.value.set(key, data.value.pageInfo.totalRows || 0)
       }
     }
 
     async function loadMoreKanbanData(stackTitle: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
       if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
       let where = `(${groupingField.value},eq,${stackTitle})`
-      if (stackTitle === 'uncategorized') {
+      if (stackTitle === null) {
         where = `(${groupingField.value},is,null)`
       }
       const response = !isPublic.value
@@ -129,7 +129,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           })
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
 
-      formattedData.value[stackTitle] = [...formattedData.value[stackTitle], ...formatData(response.list)]
+      formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, ...formatData(response.list)])
     }
 
     async function loadKanbanMeta() {
@@ -164,8 +164,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
               }
               // rename the key in formattedData & countByStack
               if (option.title !== rest.title) {
-                delete Object.assign(formattedData.value, { [option.title!]: formattedData.value[rest.title!] })[rest.title!]
-                delete Object.assign(countByStack.value, { [option.title!]: countByStack.value[rest.title!] })[rest.title!]
+                // option.title is new key
+                // rest.title is old key
+                formattedData.value.set(option.title!, formattedData.value.get(rest.title!)!)
+                countByStack.value.set(option.title!, countByStack.value.get(rest.title!)!)
                 // update grouping field value under the edited stack
                 await bulkUpdateGroupingFieldValue(option.title!)
               }
@@ -177,8 +179,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
               ...option,
               collapsed: false,
             })
-            formattedData.value[option.title!] = []
-            countByStack.value[option.title!] = 0
+            formattedData.value.set(option.title!, [])
+            countByStack.value.set(option.title!, 0)
             isChanged = true
             hasNewOptionsAdded = true
           }
@@ -196,21 +198,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             // 2. delete option from grid view, then switch to kanban view
             // for the second case, formattedData.value and countByStack.value would be empty at this moment
             // however, the data will be correct after rendering
-            if (
-              Object.keys(formattedData.value).length &&
-              Object.keys(countByStack.value).length &&
-              col.title! in formattedData.value
-            ) {
+            if (formattedData.value.size && countByStack.value.size && col.title! in formattedData.value) {
               // for the first case, no reload is executed.
               // hence, we set groupingField to null for all records under the target stack
               await bulkUpdateGroupingFieldValue(col.title!, true)
               // merge the to-be-deleted stack to uncategorized stack
-              formattedData.value.uncategorized = [
-                ...(formattedData.value.uncategorized || []),
-                ...formattedData.value[col.title!],
-              ]
+              formattedData.value.set(null, [...(formattedData.value.get(null) || []), ...formattedData.value.get(col.title!)!])
               // update the record count
-              countByStack.value.uncategorized += countByStack.value[col.title!]
+              countByStack.value.set(null, (countByStack.value.get(null) || 0) + (countByStack.value.get(col.title!) || 0))
             }
             isChanged = true
           }
@@ -228,7 +223,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         groupingFieldColOptions.value = [
           ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
           // enrich uncategorized stack
-          { id: 'uncategorized', title: 'uncategorized', order: 0, color: enumColor.light[2] },
+          { id: 'uncategorized', title: null, order: 0, color: enumColor.light[2] },
         ]
           // sort by initial order
           .sort((a, b) => a.order! - b.order!)
@@ -259,7 +254,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       })
     }
 
-    async function insertRow(row: Record<string, any>, rowIndex = formattedData.value.uncatgorized?.length) {
+    async function insertRow(row: Record<string, any>, rowIndex = formattedData.value.get(null)!.length) {
       try {
         const insertObj = (meta?.value?.columns as ColumnType[]).reduce((o: Record<string, any>, col) => {
           if (!col.ai && row?.[col.title as string] !== null) {
@@ -276,7 +271,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           insertObj,
         )
 
-        formattedData.value.uncatgorized?.splice(rowIndex ?? 0, 1, {
+        formattedData.value.get(null)?.splice(rowIndex ?? 0, 1, {
           row: insertedData,
           rowMeta: {},
           oldRow: { ...insertedData },
@@ -327,7 +322,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     async function updateOrSaveRow(row: Row) {
       if (row.rowMeta.new) {
-        await insertRow(row.row, formattedData.value[row.row.title].indexOf(row))
+        await insertRow(row.row, formattedData.value.get(row.row.title!)!.indexOf(row))
       } else {
         await updateRowProperty(row, groupingField.value)
       }
@@ -351,17 +346,20 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         )
         if (stackTitle in formattedData.value) {
           // update to groupingField value to target value
-          formattedData.value[stackTitle] = formattedData.value[stackTitle].map((o) => ({
-            ...o,
-            row: {
-              ...o.row,
-              [groupingField.value]: groupingFieldVal,
-            },
-            oldRow: {
-              ...o.oldRow,
-              [groupingField.value]: o.row[groupingField.value],
-            },
-          }))
+          formattedData.value.set(
+            stackTitle,
+            formattedData.value.get(stackTitle)!.map((o) => ({
+              ...o,
+              row: {
+                ...o.row,
+                [groupingField.value]: groupingFieldVal,
+              },
+              oldRow: {
+                ...o.oldRow,
+                [groupingField.value]: o.row[groupingField.value],
+              },
+            })),
+          )
         }
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -374,11 +372,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         // set groupingField to null for all records under the target stack
         await bulkUpdateGroupingFieldValue(stackTitle, true)
         // merge the to-be-deleted stack to uncategorized stack
-        formattedData.value.uncategorized = [...formattedData.value.uncategorized, ...formattedData.value[stackTitle]]
-        countByStack.value.uncategorized += countByStack.value[stackTitle]
+        formattedData.value.set(null, [...formattedData.value.get(null)!, ...formattedData.value.get(stackTitle)!])
+        countByStack.value.set(null, (countByStack.value.get(null) || 0) + (countByStack.value.get(stackTitle) || 0))
         // clear state for the to-be-deleted stack
-        delete formattedData.value[stackTitle]
-        delete countByStack.value[stackTitle]
+        formattedData.value.delete(stackTitle)
+        countByStack.value.delete(stackTitle)
         // delete the stack, i.e. grouping field value
         const newOptions = (groupingFieldColumn.value.colOptions as SelectOptionsType).options.filter(
           (o) => o.title !== stackTitle,
@@ -401,26 +399,26 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
     }
 
-    function addEmptyRow(addAfter = formattedData.value.uncategorized?.length) {
-      formattedData.value.uncategorized.splice(addAfter, 0, {
+    function addEmptyRow(addAfter = formattedData.value.get(null)!.length) {
+      formattedData.value.get(null)!.splice(addAfter, 0, {
         row: {},
         oldRow: {},
         rowMeta: { new: true },
       })
-      return formattedData.value.uncategorized[addAfter]
+      return formattedData.value.get(null)![addAfter]
     }
 
     function addOrEditStackRow(row: Row, isNewRow: boolean) {
-      const stackTitle = row.row[groupingField.value] ?? 'uncategorized'
-      const oldStackTitle = row.oldRow[groupingField.value] ?? 'uncategorized'
+      const stackTitle = row.row[groupingField.value]
+      const oldStackTitle = row.oldRow[groupingField.value]
 
       if (isNewRow) {
         // add a new record
         if (stackTitle) {
           // push the row to target stack
-          formattedData.value[stackTitle].push(row)
+          formattedData.value.get(stackTitle)!.push(row)
           // increase the current count in the target stack by 1
-          countByStack.value[stackTitle] += 1
+          countByStack.value.set(stackTitle, countByStack.value.get(stackTitle)! + 1)
           // clear the one under uncategorized since we don't reload the view
           removeRowFromUncategorizedStack()
         } else {
@@ -430,20 +428,20 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       } else {
         // update existing record
         const targetPrimaryKey = extractPkFromRow(row.row, meta!.value!.columns as ColumnType[])
-        const idxToUpdate = formattedData.value[stackTitle].findIndex(
-          (ele) => extractPkFromRow(ele.row, meta!.value!.columns as ColumnType[]) === targetPrimaryKey,
-        )
+        const idxToUpdate = formattedData.value
+          .get(stackTitle)!
+          .findIndex((ele) => extractPkFromRow(ele.row, meta!.value!.columns as ColumnType[]) === targetPrimaryKey)
         if (idxToUpdate !== -1) {
           // update the row in formattedData
-          formattedData.value[stackTitle][idxToUpdate] = row
+          formattedData.value.get(stackTitle)![idxToUpdate] = row
         }
         if (stackTitle !== oldStackTitle) {
           // remove old row from countByStack & formattedData
-          countByStack.value[oldStackTitle] -= 1
-          formattedData.value[oldStackTitle].pop()
+          countByStack.value.set(oldStackTitle, countByStack.value.get(oldStackTitle)! - 1)
+          formattedData.value.get(oldStackTitle)!.pop()
           // add new row to countByStack & formattedData
-          countByStack.value[stackTitle] += 1
-          formattedData.value[stackTitle].push(row)
+          countByStack.value.set(stackTitle, countByStack.value.get(stackTitle)! + 1)
+          formattedData.value.get(stackTitle)!.push(row)
         }
       }
     }
@@ -452,20 +450,23 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       // primary key of Row to be deleted
       const targetPrimaryKey = extractPkFromRow(row.row, meta!.value!.columns as ColumnType[])
       // stack title of Row to be deleted
-      const stackTitle = row.row[groupingField.value] ?? 'uncategorized'
+      const stackTitle = row.row[groupingField.value]
       // remove target row from formattedData
-      formattedData.value[stackTitle] = formattedData.value[stackTitle].filter(
-        (ele) => extractPkFromRow(ele.row, meta!.value!.columns as ColumnType[]) !== targetPrimaryKey,
+      formattedData.value.set(
+        stackTitle,
+        formattedData.value
+          .get(stackTitle)!
+          .filter((ele) => extractPkFromRow(ele.row, meta!.value!.columns as ColumnType[]) !== targetPrimaryKey),
       )
       // decrease countByStack of target stack by 1
-      countByStack.value[stackTitle] -= 1
+      countByStack.value.set(stackTitle, countByStack.value.get(stackTitle)! - 1)
     }
 
     function removeRowFromUncategorizedStack() {
       // remove the last record
-      formattedData.value.uncategorized.pop()
+      formattedData.value.get(null)!.pop()
       // decrease total count by 1
-      countByStack.value.uncategorized -= 1
+      countByStack.value.set(null, countByStack.value.get(null)! - 1)
     }
 
     async function deleteRow(row: Row) {

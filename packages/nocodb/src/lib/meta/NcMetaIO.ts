@@ -162,6 +162,16 @@ export default abstract class NcMetaIO {
     }
   ): Promise<any[]>;
 
+  public abstract metaCount(
+    project_id: string,
+    base_id: string,
+    target: string,
+    args?: {
+      condition?: { [key: string]: any };
+      xcCondition?: XcCondition;
+    }
+  ): Promise<number>;
+
   public abstract metaPaginatedList(
     project_id: string,
     dbAlias: string,

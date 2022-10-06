@@ -38,13 +38,9 @@ router.afterEach((to) => shouldRedirect(to.name as string))
 
 <template>
   <div
-    class="overflow-y-auto overflow-x-hidden flex flex-wrap color-transition nc-form-view relative bg-primary bg-opacity-10 dark:(bg-slate-900) h-full min-h-[600px]"
+    class="scrollbar-thin-dull overflow-y-auto overflow-x-hidden flex flex-col color-transition nc-form-view relative bg-primary bg-opacity-10 dark:(bg-slate-900) h-full min-h-[600px]"
   >
     <NuxtPage />
-
-    <div class="flex w-full items-end mt-12">
-      <GeneralPoweredBy :dark="isDark" />
-    </div>
 
     <div
       class="color-transition flex items-center justify-center cursor-pointer absolute top-4 md:top-15 right-4 md:right-15 rounded-full p-2 bg-white dark:(bg-slate-600) shadow hover:(ring-1 ring-accent ring-opacity-100)"

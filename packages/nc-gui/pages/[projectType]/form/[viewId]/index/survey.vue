@@ -151,25 +151,30 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="el" class="w-full grid">
-    <template v-if="sharedFormView">
-      <div class="max-h-33vh max-w-[max(33%,600px)] mx-auto">
-        <div class="h-33vh flex flex-col justify-end">
-          <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
+  <div ref="el" class="pt-8 md:p-0 w-full h-full flex flex-col">
+    <div
+      v-if="sharedFormView"
+      style="height: max(40vh, 250px); min-height: 250px"
+      class="max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
+    >
+      <div class="px-4 md:px-0 flex flex-col justify-end">
+        <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
 
-          <h2 class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4">
-            {{ sharedFormView.subheading }}
-          </h2>
-        </div>
+        <h2
+          v-if="sharedFormView.subheading && sharedFormView.subheading !== ''"
+          class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6"
+        >
+          {{ sharedFormView?.subheading }}
+        </h2>
       </div>
-    </template>
+    </div>
 
     <div class="h-full w-full flex items-center px-4 md:px-0">
       <Transition :name="`slide-${transitionName}`" :duration="1000" mode="out-in">
         <div
           ref="el"
           :key="field.title"
-          class="color-transition h-full flex flex-col justify-center gap-4 w-full max-w-[max(33%,600px)] m-auto"
+          class="color-transition h-full flex flex-col mt-6 gap-4 w-full max-w-[max(33%,600px)] m-auto"
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
             <div class="flex nc-form-column-label">
@@ -210,7 +215,7 @@ onMounted(() => {
                   {{ error.$message }}
                 </div>
 
-                <div class="block">
+                <div class="block text-[14px]">
                   {{ field.description }}
                 </div>
               </div>
@@ -255,14 +260,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <template v-if="!submitted">
-            <div class="flex-1" />
-
-            <div class="select-none text-center text-gray-500 dark:text-slate-200">
-              {{ index + 1 }} / {{ formColumns?.length }}
-            </div>
-          </template>
-
           <Transition name="slide-left">
             <div v-if="submitted" class="flex flex-col justify-center items-center text-center">
               <div class="text-lg px-6 py-3 bg-green-300 text-gray-700 rounded">
@@ -294,31 +291,41 @@ onMounted(() => {
       </Transition>
     </div>
 
-    <Transition name="fade">
-      <div
-        v-if="!submitted"
-        class="color-transition shadow-sm absolute bottom-18 right-1/2 transform translate-x-[50%] md:bottom-4 md:(right-12 transform-none) flex items-center bg-white border dark:bg-slate-500 rounded divide-x-1"
-      >
-        <a-tooltip :title="isFirst ? '' : 'Go to previous'" :mouse-enter-delay="0.25" :mouse-leave-delay="0">
-          <button class="p-0.5 flex items-center group color-transition" @click="goPrevious">
-            <MdiChevronLeft :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'" class="text-2xl md:text-md" />
-          </button>
-        </a-tooltip>
-
-        <a-tooltip
-          :title="v$.localState[field.title]?.$error ? '' : 'Go to next'"
-          :mouse-enter-delay="0.25"
-          :mouse-leave-delay="0"
-        >
-          <button class="p-0.5 flex items-center group color-transition" @click="goNext">
-            <MdiChevronRight
-              :class="isLast || v$.localState[field.title]?.$error ? 'text-gray-300' : 'group-hover:text-accent'"
-              class="text-2xl md:text-md"
-            />
-          </button>
-        </a-tooltip>
+    <template v-if="!submitted">
+      <div class="mb-24 md:my-4 select-none text-center text-gray-500 dark:text-slate-200">
+        {{ index + 1 }} / {{ formColumns?.length }}
       </div>
-    </Transition>
+    </template>
+
+    <div class="relative flex w-full items-end">
+      <Transition name="fade">
+        <div
+          v-if="!submitted"
+          class="color-transition shadow-sm absolute bottom-18 right-1/2 transform translate-x-[50%] md:bottom-4 md:(right-12 transform-none) flex items-center bg-white border dark:bg-slate-500 rounded divide-x-1"
+        >
+          <a-tooltip :title="isFirst ? '' : 'Go to previous'" :mouse-enter-delay="0.25" :mouse-leave-delay="0">
+            <button class="p-0.5 flex items-center group color-transition" @click="goPrevious">
+              <MdiChevronLeft :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'" class="text-2xl md:text-md" />
+            </button>
+          </a-tooltip>
+
+          <a-tooltip
+            :title="v$.localState[field.title]?.$error ? '' : 'Go to next'"
+            :mouse-enter-delay="0.25"
+            :mouse-leave-delay="0"
+          >
+            <button class="p-0.5 flex items-center group color-transition" @click="goNext">
+              <MdiChevronRight
+                :class="isLast || v$.localState[field.title]?.$error ? 'text-gray-300' : 'group-hover:text-accent'"
+                class="text-2xl md:text-md"
+              />
+            </button>
+          </a-tooltip>
+        </div>
+      </Transition>
+
+      <GeneralPoweredBy />
+    </div>
   </div>
 </template>
 

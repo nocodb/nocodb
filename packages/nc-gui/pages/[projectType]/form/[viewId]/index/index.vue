@@ -20,102 +20,106 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 </script>
 
 <template>
-  <div
-    class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl) mt-12"
-  >
-    <template v-if="sharedFormView">
-      <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
+  <div>
+    <div
+      class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl) mt-12"
+    >
+      <template v-if="sharedFormView">
+        <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
 
-      <h2 v-if="sharedFormView.subheading" class="prose-lg text-slate-500 dark:text-slate-300 self-center">
-        {{ sharedFormView.subheading }}
-      </h2>
+        <h2 v-if="sharedFormView.subheading" class="prose-lg text-slate-500 dark:text-slate-300 self-center mb-4 leading-6">
+          {{ sharedFormView.subheading }}
+        </h2>
 
-      <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
+        <a-alert v-if="notFound" type="warning" class="my-4 text-center" message="Not found" />
 
-      <template v-else-if="submitted">
-        <div class="flex justify-center">
-          <div v-if="sharedFormView" class="min-w-350px mt-3">
-            <a-alert
-              type="success"
-              class="my-4 text-center"
-              outlined
-              :message="sharedFormView.success_msg || 'Successfully submitted form data'"
-            />
+        <template v-else-if="submitted">
+          <div class="flex justify-center">
+            <div v-if="sharedFormView" class="min-w-350px mt-3">
+              <a-alert
+                type="success"
+                class="my-4 text-center"
+                outlined
+                :message="sharedFormView.success_msg || 'Successfully submitted form data'"
+              />
 
-            <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
-              New form will be loaded after {{ secondsRemain }} seconds
-            </p>
+              <p v-if="sharedFormView.show_blank_form" class="text-xs text-slate-500 dark:text-slate-300 text-center my-4">
+                New form will be loaded after {{ secondsRemain }} seconds
+              </p>
 
-            <div v-if="sharedFormView.submit_another_form" class="text-center">
-              <a-button type="primary" @click="submitted = false"> Submit Another Form</a-button>
+              <div v-if="sharedFormView.submit_another_form" class="text-center">
+                <a-button type="primary" @click="submitted = false"> Submit Another Form</a-button>
+              </div>
             </div>
           </div>
-        </div>
-      </template>
+        </template>
 
-      <template v-else>
-        <GeneralOverlay class="bg-gray-400/75" :model-value="isLoading" inline transition>
-          <div class="w-full h-full flex items-center justify-center">
-            <a-spin size="large" />
-          </div>
-        </GeneralOverlay>
+        <template v-else>
+          <GeneralOverlay class="bg-gray-400/75" :model-value="isLoading" inline transition>
+            <div class="w-full h-full flex items-center justify-center">
+              <a-spin size="large" />
+            </div>
+          </GeneralOverlay>
 
-        <div class="nc-form-wrapper">
-          <div class="nc-form h-full">
-            <div class="flex flex-col gap-6">
-              <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
-                <div class="flex nc-form-column-label">
-                  <LazySmartsheetHeaderVirtualCell
-                    v-if="isVirtualCol(field)"
-                    :column="{ ...field, title: field.label || field.title }"
-                    :required="isRequired(field, field.required)"
-                    :hide-menu="true"
-                  />
+          <div class="nc-form-wrapper">
+            <div class="nc-form h-full">
+              <div class="flex flex-col gap-6">
+                <div v-for="(field, index) in formColumns" :key="index" class="flex flex-col gap-2">
+                  <div class="flex nc-form-column-label">
+                    <LazySmartsheetHeaderVirtualCell
+                      v-if="isVirtualCol(field)"
+                      :column="{ ...field, title: field.label || field.title }"
+                      :required="isRequired(field, field.required)"
+                      :hide-menu="true"
+                    />
 
-                  <LazySmartsheetHeaderCell
-                    v-else
-                    :column="{ ...field, title: field.label || field.title }"
-                    :required="isRequired(field, field.required)"
-                    :hide-menu="true"
-                  />
-                </div>
+                    <LazySmartsheetHeaderCell
+                      v-else
+                      :column="{ ...field, title: field.label || field.title }"
+                      :required="isRequired(field, field.required)"
+                      :hide-menu="true"
+                    />
+                  </div>
 
-                <div>
-                  <LazySmartsheetVirtualCell
-                    v-if="isVirtualCol(field)"
-                    class="mt-0 nc-input"
-                    :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
-                    :column="field"
-                  />
+                  <div>
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(field)"
+                      class="mt-0 nc-input"
+                      :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+                      :column="field"
+                    />
 
-                  <LazySmartsheetCell
-                    v-else
-                    v-model="formState[field.title]"
-                    class="nc-input"
-                    :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
-                    :column="field"
-                    :edit-enabled="true"
-                  />
+                    <LazySmartsheetCell
+                      v-else
+                      v-model="formState[field.title]"
+                      class="nc-input"
+                      :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
+                      :column="field"
+                      :edit-enabled="true"
+                    />
 
-                  <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
-                    <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
-                      {{ error.$message }}
+                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-[0.75rem] my-2 px-1">
+                      <div v-for="error of v$.localState[field.title]?.$errors" :key="error" class="text-red-500">
+                        {{ error.$message }}
+                      </div>
+
+                      {{ field.description }}
                     </div>
-
-                    {{ field.description }}
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div class="text-center mt-4">
-              <button type="submit" class="uppercase scaling-btn prose-sm" @click="submitForm">
-                {{ $t('general.submit') }}
-              </button>
+              <div class="text-center mt-4">
+                <button type="submit" class="uppercase scaling-btn prose-sm" @click="submitForm">
+                  {{ $t('general.submit') }}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </template>
       </template>
-    </template>
+    </div>
+
+    <GeneralPoweredBy />
   </div>
 </template>

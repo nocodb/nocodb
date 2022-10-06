@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk'
+import { ColumnType, UITypes } from 'nocodb-sdk'
 import LinkVariant from '~icons/mdi/link-variant'
 import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
 import FormatColorText from '~icons/mdi/format-color-text'
@@ -167,8 +167,10 @@ const getUIDTIcon = (uidt: UITypes | string) => {
   ).icon
 }
 
-const isColumnRequiredAndNull = (col: any, row: Record<string, any>) => {
-  return col.rqd && (!col.cdf || !col.ai) && (row[col.title!] === undefined || row[col.title!] === null)
+const isColumnRequired = (col: ColumnType) => col.rqd && (col.cdf === null || col.cdf === undefined ) && !col.ai
+
+const isColumnRequiredAndNull = (col: ColumnType, row: Record<string, any>) => {
+  return isColumnRequired(col) && (row[col.title!] === undefined || row[col.title!] === null)
 }
 
 export { uiTypes, getUIDTIcon, isColumnRequiredAndNull }

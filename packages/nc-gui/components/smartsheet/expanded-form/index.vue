@@ -5,6 +5,7 @@ import type { Ref } from 'vue'
 import {
   FieldsInj,
   IsFormInj,
+  IsKanbanInj,
   MetaInj,
   ReloadRowDataHookInj,
   computedInject,
@@ -50,18 +51,20 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return _fields?.value ?? []
 })
 
+const isKanban = inject(IsKanbanInj, ref(false))
+
 provide(MetaInj, meta)
 
 const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
 
 if (props.loadRow) {
-  await loadRow()
+  loadRow()
 }
 
 if (props.rowId) {
   try {
-    await loadRow(props.rowId)
-  } catch (e) {
+    loadRow(props.rowId)
+  } catch (e: any) {
     if (e.response?.status === 404) {
       // todo: i18n
       message.error('Record not found')
@@ -108,10 +111,12 @@ reloadHook.on(() => {
 
 provide(ReloadRowDataHookInj, reloadHook)
 
-// adding column titles to changedColumns if they are preset (e.g. kanban)
-for (const [k, v] of Object.entries(row.value.row)) {
-  if (v) {
-    changedColumns.value.add(k)
+if (isKanban.value) {
+  // adding column titles to changedColumns if they are preset
+  for (const [k, v] of Object.entries(row.value.row)) {
+    if (v) {
+      changedColumns.value.add(k)
+    }
   }
 }
 </script>

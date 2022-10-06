@@ -18,6 +18,7 @@ import {
   createEventHook,
   extractPkFromRow,
   inject,
+  isColumnRequiredAndNull,
   message,
   onClickOutside,
   onMounted,
@@ -478,9 +479,10 @@ watch([() => selected.row, () => selected.col], ([row, col]) => {
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
-                      active:
+                      'active':
                         (isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex) ||
                         (isUIAllowed('xcDatatableEditable') && selectedRange(rowIndex, colIndex)),
+                      'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                     }"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
@@ -706,5 +708,9 @@ watch([() => selected.row, () => selected.col], ([row, col]) => {
 
 tbody tr:hover {
   @apply bg-gray-100 bg-opacity-50;
+}
+
+.nc-required-cell {
+  box-shadow: inset 0 0 2px #f00;
 }
 </style>

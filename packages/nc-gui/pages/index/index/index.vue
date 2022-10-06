@@ -237,6 +237,7 @@ onBeforeMount(loadProjects)
                       <template #expandIcon></template>
 
                       <LazyGeneralColorPicker
+                        :model-value="getProjectPrimary(record)"
                         :colors="projectThemeColors"
                         :row-size="9"
                         :advanced="false"

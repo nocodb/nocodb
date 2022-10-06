@@ -132,13 +132,13 @@ function resetError() {
 
             <a
               v-if="appInfo.googleAuthEnabled"
-              :href="`${api.instance.defaults.baseURL}/auth/google`"
+              :href="`${appInfo.ncSiteUrl}/auth/google`"
               class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
             >
               <span class="flex items-center gap-2">
                 <LogosGoogleGmail />
 
-                Sign up with Google
+                {{ $t('labels.signUpWithGoogle') }}
               </span>
             </a>
 

@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
+import tinycolor from 'tinycolor2'
 import {
   computed,
   extractSdkResponseErrorMsg,
   message,
+  projectThemeColors,
   ref,
   useCopy,
   useDashboard,
@@ -12,13 +14,10 @@ import {
   useNuxtApp,
   useProject,
   useSmartsheetStoreOrThrow,
-  useTheme,
   useUIPermission,
   watch,
 } from '#imports'
 import type { SharedView } from '~/lib'
-
-const { theme } = useTheme()
 
 const { t } = useI18n()
 
@@ -57,11 +56,11 @@ const surveyMode = computed({
 })
 
 const viewTheme = computed({
-  get: () => !!shared.value.meta.theme,
-  set: (hasTheme) => {
+  get: () => !!shared.value.meta.withTheme,
+  set: (withTheme) => {
     shared.value.meta = {
       ...shared.value.meta,
-      theme: hasTheme ? { ...theme.value } : undefined,
+      withTheme,
     }
     saveTheme()
   },
@@ -143,6 +142,20 @@ const saveShareLinkPassword = async () => {
   $e('a:view:share:enable-pwd')
 }
 
+function onChangeTheme(color: string) {
+  const tcolor = tinycolor(color)
+
+  if (tcolor.isValid()) {
+    const complement = tcolor.complement()
+    shared.value.meta.theme = {
+      primaryColor: color,
+      accentColor: complement.toHex8String(),
+    }
+
+    saveTheme()
+  }
+}
+
 const copyLink = async () => {
   if (sharedViewUrl.value) {
     await copy(sharedViewUrl.value)
@@ -210,6 +223,16 @@ watch(passwordProtected, (value) => {
           <div>
             <!-- todo: i18n -->
             <a-checkbox v-model:checked="viewTheme" class="!text-xs"> Use Theme </a-checkbox>
+
+            <div v-if="viewTheme" class="flex pl-2">
+              <LazyGeneralColorPicker
+                :model-value="shared.meta.theme?.primaryColor"
+                :colors="projectThemeColors"
+                :row-size="9"
+                :advanced="false"
+                @input="onChangeTheme"
+              />
+            </div>
           </div>
 
           <div>

@@ -12,9 +12,9 @@ const route = useRoute()
 const router = useRouter()
 
 watch(
-  () => sharedViewMeta.value.theme,
-  (nextTheme) => {
-    if (nextTheme) setTheme(nextTheme)
+  () => sharedViewMeta.value.withTheme,
+  (hasTheme) => {
+    if (hasTheme && sharedViewMeta.value.theme) setTheme(sharedViewMeta.value.theme)
   },
   { immediate: true },
 )

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { generateUniqueName, onKeyStroke, reactive, ref } from '#imports'
+import { generateUniqueName, onKeyStroke, onMounted, reactive, ref } from '#imports'
 
 const props = defineProps<{
   fileName: string
@@ -10,6 +10,8 @@ const emit = defineEmits<{
   (event: 'rename', value: string): void
   (event: 'cancel'): void
 }>()
+
+const inputEl = ref()
 
 const visible = ref(true)
 
@@ -48,6 +50,11 @@ function onCancel() {
 }
 
 onKeyStroke('Escape', onCancel)
+
+onMounted(() => {
+  inputEl.value.select()
+  inputEl.value.focus()
+})
 </script>
 
 <template>
@@ -66,7 +73,7 @@ onKeyStroke('Escape', onCancel)
     <div class="flex flex-col items-center justify-center h-full">
       <a-form class="w-full h-full" no-style :model="form" @finish="renameFile(`${form.name}.${fileEnding}`)">
         <a-form-item class="w-full" name="name" :rules="rules.name">
-          <a-input v-model:value="form.name" class="w-full" :placeholder="$t('msg.info.rename')" />
+          <a-input ref="inputEl" v-model:value="form.name" class="w-full" :placeholder="$t('msg.info.rename')" />
         </a-form-item>
 
         <div class="flex items-center justify-center gap-6 w-full mt-4">

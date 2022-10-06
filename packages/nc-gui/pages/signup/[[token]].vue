@@ -138,7 +138,7 @@ function resetError() {
               <span class="flex items-center gap-2">
                 <LogosGoogleGmail />
 
-                Sign up with Google
+                {{ $t('labels.signUpWithGoogle') }}
               </span>
             </a>
 

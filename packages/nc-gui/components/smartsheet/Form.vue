@@ -105,8 +105,8 @@ const updateView = useDebounceFn(
 
     updateFormView(formViewData.value)
   },
-  500,
-  { maxWait: 5000 },
+  300,
+  { maxWait: 2000 },
 )
 
 async function submitForm() {

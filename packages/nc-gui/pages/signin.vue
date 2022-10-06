@@ -63,7 +63,10 @@ function resetError() {
 
 <template>
   <NuxtLayout>
-    <div class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin">
+    <div
+      data-cy="nc-form-signin"
+      class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
+    >
       <div
         class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
@@ -82,12 +85,19 @@ function resetError() {
           </Transition>
 
           <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-            <a-input v-model:value="form.email" size="large" :placeholder="$t('msg.info.signUp.workEmail')" @focus="resetError" />
+            <a-input
+              v-model:value="form.email"
+              data-cy="nc-form-signin__email"
+              size="large"
+              :placeholder="$t('msg.info.signUp.workEmail')"
+              @focus="resetError"
+            />
           </a-form-item>
 
           <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
             <a-input-password
               v-model:value="form.password"
+              data-cy="nc-form-signin__password"
               size="large"
               class="password"
               :placeholder="$t('msg.info.signUp.enterPassword')"
@@ -102,7 +112,7 @@ function resetError() {
           </div>
 
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-            <button class="scaling-btn bg-opacity-100" type="submit">
+            <button data-cy="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
                 <MdiLogin />
                 {{ $t('general.signIn') }}

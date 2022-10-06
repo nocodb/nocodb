@@ -167,7 +167,11 @@ const getUIDTIcon = (uidt: UITypes | string) => {
   ).icon
 }
 
-export { uiTypes, getUIDTIcon }
+const isColumnRequiredAndNull = (col: any, row: Record<string, any>) => {
+  return col.rqd && (!col.cdf || !col.ai) && (row[col.title!] === undefined || row[col.title!] === null)
+}
+
+export { uiTypes, getUIDTIcon, isColumnRequiredAndNull }
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

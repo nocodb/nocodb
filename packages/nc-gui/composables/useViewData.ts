@@ -8,6 +8,7 @@ import {
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   getHTMLEncodedText,
+  isColumnRequiredAndNull,
   message,
   ref,
   useApi,
@@ -196,12 +197,21 @@ export function useViewData(
 
   async function insertRow(row: Record<string, any>, rowIndex = formattedData.value?.length) {
     try {
+      let allRequiredColumnsProvided = true
       const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
+        // check all the required columns are not null
+        if (isColumnRequiredAndNull(col, row)) {
+          allRequiredColumnsProvided = false
+        }
+
         if (!col.ai && row?.[col.title as string] !== null) {
           o[col.title as string] = row?.[col.title as string]
         }
+
         return o
       }, {})
+
+      if (!allRequiredColumnsProvided) return
 
       const insertedData = await $api.dbViewRow.create(
         NOCO,

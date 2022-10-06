@@ -101,45 +101,28 @@ let localDebug = false;
 export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
+  let clear;
+
   describe(`${apiType.toUpperCase()} api - Kanban`, () => {
     before(() => {
-      // if (localDebug) {
-      //   // for standalone tests
-      //   cy.restoreLocalStorage();
-      //   loginPage.loginAndOpenProject(apiType, dbType);
-      //
-      //   cy.openTableTab("Film", 25);
-      //   cy.openTableView("kanban", "Kanban-1");
-      //
-      //   cy.saveLocalStorageToFile("kanban");
-      // }
-      // cy.restoreLocalStorageFromFile("kanban");
-      // cy.wait(1000);
-      // cy.visit(
-      //   "http://localhost:3000/#/nc/p_42i93khqhge32z/table/Film/Kanban-1",
-      //   { baseUrl: null }
-      // );
-      // verifyKanbanStackCount(7);
-      // verifyKanbanStackOrder([
-      //   "uncategorized",
-      //   "G",
-      //   "PG",
-      //   "PG-13",
-      //   "R",
-      //   "NC-17",
-      //   "Test",
-      // ]);
-    });
-
-    beforeEach(() => {
       cy.restoreLocalStorage();
+
+      clear = Cypress.LocalStorage.clear;
+      Cypress.LocalStorage.clear = () => {};
     });
 
-    afterEach(() => {
+    // beforeEach(() => {
+    //   cy.restoreLocalStorage();
+    // });
+    //
+    // afterEach(() => {
+    //   cy.saveLocalStorage();
+    // });
+
+    after(() => {
+      Cypress.LocalStorage.clear = clear;
       cy.saveLocalStorage();
     });
-
-    after(() => {});
 
     /**
       class name specific to kanban view

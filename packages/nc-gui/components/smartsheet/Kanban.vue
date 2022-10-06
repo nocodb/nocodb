@@ -106,8 +106,6 @@ reloadViewMetaHook?.on(async () => {
 })
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
-  if (!hasEditPermission) return
-
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   if (rowId) {

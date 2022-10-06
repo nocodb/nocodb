@@ -374,6 +374,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
     args?: {
       condition?: { [p: string]: any };
       xcCondition?;
+      aggField?: string;
     }
   ): Promise<number> {
     const query = this.knexConnection(target);
@@ -393,7 +394,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
       (query as any).condition(args.xcCondition);
     }
 
-    query.count('id', { as: 'count' }).first();
+    query.count(args?.aggField || 'id', { as: 'count' }).first();
 
     return +(await query)?.['count'] || 0;
   }

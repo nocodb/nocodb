@@ -169,6 +169,7 @@ export default abstract class NcMetaIO {
     args?: {
       condition?: { [key: string]: any };
       xcCondition?: XcCondition;
+      aggField?: string;
     }
   ): Promise<number>;
 

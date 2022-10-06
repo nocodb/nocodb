@@ -64,7 +64,6 @@ const {
   groupingField,
   countByStack,
   deleteStack,
-  removeRowFromUncategorizedStack,
   shouldScrollToRight,
   deleteRow,
 } = useKanbanViewStoreOrThrow()
@@ -504,24 +503,29 @@ watch(view, async (nextView) => {
 
   <div class="flex-1" />
 
-  <LazySmartsheetExpandedForm
-    v-if="expandedFormRow && expandedFormDlg"
-    v-model="expandedFormDlg"
-    :row="expandedFormRow"
-    :state="expandedFormRowState"
-    :meta="meta"
-    @cancel="removeRowFromUncategorizedStack"
-  />
+  <Suspense>
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormRow && expandedFormDlg"
+      v-model="expandedFormDlg"
+      :row="expandedFormRow"
+      :state="expandedFormRowState"
+      :meta="meta"
+      :view="view"
+      @update:model-value="!skipRowRemovalOnCancel && removeRowIfNew(expandedFormRow)"
+    />
+  </Suspense>
 
-  <LazySmartsheetExpandedForm
-    v-if="expandedFormOnRowIdDlg"
-    :key="route.query.rowId"
-    v-model="expandedFormOnRowIdDlg"
-    :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-    :meta="meta"
-    :row-id="route.query.rowId"
-    :view="view"
-  />
+  <Suspense>
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg"
+      :key="route.query.rowId"
+      v-model="expandedFormOnRowIdDlg"
+      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :meta="meta"
+      :row-id="route.query.rowId"
+      :view="view"
+    />
+  </Suspense>
 
   <a-modal v-model:visible="deleteStackVModel" class="!top-[35%]" wrap-class-name="nc-modal-kanban-delete-stack">
     <template #title>

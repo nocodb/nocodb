@@ -33,7 +33,7 @@ const filterQuery = ref('')
 
 const projects = ref<ProjectType[]>()
 
-const { appInfo } = $(useGlobal())
+const { appInfo } = useGlobal()
 
 const loadProjects = async () => {
   const response = await api.project.list({})

@@ -60,7 +60,6 @@ const {
 watch(
   [() => rowIndex, isForm, attachmentCellRef],
   () => {
-    console.log(dropZoneInjection.value, currentCellRef.value)
     if (dropZoneInjection?.value) return
 
     if (!rowIndex && (isForm.value || isGallery.value)) {

@@ -4,8 +4,10 @@ import {
   IsPublicInj,
   MetaInj,
   ReloadViewDataHookInj,
+  createError,
   createEventHook,
   definePageMeta,
+  navigateTo,
   provide,
   reactive,
   ref,
@@ -37,6 +39,9 @@ if (!notFound.value) {
   provide(IsFormInj, ref(true))
 
   useProvideSmartsheetStore(sharedView, meta, true)
+} else {
+  navigateTo('/error/404')
+  throw createError({ statusCode: 404, statusMessage: 'Page Not Found' })
 }
 
 const form = reactive({

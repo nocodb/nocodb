@@ -55,7 +55,7 @@ if (!notFound.value) {
       <div class="w-full flex flex-col">
         <a-typography-title :level="4">This shared view is protected</a-typography-title>
 
-        <a-form ref="formRef" :model="{ password }" class="mt-2" @finish="passwordDlg = false">
+        <a-form ref="formRef" :model="{ password }" class="mt-2" @finish="loadSharedView">
           <a-form-item name="password" :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]">
             <a-input-password v-model:value="password" :placeholder="$t('msg.info.signUp.enterPassword')" />
           </a-form-item>

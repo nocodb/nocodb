@@ -299,14 +299,14 @@ onMounted(() => {
         v-if="!submitted"
         class="color-transition shadow-sm absolute bottom-18 right-1/2 transform translate-x-[50%] md:bottom-4 md:(right-12 transform-none) flex items-center bg-white border dark:bg-slate-500 rounded divide-x-1"
       >
-        <a-tooltip title="Go to previous" :mouse-enter-delay="0.25" :mouse-leave-delay="0">
+        <a-tooltip :title="isFirst ? '' : 'Go to previous'" :mouse-enter-delay="0.25" :mouse-leave-delay="0">
           <button class="p-0.5 flex items-center group color-transition" @click="goPrevious">
             <MdiChevronLeft :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'" class="text-2xl md:text-md" />
           </button>
         </a-tooltip>
 
         <a-tooltip
-          :title="v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : 'Go to next'"
+          :title="v$.localState[field.title]?.$error ? '' : 'Go to next'"
           :mouse-enter-delay="0.25"
           :mouse-leave-delay="0"
         >

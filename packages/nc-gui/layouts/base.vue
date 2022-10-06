@@ -44,6 +44,7 @@ hooks.hook('page:finish', () => {
         <div
           v-if="!route.params.projectType"
           v-e="['c:navbar:home']"
+          data-cy="nc-noco-brand-icon"
           class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
           @click="navigateTo('/')"
         >
@@ -77,11 +78,15 @@ hooks.hook('page:finish', () => {
 
         <template v-if="signedIn">
           <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
-            <MdiDotsVertical class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white" @click.prevent />
+            <MdiDotsVertical
+              data-cy="nc-menu-accounts"
+              class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white"
+              @click.prevent
+            />
 
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded">
-                <a-menu-item key="0" class="!rounded-t">
+                <a-menu-item key="0" data-cy="nc-menu-accounts__user-settings" class="!rounded-t">
                   <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
                     <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 

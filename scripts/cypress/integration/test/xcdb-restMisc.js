@@ -6,6 +6,7 @@ let t6d = require("../common/6d_language_validation");
 let t6e = require("../common/6e_project_operations");
 let t6f = require("../common/6f_attachments");
 let t6g = require("../common/6g_base_share");
+let t6h = require("../common/6h_change_password");
 let t7a = require("../common/7a_create_project_from_excel");
 let t8a = require("../common/8a_webhook");
 const t9b = require("../common/9b_ERD");
@@ -46,6 +47,9 @@ const nocoTestSuite = (apiType, dbType) => {
 
   // Create project from Excel
   t7a.genTest(apiType, dbType);
+
+  // Change password
+  t6h.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "xcdb");

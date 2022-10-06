@@ -16,21 +16,7 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
-import type { ThemeConfig } from '~/lib'
-
-interface SharedViewMeta extends Record<string, any> {
-  surveyMode?: boolean
-  theme?: Partial<ThemeConfig>
-  allowCSVDownload?: boolean
-}
-
-interface SharedView {
-  uuid?: string
-  id: string
-  password?: string
-  type?: ViewTypes
-  meta: SharedViewMeta
-}
+import type { SharedView } from '~/lib'
 
 const { theme } = useTheme()
 
@@ -73,7 +59,10 @@ const surveyMode = computed({
 const viewTheme = computed({
   get: () => !!shared.value.meta.theme,
   set: (hasTheme) => {
-    shared.value.meta = { ...shared.value.meta, theme: hasTheme ? { ...theme.value } : undefined }
+    shared.value.meta = {
+      ...shared.value.meta,
+      theme: hasTheme ? { ...theme.value } : undefined,
+    }
     saveTheme()
   },
 })

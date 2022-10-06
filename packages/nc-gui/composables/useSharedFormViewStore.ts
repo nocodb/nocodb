@@ -18,6 +18,7 @@ import {
   useProvideSmartsheetRowStore,
   watch,
 } from '#imports'
+import type { SharedViewMeta } from '~/lib'
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)
@@ -34,7 +35,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
   const columns = ref<(ColumnType & { required?: boolean; show?: boolean; label?: string })[]>()
-  const sharedViewMeta = ref<any>({})
+  const sharedViewMeta = ref<SharedViewMeta>({})
   const formResetHook = createEventHook<void>()
 
   const { api, isLoading } = useApi()

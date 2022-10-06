@@ -84,6 +84,9 @@ export const genTest = (apiType, dbType) => {
       // 2. Table tab name has changed
       cy.get(`.ant-tabs-tab:contains('CityX'):visible`).should("exist");
 
+      // Wait for Grid to render
+      cy.gridWait(25);
+
       // 3. contents of the table are valid
       mainPage
         .getCell(`City`, 1)

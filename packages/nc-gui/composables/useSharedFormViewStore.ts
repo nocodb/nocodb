@@ -87,7 +87,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       } else if ((await extractSdkResponseErrorMsg(e)) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
         passwordDlg.value = true
 
-        if (password.value) passwordError.value = 'Something went wrong. Please check your credentials.'
+        if (password.value && password.value !== '') passwordError.value = 'Something went wrong. Please check your credentials.'
       }
     }
   }

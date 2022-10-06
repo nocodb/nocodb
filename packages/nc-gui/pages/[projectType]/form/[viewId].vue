@@ -7,11 +7,13 @@ import {
   createEventHook,
   definePageMeta,
   provide,
+  reactive,
   ref,
   useProvideSharedFormStore,
   useProvideSmartsheetStore,
   useRoute,
   useSidebar,
+  watch,
 } from '#imports'
 
 definePageMeta({
@@ -36,6 +38,17 @@ if (!notFound.value) {
 
   useProvideSmartsheetStore(sharedView, meta, true)
 }
+
+const form = reactive({
+  password: '',
+})
+
+watch(
+  () => form.password,
+  () => {
+    password.value = form.password
+  },
+)
 </script>
 
 <template>
@@ -56,9 +69,9 @@ if (!notFound.value) {
         <!-- todo: i18n -->
         <h2 class="text-xl font-semibold">This shared view is protected</h2>
 
-        <a-form ref="formRef" :model="{ password }" @finish="loadSharedView">
+        <a-form layout="vertical" no-style :model="form" @finish="loadSharedView">
           <a-form-item name="password" :rules="[{ required: true, message: $t('msg.error.signUpRules.passwdRequired') }]">
-            <a-input-password v-model:value="password" :placeholder="$t('msg.info.signUp.enterPassword')" />
+            <a-input-password v-model:value="form.password" size="large" :placeholder="$t('msg.info.signUp.enterPassword')" />
           </a-form-item>
 
           <Transition name="layout">

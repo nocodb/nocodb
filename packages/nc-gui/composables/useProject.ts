@@ -98,7 +98,9 @@ const [setup, use] = useInjectionState(() => {
         includeM2M: includeM2M.value,
       })
 
-      if (tablesResponse.list) tables.value = tablesResponse.list
+      if (tablesResponse.list) {
+        tables.value = tablesResponse.list.filter((table) => bases.value.find((base) => base.id === table.base_id)?.enabled)
+      }
     }
   }
 

@@ -84,6 +84,8 @@ export interface BaseType {
   updated_at?: any;
   inflection_column?: string;
   inflection_table?: string;
+  order?: number;
+  enabled?: boolean;
 }
 
 export interface BaseReqType {

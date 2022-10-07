@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Empty } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
+import type { CheckboxChangeEvent } from 'ant-design-vue/lib/checkbox/interface'
 import CreateBase from './data-sources/CreateBase.vue'
 import EditBase from './data-sources/EditBase.vue'
 import Metadata from './Metadata.vue'
@@ -92,6 +93,44 @@ const deleteBase = (base: BaseType) => {
   })
 }
 
+const toggleBase = async (base: BaseType, e: CheckboxChangeEvent) => {
+  try {
+    base.enabled = e.target.checked
+    await $api.base.update(base.project_id as string, base.id as string, {
+      id: base.id,
+      project_id: base.project_id,
+      enabled: base.enabled,
+    })
+    await loadProject()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const moveBase = async (base: BaseType, direction: 'up' | 'down') => {
+  try {
+    if (!base.order) {
+      // empty update call to reorder bases (migration)
+      await $api.base.update(base.project_id as string, base.id as string, {
+        id: base.id,
+        project_id: base.project_id,
+      })
+      message.info('Bases are migrated. Please try again.')
+    } else {
+      direction === 'up' ? base.order-- : base.order++
+      await $api.base.update(base.project_id as string, base.id as string, {
+        id: base.id,
+        project_id: base.project_id,
+        order: base.order,
+      })
+    }
+    await loadProject()
+    await loadBases()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 onMounted(async () => {
   if (sources.length === 0) {
     await loadBases()
@@ -151,6 +190,32 @@ watch(
           bordered
         >
           <template #emptyText> <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" /> </template>
+          <a-table-column key="enabled" data-index="enabled" :width="30">
+            <template #default="{ record }">
+              <div v-if="!record.is_meta" class="flex items-center gap-1">
+                <a-tooltip>
+                  <template #title>Show in UI</template>
+                  <a-checkbox :checked="record.enabled ? true : false" @change="toggleBase(record, $event)"></a-checkbox>
+                </a-tooltip>
+              </div>
+            </template>
+          </a-table-column>
+          <a-table-column key="order" width="60px">
+            <template #default="{ record, index }">
+              <div class="flex items-center gap-1 text-gray-600 font-light">
+                <MdiArrowUpBox
+                  v-if="!record.is_meta && index !== 1"
+                  class="text-lg group-hover:text-accent"
+                  @click="moveBase(record, 'up')"
+                />
+                <MdiArrowDownBox
+                  v-if="!record.is_meta && index !== sources.length - 1"
+                  class="text-lg group-hover:text-accent"
+                  @click="moveBase(record, 'down')"
+                />
+              </div>
+            </template>
+          </a-table-column>
           <a-table-column key="alias" title="Name" data-index="alias">
             <template #default="{ text, record }">
               <div class="flex items-center gap-1">

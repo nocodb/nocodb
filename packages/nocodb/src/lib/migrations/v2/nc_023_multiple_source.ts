@@ -6,11 +6,21 @@ const up = async (knex: Knex) => {
     table.string('base_id', 20);
     table.foreign('base_id').references(`${MetaTable.BASES}.id`);
   });
+
+  await knex.schema.alterTable(MetaTable.BASES, (table) => {
+    table.boolean('enabled').defaultTo(true);
+    table.float('order');
+  });
 };
 
 const down = async (knex) => {
   await knex.schema.alterTable(MetaTable.SYNC_SOURCE, (table) => {
     table.dropColumn('base_id');
+  });
+  
+  await knex.schema.alterTable(MetaTable.BASES, (table) => {
+    table.dropColumn('enabled');
+    table.dropColumn('order');
   });
 };
 

@@ -7262,6 +7262,12 @@
           },
           "inflection_table": {
             "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "enabled": {
+            "type": "boolean"
           }
         }
       },

@@ -25,6 +25,8 @@ export default class Base implements BaseType {
   updated_at?: any;
   inflection_column?: string;
   inflection_table?: string;
+  order?: number;
+  enabled?: boolean;
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
@@ -44,6 +46,8 @@ export default class Base implements BaseType {
       'updated_at',
       'inflection_column',
       'inflection_table',
+      'order',
+      'enabled',
     ]);
     insertObj.config = CryptoJS.AES.encrypt(
       JSON.stringify(base.config),
@@ -56,13 +60,19 @@ export default class Base implements BaseType {
       MetaTable.BASES,
       insertObj
     );
+
     await NocoCache.appendToList(
       CacheScope.BASE,
       [base.projectId],
       `${CacheScope.BASE}:${id}`
     );
+    
+    // call before reorder to update cache
+    const returnBase = await this.get(id, ncMeta);
 
-    return this.get(id, ncMeta);
+    await this.reorderBases(base.projectId);
+
+    return returnBase;
   }
 
   public static async updateBase(
@@ -81,7 +91,7 @@ export default class Base implements BaseType {
     await NocoCache.deepDel(
       CacheScope.BASE,
       `${CacheScope.BASE}:${baseId}`,
-      CacheDelDirection.PARENT_TO_CHILD
+      CacheDelDirection.CHILD_TO_PARENT
     );
 
     const insertObj = extractProps(base, [
@@ -94,37 +104,48 @@ export default class Base implements BaseType {
       'updated_at',
       'inflection_column',
       'inflection_table',
+      'order',
+      'enabled',
     ]);
-    insertObj.config = CryptoJS.AES.encrypt(
-      JSON.stringify(base.config),
-      Noco.getConfig()?.auth?.jwt?.secret
-    ).toString();
+    
+    if (insertObj.config) {
+      insertObj.config = CryptoJS.AES.encrypt(
+        JSON.stringify(base.config),
+        Noco.getConfig()?.auth?.jwt?.secret
+      ).toString();
+    }
+
+    // type property is undefined even if not provided
+    if (!insertObj.type) {
+      insertObj.type = oldBase.type;
+    }
+
+    // add missing (not updated) fields
+    const finalInsertObj = {
+      ...oldBase,
+      ...insertObj,
+    };
 
     const { id } = await ncMeta.metaInsert2(
       base.projectId,
       null,
       MetaTable.BASES,
-      insertObj
+      finalInsertObj
     );
+
     await NocoCache.appendToList(
       CacheScope.BASE,
       [base.projectId],
       `${CacheScope.BASE}:${id}`
     );
 
-    return this.get(id, ncMeta);
-  }
+    // call before reorder to update cache
+    const returnBase = await this.get(id, ncMeta);
 
-  /*
-  await ncMeta.metaDelete(null, null, MetaTable.COL_LOOKUP, {
-          fk_column_id: colId,
-        });
-        await NocoCache.deepDel(
-          CacheScope.COL_LOOKUP,
-          `${CacheScope.COL_LOOKUP}:${colId}`,
-          CacheDelDirection.CHILD_TO_PARENT
-        );
-  */
+    await this.reorderBases(base.projectId, id, ncMeta);
+
+    return returnBase;
+  }
 
   static async list(
     args: { projectId: string },
@@ -137,10 +158,22 @@ export default class Base implements BaseType {
       baseDataList = await ncMeta.metaList2(
         args.projectId,
         null,
-        MetaTable.BASES
+        MetaTable.BASES,
+        {
+          orderBy: {
+            order: 'asc',
+          },
+        }
       );
       await NocoCache.setList(CacheScope.BASE, [args.projectId], baseDataList);
     }
+
+    baseDataList.sort(
+      (a, b) =>
+        (a.order != null ? a.order : Infinity) -
+        (b.order != null ? b.order : Infinity)
+    );
+
     return baseDataList?.map((baseData) => {
       return new Base(baseData);
     });
@@ -158,6 +191,70 @@ export default class Base implements BaseType {
       await NocoCache.set(`${CacheScope.BASE}:${id}`, baseData);
     }
     return baseData && new Base(baseData);
+  }
+
+  static async reorderBases(projectId: string, keepBase?: string, ncMeta = Noco.ncMeta) {
+    const bases = await this.list({ projectId: projectId }, ncMeta);
+
+    // order list for bases
+    const orders = [];
+    const takenOrders = bases.map((base) => base.order);
+    
+    if (keepBase) {
+      bases.find((base) => {
+        if (base.id === keepBase) {
+          orders.push({ id: base.id, order: base.order });
+        }
+      });
+    }
+
+    for (const b of bases) {
+      if (b.id === keepBase) continue;
+      let tempIndex = b.order;
+      if (!b.order || orders.find((o) => o.order === tempIndex)) {
+        tempIndex = 1;
+        while (takenOrders.includes(tempIndex)) {
+          tempIndex++;
+        }
+      }
+      // use index as order if order is not set
+      orders.push({ id: b.id, order: tempIndex });
+    }
+
+    orders.sort((a, b) => a.order - b.order);
+    
+    // update order for bases
+    for (const [i, o] of Object.entries(orders)) {
+      const fnd = bases.find((b) => b.id === o.id);
+      if (fnd && (!fnd.order || fnd.order != parseInt(i) + 1)) {
+        await ncMeta.metaDelete(null, null, MetaTable.BASES, {
+          id: fnd.id,
+        });
+    
+        await NocoCache.deepDel(
+          CacheScope.BASE,
+          `${CacheScope.BASE}:${fnd.id}`,
+          CacheDelDirection.CHILD_TO_PARENT
+        );
+          
+        fnd.order = parseInt(i) + 1;
+    
+        const { id } = await ncMeta.metaInsert2(
+          fnd.project_id,
+          null,
+          MetaTable.BASES,
+          fnd
+        );
+
+        await NocoCache.appendToList(
+          CacheScope.BASE,
+          [fnd.project_id],
+          `${CacheScope.BASE}:${id}`
+        );
+
+        await NocoCache.set(`${CacheScope.BASE}:${id}`, fnd);
+      }
+    }
   }
 
   public getConnectionConfig(): any {

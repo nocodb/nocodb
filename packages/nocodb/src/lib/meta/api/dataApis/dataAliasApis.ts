@@ -279,6 +279,7 @@ async function getGroupedDataList(model, view: View, req) {
       return item;
     });
   } catch (e) {
+    console.log(e);
     // show empty result instead of throwing error here
     // e.g. search some text in a numeric field
   }

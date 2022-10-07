@@ -3302,6 +3302,22 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Utils
+     * @name AggregatedMetaInfo
+     * @request GET:/api/v1/aggregated-meta-info
+     * @response `200` `any` OK
+     */
+    aggregatedMetaInfo: (params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/aggregated-meta-info`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Get All K/V pairs in NocoCache
      *
      * @tags Utils

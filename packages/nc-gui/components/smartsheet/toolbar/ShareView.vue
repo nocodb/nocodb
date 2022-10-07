@@ -198,7 +198,10 @@ watch(passwordProtected, (value) => {
       width="min(100vw,720px)"
       wrap-class-name="nc-modal-share-view"
     >
-      <div class="share-link-box nc-share-link-box !bg-primary !bg-opacity-5 ring-1 ring-accent ring-opacity-100">
+      <div
+        data-cy="nc-modal-share-view__link"
+        class="share-link-box !bg-primary !bg-opacity-5 ring-1 ring-accent ring-opacity-100"
+      >
         <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
 
         <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
@@ -218,8 +221,8 @@ watch(passwordProtected, (value) => {
             <a-checkbox
               v-if="shared.type === ViewTypes.FORM"
               v-model:checked="surveyMode"
+              data-cy="nc-modal-share-view__survey-mode"
               class="!text-xs"
-              data-cy="nc-share-view-checkbox-survey"
             >
               Use Survey Mode
             </a-checkbox>
@@ -227,12 +230,13 @@ watch(passwordProtected, (value) => {
 
           <div>
             <!-- todo: i18n -->
-            <a-checkbox v-model:checked="viewTheme" class="!text-xs" data-cy="nc-share-view-checkbox-theme">
+            <a-checkbox v-model:checked="viewTheme" data-cy="nc-modal-share-view__with-theme" class="!text-xs">
               Use Theme
             </a-checkbox>
 
             <div v-if="viewTheme" class="flex pl-2">
               <LazyGeneralColorPicker
+                data-cy="nc-modal-share-view__theme-picker"
                 :model-value="shared.meta.theme?.primaryColor"
                 :colors="projectThemeColors"
                 :row-size="9"
@@ -244,20 +248,21 @@ watch(passwordProtected, (value) => {
 
           <div>
             <!-- Password Protection -->
-            <a-checkbox v-model:checked="passwordProtected" class="!text-xs" data-cy="nc-share-view-checkbox-password"
-              >{{ $t('msg.info.beforeEnablePwd') }}
+            <a-checkbox v-model:checked="passwordProtected" data-cy="nc-modal-share-view__with-password" class="!text-xs">
+              {{ $t('msg.info.beforeEnablePwd') }}
             </a-checkbox>
 
             <div v-if="passwordProtected" class="ml-6 flex gap-2 mt-2 mb-4">
               <a-input
                 v-model:value="shared.password"
+                data-cy="nc-modal-share-view__password"
                 size="small"
                 class="!text-xs max-w-[250px]"
                 type="password"
                 :placeholder="$t('placeholder.password.enter')"
               />
 
-              <a-button size="small" class="!text-xs" @click="saveShareLinkPassword">
+              <a-button data-cy="nc-modal-share-view__save-password" size="small" class="!text-xs" @click="saveShareLinkPassword">
                 {{ $t('placeholder.password.save') }}
               </a-button>
             </div>
@@ -268,8 +273,8 @@ watch(passwordProtected, (value) => {
             <a-checkbox
               v-if="shared && shared.type === ViewTypes.GRID"
               v-model:checked="allowCSVDownload"
+              data-cy="nc-modal-share-view__with-csv-download"
               class="!text-xs"
-              data-cy="nc-share-view-checkbox-download"
             >
               {{ $t('labels.downloadAllowed') }}
             </a-checkbox>

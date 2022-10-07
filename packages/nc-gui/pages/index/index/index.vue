@@ -16,6 +16,7 @@ import {
   themeV2Colors,
   useApi,
   useBreakpoints,
+  useCopy,
   useGlobal,
   useNuxtApp,
   useUIPermission,
@@ -130,12 +131,20 @@ const customRow = (record: ProjectType) => ({
 })
 
 onBeforeMount(loadProjects)
+
+const { copy } = useCopy()
+
+const copyProjectMeta = async () => {
+  const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
+  copy(JSON.stringify(aggregatedMetaInfo))
+  message.info('Copied aggregated project meta to clipboard')
+}
 </script>
 
 <template>
   <div class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)">
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
-      <span class="text-4xl nc-project-page-title">{{ $t('title.myProject') }}</span>
+      <span class="text-4xl nc-project-page-title" @dblclick="copyProjectMeta">{{ $t('title.myProject') }}</span>
     </h1>
 
     <div class="flex flex-wrap gap-2 mb-6">

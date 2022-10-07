@@ -15,6 +15,7 @@ import {
   ReadonlyInj,
   inject,
   onBeforeMount,
+  onBeforeUnmount,
   provide,
   useKanbanViewStoreOrThrow,
 } from '#imports'
@@ -88,6 +89,8 @@ const fields = inject(FieldsInj, ref([]))
 
 const kanbanContainerRef = ref()
 
+const selectedStackTitle = ref('')
+
 const isRowEmpty = (record: any, col: any) => {
   const val = record.row[col.title]
   if (!val) return true
@@ -122,6 +125,7 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
 }
 
 const _contextMenu = ref(false)
+
 const contextMenu = computed({
   get: () => _contextMenu.value,
   set: (val) => {
@@ -227,22 +231,28 @@ const handleCollapseStack = async (stackIdx: number) => {
   }
 }
 
-openNewRecordFormHook?.on(async (stackTitle) => {
+const openNewRecordFormHookHandler = async () => {
   const newRow = await addEmptyRow()
   // preset the grouping field value
   newRow.row = {
-    [groupingField.value]: stackTitle,
+    [groupingField.value]: selectedStackTitle.value,
   }
   // increase total count by 1
   countByStack.value.set(null, countByStack.value.get(null)! + 1)
   // open the expanded form
   expandForm(newRow)
-})
+}
+
+openNewRecordFormHook?.on(openNewRecordFormHookHandler)
 
 onBeforeMount(async () => {
   await loadKanbanMeta()
   await loadKanbanData()
 })
+
+// remove openNewRecordFormHookHandler before unmounting
+// so that it won't be triggered multiple times
+onBeforeUnmount(() => openNewRecordFormHook.off(openNewRecordFormHookHandler))
 
 // reset context menu target on hide
 watch(contextMenu, () => {
@@ -325,9 +335,14 @@ watch(view, async (nextView) => {
                         <template v-if="!isLocked" #overlay>
                           <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
                             <a-menu-item
-                              v-if="hasEditPermission && !isPublic"
+                              v-if="hasEditPermission && !isPublic && !isLocked"
                               v-e="['c:kanban:add-new-record']"
-                              @click="openNewRecordFormHook.trigger(stack.title === null ? null : stack.title)"
+                              @click="
+                                () => {
+                                  selectedStackTitle = stack.title
+                                  openNewRecordFormHook.trigger(stack.title)
+                                }
+                              "
                             >
                               <div class="py-2 flex gap-2 items-center">
                                 <mdi-plus class="text-gray-500" />
@@ -433,9 +448,14 @@ watch(view, async (nextView) => {
                     <div v-if="formattedData.get(stack.title) && countByStack.get(stack.title) >= 0" class="mt-5 text-center">
                       <!-- Stack Title -->
                       <mdi-plus
-                        v-if="!isPublic"
+                        v-if="!isPublic && !isLocked"
                         class="text-pint-500 text-lg text-primary cursor-pointer"
-                        @click="openNewRecordFormHook.trigger(stack.title === 'uncategorized' ? null : stack.title)"
+                        @click="
+                          () => {
+                            selectedStackTitle = stack.title
+                            openNewRecordFormHook.trigger(stack.title)
+                          }
+                        "
                       />
                       <!-- Record Count -->
                       <div class="nc-kanban-data-count">

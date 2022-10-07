@@ -5,7 +5,10 @@ import { XKnex } from '../../db/sql-data-mapper';
 // import Knex from 'knex';
 
 // import NcMetaIO from '../meta/NcMetaIO';
-import { defaultConnectionConfig } from '../NcConfigFactory';
+import {
+  defaultConnectionConfig,
+  defaultConnectionOptions
+} from '../NcConfigFactory';
 import Base from '../../models/Base';
 import Noco from '../../Noco';
 
@@ -99,6 +102,7 @@ export default class NcConnectionMgrv2 {
       //   ? (connectionConfig.connection as Knex.Config)
       //   :
       {
+        ...defaultConnectionOptions,
         ...connectionConfig,
         connection: {
           ...defaultConnectionConfig,

@@ -4,6 +4,10 @@ import { DashboardPage } from '../pages/Dashboard';
 
 const setup = async ({page}: {page: Page}) => {
   const response =  await axios.get('http://localhost:8080/api/v1/meta/test/reset');
+  if(response.status !== 200) {
+    console.error('Failed to reset test data', response);
+    throw new Error('Failed to reset test data');
+  }
   const token = response.data.token;
 
   await page.addInitScript(async ({token}) => {

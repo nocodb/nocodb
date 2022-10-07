@@ -220,7 +220,7 @@ interface AllMeta {
   sharedBaseCount: number;
 }
 
-export async function getAggregatedMetaInfo(_req: Request, res: Response) {
+export async function aggregatedMetaInfo(_req: Request, res: Response) {
   const [projects, userCount] = await Promise.all([
     Project.list({}),
     Noco.ncMeta.metaCount(null, null, MetaTable.USERS),
@@ -382,6 +382,6 @@ export default (router) => {
   router.post('/api/v1/url_to_config', catchError(urlToDbConfig));
   router.get(
     '/api/v1/aggregated-meta-info',
-    ncMetaAclMw(getAggregatedMetaInfo, 'getAggregatedMetaInfo')
+    ncMetaAclMw(aggregatedMetaInfo, 'aggregatedMetaInfo')
   );
 };

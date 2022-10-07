@@ -65,3 +65,9 @@ const filterOption = (input: string, option: any) => option.label.toLowerCase()?
     </a-select-option>
   </a-select>
 </template>
+
+<style lang="scss">
+.ant-select-selection-search-input {
+  box-shadow: none !important;
+}
+</style>

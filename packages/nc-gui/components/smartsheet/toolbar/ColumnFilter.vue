@@ -262,10 +262,8 @@ defineExpose({
 
 <style scoped>
 .nc-filter-grid {
-  display: grid;
-  grid-template-columns: 18px 75px auto auto auto;
-  @apply gap-[12px]
-  align-items: center;
+  grid-template-columns: 18px 83px 160px auto auto;
+  @apply grid gap-[12px] items-center;
 }
 
 :deep(.ant-select-item-option) {

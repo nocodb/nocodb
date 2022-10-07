@@ -159,7 +159,7 @@ export const genTest = (apiType, dbType) => {
         "R",
         "NC-17",
       ]);
-      verifyKanbanStackFooterCount(["0", "178", "194", "223", "195", "210"]);
+      verifyKanbanStackFooterCount([0, 178, 194, 223, 195, 210]);
       verifyKanbanStackCardCount([0, 25, 25, 25, 25, 25]);
     });
 
@@ -305,7 +305,7 @@ export const genTest = (apiType, dbType) => {
         "R",
         "NC-17",
       ]);
-      verifyKanbanStackFooterCount(["0", "4", "5", "8", "6", "6"]);
+      verifyKanbanStackFooterCount([0, 4, 5, 8, 6, 6]);
       verifyKanbanStackCardOrder("BAREFOOT MANCHURIAN", 1, 0);
       verifyKanbanStackCardOrder("WORST BANGER", 2, 0);
 
@@ -409,7 +409,7 @@ export const genTest = (apiType, dbType) => {
         "NC-17",
         "Test",
       ]);
-      verifyKanbanStackFooterCount(["0", "4", "5", "8", "6", "6", "1"]);
+      verifyKanbanStackFooterCount([0, 4, 5, 8, 6, 6, 1]);
 
       mainPage.toggleShowSystemFields();
     });
@@ -450,7 +450,7 @@ export const genTest = (apiType, dbType) => {
         "R",
         "NC-17",
       ]);
-      verifyKanbanStackFooterCount(["1", "4", "5", "8", "6", "6"]);
+      verifyKanbanStackFooterCount([1, 4, 5, 8, 6, 6]);
     });
 
     it("Delete Kanban view", () => {

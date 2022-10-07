@@ -165,8 +165,8 @@ export const genTest = (apiType, dbType) => {
       if (dbType === "postgres") {
         cy.openTableTab("Film", 25);
         // delete SQL views
-        // cy.deleteTable("NicerButSlowerFilmList");
-        // cy.deleteTable("FilmList");
+        cy.deleteTable("NicerButSlowerFilmList");
+        cy.deleteTable("FilmList");
 
         // edit `rating` column: from custom DB type to single select
         editColumn();

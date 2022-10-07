@@ -35,11 +35,10 @@ Grid View, as a default type of view, allows you to display your data in a sprea
 
 Form View allows you to arrange fields in a form to input data.
   
-https://user-images.githubusercontent.com/35857179/188585121-94d0260d-6dbd-4e34-9758-a1a3709fc416.png
+![image](https://user-images.githubusercontent.com/35857179/188585121-94d0260d-6dbd-4e34-9758-a1a3709fc416.png)
 <!-- ![image](https://user-images.githubusercontent.com/35857179/163355269-73d2a9d4-bafb-47c0-8c0d-d0e66503b47a.png) -->
 
 You can drag-drop columns from the form to form-field-menu-bar as requried.
-
 
 ### Gallery View
 
@@ -47,6 +46,11 @@ Gallery View allows you to display images as thumbnails with other fields just l
   
 ![image](https://user-images.githubusercontent.com/86527202/189322216-f8df0b69-5177-4ebc-be28-c11e3efb41a4.png)
   
+### Kanban View
+
+Kanban View allows you to visualise your data using cards at various stacks.
+
+![image](https://user-images.githubusercontent.com/35857179/192695066-2927ac83-ea08-43af-9178-776df018f465.png)
   
 ## View Permission Types
 

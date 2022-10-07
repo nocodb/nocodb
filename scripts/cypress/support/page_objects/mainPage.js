@@ -389,24 +389,63 @@ export class _mainPage {
       .contains("Webhooks");
   };
 
+  hideAllColumns = () => {
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+    cy.getActiveMenu(".nc-dropdown-fields-menu")
+      .find(".ant-btn")
+      .contains("Hide all")
+      .click();
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+  };
+
+  showAllColumns = () => {
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+    cy.getActiveMenu(".nc-dropdown-fields-menu")
+      .find(".ant-btn")
+      .contains("Show all")
+      .click();
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+  };
+
+  toggleShowSystemFields = () => {
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+    cy.getActiveMenu(".nc-dropdown-fields-menu")
+      .find(".nc-fields-show-system-fields")
+      .click();
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+  };
+
   hideField = (field) => {
     cy.get(`th[data-title="${field}"]`).should("be.visible");
     cy.get(".nc-fields-menu-btn").click();
+    // cy.getActiveMenu(".nc-dropdown-fields-menu")
+    //   .find(`.nc-fields-list label:contains(${field}):visible`)
+    //   .click();
     cy.getActiveMenu(".nc-dropdown-fields-menu")
-      .find(`.nc-fields-list label:contains(${field}):visible`)
+      .find(`.nc-fields-list label:visible`)
+      .contains(new RegExp("^" + field + "$", "g"))
       .click();
     cy.get(".nc-fields-menu-btn").click();
     cy.get(`th[data-title="${field}"]`).should("not.exist");
   };
 
-  unhideField = (field) => {
+  unhideField = (field, viewType = "grid") => {
+    if (viewType === "grid") {
+      cy.get(`th[data-title="${field}"]`).should("not.exist");
+    }
     cy.get(`th[data-title="${field}"]`).should("not.exist");
     cy.get(".nc-fields-menu-btn").click();
+    // cy.getActiveMenu(".nc-dropdown-fields-menu")
+    //   .find(`.nc-fields-list label:contains(${field}):visible`)
+    //   .click();
     cy.getActiveMenu(".nc-dropdown-fields-menu")
-      .find(`.nc-fields-list label:contains(${field}):visible`)
+      .find(`.nc-fields-list label:visible`)
+      .contains(new RegExp("^" + field + "$", "g"))
       .click();
     cy.get(".nc-fields-menu-btn").click();
-    cy.get(`th[data-title="${field}"]`).should("be.visible");
+    if (viewType === "grid") {
+      cy.get(`th[data-title="${field}"]`).should("be.visible");
+    }
   };
 
   sortField = (field, criteria) => {

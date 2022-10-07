@@ -105,13 +105,13 @@ const onAttachRecord = () => {
       <div v-if="!isLocked" class="flex justify-end gap-1 min-h-[30px] items-center">
         <MdiArrowExpand
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
-          @click="childListDlg = true"
+          @click.stop="childListDlg = true"
         />
 
         <MdiPlus
           v-if="!readOnly && isUIAllowed('xcDatatableEditable')"
           class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
-          @click="listItemsDlg = true"
+          @click.stop="listItemsDlg = true"
         />
       </div>
     </template>

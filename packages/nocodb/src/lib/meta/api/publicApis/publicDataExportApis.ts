@@ -16,7 +16,7 @@ import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 async function exportExcel(req: Request, res: Response) {
   const view = await View.getByUUID(req.params.publicDataUuid);
   if (!view) NcError.notFound('Not found');
-  if (view.type !== ViewTypes.GRID) NcError.notFound('Not found');
+  if (view.type !== ViewTypes.GRID && view.type !== ViewTypes.KANBAN) NcError.notFound('Not found');
 
   if (view.password && view.password !== req.headers?.['xc-password']) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);
@@ -47,7 +47,7 @@ async function exportCsv(req: Request, res: Response) {
   const fields = req.query.fields;
 
   if (!view) NcError.notFound('Not found');
-  if (view.type !== ViewTypes.GRID) NcError.notFound('Not found');
+  if (view.type !== ViewTypes.GRID && view.type !== ViewTypes.KANBAN) NcError.notFound('Not found');
 
   if (view.password && view.password !== req.headers?.['xc-password']) {
     NcError.forbidden(ErrorMessages.INVALID_SHARED_VIEW_PASSWORD);

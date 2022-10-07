@@ -1,4 +1,4 @@
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
@@ -13,6 +13,7 @@ import {
   useApi,
   useI18n,
   useInjectionState,
+  useKanbanViewStoreOrThrow,
   useNuxtApp,
   useProject,
   useProvideSmartsheetRowStore,
@@ -40,6 +41,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const { project } = useProject()
 
   const rowStore = useProvideSmartsheetRowStore(meta, row)
+
+  const activeView = inject(ActiveViewInj, ref())
+
+  const { addOrEditStackRow } = useKanbanViewStoreOrThrow()
 
   const { sharedView } = useSharedView()
 
@@ -135,7 +140,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         return obj
       }, {} as Record<string, any>)
 
-      if (row.value.rowMeta?.new) {
+      const isNewRow = row.value.rowMeta?.new ?? false
+
+      if (isNewRow) {
         data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, updateOrInsertObj)
 
         Object.assign(row.value, {
@@ -172,6 +179,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       } else {
         // No columns to update
         return message.info(t('msg.info.noColumnsToUpdate'))
+      }
+
+      if (activeView.value?.type === ViewTypes.KANBAN) {
+        addOrEditStackRow(row.value, isNewRow)
       }
 
       message.success(`${primaryValue.value || 'Row'} updated successfully.`)

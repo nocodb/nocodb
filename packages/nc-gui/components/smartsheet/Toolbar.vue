@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { IsPublicInj, inject, ref, useSharedView, useSidebar, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
 
-const { isGrid, isForm, isGallery, isSqlView } = useSmartsheetStoreOrThrow()
+const { isGrid, isForm, isGallery, isKanban, isSqlView } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -18,30 +18,33 @@ const { allowCSVDownload } = useSharedView()
     style="z-index: 7"
   >
     <LazySmartsheetToolbarViewActions
-      v-if="(isGrid || isGallery) && !isPublic && isUIAllowed('dataInsert')"
+      v-if="(isGrid || isGallery || isKanban) && !isPublic && isUIAllowed('dataInsert')"
       :show-system-fields="false"
       class="ml-1"
     />
 
     <LazySmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
 
-    <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery" :show-system-fields="false" />
+    <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
-    <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery" />
+    <LazySmartsheetToolbarKanbanStackEditOrAdd v-if="isKanban" />
 
-    <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery" />
+    <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban" :show-system-fields="false" />
 
-    <LazySmartsheetToolbarShareView v-if="(isForm || isGrid) && !isPublic" />
+    <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban" />
+
+    <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+
+    <LazySmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban) && !isPublic" />
 
     <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
-
     <div class="flex-1" />
 
     <LazySmartsheetToolbarReload v-if="!isPublic && !isForm" />
 
     <LazySmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert') && !isPublic && !isForm && !isSqlView" />
 
-    <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mx-2" />
+    <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink mx-2" />
 
     <template v-if="!isOpen && !isPublic">
       <div class="border-l-1 pl-3">

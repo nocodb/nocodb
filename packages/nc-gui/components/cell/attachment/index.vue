@@ -5,6 +5,7 @@ import { useSortable } from './sort'
 import {
   DropZoneRef,
   IsGalleryInj,
+  IsKanbanInj,
   inject,
   isImage,
   nextTick,
@@ -30,6 +31,8 @@ const { modelValue, rowIndex } = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const isGallery = inject(IsGalleryInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
 
 const dropZoneInjection = inject(DropZoneRef, ref())
 
@@ -62,7 +65,7 @@ watch(
   () => {
     if (dropZoneInjection?.value) return
 
-    if (!rowIndex && (isForm.value || isGallery.value)) {
+    if (!rowIndex && (isForm.value || isGallery.value || isKanban.value)) {
       currentCellRef.value = attachmentCellRef.value
     } else {
       nextTick(() => {

@@ -2506,6 +2506,99 @@
         ]
       }
     },
+    "/api/v1/db/meta/tables/{tableId}/kanbans": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "db-view-kanban-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Kanban"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/kanbans/{kanbanId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "kanbanId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "db-view-kanban-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Kanban"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "",
+        "operationId": "db-view-kanban-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kanban"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/meta-diff": {
       "parameters": [
         {
@@ -2799,6 +2892,180 @@
             },
             "in": "query",
             "name": "offset"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Table Group by Column",
+        "operationId": "db-view-row-grouped-data-list",
+        "description": "",
+        "tags": [
+          "DB view row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Table Group by Column",
+        "operationId": "db-table-row-grouped-data-list",
+        "description": "",
+        "tags": [
+          "DB table row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
           }
         ],
         "responses": {
@@ -3600,6 +3867,13 @@
           "name": "tableName",
           "in": "path",
           "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "where"
         }
       ],
       "patch": {
@@ -4108,6 +4382,67 @@
             },
             "in": "query",
             "name": "where"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "public-grouped-data-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "offset"
           }
         ]
       }
@@ -6211,6 +6546,9 @@
               },
               {
                 "$ref": "#/components/schemas/Gallery"
+              },
+              {
+                "$ref": "#/components/schemas/Kanban"
               }
             ]
           }
@@ -7005,7 +7343,9 @@
         "properties": {
           "options": {
             "type": "array",
-            "$ref": "#/components/schemas/SelectOption"
+            "items": {
+              "$ref": "#/components/schemas/SelectOption"
+            }
           }
         },
         "required": [
@@ -7171,7 +7511,7 @@
         }
       },
       "GridColumn": {
-        "title": "GalleryColumn",
+        "title": "GridColumn",
         "type": "object",
         "description": "",
         "properties": {
@@ -7231,12 +7571,6 @@
           "alias": {
             "type": "string"
           },
-          "public": {
-            "type": "boolean"
-          },
-          "password": {
-            "type": "string"
-          },
           "columns": {
             "type": "array",
             "items": {
@@ -7245,6 +7579,18 @@
           },
           "fk_model_id": {
             "type": "string"
+          },
+          "grp_column_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta": {
+            "type": [
+              "string",
+              "object"
+            ]
           }
         }
       },

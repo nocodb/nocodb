@@ -221,7 +221,7 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 ![6](https://user-images.githubusercontent.com/5435402/133759242-2311a127-17c8-406c-b865-1a2e9c8ee398.png)
 <br>
 
-![5](https://user-images.githubusercontent.com/35857179/151526876-f6a0e472-9bbc-45ba-a771-9118e03bc748.png)
+![5](https://user-images.githubusercontent.com/35857179/192694648-736866af-c1cb-4158-9f3b-6cc089f00283.png)
 <br>
 
 ![6](https://user-images.githubusercontent.com/35857179/151526883-4c670f8b-7c5c-421f-9e95-54d3a84a72ba.png)

@@ -21,7 +21,7 @@ import {
 } from '#imports'
 import type { Row } from '~/lib'
 
-const formatData = (list: Record<string, any>[]) =>
+const formatData = (list: Row[]) =>
   list.map((row) => ({
     row: { ...row },
     oldRow: { ...row },

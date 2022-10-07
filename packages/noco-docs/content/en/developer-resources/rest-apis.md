@@ -43,6 +43,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Public | Get | public | csvExport | /api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type} |
 | Public | Get | public | dataRelationList | /api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName} |
 | Public | Get | public | sharedViewMetaGet | /api/v1/db/public/shared-view/{sharedViewUuid}/meta |
+| Public | Get | public | groupedDataList | /api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId} |
 
 ### Data APIs
 
@@ -62,6 +63,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Data | Patch | dbTableRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Delete| dbTableRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Get | dbTableRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/count |
+| Data | Get | dbTableRow | groupedDataList | /api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId} |
 | Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName} |
 | Data | Get | dbViewRow | findOne | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one |
 | Data | Get | dbViewRow | groupBy | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/groupby |
@@ -71,6 +73,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Data | Patch | dbViewRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
 | Data | Delete| dbViewRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
 | Data | Get | dbViewRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count |
+| Data | Get | dbViewRow | groupedDataList | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId} |
 
 ### Meta APIs
 

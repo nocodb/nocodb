@@ -2,6 +2,7 @@
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   IsFormInj,
+  IsKanbanInj,
   MetaInj,
   ReloadViewDataHookInj,
   computed,
@@ -35,6 +36,8 @@ const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isKanban = inject(IsKanbanInj, ref(false))
+
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
@@ -60,7 +63,10 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
 
 const reloadMetaAndData = async () => {
   await getMeta(meta.value?.id as string, true)
-  reloadDataTrigger?.trigger()
+
+  if (!isKanban.value) {
+    reloadDataTrigger?.trigger()
+  }
 }
 
 async function onSubmit() {
@@ -118,7 +124,13 @@ onMounted(() => {
     <a-form v-model="formState" no-style name="column-create-or-edit" layout="vertical">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
-          <a-input ref="antInput" v-model:value="formState.title" class="nc-column-name-input" @input="onAlter(8)" />
+          <a-input
+            ref="antInput"
+            v-model:value="formState.title"
+            class="nc-column-name-input"
+            :disabled="isKanban"
+            @input="onAlter(8)"
+          />
         </a-form-item>
 
         <a-form-item
@@ -129,6 +141,7 @@ onMounted(() => {
             v-model:value="formState.uidt"
             show-search
             class="nc-column-type-input"
+            :disabled="isKanban"
             dropdown-class-name="nc-dropdown-column-type"
             @change="onUidtOrIdTypeChange"
           >

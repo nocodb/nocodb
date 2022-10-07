@@ -12,6 +12,7 @@ import {
   PaginationDataInj,
   ReadonlyInj,
   ReloadRowDataHookInj,
+  ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
   computed,
   createEventHook,
@@ -91,8 +92,6 @@ const attachments = (record: any): Attachment[] => {
 }
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
-  if (!isUIAllowed('xcDatatableEditable')) return
-
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
   if (rowId) {
@@ -252,24 +251,28 @@ watch(view, async (nextView) => {
 
     <LazySmartsheetPagination />
 
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormRow && expandedFormDlg"
-      v-model="expandedFormDlg"
-      :row="expandedFormRow"
-      :state="expandedFormRowState"
-      :meta="meta"
-      :view="view"
-    />
+    <Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormRow && expandedFormDlg"
+        v-model="expandedFormDlg"
+        :row="expandedFormRow"
+        :state="expandedFormRowState"
+        :meta="meta"
+        :view="view"
+      />
+    </Suspense>
 
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg"
-      :key="route.query.rowId"
-      v-model="expandedFormOnRowIdDlg"
-      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-      :meta="meta"
-      :row-id="route.query.rowId"
-      :view="view"
-    />
+    <Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormOnRowIdDlg"
+        :key="route.query.rowId"
+        v-model="expandedFormOnRowIdDlg"
+        :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+        :meta="meta"
+        :row-id="route.query.rowId"
+        :view="view"
+      />
+    </Suspense>
   </div>
 </template>
 

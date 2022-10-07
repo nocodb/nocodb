@@ -15,7 +15,12 @@ const vModel = useVModel(props, 'modelValue', emits)
 </script>
 
 <template>
-  <input v-if="editEnabled" v-model="vModel" type="number" />
-
+  <input
+    v-if="editEnabled"
+    v-model="vModel"
+    class="w-full !border-none text-base"
+    :class="{ '!p-2': editEnabled }"
+    type="number"
+  />
   <span v-else>{{ vModel }}</span>
 </template>

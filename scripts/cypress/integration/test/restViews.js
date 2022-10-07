@@ -7,6 +7,7 @@ let t4d = require("../common/4d_table_view_grid_locked");
 let t4e = require("../common/4e_form_view_share");
 let t4f = require("../common/4f_grid_view_share");
 let t4g = require("../common/4g_table_view_expanded_form");
+let t4h = require("../common/4h_kanban");
 const {
   setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
@@ -23,6 +24,7 @@ const nocoTestSuite = (apiType, dbType) => {
   t4e.genTest(apiType, dbType);
   t4f.genTest(apiType, dbType);
   t4g.genTest(apiType, dbType);
+  t4h.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "mysql");

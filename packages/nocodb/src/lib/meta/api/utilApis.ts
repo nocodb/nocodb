@@ -10,6 +10,7 @@ import NcConfigFactory, {
 import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
+import { feedbackForm } from 'nc-help';
 
 const versionCache = {
   releaseVersion: null,
@@ -19,6 +20,7 @@ const versionCache = {
 export async function testConnection(req: Request, res: Response) {
   res.json(await SqlMgrv2.testConnection(req.body));
 }
+
 export async function appInfo(req: Request, res: Response) {
   const projectHasAdmin = !(await User.isFirst());
   const result = {
@@ -80,17 +82,10 @@ export async function versionInfo(_req: Request, res: Response) {
   res.json(response);
 }
 
-export async function feedbackFormGet(_req: Request, res: Response) {
-  axios
-    .get('https://nocodb.com/api/v1/feedback_form', {
-      timeout: 5000,
-    })
-    .then((response) => {
-      res.json(response.data);
-    })
-    .catch((e) => {
-      res.json({ error: e.message });
-    });
+export function feedbackFormGet(_req: Request, res: Response) {
+  feedbackForm()
+    .then((form) => res.json(form))
+    .catch((e) => res.json({ error: e.message }));
 }
 
 export async function appHealth(_: Request, res: Response) {

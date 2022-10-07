@@ -50,6 +50,9 @@ let viewCreateTitle = $ref('')
 /** selected view id for copying view meta */
 let selectedViewId = $ref('')
 
+/** Kanban Grouping Column Id for copying view meta */
+let kanbanGrpColumnId = $ref('')
+
 /** is view creation modal open */
 let modalOpen = $ref(false)
 
@@ -86,11 +89,22 @@ watch(
 )
 
 /** Open view creation modal */
-function openModal({ type, title = '', copyViewId }: { type: ViewTypes; title: string; copyViewId: string }) {
+function openModal({
+  type,
+  title = '',
+  copyViewId,
+  groupingFieldColumnId,
+}: {
+  type: ViewTypes
+  title: string
+  copyViewId: string
+  groupingFieldColumnId: string
+}) {
   modalOpen = true
   viewCreateType = type
   viewCreateTitle = title
   selectedViewId = copyViewId
+  kanbanGrpColumnId = groupingFieldColumnId
 }
 
 /** Handle view creation */
@@ -131,6 +145,7 @@ async function onCreate(view: ViewType) {
       :title="viewCreateTitle"
       :type="viewCreateType"
       :selected-view-id="selectedViewId"
+      :grouping-field-column-id="kanbanGrpColumnId"
       @created="onCreate"
     />
   </a-layout-sider>

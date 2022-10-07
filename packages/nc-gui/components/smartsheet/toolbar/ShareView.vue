@@ -271,7 +271,7 @@ watch(passwordProtected, (value) => {
           <div>
             <!-- Allow Download -->
             <a-checkbox
-              v-if="shared && shared.type === ViewTypes.GRID"
+              v-if="shared && (shared.type === ViewTypes.GRID || shared.type === ViewTypes.KANBAN)"
               v-model:checked="allowCSVDownload"
               data-cy="nc-modal-share-view__with-csv-download"
               class="!text-xs"

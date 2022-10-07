@@ -13,9 +13,10 @@ import GalleryView from './GalleryView';
 import GridViewColumn from './GridViewColumn';
 import Sort from './Sort';
 import Filter from './Filter';
-import { isSystemColumn, ViewType, ViewTypes } from 'nocodb-sdk';
+import { isSystemColumn, UITypes, ViewType, ViewTypes } from 'nocodb-sdk';
 import GalleryViewColumn from './GalleryViewColumn';
 import FormViewColumn from './FormViewColumn';
+import KanbanViewColumn from './KanbanViewColumn';
 import Column from './Column';
 import NocoCache from '../cache/NocoCache';
 import { extractProps } from '../meta/helpers/extractProps';
@@ -35,7 +36,9 @@ export default class View implements ViewType {
   fk_model_id: string;
   model?: Model;
   view?: FormView | GridView | KanbanView | GalleryView;
-  columns?: Array<FormViewColumn | GridViewColumn | GalleryViewColumn>;
+  columns?: Array<
+    FormViewColumn | GridViewColumn | GalleryViewColumn | KanbanViewColumn
+  >;
 
   sorts: Sort[];
   filter: Filter;
@@ -222,6 +225,7 @@ export default class View implements ViewType {
     view: Partial<View> &
       Partial<FormView | GridView | GalleryView | KanbanView> & {
         copy_from_id?: string;
+        grp_column_id?: string;
         created_at?;
         updated_at?;
       },
@@ -270,6 +274,10 @@ export default class View implements ViewType {
       `${CacheScope.VIEW}:${view_id}`
     );
 
+    let columns: any[] = await (
+      await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta)
+    ).getColumns(ncMeta);
+
     // insert view metadata based on view type
     switch (view.type) {
       case ViewTypes.GRID:
@@ -302,11 +310,20 @@ export default class View implements ViewType {
           ncMeta
         );
         break;
-    }
+      case ViewTypes.KANBAN:
+        // set grouping field
+        (view as KanbanView).grp_column_id = view.grp_column_id;
 
-    let columns: any[] = await (
-      await Model.getByIdOrName({ id: view.fk_model_id }, ncMeta)
-    ).getColumns(ncMeta);
+        await KanbanView.insert(
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta
+        );
+        break;
+    }
 
     if (copyFromView) {
       const sorts = await copyFromView.getSorts(ncMeta);
@@ -338,15 +355,70 @@ export default class View implements ViewType {
     {
       let order = 1;
       let galleryShowLimit = 0;
+      let kanbanShowCount = 0;
+      let kanbanAttachmentCount = 0;
+
+      if (view.type === ViewTypes.KANBAN && !copyFromView) {
+        // sort by primary value & attachment first, then by singleLineText & Number
+        // so that later we can handle control `show` easily
+        columns.sort((a, b) => {
+          const primaryValueOrder = b.pv - a.pv;
+          const attachmentOrder =
+            +(b.uidt === UITypes.Attachment) - +(a.uidt === UITypes.Attachment);
+          const singleLineTextOrder =
+            +(b.uidt === UITypes.SingleLineText) -
+            +(a.uidt === UITypes.SingleLineText);
+          const numberOrder =
+            +(b.uidt === UITypes.Number) - +(a.uidt === UITypes.Number);
+          const defaultOrder = b.order - a.order;
+          return (
+            primaryValueOrder ||
+            attachmentOrder ||
+            singleLineTextOrder ||
+            numberOrder ||
+            defaultOrder
+          );
+        });
+      }
+
       for (const vCol of columns) {
         let show = 'show' in vCol ? vCol.show : true;
 
         if (view.type === ViewTypes.GALLERY) {
           const galleryView = await GalleryView.get(view_id, ncMeta);
-          if (vCol.id === galleryView.fk_cover_image_col_id || vCol.pv || galleryShowLimit < 3) {
+          if (
+            vCol.id === galleryView.fk_cover_image_col_id ||
+            vCol.pv ||
+            galleryShowLimit < 3
+          ) {
             show = true;
             galleryShowLimit++;
           } else {
+            show = false;
+          }
+        } else if (view.type === ViewTypes.KANBAN && !copyFromView) {
+          const kanbanView = await KanbanView.get(view_id, ncMeta);
+          if (vCol.id === kanbanView?.grp_column_id) {
+            // include grouping field if it exists
+            show = true;
+          } else if (vCol.pv) {
+            // Show primary key
+            show = true;
+            kanbanShowCount++;
+          } else if (
+            vCol.uidt === UITypes.Attachment &&
+            kanbanAttachmentCount < 1
+          ) {
+            // Show at most 1 attachment
+            show = true;
+            kanbanAttachmentCount++;
+            kanbanShowCount++;
+          } else if (kanbanShowCount < 3 && !isSystemColumn(vCol)) {
+            // show at most 3 non-system columns
+            show = true;
+            kanbanShowCount++;
+          } else {
+            // other columns will be hidden
             show = false;
           }
         }
@@ -412,6 +484,15 @@ export default class View implements ViewType {
             ncMeta
           );
           break;
+        case ViewTypes.KANBAN:
+          await KanbanViewColumn.insert(
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta
+          );
+          break;
       }
     }
   }
@@ -463,6 +544,17 @@ export default class View implements ViewType {
           );
         }
         break;
+      case ViewTypes.KANBAN:
+        {
+          col = await KanbanViewColumn.insert(
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta
+          );
+        }
+        break;
     }
 
     return col;
@@ -479,7 +571,11 @@ export default class View implements ViewType {
   static async getColumns(
     viewId: string,
     ncMeta = Noco.ncMeta
-  ): Promise<Array<GridViewColumn | FormViewColumn | GalleryViewColumn>> {
+  ): Promise<
+    Array<
+      GridViewColumn | FormViewColumn | GalleryViewColumn | KanbanViewColumn
+    >
+  > {
     let columns: Array<GridViewColumn | any> = [];
     const view = await this.get(viewId, ncMeta);
 
@@ -488,12 +584,14 @@ export default class View implements ViewType {
       case ViewTypes.GRID:
         columns = await GridViewColumn.list(viewId, ncMeta);
         break;
-
       case ViewTypes.GALLERY:
         columns = await GalleryViewColumn.list(viewId, ncMeta);
         break;
       case ViewTypes.FORM:
         columns = await FormViewColumn.list(viewId, ncMeta);
+        break;
+      case ViewTypes.KANBAN:
+        columns = await KanbanViewColumn.list(viewId, ncMeta);
         break;
     }
 
@@ -559,7 +657,9 @@ export default class View implements ViewType {
       show: boolean;
     },
     ncMeta = Noco.ncMeta
-  ): Promise<GridViewColumn | FormViewColumn | GalleryViewColumn | any> {
+  ): Promise<
+    GridViewColumn | FormViewColumn | GalleryViewColumn | KanbanViewColumn | any
+  > {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
     console.log(table);
@@ -598,13 +698,12 @@ export default class View implements ViewType {
             show: colData.show,
           });
         case ViewTypes.KANBAN:
-          // TODO: Use the following when KanbanViewColumn is ready to avoid cache issue
-          // return await KanbanViewColumn.insert({
-          //   fk_view_id: viewId,
-          //   fk_column_id: fkColId,
-          //   order: colData.order,
-          //   show: colData.show,
-          // });
+          return await KanbanViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
           break;
         case ViewTypes.FORM:
           return await FormViewColumn.insert({

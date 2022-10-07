@@ -77,5 +77,5 @@ const icon = computed(() => {
 </script>
 
 <template>
-  <component :is="icon.icon" class="mx-1 !text-sm" :class="icon.color" />
+  <component :is="icon.icon" class="mx-1 !text-xs" :class="icon.color" />
 </template>

@@ -74,6 +74,8 @@ export default {
       projectInfoGet: true,
       gridColumnUpdate: true,
       galleryViewGet: true,
+      kanbanViewGet: true,
+      groupedDataList: true,
 
       // old
       xcTableAndViewList: true,
@@ -185,7 +187,9 @@ export default {
       dataGroupBy: true,
       commentsCount: true,
 
-      galleryViewGet: true,
+      alleryViewGet: true,
+      kanbanViewGet: true,
+      groupedDataList: true,
 
       xcTableAndViewList: true,
       xcVirtualTableList: true,
@@ -236,6 +240,8 @@ export default {
       projectInfoGet: true,
 
       galleryViewGet: true,
+      kanbanViewGet: true,
+      groupedDataList: true,
 
       mmList: true,
       hmList: true,

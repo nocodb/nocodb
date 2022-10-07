@@ -74,7 +74,7 @@ watch(
     :bordered="false"
     use12-hours
     format="HH:mm"
-    class="!w-full px-1"
+    class="!w-full !px-0 !border-none"
     :placeholder="isTimeInvalid ? 'Invalid time' : ''"
     :allow-clear="!readOnly"
     :input-read-only="true"

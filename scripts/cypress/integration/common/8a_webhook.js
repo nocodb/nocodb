@@ -148,8 +148,9 @@ function clearServerData() {
 }
 
 function addNewRow(index, cellValue) {
-  cy.get(".nc-add-new-row-btn:visible").should("exist");
-  cy.get(".nc-add-new-row-btn").click();
+  // cy.get(".nc-add-new-row-btn:visible").should("exist");
+  // cy.get(".nc-add-new-row-btn").click();
+  mainPage.addNewRowExpand("Temp");
 
   cy.get(".nc-expand-col-Title")
     .should("exist")

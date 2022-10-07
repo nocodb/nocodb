@@ -8,10 +8,7 @@ export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
   function addNewRow(index, cellValue) {
-    cy.get(".nc-add-new-row-btn:visible").should("exist");
-    cy.get(".nc-add-new-row-btn").click();
-
-    cy.wait(2000);
+    mainPage.addNewRowExpand("tablex");
 
     // cy.get("#data-table-form-Title > input").first().type(cellValue);
     cy.get(".nc-expand-col-Title")

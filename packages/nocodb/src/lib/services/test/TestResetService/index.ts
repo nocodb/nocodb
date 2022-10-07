@@ -4,7 +4,6 @@ import Knex from 'knex';
 import NocoCache from '../../../cache/NocoCache';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import createProjects from './createProjects';
-import { isPgSakilaToBeReset, resetPgSakila } from './resetPgSakila';
 import createUser from './createUser';
 import resetMeta from './resetMeta';
 import { isMysqlSakilaToBeReset, resetMysqlSakila } from './resetMysqlSakila';
@@ -20,9 +19,9 @@ export class TestResetService {
     try {
       await NcConnectionMgrv2.destroyAll();
 
-      if (await isPgSakilaToBeReset()) {
-        await resetPgSakila();
-      }
+      // if (await isPgSakilaToBeReset()) {
+      //   await resetPgSakila();
+      // }
 
       if (await isMysqlSakilaToBeReset()) {
         await resetMysqlSakila();

@@ -291,7 +291,10 @@ export async function getAggregatedMetaInfo(_req: Request, res: Response) {
                         if (view.uuid) out.sharedKanbanCount++;
                     }
 
-                    if (view.uuid && view.password) out.sharedLockedCount++;
+                    if (view.uuid) {
+                      if (view.password) out.sharedLockedCount++;
+                      out.sharedTotal++;
+                    }
 
                     return out;
                   },
@@ -339,7 +342,7 @@ export async function getAggregatedMetaInfo(_req: Request, res: Response) {
           );
 
           return {
-            tableCount: { table: tableCount.status, view: dbViewCount },
+            tableCount: { table: tableCount, view: dbViewCount },
             external: !project.is_meta,
             viewCount,
             webhookCount,

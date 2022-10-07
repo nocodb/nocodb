@@ -29,7 +29,7 @@ const { allowCSVDownload } = useSharedView()
 
     <LazySmartsheetToolbarKanbanStackEditOrAdd v-if="isKanban" />
 
-    <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban" :show-system-fields="false" class="ml-1" />
+    <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban" :show-system-fields="false" />
 
     <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban" />
 

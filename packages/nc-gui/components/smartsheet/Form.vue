@@ -114,7 +114,7 @@ async function submitForm() {
     await formRef.value?.validateFields()
   } catch (e: any) {
     e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
-    return
+    if (e.errorFields.length) return
   }
 
   const insertedRowData = await insertRow(formState)

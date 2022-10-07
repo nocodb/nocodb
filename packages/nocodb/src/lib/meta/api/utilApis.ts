@@ -184,33 +184,38 @@ export async function urlToDbConfig(req: Request, res: Response) {
   }
 }
 
+interface ViewCount {
+  formCount: number | null;
+  gridCount: number | null;
+  galleryCount: number | null;
+  kanbanCount: number | null;
+  total: number | null;
+  sharedFormCount: number | null;
+  sharedGridCount: number | null;
+  sharedGalleryCount: number | null;
+  sharedKanbanCount: number | null;
+  sharedTotal: number | null;
+  sharedLockedCount: number | null;
+}
+
 interface AllMeta {
   projectCount: number;
-  projects: {
-    external?: boolean;
-    tableCount: {
-      table: number;
-      view: number;
-    };
-    viewCount: {
-      formCount: number;
-      gridCount: number;
-      galleryCount: number;
-      kanbanCount: number;
-      total: number;
-      sharedFormCount: number;
-      sharedGridCount: number;
-      sharedGalleryCount: number;
-      sharedKanbanCount: number;
-      sharedTotal: number;
-      sharedLockedCount: number;
-    };
-    webhookCount: number;
-    filterCount: number;
-    sortCount: number;
-    rowCount: { totalRecords: number }[];
-    userCount: number;
-  }[];
+  projects: (
+    | {
+        external?: boolean | null;
+        tableCount: {
+          table: number;
+          view: number;
+        } | null;
+        viewCount: ViewCount;
+        webhookCount: number | null;
+        filterCount: number | null;
+        sortCount: number | null;
+        rowCount: ({ totalRecords: number } | null)[] | null;
+        userCount: number | null;
+      }
+    | { error: string }
+  )[];
   userCount: number;
   sharedBaseCount: number;
 }
@@ -229,135 +234,137 @@ export async function getAggregatedMetaInfo(_req: Request, res: Response) {
   };
 
   result.projects.push(
-    ...(await Promise.all(
-      projects.map(async (project) => {
-        if (project.uuid) result.sharedBaseCount++;
-        const [
-          tableCount,
-          dbViewCount,
-          viewCount,
-          webhookCount,
-          filterCount,
-          sortCount,
-          rowCount,
-          userCount,
-        ] = await Promise.all([
-          // db tables  count
-          Noco.ncMeta.metaCount(null, null, MetaTable.MODELS, {
-            condition: {
-              project_id: project.id,
-              type: 'table',
-            },
-          }),
-          // db views count
-          Noco.ncMeta.metaCount(null, null, MetaTable.MODELS, {
-            condition: {
-              project_id: project.id,
-              type: 'view',
-            },
-          }),
-          // views count
-          (async () => {
-            const views = await Noco.ncMeta.metaList2(
-              null,
-              null,
-              MetaTable.VIEWS
-            );
-            // grid, form, gallery, kanban and shared count
-            return views.reduce<AllMeta['projects'][number]['viewCount']>(
-              (out, view) => {
-                out.total++;
+    ...extractResultOrNull(
+      await Promise.allSettled(
+        projects.map(async (project) => {
+          if (project.uuid) result.sharedBaseCount++;
+          const [
+            tableCount,
+            dbViewCount,
+            viewCount,
+            webhookCount,
+            filterCount,
+            sortCount,
+            rowCount,
+            userCount,
+          ] = extractResultOrNull(
+            await Promise.allSettled([
+              // db tables  count
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.MODELS, {
+                condition: {
+                  type: 'table',
+                },
+              }),
+              // db views count
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.MODELS, {
+                condition: {
+                  type: 'view',
+                },
+              }),
+              // views count
+              (async () => {
+                const views = await Noco.ncMeta.metaList2(
+                  project.id,
+                  null,
+                  MetaTable.VIEWS
+                );
+                // grid, form, gallery, kanban and shared count
+                return views.reduce<ViewCount>(
+                  (out, view) => {
+                    out.total++;
 
-                switch (view.type) {
-                  case ViewTypes.GRID:
-                    out.gridCount++;
-                    if (view.uuid) out.sharedGridCount++;
-                    break;
-                  case ViewTypes.FORM:
-                    out.formCount++;
-                    if (view.uuid) out.sharedFormCount++;
-                    break;
-                  case ViewTypes.GALLERY:
-                    out.galleryCount++;
-                    if (view.uuid) out.sharedGalleryCount++;
-                    break;
-                  case ViewTypes.KANBAN:
-                    out.kanbanCount++;
-                    if (view.uuid) out.sharedKanbanCount++;
-                }
+                    switch (view.type) {
+                      case ViewTypes.GRID:
+                        out.gridCount++;
+                        if (view.uuid) out.sharedGridCount++;
+                        break;
+                      case ViewTypes.FORM:
+                        out.formCount++;
+                        if (view.uuid) out.sharedFormCount++;
+                        break;
+                      case ViewTypes.GALLERY:
+                        out.galleryCount++;
+                        if (view.uuid) out.sharedGalleryCount++;
+                        break;
+                      case ViewTypes.KANBAN:
+                        out.kanbanCount++;
+                        if (view.uuid) out.sharedKanbanCount++;
+                    }
 
-                if (view.uuid && view.password) out.sharedLockedCount++;
+                    if (view.uuid && view.password) out.sharedLockedCount++;
 
-                return out;
-              },
-              {
-                formCount: 0,
-                gridCount: 0,
-                galleryCount: 0,
-                kanbanCount: 0,
-                total: 0,
-                sharedFormCount: 0,
-                sharedGridCount: 0,
-                sharedGalleryCount: 0,
-                sharedKanbanCount: 0,
-                sharedTotal: 0,
-                sharedLockedCount: 0,
-              }
-            );
-          })(),
-          // webhooks count
-          Noco.ncMeta.metaCount(null, null, MetaTable.HOOKS, {
-            condition: {
-              project_id: project.id,
-            },
-          }),
-          // filters count
-          Noco.ncMeta.metaCount(null, null, MetaTable.FILTER_EXP, {
-            condition: {
-              project_id: project.id,
-            },
-          }),
-          // sorts count
-          Noco.ncMeta.metaCount(null, null, MetaTable.SORT, {
-            condition: {
-              project_id: project.id,
-            },
-          }),
-          // row count per base
-          project.getBases().then((bases) => {
-            return Promise.all(
-              bases.map((base) =>
-                NcConnectionMgrv2.getSqlClient(base)
-                  .totalRecords?.()
-                  ?.then((result) => result?.data)
-              )
-            );
-          }),
-          // project users count
-          Noco.ncMeta.metaCount(null, null, MetaTable.PROJECT_USERS, {
-            condition: {
-              project_id: project.id,
-            },
-            aggField: '*',
-          }),
-        ]);
+                    return out;
+                  },
+                  {
+                    formCount: 0,
+                    gridCount: 0,
+                    galleryCount: 0,
+                    kanbanCount: 0,
+                    total: 0,
+                    sharedFormCount: 0,
+                    sharedGridCount: 0,
+                    sharedGalleryCount: 0,
+                    sharedKanbanCount: 0,
+                    sharedTotal: 0,
+                    sharedLockedCount: 0,
+                  }
+                );
+              })(),
+              // webhooks count
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.HOOKS),
+              // filters count
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.FILTER_EXP),
+              // sorts count
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.SORT),
+              // row count per base
+              project.getBases().then(async (bases) => {
+                return extractResultOrNull(
+                  await Promise.allSettled(
+                    bases.map((base) =>
+                      NcConnectionMgrv2.getSqlClient(base)
+                        .totalRecords?.()
+                        ?.then((result) => result?.data)
+                    )
+                  )
+                );
+              }),
+              // project users count
+              Noco.ncMeta.metaCount(null, null, MetaTable.PROJECT_USERS, {
+                condition: {
+                  project_id: project.id,
+                },
+                aggField: '*',
+              }),
+            ])
+          );
 
-        return {
-          tableCount: { table: tableCount, view: dbViewCount },
-          external: !project.is_meta,
-          viewCount,
-          webhookCount,
-          filterCount,
-          sortCount,
-          rowCount,
-          userCount,
-        };
-      })
-    ))
+          return {
+            tableCount: { table: tableCount.status, view: dbViewCount },
+            external: !project.is_meta,
+            viewCount,
+            webhookCount,
+            filterCount,
+            sortCount,
+            rowCount,
+            userCount,
+          };
+        })
+      )
+    )
   );
 
   res.json(result);
 }
+
+const extractResultOrNull = (results: PromiseSettledResult<any>[]) => {
+  return results.map((result) => {
+    if (result.status === 'fulfilled') {
+      return result.value;
+    }
+    console.log(result.reason);
+    return null;
+  });
+};
 
 export default (router) => {
   router.post(

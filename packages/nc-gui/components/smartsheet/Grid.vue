@@ -511,7 +511,7 @@ watch([() => selected.row, () => selected.col], ([row, col]) => {
                         :row-index="rowIndex"
                         :active="selected.col === colIndex && selected.row === rowIndex"
                         @update:edit-enabled="editEnabled = false"
-                        @save="updateOrSaveRow(row, columnObj.title)"
+                        @save="updateOrSaveRow(row, columnObj.title, state)"
                         @navigate="onNavigate"
                         @cancel="editEnabled = false"
                       />

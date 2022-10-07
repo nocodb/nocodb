@@ -1,5 +1,14 @@
-import { ViewTypes } from 'nocodb-sdk'
-import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, ViewTypes } from 'nocodb-sdk'
+import type {
+  Api,
+  ColumnType,
+  FormType,
+  GalleryType,
+  LinkToAnotherRecordType,
+  PaginatedType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
@@ -20,6 +29,7 @@ import {
   useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
+import { useMetas } from '~/composables/useMetas'
 import type { Row } from '~/lib'
 
 const formatData = (list: Row[]) =>
@@ -41,6 +51,7 @@ export function useViewData(
   const { t } = useI18n()
 
   const { api, isLoading, error } = useApi()
+  const { metas, getMeta } = useMetas()
 
   const { appInfo } = $(useGlobal())
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
@@ -175,12 +186,12 @@ export function useViewData(
     if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
     const response = !isPublic.value
       ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-          ...queryParams.value,
-          ...params,
-          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          where: where?.value,
-        })
+        ...queryParams.value,
+        ...params,
+        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+        where: where?.value,
+      })
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
@@ -195,13 +206,35 @@ export function useViewData(
     galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
   }
 
-  async function insertRow(row: Record<string, any>, rowIndex = formattedData.value?.length) {
+  async function insertRow(
+    row: Record<string, any>,
+    rowIndex = formattedData.value?.length,
+    ltarState?: Record<string, any> = {},
+  ) {
     try {
-      let allRequiredColumnsProvided = true
-      const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
+      const missingRequiredColumns = new Set()
+      const insertObj = await meta?.value?.columns?.reduce(async (_o: Promise<any>, col) => {
+        const o = await _o
+        if (
+          ltarState &&
+          col.uidt === UITypes.LinkToAnotherRecord &&
+          (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO
+        ) {
+          if (ltarState[col.title!]) {
+            const colOpt = <LinkToAnotherRecordType>col.colOptions
+            const childCol = meta.value!.columns!.find((c) => colOpt.fk_child_column_id === c.id)
+            const relatedTableMeta = (await getMeta(colOpt.fk_related_model_id!)) as TableType
+            if (relatedTableMeta && childCol) {
+              o[childCol.title!] =
+                ltarState[col.title!][relatedTableMeta!.columns!.find((c) => c.id === colOpt.fk_parent_column_id)!.title!]
+              missingRequiredColumns.delete(childCol.title)
+            }
+          }
+        }
+
         // check all the required columns are not null
         if (isColumnRequiredAndNull(col, row)) {
-          allRequiredColumnsProvided = false
+          missingRequiredColumns.add(col.title)
         }
 
         if (!col.ai && row?.[col.title as string] !== null) {
@@ -209,9 +242,9 @@ export function useViewData(
         }
 
         return o
-      }, {})
+      }, Promise.resolve({}))
 
-      if (!allRequiredColumnsProvided) return
+      if (missingRequiredColumns.size) return
 
       const insertedData = await $api.dbViewRow.create(
         NOCO,
@@ -261,7 +294,8 @@ export function useViewData(
           value: getHTMLEncodedText(toUpdate.row[property]),
           prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
         })
-        .then(() => {})
+        .then(() => {
+        })
 
       /** update row data(to sync formula and other related columns) */
       Object.assign(toUpdate.row, updatedRowData)
@@ -271,9 +305,9 @@ export function useViewData(
     }
   }
 
-  async function updateOrSaveRow(row: Row, property?: string) {
+  async function updateOrSaveRow(row: Row, property?: string, ltarState?: Record<string, any>) {
     if (row.rowMeta.new) {
-      return await insertRow(row.row, formattedData.value.indexOf(row))
+      return await insertRow(row.row, formattedData.value.indexOf(row), ltarState)
     } else {
       await updateRowProperty(row, property!)
     }
@@ -290,7 +324,7 @@ export function useViewData(
 
   async function deleteRowById(id: string) {
     if (!id) {
-      throw new Error("Delete not allowed for table which doesn't have primary Key")
+      throw new Error('Delete not allowed for table which doesn\'t have primary Key')
     }
 
     const res: any = await $api.dbViewRow.delete(

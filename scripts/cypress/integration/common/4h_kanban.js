@@ -1,5 +1,8 @@
 import { mainPage } from "../../support/page_objects/mainPage";
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import {
+  isTestSuiteActive,
+  isXcdb,
+} from "../../support/page_objects/projectConstants";
 import { loginPage } from "../../support/page_objects/navigation";
 
 // kanban grouping field configuration
@@ -96,6 +99,61 @@ function dragAndDropKanbanStack(srcStack, dstStack) {
 
 let localDebug = false;
 
+function addOption(index, value) {
+  cy.getActiveMenu(".nc-dropdown-edit-column")
+    .find(".ant-btn-dashed")
+    .should("exist")
+    .click();
+  cy.get(".nc-dropdown-edit-column .nc-select-option").should(
+    "have.length",
+    index
+  );
+  cy.get(".nc-dropdown-edit-column .nc-select-option")
+    .last()
+    .find("input")
+    .click()
+    .type(value);
+}
+
+function editColumn() {
+  cy.get(`[data-title="Rating"]`).first().scrollIntoView();
+
+  cy.get(`th:contains("Rating") .nc-icon.ant-dropdown-trigger`)
+    .trigger("mouseover", { force: true })
+    .click({ force: true });
+
+  cy.getActiveMenu(".nc-dropdown-column-operations")
+    .find(".nc-column-edit")
+    .click();
+
+  cy.inputHighlightRenderWait();
+
+  // change column type and verify
+  cy.getActiveMenu(".nc-dropdown-edit-column")
+    .find(".nc-column-type-input")
+    .last()
+    .click()
+    .type("SingleSelect");
+  cy.getActiveSelection(".nc-dropdown-column-type")
+    .find(".ant-select-item-option")
+    .contains("SingleSelect")
+    .click();
+  cy.inputHighlightRenderWait();
+
+  addOption(1, "G");
+  addOption(2, "PG");
+  addOption(3, "PG-13");
+  addOption(4, "R");
+  addOption(5, "NC-17");
+
+  cy.getActiveMenu(".nc-dropdown-edit-column")
+    .find(".ant-btn-primary:visible")
+    .contains("Save")
+    .click();
+
+  cy.toastWait("Column updated");
+}
+
 // test suite
 //
 export const genTest = (apiType, dbType) => {
@@ -106,6 +164,20 @@ export const genTest = (apiType, dbType) => {
   describe(`${apiType.toUpperCase()} api - Kanban`, () => {
     before(() => {
       cy.restoreLocalStorage();
+
+      if (dbType === "postgres" || dbType === "xcdb") {
+        cy.openTableTab("Film", 25);
+
+        if (dbType === "postgres") {
+          // delete SQL views
+          cy.deleteTable("NicerButSlowerFilmList");
+          cy.deleteTable("FilmList");
+        }
+
+        // edit `rating` column: from custom DB type to single select
+        editColumn();
+        cy.closeTableTab("Film");
+      }
 
       clear = Cypress.LocalStorage.clear;
       Cypress.LocalStorage.clear = () => {};
@@ -125,13 +197,13 @@ export const genTest = (apiType, dbType) => {
     });
 
     /**
-      class name specific to kanban view
-        .nc-kanban-stacked-by-menu-btn
-        .nc-dropdown-kanban-stacked-by-menu
-        .nc-kanban-add-edit-stack-menu-btn
-        .nc-dropdown-kanban-add-edit-stack-menu
-        .nc-kanban-grouping-field-select
-        .nc-dropdown-kanban-stack-context-menu
+     class name specific to kanban view
+     .nc-kanban-stacked-by-menu-btn
+     .nc-dropdown-kanban-stacked-by-menu
+     .nc-kanban-add-edit-stack-menu-btn
+     .nc-dropdown-kanban-add-edit-stack-menu
+     .nc-kanban-grouping-field-select
+     .nc-dropdown-kanban-stack-context-menu
      **/
 
     it("Create Kanban view", () => {
@@ -368,51 +440,54 @@ export const genTest = (apiType, dbType) => {
       mainPage.filterReset();
       mainPage.clearSort();
 
-      cy.get(".nc-kanban-stack-head").last().scrollIntoView();
-      cy.get(".nc-kanban-stack-head").last().click();
-      cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu").should(
-        "be.visible"
-      );
+      // skip for xcdb: many mandatory fields
+      if (!isXcdb()) {
+        cy.get(".nc-kanban-stack-head").last().scrollIntoView();
+        cy.get(".nc-kanban-stack-head").last().click();
+        cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu").should(
+          "be.visible"
+        );
 
-      // add record
-      cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu")
-        .find(".ant-dropdown-menu-item")
-        .contains("Add new record")
-        .click();
+        // add record
+        cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu")
+          .find(".ant-dropdown-menu-item")
+          .contains("Add new record")
+          .click();
 
-      cy.getActiveDrawer(".nc-drawer-expanded-form").should("be.visible");
-      cy.get(".nc-expand-col-Title")
-        .find(".nc-cell > input")
-        .should("exist")
-        .first()
-        .clear()
-        .type("New record");
-      cy.get(".nc-expand-col-LanguageId")
-        .find(".nc-cell > input")
-        .should("exist")
-        .first()
-        .clear()
-        .type("1");
+        cy.getActiveDrawer(".nc-drawer-expanded-form").should("be.visible");
+        cy.get(".nc-expand-col-Title")
+          .find(".nc-cell > input")
+          .should("exist")
+          .first()
+          .clear()
+          .type("New record");
+        cy.get(".nc-expand-col-LanguageId")
+          .find(".nc-cell > input")
+          .should("exist")
+          .first()
+          .clear()
+          .type("1");
 
-      cy.getActiveDrawer(".nc-drawer-expanded-form")
-        .find("button")
-        .contains("Save row")
-        .click();
-      cy.toastWait("updated successfully");
-      cy.get("body").type("{esc}");
+        cy.getActiveDrawer(".nc-drawer-expanded-form")
+          .find("button")
+          .contains("Save row")
+          .click();
+        cy.toastWait("updated successfully");
+        cy.get("body").type("{esc}");
 
-      // verify if the new record is in the stack
-      verifyKanbanStackCount(7);
-      verifyKanbanStackOrder([
-        "uncategorized",
-        "G",
-        "PG",
-        "PG-13",
-        "R",
-        "NC-17",
-        "Test",
-      ]);
-      verifyKanbanStackCardCount([0, 25, 25, 25, 25, 25, 1]);
+        // verify if the new record is in the stack
+        verifyKanbanStackCount(7);
+        verifyKanbanStackOrder([
+          "uncategorized",
+          "G",
+          "PG",
+          "PG-13",
+          "R",
+          "NC-17",
+          "Test",
+        ]);
+        verifyKanbanStackCardCount([0, 25, 25, 25, 25, 25, 1]);
+      }
 
       mainPage.toggleShowSystemFields();
     });
@@ -431,29 +506,31 @@ export const genTest = (apiType, dbType) => {
     });
 
     it("Stack context menu- delete stack", () => {
-      cy.get(".nc-kanban-stack-head").last().scrollIntoView();
-      cy.get(".nc-kanban-stack-head").last().click();
-      cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu").should(
-        "be.visible"
-      );
-      cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu")
-        .find(".ant-dropdown-menu-item")
-        .contains("Delete Stack")
-        .click();
-      cy.getActiveModal(".nc-modal-kanban-delete-stack").should("be.visible");
-      cy.getActiveModal(".nc-modal-kanban-delete-stack")
-        .find(".ant-btn-primary")
-        .click();
-      verifyKanbanStackCount(6);
-      verifyKanbanStackOrder([
-        "uncategorized",
-        "G",
-        "PG",
-        "PG-13",
-        "R",
-        "NC-17",
-      ]);
-      verifyKanbanStackCardCount([1, 25, 25, 25, 25, 25]);
+      if (!isXcdb()) {
+        cy.get(".nc-kanban-stack-head").last().scrollIntoView();
+        cy.get(".nc-kanban-stack-head").last().click();
+        cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu").should(
+          "be.visible"
+        );
+        cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu")
+          .find(".ant-dropdown-menu-item")
+          .contains("Delete Stack")
+          .click();
+        cy.getActiveModal(".nc-modal-kanban-delete-stack").should("be.visible");
+        cy.getActiveModal(".nc-modal-kanban-delete-stack")
+          .find(".ant-btn-primary")
+          .click();
+        verifyKanbanStackCount(6);
+        verifyKanbanStackOrder([
+          "uncategorized",
+          "G",
+          "PG",
+          "PG-13",
+          "R",
+          "NC-17",
+        ]);
+        verifyKanbanStackCardCount([1, 25, 25, 25, 25, 25]);
+      }
     });
 
     it("Delete Kanban view", () => {

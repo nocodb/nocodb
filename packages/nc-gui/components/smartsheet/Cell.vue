@@ -123,7 +123,7 @@ const {
   isPhoneNumber,
 } = useColumn(column)
 
-const syncAndNavigate = (dir: NavigateDir) => {
+const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   if (isJSON.value) return
 
   if (currentRow.value.rowMeta.changed) {
@@ -131,6 +131,8 @@ const syncAndNavigate = (dir: NavigateDir) => {
     currentRow.value.rowMeta.changed = false
   }
   emit('navigate', dir)
+
+  if (!isForm.value) e.stopImmediatePropagation()
 }
 </script>
 
@@ -138,8 +140,8 @@ const syncAndNavigate = (dir: NavigateDir) => {
   <div
     class="nc-cell w-full"
     :class="[`nc-cell-${(column?.uidt || 'default').toLowerCase()}`, { 'text-blue-600': isPrimary && !virtual && !isForm }]"
-    @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT)"
-    @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV)"
+    @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
+    @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
   >
     <LazyCellTextArea v-if="isTextArea" v-model="vModel" />
     <LazyCellCheckbox v-else-if="isBoolean" v-model="vModel" />

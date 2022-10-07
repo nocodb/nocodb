@@ -198,7 +198,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             // 2. delete option from grid view, then switch to kanban view
             // for the second case, formattedData.value and countByStack.value would be empty at this moment
             // however, the data will be correct after rendering
-            if (formattedData.value.size && countByStack.value.size && col.title! in formattedData.value) {
+            if (formattedData.value.size && countByStack.value.size && formattedData.value.has(col.title!)) {
               // for the first case, no reload is executed.
               // hence, we set groupingField to null for all records under the target stack
               await bulkUpdateGroupingFieldValue(col.title!, true)
@@ -344,7 +344,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             where: `(${groupingField.value},eq,${stackTitle})`,
           },
         )
-        if (stackTitle in formattedData.value) {
+        if (formattedData.value.has(stackTitle)) {
           // update to groupingField value to target value
           formattedData.value.set(
             stackTitle,
@@ -428,20 +428,26 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       } else {
         // update existing record
         const targetPrimaryKey = extractPkFromRow(row.row, meta!.value!.columns as ColumnType[])
-        const idxToUpdate = formattedData.value
-          .get(stackTitle)!
+        const idxToUpdateOrDelete = formattedData.value
+          .get(oldStackTitle)!
           .findIndex((ele) => extractPkFromRow(ele.row, meta!.value!.columns as ColumnType[]) === targetPrimaryKey)
-        if (idxToUpdate !== -1) {
-          // update the row in formattedData
-          formattedData.value.get(stackTitle)![idxToUpdate] = row
-        }
-        if (stackTitle !== oldStackTitle) {
-          // remove old row from countByStack & formattedData
-          countByStack.value.set(oldStackTitle, countByStack.value.get(oldStackTitle)! - 1)
-          formattedData.value.get(oldStackTitle)!.pop()
-          // add new row to countByStack & formattedData
-          countByStack.value.set(stackTitle, countByStack.value.get(stackTitle)! + 1)
-          formattedData.value.get(stackTitle)!.push(row)
+        if (idxToUpdateOrDelete !== -1) {
+          if (stackTitle !== oldStackTitle) {
+            // remove old row from countByStack & formattedData
+            countByStack.value.set(oldStackTitle, countByStack.value.get(oldStackTitle)! - 1)
+            const updatedRow = formattedData.value.get(oldStackTitle)!
+            updatedRow.splice(idxToUpdateOrDelete, 1)
+            formattedData.value.set(oldStackTitle, updatedRow)
+
+            // add new row to countByStack & formattedData
+            countByStack.value.set(stackTitle, countByStack.value.get(stackTitle)! + 1)
+            formattedData.value.set(stackTitle, [...formattedData.value.get(stackTitle)!, row])
+          } else {
+            // update the row in formattedData
+            const updatedRow = formattedData.value.get(stackTitle)!
+            updatedRow[idxToUpdateOrDelete] = row
+            formattedData.value.set(oldStackTitle, updatedRow)
+          }
         }
       }
     }

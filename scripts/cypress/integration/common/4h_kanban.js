@@ -162,7 +162,7 @@ export const genTest = (apiType, dbType) => {
     before(() => {
       cy.restoreLocalStorage();
 
-      if (dbType === "postgres") {
+      if (dbType === "postgres" || dbType === "xcdb") {
         cy.openTableTab("Film", 25);
         // delete SQL views
         cy.deleteTable("NicerButSlowerFilmList");

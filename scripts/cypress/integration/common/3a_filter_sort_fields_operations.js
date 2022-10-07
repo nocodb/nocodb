@@ -52,7 +52,6 @@ export const genTest = (apiType, dbType) => {
       );
 
       // add a row to end of Country table
-      // cy.get(".nc-add-new-row-btn").click();
       mainPage.addNewRowExpand("Country");
       cy.get(".nc-expand-col-Country")
         .find(".nc-cell > input")

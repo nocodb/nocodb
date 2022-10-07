@@ -2480,9 +2480,9 @@ class BaseModelSqlv2 {
             [...groupingValues].map((r) => {
               const query = qb.clone();
               if (r === null) {
-                query.whereNull(column.title);
+                query.whereNull(column.column_name);
               } else {
-                query.where(column.title, r);
+                query.where(column.column_name, r);
               }
 
               return this.isSqlite ? this.dbDriver.select().from(query) : query;

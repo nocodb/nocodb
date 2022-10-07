@@ -214,7 +214,7 @@ interface AllMeta {
   sharedBaseCount: number;
 }
 
-export async function allMeta(_req: Request, res: Response) {
+export async function getAggregatedMetaInfo(_req: Request, res: Response) {
   const result: AllMeta = {
     projectCount: 0,
     projects: [],
@@ -354,5 +354,8 @@ export default (router) => {
   router.get('/api/v1/health', catchError(appHealth));
   router.get('/api/v1/feedback_form', catchError(feedbackFormGet));
   router.post('/api/v1/url_to_config', catchError(urlToDbConfig));
-  router.get('/api/v1/all_meta', catchError(allMeta));
+  router.get(
+    '/api/v1/aggregated-meta-info',
+    ncMetaAclMw(getAggregatedMetaInfo, 'getAggregatedMetaInfo')
+  );
 };

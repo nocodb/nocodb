@@ -50,7 +50,7 @@ function verifyKanbanStackFooterCount(count) {
       .find(".nc-kanban-data-count")
       .should(
         "contain",
-        `${count[index]} record${count[index] > 1 ? "s" : ""}`
+        `${count[index]} record${count[index] !== 1 ? "s" : ""}`
       );
   });
 }

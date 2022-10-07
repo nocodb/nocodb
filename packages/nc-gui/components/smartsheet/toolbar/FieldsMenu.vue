@@ -51,7 +51,7 @@ const {
 watch(
   () => activeView.value?.id,
   async (newVal, oldVal) => {
-    if (newVal !== oldVal && meta.value) {
+    if (newVal && newVal !== oldVal && meta.value) {
       await loadViewColumns()
     }
   },

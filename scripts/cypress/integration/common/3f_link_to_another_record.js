@@ -183,8 +183,7 @@ export const genTest = (apiType, dbType) => {
       cy.openTableTab("Sheet2", 0);
 
       // Click on `Add new row` button
-      cy.get(".nc-add-new-row-btn:visible").should("exist");
-      cy.get(".nc-add-new-row-btn").click();
+      mainPage.addNewRowExpand("Sheet2");
 
       // Title
       cy.get(".nc-expand-col-Title")

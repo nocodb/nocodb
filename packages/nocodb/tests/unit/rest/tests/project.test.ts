@@ -261,7 +261,7 @@ function projectTest() {
       .get(`/api/v1/db/meta/projects/${project.id}/audits`)
       .set('xc-auth', context.token)
       .send()
-      .expect(200);
+      .expect(200)
   })
 
 
@@ -276,13 +276,30 @@ function projectTest() {
       .send({})
       .expect(200)
       .then(res => {
-        expect(res.body).to.have.all.keys('userCount', 'sharedBaseCount', 'projectCount','projects')
+        expect(res.body).to.have.all.keys(
+          'userCount',
+          'sharedBaseCount',
+          'projectCount',
+          'projects',
+        )
         expect(res.body).to.have.property('projectCount').to.eq(1)
         expect(res.body).to.have.property('projects').to.be.an('array')
         expect(res.body.projects[0].tableCount.table).to.be.eq(3)
         expect(res.body).to.have.nested.property('projects[0].tableCount.table').to.be.a('number')
         expect(res.body).to.have.nested.property('projects[0].tableCount.view').to.be.a('number')
-        expect(res.body).to.have.nested.property('projects[0].viewCount').to.be.an('object').have.keys('formCount', 'gridCount', 'galleryCount', 'kanbanCount', 'total', 'sharedFormCount', 'sharedGridCount', 'sharedGalleryCount', 'sharedKanbanCount', 'sharedTotal', 'sharedPasswordProtected')
+        expect(res.body).to.have.nested.property('projects[0].viewCount').to.be.an('object')
+          .have.keys(
+          'formCount',
+          'gridCount',
+          'galleryCount',
+          'kanbanCount',
+          'total',
+          'sharedFormCount',
+          'sharedGridCount',
+          'sharedGalleryCount',
+          'sharedKanbanCount',
+          'sharedTotal',
+          'sharedLockedCount')
         expect(res.body.projects[0]).have.keys(
           'webhookCount',
           'filterCount',
@@ -290,7 +307,7 @@ function projectTest() {
           'userCount',
           'rowCount',
           'tableCount',
-          'viewCount'
+          'viewCount',
         )
         expect(res.body).to.have.nested.property('projects[0].rowCount').to.be.an('array')
       })

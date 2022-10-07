@@ -14,10 +14,6 @@ const generateLinkWithPwd = () => {
 
   // enable checkbox & feed pwd, save
   cy.getActiveModal(".nc-modal-share-view")
-    .find(".ant-collapse")
-    .should("exist")
-    .click();
-  cy.getActiveModal(".nc-modal-share-view")
     .find(".ant-checkbox-input")
     .should("exist")
     .first()

@@ -12,24 +12,18 @@ const generateLinkWithPwd = () => {
     .contains("This view is shared via a private link")
     .should("be.visible");
 
-  // enable checkbox & feed pwd, save
   cy.getActiveModal(".nc-modal-share-view")
-    .find(".ant-checkbox-input")
+    .find(`[data-cy="nc-share-view-checkbox-password"]`)
     .should("exist")
-    .first()
-    .then(($el) => {
-      if (!$el.prop("checked")) {
-        cy.wrap($el).click({ force: true });
-        cy.getActiveModal(".nc-modal-share-view")
-          .find('input[type="password"]')
-          .clear()
-          .type("1");
-        cy.getActiveModal(".nc-modal-share-view")
-          .find('button:contains("Save password")')
-          .click();
-        cy.toastWait("Successfully updated");
-      }
-    });
+    .click();
+  cy.getActiveModal(".nc-modal-share-view")
+    .find('input[type="password"]')
+    .clear()
+    .type("1");
+  cy.getActiveModal(".nc-modal-share-view")
+    .find('button:contains("Save password")')
+    .click();
+  cy.toastWait("Successfully updated");
 
   // copy link text, visit URL
   cy.getActiveModal(".nc-modal-share-view")

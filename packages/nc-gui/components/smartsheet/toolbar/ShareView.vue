@@ -215,14 +215,21 @@ watch(passwordProtected, (value) => {
         <div class="px-1 flex flex-col gap-2">
           <div>
             <!-- Survey Mode; todo: i18n -->
-            <a-checkbox v-if="shared.type === ViewTypes.FORM" v-model:checked="surveyMode" class="!text-xs">
+            <a-checkbox
+              v-if="shared.type === ViewTypes.FORM"
+              v-model:checked="surveyMode"
+              class="!text-xs"
+              data-cy="nc-share-view-checkbox-survey"
+            >
               Use Survey Mode
             </a-checkbox>
           </div>
 
           <div>
             <!-- todo: i18n -->
-            <a-checkbox v-model:checked="viewTheme" class="!text-xs"> Use Theme </a-checkbox>
+            <a-checkbox v-model:checked="viewTheme" class="!text-xs" data-cy="nc-share-view-checkbox-theme">
+              Use Theme
+            </a-checkbox>
 
             <div v-if="viewTheme" class="flex pl-2">
               <LazyGeneralColorPicker
@@ -237,7 +244,9 @@ watch(passwordProtected, (value) => {
 
           <div>
             <!-- Password Protection -->
-            <a-checkbox v-model:checked="passwordProtected" class="!text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
+            <a-checkbox v-model:checked="passwordProtected" class="!text-xs" data-cy="nc-share-view-checkbox-password"
+              >{{ $t('msg.info.beforeEnablePwd') }}
+            </a-checkbox>
 
             <div v-if="passwordProtected" class="ml-6 flex gap-2 mt-2 mb-4">
               <a-input
@@ -256,7 +265,12 @@ watch(passwordProtected, (value) => {
 
           <div>
             <!-- Allow Download -->
-            <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="!text-xs">
+            <a-checkbox
+              v-if="shared && shared.type === ViewTypes.GRID"
+              v-model:checked="allowCSVDownload"
+              class="!text-xs"
+              data-cy="nc-share-view-checkbox-download"
+            >
               {{ $t('labels.downloadAllowed') }}
             </a-checkbox>
           </div>

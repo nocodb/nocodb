@@ -259,7 +259,6 @@ watch(view, async (nextView) => {
         :state="expandedFormRowState"
         :meta="meta"
         :view="view"
-        @update:model-value="!skipRowRemovalOnCancel && removeRowIfNew(expandedFormRow)"
       />
     </Suspense>
 

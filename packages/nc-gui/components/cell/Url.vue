@@ -28,9 +28,9 @@ const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
 
-const disableOverlay = inject(CellUrlDisableOverlayInj)
+const disableOverlay = inject(CellUrlDisableOverlayInj, ref(false))
 
-// Used in the logic of when to display error since we are not storing the url if its not valid
+// Used in the logic of when to display error since we are not storing the url if it's not valid
 const localState = ref(value)
 
 const vModel = computed({
@@ -72,7 +72,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-row items-center justify-between">
+  <div class="flex flex-row items-center justify-between w-full h-full">
     <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm w-full" @blur="editEnabled = false" />
 
     <nuxt-link

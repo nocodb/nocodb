@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { ActiveCellInj, CellValueInj, ColumnInj, RowInj, provide, toRef, useVirtualCell } from '#imports'
+import { ActiveCellInj, CellValueInj, ColumnInj, IsFormInj, RowInj, inject, provide, ref, toRef, useVirtualCell } from '#imports'
 import type { Row } from '~/lib'
 import { NavigateDir } from '~/lib'
 
@@ -22,14 +22,22 @@ provide(ActiveCellInj, active)
 provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
+
+function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
+  emit('navigate', dir)
+
+  if (!isForm.value) e.stopImmediatePropagation()
+}
 </script>
 
 <template>
   <div
     class="nc-virtual-cell w-full"
-    @keydown.stop.enter.exact="emit('navigate', NavigateDir.NEXT)"
-    @keydown.stop.shift.enter.exact="emit('navigate', NavigateDir.PREV)"
+    @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
+    @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
     <LazyVirtualCellHasMany v-if="isHm" />
     <LazyVirtualCellManyToMany v-else-if="isMm" />

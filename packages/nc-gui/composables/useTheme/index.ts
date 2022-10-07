@@ -16,7 +16,7 @@ export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
   /** set initial config */
   setTheme(config ?? currentTheme.value)
 
-  /** set theme (persists in localstorage) */
+  /** set theme */
   function setTheme(theme?: Partial<ThemeConfig>) {
     const themePrimary = theme?.primaryColor ? tinycolor(theme.primaryColor) : tinycolor(themeV2Colors['royal-blue'].DEFAULT)
     const themeAccent = theme?.accentColor ? tinycolor(theme.accentColor) : tinycolor(themeV2Colors.pink['500'])
@@ -28,8 +28,8 @@ export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
     accentColor.value = themeAccent.isValid() ? hexToRGB(themeAccent.toHex8String()) : hexToRGB(themeV2Colors.pink['500'])
 
     currentTheme.value = {
-      primaryColor: themePrimary.toHex8String().toUpperCase(),
-      accentColor: themeAccent.toHex8String().toUpperCase(),
+      primaryColor: themePrimary.toHex8String().toUpperCase().slice(0, -2),
+      accentColor: themeAccent.toHex8String().toUpperCase().slice(0, -2),
     }
 
     ConfigProvider.config({

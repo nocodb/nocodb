@@ -1,4 +1,4 @@
-import type { FilterType } from 'nocodb-sdk'
+import type { FilterType, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { ProjectRole, Role, TabType } from './enums'
@@ -69,4 +69,19 @@ export interface TabItem {
   id?: string
   viewTitle?: string
   viewId?: string
+}
+
+export interface SharedViewMeta extends Record<string, any> {
+  surveyMode?: boolean
+  withTheme?: boolean
+  theme?: Partial<ThemeConfig>
+  allowCSVDownload?: boolean
+}
+
+export interface SharedView {
+  uuid?: string
+  id: string
+  password?: string
+  type?: ViewTypes
+  meta: SharedViewMeta
 }

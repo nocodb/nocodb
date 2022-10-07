@@ -35,7 +35,7 @@ const readOnly = inject(ReadonlyInj, false)
 
 const isForm = inject(IsFormInj, ref(false))
 
-const isLocked = inject(IsLockedInj)
+const isLocked = inject(IsLockedInj, ref(false))
 
 const { isUIAllowed } = useUIPermission()
 

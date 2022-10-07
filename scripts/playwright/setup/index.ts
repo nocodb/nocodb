@@ -4,9 +4,9 @@ import { DashboardPage } from '../pages/Dashboard';
 
 const setup = async ({page}: {page: Page}) => {
   const response =  await axios.get('http://localhost:8080/api/v1/meta/test/reset');
-  console.log("setup:res:", response);
+
   if(response.status !== 200) {
-    console.error('Failed to reset test data', response);
+    console.error('Failed to reset test data', response.data);
     throw new Error('Failed to reset test data');
   }
   const token = response.data.token;

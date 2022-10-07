@@ -96,6 +96,61 @@ function dragAndDropKanbanStack(srcStack, dstStack) {
 
 let localDebug = false;
 
+function addOption(index, value) {
+  cy.getActiveMenu(".nc-dropdown-edit-column")
+    .find(".ant-btn-dashed")
+    .should("exist")
+    .click();
+  cy.get(".nc-dropdown-edit-column .nc-select-option").should(
+    "have.length",
+    index
+  );
+  cy.get(".nc-dropdown-edit-column .nc-select-option")
+    .last()
+    .find("input")
+    .click()
+    .type(value);
+}
+
+function editColumn() {
+  cy.get(`[data-title="Rating"]`).first().scrollIntoView();
+
+  cy.get(`th:contains("Rating") .nc-icon.ant-dropdown-trigger`)
+    .trigger("mouseover", { force: true })
+    .click({ force: true });
+
+  cy.getActiveMenu(".nc-dropdown-column-operations")
+    .find(".nc-column-edit")
+    .click();
+
+  cy.inputHighlightRenderWait();
+
+  // change column type and verify
+  cy.getActiveMenu(".nc-dropdown-edit-column")
+    .find(".nc-column-type-input")
+    .last()
+    .click()
+    .type("SingleSelect");
+  cy.getActiveSelection(".nc-dropdown-column-type")
+    .find(".ant-select-item-option")
+    .contains("SingleSelect")
+    .click();
+  cy.inputHighlightRenderWait();
+
+  addOption(1, "G");
+  addOption(2, "PG");
+  addOption(3, "PG-13");
+  addOption(4, "R");
+  addOption(5, "NC-17");
+
+  cy.getActiveMenu(".nc-dropdown-edit-column")
+    .find(".ant-btn-primary:visible")
+    .contains("Save")
+    .click();
+
+  cy.toastWait("Column updated");
+}
+
 // test suite
 //
 export const genTest = (apiType, dbType) => {
@@ -106,6 +161,17 @@ export const genTest = (apiType, dbType) => {
   describe(`${apiType.toUpperCase()} api - Kanban`, () => {
     before(() => {
       cy.restoreLocalStorage();
+
+      if (dbType === "postgres") {
+        cy.openTableTab("Film", 25);
+        // delete SQL views
+        // cy.deleteTable("NicerButSlowerFilmList");
+        // cy.deleteTable("FilmList");
+
+        // edit `rating` column: from custom DB type to single select
+        editColumn();
+        cy.closeTableTab("Film");
+      }
 
       clear = Cypress.LocalStorage.clear;
       Cypress.LocalStorage.clear = () => {};

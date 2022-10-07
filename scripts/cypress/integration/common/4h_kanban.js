@@ -365,6 +365,9 @@ export const genTest = (apiType, dbType) => {
       mainPage.unhideField("LanguageId", "kanban");
       mainPage.unhideField("Title", "kanban");
 
+      mainPage.filterReset();
+      mainPage.clearSort();
+
       cy.get(".nc-kanban-stack-head").last().scrollIntoView();
       cy.get(".nc-kanban-stack-head").last().click();
       cy.getActiveMenu(".nc-dropdown-kanban-stack-context-menu").should(
@@ -409,7 +412,7 @@ export const genTest = (apiType, dbType) => {
         "NC-17",
         "Test",
       ]);
-      verifyKanbanStackFooterCount([0, 4, 5, 8, 6, 6, 1]);
+      verifyKanbanStackCardCount([0, 25, 25, 25, 25, 25, 1]);
 
       mainPage.toggleShowSystemFields();
     });
@@ -422,7 +425,7 @@ export const genTest = (apiType, dbType) => {
       cy.get(".nc-expand-col-Title")
         .find(".nc-cell > input")
         .then(($el) => {
-          expect($el[0].value).to.have.string("BAREFOOT MANCHURIAN");
+          expect($el[0].value).to.have.string("ACE GOLDFINGER");
         });
       cy.get("body").type("{esc}");
     });
@@ -450,7 +453,7 @@ export const genTest = (apiType, dbType) => {
         "R",
         "NC-17",
       ]);
-      verifyKanbanStackFooterCount([1, 4, 5, 8, 6, 6]);
+      verifyKanbanStackCardCount([1, 25, 25, 25, 25, 25]);
     });
 
     it("Delete Kanban view", () => {

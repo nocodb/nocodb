@@ -116,20 +116,33 @@ export async function handleHttpWebHook(apiMeta, user, data) {
 
 export function axiosRequestMake(_apiMeta, _user, data) {
   const apiMeta = { ..._apiMeta };
+  // if it's a string try to parse and apply handlebar
+  // or if object then convert into JSON string and parse it
   if (apiMeta.body) {
     try {
-      apiMeta.body = JSON.parse(apiMeta.body, (_key, value) => {
-        return typeof value === 'string' ? parseBody(value, data) : value;
-      });
+      apiMeta.body = JSON.parse(
+        typeof apiMeta.body === 'string'
+          ? apiMeta.body
+          : JSON.stringify(apiMeta.body),
+        (_key, value) => {
+          return typeof value === 'string' ? parseBody(value, data) : value;
+        }
+      );
     } catch (e) {
+      // if string parsing failed then directly apply the handlebar
       apiMeta.body = parseBody(apiMeta.body, data);
     }
   }
   if (apiMeta.auth) {
     try {
-      apiMeta.auth = JSON.parse(apiMeta.auth, (_key, value) => {
-        return typeof value === 'string' ? parseBody(value, data) : value;
-      });
+      apiMeta.auth = JSON.parse(
+        typeof apiMeta.auth === 'string'
+          ? apiMeta.auth
+          : JSON.stringify(apiMeta.auth),
+        (_key, value) => {
+          return typeof value === 'string' ? parseBody(value, data) : value;
+        }
+      );
     } catch (e) {
       apiMeta.auth = parseBody(apiMeta.auth, data);
     }

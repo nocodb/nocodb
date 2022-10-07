@@ -16,7 +16,7 @@ const onClick = () => {
     <div
       v-e="['c:row:add:grid-top']"
       :class="{ 'group': !isLocked, 'disabled-ring': isLocked }"
-      class="nc-add-new-row-btn flex align-center"
+      class="nc-add-new-row-btn nc-toolbar-btn flex min-w-32px w-32px h-32px items-center"
     >
       <MdiPlusOutline
         :class="{ 'cursor-pointer text-gray-500 group-hover:(text-primary)': !isLocked, 'disabled': isLocked }"

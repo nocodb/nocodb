@@ -21,6 +21,7 @@ import {
   useRouter,
   useSidebar,
   useTabs,
+  useTheme,
   useUIPermission,
 } from '#imports'
 import { TabType } from '~/lib'
@@ -28,6 +29,8 @@ import { TabType } from '~/lib'
 definePageMeta({
   hideHeader: true,
 })
+
+const { theme } = useTheme()
 
 const { t } = useI18n()
 
@@ -336,6 +339,7 @@ onBeforeUnmount(reset)
                         <template #expandIcon></template>
 
                         <LazyGeneralColorPicker
+                          :model-value="theme.primaryColor"
                           :colors="projectThemeColors"
                           :row-size="9"
                           :advanced="false"

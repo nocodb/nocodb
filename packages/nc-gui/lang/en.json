@@ -293,6 +293,7 @@
     "documentation": "Documentation",
     "subscribeNewsletter": "Subscribe to our weekly newsletter",
     "signUpWithGoogle": "Sign up with Google",
+    "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!"
   },

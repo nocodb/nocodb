@@ -44,9 +44,7 @@ const options = computed<SelectProps['options']>(() =>
     })),
 )
 
-const filterOption = (input: string, option: any) => {
-  return option.value.toLowerCase()?.includes(input.toLowerCase())
-}
+const filterOption = (input: string, option: any) => option.label.toLowerCase()?.includes(input.toLowerCase())
 </script>
 
 <template>
@@ -58,7 +56,7 @@ const filterOption = (input: string, option: any) => {
     :filter-option="filterOption"
     dropdown-class-name="nc-dropdown-toolbar-field-list"
   >
-    <a-select-option v-for="option in options" :key="option.value" :value="option.value">
+    <a-select-option v-for="option in options" :key="option.value" :label="option.label" :value="option.value">
       <div class="flex gap-2 items-center items-center h-full">
         <component :is="option.icon" class="min-w-5 !mx-0" />
 
@@ -67,3 +65,9 @@ const filterOption = (input: string, option: any) => {
     </a-select-option>
   </a-select>
 </template>
+
+<style lang="scss">
+.ant-select-selection-search-input {
+  box-shadow: none !important;
+}
+</style>

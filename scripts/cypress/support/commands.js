@@ -174,7 +174,7 @@ Cypress.Commands.add("gridWait", (rc) => {
   if (rc != 0) {
     cy.get(".nc-grid-row").should("have.length", rc);
   }
-})
+});
 
 // tn: table name
 // rc: row count. validate row count if rc!=0
@@ -332,7 +332,9 @@ Cypress.Commands.add("createTable", (name) => {
   cy.getActiveModal(".nc-modal-table-create")
     .find("button.ant-btn-primary:visible")
     .click();
-  cy.get(".xc-row-table.nc-grid").should("exist");
+
+  cy.gridWait(0);
+
   cy.url().should("contain", `table/${name}`);
   cy.get(`.nc-project-tree-tbl-${name}`).should("exist");
 });

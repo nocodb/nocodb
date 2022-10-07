@@ -13,35 +13,17 @@ const generateLinkWithPwd = () => {
     .should("be.visible");
 
   // enable checkbox & feed pwd, save
-  cy.getActiveModal(".nc-modal-share-view")
-    .find(".ant-collapse")
-    .should("exist")
-    .click();
-  cy.getActiveModal(".nc-modal-share-view")
-    .find(".ant-checkbox-input")
-    .should("exist")
-    .first()
-    .then(($el) => {
-      if (!$el.prop("checked")) {
-        cy.wrap($el).click({ force: true });
-        cy.getActiveModal(".nc-modal-share-view")
-          .find('input[type="password"]')
-          .clear()
-          .type("1");
-        cy.getActiveModal(".nc-modal-share-view")
-          .find('button:contains("Save password")')
-          .click();
-        cy.toastWait("Successfully updated");
-      }
-    });
+  cy.get('[data-cy="nc-modal-share-view__with-password"]').click();
+  cy.get('[data-cy="nc-modal-share-view__password"]').clear().type('1')
+  cy.get('[data-cy="nc-modal-share-view__save-password"]').click();
+  cy.toastWait("Successfully updated");
 
   // copy link text, visit URL
-  cy.getActiveModal(".nc-modal-share-view")
-    .find(".nc-share-link-box")
-    .then(($obj) => {
-      linkText = $obj.text().trim();
-      cy.log(linkText);
-    });
+  cy.get('[data-cy="nc-modal-share-view__link"]').then(($el) => {
+    linkText = $el.text();
+    // todo: visit url?
+    cy.log(linkText);
+  })
 };
 
 export const genTest = (apiType, dbType) => {

@@ -161,6 +161,21 @@ export class _mainPage {
       });
   };
 
+  addNewRowExpand(table) {
+    cy.get(".nc-add-new-row-btn:visible").should("exist");
+    cy.get(".nc-add-new-row-btn").click();
+
+    // cy.wait(2000);
+    // cy.get(`.nc-tooltip-content:contains("Add new row")`).should("not.exist");
+
+    // 'Add new row' tooltip persists for a while; force click on header to make it disappear
+    cy.get(
+      `.nc-drawer-expanded-form .nc-expanded-form-header :contains("${table}")`
+    )
+      .should("exist")
+      .click({ force: true });
+  }
+
   // addExistingUserToProject = (emailId, role) => {
   //     cy.get('.v-list-item:contains("Team & Auth")').click();
   //     cy.get(`tr:contains(${emailId})`)

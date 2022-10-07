@@ -327,6 +327,22 @@ watch(
   },
   { immediate: true },
 )
+
+const tbodyEl = ref<HTMLElement>()
+
+watch([() => selected.row, () => selected.col], ([row, col]) => {
+  if (row !== null && col !== null) {
+    // get active cell
+    const td = tbodyEl.value?.querySelectorAll('tr')[row]?.querySelectorAll('td')[col + 1]
+    if (!td) return
+    // scroll into the active cell
+    td.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end',
+      inline: 'end',
+    })
+  }
+})
 </script>
 
 <template>
@@ -413,7 +429,7 @@ watch(
             </tr>
           </thead>
           <!-- this prevent select text from field if not in edit mode -->
-          <tbody @selectstart.prevent>
+          <tbody ref="tbodyEl" @selectstart.prevent>
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">

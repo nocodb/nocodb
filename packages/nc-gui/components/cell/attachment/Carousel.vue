@@ -55,7 +55,7 @@ onClickOutside(carouselRef, () => {
         </div>
 
         <div
-          class="select-none group hover:ring active:ring-accent ring-opactiy-100 cursor-pointer leading-8 inline-block px-3 py-1 bg-gray-300 text-white mb-4 text-center rounded shadow"
+          class="select-none group hover:(ring-1 ring-accent) ring-opacity-100 cursor-pointer leading-8 inline-block px-3 py-1 bg-gray-300 text-white mb-4 text-center rounded shadow"
           @click.stop="downloadFile(selectedImage)"
         >
           <h3 class="group-hover:text-primary">{{ selectedImage && selectedImage.title }}</h3>

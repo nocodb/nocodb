@@ -127,8 +127,7 @@ export const genTest = (apiType, dbType) => {
       isNewRow = false
     ) => {
       if (isNewRow) {
-        cy.get(".nc-add-new-row-btn:visible").should("exist");
-        cy.get(".nc-add-new-row-btn").click();
+        mainPage.addNewRowExpand("DurationTable");
       } else {
         // mainPage.getRow(index).find(".nc-row-expand-icon").click({ force: true });
         cy.get(".nc-row-expand")

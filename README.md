@@ -1,7 +1,10 @@
 <h1 align="center" style="border-bottom: none">
-    <b>
-        <a href="https://www.nocodb.com"><img src="/packages/nc-gui/public/icon.png" width="80" /><br>NocoDB</a><br>
-    </b>
+    <div>
+        <a href="https://www.nocodb.com">
+            <img src="/packages/nc-gui/assets/img/icons/512x512.png" width="80" /><br>
+            NocoDB
+        </a>
+    </div>
     The Open Source Airtable Alternative <br>
 </h1>
 
@@ -272,7 +275,7 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 
 - ⚡ &nbsp;Basic Operations: Create, Read, Update and Delete on Tables, Columns, and Rows
 - ⚡ &nbsp;Fields Operations: Sort, Filter, Hide / Unhide Columns
-- ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery and Form View
+- ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery, Form View and Kanban View
 - ⚡ &nbsp;View Permissions Types: Collaborative Views, & Locked Views 
 - ⚡ &nbsp;Share Bases / Views: either Public or Private (with Password Protected)
 - ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachement, Currency, Formula and etc
@@ -326,8 +329,8 @@ Our mission is to provide the most powerful no-code interface for databases whic
 
 # License 
 <p>
-This project is licensed under <a href="./LICENSE">AGPLv3</a>.</p>
-<br>
+This project is licensed under <a href="./LICENSE">AGPLv3</a>.
+</p>
 
 # Contributors
 [//]: contributor-faces

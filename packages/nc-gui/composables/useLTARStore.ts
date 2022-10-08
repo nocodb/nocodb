@@ -28,7 +28,12 @@ interface DataApiResponse {
 
 /** Store for managing Link to another cells */
 const [useProvideLTARStore, useLTARStore] = useInjectionState(
-  (column: Ref<Required<ColumnType>>, row: Ref<Row>, isNewRow: ComputedRef<boolean> | Ref<boolean>, reloadData = (showProgress?:boolean) => {}) => {
+  (
+    column: Ref<Required<ColumnType>>,
+    row: Ref<Row>,
+    isNewRow: ComputedRef<boolean> | Ref<boolean>,
+    reloadData = (_showProgress?: boolean) => {},
+  ) => {
     // state
     const { metas, getMeta } = useMetas()
 

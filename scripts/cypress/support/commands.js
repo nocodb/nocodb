@@ -315,7 +315,7 @@ Cypress.Commands.add("getActiveDrawer", (selector) => {
 
 Cypress.Commands.add("getActivePicker", (dropdownSelector) => {
   if (dropdownSelector) {
-    return cy.get(`${dropdownSelector}.ant-drawer-content:visible`).last();
+    return cy.get(`${dropdownSelector}.ant-picker-dropdown:visible`).last();
   }
   return cy.get(".ant-picker-dropdown :visible").last();
 });
@@ -535,6 +535,7 @@ function capitalizeFirstLetter(string) {
 // viewCreate
 //  : viewType: grid, gallery, kanban, form
 //  : creates view with default name
+//  : [fix-me] with name validation, works only first view creation of that category.
 //
 Cypress.Commands.add("viewCreate", (viewType) => {
   // click on 'Grid/Gallery/Form/Kanban' button on Views bar

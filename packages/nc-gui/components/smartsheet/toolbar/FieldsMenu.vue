@@ -49,16 +49,6 @@ const {
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
 watch(
-  () => activeView.value?.id,
-  async (newVal, oldVal) => {
-    if (newVal && newVal !== oldVal && meta.value) {
-      await loadViewColumns()
-    }
-  },
-  { immediate: true },
-)
-
-watch(
   sortedAndFilteredFields,
   (v) => {
     if (rootFields) rootFields.value = v || []

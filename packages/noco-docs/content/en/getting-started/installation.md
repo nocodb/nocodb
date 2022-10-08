@@ -412,6 +412,35 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 
 </details>
 
+### Cloudron
+
+<details>
+  <summary>Click to Expand</summary>
+  
+  #### Navigate to App Store
+
+  Log into Cloudron and select App Store
+
+  ![image](https://user-images.githubusercontent.com/35857179/194700146-aae90503-a8fd-4bc5-8397-39f0bc279606.png)
+
+  #### Search NocoDB
+
+  ![image](https://user-images.githubusercontent.com/35857179/194700181-b5303919-70b8-4cf8-bebe-7e75aca601f3.png)
+
+  #### Click Install
+
+  ![image](https://user-images.githubusercontent.com/35857179/194700192-d702f5c2-2afa-45c5-9823-4ebe9e141b01.png)
+
+  #### Configure NocoDB
+
+  ![image](https://user-images.githubusercontent.com/35857179/194700230-c35e934f-bd93-4948-8f31-935483b30571.png)
+
+  #### Go to My App and Launch NocoDB
+
+  ![image](https://user-images.githubusercontent.com/35857179/194700464-50098cb1-bf94-42bb-a63a-cc0aad671913.png)
+
+</details>
+
 
 ## Sample Demos
 

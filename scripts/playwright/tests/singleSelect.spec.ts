@@ -4,7 +4,7 @@ import { GridPage } from '../pages/Grid';
 import setup from '../setup';
 
 
-test.describe.serial('Single select', () => {
+test.describe('Single select', () => {
   let dashboard: DashboardPage, grid: GridPage;
   let context: any;
 

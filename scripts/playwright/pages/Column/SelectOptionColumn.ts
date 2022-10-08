@@ -1,4 +1,3 @@
-import { Page } from "@playwright/test";
 import { ColumnPageObject } from ".";
 
 export class SelectOptionColumnPageObject {
@@ -45,8 +44,6 @@ export class SelectOptionColumnPageObject {
     await this.column.page.dragAndDrop(`svg[data-pw="select-option-column-handle-icon-${sourceOption}"]`, `svg[data-pw="select-option-column-handle-icon-${destinationOption}"]`, {
       force: true,
     });
-
-    await this.column.page.waitForTimeout(150);
 
     await this.column.save({isUpdated: true});
   }

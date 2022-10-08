@@ -1,9 +1,11 @@
-import { Page } from '@playwright/test';
+import { Page, TestInfo } from '@playwright/test';
 import axios from 'axios';
 import { DashboardPage } from '../pages/Dashboard';
 
 const setup = async ({page}: {page: Page}) => {
-  const response =  await axios.get('http://localhost:8080/api/v1/meta/test/reset');
+  const response =  await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {
+    parallelId: process.env.TEST_PARALLEL_INDEX
+  });
 
   if(response.status !== 200) {
     console.error('Failed to reset test data', response.data);
@@ -21,7 +23,7 @@ const setup = async ({page}: {page: Page}) => {
     }
   }, { token: token });
 
-  const project = response.data.projects.find((project) => project.title === 'externalREST');
+  const project = response.data.project;
 
   await page.goto(`/#/nc/${project.id}/auth`);
 

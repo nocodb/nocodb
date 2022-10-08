@@ -626,7 +626,7 @@ export default class NcConfigFactory implements NcConfig {
     db: {
       client: 'sqlite3',
       connection: {
-        filename: process.env['TEST'] !== 'true' ? 'noco.db': 'test_noco.db',
+        filename: process.env['TEST'] !== 'true' ? 'noco.db' : 'test_noco.db',
       },
     },
   };

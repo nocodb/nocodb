@@ -17,8 +17,11 @@ export class GridPage {
   }
 
   async addNewRow({index = 0, title}: {index?: number, title?: string} = {}) {
+    const rowCount = await this.page.locator('.nc-grid-row').count();
     await this.page.locator('.nc-grid-add-new-cell').click();
-
+    if(rowCount + 1 !== await this.page.locator('.nc-grid-row').count()) {
+      await this.page.locator('.nc-grid-add-new-cell').click();
+    }
       // Double click td >> nth=1
     await this.page.locator('td[data-title="Title"]').nth(index).dblclick();
 
@@ -41,6 +44,7 @@ export class GridPage {
 
     // Click text=Delete Row
     await this.page.locator('text=Delete Row').click();
+    await this.page.locator('span.ant-dropdown-menu-title-content > nc-project-menu-item').waitFor({state: 'hidden'});
   }
 
 }

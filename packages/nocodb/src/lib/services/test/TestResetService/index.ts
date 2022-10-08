@@ -1,43 +1,77 @@
 import Noco from '../../../Noco';
 
 import Knex from 'knex';
-import NocoCache from '../../../cache/NocoCache';
+import axios from 'axios';
+import Project from '../../../models/Project';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
-import createProjects from './createProjects';
-import createUser from './createUser';
-import resetMeta from './resetMeta';
-import { isMysqlSakilaToBeReset, resetMysqlSakila } from './resetMysqlSakila';
+import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
+
+const loginRootUser = async () => {
+  const response = await axios.post(
+    'http://localhost:8080/api/v1/auth/user/signin',
+    { email: 'user@nocodb.com', password: 'Password123.' }
+  );
+
+  return response.data.token;
+};
+
+const projectTitleByType = {
+  sqlite3: 'sampleREST',
+};
 
 export class TestResetService {
   private knex: Knex | null = null;
-
-  constructor() {
+  private readonly parallelId;
+  constructor({ parallelId }: { parallelId: string }) {
     this.knex = Noco.ncMeta.knex;
+    this.parallelId = parallelId;
   }
 
   async process() {
     try {
-      await NcConnectionMgrv2.destroyAll();
+      const token = await loginRootUser();
 
-      // if (await isPgSakilaToBeReset()) {
-      //   await resetPgSakila();
-      // }
+      const { project } = await this.resetProject({
+        metaKnex: this.knex,
+        token,
+        type: 'sqlite3',
+        parallelId: this.parallelId,
+      });
 
-      if (await isMysqlSakilaToBeReset()) {
-        await resetMysqlSakila();
-      }
-
-      await resetMeta(this.knex);
-
-      await NocoCache.destroy();
-
-      const { token } = await createUser();
-      const projects = await createProjects(token);
-
-      return { token, projects };
+      return { token, project };
     } catch (e) {
-      console.error('cleanupMeta', e);
+      console.error('TestResetService:process', e);
       return { error: e };
     }
+  }
+
+  async resetProject({
+    metaKnex,
+    token,
+    type,
+    parallelId,
+  }: {
+    metaKnex: Knex;
+    token: string;
+    type: string;
+    parallelId: string;
+  }) {
+    const title = `${projectTitleByType[type]}${parallelId}`;
+    const project = await Project.getByTitle(title);
+
+    if (project) {
+      const bases = await project.getBases();
+      await Project.delete(project.id);
+
+      if (bases.length > 0) await NcConnectionMgrv2.deleteAwait(bases[0]);
+    }
+
+    if (type == 'sqlite3') {
+      await resetMetaSakilaSqliteProject({ token, metaKnex, title });
+    }
+
+    return {
+      project: await Project.getByTitle(title),
+    };
   }
 }

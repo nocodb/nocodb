@@ -43,6 +43,7 @@ import * as http from 'http';
 import weAreHiring from './utils/weAreHiring';
 import getInstance from './utils/getInstance';
 import initAdminFromEnv from './meta/api/userApi/initAdminFromEnv';
+import UserCreatorService from './services/user/UserCreatorService';
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -276,6 +277,20 @@ export default class Noco {
     });
     Tele.emit('evt_app_started', await User.count());
     weAreHiring();
+
+    if (process.env.TEST === 'true') {
+      if (!(await User.getByEmail('user@nocodb.com'))) {
+        const service = new UserCreatorService({
+          email: 'user@nocodb.com',
+          password: 'Password123.',
+          ignoreSubscribe: true,
+          clientInfo: {} as any,
+          nocoConfig: this.config,
+        });
+        await service.process();
+      }
+    }
+
     return this.router;
   }
 

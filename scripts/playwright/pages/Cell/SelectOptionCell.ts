@@ -21,7 +21,7 @@ export class SelectOptionCellPageObject {
 
     await this.cell.page.locator(`.nc-dropdown-single-select-cell`).nth(index).waitFor({state: 'hidden'});
     // todo: Remove this wait. Should be solved by adding pw-data-attribute with cell info to the a-select-option of the cell
-    await this.cell.page.waitForTimeout(200);
+    // await this.cell.page.waitForTimeout(200);
   }
 
   async clear({index, columnHeader, multiSelect}: {index: number, columnHeader: string, multiSelect?: boolean}) {
@@ -33,7 +33,8 @@ export class SelectOptionCellPageObject {
 
       for(let i = 0; i < optionCount; i++) {
         await this.cell.get({index, columnHeader}).locator('.ant-tag > .ant-tag-close-icon').first().click();
-        await this.cell.page.waitForTimeout(200);
+        // wait till number of options is less than before
+        await this.cell.get({index, columnHeader}).locator('.ant-tag').nth(optionCount - i - 1).waitFor({state: 'hidden'});
       }
       return
     }

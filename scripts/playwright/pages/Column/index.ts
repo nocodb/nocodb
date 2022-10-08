@@ -65,5 +65,7 @@ export class ColumnPageObject {
     await this.page.locator('button:has-text("Save")').click();
 
     await this.basePage.toastWait({message: isUpdated ? 'Column updated' : 'Column created'});
+    await this.page.locator('form[data-pw="add-or-edit-column"]').waitFor({state: 'hidden'});
+    await this.page.waitForTimeout(200);
   }
 }

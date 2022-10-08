@@ -4,7 +4,7 @@ import { GridPage } from '../pages/Grid';
 import setup from '../setup';
 
 
-test.describe.serial('Multi select', () => {
+test.describe('Multi select', () => {
   let dashboard: DashboardPage, grid: GridPage;
   let context: any;
 

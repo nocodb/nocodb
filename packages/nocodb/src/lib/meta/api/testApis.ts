@@ -1,13 +1,16 @@
 import { Request, Router } from 'express';
 import { TestResetService } from '../../services/test/TestResetService';
 
-export async function reset(_: Request<any, any>, res) {
-  const service = new TestResetService();
+export async function reset(req: Request<any, any>, res) {
+  console.log('resetting id', req.body);
+  const service = new TestResetService({
+    parallelId: req.body.parallelId,
+  });
 
   res.json(await service.process());
 }
 
 const router = Router({ mergeParams: true });
 
-router.get('/api/v1/meta/test/reset', reset);
+router.post('/api/v1/meta/test/reset', reset);
 export default router;

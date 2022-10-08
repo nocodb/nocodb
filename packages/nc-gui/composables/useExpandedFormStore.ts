@@ -147,6 +147,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           ltarState,
           getMeta,
           row: row.value.row,
+          throwError: true,
         })
 
         if (missingRequiredColumns.size) return

@@ -17,11 +17,13 @@ export async function populateInsertObject({
   row,
   meta,
   ltarState,
+  throwError,
 }: {
   meta: TableType
   ltarState: Record<string, any>
   getMeta: (tableIdOrTitle: string, force?: boolean) => Promise<TableType | TableInfoType | null>
   row: Record<string, any>
+  throwError?: boolean
 }) {
   const missingRequiredColumns = new Set()
   const insertObj = await meta.columns?.reduce(async (_o: Promise<any>, col) => {
@@ -55,6 +57,10 @@ export async function populateInsertObject({
 
     return o
   }, Promise.resolve({}))
+
+  if (throwError && missingRequiredColumns.size) {
+    throw new Error(`Missing required columns: ${[...missingRequiredColumns].join(', ')}`)
+  }
 
   return { missingRequiredColumns, insertObj }
 }

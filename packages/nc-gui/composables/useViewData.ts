@@ -204,7 +204,12 @@ export function useViewData(
     try {
       const { getMeta } = useMetas()
 
-      const { missingRequiredColumns, insertObj } = await populateInsertObject({ meta, ltarState, getMeta, row })
+      const { missingRequiredColumns, insertObj } = await populateInsertObject({
+        meta: meta.value!,
+        ltarState,
+        getMeta,
+        row,
+      })
 
       if (missingRequiredColumns.size) return
 

@@ -301,6 +301,7 @@ function projectTest() {
           'sharedTotal',
           'sharedLockedCount')
         expect(res.body.projects[0]).have.keys(
+          'external',
           'webhookCount',
           'filterCount',
           'sortCount',
@@ -310,6 +311,7 @@ function projectTest() {
           'viewCount',
         )
         expect(res.body).to.have.nested.property('projects[0].rowCount').to.be.an('array')
+        expect(res.body).to.have.nested.property('projects[0].external').to.be.an('boolean')
       })
   })
 }

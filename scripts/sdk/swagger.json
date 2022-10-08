@@ -5347,7 +5347,181 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "projectCount": {
+                      "type": "integer"
+                    },
+                    "projects": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tableCount": {
+                            "type": "object",
+                            "properties": {
+                              "table": {
+                                "type": "integer"
+                              },
+                              "view": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "external": {
+                            "type": "boolean"
+                          },
+                          "viewCount": {
+                            "type": "object",
+                            "properties": {
+                              "formCount": {
+                                "type": "integer"
+                              },
+                              "gridCount": {
+                                "type": "integer"
+                              },
+                              "galleryCount": {
+                                "type": "integer"
+                              },
+                              "kanbanCount": {
+                                "type": "integer"
+                              },
+                              "total": {
+                                "type": "integer"
+                              },
+                              "sharedFormCount": {
+                                "type": "integer"
+                              },
+                              "sharedGridCount": {
+                                "type": "integer"
+                              },
+                              "sharedGalleryCount": {
+                                "type": "integer"
+                              },
+                              "sharedKanbanCount": {
+                                "type": "integer"
+                              },
+                              "sharedTotal": {
+                                "type": "integer"
+                              },
+                              "sharedLockedCount": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "webhookCount": {
+                            "type": "integer"
+                          },
+                          "filterCount": {
+                            "type": "integer"
+                          },
+                          "sortCount": {
+                            "type": "integer"
+                          },
+                          "rowCount": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "TotalRecords": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "userCount": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "userCount": {
+                      "type": "integer"
+                    },
+                    "sharedBaseCount": {
+                      "type": "integer"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "projectCount": 1,
+                      "projects": [
+                        {
+                          "tableCount": {
+                            "table": 3,
+                            "view": 0
+                          },
+                          "external": false,
+                          "viewCount": {
+                            "formCount": 0,
+                            "gridCount": 3,
+                            "galleryCount": 0,
+                            "kanbanCount": 0,
+                            "total": 3,
+                            "sharedFormCount": 0,
+                            "sharedGridCount": 0,
+                            "sharedGalleryCount": 0,
+                            "sharedKanbanCount": 0,
+                            "sharedTotal": 0,
+                            "sharedLockedCount": 0
+                          },
+                          "webhookCount": 0,
+                          "filterCount": 0,
+                          "sortCount": 0,
+                          "rowCount": [
+                            {
+                              "TotalRecords": "76"
+                            }
+                          ],
+                          "userCount": 1
+                        }
+                      ],
+                      "userCount": 1,
+                      "sharedBaseCount": 0
+                    }
+                  }
+                },
+                "examples": {
+                  "example-1": {
+                    "value": {
+                      "projectCount": 1,
+                      "projects": [
+                        {
+                          "tableCount": {
+                            "table": 3,
+                            "view": 0
+                          },
+                          "external": false,
+                          "viewCount": {
+                            "formCount": 0,
+                            "gridCount": 3,
+                            "galleryCount": 0,
+                            "kanbanCount": 0,
+                            "total": 3,
+                            "sharedFormCount": 0,
+                            "sharedGridCount": 0,
+                            "sharedGalleryCount": 0,
+                            "sharedKanbanCount": 0,
+                            "sharedTotal": 0,
+                            "sharedLockedCount": 0
+                          },
+                          "webhookCount": 0,
+                          "filterCount": 0,
+                          "sortCount": 0,
+                          "rowCount": [
+                            {
+                              "TotalRecords": "76"
+                            }
+                          ],
+                          "userCount": 1
+                        }
+                      ],
+                      "userCount": 1,
+                      "sharedBaseCount": 0
+                    }
+                  }
+                }
               },
               "application/xml": {
                 "schema": {

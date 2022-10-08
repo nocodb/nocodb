@@ -6,7 +6,7 @@ category: 'Product'
 menuTitle: 'Team & Auth'
 ---
 
-# Accessing Team & Auth 
+## Accessing Team & Auth 
 - Click on `Team & Settings` from the `Project Menu` 
 - Access `Team & Auth` under `Settings`
   
@@ -42,7 +42,58 @@ If you do not have an SMTP sender configured, make sure to copy the invite link 
 ------
 
 
-# User Role Permissions
+## OpenID Connect authentication
+
+OpenID Connect (OIDC) is a simple identity layer built on top of the OAuth 2.0 protocol, which allows clients to verify the identity of an end-user based on the authentication performed by an authorization server or an identity provider (IdP), as well as to obtain basic profile information about the end-user.
+
+### User provisioning
+
+Unlike the Google login which requires a local user account to exist in advance, OIDC users are created automatically when they log in for the first time. It is important that you only assigned the users you wish to access in the application configured in your IdP.
+
+You may still use the users invivation to create an account for a user in advance, provided the email matches the user's email in your IdP.
+
+### Setup
+
+In your IdP, create a new application and register the allowed callback URL to be NocoDb's dashboard URL (e.g., `http://localhost:8000/dashboard`).
+
+Configure the following environment variables in your NocoDb instance (you could use `<Issuer URL>/.well-known/openid-configuration` to find the values):
+
+![OpenID Configuration JSON](https://user-images.githubusercontent.com/679761/194699139-65ad6c5b-fbce-48fa-8494-db58068e18a9.png)
+
+- `NC_OIDC_ISSUER`: The issuer URL. (`issuer`)
+- `NC_OIDC_AUTH_URL`: The authorization endpoint. (`authorization_endpoint`)
+- `NC_OIDC_TOKEN_URL`: The token exchange endpoint. (`token_endpoint`)
+- `NC_OIDC_USERINFO_URL`: The userinfo endpoint. (`device_authorization_endpoint`)
+- `NC_OIDC_CLIENT_ID`: the application's client id.
+- `NC_OIDC_CLIENT_SECRET`: the application's client secret.
+
+### Customization
+
+If you want to write your IdP's name instead of `Your Identity Provider`, set the `NC_OIDC_DISPLAY_NAME` environment variable.
+
+### IdP Configuration Examples
+
+#### Auth0
+
+Create a new *Regular Web Applications* application:
+
+![Auth0 application creation](https://user-images.githubusercontent.com/679761/194699261-151bd274-a771-48ed-9024-4a1fde26f7df.png)
+
+In the **Settings** tab, take a note of the *Domain* as `NC_OIDC_ISSUER`, *Client ID* as `NC_OIDC_CLIENT_ID` and *Client Secret* as `NC_OIDC_CLIENT_SECRET`:
+
+![Auth0 application values](https://user-images.githubusercontent.com/679761/194699258-2d4df10f-a7e7-4645-a91a-d3c55c5e5f1b.png)
+
+Using the `openid-coniguration` url from above, fill `NC_OIDC_AUTH_URL`, `NC_OIDC_TOKEN_URL` and `NC_OIDC_USERINFO_URL` as well.
+
+Under the *Application URIs* section, add your dashboard URL in *Allowed Callback URLs*:
+
+![Auth0 callback URLs](https://user-images.githubusercontent.com/679761/194699256-4a5f61d8-00be-4d7f-98d7-4845378bd197.png)
+
+
+------
+
+
+## User Role Permissions
 
 ### Advanced Options & Configurations
 | &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; Owner &nbsp; &nbsp;| &nbsp; &nbsp; Creator &nbsp; &nbsp; | &nbsp; &nbsp; Editor &nbsp; &nbsp;| Commenter | &nbsp; &nbsp; Viewer &nbsp; &nbsp;|

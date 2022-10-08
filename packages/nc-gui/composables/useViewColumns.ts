@@ -206,11 +206,15 @@ export function useViewColumns(
   })
 
   // reload view columns when table meta changes
-  watch(() => view?.value?.id, async (newVal) => {
-    if (newVal) {
-      await loadViewColumns()
-    }
-  }, { immediate: true })
+  watch(
+    () => view?.value?.id,
+    async (newVal) => {
+      if (newVal) {
+        await loadViewColumns()
+      }
+    },
+    { immediate: true },
+  )
 
   return {
     fields,

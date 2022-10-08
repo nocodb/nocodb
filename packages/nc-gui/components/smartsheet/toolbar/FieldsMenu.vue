@@ -39,7 +39,6 @@ const {
   showSystemFields,
   sortedAndFilteredFields,
   fields,
-  loadViewColumns,
   filteredFieldList,
   filterQuery,
   showAll,

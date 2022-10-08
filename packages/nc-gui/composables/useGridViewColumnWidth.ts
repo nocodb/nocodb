@@ -52,7 +52,7 @@ export function useGridViewColumnWidth(view: Ref<GridType | undefined>) {
 
   /** when columns changes(create/delete) reload grid columns
    * or when view changes reload columns width  */
-  watch([() => columns.value?.length, () => view?.value?.id ], loadGridViewColumns)
+  watch([() => columns.value?.length, () => view?.value?.id], loadGridViewColumns)
 
   const updateWidth = async (id: string, width: string) => {
     if (gridViewCols?.value?.[id]) {

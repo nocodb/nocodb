@@ -85,8 +85,7 @@ const filterAutoSaveLoc = computed({
         @update:filters-length="filtersLength = $event"
       >
         <div v-if="!isPublic" class="flex items-end mt-2 min-h-[30px]" @click.stop>
-          <a-checkbox id="col-filter-checkbox" v-model:checked="filterAutoSaveLoc" class="col-filter-checkbox"
-                      hide-details dense>
+          <a-checkbox id="col-filter-checkbox" v-model:checked="filterAutoSaveLoc" class="col-filter-checkbox" hide-details dense>
             <span class="text-grey text-xs">
               {{ $t('msg.info.filterAutoApply') }}
               <!-- Auto apply -->

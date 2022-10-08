@@ -97,7 +97,7 @@ function resetError() {
           {{ $t('msg.info.signUp.superAdmin') }}
         </h2>
 
-        <a-form v-if="appInfo.oidcAuthName == ''" ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
+        <a-form v-if="!appInfo.oidcAuthName" ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center">
@@ -160,7 +160,7 @@ function resetError() {
         </a-form>
 
         <div
-          v-if="appInfo.oidcAuthName != ''"
+          v-if="appInfo.oidcAuthName"
           class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
             <a
               :href="`${appInfo.ncSiteUrl}/auth/oidc`"

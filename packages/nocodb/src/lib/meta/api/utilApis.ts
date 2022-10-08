@@ -35,7 +35,7 @@ export async function appInfo(req: Request, res: Response) {
     process.env.NC_OIDC_CLIENT_ID &&
     process.env.NC_OIDC_CLIENT_SECRET) ?
       ( process.env.NC_OIDC_DISPLAY_NAME ?? 'Your Identity Provider' ) :
-      '';
+      null;
   const result = {
     authType: 'jwt',
     projectHasAdmin,

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Draggable from 'vuedraggable'
 import { Empty } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/lib/checkbox/interface'
@@ -64,9 +65,10 @@ async function loadMetaDiff() {
   }
 }
 
-const baseAction = (baseId: string, action: string) => {
+const baseAction = (baseId?: string, action?: string) => {
+  if (!baseId) return
   activeBaseId = baseId
-  vState.value = action
+  vState.value = action || ''
 }
 
 const deleteBase = (base: BaseType) => {
@@ -107,22 +109,26 @@ const toggleBase = async (base: BaseType, e: CheckboxChangeEvent) => {
   }
 }
 
-const moveBase = async (base: BaseType, direction: 'up' | 'down') => {
+const moveBase = async (e: any) => {
   try {
-    if (!base.order) {
-      // empty update call to reorder bases (migration)
-      await $api.base.update(base.project_id as string, base.id as string, {
-        id: base.id,
-        project_id: base.project_id,
-      })
-      message.info('Bases are migrated. Please try again.')
-    } else {
-      direction === 'up' ? base.order-- : base.order++
-      await $api.base.update(base.project_id as string, base.id as string, {
-        id: base.id,
-        project_id: base.project_id,
-        order: base.order,
-      })
+    if (e.oldIndex === e.newIndex) return
+    // sources list is mutated so we have to get the new index and mirror it to backend
+    const base = sources[e.newIndex]
+    if (base) {
+      if (!base.order) {
+        // empty update call to reorder bases (migration)
+        await $api.base.update(base.project_id as string, base.id as string, {
+          id: base.id,
+          project_id: base.project_id,
+        })
+        message.info('Bases are migrated. Please try again.')
+      } else {
+        await $api.base.update(base.project_id as string, base.id as string, {
+          id: base.id,
+          project_id: base.project_id,
+          order: e.newIndex + 1,
+        })
+      }
     }
     await loadProject()
     await loadBases()
@@ -174,104 +180,157 @@ watch(
 
 <template>
   <div class="flex flex-row w-full">
-    <div class="flex flex-col w-full">
-      <div v-if="vState === ''" class="max-h-600px overflow-y-auto">
-        <a-table
-          class="w-full"
-          size="small"
-          :custom-row="
-            (record) => ({
-              class: `nc-datasource-row nc-datasource-row-${record.table_name}`,
-            })
-          "
-          :data-source="sources ?? []"
-          :pagination="false"
-          :loading="vReload"
-          bordered
-        >
-          <template #emptyText> <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" /> </template>
-          <a-table-column key="enabled" data-index="enabled" :width="30">
-            <template #default="{ record }">
-              <div v-if="!record.is_meta" class="flex items-center gap-1">
-                <a-tooltip>
-                  <template #title>Show in UI</template>
-                  <a-checkbox :checked="record.enabled ? true : false" @change="toggleBase(record, $event)"></a-checkbox>
-                </a-tooltip>
+    <div class="flex flex-col w-full overflow-auto">
+      <div v-if="vState === ''" class="max-h-600px min-w-1200px overflow-y-auto">
+        <div class="ds-table-head">
+          <div class="ds-table-row">
+            <div class="ds-table-col ds-table-enabled"></div>
+            <div class="ds-table-col ds-table-name">Name</div>
+            <div class="ds-table-col ds-table-actions">Actions</div>
+          </div>
+        </div>
+        <div class="ds-table-body">
+          <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
+            <template #header>
+              <div v-if="sources[0]" class="ds-table-row border-gray-200">
+                <div class="ds-table-col ds-table-enabled"></div>
+
+                <div class="ds-table-col ds-table-name">
+                  <div class="flex items-center gap-1">
+                    <GeneralBaseLogo :base-type="sources[0].type" />
+                    BASE
+                    <span class="text-gray-400 text-xs">({{ sources[0].type }})</span>
+                  </div>
+                </div>
+
+                <div class="ds-table-col ds-table-actions">
+                  <div class="flex items-center gap-2">
+                    <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="baseAction(sources[0].id, DataSourcesSubTab.Metadata)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600 font-light">
+                        <a-tooltip v-if="metadiffbases.includes(sources[0].id as string)">
+                          <template #title>Out of sync</template>
+                          <MdiDatabaseAlert class="text-lg group-hover:text-accent text-primary" />
+                        </a-tooltip>
+                        <MdiDatabaseSync v-else class="text-lg group-hover:text-accent" />
+                        Sync Metadata
+                      </div>
+                    </a-button>
+                    <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="baseAction(sources[0].id, DataSourcesSubTab.UIAcl)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600 font-light">
+                        <MdiDatabaseLockOutline class="text-lg group-hover:text-accent" />
+                        UI ACL
+                      </div>
+                    </a-button>
+                    <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="baseAction(sources[0].id, DataSourcesSubTab.ERD)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600 font-light">
+                        <MdiGraphOutline class="text-lg group-hover:text-accent" />
+                        ERD
+                      </div>
+                    </a-button>
+                    <a-button
+                      v-if="!sources[0].is_meta"
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600 font-light">
+                        <MdiEditOutline class="text-lg group-hover:text-accent" />
+                        Edit
+                      </div>
+                    </a-button>
+                    <a-button
+                      v-if="!sources[0].is_meta"
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="deleteBase(sources[0])"
+                    >
+                      <div class="flex items-center gap-2 text-red-500 font-light">
+                        <MdiDeleteOutline class="text-lg group-hover:text-accent" />
+                        Delete
+                      </div>
+                    </a-button>
+                  </div>
+                </div>
               </div>
             </template>
-          </a-table-column>
-          <a-table-column key="order" width="60px">
-            <template #default="{ record, index }">
-              <div class="flex items-center gap-1 text-gray-600 font-light">
-                <MdiArrowUpBox
-                  v-if="!record.is_meta && index !== 1"
-                  class="text-lg group-hover:text-accent"
-                  @click="moveBase(record, 'up')"
-                />
-                <MdiArrowDownBox
-                  v-if="!record.is_meta && index !== sources.length - 1"
-                  class="text-lg group-hover:text-accent"
-                  @click="moveBase(record, 'down')"
-                />
-              </div>
-            </template>
-          </a-table-column>
-          <a-table-column key="alias" title="Name" data-index="alias">
-            <template #default="{ text, record }">
-              <div class="flex items-center gap-1">
-                <GeneralBaseLogo :base-type="record.type" />
-                {{ record.is_meta ? 'BASE' : text }} <span class="text-gray-400 text-xs">({{ record.type }})</span>
-              </div>
-            </template>
-          </a-table-column>
-          <a-table-column key="action" :title="$t('labels.actions')" :width="180">
-            <template #default="{ record }">
-              <div class="flex items-center gap-2">
-                <a-button
-                  class="nc-action-btn cursor-pointer outline-0"
-                  @click="baseAction(record.id, DataSourcesSubTab.Metadata)"
-                >
-                  <div class="flex items-center gap-2 text-gray-600 font-light">
-                    <a-tooltip v-if="metadiffbases.includes(record.id)">
-                      <template #title>Out of sync</template>
-                      <MdiDatabaseAlert class="text-lg group-hover:text-accent text-primary" />
+            <template #item="{ element: base, index }">
+              <div v-if="index !== 0" class="ds-table-row border-gray-200">
+                <div class="ds-table-col ds-table-enabled">
+                  <MdiDragVertical small class="ds-table-handle" />
+                  <div v-if="!base.is_meta" class="flex items-center gap-1">
+                    <a-tooltip>
+                      <template #title>Show in UI</template>
+                      <a-checkbox :checked="base.enabled ? true : false" @change="toggleBase(base, $event)"></a-checkbox>
                     </a-tooltip>
-                    <MdiDatabaseSync v-else class="text-lg group-hover:text-accent" />
-                    Sync Metadata
                   </div>
-                </a-button>
-                <a-button class="nc-action-btn cursor-pointer outline-0" @click="baseAction(record.id, DataSourcesSubTab.UIAcl)">
-                  <div class="flex items-center gap-2 text-gray-600 font-light">
-                    <MdiDatabaseLockOutline class="text-lg group-hover:text-accent" />
-                    UI ACL
+                </div>
+
+                <div class="ds-table-col ds-table-name">
+                  <div class="flex items-center gap-1">
+                    <GeneralBaseLogo :base-type="base.type" />
+                    {{ base.is_meta ? 'BASE' : base.alias }} <span class="text-gray-400 text-xs">({{ base.type }})</span>
                   </div>
-                </a-button>
-                <a-button class="nc-action-btn cursor-pointer outline-0" @click="baseAction(record.id, DataSourcesSubTab.ERD)">
-                  <div class="flex items-center gap-2 text-gray-600 font-light">
-                    <MdiGraphOutline class="text-lg group-hover:text-accent" />
-                    ERD
+                </div>
+
+                <div class="ds-table-col ds-table-actions">
+                  <div class="flex items-center gap-2">
+                    <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="baseAction(base.id, DataSourcesSubTab.Metadata)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600 font-light">
+                        <a-tooltip v-if="metadiffbases.includes(base.id as string)">
+                          <template #title>Out of sync</template>
+                          <MdiDatabaseAlert class="text-lg group-hover:text-accent text-primary" />
+                        </a-tooltip>
+                        <MdiDatabaseSync v-else class="text-lg group-hover:text-accent" />
+                        Sync Metadata
+                      </div>
+                    </a-button>
+                    <a-button
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="baseAction(base.id, DataSourcesSubTab.UIAcl)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600 font-light">
+                        <MdiDatabaseLockOutline class="text-lg group-hover:text-accent" />
+                        UI ACL
+                      </div>
+                    </a-button>
+                    <a-button class="nc-action-btn cursor-pointer outline-0" @click="baseAction(base.id, DataSourcesSubTab.ERD)">
+                      <div class="flex items-center gap-2 text-gray-600 font-light">
+                        <MdiGraphOutline class="text-lg group-hover:text-accent" />
+                        ERD
+                      </div>
+                    </a-button>
+                    <a-button
+                      v-if="!base.is_meta"
+                      class="nc-action-btn cursor-pointer outline-0"
+                      @click="baseAction(base.id, DataSourcesSubTab.Edit)"
+                    >
+                      <div class="flex items-center gap-2 text-gray-600 font-light">
+                        <MdiEditOutline class="text-lg group-hover:text-accent" />
+                        Edit
+                      </div>
+                    </a-button>
+                    <a-button v-if="!base.is_meta" class="nc-action-btn cursor-pointer outline-0" @click="deleteBase(base)">
+                      <div class="flex items-center gap-2 text-red-500 font-light">
+                        <MdiDeleteOutline class="text-lg group-hover:text-accent" />
+                        Delete
+                      </div>
+                    </a-button>
                   </div>
-                </a-button>
-                <a-button
-                  v-if="!record.is_meta"
-                  class="nc-action-btn cursor-pointer outline-0"
-                  @click="baseAction(record.id, DataSourcesSubTab.Edit)"
-                >
-                  <div class="flex items-center gap-2 text-gray-600 font-light">
-                    <MdiEditOutline class="text-lg group-hover:text-accent" />
-                    Edit
-                  </div>
-                </a-button>
-                <a-button v-if="!record.is_meta" class="nc-action-btn cursor-pointer outline-0" @click="deleteBase(record)">
-                  <div class="flex items-center gap-2 text-red-500 font-light">
-                    <MdiDeleteOutline class="text-lg group-hover:text-accent" />
-                    Delete
-                  </div>
-                </a-button>
+                </div>
               </div>
             </template>
-          </a-table-column>
-        </a-table>
+          </Draggable>
+        </div>
       </div>
       <div v-else-if="vState === DataSourcesSubTab.New" class="max-h-600px overflow-y-auto">
         <CreateBase :connection-type="clientType" @base-created="loadBases" />
@@ -291,3 +350,41 @@ watch(
     </div>
   </div>
 </template>
+
+<style>
+.ds-table-head {
+  @apply flex items-center border-t bg-gray-100 font-bold text-gray-500;
+}
+
+.ds-table-body {
+  @apply flex flex-col;
+}
+
+.ds-table-row {
+  @apply grid grid-cols-20 border-b w-full h-full border-l border-r;
+}
+
+.ds-table-col {
+  @apply flex items-center p-3 border-r-1 mr-2 h-50px;
+}
+
+.ds-table-enabled {
+  @apply col-span-1 w-full flex gap-2;
+}
+
+.ds-table-name {
+  @apply col-span-9;
+}
+
+.ds-table-actions {
+  @apply col-span-10;
+}
+
+.ds-table-col:last-child {
+  @apply border-r-0;
+}
+
+.ds-table-handle {
+  @apply cursor-pointer justify-self-start;
+}
+</style>

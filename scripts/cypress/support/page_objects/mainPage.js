@@ -47,7 +47,10 @@ export class _settingsPage {
   }
 
   closeMenu() {
-    cy.getActiveModal().find(".nc-modal-close").click({ force: true });
+    cy.getActiveModal()
+      .find(".nc-modal-close")
+      .scrollIntoView()
+      .click({ force: true });
   }
 
   openProjectMenu() {

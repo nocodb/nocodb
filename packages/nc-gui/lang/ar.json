@@ -293,8 +293,8 @@
     "commentsOnly": "التعليقات فقط",
     "documentation": "الوثائق",
     "subscribeNewsletter": "اشترك في نشرتنا الإخبارية الأسبوعية",
-    "signUpWithGoogle": "التسجيل بواسطة Google",
-    "signInWithGoogle": "Sign in with Google",
+    "signUpWithProvider": "التسجيل بواسطة {provider}",
+    "signInWithProvider": "Sign in with {provider}",
     "agreeToTos": "بالتسجيل، أنت توافق على شروط الخدمة",
     "welcomeToNc": "مرحبا بكم في NocoDB!"
   },

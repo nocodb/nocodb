@@ -37,7 +37,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const { allRoles } = useRoles()
 
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
-  if (!state.signedIn && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
+  if (!state.signedIn) await tryLoginCallback(api, state.signIn)
 
   /** if public allow all visitors */
   if (to.meta.public) return
@@ -86,15 +86,21 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 })
 
 /**
- * If present, try using google auth data to sign user in before navigating to the next page
+ * If present, try using the auth data to sign user in before navigating to the next page
  */
-async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
+async function tryLoginCallback(api: Api<any>, signIn: Actions['signIn']) {
   if (window.location.search && /\bscope=|\bstate=/.test(window.location.search) && /\bcode=/.test(window.location.search)) {
     try {
+      let authProvider = 'google';
+      if (window.location.search.includes('state=github')) {
+        authProvider = 'github';
+      } else if (window.location.search.includes('state=oidc')) {
+        authProvider = 'oidc';
+      }
       const {
         data: { token },
       } = await api.instance.post(
-        `/auth/${window.location.search.includes('state=github') ? 'github' : 'google'}/genTokenByCode${window.location.search}`,
+        `/auth/${authProvider}/genTokenByCode${window.location.search}`,
       )
 
       signIn(token)

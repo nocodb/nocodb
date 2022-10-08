@@ -74,7 +74,7 @@ function resetError() {
 
         <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 
-        <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signIn">
+        <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signIn" v-if="appInfo.oidcAuthName == ''">
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center">
@@ -134,7 +134,7 @@ function resetError() {
               <span class="flex items-center gap-2">
                 <LogosGoogleGmail />
 
-                {{ $t('labels.signInWithGoogle') }}
+                {{ $t('labels.signInWithProvider', { provider: 'Google' }) }}
               </span>
             </a>
 
@@ -150,6 +150,22 @@ function resetError() {
             </div>
           </div>
         </a-form>
+        <div
+          v-if="appInfo.oidcAuthName != ''"
+          class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
+            <a
+              :href="`${appInfo.ncSiteUrl}/auth/oidc`"
+              class=" !text-primary !no-underline"
+            >
+            <button type="button" class="scaling-btn bg-opacity-100">
+              <span class="flex items-center gap-2">
+                <MdiLogin />
+
+                {{ $t('labels.signInWithProvider', { provider: appInfo.oidcAuthName }) }}
+              </span>
+            </button>
+          </a>
+        </div>
       </div>
     </div>
   </NuxtLayout>

@@ -293,8 +293,8 @@
     "commentsOnly": "仅注释",
     "documentation": "文档",
     "subscribeNewsletter": "订阅我们的每周新闻",
-    "signUpWithGoogle": "使用 Google 注册",
-    "signInWithGoogle": "使用 Google 登录",
+    "signUpWithProvider": "使用 {provider} 注册",
+    "signInWithProvider": "使用 {provider} 登录",
     "agreeToTos": "注册即表明您同意服务条款",
     "welcomeToNc": "欢迎来到NocoDB！"
   },

@@ -244,6 +244,24 @@ async function googleSignin(req, res, next) {
   )(req, res, next);
 }
 
+async function oidcSignin(req, res, next) {
+  passport.authenticate(
+    'openidconnect',
+    {
+      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
+    },
+    async (err, user, info): Promise<any> =>
+      await successfulSignIn({
+        user,
+        err,
+        info,
+        req,
+        res,
+        auditDescription: 'signed in using OpenID Connect',
+      })
+  )(req, res, next);
+}
+
 function setTokenCookie(res, token): void {
   // create http only cookie with refresh token that expires in 7 days
   const cookieOptions = {
@@ -512,6 +530,15 @@ const mapRoutes = (router) => {
       callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
     })(req, res, next)
   );
+
+  /* OpenID Connect APIs */
+  router.post('/auth/oidc/genTokenByCode', catchError(oidcSignin));
+  router.get('/auth/oidc', (req: any, res, next) =>
+    passport.authenticate('openidconnect', {
+      scope: ['profile', 'email'],
+      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
+    })(req, res, next)
+  )
 
   // deprecated APIs
   router.post('/api/v1/db/auth/user/signup', catchError(signup));

@@ -19,6 +19,7 @@ export interface AppInfo {
   firstUser: boolean
   githubAuthEnabled: boolean
   googleAuthEnabled: boolean
+  oidcAuthName: string | null
   ncMin: boolean
   oneClick: boolean
   projectHasAdmin: boolean

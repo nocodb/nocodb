@@ -293,8 +293,8 @@
     "commentsOnly": "Nur Kommentare",
     "documentation": "Dokumentation",
     "subscribeNewsletter": "Abonnieren Sie unseren wöchentlichen Newsletter",
-    "signUpWithGoogle": "Sign up with Google",
-    "signInWithGoogle": "Sign in with Google",
+    "signUpWithProvider": "Sign up with {provider}",
+    "signInWithProvider": "Sign in with {provider}",
     "agreeToTos": "Mit Ihrer Anmeldung stimmen Sie den allgemeinen Nutzungsbedingungen zu",
     "welcomeToNc": "Willkommen bei NocoDB!"
   },

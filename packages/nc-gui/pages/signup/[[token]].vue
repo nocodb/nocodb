@@ -97,7 +97,7 @@ function resetError() {
           {{ $t('msg.info.signUp.superAdmin') }}
         </h2>
 
-        <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
+        <a-form v-if="appInfo.oidcAuthName == ''" ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center">
@@ -138,7 +138,7 @@ function resetError() {
               <span class="flex items-center gap-2">
                 <LogosGoogleGmail />
 
-                {{ $t('labels.signUpWithGoogle') }}
+                {{ $t('labels.signUpWithProvider', { provider: 'Google' }) }}
               </span>
             </a>
 
@@ -158,6 +158,23 @@ function resetError() {
             </div>
           </div>
         </a-form>
+
+        <div
+          v-if="appInfo.oidcAuthName != ''"
+          class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
+            <a
+              :href="`${appInfo.ncSiteUrl}/auth/oidc`"
+              class=" !text-primary !no-underline"
+            >
+            <button type="button" class="scaling-btn bg-opacity-100">
+              <span class="flex items-center gap-2">
+                <MdiLogin />
+
+                {{ $t('labels.signUpWithProvider', { provider: appInfo.oidcAuthName }) }}
+              </span>
+            </button>
+          </a>
+        </div>
       </div>
 
       <div class="prose-sm mt-4 text-gray-500">

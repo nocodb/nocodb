@@ -28,6 +28,14 @@ export async function testConnection(req: Request, res: Response) {
 
 export async function appInfo(req: Request, res: Response) {
   const projectHasAdmin = !(await User.isFirst());
+  const oidcAuthName = !!(process.env.NC_OIDC_ISSUER &&
+    process.env.NC_OIDC_AUTH_URL &&
+    process.env.NC_OIDC_TOKEN_URL &&
+    process.env.NC_OIDC_USERINFO_URL &&
+    process.env.NC_OIDC_CLIENT_ID &&
+    process.env.NC_OIDC_CLIENT_SECRET) ?
+      ( process.env.NC_OIDC_DISPLAY_NAME ?? 'Your Identity Provider' ) :
+      '';
   const result = {
     authType: 'jwt',
     projectHasAdmin,
@@ -40,6 +48,7 @@ export async function appInfo(req: Request, res: Response) {
     githubAuthEnabled: !!(
       process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET
     ),
+    oidcAuthName,
     oneClick: !!process.env.NC_ONE_CLICK,
     connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
     version: packageVersion,

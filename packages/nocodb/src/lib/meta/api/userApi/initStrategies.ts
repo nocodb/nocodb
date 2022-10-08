@@ -6,7 +6,9 @@ import passport from 'passport';
 import passportJWT from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as OidcStrategy } from '@techpass/passport-openidconnect';
 import { randomTokenString } from '../../helpers/stringHelpers';
+import { v4 as uuidv4 } from 'uuid';
 
 const PassportLocalStrategy = require('passport-local').Strategy;
 const ExtractJwt = passportJWT.ExtractJwt;
@@ -290,6 +292,100 @@ export function initStrategies(router): void {
       passport.use(googleStrategy);
     }
   });
+
+  // OpenID Connect
+  if (
+    process.env.NC_OIDC_ISSUER &&
+    process.env.NC_OIDC_AUTH_URL &&
+    process.env.NC_OIDC_TOKEN_URL &&
+    process.env.NC_OIDC_USERINFO_URL &&
+    process.env.NC_OIDC_CLIENT_ID &&
+    process.env.NC_OIDC_CLIENT_SECRET
+  ) {
+    const clientConfig = {
+      passReqToCallback: true,
+      issuer: process.env.NC_OIDC_ISSUER,
+      authorizationURL: process.env.NC_OIDC_AUTH_URL,
+      tokenURL: process.env.NC_OIDC_TOKEN_URL,
+      userInfoURL: process.env.NC_OIDC_USERINFO_URL,
+      clientID: process.env.NC_OIDC_CLIENT_ID,
+      clientSecret: process.env.NC_OIDC_CLIENT_SECRET,
+      scope: ['profile', 'email'],
+      store: {
+        store: async (_req, meta, callback) => {
+          const handle = `oidc|${uuidv4()}`;
+
+          const state = { handle };
+          for (let key in meta) {
+            state[key] = meta[key];
+          }
+
+          NocoCache.set(`${CacheScope.LOGIN}:${handle}`, state).then(
+            () => callback(null, handle)
+          ).catch(err => callback(err));
+        },
+        verify: (_req, providedState, callback) => {
+          const key = `${CacheScope.LOGIN}:${providedState}`;
+          NocoCache.get(key, CacheGetType.TYPE_OBJECT).then(
+            async state => {
+              if (!state) {
+                return callback(null, false, { message: 'Unable to verify authorization request state.' });
+              }
+
+              await NocoCache.del(key);
+    
+              return callback(null, true, state);
+            }
+          ).catch(err => callback(err));
+        }
+      }
+    };
+
+    const oidcStrategy = new OidcStrategy(
+      clientConfig,
+      (req, _issuer, _subject, profile, done) => {
+        const email = profile?._json?.email;
+
+        User.getByEmail(email)
+          .then(async (user) => {
+            if (req.ncProjectId) {
+              ProjectUser.get(req.ncProjectId, user.id)
+                .then(async (projectUser) => {
+                  user.roles = projectUser?.roles || 'user';
+                  user.roles =
+                    user.roles === 'owner' ? 'owner,creator' : user.roles;
+
+                  done(null, user);
+                })
+                .catch((e) => done(e));
+            } else {
+              if (user) {
+                return done(null, user);
+              } else {
+                const isFirst = await User.isFirst();
+                const roles = isFirst ? 'owner' : 'editor';
+                const salt = await promisify(bcrypt.genSalt)(10);
+                user = await User.insert({
+                  email,
+                  password: '',
+                  salt,
+                  roles,
+                  email_verified: true,
+                  token_version: randomTokenString(),
+                });
+                return done(null, user);
+              }
+            }
+          })
+          .catch((err) => {
+            return done(err);
+          });
+      }
+    )
+
+
+    passport.use(oidcStrategy);
+  }
 
   router.use(passport.initialize());
 }

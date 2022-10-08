@@ -29,7 +29,8 @@ enum AnimationTarget {
 
 const { md } = useBreakpoints(breakpointsTailwind)
 
-const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView, onReset } = useSharedFormStoreOrThrow()
+const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView, sharedViewMeta, onReset } =
+  useSharedFormStoreOrThrow()
 
 const isTransitioning = ref(false)
 
@@ -42,6 +43,8 @@ const isAnimating = ref(false)
 const el = ref<HTMLDivElement>()
 
 provide(DropZoneRef, el)
+
+const transitionDuration = computed(() => sharedViewMeta.value.transitionDuration || 1000)
 
 const steps = computed(() => {
   if (!formColumns.value) return []
@@ -83,13 +86,13 @@ function transition(direction: TransitionDirection) {
   setTimeout(() => {
     transitionName.value =
       transitionName.value === TransitionDirection.Left ? TransitionDirection.Right : TransitionDirection.Left
-  }, 500)
+  }, transitionDuration.value / 2)
 
   setTimeout(() => {
     isTransitioning.value = false
 
     setTimeout(focusInput, 100)
-  }, 1000)
+  }, transitionDuration.value)
 }
 
 function animate(target: AnimationTarget) {
@@ -99,7 +102,7 @@ function animate(target: AnimationTarget) {
 
   setTimeout(() => {
     isAnimating.value = false
-  }, 500)
+  }, transitionDuration.value / 2)
 }
 
 async function goNext(animationTarget?: AnimationTarget) {
@@ -212,7 +215,7 @@ onMounted(() => {
     </div>
 
     <div class="h-full w-full flex items-center px-4 md:px-0">
-      <Transition :name="`slide-${transitionName}`" :duration="1000" mode="out-in">
+      <Transition :name="`slide-${transitionName}`" :duration="transitionDuration" mode="out-in">
         <div
           ref="el"
           :key="field.title"

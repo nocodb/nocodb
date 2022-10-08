@@ -73,6 +73,7 @@ export interface TabItem {
 
 export interface SharedViewMeta extends Record<string, any> {
   surveyMode?: boolean
+  transitionDuration?: number // in ms
   withTheme?: boolean
   theme?: Partial<ThemeConfig>
   allowCSVDownload?: boolean

@@ -460,6 +460,22 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 
 </details>
 
+### Railway
+
+<details>
+  <summary>Click to Expand</summary>
+  
+  #### Navigate to Templates
+
+  Go to [Templates](https://railway.app/templates), Search NocoDB and click Deploy
+
+  ![image](https://user-images.githubusercontent.com/35857179/194702833-1bea22ee-6dfa-4024-ac27-e33fe56e5500.png)
+
+  #### Configure NocoDB and Deploy
+
+  ![image](https://user-images.githubusercontent.com/35857179/194702960-149393fe-b00f-4d84-9e54-22cb7616ba44.png)
+
+</details>
 
 ## Sample Demos
 

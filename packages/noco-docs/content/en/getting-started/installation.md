@@ -441,6 +441,25 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 
 </details>
 
+### CapRover
+
+<details>
+  <summary>Click to Expand</summary>
+
+  #### Login and Click One-Click Apps / Databases 
+
+  ![image](https://user-images.githubusercontent.com/35857179/194701420-7fe5c396-a488-456c-98de-6f2ee1151fc5.png)
+
+  #### Search NocoDB
+
+  ![image](https://user-images.githubusercontent.com/35857179/194701537-63e7efc5-013b-4ca9-8659-56e9d536e7d0.png)
+
+  #### Configure NocoDB and Deploy
+
+  ![image](https://user-images.githubusercontent.com/35857179/194701576-19519df5-2aa4-435d-8fc6-7bc684b9cfe1.png)
+
+</details>
+
 
 ## Sample Demos
 

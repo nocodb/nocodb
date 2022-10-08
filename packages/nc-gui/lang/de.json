@@ -67,7 +67,8 @@
     "reachOut": "Erreichen sie uns hier",
     "betaNote": "Diese Funktion befindet sich derzeit in der Beta.",
     "moreInfo": "Mehr Informationen können hier gefunden werden",
-    "logs": "Protokolle"
+    "logs": "Protokolle",
+    "groupingField": "Grouping Field"
   },
   "objects": {
     "project": "Projekt",
@@ -307,6 +308,7 @@
     "deleteProject": "Projekt löschen",
     "refreshProject": "Projekte aktualisieren",
     "saveProject": "Projekt speichern",
+    "deleteKanbanStack": "Delete stack?",
     "createProjectExtended": {
       "extDB": "Erstellen durch Verbinden <br>mit einer externen Datenbank",
       "excel": "Projekt aus Excel erstellen",
@@ -410,12 +412,21 @@
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
     "toggleCommentsDraw": "Toggle comments draw",
+    "expandRecord": "Expand Record",
+    "deleteRecord": "Delete Record",
     "erd": {
       "showColumns": "Show Columns",
       "showPkAndFk": "Show Primary and Foreign Keys",
       "showSqlViews": "Show SQL Views",
       "showMMTables": "Show Many to Many tables",
       "showJunctionTableNames": "Show Junction Table Names"
+    },
+    "kanban": {
+      "collapseStack": "Collapse Stack",
+      "deleteStack": "Delete Stack",
+      "stackedBy": "Stacked By",
+      "chooseGroupingField": "Choose a Grouping Field",
+      "addOrEditStack": "Add / Edit Stack"
     }
   },
   "tooltip": {
@@ -580,7 +591,8 @@
       "generatePublicShareableReadonlyBase": "Öffentlich lesbare Basis generieren",
       "deleteViewConfirmation": "Sind Sie sicher, dass Sie diese Ansicht löschen möchten?",
       "deleteTableConfirmation": "Möchten Sie die Tabelle löschen",
-      "showM2mTables": "M2M Tabellen anzeigen"
+      "showM2mTables": "M2M Tabellen anzeigen",
+      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack."
     },
     "error": {
       "searchProject": "Ihre Suche nach {search} fand keine Ergebnisse",

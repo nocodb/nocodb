@@ -67,7 +67,8 @@
     "reachOut": "Reach out here",
     "betaNote": "This feature is currently in beta.",
     "moreInfo": "More information can be found here",
-    "logs": "Logs"
+    "logs": "Logs",
+    "groupingField": "Grouping Field"
   },
   "objects": {
     "project": "Progetto",
@@ -307,6 +308,7 @@
     "deleteProject": "Elimina progetto",
     "refreshProject": "Aggiorna progetti",
     "saveProject": "Salva il progetto",
+    "deleteKanbanStack": "Delete stack?",
     "createProjectExtended": {
       "extDB": "Crea collegandoti <br>ad un database esterno",
       "excel": "Crea un progetto da Excel",
@@ -410,12 +412,21 @@
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
     "toggleCommentsDraw": "Toggle comments draw",
+    "expandRecord": "Expand Record",
+    "deleteRecord": "Delete Record",
     "erd": {
       "showColumns": "Show Columns",
       "showPkAndFk": "Show Primary and Foreign Keys",
       "showSqlViews": "Show SQL Views",
       "showMMTables": "Show Many to Many tables",
       "showJunctionTableNames": "Show Junction Table Names"
+    },
+    "kanban": {
+      "collapseStack": "Collapse Stack",
+      "deleteStack": "Delete Stack",
+      "stackedBy": "Stacked By",
+      "chooseGroupingField": "Choose a Grouping Field",
+      "addOrEditStack": "Add / Edit Stack"
     }
   },
   "tooltip": {
@@ -580,7 +591,8 @@
       "generatePublicShareableReadonlyBase": "Generate publicly shareable readonly base",
       "deleteViewConfirmation": "Are you sure you want to delete this view?",
       "deleteTableConfirmation": "Do you want to delete the table",
-      "showM2mTables": "Show M2M Tables"
+      "showM2mTables": "Show M2M Tables",
+      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack."
     },
     "error": {
       "searchProject": "La tua ricerca di {search} non ha trovato risultati",

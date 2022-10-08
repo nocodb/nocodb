@@ -1,4 +1,5 @@
-import { ColumnType, UITypes } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import LinkVariant from '~icons/mdi/link-variant'
 import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
 import FormatColorText from '~icons/mdi/format-color-text'
@@ -170,7 +171,7 @@ const getUIDTIcon = (uidt: UITypes | string) => {
 const isColumnRequired = (col: ColumnType) => col.rqd && !col.cdf && !col.ai
 
 const isColumnRequiredAndNull = (col: ColumnType, row: Record<string, any>) => {
-  return isColumnRequired(col) && (row[col.title!] === undefined || row[col.title!] === null)
+  return isColumnRequired(col) && (row[col.title!] === undefined || row[col.title!] === null) // && isVirtualColRequired()
 }
 
 export { uiTypes, getUIDTIcon, isColumnRequiredAndNull }

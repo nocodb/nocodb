@@ -19,7 +19,9 @@ import {
   useProvideSmartsheetRowStore,
   useSharedView,
 } from '#imports'
+import { useMetas } from '~/composables/useMetas'
 import type { Row } from '~/lib'
+import { populateInsertObject } from '~/utils'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
@@ -132,53 +134,65 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     $e('a:row-expand:comment')
   }
 
-  const save = async () => {
+  const save = async (ltarState: Record<string, any> = {}) => {
     let data
     try {
-      const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
-        obj[col] = row.value.row[col]
-        return obj
-      }, {} as Record<string, any>)
-
       const isNewRow = row.value.rowMeta?.new ?? false
 
       if (isNewRow) {
-        data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, updateOrInsertObj)
+        const { getMeta } = useMetas()
+
+        const { missingRequiredColumns, insertObj } = await populateInsertObject({
+          meta: meta.value,
+          ltarState,
+          getMeta,
+          row: row.value.row,
+        })
+
+        if (missingRequiredColumns.size) return
+
+        data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, insertObj)
 
         Object.assign(row.value, {
           row: data,
           rowMeta: {},
           oldRow: { ...data },
         })
-      } else if (Object.keys(updateOrInsertObj).length) {
-        const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
-
-        if (!id) {
-          return message.info("Update not allowed for table which doesn't have primary Key")
-        }
-
-        await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, updateOrInsertObj)
-
-        for (const key of Object.keys(updateOrInsertObj)) {
-          // audit
-          $api.utils
-            .auditRowUpdate(id, {
-              fk_model_id: meta.value.id,
-              column_name: key,
-              row_id: id,
-              value: getHTMLEncodedText(updateOrInsertObj[key]),
-              prev_value: getHTMLEncodedText(row.value.oldRow[key]),
-            })
-            .then(async () => {
-              /** load latest comments/audit if right drawer is open */
-              if (commentsDrawer.value) {
-                await loadCommentsAndLogs()
-              }
-            })
-        }
       } else {
-        // No columns to update
-        return message.info(t('msg.info.noColumnsToUpdate'))
+        const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
+          obj[col] = row.value.row[col]
+          return obj
+        }, {} as Record<string, any>)
+        if (Object.keys(updateOrInsertObj).length) {
+          const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+
+          if (!id) {
+            return message.info("Update not allowed for table which doesn't have primary Key")
+          }
+
+          await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, updateOrInsertObj)
+
+          for (const key of Object.keys(updateOrInsertObj)) {
+            // audit
+            $api.utils
+              .auditRowUpdate(id, {
+                fk_model_id: meta.value.id,
+                column_name: key,
+                row_id: id,
+                value: getHTMLEncodedText(updateOrInsertObj[key]),
+                prev_value: getHTMLEncodedText(row.value.oldRow[key]),
+              })
+              .then(async () => {
+                /** load latest comments/audit if right drawer is open */
+                if (commentsDrawer.value) {
+                  await loadCommentsAndLogs()
+                }
+              })
+          }
+        } else {
+          // No columns to update
+          return message.info(t('msg.info.noColumnsToUpdate'))
+        }
       }
 
       if (activeView.value?.type === ViewTypes.KANBAN) {

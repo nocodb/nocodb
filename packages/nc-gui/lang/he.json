@@ -293,8 +293,8 @@
     "commentsOnly": "Comments only",
     "documentation": "Documentation",
     "subscribeNewsletter": "Subscribe to our weekly newsletter",
-    "signUpWithProvider": "Sign up with {provider}",
-    "signInWithProvider": "Sign in with {provider}",
+    "signUpWithProvider": "הרשם באמצעות {provider}",
+    "signInWithProvider": "התחבר באמצעות {provider}",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!"
   },

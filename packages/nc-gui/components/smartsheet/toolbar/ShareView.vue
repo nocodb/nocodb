@@ -230,7 +230,12 @@ watch(passwordProtected, (value) => {
 
           <div>
             <!-- todo: i18n -->
-            <a-checkbox v-model:checked="viewTheme" data-cy="nc-modal-share-view__with-theme" class="!text-xs">
+            <a-checkbox
+              v-if="shared.type === ViewTypes.FORM"
+              v-model:checked="viewTheme"
+              data-cy="nc-modal-share-view__with-theme"
+              class="!text-xs"
+            >
               Use Theme
             </a-checkbox>
 

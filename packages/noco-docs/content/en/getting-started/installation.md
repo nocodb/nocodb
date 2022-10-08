@@ -276,93 +276,142 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 
 ### AWS ECS (Fargate)
 
-#### Create ECS Cluster
+<details>
+  <summary>Click to Expand</summary>
 
-```
-aws ecs create-cluster \
---cluster-name <YOUR_ECS_CLUSTER>
-```
+  #### Create ECS Cluster
 
-#### Create Log group
+  ```
+  aws ecs create-cluster \
+  --cluster-name <YOUR_ECS_CLUSTER>
+  ```
 
-```
-aws logs create-log-group \
---log-group-name /ecs/<YOUR_APP_NAME>/<YOUR_CONTAINER_NAME>
-```
+  #### Create Log group
 
-#### Create ECS Task Definiton
+  ```
+  aws logs create-log-group \
+  --log-group-name /ecs/<YOUR_APP_NAME>/<YOUR_CONTAINER_NAME>
+  ```
 
-Every time you create it, it will add a new version. If it is not existing, the version will be 1. 
+  #### Create ECS Task Definiton
 
-```bash
-aws ecs register-task-definition \
---cli-input-json "file://./<YOUR_TASK_DEF_NAME>.json"
-```
+  Every time you create it, it will add a new version. If it is not existing, the version will be 1. 
 
-<alert>
-This json file defines the container specification. You can define secrets such as NC_DB and environment variables here.
-</alert>
+  ```bash
+  aws ecs register-task-definition \
+  --cli-input-json "file://./<YOUR_TASK_DEF_NAME>.json"
+  ```
 
-Here's the sample Task Definition
+  <alert>
+  This json file defines the container specification. You can define secrets such as NC_DB and environment variables here.
+  </alert>
 
-```json
-{
-	"family": "nocodb-sample-task-def",
-	"networkMode": "awsvpc",
-	"containerDefinitions": [{
-		"name": "<YOUR_CONTAINER_NAME>",
-		"image": "nocodb/nocodb:latest",
-		"essential": true,
-		"logConfiguration": {
-			"logDriver": "awslogs",
-			"options": {
-				"awslogs-group": "/ecs/<YOUR_APP_NAME>/<YOUR_CONTAINER_NAME>",
-				"awslogs-region": "<YOUR_AWS_REGION>",
-				"awslogs-stream-prefix": "ecs"
-			}
-		},
-		"secrets": [{
-			"name": "<YOUR_SECRETS_NAME>",
-			"valueFrom": "<YOUR_SECRET_ARN>"
-		}],
-		"environment": [{
-			"name": "<YOUR_ENV_VARIABLE_NAME>",
-			"value": "<YOUR_ENV_VARIABLE_VALUE>"
-		}],
-		"portMappings": [{
-			"containerPort": 8080,
-			"hostPort": 8080,
-			"protocol": "tcp"
-		}]
-	}],
-	"requiresCompatibilities": [
-		"FARGATE"
-	],
-	"cpu": "256",
-	"memory": "512",
-	"executionRoleArn": "<YOUR_ECS_EXECUTION_ROLE_ARN>",
-	"taskRoleArn": "<YOUR_ECS_TASK_ROLE_ARN>"
-}
-```
+  Here's the sample Task Definition
 
-#### Create ECS Service
+  ```json
+  {
+    "family": "nocodb-sample-task-def",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [{
+      "name": "<YOUR_CONTAINER_NAME>",
+      "image": "nocodb/nocodb:latest",
+      "essential": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/<YOUR_APP_NAME>/<YOUR_CONTAINER_NAME>",
+          "awslogs-region": "<YOUR_AWS_REGION>",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "secrets": [{
+        "name": "<YOUR_SECRETS_NAME>",
+        "valueFrom": "<YOUR_SECRET_ARN>"
+      }],
+      "environment": [{
+        "name": "<YOUR_ENV_VARIABLE_NAME>",
+        "value": "<YOUR_ENV_VARIABLE_VALUE>"
+      }],
+      "portMappings": [{
+        "containerPort": 8080,
+        "hostPort": 8080,
+        "protocol": "tcp"
+      }]
+    }],
+    "requiresCompatibilities": [
+      "FARGATE"
+    ],
+    "cpu": "256",
+    "memory": "512",
+    "executionRoleArn": "<YOUR_ECS_EXECUTION_ROLE_ARN>",
+    "taskRoleArn": "<YOUR_ECS_TASK_ROLE_ARN>"
+  }
+  ```
 
-```bash
-aws ecs create-service \
---cluster <YOUR_ECS_CLUSTER> \
---service-name  <YOUR_SERVICE_NAME> \
---task-definition <YOUR_TASK_DEF>:<YOUR_TASK_DEF_VERSION> \
---desired-count <DESIRED_COUNT> \
---launch-type "FARGATE" \
---platform-version <VERSION> \
---health-check-grace-period-seconds <GRACE_PERIOD_IN_SECOND> \
---network-configuration "awsvpcConfiguration={subnets=["<YOUR_SUBSETS>"], securityGroups=["<YOUR_SECURITY_GROUPS>"], assignPublicIp=ENABLED}" \
---load-balancer targetGroupArn=<TARGET_GROUP_ARN>,containerName=<CONTAINER_NAME>,containerPort=<YOUR_CONTAINER_PORT>
-```
+  #### Create ECS Service
 
-<alert>
-  If your service fails to start, you may check the logs in ECS console or in Cloudwatch. Generally it fails due to the connection between ECS container and NC_DB. Make sure the security groups have the correct inbound and outbound rules.  
-</alert>
+  ```bash
+  aws ecs create-service \
+  --cluster <YOUR_ECS_CLUSTER> \
+  --service-name  <YOUR_SERVICE_NAME> \
+  --task-definition <YOUR_TASK_DEF>:<YOUR_TASK_DEF_VERSION> \
+  --desired-count <DESIRED_COUNT> \
+  --launch-type "FARGATE" \
+  --platform-version <VERSION> \
+  --health-check-grace-period-seconds <GRACE_PERIOD_IN_SECOND> \
+  --network-configuration "awsvpcConfiguration={subnets=["<YOUR_SUBSETS>"], securityGroups=["<YOUR_SECURITY_GROUPS>"], assignPublicIp=ENABLED}" \
+  --load-balancer targetGroupArn=<TARGET_GROUP_ARN>,containerName=<CONTAINER_NAME>,containerPort=<YOUR_CONTAINER_PORT>
+  ```
+
+  <alert>
+    If your service fails to start, you may check the logs in ECS console or in Cloudwatch. Generally it fails due to the connection between ECS container and NC_DB. Make sure the security groups have the correct inbound and outbound rules.  
+  </alert>
+  ```
+
+</details>
+
+### DigitalOcean (App)
+
+<details>
+  <summary>Click to Expand</summary>
+  
+  #### Create Apps
+
+  On Home page, Click on Create icon & Select Apps (Deploy your code).
+
+  ![Screenshot 2022-02-19 at 12 17 43 PM](https://user-images.githubusercontent.com/86527202/154790558-f8fe5580-5a58-412c-9c2e-145587712bf2.png)
+
+  #### Choose Source: Docker Hub
+
+  ![Screenshot 2022-02-19 at 12 22 01 PM](https://user-images.githubusercontent.com/86527202/154790563-b5b6d5b4-0bdc-4718-8cea-0a7ee52f283b.png)
+
+  #### Choose Source: Repository
+
+  Configure Source Repository as `nocodb/nocodb`. Optionally you can pick release tag if you are interested in specific NocoDB version.
+
+  ![Screenshot 2022-02-19 at 12 23 11 PM](https://user-images.githubusercontent.com/86527202/154790564-1dcb5e33-3a57-471a-a44c-835a410a0cb7.png)
+
+  #### [Optional] Additional Configurations
+
+  ![Screenshot 2022-02-19 at 12 24 44 PM](https://user-images.githubusercontent.com/86527202/154790565-c0234b2e-ad50-4042-90b6-4f8798f1d585.png)
+
+  #### Name your web service
+  Pick a name for your NocoDB application. This name will become part of URL subsequently
+  Pick nearest Region for cloud hosting
+  ![Screenshot 2022-02-19 at 12 28 11 PM](https://user-images.githubusercontent.com/86527202/154790567-a6e65e4e-9aa0-4edb-998e-da8803ad6e23.png)
+
+  #### Finalize and Launch
+
+  - Select hosting plan for your NocoDB application
+
+  - Click "Launch APP"
+  
+  ![Screenshot 2022-02-19 at 12 29 23 PM](https://user-images.githubusercontent.com/86527202/154790570-62044713-5cca-4d06-82ec-f3cc257218a1.png)
+
+  Application will be build & URL will be live in a minute! The URL will be something like https://simply-nocodb-rsyir.ondigitalocean.app/
+
+</details>
+
 
 ## Sample Demos
 

@@ -20,6 +20,13 @@ enum TransitionDirection {
   Right = 'right',
 }
 
+enum AnimationTarget {
+  ArrowLeft = 'arrow-left',
+  ArrowRight = 'arrow-right',
+  OkButton = 'ok-button',
+  SubmitButton = 'submit-button',
+}
+
 const { md } = useBreakpoints(breakpointsTailwind)
 
 const { v$, formState, formColumns, submitForm, submitted, secondsRemain, sharedFormView, onReset } = useSharedFormStoreOrThrow()
@@ -27,6 +34,10 @@ const { v$, formState, formColumns, submitForm, submitted, secondsRemain, shared
 const isTransitioning = ref(false)
 
 const transitionName = ref<TransitionDirection>(TransitionDirection.Left)
+
+const animationTarget = ref<AnimationTarget>(AnimationTarget.ArrowRight)
+
+const isAnimating = ref(false)
 
 const el = ref<HTMLDivElement>()
 
@@ -81,8 +92,18 @@ function transition(direction: TransitionDirection) {
   }, 1000)
 }
 
-async function goNext() {
-  if (isLast.value) return
+function animate(target: AnimationTarget) {
+  animationTarget.value = target
+
+  isAnimating.value = true
+
+  setTimeout(() => {
+    isAnimating.value = false
+  }, 500)
+}
+
+async function goNext(animationTarget?: AnimationTarget) {
+  if (isLast.value || submitted.value) return
 
   if (!field.value || !field.value.title) return
 
@@ -93,13 +114,22 @@ async function goNext() {
     if (!isValid) return
   }
 
-  transition(TransitionDirection.Left)
+  animate(animationTarget || AnimationTarget.ArrowRight)
 
-  goToNext()
+  setTimeout(
+    () => {
+      transition(TransitionDirection.Left)
+
+      goToNext()
+    },
+    animationTarget === AnimationTarget.OkButton ? 300 : 0,
+  )
 }
 
-async function goPrevious() {
-  if (isFirst.value) return
+async function goPrevious(animationTarget?: AnimationTarget) {
+  if (isFirst.value || submitted.value) return
+
+  animate(animationTarget || AnimationTarget.ArrowLeft)
 
   transition(TransitionDirection.Right)
 
@@ -128,8 +158,19 @@ function resetForm() {
 
 onReset(resetForm)
 
-onKeyStroke(['ArrowLeft', 'ArrowDown'], goPrevious)
-onKeyStroke(['ArrowRight', 'ArrowUp', 'Enter', 'Space'], goNext)
+onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {
+  goPrevious(AnimationTarget.ArrowLeft)
+})
+onKeyStroke(['ArrowRight', 'ArrowUp'], () => {
+  goNext(AnimationTarget.ArrowRight)
+})
+onKeyStroke(['Enter', 'Space'], () => {
+  if (isLast.value) {
+    submitForm()
+  } else {
+    goNext(AnimationTarget.OkButton)
+  }
+})
 
 onMounted(() => {
   focusInput()
@@ -154,7 +195,7 @@ onMounted(() => {
   <div ref="el" class="pt-8 md:p-0 w-full h-full flex flex-col">
     <div
       v-if="sharedFormView"
-      style="height: max(40vh, 250px); min-height: 250px"
+      style="height: max(40vh, 225px); min-height: 225px"
       class="max-w-[max(33%,600px)] mx-auto flex flex-col justify-end"
     >
       <div class="px-4 md:px-0 flex flex-col justify-end">
@@ -219,6 +260,11 @@ onMounted(() => {
                 <div class="block text-[14px]" data-cy="nc-survey-form__field-description">
                   {{ field.description }}
                 </div>
+
+                <div v-if="field.uidt === UITypes.LongText" class="text-sm text-gray-500 flex flex-wrap items-center">
+                  Shift <MdiAppleKeyboardShift class="mx-1 text-primary" /> + Enter
+                  <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" /> to make a line break
+                </div>
               </div>
             </div>
           </div>
@@ -227,10 +273,14 @@ onMounted(() => {
             <div class="flex-1 flex justify-center">
               <div v-if="isLast && !submitted && !v$.$invalid" class="text-center my-4">
                 <button
+                  :class="
+                    animationTarget === AnimationTarget.SubmitButton && isAnimating
+                      ? 'transform translate-y-[1px] translate-x-[1px] ring ring-accent ring-opacity-100'
+                      : ''
+                  "
                   type="submit"
                   class="uppercase scaling-btn prose-sm"
-                  data-cy="nc-survey-form__btn-submit"
-                  @click="submitForm"
+                 data-cy="nc-survey-form__btn-submit" @click="submitForm"
                 >
                   {{ $t('general.submit') }}
                 </button>
@@ -245,7 +295,12 @@ onMounted(() => {
                   <button
                     class="bg-opacity-100 scaling-btn flex items-center gap-1"
                     data-cy="nc-survey-form__btn-next"
-                    :class="v$.localState[field.title]?.$error ? 'after:!bg-gray-100 after:!ring-red-500' : ''"
+                    :class="[
+                      v$.localState[field.title]?.$error ? 'after:!bg-gray-100 after:!ring-red-500' : '',
+                      animationTarget === AnimationTarget.OkButton && isAnimating
+                        ? 'transform translate-y-[2px] translate-x-[2px] after:(!ring !ring-accent !ring-opacity-100)'
+                        : '',
+                    ]"
                     @click="goNext"
                   >
                     <Transition name="fade">
@@ -261,7 +316,7 @@ onMounted(() => {
 
                 <!-- todo: i18n -->
                 <div class="hidden md:flex text-sm text-gray-500 items-center gap-1">
-                  Press Enter <MaterialSymbolsKeyboardReturn class="mt-1" />
+                  Press Enter <MaterialSymbolsKeyboardReturn class="text-primary" />
                 </div>
               </div>
             </div>
@@ -319,9 +374,13 @@ onMounted(() => {
         >
           <a-tooltip :title="isFirst ? '' : 'Go to previous'" :mouse-enter-delay="0.25" :mouse-leave-delay="0">
             <button
+              :class="
+                animationTarget === AnimationTarget.ArrowLeft && isAnimating
+                  ? 'transform translate-y-[1px] translate-x-[1px] text-primary'
+                  : ''
+              "
               class="p-0.5 flex items-center group color-transition"
-              data-cy="nc-survey-form__icon-prev"
-              @click="goPrevious"
+             data-cy="nc-survey-form__icon-prev" @click="goPrevious"
             >
               <MdiChevronLeft :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'" class="text-2xl md:text-md" />
             </button>
@@ -332,9 +391,17 @@ onMounted(() => {
             :mouse-enter-delay="0.25"
             :mouse-leave-delay="0"
           >
-            <button class="p-0.5 flex items-center group color-transition" data-cy="nc-survey-form__icon-next" @click="goNext">
+            <button
+              :class="
+                animationTarget === AnimationTarget.ArrowRight && isAnimating
+                  ? 'transform translate-y-[1px] translate-x-[-1px] text-primary'
+                  : ''
+              "
+              class="p-0.5 flex items-center group color-transition"
+             data-cy="nc-survey-form__icon-next" @click="goNext"
+            >
               <MdiChevronRight
-                :class="isLast || v$.localState[field.title]?.$error ? 'text-gray-300' : 'group-hover:text-accent'"
+                :class="[isLast || v$.localState[field.title]?.$error ? 'text-gray-300' : 'group-hover:text-accent']"
                 class="text-2xl md:text-md"
               />
             </button>

@@ -40,6 +40,13 @@ const passwordProtected = ref(false)
 
 const shared = ref<SharedView>({ id: '', meta: {}, password: undefined })
 
+const transitionDuration = computed({
+  get: () => shared.value.meta.transitionDuration || 250,
+  set: (duration) => {
+    shared.value.meta = { ...shared.value.meta, transitionDuration: duration }
+  },
+})
+
 const allowCSVDownload = computed({
   get: () => !!shared.value.meta.allowCSVDownload,
   set: (allow) => {
@@ -237,7 +244,7 @@ watch(passwordProtected, (value) => {
                     <div class="text-xs">Transition duration (in MS)</div>
                   </template>
                   <a-input
-                    v-model:value="shared.meta.transitionDuration"
+                    v-model:value="transitionDuration"
                     data-cy="nc-form-signin__email"
                     size="small"
                     class="!w-32"

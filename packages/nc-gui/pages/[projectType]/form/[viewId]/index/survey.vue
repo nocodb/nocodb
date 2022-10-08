@@ -44,7 +44,7 @@ const el = ref<HTMLDivElement>()
 
 provide(DropZoneRef, el)
 
-const transitionDuration = computed(() => sharedViewMeta.value.transitionDuration || 1000)
+const transitionDuration = computed(() => sharedViewMeta.value.transitionDuration || 250)
 
 const steps = computed(() => {
   if (!formColumns.value) return []

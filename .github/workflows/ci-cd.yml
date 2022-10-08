@@ -22,7 +22,7 @@ on:
 jobs:
     cypress-restTableOps-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -68,7 +68,7 @@ jobs:
             retention-days: 2
     cypress-restViews-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -114,7 +114,7 @@ jobs:
             retention-days: 2
     cypress-restRoles-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -160,7 +160,7 @@ jobs:
             retention-days: 2
     cypress-restMisc-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -206,7 +206,7 @@ jobs:
             retention-days: 2
     cypress-xcdb-restTableOps-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -252,7 +252,7 @@ jobs:
             retention-days: 2
     cypress-xcdb-restViews-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -298,7 +298,7 @@ jobs:
             retention-days: 2
     cypress-xcdb-restRoles-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -344,7 +344,7 @@ jobs:
             retention-days: 2
     cypress-xcdb-restMisc-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -390,7 +390,7 @@ jobs:
             retention-days: 2
     cypress-pg-restTableOps-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -436,7 +436,7 @@ jobs:
             retention-days: 2
     cypress-pg-restViews-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -482,7 +482,7 @@ jobs:
             retention-days: 2
     cypress-pg-restRoles-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -528,7 +528,7 @@ jobs:
             retention-days: 2
     cypress-pg-restMisc-run-cache:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -574,7 +574,7 @@ jobs:
             retention-days: 2
     cy-quick-sqlite:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -621,7 +621,7 @@ jobs:
             retention-days: 2
     cy-quick-pg:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -667,7 +667,7 @@ jobs:
             retention-days: 2
     unit-tests:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
@@ -708,7 +708,7 @@ jobs:
           run: npm run test:unit
     cypress-db-independent:
       runs-on: ubuntu-20.04
-      timeout-minutes: 10
+      timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node

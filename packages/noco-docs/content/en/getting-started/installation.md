@@ -370,6 +370,37 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 
 </details>
 
+### GCP (Cloud Run)
+
+<details>
+  <summary>Click to Expand</summary>
+  
+  #### Pull NocoDB Image on Cloud Shell
+
+  Since Cloud Run only supports images from Google Container Registry (GCR) or Artifact Registry, we need to pull NocoDB image, tag it and push it in GCP using Cloud Shell. Here are some sample commands which you can execute in Cloud Shell.
+
+  ```bash
+  # pull latest NocoDB image
+  docker pull nocodb/nocodb:latest
+
+  # tag the image
+  docker tag nocodb/nocodb:latest gcr.io/<MY_PROJECT_ID>/nocodb/nocodb:latest
+
+  # push the image to GCR
+  docker push gcr.io/<MY_PROJECT_ID>/nocodb/nocodb:latest
+  ```
+
+  #### Deploy NocoDB on Cloud Run
+
+  ```bash
+  gcloud run deploy --image=gcr.io/<MY_PROJECT_ID>/nocodb/nocodb:latest \
+                    --region=us-central1 \
+                    --allow-unauthenticated \
+                    --platform=managed 
+  ```
+
+</details>
+
 ### DigitalOcean (App)
 
 <details>

@@ -39,7 +39,6 @@ const {
   showSystemFields,
   sortedAndFilteredFields,
   fields,
-  loadViewColumns,
   filteredFieldList,
   filterQuery,
   showAll,
@@ -47,16 +46,6 @@ const {
   saveOrUpdate,
   metaColumnById,
 } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
-
-watch(
-  () => activeView.value?.id,
-  async (newVal, oldVal) => {
-    if (newVal !== oldVal && meta.value) {
-      await loadViewColumns()
-    }
-  },
-  { immediate: true },
-)
 
 watch(
   sortedAndFilteredFields,

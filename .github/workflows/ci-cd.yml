@@ -19,6 +19,9 @@ on:
             - "scripts/cypress/**"
             - "packages/nocodb/**"
             - ".github/workflows/ci-cd.yml"
+defaults:
+    run:
+        timeout-minutes: 10
 jobs:
     cypress-restTableOps-run-cache:
       runs-on: ubuntu-20.04

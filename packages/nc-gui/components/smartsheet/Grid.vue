@@ -433,7 +433,7 @@ watch([() => selected.row, () => selected.col], ([row, col]) => {
             <LazySmartsheetRow
               v-for="(row, rowIndex) of data"
               ref="rowRefs"
-              :key="extractPkFromRow(row.row, meta.columns) ?? rowIndex"
+              :key="rowIndex"
               :row="row"
             >
               <template #default="{ state }">

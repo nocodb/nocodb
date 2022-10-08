@@ -18,7 +18,7 @@ menuTitle: "Share View"
 
 ![image](https://user-images.githubusercontent.com/35857179/194689920-32f1a321-d00d-48fb-bc55-99d761133c6f.png)
 
-- Optionally you can enable `Use Theme` to select the share view theme
+- Optionally you can enable `Use Theme` to select the share view theme (Only Form View is supported currently)
 
 ![image](https://user-images.githubusercontent.com/35857179/194689949-8bee012c-cb7c-459e-9bac-c17004f55bc0.png)
 

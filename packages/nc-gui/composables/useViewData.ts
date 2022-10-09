@@ -200,12 +200,13 @@ export function useViewData(
     row: Record<string, any>,
     rowIndex = formattedData.value?.length,
     ltarState: Record<string, any> = {},
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
     try {
       const { getMeta } = useMetas()
 
       const { missingRequiredColumns, insertObj } = await populateInsertObject({
-        meta: meta.value!,
+        meta: metaValue!,
         ltarState,
         getMeta,
         row,
@@ -216,8 +217,8 @@ export function useViewData(
       const insertedData = await $api.dbViewRow.create(
         NOCO,
         project?.value.id as string,
-        meta.value?.id as string,
-        viewMeta?.value?.id as string,
+        metaValue?.id as string,
+        viewMetaValue?.id as string,
         insertObj,
       )
 
@@ -234,15 +235,19 @@ export function useViewData(
     }
   }
 
-  async function updateRowProperty(toUpdate: Row, property: string) {
+  async function updateRowProperty(
+    toUpdate: Row,
+    property: string,
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+  ) {
     try {
       const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
 
       const updatedRowData = await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
-        meta.value?.id as string,
-        viewMeta?.value?.id as string,
+        metaValue?.id as string,
+        viewMetaValue?.id as string,
         id,
         {
           [property]: toUpdate.row[property],
@@ -271,11 +276,16 @@ export function useViewData(
     }
   }
 
-  async function updateOrSaveRow(row: Row, property?: string, ltarState?: Record<string, any>) {
+  async function updateOrSaveRow(
+    row: Row,
+    property?: string,
+    ltarState?: Record<string, any>,
+    args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+  ) {
     if (row.rowMeta.new) {
-      return await insertRow(row.row, formattedData.value.indexOf(row), ltarState)
+      return await insertRow(row.row, formattedData.value.indexOf(row), ltarState, args)
     } else {
-      await updateRowProperty(row, property!)
+      await updateRowProperty(row, property!, args)
     }
   }
 

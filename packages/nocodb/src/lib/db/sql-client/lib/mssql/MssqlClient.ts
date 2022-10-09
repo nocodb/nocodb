@@ -356,13 +356,11 @@ class MssqlClient extends KnexClient {
 
     try {
       /** ************** START : create _evolution table if not exists *************** */
-      const exists = await this.sqlClient.schema.hasTable(
-        this.getTnPath(args.tn)
-      );
+      const exists = await this.sqlClient.schema.withSchema(this.schema).hasTable(args.tn);
 
       if (!exists) {
-        await this.sqlClient.schema.createTable(
-          this.getTnPath(args.tn),
+        await this.sqlClient.schema.withSchema(this.schema).createTable(
+          args.tn,
           function (table) {
             table.increments();
             table.string('title').notNullable();
@@ -396,9 +394,7 @@ class MssqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      result.data.value = await this.sqlClient.schema.hasTable(
-        this.getTnPath(args.tn)
-      );
+      result.data.value = await this.sqlClient.schema.withSchema(this.schema).hasTable(args.tn);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -1599,9 +1595,9 @@ class MssqlClient extends KnexClient {
     const result = new Result();
     log.api(`${func}:args:`, args);
     try {
-      const query = `CREATE TRIGGER ${args.trigger_name} on ${this.getTnPath(
+      const query = `CREATE TRIGGER [${args.trigger_name}] on [${this.getTnPath(
         args.tn
-      )} \n${args.timing} ${args.event}\n as\n${args.statement}`;
+      )}] \n${args.timing} ${args.event}\n as\n${args.statement}`;
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],
@@ -1817,7 +1813,7 @@ class MssqlClient extends KnexClient {
 
       const downStatement =
         this.querySeparator() +
-        this.sqlClient.schema.dropTable(args.table).toString();
+        this.sqlClient.schema.withSchema(this.schema).dropTable(args.table).toString();
 
       this.emit(`Success : ${upQuery}`);
 
@@ -1853,11 +1849,11 @@ class MssqlClient extends KnexClient {
         const triggerName = `xc_trigger_${args.table_name}_${column.column_name}`;
         const triggerCreateQuery =
           this.querySeparator() +
-          `CREATE TRIGGER ${this.schema}.${triggerName} ON ${this.schema}.${args.table_name} AFTER UPDATE
+          `CREATE TRIGGER [${this.schema}].[${triggerName}] ON [${this.schema}].[${args.table_name}] AFTER UPDATE
                   AS
                   BEGIN
                       SET NOCOUNT ON;
-                      UPDATE ${this.schema}.${args.table_name} Set ${column.column_name} = GetDate() where ${pk.column_name} in (SELECT ${pk.column_name} FROM Inserted)
+                      UPDATE [${this.schema}].[${args.table_name}] Set [${column.column_name}] = GetDate() where [${pk.column_name}] in (SELECT [${pk.column_name}] FROM Inserted)
                   END;`;
 
         upQuery += triggerCreateQuery;
@@ -1888,11 +1884,11 @@ class MssqlClient extends KnexClient {
         const triggerName = `xc_trigger_${args.table_name}_${column.column_name}`;
         const triggerCreateQuery =
           this.querySeparator() +
-          `CREATE TRIGGER ${this.schema}.${triggerName} ON  ${this.schema}.${args.table_name} AFTER UPDATE
+          `CREATE TRIGGER [${this.schema}].[${triggerName}] ON  [${this.schema}].[${args.table_name}] AFTER UPDATE
                   AS
                   BEGIN
                       SET NOCOUNT ON;
-                      UPDATE ${this.schema}.${args.table_name} Set ${column.column_name} = GetDate() where ${pk.column_name} in (SELECT ${pk.column_name} FROM Inserted)
+                      UPDATE [${this.schema}].[${args.table_name}] Set [${column.column_name}] = GetDate() where [${pk.column_name}] in (SELECT [${pk.column_name}] FROM Inserted)
                   END;`;
 
         upQuery += triggerCreateQuery;
@@ -1901,7 +1897,7 @@ class MssqlClient extends KnexClient {
 
         downQuery +=
           this.querySeparator() +
-          `DROP TRIGGER IF EXISTS ${this.schema}.${triggerName};`;
+          `DROP TRIGGER IF EXISTS [${this.schema}].[${triggerName}];`;
       }
     }
     result.upStatement[0] = { sql: upQuery };
@@ -2059,13 +2055,13 @@ class MssqlClient extends KnexClient {
       /** ************** create up & down statements *************** */
       const upStatement =
         this.querySeparator() +
-        this.sqlClient.schema.dropTable(this.getTnPath(args.tn)).toString();
+        this.sqlClient.schema.withSchema(this.schema).dropTable(args.tn).toString();
       let downQuery = this.querySeparator() + this.createTable(args.tn, args);
 
       this.emit(`Success : ${upStatement}`);
 
       let relationsList: any = await this.relationList({
-        tn: this.getTnPath(args.tn),
+        tn: args.tn,
       });
 
       relationsList = relationsList.data.list;
@@ -2073,12 +2069,12 @@ class MssqlClient extends KnexClient {
       for (const relation of relationsList) {
         downQuery +=
           this.querySeparator() +
-          (await this.sqlClient.schema
-            .table(this.getTnPath(relation.tn), function (table) {
+          (await this.sqlClient.withSchema(this.schema).schema
+            .table(relation.tn, (table) => {
               table = table
                 .foreign(relation.cn, null)
                 .references(relation.rcn)
-                .on(relation.rtn);
+                .on(this.getTnPath(relation.rtn));
 
               if (relation.ur) {
                 table = table.onUpdate(relation.ur);
@@ -2117,7 +2113,7 @@ class MssqlClient extends KnexClient {
       )) {
         downQuery +=
           this.querySeparator() +
-          this.sqlClient.schema
+          this.sqlClient.schema.withSchema(this.schema)
             .table(tn, function (table) {
               if (non_unique) {
                 table.index(columns, key_name);
@@ -2129,12 +2125,138 @@ class MssqlClient extends KnexClient {
       }
 
       /** ************** drop tn *************** */
-      await this.sqlClient.schema.dropTable(this.getTnPath(args.tn));
+      await this.sqlClient.schema.withSchema(this.schema).dropTable(args.tn);
 
       /** ************** return files *************** */
       result.data.object = {
         upStatement: [{ sql: upStatement }],
         downStatement: [{ sql: downQuery }],
+      };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
+
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.parentTable
+   * @param {String} - args.parentColumn
+   * @param {String} - args.childColumn
+   * @param {String} - args.childTable
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+   async relationCreate(args) {
+    const _func = this.relationCreate.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    const foreignKeyName = args.foreignKeyName || null;
+
+    try {
+      const self = this;
+      await this.sqlClient.schema.table(this.getTnPath(args.childTable), function (table) {
+        table = table
+          .foreign(args.childColumn, foreignKeyName)
+          .references(args.parentColumn)
+          .on(self.getTnPath(args.parentTable));
+
+        if (args.onUpdate) {
+          table = table.onUpdate(args.onUpdate);
+        }
+        if (args.onDelete) {
+          table = table.onDelete(args.onDelete);
+        }
+      });
+
+      const upStatement =
+        this.querySeparator() +
+        (await this.sqlClient.schema
+          .table(this.getTnPath(args.childTable), function (table) {
+            table = table
+              .foreign(args.childColumn, foreignKeyName)
+              .references(args.parentColumn)
+              .on(self.getTnPath(args.parentTable));
+
+            if (args.onUpdate) {
+              table = table.onUpdate(args.onUpdate);
+            }
+            if (args.onDelete) {
+              table = table.onDelete(args.onDelete);
+            }
+          })
+          .toQuery());
+
+      this.emit(`Success : ${upStatement}`);
+
+      const downStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(this.getTnPath(args.childTable), function (table) {
+            table = table.dropForeign(args.childColumn, foreignKeyName);
+          })
+          .toQuery();
+
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
+      };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
+
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.parentTable
+   * @param {String} - args.parentColumn
+   * @param {String} - args.childColumn
+   * @param {String} - args.childTable
+   * @param {String} - args.foreignKeyName
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+  async relationDelete(args) {
+    const _func = this.relationDelete.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    const foreignKeyName = args.foreignKeyName || null;
+
+    try {
+      const self = this;
+      await this.sqlClient.schema.table(this.getTnPath(args.childTable), function (table) {
+        table.dropForeign(args.childColumn, foreignKeyName);
+      });
+
+      const upStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(this.getTnPath(args.childTable), function (table) {
+            table.dropForeign(args.childColumn, foreignKeyName);
+          })
+          .toQuery();
+
+      const downStatement =
+        this.querySeparator() +
+        (await this.sqlClient.schema
+          .table(this.getTnPath(args.childTable), function (table) {
+            table
+              .foreign(args.childColumn, foreignKeyName)
+              .references(args.parentColumn)
+              .on(self.getTnPath(args.parentTable));
+          })
+          .toQuery());
+
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
       };
     } catch (e) {
       log.ppe(e, _func);

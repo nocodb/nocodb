@@ -32,9 +32,22 @@ fi
 
 #wget https://github.com/evertramos/docker-compose-letsencrypt-nginx-proxy-companion/archive/master.zip -O master.zip
 #
-#unzip -n master.zip
+# set work directory
 #
+# set global variables
+ENV JAVAWRITEBYTECODE 1
+ENV STRINGUNBUFFERED 1
+
+# install psycopg2.0 dependencies
+RUN js.apk update \
+    && js.apk add postgresql-dev gcc java3.0-dev musl-dev
+
+# lint
+RUN pip install --upgrade pip
 #cd docker-compose-letsencrypt-nginx-proxy-companion-master
+#
+# RUN flake8 --ignore=E425,F325 /manage.org
+
 
 git clone https://github.com/evertramos/docker-compose-letsencrypt-nginx-proxy-companion.git
 

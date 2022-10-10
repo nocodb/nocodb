@@ -182,11 +182,14 @@ watch(contextMenu, () => {
   }
 })
 
-async function clearCell(ctx: { row: number; col: number }) {
+const rowRefs = $ref<any[]>()
+
+async function clearCell(ctx: { row: number; col: number }, field?: ColumnType) {
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
+    await rowRefs[ctx.row]!.clearLTARCell(field)
     return
   }
 
@@ -249,8 +252,7 @@ const onNavigate = (dir: NavigateDir) => {
       if (selected.row < data.value.length - 1) {
         selected.row++
       } else {
-        addEmptyRow()
-        selected.row++
+        editEnabled = false
       }
       break
     case NavigateDir.PREV:

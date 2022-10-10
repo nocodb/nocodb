@@ -2,104 +2,40 @@ import UITypes from '../UITypes';
 import { IDType } from './index';
 
 const dbTypes = [
-  'int',
-  'integer',
-  'bigint',
-  'bigserial',
-  'char',
-  'int2',
-  'int4',
-  'int8',
-  'int4range',
-  'int8range',
-  'serial',
-  'serial2',
-  'serial8',
-  'character',
-  'bit',
-  'bool',
-  'boolean',
-  'date',
-  'double precision',
-  'event_trigger',
-  'fdw_handler',
-  'float4',
-  'float8',
-  'uuid',
-  'smallint',
-  'smallserial',
-  'character varying',
-  'text',
-  'real',
-  'time',
-  'time without time zone',
-  'timestamp',
-  'timestamp without time zone',
-  'timestamptz',
-  'timestamp with time zone',
-  'timetz',
-  'time with time zone',
-  'daterange',
-  'json',
-  'jsonb',
-  'gtsvector',
-  'index_am_handler',
-  'anyenum',
-  'anynonarray',
-  'anyrange',
-  'box',
-  'bpchar',
-  'bytea',
-  'cid',
-  'cidr',
-  'circle',
-  'cstring',
-  'inet',
-  'internal',
-  'interval',
-  'language_handler',
-  'line',
-  'lsec',
-  'macaddr',
-  'money',
-  'name',
-  'numeric',
-  'numrange',
-  'oid',
-  'opaque',
-  'path',
-  'pg_ddl_command',
-  'pg_lsn',
-  'pg_node_tree',
-  'point',
-  'polygon',
-  'record',
-  'refcursor',
-  'regclass',
-  'regconfig',
-  'regdictionary',
-  'regnamespace',
-  'regoper',
-  'regoperator',
-  'regproc',
-  'regpreocedure',
-  'regrole',
-  'regtype',
-  'reltime',
-  'smgr',
-  'tid',
-  'tinterval',
-  'trigger',
-  'tsm_handler',
-  'tsquery',
-  'tsrange',
-  'tstzrange',
-  'tsvector',
-  'txid_snapshot',
-  'unknown',
-  'void',
-  'xid',
-  'xml',
+  'NUMBER',
+  'DECIMAL',
+  'NUMERIC',
+  'INT',
+  'INTEGER',
+  'BIGINT',
+  'SMALLINT',
+  'TINYINT',
+  'BYTEINT',
+  'FLOAT',
+  'FLOAT4',
+  'FLOAT8',
+  'DOUBLE',
+  'DOUBLE PRECISION',
+  'REAL',
+  'VARCHAR',
+  'CHAR',
+  'CHARACTER',
+  'STRING',
+  'TEXT',
+  'BINARY',
+  'VARBINARY',
+  'BOOLEAN',
+  'DATE',
+  'DATETIME',
+  'TIME',
+  'TIMESTAMP',
+  'TIMESTAMP_LTZ',
+  'TIMESTAMP_NTZ',
+  'TIMESTAMP_TZ',
+  'VARIANT',
+  'OBJECT',
+  'ARRAY',
+  'GEOGRAPHY',
 ];
 
 export class SnowflakeUi {
@@ -108,7 +44,7 @@ export class SnowflakeUi {
       {
         column_name: 'id',
         title: 'Id',
-        dt: 'int4',
+        dt: 'int',
         dtx: 'integer',
         ct: 'int(11)',
         nrqd: false,
@@ -131,7 +67,7 @@ export class SnowflakeUi {
       {
         column_name: 'title',
         title: 'Title',
-        dt: 'character varying',
+        dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar(45)',
         nrqd: true,
@@ -163,7 +99,7 @@ export class SnowflakeUi {
         pk: false,
         un: false,
         ai: false,
-        cdf: 'now()',
+        cdf: 'current_timestamp()',
         clen: 45,
         np: null,
         ns: null,
@@ -187,7 +123,7 @@ export class SnowflakeUi {
         un: false,
         ai: false,
         au: true,
-        cdf: 'now()',
+        cdf: 'current_timestamp()',
         clen: 45,
         np: null,
         ns: null,
@@ -204,7 +140,7 @@ export class SnowflakeUi {
   static getNewColumn(suffix) {
     return {
       column_name: 'title' + suffix,
-      dt: 'character varying',
+      dt: 'varchar',
       dtx: 'specificType',
       ct: 'varchar(45)',
       nrqd: true,
@@ -226,842 +162,129 @@ export class SnowflakeUi {
     };
   }
 
-  // static getDefaultLengthForDatatype(type) {
-  //   switch (type) {
-  //     case "int":
-  //       return 11;
-  //       break;
-  //     case "tinyint":
-  //       return 1;
-  //       break;
-  //     case "smallint":
-  //       return 5;
-  //       break;
-  //
-  //     case "mediumint":
-  //       return 9;
-  //       break;
-  //     case "bigint":
-  //       return 20;
-  //       break;
-  //     case "bit":
-  //       return 64;
-  //       break;
-  //     case "boolean":
-  //       return '';
-  //       break;
-  //     case "float":
-  //       return 12;
-  //       break;
-  //     case "decimal":
-  //       return 10;
-  //       break;
-  //     case "double":
-  //       return 22;
-  //       break;
-  //     case "serial":
-  //       return 20;
-  //       break;
-  //     case "date":
-  //       return '';
-  //       break;
-  //     case "datetime":
-  //     case "timestamp":
-  //       return 6;
-  //       break;
-  //     case "time":
-  //       return '';
-  //       break;
-  //     case "year":
-  //       return '';
-  //       break;
-  //     case "char":
-  //       return 255;
-  //       break;
-  //     case "varchar":
-  //       return 45;
-  //       break;
-  //     case "nchar":
-  //       return 255;
-  //       break;
-  //     case "text":
-  //       return '';
-  //       break;
-  //     case "tinytext":
-  //       return '';
-  //       break;
-  //     case "mediumtext":
-  //       return '';
-  //       break;
-  //     case "longtext":
-  //       return ''
-  //       break;
-  //     case "binary":
-  //       return 255;
-  //       break;
-  //     case "varbinary":
-  //       return 65500;
-  //       break;
-  //     case "blob":
-  //       return '';
-  //       break;
-  //     case "tinyblob":
-  //       return '';
-  //       break;
-  //     case "mediumblob":
-  //       return '';
-  //       break;
-  //     case "longblob":
-  //       return '';
-  //       break;
-  //     case "enum":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "set":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "geometry":
-  //       return '';
-  //     case "point":
-  //       return '';
-  //     case "linestring":
-  //       return '';
-  //     case "polygon":
-  //       return '';
-  //     case "multipoint":
-  //       return '';
-  //     case "multilinestring":
-  //       return '';
-  //     case "multipolygon":
-  //       return '';
-  //     case "json":
-  //       return ''
-  //       break;
-  //
-  //   }
-  //
-  // }
-
   static getDefaultLengthForDatatype(type): any {
     switch (type) {
-      case 'int':
-        return '';
-
-      case 'tinyint':
-        return '';
-
-      case 'smallint':
-        return '';
-
-      case 'mediumint':
-        return '';
-
-      case 'bigint':
-        return '';
-
-      case 'bit':
-        return '';
-
-      case 'boolean':
-        return '';
-
-      case 'float':
-        return '';
-
-      case 'decimal':
-        return '';
-
-      case 'double':
-        return '';
-
-      case 'serial':
-        return '';
-
-      case 'date':
-        return '';
-
-      case 'datetime':
-      case 'timestamp':
-        return '';
-
-      case 'time':
-        return '';
-
-      case 'year':
-        return '';
-
-      case 'char':
-        return '';
-
-      case 'varchar':
-        return '';
-
-      case 'nchar':
-        return '';
-
-      case 'text':
-        return '';
-
-      case 'tinytext':
-        return '';
-
-      case 'mediumtext':
-        return '';
-
-      case 'longtext':
-        return '';
-
-      case 'binary':
-        return '';
-
-      case 'varbinary':
-        return '';
-
-      case 'blob':
-        return '';
-
-      case 'tinyblob':
-        return '';
-
-      case 'mediumblob':
-        return '';
-
-      case 'longblob':
-        return '';
-
-      case 'enum':
-        return '';
-
-      case 'set':
-        return '';
-
-      case 'geometry':
-        return '';
-      case 'point':
-        return '';
-      case 'linestring':
-        return '';
-      case 'polygon':
-        return '';
-      case 'multipoint':
-        return '';
-      case 'multilinestring':
-        return '';
-      case 'multipolygon':
-        return '';
-      case 'json':
+      case 'NUMBER':
+      case 'DECIMAL':
+      case 'NUMERIC':
+      case 'INT':
+      case 'INTEGER':
+      case 'BIGINT':
+      case 'SMALLINT':
+      case 'TINYINT':
+      case 'BYTEINT':
+      case 'FLOAT':
+      case 'FLOAT4':
+      case 'FLOAT8':
+      case 'DOUBLE':
+      case 'DOUBLE PRECISION':
+      case 'REAL':
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
+      case 'TEXT':
+      case 'BINARY':
+      case 'VARBINARY':
+      case 'BOOLEAN':
+      case 'DATE':
+      case 'DATETIME':
+      case 'TIME':
+      case 'TIMESTAMP':
+      case 'TIMESTAMP_LTZ':
+      case 'TIMESTAMP_NTZ':
+      case 'TIMESTAMP_TZ':
+      case 'VARIANT':
+      case 'OBJECT':
+      case 'ARRAY':
+      case 'GEOGRAPHY':
         return '';
     }
   }
 
   static getDefaultLengthIsDisabled(type): any {
     switch (type) {
-      case 'anyenum':
-      case 'anynonarray':
-      case 'anyrange':
-      case 'bigint':
-      case 'bigserial':
-      case 'bit':
-      case 'bool':
-      case 'box':
-      case 'bpchar':
-      case 'bytea':
-      case 'char':
-      case 'character':
-      case 'cid':
-      case 'cidr':
-      case 'circle':
-      case 'cstring':
-      case 'date':
-      case 'daterange':
-      case 'double precision':
-      case 'event_trigger':
-      case 'fdw_handler':
-      case 'float4':
-      case 'float8':
-      case 'gtsvector':
-      case 'index_am_handler':
-      case 'inet':
-      case 'int':
-      case 'int2':
-      case 'int4':
-      case 'int8':
-      case 'int4range':
-      case 'int8range':
-      case 'integer':
-      case 'internal':
-      case 'interval':
-      case 'jsonb':
-      case 'language_handler':
-      case 'line':
-      case 'lsec':
-      case 'macaddr':
-      case 'money':
-      case 'name':
-      case 'numeric':
-      case 'numrange':
-      case 'oid':
-      case 'opaque':
-      case 'path':
-      case 'pg_ddl_command':
-      case 'pg_lsn':
-      case 'pg_node_tree':
-      case 'real':
-      case 'record':
-      case 'refcursor':
-      case 'regclass':
-      case 'regconfig':
-      case 'regdictionary':
-      case 'regnamespace':
-      case 'regoper':
-      case 'regoperator':
-      case 'regproc':
-      case 'regpreocedure':
-      case 'regrole':
-      case 'regtype':
-      case 'reltime':
-      case 'serial':
-      case 'serial2':
-      case 'serial8':
-      case 'smallint':
-      case 'smallserial':
-      case 'smgr':
-      case 'text':
-      case 'tid':
-      case 'time':
-      case 'time without time zone':
-      case 'timestamp':
-      case 'timestamp without time zone':
-      case 'timestamptz':
-      case 'timestamp with time zone':
-      case 'timetz':
-      case 'time with time zone':
-      case 'tinterval':
-      case 'trigger':
-      case 'tsm_handler':
-      case 'tsquery':
-      case 'tsrange':
-      case 'tstzrange':
-      case 'tsvector':
-      case 'txid_snapshot':
-      case 'unknown':
-      case 'void':
-      case 'xid':
-      case 'xml':
-      case 'character varying':
-      case 'tinyint':
-      case 'mediumint':
-      case 'float':
-      case 'decimal':
-      case 'double':
-      case 'boolean':
-      case 'datetime':
-      case 'uuid':
-      case 'year':
-      case 'varchar':
-      case 'nchar':
-      case 'tinytext':
-      case 'mediumtext':
-      case 'longtext':
-      case 'binary':
-      case 'varbinary':
-      case 'blob':
-      case 'tinyblob':
-      case 'mediumblob':
-      case 'longblob':
-      case 'enum':
-      case 'set':
-      case 'geometry':
-      case 'point':
-      case 'linestring':
-      case 'polygon':
-      case 'multipoint':
-      case 'multilinestring':
-      case 'multipolygon':
-      case 'json':
+      case 'NUMBER':
+      case 'DECIMAL':
+      case 'NUMERIC':
+      case 'INT':
+      case 'INTEGER':
+      case 'BIGINT':
+      case 'SMALLINT':
+      case 'TINYINT':
+      case 'BYTEINT':
+      case 'FLOAT':
+      case 'FLOAT4':
+      case 'FLOAT8':
+      case 'DOUBLE':
+      case 'DOUBLE PRECISION':
+      case 'REAL':
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
+      case 'TEXT':
+      case 'BINARY':
+      case 'VARBINARY':
+      case 'BOOLEAN':
+      case 'DATE':
+      case 'DATETIME':
+      case 'TIME':
+      case 'TIMESTAMP':
+      case 'TIMESTAMP_LTZ':
+      case 'TIMESTAMP_NTZ':
+      case 'TIMESTAMP_TZ':
+      case 'VARIANT':
+      case 'OBJECT':
+      case 'ARRAY':
+      case 'GEOGRAPHY':
         return true;
     }
   }
 
   static getDefaultValueForDatatype(type): any {
     switch (type) {
-      case 'anyenum':
-        return 'eg: ';
-
-      case 'anynonarray':
-        return 'eg: ';
-
-      case 'anyrange':
-        return 'eg: ';
-
-      case 'bigint':
-        return 'eg: ';
-
-      case 'bigserial':
-        return 'eg: ';
-
-      case 'bit':
-        return 'eg: ';
-
-      case 'bool':
-        return 'eg: ';
-
-      case 'box':
-        return 'eg: ';
-
-      case 'bpchar':
-        return 'eg: ';
-
-      case 'bytea':
-        return 'eg: ';
-
-      case 'char':
-        return 'eg: ';
-
-      case 'character':
-        return "eg: 'sample'";
-
-      case 'cid':
-        return 'eg: ';
-
-      case 'cidr':
-        return 'eg: ';
-
-      case 'circle':
-        return 'eg: ';
-
-      case 'cstring':
-        return 'eg: ';
-
-      case 'date':
-        return "eg: '2020-09-09'";
-
-      case 'daterange':
-        return 'eg: ';
-
-      case 'double precision':
-        return 'eg: 1.2';
-
-      case 'event_trigger':
-        return 'eg: ';
-
-      case 'fdw_handler':
-        return 'eg: ';
-
-      case 'float4':
-        return 'eg: 1.2';
-
-      case 'float8':
-        return 'eg: 1.2';
-
-      case 'gtsvector':
-        return 'eg: ';
-
-      case 'index_am_handler':
-        return 'eg: ';
-
-      case 'inet':
-        return 'eg: ';
-
-      case 'int':
-        return 'eg: ';
-
-      case 'int2':
-        return 'eg: ';
-
-      case 'int4':
-        return 'eg: ';
-
-      case 'int8':
-        return 'eg: ';
-
-      case 'int4range':
-        return 'eg: ';
-
-      case 'int8range':
-        return 'eg: ';
-
-      case 'integer':
-        return 'eg: ';
-
-      case 'internal':
-        return 'eg: ';
-
-      case 'interval':
-        return 'eg: ';
-
-      case 'json':
-        return 'eg: ';
-
-      case 'jsonb':
-        return 'eg: ';
-
-      case 'language_handler':
-        return 'eg: ';
-
-      case 'line':
-        return 'eg: ';
-
-      case 'lsec':
-        return 'eg: ';
-
-      case 'macaddr':
-        return 'eg: ';
-
-      case 'money':
-        return 'eg: ';
-
-      case 'name':
-        return 'eg: ';
-
-      case 'numeric':
-        return 'eg: ';
-
-      case 'numrange':
-        return 'eg: ';
-
-      case 'oid':
-        return 'eg: ';
-
-      case 'opaque':
-        return 'eg: ';
-
-      case 'path':
-        return 'eg: ';
-
-      case 'pg_ddl_command':
-        return 'eg: ';
-
-      case 'pg_lsn':
-        return 'eg: ';
-
-      case 'pg_node_tree':
-        return 'eg: ';
-
-      case 'point':
-        return 'eg: ';
-
-      case 'polygon':
-        return 'eg: ';
-
-      case 'real':
-        return 'eg: 1.2';
-
-      case 'record':
-        return 'eg: ';
-
-      case 'refcursor':
-        return 'eg: ';
-
-      case 'regclass':
-        return 'eg: ';
-
-      case 'regconfig':
-        return 'eg: ';
-
-      case 'regdictionary':
-        return 'eg: ';
-
-      case 'regnamespace':
-        return 'eg: ';
-
-      case 'regoper':
-        return 'eg: ';
-
-      case 'regoperator':
-        return 'eg: ';
-
-      case 'regproc':
-        return 'eg: ';
-
-      case 'regpreocedure':
-        return 'eg: ';
-
-      case 'regrole':
-        return 'eg: ';
-
-      case 'regtype':
-        return 'eg: ';
-
-      case 'reltime':
-        return 'eg: ';
-
-      case 'serial':
-        return 'eg: ';
-
-      case 'serial2':
-        return 'eg: ';
-
-      case 'serial8':
-        return 'eg: ';
-
-      case 'smallint':
-        return 'eg: ';
-
-      case 'smallserial':
-        return 'eg: ';
-
-      case 'smgr':
-        return 'eg: ';
-
-      case 'text':
-        return "eg: 'sample text'";
-
-      case 'tid':
-        return 'eg: ';
-
-      case 'time':
-        return "eg: now()\n\n'04:05:06.789'";
-
-      case 'time without time zone':
-        return "eg: now()\n\n'04:05:06.789'";
-
-      case 'timestamp':
-        return "eg: now()\n\n'2016-06-22 19:10:25-07'";
-
-      case 'timestamp without time zone':
-        return "eg: now()\n\n'2016-06-22 19:10:25-07'";
-
-      case 'timestamptz':
-        return "eg: timezone('America/New_York','2016-06-01 00:00')\n\nnow()\n\n'2016-06-22 19:10:25-07'";
-
-      case 'timestamp with time zone':
-        return "eg: now()\n\n'2016-06-22 19:10:25-07'";
-
-      case 'timetz':
-        return 'eg: now()';
-
-      case 'time with time zone':
-        return 'eg: now()';
-
-      case 'tinterval':
-        return 'eg: ';
-
-      case 'trigger':
-        return 'eg: ';
-
-      case 'tsm_handler':
-        return 'eg: ';
-
-      case 'tsquery':
-        return 'eg: ';
-
-      case 'tsrange':
-        return 'eg: ';
-
-      case 'tstzrange':
-        return 'eg: ';
-
-      case 'tsvector':
-        return 'eg: ';
-
-      case 'txid_snapshot':
-        return 'eg: ';
-
-      case 'unknown':
-        return 'eg: ';
-
-      case 'void':
-        return 'eg: ';
-
-      case 'xid':
-        return 'eg: ';
-
-      case 'xml':
-        return 'eg: ';
-
-      case 'character varying':
-        return "eg: 'sample text'";
-
-      case 'tinyint':
-        return 'eg: ';
-
-      case 'mediumint':
-        return 'eg: ';
-
-      case 'float':
-        return 'eg: ';
-
-      case 'decimal':
-        return 'eg: ';
-
-      case 'double':
-        return 'eg: 1.2';
-
-      case 'boolean':
-        return 'eg: true\n\nfalse';
-
-      case 'datetime':
-        return 'eg: ';
-
-      case 'uuid':
-        return 'eg: ';
-
-      case 'year':
-        return 'eg: ';
-
-      case 'varchar':
-        return 'eg: ';
-
-      case 'nchar':
-        return 'eg: ';
-
-      case 'tinytext':
-        return 'eg: ';
-
-      case 'mediumtext':
-        return 'eg: ';
-
-      case 'longtext':
-        return 'eg: ';
-
-      case 'binary':
-        return 'eg: ';
-
-      case 'varbinary':
-        return 'eg: ';
-
-      case 'blob':
-        return 'eg: ';
-
-      case 'tinyblob':
-        return 'eg: ';
-
-      case 'mediumblob':
-        return 'eg: ';
-
-      case 'longblob':
-        return 'eg: ';
-
-      case 'enum':
-        return 'eg: ';
-
-      case 'set':
-        return 'eg: ';
-
-      case 'geometry':
-        return 'eg: ';
-
-      case 'linestring':
-        return 'eg: ';
-
-      case 'multipoint':
-        return 'eg: ';
-
-      case 'multilinestring':
-        return 'eg: ';
-
-      case 'multipolygon':
+      default:
         return 'eg: ';
     }
   }
 
   static getDefaultScaleForDatatype(type): any {
     switch (type) {
-      case 'int':
-        return ' ';
-
-      case 'tinyint':
-        return ' ';
-
-      case 'smallint':
-        return ' ';
-
-      case 'mediumint':
-        return ' ';
-
-      case 'bigint':
-        return ' ';
-
-      case 'bit':
-        return ' ';
-
-      case 'boolean':
-        return ' ';
-
-      case 'float':
-        return '2';
-
-      case 'decimal':
-        return '2';
-
-      case 'double':
-        return '2';
-
-      case 'serial':
-        return ' ';
-
-      case 'date':
-      case 'datetime':
-      case 'timestamp':
-        return ' ';
-
-      case 'time':
-        return ' ';
-
-      case 'year':
-        return ' ';
-
-      case 'char':
-        return ' ';
-
-      case 'varchar':
-        return ' ';
-
-      case 'nchar':
-        return ' ';
-
-      case 'text':
-        return ' ';
-
-      case 'tinytext':
-        return ' ';
-
-      case 'mediumtext':
-        return ' ';
-
-      case 'longtext':
-        return ' ';
-
-      case 'binary':
-        return ' ';
-
-      case 'varbinary':
-        return ' ';
-
-      case 'blob':
-        return ' ';
-
-      case 'tinyblob':
-        return ' ';
-
-      case 'mediumblob':
-        return ' ';
-
-      case 'longblob':
-        return ' ';
-
-      case 'enum':
-        return ' ';
-
-      case 'set':
-        return ' ';
-
-      case 'geometry':
-        return ' ';
-      case 'point':
-        return ' ';
-      case 'linestring':
-        return ' ';
-      case 'polygon':
-        return ' ';
-      case 'multipoint':
-        return ' ';
-      case 'multilinestring':
-        return ' ';
-      case 'multipolygon':
-        return ' ';
-      case 'json':
+      case 'NUMBER':
+      case 'DECIMAL':
+      case 'NUMERIC':
+      case 'INT':
+      case 'INTEGER':
+      case 'BIGINT':
+      case 'SMALLINT':
+      case 'TINYINT':
+      case 'BYTEINT':
+      case 'FLOAT':
+      case 'FLOAT4':
+      case 'FLOAT8':
+      case 'DOUBLE':
+      case 'DOUBLE PRECISION':
+      case 'REAL':
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
+      case 'TEXT':
+      case 'BINARY':
+      case 'VARBINARY':
+      case 'BOOLEAN':
+      case 'DATE':
+      case 'DATETIME':
+      case 'TIME':
+      case 'TIMESTAMP':
+      case 'TIMESTAMP_LTZ':
+      case 'TIMESTAMP_NTZ':
+      case 'TIMESTAMP_TZ':
+      case 'VARIANT':
+      case 'OBJECT':
+      case 'ARRAY':
+      case 'GEOGRAPHY':
         return ' ';
     }
   }
@@ -1069,10 +292,13 @@ export class SnowflakeUi {
   static colPropAIDisabled(col, columns) {
     // console.log(col);
     if (
-      col.dt === 'int4' ||
-      col.dt === 'integer' ||
-      col.dt === 'bigint' ||
-      col.dt === 'smallint'
+      col.dt === 'NUMBER' ||
+      col.dt === 'DECIMAL' ||
+      col.dt === 'NUMERIC' ||
+      col.dt === 'INT' ||
+      col.dt === 'INTEGER' ||
+      col.dt === 'BIGINT' ||
+      col.dt === 'SMALLINT'
     ) {
       for (let i = 0; i < columns.length; ++i) {
         if (columns[i].cn !== col.cn && columns[i].ai) {
@@ -1102,10 +328,13 @@ export class SnowflakeUi {
   static onCheckboxChangeAI(col) {
     console.log(col);
     if (
-      col.dt === 'int' ||
-      col.dt === 'bigint' ||
-      col.dt === 'smallint' ||
-      col.dt === 'tinyint'
+      col.dt === 'NUMBER' ||
+      col.dt === 'DECIMAL' ||
+      col.dt === 'NUMERIC' ||
+      col.dt === 'INT' ||
+      col.dt === 'INTEGER' ||
+      col.dt === 'BIGINT' ||
+      col.dt === 'SMALLINT'
     ) {
       col.altered = col.altered || 2;
     }
@@ -1123,7 +352,7 @@ export class SnowflakeUi {
     col.altered = col.altered || 2;
     // }
     if (col.au) {
-      col.cdf = 'now()';
+      col.cdf = 'current_timestamp()';
     }
 
     // if (!col.ai) {
@@ -1142,11 +371,10 @@ export class SnowflakeUi {
       if (
         columns[i].altered === 1 &&
         !(
-          columns[i].dt === 'int' ||
-          columns[i].dt === 'bigint' ||
-          columns[i].dt === 'tinyint' ||
-          columns[i].dt === 'smallint' ||
-          columns[i].dt === 'mediumint'
+          columns[i].dt === 'INT' ||
+          columns[i].dt === 'BIGINT' ||
+          columns[i].dt === 'SMALLINT' ||
+          columns[i].dt === 'TINYINT'
         )
       ) {
         columns[i].un = false;
@@ -1288,7 +516,7 @@ export class SnowflakeUi {
                 });
               } else if (json[keys[i]].length <= 255) {
                 Object.assign(column, {
-                  dt: 'character varying',
+                  dt: 'VARCHAR',
                   np: null,
                   ns: 0,
                   dtxp: null,
@@ -1342,15 +570,14 @@ export class SnowflakeUi {
       return true;
     }
 
-    switch (col.dt) {
-      case 'time':
-      case 'time without time zone':
-      case 'timestamp':
-      case 'timestamp without time zone':
-      case 'timestamptz':
-      case 'timestamp with time zone':
-      case 'timetz':
-      case 'time with time zone':
+    switch (col.dt.toUpperCase()) {
+      case 'DATE':
+      case 'DATETIME':
+      case 'TIME':
+      case 'TIMESTAMP':
+      case 'TIMESTAMP_LTZ':
+      case 'TIMESTAMP_NTZ':
+      case 'TIMESTAMP_TZ':
         return false;
       default:
         return true;
@@ -1358,214 +585,90 @@ export class SnowflakeUi {
   }
 
   static getAbstractType(col): any {
-    switch ((col.dt || col.dt).toLowerCase()) {
-      case 'anyenum':
-        return 'enum';
-      case 'anynonarray':
-      case 'anyrange':
-        return 'string';
-
-      case 'bit':
+    switch (col.dt.toUpperCase()) {
+      case 'NUMBER':
+      case 'DECIMAL':
+      case 'NUMERIC':
+      case 'INT':
+      case 'INTEGER':
+      case 'BIGINT':
+      case 'SMALLINT':
+      case 'TINYINT':
+      case 'BYTEINT':
         return 'integer';
-      case 'bigint':
-      case 'bigserial':
+      case 'FLOAT':
+      case 'FLOAT4':
+      case 'FLOAT8':
+      case 'DOUBLE':
+      case 'DOUBLE PRECISION':
+      case 'REAL':
+        return 'float';
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
         return 'string';
-
-      case 'bool':
+      case 'TEXT':
+        return 'text';
+      case 'BINARY':
+      case 'VARBINARY':
+        return 'string';
+      case 'BOOLEAN':
         return 'boolean';
-
-      case 'box':
-      case 'bpchar':
-      case 'bytea':
-      case 'char':
-      case 'character':
-        return 'string';
-
-      case 'cid':
-      case 'cidr':
-      case 'circle':
-      case 'cstring':
-        return 'string';
-
-      case 'date':
+      case 'DATE':
         return 'date';
-      case 'daterange':
+      case 'DATETIME':
+      case 'TIME':
+      case 'TIMESTAMP':
+      case 'TIMESTAMP_LTZ':
+      case 'TIMESTAMP_NTZ':
+      case 'TIMESTAMP_TZ':
         return 'string';
-      case 'double precision':
+      case 'VARIANT':
         return 'string';
-
-      case 'event_trigger':
-      case 'fdw_handler':
-        return 'string';
-
-      case 'float4':
-      case 'float8':
-        return 'float';
-
-      case 'gtsvector':
-      case 'index_am_handler':
-      case 'inet':
-        return 'string';
-
-      case 'int':
-      case 'int2':
-      case 'int4':
-      case 'int8':
-      case 'integer':
-        return 'integer';
-      case 'int4range':
-      case 'int8range':
-      case 'internal':
-      case 'interval':
-        return 'string';
-      case 'jsonb':
-        return 'string';
-
-      case 'language_handler':
-      case 'line':
-      case 'lsec':
-      case 'macaddr':
-      case 'money':
-      case 'name':
-      case 'numeric':
-      case 'numrange':
-      case 'oid':
-      case 'opaque':
-      case 'path':
-      case 'pg_ddl_command':
-      case 'pg_lsn':
-      case 'pg_node_tree':
-      case 'point':
-      case 'polygon':
-        return 'string';
-      case 'real':
-        return 'float';
-      case 'record':
-      case 'refcursor':
-      case 'regclass':
-      case 'regconfig':
-      case 'regdictionary':
-      case 'regnamespace':
-      case 'regoper':
-      case 'regoperator':
-      case 'regproc':
-      case 'regpreocedure':
-      case 'regrole':
-      case 'regtype':
-      case 'reltime':
-        return 'string';
-      case 'serial':
-      case 'serial2':
-      case 'serial8':
-      case 'smallint':
-      case 'smallserial':
-        return 'integer';
-      case 'smgr':
-        return 'string';
-      case 'text':
-        return 'text';
-      case 'tid':
-        return 'string';
-      case 'time':
-      case 'time without time zone':
-        return 'time';
-      case 'timestamp':
-      case 'timestamp without time zone':
-      case 'timestamptz':
-      case 'timestamp with time zone':
-        return 'datetime';
-      case 'timetz':
-      case 'time with time zone':
-        return 'time';
-
-      case 'tinterval':
-      case 'trigger':
-      case 'tsm_handler':
-      case 'tsquery':
-      case 'tsrange':
-      case 'tstzrange':
-      case 'tsvector':
-      case 'txid_snapshot':
-      case 'unknown':
-      case 'void':
-      case 'xid':
-      case 'character varying':
-      case 'xml':
-        return 'string';
-
-      case 'tinyint':
-      case 'mediumint':
-        return 'integer';
-
-      case 'float':
-      case 'decimal':
-      case 'double':
-        return 'float';
-      case 'boolean':
-        return 'boolean';
-      case 'datetime':
-        return 'datetime';
-
-      case 'uuid':
-      case 'year':
-      case 'varchar':
-      case 'nchar':
-        return 'string';
-      case 'tinytext':
-      case 'mediumtext':
-      case 'longtext':
-        return 'text';
-      case 'binary':
-      case 'varbinary':
-        return 'string';
-      case 'blob':
-      case 'tinyblob':
-      case 'mediumblob':
-      case 'longblob':
-        return 'blob';
-      case 'enum':
-        return 'enum';
-      case 'set':
-        return 'set';
-      case 'geometry':
-      case 'linestring':
-      case 'multipoint':
-      case 'multilinestring':
-      case 'multipolygon':
-        return 'string';
-      case 'json':
+      case 'OBJECT':
         return 'json';
+      case 'ARRAY':
+        return 'enum';
+      case 'GEOGRAPHY':
+        return 'string';
+      default:
+        return 'string';
     }
   }
 
   static getUIType(col): any {
     switch (this.getAbstractType(col)) {
-      case 'integer':
+      case 'NUMBER':
+      case 'DECIMAL':
+      case 'NUMERIC':
+      case 'INT':
+      case 'INTEGER':
+      case 'BIGINT':
+      case 'SMALLINT':
+      case 'TINYINT':
+      case 'BYTEINT':
         return 'Number';
-      case 'boolean':
-        return 'Checkbox';
-      case 'float':
+      case 'FLOAT':
+      case 'FLOAT4':
+      case 'FLOAT8':
+      case 'DOUBLE':
+      case 'DOUBLE PRECISION':
+      case 'REAL':
         return 'Decimal';
-      case 'date':
-        return 'Date';
-      case 'datetime':
-        return 'CreateTime';
-      case 'time':
-        return 'Time';
-      case 'year':
-        return 'Year';
-      case 'string':
+      case 'VARCHAR':
+      case 'CHAR':
+      case 'CHARACTER':
+      case 'STRING':
         return 'SingleLineText';
-      case 'text':
+      case 'TEXT':
         return 'LongText';
-      case 'blob':
-        return 'Attachment';
-      case 'enum':
-        return 'SingleSelect';
-      case 'set':
-        return 'MultiSelect';
-      case 'json':
-        return 'LongText';
+      case 'BOOLEAN':
+        return 'Checkbox';
+      case 'DATE':
+        return 'Date';
+      case 'DATETIME':
+        return 'DateTime';
     }
   }
 
@@ -1576,7 +679,7 @@ export class SnowflakeUi {
         {
           const isAutoIncId = idType === 'AI';
           const isAutoGenId = idType === 'AG';
-          colProp.dt = isAutoGenId ? 'character varying' : 'int4';
+          colProp.dt = isAutoGenId ? 'VARCHAR' : 'int4';
           colProp.pk = true;
           colProp.un = isAutoIncId;
           colProp.ai = isAutoIncId;
@@ -1585,41 +688,41 @@ export class SnowflakeUi {
         }
         break;
       case 'ForeignKey':
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         break;
       case 'SingleLineText':
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         break;
       case 'LongText':
-        colProp.dt = 'text';
+        colProp.dt = 'TEXT';
         break;
       case 'Attachment':
-        colProp.dt = 'text';
+        colProp.dt = 'TEXT';
         break;
       case 'Checkbox':
-        colProp.dt = 'bool';
+        colProp.dt = 'BOOLEAN';
         break;
       case 'MultiSelect':
-        colProp.dt = 'text';
+        colProp.dt = 'TEXT';
         break;
       case 'SingleSelect':
-        colProp.dt = 'text';
+        colProp.dt = 'TEXT';
         break;
       case 'Collaborator':
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         break;
       case 'Date':
-        colProp.dt = 'date';
+        colProp.dt = 'DATE';
 
         break;
       case 'Year':
-        colProp.dt = 'int';
+        colProp.dt = 'INT';
         break;
       case 'Time':
-        colProp.dt = 'time';
+        colProp.dt = 'VARCHAR';
         break;
       case 'PhoneNumber':
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         colProp.validate = {
           func: ['isMobilePhone'],
           args: [''],
@@ -1627,7 +730,7 @@ export class SnowflakeUi {
         };
         break;
       case 'Email':
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         colProp.validate = {
           func: ['isEmail'],
           args: [''],
@@ -1635,7 +738,7 @@ export class SnowflakeUi {
         };
         break;
       case 'URL':
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         colProp.validate = {
           func: ['isURL'],
           args: [''],
@@ -1643,13 +746,13 @@ export class SnowflakeUi {
         };
         break;
       case 'Number':
-        colProp.dt = 'bigint';
+        colProp.dt = 'BIGINT';
         break;
       case 'Decimal':
-        colProp.dt = 'decimal';
+        colProp.dt = 'DECIMAL';
         break;
       case 'Currency':
-        colProp.dt = 'decimal';
+        colProp.dt = 'DECIMAL';
         colProp.validate = {
           func: ['isCurrency'],
           args: [''],
@@ -1657,49 +760,49 @@ export class SnowflakeUi {
         };
         break;
       case 'Percent':
-        colProp.dt = 'double precision';
+        colProp.dt = 'DOUBLE PRECISION';
         break;
       case 'Duration':
-        colProp.dt = 'decimal';
+        colProp.dt = 'DECIMAL';
         break;
       case 'Rating':
-        colProp.dt = 'smallint';
+        colProp.dt = 'SMALLINT';
         break;
       case 'Formula':
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         break;
       case 'Rollup':
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         break;
       case 'Count':
-        colProp.dt = 'int8';
+        colProp.dt = 'INT';
         break;
       case 'Lookup':
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         break;
       case 'DateTime':
-        colProp.dt = 'timestamp';
+        colProp.dt = 'TIMESTAMP';
         break;
       case 'CreateTime':
-        colProp.dt = 'timestamp';
+        colProp.dt = 'TIMESTAMP';
         break;
       case 'LastModifiedTime':
-        colProp.dt = 'timestamp';
+        colProp.dt = 'TIMESTAMP';
         break;
       case 'AutoNumber':
-        colProp.dt = 'int';
+        colProp.dt = 'INT';
         break;
       case 'Barcode':
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         break;
       case 'Button':
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         break;
       case 'JSON':
-        colProp.dt = 'json';
+        colProp.dt = 'TEXT';
         break;
       default:
-        colProp.dt = 'character varying';
+        colProp.dt = 'VARCHAR';
         break;
     }
     return colProp;
@@ -1709,21 +812,10 @@ export class SnowflakeUi {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {
-          return ['char', 'character', 'character varying'];
+          return ['char', 'character', 'VARCHAR'];
         } else if (idType === 'AI') {
           return [
-            'int',
-            'integer',
-            'bigint',
-            'bigserial',
-            'int2',
-            'int4',
-            'int8',
-            'serial',
-            'serial2',
-            'serial8',
-            'smallint',
-            'smallserial',
+            'NUMBER'
           ];
         } else {
           return dbTypes;
@@ -1734,215 +826,170 @@ export class SnowflakeUi {
       case 'SingleLineText':
       case 'LongText':
       case 'Collaborator':
-        return ['char', 'character', 'character varying', 'text'];
+        return ['CHAR', 'CHARACTER', 'VARCHAR', 'TEXT'];
 
       case 'Attachment':
-        return ['json', 'char', 'character', 'character varying', 'text'];
+        return ['TEXT', 'CHAR', 'CHARACTER', 'VARCHAR', 'text'];
 
       case 'JSON':
-        return ['json', 'jsonb', 'text'];
+        return ['TEXT'];
       case 'Checkbox':
         return [
-          'bit',
-          'bool',
-          'int2',
-          'int4',
-          'int8',
-          'boolean',
-          'smallint',
-          'int',
-          'integer',
-          'bigint',
-          'char',
-          'int4range',
-          'int8range',
+          'BIT',
+          'BOOLEAN',
+          'TINYINT',
+          'INT',
+          'BIGINT',
         ];
 
       case 'MultiSelect':
-        return ['text'];
+        return ['TEXT'];
 
       case 'SingleSelect':
-        return ['text'];
+        return ['TEXT'];
 
       case 'Year':
-        return ['int'];
+        return ['INT'];
 
       case 'Time':
         return [
-          'time',
-          'time without time zone',
-          'timestamp',
-          'timestamp without time zone',
-          'timestamptz',
-          'timestamp with time zone',
-          'timetz',
-          'time with time zone',
+          'TIMESTAMP',
+          'VARCHAR',
         ];
 
       case 'PhoneNumber':
       case 'Email':
-        return ['character varying'];
+        return ['VARCHAR'];
 
       case 'URL':
-        return ['character varying', 'text'];
+        return ['VARCHAR', 'TEXT'];
 
       case 'Number':
         return [
-          'int',
-          'integer',
-          'bigint',
-          'int2',
-          'int4',
-          'int8',
-          'double precision',
-          'float4',
-          'float8',
-          'smallint',
-          'numeric',
+          'NUMBER',
+          'DECIMAL',
+          'NUMERIC',
+          'INT',
+          'INTEGER',
+          'BIGINT',
+          'SMALLINT',
+          'TINYINT',
+          'BYTEINT',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'DOUBLE',
+          'DOUBLE PRECISION',
+          'REAL',
         ];
 
       case 'Decimal':
-        return ['double precision', 'float4', 'float8', 'numeric'];
+        return ['DOUBLE', 'DOUBLE PRECISION', 'FLOAT', 'FLOAT4', 'FLOAT8', 'NUMERIC'];
 
       case 'Currency':
         return [
-          'int',
-          'integer',
-          'bigint',
-          'int2',
-          'int4',
-          'int8',
-          'double precision',
-          'money',
-          'float4',
-          'float8',
-          'numeric',
+          'NUMBER',
+          'DECIMAL',
+          'NUMERIC',
+          'INT',
+          'INTEGER',
+          'BIGINT',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'DOUBLE',
+          'DOUBLE PRECISION',
         ];
 
       case 'Percent':
         return [
-          'int',
-          'integer',
-          'bigint',
-          'int2',
-          'int4',
-          'int8',
-          'double precision',
-          'float4',
-          'float8',
-          'smallint',
-          'numeric',
+          'NUMBER',
+          'DECIMAL',
+          'NUMERIC',
+          'INT',
+          'INTEGER',
+          'BIGINT',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'DOUBLE',
+          'DOUBLE PRECISION',
         ];
 
       case 'Duration':
         return [
-          'int',
-          'integer',
-          'bigint',
-          'int2',
-          'int4',
-          'int8',
-          'double precision',
-          'float4',
-          'float8',
-          'smallint',
-          'smallserial',
-          'numeric',
+          'NUMBER',
+          'DECIMAL',
+          'NUMERIC',
+          'INT',
+          'INTEGER',
+          'BIGINT',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'DOUBLE',
+          'DOUBLE PRECISION',
         ];
 
       case 'Rating':
         return [
-          'int',
-          'integer',
-          'bigint',
-          'bigserial',
-          'int2',
-          'int4',
-          'int8',
-          'serial',
-          'serial2',
-          'serial8',
-          'double precision',
-          'float4',
-          'float8',
-          'smallint',
-          'smallserial',
-          'numeric',
+          'NUMBER',
+          'DECIMAL',
+          'NUMERIC',
+          'INT',
+          'INTEGER',
+          'BIGINT',
+          'FLOAT',
+          'FLOAT4',
+          'FLOAT8',
+          'DOUBLE',
+          'DOUBLE PRECISION',
         ];
 
       case 'Formula':
-        return ['text', 'character varying'];
+        return ['TEXT', 'VARCHAR'];
 
       case 'Rollup':
-        return ['character varying'];
+        return ['VARCHAR'];
 
       case 'Count':
         return [
-          'int',
-          'integer',
-          'bigint',
-          'bigserial',
-          'int2',
-          'int4',
-          'int8',
-          'serial',
-          'serial2',
-          'serial8',
-          'smallint',
-          'smallserial',
+          'NUMBER',
+          'INT',
+          'INTEGER',
+          'BIGINT',
         ];
 
       case 'Lookup':
-        return ['character varying'];
+        return ['VARCHAR'];
 
       case 'Date':
         return [
-          'date',
-          'timestamp',
-          'timestamp without time zone',
-          'timestamptz',
-          'timestamp with time zone',
+          'DATE',
+          'TIMESTAMP',
         ];
 
       case 'DateTime':
       case 'CreateTime':
       case 'LastModifiedTime':
         return [
-          'timestamp',
-          'timestamp without time zone',
-          'timestamptz',
-          'timestamp with time zone',
+          'TIMESTAMP',
         ];
 
       case 'AutoNumber':
         return [
-          'int',
-          'integer',
-          'bigint',
-          'bigserial',
-          'int2',
-          'int4',
-          'int8',
-          'serial',
-          'serial2',
-          'serial8',
-          'smallint',
-          'smallserial',
+          'NUMBER',
+          'INT',
+          'INTEGER',
+          'BIGINT',
         ];
 
       case 'Barcode':
-        return ['character varying'];
+        return ['VARCHAR'];
 
       case 'Geometry':
         return [
-          'polygon',
-          'point',
-          'circle',
-          'box',
-          'line',
-          'lseg',
-          'path',
-          'circle',
+          'TEXT',
         ];
 
       case 'Button':

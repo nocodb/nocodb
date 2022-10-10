@@ -579,7 +579,10 @@ watch([() => selected.row, () => selected.col], ([row, col]) => {
             </a-menu-item>
 
             <!--            Clear cell -->
-            <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)">
+            <a-menu-item
+              v-if="contextMenuTarget && !isVirtualCol(fields[contextMenuTarget.col])"
+              @click="clearCell(contextMenuTarget)"
+            >
               <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 

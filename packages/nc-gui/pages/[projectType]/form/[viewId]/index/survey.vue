@@ -283,7 +283,8 @@ onMounted(() => {
                   "
                   type="submit"
                   class="uppercase scaling-btn prose-sm"
-                 data-cy="nc-survey-form__btn-submit" @click="submitForm"
+                  data-cy="nc-survey-form__btn-submit"
+                  @click="submitForm"
                 >
                   {{ $t('general.submit') }}
                 </button>
@@ -383,7 +384,8 @@ onMounted(() => {
                   : ''
               "
               class="p-0.5 flex items-center group color-transition"
-             data-cy="nc-survey-form__icon-prev" @click="goPrevious"
+              data-cy="nc-survey-form__icon-prev"
+              @click="goPrevious"
             >
               <MdiChevronLeft :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'" class="text-2xl md:text-md" />
             </button>
@@ -401,7 +403,8 @@ onMounted(() => {
                   : ''
               "
               class="p-0.5 flex items-center group color-transition"
-             data-cy="nc-survey-form__icon-next" @click="goNext"
+              data-cy="nc-survey-form__icon-next"
+              @click="goNext"
             >
               <MdiChevronRight
                 :class="[isLast || v$.localState[field.title]?.$error ? 'text-gray-300' : 'group-hover:text-accent']"

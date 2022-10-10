@@ -65,12 +65,18 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       }
     }
 
-    const linkRecord = async (rowId: string, relatedRowId: string, column: ColumnType, type: RelationTypes) => {
+    const linkRecord = async (
+      rowId: string,
+      relatedRowId: string,
+      column: ColumnType,
+      type: RelationTypes,
+      { metaValue = meta.value }: { metaValue?: TableType } = {},
+    ) => {
       try {
         await $api.dbTableRow.nestedAdd(
           NOCO,
           project.value.title as string,
-          meta.value?.title as string,
+          metaValue?.title as string,
           rowId,
           type as 'mm' | 'hm',
           column.title as string,
@@ -82,9 +88,9 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     }
 
     /** sync LTAR relations kept in local state */
-    const syncLTARRefs = async (row: Record<string, any>) => {
-      const id = extractPkFromRow(row, meta.value?.columns as ColumnType[])
-      for (const column of meta?.value?.columns ?? []) {
+    const syncLTARRefs = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}) => {
+      const id = extractPkFromRow(row, metaValue?.columns as ColumnType[])
+      for (const column of metaValue?.columns ?? []) {
         if (column.uidt !== UITypes.LinkToAnotherRecord) continue
         const colOptions = column?.colOptions as LinkToAnotherRecordType
 
@@ -99,6 +105,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
               extractPkFromRow(relatedRow, relatedTableMeta.columns as ColumnType[]),
               column,
               colOptions.type as RelationTypes,
+              { metaValue },
             )
           }
         } else if (isBt && state?.value?.[column.title!]) {
@@ -107,6 +114,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
             extractPkFromRow(state.value?.[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[]),
             column,
             colOptions.type as RelationTypes,
+            { metaValue },
           )
         }
       }

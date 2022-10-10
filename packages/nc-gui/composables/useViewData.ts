@@ -9,10 +9,12 @@ import {
   extractSdkResponseErrorMsg,
   getHTMLEncodedText,
   message,
+  populateInsertObject,
   ref,
   useApi,
   useGlobal,
   useI18n,
+  useMetas,
   useNuxtApp,
   useProject,
   useSharedView,
@@ -194,20 +196,29 @@ export function useViewData(
     galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
   }
 
-  async function insertRow(row: Record<string, any>, rowIndex = formattedData.value?.length) {
+  async function insertRow(
+    row: Record<string, any>,
+    rowIndex = formattedData.value?.length,
+    ltarState: Record<string, any> = {},
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+  ) {
     try {
-      const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
-        if (!col.ai && row?.[col.title as string] !== null) {
-          o[col.title as string] = row?.[col.title as string]
-        }
-        return o
-      }, {})
+      const { getMeta } = useMetas()
+
+      const { missingRequiredColumns, insertObj } = await populateInsertObject({
+        meta: metaValue!,
+        ltarState,
+        getMeta,
+        row,
+      })
+
+      if (missingRequiredColumns.size) return
 
       const insertedData = await $api.dbViewRow.create(
         NOCO,
         project?.value.id as string,
-        meta.value?.id as string,
-        viewMeta?.value?.id as string,
+        metaValue?.id as string,
+        viewMetaValue?.id as string,
         insertObj,
       )
 
@@ -224,15 +235,19 @@ export function useViewData(
     }
   }
 
-  async function updateRowProperty(toUpdate: Row, property: string) {
+  async function updateRowProperty(
+    toUpdate: Row,
+    property: string,
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+  ) {
     try {
       const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
 
       const updatedRowData = await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
-        meta.value?.id as string,
-        viewMeta?.value?.id as string,
+        metaValue?.id as string,
+        viewMetaValue?.id as string,
         id,
         {
           [property]: toUpdate.row[property],
@@ -261,11 +276,16 @@ export function useViewData(
     }
   }
 
-  async function updateOrSaveRow(row: Row, property?: string) {
+  async function updateOrSaveRow(
+    row: Row,
+    property?: string,
+    ltarState?: Record<string, any>,
+    args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+  ) {
     if (row.rowMeta.new) {
-      return await insertRow(row.row, formattedData.value.indexOf(row))
+      return await insertRow(row.row, formattedData.value.indexOf(row), ltarState, args)
     } else {
-      await updateRowProperty(row, property!)
+      await updateRowProperty(row, property!, args)
     }
   }
 

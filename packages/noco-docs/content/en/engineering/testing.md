@@ -8,7 +8,12 @@ menuTitle: "Testing"
 
 ## Unit Tests
 
+- All individual unit tests are independent of each other. We don't use any shared state between tests.
+- Test environment includes `sakila` sample database and any change to it by a test is reverted before running other tests.
+- While running unit tests, it tries to connect to mysql server running on `localhost:3306` with username `root` and password `password` (which can be configured) and if not found, it will use `sqlite` as a fallback, hence no requirement of any sql server to run tests.
+
 ### Pre-requisites
+
 - MySQL is preferred - however tests can fallback on SQLite too
 
 ### Setup  
@@ -35,13 +40,7 @@ Configure the following variables
 npm run test:unit
 ```
 
-## Unit tests : Notes
-
-- All individual unit tests are independent of each other. We don't use any shared state between tests.
-- Test environment includes `sakila` sample database and any change to it by a test is reverted before running other tests.
-- While running unit tests, it tries to connect to mysql server running on `localhost:3306` with username `root` and password `password`(which can be configured) and if not found, it will use `sqlite` as a fallback, hence no requirement of any sql server to run tests.
-
-### Folder structure
+### Folder Structure
 
 The root folder for unit tests is `packages/tests/unit`
 
@@ -52,19 +51,18 @@ The root folder for unit tests is `packages/tests/unit`
 - `index.test.ts` is the root test suite file which imports all the test suites.
 - `TestDbMngr.ts` is a helper class to manage test databases (i.e. creating, dropping, etc.).
 
-### Patterns to follow
+### Factory Pattern
 
-- **Factories**
-  - Use factories for create/update/delete data. No data should be directly create/updated/deleted in the test.
-  - While writing a factory make sure that it can be used with as less parameters as possible and use default values for other parameters.
-  - Use named parameters for factories.
-  ``` typescript
-    createUser({ email, password})
+- Use factories for create/update/delete data. No data should be directly create/updated/deleted in the test.
+- While writing a factory make sure that it can be used with as less parameters as possible and use default values for other parameters.
+- Use named parameters for factories.
+  ```ts
+  createUser({ email, password})
   ```
-  - Use one file per factory.
+- Use one file per factory.
 
 
-### Walk through of writing a unit test
+### Walk through of writing a Unit Test
 
 We will create an `Table` test suite as an example.
 
@@ -108,13 +106,15 @@ it('Get table list', async function () {
 });
 ```
 
-> NOTE: We can also run individual test by using `.only` in `describe` or `it` function and the running the test command.
+<alert>
+We can also run individual test by using `.only` in `describe` or `it` function and the running the test command.
+</alert>
 
 ```typescript
 it.only('Get table list', async () => {
 ```
 
-#### Integrating the new test suite
+#### Integrating the New Test Suite
 
 We create a new file `table.test.ts` in `packages/nocodb/tests/unit/rest/tests` directory.
 
@@ -158,8 +158,8 @@ export default function () {
 
 We can then import the `Table` test suite to `Rest` test suite in `packages/nocodb/tests/unit/rest/index.test.ts` file(`Rest` test suite is imported in the root test suite file which is `packages/nocodb/tests/unit/index.test.ts`).
 
+### Seeding Sample DB (Sakila)
 
-### Seeding sample db (Sakila)
 ```typescript
 
 function tableTest() {
@@ -191,14 +191,135 @@ function tableTest() {
 
 ## Cypress Tests
 
-### Pre-requisites
-> TODO
+### End-to-end (E2E) Tests
+Cypress tests are divided into 4 suites
+- SQLite tests
+- Postgres tests
+- MySQL tests
+- Quick import tests
 
-### Setup
-> TODO
+First 3 suites, each have 4 test category
+- Table operations (create, delete, rename, add column, delete column, rename column)
+- Views (Grid, Gallery, Form)
+- Roles (user profiles, access control & preview)
+- Miscellaneous (Import, i18n, etc)
 
-### Running tests
-> TODO
+### SQLite Tests (XCDB Project)
 
-## Cypress Tests : Notes
-> TODO
+```shell
+# install dependencies(cypress)
+npm install
+# start MySQL database using docker compose
+docker-compose -f ./scripts/docker-compose-cypress.yml up
+
+# Run backend api using following command
+npm run start:xcdb-api:cache
+# Run frontend web UI using following command
+npm run start:web
+
+# wait until both 3000 and 8080 ports are available
+# or run following command to run it with GUI
+npm run cypress:open
+
+# run one of 4 test scripts
+# - Table operations : xcdb-restTableOps.js
+# - Views : xcdb-restViews.js
+# - Roles & access control : xcdb-restRoles.js
+# - Miscellaneous : xcdb-restMisc.js
+```
+
+### MySQL Tests (External DB Project)
+
+```shell
+# install dependencies(cypress)
+npm install
+# start MySQL database using docker compose
+docker-compose -f ./scripts/docker-compose-cypress.yml up
+
+# Run backend api using following command
+npm run start:api:cache
+# Run frontend web UI using following command
+npm run start:web
+
+# wait until both 3000 and 8080 ports are available
+# or run following command to run it with GUI
+npm run cypress:open
+
+# run one of 4 test scripts
+# - Table operations : restTableOps.js
+# - Views : restViews.js
+# - Roles & access control : restRoles.js
+# - Miscellaneous : restMisc.js
+```
+
+### Postgres Tests (External DB Project)
+
+```shell
+# install dependencies(cypress)
+npm install
+# start Postgres database using docker compose
+docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+
+# Run backend api using following command
+npm run start:api:cache
+# Run frontend web UI using following command
+npm run start:web
+
+# wait until both 3000 and 8080 ports are available
+# or run following command to run it with GUI
+npm run cypress:open
+
+# run one of 4 test scripts
+# - Table operations : pg-restTableOps.js
+# - Views : pg-restViews.js
+# - Roles & access control : pg-restRoles.js
+# - Miscellaneous : pg-restMisc.js
+```
+
+### Quick Import Tests (SQLite Project)
+
+```shell
+# install dependencies(cypress)
+npm install
+# start MySQL database using docker compose
+docker-compose -f ./scripts/docker-compose-cypress.yml up
+
+# copy existing xcdb (v0.91.7) database to ./packages/nocodb/
+cp ./scripts/cypress/fixtures/quickTest/noco_0_91_7.db ./packages/nocodb/noco.db
+
+# Run backend api using following command
+npm run start:api:cache
+# Run frontend web UI using following command
+npm run start:web
+
+# wait until both 3000 and 8080 ports are available
+# or run following command to run it with GUI
+npm run cypress:open
+
+# run test script
+# - quickTest.js
+```
+
+### Quick import tests (Postgres)
+
+```shell
+# install dependencies(cypress)
+npm install
+# start PG database using docker compose
+docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+
+# copy existing xcdb (v0.91.7) database to ./packages/nocodb/
+cp ./scripts/cypress/fixtures/quickTest/noco_0_91_7.db ./packages/nocodb/noco.db
+
+# Run backend api using following command
+npm run start:api:cache
+# Run frontend web UI using following command
+npm run start:web
+
+# wait until both 3000 and 8080 ports are available
+# or run following command to run it with GUI
+npm run cypress:open
+
+# run test script
+# - quickTest.js
+```

@@ -2,7 +2,7 @@ import type { PropType } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
-import { ColumnInj, MetaInj, defineComponent, h, inject, isBt, isHm, isLookup, isMm, isRollup, ref, toRef, watch } from '#imports'
+import { ColumnInj, MetaInj, defineComponent, h, inject, isBt, isHm, isLookup, isMm, isRollup, ref, toRef } from '#imports'
 import GenericIcon from '~icons/mdi/square-rounded'
 import HMIcon from '~icons/mdi/table-arrow-right'
 import BTIcon from '~icons/mdi/table-arrow-left'
@@ -67,36 +67,24 @@ export default defineComponent({
   setup(props) {
     const columnMeta = toRef(props, 'columnMeta')
 
-    const column = inject(ColumnInj, ref(columnMeta)) as Ref<ColumnType & { colOptions: LookupType }>
+    const column = inject(ColumnInj, columnMeta) as Ref<ColumnType & { colOptions: LookupType }>
 
     let relationColumn: ColumnType & { colOptions: LookupType }
 
-    watch(
-      column,
-      () => {
-        if (column && column.value) {
-          if (
-            isMm(column.value) ||
-            isHm(column.value) ||
-            isBt(column.value) ||
-            isLookup(column.value) ||
-            isRollup(column.value)
-          ) {
-            const meta = inject(MetaInj, ref())
-
-            relationColumn = meta.value?.columns?.find(
-              (c) => c.id === column.value?.colOptions?.fk_relation_column_id,
-            ) as ColumnType & {
-              colOptions: LinkToAnotherRecordType
-            }
-          }
-        }
-      },
-      { immediate: true },
-    )
-
     return () => {
       if (!column.value) return null
+
+      if (column && column.value) {
+        if (isMm(column.value) || isHm(column.value) || isBt(column.value) || isLookup(column.value) || isRollup(column.value)) {
+          const meta = inject(MetaInj, ref())
+
+          relationColumn = meta.value?.columns?.find(
+            (c) => c.id === column.value?.colOptions?.fk_relation_column_id,
+          ) as ColumnType & {
+            colOptions: LinkToAnotherRecordType
+          }
+        }
+      }
 
       const { icon: Icon, color } = renderIcon(column.value, relationColumn)
 

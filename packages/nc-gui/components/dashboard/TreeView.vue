@@ -279,7 +279,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             <span v-else class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
               {{ $t('objects.tables') }}
 
-              <template v-if="tables?.length"> ({{ tables.length }}) </template>
+              ({{ tables.length || '0' }})
             </span>
           </Transition>
 
@@ -399,7 +399,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </a-dropdown>
           </div>
 
-          <div v-if="tables.length" class="transition-height duration-200 overflow-hidden">
+          <div class="transition-height duration-200 overflow-hidden">
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div v-for="[index, base] of Object.entries(filteredBases)" :key="`${base.id}-index`">
                 <div v-if="index === '0'">
@@ -640,7 +640,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </div>
 
-          <div v-else class="mt-0.5 pt-16 mx-3 flex flex-col items-center border-t-1 border-gray-50">
+          <div v-if="!tables?.length" class="mt-0.5 pt-16 mx-3 flex flex-col items-center border-t-1 border-gray-50">
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
           </div>
         </div>

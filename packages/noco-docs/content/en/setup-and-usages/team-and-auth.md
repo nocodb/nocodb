@@ -11,7 +11,7 @@ menuTitle: 'Team & Auth'
 - Access `Team & Auth` under `Settings`
   
   
-<img width="390" alt="image" src="https://user-images.githubusercontent.com/35857179/189115289-07657c15-deab-435f-b0f9-2948007f8c65.png">
+<img width="324" alt="image" src="https://user-images.githubusercontent.com/35857179/194796383-2690375a-52eb-4419-b9cf-288cca88e786.png">
 
 
 ![Screenshot 2022-09-13 at 10 52 55 AM](https://user-images.githubusercontent.com/86527202/189816444-1591fed2-52d5-4031-b462-f1ad2a72df20.png)

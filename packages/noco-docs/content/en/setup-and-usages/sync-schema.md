@@ -14,7 +14,7 @@ Below are the steps to sync schema changes.
 
 ### 1. From the `Project menu`, click `Team & Settings`
 
-<img width="390" alt="image" src="https://user-images.githubusercontent.com/35857179/189115289-07657c15-deab-435f-b0f9-2948007f8c65.png">
+<img width="324" alt="image" src="https://user-images.githubusercontent.com/35857179/194796383-2690375a-52eb-4419-b9cf-288cca88e786.png">
 
 ### 2. Click `Project Metadata` under SETTINGS, access `Metadata` tab
 

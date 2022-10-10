@@ -10,7 +10,7 @@ Project Metadata includes Database Metadata, UI Access Control and Miscellaneous
 
 To access it, click the down arrow button next to Project Name on the top left side, then select `Team & Settings`.
 
-<img width="390" alt="image" src="https://user-images.githubusercontent.com/35857179/189115289-07657c15-deab-435f-b0f9-2948007f8c65.png">
+<img width="324" alt="image" src="https://user-images.githubusercontent.com/35857179/194796383-2690375a-52eb-4419-b9cf-288cca88e786.png">
 
 and clicking `Project Metadata`.
 

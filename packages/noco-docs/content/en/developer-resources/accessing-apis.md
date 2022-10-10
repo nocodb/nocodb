@@ -24,7 +24,7 @@ NocoDB allows creating API tokens which allow it to be integrated seamlessly wit
 
 - Open `Project Menu`, click on `Team & Settings`
   
-<img width="390" alt="image" src="https://user-images.githubusercontent.com/35857179/189115289-07657c15-deab-435f-b0f9-2948007f8c65.png">
+<img width="324" alt="image" src="https://user-images.githubusercontent.com/35857179/194796383-2690375a-52eb-4419-b9cf-288cca88e786.png">
 <!--     ![image](https://user-images.githubusercontent.com/35857179/161902474-fd06678c-a171-4237-b171-dc028b3753de.png) -->
 
 - Click `API Tokens Management` tab under `Team & Auth` section

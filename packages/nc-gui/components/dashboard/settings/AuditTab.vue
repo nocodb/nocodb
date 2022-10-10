@@ -105,7 +105,15 @@ const columns = [
       />
     </div>
 
-    <a-table class="w-full" size="small" :data-source="audits ?? []" :columns="columns" :pagination="false" :loading="isLoading">
+    <a-table
+      class="w-full"
+      size="small"
+      :data-source="audits ?? []"
+      :columns="columns"
+      :pagination="false"
+      :loading="isLoading"
+      data-pw="audit-tab-table"
+    >
       <template #emptyText>
         <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
       </template>

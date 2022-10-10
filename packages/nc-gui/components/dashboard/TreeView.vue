@@ -355,12 +355,16 @@ function openTableCreateDialog() {
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
                           <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table)">
-                            <div class="nc-project-menu-item">
+                            <div class="nc-project-menu-item" :pw-data="`sidebar-table-rename-${table.title}`">
                               {{ $t('general.rename') }}
                             </div>
                           </a-menu-item>
 
-                          <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(table)">
+                          <a-menu-item
+                            v-if="isUIAllowed('table-delete')"
+                            :pw-data="`sidebar-table-delete-${table.title}`"
+                            @click="deleteTable(table)"
+                          >
                             <div class="nc-project-menu-item">
                               {{ $t('general.delete') }}
                             </div>

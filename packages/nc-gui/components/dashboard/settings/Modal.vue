@@ -175,7 +175,12 @@ watch(
         {{ $t('activity.settings') }}
       </a-typography-title>
 
-      <a-button type="text" class="!rounded-md border-none -mt-1.5 -mr-1" @click="vModel = false">
+      <a-button
+        type="text"
+        class="!rounded-md border-none -mt-1.5 -mr-1"
+        pw-data="settings-modal-close-button"
+        @click="vModel = false"
+      >
         <template #icon>
           <MdiClose class="cursor-pointer mt-1 nc-modal-close" />
         </template>

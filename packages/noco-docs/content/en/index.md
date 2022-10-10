@@ -8,7 +8,7 @@ menuTitle: 'Introduction'
 
 ## Welcome!
 
-![image](https://user-images.githubusercontent.com/35857179/194793011-e1d570bc-03ba-4190-b2e8-94807634ae86.png)
+![image](https://user-images.githubusercontent.com/35857179/194830573-d6f25da5-e2a0-42fb-aad9-7c8653554254.png)
 
 NocoDB is a no-code database platform that allows teams to collaborate and build applications with ease of a familiar and intuitive spreadsheet interface. This allows even non-developers or business users to become software creators.
 

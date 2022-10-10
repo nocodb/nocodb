@@ -11,7 +11,6 @@ import {
   onMounted,
   openLink,
   projectThemeColors,
-  provide,
   ref,
   useCopy,
   useGlobal,
@@ -47,10 +46,6 @@ const { clearTabs, addTab } = useTabs()
 const { isUIAllowed } = useUIPermission()
 
 const { copy } = useCopy()
-
-const isLocked = ref(false)
-
-provide('TreeViewIsLockedInj', isLocked)
 
 // create a new sidebar state
 const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: false })

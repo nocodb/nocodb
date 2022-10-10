@@ -12,14 +12,12 @@ import {
   TabMetaInj,
   computed,
   createEventHook,
-  inject,
   provide,
   ref,
   toRef,
   useMetas,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
-  watch,
 } from '#imports'
 import type { TabItem } from '~/lib'
 
@@ -57,10 +55,6 @@ provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
-
-const treeViewIsLockedInj = inject('TreeViewIsLockedInj', ref(false))
-
-watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immediate: true })
 </script>
 
 <template>

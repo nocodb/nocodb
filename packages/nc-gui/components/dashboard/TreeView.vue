@@ -5,7 +5,6 @@ import GithubButton from 'vue-github-button'
 import {
   Empty,
   computed,
-  inject,
   reactive,
   ref,
   resolveComponent,
@@ -35,8 +34,6 @@ const { deleteTable } = useTable()
 const { isUIAllowed } = useUIPermission()
 
 const [searchActive, toggleSearchActive] = useToggle()
-
-const isLocked = inject('TreeViewIsLockedInj')
 
 let key = $ref(0)
 
@@ -349,7 +346,7 @@ function openTableCreateDialog() {
                     </div>
 
                     <a-dropdown
-                      v-if="!isSharedBase && !isLocked && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
+                      v-if="!isSharedBase && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
                       :trigger="['click']"
                       @click.stop
                     >
@@ -383,7 +380,7 @@ function openTableCreateDialog() {
         </div>
       </div>
 
-      <template v-if="!isLocked && !isSharedBase" #overlay>
+      <template v-if="!isSharedBase" #overlay>
         <a-menu class="!py-0 rounded text-sm">
           <template v-if="contextMenuTarget.type === 'table'">
             <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">

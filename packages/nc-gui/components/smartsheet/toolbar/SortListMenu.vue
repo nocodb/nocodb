@@ -32,8 +32,8 @@ const columnByID = computed(() =>
 
 watch(
   () => view.value?.id,
-  () => {
-    loadSorts()
+  (viewId) => {
+    if (viewId) loadSorts()
   },
   { immediate: true },
 )

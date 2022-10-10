@@ -67,7 +67,8 @@
     "reachOut": "Erreichen sie uns hier",
     "betaNote": "Diese Funktion befindet sich derzeit in der Beta.",
     "moreInfo": "Mehr Informationen können hier gefunden werden",
-    "logs": "Protokolle"
+    "logs": "Protokolle",
+    "groupingField": "Grouping Field"
   },
   "objects": {
     "project": "Projekt",
@@ -289,12 +290,12 @@
     "manyToMany": "have many to many relation",
     "extraConnectionParameters": "Extra connection parameters",
     "commentsOnly": "Comments only",
-    "documentation": "Documentation",
-    "subscribeNewsletter": "Subscribe to our weekly newsletter",
+    "documentation": "Dokumentation",
+    "subscribeNewsletter": "Abonnieren Sie unseren wöchentlichen Newsletter",
     "signUpWithGoogle": "Sign up with Google",
     "signInWithGoogle": "Sign in with Google",
-    "agreeToTos": "By signing up, you agree to the Terms of Service",
-    "welcomeToNc": "Welcome to NocoDB!"
+    "agreeToTos": "Mit Ihrer Anmeldung stimmen Sie den allgemeinen Nutzungsbedingungen zu",
+    "welcomeToNc": "Willkommen bei NocoDB!"
   },
   "activity": {
     "createProject": "Projekt erstellen",
@@ -307,6 +308,7 @@
     "deleteProject": "Projekt löschen",
     "refreshProject": "Projekte aktualisieren",
     "saveProject": "Projekt speichern",
+    "deleteKanbanStack": "Delete stack?",
     "createProjectExtended": {
       "extDB": "Erstellen durch Verbinden <br>mit einer externen Datenbank",
       "excel": "Projekt aus Excel erstellen",
@@ -362,8 +364,8 @@
     "insertRow": "Neue Zeile einfügen",
     "deleteRow": "Zeile löschen",
     "deleteSelectedRow": "Ausgewählte Zeilen löschen",
-    "importExcel": "Import Excel",
-    "importCSV": "Import CSV",
+    "importExcel": "Excel-Datei importieren",
+    "importCSV": "CSV-Datei importieren",
     "downloadCSV": "Download als CSV",
     "downloadExcel": "Download als XLSX",
     "uploadCSV": "Hochladen CSV",
@@ -410,12 +412,21 @@
     "addNewRecord": "Add new record",
     "useConnectionUrl": "Use Connection URL",
     "toggleCommentsDraw": "Toggle comments draw",
+    "expandRecord": "Expand Record",
+    "deleteRecord": "Datensatz löschen",
     "erd": {
       "showColumns": "Show Columns",
       "showPkAndFk": "Show Primary and Foreign Keys",
       "showSqlViews": "Show SQL Views",
       "showMMTables": "Show Many to Many tables",
       "showJunctionTableNames": "Show Junction Table Names"
+    },
+    "kanban": {
+      "collapseStack": "Collapse Stack",
+      "deleteStack": "Delete Stack",
+      "stackedBy": "Stacked By",
+      "chooseGroupingField": "Choose a Grouping Field",
+      "addOrEditStack": "Add / Edit Stack"
     }
   },
   "tooltip": {
@@ -463,7 +474,7 @@
     "noItemsFound": "Keine Elemente gefunden",
     "defaultValue": "Standardwert",
     "filterByEmail": "Filtern nach E-Mail",
-    "filterQuery": "Filter query",
+    "filterQuery": "Filter-Abfrage",
     "selectField": "Select field"
   },
   "msg": {
@@ -580,7 +591,8 @@
       "generatePublicShareableReadonlyBase": "Öffentlich lesbare Basis generieren",
       "deleteViewConfirmation": "Sind Sie sicher, dass Sie diese Ansicht löschen möchten?",
       "deleteTableConfirmation": "Möchten Sie die Tabelle löschen",
-      "showM2mTables": "M2M Tabellen anzeigen"
+      "showM2mTables": "M2M Tabellen anzeigen",
+      "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack."
     },
     "error": {
       "searchProject": "Ihre Suche nach {search} fand keine Ergebnisse",
@@ -616,28 +628,28 @@
       "nullValueViolatesNotNull": "Null value violates not-null constraint",
       "sourceHasInvalidNumbers": "Source data contains some invalid numbers",
       "sourceHasInvalidBoolean": "Source data contains some invalid boolean values",
-      "invalidForm": "Invalid Form",
+      "invalidForm": "Ungültiges Formular",
       "formValidationFailed": "Form validation failed",
       "youHaveBeenSignedOut": "You have been signed out",
       "failedToLoadList": "Failed to load list",
       "failedToLoadChildrenList": "Failed to load children list",
-      "deleteFailed": "Delete failed",
+      "deleteFailed": "Löschen fehlgeschlagen",
       "unlinkFailed": "Unlink failed",
       "rowUpdateFailed": "Row update failed",
-      "deleteRowFailed": "Failed to delete row",
+      "deleteRowFailed": "Fehler beim Löschen der Zeile",
       "setFormDataFailed": "Failed to set form data",
       "formViewUpdateFailed": "Failed to update form view",
       "tableNameRequired": "Table name is required",
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
       "columnNameRequired": "Column name is required",
-      "projectNameExceeds50Characters": "Project name exceeds 50 characters",
+      "projectNameExceeds50Characters": "Projektname überschreitet 50 Zeichen",
       "projectNameCannotStartWithSpace": "Project name cannot start with space",
-      "requiredField": "Required field",
-      "ipNotAllowed": "IP not allowed",
+      "requiredField": "Pflichtfeld",
+      "ipNotAllowed": "IP nicht erlaubt",
       "targetFileIsNotAnAcceptedFileType": "Target file is not an accepted file type",
-      "theAcceptedFileTypeIsCsv": "The accepted file type is .csv",
-      "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
+      "theAcceptedFileTypeIsCsv": "Der akzeptierte Dateityp ist .csv",
+      "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Die akzeptierten Dateitypen sind .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed"
     },
@@ -672,8 +684,8 @@
       "viewRenamed": "View renamed successfully",
       "tokenGenerated": "Token generated successfully",
       "tokenDeleted": "Token deleted successfully",
-      "userAddedToProject": "Successfully added user to project",
-      "userDeletedFromProject": "Successfully deleted user from project",
+      "userAddedToProject": "Benutzer erfolgreich zum Projekt hinzugefügt",
+      "userDeletedFromProject": "Benutzer erfolgreich aus dem Projekt gelöscht",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",

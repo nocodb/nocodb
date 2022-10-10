@@ -488,8 +488,11 @@ watch(view, async (nextView) => {
 
                   <div v-else class="nc-kanban-data-count mt-[12px] mx-[10px]">
                     <!--  Stack title -->
-                    <div class="float-right flex gap-2 items-center cursor-pointer font-bold">
-                      <LazyGeneralTruncateText>{{ stack.title }}</LazyGeneralTruncateText>
+                    <div
+                      class="float-right flex gap-2 items-center cursor-pointer font-bold"
+                      :class="{ capitalize: stack.title === null }"
+                    >
+                      <LazyGeneralTruncateText>{{ stack.title ?? 'uncategorized' }}</LazyGeneralTruncateText>
                       <mdi-menu-down class="text-grey text-lg" />
                     </div>
                     <!-- Record Count -->

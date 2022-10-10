@@ -34,7 +34,8 @@ export class GridPage {
   }
 
   async verifyRowDoesNotExist({index}: {index: number}) {
-    return expect(await this.page.locator(`td[data-pw="cell-Title-${index}"]`)).toBeFalsy();
+    await this.page.locator(`td[data-pw="cell-Title-${index}"]`).waitFor({state: 'hidden'});
+    return expect(await this.page.locator(`td[data-pw="cell-Title-${index}"]`).count()).toBe(0);
   }
 
   async deleteRow(index: number) {

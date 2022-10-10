@@ -5,6 +5,7 @@ import axios from 'axios';
 import Project from '../../../models/Project';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
+import resetMysqlSakilaProject from './resetMysqlSakilaProject';
 
 const loginRootUser = async () => {
   const response = await axios.post(
@@ -17,6 +18,7 @@ const loginRootUser = async () => {
 
 const projectTitleByType = {
   sqlite3: 'sampleREST',
+  mysql: 'externalREST',
 };
 
 export class TestResetService {
@@ -34,7 +36,7 @@ export class TestResetService {
       const { project } = await this.resetProject({
         metaKnex: this.knex,
         token,
-        type: 'sqlite3',
+        type: 'mysql',
         parallelId: this.parallelId,
       });
 
@@ -57,7 +59,7 @@ export class TestResetService {
     parallelId: string;
   }) {
     const title = `${projectTitleByType[type]}${parallelId}`;
-    const project = await Project.getByTitle(title);
+    const project: Project | undefined = await Project.getByTitle(title);
 
     if (project) {
       const bases = await project.getBases();
@@ -68,6 +70,8 @@ export class TestResetService {
 
     if (type == 'sqlite3') {
       await resetMetaSakilaSqliteProject({ token, metaKnex, title });
+    } else if (type == 'mysql') {
+      await resetMysqlSakilaProject({ token, title, parallelId, oldProject: project });
     }
 
     return {

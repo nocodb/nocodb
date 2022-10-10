@@ -42,7 +42,7 @@ test.describe('Single select', () => {
     await grid.verifyRowDoesNotExist({index: 0});
   });
 
-  test.skip('Remove a option, reorder option and delete the column', async () => {
+  test('Remove a option, reorder option and delete the column', async () => {
     await grid.cell.selectOption.select({index: 0, columnHeader: 'SingleSelect', option: 'Option 1'});
     await grid.column.selectOption.addOption({index: 2, option: 'Option 3', columnTitle: 'SingleSelect'});
 

@@ -4,8 +4,9 @@ import {
   ActiveCellInj,
   CellValueInj,
   ColumnInj,
-  FormInj,
+  IsFormInj,
   RowInj,
+  inject,
   isBt,
   isCount,
   isFormula,
@@ -36,6 +37,8 @@ provide(ColumnInj, column)
 provide(ActiveCellInj, active)
 provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))
+
+const isForm = inject(IsFormInj, ref(false))
 
 function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
   emit('navigate', dir)

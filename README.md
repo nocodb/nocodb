@@ -1,7 +1,8 @@
 <h1 align="center" style="border-bottom: none">
     <div>
         <a href="https://www.nocodb.com">
-            <img src="/packages/nc-gui/assets/img/icons/512x512.png" width="80" /><br>
+            <img src="/packages/nc-gui/assets/img/icons/512x512.png" width="80" />
+            <br>
             NocoDB
         </a>
     </div>
@@ -30,16 +31,17 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
     <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
 </p>  
 
-<p align="center"><img src="https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png" alt="The Open Source Airtable Alternative - works on MySQL, Postgres SQL Server & MariaDB" width="1000px" /></p>
+![All Views](https://user-images.githubusercontent.com/35857179/194825053-3aa3373d-3e0f-4b42-b3f1-42928332054a.gif)
 
-<p align="center"><a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="Deploy NocoDB to Heroku with 1-Click" 
-    />
-</a></p>
-
+<p align="center">
+  <a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
+      <img 
+      src="https://www.herokucdn.com/deploy/button.svg" 
+      width="300px"
+      alt="Deploy NocoDB to Heroku with 1-Click" 
+      />
+  </a>
+</p>
 
 <div align="center">
 

@@ -14,13 +14,13 @@ import {
   useApi,
   useGlobal,
   useI18n,
+  useMetas,
   useNuxtApp,
   useProject,
   useSharedView,
   useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
-import { useMetas } from '~/composables/useMetas'
 import type { Row } from '~/lib'
 
 const formatData = (list: Row[]) =>

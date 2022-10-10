@@ -9,19 +9,19 @@ import {
   extractSdkResponseErrorMsg,
   getHTMLEncodedText,
   message,
+  populateInsertObject,
   ref,
   useApi,
   useI18n,
   useInjectionState,
   useKanbanViewStoreOrThrow,
+  useMetas,
   useNuxtApp,
   useProject,
   useProvideSmartsheetRowStore,
   useSharedView,
 } from '#imports'
-import { useMetas } from '~/composables/useMetas'
 import type { Row } from '~/lib'
-import { populateInsertObject } from '~/utils'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()

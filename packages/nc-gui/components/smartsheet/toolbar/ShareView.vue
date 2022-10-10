@@ -10,6 +10,7 @@ import {
   ref,
   useCopy,
   useDashboard,
+  useDebounceFn,
   useI18n,
   useNuxtApp,
   useProject,
@@ -38,6 +39,13 @@ let showShareModel = $ref(false)
 const passwordProtected = ref(false)
 
 const shared = ref<SharedView>({ id: '', meta: {}, password: undefined })
+
+const transitionDuration = computed({
+  get: () => shared.value.meta.transitionDuration || 250,
+  set: (duration) => {
+    shared.value.meta = { ...shared.value.meta, transitionDuration: duration }
+  },
+})
 
 const allowCSVDownload = computed({
   get: () => !!shared.value.meta.allowCSVDownload,
@@ -111,6 +119,8 @@ async function saveTheme() {
   await updateSharedViewMeta()
   $e(`a:view:share:${viewTheme.value ? 'enable' : 'disable'}-theme`)
 }
+
+const saveTransitionDuration = useDebounceFn(updateSharedViewMeta, 1000, { maxWait: 2000 })
 
 async function updateSharedViewMeta() {
   try {
@@ -222,10 +232,28 @@ watch(passwordProtected, (value) => {
               v-if="shared.type === ViewTypes.FORM"
               v-model:checked="surveyMode"
               data-cy="nc-modal-share-view__survey-mode"
-              class="!text-xs"
+              class="!text-sm"
             >
               Use Survey Mode
             </a-checkbox>
+
+            <Transition name="layout" mode="out-in">
+              <div v-if="surveyMode" class="flex flex-col justify-center pl-6">
+                <a-form-item class="!my-1" :has-feedback="false" name="transitionDuration">
+                  <template #label>
+                    <div class="text-xs">Transition duration (in MS)</div>
+                  </template>
+                  <a-input
+                    v-model:value="transitionDuration"
+                    data-cy="nc-form-signin__email"
+                    size="small"
+                    class="!w-32"
+                    type="number"
+                    @change="saveTransitionDuration"
+                  />
+                </a-form-item>
+              </div>
+            </Transition>
           </div>
 
           <div>
@@ -234,43 +262,53 @@ watch(passwordProtected, (value) => {
               v-if="shared.type === ViewTypes.FORM"
               v-model:checked="viewTheme"
               data-cy="nc-modal-share-view__with-theme"
-              class="!text-xs"
+              class="!text-sm"
             >
               Use Theme
             </a-checkbox>
 
-            <div v-if="viewTheme" class="flex pl-2">
-              <LazyGeneralColorPicker
-                data-cy="nc-modal-share-view__theme-picker"
-                :model-value="shared.meta.theme?.primaryColor"
-                :colors="projectThemeColors"
-                :row-size="9"
-                :advanced="false"
-                @input="onChangeTheme"
-              />
-            </div>
+            <Transition name="layout" mode="out-in">
+              <div v-if="viewTheme" class="flex pl-6">
+                <LazyGeneralColorPicker
+                  data-cy="nc-modal-share-view__theme-picker"
+                  class="!p-0"
+                  :model-value="shared.meta.theme?.primaryColor"
+                  :colors="projectThemeColors"
+                  :row-size="9"
+                  :advanced="false"
+                  @input="onChangeTheme"
+                />
+              </div>
+            </Transition>
           </div>
 
           <div>
             <!-- Password Protection -->
-            <a-checkbox v-model:checked="passwordProtected" data-cy="nc-modal-share-view__with-password" class="!text-xs">
+            <a-checkbox v-model:checked="passwordProtected" data-cy="nc-modal-share-view__with-password" class="!text-sm !my-1">
               {{ $t('msg.info.beforeEnablePwd') }}
             </a-checkbox>
 
-            <div v-if="passwordProtected" class="ml-6 flex gap-2 mt-2 mb-4">
-              <a-input
-                v-model:value="shared.password"
-                data-cy="nc-modal-share-view__password"
-                size="small"
-                class="!text-xs max-w-[250px]"
-                type="password"
-                :placeholder="$t('placeholder.password.enter')"
-              />
+            <Transition name="layout" mode="out-in">
+              <div v-if="passwordProtected" class="pl-6 flex gap-2 mt-2 mb-4">
+                <a-input
+                  v-model:value="shared.password"
+                  data-cy="nc-modal-share-view__password"
+                  size="small"
+                  class="!text-xs max-w-[250px]"
+                  type="password"
+                  :placeholder="$t('placeholder.password.enter')"
+                />
 
-              <a-button data-cy="nc-modal-share-view__save-password" size="small" class="!text-xs" @click="saveShareLinkPassword">
-                {{ $t('placeholder.password.save') }}
-              </a-button>
-            </div>
+                <a-button
+                  data-cy="nc-modal-share-view__save-password"
+                  size="small"
+                  class="!text-xs"
+                  @click="saveShareLinkPassword"
+                >
+                  {{ $t('placeholder.password.save') }}
+                </a-button>
+              </div>
+            </Transition>
           </div>
 
           <div>
@@ -279,7 +317,7 @@ watch(passwordProtected, (value) => {
               v-if="shared && (shared.type === ViewTypes.GRID || shared.type === ViewTypes.KANBAN)"
               v-model:checked="allowCSVDownload"
               data-cy="nc-modal-share-view__with-csv-download"
-              class="!text-xs"
+              class="!text-sm"
             >
               {{ $t('labels.downloadAllowed') }}
             </a-checkbox>

@@ -8,13 +8,10 @@ menuTitle: 'Metadata'
 
 Project Metadata includes Database Metadata, UI Access Control and Miscellaneous.
 
-To access it, click the down arrow button next to Project Name on the top left side, then select `Team & Settings`.
+To access it, click the down arrow button next to Project Name on the top left side, then select `Team & Settings` and clicking `Project Metadata`.
 
-<img width="324" alt="image" src="https://user-images.githubusercontent.com/35857179/194796383-2690375a-52eb-4419-b9cf-288cca88e786.png">
-
-and clicking `Project Metadata`.
-
-<img width="244" alt="image" src="https://user-images.githubusercontent.com/35857179/189116366-c58de4c1-c62d-4ac9-8362-aa08ff92005f.png">
+<img width="324" alt="image" src="https://user-images.githubusercontent.com/35857179/194796383-2690375a-52eb-4419-b9cf-288cca88e786.png"> | <img width="471" alt="image" src="https://user-images.githubusercontent.com/35857179/194850848-869c69a4-e9b6-4a84-8cc0-7fd4b01eb1ad.png">
+|--|--|
 
 <!-- ## Project Metadata
 
@@ -55,19 +52,19 @@ From the destination project, go to `Project Metadata`. Under ``Export / Import 
 
 Go to `Project Metadata`, under ``Metadata``, you can see your metadata sync status. If it is out of sync, you can sync the schema. See <a href="./sync-schema">Sync Schema</a> for more.
 
-<img width="1418" alt="image" src="https://user-images.githubusercontent.com/35809690/191258001-a4385df0-e796-4fa1-8ea4-a25361cd2d91.png">
+<img width="1333" alt="image" src="https://user-images.githubusercontent.com/35857179/194850034-5330458e-85a9-4a3c-87a3-dd2f3edc5b46.png">
 
 ## UI Access Control
 
 Go to `Project Metadata`, under ``UI Access Control``, you can control the access to each table by roles. 
 
-<img width="1417" alt="image" src="https://user-images.githubusercontent.com/35809690/191258150-3abe8de9-bab9-46fe-9095-01b8815b57f2.png">
+<img width="1336" alt="image" src="https://user-images.githubusercontent.com/35857179/194850281-9030f4c5-06bc-4780-b8fd-5d0c209867e0.png">
 
 ## ERD
 
 Go to `Project Metadata`, under ``ERD View``, you can see the ERD of your database.
 
-<img width="1419" alt="image" src="https://user-images.githubusercontent.com/35809690/191258324-18bd4ed0-521b-4480-a3f6-fe4660b8ddd5.png">
+<img width="1338" alt="image" src="https://user-images.githubusercontent.com/35857179/194850416-54bc49cf-c32f-45e8-aea1-62b07645c26e.png">
 
 ### Junction table names within ERD
 
@@ -78,8 +75,7 @@ Go to `Project Metadata`, under ``ERD View``, you can see the ERD of your databa
 <img width="1681" alt="Show Junction table names for many to many table" src="https://user-images.githubusercontent.com/5435402/192140913-9da37700-28fe-404d-88e8-35ba0c8e2f53.png">
 
 ## Miscellaneous
+
 - Enabling, `Show M2M Tables` will show junction tables between many to many tables.
 
-
-
-<img width="1409" alt="image" src="https://user-images.githubusercontent.com/35809690/191258441-72a12941-2d2b-4a0d-84b8-f7f8783aa4e8.png">
+<img width="1340" alt="image" src="https://user-images.githubusercontent.com/35857179/194850461-3e88752a-ba4f-4ead-9426-9a9e57020061.png">

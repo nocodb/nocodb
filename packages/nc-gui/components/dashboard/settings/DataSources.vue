@@ -246,16 +246,6 @@ watch(
                         Edit
                       </div>
                     </a-button>
-                    <a-button
-                      v-if="!sources[0].is_meta"
-                      class="nc-action-btn cursor-pointer outline-0"
-                      @click="deleteBase(sources[0])"
-                    >
-                      <div class="flex items-center gap-2 text-red-500 font-light">
-                        <MdiDeleteOutline class="text-lg group-hover:text-accent" />
-                        Delete
-                      </div>
-                    </a-button>
                   </div>
                 </div>
               </div>

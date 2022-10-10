@@ -289,6 +289,10 @@ export default class Base implements BaseType {
   }
 
   async delete(ncMeta = Noco.ncMeta) {
+    const bases = await Base.list({ projectId: this.project_id }, ncMeta);
+
+    if (bases[0].id === this.id) NcError.badRequest('Cannot delete first base');
+
     const models = await Model.list(
       {
         base_id: this.id,

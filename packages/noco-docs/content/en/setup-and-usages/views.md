@@ -28,13 +28,13 @@ To work with `Views`, use View menu-bar on the right hand side -
 
 Grid View, as a default type of view, allows you to display your data in a spreadsheet-like interface.
   
-![1010 Grid](https://user-images.githubusercontent.com/35857179/194810522-27723c76-24d1-40b0-834b-101efd97d73c.png)
+![1010-2 Grid](https://user-images.githubusercontent.com/35857179/194824161-ce5c4875-4425-40b7-b932-8176271e4f1e.png)
 
 ### Form View
 
 Form View allows you to arrange fields in a form to input data.
   
-![1010 Form](https://user-images.githubusercontent.com/35857179/194813994-6e3f0495-273a-41c3-b6f9-c33f16260952.png)
+![1010-2 Form](https://user-images.githubusercontent.com/35857179/194824127-b400f9c8-18a7-4a37-b8c3-7d279e9976af.png)
 
 You can drag-drop columns from the form to form-field-menu-bar as requried.
 
@@ -42,13 +42,13 @@ You can drag-drop columns from the form to form-field-menu-bar as requried.
 
 Gallery View allows you to display images as thumbnails with other fields just like a gallery.
   
-![1010 Gallery](https://user-images.githubusercontent.com/35857179/194810516-516e510b-4a86-4791-be36-78b5392d9929.png)
+![1010-2 Gallery](https://user-images.githubusercontent.com/35857179/194824141-04c76a4e-2cae-448f-a842-c79f5bce339d.png)
   
 ### Kanban View
 
 Kanban View allows you to visualise your data using cards at various stacks.
 
-![1010 Kanban](https://user-images.githubusercontent.com/35857179/194810523-7288dccb-9861-46f6-836d-4aa17e30dc6c.png)
+![1010-2 Kanban](https://user-images.githubusercontent.com/35857179/194824164-97ca897a-3af4-42ab-8812-534afaf23396.png)
   
 ## View Permission Types
 

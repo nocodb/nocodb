@@ -126,15 +126,14 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   <div
     class="nc-cell w-full"
     :class="[`nc-cell-${(column?.uidt || 'default').toLowerCase()}`, { 'text-blue-600': isPrimary && !virtual && !isForm }]"
-    :data-pw="`cell-${column?.title}-${rowIndex}`"
     @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
   >
     <LazyCellTextArea v-if="isTextArea" v-model="vModel" />
     <LazyCellCheckbox v-else-if="isBoolean" v-model="vModel" />
     <LazyCellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />
-    <LazyCellSingleSelect v-else-if="isSingleSelect" v-model="vModel" />
-    <LazyCellMultiSelect v-else-if="isMultiSelect" v-model="vModel" />
+    <LazyCellSingleSelect v-else-if="isSingleSelect" v-model="vModel" :row-index="props.rowIndex" />
+    <LazyCellMultiSelect v-else-if="isMultiSelect" v-model="vModel" :row-index="props.rowIndex" />
     <LazyCellDatePicker v-else-if="isDate" v-model="vModel" />
     <LazyCellYearPicker v-else-if="isYear" v-model="vModel" />
     <LazyCellDateTimePicker v-else-if="isDateTime" v-model="vModel" />

@@ -16,21 +16,31 @@ export class GridPage {
     this.cell = new CellPageObject(page);
   }
 
+  row(index: number) {
+    return this.page.locator(`tr[data-pw="grid-row-${index}"]`);
+  }
+
   async addNewRow({index = 0, title}: {index?: number, title?: string} = {}) {
     const rowCount = await this.page.locator('.nc-grid-row').count();
     await this.page.locator('.nc-grid-add-new-cell').click();
     if(rowCount + 1 !== await this.page.locator('.nc-grid-row').count()) {
       await this.page.locator('.nc-grid-add-new-cell').click();
     }
-      // Double click td >> nth=1
-    await this.page.locator('td[data-title="Title"]').nth(index).dblclick();
+    
+    const cell = this.cell.get({index, columnHeader: 'Title'});
+    await this.cell.dblclick({
+      index,
+      columnHeader: 'Title'
+    });
 
     
-    // Fill text=1Add new row >> input >> nth=1
-    await this.page.locator(`div[data-pw="cell-Title-${index}"] >> input`).fill(title ?? `Row ${index}`);
-    
-    await this.page.locator('span[title="Title"]').click();
-    await this.page.locator('.nc-grid-wrapper').click();
+    await cell.locator('input').fill(title ?? `Row ${index}`);
+    await cell.locator('input').press('Enter');
+  }
+
+  async verifyRow({index}: {index: number}) {
+    await this.page.locator(`td[data-pw="cell-Title-${index}"]`).waitFor({state: 'visible'});
+    expect(await this.page.locator(`td[data-pw="cell-Title-${index}"]`).count()).toBe(1);
   }
 
   async verifyRowDoesNotExist({index}: {index: number}) {
@@ -48,4 +58,21 @@ export class GridPage {
     await this.page.locator('span.ant-dropdown-menu-title-content > nc-project-menu-item').waitFor({state: 'hidden'});
   }
 
+  async openExpandedRow({index}:{index: number}) {
+    await this.row(index).locator(`td[pw-data="cell-id-${index}"]`).hover();
+    await this.row(index).locator(`div[pw-data="nc-expand-${index}"]`).click();
+  }
+
+  async selectAll() {
+    await this.page.locator('[pw-data="nc-check-all"]').hover();
+    await this.page.locator('[pw-data="nc-check-all"]').locator('input[type="checkbox"]').click();
+  }
+
+  async deleteAll() {
+    await this.selectAll();
+    await this.page.locator('[pw-data="nc-check-all"]').locator('input[type="checkbox"]').click({
+      button: 'right'
+    });
+    await this.page.locator('text=Delete Selected Rows').click();
+  }
 }

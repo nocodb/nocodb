@@ -1,6 +1,7 @@
 // playwright-dev-page.ts
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './Base';
+import { ExpandedFormPage } from './ExpandedForm';
 
 export class DashboardPage {
   readonly project: any;
@@ -8,6 +9,7 @@ export class DashboardPage {
   readonly tablesSideBar: Locator;
   readonly tabBar: Locator;
   readonly base: BasePage;
+  readonly expandedForm: ExpandedFormPage;
 
   constructor(page: Page, project: any) {
     this.page = page;
@@ -15,6 +17,7 @@ export class DashboardPage {
     this.project = project;
     this.tablesSideBar = page.locator('.nc-treeview-container');
     this.tabBar = page.locator('.nc-tab-bar');
+    this.expandedForm = new ExpandedFormPage(page);
   }
 
   async goto() {

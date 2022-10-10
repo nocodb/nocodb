@@ -1,0 +1,53 @@
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import { GridPage } from '../pages/Grid';
+import setup from '../setup';
+
+
+test.describe('Table Column Operations', () => {
+  let grid: GridPage, dashboard: DashboardPage;
+  let context: any;
+
+  test.beforeEach(async ({page}) => {
+    context = await setup({ page });
+    dashboard = new DashboardPage(page, context.project);
+    grid = new GridPage(page);
+
+    await dashboard.createTable({title: "sheet1"});
+  })
+
+  test('Create column', async () => {
+    await grid.column.create({title: "column_name_a"});
+    await grid.column.verify({title: "column_name_a"});
+
+    await grid.column.openEdit({title: "column_name_a"});
+    await grid.column.fillTitle({title: "column_name_b"});
+    await grid.column.selectType({type: "LongText"});
+    await grid.column.save({isUpdated: true});
+    await grid.column.verify({title: "column_name_b"});
+
+    await grid.column.delete({title: "column_name_b"});
+    await grid.column.verify({title: "column_name_b", isDeleted: true});
+
+    await grid.addNewRow({index: 0});
+    await grid.verifyRow({index: 0})
+    
+    await grid.openExpandedRow({index: 0});
+    await dashboard.expandedForm.fillField({columnTitle: "Title", value: "value_a"});
+    await dashboard.expandedForm.save();
+    await grid.cell.verify({index: 0, columnHeader: "Title", value: "value_a"});
+
+    await grid.deleteRow(0);
+    await grid.verifyRowDoesNotExist({index: 0});
+
+    await grid.addNewRow({index: 0});
+    await grid.addNewRow({index: 1});
+    await grid.addNewRow({index: 2});
+    await grid.addNewRow({index: 3});
+    await grid.addNewRow({index: 4});
+    await grid.deleteAll();
+
+    await grid.verifyRowDoesNotExist({index: 0});
+  });
+
+});

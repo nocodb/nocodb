@@ -9,19 +9,12 @@ export class SelectOptionCellPageObject {
 
   async select({index, columnHeader, option, multiSelect}: {index: number, columnHeader: string, option: string, multiSelect?: boolean}) {
     await this.cell.get({index, columnHeader}).click();
-    const count = await this.cell.page.locator('.rc-virtual-list-holder .ant-select-item-option-content', {hasText: option}).count();
 
-    for(let i = 0; i < count; i++) {
-      if(await this.cell.page.locator('.rc-virtual-list-holder .ant-select-item-option-content', {hasText: option}).nth(i).isVisible()) {
-        await this.cell.page.locator('.rc-virtual-list-holder .ant-select-item-option-content', {hasText: option}).nth(i).click();
-      }
-    }
+    await this.cell.page.locator(`[pw-data="select-option-${columnHeader}-${index}"]`, {hasText: option}).click();
 
     if(multiSelect) await this.cell.get({index, columnHeader}).click();
 
-    await this.cell.page.locator(`.nc-dropdown-single-select-cell`).nth(index).waitFor({state: 'hidden'});
-    // todo: Remove this wait. Should be solved by adding pw-data-attribute with cell info to the a-select-option of the cell
-    // await this.cell.page.waitForTimeout(200);
+    await this.cell.page.locator(`[pw-data="select-option-${columnHeader}-${index}"]`, {hasText: option}).waitFor({state: 'hidden'});
   }
 
   async clear({index, columnHeader, multiSelect}: {index: number, columnHeader: string, multiSelect?: boolean}) {

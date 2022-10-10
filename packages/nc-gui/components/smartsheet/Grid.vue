@@ -461,7 +461,7 @@ watch(
 
 <template>
   <div class="relative flex flex-col h-full min-h-0 w-full">
-    <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15" pw-data="grid-load-spinner">
+    <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
       <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
         <a-spin size="large" />
       </div>
@@ -568,6 +568,7 @@ watch(
                       <div
                         v-if="!readOnly || hasRole('commenter', true) || hasRole('viewer', true)"
                         class="nc-expand"
+                        :pw-data="`nc-expand-${rowIndex}`"
                         :class="{ 'nc-comment': row.rowMeta?.commentCount }"
                       >
                         <a-spin v-if="row.rowMeta.saving" class="!flex items-center" />
@@ -607,7 +608,6 @@ watch(
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"
-                    :data-pw="`cell-${columnObj.title}-${rowIndex}`"
                     @click="selectCell(rowIndex, colIndex)"
                     @dblclick="makeEditable(row, columnObj)"
                     @mousedown="startSelectRange($event, rowIndex, colIndex)"

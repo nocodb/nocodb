@@ -150,6 +150,7 @@ export default {
               :key="col.title"
               class="mt-2 py-2"
               :class="`nc-expand-col-${col.title}`"
+              :pw-data="`nc-expand-col-${col.title}`"
             >
               <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
 

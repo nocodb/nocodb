@@ -56,7 +56,7 @@ export class ColumnPageObject {
   }
 
   async delete({title}: {title: string}) {
-    await this.page.locator(`text=#Title${title} >> svg >> nth=3`).click();
+    await this.page.locator(`th[data-title="${title}"] >> svg.ant-dropdown-trigger`).click();
     await this.page.locator('li[role="menuitem"]:has-text("Delete")').waitFor()
     await this.page.locator('li[role="menuitem"]:has-text("Delete")').click();
 
@@ -80,5 +80,12 @@ export class ColumnPageObject {
     await this.basePage.toastWait({message: isUpdated ? 'Column updated' : 'Column created'});
     await this.page.locator('form[data-pw="add-or-edit-column"]').waitFor({state: 'hidden'});
     await this.page.waitForTimeout(200);
+  }
+
+  async verify({title, isDeleted}: {title: string, isDeleted?: boolean}) {
+    if(isDeleted) {
+      return expect(await this.page.locator(`th[data-title="${title}"]`).count()).toBe(0);
+    }
+    await expect(this.page.locator(`th[data-title="${title}"]`)).toHaveText(title);
   }
 }

@@ -13,21 +13,22 @@ export class ColumnPageObject {
     this.basePage = new BasePage(this.page);
   }
 
-  async create({title, type}: {title: string, type: string}) {
+  get() {
+    return this.page.locator('[data-pw="add-or-edit-column"]');
+  }
+
+  async create({title, type = "SingleLineText"}: {title: string, type?: string}) {
     await this.page.locator('.nc-column-add').click();
 
     await this.page.locator('form[data-pw="add-or-edit-column"]').waitFor();
 
-    // Click span:has-text("SingleLineText") >> nth=1
-    await this.page.locator('span:has-text("SingleLineText")').click();
-
-    // Fill text=Column Type SingleLineText >> input[role="combobox"]
-    await this.page.locator('text=Column Type SingleLineText >> input[role="combobox"]').fill(type);
-
-    // Select column type
-    await this.page.locator(`text=${type}`).nth(1).click();
+    await this.fillTitle({title});
+    
+    await this.selectType({type});
 
     switch (type) {
+      case "SingleTextLine":
+        break;
       case 'SingleSelect':
       case 'MultiSelect':
         await this.selectOption.addOption({index: 0, option: 'Option 1', skipColumnModal: true});
@@ -37,9 +38,21 @@ export class ColumnPageObject {
         break;
     }
 
-    await this.page.locator('.nc-column-name-input').fill(title);
-
     await this.save();
+  }
+
+  async fillTitle({title}: {title: string}) {
+    await this.page.locator('.nc-column-name-input').fill(title);
+  }
+
+  async selectType({type}: {type: string}) {
+    await this.get().locator('.ant-select-selector > .ant-select-selection-item').click();
+
+    await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
+    await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
+
+    // Select column type
+    await this.page.locator(`text=${type}`).nth(1).click();
   }
 
   async delete({title}: {title: string}) {

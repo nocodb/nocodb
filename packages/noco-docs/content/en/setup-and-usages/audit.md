@@ -12,4 +12,4 @@ We are keeping all the user operation logs under Audit. To access it, click the 
 
 Then, under SETTINGS, click `Audit`.
 
-<img width="1498" alt="image" src="https://user-images.githubusercontent.com/35857179/189115759-ac1664be-906a-4f36-973b-ed67f39d55a3.png">
+<img width="1399" alt="image" src="https://user-images.githubusercontent.com/35857179/194796474-417395db-08d5-45e5-8be4-c30ff0027e45.png">

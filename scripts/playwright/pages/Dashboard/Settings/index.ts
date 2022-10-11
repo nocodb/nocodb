@@ -1,5 +1,7 @@
 // playwright-dev-page.ts
 import {  Page } from '@playwright/test';
+import { DashboardPage } from '..';
+import BasePage from '../../Base';
 import { AuditSettingsPage } from './Audit';
 
 const tabInfo = {
@@ -10,24 +12,25 @@ const tabInfo = {
 }
 
 
-export class SettingsPage {
-  private readonly page: Page;
+export class SettingsPage extends BasePage {
+  private readonly dashboard: DashboardPage;
   readonly audit: AuditSettingsPage;
 
-  constructor(page: Page) {
-    this.page = page;
+  constructor(dashboard: DashboardPage) {
+    super(dashboard.rootPage);
+    this.dashboard = dashboard;
     this.audit = new AuditSettingsPage(this);
   }
 
   get() {
-    return this.page.locator('.nc-modal-settings');
+    return this.rootPage.locator('.nc-modal-settings');
   }
 
   async selectTab({title}: {title: string}) {
-    await this.page.locator(`li[data-menu-id="${tabInfo[title]}"]`).click();
+    await this.get().locator(`li[data-menu-id="${tabInfo[title]}"]`).click();
   }
 
   async close() {
-    await this.page.locator('[pw-data="settings-modal-close-button"]').click();
+    await this.get().locator('[pw-data="settings-modal-close-button"]').click();
   }
 }

@@ -220,7 +220,7 @@ watch(
           </a-menu-item>
         </a-menu>
 
-        <component :is="selectedSubTab?.body" class="px-2 py-6" />
+        <component :is="selectedSubTab?.body" class="px-2 py-6" :pw-data="`nc-settings-subtab-${selectedSubTab.title}`" />
       </a-layout-content>
     </a-layout>
   </a-modal>

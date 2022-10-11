@@ -4,6 +4,7 @@ import BasePage from "../Base";
 import { GridPage } from "./Grid";
 import { ExpandedFormPage } from "./ExpandedForm";
 import { TreeViewPage } from "./TreeView";
+import { SettingsPage } from "./Settings";
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -12,6 +13,7 @@ export class DashboardPage extends BasePage {
   readonly treeView: TreeViewPage;
   readonly grid: GridPage;
   readonly expandedForm: ExpandedFormPage;
+  readonly settings: SettingsPage;
 
   constructor(rootPage: Page, project: any) {
     super(rootPage);  
@@ -21,6 +23,7 @@ export class DashboardPage extends BasePage {
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
     this.expandedForm = new ExpandedFormPage(this);
+    this.settings = new SettingsPage(this);
   }
 
   get() {

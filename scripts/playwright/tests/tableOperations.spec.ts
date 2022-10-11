@@ -11,7 +11,7 @@ test.describe('Table Operations', () => {
   test.beforeEach(async ({page}) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
-    settings = new SettingsPage(page);
+    settings = dashboard.settings;
   })
 
   test('Create, and delete table, verify in audit tab, rename City table and reorder tables', async () => {

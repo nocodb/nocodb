@@ -1,19 +1,25 @@
 // playwright-dev-page.ts
 import {  expect } from '@playwright/test';
 import { SettingsPage } from '.';
+import BasePage from '../../Base';
 
-export class AuditSettingsPage {
+export class AuditSettingsPage extends BasePage {
   private readonly settings: SettingsPage;
 
   constructor(settings: SettingsPage) {
+    super(settings.rootPage);
     this.settings = settings;
+  }
+
+  get() {
+    return this.settings.get().locator(`[pw-data="nc-settings-subtab-Audit"]`);
   }
 
   async verifyRow(
     {index, opType, opSubtype, description, user, created}: 
     {index: number,opType?: string, opSubtype?: string, description?: string, user?: string, created?: string}
     ) {
-    const table = await this.settings.get().locator(`div[data-pw="audit-tab-table"]`);
+    const table = await this.get();
     const row = table.locator(`tr.ant-table-row`).nth(index);
     
     if(opType) {

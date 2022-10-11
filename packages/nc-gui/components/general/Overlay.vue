@@ -11,15 +11,18 @@ interface Props {
   target?: TeleportProps['to']
   teleportDisabled?: TeleportProps['disabled']
   transition?: boolean
+  zIndex?: string | number
 }
 
 interface Emits {
   (event: 'update:modelValue', value: boolean): void
+
   (event: 'close'): void
+
   (event: 'open'): void
 }
 
-const { transition = true, teleportDisabled = false, inline = false, target, ...rest } = defineProps<Props>()
+const { transition = true, teleportDisabled = false, inline = false, target, zIndex = 100, ...rest } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
@@ -47,8 +50,9 @@ export default {
       <div
         v-show="!!vModel"
         v-bind="$attrs"
+        :style="{ zIndex }"
         :class="[inline ? 'absolute' : 'fixed']"
-        class="z-2000 top-0 left-0 bottom-0 right-0 bg-gray-700/75"
+        class="top-0 left-0 bottom-0 right-0 bg-gray-700/75"
       >
         <slot :is-open="vModel" />
       </div>

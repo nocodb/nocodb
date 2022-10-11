@@ -49,6 +49,12 @@ export default `<!DOCTYPE html>
   opacity: 1;
   right:25px;
 }
+
+@media only screen and (max-width: 600px) {
+  .we-are-hiring {
+    display: none;
+  }
+}
         \`
   document.body.appendChild(linkEl, document.body.firstChild)
   document.body.appendChild(styleEl, document.body.firstChild)

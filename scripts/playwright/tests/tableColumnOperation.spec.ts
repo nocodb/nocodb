@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
-import { GridPage } from '../pages/Grid';
+import { GridPage } from '../pages/Dashboard/Grid';
 import setup from '../setup';
 
 

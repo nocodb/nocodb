@@ -1,5 +1,5 @@
 import { Page, expect } from "@playwright/test";
-import { BasePage } from "../Base";
+import { BasePage } from "../../../Base";
 import {SelectOptionColumnPageObject} from "./SelectOptionColumn";
 
 export class ColumnPageObject {

@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
-import { SettingsPage } from '../pages/Settings';
+import { SettingsPage } from '../pages/Dashboard/Settings';
 import setup from '../setup';
 
 

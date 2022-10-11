@@ -1,21 +1,15 @@
 // playwright-dev-page.ts
-import {  Locator, Page, expect } from '@playwright/test';
-import { BasePage } from '../Base';
-import { CellPageObject } from '../Cell';
-import { ColumnPageObject } from '../Column';
+import {  Locator, Page } from '@playwright/test';
+import { BasePage } from '../../../Base';
 
 export class ExpandedFormPage {
   readonly page: Page;
   readonly addNewTableButton: Locator;
-  readonly column: ColumnPageObject;
-  readonly cell: CellPageObject;
   readonly base: BasePage;
 
   constructor(page: Page) {
     this.page = page;
     this.addNewTableButton = page.locator('.nc-add-new-table');
-    this.column = new ColumnPageObject(page);
-    this.cell = new CellPageObject(page);
     this.base = new BasePage(page);
   }
 

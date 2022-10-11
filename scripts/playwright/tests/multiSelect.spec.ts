@@ -1,6 +1,6 @@
-import { Page, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
-import { GridPage } from '../pages/Grid';
+import { GridPage } from '../pages/Dashboard/Grid'
 import setup from '../setup';
 
 
@@ -11,9 +11,10 @@ test.describe('Multi select', () => {
   test.beforeEach(async ({page}) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
+    grid = dashboard.grid;
+
     await dashboard.treeView.createTable({ title: 'sheet1' });
   
-    grid = new GridPage(page);
     await grid.column.create({ title: 'MultiSelect', type: 'MultiSelect' });
     await grid.addNewRow({index: 0, title: "Row 0"});
   })

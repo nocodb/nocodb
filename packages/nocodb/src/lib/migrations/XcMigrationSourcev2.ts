@@ -9,6 +9,7 @@ import * as nc_018_add_meta_in_view from './v2/nc_018_add_meta_in_view';
 import * as nc_019_add_meta_in_meta_tables from './v2/nc_019_add_meta_in_meta_tables';
 import * as nc_020_add_kanban_meta_col from './v2/nc_020_add_kanban_meta_col';
 import * as nc_021_rename_kanban_grp_col_id from './v2/nc_021_rename_kanban_grp_col_id';
+import * as nc_022_add_kanban_fk_cover_image_col_id from './v2/nc_022_add_kanban_fk_cover_image_col_id';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -29,6 +30,7 @@ export default class XcMigrationSourcev2 {
       'nc_019_add_meta_in_meta_tables',
       'nc_020_add_kanban_meta_col',
       'nc_021_rename_kanban_grp_col_id',
+      'nc_022_add_kanban_fk_cover_image_col_id'
     ]);
   }
 
@@ -60,6 +62,8 @@ export default class XcMigrationSourcev2 {
         return nc_020_add_kanban_meta_col;
       case 'nc_021_rename_kanban_grp_col_id':
         return nc_021_rename_kanban_grp_col_id;
+      case 'nc_022_add_kanban_fk_cover_image_col_id':
+        return nc_022_add_kanban_fk_cover_image_col_id;
     }
   }
 }

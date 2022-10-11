@@ -7919,6 +7919,9 @@
               "null"
             ]
           },
+          "fk_cover_image_col_id": {
+            "type": "string"
+          },
           "meta": {
             "type": [
               "string",

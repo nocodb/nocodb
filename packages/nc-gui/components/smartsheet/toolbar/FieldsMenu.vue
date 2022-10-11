@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, GalleryType } from 'nocodb-sdk'
+import type { ColumnType, GalleryType, KanbanType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import type { SelectProps } from 'ant-design-vue'
@@ -75,30 +75,44 @@ const onMove = (_event: { moved: { newIndex: number } }) => {
 
 const coverImageColumnId = computed({
   get: () =>
-    activeView.value?.type === ViewTypes.GALLERY && activeView.value?.view
+    (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) && activeView.value?.view
       ? (activeView.value?.view as GalleryType).fk_cover_image_col_id
       : undefined,
   set: async (val) => {
-    if (val && activeView.value?.type === ViewTypes.GALLERY && activeView.value?.id && activeView.value?.view) {
-      await $api.dbView.galleryUpdate(activeView.value?.id, {
-        ...activeView.value?.view,
-        fk_cover_image_col_id: val,
-      })
-      ;(activeView.value.view as GalleryType).fk_cover_image_col_id = val
+    if (
+      (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) &&
+      activeView.value?.id &&
+      activeView.value?.view
+    ) {
+      if (activeView.value?.type === ViewTypes.GALLERY) {
+        await $api.dbView.galleryUpdate(activeView.value?.id, {
+          ...activeView.value?.view,
+          fk_cover_image_col_id: val,
+        })
+        ;(activeView.value.view as GalleryType).fk_cover_image_col_id = val
+      } else if (activeView.value?.type === ViewTypes.KANBAN) {
+        await $api.dbView.kanbanUpdate(activeView.value?.id, {
+          ...activeView.value?.view,
+          fk_cover_image_col_id: val,
+        })
+        ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
+      }
       reloadViewMetaHook.trigger()
     }
   },
 })
 
 const coverOptions = computed<SelectProps['options']>(() => {
-  return fields.value
-    ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
-    .map((field) => {
-      return {
-        value: field.fk_column_id,
-        label: field.title,
-      }
-    })
+  const filterFields =
+    fields.value
+      ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
+      .map((field) => {
+        return {
+          value: field.fk_column_id,
+          label: field.title,
+        }
+      }) ?? []
+  return [{ value: null, label: 'No Image' }, ...filterFields]
 })
 
 const getIcon = (c: ColumnType) =>
@@ -127,7 +141,11 @@ const getIcon = (c: ColumnType) =>
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
         @click.stop
       >
-        <a-card v-if="activeView.type === ViewTypes.GALLERY" size="small" title="Cover image">
+        <a-card
+          v-if="activeView.type === ViewTypes.GALLERY || activeView.type === ViewTypes.KANBAN"
+          size="small"
+          title="Cover image"
+        >
           <a-select
             v-model:value="coverImageColumnId"
             class="w-full"

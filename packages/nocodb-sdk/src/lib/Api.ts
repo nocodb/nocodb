@@ -383,6 +383,7 @@ export interface KanbanType {
   columns?: KanbanColumnType[];
   fk_model_id?: string;
   fk_grp_col_id?: string | null;
+  fk_cover_image_col_id?: string;
   meta?: string | object;
 }
 

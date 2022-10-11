@@ -98,6 +98,9 @@ const sharedViewUrl = computed(() => {
     case ViewTypes.KANBAN:
       viewType = 'kanban'
       break
+    case ViewTypes.GALLERY:
+      viewType = 'gallery'
+      break
     default:
       viewType = 'view'
   }
@@ -314,7 +317,10 @@ watch(passwordProtected, (value) => {
           <div>
             <!-- Allow Download -->
             <a-checkbox
-              v-if="shared && (shared.type === ViewTypes.GRID || shared.type === ViewTypes.KANBAN)"
+              v-if="
+                shared &&
+                (shared.type === ViewTypes.GRID || shared.type === ViewTypes.KANBAN || shared.type === ViewTypes.GALLERY)
+              "
               v-model:checked="allowCSVDownload"
               data-cy="nc-modal-share-view__with-csv-download"
               class="!text-sm"

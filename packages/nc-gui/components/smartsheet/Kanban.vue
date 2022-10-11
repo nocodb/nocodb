@@ -21,6 +21,10 @@ import {
 } from '#imports'
 import type { Row as RowType } from '~/lib'
 
+interface Attachment {
+  url: string
+}
+
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
@@ -87,6 +91,16 @@ const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
+const fieldsWithoutCover = computed(() => fields.value.filter((f) => f.id !== kanbanMetaData.value?.fk_cover_image_col_id))
+
+const coverImageColumn: any = $(
+  computed(() =>
+    meta.value?.columnsById
+      ? meta.value.columnsById[kanbanMetaData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
+      : {},
+  ),
+)
+
 const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
@@ -103,8 +117,24 @@ reloadViewDataHook?.on(async () => {
   await loadKanbanData()
 })
 
+const attachments = (record: any): Attachment[] => {
+  try {
+    return coverImageColumn?.title && record.row[coverImageColumn.title] ? JSON.parse(record.row[coverImageColumn.title]) : []
+  } catch (e) {
+    return []
+  }
+}
+
+const reloadAttachments = ref(false)
+
 reloadViewMetaHook?.on(async () => {
   await loadKanbanMeta()
+
+  reloadAttachments.value = true
+
+  nextTick(() => {
+    reloadAttachments.value = false
+  })
 })
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
@@ -400,8 +430,43 @@ watch(view, async (nextView) => {
                                 @click="expandFormClick($event, record)"
                                 @contextmenu="showContextMenu($event, record)"
                               >
+                                <template v-if="kanbanMetaData.fk_cover_image_col_id" #cover>
+                                  <a-carousel
+                                    v-if="!reloadAttachments && attachments(record).length"
+                                    autoplay
+                                    class="gallery-carousel"
+                                    arrows
+                                  >
+                                    <template #customPaging>
+                                      <a>
+                                        <div class="pt-[12px]">
+                                          <div></div>
+                                        </div>
+                                      </a>
+                                    </template>
+
+                                    <template #prevArrow>
+                                      <div style="z-index: 1"></div>
+                                    </template>
+
+                                    <template #nextArrow>
+                                      <div style="z-index: 1"></div>
+                                    </template>
+
+                                    <LazyNuxtImg
+                                      v-for="(attachment, index) in attachments(record)"
+                                      :key="`carousel-${record.row.id}-${index}`"
+                                      quality="90"
+                                      placeholder
+                                      class="h-52 object-cover"
+                                      :src="attachment.url"
+                                    />
+                                  </a-carousel>
+
+                                  <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
+                                </template>
                                 <div
-                                  v-for="col in fields"
+                                  v-for="col in fieldsWithoutCover"
                                   :key="`record-${record.row.id}-${col.id}`"
                                   class="flex flex-col rounded-lg w-full"
                                 >

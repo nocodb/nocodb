@@ -38,7 +38,7 @@ interface Form {
   type: ViewTypes
   copy_from_id: string | null
   // for kanban view only
-  grp_column_id: string | null
+  fk_grp_col_id: string | null
 }
 
 const props = defineProps<Props>()
@@ -63,7 +63,7 @@ const form = reactive<Form>({
   title: props.title || '',
   type: props.type,
   copy_from_id: null,
-  grp_column_id: null,
+  fk_grp_col_id: null,
 })
 
 const singleSelectFieldOptions = ref<SelectProps['options']>([])
@@ -126,10 +126,10 @@ function init() {
       })
     if (props.groupingFieldColumnId) {
       // take from the one from copy view
-      form.grp_column_id = props.groupingFieldColumnId
+      form.fk_grp_col_id = props.groupingFieldColumnId
     } else {
       // take the first option
-      form.grp_column_id = singleSelectFieldOptions.value?.[0]?.value as string
+      form.fk_grp_col_id = singleSelectFieldOptions.value?.[0]?.value as string
     }
   }
 
@@ -196,11 +196,11 @@ async function onSubmit() {
       <a-form-item
         v-if="form.type === ViewTypes.KANBAN"
         :label="$t('general.groupingField')"
-        name="grp_column_id"
+        name="fk_grp_col_id"
         :rules="groupingFieldColumnRules"
       >
         <a-select
-          v-model:value="form.grp_column_id"
+          v-model:value="form.fk_grp_col_id"
           class="w-full nc-kanban-grouping-field-select"
           :options="singleSelectFieldOptions"
           :disabled="props.groupingFieldColumnId"

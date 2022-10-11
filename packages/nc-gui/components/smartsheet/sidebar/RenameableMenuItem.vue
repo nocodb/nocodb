@@ -105,7 +105,7 @@ function onDuplicate() {
     type: vModel.value.type!,
     title: vModel.value.title,
     copyViewId: vModel.value.id,
-    groupingFieldColumnId: (vModel.value.view as KanbanType).grp_column_id!,
+    groupingFieldColumnId: (vModel.value.view as KanbanType).fk_grp_col_id!,
   })
 
   $e('c:view:copy', { view: vModel.value.type })

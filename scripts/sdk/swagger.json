@@ -5672,6 +5672,339 @@
         "description": ""
       }
     },
+    "/api/v1/aggregated-meta-info": {
+      "parameters": [],
+      "get": {
+        "summary": "",
+        "operationId": "utils-aggregated-meta-info",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "projectCount": {
+                      "type": "integer"
+                    },
+                    "projects": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tableCount": {
+                            "type": "object",
+                            "properties": {
+                              "table": {
+                                "type": "integer"
+                              },
+                              "view": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "external": {
+                            "type": "boolean"
+                          },
+                          "viewCount": {
+                            "type": "object",
+                            "properties": {
+                              "formCount": {
+                                "type": "integer"
+                              },
+                              "gridCount": {
+                                "type": "integer"
+                              },
+                              "galleryCount": {
+                                "type": "integer"
+                              },
+                              "kanbanCount": {
+                                "type": "integer"
+                              },
+                              "total": {
+                                "type": "integer"
+                              },
+                              "sharedFormCount": {
+                                "type": "integer"
+                              },
+                              "sharedGridCount": {
+                                "type": "integer"
+                              },
+                              "sharedGalleryCount": {
+                                "type": "integer"
+                              },
+                              "sharedKanbanCount": {
+                                "type": "integer"
+                              },
+                              "sharedTotal": {
+                                "type": "integer"
+                              },
+                              "sharedLockedCount": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "webhookCount": {
+                            "type": "integer"
+                          },
+                          "filterCount": {
+                            "type": "integer"
+                          },
+                          "sortCount": {
+                            "type": "integer"
+                          },
+                          "rowCount": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "TotalRecords": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "userCount": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "userCount": {
+                      "type": "integer"
+                    },
+                    "sharedBaseCount": {
+                      "type": "integer"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "projectCount": 1,
+                      "projects": [
+                        {
+                          "tableCount": {
+                            "table": 3,
+                            "view": 0
+                          },
+                          "external": false,
+                          "viewCount": {
+                            "formCount": 0,
+                            "gridCount": 3,
+                            "galleryCount": 0,
+                            "kanbanCount": 0,
+                            "total": 3,
+                            "sharedFormCount": 0,
+                            "sharedGridCount": 0,
+                            "sharedGalleryCount": 0,
+                            "sharedKanbanCount": 0,
+                            "sharedTotal": 0,
+                            "sharedLockedCount": 0
+                          },
+                          "webhookCount": 0,
+                          "filterCount": 0,
+                          "sortCount": 0,
+                          "rowCount": [
+                            {
+                              "TotalRecords": "76"
+                            }
+                          ],
+                          "userCount": 1
+                        }
+                      ],
+                      "userCount": 1,
+                      "sharedBaseCount": 0
+                    }
+                  }
+                },
+                "examples": {
+                  "example-1": {
+                    "value": {
+                      "projectCount": 1,
+                      "projects": [
+                        {
+                          "tableCount": {
+                            "table": 3,
+                            "view": 0
+                          },
+                          "external": false,
+                          "viewCount": {
+                            "formCount": 0,
+                            "gridCount": 3,
+                            "galleryCount": 0,
+                            "kanbanCount": 0,
+                            "total": 3,
+                            "sharedFormCount": 0,
+                            "sharedGridCount": 0,
+                            "sharedGalleryCount": 0,
+                            "sharedKanbanCount": 0,
+                            "sharedTotal": 0,
+                            "sharedLockedCount": 0
+                          },
+                          "webhookCount": 0,
+                          "filterCount": 0,
+                          "sortCount": 0,
+                          "rowCount": [
+                            {
+                              "TotalRecords": "76"
+                            }
+                          ],
+                          "userCount": 1
+                        }
+                      ],
+                      "userCount": 1,
+                      "sharedBaseCount": 0
+                    }
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "projectCount": {
+                      "type": "integer"
+                    },
+                    "projects": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tableCount": {
+                            "type": "object",
+                            "properties": {
+                              "table": {
+                                "type": "integer"
+                              },
+                              "view": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "viewCount": {
+                            "type": "object",
+                            "properties": {
+                              "formCount": {
+                                "type": "integer"
+                              },
+                              "gridCount": {
+                                "type": "integer"
+                              },
+                              "galleryCount": {
+                                "type": "integer"
+                              },
+                              "kanbanCount": {
+                                "type": "integer"
+                              },
+                              "total": {
+                                "type": "integer"
+                              },
+                              "sharedFormCount": {
+                                "type": "integer"
+                              },
+                              "sharedGridCount": {
+                                "type": "integer"
+                              },
+                              "sharedGalleryCount": {
+                                "type": "integer"
+                              },
+                              "sharedKanbanCount": {
+                                "type": "integer"
+                              },
+                              "sharedTotal": {
+                                "type": "integer"
+                              },
+                              "sharedLockedCount": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "webhookCount": {
+                            "type": "integer"
+                          },
+                          "filterCount": {
+                            "type": "integer"
+                          },
+                          "sortCount": {
+                            "type": "integer"
+                          },
+                          "rowCount": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "TotalRecords": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "userCount": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "userCount": {
+                      "type": "integer"
+                    },
+                    "sharedBaseCount": {
+                      "type": "integer"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "projectCount": 1,
+                      "projects": [
+                        {
+                          "tableCount": {
+                            "table": 3,
+                            "view": 0
+                          },
+                          "viewCount": {
+                            "formCount": 0,
+                            "gridCount": 3,
+                            "galleryCount": 0,
+                            "kanbanCount": 0,
+                            "total": 3,
+                            "sharedFormCount": 0,
+                            "sharedGridCount": 0,
+                            "sharedGalleryCount": 0,
+                            "sharedKanbanCount": 0,
+                            "sharedTotal": 0,
+                            "sharedLockedCount": 0
+                          },
+                          "webhookCount": 0,
+                          "filterCount": 0,
+                          "sortCount": 0,
+                          "rowCount": [
+                            {
+                              "TotalRecords": "76"
+                            }
+                          ],
+                          "userCount": 1
+                        }
+                      ],
+                      "userCount": 1,
+                      "sharedBaseCount": 0
+                    }
+                  }
+                },
+                "examples": {
+                  "example-1": {
+                    "value": "{\n  \"projectCount\": 1,\n  \"projects\": [\n    {\n      \"tableCount\": {\n        \"table\": 3,\n        \"view\": 0\n      },\n      \"viewCount\": {\n        \"formCount\": 0,\n        \"gridCount\": 3,\n        \"galleryCount\": 0,\n        \"kanbanCount\": 0,\n        \"total\": 3,\n        \"sharedFormCount\": 0,\n        \"sharedGridCount\": 0,\n        \"sharedGalleryCount\": 0,\n        \"sharedKanbanCount\": 0,\n        \"sharedTotal\": 0,\n        \"sharedLockedCount\": 0\n      },\n      \"webhookCount\": 0,\n      \"filterCount\": 0,\n      \"sortCount\": 0,\n      \"rowCount\": [\n        {\n          \"TotalRecords\": \"76\"\n        }\n      ],\n      \"userCount\": 1\n    }\n  ],\n  \"userCount\": 1,\n  \"sharedBaseCount\": 0\n}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "description": ""
+      }
+    },
     "/api/v1/db/meta/cache": {
       "get": {
         "summary": "Your GET endpoint",

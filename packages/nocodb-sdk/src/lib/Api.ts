@@ -3438,6 +3438,51 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Utils
+     * @name AggregatedMetaInfo
+     * @request GET:/api/v1/aggregated-meta-info
+     * @response `200` `{ projectCount?: number, projects?: ({ tableCount?: { table?: number, view?: number }, external?: boolean, viewCount?: { formCount?: number, gridCount?: number, galleryCount?: number, kanbanCount?: number, total?: number, sharedFormCount?: number, sharedGridCount?: number, sharedGalleryCount?: number, sharedKanbanCount?: number, sharedTotal?: number, sharedLockedCount?: number }, webhookCount?: number, filterCount?: number, sortCount?: number, rowCount?: ({ TotalRecords?: string })[], userCount?: number })[], userCount?: number, sharedBaseCount?: number }` OK
+     */
+    aggregatedMetaInfo: (params: RequestParams = {}) =>
+      this.request<
+        {
+          projectCount?: number;
+          projects?: {
+            tableCount?: { table?: number; view?: number };
+            external?: boolean;
+            viewCount?: {
+              formCount?: number;
+              gridCount?: number;
+              galleryCount?: number;
+              kanbanCount?: number;
+              total?: number;
+              sharedFormCount?: number;
+              sharedGridCount?: number;
+              sharedGalleryCount?: number;
+              sharedKanbanCount?: number;
+              sharedTotal?: number;
+              sharedLockedCount?: number;
+            };
+            webhookCount?: number;
+            filterCount?: number;
+            sortCount?: number;
+            rowCount?: { TotalRecords?: string }[];
+            userCount?: number;
+          }[];
+          userCount?: number;
+          sharedBaseCount?: number;
+        },
+        any
+      >({
+        path: `/api/v1/aggregated-meta-info`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Get All K/V pairs in NocoCache
      *
      * @tags Utils

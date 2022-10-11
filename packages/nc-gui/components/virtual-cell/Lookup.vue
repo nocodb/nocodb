@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import type { Ref } from 'vue'
 import {
   CellUrlDisableOverlayInj,
   CellValueInj,
@@ -22,7 +21,7 @@ const { metas, getMeta } = useMetas()
 
 provide(ReadonlyInj, ref(true))
 
-const column = inject(ColumnInj)! as Ref<ColumnType & { colOptions: LookupType }>
+const column = inject(ColumnInj)
 
 const meta = inject(MetaInj, ref())
 
@@ -32,7 +31,7 @@ const arrValue = computed(() => (Array.isArray(value?.value) ? value?.value : [v
 
 const relationColumn = computed(
   () =>
-    meta.value?.columns?.find((c) => c.id === column.value.colOptions?.fk_relation_column_id) as ColumnType & {
+    meta.value?.columns?.find((c) => c.id === (column?.value.colOptions as LookupType)?.fk_relation_column_id) as ColumnType & {
       colOptions: LinkToAnotherRecordType
     },
 )
@@ -50,7 +49,7 @@ const lookupTableMeta = computed(() => metas.value[relationColumn.value.colOptio
 const lookupColumn = computed<any>(
   () =>
     lookupTableMeta.value.columns?.find(
-      (c: Record<string, any>) => c.id === column.value.colOptions?.fk_lookup_column_id,
+      (c: Record<string, any>) => c.id === (column?.value.colOptions as LookupType)?.fk_lookup_column_id,
     ) as ColumnType,
 )
 

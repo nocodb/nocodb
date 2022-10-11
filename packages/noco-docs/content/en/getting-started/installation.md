@@ -506,6 +506,7 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 | NC_S3_ACCESS_SECRET                | No        | For S3 storage plugin - AWS access secret credential for accessing resource                                             |                                                                                                |   |
 | NC_ADMIN_EMAIL                     | No        | For updating/creating super admin with provided email and password                                                      |                                                                                                |   |
 | NC_ADMIN_PASSWORD                  | No        | For updating/creating super admin with provided email and password. Your password should have at least 8 letters with one uppercase, one number and one special letter(Allowed special chars <code>$&+,:;=?@#&#124;'.^*()%!_-"</code> )                                                     |                                                                                                |   |
+| NODE_OPTIONS                  | No        | For passing Node.js [options](https://nodejs.org/api/cli.html#node_optionsoptions) to instance                                                     |                                                                                                |   |
 
 ## Sample Demos
 

@@ -56,6 +56,7 @@ export class GridPage {
     // Click text=Delete Row
     await this.page.locator('text=Delete Row').click();
     await this.page.locator('span.ant-dropdown-menu-title-content > nc-project-menu-item').waitFor({state: 'hidden'});
+    await this.page.waitForTimeout(300);
   }
 
   async openExpandedRow({index}:{index: number}) {

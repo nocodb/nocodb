@@ -33,6 +33,6 @@ export class ExpandedFormPage {
     await this.get().press('Escape');
     await this.get().waitFor({state: 'hidden'});
     await this.base.toastWait({message: `updated successfully.`});
-    await this.page.waitForTimeout(400);
+    await this.page.locator('[pw-data="grid-load-spinner"]').waitFor({ state: 'hidden' });
   }
 }

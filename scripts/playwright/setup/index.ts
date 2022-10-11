@@ -2,9 +2,11 @@ import { Page, TestInfo } from '@playwright/test';
 import axios from 'axios';
 import { DashboardPage } from '../pages/Dashboard';
 
-const setup = async ({page}: {page: Page}) => {
+const setup = async ({page, typeOnLocalSetup}: {page: Page, typeOnLocalSetup?: string}) => {
+  const type = process.env.CI ? process.env.E2E_TYPE : typeOnLocalSetup;
   const response =  await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {
-    parallelId: process.env.TEST_PARALLEL_INDEX
+    parallelId: process.env.TEST_PARALLEL_INDEX,
+    type: type ?? 'sqlite',
   });
 
   if(response.status !== 200) {

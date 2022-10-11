@@ -15,11 +15,11 @@ test.describe('Table Operations', () => {
   })
 
   test('Create, and delete table, verify in audit tab, and rename City table', async () => {
-    await dashboard.createTable({title: "tablex"});
-    await dashboard.verifyTableExistsInSidebar({title: "tablex"});
+    await dashboard.treeView.createTable({title: "tablex"});
+    await dashboard.treeView.verifyTableExists({title: "tablex"});
     
-    await dashboard.deleteTable({title: "tablex"});
-    await dashboard.verifyTableDoesNotExistInSidebar({title: "tablex"});
+    await dashboard.treeView.deleteTable({title: "tablex"});
+    await dashboard.treeView.verifyTableDoesNotExist({title: "tablex"});
     
     await dashboard.gotoSettings();
     await settings.selectTab({title: 'Audit'});
@@ -27,8 +27,15 @@ test.describe('Table Operations', () => {
     await settings.audit.verifyRow({index: 1, opType: 'TABLE', opSubtype: 'CREATED', user: 'user@nocodb.com'});
     await settings.close();
 
-    await dashboard.renameTable({title: "City", newTitle: "Cityx"});
-    await dashboard.verifyTableExistsInSidebar({title: "Cityx"});
+    await dashboard.treeView.renameTable({title: "City", newTitle: "Cityx"});
+    await dashboard.treeView.verifyTableExists({title: "Cityx"});
   });
+
+  test('Table drag and drop re order', async () => {
+    await dashboard.treeView.reorderTables({
+      sourceTable: "City",
+      destinationTable: "Country"
+    })
+  })
 
 });

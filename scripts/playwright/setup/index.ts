@@ -1,6 +1,5 @@
-import { Page, TestInfo } from '@playwright/test';
+import { Page } from '@playwright/test';
 import axios from 'axios';
-import { DashboardPage } from '../pages/Dashboard';
 
 const setup = async ({page, typeOnLocalSetup}: {page: Page, typeOnLocalSetup?: string}) => {
   const type = process.env.CI ? process.env.E2E_TYPE : typeOnLocalSetup;
@@ -28,9 +27,6 @@ const setup = async ({page, typeOnLocalSetup}: {page: Page, typeOnLocalSetup?: s
   const project = response.data.project;
 
   await page.goto(`/#/nc/${project.id}/auth`);
-
-  const dashboardPage = new DashboardPage(page, project);
-  await dashboardPage.openTable({title: "Country"})
 
   return { project, token };
 }

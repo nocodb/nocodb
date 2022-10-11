@@ -11,7 +11,7 @@ test.describe('Single select', () => {
   test.beforeEach(async ({page}) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
-    await dashboard.createTable({ title: 'sheet1' });
+    await dashboard.treeView.createTable({ title: 'sheet1' });
   
     grid = new GridPage(page);
     await grid.column.create({ title: 'SingleSelect', type: 'SingleSelect' });

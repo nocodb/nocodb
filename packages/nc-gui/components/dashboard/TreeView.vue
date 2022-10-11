@@ -321,12 +321,13 @@ function openTableCreateDialog() {
                 class="nc-tree-item text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
+                :pw-data="`tree-view-table-${table.title}`"
                 @click="addTableTab(table)"
               >
                 <GeneralTooltip class="pl-5 pr-3 py-2" modifier-key="Alt">
                   <template #title>{{ table.table_name }}</template>
                   <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
-                    <div class="flex w-auto">
+                    <div class="flex w-auto" :pw-data="`tree-view-table-draggable-handle-${table.title}`">
                       <MdiDragVertical
                         v-if="isUIAllowed('treeview-drag-n-drop')"
                         :class="`nc-child-draggable-icon-${table.title}`"

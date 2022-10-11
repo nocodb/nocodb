@@ -86,8 +86,9 @@ watch(isOpen, (n, _o) => {
         <span
           :style="{ color: tinycolor.mostReadable(op.color || '#ccc', ['#64748b', '#f0f0f0']).toHex8String() }"
           :class="{ 'text-sm': isKanban }"
-          >{{ op.title }}</span
         >
+          {{ op.title }}
+        </span>
       </a-tag>
     </a-select-option>
   </a-select>

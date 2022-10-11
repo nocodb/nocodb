@@ -149,8 +149,9 @@ watch(isOpen, (n, _o) => {
         <span
           :style="{ color: tinycolor.mostReadable(op.color || '#ccc', ['#64748b', '#f0f0f0']).toHex8String() }"
           :class="{ 'text-sm': isKanban }"
-          >{{ op.title }}</span
         >
+          {{ op.title }}
+        </span>
       </a-tag>
     </a-select-option>
 
@@ -159,7 +160,7 @@ watch(isOpen, (n, _o) => {
         v-if="options.find((el) => el.title === val)"
         class="rounded-tag"
         :style="{ display: 'flex', alignItems: 'center' }"
-        :color="(options.find((el) => el.title === val) as SelectOptionType).color"
+        :color="options.find((el) => el.title === val)?.color"
         :closable="active && (vModel.length > 1 || !column?.rqd)"
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"
@@ -167,8 +168,9 @@ watch(isOpen, (n, _o) => {
         <span
           :style="{ color: tinycolor.mostReadable((options.find((el) => el.title === val) as SelectOptionType).color || '#ccc', ['#64748b', '#f0f0f0']).toHex8String() }"
           :class="{ 'text-sm': isKanban }"
-          >{{ val }}</span
         >
+          {{ val }}
+        </span>
       </a-tag>
     </template>
   </a-select>

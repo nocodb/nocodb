@@ -80,7 +80,6 @@ const coverImageColumnId = computed({
       : undefined,
   set: async (val) => {
     if (
-      val &&
       (activeView.value?.type === ViewTypes.GALLERY || activeView.value?.type === ViewTypes.KANBAN) &&
       activeView.value?.id &&
       activeView.value?.view
@@ -104,14 +103,16 @@ const coverImageColumnId = computed({
 })
 
 const coverOptions = computed<SelectProps['options']>(() => {
-  return fields.value
-    ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
-    .map((field) => {
-      return {
-        value: field.fk_column_id,
-        label: field.title,
-      }
-    })
+  const filterFields =
+    fields.value
+      ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
+      .map((field) => {
+        return {
+          value: field.fk_column_id,
+          label: field.title,
+        }
+      }) ?? []
+  return [{ value: null, label: 'No Image' }, ...filterFields]
 })
 
 const getIcon = (c: ColumnType) =>

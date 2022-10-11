@@ -48,7 +48,7 @@ export default {
         v-show="!!vModel"
         v-bind="$attrs"
         :class="[inline ? 'absolute' : 'fixed']"
-        class="z-100 top-0 left-0 bottom-0 right-0 bg-gray-700/75"
+        class="z-2000 top-0 left-0 bottom-0 right-0 bg-gray-700/75"
       >
         <slot :is-open="vModel" />
       </div>

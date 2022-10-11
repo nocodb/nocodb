@@ -7913,7 +7913,7 @@
           "fk_model_id": {
             "type": "string"
           },
-          "grp_column_id": {
+          "fk_grp_col_id": {
             "type": [
               "string",
               "null"

@@ -382,7 +382,7 @@ export interface KanbanType {
   alias?: string;
   columns?: KanbanColumnType[];
   fk_model_id?: string;
-  grp_column_id?: string | null;
+  fk_grp_col_id?: string | null;
   meta?: string | object;
 }
 

@@ -14,9 +14,9 @@ test.describe('Table Operations', () => {
     settings = new SettingsPage(page);
   })
 
-  test('Create, and delete table, verify in audit tab, and rename City table', async () => {
+  test('Create, and delete table, verify in audit tab, rename City table and reorder tables', async () => {
     await dashboard.treeView.createTable({title: "tablex"});
-    await dashboard.treeView.verifyTableExists({title: "tablex"});
+    await dashboard.treeView.verifyTable({title: "tablex"});
     
     await dashboard.treeView.deleteTable({title: "tablex"});
     await dashboard.treeView.verifyTableDoesNotExist({title: "tablex"});
@@ -28,14 +28,15 @@ test.describe('Table Operations', () => {
     await settings.close();
 
     await dashboard.treeView.renameTable({title: "City", newTitle: "Cityx"});
-    await dashboard.treeView.verifyTableExists({title: "Cityx"});
-  });
+    await dashboard.treeView.verifyTable({title: "Cityx"});
 
-  test('Table drag and drop re order', async () => {
+    await dashboard.treeView.focusTable({title: "Actor"});
+    await dashboard.treeView.verifyTable({title: "Actor", index: 0});
     await dashboard.treeView.reorderTables({
-      sourceTable: "City",
-      destinationTable: "Country"
-    })
-  })
+      sourceTable: "Actor",
+      destinationTable: "Address"
+    });
+    await dashboard.treeView.verifyTable({title: "Address", index: 0});
+  });
 
 });

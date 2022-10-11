@@ -16,6 +16,10 @@ export class TreeViewPage {
     return this.page.locator(".nc-treeview-container");;
   }
 
+  async focusTable({ title }: { title: string }) {
+    await this.get().locator(`.nc-project-tree-tbl-${title}`).focus();
+  }
+
   async openTable({ title }: { title: string }) {
     await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
   }
@@ -36,10 +40,14 @@ export class TreeViewPage {
       .waitFor({ state: "hidden" });
   }
 
-  async verifyTableExists({ title }: { title: string }) {
+  async verifyTable({ title, index }: { title: string; index?: number }) {
     await expect(
       this.get().locator(`.nc-project-tree-tbl-${title}`)
     ).toBeVisible();
+
+    if(index) {
+      expect(await this.get().locator('.nc-tbl-title').nth(index)).toHaveText(title);
+    }
   }
 
   async verifyTableDoesNotExist({ title }: { title: string }) {

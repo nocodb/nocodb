@@ -197,7 +197,7 @@ watch(
             </template>
 
             <template v-if="isImage(item.title, item.mimetype ?? item.type) && (item.url || item.data)">
-              <div class="nc-attachment flex items-center justify-center" @click="selectedImage = item">
+              <div class="nc-attachment flex items-center justify-center" @click.stop="selectedImage = item">
                 <LazyNuxtImg
                   quality="75"
                   placeholder

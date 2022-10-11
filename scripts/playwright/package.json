@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "npx playwright test",
+    "test-debug": "npx playwright test -c playwright.config.ts test --headed --project=chromium --repeat-each 1 --retries 0 --timeout 0 --workers 1 --max-failures=1"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

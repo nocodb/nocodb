@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
 import { ActiveCellInj, ColumnInj, IsKanbanInj, ReadonlyInj, computed, inject, ref, useEventListener, watch } from '#imports'
@@ -82,7 +83,11 @@ watch(isOpen, (n, _o) => {
   >
     <a-select-option v-for="op of options" :key="op.title" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
-        <span class="text-slate-500" :class="{ 'text-sm': isKanban }">{{ op.title }}</span>
+        <span
+          :style="{ color: tinycolor.mostReadable(op.color || '#ccc', ['#64748b', '#f0f0f0']).toHex8String() }"
+          :class="{ 'text-sm': isKanban }"
+          >{{ op.title }}</span
+        >
       </a-tag>
     </a-select-option>
   </a-select>

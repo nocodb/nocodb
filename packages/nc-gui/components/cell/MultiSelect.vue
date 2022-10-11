@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import { SelectOptionType } from 'nocodb-sdk'
 import type { SelectOptionsType } from 'nocodb-sdk'
@@ -145,7 +146,11 @@ watch(isOpen, (n, _o) => {
   >
     <a-select-option v-for="op of options" :key="op.id" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
-        <span class="text-slate-500" :class="{ 'text-sm': isKanban }">{{ op.title }}</span>
+        <span
+          :style="{ color: tinycolor.mostReadable(op.color || '#ccc', ['#64748b', '#f0f0f0']).toHex8String() }"
+          :class="{ 'text-sm': isKanban }"
+          >{{ op.title }}</span
+        >
       </a-tag>
     </a-select-option>
 
@@ -159,7 +164,11 @@ watch(isOpen, (n, _o) => {
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"
       >
-        <span class="w-full text-slate-500" :class="{ 'text-sm': isKanban }">{{ val }}</span>
+        <span
+          :style="{ color: tinycolor.mostReadable((options.find((el) => el.title === val) as SelectOptionType).color || '#ccc', ['#64748b', '#f0f0f0']).toHex8String() }"
+          :class="{ 'text-sm': isKanban }"
+          >{{ val }}</span
+        >
       </a-tag>
     </template>
   </a-select>

@@ -355,8 +355,7 @@ export default class View implements ViewType {
     {
       let order = 1;
       let galleryShowLimit = 0;
-      let kanbanShowCount = 0;
-      let kanbanAttachmentCount = 0;
+      let kanbanShowLimit = 0;
 
       if (view.type === ViewTypes.KANBAN && !copyFromView) {
         // sort by primary value & attachment first, then by singleLineText & Number
@@ -401,22 +400,14 @@ export default class View implements ViewType {
           if (vCol.id === kanbanView?.fk_grp_col_id) {
             // include grouping field if it exists
             show = true;
-          } else if (vCol.pv) {
-            // Show primary key
+          } else if (vCol.id === kanbanView.fk_cover_image_col_id || vCol.pv) {
+            // Show cover image or primary key
             show = true;
-            kanbanShowCount++;
-          } else if (
-            vCol.uidt === UITypes.Attachment &&
-            kanbanAttachmentCount < 1
-          ) {
-            // Show at most 1 attachment
-            show = true;
-            kanbanAttachmentCount++;
-            kanbanShowCount++;
-          } else if (kanbanShowCount < 3 && !isSystemColumn(vCol)) {
+            kanbanShowLimit++;
+          } else if (kanbanShowLimit < 3 && !isSystemColumn(vCol)) {
             // show at most 3 non-system columns
             show = true;
-            kanbanShowCount++;
+            kanbanShowLimit++;
           } else {
             // other columns will be hidden
             show = false;

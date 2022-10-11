@@ -1,5 +1,5 @@
 import Noco from '../Noco';
-import { KanbanType } from 'nocodb-sdk';
+import { KanbanType, UITypes } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
@@ -10,6 +10,7 @@ export default class KanbanView implements KanbanType {
   project_id?: string;
   base_id?: string;
   fk_grp_col_id?: string;
+  fk_cover_image_col_id?: string;
   meta?: string | object;
 
   // below fields are not in use at this moment
@@ -58,11 +59,18 @@ export default class KanbanView implements KanbanType {
   }
 
   static async insert(view: Partial<KanbanView>, ncMeta = Noco.ncMeta) {
+    const columns = await View.get(view.fk_view_id, ncMeta)
+      .then((v) => v?.getModel(ncMeta))
+      .then((m) => m.getColumns(ncMeta));
+
     const insertObj = {
       project_id: view.project_id,
       base_id: view.base_id,
       fk_view_id: view.fk_view_id,
       fk_grp_col_id: view.fk_grp_col_id,
+      fk_cover_image_col_id:
+        view?.fk_cover_image_col_id ||
+        columns?.find((c) => c.uidt === UITypes.Attachment)?.id,
       meta: view.meta,
     };
 

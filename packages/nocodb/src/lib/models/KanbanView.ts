@@ -9,7 +9,7 @@ export default class KanbanView implements KanbanType {
   title: string;
   project_id?: string;
   base_id?: string;
-  grp_column_id?: string;
+  fk_grp_col_id?: string;
   meta?: string | object;
 
   // below fields are not in use at this moment
@@ -50,7 +50,7 @@ export default class KanbanView implements KanbanType {
       (
         await ncMeta.metaList2(null, null, MetaTable.KANBAN_VIEW, {
           condition: {
-            grp_column_id: columnId,
+            fk_grp_col_id: columnId,
           },
         })
       ).length > 0
@@ -62,7 +62,7 @@ export default class KanbanView implements KanbanType {
       project_id: view.project_id,
       base_id: view.base_id,
       fk_view_id: view.fk_view_id,
-      grp_column_id: view.grp_column_id,
+      fk_grp_col_id: view.fk_grp_col_id,
       meta: view.meta,
     };
 

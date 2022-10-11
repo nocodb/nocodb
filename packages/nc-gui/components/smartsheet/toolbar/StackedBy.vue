@@ -43,15 +43,15 @@ watch(
 )
 
 const groupingFieldColumnId = computed({
-  get: () => kanbanMetaData.value.grp_column_id,
+  get: () => kanbanMetaData.value.fk_grp_col_id,
   set: async (val) => {
     if (val) {
       await updateKanbanMeta({
-        grp_column_id: val,
+        fk_grp_col_id: val,
       })
       await loadKanbanMeta()
       await loadKanbanData()
-      ;(activeView.value?.view as KanbanType).grp_column_id = val
+      ;(activeView.value?.view as KanbanType).fk_grp_col_id = val
     }
   },
 })

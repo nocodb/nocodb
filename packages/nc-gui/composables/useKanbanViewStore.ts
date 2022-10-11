@@ -139,27 +139,27 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         : await $api.dbView.kanbanRead(viewMeta.value.id)
       // set groupingField
       groupingFieldColumn.value =
-        (meta.value.columns as ColumnType[]).filter((f) => f.id === kanbanMetaData.value.grp_column_id)[0] || {}
+        (meta.value.columns as ColumnType[]).filter((f) => f.id === kanbanMetaData.value.fk_grp_col_id)[0] || {}
 
       groupingField.value = groupingFieldColumn.value.title!
 
-      const { grp_column_id, meta: stack_meta } = kanbanMetaData.value
+      const { fk_grp_col_id, meta: stack_meta } = kanbanMetaData.value
 
       stackMetaObj.value = stack_meta ? JSON.parse(stack_meta as string) : {}
 
-      if (stackMetaObj.value && grp_column_id && stackMetaObj.value[grp_column_id]) {
+      if (stackMetaObj.value && fk_grp_col_id && stackMetaObj.value[fk_grp_col_id]) {
         // keep the existing order (index of the array) but update the values done outside kanban
         let isChanged = false
         let hasNewOptionsAdded = false
         for (const option of (groupingFieldColumn.value.colOptions as SelectOptionsType)?.options ?? []) {
-          const idx = stackMetaObj.value[grp_column_id].findIndex((ele) => ele.id === option.id)
+          const idx = stackMetaObj.value[fk_grp_col_id].findIndex((ele) => ele.id === option.id)
           if (idx !== -1) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { collapsed, ...rest } = stackMetaObj.value[grp_column_id][idx]
+            const { collapsed, ...rest } = stackMetaObj.value[fk_grp_col_id][idx]
             if (!deepCompare(rest, option)) {
               // update the option in stackMetaObj
-              stackMetaObj.value[grp_column_id][idx] = {
-                ...stackMetaObj.value[grp_column_id][idx],
+              stackMetaObj.value[fk_grp_col_id][idx] = {
+                ...stackMetaObj.value[fk_grp_col_id][idx],
                 ...option,
               }
               // rename the key in formattedData & countByStack
@@ -175,7 +175,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             }
           } else {
             // new option found - add to stackMetaObj
-            stackMetaObj.value[grp_column_id].push({
+            stackMetaObj.value[fk_grp_col_id].push({
               ...option,
               collapsed: false,
             })
@@ -188,11 +188,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         // handle deleted options
         const columnOptionIds = (groupingFieldColumn.value?.colOptions as SelectOptionsType)?.options.map(({ id }) => id)
-        const cols = stackMetaObj.value[grp_column_id].filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
+        const cols = stackMetaObj.value[fk_grp_col_id].filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
         for (const col of cols) {
-          const idx = stackMetaObj.value[grp_column_id].map((ele: Record<string, any>) => ele.id).indexOf(col.id)
+          const idx = stackMetaObj.value[fk_grp_col_id].map((ele: Record<string, any>) => ele.id).indexOf(col.id)
           if (idx !== -1) {
-            stackMetaObj.value[grp_column_id].splice(idx, 1)
+            stackMetaObj.value[fk_grp_col_id].splice(idx, 1)
             // there are two cases
             // 1. delete option from Add / Edit Stack in kanban view
             // 2. delete option from grid view, then switch to kanban view
@@ -210,7 +210,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             isChanged = true
           }
         }
-        groupingFieldColOptions.value = stackMetaObj.value[grp_column_id]
+        groupingFieldColOptions.value = stackMetaObj.value[fk_grp_col_id]
 
         if (isChanged) {
           await updateKanbanStackMeta()
@@ -237,9 +237,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     async function updateKanbanStackMeta() {
-      const { grp_column_id } = kanbanMetaData.value
-      if (grp_column_id) {
-        stackMetaObj.value[grp_column_id] = groupingFieldColOptions.value
+      const { fk_grp_col_id } = kanbanMetaData.value
+      if (fk_grp_col_id) {
+        stackMetaObj.value[fk_grp_col_id] = groupingFieldColOptions.value
         await updateKanbanMeta({
           meta: stackMetaObj.value,
         })
@@ -391,7 +391,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         // update kanban stack meta
         groupingFieldColOptions.value.splice(stackIdx, 1)
-        stackMetaObj.value[kanbanMetaData.value.grp_column_id!] = groupingFieldColOptions.value
+        stackMetaObj.value[kanbanMetaData.value.fk_grp_col_id!] = groupingFieldColOptions.value
         await updateKanbanStackMeta()
         $e('a:kanban:delete-stack')
       } catch (e: any) {

@@ -225,7 +225,7 @@ export default class View implements ViewType {
     view: Partial<View> &
       Partial<FormView | GridView | GalleryView | KanbanView> & {
         copy_from_id?: string;
-        grp_column_id?: string;
+        fk_grp_col_id?: string;
         created_at?;
         updated_at?;
       },
@@ -312,7 +312,7 @@ export default class View implements ViewType {
         break;
       case ViewTypes.KANBAN:
         // set grouping field
-        (view as KanbanView).grp_column_id = view.grp_column_id;
+        (view as KanbanView).fk_grp_col_id = view.fk_grp_col_id;
 
         await KanbanView.insert(
           {
@@ -398,7 +398,7 @@ export default class View implements ViewType {
           }
         } else if (view.type === ViewTypes.KANBAN && !copyFromView) {
           const kanbanView = await KanbanView.get(view_id, ncMeta);
-          if (vCol.id === kanbanView?.grp_column_id) {
+          if (vCol.id === kanbanView?.fk_grp_col_id) {
             // include grouping field if it exists
             show = true;
           } else if (vCol.pv) {

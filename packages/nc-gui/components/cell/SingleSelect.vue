@@ -84,7 +84,12 @@ watch(isOpen, (n, _o) => {
     <a-select-option v-for="op of options" :key="op.title" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
         <span
-          :style="{ color: tinycolor.mostReadable(op.color || '#ccc', ['#64748b', '#f0f0f0']).toHex8String() }"
+          :style="{
+            'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+              ? '#fff'
+              : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+            'font-size': '13px',
+          }"
           :class="{ 'text-sm': isKanban }"
         >
           {{ op.title }}

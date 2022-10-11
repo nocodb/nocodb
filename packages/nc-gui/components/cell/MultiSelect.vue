@@ -147,7 +147,12 @@ watch(isOpen, (n, _o) => {
     <a-select-option v-for="op of options" :key="op.id" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
         <span
-          :style="{ color: tinycolor.mostReadable(op.color || '#ccc', ['#64748b', '#f0f0f0']).toHex8String() }"
+          :style="{
+            'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+              ? '#fff'
+              : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+            'font-size': '13px',
+          }"
           :class="{ 'text-sm': isKanban }"
         >
           {{ op.title }}
@@ -166,7 +171,17 @@ watch(isOpen, (n, _o) => {
         @close="onClose"
       >
         <span
-          :style="{ color: tinycolor.mostReadable((options.find((el) => el.title === val) as SelectOptionType).color || '#ccc', ['#64748b', '#f0f0f0']).toHex8String() }"
+          :style="{
+            'color': tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
+              level: 'AA',
+              size: 'large',
+            })
+              ? '#fff'
+              : tinycolor
+                  .mostReadable(options.find((el) => el.title === val)?.color || '#ccc', ['#0b1d05', '#fff'])
+                  .toHex8String(),
+            'font-size': '13px',
+          }"
           :class="{ 'text-sm': isKanban }"
         >
           {{ val }}
@@ -200,8 +215,7 @@ watch(isOpen, (n, _o) => {
   color: rgba(0, 0, 0, 0.45);
 }
 .rounded-tag {
-  padding: 0px 12px;
-  border-radius: 12px;
+  @apply py-0 px-[12px] rounded-[12px];
 }
 :deep(.ant-tag) {
   @apply "rounded-tag" my-[2px];

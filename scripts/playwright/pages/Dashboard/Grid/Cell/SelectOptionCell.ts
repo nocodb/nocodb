@@ -1,20 +1,27 @@
 import { expect } from "@playwright/test";
 import { CellPageObject } from ".";
+import BasePage from "../../../Base";
 
-export class SelectOptionCellPageObject {
+export class SelectOptionCellPageObject extends BasePage {
   readonly cell: CellPageObject;
+
   constructor(cell: CellPageObject) {
+    super(cell.rootPage);
     this.cell = cell;
   }
 
+  get({index, columnHeader}: {index: number, columnHeader: string}) {
+    return this.cell.get({index, columnHeader});
+  }
+
   async select({index, columnHeader, option, multiSelect}: {index: number, columnHeader: string, option: string, multiSelect?: boolean}) {
-    await this.cell.get({index, columnHeader}).click();
+    await this.get({index, columnHeader}).click();
 
-    await this.cell.page.locator(`[pw-data="select-option-${columnHeader}-${index}"]`, {hasText: option}).click();
+    await this.rootPage.locator(`[pw-data="select-option-${columnHeader}-${index}"]`, {hasText: option}).click();
 
-    if(multiSelect) await this.cell.get({index, columnHeader}).click();
+    if(multiSelect) await this.get({index, columnHeader}).click();
 
-    await this.cell.page.locator(`[pw-data="select-option-${columnHeader}-${index}"]`, {hasText: option}).waitFor({state: 'hidden'});
+    await this.rootPage.locator(`[pw-data="select-option-${columnHeader}-${index}"]`, {hasText: option}).waitFor({state: 'hidden'});
   }
 
   async clear({index, columnHeader, multiSelect}: {index: number, columnHeader: string, multiSelect?: boolean}) {
@@ -32,10 +39,10 @@ export class SelectOptionCellPageObject {
       return
     }
 
+    await this.get({index, columnHeader}).click();
+    await this.rootPage.locator('.ant-select-single > .ant-select-clear').click();
     await this.cell.get({index, columnHeader}).click();
-    await this.cell.page.locator('.ant-select-single > .ant-select-clear').click();
-    await this.cell.get({index, columnHeader}).click();
-    await this.cell.page.locator(`.nc-dropdown-single-select-cell`).waitFor({state: 'hidden'});
+    await this.rootPage.locator(`.nc-dropdown-single-select-cell`).waitFor({state: 'hidden'});
   }
 
   async verify({index, columnHeader, option, multiSelect}: {index: number, columnHeader: string, option: string, multiSelect?: boolean}) {
@@ -51,16 +58,16 @@ export class SelectOptionCellPageObject {
   }
 
   async verifyOptions({index, columnHeader, options}: {index: number, columnHeader: string, options: string[]}) {
-    await this.cell.get({index, columnHeader}).click();
+    await this.get({index, columnHeader}).click();
 
     let counter = 0;
     for (const option of options) {
-      const optionInDom = await this.cell.page.locator(`div.ant-select-item-option`).nth(counter)
+      const optionInDom = await this.rootPage.locator(`div.ant-select-item-option`).nth(counter)
         .evaluate((node) =>  (node as HTMLElement).innerText)
       expect(optionInDom).toBe(option);
       counter++;
     }
-    await this.cell.click({index, columnHeader});
-    await this.cell.page.locator(`.nc-dropdown-single-select-cell`).nth(index).waitFor({state: 'hidden'});
+    await this.get({index, columnHeader}).click();
+    await this.rootPage.locator(`.nc-dropdown-single-select-cell`).nth(index).waitFor({state: 'hidden'});
   }
 }

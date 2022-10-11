@@ -460,7 +460,7 @@ watch(
 </script>
 
 <template>
-  <div class="relative flex flex-col h-full min-h-0 w-full">
+  <div class="relative flex flex-col h-full min-h-0 w-full" pw-data="grid-load-spinner">
     <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
       <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
         <a-spin size="large" />

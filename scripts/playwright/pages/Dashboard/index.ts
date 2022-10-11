@@ -1,38 +1,39 @@
 // playwright-dev-page.ts
 import { Locator, Page, expect } from "@playwright/test";
-import { BasePage } from "../Base";
+import BasePage from "../Base";
 import { GridPage } from "./Grid";
-import { ExpandedFormPage } from "./Grid/ExpandedForm";
+import { ExpandedFormPage } from "./ExpandedForm";
 import { TreeViewPage } from "./TreeView";
 
-export class DashboardPage {
+export class DashboardPage extends BasePage {
   readonly project: any;
-  readonly page: Page;
   readonly tablesSideBar: Locator;
   readonly tabBar: Locator;
-  readonly base: BasePage;
   readonly treeView: TreeViewPage;
   readonly grid: GridPage;
   readonly expandedForm: ExpandedFormPage;
 
-  constructor(page: Page, project: any) {
-    this.page = page;
-    this.base = new BasePage(page);
+  constructor(rootPage: Page, project: any) {
+    super(rootPage);  
     this.project = project;
-    this.tablesSideBar = page.locator(".nc-treeview-container");
-    this.tabBar = page.locator(".nc-tab-bar");
-    this.treeView = new TreeViewPage(page, project);
-    this.grid = new GridPage(page);
-    this.expandedForm = new ExpandedFormPage(page);
+    this.tablesSideBar = rootPage.locator(".nc-treeview-container");
+    this.tabBar = rootPage.locator(".nc-tab-bar");
+    this.treeView = new TreeViewPage(this, project);
+    this.grid = new GridPage(this);
+    this.expandedForm = new ExpandedFormPage(this);
+  }
+
+  get() {
+    return this.rootPage.locator('html');
   }
 
   async goto() {
-    await this.page.goto(`/#/nc/${this.project.id}/auth`);
+    await this.rootPage.goto(`/#/nc/${this.project.id}/auth`);
   }
 
   async gotoSettings() {
-    await this.page.locator('[pw-data="nc-project-menu"]').click();
-    await this.page
+    await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
+    await this.rootPage
       .locator('div.nc-project-menu-item:has-text(" Team & Settings")')
       .click();
   }

@@ -1,19 +1,20 @@
-// playwright-dev-page.ts
-import { Page, expect } from '@playwright/test';
+import { Page, expect, Locator } from "@playwright/test";
 
-export class BasePage {
-  readonly page: Page;
+export default abstract class BasePage {
+  readonly rootPage: Page;
 
-  constructor(page: Page) {
-    this.page = page;
+  abstract get(args: any): Locator;
+
+  constructor(rootPage: Page) {
+    this.rootPage = rootPage;
   }
 
-  async toastWait({message}: {message: string}) {
+  async toastWait ({message}: {message: string}){
     // const toast = await this.page.locator('.ant-message .ant-message-notice-content', {hasText: message}).last();
     // await toast.waitFor({state: 'visible'});
-
+  
     // todo: text of toastr shows old one in the test assertion
-    await this.page.locator('.ant-message .ant-message-notice-content', {hasText: message}).last().textContent()
+    await this.rootPage.locator('.ant-message .ant-message-notice-content', {hasText: message}).last().textContent()
       .then((text) => expect(text).toContain(message));
   }
 }

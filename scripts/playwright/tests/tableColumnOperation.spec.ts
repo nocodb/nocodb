@@ -11,7 +11,7 @@ test.describe('Table Column Operations', () => {
   test.beforeEach(async ({page}) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
-    grid = new GridPage(page);
+    grid = new GridPage(dashboard);
 
     await dashboard.treeView.createTable({title: "sheet1"});
   })

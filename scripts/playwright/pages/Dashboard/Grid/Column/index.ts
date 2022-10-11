@@ -1,26 +1,25 @@
 import { Page, expect } from "@playwright/test";
-import { BasePage } from "../../../Base";
+import { GridPage } from "..";
+import BasePage from "../../../Base";
 import {SelectOptionColumnPageObject} from "./SelectOptionColumn";
 
-export class ColumnPageObject {
-  readonly page: Page;
-  readonly basePage: BasePage;
+export class ColumnPageObject extends BasePage {
+  readonly grid: GridPage;
   readonly selectOption: SelectOptionColumnPageObject;
 
-  constructor(page: Page) {
-    this.page = page;
+  constructor(grid: GridPage) {
+    super(grid.rootPage);
+    this.grid = grid;
     this.selectOption = new SelectOptionColumnPageObject(this);
-    this.basePage = new BasePage(this.page);
   }
 
   get() {
-    return this.page.locator('[data-pw="add-or-edit-column"]');
+    return this.rootPage.locator('form[data-pw="add-or-edit-column"]');
   }
 
   async create({title, type = "SingleLineText"}: {title: string, type?: string}) {
-    await this.page.locator('.nc-column-add').click();
-
-    await this.page.locator('form[data-pw="add-or-edit-column"]').waitFor();
+    await this.grid.get().locator('.nc-column-add').click();
+    // await this.get().waitFor();
 
     await this.fillTitle({title});
     
@@ -42,7 +41,7 @@ export class ColumnPageObject {
   }
 
   async fillTitle({title}: {title: string}) {
-    await this.page.locator('.nc-column-name-input').fill(title);
+    await this.get().locator('.nc-column-name-input').fill(title);
   }
 
   async selectType({type}: {type: string}) {
@@ -52,40 +51,40 @@ export class ColumnPageObject {
     await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
 
     // Select column type
-    await this.page.locator(`text=${type}`).nth(1).click();
+    await this.rootPage.locator(`text=${type}`).nth(1).click();
   }
 
   async delete({title}: {title: string}) {
-    await this.page.locator(`th[data-title="${title}"] >> svg.ant-dropdown-trigger`).click();
-    await this.page.locator('li[role="menuitem"]:has-text("Delete")').waitFor()
-    await this.page.locator('li[role="menuitem"]:has-text("Delete")').click();
+    await this.grid.get().locator(`th[data-title="${title}"] >> svg.ant-dropdown-trigger`).click();
+    // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').click();
 
-    await this.page.locator('button:has-text("Delete")').click();
+    await this.rootPage.locator('button:has-text("Delete")').click();
 
     // wait till modal is closed
-    await this.page.locator('.nc-modal-column-delete').waitFor({state: 'hidden'});
+    await this.rootPage.locator('.nc-modal-column-delete').waitFor({state: 'hidden'});
   }
   
   async openEdit({title}: {title: string}) {
-    await this.page.locator(`text=#Title${title} >> svg >> nth=3`).click();
-    await this.page.locator('li[role="menuitem"]:has-text("Edit")').waitFor()
-    await this.page.locator('li[role="menuitem"]:has-text("Edit")').click();
+    // todo: Improve this selector
+    await this.grid.get().locator(`text=#Title${title} >> svg >> nth=3`).click();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
 
-    await this.page.locator('form[data-pw="add-or-edit-column"]').waitFor();
+    await this.get().waitFor({state: 'visible'});
   }
 
   async save({isUpdated}: {isUpdated?: boolean} = {}) {
-    await this.page.locator('button:has-text("Save")').click();
+    await this.get().locator('button:has-text("Save")').click();
 
-    await this.basePage.toastWait({message: isUpdated ? 'Column updated' : 'Column created'});
-    await this.page.locator('form[data-pw="add-or-edit-column"]').waitFor({state: 'hidden'});
-    await this.page.waitForTimeout(200);
+    await this.toastWait({message: isUpdated ? 'Column updated' : 'Column created'});
+    await this.get().waitFor({state: 'hidden'});
+    await this.rootPage.waitForTimeout(200);
   }
 
   async verify({title, isDeleted}: {title: string, isDeleted?: boolean}) {
     if(isDeleted) {
-      return expect(await this.page.locator(`th[data-title="${title}"]`).count()).toBe(0);
+      return expect(await this.rootPage.locator(`th[data-title="${title}"]`).count()).toBe(0);
     }
-    await expect(this.page.locator(`th[data-title="${title}"]`)).toHaveText(title);
+    await expect(this.rootPage.locator(`th[data-title="${title}"]`)).toHaveText(title);
   }
 }

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
+import { SelectOptionType } from 'nocodb-sdk'
 import type { SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
@@ -41,13 +42,13 @@ const isOpen = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const options = computed<SelectOptionsType[]>(() => {
+const options = computed<SelectOptionType[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
-      ? (column.value.colOptions as any).options.filter((el: any) => el.title !== '') || []
+      ? (column.value.colOptions as SelectOptionsType).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
-    for (const op of opts.filter((el: any) => el.order === null)) {
-      op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+    for (const op of opts.filter((el: SelectOptionType) => el.order === null)) {
+      op.title = op.title?.replace(/^'/, '').replace(/'$/, '')
     }
     return opts
   }
@@ -55,7 +56,7 @@ const options = computed<SelectOptionsType[]>(() => {
 })
 
 const vModel = computed({
-  get: () => selectedIds.value.map((el) => options.value.find((op) => op.id === el)?.title),
+  get: () => selectedIds.value.map((el) => options.value.find((op) => op.id === el)?.title) as string[],
   set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
 })
 
@@ -153,7 +154,7 @@ watch(isOpen, (n, _o) => {
         v-if="options.find((el) => el.title === val)"
         class="rounded-tag"
         :style="{ display: 'flex', alignItems: 'center' }"
-        :color="options.find((el) => el.title === val).color"
+        :color="(options.find((el) => el.title === val) as SelectOptionType).color"
         :closable="active && (vModel.length > 1 || !column?.rqd)"
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"

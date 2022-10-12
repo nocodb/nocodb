@@ -13,6 +13,7 @@ import {
   useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
+import { TabItem } from '~/lib'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
   const { sharedView } = useSharedView()

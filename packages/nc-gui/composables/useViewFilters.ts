@@ -22,9 +22,10 @@ export function useViewFilters(
   parentId?: string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
-  currentFilters?: Filter[],
+  _currentFilters?: Filter[],
   isNestedRoot?: boolean,
 ) {
+  let currentFilters = $ref(_currentFilters)
   const reloadHook = inject(ReloadViewDataHookInj)
 
   const { nestedFilters } = useSmartsheetStoreOrThrow()
@@ -44,7 +45,9 @@ export function useViewFilters(
   const tabMeta = inject(TabMetaInj, ref({ filterState: new Map() } as TabItem))
 
   const filters = computed<Filter[]>({
-    get: () => (nestedMode.value ? currentFilters! : _filters.value),
+    get: () => {
+      return nestedMode.value ? currentFilters! : _filters.value
+    },
     set: (value: Filter[]) => {
       if (nestedMode.value) {
         currentFilters = value

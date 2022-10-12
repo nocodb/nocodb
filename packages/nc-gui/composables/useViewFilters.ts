@@ -56,7 +56,7 @@ export function useViewFilters(
 
   // when a filter is deleted with auto apply disabled, the status is marked as 'delete'
   // nonDeletedFilters are those filters that are not deleted physically & virtually
-  const nonDeletedFilters = computed(() => filters.value.filter((f) => !f?.status || f.status !== 'delete'))
+  const nonDeletedFilters = computed(() => filters.value.filter((f) => f.status !== 'delete'))
 
   const placeholderFilter: Filter = {
     comparison_op: 'eq',

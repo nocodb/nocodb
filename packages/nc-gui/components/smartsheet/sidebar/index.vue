@@ -73,7 +73,7 @@ watch(
 
 /** Open delete modal */
 function openCreateDialog({
-  title,
+  title = '',
   type,
   copyViewId,
   groupingFieldColumnId,

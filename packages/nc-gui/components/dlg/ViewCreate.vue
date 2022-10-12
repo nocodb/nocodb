@@ -25,7 +25,7 @@ interface Props {
   title?: string
   selectedViewId?: string
   groupingFieldColumnId?: string
-  viewList: ViewType[]
+  views: ViewType[]
   meta: TableType
 }
 
@@ -42,7 +42,7 @@ interface Form {
   fk_grp_col_id: string | null
 }
 
-const { viewList = [], meta, selectedViewId, ...props } = defineProps<Props>()
+const { views = [], meta, selectedViewId, ...props } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
@@ -72,7 +72,7 @@ const viewNameRules = [
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        viewList.every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== v)
+        views.every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== v)
           ? resolve(true)
           : reject(new Error(`View name should be unique`))
       }),
@@ -105,7 +105,7 @@ watch(
 )
 
 function init() {
-  form.title = generateUniqueTitle(capitalize(ViewTypes[props.type].toLowerCase()), viewList, 'title')
+  form.title = generateUniqueTitle(capitalize(ViewTypes[props.type].toLowerCase()), views, 'title')
 
   if (selectedViewId) {
     form.copy_from_id = selectedViewId

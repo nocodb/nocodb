@@ -30,7 +30,7 @@ interface Emits {
   (event: 'deleted'): void
 }
 
-const { views } = defineProps<Props>()
+const { views = [] } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 

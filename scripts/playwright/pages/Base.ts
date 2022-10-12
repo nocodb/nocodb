@@ -17,4 +17,26 @@ export default abstract class BasePage {
     await this.rootPage.locator('.ant-message .ant-message-notice-content', {hasText: message}).last().textContent()
       .then((text) => expect(text).toContain(message));
   }
+
+  async assertInnerTextWithRetry({locator, text, retryCount = 5, retryInterval = 100}: {locator: Locator, text: string, retryCount?: number, retryInterval?: number}) {
+    for(let i = 0; i < retryCount; i++) {
+      const innerText = await locator.innerText();
+      if(innerText === text) {
+        break;
+      }
+      await this.rootPage.waitForTimeout(retryInterval);
+    }
+    return expect(await locator.innerText()).toBe(text);
+  }
+
+  async assertNotInnerTextWithRetry({locator, text, retryCount = 5, retryInterval = 100}: {locator: Locator, text: string, retryCount?: number, retryInterval?: number}) {
+    for(let i = 0; i < retryCount; i++) {
+      const innerText = await locator.innerText();
+      if(innerText !== text) {
+        break;
+      }
+      await this.rootPage.waitForTimeout(retryInterval);
+    }
+    return expect(await locator.innerText()).not.toBe(text);
+  }
 }

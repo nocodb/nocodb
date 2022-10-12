@@ -5,6 +5,7 @@ import { GridPage } from "./Grid";
 import { ExpandedFormPage } from "./ExpandedForm";
 import { TreeViewPage } from "./TreeView";
 import { SettingsPage } from "./Settings";
+import { ViewSidebarPage } from "./ViewSideBar";
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -14,9 +15,10 @@ export class DashboardPage extends BasePage {
   readonly grid: GridPage;
   readonly expandedForm: ExpandedFormPage;
   readonly settings: SettingsPage;
+  readonly viewSidebar: ViewSidebarPage;
 
   constructor(rootPage: Page, project: any) {
-    super(rootPage);  
+    super(rootPage);
     this.project = project;
     this.tablesSideBar = rootPage.locator(".nc-treeview-container");
     this.tabBar = rootPage.locator(".nc-tab-bar");
@@ -24,6 +26,7 @@ export class DashboardPage extends BasePage {
     this.grid = new GridPage(this);
     this.expandedForm = new ExpandedFormPage(this);
     this.settings = new SettingsPage(this);
+    this.viewSidebar = new ViewSidebarPage(this);
   }
 
   get() {
@@ -41,7 +44,7 @@ export class DashboardPage extends BasePage {
       .click();
   }
 
-  async verifyTableIsInTabBar({ title }: { title: string }) {
+  async verifyInTabBar({ title }: { title: string }) {
     await this.tabBar
       .textContent()
       .then((text) => expect(text).toContain(title));

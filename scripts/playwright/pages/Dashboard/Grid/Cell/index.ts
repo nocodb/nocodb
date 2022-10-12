@@ -1,4 +1,4 @@
-import { Page, Locator,expect } from "@playwright/test";
+import { Locator } from "@playwright/test";
 import { GridPage } from "..";
 import BasePage from "../../../Base";
 import { SelectOptionCellPageObject } from "./SelectOptionCell";
@@ -26,14 +26,6 @@ export class CellPageObject extends BasePage {
   }
 
   async verify({index, columnHeader, value}: {index: number, columnHeader: string, value: string}) {
-    // todo: Move this polling logic to a different place
-    for(let i = 0; i < 5; i++) {
-      const innerText = await this.get({index, columnHeader}).innerText();
-      if(innerText === value) {
-        break;
-      }
-      await this.rootPage.waitForTimeout(100);
-    }
-    return expect(await this.get({index, columnHeader}).innerText()).toBe(value);
+    return await this.assertInnerTextWithRetry({locator: this.get({index, columnHeader}), text: value});
   }
 }

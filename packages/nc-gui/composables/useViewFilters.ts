@@ -129,6 +129,7 @@ export function useViewFilters(
         if (!autoApply?.value) {
           filter.status = 'delete'
           // if auto-apply enabled invoke delete api and remove from array
+          filters.value.splice(i, 1)
         } else {
           try {
             await $api.dbTableFilter.delete(filter.id)
@@ -145,7 +146,7 @@ export function useViewFilters(
       } else {
         filters.value.splice(i, 1)
       }
-      $e('a:filter:delete')
+      $e('a:filter:delete', { length: filters.value.length })
     }
   }
 

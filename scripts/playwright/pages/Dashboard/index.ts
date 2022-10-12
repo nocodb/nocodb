@@ -5,7 +5,7 @@ import { GridPage } from "./Grid";
 import { ExpandedFormPage } from "./ExpandedForm";
 import { TreeViewPage } from "./TreeView";
 import { SettingsPage } from "./Settings";
-import { ViewSidebarPage } from "./ViewSideBar";
+import { ViewSidebarPage } from "./ViewSidebar";
 
 export class DashboardPage extends BasePage {
   readonly project: any;

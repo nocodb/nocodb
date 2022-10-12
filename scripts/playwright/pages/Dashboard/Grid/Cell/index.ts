@@ -1,4 +1,4 @@
-import { Locator } from "@playwright/test";
+import { expect, Locator } from "@playwright/test";
 import { GridPage } from "..";
 import BasePage from "../../../Base";
 import { SelectOptionCellPageObject } from "./SelectOptionCell";
@@ -25,7 +25,20 @@ export class CellPageObject extends BasePage {
     return this.get({index, columnHeader}).dblclick();
   }
 
-  async verify({index, columnHeader, value}: {index: number, columnHeader: string, value: string}) {
-    return await this.assertInnerTextWithRetry({locator: this.get({index, columnHeader}), text: value});
+  async verify({index, columnHeader, value}: {index: number, columnHeader: string, value: string | string[]}) {
+    const _verify = async (text) => {
+      await expect.poll(async () => {
+        const innerTexts = await this.get({index, columnHeader}).allInnerTexts()
+        return typeof(innerTexts) === "string" ? [innerTexts]: innerTexts;
+      }).toContain(text);
+    }
+
+    if(Array.isArray(value)) {
+      for(const text of value) {
+        await _verify(text);
+      }
+    } else {
+      await _verify(value);
+    }
   }
 }

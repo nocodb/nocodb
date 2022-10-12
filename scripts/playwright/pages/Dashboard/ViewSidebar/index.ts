@@ -1,4 +1,4 @@
-import { Locator } from "@playwright/test";
+import { expect, Locator } from "@playwright/test";
 import { DashboardPage } from "../";
 import BasePage from "../../Base";
 
@@ -47,10 +47,9 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async verifyView({ title, index }: { title: string, index: number }) {
-    return await this.assertInnerTextWithRetry({
-      locator: this.get().locator(`.nc-views-menu`).locator('.ant-menu-title-content').nth(index),
-      text: title,
-    })
+    return await expect.poll(async() => {
+      await this.get().locator(`.nc-views-menu`).locator('.ant-menu-title-content').nth(index).textContent();
+    }).toBe(title);
   }
 
   async verifyViewNotPresent({ title, index }: { title: string, index: number }) {
@@ -59,10 +58,9 @@ export class ViewSidebarPage extends BasePage {
       return true
     }
 
-    return await this.assertNotInnerTextWithRetry({
-      locator: this.get().locator(`.nc-views-menu`).locator('.ant-menu-title-content').nth(index),
-      text: title,
-    })
+    return await expect.poll(async() => {
+      await this.get().locator(`.nc-views-menu`).locator('.ant-menu-title-content').nth(index).textContent();
+    }).not.toBe(title);
   }
 
   async reorderViews({sourceView, destinationView}: {

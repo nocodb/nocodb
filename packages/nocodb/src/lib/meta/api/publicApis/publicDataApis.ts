@@ -24,7 +24,11 @@ export async function dataList(req: Request, res: Response) {
     const view = await View.getByUUID(req.params.sharedViewUuid);
 
     if (!view) NcError.notFound('Not found');
-    if (view.type !== ViewTypes.GRID && view.type !== ViewTypes.KANBAN) {
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN &&
+      view.type !== ViewTypes.GALLERY
+    ) {
       NcError.notFound('Not found');
     }
 
@@ -88,7 +92,11 @@ async function groupedDataList(req: Request, res: Response) {
 
     if (!view) NcError.notFound('Not found');
 
-    if (view.type !== ViewTypes.GRID && view.type !== ViewTypes.KANBAN) {
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN &&
+      view.type !== ViewTypes.GALLERY
+    ) {
       NcError.notFound('Not found');
     }
 

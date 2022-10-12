@@ -221,7 +221,7 @@ watch(views, (nextViews) => {
 
 <template>
   <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
-    <LazySmartsheetSidebarRenameableMenuItem
+    <SmartsheetSidebarRenameableMenuItem
       v-for="view of views"
       :id="view.id"
       :key="view.id"

@@ -28,7 +28,12 @@ interface DataApiResponse {
 
 /** Store for managing Link to another cells */
 const [useProvideLTARStore, useLTARStore] = useInjectionState(
-  (column: Ref<Required<ColumnType>>, row: Ref<Row>, isNewRow: ComputedRef<boolean> | Ref<boolean>, reloadData = () => {}) => {
+  (
+    column: Ref<Required<ColumnType>>,
+    row: Ref<Row>,
+    isNewRow: ComputedRef<boolean> | Ref<boolean>,
+    reloadData = (_showProgress?: boolean) => {},
+  ) => {
     // state
     const { metas, getMeta } = useMetas()
 
@@ -221,7 +226,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               return false
             }
 
-            reloadData?.()
+            reloadData?.(false)
 
             /** reload child list if not a new row */
             if (!isNewRow?.value) {
@@ -264,7 +269,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
 
-      reloadData?.()
+      reloadData?.(false)
     }
 
     const link = async (row: Record<string, any>) => {
@@ -296,7 +301,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
       }
 
-      reloadData?.()
+      reloadData?.(false)
     }
 
     // watchers

@@ -14,12 +14,15 @@ import {
   OpenNewRecordFormHookInj,
   PaginationDataInj,
   ReadonlyInj,
+  ReloadRowDataHookInj,
   ReloadViewDataHookInj,
+  computed,
   createEventHook,
   extractPkFromRow,
   inject,
   isColumnRequiredAndNull,
   message,
+  onBeforeUnmount,
   onClickOutside,
   onMounted,
   provide,
@@ -27,6 +30,7 @@ import {
   useEventListener,
   useGridViewColumnWidth,
   useI18n,
+  useMetas,
   useMultiSelect,
   useRoute,
   useSmartsheetStoreOrThrow,
@@ -97,6 +101,8 @@ const {
   selectedAllRecords,
   removeRowIfNew,
 } = useViewData(meta, view, xWhere)
+
+const { getMeta } = useMetas()
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 
@@ -336,7 +342,6 @@ watch(
     if (next && next.id !== old?.id) {
       // whenever tab changes or view changes save any unsaved data
       if (old?.id) {
-        const { getMeta } = useMetas()
         const oldMeta = await getMeta(old.fk_model_id!)
         if (oldMeta) {
           await saveOrUpdateRecords({

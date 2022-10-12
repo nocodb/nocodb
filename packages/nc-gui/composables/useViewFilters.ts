@@ -54,6 +54,10 @@ export function useViewFilters(
     },
   })
 
+  // when a filter is deleted with auto apply disabled, the status is marked as 'delete'
+  // nonDeletedFilters are those filters that are not deleted physically & virtually
+  const nonDeletedFilters = computed(() => filters.value.filter((f) => !f?.status || f.status !== 'delete'))
+
   const placeholderFilter: Filter = {
     comparison_op: 'eq',
     value: '',
@@ -129,13 +133,11 @@ export function useViewFilters(
         if (!autoApply?.value) {
           filter.status = 'delete'
           // if auto-apply enabled invoke delete api and remove from array
-          filters.value.splice(i, 1)
+          // no splice is required here
         } else {
           try {
             await $api.dbTableFilter.delete(filter.id)
-
             reloadData?.()
-
             filters.value.splice(i, 1)
           } catch (e: any) {
             console.log(e)
@@ -146,7 +148,7 @@ export function useViewFilters(
       } else {
         filters.value.splice(i, 1)
       }
-      $e('a:filter:delete', { length: filters.value.length })
+      $e('a:filter:delete', { length: nonDeletedFilters.value.length })
     }
   }
 
@@ -223,5 +225,5 @@ export function useViewFilters(
     },
   )
 
-  return { filters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup }
+  return { filters, nonDeletedFilters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup }
 }

@@ -43,7 +43,7 @@ const reloadDataHook = inject(ReloadViewDataHookInj)!
 const { $e } = useNuxtApp()
 
 const { nestedFilters } = useSmartsheetStoreOrThrow()
-const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync } = useViewFilters(
+const { filters, nonDeletedFilters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync } = useViewFilters(
   activeView,
   parentId,
   computed(() => autoSave),
@@ -92,7 +92,7 @@ watch(
 )
 
 watch(
-  () => filters.value.length,
+  () => nonDeletedFilters.value.length,
   (length) => {
     emit('update:filtersLength', length ?? 0)
   },

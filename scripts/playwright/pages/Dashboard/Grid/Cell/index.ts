@@ -25,6 +25,11 @@ export class CellPageObject extends BasePage {
     return this.get({index, columnHeader}).dblclick();
   }
 
+  async inCellExpand({index, columnHeader}: {index: number, columnHeader: string}) {
+    await this.get({index, columnHeader}).hover();
+    await this.get({index, columnHeader}).locator('.nc-action-icon >> nth=0').click();
+  }
+
   async verify({index, columnHeader, value}: {index: number, columnHeader: string, value: string | string[]}) {
     const _verify = async (text) => {
       await expect.poll(async () => {
@@ -39,6 +44,23 @@ export class CellPageObject extends BasePage {
       }
     } else {
       await _verify(value);
+    }
+  }
+
+  // verifyVirtualCell
+  //  : virtual relational cell- HM, BT, MM
+  //  : verify link count & cell value
+  //
+  async verifyVirtualCell({index, columnHeader, value}: {index: number, columnHeader: string, value: string[]}) {
+    const count = value.length;
+    const cell = this.get({index, columnHeader});
+    const chips = cell.locator(".chips > .chip");
+    const chipCount = await chips.count();
+
+    // verify chip count & contents
+    expect(chipCount).toEqual(count);
+    for (let i = 0; i < chipCount; ++i) {
+      expect(await chips.nth(i).textContent()).toBe(value[i]);
     }
   }
 }

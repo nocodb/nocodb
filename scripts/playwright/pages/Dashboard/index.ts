@@ -2,7 +2,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 import BasePage from "../Base";
 import { GridPage } from "./Grid";
-import { ExpandedFormPage } from "./ExpandedForm";
+import { ExpandedFormPage, ChildList, LinkRecord } from "./ExpandedForm";
 import { TreeViewPage } from "./TreeView";
 import { SettingsPage } from "./Settings";
 import { ViewSidebarPage } from "./ViewSidebar";
@@ -14,6 +14,8 @@ export class DashboardPage extends BasePage {
   readonly treeView: TreeViewPage;
   readonly grid: GridPage;
   readonly expandedForm: ExpandedFormPage;
+  readonly childList: ChildList;
+  readonly linkRecord: LinkRecord;
   readonly settings: SettingsPage;
   readonly viewSidebar: ViewSidebarPage;
 
@@ -25,6 +27,8 @@ export class DashboardPage extends BasePage {
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
     this.expandedForm = new ExpandedFormPage(this);
+    this.childList = new ChildList(this);
+    this.linkRecord = new LinkRecord(this);
     this.settings = new SettingsPage(this);
     this.viewSidebar = new ViewSidebarPage(this);
   }

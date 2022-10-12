@@ -20,6 +20,8 @@ export class TreeViewPage extends BasePage {
     await this.get().locator(`.nc-project-tree-tbl-${title}`).focus();
   }
 
+  // assumption: first view rendered is always GRID
+  //
   async openTable({ title }: { title: string }) {
     await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
 
@@ -30,6 +32,7 @@ export class TreeViewPage extends BasePage {
       .get()
       .locator('[pw-data="grid-load-spinner"]')
       .waitFor({ state: "hidden" });
+    await this.dashboard.get().locator('.nc-grid-add-new-cell').waitFor();
   }
 
   async createTable({ title }: { title: string }) {
@@ -46,6 +49,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get()
       .locator('[pw-data="grid-load-spinner"]')
       .waitFor({ state: "hidden" });
+    await this.dashboard.get().locator('.nc-grid-add-new-cell').waitFor();
   }
 
   async verifyTable({ title, index }: { title: string; index?: number }) {

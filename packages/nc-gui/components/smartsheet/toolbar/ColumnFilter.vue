@@ -98,8 +98,8 @@ watch(
   },
 )
 
-const applyChanges = async (hookId?: string) => {
-  await sync(hookId)
+const applyChanges = async (hookId?: string, _nested = false) => {
+  await sync(hookId, _nested)
 
   if (!localNestedFilters.value?.length) return
 

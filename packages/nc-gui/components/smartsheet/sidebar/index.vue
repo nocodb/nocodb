@@ -133,11 +133,14 @@ function openCreateDialog({
           <a-spin />
         </div>
       </GeneralOverlay>
+
       <LazySmartsheetSidebarMenuTop :views="views" @open-modal="openCreateDialog" @deleted="loadViews" />
 
-      <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="!my-3 w-full border-b-1" />
+      <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
+        <div class="!my-3 w-full border-b-1" />
 
-      <LazySmartsheetSidebarMenuBottom @open-modal="openCreateDialog" />
+        <LazySmartsheetSidebarMenuBottom @open-modal="openCreateDialog" />
+      </template>
     </div>
   </a-layout-sider>
 </template>

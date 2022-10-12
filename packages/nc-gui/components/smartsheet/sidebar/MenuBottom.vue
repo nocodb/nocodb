@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { useNuxtApp, useSmartsheetStoreOrThrow, useUIPermission, viewIcons } from '#imports'
+import { useNuxtApp, useSmartsheetStoreOrThrow, viewIcons } from '#imports'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void
@@ -9,8 +9,6 @@ interface Emits {
 const emits = defineEmits<Emits>()
 
 const { $e } = useNuxtApp()
-
-const { isUIAllowed } = useUIPermission()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -22,7 +20,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
 <template>
   <a-menu :selected-keys="[]" class="flex flex-col">
-    <div v-if="isUIAllowed('virtualViewsCreateOrEdit')">
+    <div>
       <h3 class="px-3 py-1 text-xs font-semibold flex items-center gap-4 text-gray-500">
         {{ $t('activity.createView') }}
       </h3>

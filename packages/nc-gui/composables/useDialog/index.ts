@@ -3,18 +3,7 @@ import { isVNode, render } from '@vue/runtime-dom'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { MaybeRef } from '@vueuse/core'
 import { isClient } from '@vueuse/core'
-import {
-  createEventHook,
-  getCurrentInstance,
-  getCurrentScope,
-  h,
-  ref,
-  toReactive,
-  tryOnScopeDispose,
-  unref,
-  useNuxtApp,
-  watch,
-} from '#imports'
+import { createEventHook, h, ref, toReactive, tryOnScopeDispose, unref, useNuxtApp, watch } from '#imports'
 
 /**
  * Programmatically create a component and attach it to the body (or a specific mount target), like a dialog or modal.

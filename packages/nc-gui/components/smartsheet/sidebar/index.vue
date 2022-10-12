@@ -128,7 +128,7 @@ function openCreateDialog({
     />
 
     <div class="flex-1 flex flex-col min-h-0">
-      <GeneralOverlay :model-value="isLoading" inline class="bg-gray-300/50">
+      <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">
         <div class="w-full h-full flex items-center justify-center">
           <a-spin />
         </div>

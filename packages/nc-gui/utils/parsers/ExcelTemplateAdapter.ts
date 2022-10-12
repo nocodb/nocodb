@@ -72,7 +72,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   parse() {
     const tableNamePrefixRef: Record<string, any> = {}
 
-    const maxSelectOptionsAllowed = 100
+    // TODO: find the upper bound / make it configurable
+    const maxSelectOptionsAllowed = 64
 
     for (let i = 0; i < this.wb.SheetNames.length; i++) {
       const columnNamePrefixRef: Record<string, any> = { id: 0 }

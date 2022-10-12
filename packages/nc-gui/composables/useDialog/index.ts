@@ -90,7 +90,7 @@ export function useDialog(
 
       setTimeout(() => {
         try {
-          ;(mountTarget as HTMLElement)?.removeChild(domNode)
+          ;(_mountTarget as HTMLElement)?.removeChild(domNode)
         } catch (e) {}
       }, 100)
 

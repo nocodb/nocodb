@@ -47,7 +47,10 @@ function tableTest() {
     sakilaProject = await createSakilaProject(context);
     project = await createProject(context);
 
-    customerTable = await getTable({project: sakilaProject, name: 'customer'})
+    customerTable = await getTable({
+      project: sakilaProject,
+      name: 'customer',
+    });
     customerColumns = await customerTable.getColumns();
   });
 
@@ -60,7 +63,7 @@ function tableTest() {
     const pageInfo = response.body.pageInfo;
 
     if (response.body.list.length !== pageInfo.pageSize) {
-      console.log(response.body.pageInfo)
+      console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
@@ -82,7 +85,7 @@ function tableTest() {
     const pageInfo = response.body.pageInfo;
 
     if (response.body.list.length !== pageInfo.pageSize) {
-      console.log(response.body.pageInfo)
+      console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
@@ -109,7 +112,7 @@ function tableTest() {
     const pageInfo = response.body.pageInfo;
 
     if (response.body.list.length !== pageInfo.pageSize) {
-      console.log(response.body.pageInfo)
+      console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
@@ -163,7 +166,7 @@ function tableTest() {
     const pageInfo = response.body.pageInfo;
 
     if (response.body.list.length !== pageInfo.pageSize) {
-      console.log(response.body.pageInfo)
+      console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
@@ -235,7 +238,10 @@ function tableTest() {
   });
 
   it('Get sorted table data list with a lookup column', async function () {
-    const rentalTable = await getTable({project: sakilaProject, name: 'rental'})
+    const rentalTable = await getTable({
+      project: sakilaProject,
+      name: 'rental',
+    });
 
     const lookupColumn = await createLookupColumn(context, {
       project: sakilaProject,
@@ -272,7 +278,10 @@ function tableTest() {
   });
 
   it('Get filtered table data list with a lookup column', async function () {
-    const rentalTable = await getTable({project: sakilaProject, name: 'rental'});
+    const rentalTable = await getTable({
+      project: sakilaProject,
+      name: 'rental',
+    });
 
     const lookupColumn = await createLookupColumn(context, {
       project: sakilaProject,
@@ -298,8 +307,8 @@ function tableTest() {
       })
       .expect(200);
 
-    if (response.body.pageInfo.totalRows !== 24){
-      console.log(response.body.pageInfo)
+    if (response.body.pageInfo.totalRows !== 24) {
+      console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
@@ -333,14 +342,17 @@ function tableTest() {
       })
       .expect(200);
 
-    if (response.body.pageInfo.totalRows !== 158){
-      console.log(response.body.pageInfo)
+    if (response.body.pageInfo.totalRows !== 158) {
+      console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
   });
 
   it('Get nested sorted filtered table data list with a lookup column', async function () {
-    const rentalTable = await getTable({project: sakilaProject, name: 'rental'});
+    const rentalTable = await getTable({
+      project: sakilaProject,
+      name: 'rental',
+    });
 
     const lookupColumn = await createLookupColumn(context, {
       project: sakilaProject,
@@ -383,8 +395,7 @@ function tableTest() {
       })
       .expect(200);
 
-    expect(response.body.pageInfo.totalRows).equal(9558)
-
+    expect(response.body.pageInfo.totalRows).equal(9558);
 
     const ascResponse = await request(context.app)
       .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
@@ -400,8 +411,8 @@ function tableTest() {
       })
       .expect(200);
 
-    expect(ascResponse.body.pageInfo.totalRows).equal(9558)
-    expect(ascResponse.body.list[0][lookupColumn.title]).equal('AARON')
+    expect(ascResponse.body.pageInfo.totalRows).equal(9558);
+    expect(ascResponse.body.list[0][lookupColumn.title]).equal('AARON');
 
     const descResponse = await request(context.app)
       .get(`/api/v1/db/data/noco/${sakilaProject.id}/${rentalTable.id}`)
@@ -417,14 +428,17 @@ function tableTest() {
       })
       .expect(200);
 
-    expect(descResponse.body.pageInfo.totalRows).equal(9558)
-    expect(descResponse.body.list[0][lookupColumn.title]).equal('ZACHARY')
+    expect(descResponse.body.pageInfo.totalRows).equal(9558);
+    expect(descResponse.body.list[0][lookupColumn.title]).equal('ZACHARY');
   });
 
   it('Get nested sorted filtered table data list with a lookup column with date comparison', async function () {
     // Since sqlite doesn't support date comparison
-    if(isSqlite(context)) return;
-    const rentalTable = await getTable({project: sakilaProject, name: 'rental'});
+    if (isSqlite(context)) return;
+    const rentalTable = await getTable({
+      project: sakilaProject,
+      name: 'rental',
+    });
 
     const lookupColumn = await createLookupColumn(context, {
       project: sakilaProject,
@@ -485,8 +499,8 @@ function tableTest() {
       })
       .expect(200);
 
-    if (response.body.pageInfo.totalRows !== 9133){
-      console.log(response.body.pageInfo)
+    if (response.body.pageInfo.totalRows !== 9133) {
+      console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
@@ -507,8 +521,8 @@ function tableTest() {
       })
       .expect(200);
 
-    if (ascResponse.body.pageInfo.totalRows !== 9133){
-      console.log(ascResponse.body.pageInfo)
+    if (ascResponse.body.pageInfo.totalRows !== 9133) {
+      console.log(ascResponse.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
@@ -531,8 +545,8 @@ function tableTest() {
       })
       .expect(200);
 
-    if (descResponse.body.pageInfo.totalRows !== 9133){
-      console.log(descResponse.body.pageInfo)
+    if (descResponse.body.pageInfo.totalRows !== 9133) {
+      console.log(descResponse.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
@@ -598,7 +612,7 @@ function tableTest() {
                 fk_column_id: activeColumn?.id,
                 status: 'create',
                 comparison_op: 'eq',
-                value: 1
+                value: 1,
               },
             ],
           },
@@ -614,13 +628,13 @@ function tableTest() {
       })
       .expect(200);
 
-    if (response.body.pageInfo.totalRows !== 594){
-      console.log(response.body.pageInfo)
+    if (response.body.pageInfo.totalRows !== 594) {
+      console.log(response.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
-    if (response.body.list[0][rollupColumn.title] !== 32){
-      console.log(response.body.list[0])
+    if (response.body.list[0][rollupColumn.title] !== 32) {
+      console.log(response.body.list[0]);
       throw new Error('Wrong filter response 0');
     }
 
@@ -642,8 +656,8 @@ function tableTest() {
       })
       .expect(200);
 
-    if (ascResponse.body.pageInfo.totalRows !== 594){
-      console.log(ascResponse.body.pageInfo)
+    if (ascResponse.body.pageInfo.totalRows !== 594) {
+      console.log(ascResponse.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
@@ -678,12 +692,12 @@ function tableTest() {
       })
       .expect(200);
 
-    if (descResponse.body.pageInfo.totalRows !== 594){
-      console.log(descResponse.body.pageInfo)
+    if (descResponse.body.pageInfo.totalRows !== 594) {
+      console.log(descResponse.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
-    if (descResponse.body.list[0][rollupColumn.title] !== 46){
+    if (descResponse.body.list[0][rollupColumn.title] !== 46) {
       console.log(descResponse.body.list[0]);
       throw new Error('Wrong filter descResponse 0');
     }
@@ -755,7 +769,7 @@ function tableTest() {
                 fk_column_id: activeColumn?.id,
                 status: 'create',
                 comparison_op: 'eq',
-                value: 1
+                value: 1,
               },
             ],
           },
@@ -778,8 +792,8 @@ function tableTest() {
       })
       .expect(200);
 
-    if (ascResponse.body.pageInfo.totalRows !== 594){
-      console.log(ascResponse.body.pageInfo)
+    if (ascResponse.body.pageInfo.totalRows !== 594) {
+      console.log(ascResponse.body.pageInfo);
       throw new Error('Wrong number of rows');
     }
 
@@ -1063,7 +1077,7 @@ function tableTest() {
                 fk_column_id: activeColumn?.id,
                 status: 'create',
                 comparison_op: 'eq',
-                value: 1
+                value: 1,
               },
             ],
           },
@@ -1255,12 +1269,11 @@ function tableTest() {
       })
       .expect(200);
 
-    const updatedRow = await getRow(
-      context,
-      {project,
+    const updatedRow = await getRow(context, {
+      project,
       table,
-      id: response.body['Id']}
-    );
+      id: response.body['Id'],
+    });
     if (updatedRow[emailColumn.title] !== 'valid@example.com') {
       throw new Error('Wrong update');
     }
@@ -1275,7 +1288,7 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
 
-    const deleteRow = await getRow(context, {project, table, id: row['Id']});
+    const deleteRow = await getRow(context, { project, table, id: row['Id'] });
     if (deleteRow && Object.keys(deleteRow).length > 0) {
       console.log(deleteRow);
       throw new Error('Wrong delete');
@@ -1311,7 +1324,7 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
 
-    const deleteRow = await getRow(context, {project, table, id: row['Id']});
+    const deleteRow = await getRow(context, { project, table, id: row['Id'] });
     if (!deleteRow) {
       throw new Error('Should not delete');
     }
@@ -1383,7 +1396,7 @@ function tableTest() {
       }
 
       // Max 10 rows will be inserted in sqlite
-      if ((isSqlite(context) && rows.length !== rowAttributes.length)) {
+      if (isSqlite(context) && rows.length !== rowAttributes.length) {
         throw new Error('Wrong number of rows inserted');
       }
     } else {
@@ -1414,15 +1427,15 @@ function tableTest() {
         !isSqlite(context) &&
         response.body.length !== rowAttributes.length &&
         rows.length !== rowAttributes.length
-        ) {
-          throw new Error('Wrong number of rows inserted');
-        }
-        
-        // Max 10 rows will be inserted in sqlite
-        if (isSqlite(context) && rows.length !== rowAttributes.length) {
-          console.log(response.body)
-          throw new Error('Wrong number of rows inserted');
-        }
+      ) {
+        throw new Error('Wrong number of rows inserted');
+      }
+
+      // Max 10 rows will be inserted in sqlite
+      if (isSqlite(context) && rows.length !== rowAttributes.length) {
+        console.log(response.body);
+        throw new Error('Wrong number of rows inserted');
+      }
     } else {
       if (rows.length !== rowAttributes.length) {
         throw new Error('Wrong number of rows inserted');
@@ -1432,8 +1445,8 @@ function tableTest() {
 
   it('Bulk update', async function () {
     // todo: Since sqlite doesn't support multiple sql connections, we can't test bulk update in sqlite
-    if(isSqlite(context)) {
-      return
+    if (isSqlite(context)) {
+      return;
     }
     const table = await createTable(context, project);
     const columns = await table.getColumns();
@@ -1441,11 +1454,11 @@ function tableTest() {
     const rowAttributes = Array(400)
       .fill(0)
       .map((index) => generateDefaultRowAttributes({ columns, index }));
-    
+
     await createBulkRows(context, {
       project,
       table,
-      values: rowAttributes
+      values: rowAttributes,
     });
 
     const rows = await listRow({ project, table });
@@ -1463,18 +1476,17 @@ function tableTest() {
   });
 
   it('Bulk delete', async function () {
-
     const table = await createTable(context, project);
     const columns = await table.getColumns();
 
     const rowAttributes = Array(400)
       .fill(0)
       .map((index) => generateDefaultRowAttributes({ columns, index }));
-    
+
     await createBulkRows(context, {
       project,
       table,
-      values: rowAttributes
+      values: rowAttributes,
     });
 
     const rows = await listRow({ project, table });
@@ -1534,32 +1546,42 @@ function tableTest() {
   // todo: Test contents of file
   it('Export csv', async () => {
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/csv`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/csv`
+      )
       .set('xc-auth', context.token)
       .expect(200);
 
-    if(!response['header']['content-disposition'].includes("Customer-export.csv")){
+    if (
+      !response['header']['content-disposition'].includes('Customer-export.csv')
+    ) {
       throw new Error('Wrong file name');
     }
-    if(!response.text){
+    if (!response.text) {
       throw new Error('Wrong export');
     }
-  })
+  });
 
   // todo: Test contents of file
   it('Export excel', async () => {
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/excel`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/excel`
+      )
       .set('xc-auth', context.token)
       .expect(200);
 
-    if(!response['header']['content-disposition'].includes("Customer-export.xlsx")){
+    if (
+      !response['header']['content-disposition'].includes(
+        'Customer-export.xlsx'
+      )
+    ) {
       throw new Error('Wrong file name');
     }
-    if(!response.text){
+    if (!response.text) {
       throw new Error('Wrong export');
     }
-  })
+  });
 
   // todo: Add export test for views
 
@@ -1569,16 +1591,18 @@ function tableTest() {
       (column) => column.title === 'Rental List'
     )!;
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`
+      )
       .set('xc-auth', context.token)
       .expect(200);
 
-    const pageInfo = response.body['pageInfo']
-    if(pageInfo['totalRows'] !== 32 ||  pageInfo['pageSize'] !== 25) {
-      console.log(pageInfo)
+    const pageInfo = response.body['pageInfo'];
+    if (pageInfo['totalRows'] !== 32 || pageInfo['pageSize'] !== 25) {
+      console.log(pageInfo);
       throw new Error('Wrong total rows');
     }
-  })
+  });
 
   it('Nested row list hm with limit and offset', async () => {
     const rowId = 1;
@@ -1586,19 +1610,25 @@ function tableTest() {
       (column) => column.title === 'Rental List'
     )!;
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`
+      )
       .set('xc-auth', context.token)
       .query({
         limit: 30,
-        offset: 10
+        offset: 10,
       })
       .expect(200);
 
-    const pageInfo = response.body['pageInfo']
-    if(pageInfo['totalRows'] !== 32 ||  pageInfo['pageSize'] !== 30 || response.body.list.length !== 22) {
+    const pageInfo = response.body['pageInfo'];
+    if (
+      pageInfo['totalRows'] !== 32 ||
+      pageInfo['pageSize'] !== 30 ||
+      response.body.list.length !== 22
+    ) {
       throw new Error('Wrong total rows');
     }
-  })
+  });
 
   it('Row list hm with invalid table id', async () => {
     const rowId = 1;
@@ -1606,16 +1636,18 @@ function tableTest() {
       (column) => column.title === 'Rental List'
     )!;
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/wrong-id/${rowId}/hm/${rentalListColumn.id}`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/wrong-id/${rowId}/hm/${rentalListColumn.id}`
+      )
       .set('xc-auth', context.token)
       .expect(404);
 
-    if(response.body['msg'] !== 'Table not found') {
+    if (response.body['msg'] !== 'Table not found') {
       throw new Error('Wrong error message');
     }
-  })
+  });
 
-  // todo: Api does not support fields and sort 
+  // todo: Api does not support fields and sort
   // it.only('Nested row list hm with selected fields', async () => {
   //   const rowId = 1;
 
@@ -1647,62 +1679,81 @@ function tableTest() {
 
   it('Nested row list mm', async () => {
     const rowId = 1;
-    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
-    const filmTable = await getTable({project: sakilaProject, name: 'film'});
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
+    const filmTable = await getTable({ project: sakilaProject, name: 'film' });
     const filmListColumn = (await actorTable.getColumns()).find(
       (column) => column.title === 'Film List'
     )!;
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+      )
       .set('xc-auth', context.token)
       .expect(200);
 
-    const pageInfo = response.body['pageInfo']
-    if(pageInfo['totalRows'] !== 19 ||  pageInfo['pageSize'] !== 25) {
-      console.log(pageInfo)
+    const pageInfo = response.body['pageInfo'];
+    if (pageInfo['totalRows'] !== 19 || pageInfo['pageSize'] !== 25) {
+      console.log(pageInfo);
       throw new Error('Wrong total rows');
     }
-  })
+  });
 
   it('Nested row list mm with limit and offset', async () => {
     const rowId = 1;
-    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
-    const filmTable = await getTable({project: sakilaProject, name: 'film'});
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
+    const filmTable = await getTable({ project: sakilaProject, name: 'film' });
     const filmListColumn = (await actorTable.getColumns()).find(
       (column) => column.title === 'Film List'
     )!;
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+      )
       .set('xc-auth', context.token)
       .query({
         limit: 30,
-        offset: 10
+        offset: 10,
       })
       .expect(200);
 
-    const pageInfo = response.body['pageInfo']
-    if(pageInfo['totalRows'] !== 19 ||  pageInfo['pageSize'] !== 30 || response.body.list.length !== 9) {
-      console.log(pageInfo, response.body.list.length)
+    const pageInfo = response.body['pageInfo'];
+    if (
+      pageInfo['totalRows'] !== 19 ||
+      pageInfo['pageSize'] !== 30 ||
+      response.body.list.length !== 9
+    ) {
+      console.log(pageInfo, response.body.list.length);
       throw new Error('Wrong total rows');
     }
-  })
+  });
 
   it('Row list mm with invalid table id', async () => {
-    const rowId = 1
-    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const rowId = 1;
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
     const filmListColumn = (await actorTable.getColumns()).find(
       (column) => column.title === 'Film List'
     )!;
     const response = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}`
+      )
       .set('xc-auth', context.token)
       .expect(404);
 
-    if(response.body['msg'] !== 'Table not found') {
-      console.log(response.body)
+    if (response.body['msg'] !== 'Table not found') {
+      console.log(response.body);
       throw new Error('Wrong error message');
     }
-  })
+  });
 
   it('Create hm relation with invalid table id', async () => {
     const rowId = 1;
@@ -1711,14 +1762,16 @@ function tableTest() {
     )!;
     const refId = 1;
     const response = await request(context.app)
-      .post(`/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+      .post(
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/${refId}`
+      )
       .set('xc-auth', context.token)
       .expect(404);
 
-    if(response.body['msg'] !== 'Table not found') {
+    if (response.body['msg'] !== 'Table not found') {
       throw new Error('Wrong error message');
     }
-  })
+  });
 
   it('Create hm relation with non ltar column', async () => {
     const rowId = 1;
@@ -1727,30 +1780,36 @@ function tableTest() {
     )!;
     const refId = 1;
     const response = await request(context.app)
-      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}/${refId}`)
+      .post(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}/${refId}`
+      )
       .set('xc-auth', context.token)
       .expect(404);
 
-    if(response.body['msg'] !== 'Column not found' ) {
-      console.log(response.body)
+    if (response.body['msg'] !== 'Column not found') {
+      console.log(response.body);
       throw new Error('Wrong error message');
     }
-  })
+  });
 
   it('Create list hm wrong column id', async () => {
     const rowId = 1;
     const refId = 1;
 
     const response = await request(context.app)
-      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/invalid-column/${refId}`)
+      .post(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/invalid-column/${refId}`
+      )
       .set('xc-auth', context.token)
       .expect(404);
 
-    if(response.body.msg !== "Column with id/name 'invalid-column' is not found") {
-      console.log(response.body)
+    if (
+      response.body.msg !== "Column with id/name 'invalid-column' is not found"
+    ) {
+      console.log(response.body);
       throw new Error('Should error out');
     }
-  })
+  });
 
   // todo: mm create api does not error out in the case of existing ref row id
   // it.only('Create list mm existing ref row id', async () => {
@@ -1764,7 +1823,6 @@ function tableTest() {
   //     .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
   //     .set('xc-auth', context.token)
   //     .expect(400)
-      
 
   //     await request(context.app)
   //     .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
@@ -1780,106 +1838,143 @@ function tableTest() {
     const refId = 1;
 
     const lisResponseBeforeUpdate = await request(context.app)
-    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
-    .set('xc-auth', context.token)
-    .expect(200);
-
-    await request(context.app)
-      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`
+      )
       .set('xc-auth', context.token)
       .expect(200);
-      global.touchedSakilaDb = true;
+
+    await request(context.app)
+      .post(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+    global.touchedSakilaDb = true;
 
     const lisResponseAfterUpdate = await request(context.app)
-    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`)
-    .set('xc-auth', context.token)
-    .expect(200);
-    
-    if(lisResponseAfterUpdate.body.pageInfo.totalRows !== lisResponseBeforeUpdate.body.pageInfo.totalRows + 1) {
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if (
+      lisResponseAfterUpdate.body.pageInfo.totalRows !==
+      lisResponseBeforeUpdate.body.pageInfo.totalRows + 1
+    ) {
       throw new Error('Wrong list length');
     }
-  })
+  });
 
   it('Create list mm wrong column id', async () => {
     const rowId = 1;
-    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
     const refId = 1;
 
     const response = await request(context.app)
-      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/invalid-column/${refId}`)
+      .post(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/invalid-column/${refId}`
+      )
       .set('xc-auth', context.token)
       .expect(404);
 
-    if(response.body.msg !== "Column with id/name 'invalid-column' is not found") {
-      console.log(response.body)
+    if (
+      response.body.msg !== "Column with id/name 'invalid-column' is not found"
+    ) {
+      console.log(response.body);
       throw new Error('Should error out');
     }
-  })
-
+  });
 
   it('Create mm relation with non ltar column', async () => {
     const rowId = 1;
-    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
     const firstNameColumn = (await actorTable.getColumns()).find(
       (column) => column.title === 'FirstName'
     )!;
     const refId = 1;
     const response = await request(context.app)
-      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${firstNameColumn.id}/${refId}`)
+      .post(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${firstNameColumn.id}/${refId}`
+      )
       .set('xc-auth', context.token)
       .expect(404);
 
-    if(response.body['msg'] !== 'Column not found' ) {
-      console.log(response.body)
+    if (response.body['msg'] !== 'Column not found') {
+      console.log(response.body);
       throw new Error('Wrong error message');
     }
-  })
+  });
 
   it('Create list mm existing ref row id', async () => {
     const rowId = 1;
-    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
     const filmListColumn = (await actorTable.getColumns()).find(
       (column) => column.title === 'Film List'
     )!;
     const refId = 1;
 
     await request(context.app)
-      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`)
+      .post(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`
+      )
       .set('xc-auth', context.token)
       .expect(400);
-  })
+  });
 
   it('Create list mm', async () => {
     // todo: Foreign key has non nullable clause in sqlite sakila
-    if(isSqlite(context)) return
+    if (isSqlite(context)) return;
 
     const rowId = 1;
-    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
     const filmListColumn = (await actorTable.getColumns()).find(
       (column) => column.title === 'Film List'
     )!;
     const refId = 2;
 
     const lisResponseBeforeUpdate = await request(context.app)
-    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
-    .set('xc-auth', context.token)
-    .expect(200);
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
 
     await request(context.app)
-      .post(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`)
+      .post(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`
+      )
       .set('xc-auth', context.token)
       .expect(200);
     global.touchedSakilaDb = true;
 
     const lisResponseAfterUpdate = await request(context.app)
-    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
-    .set('xc-auth', context.token)
-    .expect(200);
-    
-    if(lisResponseAfterUpdate.body.pageInfo.totalRows !== lisResponseBeforeUpdate.body.pageInfo.totalRows + 1) {
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if (
+      lisResponseAfterUpdate.body.pageInfo.totalRows !==
+      lisResponseBeforeUpdate.body.pageInfo.totalRows + 1
+    ) {
       throw new Error('Wrong list length');
     }
-  })
+  });
 
   it('List hm with non ltar column', async () => {
     const rowId = 1;
@@ -1888,10 +1983,12 @@ function tableTest() {
     )!;
 
     await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${firstNameColumn.id}`
+      )
       .set('xc-auth', context.token)
-      .expect(400)
-  })
+      .expect(400);
+  });
 
   it('List mm with non ltar column', async () => {
     const rowId = 1;
@@ -1900,43 +1997,57 @@ function tableTest() {
     )!;
 
     await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/mm/${firstNameColumn.id}`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/mm/${firstNameColumn.id}`
+      )
       .set('xc-auth', context.token)
-      .expect(400)
-  })
+      .expect(400);
+  });
 
   it('Delete mm existing ref row id', async () => {
     const rowId = 1;
-    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
     const filmListColumn = (await actorTable.getColumns()).find(
       (column) => column.title === 'Film List'
     )!;
     const refId = 1;
 
     const lisResponseBeforeDelete = await request(context.app)
-    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
-    .set('xc-auth', context.token)
-    .expect(200);
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
 
     await request(context.app)
-      .delete(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`)
+      .delete(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/${refId}`
+      )
       .set('xc-auth', context.token)
       .expect(200);
     global.touchedSakilaDb = true;
-    
+
     const lisResponseAfterDelete = await request(context.app)
-      .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}`
+      )
       .set('xc-auth', context.token)
       .expect(200);
 
-      if(lisResponseAfterDelete.body.pageInfo.totalRows !== lisResponseBeforeDelete.body.pageInfo.totalRows - 1) {
-        throw new Error('Item not deleted');
-      }
-  })
+    if (
+      lisResponseAfterDelete.body.pageInfo.totalRows !==
+      lisResponseBeforeDelete.body.pageInfo.totalRows - 1
+    ) {
+      throw new Error('Item not deleted');
+    }
+  });
 
   it('Delete list hm with existing ref row id with non nullable clause', async () => {
     // todo: Foreign key has non nullable clause in sqlite sakila
-    if(isSqlite(context)) return
+    if (isSqlite(context)) return;
 
     const rowId = 1;
     const rentalListColumn = (await customerTable.getColumns()).find(
@@ -1945,17 +2056,23 @@ function tableTest() {
     const refId = 76;
 
     const response = await request(context.app)
-      .delete(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`)
+      .delete(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/${refId}`
+      )
       .set('xc-auth', context.token)
       .expect(400);
-    
-    if(!response.body.msg.includes("Column 'customer_id' cannot be null") &&
-    !response.body.msg.includes("Cannot add or update a child row")
-    ){
-      console.log('Delete list hm with existing ref row id with non nullable clause', response.body)
-      throw new Error('Wrong error message')
+
+    if (
+      !response.body.msg.includes("Column 'customer_id' cannot be null") &&
+      !response.body.msg.includes('Cannot add or update a child row')
+    ) {
+      console.log(
+        'Delete list hm with existing ref row id with non nullable clause',
+        response.body
+      );
+      throw new Error('Wrong error message');
     }
-  })
+  });
 
   it('Delete list hm with existing ref row id', async () => {
     const table = await createTable(context, project);
@@ -1970,24 +2087,32 @@ function tableTest() {
       type: 'hm',
     });
 
-    const row = await createChildRow(context, { project, table,childTable: relatedTable, column:ltarColumn, type: 'hm'  });
-    const childRow = row['Ltar'][0]
+    const row = await createChildRow(context, {
+      project,
+      table,
+      childTable: relatedTable,
+      column: ltarColumn,
+      type: 'hm',
+    });
+    const childRow = row['Ltar'][0];
 
     const response = await request(context.app)
-      .delete(`/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}/hm/${ltarColumn.id}/${childRow['Id']}`)
+      .delete(
+        `/api/v1/db/data/noco/${project.id}/${table.id}/${row['Id']}/hm/${ltarColumn.id}/${childRow['Id']}`
+      )
       .set('xc-auth', context.token)
       .expect(200);
 
-    const updatedRow = await getRow(context, {project, table,id: row['Id']})
-    
-    if(updatedRow['Ltar'].length !== 0){
-      throw new Error('Was not deleted')
+    const updatedRow = await getRow(context, { project, table, id: row['Id'] });
+
+    if (updatedRow['Ltar'].length !== 0) {
+      throw new Error('Was not deleted');
     }
 
-    if(response.body['msg'] !== 'success') {
-      throw new Error('Response incorrect')
+    if (response.body['msg'] !== 'success') {
+      throw new Error('Response incorrect');
     }
-  })
+  });
 
   it('Exclude list hm', async () => {
     const rowId = 1;
@@ -1996,15 +2121,17 @@ function tableTest() {
     )!;
 
     const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`)
-    .set('xc-auth', context.token)
-    .expect(200);
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
 
-    if(response.body.pageInfo.totalRows !== 16012){
-      console.log(response.body.pageInfo)
-      throw new Error('Wrong number of rows')
+    if (response.body.pageInfo.totalRows !== 16012) {
+      console.log(response.body.pageInfo);
+      throw new Error('Wrong number of rows');
     }
-  })
+  });
 
   it('Exclude list hm with limit and offset', async () => {
     const rowId = 1;
@@ -2013,69 +2140,81 @@ function tableTest() {
     )!;
 
     const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`)
-    .set('xc-auth', context.token)
-    .query({
-      limit: 40,
-      offset: 60
-    })
-    .expect(200);
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.id}/${rowId}/hm/${rentalListColumn.id}/exclude`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        limit: 40,
+        offset: 60,
+      })
+      .expect(200);
 
-    if(response.body.pageInfo.totalRows !== 16012 ){
-      console.log(response.body.pageInfo)
-      throw new Error('Wrong number of rows')
+    if (response.body.pageInfo.totalRows !== 16012) {
+      console.log(response.body.pageInfo);
+      throw new Error('Wrong number of rows');
     }
 
-    if(response.body.list[0]['RentalId'] !== 61){
-      console.log(response.body.list)
-      throw new Error('Wrong rows')
+    if (response.body.list[0]['RentalId'] !== 61) {
+      console.log(response.body.list);
+      throw new Error('Wrong rows');
     }
-  })
+  });
 
   it('Exclude list mm', async () => {
     const rowId = 1;
-    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
     const filmListColumn = (await actorTable.getColumns()).find(
       (column) => column.title === 'Film List'
     )!;
 
     const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`)
-    .set('xc-auth', context.token)
-    .expect(200);
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
 
-    if(response.body.pageInfo.totalRows !== 981){
-      console.log(response.body.pageInfo)
-      throw new Error('Wrong number of rows')
+    if (response.body.pageInfo.totalRows !== 981) {
+      console.log(response.body.pageInfo);
+      throw new Error('Wrong number of rows');
     }
-  })
+  });
 
   it('Exclude list mm with offset', async () => {
     const rowId = 1;
-    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
     const filmListColumn = (await actorTable.getColumns()).find(
       (column) => column.title === 'Film List'
     )!;
 
     const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`)
-    .set('xc-auth', context.token)
-    .query({
-      limit: 40,
-      offset: 60
-    })
-    .expect(200);
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${actorTable.id}/${rowId}/mm/${filmListColumn.id}/exclude`
+      )
+      .set('xc-auth', context.token)
+      .query({
+        limit: 40,
+        offset: 60,
+      })
+      .expect(200);
 
-    if(response.body.pageInfo.totalRows !== 981){
-      console.log(response.body.pageInfo)
-      throw new Error('Wrong number of rows')
+    if (response.body.pageInfo.totalRows !== 981) {
+      console.log(response.body.pageInfo);
+      throw new Error('Wrong number of rows');
     }
 
-    if(response.body.list[0]['FilmId'] !== 64){
-      console.log(response.body.list)
-      throw new Error('Wrong rows')
+    if (response.body.list[0]['FilmId'] !== 64) {
+      console.log(response.body.list);
+      throw new Error('Wrong rows');
     }
-  })
+  });
 
   it('Exclude list bt', async () => {
     const rowId = 1;
@@ -2120,32 +2259,71 @@ function tableTest() {
     )!;
     const refId = 1;
     const response = await request(context.app)
-      .post(`/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/exclude`)
+      .post(
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/hm/${rentalListColumn.id}/exclude`
+      )
       .set('xc-auth', context.token)
       .expect(404);
 
-    if(response.body['msg'] !== 'Table not found') {
-      console.log(response.body['msg'])
+    if (response.body['msg'] !== 'Table not found') {
+      console.log(response.body['msg']);
       throw new Error('Wrong error message');
     }
-  })
+  });
 
   it('Create nested mm relation with invalid table id', async () => {
     const rowId = 1;
-    const actorTable = await getTable({project: sakilaProject, name: 'actor'});
+    const actorTable = await getTable({
+      project: sakilaProject,
+      name: 'actor',
+    });
     const filmListColumn = (await actorTable.getColumns()).find(
       (column) => column.title === 'Film List'
     )!;
     const response = await request(context.app)
-      .post(`/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}/exclude`)
+      .post(
+        `/api/v1/db/data/noco/${sakilaProject.id}/invalid-table-id/${rowId}/mm/${filmListColumn.id}/exclude`
+      )
       .set('xc-auth', context.token)
       .expect(404);
 
-    if(response.body['msg'] !== 'Table not found') {
-      console.log(response.body['msg'])
+    if (response.body['msg'] !== 'Table not found') {
+      console.log(response.body['msg']);
       throw new Error('Wrong error message');
     }
-  })
+  });
+
+  it('Get grouped data list', async function () {
+    const filmTable = await getTable({ project: sakilaProject, name: 'film' });
+
+    const filmColumns = await filmTable.getColumns();
+
+    const ratingColumn = filmColumns.find((c) => c.column_name === 'rating');
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/Film/group/${ratingColumn.id}`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    expect(response.body).to.be.an('array');
+    // PG, R, NC-17, G, PG-17, null (uncategorized)
+    expect(response.body).to.be.have.length(6);
+    expect(response.body[0]).to.have.property('key');
+    expect(response.body[0]).to.have.property('value');
+    expect(response.body[0])
+      .to.have.property('value')
+      .and.to.be.an('object')
+      .and.to.have.property('list')
+      .and.to.be.an('array');
+    expect(response.body[0]).to.have.property('key').and.to.be.a('string');
+    expect(response.body[0].value)
+      .to.have.property('pageInfo')
+      .and.to.be.an('object')
+      .and.to.have.property('totalRows')
+      .and.to.be.a('number');
+  });
 }
 
 export default function () {

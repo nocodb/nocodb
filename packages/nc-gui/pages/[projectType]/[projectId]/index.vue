@@ -11,7 +11,6 @@ import {
   onMounted,
   openLink,
   projectThemeColors,
-  provide,
   ref,
   useCopy,
   useGlobal,
@@ -21,6 +20,7 @@ import {
   useRouter,
   useSidebar,
   useTabs,
+  useTheme,
   useUIPermission,
 } from '#imports'
 import { TabType } from '~/lib'
@@ -28,6 +28,8 @@ import { TabType } from '~/lib'
 definePageMeta({
   hideHeader: true,
 })
+
+const { theme } = useTheme()
 
 const { t } = useI18n()
 
@@ -44,10 +46,6 @@ const { clearTabs, addTab } = useTabs()
 const { isUIAllowed } = useUIPermission()
 
 const { copy } = useCopy()
-
-const isLocked = ref(false)
-
-provide('TreeViewIsLockedInj', isLocked)
 
 // create a new sidebar state
 const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: false })
@@ -192,6 +190,7 @@ onBeforeUnmount(reset)
           <div
             v-if="isOpen && !isSharedBase"
             v-e="['c:navbar:home']"
+            data-cy="nc-noco-brand-icon"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
             @click="navigateTo('/')"
           >
@@ -335,6 +334,7 @@ onBeforeUnmount(reset)
                         <template #expandIcon></template>
 
                         <LazyGeneralColorPicker
+                          :model-value="theme.primaryColor"
                           :colors="projectThemeColors"
                           :row-size="9"
                           :advanced="false"

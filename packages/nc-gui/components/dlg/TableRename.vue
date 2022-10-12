@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
+import type { ComponentPublicInstance } from '@vue/runtime-core'
 import {
   Form,
   computed,
@@ -12,6 +13,7 @@ import {
   useNuxtApp,
   useProject,
   useTabs,
+  useVModel,
   validateTableName,
   watchEffect,
 } from '#imports'
@@ -21,7 +23,7 @@ interface Props {
   tableMeta: TableType
 }
 
-const { modelValue = false, tableMeta } = defineProps<Props>()
+const { tableMeta, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'updated'])
 
@@ -31,20 +33,13 @@ const { $e, $api } = useNuxtApp()
 
 const { setMeta } = useMetas()
 
-const dialogShow = computed({
-  get() {
-    return modelValue
-  },
-  set(v) {
-    emit('update:modelValue', v)
-  },
-})
+const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { updateTab } = useTabs()
 
 const { loadTables, tables, project, isMysql, isMssql, isPg } = useProject()
 
-const inputEl = $ref<any>()
+const inputEl = $ref<ComponentPublicInstance>()
 
 let loading = $ref(false)
 
@@ -104,11 +99,13 @@ watchEffect(
   () => {
     if (tableMeta?.title) formState.title = `${tableMeta.title}`
 
-    // todo: replace setTimeout and follow better approach
     nextTick(() => {
-      const input = inputEl?.$el
-      input.setSelectionRange(0, formState.title.length)
-      input.focus()
+      const input = inputEl?.$el as HTMLInputElement
+
+      if (input) {
+        input.setSelectionRange(0, formState.title.length)
+        input.focus()
+      }
     })
   },
   { flush: 'post' },
@@ -128,14 +125,17 @@ const renameTable = async () => {
 
     await loadTables()
 
-    updateTab({ id: tableMeta.id }, { title: formState.title })
-
     // update metas
-    await setMeta(await $api.dbTable.read(tableMeta.id as string))
+    const newMeta = await $api.dbTable.read(tableMeta.id as string)
+    await setMeta(newMeta)
+
+    updateTab({ id: tableMeta.id }, { title: newMeta.title })
 
     // Table renamed successfully
     message.success(t('msg.success.tableRenamed'))
+
     $e('a:table:rename')
+
     dialogShow.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

@@ -85,5 +85,5 @@ const icon = computed(() => {
 </script>
 
 <template>
-  <component :is="icon" class="text-grey mx-1 !text-sm" />
+  <component :is="icon" class="text-grey mx-1 !text-xs" />
 </template>

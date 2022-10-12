@@ -163,19 +163,8 @@ Cypress.Commands.add("refreshTableTab", () => {
   cy.toastWait("Tables refreshed");
 });
 
-// tn: table name
-// rc: row count. validate row count if rc!=0
-Cypress.Commands.add("openTableTab", (tn, rc) => {
-  cy.task("log", `[openTableTab] ${tn} ${rc}`);
-
-  cy.get(`.nc-project-tree-tbl-${tn}`).should("exist").first().click();
-
-  // kludge to make new tab active
-  // cy.get('.ant-tabs-tab-btn')
-  //   .contains(tn)
-  //   .should('exist')
-  //   .click();
-
+// Wait for grid view render
+Cypress.Commands.add("gridWait", (rc) => {
   // for some tables, linked records are not available immediately
   cy.wait(1000);
 
@@ -185,6 +174,14 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
   if (rc != 0) {
     cy.get(".nc-grid-row").should("have.length", rc);
   }
+});
+
+// tn: table name
+// rc: row count. validate row count if rc!=0
+Cypress.Commands.add("openTableTab", (tn, rc) => {
+  cy.task("log", `[openTableTab] ${tn} ${rc}`);
+  cy.get(`.nc-project-tree-tbl-${tn}`).should("exist").first().click();
+  cy.gridWait(rc);
 });
 
 Cypress.Commands.add("closeTableTab", (tn) => {
@@ -318,7 +315,7 @@ Cypress.Commands.add("getActiveDrawer", (selector) => {
 
 Cypress.Commands.add("getActivePicker", (dropdownSelector) => {
   if (dropdownSelector) {
-    return cy.get(`${dropdownSelector}.ant-drawer-content:visible`).last();
+    return cy.get(`${dropdownSelector}.ant-picker-dropdown:visible`).last();
   }
   return cy.get(".ant-picker-dropdown :visible").last();
 });
@@ -335,7 +332,9 @@ Cypress.Commands.add("createTable", (name) => {
   cy.getActiveModal(".nc-modal-table-create")
     .find("button.ant-btn-primary:visible")
     .click();
-  cy.get(".xc-row-table.nc-grid").should("exist");
+
+  cy.gridWait(0);
+
   cy.url().should("contain", `table/${name}`);
   cy.get(`.nc-project-tree-tbl-${name}`).should("exist");
 });
@@ -525,6 +524,87 @@ Cypress.Commands.add("signOut", () => {
 Cypress.Commands.add("gotoProjectsPage", () => {
   cy.get(".nc-noco-brand-icon").should("exist").click();
   cy.get(`.nc-project-page-title:contains("My Projects")`).should("exist");
+});
+
+// View basic routines
+//
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// viewCreate
+//  : viewType: grid, gallery, kanban, form
+//  : creates view with default name
+//  : [fix-me] with name validation, works only first view creation of that category.
+//
+Cypress.Commands.add("viewCreate", (viewType) => {
+  // click on 'Grid/Gallery/Form/Kanban' button on Views bar
+  cy.get(`.nc-create-${viewType}-view`).click();
+
+  // Pop up window, click Submit (accepting default name for view)
+  cy.getActiveModal(".nc-modal-view-create").find(".ant-btn-primary").click();
+  cy.toastWait("View created successfully");
+
+  // validate if view was created && contains default name 'Country1'
+  cy.get(`.nc-${viewType}-view-item`)
+    .contains(`${capitalizeFirstLetter(viewType)}-1`)
+    .should("exist");
+});
+
+// viewDelete
+//  : delete view by index (0-based, exclude default view)
+//
+Cypress.Commands.add("viewDelete", (viewIndex) => {
+  // click on delete icon (becomes visible on hovering mouse)
+  cy.get(".nc-view-delete-icon").eq(viewIndex).click({ force: true });
+  cy.wait(300);
+
+  // click on 'Delete' button on confirmation modal
+  cy.getActiveModal(".nc-modal-view-delete").find(".ant-btn-dangerous").click();
+  cy.toastWait("View deleted successfully");
+});
+
+// viewDuplicate
+//  : duplicate view by index (0-based, *include* default view)
+//
+Cypress.Commands.add("viewCopy", (viewIndex) => {
+  // click on delete icon (becomes visible on hovering mouse)
+  cy.get(".nc-view-copy-icon").eq(viewIndex).click({ force: true });
+  cy.wait(300);
+
+  // click on 'Delete' button on confirmation modal
+  cy.getActiveModal(".nc-modal-view-create").find(".ant-btn-primary").click();
+  cy.toastWait("View created successfully");
+});
+
+// viewRename
+//  : rename view by index (0-based, exclude default view)
+//
+Cypress.Commands.add("viewRename", (viewType, viewIndex, newName) => {
+  // click on edit-icon (becomes visible on hovering mouse)
+  cy.get(`.nc-${viewType}-view-item`).eq(viewIndex).dblclick();
+
+  // feed new name
+  cy.get(`.nc-${viewType}-view-item input`).clear().type(`${newName}{enter}`);
+  cy.toastWait("View renamed successfully");
+
+  // validate
+  cy.get(`.nc-${viewType}-view-item`).contains(`${newName}`).should("exist");
+});
+
+// viewOpen
+//  : open view by index (0-based, exclude default view)
+//
+Cypress.Commands.add("viewOpen", (viewType, viewIndex) => {
+  // click on view
+  cy.get(`.nc-${viewType}-view-item`).eq(viewIndex).click();
+});
+
+// openTableView
+//  : open view by type & name
+//
+Cypress.Commands.add("openTableView", (viewType, viewName) => {
+  cy.get(`.nc-${viewType}-view-item`).contains(`${viewName}`).click();
 });
 
 // Drag n Drop

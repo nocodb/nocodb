@@ -85,7 +85,7 @@ function resetError() {
       <div
         class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
-        <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent) hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
+        <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
         <h1 class="prose-2xl font-bold self-center my-4">
           {{ $t('general.signUp') }}
@@ -132,13 +132,13 @@ function resetError() {
 
             <a
               v-if="appInfo.googleAuthEnabled"
-              :href="`${api.instance.defaults.baseURL}/auth/google`"
+              :href="`${appInfo.ncSiteUrl}/auth/google`"
               class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
             >
               <span class="flex items-center gap-2">
                 <LogosGoogleGmail />
 
-                Sign up with Google
+                {{ $t('labels.signUpWithGoogle') }}
               </span>
             </a>
 

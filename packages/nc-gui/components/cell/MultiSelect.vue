@@ -4,6 +4,7 @@ import type { SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
+  IsKanbanInj,
   ReadonlyInj,
   computed,
   h,
@@ -37,6 +38,8 @@ const selectedIds = ref<string[]>([])
 const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
+
+const isKanban = inject(IsKanbanInj, ref(false))
 
 const options = computed<SelectOptionsType[]>(() => {
   if (column?.value.colOptions) {
@@ -134,13 +137,14 @@ watch(isOpen, (n, _o) => {
     :show-search="false"
     :open="isOpen"
     :disabled="readOnly"
+    :class="{ '!ml-[-8px]': readOnly }"
     dropdown-class-name="nc-dropdown-multi-select-cell"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"
   >
     <a-select-option v-for="op of options" :key="op.id" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
-        <span class="text-slate-500">{{ op.title }}</span>
+        <span class="text-slate-500" :class="{ 'text-sm': isKanban }">{{ op.title }}</span>
       </a-tag>
     </a-select-option>
 
@@ -154,7 +158,7 @@ watch(isOpen, (n, _o) => {
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"
       >
-        <span class="w-full text-slate-500">{{ val }}</span>
+        <span class="w-full text-slate-500" :class="{ 'text-sm': isKanban }">{{ val }}</span>
       </a-tag>
     </template>
   </a-select>
@@ -188,7 +192,7 @@ watch(isOpen, (n, _o) => {
   border-radius: 12px;
 }
 :deep(.ant-tag) {
-  @apply "rounded-tag";
+  @apply "rounded-tag" my-[2px];
 }
 :deep(.ant-tag-close-icon) {
   @apply "text-slate-500";

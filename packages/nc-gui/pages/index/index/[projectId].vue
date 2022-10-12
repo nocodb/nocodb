@@ -5,23 +5,19 @@ import {
   extractSdkResponseErrorMsg,
   message,
   navigateTo,
-  nextTick,
-  onMounted,
   projectTitleValidator,
   reactive,
   ref,
+  tryOnMounted,
   useProject,
   useRoute,
-  useSidebar,
 } from '#imports'
-
-useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 
-const { project, loadProject, updateProject, isLoading } = useProject()
+const { project, loadProject, updateProject, isLoading, projectLoadedHook } = useProject()
 
-await loadProject()
+loadProject(false)
 
 const nameValidationRules = [
   {
@@ -48,30 +44,30 @@ const renameProject = async () => {
 }
 
 // select and focus title field on load
-onMounted(async () => {
+projectLoadedHook(async () => {
   formState.title = project.value.title as string
 
-  await nextTick(() => {
+  tryOnMounted(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
 
-      input.setSelectionRange(0, formState.title?.length)
-
       input.focus()
-    }, 500)
+
+      input.setSelectionRange(0, formState.title?.length)
+    }, 150)
   })
 })
 </script>
 
 <template>
   <div
-    class="update-project bg-white relative flex-auto flex flex-col justify-center gap-2 p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+    class="update-project relative flex-auto flex flex-col justify-center gap-2 p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
   >
     <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :animate="isLoading" />
 
     <div
-      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full bg-white cursor-pointer"
+      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
       @click="navigateTo('/')"
     >
       <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
@@ -79,7 +75,10 @@ onMounted(async () => {
 
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.editProject') }}</h1>
 
+    <a-skeleton v-if="isLoading" />
+
     <a-form
+      v-else
       ref="form"
       :model="formState"
       name="basic"

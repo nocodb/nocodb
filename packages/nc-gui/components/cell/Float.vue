@@ -26,13 +26,12 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none p-0 border-none w-full h-full prose-sm"
+    class="outline-none p-0 border-none w-full h-full text-sm"
     type="number"
     step="0.1"
     @blur="editEnabled = false"
   />
-
-  <span v-else class="prose-sm">{{ vModel }}</span>
+  <span v-else class="text-sm">{{ vModel }}</span>
 </template>
 
 <style scoped lang="scss">

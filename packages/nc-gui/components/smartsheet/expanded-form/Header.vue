@@ -19,7 +19,7 @@ const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
 const { commentsDrawer, primaryValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
 
-const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
+const { isNew, syncLTARRefs, state } = useSmartsheetRowStoreOrThrow()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -27,7 +27,7 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const save = async () => {
   if (isNew.value) {
-    const data = await _save()
+    const data = await _save(state.value)
     await syncLTARRefs(data)
     reloadTrigger?.trigger()
   } else {

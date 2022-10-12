@@ -366,6 +366,39 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return query;
   }
 
+
+  public async metaCount(
+    project_id: string,
+    dbAlias: string,
+    target: string,
+    args?: {
+      condition?: { [p: string]: any };
+      xcCondition?;
+      aggField?: string;
+    }
+  ): Promise<number> {
+    const query = this.knexConnection(target);
+
+    if (project_id !== null && project_id !== undefined) {
+      query.where('project_id', project_id);
+    }
+    if (dbAlias !== null && dbAlias !== undefined) {
+      query.where('base_id', dbAlias);
+    }
+
+    if (args?.condition) {
+      query.where(args.condition);
+    }
+
+    if (args?.xcCondition) {
+      (query as any).condition(args.xcCondition);
+    }
+
+    query.count(args?.aggField || 'id', { as: 'count' }).first();
+
+    return +(await query)?.['count'] || 0;
+  }
+
   public async metaUpdate(
     project_id: string,
     dbAlias: string,

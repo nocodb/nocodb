@@ -75,6 +75,8 @@ const submitDuration = () => {
       v-if="editEnabled"
       ref="durationInput"
       v-model="localState"
+      class="w-full !border-none p-0"
+      :class="{ '!p-2': editEnabled }"
       :placeholder="durationPlaceholder"
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"
@@ -91,14 +93,8 @@ const submitDuration = () => {
 </template>
 
 <style scoped>
-.duration-cell-wrapper {
-  padding: 10px;
-}
-
 .duration-warning {
-  text-align: left;
-  margin-top: 10px;
-  color: #e65100;
+  @apply text-left mt-[10px] text-[#e65100];
 }
 </style>
 

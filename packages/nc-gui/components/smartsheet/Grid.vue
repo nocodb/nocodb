@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
@@ -18,6 +18,7 @@ import {
   createEventHook,
   extractPkFromRow,
   inject,
+  isColumnRequiredAndNull,
   message,
   onClickOutside,
   onMounted,
@@ -127,19 +128,10 @@ provide(CellUrlDisableOverlayInj, disableUrlOverlay)
 
 const showLoading = ref(true)
 
-reloadViewDataHook?.on(async (shouldShowLoading) => {
-  // set value if spinner should be hidden
-  showLoading.value = !!shouldShowLoading
-  await loadData()
-
-  // reset to default (showing spinner on load)
-  showLoading.value = true
-})
-
 const skipRowRemovalOnCancel = ref(false)
 
 const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) => {
-  const rowId = extractPkFromRow(row.row, meta.value!.columns!)
+  const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (rowId) {
     router.push({
@@ -155,11 +147,6 @@ const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) 
     skipRowRemovalOnCancel.value = !fromToolbar
   }
 }
-
-openNewRecordFormHook?.on(async () => {
-  const newRow = await addEmptyRow()
-  expandForm(newRow, undefined, true)
-})
 
 const onresize = (colID: string, event: any) => {
   updateWidth(colID, event.detail)
@@ -271,30 +258,54 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
 
 const rowRefs = $ref<any[]>()
 
-/** save/update records before unmounting the component */
-onBeforeUnmount(async () => {
+const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any } = {}) => {
   let index = -1
-  for (const currentRow of data.value) {
+  for (const currentRow of args.data || data.value) {
     index++
     /** if new record save row and save the LTAR cells */
     if (currentRow.rowMeta.new) {
       const syncLTARRefs = rowRefs[index]!.syncLTARRefs
-      const savedRow = await updateOrSaveRow(currentRow, '')
-      await syncLTARRefs(savedRow)
+      const savedRow = await updateOrSaveRow(currentRow, '', {}, args)
+      await syncLTARRefs(savedRow, args)
       currentRow.rowMeta.changed = false
       continue
     }
     /** if existing row check updated cell and invoke update method */
     if (currentRow.rowMeta.changed) {
       currentRow.rowMeta.changed = false
-      for (const field of meta.value?.columns ?? []) {
+      for (const field of (args.metaValue || meta.value)?.columns ?? []) {
         if (isVirtualCol(field)) continue
         if (currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
-          await updateOrSaveRow(currentRow, field.title!)
+          await updateOrSaveRow(currentRow, field.title!, args)
         }
       }
     }
   }
+}
+
+async function reloadViewDataHandler(shouldShowLoading: boolean | void) {
+  // set value if spinner should be hidden
+  showLoading.value = !!shouldShowLoading
+  await loadData()
+  // reset to default (showing spinner on load)
+  showLoading.value = true
+}
+
+async function openNewRecordHandler() {
+  const newRow = await addEmptyRow()
+  expandForm(newRow, undefined, true)
+}
+
+reloadViewDataHook?.on(reloadViewDataHandler)
+openNewRecordFormHook?.on(openNewRecordHandler)
+
+onBeforeUnmount(() => {
+  /** save/update records before unmounting the component */
+  saveOrUpdateRecords()
+
+  // reset hooks
+  reloadViewDataHook?.off(reloadViewDataHandler)
+  openNewRecordFormHook?.off(openNewRecordHandler)
 })
 
 const expandedFormOnRowIdDlg = computed({
@@ -319,14 +330,42 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 // reloadViewDataHook.trigger()
 
 watch(
-  () => view.value?.id,
+  view,
   async (next, old) => {
-    if (next && next !== old) {
+    if (next && next.id !== old?.id) {
+      // whenever tab changes or view changes save any unsaved data
+      if (old?.id) {
+        const { getMeta } = useMetas()
+        const oldMeta = await getMeta(old.fk_model_id!)
+        if (oldMeta) {
+          await saveOrUpdateRecords({
+            viewMetaValue: old,
+            metaValue: oldMeta as TableType,
+            data: data.value,
+          })
+        }
+      }
       await loadData()
     }
   },
   { immediate: true },
 )
+
+const tbodyEl = ref<HTMLElement>()
+
+watch([() => selected.row, () => selected.col], ([row, col]) => {
+  if (row !== null && col !== null) {
+    // get active cell
+    const td = tbodyEl.value?.querySelectorAll('tr')[row]?.querySelectorAll('td')[col + 1]
+    if (!td) return
+    // scroll into the active cell
+    td.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end',
+      inline: 'end',
+    })
+  }
+})
 </script>
 
 <template>
@@ -413,7 +452,7 @@ watch(
             </tr>
           </thead>
           <!-- this prevent select text from field if not in edit mode -->
-          <tbody @selectstart.prevent>
+          <tbody ref="tbodyEl" @selectstart.prevent>
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">
@@ -462,9 +501,10 @@ watch(
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
-                      active:
+                      'active':
                         (isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex) ||
                         (isUIAllowed('xcDatatableEditable') && selectedRange(rowIndex, colIndex)),
+                      'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                     }"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
@@ -493,7 +533,7 @@ watch(
                         :row-index="rowIndex"
                         :active="selected.col === colIndex && selected.row === rowIndex"
                         @update:edit-enabled="editEnabled = false"
-                        @save="updateOrSaveRow(row, columnObj.title)"
+                        @save="updateOrSaveRow(row, columnObj.title, state)"
                         @navigate="onNavigate"
                         @cancel="editEnabled = false"
                       />
@@ -539,7 +579,10 @@ watch(
             </a-menu-item>
 
             <!--            Clear cell -->
-            <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)">
+            <a-menu-item
+              v-if="contextMenuTarget && !isVirtualCol(fields[contextMenuTarget.col])"
+              @click="clearCell(contextMenuTarget)"
+            >
               <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>
             </a-menu-item>
 
@@ -556,25 +599,29 @@ watch(
 
     <LazySmartsheetPagination />
 
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormRow && expandedFormDlg"
-      v-model="expandedFormDlg"
-      :row="expandedFormRow"
-      :state="expandedFormRowState"
-      :meta="meta"
-      :view="view"
-      @update:model-value="!skipRowRemovalOnCancel && removeRowIfNew(expandedFormRow)"
-    />
+    <Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormRow && expandedFormDlg"
+        v-model="expandedFormDlg"
+        :row="expandedFormRow"
+        :state="expandedFormRowState"
+        :meta="meta"
+        :view="view"
+        @update:model-value="!skipRowRemovalOnCancel && removeRowIfNew(expandedFormRow)"
+      />
+    </Suspense>
 
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg"
-      :key="route.query.rowId"
-      v-model="expandedFormOnRowIdDlg"
-      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-      :meta="meta"
-      :row-id="route.query.rowId"
-      :view="view"
-    />
+    <Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormOnRowIdDlg"
+        :key="route.query.rowId"
+        v-model="expandedFormOnRowIdDlg"
+        :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+        :meta="meta"
+        :row-id="route.query.rowId"
+        :view="view"
+      />
+    </Suspense>
   </div>
 </template>
 
@@ -686,5 +733,9 @@ watch(
 
 tbody tr:hover {
   @apply bg-gray-100 bg-opacity-50;
+}
+
+.nc-required-cell {
+  box-shadow: inset 0 0 2px #f00;
 }
 </style>

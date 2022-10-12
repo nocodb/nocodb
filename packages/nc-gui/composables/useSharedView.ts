@@ -1,4 +1,14 @@
-import type { ExportTypes, FilterType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
+import type {
+  Api,
+  ExportTypes,
+  FilterType,
+  KanbanType,
+  PaginatedType,
+  RequestParams,
+  SortType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
@@ -19,11 +29,11 @@ export function useSharedView() {
 
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
 
-  const meta = useState<TableType | undefined>('meta', () => undefined)
+  const meta = useState<TableType | KanbanType | undefined>('meta', () => undefined)
 
   const formColumns = computed(
     () =>
-      meta.value?.columns
+      (meta.value as TableType)?.columns
         ?.filter(
           (f: Record<string, any>) =>
             f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,
@@ -80,7 +90,30 @@ export function useSharedView() {
         },
       },
     )
+    return data
+  }
 
+  const fetchSharedViewGroupedData = async (columnId: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
+    if (!sharedView.value) return
+
+    const page = paginationData.value.page || 1
+    const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
+
+    const data = await $api.public.groupedDataList(
+      sharedView.value.uuid!,
+      columnId,
+      {
+        offset: (page - 1) * pageSize,
+        filterArrJson: JSON.stringify(nestedFilters.value),
+        sortArrJson: JSON.stringify(sorts.value),
+        ...params,
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
     return data
   }
 
@@ -111,6 +144,7 @@ export function useSharedView() {
     meta,
     nestedFilters,
     fetchSharedViewData,
+    fetchSharedViewGroupedData,
     paginationData,
     sorts,
     exportFile,

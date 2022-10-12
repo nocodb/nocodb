@@ -5,6 +5,7 @@ import type { Ref } from 'vue'
 import {
   FieldsInj,
   IsFormInj,
+  IsKanbanInj,
   MetaInj,
   ReloadRowDataHookInj,
   computedInject,
@@ -50,6 +51,8 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return _fields?.value ?? []
 })
 
+const isKanban = inject(IsKanbanInj, ref(false))
+
 provide(MetaInj, meta)
 
 const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
@@ -61,7 +64,7 @@ if (props.loadRow) {
 if (props.rowId) {
   try {
     await loadRow(props.rowId)
-  } catch (e) {
+  } catch (e: any) {
     if (e.response?.status === 404) {
       // todo: i18n
       message.error('Record not found')
@@ -107,6 +110,15 @@ reloadHook.on(() => {
 })
 
 provide(ReloadRowDataHookInj, reloadHook)
+
+if (isKanban.value) {
+  // adding column titles to changedColumns if they are preset
+  for (const [k, v] of Object.entries(row.value.row)) {
+    if (v) {
+      changedColumns.value.add(k)
+    }
+  }
+}
 </script>
 
 <script lang="ts">
@@ -124,7 +136,7 @@ export default {
     :closable="false"
     class="nc-drawer-expanded-form"
   >
-    <SmartsheetExpandedFormHeader :view="view" @cancel="onClose" />
+    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 
     <div class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
@@ -149,6 +161,7 @@ export default {
                   v-model="row.row[col.title]"
                   :column="col"
                   :edit-enabled="true"
+                  :active="true"
                   @update:model-value="changedColumns.add(col.title)"
                 />
               </div>

@@ -41,10 +41,12 @@ const { filters, loadFilters } = useViewFilters(
 const filtersLength = ref(0)
 
 watch(
-  () => activeView?.value,
-  async () => {
-    await loadFilters()
-    filtersLength.value = filters.value.length || 0
+  () => activeView?.value?.id,
+  async (viewId) => {
+    if (viewId) {
+      await loadFilters()
+      filtersLength.value = filters.value.length || 0
+    }
   },
   { immediate: true },
 )

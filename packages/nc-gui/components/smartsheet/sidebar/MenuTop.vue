@@ -27,7 +27,7 @@ const emits = defineEmits<Emits>()
 const { t } = useI18n()
 
 interface Emits {
-  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
+  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
 
   (event: 'deleted'): void
 }

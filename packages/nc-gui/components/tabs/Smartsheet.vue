@@ -12,13 +12,12 @@ import {
   TabMetaInj,
   computed,
   createEventHook,
-  inject,
   provide,
   ref,
   toRef,
   useMetas,
+  useProvideKanbanViewStore,
   useProvideSmartsheetStore,
-  watch,
 } from '#imports'
 import type { TabItem } from '~/lib'
 
@@ -38,11 +37,13 @@ const meta = computed<TableType | undefined>(() => activeTab.value && metas.valu
 
 const reloadEventHook = createEventHook()
 
-const reloadViewMetaEventHook = createEventHook()
+const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
 const openNewRecordFormHook = createEventHook()
 
-const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView, meta)
+const reloadViewMetaEventHook = createEventHook()
+
+useProvideKanbanViewStore(meta, activeView)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -54,10 +55,6 @@ provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
-
-const treeViewIsLockedInj = inject('TreeViewIsLockedInj', ref(false))
-
-watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immediate: true })
 </script>
 
 <template>
@@ -74,6 +71,8 @@ watch(isLocked, (nextValue) => (treeViewIsLockedInj.value = nextValue), { immedi
               <LazySmartsheetGallery v-else-if="isGallery" />
 
               <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+
+              <LazySmartsheetKanban v-else-if="isKanban" />
             </div>
           </div>
         </template>

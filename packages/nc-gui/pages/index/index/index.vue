@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
+import { breakpointsTailwind } from '@vueuse/core'
 import {
   Empty,
   Modal,
@@ -14,6 +15,9 @@ import {
   ref,
   themeV2Colors,
   useApi,
+  useBreakpoints,
+  useCopy,
+  useGlobal,
   useNuxtApp,
   useUIPermission,
 } from '#imports'
@@ -28,9 +32,13 @@ const { api, isLoading } = useApi()
 
 const { isUIAllowed } = useUIPermission()
 
+const { md } = useBreakpoints(breakpointsTailwind)
+
 const filterQuery = ref('')
 
 const projects = ref<ProjectType[]>()
+
+const { appInfo } = useGlobal()
 
 const loadProjects = async () => {
   const response = await api.project.list({})
@@ -123,17 +131,32 @@ const customRow = (record: ProjectType) => ({
 })
 
 onBeforeMount(loadProjects)
+
+const { copy } = useCopy()
+
+const copyProjectMeta = async () => {
+  const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
+  copy(JSON.stringify(aggregatedMetaInfo))
+  message.info('Copied aggregated project meta to clipboard')
+}
 </script>
 
 <template>
-  <div class="bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)">
+  <div class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)">
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
-      <!-- My Projects -->
-      <span class="text-4xl nc-project-page-title">{{ $t('title.myProject') }}</span>
+      <span class="text-4xl nc-project-page-title" @dblclick="copyProjectMeta">{{ $t('title.myProject') }}</span>
+    </h1>
+
+    <div class="flex flex-wrap gap-2 mb-6">
+      <a-input-search
+        v-model:value="filterQuery"
+        class="max-w-[250px] nc-project-page-search rounded"
+        :placeholder="$t('activity.searchProject')"
+      />
 
       <a-tooltip title="Reload projects">
-        <span
-          class="transition-all duration-200 h-full flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
+        <div
+          class="transition-all duration-200 h-full flex-0 flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
           :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
         >
           <MdiRefresh
@@ -142,21 +165,13 @@ onBeforeMount(loadProjects)
             :class="isLoading ? '!text-primary' : ''"
             @click="loadProjects"
           />
-        </span>
+        </div>
       </a-tooltip>
-    </h1>
-
-    <div class="flex mb-6">
-      <a-input-search
-        v-model:value="filterQuery"
-        class="max-w-[250px] nc-project-page-search rounded"
-        :placeholder="$t('activity.searchProject')"
-      />
 
       <div class="flex-1" />
 
       <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']" overlay-class-name="nc-dropdown-create-project">
-        <button class="nc-new-project-menu">
+        <button class="nc-new-project-menu mt-4 md:mt-0">
           <span class="flex items-center w-full">
             {{ $t('title.newProj') }}
             <MdiMenuDown class="menu-icon" />
@@ -177,7 +192,7 @@ onBeforeMount(loadProjects)
               </div>
             </a-menu-item>
 
-            <a-menu-item>
+            <a-menu-item v-if="appInfo.connectToExternalDB">
               <div
                 v-e="['c:project:create:extdb']"
                 class="nc-project-menu-item group nc-create-external-db-project"
@@ -198,7 +213,13 @@ onBeforeMount(loadProjects)
         <a-skeleton />
       </div>
 
-      <a-table v-else :custom-row="customRow" :data-source="filteredProjects" :pagination="{ position: ['bottomCenter'] }">
+      <a-table
+        v-else
+        :custom-row="customRow"
+        :data-source="filteredProjects"
+        :pagination="{ position: ['bottomCenter'] }"
+        :table-layout="md ? 'auto' : 'fixed'"
+      >
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </template>
@@ -225,6 +246,7 @@ onBeforeMount(loadProjects)
                       <template #expandIcon></template>
 
                       <LazyGeneralColorPicker
+                        :model-value="getProjectPrimary(record)"
                         :colors="projectThemeColors"
                         :row-size="9"
                         :advanced="false"

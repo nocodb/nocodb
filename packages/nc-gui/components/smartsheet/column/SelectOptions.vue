@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { enumColor, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+import { IsKanbanInj, enumColor, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -16,10 +16,15 @@ const { isPg, isMysql } = useProject()
 const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
 let options = $ref<any[]>([])
+
 const colorMenus = $ref<any>({})
+
 const colors = $ref(enumColor.light)
+
 const inputs = ref()
 const defaultOption = ref()
+
+const isKanban = inject(IsKanbanInj, ref(false))
 
 const validators = {
   'colOptions.options': [
@@ -126,9 +131,8 @@ watch(inputs, () => {
   <div class="w-full">
     <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
       <template #item="{ element, index }">
-        <div class="flex py-1 items-center">
-          <MdiDragVertical small class="nc-child-draggable-icon handle" />
-
+        <div class="flex py-1 items-center nc-select-option">
+          <MdiDragVertical v-if="!isKanban" small class="nc-child-draggable-icon handle" />
           <a-dropdown
             v-model:visible="colorMenus[index]"
             :trigger="['click']"

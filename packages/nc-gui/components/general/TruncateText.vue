@@ -20,12 +20,14 @@ interface Props {
 
 const { placement = 'bottom', length = 20 } = defineProps<Props>()
 
-const text = ref()
+const text = ref<HTMLDivElement>()
 
-const enableTooltip = computed(() => text.value?.textContent.length > length)
+const enableTooltip = computed(() => text.value?.textContent?.length && text.value?.textContent?.length > length)
 
 const shortName = computed(() =>
-  text.value?.textContent.length > length ? `${text.value?.textContent.substr(0, length - 3)}...` : text.value?.textContent,
+  text.value?.textContent?.length && text.value?.textContent.length > length
+    ? `${text.value?.textContent?.substr(0, length - 3)}...`
+    : text.value?.textContent,
 )
 </script>
 
@@ -34,14 +36,11 @@ const shortName = computed(() =>
     <template #title>
       <slot />
     </template>
-
-    <div>{{ shortName }}</div>
+    <div class="w-full">{{ shortName }}</div>
   </a-tooltip>
-
-  <div v-else>
+  <div v-else class="w-full">
     <slot />
   </div>
-
   <div ref="text" class="hidden">
     <slot />
   </div>

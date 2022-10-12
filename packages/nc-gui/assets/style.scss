@@ -91,6 +91,12 @@ a {
   @apply bg-primary bg-opacity-20 hover:(bg-primary bg-opacity-20);
 }
 
+// for highlighing toolbar kanban menu item
+
+.nc-kanban-btn > .ant-btn {
+  @apply bg-green-400 bg-opacity-20 hover:(bg-primary bg-opacity-20);
+}
+
 .nc-locked-overlay {
   @apply absolute h-full w-full z-2 top-0 left-0;
 }
@@ -270,4 +276,8 @@ a {
 .vue-flow__minimap {
   transform: scale(75%);
   transform-origin: bottom right;
+}
+
+.nc-toolbar-btn {
+  @apply !shadow-none rounded hover:(ring-1 ring-primary ring-opacity-100) focus:(ring-1 ring-accent ring-opacity-100);
 }

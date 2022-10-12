@@ -35,7 +35,7 @@ const readOnly = inject(ReadonlyInj, false)
 
 const isForm = inject(IsFormInj, ref(false))
 
-const isLocked = inject(IsLockedInj)
+const isLocked = inject(IsLockedInj, ref(false))
 
 const { isUIAllowed } = useUIPermission()
 
@@ -87,7 +87,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
       <component
         :is="addIcon"
         class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"
-        @click="listItemsDlg = true"
+        @click.stop="listItemsDlg = true"
       />
     </div>
 

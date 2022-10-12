@@ -218,7 +218,7 @@ export function useViewFilters(
       return metas?.value?.[view?.value?.fk_model_id as string]?.columns?.length || 0
     },
     async (nextColsLength, oldColsLength) => {
-      if (nextColsLength < oldColsLength) await loadFilters()
+      if (nextColsLength && nextColsLength < oldColsLength) await loadFilters()
     },
   )
 

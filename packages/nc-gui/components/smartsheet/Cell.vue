@@ -126,7 +126,7 @@ const {
 const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   if (isJSON.value) return
 
-  if (currentRow.value.rowMeta.changed) {
+  if (currentRow.value.rowMeta.changed || currentRow.value.rowMeta.new) {
     emit('save')
     currentRow.value.rowMeta.changed = false
   }

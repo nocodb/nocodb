@@ -86,10 +86,11 @@ const types = computed(() => {
 watch(
   () => activeView.value?.id,
   (n, o) => {
-    if (n !== o && (hookId || !webHook)) loadFilters(hookId as string)
-  },
-  { immediate: true },
+    if (!nested && n !== o && (hookId || !webHook)) loadFilters(hookId as string)
+  }
 )
+
+loadFilters(hookId as string)
 
 watch(
   () => nonDeletedFilters.value.length,

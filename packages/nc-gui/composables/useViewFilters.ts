@@ -51,11 +51,11 @@ export function useViewFilters(
     set: (value: Filter[]) => {
       if (nestedMode.value) {
         currentFilters = value
-        if (isNestedRoot) nestedFilters.value = value
-
+        if (isNestedRoot) {
+          nestedFilters.value = value
+          tabMeta.value.filterState!.set(view!.value.id!, nestedFilters.value)
+        }
         nestedFilters.value = [...nestedFilters.value]
-
-        tabMeta.value.filterState!.set(view!.value.id!, nestedFilters.value)
         reloadHook?.trigger()
         return
       }
@@ -77,7 +77,8 @@ export function useViewFilters(
 
   const loadFilters = async (hookId?: string) => {
     if (nestedMode.value) {
-      filters.value = tabMeta.value.filterState!.get(view.value.id!) || []
+      if (isNestedRoot)
+        filters.value = tabMeta.value.filterState!.get(view.value.id!) || []
       return
     }
 

@@ -27,7 +27,6 @@ export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Sy
 export const ReloadRowDataHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-row-data-injection')
 export const OpenNewRecordFormHookInj: InjectionKey<EventHook<void>> = Symbol('open-new-record-form-injection')
 export const FieldsInj: InjectionKey<Ref<any[]>> = Symbol('fields-injection')
-export const ViewListInj: InjectionKey<Ref<ViewType[]>> = Symbol('view-list-injection')
 export const EditModeInj: InjectionKey<Ref<boolean>> = Symbol('edit-mode-injection')
 export const SharedViewPasswordInj: InjectionKey<Ref<string | null>> = Symbol('shared-view-password-injection')
 export const CellUrlDisableOverlayInj: InjectionKey<Ref<boolean>> = Symbol('cell-url-disable-url')

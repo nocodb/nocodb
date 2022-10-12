@@ -2,11 +2,9 @@
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
-import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
 import {
   ActiveViewInj,
-  ViewListInj,
   extractSdkResponseErrorMsg,
   inject,
   message,
@@ -22,9 +20,9 @@ import {
   watch,
 } from '#imports'
 
-const emits = defineEmits<Emits>()
-
-const { t } = useI18n()
+interface Props {
+  views: ViewType[]
+}
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
@@ -32,11 +30,15 @@ interface Emits {
   (event: 'deleted'): void
 }
 
+const { views } = defineProps<Props>()
+
+const emits = defineEmits<Emits>()
+
+const { t } = useI18n()
+
 const { $e } = useNuxtApp()
 
 const activeView = inject(ActiveViewInj, ref())
-
-const views = inject<Ref<ViewType[]>>(ViewListInj, ref([]))
 
 const { api } = useApi()
 
@@ -54,10 +56,8 @@ let isMarked = $ref<string | false>(false)
 
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
-  const _nextActiveView = nextActiveView as ViewType
-
-  if (_nextActiveView && _nextActiveView.id) {
-    selected.value = [_nextActiveView.id]
+  if (nextActiveView && nextActiveView.id) {
+    selected.value = [nextActiveView.id]
   }
 })
 
@@ -75,7 +75,7 @@ function validate(view: ViewType) {
     return 'View name is required'
   }
 
-  if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
+  if (views.some((v) => v.title === view.title && v.id !== view.id)) {
     return 'View name should be unique'
   }
 
@@ -93,7 +93,7 @@ async function onSortEnd(evt: SortableEvent) {
   evt.preventDefault()
   dragging = false
 
-  if (views.value.length < 2) return
+  if (views.length < 2) return
 
   const { newIndex = 0, oldIndex = 0 } = evt
 
@@ -104,17 +104,17 @@ async function onSortEnd(evt: SortableEvent) {
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
 
-  const currentItem = views.value.find((v) => v.id === evt.item.id)
+  const currentItem = views.find((v) => v.id === evt.item.id)
 
   if (!currentItem || !currentItem.id) return
 
-  const previousItem = (previousEl ? views.value.find((v) => v.id === previousEl.id) : {}) as ViewType
-  const nextItem = (nextEl ? views.value.find((v) => v.id === nextEl.id) : {}) as ViewType
+  const previousItem = (previousEl ? views.find((v) => v.id === previousEl.id) : {}) as ViewType
+  const nextItem = (nextEl ? views.find((v) => v.id === nextEl.id) : {}) as ViewType
 
   let nextOrder: number
 
   // set new order value based on the new order of the items
-  if (views.value.length - 1 === newIndex) {
+  if (views.length - 1 === newIndex) {
     nextOrder = parseFloat(String(previousItem.order)) + 1
   } else if (newIndex === 0) {
     nextOrder = parseFloat(String(nextItem.order)) / 2
@@ -198,7 +198,7 @@ function openDeleteDialog(view: Record<string, any>) {
         // return to the default view
         router.replace({
           params: {
-            viewTitle: views.value[0].title,
+            viewTitle: views[0].title,
           },
         })
       }

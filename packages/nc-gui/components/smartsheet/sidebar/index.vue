@@ -3,11 +3,11 @@ import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   MetaInj,
-  ViewListInj,
   computed,
   inject,
-  provide,
   ref,
+  resolveComponent,
+  useDialog,
   useNuxtApp,
   useRoute,
   useRouter,
@@ -31,8 +31,6 @@ const route = useRoute()
 
 const { $e } = useNuxtApp()
 
-provide(ViewListInj, views)
-
 /** Sidebar visible */
 const { isOpen } = useSidebar('nc-right-sidebar')
 
@@ -40,21 +38,6 @@ const sidebarCollapsed = computed(() => !isOpen.value)
 
 /** Sidebar ref */
 const sidebar = ref()
-
-/** View type to create from modal */
-let viewCreateType = $ref<ViewTypes>()
-
-/** View title to create from modal (when duplicating) */
-let viewCreateTitle = $ref('')
-
-/** selected view id for copying view meta */
-let selectedViewId = $ref('')
-
-/** Kanban Grouping Column Id for copying view meta */
-let kanbanGrpColumnId = $ref('')
-
-/** is view creation modal open */
-let modalOpen = $ref(false)
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(
@@ -88,31 +71,45 @@ watch(
   { immediate: true },
 )
 
-/** Open view creation modal */
-function openModal({
+/** Open delete modal */
+function openCreateDialog({
+  title,
   type,
-  title = '',
   copyViewId,
   groupingFieldColumnId,
 }: {
+  title?: string
   type: ViewTypes
-  title: string
-  copyViewId: string
-  groupingFieldColumnId: string
+  copyViewId?: string
+  groupingFieldColumnId?: string
 }) {
-  modalOpen = true
-  viewCreateType = type
-  viewCreateTitle = title
-  selectedViewId = copyViewId
-  kanbanGrpColumnId = groupingFieldColumnId
-}
+  const isOpen = ref(true)
 
-/** Handle view creation */
-async function onCreate(view: ViewType) {
-  await loadViews()
-  router.push({ params: { viewTitle: view.title || '' } })
-  modalOpen = false
-  $e('a:view:create', { view: view.type })
+  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
+    'modelValue': isOpen,
+    title,
+    type,
+    meta,
+    'selectedViewId': copyViewId,
+    groupingFieldColumnId,
+    'viewList': views,
+    'onUpdate:modelValue': closeDialog,
+    'onCreated': async (view: ViewType) => {
+      closeDialog()
+
+      await loadViews()
+
+      router.push({ params: { viewTitle: view.title || '' } })
+
+      $e('a:view:create', { view: view.type })
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 </script>
 
@@ -132,22 +129,12 @@ async function onCreate(view: ViewType) {
     />
 
     <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
-      <LazySmartsheetSidebarMenuTop @open-modal="openModal" @deleted="loadViews" />
+      <LazySmartsheetSidebarMenuTop :views="views" @open-modal="openCreateDialog" @deleted="loadViews" />
 
       <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="!my-3 w-full border-b-1" />
 
-      <LazySmartsheetSidebarMenuBottom @open-modal="openModal" />
+      <LazySmartsheetSidebarMenuBottom @open-modal="openCreateDialog" />
     </div>
-
-    <LazyDlgViewCreate
-      v-if="views"
-      v-model="modalOpen"
-      :title="viewCreateTitle"
-      :type="viewCreateType"
-      :selected-view-id="selectedViewId"
-      :grouping-field-column-id="kanbanGrpColumnId"
-      @created="onCreate"
-    />
   </a-layout-sider>
 </template>
 

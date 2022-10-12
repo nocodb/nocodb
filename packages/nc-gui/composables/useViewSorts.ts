@@ -1,5 +1,4 @@
-import { ViewType } from 'nocodb-sdk'
-import type { GalleryType, GridType, KanbanType, SortType } from 'nocodb-sdk'
+import type { SortType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import {
   IsPublicInj,

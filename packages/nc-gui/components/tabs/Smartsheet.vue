@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import SmartsheetGrid from '../smartsheet/Grid.vue'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -19,8 +18,6 @@ import {
   useMetas,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
-  useUIPermission,
-  watch,
 } from '#imports'
 import type { TabItem } from '~/lib'
 
@@ -38,16 +35,13 @@ const fields = ref<ColumnType[]>([])
 
 const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
 
-const reloadEventHook = createEventHook()
-
-const { isGallery, isGrid, isForm, isKanban, isLocked, nestedFilters, sorts } = useProvideSmartsheetStore(activeView, meta)
-
-const openNewRecordFormHook = createEventHook()
+const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
 const reloadEventHook = createEventHook<void | boolean>()
+const reloadViewMetaEventHook = createEventHook<void | boolean>()
 const openNewRecordFormHook = createEventHook<void>()
 
-const { isGallery, isGrid, isForm, isLocked } = useProvideSmartsheetStore(activeView, meta)
+useProvideKanbanViewStore(meta, activeView)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -59,15 +53,6 @@ provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
-
-watch(nestedFilters, (newFilters) => {
-  activeTab.value.state = activeTab.value.state || {}
-  activeTab.value.state[activeView.value.id] = newFilters
-})
-
-watch(activeView, (newView: ViewType) => {
-  nestedFilters.value = activeTab.value.state?.[newView.id!]
-})
 </script>
 
 <template>

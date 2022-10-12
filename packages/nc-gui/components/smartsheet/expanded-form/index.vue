@@ -10,6 +10,7 @@ import {
   ReloadRowDataHookInj,
   computedInject,
   message,
+  onBeforeMount,
   provide,
   ref,
   toRef,
@@ -55,23 +56,32 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 provide(MetaInj, meta)
 
-const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
+const {
+  commentsDrawer,
+  changedColumns,
+  isCommentsLoading,
+  state: rowState,
+  isNew,
+  loadRow,
+} = useProvideExpandedFormStore(meta, row)
 
-if (props.loadRow) {
-  await loadRow()
-}
-
-if (props.rowId) {
-  try {
-    await loadRow(props.rowId)
-  } catch (e: any) {
-    if (e.response?.status === 404) {
-      // todo: i18n
-      message.error('Record not found')
-      router.replace({ query: {} })
-    } else throw e
+onBeforeMount(async () => {
+  if (props.loadRow) {
+    await loadRow()
   }
-}
+
+  if (props.rowId) {
+    try {
+      await loadRow(props.rowId)
+    } catch (e: any) {
+      if (e.response?.status === 404) {
+        // todo: i18n
+        message.error('Record not found')
+        router.replace({ query: {} })
+      } else throw e
+    }
+  }
+})
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 
@@ -141,6 +151,12 @@ export default {
     <div class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
+          <GeneralOverlay class="bg-gray-300/50" :model-value="isCommentsLoading" inline>
+            <div class="w-full h-full flex justify-center items-center">
+              <a-spin size="large" />
+            </div>
+          </GeneralOverlay>
+
           <div class="w-[500px] mx-auto">
             <div
               v-for="col of fields"

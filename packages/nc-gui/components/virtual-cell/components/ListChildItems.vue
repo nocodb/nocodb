@@ -177,16 +177,14 @@ watch(
       />
     </div>
 
-    <Suspense>
-      <LazySmartsheetExpandedForm
-        v-if="expandedFormRow && expandedFormDlg"
-        v-model="expandedFormDlg"
-        :row="{ row: expandedFormRow }"
-        :meta="relatedTableMeta"
-        load-row
-        use-meta-fields
-      />
-    </Suspense>
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormRow && expandedFormDlg"
+      v-model="expandedFormDlg"
+      :row="{ row: expandedFormRow }"
+      :meta="relatedTableMeta"
+      load-row
+      use-meta-fields
+    />
   </component>
 </template>
 

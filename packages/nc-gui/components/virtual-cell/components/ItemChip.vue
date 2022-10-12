@@ -43,16 +43,14 @@ export default {
       <MdiCloseThick class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
     </div>
 
-    <Suspense>
-      <SmartsheetExpandedForm
-        v-if="!readOnly && !isLocked && expandedFormDlg"
-        v-model="expandedFormDlg"
-        :row="{ row: item, rowMeta: {}, oldRow: { ...item } }"
-        :meta="relatedTableMeta"
-        load-row
-        use-meta-fields
-      />
-    </Suspense>
+    <SmartsheetExpandedForm
+      v-if="!readOnly && !isLocked && expandedFormDlg"
+      v-model="expandedFormDlg"
+      :row="{ row: item, rowMeta: {}, oldRow: { ...item } }"
+      :meta="relatedTableMeta"
+      load-row
+      use-meta-fields
+    />
   </div>
 </template>
 

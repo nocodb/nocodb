@@ -211,7 +211,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const loadRow = async (rowId?: string) => {
-    const record = await $api.dbTableRow.read(
+    const record = await api.dbTableRow.read(
       NOCO,
       // todo: project_id missing on view type
       (project?.value?.id || (sharedView.value?.view as any)?.project_id) as string,

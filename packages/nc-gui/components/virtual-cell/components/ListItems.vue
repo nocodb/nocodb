@@ -157,16 +157,14 @@ watch(expandedFormDlg, (nexVal) => {
 
       <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
-      <Suspense>
-        <LazySmartsheetExpandedForm
-          v-if="expandedFormDlg"
-          v-model="expandedFormDlg"
-          :meta="relatedTableMeta"
-          :row="{ row: {}, oldRow: {}, rowMeta: { new: true } }"
-          :state="newRowState"
-          use-meta-fields
-        />
-      </Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormDlg"
+        v-model="expandedFormDlg"
+        :meta="relatedTableMeta"
+        :row="{ row: {}, oldRow: {}, rowMeta: { new: true } }"
+        :state="newRowState"
+        use-meta-fields
+      />
     </div>
   </a-modal>
 </template>

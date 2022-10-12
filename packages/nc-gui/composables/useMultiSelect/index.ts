@@ -40,7 +40,6 @@ export function useMultiSelect(
     clearRangeRows()
     selected.row = row
     selected.col = col
-    scrollToActiveCell?.()
   }
 
   function selectBlock(row: number, col: number) {

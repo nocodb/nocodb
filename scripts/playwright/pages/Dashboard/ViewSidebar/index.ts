@@ -1,6 +1,5 @@
-// playwright-dev-page.ts
-import { Locator, Page, expect } from "@playwright/test";
-import { DashboardPage } from "..";
+import { Locator } from "@playwright/test";
+import { DashboardPage } from "../";
 import BasePage from "../../Base";
 
 export class ViewSidebarPage extends BasePage {

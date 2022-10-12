@@ -211,12 +211,6 @@ function openDeleteDialog(view: Record<string, any>) {
     close(1000)
   }
 }
-
-watch(views, (nextViews) => {
-  if (nextViews?.length && (!activeView.value || !nextViews.includes(activeView.value))) {
-    activeView.value = nextViews[0]
-  }
-})
 </script>
 
 <template>

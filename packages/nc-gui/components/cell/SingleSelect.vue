@@ -1,6 +1,7 @@
 <script lang="ts" setup>
+import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
-import type { SelectOptionsType } from 'nocodb-sdk'
+import type { SelectOptionType } from 'nocodb-sdk'
 import { ActiveCellInj, ColumnInj, IsKanbanInj, ReadonlyInj, computed, inject, ref, useEventListener, watch } from '#imports'
 
 interface Props {
@@ -28,11 +29,11 @@ const vModel = computed({
   set: (val) => emit('update:modelValue', val || null),
 })
 
-const options = computed<SelectOptionsType[]>(() => {
+const options = computed<SelectOptionType[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
-        (column.value.colOptions as any).options.filter((el: SelectOptionsType) => el.title !== '') || []
+        (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
     for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
@@ -82,7 +83,17 @@ watch(isOpen, (n, _o) => {
   >
     <a-select-option v-for="op of options" :key="op.title" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
-        <span class="text-slate-500" :class="{ 'text-sm': isKanban }">{{ op.title }}</span>
+        <span
+          :style="{
+            'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+              ? '#fff'
+              : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+            'font-size': '13px',
+          }"
+          :class="{ 'text-sm': isKanban }"
+        >
+          {{ op.title }}
+        </span>
       </a-tag>
     </a-select-option>
   </a-select>

@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
+import { SelectOptionType } from 'nocodb-sdk'
 import type { SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
@@ -41,13 +43,13 @@ const isOpen = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const options = computed<SelectOptionsType[]>(() => {
+const options = computed<SelectOptionType[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
-      ? (column.value.colOptions as any).options.filter((el: any) => el.title !== '') || []
+      ? (column.value.colOptions as SelectOptionsType).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
-    for (const op of opts.filter((el: any) => el.order === null)) {
-      op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+    for (const op of opts.filter((el: SelectOptionType) => el.order === null)) {
+      op.title = op.title?.replace(/^'/, '').replace(/'$/, '')
     }
     return opts
   }
@@ -55,7 +57,7 @@ const options = computed<SelectOptionsType[]>(() => {
 })
 
 const vModel = computed({
-  get: () => selectedIds.value.map((el) => options.value.find((op) => op.id === el)?.title),
+  get: () => selectedIds.value.map((el) => options.value.find((op) => op.id === el)?.title) as string[],
   set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
 })
 
@@ -144,7 +146,17 @@ watch(isOpen, (n, _o) => {
   >
     <a-select-option v-for="op of options" :key="op.id" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
-        <span class="text-slate-500" :class="{ 'text-sm': isKanban }">{{ op.title }}</span>
+        <span
+          :style="{
+            'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+              ? '#fff'
+              : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+            'font-size': '13px',
+          }"
+          :class="{ 'text-sm': isKanban }"
+        >
+          {{ op.title }}
+        </span>
       </a-tag>
     </a-select-option>
 
@@ -153,12 +165,27 @@ watch(isOpen, (n, _o) => {
         v-if="options.find((el) => el.title === val)"
         class="rounded-tag"
         :style="{ display: 'flex', alignItems: 'center' }"
-        :color="options.find((el) => el.title === val).color"
+        :color="options.find((el) => el.title === val)?.color"
         :closable="active && (vModel.length > 1 || !column?.rqd)"
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"
       >
-        <span class="w-full text-slate-500" :class="{ 'text-sm': isKanban }">{{ val }}</span>
+        <span
+          :style="{
+            'color': tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
+              level: 'AA',
+              size: 'large',
+            })
+              ? '#fff'
+              : tinycolor
+                  .mostReadable(options.find((el) => el.title === val)?.color || '#ccc', ['#0b1d05', '#fff'])
+                  .toHex8String(),
+            'font-size': '13px',
+          }"
+          :class="{ 'text-sm': isKanban }"
+        >
+          {{ val }}
+        </span>
       </a-tag>
     </template>
   </a-select>
@@ -188,8 +215,7 @@ watch(isOpen, (n, _o) => {
   color: rgba(0, 0, 0, 0.45);
 }
 .rounded-tag {
-  padding: 0px 12px;
-  border-radius: 12px;
+  @apply py-0 px-[12px] rounded-[12px];
 }
 :deep(.ant-tag) {
   @apply "rounded-tag" my-[2px];

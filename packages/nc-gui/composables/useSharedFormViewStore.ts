@@ -1,5 +1,5 @@
 import useVuelidate from '@vuelidate/core'
-import { minLength, required } from '@vuelidate/validators'
+import { helpers, minLength, required } from '@vuelidate/validators'
 import type { Ref } from 'vue'
 import type { ColumnType, FormType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
@@ -13,6 +13,7 @@ import {
   provide,
   ref,
   useApi,
+  useI18n,
   useInjectionState,
   useMetas,
   useProvideSmartsheetRowStore,
@@ -42,6 +43,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { metas, setMeta } = useMetas()
 
+  const { t } = useI18n()
+
   const formState = ref({})
 
   const { state: additionalState } = useProvideSmartsheetRowStore(
@@ -53,9 +56,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
+  const fieldRequired = (fieldName = 'Value') => helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
+
   const formColumns = computed(() =>
     columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord),
   )
+
   const loadSharedView = async () => {
     passwordError.value = null
 
@@ -105,7 +111,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         !isVirtualCol(column) &&
         ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
       ) {
-        obj.localState[column.title!] = { required }
+        obj.localState[column.title!] = { required: fieldRequired(column.label || column.title) }
       } else if (
         column.uidt === UITypes.LinkToAnotherRecord &&
         column.colOptions &&
@@ -115,13 +121,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
         if ((col && col.rqd && !col.cdf) || column.required) {
           if (col) {
-            obj.virtual[column.title!] = { required }
+            obj.virtual[column.title!] = { required: fieldRequired(column.label || column.title) }
           }
         }
       } else if (isVirtualCol(column) && column.required) {
         obj.virtual[column.title!] = {
           minLength: minLength(1),
-          required,
+          required: fieldRequired(column.label || column.title),
         }
       }
     }

@@ -79,7 +79,7 @@ provide(TabMetaInj, activeTab)
       </Transition>
     </div>
 
-    <LazySmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
+    <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
   </div>
 </template>
 

@@ -4,10 +4,12 @@ import { unref, useNuxtApp, watch } from '#imports'
 
 export function useViews(meta: MaybeRef<TableType | undefined>) {
   let views = $ref<ViewType[]>([])
+  let isLoading = $ref(false)
 
   const { $api } = useNuxtApp()
 
   const loadViews = async () => {
+    isLoading = true
     const _meta = unref(meta)
 
     if (_meta && _meta.id) {
@@ -16,9 +18,11 @@ export function useViews(meta: MaybeRef<TableType | undefined>) {
         views = response.sort((a, b) => a.order! - b.order!)
       }
     }
+
+    isLoading = false
   }
 
   watch(() => meta, loadViews, { immediate: true })
 
-  return { views: $$(views), loadViews }
+  return { views: $$(views), isLoading: $$(isLoading), loadViews }
 }

@@ -21,7 +21,7 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { views, loadViews } = useViews(meta)
+const { views, loadViews, isLoading } = useViews(meta)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -124,11 +124,15 @@ function openCreateDialog({
     theme="light"
   >
     <LazySmartsheetSidebarToolbar
-      v-if="isOpen"
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     />
 
-    <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
+    <div class="flex-1 flex flex-col min-h-0">
+      <GeneralOverlay :model-value="isLoading" inline class="bg-gray-300/50">
+        <div class="w-full h-full flex items-center justify-center">
+          <a-spin />
+        </div>
+      </GeneralOverlay>
       <LazySmartsheetSidebarMenuTop :views="views" @open-modal="openCreateDialog" @deleted="loadViews" />
 
       <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="!my-3 w-full border-b-1" />

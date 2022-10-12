@@ -22,7 +22,7 @@ export function useViews(meta: MaybeRef<TableType | undefined>) {
     isLoading.value = false
   }
 
-  watch(() => meta, loadViews, { immediate: true })
+  watch(() => unref(meta), loadViews, { immediate: true })
 
   return { views, isLoading, loadViews }
 }

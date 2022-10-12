@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import type { ViewType, ViewTypes } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
-import type { Menu as AntMenu } from 'ant-design-vue'
 import Sortable from 'sortablejs'
+import type { Menu as AntMenu } from 'ant-design-vue'
 import {
   ActiveViewInj,
   extractSdkResponseErrorMsg,
@@ -149,9 +150,10 @@ const initSortable = (el: HTMLElement) => {
 onMounted(() => menuRef && initSortable(menuRef.$el))
 
 /** Navigate to view by changing url param */
-function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
+function changeView(view: ViewType) {
   router.push({ params: { viewTitle: view.title || '' } })
-  if (view.type === 1 && selected.value[0] === view.id) {
+
+  if (view.type === ViewTypes.FORM && selected.value[0] === view.id) {
     // reload the page if the same form view is clicked
     // router.go(0)
     // fix me: router.go(0) reloads entire page. need to reload only the form view
@@ -183,7 +185,7 @@ async function onRename(view: ViewType) {
 }
 
 /** Open delete modal */
-function openDeleteDialog(view: Record<string, any>) {
+function openDeleteDialog(view: ViewType) {
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgViewDelete'), {
@@ -229,7 +231,7 @@ function openDeleteDialog(view: Record<string, any>) {
       }"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
-      @delete="openDeleteDialog(view)"
+      @delete="openDeleteDialog"
       @rename="onRename"
     />
   </a-menu>

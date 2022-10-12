@@ -430,7 +430,7 @@ watch(view, async (nextView) => {
                                 @click="expandFormClick($event, record)"
                                 @contextmenu="showContextMenu($event, record)"
                               >
-                                <template v-if="kanbanMetaData.fk_cover_image_col_id" #cover>
+                                <template v-if="kanbanMetaData?.fk_cover_image_col_id" #cover>
                                   <a-carousel
                                     v-if="!reloadAttachments && attachments(record).length"
                                     autoplay

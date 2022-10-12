@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   Empty,
@@ -11,6 +13,7 @@ import {
   createEventHook,
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
+  getDateFormat,
   getUIDTIcon,
   inject,
   message,
@@ -29,6 +32,8 @@ import { TabType } from '~/lib'
 const { quickImportType, projectTemplate, importData, importColumns, importOnly, maxRowsToParse } = defineProps<Props>()
 
 const emit = defineEmits(['import'])
+
+dayjs.extend(utc)
 
 const { t } = useI18n()
 
@@ -89,7 +94,11 @@ const uiTypeOptions = ref<Option[]>(
 
 const srcDestMapping = ref<Record<string, any>[]>([])
 
-const data = reactive<{ title: string | null; name: string; tables: (TableType & { ref_table_name: string })[] }>({
+const data = reactive<{
+  title: string | null
+  name: string
+  tables: (TableType & { ref_table_name: string; columns: (ColumnType & { _disableSelect?: boolean })[] })[]
+}>({
   title: null,
   name: 'Project Name',
   tables: [],
@@ -217,14 +226,29 @@ function setEditableTn(tableIdx: number, val: boolean) {
 }
 
 function remapColNames(batchData: any[], columns: ColumnType[]) {
+  const dateFormatMap: Record<number, string> = {}
   return batchData.map((data) =>
-    (columns || []).reduce(
-      (aggObj, col: Record<string, any>) => ({
+    (columns || []).reduce((aggObj, col: Record<string, any>) => {
+      let d = data[col.ref_column_name || col.column_name]
+      if (col.uidt === UITypes.Date && d) {
+        let dateFormat
+        if (col.key in dateFormatMap) {
+          dateFormat = dateFormatMap[col.key]
+        } else {
+          dateFormat = getDateFormat(d)
+          dateFormatMap[col.key] = dateFormat
+        }
+        d = dayjs(d).utc().format(dateFormat)
+      } else if (col.uidt === UITypes.DateTime && d) {
+        d = dayjs(data[col.ref_column_name || col.column_name])
+          .utc()
+          .format('YYYY-MM-DD HH:mm')
+      }
+      return {
         ...aggObj,
-        [col.column_name]: data[col.ref_column_name || col.column_name],
-      }),
-      {},
-    ),
+        [col.column_name]: d,
+      }
+    }, {}),
   )
 }
 
@@ -428,16 +452,22 @@ async function importTemplate() {
           }
         }
 
-        // set pk & rqd if ID is provided
         if (table.columns) {
           for (const column of table.columns) {
+            // set pk & rqd if ID is provided
             if (column.column_name?.toLowerCase() === 'id' && !('pk' in column)) {
               column.pk = true
               column.rqd = true
-              break
+            }
+            if (!isSystemColumn(column) && column.uidt !== UITypes.SingleSelect && column.uidt !== UITypes.MultiSelect) {
+              // delete dtxp if the final data type is not single & multi select
+              // e.g. import -> detect as single / multi select -> switch to SingleLineText
+              // the correct dtxp will be generated during column creation
+              delete column.dtxp
             }
           }
         }
+
         const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
           table_name: table.ref_table_name,
           // leave title empty to get a generated one based on ref_table_name
@@ -536,6 +566,10 @@ function handleEditableTnChange(idx: number) {
     }
   }
   setEditableTn(idx, false)
+}
+
+function isSelectDisabled(uidt: string, disableSelect = false) {
+  return (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) && disableSelect
 }
 </script>
 
@@ -649,7 +683,6 @@ function handleEditableTnChange(idx: number) {
                 <mdi-delete-outline v-if="data.tables.length > 1" class="text-lg mr-8" @click.stop="deleteTable(tableIdx)" />
               </a-tooltip>
             </template>
-
             <a-table
               v-if="table.columns && table.columns.length"
               class="template-form"
@@ -696,10 +729,23 @@ function handleEditableTnChange(idx: number) {
                       v-model:value="record.uidt"
                       class="w-52"
                       show-search
-                      :options="uiTypeOptions"
                       :filter-option="filterOption"
                       dropdown-class-name="nc-dropdown-template-uidt"
-                    />
+                    >
+                      <a-select-option
+                        v-for="(option, i) of uiTypeOptions"
+                        :key="i"
+                        :value="option.value"
+                        :disabled="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)"
+                      >
+                        <a-tooltip placement="right">
+                          <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
+                            The field is too large to be converted to {{ option.label }}
+                          </template>
+                          {{ option.label }}
+                        </a-tooltip>
+                      </a-select-option>
+                    </a-select>
                   </a-form-item>
                 </template>
 

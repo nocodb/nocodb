@@ -72,6 +72,9 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   parse() {
     const tableNamePrefixRef: Record<string, any> = {}
 
+    // TODO: find the upper bound / make it configurable
+    const maxSelectOptionsAllowed = 64
+
     for (let i = 0; i < this.wb.SheetNames.length; i++) {
       const columnNamePrefixRef: Record<string, any> = { id: 0 }
       const sheet: any = this.wb.SheetNames[i]
@@ -128,8 +131,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           ref_column_name: cn,
         }
 
-        table.columns.push(column)
-
         // const cellId = `${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`;
         const cellId = this.xlsx.utils.encode_cell({
           c: range.s.c + col,
@@ -153,11 +154,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             if (checkboxType.length === 1) {
               column.uidt = UITypes.Checkbox
             } else {
-              // todo: optimize
-              // check column is multi or single select by comparing unique values
-              // todo:
               if (vals.some((v: any) => v && v.toString().includes(','))) {
-                let flattenedVals = vals.flatMap((v: any) =>
+                const flattenedVals = vals.flatMap((v: any) =>
                   v
                     ? v
                         .toString()
@@ -165,19 +163,41 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                         .split(/\s*,\s*/)
                     : [],
                 )
-                const uniqueVals = (flattenedVals = flattenedVals.filter(
-                  (v: any, i: any, arr: any) => i === arr.findIndex((v1: any) => v.toLowerCase() === v1.toLowerCase()),
-                ))
-                if (flattenedVals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(flattenedVals.length / 2)) {
-                  column.uidt = UITypes.MultiSelect
+
+                // TODO: handle case sensitive case
+                const uniqueVals = [...new Set(flattenedVals.map((v: any) => v.toString().trim().toLowerCase()))]
+
+                if (uniqueVals.length > maxSelectOptionsAllowed) {
+                  // too many options are detected, convert the column to SingleLineText instead
+                  column.uidt = UITypes.SingleLineText
+                  // _disableSelect is used to disable the <a-select-option/> in TemplateEditor
+                  column._disableSelect = true
+                } else {
+                  // assume the column type is multiple select if there are repeated values
+                  if (flattenedVals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(flattenedVals.length / 2)) {
+                    column.uidt = UITypes.MultiSelect
+                  }
+                  // set dtxp here so that users can have the options even they switch the type from other types to MultiSelect
+                  // once it's set, dtxp needs to be reset if the final column type is not MultiSelect
                   column.dtxp = `'${uniqueVals.join("','")}'`
                 }
               } else {
-                const uniqueVals = vals
-                  .map((v: any) => v.toString().trim())
-                  .filter((v: any, i: any, arr: any) => i === arr.findIndex((v1: any) => v.toLowerCase() === v1.toLowerCase()))
-                if (vals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(vals.length / 2)) {
-                  column.uidt = UITypes.SingleSelect
+                // TODO: handle case sensitive case
+                const uniqueVals = [...new Set(vals.map((v: any) => v.toString().trim().toLowerCase()))]
+
+                if (uniqueVals.length > maxSelectOptionsAllowed) {
+                  // too many options are detected, convert the column to SingleLineText instead
+                  column.uidt = UITypes.SingleLineText
+                  // _disableSelect is used to disable the <a-select-option/> in TemplateEditor
+                  column._disableSelect = true
+                } else {
+                  // assume the column type is single select if there are repeated values
+                  // once it's set, dtxp needs to be reset if the final column type is not Single Select
+                  if (vals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(vals.length / 2)) {
+                    column.uidt = UITypes.SingleSelect
+                  }
+                  // set dtxp here so that users can have the options even they switch the type from other types to SingleSelect
+                  // once it's set, dtxp needs to be reset if the final column type is not SingleSelect
                   column.dtxp = `'${uniqueVals.join("','")}'`
                 }
               }
@@ -220,6 +240,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             column.uidt = UITypes.Date
           }
         }
+        table.columns.push(column)
       }
 
       let rowIndex = 0

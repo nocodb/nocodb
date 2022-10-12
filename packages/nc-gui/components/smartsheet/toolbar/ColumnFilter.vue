@@ -87,7 +87,7 @@ watch(
   () => activeView.value?.id,
   (n, o) => {
     if (!nested && n !== o && (hookId || !webHook)) loadFilters(hookId as string)
-  }
+  },
 )
 
 loadFilters(hookId as string)

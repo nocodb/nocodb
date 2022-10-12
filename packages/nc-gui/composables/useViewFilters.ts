@@ -13,9 +13,8 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
-import type { TabItem } from '~/composables/useTabs'
 import { TabMetaInj } from '~/context'
-import type { Filter } from '~/lib'
+import type { Filter, TabItem } from '~/lib'
 
 export function useViewFilters(
   view: Ref<ViewType | undefined>,
@@ -53,7 +52,7 @@ export function useViewFilters(
         currentFilters = value
         if (isNestedRoot) {
           nestedFilters.value = value
-          tabMeta.value.filterState!.set(view!.value.id!, nestedFilters.value)
+          tabMeta.value.filterState!.set(view.value!.id!, nestedFilters.value)
         }
         nestedFilters.value = [...nestedFilters.value]
         reloadHook?.trigger()
@@ -77,8 +76,8 @@ export function useViewFilters(
 
   const loadFilters = async (hookId?: string) => {
     if (nestedMode.value) {
-      if (isNestedRoot)
-        filters.value = tabMeta.value.filterState!.get(view.value.id!) || []
+      // ignore restoring if not root filter group
+      if (isNestedRoot) filters.value = tabMeta.value.filterState!.get(view.value!.id!) || []
       return
     }
 

@@ -13,7 +13,7 @@ import {
   useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
-import { TabItem } from '~/lib'
+import type { TabItem } from '~/lib'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
   const { sharedView } = useSharedView()
@@ -42,7 +42,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
     try {
       if (!isUIAllowed('sortSync')) {
-        const sortsBackup = tabMeta.value.sortsState.get(view.value.id!)
+        const sortsBackup = tabMeta.value.sortsState!.get(view.value!.id!)
         if (sortsBackup) {
           sorts.value = sortsBackup
           return
@@ -61,7 +61,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       sorts.value[i] = sort
       sorts.value = [...sorts.value]
       reloadHook?.trigger()
-      tabMeta.value.sortsState.set(view.value.id!, sorts.value)
+      tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
       return
     }
 
@@ -91,7 +91,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
     $e('a:sort:add', { length: sorts?.value?.length })
 
-    tabMeta.value.sortsState.set(view.value.id!, sorts.value)
+    tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
   }
 
   const deleteSort = async (sort: SortType, i: number) => {
@@ -102,7 +102,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       sorts.value.splice(i, 1)
       sorts.value = [...sorts.value]
 
-      tabMeta.value.sortsState.set(view.value.id!, sorts.value)
+      tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
 
       reloadHook?.trigger()
       $e('a:sort:delete')

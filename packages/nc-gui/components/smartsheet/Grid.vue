@@ -293,7 +293,7 @@ async function reloadViewDataHandler(shouldShowLoading: boolean | void) {
 }
 
 async function openNewRecordHandler() {
-  const newRow = await addEmptyRow()
+  const newRow = addEmptyRow()
   expandForm(newRow, undefined, true)
 }
 

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npx playwright test --workers=4",
-    "test-debug": "PWDEBUG=console npx playwright test -c playwright.config.ts test --headed --project=chromium --repeat-each 1 --retries 0 --timeout 0 --workers 1 --max-failures=1",
+    "test-debug": "./startPlayWrightServer.sh; PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:3010/ npx playwright test -c playwright.config.ts --headed --project=chromium --repeat-each 1 --retries 0 --timeout 0 --workers 1 --max-failures=1",
     "ci-test-mysql": "E2E_TYPE=mysql npx playwright test --workers=2"
   },
   "keywords": [],

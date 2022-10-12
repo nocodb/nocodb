@@ -38,7 +38,9 @@ const meta = computed<TableType | undefined>(() => activeTab.value && metas.valu
 const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
 const reloadEventHook = createEventHook<void | boolean>()
+
 const reloadViewMetaEventHook = createEventHook<void | boolean>()
+
 const openNewRecordFormHook = createEventHook<void>()
 
 useProvideKanbanViewStore(meta, activeView)

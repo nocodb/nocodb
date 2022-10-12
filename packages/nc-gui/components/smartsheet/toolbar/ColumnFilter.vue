@@ -86,6 +86,7 @@ const types = computed(() => {
 watch(
   () => activeView.value?.id,
   (n, o) => {
+    // if nested no need to reload since it will get reloaded from parent
     if (!nested && n !== o && (hookId || !webHook)) loadFilters(hookId as string)
   },
 )
@@ -154,6 +155,7 @@ defineExpose({
             <div class="col-span-5">
               <LazySmartsheetToolbarColumnFilter
                 v-if="filter.id || filter.children"
+                :key="filter.id ?? i"
                 ref="localNestedFilters"
                 v-model="filter.children"
                 :parent-id="filter.id"

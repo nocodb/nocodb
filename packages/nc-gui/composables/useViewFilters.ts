@@ -25,6 +25,7 @@ export function useViewFilters(
   isNestedRoot?: boolean,
 ) {
   let currentFilters = $ref(_currentFilters)
+
   const reloadHook = inject(ReloadViewDataHookInj)
 
   const { nestedFilters } = useSmartsheetStoreOrThrow()
@@ -41,7 +42,7 @@ export function useViewFilters(
 
   const nestedMode = computed(() => isPublic.value || !isUIAllowed('filte rSync') || !isUIAllowed('filterChildrenRead'))
 
-  const tabMeta = inject(TabMetaInj, ref({ filterState: new Map() } as TabItem))
+  const tabMeta = inject(TabMetaInj, ref({ filterState: new Map(), sortsState: new Map() } as TabItem))
 
   const filters = computed<Filter[]>({
     get: () => {

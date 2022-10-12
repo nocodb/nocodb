@@ -235,7 +235,8 @@ const onNavigate = (dir: NavigateDir) => {
       if (selected.row < data.value.length - 1) {
         selected.row++
       } else {
-        editEnabled = false
+        addEmptyRow()
+        selected.row++
       }
       break
     case NavigateDir.PREV:
@@ -292,7 +293,7 @@ async function reloadViewDataHandler(shouldShowLoading: boolean | void) {
 }
 
 async function openNewRecordHandler() {
-  const newRow = await addEmptyRow()
+  const newRow = addEmptyRow()
   expandForm(newRow, undefined, true)
 }
 

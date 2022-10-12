@@ -42,7 +42,7 @@ interface Form {
   fk_grp_col_id: string | null
 }
 
-const { views = [], meta, selectedViewId, ...props } = defineProps<Props>()
+const { views = [], meta, selectedViewId, groupingFieldColumnId, ...props } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
@@ -122,9 +122,9 @@ function init() {
         }
       })
 
-    if (props.groupingFieldColumnId) {
+    if (groupingFieldColumnId) {
       // take from the one from copy view
-      form.fk_grp_col_id = props.groupingFieldColumnId
+      form.fk_grp_col_id = groupingFieldColumnId
     } else {
       // take the first option
       form.fk_grp_col_id = singleSelectFieldOptions.value?.[0]?.value as string
@@ -202,7 +202,7 @@ async function onSubmit() {
           v-model:value="form.fk_grp_col_id"
           class="w-full nc-kanban-grouping-field-select"
           :options="singleSelectFieldOptions"
-          :disabled="props.groupingFieldColumnId"
+          :disabled="groupingFieldColumnId"
           placeholder="Select a Grouping Field"
           not-found-content="No Single Select Field can be found. Please create one first."
         />

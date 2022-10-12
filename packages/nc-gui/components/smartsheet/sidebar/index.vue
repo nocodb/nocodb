@@ -72,7 +72,7 @@ watch(
 )
 
 /** Open delete modal */
-function openCreateDialog({
+function onOpenModal({
   title = '',
   type,
   copyViewId,
@@ -83,6 +83,7 @@ function openCreateDialog({
   copyViewId?: string
   groupingFieldColumnId?: string
 }) {
+  console.log(type)
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgViewCreate'), {
@@ -134,12 +135,12 @@ function openCreateDialog({
         </div>
       </GeneralOverlay>
 
-      <LazySmartsheetSidebarMenuTop :views="views" @open-modal="openCreateDialog" @deleted="loadViews" />
+      <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
 
       <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
         <div class="!my-3 w-full border-b-1" />
 
-        <LazySmartsheetSidebarMenuBottom @open-modal="openCreateDialog" />
+        <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
       </template>
     </div>
   </a-layout-sider>

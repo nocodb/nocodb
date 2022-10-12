@@ -14,7 +14,7 @@ export class CellPageObject extends BasePage {
   }
 
   get({index, columnHeader}: {index: number, columnHeader: string}): Locator {
-    return this.grid.get().locator(`td[data-pw=cell-${columnHeader}-${index}]`);
+    return this.grid.get().locator(`td[data-pw="cell-${columnHeader}-${index}"]`);
   }
 
   async click({index, columnHeader}: {index: number, columnHeader: string}) {

@@ -13,7 +13,7 @@ export class TreeViewPage extends BasePage {
   }
 
   get() {
-    return this.dashboard.get().locator(".nc-treeview-container");;
+    return this.dashboard.get().locator(".nc-treeview-container");
   }
 
   async focusTable({ title }: { title: string }) {
@@ -22,6 +22,14 @@ export class TreeViewPage extends BasePage {
 
   async openTable({ title }: { title: string }) {
     await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
+
+    await expect(this.rootPage).toHaveURL(
+      `/#/nc/${this.project.id}/table/${title}`
+    );
+    await this.dashboard
+      .get()
+      .locator('[pw-data="grid-load-spinner"]')
+      .waitFor({ state: "hidden" });
   }
 
   async createTable({ title }: { title: string }) {

@@ -30,7 +30,7 @@ export class DashboardPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator('html');
+    return this.rootPage.locator("html");
   }
 
   async goto() {
@@ -48,5 +48,14 @@ export class DashboardPage extends BasePage {
     await this.tabBar
       .textContent()
       .then((text) => expect(text).toContain(title));
+  }
+
+  async closeTab({ title }: { title: string }) {
+    let tab = await this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`);
+    await tab.locator("button.ant-tabs-tab-remove").click();
+
+    // fix me!
+    // await tab.waitFor({ state: "detached" });
+    await this.rootPage.waitForTimeout(2000);
   }
 }

@@ -168,7 +168,12 @@ const getUIDTIcon = (uidt: UITypes | string) => {
   ).icon
 }
 
-const isColumnRequired = (col?: ColumnType) => col && col.rqd && !col.cdf && !col.ai
+// treat column as required if `non_null` is true and one of the following is true
+// 1. column not having default value
+// 2. column is not auto increment
+// 3. column is not auto generated
+const isColumnRequired = (col?: ColumnType) => col && col.rqd && !col.cdf && !col.ai && !col.meta?.ag
+
 const isVirtualColRequired = (col: ColumnType, columns: ColumnType[]) =>
   col.uidt === UITypes.LinkToAnotherRecord &&
   (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO &&

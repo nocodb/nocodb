@@ -84,7 +84,6 @@ function onOpenModal({
   copyViewId?: string
   groupingFieldColumnId?: string
 }) {
-  console.log(type)
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgViewCreate'), {
@@ -94,7 +93,7 @@ function onOpenModal({
     meta,
     'selectedViewId': copyViewId,
     groupingFieldColumnId,
-    'viewList': views,
+    'views': views,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()

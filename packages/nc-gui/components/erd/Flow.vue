@@ -34,7 +34,7 @@ onScopeDispose($destroy)
 </script>
 
 <template>
-  <VueFlow v-model="elements" elevate-edges-on-select>
+  <VueFlow v-model="elements">
     <Controls position="top-right" :show-fit-view="false" :show-interactive="false" />
 
     <template #node-custom="{ data }">
@@ -64,3 +64,9 @@ onScopeDispose($destroy)
     </div>
   </VueFlow>
 </template>
+
+<style>
+.vue-flow__edges {
+  z-index: 2000 !important;
+}
+</style>

@@ -4,6 +4,7 @@ import dagre from 'dagre'
 import type { Edge, Elements } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
 import { Position, isEdge, isNode } from '@vue-flow/core'
+import { scaleLinear as d3ScaleLinear } from 'd3-scale'
 import { computed, ref, unref, useMetas } from '#imports'
 
 export interface ErdFlowConfig {
@@ -25,6 +26,8 @@ interface Relation {
 
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ErdFlowConfig>) {
   const elements = ref<Elements>([])
+
+  const colorScale = d3ScaleLinear<string>().domain([0, 4]).range(['#ff0072', '#0041d0'])
 
   const dagreGraph = new dagre.graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))
@@ -213,6 +216,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
         el.targetPosition = Position.Left
         el.sourcePosition = Position.Right
         el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
+        el.class = 'rounded-lg'
+        el.style = { boxShadow: `0 0 0 2px ${colorScale(dagreGraph.predecessors(el.id)!.length)}` }
       }
     })
   }

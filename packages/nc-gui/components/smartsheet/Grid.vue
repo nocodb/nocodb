@@ -188,11 +188,14 @@ watch(contextMenu, () => {
   }
 })
 
+const rowRefs = $ref<any[]>()
+
 async function clearCell(ctx: { row: number; col: number }) {
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
+    await rowRefs[ctx.row]!.clearLTARCell(columnObj)
     return
   }
 
@@ -255,8 +258,7 @@ const onNavigate = (dir: NavigateDir) => {
       if (selected.row < data.value.length - 1) {
         selected.row++
       } else {
-        addEmptyRow()
-        selected.row++
+        editEnabled = false
       }
       break
     case NavigateDir.PREV:
@@ -276,8 +278,6 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
     contextMenuTarget.value = target
   }
 }
-
-const rowRefs = $ref<any[]>()
 
 const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any } = {}) => {
   let index = -1
@@ -584,7 +584,11 @@ watch(
 
             <!--            Clear cell -->
             <a-menu-item
-              v-if="contextMenuTarget && !isVirtualCol(fields[contextMenuTarget.col])"
+              v-if="
+                contextMenuTarget &&
+                (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
+                  !isVirtualCol(fields[contextMenuTarget.col]))
+              "
               @click="clearCell(contextMenuTarget)"
             >
               <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>

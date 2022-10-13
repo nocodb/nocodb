@@ -1,5 +1,5 @@
-import { UITypes } from 'nocodb-sdk'
-import type { ColumnType, LinkToAnotherRecordType, RelationTypes, TableType } from 'nocodb-sdk'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
 import {
@@ -120,6 +120,48 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       }
     }
 
+    // clear LTAR cell
+    const clearLTARCell = async (column: ColumnType) => {
+      try {
+        if (!column || column.uidt !== UITypes.LinkToAnotherRecord) return
+
+        const relatedTableMeta = metas.value?.[(<LinkToAnotherRecordType>column?.colOptions)?.fk_related_model_id as string]
+
+        if (isNew.value) {
+          state.value[column.title!] = null
+        } else if (currentRow.value) {
+          if ((<LinkToAnotherRecordType>column.colOptions)?.type === RelationTypes.BELONGS_TO) {
+            if (!currentRow.value.row[column.title!]) return
+            await $api.dbTableRow.nestedRemove(
+              NOCO,
+              project.value.title as string,
+              meta.value?.title as string,
+              extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[]),
+              'bt' as any,
+              column.title as string,
+              extractPkFromRow(currentRow.value.row[column.title!], relatedTableMeta?.columns as ColumnType[]),
+            )
+            currentRow.value.row[column.title!] = null
+          } else {
+            for (const link of (currentRow.value.row[column.title!] as Record<string, any>[]) || []) {
+              await $api.dbTableRow.nestedRemove(
+                NOCO,
+                project.value.title as string,
+                meta.value?.title as string,
+                extractPkFromRow(currentRow.value.row, meta.value?.columns as ColumnType[]),
+                (<LinkToAnotherRecordType>column?.colOptions).type as 'hm' | 'mm',
+                column.title as string,
+                extractPkFromRow(link, relatedTableMeta?.columns as ColumnType[]),
+              )
+            }
+            currentRow.value.row[column.title!] = []
+          }
+        }
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    }
+
     const loadRow = async () => {
       const record = await $api.dbTableRow.read(
         NOCO,
@@ -144,6 +186,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       syncLTARRefs,
       loadRow,
       currentRow,
+      clearLTARCell,
     }
   },
   'smartsheet-row-store',

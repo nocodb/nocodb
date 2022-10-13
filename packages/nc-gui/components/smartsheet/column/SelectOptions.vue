@@ -146,12 +146,16 @@ watch(inputs, () => {
                   @update:model-value="colorMenus[index] = false"
                 />
               </template>
-              <MdiArrowDownDropCircle :style="{ 'font-size': '1.5em', 'color': element.color }" class="mr-2" />
+              <MdiArrowDownDropCircle
+                class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em]"
+                :class="{ 'text-[1.75em]': colorMenus[index] }"
+                :style="{ color: element.color }"
+              />
             </a-dropdown>
 
             <a-input ref="inputs" v-model:value="element.title" class="caption" @change="optionChanged(element.id)" />
 
-            <MdiClose class="ml-2" :style="{ color: 'red' }" @click="removeOption(index)" />
+            <MdiClose class="ml-2 hover:!text-black" :style="{ color: 'red' }" @click="removeOption(index)" />
           </div>
         </template>
         <template #footer>

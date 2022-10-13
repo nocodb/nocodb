@@ -28,7 +28,7 @@ export const getModelPaths = async (ctx: {
   [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}`]: {
     get: {
       summary: `${ctx.tableName} list`,
-      operationId: 'db-table-row-list',
+      operationId: `${ctx.tableName.toLowerCase()}-db-table-row-list`,
       description: `List of all rows from ${ctx.tableName} ${ctx.type} and response data fields can be filtered based on query params.`,
       tags: [ctx.tableName],
       parameters: [
@@ -172,7 +172,7 @@ export const getModelPaths = async (ctx: {
     {
       get: {
         summary: `${ctx.tableName} find-one`,
-        operationId: 'db-table-row-find-one',
+        operationId: `${ctx.tableName.toLowerCase()}-db-table-row-find-one`,
         description: `Find first record matching the conditions.`,
         tags: [ctx.tableName],
         parameters: [fieldsParam, whereParam, sortParam],

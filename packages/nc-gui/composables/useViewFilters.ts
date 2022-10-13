@@ -13,16 +13,19 @@ import {
   useUIPermission,
   watch,
 } from '#imports'
-import type { Filter } from '~/lib'
+import { TabMetaInj } from '~/context'
+import type { Filter, TabItem } from '~/lib'
 
 export function useViewFilters(
   view: Ref<ViewType | undefined>,
   parentId?: string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
-  currentFilters?: Filter[],
+  _currentFilters?: Filter[],
   isNestedRoot?: boolean,
 ) {
+  let currentFilters = $ref(_currentFilters)
+
   const reloadHook = inject(ReloadViewDataHookInj)
 
   const { nestedFilters } = useSmartsheetStoreOrThrow()
@@ -37,16 +40,23 @@ export function useViewFilters(
 
   const _filters = ref<Filter[]>([])
 
-  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync' || !isUIAllowed('filterChildrenRead')))
+  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filte rSync') || !isUIAllowed('filterChildrenRead'))
+
+  const tabMeta = inject(TabMetaInj, ref({ filterState: new Map(), sortsState: new Map() } as TabItem))
 
   const filters = computed<Filter[]>({
-    get: () => (nestedMode.value ? currentFilters! : _filters.value),
+    get: () => {
+      return nestedMode.value ? currentFilters! : _filters.value
+    },
     set: (value: Filter[]) => {
       if (nestedMode.value) {
         currentFilters = value
-        if (isNestedRoot) nestedFilters.value = value
-
+        if (isNestedRoot) {
+          nestedFilters.value = value
+          tabMeta.value.filterState!.set(view.value!.id!, nestedFilters.value)
+        }
         nestedFilters.value = [...nestedFilters.value]
+        reloadHook?.trigger()
         return
       }
 
@@ -66,7 +76,11 @@ export function useViewFilters(
   }
 
   const loadFilters = async (hookId?: string) => {
-    if (nestedMode.value) return
+    if (nestedMode.value) {
+      // ignore restoring if not root filter group
+      if (isNestedRoot) filters.value = tabMeta.value.filterState!.get(view.value!.id!) || []
+      return
+    }
 
     try {
       if (hookId) {

@@ -35,13 +35,13 @@ const fields = ref<ColumnType[]>([])
 
 const meta = computed<TableType | undefined>(() => activeTab.value && metas.value[activeTab.value.id!])
 
-const reloadEventHook = createEventHook()
-
 const { isGallery, isGrid, isForm, isKanban, isLocked } = useProvideSmartsheetStore(activeView, meta)
 
-const openNewRecordFormHook = createEventHook()
+const reloadEventHook = createEventHook<void | boolean>()
 
-const reloadViewMetaEventHook = createEventHook()
+const reloadViewMetaEventHook = createEventHook<void | boolean>()
+
+const openNewRecordFormHook = createEventHook<void>()
 
 useProvideKanbanViewStore(meta, activeView)
 

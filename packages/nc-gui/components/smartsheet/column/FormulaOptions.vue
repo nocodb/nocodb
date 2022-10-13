@@ -252,11 +252,15 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
     const formulaPaths = columns.value
       .filter((c: Record<string, any>) => c.id !== column.value?.id && c.uidt === UITypes.Formula)
       .reduce((res: Record<string, any>[], c: Record<string, any>) => {
-        // in `formula`, get all the target neighbours
+        // in `formula`, get all the (unique) target neighbours
         // i.e. all column id (e.g. cl_xxxxxxxxxxxxxx) with formula type
-        const neighbours = (c.colOptions.formula.match(/cl_\w{14}/g) || []).filter(
-          (colId: string) => columns.value.filter((col: ColumnType) => col.id === colId && col.uidt === UITypes.Formula).length,
-        )
+        const neighbours = [
+          ...new Set(
+            (c.colOptions.formula.match(/cl_\w{14}/g) || []).filter(
+              (colId: string) => columns.value.filter((col: ColumnType) => col.id === colId && col.uidt === UITypes.Formula).length,
+            ),
+          ),
+        ]
         if (neighbours.length > 0) {
           // e.g. formula column 1 -> [formula column 2, formula column3]
           res.push({ [c.id]: neighbours })

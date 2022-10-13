@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib'
 import {
   ReloadRowDataHookInj,
@@ -47,10 +46,7 @@ provide(ReloadRowDataHookInj, reloadHook)
 
 defineExpose({
   syncLTARRefs,
-  async clearLTARCell(column: ColumnType) {
-    await clearLTARCell(column)
-    reloadViewDataTrigger?.trigger(true)
-  },
+  clearLTARCell,
 })
 </script>
 

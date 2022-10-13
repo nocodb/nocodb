@@ -140,6 +140,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
             column.title as string,
             extractPkFromRow(currentRow.value.row[column.title!], relatedTableMeta?.columns as ColumnType[]),
           )
+          currentRow.value.row[column.title!] = null
         } else {
           for (const link of (currentRow.value.row[column.title!] as Record<string, any>[]) || []) {
             await $api.dbTableRow.nestedRemove(
@@ -151,6 +152,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
               column.title as string,
               extractPkFromRow(link, relatedTableMeta?.columns as ColumnType[]),
             )
+            currentRow.value.row[column.title!] = []
           }
         }
       }

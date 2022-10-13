@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { Edge, Node } from '@braks/vue-flow'
-import { Background, Controls, VueFlow, useVueFlow } from '@braks/vue-flow'
+import { Background, Controls } from '@vue-flow/additional-components'
+import type { Edge, Node } from '@vue-flow/core'
+import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
-import { onScopeDispose, watch } from '#imports'
+import { onScopeDispose, ref, useMetas, watch } from '#imports'
 
 interface Props {
   tables: any[]
@@ -21,7 +22,7 @@ const { tables, config } = defineProps<Props>()
 
 const { metasWithIdAsKey } = useMetas()
 
-const { $destroy, fitView } = useVueFlow()
+const { $destroy, fitView } = useVueFlow({ minZoom: 0.1, maxZoom: 2 })
 
 const nodes = ref<Node[]>([])
 const edges = ref<Edge[]>([])
@@ -129,7 +130,7 @@ const populateEdges = () => {
         isSelfRelation: source === target && sourceColumnId === targetColumnId,
         label: edgeLabel,
       },
-    }
+    } as Edge
   })
 }
 

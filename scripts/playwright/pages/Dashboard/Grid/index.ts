@@ -34,14 +34,14 @@ export class GridPage extends BasePage {
     if(rowCount + 1 !== await this.get().locator('.nc-grid-row').count()) {
       await this.get().locator('.nc-grid-add-new-cell').click();
     }
-    
+
     const cell = this.cell.get({index, columnHeader: 'Title'});
     await this.cell.dblclick({
       index,
       columnHeader: 'Title'
     });
 
-    
+
     await cell.locator('input').fill(title ?? `Row ${index}`);
     await cell.locator('input').press('Enter');
   }
@@ -84,5 +84,22 @@ export class GridPage extends BasePage {
       button: 'right'
     });
     await this.rootPage.locator('text=Delete Selected Rows').click();
+  }
+
+  async pagination({ page }: { page: string }) {
+    await this.get().locator(`.nc-pagination`).waitFor();
+
+    if (page === "<")
+      return this.get().locator(".nc-pagination > .ant-pagination-prev");
+    if (page === ">")
+      return this.get().locator(".nc-pagination > .ant-pagination-next");
+
+    return this.get().locator(
+      `.nc-pagination > .ant-pagination-item.ant-pagination-item-${page}`
+    );
+  }
+
+  async verifyActivePage({ page }: { page: string }) {
+    expect(await this.pagination({ page })).toHaveClass("ant-pagination-item-active");
   }
 }

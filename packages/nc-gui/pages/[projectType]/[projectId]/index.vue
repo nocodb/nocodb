@@ -29,7 +29,7 @@ definePageMeta({
   hideHeader: true,
 })
 
-const { theme } = useTheme()
+const { theme, defaultTheme } = useTheme()
 
 const { t } = useI18n()
 
@@ -71,9 +71,13 @@ function toggleDialog(value?: boolean, key?: string) {
   openDialogKey.value = key
 }
 
-const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: string) => {
+const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
   switch (mode) {
     case 'swatch': {
+      if (color === defaultTheme.primaryColor) {
+        return await saveTheme(defaultTheme)
+      }
+
       const tcolor = tinycolor(color)
       if (tcolor.isValid()) {
         const complement = tcolor.complement()
@@ -338,6 +342,7 @@ onBeforeUnmount(reset)
                           :colors="projectThemeColors"
                           :row-size="9"
                           :advanced="false"
+                          class="rounded-t"
                           @input="handleThemeColor('swatch', $event)"
                         />
 

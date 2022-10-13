@@ -21,10 +21,16 @@ export class ColumnPageObject extends BasePage {
     title,
     type = "SingleLineText",
     formula = "",
+    childTable = "",
+    childColumn = "",
+    rollupType = "",
   }: {
     title: string;
     type?: string;
     formula?: string;
+    childTable?: string;
+    childColumn?: string;
+    rollupType?: string;
   }) {
     await this.grid.get().locator(".nc-column-add").click();
     await this.rootPage.waitForTimeout(500);
@@ -51,6 +57,41 @@ export class ColumnPageObject extends BasePage {
         break;
       case "Formula":
         await this.get().locator(".nc-formula-input").fill(formula);
+        break;
+      case "Lookup":
+        await this.get().locator(".ant-select-single").nth(1).click();
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: childTable,
+          })
+          .click();
+        await this.get().locator(".ant-select-single").nth(2).click();
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: childColumn,
+          })
+          .click();
+        break;
+      case "Rollup":
+        await this.get().locator(".ant-select-single").nth(1).click();
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: childTable,
+          })
+          .click();
+        await this.get().locator(".ant-select-single").nth(2).click();
+        await this.rootPage
+          .locator(`.nc-dropdown-relation-column >> .ant-select-item`, {
+            hasText: childColumn,
+          })
+          .click();
+        await this.get().locator(".ant-select-single").nth(3).click();
+        await this.rootPage
+          .locator(`.nc-dropdown-rollup-function >> .ant-select-item`, {
+            hasText: rollupType,
+          })
+          .nth(0)
+          .click();
         break;
       default:
         break;

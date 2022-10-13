@@ -42,6 +42,7 @@ export class ToolbarFilterPage extends BasePage {
     await this.rootPage.locator(".nc-filter-value-select").last().fill(value);
 
     await this.toolbar.clickFilter();
+    await this.toolbar.grid.waitLoading();
   }
 
   click({ title }: { title: string }) {

@@ -55,7 +55,7 @@ export class GridPage extends BasePage {
     });
 
     await cell.locator("input").fill(title ?? `Row ${index}`);
-    await cell.locator("input").press("Enter");
+    await this.cell.grid.get().locator('[data-title="Title"]').locator('span[title="Title"]').click();
   }
 
   async verifyRow({ index }: { index: number }) {
@@ -124,7 +124,7 @@ export class GridPage extends BasePage {
     await this.rootPage.locator("text=Delete Selected Rows").click();
   }
 
-  async pagination({ page }: { page: string }) {
+  private async pagination({ page }: { page: string }) {
     await this.get().locator(`.nc-pagination`).waitFor();
 
     if (page === "<")
@@ -137,9 +137,20 @@ export class GridPage extends BasePage {
     );
   }
 
+  async clickPagination({ page }: { page: string }) {
+    (await this.pagination({ page })).click();
+    await this.waitLoading();
+  }
+
   async verifyActivePage({ page }: { page: string }) {
     expect(await this.pagination({ page })).toHaveClass(
       /ant-pagination-item-active/
     );
+  }
+
+  async waitLoading() {
+    await this.dashboard.get()
+      .locator('[pw-data="grid-load-spinner"]')
+      .waitFor({ state: "hidden" });
   }
 }

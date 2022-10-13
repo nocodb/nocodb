@@ -100,7 +100,12 @@ export class ColumnPageObject extends BasePage {
       .click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
 
-    await this.get().waitFor({ state: "visible" });
+    await this.get().waitFor({state: 'visible'});
+
+    // todo: Hack to wait for the modal to be fully loaded
+    await this.fillTitle({title: "dummy"});
+    await this.fillTitle({title});
+    await this.get().locator('label[title="Column Name"]').click();
   }
 
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {

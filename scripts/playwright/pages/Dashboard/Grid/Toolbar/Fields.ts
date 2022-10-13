@@ -21,4 +21,9 @@ export class ToolbarFieldsPage extends BasePage {
       .click();
     await this.toolbar.clickFields();
   }
+  
+  async click({ title}: { title: string }) {
+    await this.get().locator(`[pw-data="grid-fields-menu-${title}"]`).locator('input[type="checkbox"]').click();
+    await this.toolbar.grid.waitLoading();
+  }
 }

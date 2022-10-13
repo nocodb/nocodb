@@ -30,6 +30,8 @@ test.describe('Meta sync', () => {
   })
 
   test('Meta sync', async () => {
+    test.setTimeout(process.env.CI ? 100000 : 70000);
+
     await dashboard.gotoSettings();
     await settings.selectTab({title: 'Project Metadata'});
 
@@ -141,13 +143,9 @@ test.describe('Meta sync', () => {
     await dashboard.grid.toolbar.fields.click({title: 'Col1'});
     await dashboard.grid.toolbar.clickFields();
 
-    await dashboard.grid.toolbar.clickSort();
-    await dashboard.grid.toolbar.sort.addNew({columnTitle: 'Col1', isAscending: false});
-    await dashboard.grid.toolbar.clickSort();
+    await dashboard.grid.toolbar.sort.addSort({columnTitle: 'Col1', isAscending: false});
 
-    await dashboard.grid.toolbar.clickFilter();
     await dashboard.grid.toolbar.filter.addNew({columnTitle: 'Col1', opType: '>=', value: '5'});
-    await dashboard.grid.toolbar.clickFilter();
 
     await dashboard.grid.verifyRowCount({count: 5});
   })

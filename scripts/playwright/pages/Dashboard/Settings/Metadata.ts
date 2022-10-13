@@ -16,7 +16,10 @@ export class MetaDataPage extends BasePage {
 
   async clickReload(){
     await this.get().locator(`button:has-text("Reload")`).click();
-    await this.get().locator(`.animate-spin`).waitFor({state: 'visible'});
+
+    // todo: Remove this wait
+    await this.rootPage.waitForTimeout(100);
+    // await this.get().locator(`.animate-spin`).waitFor({state: 'visible'});
     await this.get().locator(`.animate-spin`).waitFor({state: 'detached'});
   }
 

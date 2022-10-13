@@ -40,6 +40,7 @@ export class ToolbarSortPage extends BasePage {
 
     // close sort menu
     await this.toolbar.clickSort();
+    await this.toolbar.grid.waitLoading();
   }
 
   async resetSort() {

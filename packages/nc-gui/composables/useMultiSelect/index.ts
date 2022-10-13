@@ -229,7 +229,7 @@ export function useMultiSelect(
               cpcols.forEach((col) => {
                 // todo: JSON stringify the attachment cell and LTAR contents for copy
                 // filter attachment cells and LATR cells from copy
-                if (col.uidt === UITypes.Attachment || col.uidt === UITypes.LinkToAnotherRecord) {
+                if (col.uidt !== UITypes.Attachment && col.uidt !== UITypes.LinkToAnotherRecord) {
                   cptext = `${cptext} ${row.row[col.title]} \t`
                 }
               })

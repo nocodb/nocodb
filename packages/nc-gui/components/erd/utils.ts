@@ -101,6 +101,11 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
       const source = column.fk_model_id!
       const target = (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!
 
+      const hasSource = erdTables.value.find((table) => table.id === source)
+      const hasTarget = erdTables.value.find((table) => table.id === target)
+
+      if (!hasSource || !hasTarget) return acc
+
       let sourceColumnId, targetColumnId
       let edgeLabel = ''
 

@@ -2694,7 +2694,7 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: string,
-      relationType: 'mm' | 'hm',
+      relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: {
         limit?: string | number;
@@ -2725,7 +2725,7 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: string,
-      relationType: 'mm' | 'hm',
+      relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       refRowId: string,
       query?: { limit?: string; offset?: string },
@@ -2753,7 +2753,7 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: string,
-      relationType: 'mm' | 'hm',
+      relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       refRowId: string,
       params: RequestParams = {}
@@ -2779,7 +2779,7 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: string,
-      relationType: 'mm' | 'hm',
+      relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: {
         limit?: string | number;
@@ -3154,7 +3154,7 @@ export class Api<
     dataNestedList: (
       sharedViewUuid: string,
       rowId: string,
-      relationType: 'mm' | 'hm',
+      relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: { limit?: string; offset?: string },
       params: RequestParams = {}

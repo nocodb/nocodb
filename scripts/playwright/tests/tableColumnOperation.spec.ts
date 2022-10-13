@@ -67,5 +67,8 @@ test.describe("Table Column Operations", () => {
       columnHeader: "Title",
       value: "value_a",
     });
+
+    // add new row using right-click menu
+    await grid.addRowRightClickMenu(0);
   });
 });

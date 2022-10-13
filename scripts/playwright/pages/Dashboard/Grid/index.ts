@@ -91,6 +91,16 @@ export class GridPage extends BasePage {
     await this.rootPage.waitForTimeout(300);
   }
 
+  async addRowRightClickMenu(index: number) {
+    const rowCount = await this.get().locator(".nc-grid-row").count();
+    await this.get().locator(`td[data-pw="cell-Title-${index}"]`).click({
+      button: "right",
+    });
+    // Click text=Insert New Row
+    await this.rootPage.locator("text=Insert New Row").click();
+    expect(await this.get().locator(".nc-grid-row").count()).toBe(rowCount + 1);
+  }
+
   async openExpandedRow({ index }: { index: number }) {
     await this.row(index).locator(`td[pw-data="cell-id-${index}"]`).hover();
     await this.row(index).locator(`div[pw-data="nc-expand-${index}"]`).click();

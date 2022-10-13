@@ -217,6 +217,7 @@ function openDeleteDialog(view: ViewType) {
 
 <template>
   <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu flex-1" :selected-keys="selected">
+    <!-- Lazy load breaks menu item active styles, i.e. styles never change even when active item changes -->
     <SmartsheetSidebarRenameableMenuItem
       v-for="view of views"
       :id="view.id"

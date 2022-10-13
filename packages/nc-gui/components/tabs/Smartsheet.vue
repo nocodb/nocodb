@@ -79,6 +79,7 @@ provide(TabMetaInj, activeTab)
       </Transition>
     </div>
 
+    <!-- Lazy loading the sidebar causes issues when deleting elements, i.e. it appears as if multiple elements are removed when they are not -->
     <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />
   </div>
 </template>

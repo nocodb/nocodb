@@ -1,8 +1,7 @@
-// playwright-dev-page.ts
-import {  Page } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { AuditSettingsPage } from './Audit';
+import { MetaDataPage } from './Metadata';
 
 const tabInfo = {
   'Team & Auth': 'teamAndAuth',
@@ -15,11 +14,13 @@ const tabInfo = {
 export class SettingsPage extends BasePage {
   private readonly dashboard: DashboardPage;
   readonly audit: AuditSettingsPage;
+  readonly metaData: MetaDataPage;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.audit = new AuditSettingsPage(this);
+    this.metaData = new MetaDataPage(this);
   }
 
   get() {

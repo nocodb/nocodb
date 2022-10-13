@@ -1,4 +1,3 @@
-// playwright-dev-page.ts
 import {  expect } from '@playwright/test';
 import { SettingsPage } from '.';
 import BasePage from '../../Base';

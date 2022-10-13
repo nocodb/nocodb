@@ -13,6 +13,8 @@
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.26.1",
-    "axios": "^0.24.0"
+    "axios": "^0.24.0",
+    "mysql2": "^2.3.3",
+    "promised-sqlite3": "^1.2.0"
   }
 }

@@ -4,6 +4,7 @@ import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { CellPageObject } from './Cell';
 import { ColumnPageObject } from './Column';
+import { ToolbarPage } from './Toolbar';
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -11,6 +12,7 @@ export class GridPage extends BasePage {
   readonly dashboardPage: DashboardPage;
   readonly column: ColumnPageObject;
   readonly cell: CellPageObject;
+  readonly toolbar: ToolbarPage;
 
   constructor(dashboardPage: DashboardPage) {
     super(dashboardPage.rootPage);
@@ -18,6 +20,7 @@ export class GridPage extends BasePage {
     this.addNewTableButton = dashboardPage.get().locator('.nc-add-new-table');
     this.column = new ColumnPageObject(this);
     this.cell = new CellPageObject(this);
+    this.toolbar = new ToolbarPage(this);
   }
 
   get() {
@@ -26,6 +29,14 @@ export class GridPage extends BasePage {
 
   row(index: number) {
     return this.get().locator(`tr[data-pw="grid-row-${index}"]`);
+  }
+
+  async rowCount() {
+    await this.get().locator('.nc-grid-row').count();
+  }
+
+  async verifyRowCount({count}: {count: number}) {
+    return expect(await this.get().locator('.nc-grid-row').count()).toBe(count);
   }
 
   async addNewRow({index = 0, title}: {index?: number, title?: string} = {}) {

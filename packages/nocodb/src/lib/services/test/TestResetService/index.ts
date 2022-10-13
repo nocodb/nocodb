@@ -6,6 +6,7 @@ import Project from '../../../models/Project';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
+import Model from '../../../models/Model';
 
 const loginRootUser = async () => {
   const response = await axios.post(
@@ -17,16 +18,19 @@ const loginRootUser = async () => {
 };
 
 const projectTitleByType = {
-  sqlite3: 'sampleREST',
+  sqlite: 'sampleREST',
   mysql: 'externalREST',
 };
 
 export class TestResetService {
   private knex: Knex | null = null;
   private readonly parallelId;
-  constructor({ parallelId }: { parallelId: string }) {
+  private readonly dbType;
+
+  constructor({ parallelId, dbType }: { parallelId: string; dbType: string }) {
     this.knex = Noco.ncMeta.knex;
     this.parallelId = parallelId;
+    this.dbType = dbType;
   }
 
   async process() {
@@ -36,7 +40,7 @@ export class TestResetService {
       const { project } = await this.resetProject({
         metaKnex: this.knex,
         token,
-        type: 'mysql',
+        dbType: this.dbType,
         parallelId: this.parallelId,
       });
 
@@ -50,28 +54,34 @@ export class TestResetService {
   async resetProject({
     metaKnex,
     token,
-    type,
+    dbType,
     parallelId,
   }: {
     metaKnex: Knex;
     token: string;
-    type: string;
+    dbType: string;
     parallelId: string;
   }) {
-    const title = `${projectTitleByType[type]}${parallelId}`;
+    const title = `${projectTitleByType[dbType]}${parallelId}`;
     const project: Project | undefined = await Project.getByTitle(title);
 
     if (project) {
       const bases = await project.getBases();
+      if (dbType == 'sqlite') await dropTablesOfProject(metaKnex, project);
       await Project.delete(project.id);
 
       if (bases.length > 0) await NcConnectionMgrv2.deleteAwait(bases[0]);
     }
 
-    if (type == 'sqlite3') {
+    if (dbType == 'sqlite') {
       await resetMetaSakilaSqliteProject({ token, metaKnex, title });
-    } else if (type == 'mysql') {
-      await resetMysqlSakilaProject({ token, title, parallelId, oldProject: project });
+    } else if (dbType == 'mysql') {
+      await resetMysqlSakilaProject({
+        token,
+        title,
+        parallelId,
+        oldProject: project,
+      });
     }
 
     return {
@@ -79,3 +89,18 @@ export class TestResetService {
     };
   }
 }
+
+const dropTablesOfProject = async (knex: Knex, project: Project) => {
+  const tables = await Model.list({
+    project_id: project.id,
+    base_id: (await project.getBases())[0].id,
+  });
+
+  for (const table of tables) {
+    if (table.type == 'table') {
+      await knex.raw(`DROP TABLE IF EXISTS ${table.table_name}`);
+    } else {
+      await knex.raw(`DROP VIEW IF EXISTS ${table.table_name}`);
+    }
+  }
+};

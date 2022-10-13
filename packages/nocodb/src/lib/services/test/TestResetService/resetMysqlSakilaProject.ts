@@ -42,29 +42,37 @@ const extMysqlProject = (title, parallelId) => ({
 });
 
 const mysqlSakilaSqlViews = [
-  'actor_info', 'customer_list', 'film_list', 'nicer_but_slower_film_list', 'sales_by_film_category', 'sales_by_store', 'staff_list'
-]
+  'actor_info',
+  'customer_list',
+  'film_list',
+  'nicer_but_slower_film_list',
+  'sales_by_film_category',
+  'sales_by_store',
+  'staff_list',
+];
 
 const dropTablesAndViews = async (knex: Knex) => {
   for (const view of mysqlSakilaSqlViews) {
     try {
       await knex.raw(`DROP VIEW ${view}`);
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   for (const table of sakilaTableNames) {
     try {
       await knex.raw(`DROP TABLE ${table}`);
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 };
 
-const isSakilaMysqlToBeReset = async (knex: Knex, parallelId: string, project?: Project, ) => {
+const isSakilaMysqlToBeReset = async (
+  knex: Knex,
+  parallelId: string,
+  project?: Project
+) => {
   const tablesInDb: Array<string> = await knex.raw(
     `SELECT table_name FROM information_schema.tables WHERE table_schema = 'test_sakila_${parallelId}'`
-  )
+  );
 
   if (
     tablesInDb.length === 0 ||
@@ -73,14 +81,14 @@ const isSakilaMysqlToBeReset = async (knex: Knex, parallelId: string, project?: 
     return true;
   }
 
-  if(!project) return false;
+  if (!project) return false;
 
   const audits = await Audit.projectAuditList(project.id, {});
 
   return audits?.length > 0;
 };
 
-const resetSakilaMysql = async (knex:Knex, parallelId: string) => {
+const resetSakilaMysql = async (knex: Knex, parallelId: string) => {
   await dropTablesAndViews(knex);
 
   const testsDir = __dirname.replace(
@@ -99,16 +107,12 @@ const resetSakilaMysql = async (knex:Knex, parallelId: string) => {
 
   try {
     const schemaFile = fs
-      .readFileSync(
-        `${testsDir}/mysql-sakila-db/03-test-sakila-schema.sql`
-      )
+      .readFileSync(`${testsDir}/mysql-sakila-db/03-test-sakila-schema.sql`)
       .toString()
       .replace(/test_sakila/g, `test_sakila_${parallelId}`);
 
     const dataFile = fs
-      .readFileSync(
-        `${testsDir}/mysql-sakila-db/04-test-sakila-data.sql`
-      )
+      .readFileSync(`${testsDir}/mysql-sakila-db/04-test-sakila-data.sql`)
       .toString()
       .replace(/test_sakila/g, `test_sakila_${parallelId}`);
 
@@ -135,7 +139,7 @@ const resetMysqlSakilaProject = async ({
 }) => {
   const knex = Knex(config);
 
-  try{
+  try {
     await knex.raw(`USE test_sakila_${parallelId}`);
   } catch (e) {
     await knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);

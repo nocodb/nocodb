@@ -1,11 +1,19 @@
 import { Page } from '@playwright/test';
 import axios from 'axios';
 
-const setup = async ({page, typeOnLocalSetup}: {page: Page, typeOnLocalSetup?: string}) => {
-  const type = process.env.CI ? process.env.E2E_TYPE : typeOnLocalSetup;
+export interface NcContext {
+  project: any;
+  token: string;
+  dbType?: string;
+}
+
+const setup = async ({page, typeOnLocalSetup}: {page: Page, typeOnLocalSetup?: string}): Promise<NcContext> => {
+  let dbType = process.env.CI ? process.env.E2E_TYPE : typeOnLocalSetup;
+  dbType = dbType || 'sqlite';
+
   const response =  await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {
     parallelId: process.env.TEST_PARALLEL_INDEX,
-    type: type ?? 'sqlite',
+    dbType,
   });
 
   if(response.status !== 200) {
@@ -28,7 +36,7 @@ const setup = async ({page, typeOnLocalSetup}: {page: Page, typeOnLocalSetup?: s
 
   await page.goto(`/#/nc/${project.id}/auth`);
 
-  return { project, token };
+  return { project, token, dbType } as NcContext;
 }
 
 export default setup;

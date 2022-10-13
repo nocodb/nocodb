@@ -139,6 +139,7 @@ const getIcon = (c: ColumnType) =>
     <template #overlay>
       <div
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
+        pw-data="grid-fields-menu"
         @click.stop
       >
         <a-card
@@ -162,7 +163,13 @@ const getIcon = (c: ColumnType) =>
         <div class="nc-fields-list py-1">
           <Draggable v-model="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field, index: index }">
-              <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex items-center" @click.stop>
+              <div
+                v-show="filteredFieldList.includes(field)"
+                :key="field.id"
+                class="px-2 py-1 flex items-center"
+                :pw-data="`grid-fields-menu-${field.title}`"
+                @click.stop
+              >
                 <a-checkbox
                   v-model:checked="field.show"
                   v-e="['a:fields:show-hide']"

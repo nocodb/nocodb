@@ -5,6 +5,7 @@ export async function reset(req: Request<any, any>, res) {
   console.log('resetting id', req.body);
   const service = new TestResetService({
     parallelId: req.body.parallelId,
+    dbType: req.body.dbType,
   });
 
   res.json(await service.process());

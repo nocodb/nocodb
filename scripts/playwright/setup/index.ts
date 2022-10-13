@@ -9,7 +9,7 @@ export interface NcContext {
 
 const setup = async ({page, typeOnLocalSetup}: {page: Page, typeOnLocalSetup?: string}): Promise<NcContext> => {
   let dbType = process.env.CI ? process.env.E2E_TYPE : typeOnLocalSetup;
-  dbType = dbType || 'sqlite';
+  dbType = dbType || 'mysql';
 
   const response =  await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {
     parallelId: process.env.TEST_PARALLEL_INDEX,

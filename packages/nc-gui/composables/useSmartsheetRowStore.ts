@@ -122,7 +122,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
 
     // clear LTAR cell
     const clearLTARCell = async (column: ColumnType) => {
-      if(!column || column.uidt!==UITypes.LinkToAnotherRecord) return
+      if (!column || column.uidt !== UITypes.LinkToAnotherRecord) return
 
       const relatedTableMeta = metas.value?.[(<LinkToAnotherRecordType>column?.colOptions)?.fk_related_model_id as string]
 
@@ -130,7 +130,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
         state.value[column.title!] = null
       } else if (currentRow.value) {
         if ((<LinkToAnotherRecordType>column.colOptions)?.type === RelationTypes.BELONGS_TO) {
-          if(!currentRow.value.row[column.title!]) return
+          if (!currentRow.value.row[column.title!]) return
           await $api.dbTableRow.nestedRemove(
             NOCO,
             project.value.title as string,
@@ -151,7 +151,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
               column.title as string,
               extractPkFromRow(link, relatedTableMeta?.columns as ColumnType[]),
             )
-        }
+          }
         }
       }
     }

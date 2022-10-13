@@ -257,7 +257,8 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
         const neighbours = [
           ...new Set(
             (c.colOptions.formula.match(/cl_\w{14}/g) || []).filter(
-              (colId: string) => columns.value.filter((col: ColumnType) => col.id === colId && col.uidt === UITypes.Formula).length,
+              (colId: string) =>
+                columns.value.filter((col: ColumnType) => col.id === colId && col.uidt === UITypes.Formula).length,
             ),
           ),
         ]

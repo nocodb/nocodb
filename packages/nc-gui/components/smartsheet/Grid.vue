@@ -273,8 +273,6 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
   }
 }
 
-const rowRefs = $ref<any[]>()
-
 const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any } = {}) => {
   let index = -1
   for (const currentRow of args.data || data.value) {
@@ -581,7 +579,11 @@ watch(
 
             <!--            Clear cell -->
             <a-menu-item
-              v-if="contextMenuTarget && !isVirtualCol(fields[contextMenuTarget.col])"
+              v-if="
+                contextMenuTarget &&
+                (fields[contextMenuTarget.col].uidt === UITypes.LinkToAnotherRecord ||
+                  !isVirtualCol(fields[contextMenuTarget.col]))
+              "
               @click="clearCell(contextMenuTarget, fields[contextMenuTarget.col])"
             >
               <div v-e="['a:row:clear']" class="nc-project-menu-item">{{ $t('activity.clearCell') }}</div>

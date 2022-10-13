@@ -129,7 +129,7 @@ watch(inputs, () => {
 
 <template>
   <div class="w-full">
-    <div class="max-h-[250px] overflow-x-auto pr-1">
+    <div class="max-h-[250px] overflow-x-auto scrollbar-thin-dull pr-3">
       <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
         <template #item="{ element, index }">
           <div class="flex py-1 items-center nc-select-option">

@@ -19,6 +19,11 @@ on:
             - "scripts/cypress/**"
             - "packages/nocodb/**"
             - ".github/workflows/ci-cd.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
     cypress-restTableOps-run-cache:
       runs-on: ubuntu-20.04

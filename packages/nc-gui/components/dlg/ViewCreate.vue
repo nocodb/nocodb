@@ -2,17 +2,16 @@
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import { capitalize } from '@vue/runtime-core'
-import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
+import type { FormType, GalleryType, GridType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 import {
-  MetaInj,
-  ViewListInj,
   computed,
   generateUniqueTitle,
-  inject,
   message,
   nextTick,
+  onBeforeMount,
   reactive,
+  ref,
   unref,
   useApi,
   useI18n,
@@ -26,6 +25,8 @@ interface Props {
   title?: string
   selectedViewId?: string
   groupingFieldColumnId?: string
+  views: ViewType[]
+  meta: TableType
 }
 
 interface Emits {
@@ -41,7 +42,7 @@ interface Form {
   fk_grp_col_id: string | null
 }
 
-const props = defineProps<Props>()
+const { views = [], meta, selectedViewId, groupingFieldColumnId, ...props } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
@@ -54,10 +55,6 @@ const vModel = useVModel(props, 'modelValue', emits)
 const { t } = useI18n()
 
 const { isLoading: loading, api } = useApi()
-
-const meta = inject(MetaInj, ref())
-
-const viewList = inject(ViewListInj)
 
 const form = reactive<Form>({
   title: props.title || '',
@@ -75,7 +72,7 @@ const viewNameRules = [
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        ;(unref(viewList) || []).every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== v)
+        views.every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== v)
           ? resolve(true)
           : reject(new Error(`View name should be unique`))
       }),
@@ -98,7 +95,7 @@ const typeAlias = computed(
     }[props.type]),
 )
 
-watch(vModel, (value) => value && init())
+onBeforeMount(init)
 
 watch(
   () => props.type,
@@ -108,25 +105,26 @@ watch(
 )
 
 function init() {
-  form.title = generateUniqueTitle(capitalize(ViewTypes[props.type].toLowerCase()), viewList?.value || [], 'title')
+  form.title = generateUniqueTitle(capitalize(ViewTypes[props.type].toLowerCase()), views, 'title')
 
-  if (props.selectedViewId) {
-    form.copy_from_id = props.selectedViewId
+  if (selectedViewId) {
+    form.copy_from_id = selectedViewId
   }
 
   // preset the grouping field column
   if (props.type === ViewTypes.KANBAN) {
     singleSelectFieldOptions.value = meta
-      .value!.columns!.filter((el) => el.uidt === UITypes.SingleSelect)
+      .columns!.filter((el) => el.uidt === UITypes.SingleSelect)
       .map((field) => {
         return {
           value: field.id,
           label: field.title,
         }
       })
-    if (props.groupingFieldColumnId) {
+
+    if (groupingFieldColumnId) {
       // take from the one from copy view
-      form.fk_grp_col_id = props.groupingFieldColumnId
+      form.fk_grp_col_id = groupingFieldColumnId
     } else {
       // take the first option
       form.fk_grp_col_id = singleSelectFieldOptions.value?.[0]?.value as string
@@ -186,7 +184,8 @@ async function onSubmit() {
 <template>
   <a-modal v-model:visible="vModel" class="!top-[35%]" :confirm-loading="loading" wrap-class-name="nc-modal-view-create">
     <template #title>
-      {{ $t('general.create') }} <span class="text-capitalize">{{ typeAlias }}</span> {{ $t('objects.view') }}
+      {{ $t(`general.${selectedViewId ? 'duplicate' : 'create'}`) }} <span class="text-capitalize">{{ typeAlias }}</span>
+      {{ $t('objects.view') }}
     </template>
 
     <a-form ref="formValidator" layout="vertical" :model="form">
@@ -203,7 +202,7 @@ async function onSubmit() {
           v-model:value="form.fk_grp_col_id"
           class="w-full nc-kanban-grouping-field-select"
           :options="singleSelectFieldOptions"
-          :disabled="props.groupingFieldColumnId"
+          :disabled="groupingFieldColumnId"
           placeholder="Select a Grouping Field"
           not-found-content="No Single Select Field can be found. Please create one first."
         />

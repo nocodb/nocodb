@@ -1,10 +1,10 @@
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
-import type { Edge, Elements, Node } from '@vue-flow/core'
+import type { Edge, Elements } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
 import { Position, isEdge, isNode } from '@vue-flow/core'
-import { computed, ref, unref, useArrayReduce, useMetas } from '#imports'
+import { computed, ref, unref, useMetas } from '#imports'
 
 export interface ErdFlowConfig {
   showPkAndFk: boolean
@@ -24,9 +24,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
   const erdTables = computed(() => unref(tables))
   const config = $computed(() => unref(props))
 
-  const ltarColumns = useArrayReduce(
-    erdTables,
-    (acc, table) => {
+  const ltarColumns = computed(() =>
+    erdTables.value.reduce((acc, table) => {
       const meta = metasWithIdAsKey.value[table.id!]
       const columns = meta.columns?.filter(
         (column: ColumnType) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1,
@@ -54,8 +53,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
       })
 
       return acc
-    },
-    [] as ColumnType[],
+    }, [] as ColumnType[]),
   )
 
   const edgeMMTableLabel = (modelId: string) => {

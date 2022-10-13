@@ -2,7 +2,9 @@
 import { Locator, Page, expect } from "@playwright/test";
 import BasePage from "../Base";
 import { GridPage } from "./Grid";
-import { ExpandedFormPage, ChildList, LinkRecord } from "./ExpandedForm";
+import { ExpandedFormPage } from "./ExpandedForm";
+import { ChildList } from "./Grid/Column/LTAR/ChildList";
+import { LinkRecord } from "./Grid/Column/LTAR/LinkRecord";
 import { TreeViewPage } from "./TreeView";
 import { SettingsPage } from "./Settings";
 import { ViewSidebarPage } from "./ViewSidebar";

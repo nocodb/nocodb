@@ -83,6 +83,7 @@ const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
+const tbodyEl = ref<HTMLElement>()
 
 const {
   isLoading,
@@ -107,6 +108,19 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
   isPkAvail,
   clearCell,
   makeEditable,
+  () => {
+    if (selected.row !== null && selected.col !== null) {
+      // get active cell
+      const td = tbodyEl.value?.querySelectorAll('tr')[selected.row]?.querySelectorAll('td')[selected.col + 1]
+      if (!td) return
+      // scroll into the active cell
+      td.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      })
+    }
+  },
 )
 
 onMounted(loadGridViewColumns)
@@ -351,22 +365,6 @@ watch(
   },
   { immediate: true },
 )
-
-const tbodyEl = ref<HTMLElement>()
-
-watch([() => selected.row, () => selected.col], ([row, col]) => {
-  if (row !== null && col !== null) {
-    // get active cell
-    const td = tbodyEl.value?.querySelectorAll('tr')[row]?.querySelectorAll('td')[col + 1]
-    if (!td) return
-    // scroll into the active cell
-    td.scrollIntoView({
-      behavior: 'smooth',
-      block: 'end',
-      inline: 'end',
-    })
-  }
-})
 </script>
 
 <template>

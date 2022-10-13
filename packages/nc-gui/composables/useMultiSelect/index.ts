@@ -17,6 +17,7 @@ export function useMultiSelect(
   isPkAvail: MaybeRef<boolean>,
   clearCell: Function,
   makeEditable: Function,
+  scrollToActiveCell?: () => void,
 ) {
   const { t } = useI18n()
 
@@ -159,6 +160,7 @@ export function useMultiSelect(
             selected.col = 0
           }
         }
+        scrollToActiveCell?.()
         break
       /** on enter key press make cell editable */
       case 'Enter':
@@ -178,25 +180,37 @@ export function useMultiSelect(
       case 'ArrowRight':
         e.preventDefault()
         clearRangeRows()
-        if (selected.col < unref(columnLength) - 1) selected.col++
+        if (selected.col < unref(columnLength) - 1) {
+          selected.col++
+          scrollToActiveCell?.()
+        }
         break
       case 'ArrowLeft':
         clearRangeRows()
         e.preventDefault()
         clearRangeRows()
-        if (selected.col > 0) selected.col--
+        if (selected.col > 0) {
+          selected.col--
+          scrollToActiveCell?.()
+        }
         break
       case 'ArrowUp':
         clearRangeRows()
         e.preventDefault()
         clearRangeRows()
-        if (selected.row > 0) selected.row--
+        if (selected.row > 0) {
+          selected.row--
+          scrollToActiveCell?.()
+        }
         break
       case 'ArrowDown':
         clearRangeRows()
         e.preventDefault()
         clearRangeRows()
-        if (selected.row < unref(data).length - 1) selected.row++
+        if (selected.row < unref(data).length - 1) {
+          selected.row++
+          scrollToActiveCell?.()
+        }
         break
       default:
         {

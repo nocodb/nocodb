@@ -14,6 +14,15 @@ export interface ErdFlowConfig {
   showJunctionTableNames: boolean
 }
 
+interface Relation {
+  source: string
+  target: string
+  childColId?: string
+  parentColId?: string
+  modelId?: string
+  type: 'mm' | 'hm'
+}
+
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ErdFlowConfig>) {
   const elements = ref<Elements>([])
 
@@ -26,42 +35,61 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
   const erdTables = computed(() => unref(tables))
   const config = $computed(() => unref(props))
 
-  const ltarColumns = computed(() =>
+  const relations = computed(() =>
     erdTables.value.reduce((acc, table) => {
       const meta = metasWithIdAsKey.value[table.id!]
-      const columns = meta.columns?.filter(
-        (column: ColumnType) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1,
-      )
+      const columns =
+        meta.columns?.filter((column: ColumnType) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1) || []
 
-      columns?.forEach((column: ColumnType) => {
+      columns.forEach((column: ColumnType) => {
         const colOptions = column.colOptions as LinkToAnotherRecordType
+        const source = column.fk_model_id
+        const target = colOptions.fk_related_model_id
 
-        if (colOptions.type === 'hm') {
-          return acc.push(column)
-        }
+        const sourceExists = erdTables.value.find((t) => t.id === source)
+        const targetExists = erdTables.value.find((t) => t.id === target)
 
-        if (colOptions.type === 'mm') {
-          // Avoid duplicate mm connections
-          const correspondingColumn = acc.find((c) => {
-            const correspondingColOptions = c.colOptions as LinkToAnotherRecordType
+        if (source && target && sourceExists && targetExists) {
+          const relation: Relation = {
+            source,
+            target,
+            childColId: colOptions.fk_child_column_id,
+            parentColId: colOptions.fk_parent_column_id,
+            modelId: colOptions.fk_mm_model_id,
+            type: 'hm',
+          }
 
-            return (
-              correspondingColOptions.type === 'mm' &&
-              correspondingColOptions.fk_parent_column_id === colOptions.fk_child_column_id &&
-              correspondingColOptions.fk_child_column_id === colOptions.fk_parent_column_id
+          if (colOptions.type === 'hm') {
+            relation.type = 'hm'
+
+            return acc.push(relation)
+          }
+
+          if (colOptions.type === 'mm') {
+            // Avoid duplicate mm connections
+            const correspondingColumn = acc.find(
+              (relation) =>
+                relation.type === 'mm' &&
+                relation.parentColId === colOptions.fk_child_column_id &&
+                relation.childColId === colOptions.fk_parent_column_id,
             )
-          })
-          if (!correspondingColumn) {
-            return acc.push(column)
+
+            if (!correspondingColumn) {
+              relation.type = 'mm'
+
+              return acc.push(relation)
+            }
           }
         }
       })
 
       return acc
-    }, [] as ColumnType[]),
+    }, [] as Relation[]),
   )
 
-  const edgeMMTableLabel = (modelId: string) => {
+  const edgeMMTableLabel = (modelId?: string) => {
+    if (!modelId) return ''
+
     const mmModel = metasWithIdAsKey.value[modelId]
 
     if (mmModel.title !== mmModel.table_name) {
@@ -97,29 +125,19 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
   }
 
   function createEdges() {
-    return ltarColumns.value.reduce<Edge[]>((acc, column) => {
-      const source = column.fk_model_id!
-      const target = (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!
-
-      const hasSource = erdTables.value.find((table) => table.id === source)
-      const hasTarget = erdTables.value.find((table) => table.id === target)
-
-      if (!hasSource || !hasTarget) return acc
-
+    return relations.value.reduce<Edge[]>((acc, { source, target, childColId, parentColId, type, modelId }) => {
       let sourceColumnId, targetColumnId
       let edgeLabel = ''
 
-      if ((column.colOptions as LinkToAnotherRecordType).type === 'hm') {
-        sourceColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
-        targetColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
+      if (type === 'hm') {
+        sourceColumnId = childColId
+        targetColumnId = childColId
       }
 
-      if ((column.colOptions as LinkToAnotherRecordType).type === 'mm') {
-        sourceColumnId = (column.colOptions as LinkToAnotherRecordType).fk_parent_column_id
-        targetColumnId = (column.colOptions as LinkToAnotherRecordType).fk_child_column_id
-        edgeLabel = config.showJunctionTableNames
-          ? edgeMMTableLabel((column.colOptions as LinkToAnotherRecordType).fk_mm_model_id!)
-          : ''
+      if (type === 'mm') {
+        sourceColumnId = parentColId
+        targetColumnId = childColId
+        edgeLabel = config.showJunctionTableNames ? edgeMMTableLabel(modelId) : ''
       }
 
       if (source !== target) dagreGraph.setEdge(source, target)
@@ -132,7 +150,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
         targetHandle: `d-${targetColumnId}-${target}`,
         type: 'custom',
         data: {
-          column,
+          isManyToMany: type === 'mm',
           isSelfRelation: source === target && sourceColumnId === targetColumnId,
           label: edgeLabel,
         },

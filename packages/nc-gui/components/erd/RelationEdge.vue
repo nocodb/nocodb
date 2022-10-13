@@ -2,7 +2,6 @@
 import type { EdgeProps, Position } from '@vue-flow/core'
 import { EdgeText, getBezierPath } from '@vue-flow/core'
 import type { CSSProperties } from '@vue/runtime-dom'
-import type { ColumnType } from 'nocodb-sdk'
 import { computed, toRef } from '#imports'
 
 interface RelationEdgeProps extends EdgeProps {
@@ -14,11 +13,7 @@ interface RelationEdgeProps extends EdgeProps {
   sourcePosition: Position
   targetPosition: Position
   data: {
-    column: ColumnType & {
-      colOptions?: {
-        type: string
-      }
-    }
+    isManyToMany: boolean
     isSelfRelation: boolean
     label: string
   }
@@ -30,8 +25,6 @@ interface RelationEdgeProps extends EdgeProps {
 const props = defineProps<RelationEdgeProps>()
 
 const data = toRef(props, 'data')
-
-const isManyToMany = computed(() => data.value.column?.colOptions?.type === 'mm')
 
 const edgePath = computed(() => {
   if (data.value.isSelfRelation) {
@@ -105,7 +98,7 @@ export default {
   />
 
   <rect
-    v-if="isManyToMany"
+    v-if="data.isManyToMany"
     class="nc-erd-edge-rect"
     :x="targetX"
     :y="targetY - 4"

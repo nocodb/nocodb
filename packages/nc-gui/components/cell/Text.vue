@@ -23,7 +23,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     :ref="focus"
     v-model="vModel"
     class="h-full w-full outline-none bg-transparent"
-    :class="{ '!p-2': editEnabled }"
+    :class="{ '!px-2': editEnabled }"
     @blur="editEnabled = false"
   />
 

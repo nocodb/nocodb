@@ -19,7 +19,7 @@ const vModel = useVModel(props, 'modelValue', emits)
     v-if="editEnabled"
     v-model="vModel"
     class="w-full !border-none text-base"
-    :class="{ '!p-2': editEnabled }"
+    :class="{ '!px-2': editEnabled }"
     type="number"
   />
   <span v-else>{{ vModel }}</span>

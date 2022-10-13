@@ -434,4 +434,12 @@ onMounted(() => {
     @apply mr-2;
   }
 }
+
+.nc-input {
+  @apply appearance-none w-full !bg-white rounded px-2 py-2 my-2 border-solid border-1 border-primary border-opacity-50;
+
+  input {
+    @apply !py-1 !px-1;
+  }
+}
 </style>

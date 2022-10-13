@@ -76,7 +76,7 @@ const submitDuration = () => {
       ref="durationInput"
       v-model="localState"
       class="w-full !border-none p-0"
-      :class="{ '!p-2': editEnabled }"
+      :class="{ '!px-2': editEnabled }"
       :placeholder="durationPlaceholder"
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"

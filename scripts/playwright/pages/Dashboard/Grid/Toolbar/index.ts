@@ -39,6 +39,6 @@ export class ToolbarPage extends BasePage {
   }
 
   async clickAddNewRow() {
-    await this.get().locator(`.nc-toolbar-btn.nc-add-new-row-btn")`).click();
+    await this.get().locator(`.nc-toolbar-btn.nc-add-new-row-btn`).click();
   }
 }

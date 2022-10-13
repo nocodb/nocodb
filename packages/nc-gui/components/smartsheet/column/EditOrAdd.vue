@@ -91,8 +91,11 @@ watchEffect(() => {
   if (antInput.value && formState.value) {
     // todo: replace setTimeout
     setTimeout(() => {
-      antInput.value?.focus()
-      antInput.value?.select()
+      // focus and select input only if active element is not an input or textarea
+      if (document.activeElement === document.body || document.activeElement === null) {
+        antInput.value?.focus()
+        antInput.value?.select()
+      }
     }, 300)
   }
   advancedOptions.value = false

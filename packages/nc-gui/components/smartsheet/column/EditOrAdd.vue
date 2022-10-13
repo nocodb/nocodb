@@ -51,12 +51,12 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
     ...uiTypes.filter((t) => !isEdit.value || !t.virtual),
     ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
-        {
-          name: UITypes.ID,
-          icon: MdiIdentifierIcon,
-          virtual: 0,
-        },
-      ]
+          {
+            name: UITypes.ID,
+            icon: MdiIdentifierIcon,
+            virtual: 0,
+          },
+        ]
       : []),
   ]
 })
@@ -148,8 +148,7 @@ onMounted(() => {
             dropdown-class-name="nc-dropdown-column-type"
             @change="onUidtOrIdTypeChange"
           >
-            <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name"
-                             v-bind="validateInfos.uidt">
+            <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
               <div class="flex gap-1 items-center">
                 <component :is="opt.icon" class="text-grey" />
                 {{ opt.name }}
@@ -163,11 +162,9 @@ onMounted(() => {
         <LazySmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
         <LazySmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
         <LazySmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
-        <LazySmartsheetColumnLookupOptions v-if="!isEdit && formState.uidt === UITypes.Lookup"
-                                           v-model:value="formState" />
+        <LazySmartsheetColumnLookupOptions v-if="!isEdit && formState.uidt === UITypes.Lookup" v-model:value="formState" />
         <LazySmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
-        <LazySmartsheetColumnRollupOptions v-if="!isEdit && formState.uidt === UITypes.Rollup"
-                                           v-model:value="formState" />
+        <LazySmartsheetColumnRollupOptions v-if="!isEdit && formState.uidt === UITypes.Rollup" v-model:value="formState" />
         <LazySmartsheetColumnLinkedToAnotherRecordOptions
           v-if="!isEdit && formState.uidt === UITypes.LinkToAnotherRecord"
           v-model:value="formState"

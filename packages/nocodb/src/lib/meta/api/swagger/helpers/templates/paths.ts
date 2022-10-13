@@ -561,7 +561,7 @@ export const getViewPaths = async (ctx: {
                 schema: {
                   type: 'object',
                   properties: {
-                    count: 'number',
+                    count: { type: 'number' },
                   },
                 },
               },

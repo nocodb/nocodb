@@ -13,7 +13,6 @@ test.describe("Relational Columns", () => {
 
   test("Relational columns: HM, BT, MM", async () => {
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: "Team & Auth" });
 
     ///////////// Has many
     //
@@ -58,7 +57,6 @@ test.describe("Relational Columns", () => {
       "Akishima",
     ]);
     await dashboard.linkRecord.close();
-    await dashboard.closeTab({ title: "Country" });
 
     ///////////// Belongs to
     //
@@ -73,7 +71,6 @@ test.describe("Relational Columns", () => {
         value: countryList[i],
       });
     }
-    await dashboard.closeTab({ title: "City" });
 
     ///////////// Many to many
     //
@@ -130,6 +127,5 @@ test.describe("Relational Columns", () => {
       "ALAMO VIDEOTAPE",
     ]);
     await dashboard.linkRecord.close();
-    await dashboard.closeTab({ title: "Actor" });
   });
 });

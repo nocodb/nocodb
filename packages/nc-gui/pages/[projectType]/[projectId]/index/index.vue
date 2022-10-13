@@ -52,14 +52,14 @@ function onEdit(targetKey: number, action: 'add' | 'remove' | string) {
                 </div>
 
                 <a-tooltip v-if="tab.title?.length > 12" placement="bottom">
-                  <div class="truncate">{{ tab.title }}</div>
+                  <div class="truncate" :data-pw="`nc-root-tabs-${tab.title}`">{{ tab.title }}</div>
 
                   <template #title>
                     <div>{{ tab.title }}</div>
                   </template>
                 </a-tooltip>
 
-                <div v-else>{{ tab.title }}</div>
+                <div v-else :data-pw="`nc-root-tabs-${tab.title}`">{{ tab.title }}</div>
               </div>
             </template>
           </a-tab-pane>

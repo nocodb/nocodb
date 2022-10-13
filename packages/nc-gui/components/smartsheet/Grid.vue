@@ -480,8 +480,8 @@ watch(
         >
           <thead ref="tableHead">
             <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
-              <th>
-                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center">
+              <th pw-data="grid-id-column">
+                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center" pw-data="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                     <div

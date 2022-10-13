@@ -45,9 +45,8 @@ export class GridPage extends BasePage {
   }: { index?: number; title?: string } = {}) {
     const rowCount = await this.get().locator(".nc-grid-row").count();
     await this.get().locator(".nc-grid-add-new-cell").click();
-    if (rowCount + 1 !== (await this.get().locator(".nc-grid-row").count())) {
-      await this.get().locator(".nc-grid-add-new-cell").click();
-    }
+
+    expect.poll(async () => await this.get().locator(".nc-grid-row").count()).toBe(rowCount + 1)
 
     const cell = this.cell.get({ index, columnHeader: "Title" });
     await this.cell.dblclick({

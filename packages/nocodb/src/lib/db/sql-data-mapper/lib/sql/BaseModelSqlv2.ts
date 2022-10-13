@@ -1826,9 +1826,12 @@ class BaseModelSqlv2 {
       // refer : https://www.sqlite.org/limits.html
       const chunkSize = this.isSqlite ? 10 : _chunkSize;
 
-      const response = await this.dbDriver
-        .batchInsert(this.model.table_name, insertDatas, chunkSize)
-        .returning(this.model.primaryKey?.column_name);
+      const response = (this.isPg || this.isMssql) ?
+        await this.dbDriver
+          .batchInsert(this.model.table_name, insertDatas, chunkSize)
+          .returning(this.model.primaryKey?.column_name) :
+        await this.dbDriver
+          .batchInsert(this.model.table_name, insertDatas, chunkSize);
 
       await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
 

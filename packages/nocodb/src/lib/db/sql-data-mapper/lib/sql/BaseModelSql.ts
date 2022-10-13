@@ -608,9 +608,12 @@ class BaseModelSql extends BaseModel {
         await this.validate(d1);
       }
 
-      const response = await this.dbDriver
-        .batchInsert(this.tn, insertDatas, 50)
-        .returning(this.pks[0].cn);
+      const response = (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') ?
+        await this.dbDriver
+          .batchInsert(this.tn, insertDatas, 50)
+          .returning(this.pks[0].cn) :
+        await this.dbDriver
+          .batchInsert(this.tn, insertDatas, 50);
 
       await this.afterInsertb(insertDatas, null);
 

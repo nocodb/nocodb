@@ -302,10 +302,13 @@ abstract class BaseModel {
       for (const d of data) {
         await this.validate(d);
       }
-
-      const response = await this.dbDriver
-        .batchInsert(this.tn, data, 50)
-        .returning(this.pks?.[0]?.cn || '*');
+      
+      const response = (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') ?
+        this.dbDriver
+          .batchInsert(this.tn, data, 50)
+          .returning(this.pks?.[0]?.cn || '*') :
+        this.dbDriver
+          .batchInsert(this.tn, data, 50);
 
       await this.afterInsertb(data);
 

@@ -4106,7 +4106,8 @@
             "type": "string",
             "enum": [
               "mm",
-              "hm"
+              "hm",
+              "bt"
             ]
           },
           "name": "relationType",
@@ -4208,7 +4209,8 @@
             "type": "string",
             "enum": [
               "mm",
-              "hm"
+              "hm",
+              "bt"
             ]
           },
           "name": "relationType",
@@ -4323,7 +4325,8 @@
             "type": "string",
             "enum": [
               "mm",
-              "hm"
+              "hm",
+              "bt"
             ]
           },
           "name": "relationType",
@@ -4558,7 +4561,8 @@
             "type": "string",
             "enum": [
               "mm",
-              "hm"
+              "hm",
+              "bt"
             ]
           },
           "name": "relationType",

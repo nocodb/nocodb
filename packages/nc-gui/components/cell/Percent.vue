@@ -2,7 +2,7 @@
 import { EditModeInj, inject, useVModel } from '#imports'
 
 interface Props {
-  modelValue: number | string | null | undefined
+  modelValue?: number | string | null
 }
 
 const props = defineProps<Props>()

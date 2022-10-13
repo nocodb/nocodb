@@ -3,7 +3,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { EditModeInj, inject, useVModel } from '#imports'
 
 const props = defineProps<{
-  modelValue?: string
+  modelValue?: string | null
 }>()
 
 const emits = defineEmits(['update:modelValue'])

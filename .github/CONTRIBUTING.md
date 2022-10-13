@@ -35,7 +35,7 @@ Thanks for spending your time to contribute! The following is a set of guideline
 
 ## Development Setup
 
-Please refer to [Development Setup](https://docs-dev.nocodb.com/engineering/development-setup).
+Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup).
 
 ### Committing Changes
 

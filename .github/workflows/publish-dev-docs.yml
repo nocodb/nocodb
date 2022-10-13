@@ -35,7 +35,7 @@ jobs:
         with:
           source_file: 'packages/noco-docs/dist/'
           clear_folder: 'docs/dist'
-          destination_repo: 'nocodb/noco-docs-dev'
+          destination_repo: 'nocodb/noco-docs'
           destination_folder: 'docs'
           user_email: 'oof1lab@gmail.com'
           user_name: 'o1lab'

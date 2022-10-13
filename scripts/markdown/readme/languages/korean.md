@@ -204,7 +204,7 @@ docker-compose up -d
 # 개발 환경에 설치하기
 
 여기서 확인해주세요.
-[개발 환경에 설치하는 법](https://docs-dev.nocodb.com/engineering/development-setup)
+[개발 환경에 설치하는 법](https://docs.nocodb.com/engineering/development-setup)
 
 # 기여하기
 

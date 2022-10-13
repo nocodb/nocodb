@@ -20,16 +20,18 @@ export class ColumnPageObject extends BasePage {
   async create({
     title,
     type = "SingleLineText",
+    formula = "",
   }: {
     title: string;
     type?: string;
+    formula?: string;
   }) {
     await this.grid.get().locator(".nc-column-add").click();
-    // await this.get().waitFor();
-
+    await this.rootPage.waitForTimeout(500);
     await this.fillTitle({ title });
-
+    await this.rootPage.waitForTimeout(500);
     await this.selectType({ type });
+    await this.rootPage.waitForTimeout(500);
 
     switch (type) {
       case "SingleTextLine":
@@ -46,6 +48,9 @@ export class ColumnPageObject extends BasePage {
           option: "Option 2",
           skipColumnModal: true,
         });
+        break;
+      case "Formula":
+        await this.get().locator(".nc-formula-input").fill(formula);
         break;
       default:
         break;
@@ -92,20 +97,35 @@ export class ColumnPageObject extends BasePage {
       .waitFor({ state: "hidden" });
   }
 
-  async openEdit({ title }: { title: string }) {
-    // todo: Improve this selector
+  async openEdit({
+    title,
+    type = "SingleLineText",
+    formula = "",
+  }: {
+    title: string;
+    type?: string;
+    formula?: string;
+  }) {
     await this.grid
       .get()
-      .locator(`text=#Title${title} >> svg >> nth=3`)
+      .locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`)
       .click();
     await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
 
-    await this.get().waitFor({state: 'visible'});
+    await this.get().waitFor({ state: "visible" });
 
     // todo: Hack to wait for the modal to be fully loaded
-    await this.fillTitle({title: "dummy"});
-    await this.fillTitle({title});
+    await this.fillTitle({ title: "dummy" });
+    await this.fillTitle({ title });
     await this.get().locator('label[title="Column Name"]').click();
+
+    switch (type) {
+      case "Formula":
+        await this.get().locator(".nc-formula-input").fill(formula);
+        break;
+      default:
+        break;
+    }
   }
 
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {

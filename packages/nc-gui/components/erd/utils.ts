@@ -1,4 +1,4 @@
-import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
 import type { Edge, Elements } from '@vue-flow/core'
@@ -15,6 +15,8 @@ export interface ErdFlowConfig {
 }
 
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ErdFlowConfig>) {
+  const elements = ref<Elements>([])
+
   const dagreGraph = new dagre.graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))
   dagreGraph.setGraph({ rankdir: 'LR' })
@@ -32,22 +34,25 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
       )
 
       columns?.forEach((column: ColumnType) => {
-        if ((column.colOptions as LinkToAnotherRecordType)?.type === 'hm') {
-          acc.push(column)
+        const colOptions = column.colOptions as LinkToAnotherRecordType
+
+        if (colOptions.type === 'hm') {
+          return acc.push(column)
         }
 
-        if ((column.colOptions as LinkToAnotherRecordType).type === 'mm') {
+        if (colOptions.type === 'mm') {
           // Avoid duplicate mm connections
-          const correspondingColumn = acc.find(
-            (c) =>
-              (c.colOptions as LinkToAnotherRecordType | FormulaType | RollupType | LookupType).type === 'mm' &&
-              (c.colOptions as LinkToAnotherRecordType).fk_parent_column_id ===
-                (column.colOptions as LinkToAnotherRecordType).fk_child_column_id &&
-              (c.colOptions as LinkToAnotherRecordType).fk_child_column_id ===
-                (column.colOptions as LinkToAnotherRecordType).fk_parent_column_id,
-          )
+          const correspondingColumn = acc.find((c) => {
+            const correspondingColOptions = c.colOptions as LinkToAnotherRecordType
+
+            return (
+              correspondingColOptions.type === 'mm' &&
+              correspondingColOptions.fk_parent_column_id === colOptions.fk_child_column_id &&
+              correspondingColOptions.fk_child_column_id === colOptions.fk_parent_column_id
+            )
+          })
           if (!correspondingColumn) {
-            acc.push(column)
+            return acc.push(column)
           }
         }
       })
@@ -58,13 +63,13 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
 
   const edgeMMTableLabel = (modelId: string) => {
     const mmModel = metasWithIdAsKey.value[modelId]
+
     if (mmModel.title !== mmModel.table_name) {
       return `${mmModel.title} (${mmModel.table_name})`
     }
+
     return mmModel.title
   }
-
-  const elements = ref<Elements>([])
 
   function createNodes() {
     return erdTables.value.flatMap((table) => {
@@ -92,7 +97,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
   }
 
   function createEdges() {
-    return ltarColumns.value.map((column) => {
+    return ltarColumns.value.reduce<Edge[]>((acc, column) => {
       const source = column.fk_model_id!
       const target = (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!
 
@@ -114,7 +119,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
 
       if (source !== target) dagreGraph.setEdge(source, target)
 
-      return {
+      acc.push({
         id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}-#${edgeLabel}`,
         source: `${source}`,
         target: `${target}`,
@@ -126,8 +131,10 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
           isSelfRelation: source === target && sourceColumnId === targetColumnId,
           label: edgeLabel,
         },
-      } as Edge
-    })
+      })
+
+      return acc
+    }, [])
   }
 
   function connectNonConnectedNodes() {

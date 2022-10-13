@@ -8,7 +8,7 @@
   "license": "MIT",
   "keywords": [],
   "bin": {
-    "nc": "./dist/bundle.js",
+    "noco": "./dist/bundle.js",
     "create-nocodb-app": "./dist/bundle.js",
     "nc-cli": "./dist/bundle.js"
   },

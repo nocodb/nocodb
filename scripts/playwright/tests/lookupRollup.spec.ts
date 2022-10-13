@@ -2,7 +2,7 @@ import { test } from "@playwright/test";
 import { DashboardPage } from "../pages/Dashboard";
 import setup from "../setup";
 
-test.describe.only("Virtual columns", () => {
+test.describe("Virtual columns", () => {
   let dashboard: DashboardPage;
   let context: any;
 

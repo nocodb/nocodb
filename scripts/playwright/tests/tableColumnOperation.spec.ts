@@ -26,7 +26,7 @@ test.describe("Table Column Operations", () => {
     await grid.column.verify({ title: "column_name_b" });
 
     await grid.column.delete({ title: "column_name_b" });
-    await grid.column.verify({ title: "column_name_b", isDeleted: true });
+    await grid.column.verify({ title: "column_name_b", isVisible: true });
 
     await grid.addNewRow({ index: 0 });
     await grid.verifyRow({ index: 0 });

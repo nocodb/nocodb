@@ -13,7 +13,12 @@ export class ToolbarFieldsPage extends BasePage {
     return this.rootPage.locator(`[pw-data="grid-fields-menu"]`);
   }
 
-  click({ title}: { title: string }) {
-    return this.get().locator(`[pw-data="grid-fields-menu-${title}"]`).locator('input[type="checkbox"]').click();
+  async toggle({ title }: { title: string }) {
+    await this.toolbar.clickFields();
+    await this.get()
+      .locator(`[pw-data="grid-fields-menu-${title}"]`)
+      .locator('input[type="checkbox"]')
+      .click();
+    await this.toolbar.clickFields();
   }
 }

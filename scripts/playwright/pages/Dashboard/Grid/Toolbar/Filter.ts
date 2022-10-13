@@ -16,26 +16,44 @@ export class ToolbarFilterPage extends BasePage {
   async addNew({
     columnTitle,
     opType,
-    value
+    value,
   }: {
     columnTitle: string;
     opType: string;
     value: string;
   }) {
+    await this.toolbar.clickFilter();
 
     await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
-    await this.rootPage.locator('.nc-filter-field-select').last().click();
-    await this.rootPage.locator('div.ant-select-dropdown.nc-dropdown-toolbar-field-list').locator(`div[label="${columnTitle}"][aria-selected="false"]`).click();
+    await this.rootPage.locator(".nc-filter-field-select").last().click();
+    await this.rootPage
+      .locator("div.ant-select-dropdown.nc-dropdown-toolbar-field-list")
+      .locator(`div[label="${columnTitle}"][aria-selected="false"]`)
+      .click();
 
-    await this.rootPage.locator('.nc-filter-operation-select').last().click();
+    await this.rootPage.locator(".nc-filter-operation-select").last().click();
     // await this.rootPage.locator('.nc-dropdown-filter-comp-op').locator(`.ant-select-item:has-text("${opType}")`).scrollIntoViewIfNeeded();
-    await this.rootPage.locator('.nc-dropdown-filter-comp-op').locator(`.ant-select-item:has-text("${opType}")`).click();
+    await this.rootPage
+      .locator(".nc-dropdown-filter-comp-op")
+      .locator(`.ant-select-item:has-text("${opType}")`)
+      .click();
 
-    await this.rootPage.locator('.nc-filter-value-select').last().fill(value);
+    await this.rootPage.locator(".nc-filter-value-select").last().fill(value);
+
+    await this.toolbar.clickFilter();
   }
 
-  click({ title}: { title: string }) {
-    return this.get().locator(`[pw-data="grid-fields-menu-${title}"]`).locator('input[type="checkbox"]').click();
+  click({ title }: { title: string }) {
+    return this.get()
+      .locator(`[pw-data="grid-fields-menu-${title}"]`)
+      .locator('input[type="checkbox"]')
+      .click();
+  }
+
+  async resetFilter() {
+    await this.toolbar.clickFilter();
+    await this.get().locator(".nc-filter-item-remove-btn").click();
+    await this.toolbar.clickFilter();
   }
 }

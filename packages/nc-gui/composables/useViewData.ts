@@ -44,6 +44,9 @@ export function useViewData(
   const { api, isLoading, error } = useApi()
 
   const { appInfo } = $(useGlobal())
+
+  const { getMeta } = useMetas()
+
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
@@ -203,8 +206,6 @@ export function useViewData(
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
     try {
-      const { getMeta } = useMetas()
-
       const { missingRequiredColumns, insertObj } = await populateInsertObject({
         meta: metaValue!,
         ltarState,
@@ -258,15 +259,13 @@ export function useViewData(
         // }
       )
       // audit
-      $api.utils
-        .auditRowUpdate(id, {
-          fk_model_id: meta.value?.id as string,
-          column_name: property,
-          row_id: id,
-          value: getHTMLEncodedText(toUpdate.row[property]),
-          prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
-        })
-        .then(() => {})
+      $api.utils.auditRowUpdate(id, {
+        fk_model_id: meta.value?.id as string,
+        column_name: property,
+        row_id: id,
+        value: getHTMLEncodedText(toUpdate.row[property]),
+        prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
+      })
 
       /** update row data(to sync formula and other related columns) */
       Object.assign(toUpdate.row, updatedRowData)

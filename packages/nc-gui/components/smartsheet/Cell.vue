@@ -58,10 +58,14 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const syncValue = useDebounceFn(function () {
-  currentRow.value.rowMeta.changed = false
-  emit('save')
-}, 1000)
+const syncValue = useDebounceFn(
+  () => {
+    currentRow.value.rowMeta.changed = false
+    emit('save')
+  },
+  500,
+  { maxWait: 2000 },
+)
 
 const isAutoSaved = $computed(() => {
   return [

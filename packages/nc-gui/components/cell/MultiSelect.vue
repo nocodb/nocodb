@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
-import { SelectOptionType } from 'nocodb-sdk'
-import type { SelectOptionsType } from 'nocodb-sdk'
+import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -56,14 +55,15 @@ const options = computed<SelectOptionType[]>(() => {
   return []
 })
 
-const vModel = computed<string[]>({
-  get: () => selectedIds.value.flatMap((el) => {
-    const title = options.value.find((op) => op.id === el)?.title
+const vModel = computed({
+  get: () =>
+    selectedIds.value.reduce((acc, id) => {
+      const title = options.value.find((op) => op.id === id)?.title
 
-    if (title) return [title]
+      if (title) acc.push(title)
 
-    return [] as string[]
-  }) || [] as string[],
+      return acc
+    }, [] as string[]),
   set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
 })
 

@@ -22,7 +22,7 @@ const { tables, config } = defineProps<Props>()
 
 const { metasWithIdAsKey } = useMetas()
 
-const { $destroy, fitView } = useVueFlow({ minZoom: 0.1, maxZoom: 2 })
+const { $destroy, fitView, onPaneReady, updateNodeInternals } = useVueFlow({ minZoom: 0.1, maxZoom: 2 })
 
 const nodes = ref<Node[]>([])
 const edges = ref<Edge[]>([])
@@ -179,13 +179,18 @@ const layoutNodes = () => {
   })
 }
 
+onPaneReady(() => {
+  setTimeout(() => {
+    fitView({ duration: 300 })
+    updateNodeInternals(nodes.value.map((n) => n.id))
+  }, 100)
+})
+
 const init = () => {
   initDagre()
   populateInitialNodes()
   populateEdges()
   layoutNodes()
-
-  setTimeout(() => fitView({ duration: 300 }))
 }
 
 init()

@@ -1,6 +1,7 @@
 import { UITypes } from 'nocodb-sdk'
 import TemplateGenerator from './TemplateGenerator'
 import { getCheckboxValue, isCheckboxType } from './parserHelpers'
+import { getDateFormat } from '~/utils'
 
 const excelTypeToUidt: Record<string, UITypes> = {
   d: UITypes.DateTime,
@@ -129,6 +130,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         const column: Record<string, any> = {
           column_name: cn,
           ref_column_name: cn,
+          meta: {},
         }
 
         // const cellId = `${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`;
@@ -226,6 +228,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             column.uidt = UITypes.Currency
           }
         } else if (column.uidt === UITypes.DateTime) {
+          // hold the possible date format found in the date
+          const dateFormat: Record<string, number> = {}
           if (
             rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
               const cellId = this.xlsx.utils.encode_cell({
@@ -234,10 +238,17 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               })
 
               const cellObj = ws[cellId]
-              return !cellObj || (cellObj.w && cellObj.w.split(' ').length === 1)
+              const isDate = !cellObj || (cellObj.w && cellObj.w.split(' ').length === 1)
+              if (isDate && cellObj) {
+                dateFormat[getDateFormat(cellObj.w)] = (dateFormat[getDateFormat(cellObj.w)] || 0) + 1
+              }
+              return isDate
             })
           ) {
             column.uidt = UITypes.Date
+            // take the date format with the max occurrence
+            column.meta.date_format =
+              Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
           }
         }
         table.columns.push(column)
@@ -259,6 +270,13 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             rowData[table.columns[i].column_name] = (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
           } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
             rowData[table.columns[i].column_name] = (row[i] || '').toString().trim() || null
+          } else if (table.columns[i].uidt === UITypes.Date) {
+            const cellId = this.xlsx.utils.encode_cell({
+              c: range.s.c + i,
+              r: rowIndex + columnNameRowExist,
+            })
+            const cellObj = ws[cellId]
+            rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
           } else {
             // toto: do parsing if necessary based on type
             rowData[table.columns[i].column_name] = row[i]

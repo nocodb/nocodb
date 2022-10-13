@@ -232,7 +232,10 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
       let d = data[col.ref_column_name || col.column_name]
       if (col.uidt === UITypes.Date && d) {
         let dateFormat
-        if (col.key in dateFormatMap) {
+        if (col?.meta?.date_format) {
+          dateFormat = col.meta.date_format
+          dateFormatMap[col.key] = dateFormat
+        } else if (col.key in dateFormatMap) {
           dateFormat = dateFormatMap[col.key]
         } else {
           dateFormat = getDateFormat(d)
@@ -240,6 +243,7 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
         }
         d = dayjs(d).utc().format(dateFormat)
       } else if (col.uidt === UITypes.DateTime && d) {
+        // TODO: handle more formats for DateTime
         d = dayjs(data[col.ref_column_name || col.column_name])
           .utc()
           .format('YYYY-MM-DD HH:mm')

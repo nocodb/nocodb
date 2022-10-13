@@ -51,14 +51,22 @@ export class ChildList extends BasePage {
 
   async verify({
     cardTitle,
+    linkField,
   }: {
     cardTitle: string[];
+    linkField: string;
   }) {
     // DOM element validation
+    //    title: Child list
     //    button: Link to 'City'
     //    icon: reload
+    expect(await this.get().locator(`.ant-modal-title`).innerText()).toBe(
+      `Child list`
+    );
     expect(
-      await this.get().locator(`button:has-text("Link to 'City'")`).isVisible()
+      await this.get()
+        .locator(`button:has-text("Link to '${linkField}'")`)
+        .isVisible()
     ).toBeTruthy();
     expect(
       await this.get().locator(`[data-cy="nc-child-list-reload"]`).isVisible()
@@ -114,8 +122,12 @@ export class LinkRecord extends BasePage {
     let linkRecord = await this.get();
 
     // DOM element validation
-    // button: Add new record
-    // icon: reload
+    //    title: Link Record
+    //    button: Add new record
+    //    icon: reload
+    expect(await this.get().locator(`.ant-modal-title`).innerText()).toBe(
+      `Link record`
+    );
     expect(
       await linkRecord.locator(`button:has-text("Add new record")`).isVisible()
     ).toBeTruthy();

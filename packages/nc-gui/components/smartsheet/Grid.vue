@@ -506,8 +506,8 @@ watch(
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
                       'active':
-                        (isUIAllowed('xcDatatableEditable') && selected.col === colIndex && selected.row === rowIndex) ||
-                        (isUIAllowed('xcDatatableEditable') && selectedRange(rowIndex, colIndex)),
+                        (hasEditPermission && selected.col === colIndex && selected.row === rowIndex) ||
+                        (hasEditPermission && selectedRange(rowIndex, colIndex)),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                     }"
                     :data-key="rowIndex + columnObj.id"
@@ -533,7 +533,9 @@ watch(
                         v-else
                         v-model="row.row[columnObj.title]"
                         :column="columnObj"
-                        :edit-enabled="hasEditPermission && editEnabled && selected.col === colIndex && selected.row === rowIndex"
+                        :edit-enabled="
+                          !!hasEditPermission && !!editEnabled && selected.col === colIndex && selected.row === rowIndex
+                        "
                         :row-index="rowIndex"
                         :active="selected.col === colIndex && selected.row === rowIndex"
                         @update:edit-enabled="editEnabled = false"

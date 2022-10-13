@@ -173,7 +173,7 @@ export function useMultiSelect(
         if (!unref(editEnabled)) {
           e.preventDefault()
           clearRangeRows()
-          await clearCell(selected as { row: number; col: number }, unref(fields)?.[selected.col])
+          await clearCell(selected as { row: number; col: number })
         }
         break
       /** on arrow key press navigate through cells */

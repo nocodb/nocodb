@@ -35,7 +35,12 @@ export interface Field {
 
 export type Roles<T extends Role | ProjectRole = Role | ProjectRole> = Record<T | string, boolean>
 
-export type Filter = FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string; readOnly?: boolean }
+export type Filter = FilterType & {
+  field?: string
+  status?: 'update' | 'delete' | 'create'
+  parentId?: string
+  readOnly?: boolean
+}
 
 export type NocoI18n = I18n<{}, unknown, unknown, string, false>
 

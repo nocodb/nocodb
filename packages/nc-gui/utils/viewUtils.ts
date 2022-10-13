@@ -8,7 +8,7 @@ import MdiGalleryIcon from '~icons/mdi/camera-image'
 import MdiKanbanIcon from '~icons/mdi/tablet-dashboard'
 import MdiEyeIcon from '~icons/mdi/eye-circle-outline'
 
-export const viewIcons = {
+export const viewIcons: Record<number | string, { icon: any; color: string }> = {
   [ViewTypes.GRID]: { icon: MdiGridIcon, color: '#8f96f2' },
   [ViewTypes.FORM]: { icon: MdiFormIcon, color: themeV2Colors.pink['500'] },
   calendar: { icon: MdiCalendarIcon, color: 'purple' },

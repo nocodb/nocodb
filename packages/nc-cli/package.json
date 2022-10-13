@@ -1,6 +1,6 @@
 {
   "name": "create-nocodb-app",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "description": "nc-cli",
   "main": "dist/bundle.js",
   "module": "dist/bundle.js",
@@ -110,8 +110,7 @@
     "typescript": "^3.5.3",
     "webpack": "^5.1.0",
     "webpack-cli": "^4.0.0",
-    "webpack-node-externals": "^2.5.2",
-    "webpack-obfuscator": "^2.6.0"
+    "webpack-node-externals": "^2.5.2"
   },
   "ava": {
     "failFast": true,

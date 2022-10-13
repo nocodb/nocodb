@@ -231,6 +231,40 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             },
             typeErrors,
           )
+        } else if (parsedTree.callee.name === 'DATETIME_DIFF') {
+          // parsedTree.arguments[0] = date
+          validateAgainstType(
+            parsedTree.arguments[0],
+            formulaTypes.DATE,
+            (v: any) => {
+              if (!validateDateWithUnknownFormat(v)) {
+                typeErrors.add('The first parameter of DATEADD() should have date value')
+              }
+            },
+            typeErrors,
+          )
+          // parsedTree.arguments[1] = date
+          validateAgainstType(
+            parsedTree.arguments[1],
+            formulaTypes.DATE,
+            (v: any) => {
+              if (!validateDateWithUnknownFormat(v)) {
+                typeErrors.add('The second parameter of DATEADD() should have date value')
+              }
+            },
+            typeErrors,
+          )
+           // parsedTree.arguments[2] = ["millisecond" | "ms" | "second" | "s" | "minute" | "mi" | "hour" | "hh" | "day" | "dy" | "week" | "wk" | "month" | "m" | "quarter" | "q" | "year" | "y"]
+           validateAgainstType(
+            parsedTree.arguments[2],
+            formulaTypes.STRING,
+            (v: any) => {
+              if (!['millisecond', 'ms', 'second', 's', 'minute', 'mi', 'hour', 'hh', 'day', 'dy', 'week', 'wk', 'month', 'm', 'quarter', 'q', 'year', 'y'].includes(v)) {
+                typeErrors.add('The third parameter of DATEADD() should have value either "millisecond", "ms", "second", "s", "minute", "mi", "hour", "hh", "day", "dy", "week", "wk", "month", "m", "quarter", "q", "year", or "y"')
+              }
+            },
+            typeErrors,
+          )
         }
       }
     }

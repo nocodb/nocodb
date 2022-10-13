@@ -181,6 +181,7 @@ export const genTest = (apiType, dbType) => {
     let RESULT_MATH_0 = [];
     let RESULT_MATH_1 = [];
     let RESULT_MATH_2 = [];
+    let RESULT_DATE_DIFF_0 = [];
     let RESULT_WEEKDAY_0 = [];
     let RESULT_WEEKDAY_1 = [];
     let RESULT_CIRC_REF_0 = [];
@@ -220,6 +221,8 @@ export const genTest = (apiType, dbType) => {
         Math.sqrt(countryId[i])
       );
 
+      RESULT_DATE_DIFF_0[i] = -189388800;
+
       // WEEKDAY: starts from Monday
       RESULT_WEEKDAY_0[i] = 1;
       // WEEKDAY: starts from Sunday
@@ -240,6 +243,14 @@ export const genTest = (apiType, dbType) => {
         "ADD({CityId}, {CountryId}) + AVG({CityId}, {CountryId}) + LEN({City})"
       );
       rowValidation("NC_MATH_0", RESULT_MATH_0);
+    });
+
+    it("Formula: DATETIME_DIFF", () => {
+      addFormulaBasedColumn(
+        "NC_DATEDIFF_0",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "second")`
+      );
+      rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
     });
 
     it.skip("Formula: WEEKDAY", () => {

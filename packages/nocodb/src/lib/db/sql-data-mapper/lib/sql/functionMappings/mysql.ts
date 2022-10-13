@@ -57,6 +57,13 @@ const mysql2 = {
       END${colAlias}`
     );
   },
+  DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const date1 = fn(pt.arguments[0]);
+    const date2 = fn(pt.arguments[1]);
+    const unit = fn(pt.arguments[2]);
+
+    return knex.raw(`DATEDIFF(${unit}, ${date1}, ${date2}) ${colAlias}`);
+  },
   WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
     return knex.raw(

@@ -1,0 +1,103 @@
+<!-- -------------------------------HTML PART----------------------------- -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="index.css">
+    <title>Document</title>
+</head>
+<body>
+    <div class="container">
+        <div class="icon tie ">
+            <svg xmlns="http://www.w3.org/2000/svg" 
+            version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" 
+            xmlns:svgjs="http://svgjs.com/svgjs" 
+              x="0" y="0" 
+            viewBox="-15 2 365 370.03164"
+             style="user-select: auto;" xml:space="preserve"
+              class=""><g style="user-select: auto;">
+                <path xmlns="http://www.w3.org/2000/svg" 
+                d="m94.746094 49.535156 25.640625-49.535156h-108.054688l25.640625 49.535156zm0 0" fill="#000000"
+                 data-original="#000000" class="" 
+                 style="user-select: auto;">
+                </path>
+                <path xmlns="http://www.w3.org/2000/svg" 
+                d="m93.132812 64h-53.546874l-39.300782 222.042969c-.890625 4.984375.457032 10.113281 3.691406 14.011719l48.847657 59.59375c3.332031 4.050781 8.300781 6.390624 13.542969 6.382812 5.246093-.007812 10.207031-2.367188 13.523437-6.425781l48.851563-59.660157c3.230468-3.855468 4.582031-8.949218 3.691406-13.898437zm0 0" 
+                fill="#000000" data-original="#000000" class="" style="user-select: auto;">
+                </path></g>
+            </svg>
+        </div>
+
+    </div>
+</body>
+</html>
+<!-- -------------------------------CSS PART----------------------------- -->
+ *
+{
+    margin: 0;
+    padding: 0;
+
+}
+body
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: rgb(1, 40, 57);
+}
+.container
+{
+    position: relative;
+    width: 500px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* background-color: aquamarine; */
+
+}
+.container .icon
+{
+    width: 100px;
+}
+.container .icon path
+{
+    fill: transparent;
+    stroke-width: 10;
+    stroke: #31e8ff;
+}
+
+.container .icon.tie path
+{
+   stroke-dasharray: 750;
+   stroke-dashoffset: 0;
+}
+
+.container .icon.tie path
+{
+   animation: animate-tie 3s linear forwards;
+}
+@keyframes animate-tie 
+{
+    0%
+    {
+        stroke-dashoffset: 0;
+    }
+    40%
+    {
+        stroke-dashoffset: 700;
+    }
+    80%
+    {
+        stroke-dashoffset: 1500;
+        fill: transparent;
+    }
+    100%
+    {
+        stroke-dashoffset: 1500;
+        fill:#31e8ff ;
+    }
+}
+      

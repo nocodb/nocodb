@@ -349,13 +349,6 @@ export const getModelPaths = async (ctx: {
                 },
               },
               tags: [ctx.tableName],
-              requestBody: {
-                content: {
-                  'application/json': {
-                    schema: {},
-                  },
-                },
-              },
             },
           },
 

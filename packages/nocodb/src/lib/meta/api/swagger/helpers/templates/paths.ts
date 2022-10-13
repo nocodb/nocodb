@@ -464,7 +464,6 @@ export const getModelPaths = async (ctx: {
         description:
           'Export all the records from a table.Currently we are only supports `csv` export.',
         tags: [ctx.tableName],
-        wrapped: true,
         responses: {
           '200': {
             description: 'OK',
@@ -645,7 +644,6 @@ export const getViewPaths = async (ctx: {
         description:
           'Export all the records from a table view. Currently we are only supports `csv` export.',
         tags: [`${ctx.viewName} ( ${ctx.tableName} grid )`],
-        wrapped: true,
         responses: {
           '200': {
             description: 'OK',

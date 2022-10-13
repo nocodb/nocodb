@@ -34,4 +34,11 @@ export class ToolbarPage extends BasePage {
     await this.get().locator(`button:has-text("Filter")`).click();
   }
 
+  async clickShareView() {
+    await this.get().locator(`button:has-text("Share View")`).click();
+  }
+
+  async clickAddNewRow() {
+    await this.get().locator(`.nc-toolbar-btn.nc-add-new-row-btn")`).click();
+  }
 }

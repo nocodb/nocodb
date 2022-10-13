@@ -213,6 +213,7 @@ watch(passwordProtected, (value) => {
     >
       <div
         data-cy="nc-modal-share-view__link"
+        data-pw="nc-modal-share-view__link"
         class="share-link-box !bg-primary !bg-opacity-5 ring-1 ring-accent ring-opacity-100"
       >
         <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
@@ -235,6 +236,7 @@ watch(passwordProtected, (value) => {
               v-if="shared.type === ViewTypes.FORM"
               v-model:checked="surveyMode"
               data-cy="nc-modal-share-view__survey-mode"
+              data-pw="nc-modal-share-view__survey-mode"
               class="!text-sm"
             >
               Use Survey Mode
@@ -265,6 +267,7 @@ watch(passwordProtected, (value) => {
               v-if="shared.type === ViewTypes.FORM"
               v-model:checked="viewTheme"
               data-cy="nc-modal-share-view__with-theme"
+              data-pw="nc-modal-share-view__with-theme"
               class="!text-sm"
             >
               Use Theme
@@ -279,6 +282,7 @@ watch(passwordProtected, (value) => {
                   :colors="projectThemeColors"
                   :row-size="9"
                   :advanced="false"
+                  data-pw="nc-modal-share-view__theme-picker"
                   @input="onChangeTheme"
                 />
               </div>
@@ -287,7 +291,12 @@ watch(passwordProtected, (value) => {
 
           <div>
             <!-- Password Protection -->
-            <a-checkbox v-model:checked="passwordProtected" data-cy="nc-modal-share-view__with-password" class="!text-sm !my-1">
+            <a-checkbox
+              v-model:checked="passwordProtected"
+              data-cy="nc-modal-share-view__with-password"
+              class="!text-sm !my-1"
+              data-pw="nc-modal-share-view__with-password"
+            >
               {{ $t('msg.info.beforeEnablePwd') }}
             </a-checkbox>
 
@@ -296,6 +305,7 @@ watch(passwordProtected, (value) => {
                 <a-input
                   v-model:value="shared.password"
                   data-cy="nc-modal-share-view__password"
+                  data-pw="nc-modal-share-view__password"
                   size="small"
                   class="!text-xs max-w-[250px]"
                   type="password"
@@ -304,6 +314,7 @@ watch(passwordProtected, (value) => {
 
                 <a-button
                   data-cy="nc-modal-share-view__save-password"
+                  data-pw="nc-modal-share-view__save-password"
                   size="small"
                   class="!text-xs"
                   @click="saveShareLinkPassword"
@@ -323,6 +334,7 @@ watch(passwordProtected, (value) => {
               "
               v-model:checked="allowCSVDownload"
               data-cy="nc-modal-share-view__with-csv-download"
+              data-pw="nc-modal-share-view__with-csv-download"
               class="!text-sm"
             >
               {{ $t('labels.downloadAllowed') }}

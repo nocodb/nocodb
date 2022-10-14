@@ -19,6 +19,7 @@ interface RelationEdgeProps extends EdgeProps {
   }
   style: CSSProperties
   selected?: boolean
+  showSkeleton: boolean
 }
 
 const props = defineProps<RelationEdgeProps>()
@@ -66,7 +67,7 @@ export default {
     class="opacity-100 hover:(opacity-0)"
     :class="selected ? 'opacity-0' : ''"
     :style="style"
-    :stroke-width="3"
+    :stroke-width="2"
     fill="none"
     :d="edgePath[0]"
   />

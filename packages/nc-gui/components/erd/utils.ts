@@ -204,7 +204,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
     if (!config.singleTableMode) connectNonConnectedNodes()
     elements.value.forEach((el) => {
       if (isNode(el)) {
-        dagreGraph.setNode(el.id, { width: 250, height: 50 * el.data.columnLength })
+        dagreGraph.setNode(el.id, { width: 250, height: 25 + 50 * el.data.columnLength })
       } else if (isEdge(el)) {
         dagreGraph.setEdge(el.source, el.target)
       }

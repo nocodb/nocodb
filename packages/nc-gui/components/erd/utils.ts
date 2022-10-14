@@ -205,9 +205,10 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
     elements.value = [...createNodes(), ...createEdges()]
 
     if (!config.singleTableMode) connectNonConnectedNodes()
+
     elements.value.forEach((el) => {
       if (isNode(el)) {
-        dagreGraph.setNode(el.id, { width: 250, height: 25 + 50 * el.data.columnLength })
+        dagreGraph.setNode(el.id, { width: 300, height: 35 + 50 * el.data.columnLength + 1 })
       } else if (isEdge(el)) {
         dagreGraph.setEdge(el.source, el.target)
       }
@@ -218,7 +219,9 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
     elements.value.forEach((el) => {
       if (isNode(el)) {
         const color = colorScale(dagreGraph.predecessors(el.id)!.length)
+
         const nodeWithPosition = dagreGraph.node(el.id)
+
         el.targetPosition = Position.Left
         el.sourcePosition = Position.Right
         el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }

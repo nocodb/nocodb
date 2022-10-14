@@ -34,21 +34,17 @@ function zoomIn() {
 
 onPaneReady(init)
 
-watch(tables, init, { flush: 'post' })
-watch(
-  showSkeleton,
-  (isSkeleton) => {
-    layout(isSkeleton)
-    setTimeout(() => {
-      fitView({
-        duration: 300,
-        minZoom: isSkeleton ? undefined : viewport.value.zoom,
-        maxZoom: isSkeleton ? viewport.value.zoom : undefined,
-      })
-    }, 100)
-  },
-  { flush: 'post' },
-)
+watch(tables, init)
+watch(showSkeleton, (isSkeleton) => {
+  layout(isSkeleton)
+  setTimeout(() => {
+    fitView({
+      duration: 300,
+      minZoom: isSkeleton ? undefined : viewport.value.zoom,
+      maxZoom: isSkeleton ? viewport.value.zoom : undefined,
+    })
+  }, 100)
+})
 
 onScopeDispose($destroy)
 </script>

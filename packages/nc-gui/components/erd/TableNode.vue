@@ -56,7 +56,7 @@ const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
         class="text-slate-600 text-md py-2 border-slate-500 rounded-t-lg w-full h-full px-3 font-semibold flex items-center"
       >
         <MdiTableLarge v-if="data.type === 'table'" class="text-primary" :class="showSkeleton ? 'text-6xl !px-2' : ''" />
-        <MdiEyeCircleOutline v-else class="text-primary" />
+        <MdiEyeCircleOutline v-else class="text-primary" :class="showSkeleton ? 'text-6xl !px-2' : ''" />
 
         <div :class="showSkeleton ? 'text-6xl' : ''" class="flex px-2">
           {{ data.title }}

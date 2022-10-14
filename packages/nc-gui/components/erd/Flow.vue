@@ -33,7 +33,16 @@ onPaneReady(init)
 watch(tables, init, { flush: 'post' })
 watch(
   showSkeleton,
-  layout,
+  (isSkeleton) => {
+    layout(isSkeleton)
+    setTimeout(() => {
+      fitView({
+        duration: 500,
+        minZoom: showSkeleton ? undefined : viewport.value.zoom,
+        maxZoom: showSkeleton ? viewport.value.zoom : undefined,
+      })
+    }, 100)
+  },
   { flush: 'post' },
 )
 
@@ -68,6 +77,13 @@ onScopeDispose($destroy)
         <MdiEyeCircleOutline class="text-primary" />
         <div>{{ $t('objects.sqlVIew') }}</div>
       </div>
+    </div>
+
+    <div
+      v-if="showSkeleton && config.showAllColumns"
+      class="absolute bottom-2 left-[50%] transform translate-x-[-50%] text-slate-400 font-semibold"
+    >
+      Zoom in to view columns
     </div>
   </VueFlow>
 </template>

@@ -35,7 +35,7 @@ onScopeDispose($destroy)
 
 <template>
   <VueFlow v-model="elements" elevate-edges-on-select>
-    <Controls class="!left-auto right-2 !top-3.5 !bottom-auto" :show-fit-view="false" :show-interactive="false" />
+    <Controls position="top-right" :show-fit-view="false" :show-interactive="false" />
 
     <template #node-custom="{ data }">
       <ErdTableNode :data="data" />

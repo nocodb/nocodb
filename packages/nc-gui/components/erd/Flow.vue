@@ -29,7 +29,6 @@ function init() {
 onPaneReady(init)
 
 watch(tables, init, { flush: 'post' })
-watch(config, init, { flush: 'post', deep: true })
 
 onScopeDispose($destroy)
 </script>

@@ -23,9 +23,11 @@ const showSkeleton = computed(() => viewport.value.zoom < 0.25)
 
 function init() {
   layout(showSkeleton.value)
-  setTimeout(() => {
-    fitView({ duration: 500 })
-  }, 100)
+  if (!showSkeleton.value) {
+    setTimeout(() => {
+      fitView({ duration: 300 })
+    }, 100)
+  }
 }
 
 onPaneReady(init)

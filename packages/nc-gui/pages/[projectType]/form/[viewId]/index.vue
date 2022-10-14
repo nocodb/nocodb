@@ -1,39 +1,39 @@
 <script setup lang="ts">
-import { navigateTo, useDark, useRoute, useRouter, useSharedFormStoreOrThrow, useTheme, watch } from '#imports'
+import { navigateTo, useDark, useRoute, useRouter, useSharedFormStoreOrThrow, useTheme, watch } from "#imports";
 
-const { sharedViewMeta } = useSharedFormStoreOrThrow()
+const { sharedViewMeta } = useSharedFormStoreOrThrow();
 
-const isDark = useDark()
+const isDark = useDark();
 
-const { setTheme } = useTheme()
+const { setTheme } = useTheme();
 
-const route = useRoute()
+const route = useRoute();
 
-const router = useRouter()
+const router = useRouter();
 
 watch(
   () => sharedViewMeta.value.withTheme,
   (hasTheme) => {
-    if (hasTheme && sharedViewMeta.value.theme) setTheme(sharedViewMeta.value.theme)
+    if (hasTheme && sharedViewMeta.value.theme) setTheme(sharedViewMeta.value.theme);
   },
-  { immediate: true },
-)
+  { immediate: true }
+);
 
 const onClick = () => {
-  isDark.value = !isDark.value
-}
+  isDark.value = !isDark.value;
+};
 
 const shouldRedirect = (to: string) => {
   if (sharedViewMeta.value.surveyMode) {
-    if (!to.includes('survey')) navigateTo(`/nc/form/${route.params.viewId}/survey`)
+    if (!to.includes("survey")) navigateTo(`/nc/form/${route.params.viewId}/survey`);
   } else {
-    if (to.includes('survey')) navigateTo(`/nc/form/${route.params.viewId}`)
+    if (to.includes("survey")) navigateTo(`/nc/form/${route.params.viewId}`);
   }
-}
+};
 
-shouldRedirect(route.name as string)
+shouldRedirect(route.name as string);
 
-router.afterEach((to) => shouldRedirect(to.name as string))
+router.afterEach((to) => shouldRedirect(to.name as string));
 </script>
 
 <template>
@@ -69,6 +69,8 @@ p {
 
 .nc-form-view {
   .nc-cell {
+    @apply bg-white dark:bg-slate-500;
+
     &.nc-cell-checkbox {
       @apply color-transition !border-0;
 
@@ -92,6 +94,7 @@ p {
         @apply w-full rounded p-2 min-h-[40px] flex items-center border-solid border-1 border-gray-300 dark:border-slate-200;
 
         input,
+        textarea,
         &.nc-virtual-cell,
         > div {
           @apply bg-white dark:(bg-slate-500 text-white);
@@ -104,11 +107,23 @@ p {
             @apply dark:(bg-slate-700 text-white);
           }
         }
-      }
 
-      .nc-attachment-cell > div {
-        @apply dark:(bg-slate-100);
+        &.nc-cell-longtext {
+          @apply !p-0 pb-2px pr-2px;
+        }
+
+        textarea {
+          @apply px-4 py-2 rounded;
+
+          &:focus {
+            box-shadow: none !important;
+          }
+        }
       }
+    }
+
+    .nc-attachment-cell > div {
+      @apply dark:(bg-slate-100);
     }
   }
 }

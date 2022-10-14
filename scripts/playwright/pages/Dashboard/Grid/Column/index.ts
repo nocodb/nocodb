@@ -23,6 +23,7 @@ export class ColumnPageObject extends BasePage {
     formula = "",
     childTable = "",
     childColumn = "",
+    relationType = "",
     rollupType = "",
     format = "",
   }: {
@@ -31,6 +32,7 @@ export class ColumnPageObject extends BasePage {
     formula?: string;
     childTable?: string;
     childColumn?: string;
+    relationType?: string;
     rollupType?: string;
     format?: string;
   }) {
@@ -99,6 +101,22 @@ export class ColumnPageObject extends BasePage {
         await this.rootPage
           .locator(`.nc-dropdown-rollup-function >> .ant-select-item`, {
             hasText: rollupType,
+          })
+          .nth(0)
+          .click();
+        break;
+      case "LinkToAnotherRecord":
+        await this.get()
+          .locator(".nc-ltar-relation-type >> .ant-radio")
+          .nth(relationType === "Has Many" ? 0 : 1)
+          .click();
+        await this.get().locator(".ant-select-single").nth(1).click();
+        await this.rootPage
+          .locator(`.nc-ltar-child-table >> input[type="search"]`)
+          .fill(childTable);
+        await this.rootPage
+          .locator(`.nc-dropdown-ltar-child-table >> .ant-select-item`, {
+            hasText: childTable,
           })
           .nth(0)
           .click();

@@ -20,14 +20,30 @@ export class ExpandedFormPage extends BasePage {
   async fillField({
     columnTitle,
     value,
+    type = "text",
   }: {
     columnTitle: string;
     value: string;
+    type?: string;
   }) {
     const field = this.get().locator(
       `[pw-data="nc-expand-col-${columnTitle}"]`
     );
-    await field.locator("input").fill(value);
+    await field.hover();
+    switch (type) {
+      case "text":
+        await field.locator("input").fill(value);
+        break;
+      case "belongsTo":
+        await field.locator(".nc-action-icon").click();
+        await this.dashboard.linkRecord.select(value);
+        break;
+      case "hasMany":
+      case "manyToMany":
+        await field.locator(`[data-cy="nc-child-list-button-link-to"]`).click();
+        await this.dashboard.linkRecord.select(value);
+        break;
+    }
   }
 
   async save() {

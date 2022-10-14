@@ -58,6 +58,19 @@ export class CellPageObject extends BasePage {
       .click();
   }
 
+  async inCellAdd({
+    index,
+    columnHeader,
+  }: {
+    index: number;
+    columnHeader: string;
+  }) {
+    await this.get({ index, columnHeader }).hover();
+    await this.get({ index, columnHeader })
+      .locator(".nc-action-icon.nc-plus")
+      .click();
+  }
+
   async verify({
     index,
     columnHeader,

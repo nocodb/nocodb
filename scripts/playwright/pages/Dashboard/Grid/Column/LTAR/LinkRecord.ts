@@ -40,6 +40,12 @@ export class LinkRecord extends BasePage {
     }
   }
 
+  async select(cardTitle: string) {
+    await this.get()
+      .locator(`.ant-card:has-text("${cardTitle}"):visible`)
+      .click();
+  }
+
   async close() {
     await this.get().locator(`.ant-modal-close-x`).click();
     await this.get().waitFor({ state: "hidden" });

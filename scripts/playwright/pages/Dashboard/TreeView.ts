@@ -32,7 +32,10 @@ export class TreeViewPage extends BasePage {
 
     await this.dashboard.get().locator(".ant-modal-body").waitFor();
 
-    await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(title);
+    await this.dashboard
+      .get()
+      .locator('[placeholder="Enter table name"]')
+      .fill(title);
     await this.dashboard.get().locator('button:has-text("Submit")').click();
 
     await this.dashboard.waitForTabRender({ title });
@@ -43,8 +46,10 @@ export class TreeViewPage extends BasePage {
       this.get().locator(`.nc-project-tree-tbl-${title}`)
     ).toBeVisible();
 
-    if(index) {
-      expect(await this.get().locator('.nc-tbl-title').nth(index)).toHaveText(title);
+    if (index) {
+      expect(await this.get().locator(".nc-tbl-title").nth(index)).toHaveText(
+        title
+      );
     }
   }
 
@@ -58,7 +63,8 @@ export class TreeViewPage extends BasePage {
     await this.get()
       .locator(`.nc-project-tree-tbl-${title}`)
       .click({ button: "right" });
-    await this.dashboard.get()
+    await this.dashboard
+      .get()
       .locator('div.nc-project-menu-item:has-text("Delete")')
       .click();
     await this.dashboard.get().locator('button:has-text("Yes")').click();
@@ -69,21 +75,30 @@ export class TreeViewPage extends BasePage {
     await this.get()
       .locator(`.nc-project-tree-tbl-${title}`)
       .click({ button: "right" });
-    await this.dashboard.get()
+    await this.dashboard
+      .get()
       .locator('div.nc-project-menu-item:has-text("Rename")')
       .click();
-    await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
+    await this.dashboard
+      .get()
+      .locator('[placeholder="Enter table name"]')
+      .fill(newTitle);
     await this.dashboard.get().locator('button:has-text("Submit")').click();
-    await this.toastWait({  message: "Table renamed successfully" });
+    await this.toastWait({ message: "Table renamed successfully" });
   }
 
-  async reorderTables({ sourceTable, destinationTable}: {
+  async reorderTables({
+    sourceTable,
+    destinationTable,
+  }: {
     sourceTable: string;
     destinationTable: string;
   }) {
-
-    await this.dashboard.get().locator(`[pw-data="tree-view-table-draggable-handle-${sourceTable}"]`).dragTo(
-      this.get().locator(`[pw-data="tree-view-table-${destinationTable}"]`),
-    );
+    await this.dashboard
+      .get()
+      .locator(`[pw-data="tree-view-table-draggable-handle-${sourceTable}"]`)
+      .dragTo(
+        this.get().locator(`[pw-data="tree-view-table-${destinationTable}"]`)
+      );
   }
 }

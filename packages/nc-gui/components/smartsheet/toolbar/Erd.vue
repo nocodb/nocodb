@@ -1,13 +1,13 @@
 <script lang="ts" setup>
+interface Props {
+  modelValue: boolean
+}
+
 const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
 const meta = inject(MetaInj)
-
-interface Props {
-  modelValue: boolean
-}
 
 const vModel = useVModel(props, 'modelValue', emits)
 

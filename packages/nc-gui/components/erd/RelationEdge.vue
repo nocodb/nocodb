@@ -18,7 +18,7 @@ interface RelationEdgeProps extends EdgeProps {
     label: string
   }
   style: CSSProperties
-  selected: boolean
+  selected?: boolean
 }
 
 const props = defineProps<RelationEdgeProps>()

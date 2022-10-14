@@ -5,7 +5,7 @@ import type { Edge, Elements } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
 import { Position, isEdge, isNode } from '@vue-flow/core'
 import { scaleLinear as d3ScaleLinear } from 'd3-scale'
-import { computed, ref, unref, useMetas } from '#imports'
+import { computed, ref, unref, useMetas, useTheme } from '#imports'
 
 export interface ErdFlowConfig {
   showPkAndFk: boolean
@@ -27,7 +27,9 @@ interface Relation {
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ErdFlowConfig>) {
   const elements = ref<Elements>([])
 
-  const colorScale = d3ScaleLinear<string>().domain([0, 4]).range(['#ff0072', '#0041d0'])
+  const { theme } = useTheme()
+
+  const colorScale = d3ScaleLinear<string>().domain([0, 3]).range([theme.value.primaryColor, theme.value.accentColor])
 
   const dagreGraph = new dagre.graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))
@@ -212,12 +214,19 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
 
     elements.value.forEach((el) => {
       if (isNode(el)) {
+        const color = colorScale(dagreGraph.predecessors(el.id)!.length)
         const nodeWithPosition = dagreGraph.node(el.id)
         el.targetPosition = Position.Left
         el.sourcePosition = Position.Right
         el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
         el.class = 'rounded-lg'
-        el.style = { boxShadow: `0 0 0 2px ${colorScale(dagreGraph.predecessors(el.id)!.length)}` }
+        el.data.color = color
+        el.style = { boxShadow: `0 0 0 2px ${color}` }
+      } else if (isEdge(el)) {
+        const node = elements.value.find((nodes) => nodes.id === el.source)
+        if (node) {
+          el.style = { stroke: node.data.color }
+        }
       }
     })
   }

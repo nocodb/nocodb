@@ -176,12 +176,12 @@ const formulas: Record<string, any> = {
     type: formulaTypes.NUMERIC,
     validation: {
       args: {
-        rqd: 1,
+        rqd: 2,
       },
     },
-    description: 'Nearest integer to the input parameter',
-    syntax: 'ROUND(value)',
-    examples: ['ROUND(3.1415) => 3', 'ROUND({column1})'],
+    description: 'Rounded number to a specified number of decimal places',
+    syntax: 'ROUND(value, decimals)',
+    examples: ['ROUND(3.1415,2) => 3.14', 'ROUND({column1}, 3)'],
   },
   MOD: {
     type: formulaTypes.NUMERIC,

@@ -605,7 +605,7 @@ watch(
       </a-dropdown>
     </div>
 
-    <LazySmartsheetPagination />
+    <LazySmartsheetPagination show-size-changer />
 
     <Suspense>
       <LazySmartsheetExpandedForm

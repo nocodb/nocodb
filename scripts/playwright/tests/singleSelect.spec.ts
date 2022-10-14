@@ -16,7 +16,7 @@ test.describe('Single select', () => {
     await dashboard.treeView.createTable({ title: 'sheet1' });
   
     await grid.column.create({ title: 'SingleSelect', type: 'SingleSelect' });
-    await grid.addNewRow({index: 0, title: "Row 0"});
+    await grid.addNewRow({index: 0, value: "Row 0"});
   })
 
   test('Select and clear options and rename options', async () => {

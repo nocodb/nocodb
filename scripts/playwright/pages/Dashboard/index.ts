@@ -64,4 +64,26 @@ export class DashboardPage extends BasePage {
     // await tab.waitFor({ state: "detached" });
     await this.rootPage.waitForTimeout(2000);
   }
+
+  async waitForTabRender({ title }: { title: string }) {
+        // wait for the column, active tab animation will be started
+    await this.get().locator('[pw-data="grid-id-column"]').waitFor();
+    await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).waitFor();
+
+    // wait active tab animation to finish
+    await expect.poll(async () => {
+      return await this.tabBar.locator(`[data-pw="nc-root-tabs-${title}"]`).evaluate((el) => {
+        return window.getComputedStyle(el).getPropertyValue("color")
+      })
+    }).toBe("rgb(67, 81, 232)"); // active tab text color
+
+    await this
+    .get()
+    .locator('[pw-data="grid-load-spinner"]')
+    .waitFor({ state: "hidden" });
+
+    await expect(this.rootPage).toHaveURL(
+      `/#/nc/${this.project.id}/table/${title}`
+    );
+  }
 }

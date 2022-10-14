@@ -155,11 +155,6 @@ export class ColumnPageObject extends BasePage {
 
     await this.get().waitFor({ state: "visible" });
 
-    // todo: Hack to wait for the modal to be fully loaded
-    await this.fillTitle({ title: "dummy" });
-    await this.fillTitle({ title });
-    await this.get().locator('label[title="Column Name"]').click();
-
     switch (type) {
       case "Formula":
         await this.get().locator(".nc-formula-input").fill(formula);

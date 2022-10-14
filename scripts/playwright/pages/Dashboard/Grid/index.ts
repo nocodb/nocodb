@@ -32,7 +32,7 @@ export class GridPage extends BasePage {
   }
 
   async rowCount() {
-    await this.get().locator(".nc-grid-row").count();
+    return await this.get().locator(".nc-grid-row").count();
   }
 
   async verifyRowCount({ count }: { count: number }) {
@@ -41,9 +41,9 @@ export class GridPage extends BasePage {
 
   async addNewRow({
     index = 0,
-    title = "Title",
+    columnHeader = "Title",
     value,
-  }: { index?: number; title?: string; value?: string } = {}) {
+  }: { index?: number; columnHeader?: string; value?: string } = {}) {
     const rowCount = await this.get().locator(".nc-grid-row").count();
     await this.get().locator(".nc-grid-add-new-cell").click();
 
@@ -51,22 +51,24 @@ export class GridPage extends BasePage {
       .poll(async () => await this.get().locator(".nc-grid-row").count())
       .toBe(rowCount + 1);
 
-    const cell = this.cell.get({ index, columnHeader: title });
+    const cell = this.cell.get({ index, columnHeader });
     await this.cell.dblclick({
       index,
-      columnHeader: title,
+      columnHeader,
     });
 
-    if (value) {
-      await cell.locator("input").fill(value);
-    } else {
-      await cell.locator("input").fill(title ?? `Row ${index}`);
-    }
+
+    await cell.locator("input").fill(value ?? `Row ${index}`);
+
     await this.cell.grid
       .get()
-      .locator(`[data-title="${title}"]`)
-      .locator(`span[title="${title}"]`)
+      .locator(`[data-title="${columnHeader}"]`)
+      .locator(`span[title="${columnHeader}"]`)
       .click();
+
+      await this.rootPage.waitForResponse(async (res) => {
+        return (await res.json())[columnHeader] === value;
+      });
   }
 
   async verifyRow({ index }: { index: number }) {
@@ -114,6 +116,7 @@ export class GridPage extends BasePage {
   async openExpandedRow({ index }: { index: number }) {
     await this.row(index).locator(`td[pw-data="cell-id-${index}"]`).hover();
     await this.row(index).locator(`div[pw-data="nc-expand-${index}"]`).click();
+    await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
   }
 
   async selectAll() {
@@ -125,7 +128,15 @@ export class GridPage extends BasePage {
     await this.get()
       .locator('[pw-data="nc-check-all"]')
       .locator('input[type="checkbox"]')
-      .click();
+      .check({
+        force: true,
+      });
+
+    const rowCount = await this.rowCount();
+    for(let i = 0; i < rowCount; i++) {
+      await expect.poll(async () => await this.row(i).locator(`[pw-data="cell-id-${i}"]`).locator('span.ant-checkbox-checked').count()).toBe(1);
+    }
+    await this.rootPage.waitForTimeout(300);
   }
 
   async deleteAll() {

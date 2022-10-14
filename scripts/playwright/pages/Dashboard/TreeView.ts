@@ -24,26 +24,7 @@ export class TreeViewPage extends BasePage {
   //
   async openTable({ title }: { title: string }) {
     await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
-    
-    // wait for the column, active tab animation will be started
-    await this.dashboard.get().locator('[pw-data="grid-id-column"]').waitFor();
-    await this.dashboard.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).waitFor();
-
-    // wait active tab animation to finish
-    await expect.poll(async () => {
-      return await this.dashboard.tabBar.locator(`[data-pw="nc-root-tabs-${title}"]`).evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue("color")
-      })
-    }).toBe("rgb(67, 81, 232)"); // active tab text color
-
-    await this.dashboard
-    .get()
-    .locator('[pw-data="grid-load-spinner"]')
-    .waitFor({ state: "hidden" });
-
-    await expect(this.rootPage).toHaveURL(
-      `/#/nc/${this.project.id}/table/${title}`
-    );
+    await this.dashboard.waitForTabRender({ title });
   }
 
   async createTable({ title }: { title: string }) {
@@ -54,13 +35,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(title);
     await this.dashboard.get().locator('button:has-text("Submit")').click();
 
-    await expect(this.rootPage).toHaveURL(
-      `/#/nc/${this.project.id}/table/${title}`
-    );
-    await this.dashboard.get()
-      .locator('[pw-data="grid-load-spinner"]')
-      .waitFor({ state: "hidden" });
-    await this.dashboard.get().locator('.nc-grid-add-new-cell').waitFor();
+    await this.dashboard.waitForTabRender({ title });
   }
 
   async verifyTable({ title, index }: { title: string; index?: number }) {

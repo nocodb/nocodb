@@ -70,9 +70,14 @@ const populateTables = async () => {
   isLoading = false
 }
 
-watch([config, metas, projectTables], populateTables, {
+watch([metas, projectTables], populateTables, {
   flush: 'post',
   immediate: true,
+})
+
+watch(config, populateTables, {
+  flush: 'post',
+  deep: true,
 })
 
 watch(

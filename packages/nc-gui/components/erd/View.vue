@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import type { ErdFlowConfig } from './utils'
 import { ref, useGlobal, useMetas, useProject, watch } from '#imports'
 
 const { table } = defineProps<{ table?: TableType }>()
@@ -14,9 +15,10 @@ const { metas, getMeta } = useMetas()
 const tables = ref<TableType[]>([])
 
 let isLoading = $ref(true)
+
 const showAdvancedOptions = ref(false)
 
-const config = ref({
+const config = ref<ErdFlowConfig>({
   showPkAndFk: true,
   showViews: false,
   showAllColumns: true,
@@ -36,7 +38,8 @@ const loadMetaOfTablesNotInMetas = async (localTables: TableType[]) => {
 }
 
 const populateTables = async () => {
-  let localTables: TableType[] = []
+  let localTables: TableType[]
+
   if (table) {
     // if table is provided only get the table and its related tables
     localTables = projectTables.value.filter(
@@ -57,7 +60,6 @@ const populateTables = async () => {
   tables.value = localTables
     .filter(
       (t) =>
-        // todo: table type is missing mm property in type definition
         config.value.showMMTables ||
         (!config.value.showMMTables && !t.mm) ||
         // Show mm table if it's the selected table
@@ -68,23 +70,10 @@ const populateTables = async () => {
   isLoading = false
 }
 
-watch(
-  [config, metas],
-  async () => {
-    await populateTables()
-  },
-  {
-    deep: true,
-  },
-)
-
-watch(
-  [projectTables],
-  async () => {
-    await populateTables()
-  },
-  { immediate: true },
-)
+watch([config, metas, projectTables], populateTables, {
+  flush: 'post',
+  immediate: true,
+})
 
 watch(
   () => config.value.showAllColumns,
@@ -103,13 +92,13 @@ watch(
       'nc-erd-vue-flow-single-table': config.singleTableMode,
     }"
   >
-    <div v-if="isLoading" class="h-full w-full flex flex-col justify-center items-center">
-      <div class="flex flex-row justify-center">
+    <GeneralOverlay v-model="isLoading" inline class="bg-gray-300/50">
+      <div class="h-full w-full flex flex-col justify-center items-center">
         <a-spin size="large" />
       </div>
-    </div>
+    </GeneralOverlay>
 
-    <div v-else class="relative h-full">
+    <div class="relative h-full">
       <LazyErdFlow :tables="tables" :config="config" />
 
       <div

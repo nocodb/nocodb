@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { NodeProps } from '@vue-flow/core'
 import { Handle, Position } from '@vue-flow/core'
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { MetaInj, computed, provide, toRefs, useNuxtApp } from '#imports'
@@ -37,8 +37,8 @@ const nonPkColumns = computed(() => {
     .filter((col: ColumnType) => !col.pk && col.uidt !== UITypes.ForeignKey)
 })
 
-const relatedColumnId = (col: Record<string, any>) =>
-  col.colOptions.type === 'mm' ? col.colOptions.fk_parent_column_id : col.colOptions.fk_child_column_id
+const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
+  colOptions.type === 'mm' ? colOptions.fk_parent_column_id : colOptions.fk_child_column_id
 </script>
 
 <template>
@@ -83,14 +83,14 @@ const relatedColumnId = (col: Record<string, any>) =>
             :class="`nc-erd-table-node-${data.table_name}-column-${col.title?.toLowerCase().replace(' ', '_')}`"
           >
             <Handle
-              :id="`s-${relatedColumnId(col)}-${data.id}`"
+              :id="`s-${relatedColumnId(col.colOptions)}-${data.id}`"
               class="-right-4 opacity-0"
               type="source"
               :position="Position.Right"
             />
 
             <Handle
-              :id="`d-${relatedColumnId(col)}-${data.id}`"
+              :id="`d-${relatedColumnId(col.colOptions)}-${data.id}`"
               class="-left-1 opacity-0"
               type="target"
               :position="Position.Left"

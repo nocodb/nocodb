@@ -17,9 +17,7 @@ interface RelationEdgeProps extends EdgeProps {
     isSelfRelation: boolean
     label: string
   }
-  markerEnd: string
   style: CSSProperties
-  targetHandleId: string
 }
 
 const props = defineProps<RelationEdgeProps>()
@@ -52,15 +50,7 @@ export default {
 </script>
 
 <template>
-  <path
-    :id="id"
-    :style="style"
-    class="path-wrapper hover:!stroke-green-500 p-4 hover:cursor-pointer"
-    :stroke-width="8"
-    fill="none"
-    :d="edgePath[0]"
-    :marker-end="markerEnd"
-  />
+  <path :id="id" :style="style" class="hover:!stroke-green-500" :stroke-width="8" fill="none" :d="edgePath[0]" />
 
   <EdgeText
     v-if="data.label?.length > 0"

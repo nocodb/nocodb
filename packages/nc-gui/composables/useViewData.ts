@@ -11,6 +11,7 @@ import {
   message,
   populateInsertObject,
   ref,
+  until,
   useApi,
   useGlobal,
   useI18n,
@@ -224,8 +225,8 @@ export function useViewData(
         insertObj,
       )
 
-      formattedData.value?.splice(rowIndex ?? 0, 1, {
-        row: insertedData,
+      Object.assign(formattedData.value[rowIndex], {
+        row: { ...insertedData, ...row },
         rowMeta: { ...row.rowMeta, new: undefined },
         oldRow: { ...insertedData },
       })
@@ -287,6 +288,9 @@ export function useViewData(
     ltarState?: Record<string, any>,
     args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    // if new row and save is in progress then wait until the save is complete
+    await until(() => !(row.rowMeta.new && row.rowMeta.saving)).toMatch((v) => v)
+
     if (row.rowMeta.new) {
       return await insertRow(row.row, formattedData.value.indexOf(row), ltarState, args)
     } else {

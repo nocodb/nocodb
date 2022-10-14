@@ -32,7 +32,7 @@ watch(
 
 <template>
   <div class="w-full h-full relative">
-    <LazyTabsSmartsheet :active-tab="activeTab"/>
+    <LazyTabsSmartsheet :active-tab="activeTab" />
 
     <general-overlay :model-value="loading" inline transition class="!bg-opacity-15">
       <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">

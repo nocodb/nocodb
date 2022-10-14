@@ -705,7 +705,7 @@ watch(
 
   .nc-expand {
     &:not(.nc-comment) {
-      //@apply hidden;
+      @apply hidden;
     }
 
     &.nc-comment {

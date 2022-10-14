@@ -15,7 +15,7 @@ const props = defineProps<Props>()
 
 const { tables, config } = toRefs(props)
 
-const { $destroy, fitView, onPaneReady } = useVueFlow({ minZoom: 0.1, maxZoom: 2 })
+const { $destroy, fitView, onPaneReady } = useVueFlow({ minZoom: 0.15, maxZoom: 2 })
 
 const { layout, elements } = useErdElements(tables, config)
 
@@ -28,7 +28,8 @@ function init() {
 
 onPaneReady(init)
 
-watch([() => tables, () => config], init, { flush: 'post' })
+watch(tables, init, { flush: 'post' })
+watch(config, init, { flush: 'post', deep: true })
 
 onScopeDispose($destroy)
 </script>

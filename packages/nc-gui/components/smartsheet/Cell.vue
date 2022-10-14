@@ -84,7 +84,7 @@ const isAutoSaved = $computed(() => {
   ].includes(column?.value?.uidt as UITypes)
 })
 
-const isManualSaved = $computed(() => [UITypes.Currency, UITypes.Duration].includes(column?.value?.uidt as UITypes))
+const isManualSaved = $computed(() => [UITypes.Currency].includes(column?.value?.uidt as UITypes))
 
 const vModel = computed({
   get: () => props.modelValue,

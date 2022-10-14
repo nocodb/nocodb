@@ -3,7 +3,7 @@ import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
 import type { Edge, Elements } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
-import { Position, isEdge, isNode } from '@vue-flow/core'
+import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
 import { scaleLinear as d3ScaleLinear } from 'd3-scale'
 import { computed, ref, unref, useMetas, useTheme } from '#imports'
 
@@ -160,6 +160,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
         sourceHandle: `s-${sourceColumnId}-${source}`,
         targetHandle: `d-${targetColumnId}-${target}`,
         type: 'custom',
+        markerEnd: MarkerType.ArrowClosed,
         data: {
           isManyToMany: type === 'mm',
           isSelfRelation: source === target && sourceColumnId === targetColumnId,
@@ -213,7 +214,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
       if (isNode(el)) {
         dagreGraph.setNode(el.id, {
           width: skeleton ? nodeWidth * 2 : nodeWidth,
-          height: nodeHeight + (skeleton ? 100 : nodeHeight * el.data.columnLength),
+          height: nodeHeight + (skeleton ? 250 : nodeHeight * el.data.columnLength),
         })
       } else if (isEdge(el)) {
         // avoid duplicate edges when using skeleton

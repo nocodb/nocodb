@@ -66,9 +66,9 @@ export class GridPage extends BasePage {
       .locator(`span[title="${columnHeader}"]`)
       .click();
 
-      await this.rootPage.waitForResponse(async (res) => {
-        return (await res.json())[columnHeader] === value;
-      });
+    await this.rootPage.waitForResponse(async (res) => {
+      return (await res.json())[columnHeader] === value;
+    });
   }
 
   async verifyRow({ index }: { index: number }) {
@@ -162,6 +162,11 @@ export class GridPage extends BasePage {
 
   async clickPagination({ page }: { page: string }) {
     (await this.pagination({ page })).click();
+
+    await this.rootPage.waitForResponse(async (res) => {
+      return (await res.json())?.pageInfo;
+    });
+
     await this.waitLoading();
   }
 

@@ -46,7 +46,7 @@ function onClick() {
 
 <template>
   <div
-    class="flex"
+    class="flex cursor-pointer"
     :class="{
       'justify-center': !isForm && !readOnly,
       'w-full': isForm,
@@ -56,12 +56,14 @@ function onClick() {
     @click="onClick"
   >
     <div class="px-1 pt-1 rounded-full items-center" :class="{ 'bg-gray-100': !vModel, '!ml-[-8px]': readOnly }">
-      <component
-        :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
-        :style="{
-          color: checkboxMeta.color,
-        }"
-      />
+      <Transition name="layout" mode="out-in" :duration="100">
+        <component
+          :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
+          :style="{
+            color: checkboxMeta.color,
+          }"
+        />
+      </Transition>
     </div>
   </div>
 </template>

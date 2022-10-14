@@ -23,6 +23,7 @@ const selectedView = inject(ActiveViewInj)
     :closable="false"
     wrap-class-name="erd-single-table-modal"
     transition-name="fade"
+    :destroy-on-close="true"
   >
     <div class="flex flex-row justify-between w-full items-center mb-1">
       <a-typography-title class="ml-4 select-none" type="secondary" :level="5">

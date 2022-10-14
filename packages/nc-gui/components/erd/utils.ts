@@ -13,6 +13,7 @@ export interface ErdFlowConfig {
   showAllColumns: boolean
   singleTableMode: boolean
   showJunctionTableNames: boolean
+  showMMTables: boolean
 }
 
 interface Relation {
@@ -29,7 +30,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
 
   const { theme } = useTheme()
 
-  const colorScale = d3ScaleLinear<string>().domain([0, 3]).range([theme.value.primaryColor, theme.value.accentColor])
+  const colorScale = d3ScaleLinear<string>().domain([0, 2]).range([theme.value.primaryColor, theme.value.accentColor])
 
   const dagreGraph = new dagre.graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))
@@ -96,6 +97,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
     if (!modelId) return ''
 
     const mmModel = metasWithIdAsKey.value[modelId]
+
+    if (!mmModel) return ''
 
     if (mmModel.title !== mmModel.table_name) {
       return `${mmModel.title} (${mmModel.table_name})`

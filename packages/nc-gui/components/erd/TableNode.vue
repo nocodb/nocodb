@@ -7,7 +7,7 @@ import type { Ref } from 'vue'
 import { MetaInj, computed, provide, toRefs, useNuxtApp } from '#imports'
 
 interface Props extends NodeProps {
-  data: TableType & { showPkAndFk: boolean; showAllColumns: boolean }
+  data: TableType & { showPkAndFk: boolean; showAllColumns: boolean; color: string }
   showSkeleton: boolean
 }
 
@@ -44,46 +44,46 @@ const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
 
 <template>
   <div
-    class="relative h-full flex flex-col justify-center items-center min-w-16 rounded-lg nc-erd-table-node"
-    :class="[`nc-erd-table-node-${data.table_name}`, showSkeleton ? 'bg-gray-100 min-h-100px' : 'bg-gray-50']"
+    class="relative h-full flex flex-col justify-center items-center bg-slate-50 min-w-16 rounded-lg nc-erd-table-node"
+    :class="[`nc-erd-table-node-${data.table_name}`, showSkeleton ? 'bg-slate-200 min-h-200px min-w-300px px-4' : '']"
     @click="$e('c:erd:node-click')"
   >
-    <GeneralTooltip modifier-key="Alt">
+    <GeneralTooltip class="h-full flex flex-1 justify-center items-center" modifier-key="Alt">
       <template #title> {{ data.table_name }} </template>
 
       <div
-        :class="[showSkeleton ? '' : 'border-b-1']"
-        class="text-gray-600 text-md py-2 border-gray-200 rounded-t-lg w-full pr-3 pl-2 bg-gray-100 font-semibold flex flex-row items-center"
+        :class="[showSkeleton ? '' : 'bg-primary bg-opacity-10 border-b-1']"
+        class="text-slate-600 text-md py-2 border-slate-500 rounded-t-lg w-full h-full px-3 font-semibold flex items-center"
       >
-        <MdiTableLarge v-if="data.type === 'table'" class="text-primary" />
+        <MdiTableLarge v-if="data.type === 'table'" class="text-primary" :class="showSkeleton ? 'text-6xl !px-2' : ''" />
         <MdiEyeCircleOutline v-else class="text-primary" />
 
-        <div :class="showSkeleton ? 'text-5xl font-semibold !px-2' : ''" class="flex px-1.5">
+        <div :class="showSkeleton ? 'text-6xl' : ''" class="flex px-2">
           {{ data.title }}
         </div>
       </div>
     </GeneralTooltip>
 
     <div v-if="showSkeleton">
-      <Handle :position="Position.Left" type="target" :connectable="false" />
-      <Handle :position="Position.Right" type="source" :connectable="false" />
+      <Handle style="left: -20px" class="opacity-0" :position="Position.Left" type="target" :connectable="false" />
+      <Handle style="right: -15px" class="opacity-0" :position="Position.Right" type="source" :connectable="false" />
     </div>
 
-    <div v-else>
+    <div v-else-if="nonPkColumns.length || pkAndFkColumns.length">
       <div
         v-for="col in pkAndFkColumns"
         :key="col.title"
-        class="w-full border-b-1 py-2 border-gray-100 keys"
+        class="w-full border-b-1 py-2 border-slate-200 bg-slate-100"
         :class="`nc-erd-table-node-${data.table_name}-column-${col.column_name}`"
       >
         <LazySmartsheetHeaderCell v-if="col" :column="col" :hide-menu="true" />
       </div>
 
-      <div class="w-full mb-1"></div>
+      <div v-if="nonPkColumns.length" class="w-full mb-1"></div>
 
       <div v-for="(col, index) in nonPkColumns" :key="col.title">
         <div
-          class="relative w-full h-full flex items-center min-w-32 border-gray-100 py-2 px-1"
+          class="relative w-full h-full flex items-center min-w-32 border-slate-200 py-2 px-1"
           :class="index + 1 === nonPkColumns.length ? 'rounded-b-lg' : 'border-b-1'"
         >
           <div
@@ -93,16 +93,18 @@ const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
           >
             <Handle
               :id="`s-${relatedColumnId(col.colOptions)}-${data.id}`"
-              class="opacity-0 !right-[-3px]"
+              class="opacity-0 !right-[-1px]"
               type="source"
               :position="Position.Right"
+              :connectable="false"
             />
 
             <Handle
               :id="`d-${relatedColumnId(col.colOptions)}-${data.id}`"
-              class="opacity-0"
+              class="opacity-0 !left-[-1px]"
               type="target"
               :position="Position.Left"
+              :connectable="false"
             />
 
             <LazySmartsheetHeaderVirtualCell :column="col" :hide-menu="true" />
@@ -126,9 +128,3 @@ const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.keys {
-  background-color: #f6f6f6;
-}
-</style>

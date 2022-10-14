@@ -20,6 +20,7 @@ interface RelationEdgeProps extends EdgeProps {
   style: CSSProperties
   selected?: boolean
   showSkeleton: boolean
+  markerEnd: string
 }
 
 const props = defineProps<RelationEdgeProps>()
@@ -70,6 +71,7 @@ export default {
     :stroke-width="2"
     fill="none"
     :d="edgePath[0]"
+    :marker-end="showSkeleton ? markerEnd : ''"
   />
   <path
     class="opacity-0 hover:(opacity-100 transition-all duration-100 ease)"
@@ -78,6 +80,7 @@ export default {
     :stroke-width="7"
     fill="none"
     :d="edgePath[0]"
+    :marker-end="showSkeleton ? markerEnd : ''"
   />
 
   <EdgeText

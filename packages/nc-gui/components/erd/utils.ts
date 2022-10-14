@@ -1,10 +1,11 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
-import type { Edge, Elements } from '@vue-flow/core'
+import type { Edge, EdgeMarker, Elements } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
 import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
 import { scaleLinear as d3ScaleLinear } from 'd3-scale'
+import tinycolor from 'tinycolor2'
 import { computed, ref, unref, useMetas, useTheme } from '#imports'
 
 export interface ErdFlowConfig {
@@ -160,17 +161,25 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
         sourceHandle: `s-${sourceColumnId}-${source}`,
         targetHandle: `d-${targetColumnId}-${target}`,
         type: 'custom',
-        markerEnd: MarkerType.ArrowClosed,
+        markerEnd: {
+          id: 'arrow-colored',
+          type: MarkerType.ArrowClosed,
+        },
         data: {
           isManyToMany: type === 'mm',
           isSelfRelation: source === target && sourceColumnId === targetColumnId,
           label: edgeLabel,
         },
-      })
+      } as Edge)
 
       return acc
     }, [])
   }
+
+  const boxShadow = (skeleton: boolean, color: string) => ({
+    border: 'none !important',
+    boxShadow: `0 0 0 ${skeleton ? '12' : '2'}px ${color}`,
+  })
 
   function connectNonConnectedNodes() {
     const connectedNodes = new Set<string>()
@@ -213,7 +222,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
     elements.value.forEach((el) => {
       if (isNode(el)) {
         dagreGraph.setNode(el.id, {
-          width: skeleton ? nodeWidth * 2 : nodeWidth,
+          width: skeleton ? nodeWidth * 2.5 : nodeWidth,
           height: nodeHeight + (skeleton ? 250 : nodeHeight * el.data.columnLength),
         })
       } else if (isEdge(el)) {
@@ -237,11 +246,20 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
         el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
         el.class = ['rounded-lg'].join(' ')
         el.data.color = color
-        el.style = { boxShadow: `0 0 0 ${skeleton ? '15px' : '2px'} ${color}` }
+
+        el.style = (n) => {
+          if (n.selected) {
+            return boxShadow(skeleton, color)
+          }
+
+          return boxShadow(skeleton, '#64748B')
+        }
       } else if (isEdge(el)) {
         const node = elements.value.find((nodes) => nodes.id === el.source)
         if (node) {
-          el.style = { stroke: node.data.color }
+          const color = node.data.color
+          el.data.color = color
+          ;(el.markerEnd as EdgeMarker).color = skeleton ? `#${tinycolor(color).toHex()}` : undefined
         }
       }
     })

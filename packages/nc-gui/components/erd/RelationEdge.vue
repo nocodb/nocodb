@@ -16,18 +16,22 @@ interface RelationEdgeProps extends EdgeProps {
     isManyToMany: boolean
     isSelfRelation: boolean
     label: string
+    color: string
   }
   style: CSSProperties
   selected?: boolean
   showSkeleton: boolean
   markerEnd: string
+  events: EdgeProps['events']
 }
 
 const props = defineProps<RelationEdgeProps>()
 
+const baseStroke = 2
+
 const data = toRef(props, 'data')
 
-const baseStroke = 2
+const isHovering = ref(false)
 
 const edgePath = computed(() => {
   if (data.value.isSelfRelation) {
@@ -38,6 +42,14 @@ const edgePath = computed(() => {
   }
 
   return getBezierPath({ ...props })
+})
+
+props.events?.mouseEnter?.(() => {
+  isHovering.value = true
+})
+
+props.events?.mouseLeave?.(() => {
+  isHovering.value = false
 })
 </script>
 
@@ -60,7 +72,7 @@ export default {
 
   <path
     :id="id"
-    class="opacity-100 hover:(opacity-0)"
+    class="opacity-100 hover:(opacity-0) stroke-slate-500"
     :class="selected ? 'opacity-0' : ''"
     :style="style"
     :stroke-width="showSkeleton ? baseStroke * 4 : baseStroke"
@@ -68,28 +80,34 @@ export default {
     :d="edgePath[0]"
     :marker-end="showSkeleton ? markerEnd : ''"
   />
+
   <path
     class="opacity-0 hover:(opacity-100 transition-all duration-100 ease)"
     :class="selected ? 'opacity-100' : ''"
     style="stroke: url(#linear-gradient)"
-    :stroke-width="showSkeleton ? baseStroke * 8 : 7"
+    :stroke-width="(showSkeleton ? baseStroke * 12 : baseStroke * 8) / (isHovering || selected ? 2 : 1)"
     fill="none"
     :d="edgePath[0]"
     :marker-end="showSkeleton ? markerEnd : ''"
   />
 
-  <EdgeText
-    v-if="data.label?.length > 0"
-    :class="`nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`"
-    :x="edgePath[1]"
-    :y="edgePath[2]"
-    :label="data.label"
-    :label-style="{ fill: 'white' }"
-    :label-show-bg="true"
-    :label-bg-style="{ fill: '#10b981' }"
-    :label-bg-padding="[2, 4]"
-    :label-bg-border-radius="2"
-  />
+  <path class="opacity-0" :stroke-width="showSkeleton ? baseStroke * 12 : baseStroke * 8" fill="none" :d="edgePath[0]" />
+
+  <Transition name="layout">
+    <EdgeText
+      v-if="data.label?.length > 0 && isHovering"
+      :key="`edge-text-${id}.${showSkeleton}`"
+      :class="`nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`"
+      :x="edgePath[1]"
+      :y="edgePath[2]"
+      :label="data.label"
+      :label-style="{ fill: 'white', fontSize: `${showSkeleton ? baseStroke * 2 : baseStroke / 2}rem` }"
+      :label-show-bg="true"
+      :label-bg-style="{ fill: data.color }"
+      :label-bg-padding="[8, 6]"
+      :label-bg-border-radius="2"
+    />
+  </Transition>
 
   <template v-if="!showSkeleton">
     <rect

@@ -271,21 +271,21 @@ export const genTest = (apiType, dbType) => {
       editColumnByName(
         "NC_DATEDIFF_0",
         "NC_DATEDIFF_0",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "minute")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "minutes")`
       );
       rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
 
       editColumnByName(
         "NC_DATEDIFF_0",
         "NC_DATEDIFF_0",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "mi")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "m")`
       );
       rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
 
       editColumnByName(
         "NC_DATEDIFF_0",
         "NC_DATEDIFF_1",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "second")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "seconds")`
       );
       rowValidation("NC_DATEDIFF_1", RESULT_DATE_DIFF_1);
 
@@ -299,7 +299,7 @@ export const genTest = (apiType, dbType) => {
       editColumnByName(
         "NC_DATEDIFF_1",
         "NC_DATEDIFF_2",
-        `DATETIME_DIFF("2017/08/25", "2017/08/26", "millisecond")`
+        `DATETIME_DIFF("2017/08/25", "2017/08/26", "milliseconds")`
       );
       rowValidation("NC_DATEDIFF_2", RESULT_DATE_DIFF_2);
 
@@ -313,84 +313,84 @@ export const genTest = (apiType, dbType) => {
       editColumnByName(
         "NC_DATEDIFF_2",
         "NC_DATEDIFF_3",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "hour")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "hours")`
       );
       rowValidation("NC_DATEDIFF_3", RESULT_DATE_DIFF_3);
 
       editColumnByName(
         "NC_DATEDIFF_3",
         "NC_DATEDIFF_3",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "hh")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "h")`
       );
       rowValidation("NC_DATEDIFF_3", RESULT_DATE_DIFF_3);
 
       editColumnByName(
         "NC_DATEDIFF_3",
         "NC_DATEDIFF_4",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "week")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "weeks")`
       );
       rowValidation("NC_DATEDIFF_4", RESULT_DATE_DIFF_4);
 
       editColumnByName(
         "NC_DATEDIFF_4",
         "NC_DATEDIFF_4",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "wk")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "w")`
       );
       rowValidation("NC_DATEDIFF_4", RESULT_DATE_DIFF_4);
 
       editColumnByName(
         "NC_DATEDIFF_4",
         "NC_DATEDIFF_5",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "month")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "months")`
       );
       rowValidation("NC_DATEDIFF_5", RESULT_DATE_DIFF_5);
 
       editColumnByName(
         "NC_DATEDIFF_5",
         "NC_DATEDIFF_5",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "m")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "M")`
       );
       rowValidation("NC_DATEDIFF_5", RESULT_DATE_DIFF_5);
 
       editColumnByName(
         "NC_DATEDIFF_5",
         "NC_DATEDIFF_6",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "quarter")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "quarters")`
       );
       rowValidation("NC_DATEDIFF_6", RESULT_DATE_DIFF_6);
 
       editColumnByName(
         "NC_DATEDIFF_6",
         "NC_DATEDIFF_6",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "q")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "Q")`
       );
       rowValidation("NC_DATEDIFF_6", RESULT_DATE_DIFF_6);
 
       editColumnByName(
         "NC_DATEDIFF_6",
         "NC_DATEDIFF_7",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "year")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "years")`
       );
       rowValidation("NC_DATEDIFF_7", RESULT_DATE_DIFF_7);
 
       editColumnByName(
         "NC_DATEDIFF_7",
         "NC_DATEDIFF_7",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "yy")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "y")`
       );
       rowValidation("NC_DATEDIFF_7", RESULT_DATE_DIFF_7);
 
       editColumnByName(
         "NC_DATEDIFF_7",
         "NC_DATEDIFF_8",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "day")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "days")`
       );
       rowValidation("NC_DATEDIFF_8", RESULT_DATE_DIFF_8);
 
       editColumnByName(
         "NC_DATEDIFF_8",
         "NC_DATEDIFF_8",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "dy")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "d")`
       );
       rowValidation("NC_DATEDIFF_8", RESULT_DATE_DIFF_8);
     });

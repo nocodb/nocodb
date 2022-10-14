@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { MapFnArgs } from '../mapFunctionName';
 import commonFns from './commonFns';
+import { convertUnits } from '../helpers/convertUnits';
 import { getWeekdayByText } from '../helpers/formulaFnHelper';
 
 const mssql = {
@@ -113,7 +114,7 @@ const mssql = {
   DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const date1 = fn(pt.arguments[0]);
     const date2 = fn(pt.arguments[1]);
-    const unit = fn(pt.arguments[2]) ?? "minute";
+    const unit = convertUnits(fn(pt.arguments[2]) ?? "minutes", "mssql");
 
     return knex.raw(`DATEDIFF(${unit}, ${date1}, ${date2}) ${colAlias}`);
   },

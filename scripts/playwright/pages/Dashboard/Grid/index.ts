@@ -51,12 +51,19 @@ export class GridPage extends BasePage {
       .poll(async () => await this.get().locator(".nc-grid-row").count())
       .toBe(rowCount + 1);
 
+    await this.editRow({ index, columnHeader, value });
+  }
+
+  async editRow({
+    index = 0,
+    columnHeader = "Title",
+    value,
+  }: { index?: number; columnHeader?: string; value?: string } = {}) {
     const cell = this.cell.get({ index, columnHeader });
     await this.cell.dblclick({
       index,
       columnHeader,
     });
-
 
     await cell.locator("input").fill(value ?? `Row ${index}`);
 
@@ -66,7 +73,9 @@ export class GridPage extends BasePage {
       .locator(`span[title="${columnHeader}"]`)
       .click();
 
-    await this.waitForResponseJson({responseSelector: (resJson) => resJson?.[columnHeader] === value});
+    await this.waitForResponseJson({
+      responseSelector: (resJson) => resJson?.[columnHeader] === value,
+    });
   }
 
   async verifyRow({ index }: { index: number }) {
@@ -114,7 +123,9 @@ export class GridPage extends BasePage {
   async openExpandedRow({ index }: { index: number }) {
     await this.row(index).locator(`td[pw-data="cell-id-${index}"]`).hover();
     await this.row(index).locator(`div[pw-data="nc-expand-${index}"]`).click();
-    await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
+    await (
+      await this.rootPage.locator(".ant-drawer-body").elementHandle()
+    )?.waitForElementState("stable");
   }
 
   async selectAll() {
@@ -128,8 +139,16 @@ export class GridPage extends BasePage {
       });
 
     const rowCount = await this.rowCount();
-    for(let i = 0; i < rowCount; i++) {
-      await expect.poll(async () => await this.row(i).locator(`[pw-data="cell-id-${i}"]`).locator('span.ant-checkbox-checked').count()).toBe(1);
+    for (let i = 0; i < rowCount; i++) {
+      await expect
+        .poll(
+          async () =>
+            await this.row(i)
+              .locator(`[pw-data="cell-id-${i}"]`)
+              .locator("span.ant-checkbox-checked")
+              .count()
+        )
+        .toBe(1);
     }
     await this.rootPage.waitForTimeout(300);
   }
@@ -158,7 +177,9 @@ export class GridPage extends BasePage {
   async clickPagination({ page }: { page: string }) {
     (await this.pagination({ page })).click();
 
-    await this.waitForResponseJson({responseSelector: (resJson) => resJson?.pageInfo});
+    await this.waitForResponseJson({
+      responseSelector: (resJson) => resJson?.pageInfo,
+    });
 
     await this.waitLoading();
   }

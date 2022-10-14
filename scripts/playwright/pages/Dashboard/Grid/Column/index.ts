@@ -24,6 +24,7 @@ export class ColumnPageObject extends BasePage {
     childTable = "",
     childColumn = "",
     rollupType = "",
+    format = "",
   }: {
     title: string;
     type?: string;
@@ -31,6 +32,7 @@ export class ColumnPageObject extends BasePage {
     childTable?: string;
     childColumn?: string;
     rollupType?: string;
+    format?: string;
   }) {
     await this.grid.get().locator(".nc-column-add").click();
     await this.rootPage.waitForTimeout(500);
@@ -54,6 +56,14 @@ export class ColumnPageObject extends BasePage {
           option: "Option 2",
           skipColumnModal: true,
         });
+        break;
+      case "Duration":
+        await this.get().locator(".ant-select-single").nth(1).click();
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: format,
+          })
+          .click();
         break;
       case "Formula":
         await this.get().locator(".nc-formula-input").fill(formula);
@@ -142,10 +152,12 @@ export class ColumnPageObject extends BasePage {
     title,
     type = "SingleLineText",
     formula = "",
+    format,
   }: {
     title: string;
     type?: string;
     formula?: string;
+    format?: string;
   }) {
     await this.grid
       .get()
@@ -158,6 +170,14 @@ export class ColumnPageObject extends BasePage {
     switch (type) {
       case "Formula":
         await this.get().locator(".nc-formula-input").fill(formula);
+        break;
+      case "Duration":
+        await this.get().locator(".ant-select-single").nth(1).click();
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: format,
+          })
+          .click();
         break;
       default:
         break;

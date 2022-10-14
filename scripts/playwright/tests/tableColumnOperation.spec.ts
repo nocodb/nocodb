@@ -28,7 +28,7 @@ test.describe("Table Column Operations", () => {
     await grid.column.delete({ title: "column_name_b" });
     await grid.column.verify({ title: "column_name_b", isVisible: true });
 
-    await grid.addNewRow({ index: 0 });
+    await grid.addNewRow({ index: 0, value: `Row 0` });
     await grid.verifyRow({ index: 0 });
 
     await grid.openExpandedRow({ index: 0 });
@@ -46,11 +46,11 @@ test.describe("Table Column Operations", () => {
     await grid.deleteRow(0);
     await grid.verifyRowDoesNotExist({ index: 0 });
 
-    await grid.addNewRow({ index: 0 });
-    await grid.addNewRow({ index: 1 });
-    await grid.addNewRow({ index: 2 });
-    await grid.addNewRow({ index: 3 });
-    await grid.addNewRow({ index: 4 });
+    await grid.addNewRow({ index: 0, value: `Row 0` });
+    await grid.addNewRow({ index: 1, value: `Row 1` });
+    await grid.addNewRow({ index: 2, value: `Row 2` });
+    await grid.addNewRow({ index: 3, value: `Row 3` });
+    await grid.addNewRow({ index: 4, value: `Row 4` });
     await grid.deleteAll();
 
     await grid.verifyRowDoesNotExist({ index: 0 });

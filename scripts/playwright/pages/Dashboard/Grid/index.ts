@@ -41,21 +41,32 @@ export class GridPage extends BasePage {
 
   async addNewRow({
     index = 0,
-    title,
-  }: { index?: number; title?: string } = {}) {
+    title = "Title",
+    value,
+  }: { index?: number; title?: string; value?: string } = {}) {
     const rowCount = await this.get().locator(".nc-grid-row").count();
     await this.get().locator(".nc-grid-add-new-cell").click();
 
-    expect.poll(async () => await this.get().locator(".nc-grid-row").count()).toBe(rowCount + 1)
+    expect
+      .poll(async () => await this.get().locator(".nc-grid-row").count())
+      .toBe(rowCount + 1);
 
-    const cell = this.cell.get({ index, columnHeader: "Title" });
+    const cell = this.cell.get({ index, columnHeader: title });
     await this.cell.dblclick({
       index,
-      columnHeader: "Title",
+      columnHeader: title,
     });
 
-    await cell.locator("input").fill(title ?? `Row ${index}`);
-    await this.cell.grid.get().locator('[data-title="Title"]').locator('span[title="Title"]').click();
+    if (value) {
+      await cell.locator("input").fill(value);
+    } else {
+      await cell.locator("input").fill(title ?? `Row ${index}`);
+    }
+    await this.cell.grid
+      .get()
+      .locator(`[data-title="${title}"]`)
+      .locator(`span[title="${title}"]`)
+      .click();
   }
 
   async verifyRow({ index }: { index: number }) {
@@ -107,6 +118,10 @@ export class GridPage extends BasePage {
 
   async selectAll() {
     await this.get().locator('[pw-data="nc-check-all"]').hover();
+
+    // fix me! without this, elements are getting de-checked after select-all
+    await this.rootPage.waitForTimeout(1000);
+
     await this.get()
       .locator('[pw-data="nc-check-all"]')
       .locator('input[type="checkbox"]')
@@ -115,12 +130,9 @@ export class GridPage extends BasePage {
 
   async deleteAll() {
     await this.selectAll();
-    await this.get()
-      .locator('[pw-data="nc-check-all"]')
-      .locator('input[type="checkbox"]')
-      .click({
-        button: "right",
-      });
+    await this.get().locator('[pw-data="nc-check-all"]').nth(0).click({
+      button: "right",
+    });
     await this.rootPage.locator("text=Delete Selected Rows").click();
   }
 
@@ -149,7 +161,8 @@ export class GridPage extends BasePage {
   }
 
   async waitLoading() {
-    await this.dashboard.get()
+    await this.dashboard
+      .get()
       .locator('[pw-data="grid-load-spinner"]')
       .waitFor({ state: "hidden" });
   }

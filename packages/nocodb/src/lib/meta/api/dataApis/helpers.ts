@@ -119,12 +119,12 @@ async function getDbRows(baseModel, view: View, req: Request) {
   let elapsed, temp;
 
   const listArgs: any = { ...req.query };
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-    try {
-      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-    } catch (e) {}
+  try {
+    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+  } catch (e) {}
+  try {
+    listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+  } catch (e) {}
 
   for (
     elapsed = 0;
@@ -230,8 +230,10 @@ export async function serializeCellValue({
   }
 }
 
-
-export async function getColumnByIdOrName(columnNameOrId: string, model: Model) {
+export async function getColumnByIdOrName(
+  columnNameOrId: string,
+  model: Model
+) {
   const column = (await model.getColumns()).find(
     (c) =>
       c.title === columnNameOrId ||

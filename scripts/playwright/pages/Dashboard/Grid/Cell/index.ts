@@ -129,4 +129,16 @@ export class CellPageObject extends BasePage {
       expect(await chips.nth(i).textContent()).toBe(value[i]);
     }
   }
+
+  async unlinkVirtualCell({
+    index,
+    columnHeader,
+  }: {
+    index: number;
+    columnHeader: string;
+  }) {
+    const cell = this.get({ index, columnHeader });
+    await cell.click();
+    await cell.locator(".nc-icon.unlink-icon").click();
+  }
 }

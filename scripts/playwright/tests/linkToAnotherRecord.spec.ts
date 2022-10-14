@@ -114,5 +114,65 @@ test.describe("LTAR create & update", () => {
       type: "text",
     });
     await dashboard.expandedForm.save();
+
+    const expected = [
+      [["1a"], ["1b"], ["1c"]],
+      [["1a"], ["1b"], ["1c"]],
+      [["1a"], ["1b"], ["1c"]],
+    ];
+    const colHeaders = ["Sheet1", "Sheet1 List", "Link2-1hm"];
+
+    // verify LTAR cell values
+    for (let i = 0; i < expected.length; i++) {
+      for (let j = 0; j < expected[i].length; j++) {
+        await dashboard.grid.cell.verifyVirtualCell({
+          index: j,
+          columnHeader: colHeaders[i],
+          count: 1,
+          value: expected[i][j],
+        });
+      }
+    }
+
+    await dashboard.closeTab({ title: "Sheet2" });
+    await dashboard.treeView.openTable({ title: "Sheet1" });
+
+    const expected2 = [
+      [["2a"], ["2b"], ["2c"]],
+      [["2a"], ["2b"], ["2c"]],
+      [["2a"], ["2b"], ["2c"]],
+    ];
+    const colHeaders2 = ["Link1-2hm", "Link1-2mm", "Sheet2"];
+
+    // verify LTAR cell values
+    for (let i = 0; i < expected2.length; i++) {
+      for (let j = 0; j < expected2[i].length; j++) {
+        await dashboard.grid.cell.verifyVirtualCell({
+          index: j,
+          columnHeader: colHeaders2[i],
+          count: 1,
+          value: expected2[i][j],
+        });
+      }
+    }
+
+    // verify LTAR cell values
+    for (let i = 0; i < expected2.length; i++) {
+      for (let j = 0; j < expected2[i].length; j++) {
+        await dashboard.grid.cell.unlinkVirtualCell({
+          index: j,
+          columnHeader: colHeaders2[i],
+        });
+      }
+    }
+
+    // delete columns
+    await dashboard.grid.column.delete({ title: "Link1-2hm" });
+    await dashboard.grid.column.delete({ title: "Link1-2mm" });
+    await dashboard.grid.column.delete({ title: "Sheet2" });
+
+    // delete table
+    await dashboard.treeView.deleteTable({ title: "Sheet1" });
+    await dashboard.treeView.deleteTable({ title: "Sheet2" });
   });
 });

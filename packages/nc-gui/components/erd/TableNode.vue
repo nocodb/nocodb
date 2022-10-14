@@ -45,7 +45,10 @@ const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
 <template>
   <div
     class="relative h-full flex flex-col justify-center items-center bg-slate-50 min-w-16 rounded-lg nc-erd-table-node"
-    :class="[`nc-erd-table-node-${data.table_name}`, showSkeleton ? 'bg-slate-200 min-h-200px min-w-300px px-4' : '']"
+    :class="[
+      `nc-erd-table-node-${data.table_name}`,
+      showSkeleton ? 'cursor-pointer bg-slate-200 min-h-200px min-w-300px px-4' : '',
+    ]"
     @click="$e('c:erd:node-click')"
   >
     <GeneralTooltip class="h-full flex flex-1 justify-center items-center" modifier-key="Alt">

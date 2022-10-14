@@ -79,6 +79,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     authType: 'jwt',
     connectToExternalDB: false,
     defaultLimit: 0,
+    maxLimit: 100,
+    minLimit: 1,
     firstUser: true,
     githubAuthEnabled: false,
     googleAuthEnabled: true,

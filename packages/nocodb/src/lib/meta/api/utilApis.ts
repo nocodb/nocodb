@@ -50,6 +50,8 @@ export async function appInfo(req: Request, res: Response) {
       ),
       +process.env.DB_QUERY_LIMIT_MIN || 1
     ),
+    maxLimit: +process.env.DB_QUERY_LIMIT_MAX || 100,
+    minLimit: +process.env.DB_QUERY_LIMIT_MIN || 1,
     timezone: defaultConnectionConfig.timezone,
     ncMin: !!process.env.NC_MIN,
     teleEnabled: !process.env.NC_DISABLE_TELE,

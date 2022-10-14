@@ -7,6 +7,24 @@ const paginatedData = inject(PaginationDataInj)!
 
 const changePage = inject(ChangePageInj)!
 
+const { appInfo } = $(useGlobal())
+
+const pageSizeOptions = computed(() =>
+  [
+    '5',
+    '10',
+    '25',
+    '50',
+    '100',
+    '200',
+    '500',
+    '1000',
+    '2000',
+    '5000',
+    ...(appInfo.maxLimit > 5000 ? [appInfo.maxLimit] : []),
+  ].filter((v) => +v >= appInfo.minLimit && +v <= appInfo.maxLimit),
+)
+
 const count = computed(() => paginatedData.value?.totalRows ?? Infinity)
 
 const page = computed({
@@ -34,7 +52,6 @@ const size = computed({
     </span>
 
     <div class="flex-1" />
-
     <a-pagination
       v-if="count !== Infinity"
       v-model:current="page"
@@ -43,6 +60,7 @@ const size = computed({
       class="!text-xs !m-1 nc-pagination"
       :total="count"
       show-less-items
+      :page-size-options="pageSizeOptions"
       :show-size-changer="showSizeChanger"
     />
     <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">

@@ -16,6 +16,8 @@ export interface AppInfo {
   authType: 'jwt' | 'none'
   connectToExternalDB: boolean
   defaultLimit: number
+  maxLimit: number
+  minLimit: number
   firstUser: boolean
   githubAuthEnabled: boolean
   googleAuthEnabled: boolean

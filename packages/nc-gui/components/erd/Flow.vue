@@ -4,7 +4,7 @@ import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { TableType } from 'nocodb-sdk'
 import type { ErdFlowConfig } from './utils'
 import { useErdElements } from './utils'
-import { onScopeDispose, toRefs, watch } from '#imports'
+import { computed, onScopeDispose, toRefs, watch } from '#imports'
 
 interface Props {
   tables: TableType[]
@@ -15,12 +15,14 @@ const props = defineProps<Props>()
 
 const { tables, config } = toRefs(props)
 
-const { $destroy, fitView, onPaneReady } = useVueFlow({ minZoom: 0.15, maxZoom: 2 })
+const { $destroy, fitView, onPaneReady, viewport } = useVueFlow({ minZoom: 0.1, maxZoom: 2 })
 
 const { layout, elements } = useErdElements(tables, config)
 
+const showSkeleton = computed(() => viewport.value.zoom < 0.25)
+
 function init() {
-  layout()
+  layout(showSkeleton.value)
   setTimeout(() => {
     fitView({ duration: 500 })
   }, 100)
@@ -29,6 +31,11 @@ function init() {
 onPaneReady(init)
 
 watch(tables, init, { flush: 'post' })
+watch(
+  showSkeleton,
+  layout,
+  { flush: 'post' },
+)
 
 onScopeDispose($destroy)
 </script>
@@ -38,14 +45,14 @@ onScopeDispose($destroy)
     <Controls position="top-right" :show-fit-view="false" :show-interactive="false" />
 
     <template #node-custom="{ data }">
-      <ErdTableNode :data="data" />
+      <ErdTableNode :data="data" :show-skeleton="showSkeleton" />
     </template>
 
     <template #edge-custom="edgeProps">
-      <ErdRelationEdge v-bind="edgeProps" />
+      <ErdRelationEdge v-bind="edgeProps" :show-skeleton="showSkeleton" />
     </template>
 
-    <Background />
+    <Background :size="showSkeleton ? 2 : undefined" :gap="showSkeleton ? 50 : undefined" />
 
     <div
       v-if="!config.singleTableMode"

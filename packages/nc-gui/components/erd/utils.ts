@@ -25,6 +25,9 @@ interface Relation {
   type: 'mm' | 'hm'
 }
 
+const nodeWidth = 300
+const nodeHeight = 35
+
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ErdFlowConfig>) {
   const elements = ref<Elements>([])
 
@@ -201,16 +204,22 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
     })
   }
 
-  const layout = () => {
-    elements.value = [...createNodes(), ...createEdges()]
+  const layout = (skeleton = false) => {
+    if (!skeleton) elements.value = [...createNodes(), ...createEdges()]
 
     if (!config.singleTableMode) connectNonConnectedNodes()
 
     elements.value.forEach((el) => {
       if (isNode(el)) {
-        dagreGraph.setNode(el.id, { width: 300, height: 35 + 50 * el.data.columnLength + 1 })
+        dagreGraph.setNode(el.id, {
+          width: skeleton ? nodeWidth * 2 : nodeWidth,
+          height: nodeHeight + (skeleton ? 100 : nodeHeight * el.data.columnLength),
+        })
       } else if (isEdge(el)) {
-        dagreGraph.setEdge(el.source, el.target)
+        // avoid duplicate edges when using skeleton
+        if ((skeleton && !dagreGraph.edge(el.source, el.target)) || !skeleton) {
+          dagreGraph.setEdge(el.source, el.target)
+        }
       }
     })
 

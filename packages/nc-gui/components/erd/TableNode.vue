@@ -8,6 +8,7 @@ import { MetaInj, computed, provide, toRefs, useNuxtApp } from '#imports'
 
 interface Props extends NodeProps {
   data: TableType & { showPkAndFk: boolean; showAllColumns: boolean }
+  showSkeleton: boolean
 }
 
 const props = defineProps<Props>()
@@ -43,24 +44,32 @@ const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
 
 <template>
   <div
-    class="h-full flex flex-col min-w-16 bg-gray-50 rounded-lg border-1 nc-erd-table-node"
-    :class="`nc-erd-table-node-${data.table_name}`"
+    class="relative h-full flex flex-col justify-center items-center min-w-16 rounded-lg nc-erd-table-node"
+    :class="[`nc-erd-table-node-${data.table_name}`, showSkeleton ? 'bg-gray-100 min-h-100px' : 'bg-gray-50']"
     @click="$e('c:erd:node-click')"
   >
     <GeneralTooltip modifier-key="Alt">
       <template #title> {{ data.table_name }} </template>
+
       <div
-        class="text-gray-600 text-md py-2 border-b-1 border-gray-200 rounded-t-lg w-full pr-3 pl-2 bg-gray-100 font-semibold flex flex-row items-center"
+        :class="[showSkeleton ? '' : 'border-b-1']"
+        class="text-gray-600 text-md py-2 border-gray-200 rounded-t-lg w-full pr-3 pl-2 bg-gray-100 font-semibold flex flex-row items-center"
       >
         <MdiTableLarge v-if="data.type === 'table'" class="text-primary" />
         <MdiEyeCircleOutline v-else class="text-primary" />
-        <div class="flex pl-1.5">
+
+        <div :class="showSkeleton ? 'text-5xl font-semibold !px-2' : ''" class="flex px-1.5">
           {{ data.title }}
         </div>
       </div>
     </GeneralTooltip>
 
-    <div>
+    <div v-if="showSkeleton">
+      <Handle :position="Position.Left" type="target" :connectable="false" />
+      <Handle :position="Position.Right" type="source" :connectable="false" />
+    </div>
+
+    <div v-else>
       <div
         v-for="col in pkAndFkColumns"
         :key="col.title"

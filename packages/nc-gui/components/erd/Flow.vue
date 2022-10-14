@@ -39,14 +39,18 @@ watch(
     layout(isSkeleton)
     setTimeout(() => {
       fitView({
-        duration: 500,
-        minZoom: showSkeleton ? undefined : viewport.value.zoom,
-        maxZoom: showSkeleton ? viewport.value.zoom : undefined,
+        duration: 300,
+        minZoom: isSkeleton ? undefined : viewport.value.zoom,
+        maxZoom: isSkeleton ? viewport.value.zoom : undefined,
       })
     }, 100)
   },
   { flush: 'post' },
 )
+
+const zoomIn = () => {
+  fitView({ duration: 300, minZoom: 0.3 })
+}
 
 onScopeDispose($destroy)
 </script>
@@ -81,12 +85,15 @@ onScopeDispose($destroy)
       </div>
     </div>
 
-    <div
-      v-if="showSkeleton && config.showAllColumns"
-      class="absolute bottom-2 left-[50%] transform translate-x-[-50%] text-slate-400 font-semibold"
-    >
-      Zoom in to view columns
-    </div>
+    <Transition name="layout">
+      <div
+        v-if="showSkeleton && config.showAllColumns"
+        class="color-transition z-5 cursor-pointer absolute bottom-4 left-[50%] transform translate-x-[-50%] text-slate-400 hover:(text-slate-900 ring ring-accent ring-opacity-100) font-semibold px-4 py-2 bg-slate-100/50 hover:bg-slate-100/90 rounded"
+        @click="zoomIn"
+      >
+        Zoom in to view columns
+      </div>
+    </Transition>
   </VueFlow>
 </template>
 

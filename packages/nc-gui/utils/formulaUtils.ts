@@ -57,7 +57,6 @@ const formulas: Record<string, any> = {
       args: {
         min: 2,
         max: 3,
-        rqd: 2,
       },
     },
     description: 'Calculate the difference of two given date / datetimes in specified units.',

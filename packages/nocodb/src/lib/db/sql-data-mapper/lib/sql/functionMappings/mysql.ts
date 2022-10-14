@@ -59,11 +59,15 @@ const mysql2 = {
     );
   },
   DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    console.log(pt);
     const date1 = fn(pt.arguments[0]);
     const date2 = fn(pt.arguments[1]);
-    const unit = convertUnits(fn(pt.arguments[2]) ?? "minutes", "mysql");
+    const rawUnit = pt.arguments[2]
+      ? fn(pt.arguments[2]).bindings[0]
+      : 'minutes';
+    const unit = convertUnits(rawUnit, 'mysql');
 
-    return knex.raw(`TIMESTAMPDIFF(${unit}, ${date1}, ${date2}) ${colAlias}`)
+    return knex.raw(`TIMESTAMPDIFF('${unit}', ${date2}, ${date1}) ${colAlias}`);
   },
   WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday

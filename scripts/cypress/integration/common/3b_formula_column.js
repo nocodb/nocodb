@@ -229,15 +229,15 @@ export const genTest = (apiType, dbType) => {
         Math.sqrt(countryId[i])
       );
 
-      RESULT_DATE_DIFF_0[i] = -3156480;
-      RESULT_DATE_DIFF_1[i] = -189388800;
+      RESULT_DATE_DIFF_0[i] = 1440;
+      RESULT_DATE_DIFF_1[i] = 86400;
       RESULT_DATE_DIFF_2[i] = 86400000;
-      RESULT_DATE_DIFF_3[i] = -52608;
-      RESULT_DATE_DIFF_4[i] = -313;
-      RESULT_DATE_DIFF_5[i] = -72;
-      RESULT_DATE_DIFF_6[i] = -24;
-      RESULT_DATE_DIFF_7[i] = -6;
-      RESULT_DATE_DIFF_8[i] = -2192;
+      RESULT_DATE_DIFF_3[i] = 24;
+      RESULT_DATE_DIFF_4[i] = 52;
+      RESULT_DATE_DIFF_5[i] = 12;
+      RESULT_DATE_DIFF_6[i] = 4;
+      RESULT_DATE_DIFF_7[i] = 1;
+      RESULT_DATE_DIFF_8[i] = 365;
 
       // WEEKDAY: starts from Monday
       RESULT_WEEKDAY_0[i] = 1;
@@ -264,133 +264,133 @@ export const genTest = (apiType, dbType) => {
     it("Formula: DATETIME_DIFF", () => {
       addFormulaBasedColumn(
         "NC_DATEDIFF_0",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25")`
+        `DATETIME_DIFF("2022/10/14", "2022/10/15")`
       );
       rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
 
       editColumnByName(
         "NC_DATEDIFF_0",
         "NC_DATEDIFF_0",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "minutes")`
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "minutes")`
       );
       rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
 
       editColumnByName(
         "NC_DATEDIFF_0",
         "NC_DATEDIFF_0",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "m")`
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "m")`
       );
       rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
 
       editColumnByName(
         "NC_DATEDIFF_0",
         "NC_DATEDIFF_1",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "seconds")`
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "seconds")`
       );
       rowValidation("NC_DATEDIFF_1", RESULT_DATE_DIFF_1);
 
       editColumnByName(
         "NC_DATEDIFF_1",
         "NC_DATEDIFF_1",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "s")`
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "s")`
       );
       rowValidation("NC_DATEDIFF_1", RESULT_DATE_DIFF_1);
 
       editColumnByName(
         "NC_DATEDIFF_1",
         "NC_DATEDIFF_2",
-        `DATETIME_DIFF("2017/08/25", "2017/08/26", "milliseconds")`
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "milliseconds")`
       );
       rowValidation("NC_DATEDIFF_2", RESULT_DATE_DIFF_2);
 
       editColumnByName(
         "NC_DATEDIFF_2",
         "NC_DATEDIFF_2",
-        `DATETIME_DIFF("2017/08/25", "2017/08/26", "ms")`
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "ms")`
       );
       rowValidation("NC_DATEDIFF_2", RESULT_DATE_DIFF_2);
 
       editColumnByName(
         "NC_DATEDIFF_2",
         "NC_DATEDIFF_3",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "hours")`
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "hours")`
       );
       rowValidation("NC_DATEDIFF_3", RESULT_DATE_DIFF_3);
 
       editColumnByName(
         "NC_DATEDIFF_3",
         "NC_DATEDIFF_3",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "h")`
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "h")`
       );
       rowValidation("NC_DATEDIFF_3", RESULT_DATE_DIFF_3);
 
       editColumnByName(
         "NC_DATEDIFF_3",
         "NC_DATEDIFF_4",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "weeks")`
+        `DATETIME_DIFF("2022/10/14", "2023/10/14", "weeks")`
       );
       rowValidation("NC_DATEDIFF_4", RESULT_DATE_DIFF_4);
 
       editColumnByName(
         "NC_DATEDIFF_4",
         "NC_DATEDIFF_4",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "w")`
+        `DATETIME_DIFF("2022/10/14", "2023/10/14", "w")`
       );
       rowValidation("NC_DATEDIFF_4", RESULT_DATE_DIFF_4);
 
       editColumnByName(
         "NC_DATEDIFF_4",
         "NC_DATEDIFF_5",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "months")`
+        `DATETIME_DIFF("2022/10/14", "2023/10/14", "months")`
       );
       rowValidation("NC_DATEDIFF_5", RESULT_DATE_DIFF_5);
 
       editColumnByName(
         "NC_DATEDIFF_5",
         "NC_DATEDIFF_5",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "M")`
+        `DATETIME_DIFF("2022/10/14", "2023/10/14", "M")`
       );
       rowValidation("NC_DATEDIFF_5", RESULT_DATE_DIFF_5);
 
       editColumnByName(
         "NC_DATEDIFF_5",
         "NC_DATEDIFF_6",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "quarters")`
+        `DATETIME_DIFF("2022/10/14", "2023/10/14", "quarters")`
       );
       rowValidation("NC_DATEDIFF_6", RESULT_DATE_DIFF_6);
 
       editColumnByName(
         "NC_DATEDIFF_6",
         "NC_DATEDIFF_6",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "Q")`
+        `DATETIME_DIFF("2022/10/14", "2023/10/14", "Q")`
       );
       rowValidation("NC_DATEDIFF_6", RESULT_DATE_DIFF_6);
 
       editColumnByName(
         "NC_DATEDIFF_6",
         "NC_DATEDIFF_7",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "years")`
+        `DATETIME_DIFF("2022/10/14", "2023/10/14", "years")`
       );
       rowValidation("NC_DATEDIFF_7", RESULT_DATE_DIFF_7);
 
       editColumnByName(
         "NC_DATEDIFF_7",
         "NC_DATEDIFF_7",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "y")`
+        `DATETIME_DIFF("2022/10/14", "2023/10/14", "y")`
       );
       rowValidation("NC_DATEDIFF_7", RESULT_DATE_DIFF_7);
 
       editColumnByName(
         "NC_DATEDIFF_7",
         "NC_DATEDIFF_8",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "days")`
+        `DATETIME_DIFF("2022/10/14", "2023/10/14", "days")`
       );
       rowValidation("NC_DATEDIFF_8", RESULT_DATE_DIFF_8);
 
       editColumnByName(
         "NC_DATEDIFF_8",
         "NC_DATEDIFF_8",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "d")`
+        `DATETIME_DIFF("2022/10/14", "2023/10/14", "d")`
       );
       rowValidation("NC_DATEDIFF_8", RESULT_DATE_DIFF_8);
     });

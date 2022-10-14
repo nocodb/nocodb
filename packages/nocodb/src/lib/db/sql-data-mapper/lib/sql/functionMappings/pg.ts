@@ -48,10 +48,13 @@ const pg = {
   DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const date1 = fn(pt.arguments[0]);
     const date2 = fn(pt.arguments[1]);
-    const unit = convertUnits(fn(pt.arguments[2]) ?? "minutes", "pg");;
+    const rawUnit = pt.arguments[2]
+      ? fn(pt.arguments[2]).bindings[0]
+      : 'minutes';
+    const unit = convertUnits(rawUnit, 'pg');
 
     return knex.raw(
-      `DATE_PART(${unit}, ${date1}) - DATE_PART(${unit}, ${date2}) ${colAlias}`
+      `DATE_PART('${unit}', ${date2}) - DATE_PART('${unit}', ${date1}) ${colAlias}`
     );
   },
   WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {

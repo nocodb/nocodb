@@ -120,9 +120,6 @@ export class GridPage extends BasePage {
   async selectAll() {
     await this.get().locator('[pw-data="nc-check-all"]').hover();
 
-    // fix me! without this, elements are getting de-checked after select-all
-    await this.rootPage.waitForTimeout(1000);
-
     await this.get()
       .locator('[pw-data="nc-check-all"]')
       .locator('input[type="checkbox"]')

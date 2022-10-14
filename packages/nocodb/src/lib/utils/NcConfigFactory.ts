@@ -41,6 +41,14 @@ const defaultConnectionConfig: any = {
   dateStrings: true,
 };
 
+// default knex options
+const defaultConnectionOptions = {
+  pool: {
+    min: 0,
+    max: 10,
+  },
+};
+
 const knownQueryParams = [
   {
     parameter: 'database',
@@ -733,7 +741,7 @@ export default class NcConfigFactory implements NcConfig {
   // }
 }
 
-export { defaultConnectionConfig };
+export { defaultConnectionConfig, defaultConnectionOptions };
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

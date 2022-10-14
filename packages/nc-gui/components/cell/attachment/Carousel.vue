@@ -47,7 +47,7 @@ onClickOutside(carouselRef, () => {
 </script>
 
 <template>
-  <general-overlay v-model="selectedImage">
+  <general-overlay v-model="selectedImage" z-index="1001">
     <template v-if="selectedImage">
       <div class="overflow-hidden p-12 text-center relative">
         <div class="text-white group absolute top-5 right-5">
@@ -55,7 +55,7 @@ onClickOutside(carouselRef, () => {
         </div>
 
         <div
-          class="select-none group hover:ring active:ring-accent cursor-pointer leading-8 inline-block px-3 py-1 bg-gray-300 text-white mb-4 text-center rounded shadow"
+          class="select-none group hover:(ring-1 ring-accent) ring-opacity-100 cursor-pointer leading-8 inline-block px-3 py-1 bg-gray-300 text-white mb-4 text-center rounded shadow"
           @click.stop="downloadFile(selectedImage)"
         >
           <h3 class="group-hover:text-primary">{{ selectedImage && selectedImage.title }}</h3>
@@ -82,7 +82,9 @@ onClickOutside(carouselRef, () => {
 
           <template #customPaging="props">
             <a>
-              <nuxt-img
+              <LazyNuxtImg
+                quality="90"
+                placeholder
                 class="!block"
                 :alt="imageItems[props.i].title || `#${props.i}`"
                 :src="imageItems[props.i].url || imageItems[props.i].data"

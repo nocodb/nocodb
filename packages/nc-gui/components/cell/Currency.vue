@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, computed, inject, useVModel } from '#imports'
-import { EditModeInj } from '~/context'
+import { ColumnInj, EditModeInj, computed, inject, useVModel } from '#imports'
 
 interface Props {
   modelValue: number | null | undefined
@@ -46,9 +45,11 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="w-full h-full border-none outline-none"
+    class="w-full h-full border-none outline-none px-2"
     @blur="editEnabled = false"
   />
+
   <span v-else-if="vModel">{{ currency }}</span>
+
   <span v-else />
 </template>

@@ -16,34 +16,12 @@ function createWebhook(hook, test) {
   cy.get(".nc-btn-create-webhook").should("exist").click();
 
   // hardcode "Content-type: application/json"
-  cy.get(".ant-tabs-tab-btn").contains("Headers").should("exist").click();
-
-  // kludge : as neither scrollIntoView nor scrollTo didn't yield any results
-  // cy.getActiveSelection().find('.ant-select-item').contains('Content-Type).scrollIntoView();
-  // cy.getActiveSelection().find('.rc-virtual-list').scrollTo('center');
-  // cy.getActiveSelection().select('Content-Type', { force: true });
+  cy.get(`.ant-tabs-tab-btn:contains("Headers")`).should("exist").click();
 
   cy.get(".nc-input-hook-header-key")
     .should("exist")
     .click()
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}")
-    .type("{downarrow}");
-
-  cy.getActiveSelection(".nc-dropdown-webhook-header")
-    .find(".ant-select-item-option-content")
-    .contains("Content-Type")
-    .should("exist")
-    .click();
+    .type("Content-Type{enter}");
 
   cy.get("input.nc-input-hook-header-value")
     .should("exist")
@@ -127,7 +105,6 @@ function configureWebhook(hook, test) {
       .contains(new RegExp("^" + hook.condition.column + "$", "g"))
       .should("exist")
       .click();
-    cy.wait(1000);
 
     cy.get(".nc-filter-operation-select").should("exist").last().click();
     cy.get(".ant-select-dropdown:visible")
@@ -171,10 +148,10 @@ function clearServerData() {
 }
 
 function addNewRow(index, cellValue) {
-  cy.get(".nc-add-new-row-btn:visible").should("exist");
-  cy.get(".nc-add-new-row-btn").click();
-  cy.wait(1000);
+  mainPage.addNewRowExpand("Temp");
+
   cy.get(".nc-expand-col-Title")
+    .should("exist")
     .find(".nc-cell > input")
     .first()
     .type(cellValue);
@@ -195,7 +172,11 @@ function updateRow(index, cellValue) {
     .eq(index - 1)
     .click({ force: true });
 
+  // wait for page render to complete
+  cy.get('button:contains("Save row"):visible').should("exist");
+
   cy.get(".nc-expand-col-Title")
+    .should("exist")
     .find(".nc-cell > input")
     .should("exist")
     .first()
@@ -218,7 +199,7 @@ function updateRow(index, cellValue) {
 
 function verifyHookTrigger(count, lastValue) {
   // allow message to be received
-  cy.wait(500);
+  cy.wait(100);
 
   cy.request("http://localhost:9090/hook/count").then((msg) => {
     cy.log(msg.body);
@@ -246,7 +227,8 @@ export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
   describe(`Webhook`, () => {
     before(() => {
-      loginPage.loginAndOpenProject(apiType, dbType);
+      // loginPage.loginAndOpenProject(apiType, dbType);
+      cy.restoreLocalStorage();
       cy.createTable("Temp");
       cy.saveLocalStorage();
     });

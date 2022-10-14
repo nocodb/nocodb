@@ -2,8 +2,8 @@
   "title": "NocoDB",
   "url": "https://docs.nocodb.com",
   "logo": {
-    "light": "/favicon-128.png",
-    "dark": "/favicon-128.png"
+    "light": "/icon.png",
+    "dark": "/icon.png"
   },
   "github": "nocodb/nocodb",
   "defaultDir": "packages/noco-docs",

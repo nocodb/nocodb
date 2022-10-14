@@ -89,7 +89,7 @@ function onClick(item: Record<string, any>) {
         <general-overlay
           v-model="isOverDropZone"
           inline
-          class="text-white ring ring-accent bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
+          class="text-white ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
         >
           <MaterialSymbolsFileCopyOutline class="text-accent" height="35" width="35" />
           <div class="text-white text-3xl">Drop here</div>
@@ -161,7 +161,7 @@ function onClick(item: Record<string, any>) {
   .nc-attach-file {
     @apply select-none cursor-pointer color-transition flex items-center gap-1 border-1 p-2 rounded
     @apply hover:(bg-primary bg-opacity-10 text-primary ring);
-    @apply active:(ring-accent bg-primary bg-opacity-20);
+    @apply active:(ring-accent ring-opacity-100 bg-primary bg-opacity-20);
   }
 
   .nc-attachment-item {
@@ -182,7 +182,7 @@ function onClick(item: Record<string, any>) {
       }
 
       &:active::after {
-        @apply ring ring-accent shadow transform scale-103;
+        @apply ring ring-accent ring-opacity-100 shadow transform scale-103;
       }
     }
   }

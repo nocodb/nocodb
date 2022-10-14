@@ -49,14 +49,14 @@ const lookupColumnMetaProps = useColumn(lookupColumn)
 </script>
 
 <template>
-  <div class="h-full flex gap-1">
+  <div class="h-full flex gap-1 overflow-x-auto p-1">
     <template v-if="lookupColumn">
       <!-- Render virtual cell -->
       <div v-if="isVirtualCol(lookupColumn)">
         <template
           v-if="lookupColumn.uidt === UITypes.LinkToAnotherRecord && lookupColumn.colOptions.type === RelationTypes.BELONGS_TO"
         >
-          <SmartsheetVirtualCell
+          <LazySmartsheetVirtualCell
             v-for="(v, i) of arrValue"
             :key="i"
             :edit-enabled="false"
@@ -65,7 +65,7 @@ const lookupColumnMetaProps = useColumn(lookupColumn)
           />
         </template>
 
-        <SmartsheetVirtualCell v-else :edit-enabled="false" :model-value="arrValue" :column="lookupColumn" />
+        <LazySmartsheetVirtualCell v-else :edit-enabled="false" :model-value="arrValue" :column="lookupColumn" />
       </div>
 
       <!-- Render normal cell -->
@@ -82,7 +82,7 @@ const lookupColumnMetaProps = useColumn(lookupColumn)
             ),
           }"
         >
-          <SmartsheetCell :model-value="v" :column="lookupColumn" :edit-enabled="false" :virtual="true" />
+          <LazySmartsheetCell :model-value="v" :column="lookupColumn" :edit-enabled="false" :virtual="true" />
         </div>
       </template>
     </template>

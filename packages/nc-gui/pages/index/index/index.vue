@@ -1,18 +1,24 @@
 <script lang="ts" setup>
-import { Empty, Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
+import { breakpointsTailwind } from '@vueuse/core'
 import {
+  Empty,
+  Modal,
   computed,
   definePageMeta,
   extractSdkResponseErrorMsg,
+  message,
   navigateTo,
+  onBeforeMount,
   projectThemeColors,
   ref,
   themeV2Colors,
   useApi,
+  useBreakpoints,
+  useCopy,
+  useGlobal,
   useNuxtApp,
-  useSidebar,
   useUIPermission,
 } from '#imports'
 
@@ -26,11 +32,13 @@ const { api, isLoading } = useApi()
 
 const { isUIAllowed } = useUIPermission()
 
-useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: true })
+const { md } = useBreakpoints(breakpointsTailwind)
 
 const filterQuery = ref('')
 
 const projects = ref<ProjectType[]>()
+
+const { appInfo } = useGlobal()
 
 const loadProjects = async () => {
   const response = await api.project.list({})
@@ -67,8 +75,6 @@ const deleteProject = (project: ProjectType) => {
   })
 }
 
-await loadProjects()
-
 const handleProjectColor = async (projectId: string, color: string) => {
   const tcolor = tinycolor(color)
 
@@ -95,6 +101,7 @@ const handleProjectColor = async (projectId: string, color: string) => {
 
     if (localProject) {
       localProject.color = color
+
       localProject.meta = JSON.stringify({
         ...meta,
         theme: {
@@ -122,19 +129,34 @@ const customRow = (record: ProjectType) => ({
   },
   class: ['group'],
 })
+
+onBeforeMount(loadProjects)
+
+const { copy } = useCopy()
+
+const copyProjectMeta = async () => {
+  const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
+  copy(JSON.stringify(aggregatedMetaInfo))
+  message.info('Copied aggregated project meta to clipboard')
+}
 </script>
 
 <template>
-  <div class="bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)">
-    <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
-
+  <div class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)">
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
-      <!-- My Projects -->
-      <span class="text-4xl nc-project-page-title">{{ $t('title.myProject') }}</span>
+      <span class="text-4xl nc-project-page-title" @dblclick="copyProjectMeta">{{ $t('title.myProject') }}</span>
+    </h1>
+
+    <div class="flex flex-wrap gap-2 mb-6">
+      <a-input-search
+        v-model:value="filterQuery"
+        class="max-w-[250px] nc-project-page-search rounded"
+        :placeholder="$t('activity.searchProject')"
+      />
 
       <a-tooltip title="Reload projects">
-        <span
-          class="transition-all duration-200 h-full flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
+        <div
+          class="transition-all duration-200 h-full flex-0 flex items-center group hover:ring active:(ring ring-accent) rounded-full mt-1"
           :class="isLoading ? 'animate-spin ring ring-gray-200' : ''"
         >
           <MdiRefresh
@@ -143,21 +165,13 @@ const customRow = (record: ProjectType) => ({
             :class="isLoading ? '!text-primary' : ''"
             @click="loadProjects"
           />
-        </span>
+        </div>
       </a-tooltip>
-    </h1>
-
-    <div class="flex mb-6">
-      <a-input-search
-        v-model:value="filterQuery"
-        class="max-w-[250px] nc-project-page-search rounded"
-        :placeholder="$t('activity.searchProject')"
-      />
 
       <div class="flex-1" />
 
       <a-dropdown v-if="isUIAllowed('projectCreate', true)" :trigger="['click']" overlay-class-name="nc-dropdown-create-project">
-        <button class="nc-new-project-menu">
+        <button class="nc-new-project-menu mt-4 md:mt-0">
           <span class="flex items-center w-full">
             {{ $t('title.newProj') }}
             <MdiMenuDown class="menu-icon" />
@@ -178,7 +192,7 @@ const customRow = (record: ProjectType) => ({
               </div>
             </a-menu-item>
 
-            <a-menu-item>
+            <a-menu-item v-if="appInfo.connectToExternalDB">
               <div
                 v-e="['c:project:create:extdb']"
                 class="nc-project-menu-item group nc-create-external-db-project"
@@ -194,17 +208,17 @@ const customRow = (record: ProjectType) => ({
       </a-dropdown>
     </div>
 
-    <TransitionGroup name="layout" mode="out-in">
-      <div v-if="isLoading" key="skeleton">
+    <Transition name="layout" mode="out-in">
+      <div v-if="isLoading">
         <a-skeleton />
       </div>
 
       <a-table
         v-else
-        key="table"
         :custom-row="customRow"
         :data-source="filteredProjects"
         :pagination="{ position: ['bottomCenter'] }"
+        :table-layout="md ? 'auto' : 'fixed'"
       >
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
@@ -231,12 +245,14 @@ const customRow = (record: ProjectType) => ({
 
                       <template #expandIcon></template>
 
-                      <GeneralColorPicker
+                      <LazyGeneralColorPicker
+                        :model-value="getProjectPrimary(record)"
                         :colors="projectThemeColors"
                         :row-size="9"
                         :advanced="false"
                         @input="handleProjectColor(record.id, $event)"
                       />
+
                       <a-sub-menu key="pick-primary">
                         <template #title>
                           <div class="nc-project-menu-item group !py-0">
@@ -244,8 +260,10 @@ const customRow = (record: ProjectType) => ({
                             Custom Color
                           </div>
                         </template>
+
                         <template #expandIcon></template>
-                        <GeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
+
+                        <LazyGeneralChromeWrapper @input="handleProjectColor(record.id, $event)" />
                       </a-sub-menu>
                     </a-sub-menu>
                   </template>
@@ -271,20 +289,20 @@ const customRow = (record: ProjectType) => ({
           </template>
         </a-table-column>
       </a-table>
-    </TransitionGroup>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
 .nc-action-btn {
-  @apply text-gray-500 group-hover:text-accent active:(ring ring-accent) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
+  @apply text-gray-500 group-hover:text-accent active:(ring ring-accent ring-opacity-100) cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
 }
 
 .nc-new-project-menu {
   @apply cursor-pointer z-1 relative color-transition rounded-md px-3 py-2 text-white;
 
   &::after {
-    @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary bg-opacity-100;
+    @apply ring-opacity-100 rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary bg-opacity-100;
     content: '';
     z-index: -1;
   }

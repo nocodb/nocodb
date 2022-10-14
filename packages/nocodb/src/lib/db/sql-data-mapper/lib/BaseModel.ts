@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types,prefer-const */
 import Knex from 'knex';
+import Filter from '../../../models/Filter';
+import Sort from '../../../models/Sort';
 
 const autoBind = require('auto-bind');
 const _ = require('lodash');
@@ -1515,6 +1517,8 @@ export interface XcFilter {
   offset?: string | number;
   sort?: string;
   fields?: string;
+  filterArr?: Filter[];
+  sortArr?: Sort[];
 }
 
 export interface XcFilterWithAlias extends XcFilter {

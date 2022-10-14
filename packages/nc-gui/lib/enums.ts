@@ -2,6 +2,7 @@ export enum Role {
   Super = 'super',
   Admin = 'admin',
   User = 'user',
+  Guest = 'guest',
 }
 
 export enum ProjectRole {
@@ -54,6 +55,11 @@ export enum Language {
   'zh-Hant' = '繁體中文',
 }
 
+export enum LanguageAlias {
+  zn_CN = 'zh-Hans',
+  zh_TW = 'zh-Hant',
+}
+
 export enum NavigateDir {
   NEXT,
   PREV,
@@ -63,4 +69,10 @@ export enum LockType {
   Personal = 'personal',
   Locked = 'locked',
   Collaborative = 'collaborative',
+}
+
+export enum TabType {
+  TABLE = 'table',
+  VIEW = 'view',
+  AUTH = 'auth',
 }

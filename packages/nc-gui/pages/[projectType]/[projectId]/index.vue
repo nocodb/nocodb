@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import {
   computed,
   definePageMeta,
+  message,
   navigateTo,
   onBeforeMount,
   onBeforeUnmount,
   onKeyStroke,
+  onMounted,
   openLink,
   projectThemeColors,
-  provide,
   ref,
   useCopy,
   useGlobal,
@@ -20,13 +20,16 @@ import {
   useRouter,
   useSidebar,
   useTabs,
+  useTheme,
   useUIPermission,
 } from '#imports'
-import { TabType } from '~/composables'
+import { TabType } from '~/lib'
 
 definePageMeta({
   hideHeader: true,
 })
+
+const { theme, defaultTheme } = useTheme()
 
 const { t } = useI18n()
 
@@ -34,7 +37,7 @@ const route = useRoute()
 
 const router = useRouter()
 
-const { appInfo, token, signOut, signedIn, user } = useGlobal()
+const { appInfo, token, signOut, signedIn, user, currentVersion } = useGlobal()
 
 const { project, isSharedBase, loadProjectMetaInfo, projectMetaInfo, saveTheme, loadProject, reset } = useProject()
 
@@ -44,12 +47,8 @@ const { isUIAllowed } = useUIPermission()
 
 const { copy } = useCopy()
 
-const isLocked = ref(false)
-
-provide('TreeViewIsLockedInj', isLocked)
-
 // create a new sidebar state
-const { isOpen, toggle } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
+const { isOpen, toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: false, isOpen: false })
 
 const dialogOpen = ref(false)
 
@@ -72,12 +71,17 @@ function toggleDialog(value?: boolean, key?: string) {
   openDialogKey.value = key
 }
 
-const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: string) => {
+const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color?: string) => {
   switch (mode) {
     case 'swatch': {
+      if (color === defaultTheme.primaryColor) {
+        return await saveTheme(defaultTheme)
+      }
+
       const tcolor = tinycolor(color)
       if (tcolor.isValid()) {
         const complement = tcolor.complement()
+
         await saveTheme({
           primaryColor: color,
           accentColor: complement.toHex8String(),
@@ -87,6 +91,7 @@ const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: st
     }
     case 'primary': {
       const tcolor = tinycolor(color)
+
       if (tcolor.isValid()) {
         await saveTheme({
           primaryColor: color,
@@ -96,6 +101,7 @@ const handleThemeColor = async (mode: 'swatch' | 'primary' | 'accent', color: st
     }
     case 'accent': {
       const tcolor = tinycolor(color)
+
       if (tcolor.isValid()) {
         await saveTheme({
           accentColor: color,
@@ -159,6 +165,11 @@ onBeforeMount(async () => {
   }
 })
 
+onMounted(() => {
+  toggle(true)
+  toggleHasSidebar(true)
+})
+
 onBeforeUnmount(reset)
 </script>
 
@@ -177,16 +188,22 @@ onBeforeUnmount(reset)
       >
         <div
           style="height: var(--header-height)"
-          :class="isOpen ? 'pl-6' : ''"
+          :class="isOpen ? 'pl-4' : ''"
           class="flex items-center !bg-primary text-white px-1 gap-2"
         >
           <div
             v-if="isOpen && !isSharedBase"
             v-e="['c:navbar:home']"
+            data-cy="nc-noco-brand-icon"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
             @click="navigateTo('/')"
           >
-            <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            <a-tooltip placement="bottom">
+              <template #title>
+                {{ currentVersion }}
+              </template>
+              <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            </a-tooltip>
           </div>
 
           <a
@@ -195,7 +212,12 @@ onBeforeUnmount(reset)
             href="https://github.com/nocodb/nocodb"
             target="_blank"
           >
-            <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            <a-tooltip placement="bottom">
+              <template #title>
+                {{ currentVersion }}
+              </template>
+              <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            </a-tooltip>
           </a>
 
           <a-dropdown
@@ -315,10 +337,12 @@ onBeforeUnmount(reset)
 
                         <template #expandIcon></template>
 
-                        <GeneralColorPicker
+                        <LazyGeneralColorPicker
+                          :model-value="theme.primaryColor"
                           :colors="projectThemeColors"
                           :row-size="9"
                           :advanced="false"
+                          class="rounded-t"
                           @input="handleThemeColor('swatch', $event)"
                         />
 
@@ -338,6 +362,7 @@ onBeforeUnmount(reset)
 
                           <!-- Primary Color -->
                           <template #expandIcon></template>
+
                           <a-sub-menu key="pick-primary">
                             <template #title>
                               <div class="nc-project-menu-item group">
@@ -345,8 +370,10 @@ onBeforeUnmount(reset)
                                 {{ $t('labels.primaryColor') }}
                               </div>
                             </template>
+
                             <template #expandIcon></template>
-                            <GeneralChromeWrapper @input="handleThemeColor('primary', $event)" />
+
+                            <LazyGeneralChromeWrapper @input="handleThemeColor('primary', $event)" />
                           </a-sub-menu>
 
                           <!-- Accent Color -->
@@ -357,8 +384,10 @@ onBeforeUnmount(reset)
                                 {{ $t('labels.accentColor') }}
                               </div>
                             </template>
+
                             <template #expandIcon></template>
-                            <GeneralChromeWrapper @input="handleThemeColor('accent', $event)" />
+
+                            <LazyGeneralChromeWrapper @input="handleThemeColor('accent', $event)" />
                           </a-sub-menu>
                         </a-sub-menu>
                       </a-sub-menu>
@@ -383,7 +412,7 @@ onBeforeUnmount(reset)
 
                       <template #expandIcon></template>
 
-                      <GeneralPreviewAs />
+                      <LazyGeneralPreviewAs />
                     </a-sub-menu>
                   </template>
                   <!-- Language -->
@@ -406,7 +435,8 @@ onBeforeUnmount(reset)
                     </template>
 
                     <template #expandIcon></template>
-                    <GeneralLanguageMenu />
+
+                    <LazyGeneralLanguageMenu />
                   </a-sub-menu>
 
                   <!-- Account -->
@@ -462,16 +492,16 @@ onBeforeUnmount(reset)
           </div>
         </div>
 
-        <DashboardTreeView v-show="isOpen" />
+        <LazyDashboardTreeView />
       </a-layout-sider>
     </template>
 
-    <div :key="$route.fullPath.split('?')[0]">
-      <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
+    <div>
+      <LazyDashboardSettingsModal v-model="dialogOpen" :open-key="openDialogKey" />
 
-      <NuxtPage />
+      <NuxtPage :page-key="$route.params.projectId" />
 
-      <GeneralPreviewAs float />
+      <LazyGeneralPreviewAs float />
     </div>
   </NuxtLayout>
 </template>

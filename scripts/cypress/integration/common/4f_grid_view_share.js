@@ -31,7 +31,8 @@ export const genTest = (apiType, dbType) => {
       .find(".share-link-box")
       .contains("/nc/view/", { timeout: 10000 })
       .then(($obj) => {
-        cy.get("body").type("{esc}");
+        // cy.get("body").type("{esc}");
+        cy.closeActiveModal(".nc-modal-share-view");
         // viewURL.push($obj.text())
         viewURL[viewName] = $obj.text().trim();
       });
@@ -39,12 +40,17 @@ export const genTest = (apiType, dbType) => {
     cy.getActiveModal(".nc-modal-share-view").should("not.be.visible");
   };
 
+  let clear;
+
   describe(`${apiType.toUpperCase()} api - GRID view (Share)`, () => {
     // Run once before test- create project (rest/graphql)
     //
     before(() => {
       cy.restoreLocalStorage();
       cy.openTableTab("Address", 25);
+
+      clear = Cypress.LocalStorage.clear;
+      Cypress.LocalStorage.clear = () => {};
     });
 
     beforeEach(() => {
@@ -61,6 +67,8 @@ export const genTest = (apiType, dbType) => {
       cy.restoreLocalStorage();
       cy.closeTableTab("Address");
       cy.saveLocalStorage();
+
+      Cypress.LocalStorage.clear = clear;
     });
 
     // Common routine to create/edit/delete GRID & GALLERY view
@@ -82,7 +90,9 @@ export const genTest = (apiType, dbType) => {
       });
 
       it(`Share ${viewType.toUpperCase()} hide, sort, filter & verify`, () => {
-        cy.intercept("/api/v1/db/meta/audits/comments/*").as("waitForPageLoad");
+        cy.intercept("/api/v1/db/meta/audits/comments/**").as(
+          "waitForPageLoad"
+        );
 
         cy.get(`.nc-view-item.nc-${viewType}-view-item`)
           .contains("Grid-1")
@@ -391,7 +401,7 @@ export const genTest = (apiType, dbType) => {
 
     it(`Generate default Shared GRID view URL`, () => {
       // add row
-      cy.get(".nc-add-new-row-btn").click();
+      mainPage.addNewRowExpand("Country");
       cy.get(".nc-expand-col-Country")
         .find(".nc-cell > input")
         .should("exist")

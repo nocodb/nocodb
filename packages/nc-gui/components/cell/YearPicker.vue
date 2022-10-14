@@ -61,7 +61,7 @@ const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
     v-model:value="localState"
     picker="year"
     :bordered="false"
-    class="!w-full px-1"
+    class="!w-full !px-0 !border-none"
     :placeholder="placeholder"
     :allow-clear="!readOnly"
     :input-read-only="true"

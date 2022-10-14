@@ -8,8 +8,8 @@ export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
   function addNewRow(index, cellValue) {
-    cy.get(".nc-add-new-row-btn:visible").should("exist");
-    cy.get(".nc-add-new-row-btn").click();
+    mainPage.addNewRowExpand("tablex");
+
     // cy.get("#data-table-form-Title > input").first().type(cellValue);
     cy.get(".nc-expand-col-Title")
       .find(".nc-cell > input")
@@ -72,8 +72,7 @@ export const genTest = (apiType, dbType) => {
           .find(".nc-column-edit")
           .click();
 
-        // fix me! wait till the modal rendering (input highlight) is completed
-        cy.wait(500);
+        cy.inputHighlightRenderWait();
 
         // change column type and verify
         // cy.get(".nc-column-type-input").last().click();
@@ -141,6 +140,9 @@ export const genTest = (apiType, dbType) => {
         .eq(0)
         .trigger("mouseover", { force: true });
       cy.get(".nc-row-expand").click({ force: true });
+
+      // wait for page render to complete
+      cy.get('button:contains("Save row"):visible').should("exist");
 
       cy.get(".nc-expand-col-Title")
         .find(".nc-cell > input")

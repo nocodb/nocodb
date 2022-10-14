@@ -1,5 +1,4 @@
 import { dirname, resolve } from 'node:path'
-import { defineNuxtConfig } from 'nuxt'
 import vueI18n from '@intlify/vite-plugin-vue-i18n'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
@@ -15,6 +14,15 @@ export default defineNuxtConfig({
   ssr: false,
 
   app: {
+    pageTransition: {
+      name: 'page',
+      mode: 'out-in',
+    },
+    layoutTransition: {
+      name: 'layout',
+      mode: 'out-in',
+    },
+
     /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
     cdnURL: process.env.NODE_ENV === 'production' ? '.' : undefined,
   },
@@ -50,10 +58,32 @@ export default defineNuxtConfig({
     ],
   },
 
+  build: {
+    splitChunks: {
+      pages: true,
+      layouts: true,
+    },
+  },
+
   vite: {
     build: {
       commonjsOptions: {
-        ignoreTryCatch: false,
+        ignoreTryCatch: true,
+      },
+      minify: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            const chunks = ['ant-design-vue', 'nocodb-sdk', 'vue-router', 'vue-i18n']
+            if (id.includes('/node_modules/')) {
+              for (const chunkName of chunks) {
+                if (id.includes(chunkName)) {
+                  return chunkName
+                }
+              }
+            }
+          },
+        },
       },
     },
     plugins: [
@@ -62,7 +92,7 @@ export default defineNuxtConfig({
         runtimeOnly: false,
       }),
       Icons({
-        autoInstall: true,
+        autoInstall: false,
         compiler: 'vue3',
         defaultClass: 'nc-icon',
       }),
@@ -74,6 +104,22 @@ export default defineNuxtConfig({
           }),
           IconsResolver({
             prefix: false,
+            enabledCollections: [
+              'ant-design',
+              'bi',
+              'cil',
+              'clarity',
+              'eva',
+              'ic',
+              'logos',
+              'lucide',
+              'material-symbols',
+              'mdi',
+              'mi',
+              'ph',
+              'ri',
+              'system-uicons',
+            ],
           }),
         ],
       }),
@@ -84,6 +130,8 @@ export default defineNuxtConfig({
     define: {
       'process.env.DEBUG': 'false',
       'process.nextTick': () => {},
+      'process.env.ANT_MESSAGE_DURATION': process.env.ANT_MESSAGE_DURATION,
+      'process.env.NC_BACKEND_URL': process.env.NC_BACKEND_URL,
     },
     server: {
       watch: {
@@ -116,17 +164,15 @@ export default defineNuxtConfig({
     dir: 'assets/',
   },
 
-  autoImports: {
-    dirs: ['./context', './utils', './lib'],
-    imports: [{ name: 'useI18n', from: 'vue-i18n' }],
-  },
-
-  pageTransition: {
-    name: 'page',
-    mode: 'out-in',
-  },
-  layoutTransition: {
-    name: 'layout',
-    mode: 'out-in',
+  imports: {
+    dirs: ['./context', './utils/**', './lib', './composables/**'],
+    imports: [
+      { name: 'useI18n', from: 'vue-i18n' },
+      { name: 'message', from: 'ant-design-vue/es' },
+      { name: 'Modal', from: 'ant-design-vue/es' },
+      { name: 'Empty', from: 'ant-design-vue/es' },
+      { name: 'Form', from: 'ant-design-vue/es' },
+      { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
+    ],
   },
 })

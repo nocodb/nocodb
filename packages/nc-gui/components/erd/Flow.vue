@@ -4,8 +4,7 @@ import { Background, Controls, VueFlow, useVueFlow } from '@braks/vue-flow'
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
-import TableNode from './TableNode.vue'
-import RelationEdge from './RelationEdge.vue'
+import { onScopeDispose, watch } from '#imports'
 
 interface Props {
   tables: any[]
@@ -200,11 +199,11 @@ watch([() => tables, () => config], init, { deep: true, flush: 'pre' })
     <Controls class="!left-auto right-2 !top-3.5 !bottom-auto" :show-fit-view="false" :show-interactive="false" />
 
     <template #node-custom="props">
-      <TableNode :data="props.data" />
+      <LazyErdTableNode :data="props.data" />
     </template>
 
     <template #edge-custom="props">
-      <RelationEdge v-bind="props" />
+      <LazyErdRelationEdge v-bind="props" />
     </template>
 
     <Background />
@@ -218,6 +217,7 @@ watch([() => tables, () => config], init, { deep: true, flush: 'pre' })
         <MdiTableLarge class="text-primary" />
         <div>{{ $t('objects.table') }}</div>
       </div>
+
       <div class="flex flex-row items-center space-x-1 pt-1">
         <MdiEyeCircleOutline class="text-primary" />
         <div>{{ $t('objects.sqlVIew') }}</div>

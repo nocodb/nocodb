@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { onBeforeUnmount, onMounted, watch } from '#imports'
+
 type FlipTrigger = 'hover' | 'click' | { duration: number }
 
 interface Props {
@@ -12,7 +14,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 let flipped = $ref(false)
+
 let hovered = $ref(false)
+
 let flipTimer = $ref<NodeJS.Timer | null>(null)
 
 onMounted(() => {
@@ -76,6 +80,7 @@ watch($$(flipped), () => {
       >
         <slot name="front" />
       </div>
+
       <div
         class="back"
         :style="{ 'pointer-events': flipped ? 'auto' : 'none', 'opacity': !isFlipping ? (flipped ? 100 : 0) : flipped ? 0 : 100 }"

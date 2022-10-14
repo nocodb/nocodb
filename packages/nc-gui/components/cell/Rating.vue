@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ColumnInj, computed, inject } from '#imports'
-import { EditModeInj } from '~/context'
+import { ColumnInj, EditModeInj, computed, inject } from '#imports'
 
 interface Props {
   modelValue?: number | null | undefined
@@ -33,7 +32,13 @@ const vModel = computed({
 </script>
 
 <template>
-  <a-rate v-model:value="vModel" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`" :disabled="!editEnabled">
+  <a-rate
+    v-model:value="vModel"
+    :count="ratingMeta.max"
+    :style="`color: ${ratingMeta.color}; padding: 0px 5px`"
+    :class="{ '!ml-[-8px]': !editEnabled }"
+    :disabled="!editEnabled"
+  >
     <template #character>
       <MdiStar v-if="ratingMeta.icon.full === 'mdi-star'" class="text-sm" />
       <MdiHeart v-if="ratingMeta.icon.full === 'mdi-heart'" class="text-sm" />

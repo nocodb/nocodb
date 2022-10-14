@@ -7,6 +7,7 @@ import * as nc_016_alter_hooklog_payload_types from './v2/nc_016_alter_hooklog_p
 import * as nc_017_add_user_token_version_column from './v2/nc_017_add_user_token_version_column';
 import * as nc_018_add_meta_in_view from './v2/nc_018_add_meta_in_view';
 import * as nc_019_add_meta_in_meta_tables from './v2/nc_019_add_meta_in_meta_tables';
+import * as nc_020_kanban_view from './v2/nc_020_kanban_view';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -25,6 +26,7 @@ export default class XcMigrationSourcev2 {
       'nc_017_add_user_token_version_column',
       'nc_018_add_meta_in_view',
       'nc_019_add_meta_in_meta_tables',
+      'nc_020_kanban_view',
     ]);
   }
 
@@ -52,6 +54,8 @@ export default class XcMigrationSourcev2 {
         return nc_018_add_meta_in_view;
       case 'nc_019_add_meta_in_meta_tables':
         return nc_019_add_meta_in_meta_tables;
+      case 'nc_020_kanban_view':
+        return nc_020_kanban_view;
     }
   }
 }

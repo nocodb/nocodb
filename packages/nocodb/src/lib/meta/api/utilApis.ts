@@ -2,6 +2,11 @@
 import { Request, Response } from 'express';
 
 import { packageVersion } from 'nc-help';
+import { ViewTypes } from 'nocodb-sdk';
+import Project from '../../models/Project';
+import Noco from '../../Noco';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
+import { MetaTable } from '../../utils/globals';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import SqlMgrv2 from '../../db/sql-mgr/v2/SqlMgrv2';
 import NcConfigFactory, {
@@ -10,6 +15,7 @@ import NcConfigFactory, {
 import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
+import { feedbackForm } from 'nc-help';
 
 const versionCache = {
   releaseVersion: null,
@@ -19,6 +25,7 @@ const versionCache = {
 export async function testConnection(req: Request, res: Response) {
   res.json(await SqlMgrv2.testConnection(req.body));
 }
+
 export async function appInfo(req: Request, res: Response) {
   const projectHasAdmin = !(await User.isFirst());
   const result = {
@@ -80,17 +87,10 @@ export async function versionInfo(_req: Request, res: Response) {
   res.json(response);
 }
 
-export async function feedbackFormGet(_req: Request, res: Response) {
-  axios
-    .get('https://nocodb.com/api/v1/feedback_form', {
-      timeout: 5000,
-    })
-    .then((response) => {
-      res.json(response.data);
-    })
-    .catch((e) => {
-      res.json({ error: e.message });
-    });
+export function feedbackFormGet(_req: Request, res: Response) {
+  feedbackForm()
+    .then((form) => res.json(form))
+    .catch((e) => res.json({ error: e.message }));
 }
 
 export async function appHealth(_: Request, res: Response) {
@@ -171,13 +171,197 @@ export async function axiosRequestMake(req: Request, res: Response) {
 export async function urlToDbConfig(req: Request, res: Response) {
   const { url } = req.body;
   try {
-    let connectionConfig;
-    connectionConfig = NcConfigFactory.extractXcUrlFromJdbc(url, true);
+    const connectionConfig = NcConfigFactory.extractXcUrlFromJdbc(url, true);
     return res.json(connectionConfig);
   } catch (error) {
     return res.sendStatus(500);
   }
 }
+
+interface ViewCount {
+  formCount: number | null;
+  gridCount: number | null;
+  galleryCount: number | null;
+  kanbanCount: number | null;
+  total: number | null;
+  sharedFormCount: number | null;
+  sharedGridCount: number | null;
+  sharedGalleryCount: number | null;
+  sharedKanbanCount: number | null;
+  sharedTotal: number | null;
+  sharedLockedCount: number | null;
+}
+
+interface AllMeta {
+  projectCount: number;
+  projects: (
+    | {
+        external?: boolean | null;
+        tableCount: {
+          table: number;
+          view: number;
+        } | null;
+        viewCount: ViewCount;
+        webhookCount: number | null;
+        filterCount: number | null;
+        sortCount: number | null;
+        rowCount: ({ totalRecords: number } | null)[] | null;
+        userCount: number | null;
+      }
+    | { error: string }
+  )[];
+  userCount: number;
+  sharedBaseCount: number;
+}
+
+export async function aggregatedMetaInfo(_req: Request, res: Response) {
+  const [projects, userCount] = await Promise.all([
+    Project.list({}),
+    Noco.ncMeta.metaCount(null, null, MetaTable.USERS),
+  ]);
+
+  const result: AllMeta = {
+    projectCount: projects.length,
+    projects: [],
+    userCount,
+    sharedBaseCount: 0,
+  };
+
+  result.projects.push(
+    ...extractResultOrNull(
+      await Promise.allSettled(
+        projects.map(async (project) => {
+          if (project.uuid) result.sharedBaseCount++;
+          const [
+            tableCount,
+            dbViewCount,
+            viewCount,
+            webhookCount,
+            filterCount,
+            sortCount,
+            rowCount,
+            userCount,
+          ] = extractResultOrNull(
+            await Promise.allSettled([
+              // db tables  count
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.MODELS, {
+                condition: {
+                  type: 'table',
+                },
+              }),
+              // db views count
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.MODELS, {
+                condition: {
+                  type: 'view',
+                },
+              }),
+              // views count
+              (async () => {
+                const views = await Noco.ncMeta.metaList2(
+                  project.id,
+                  null,
+                  MetaTable.VIEWS
+                );
+                // grid, form, gallery, kanban and shared count
+                return views.reduce<ViewCount>(
+                  (out, view) => {
+                    out.total++;
+
+                    switch (view.type) {
+                      case ViewTypes.GRID:
+                        out.gridCount++;
+                        if (view.uuid) out.sharedGridCount++;
+                        break;
+                      case ViewTypes.FORM:
+                        out.formCount++;
+                        if (view.uuid) out.sharedFormCount++;
+                        break;
+                      case ViewTypes.GALLERY:
+                        out.galleryCount++;
+                        if (view.uuid) out.sharedGalleryCount++;
+                        break;
+                      case ViewTypes.KANBAN:
+                        out.kanbanCount++;
+                        if (view.uuid) out.sharedKanbanCount++;
+                    }
+
+                    if (view.uuid) {
+                      if (view.password) out.sharedLockedCount++;
+                      out.sharedTotal++;
+                    }
+
+                    return out;
+                  },
+                  {
+                    formCount: 0,
+                    gridCount: 0,
+                    galleryCount: 0,
+                    kanbanCount: 0,
+                    total: 0,
+                    sharedFormCount: 0,
+                    sharedGridCount: 0,
+                    sharedGalleryCount: 0,
+                    sharedKanbanCount: 0,
+                    sharedTotal: 0,
+                    sharedLockedCount: 0,
+                  }
+                );
+              })(),
+              // webhooks count
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.HOOKS),
+              // filters count
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.FILTER_EXP),
+              // sorts count
+              Noco.ncMeta.metaCount(project.id, null, MetaTable.SORT),
+              // row count per base
+              project.getBases().then(async (bases) => {
+                return extractResultOrNull(
+                  await Promise.allSettled(
+                    bases.map((base) =>
+                      NcConnectionMgrv2.getSqlClient(base)
+                        .totalRecords?.()
+                        ?.then((result) => result?.data)
+                    )
+                  )
+                );
+              }),
+              // project users count
+              Noco.ncMeta.metaCount(null, null, MetaTable.PROJECT_USERS, {
+                condition: {
+                  project_id: project.id,
+                },
+                aggField: '*',
+              }),
+            ])
+          );
+
+          return {
+            tableCount: { table: tableCount, view: dbViewCount },
+            external: !project.is_meta,
+            viewCount,
+            webhookCount,
+            filterCount,
+            sortCount,
+            rowCount,
+            userCount,
+          };
+        })
+      )
+    )
+  );
+
+  res.json(result);
+}
+
+const extractResultOrNull = (results: PromiseSettledResult<any>[]) => {
+  return results.map((result) => {
+    if (result.status === 'fulfilled') {
+      return result.value;
+    }
+    console.log(result.reason);
+    return null;
+  });
+};
 
 export default (router) => {
   router.post(
@@ -190,4 +374,8 @@ export default (router) => {
   router.get('/api/v1/health', catchError(appHealth));
   router.get('/api/v1/feedback_form', catchError(feedbackFormGet));
   router.post('/api/v1/url_to_config', catchError(urlToDbConfig));
+  router.get(
+    '/api/v1/aggregated-meta-info',
+    ncMetaAclMw(aggregatedMetaInfo, 'aggregatedMetaInfo')
+  );
 };

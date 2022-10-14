@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
-import { MetaInj, extractSdkResponseErrorMsg, onMounted, useI18n } from '#imports'
+import { MetaInj, extractSdkResponseErrorMsg, inject, message, onMounted, ref, useI18n, useNuxtApp, watch } from '#imports'
 
 interface Props {
   hook: Record<string, any>
@@ -58,7 +57,7 @@ onMounted(async () => {
 <template>
   <a-collapse v-model:activeKey="activeKey" ghost>
     <a-collapse-panel key="1" header="Sample Payload">
-      <MonacoEditor v-model="sampleData" class="min-h-60 max-h-80" />
+      <LazyMonacoEditor v-model="sampleData" class="min-h-60 max-h-80" />
     </a-collapse-panel>
   </a-collapse>
 </template>

@@ -74,7 +74,4 @@ Aggregate function will be "count" in our case
 
 Column `Employee Count` is populated with appropriate information
   
-![Screenshot 2022-09-09 at 1 07 45 PM](https://user-images.githubusercontent.com/86527202/189297662-c7ff1e3e-eec7-4108-a089-6c945b90b867.png)
-
-
-<!-- ![8](https://user-images.githubusercontent.com/86527202/144236291-52855f92-ad8b-4be1-aa98-b5cfdb1ee108.png) -->
+![image](https://user-images.githubusercontent.com/35857179/194856842-e35a6424-fb95-4805-8efa-a559563e4b71.png)

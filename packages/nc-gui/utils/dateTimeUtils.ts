@@ -42,3 +42,12 @@ export function validateDateWithUnknownFormat(v: string) {
   }
   return res
 }
+
+export function getDateFormat(v: string) {
+  for (const format of dateFormats) {
+    if (dayjs(v, format, true).isValid()) {
+      return format
+    }
+  }
+  return 'YYYY/MM/DD'
+}

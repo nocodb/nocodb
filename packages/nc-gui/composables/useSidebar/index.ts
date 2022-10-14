@@ -1,5 +1,5 @@
 import { useStorage } from '@vueuse/core'
-import { MemStorage, onScopeDispose, useInjectionState, watch } from '#imports'
+import { createSharedComposable, ref, syncRef, toRefs, watch } from '#imports'
 
 interface UseSidebarProps {
   hasSidebar?: boolean
@@ -8,17 +8,14 @@ interface UseSidebarProps {
 }
 
 /**
- * Injection state for sidebars
+ * States for sidebars
  *
- * Use `provideSidebar` to provide the injection state on current component level (will affect all children injections)
- * Use `useSidebar` to use the injection state on current component level
- *
- * If `provideSidebar` is not called explicitly, `useSidebar` will trigger the provider if no injection state can be found
+ * Requires an id to work, id should correspond to the sidebar state you want to create or fetch
+ * If `useSidebar` was not called before it will create a new state if no state can be found for the specified id
  */
-const [setupSidebarStore, useSidebarStore] = useInjectionState(() => new MemStorage(), 'SidebarStore')
-
 const createSidebar = (id: string, props: UseSidebarProps = {}) => {
   const isOpen = ref(props.isOpen ?? false)
+
   const hasSidebar = ref(props.hasSidebar ?? true)
 
   function toggle(state?: boolean) {
@@ -30,7 +27,12 @@ const createSidebar = (id: string, props: UseSidebarProps = {}) => {
   }
 
   if (props.useStorage) {
-    const storage = toRefs(useStorage(id, { isOpen, hasSidebar }, localStorage, { mergeDefaults: true }).value)
+    const storage = toRefs(
+      useStorage(id, { isOpen: isOpen.value, hasSidebar: hasSidebar.value }, localStorage, { mergeDefaults: true }).value,
+    )
+    isOpen.value = storage.isOpen.value
+    hasSidebar.value = storage.hasSidebar.value
+
     syncRef(isOpen, storage.isOpen)
     syncRef(hasSidebar, storage.hasSidebar)
   }
@@ -59,52 +61,21 @@ const createSidebar = (id: string, props: UseSidebarProps = {}) => {
   }
 }
 
-const useSidebarStorage = () => {
-  let sidebarStorage = useSidebarStore()
+const leftSidebar = createSharedComposable(() => createSidebar('leftSidebar'))
 
-  if (!sidebarStorage) {
-    sidebarStorage = setupSidebarStore()
-  }
+const rightSidebar = createSharedComposable(() =>
+  createSidebar('rightSidebar', { useStorage: true, isOpen: true, hasSidebar: true }),
+)
 
-  return sidebarStorage
+export const useSidebar = (id: string, props: UseSidebarProps = {}) => {
+  const sidebar = id.includes('left') ? leftSidebar() : rightSidebar()
+
+  if (props.isOpen !== undefined) sidebar.isOpen.value = props.isOpen
+  if (props.hasSidebar !== undefined) sidebar.hasSidebar.value = props.hasSidebar
+
+  return sidebar
 }
 
-export const provideSidebar = (id: string, props: UseSidebarProps = {}) => {
-  const sidebarStorage = useSidebarStorage()
+export const useLeftSidebar = (props: UseSidebarProps = {}) => useSidebar('left', props)
 
-  onScopeDispose(() => {
-    sidebarStorage.remove(id)
-  })
-
-  if (!sidebarStorage.has(id)) {
-    const sidebar = createSidebar(id, props)
-
-    sidebarStorage.set(id, sidebar)
-
-    return sidebar
-  } else {
-    const sidebar = sidebarStorage.get(id)
-
-    if (props.isOpen !== undefined) sidebar.isOpen.value = props.isOpen
-    if (props.hasSidebar !== undefined) sidebar.hasSidebar.value = props.hasSidebar
-
-    return sidebar
-  }
-}
-
-export function useSidebar(id: string, props: UseSidebarProps = {}) {
-  if (!id) throw new Error('useSidebar requires an id')
-
-  const sidebarStorage = useSidebarStorage()
-
-  if (sidebarStorage.has(id)) {
-    const sidebar = sidebarStorage.get(id)
-
-    if (props.isOpen !== undefined) sidebar.isOpen.value = props.isOpen
-    if (props.hasSidebar !== undefined) sidebar.hasSidebar.value = props.hasSidebar
-
-    return sidebar
-  } else {
-    return provideSidebar(id, props)
-  }
-}
+export const useRightSidebar = (props: UseSidebarProps = {}) => useSidebar('right', props)

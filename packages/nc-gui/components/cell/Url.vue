@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { message } from 'ant-design-vue'
 import {
   CellUrlDisableOverlayInj,
   ColumnInj,
@@ -8,6 +7,7 @@ import {
   computed,
   inject,
   isValidURL,
+  message,
   ref,
   useCellUrlConfig,
   useI18n,
@@ -28,9 +28,9 @@ const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
 
-const disableOverlay = inject(CellUrlDisableOverlayInj)
+const disableOverlay = inject(CellUrlDisableOverlayInj, ref(false))
 
-// Used in the logic of when to display error since we are not storing the url if its not valid
+// Used in the logic of when to display error since we are not storing the url if it's not valid
 const localState = ref(value)
 
 const vModel = computed({
@@ -72,19 +72,30 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-row items-center justify-between">
-    <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm w-full" @blur="editEnabled = false" />
+  <div class="flex flex-row items-center justify-between w-full h-full">
+    <input
+      v-if="editEnabled"
+      :ref="focus"
+      v-model="vModel"
+      class="outline-none text-sm w-full px-2"
+      @blur="editEnabled = false"
+    />
 
     <nuxt-link
       v-else-if="isValid && !cellUrlOptions?.overlay"
+      no-prefetch
+      no-rel
       class="z-3 text-sm underline hover:opacity-75"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"
     >
       {{ value }}
     </nuxt-link>
+
     <nuxt-link
       v-else-if="isValid && !disableOverlay && cellUrlOptions?.overlay"
+      no-prefetch
+      no-rel
       class="z-3 w-full h-full text-center !no-underline hover:opacity-75"
       :to="url"
       :target="cellUrlOptions?.behavior === 'replace' ? undefined : '_blank'"

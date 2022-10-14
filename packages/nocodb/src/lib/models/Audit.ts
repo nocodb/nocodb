@@ -31,6 +31,7 @@ export default class Audit implements AuditType {
     return audit && new Audit(audit);
   }
 
+  // Will only await for Audit insertion if `forceAwait` is true, which will be true in test environment by default
   public static async insert(
     audit: Partial<
       Audit & {
@@ -38,30 +39,40 @@ export default class Audit implements AuditType {
         updated_at?;
       }
     >,
-    ncMeta = Noco.ncMeta
-  ) {
-    if (!audit.project_id && audit.fk_model_id) {
-      audit.project_id = (
-        await Model.getByIdOrName({ id: audit.fk_model_id }, ncMeta)
-      ).project_id;
+    ncMeta = Noco.ncMeta,
+    { forceAwait }: { forceAwait: boolean } = {
+      forceAwait: process.env['TEST'] === 'true',
     }
-    const auditRec = await ncMeta.metaInsert2(null, null, MetaTable.AUDIT, {
-      user: audit.user,
-      ip: audit.ip,
-      base_id: audit.base_id,
-      project_id: audit.project_id,
-      row_id: audit.row_id,
-      fk_model_id: audit.fk_model_id,
-      op_type: audit.op_type,
-      op_sub_type: audit.op_sub_type,
-      status: audit.status,
-      description: audit.description,
-      details: audit.details,
-      created_at: audit.created_at,
-      updated_at: audit.updated_at,
-    });
+  ) {
+    const insertAudit = async () => {
+      if (!audit.project_id && audit.fk_model_id) {
+        audit.project_id = (
+          await Model.getByIdOrName({ id: audit.fk_model_id }, ncMeta)
+        ).project_id;
+      }
 
-    return auditRec;
+      return await ncMeta.metaInsert2(null, null, MetaTable.AUDIT, {
+        user: audit.user,
+        ip: audit.ip,
+        base_id: audit.base_id,
+        project_id: audit.project_id,
+        row_id: audit.row_id,
+        fk_model_id: audit.fk_model_id,
+        op_type: audit.op_type,
+        op_sub_type: audit.op_sub_type,
+        status: audit.status,
+        description: audit.description,
+        details: audit.details,
+        created_at: audit.created_at,
+        updated_at: audit.updated_at,
+      });
+    };
+
+    if (forceAwait) {
+      return await insertAudit();
+    } else {
+      insertAudit();
+    }
   }
 
   public static async commentsCount(args: {

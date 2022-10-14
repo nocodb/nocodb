@@ -1,7 +1,8 @@
 <script lang="ts" setup>
+import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
-import type { SelectOptionsType } from 'nocodb-sdk'
-import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject, ref, useEventListener, watch } from '#imports'
+import type { SelectOptionType } from 'nocodb-sdk'
+import { ActiveCellInj, ColumnInj, IsKanbanInj, ReadonlyInj, computed, inject, ref, useEventListener, watch } from '#imports'
 
 interface Props {
   modelValue?: string | undefined
@@ -21,16 +22,18 @@ const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
 
+const isKanban = inject(IsKanbanInj, ref(false))
+
 const vModel = computed({
   get: () => modelValue,
   set: (val) => emit('update:modelValue', val || null),
 })
 
-const options = computed<SelectOptionsType[]>(() => {
+const options = computed<SelectOptionType[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
-        (column.value.colOptions as any).options.filter((el: SelectOptionsType) => el.title !== '') || []
+        (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
     for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
@@ -80,7 +83,17 @@ watch(isOpen, (n, _o) => {
   >
     <a-select-option v-for="op of options" :key="op.title" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
-        <span class="text-slate-500">{{ op.title }}</span>
+        <span
+          :style="{
+            'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+              ? '#fff'
+              : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+            'font-size': '13px',
+          }"
+          :class="{ 'text-sm': isKanban }"
+        >
+          {{ op.title }}
+        </span>
       </a-tag>
     </a-select-option>
   </a-select>
@@ -88,8 +101,7 @@ watch(isOpen, (n, _o) => {
 
 <style scoped lang="scss">
 .rounded-tag {
-  padding: 0px 12px;
-  border-radius: 12px;
+  @apply py-0 px-[12px] rounded-[12px];
 }
 :deep(.ant-tag) {
   @apply "rounded-tag";

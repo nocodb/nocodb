@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { NodeProps } from '@braks/vue-flow'
-import { Handle, Position } from '@braks/vue-flow'
+import type { NodeProps } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'

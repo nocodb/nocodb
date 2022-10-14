@@ -113,7 +113,7 @@ watch(
       <LazyErdFlow :tables="tables" :config="config" />
 
       <div
-        class="absolute top-2 right-10 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1 nc-erd-context-menu z-50"
+        class="absolute top-3 right-12 flex-col bg-white py-2 px-4 border-1 border-gray-100 rounded-md z-50 space-y-1 nc-erd-context-menu z-50"
       >
         <div class="flex flex-row items-center">
           <a-checkbox

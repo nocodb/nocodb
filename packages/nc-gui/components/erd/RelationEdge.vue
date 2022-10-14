@@ -1,61 +1,30 @@
-<script setup>
-import { EdgeText, getBezierPath, getEdgeCenter } from '@braks/vue-flow'
-import { computed } from 'vue'
+<script lang="ts" setup>
+import type { EdgeProps, Position } from '@vue-flow/core'
+import { EdgeText, getBezierPath } from '@vue-flow/core'
+import type { CSSProperties } from '@vue/runtime-dom'
+import { computed, toRef } from '#imports'
 
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  sourceX: {
-    type: Number,
-    required: true,
-  },
-  sourceY: {
-    type: Number,
-    required: true,
-  },
-  targetX: {
-    type: Number,
-    required: true,
-  },
-  targetY: {
-    type: Number,
-    required: true,
-  },
-  sourcePosition: {
-    type: String,
-    required: true,
-  },
-  targetPosition: {
-    type: String,
-    required: true,
-  },
+interface RelationEdgeProps extends EdgeProps {
+  id: string
+  sourceX: number
+  sourceY: number
+  targetX: number
+  targetY: number
+  sourcePosition: Position
+  targetPosition: Position
   data: {
-    type: Object,
-    required: false,
-  },
-  markerEnd: {
-    type: String,
-    required: false,
-  },
-  style: {
-    type: Object,
-    required: false,
-  },
-  sourceHandleId: {
-    type: String,
-    required: false,
-  },
-  targetHandleId: {
-    type: String,
-    required: false,
-  },
-})
+    isManyToMany: boolean
+    isSelfRelation: boolean
+    label: string
+  }
+  markerEnd: string
+  style: CSSProperties
+  targetHandleId: string
+}
+
+const props = defineProps<RelationEdgeProps>()
 
 const data = toRef(props, 'data')
-
-const isManyToMany = computed(() => data.value.column?.colOptions?.type === 'mm')
 
 const edgePath = computed(() => {
   if (data.value.isSelfRelation) {
@@ -74,18 +43,9 @@ const edgePath = computed(() => {
     targetPosition: props.targetPosition,
   })
 })
-
-const center = computed(() =>
-  getEdgeCenter({
-    sourceX: props.sourceX,
-    sourceY: props.sourceY,
-    targetX: props.targetX,
-    targetY: props.targetY,
-  }),
-)
 </script>
 
-<script>
+<script lang="ts">
 export default {
   inheritAttrs: false,
 }
@@ -98,7 +58,7 @@ export default {
     class="path-wrapper p-4 hover:cursor-pointer"
     :stroke-width="8"
     fill="none"
-    :d="edgePath"
+    :d="edgePath[0]"
     :marker-end="markerEnd"
   />
 
@@ -108,15 +68,15 @@ export default {
     class="path stroke-gray-500 hover:stroke-green-500 hover:cursor-pointer"
     :stroke-width="1.5"
     fill="none"
-    :d="edgePath"
+    :d="edgePath[0]"
     :marker-end="markerEnd"
   />
 
   <EdgeText
     v-if="data.label?.length > 0"
     :class="`nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`"
-    :x="center[0]"
-    :y="center[1]"
+    :x="edgePath[1]"
+    :y="edgePath[2]"
     :label="data.label"
     :label-style="{ fill: 'white' }"
     :label-show-bg="true"
@@ -138,7 +98,7 @@ export default {
   />
 
   <rect
-    v-if="isManyToMany"
+    v-if="data.isManyToMany"
     class="nc-erd-edge-rect"
     :x="targetX"
     :y="targetY - 4"

@@ -67,6 +67,6 @@ onScopeDispose($destroy)
 
 <style>
 .vue-flow__edges {
-  z-index: 2000 !important;
+  z-index: 1000 !important;
 }
 </style>

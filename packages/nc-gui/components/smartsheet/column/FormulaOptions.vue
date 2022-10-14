@@ -238,7 +238,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             formulaTypes.DATE,
             (v: any) => {
               if (!validateDateWithUnknownFormat(v)) {
-                typeErrors.add('The first parameter of DATEADD() should have date value')
+                typeErrors.add('The first parameter of DATETIME_DIFF() should have date value')
               }
             },
             typeErrors,
@@ -249,18 +249,18 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
             formulaTypes.DATE,
             (v: any) => {
               if (!validateDateWithUnknownFormat(v)) {
-                typeErrors.add('The second parameter of DATEADD() should have date value')
+                typeErrors.add('The second parameter of DATETIME_DIFF() should have date value')
               }
             },
             typeErrors,
           )
-           // parsedTree.arguments[2] = ["millisecond" | "ms" | "second" | "s" | "minute" | "mi" | "hour" | "hh" | "day" | "dy" | "week" | "wk" | "month" | "m" | "quarter" | "q" | "year" | "y"]
+           // parsedTree.arguments[2] = ["millisecond" | "ms" | "second" | "s" | "minute" | "mi" | "hour" | "hh" | "day" | "dy" | "week" | "wk" | "month" | "m" | "quarter" | "q" | "year" | "yy"]
            validateAgainstType(
             parsedTree.arguments[2],
             formulaTypes.STRING,
             (v: any) => {
-              if (!['millisecond', 'ms', 'second', 's', 'minute', 'mi', 'hour', 'hh', 'day', 'dy', 'week', 'wk', 'month', 'm', 'quarter', 'q', 'year', 'y'].includes(v)) {
-                typeErrors.add('The third parameter of DATEADD() should have value either "millisecond", "ms", "second", "s", "minute", "mi", "hour", "hh", "day", "dy", "week", "wk", "month", "m", "quarter", "q", "year", or "y"')
+              if (!['millisecond', 'ms', 'second', 's', 'minute', 'mi', 'hour', 'hh', 'day', 'dy', 'week', 'wk', 'month', 'm', 'quarter', 'q', 'year', 'yy'].includes(v)) {
+                typeErrors.add('The third parameter of DATETIME_DIFF() should have value either "millisecond", "ms", "second", "s", "minute", "mi", "hour", "hh", "day", "dy", "week", "wk", "month", "m", "quarter", "q", "year", or "yy"')
               }
             },
             typeErrors,

@@ -182,6 +182,14 @@ export const genTest = (apiType, dbType) => {
     let RESULT_MATH_1 = [];
     let RESULT_MATH_2 = [];
     let RESULT_DATE_DIFF_0 = [];
+    let RESULT_DATE_DIFF_1 = [];
+    let RESULT_DATE_DIFF_2 = [];
+    let RESULT_DATE_DIFF_3 = [];
+    let RESULT_DATE_DIFF_4 = [];
+    let RESULT_DATE_DIFF_5 = [];
+    let RESULT_DATE_DIFF_6 = [];
+    let RESULT_DATE_DIFF_7 = [];
+    let RESULT_DATE_DIFF_8 = [];
     let RESULT_WEEKDAY_0 = [];
     let RESULT_WEEKDAY_1 = [];
     let RESULT_CIRC_REF_0 = [];
@@ -221,7 +229,15 @@ export const genTest = (apiType, dbType) => {
         Math.sqrt(countryId[i])
       );
 
-      RESULT_DATE_DIFF_0[i] = -189388800;
+      RESULT_DATE_DIFF_0[i] = -3156480;
+      RESULT_DATE_DIFF_1[i] = -189388800;
+      RESULT_DATE_DIFF_2[i] = 86400000;
+      RESULT_DATE_DIFF_3[i] = -52608;
+      RESULT_DATE_DIFF_4[i] = -313;
+      RESULT_DATE_DIFF_5[i] = -72;
+      RESULT_DATE_DIFF_6[i] = -24;
+      RESULT_DATE_DIFF_7[i] = -6;
+      RESULT_DATE_DIFF_8[i] = -2192;
 
       // WEEKDAY: starts from Monday
       RESULT_WEEKDAY_0[i] = 1;
@@ -248,9 +264,135 @@ export const genTest = (apiType, dbType) => {
     it("Formula: DATETIME_DIFF", () => {
       addFormulaBasedColumn(
         "NC_DATEDIFF_0",
-        `DATETIME_DIFF("2017/08/25", "2011/08/25", "second")`
+        `DATETIME_DIFF("2017/08/25", "2011/08/25")`
       );
       rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
+
+      editColumnByName(
+        "NC_DATEDIFF_0",
+        "NC_DATEDIFF_0",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "minute")`
+      );
+      rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
+
+      editColumnByName(
+        "NC_DATEDIFF_0",
+        "NC_DATEDIFF_0",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "mi")`
+      );
+      rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
+
+      editColumnByName(
+        "NC_DATEDIFF_0",
+        "NC_DATEDIFF_1",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "second")`
+      );
+      rowValidation("NC_DATEDIFF_1", RESULT_DATE_DIFF_1);
+
+      editColumnByName(
+        "NC_DATEDIFF_1",
+        "NC_DATEDIFF_1",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "s")`
+      );
+      rowValidation("NC_DATEDIFF_1", RESULT_DATE_DIFF_1);
+
+      editColumnByName(
+        "NC_DATEDIFF_1",
+        "NC_DATEDIFF_2",
+        `DATETIME_DIFF("2017/08/25", "2017/08/26", "millisecond")`
+      );
+      rowValidation("NC_DATEDIFF_2", RESULT_DATE_DIFF_2);
+
+      editColumnByName(
+        "NC_DATEDIFF_2",
+        "NC_DATEDIFF_2",
+        `DATETIME_DIFF("2017/08/25", "2017/08/26", "ms")`
+      );
+      rowValidation("NC_DATEDIFF_2", RESULT_DATE_DIFF_2);
+
+      editColumnByName(
+        "NC_DATEDIFF_2",
+        "NC_DATEDIFF_3",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "hour")`
+      );
+      rowValidation("NC_DATEDIFF_3", RESULT_DATE_DIFF_3);
+
+      editColumnByName(
+        "NC_DATEDIFF_3",
+        "NC_DATEDIFF_3",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "hh")`
+      );
+      rowValidation("NC_DATEDIFF_3", RESULT_DATE_DIFF_3);
+
+      editColumnByName(
+        "NC_DATEDIFF_3",
+        "NC_DATEDIFF_4",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "week")`
+      );
+      rowValidation("NC_DATEDIFF_4", RESULT_DATE_DIFF_4);
+
+      editColumnByName(
+        "NC_DATEDIFF_4",
+        "NC_DATEDIFF_4",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "wk")`
+      );
+      rowValidation("NC_DATEDIFF_4", RESULT_DATE_DIFF_4);
+
+      editColumnByName(
+        "NC_DATEDIFF_4",
+        "NC_DATEDIFF_5",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "month")`
+      );
+      rowValidation("NC_DATEDIFF_5", RESULT_DATE_DIFF_5);
+
+      editColumnByName(
+        "NC_DATEDIFF_5",
+        "NC_DATEDIFF_5",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "m")`
+      );
+      rowValidation("NC_DATEDIFF_5", RESULT_DATE_DIFF_5);
+
+      editColumnByName(
+        "NC_DATEDIFF_5",
+        "NC_DATEDIFF_6",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "quarter")`
+      );
+      rowValidation("NC_DATEDIFF_6", RESULT_DATE_DIFF_6);
+
+      editColumnByName(
+        "NC_DATEDIFF_6",
+        "NC_DATEDIFF_6",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "q")`
+      );
+      rowValidation("NC_DATEDIFF_6", RESULT_DATE_DIFF_6);
+
+      editColumnByName(
+        "NC_DATEDIFF_6",
+        "NC_DATEDIFF_7",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "year")`
+      );
+      rowValidation("NC_DATEDIFF_7", RESULT_DATE_DIFF_7);
+
+      editColumnByName(
+        "NC_DATEDIFF_7",
+        "NC_DATEDIFF_7",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "yy")`
+      );
+      rowValidation("NC_DATEDIFF_7", RESULT_DATE_DIFF_7);
+
+      editColumnByName(
+        "NC_DATEDIFF_7",
+        "NC_DATEDIFF_8",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "day")`
+      );
+      rowValidation("NC_DATEDIFF_8", RESULT_DATE_DIFF_8);
+
+      editColumnByName(
+        "NC_DATEDIFF_8",
+        "NC_DATEDIFF_8",
+        `DATETIME_DIFF("2017/08/25", "2011/08/25", "dy")`
+      );
+      rowValidation("NC_DATEDIFF_8", RESULT_DATE_DIFF_8);
     });
 
     it.skip("Formula: WEEKDAY", () => {

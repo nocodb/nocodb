@@ -47,7 +47,7 @@ const pg = {
   DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const date1 = fn(pt.arguments[0]);
     const date2 = fn(pt.arguments[1]);
-    const unit = fn(pt.arguments[2]);
+    const unit = fn(pt.arguments[2]) ?? "minute";
 
     return knex.raw(
       `DATE_PART(${unit}, ${date1}) - DATE_PART(${unit}, ${date2}) ${colAlias}`

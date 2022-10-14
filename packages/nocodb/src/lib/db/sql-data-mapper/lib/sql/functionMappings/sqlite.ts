@@ -80,7 +80,7 @@ const sqlite3 = {
   DATETIME_DIFF: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const date1 = fn(pt.arguments[0]);
     const date2 = fn(pt.arguments[1]);
-    const unit = fn(pt.arguments[2]);
+    const unit = fn(pt.arguments[2]) ?? "minute";
 
     return knex.raw(
       `WITH const AS (JULIANDAY(${date1}) - JULIANDAY(${date2}) AS daysdiff)
@@ -88,21 +88,29 @@ const sqlite3 = {
       CASE
           WHEN ${unit} LIKE '%day%' or ${unit} LIKE '%dy%'
                THEN const.daysdiff
-          ELSE ${unit} LIKE '%year%' or ${unit} LIKE '%y%'
+          ELSE ${unit} LIKE '%year%' or ${unit} LIKE '%yy%'
+              ${/*Divide by 365 to get the value in years*/''}
                THEN ROUND(const.daysdiff / 365)
           ELSE ${unit} LIKE '%quarter%' or ${unit} LIKE '%q%'
+              ${/*Divide by 91.25 to get the value in quarters: https://www.convertunits.com/from/days/to/quarter */''}
                THEN ROUND(const.daysdiff / 91.25)
           ELSE ${unit} LIKE '%month%' or ${unit} LIKE '%m%'
-               THEN ROUND(const.daysdiff / 30.417)
+              ${/*Multiply by 0.032855 to get the value in months: https://www.inchcalculator.com/convert/day-to-month/ */''}
+               THEN ROUND(const.daysdiff * 0.032855)
           ELSE ${unit} LIKE '%week%' or ${unit} LIKE '%wk%'
+              ${/*Divide by 7 to get the value in weeks*/''}
                THEN ROUND(const.daysdiff / 7)
           ELSE ${unit} LIKE '%hour%' or ${unit} LIKE '%hh%'
+              ${/*Multiply by 24 to get the value in hours*/''}
                THEN ROUND(const.daysdiff * 24)
           ELSE ${unit} LIKE '%minute%' or ${unit} LIKE '%mi%'
+              ${/*Multiply by 1440 to get the value in minutes*/''}
                THEN ROUND(const.daysdiff * 1440)
           ELSE ${unit} LIKE '%second%' or ${unit} LIKE '%s%'
+              ${/*Multiply by 86400 to get the value in seconds*/''}
                THEN ROUND(const.daysdiff * 86400)
           ELSE ${unit} LIKE '%millisecond%' or ${unit} LIKE '%ms%'
+              ${/*Multiply by 8.64e+7 to get the value in milliseconds: https://www.inchcalculator.com/convert/day-to-millisecond/ */''}
                THEN ROUND(const.daysdiff * 8.64e+7)
       END${colAlias}
       `

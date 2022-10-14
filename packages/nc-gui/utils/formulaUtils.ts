@@ -55,17 +55,20 @@ const formulas: Record<string, any> = {
     type: formulaTypes.DATE,
     validation: {
       args: {
-        rqd: 3,
+        min: 2,
+        max: 3,
+        rqd: 2,
       },
     },
-    description: 'Calculate the difference of two given dates.',
+    description: 'Calculate the difference of two given date / datetimes in specified units.',
     syntax:
-      'DATETIME_DIFF(date | datetime, date | datetime, ["millisecond" | "ms" | "second" | "s" | "minute" | "mi" | "hour" | "hh" | "day" | "dy" | "week" | "wk" | "month" | "m" | "quarter" | "q" | "year" | "y"])',
+      'DATETIME_DIFF(date | datetime, date | datetime, ["millisecond" | "ms" | "second" | "s" | "minute" | "mi" | "hour" | "hh" | "day" | "dy" | "week" | "wk" | "month" | "m" | "quarter" | "q" | "year" | "yy"])',
     examples: [
+      'DATEDIFF({column1}, {column2})',
       'DATEDIFF({column1}, {column2}, "second")',
       'DATEDIFF({column1}, {column2}, "s")',
       'DATEDIFF({column1}, {column2}, "year")',
-      'DATEDIFF({column1}, {column2}, "y")',
+      'DATEDIFF({column1}, {column2}, "yy")',
       'DATEDIFF({column1}, {column2}, "minute")',
       'DATEDIFF({column1}, {column2}, "mi")',
       'DATEDIFF({column1}, {column2}, "day")',

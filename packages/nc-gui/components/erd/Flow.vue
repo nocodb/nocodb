@@ -15,7 +15,7 @@ const props = defineProps<Props>()
 
 const { tables, config } = toRefs(props)
 
-const { $destroy, fitView, onPaneReady, viewport } = useVueFlow({ minZoom: 0.1, maxZoom: 2 })
+const { $destroy, fitView, onPaneReady, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.1, maxZoom: 2 })
 
 const { layout, elements } = useErdElements(tables, config)
 
@@ -28,11 +28,19 @@ function init() {
   }
 }
 
-function zoomIn() {
-  fitView({ duration: 300, minZoom: 0.3 })
+function zoomIn(nodeId?: string) {
+  fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 300, minZoom: 0.4 })
 }
 
 onPaneReady(init)
+
+onNodeDoubleClick(({ node }) => {
+  if (showSkeleton.value) zoomIn()
+
+  setTimeout(() => {
+    zoomIn(node.id)
+  }, 250)
+})
 
 watch(tables, init)
 watch(showSkeleton, (isSkeleton) => {

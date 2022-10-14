@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npx playwright test --workers=4",
     "test-debug": "./startPlayWrightServer.sh; PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:3010/ npx playwright test -c playwright.config.ts --headed --project=chromium --repeat-each 1 --retries 0 --timeout 0 --workers 1 --max-failures=1",
-    "ci-test-mysql": "E2E_TYPE=mysql npx playwright test --workers=2"
+    "ci-test-mysql": "E2E_DB_TYPE=mysql npx playwright test --workers=2"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +14,7 @@
   "devDependencies": {
     "@playwright/test": "^1.26.1",
     "axios": "^0.24.0",
+    "dotenv": "^16.0.3",
     "mysql2": "^2.3.3",
     "promised-sqlite3": "^1.2.0"
   }

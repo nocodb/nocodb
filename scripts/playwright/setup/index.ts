@@ -7,8 +7,8 @@ export interface NcContext {
   dbType?: string;
 }
 
-const setup = async ({page, typeOnLocalSetup}: {page: Page, typeOnLocalSetup?: string}): Promise<NcContext> => {
-  let dbType = process.env.CI ? process.env.E2E_TYPE : typeOnLocalSetup;
+const setup = async ({page}: {page: Page}): Promise<NcContext> => {
+  let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;
   dbType = dbType || 'mysql';
 
   const response =  await axios.post(`http://localhost:8080/api/v1/meta/test/reset`, {

@@ -26,7 +26,7 @@ interface Relation {
 }
 
 const nodeWidth = 300
-const nodeHeight = 35
+const nodeHeight = 50
 
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ErdFlowConfig>) {
   const elements = ref<Elements>([])
@@ -234,9 +234,9 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
         el.targetPosition = Position.Left
         el.sourcePosition = Position.Right
         el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
-        el.class = 'rounded-lg'
+        el.class = ['rounded-lg'].join(' ')
         el.data.color = color
-        el.style = { boxShadow: `0 0 0 2px ${color}` }
+        el.style = { boxShadow: `0 0 0 ${skeleton ? '15px' : '2px'} ${color}` }
       } else if (isEdge(el)) {
         const node = elements.value.find((nodes) => nodes.id === el.source)
         if (node) {

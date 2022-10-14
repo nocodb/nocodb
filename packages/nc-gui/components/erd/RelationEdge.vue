@@ -55,18 +55,8 @@ export default {
   <path
     :id="id"
     :style="style"
-    class="path-wrapper p-4 hover:cursor-pointer"
+    class="path-wrapper hover:!stroke-green-500 p-4 hover:cursor-pointer"
     :stroke-width="8"
-    fill="none"
-    :d="edgePath[0]"
-    :marker-end="markerEnd"
-  />
-
-  <path
-    :id="id"
-    :style="style"
-    class="path stroke-gray-500 hover:stroke-green-500 hover:cursor-pointer"
-    :stroke-width="1.5"
     fill="none"
     :d="edgePath[0]"
     :marker-end="markerEnd"
@@ -111,13 +101,3 @@ export default {
   />
   <circle v-else class="nc-erd-edge-circle" :cx="targetX" :cy="targetY" fill="#fff" :r="5" stroke="#6F3381" :stroke-width="1.5" />
 </template>
-
-<style scoped lang="scss">
-.path-wrapper:hover + .path {
-  @apply stroke-green-500;
-  stroke-width: 2;
-}
-.path:hover {
-  stroke-width: 2;
-}
-</style>

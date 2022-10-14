@@ -479,24 +479,27 @@ watch(
                       </div>
                       <span class="flex-1" />
                       <div v-if="!readOnly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
-                        <span
-                          v-if="row.rowMeta?.commentCount"
-                          class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
-                          :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
-                          @click="expandForm(row, state)"
-                        >
-                          {{ row.rowMeta.commentCount }}
-                        </span>
-                        <div
-                          v-else
-                          class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
-                        >
-                          <MdiArrowExpand
-                            v-e="['c:row-expand']"
-                            class="select-none transform hover:(text-accent scale-120) nc-row-expand"
+                        <a-spin v-if="row.rowMeta.saving" />
+                        <template v-else>
+                          <span
+                            v-if="row.rowMeta?.commentCount"
+                            class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                            :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
                             @click="expandForm(row, state)"
-                          />
-                        </div>
+                          >
+                            {{ row.rowMeta.commentCount }}
+                          </span>
+                          <div
+                            v-else
+                            class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:(bg-primary bg-opacity-10)"
+                          >
+                            <MdiArrowExpand
+                              v-e="['c:row-expand']"
+                              class="select-none transform hover:(text-accent scale-120) nc-row-expand"
+                              @click="expandForm(row, state)"
+                            />
+                          </div>
+                        </template>
                       </div>
                     </div>
                   </td>
@@ -702,7 +705,7 @@ watch(
 
   .nc-expand {
     &:not(.nc-comment) {
-      @apply hidden;
+      //@apply hidden;
     }
 
     &.nc-comment {

@@ -205,6 +205,7 @@ export function useViewData(
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    formattedData.value[rowIndex].rowMeta.saving = true
     try {
       const { missingRequiredColumns, insertObj } = await populateInsertObject({
         meta: metaValue!,
@@ -225,7 +226,7 @@ export function useViewData(
 
       formattedData.value?.splice(rowIndex ?? 0, 1, {
         row: insertedData,
-        rowMeta: {},
+        rowMeta: { ...row.rowMeta, new: undefined },
         oldRow: { ...insertedData },
       })
 
@@ -233,6 +234,8 @@ export function useViewData(
       return insertedData
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
+    } finally {
+      formattedData.value[rowIndex].rowMeta.saving = false
     }
   }
 
@@ -241,6 +244,7 @@ export function useViewData(
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    toUpdate.rowMeta.saving = true
     try {
       const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
 
@@ -272,6 +276,8 @@ export function useViewData(
       Object.assign(toUpdate.oldRow, updatedRowData)
     } catch (e: any) {
       message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
+    } finally {
+      toUpdate.rowMeta.saving = false
     }
   }
 

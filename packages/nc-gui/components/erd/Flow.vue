@@ -24,10 +24,12 @@ const showSkeleton = computed(() => viewport.value.zoom < 0.25)
 function init() {
   layout(showSkeleton.value)
   if (!showSkeleton.value) {
-    setTimeout(() => {
-      fitView({ duration: 300 })
-    }, 100)
+    setTimeout(zoomIn, 100)
   }
+}
+
+function zoomIn() {
+  fitView({ duration: 300, minZoom: 0.3 })
 }
 
 onPaneReady(init)
@@ -47,10 +49,6 @@ watch(
   },
   { flush: 'post' },
 )
-
-const zoomIn = () => {
-  fitView({ duration: 300, minZoom: 0.3 })
-}
 
 onScopeDispose($destroy)
 </script>

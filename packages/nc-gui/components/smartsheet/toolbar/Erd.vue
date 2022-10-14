@@ -25,16 +25,14 @@ const selectedView = inject(ActiveViewInj)
     transition-name="fade"
     :destroy-on-close="true"
   >
-    <div class="flex flex-row justify-between w-full items-center mb-1">
-      <a-typography-title class="ml-4 select-none" type="secondary" :level="5">
+    <div class="flex justify-between w-full items-start px-[24px] pt-6 pb-4 border-b-1">
+      <div class="select-none text-slate-500 font-semibold">
         {{ `${$t('title.erdView')}: ${selectedView?.title}` }}
-      </a-typography-title>
+      </div>
 
-      <a-button type="text" class="!rounded-md border-none -mt-1.5 -mr-1" @click="vModel = false">
-        <template #icon>
-          <MdiClose class="cursor-pointer mt-1 nc-modal-close" />
-        </template>
-      </a-button>
+      <div class="flex h-full items-center justify-center rounded group" @click="vModel = false">
+        <MdiClose class="cursor-pointer mt-1 nc-modal-close group-hover:text-accent text-opacity-100" />
+      </div>
     </div>
 
     <div class="w-full h-full !py-0 !px-2" style="height: 70vh">
@@ -44,7 +42,12 @@ const selectedView = inject(ActiveViewInj)
 </template>
 
 <style>
-.ant-modal {
-  @apply !top-[50px];
+.erd-single-table-modal {
+  .ant-modal {
+    @apply !top-[50px];
+  }
+  .ant-modal-body {
+    @apply !p-0;
+  }
 }
 </style>

@@ -18,6 +18,7 @@ interface RelationEdgeProps extends EdgeProps {
     label: string
   }
   style: CSSProperties
+  selected: boolean
 }
 
 const props = defineProps<RelationEdgeProps>()
@@ -50,7 +51,33 @@ export default {
 </script>
 
 <template>
-  <path :id="id" :style="style" class="hover:!stroke-green-500" :stroke-width="8" fill="none" :d="edgePath[0]" />
+  <defs>
+    <linearGradient id="linear-gradient" x1="-28.83" y1="770.92" x2="771.05" y2="-28.95" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#06b6d4" />
+      <stop offset="0.18" stop-color="#155e75" />
+      <stop offset="0.49" stop-color="#84cc16" />
+      <stop offset="0.88" stop-color="#10b981" />
+      <stop offset="0.99" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+
+  <path
+    :id="id"
+    class="opacity-100 hover:(opacity-0)"
+    :class="selected ? 'opacity-0' : ''"
+    :style="style"
+    :stroke-width="4"
+    fill="none"
+    :d="edgePath[0]"
+  />
+  <path
+    class="opacity-0 hover:(opacity-100 transition-all duration-100 ease)"
+    :class="selected ? 'opacity-100' : ''"
+    style="stroke: url(#linear-gradient)"
+    :stroke-width="8"
+    fill="none"
+    :d="edgePath[0]"
+  />
 
   <EdgeText
     v-if="data.label?.length > 0"

@@ -66,7 +66,7 @@ export default {
     class="opacity-100 hover:(opacity-0)"
     :class="selected ? 'opacity-0' : ''"
     :style="style"
-    :stroke-width="4"
+    :stroke-width="3"
     fill="none"
     :d="edgePath[0]"
   />
@@ -74,7 +74,7 @@ export default {
     class="opacity-0 hover:(opacity-100 transition-all duration-100 ease)"
     :class="selected ? 'opacity-100' : ''"
     style="stroke: url(#linear-gradient)"
-    :stroke-width="8"
+    :stroke-width="7"
     fill="none"
     :d="edgePath[0]"
   />

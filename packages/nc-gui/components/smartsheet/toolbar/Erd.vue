@@ -42,3 +42,9 @@ const selectedView = inject(ActiveViewInj)
     </div>
   </a-modal>
 </template>
+
+<style>
+.ant-modal {
+  @apply !top-[50px];
+}
+</style>

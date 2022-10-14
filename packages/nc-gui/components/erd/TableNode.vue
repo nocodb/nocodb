@@ -74,24 +74,24 @@ const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
 
       <div v-for="(col, index) in nonPkColumns" :key="col.title">
         <div
-          class="w-full h-full flex items-center min-w-32 border-gray-100 py-2 px-1"
+          class="relative w-full h-full flex items-center min-w-32 border-gray-100 py-2 px-1"
           :class="index + 1 === nonPkColumns.length ? 'rounded-b-lg' : 'border-b-1'"
         >
           <div
             v-if="col.uidt === UITypes.LinkToAnotherRecord"
-            class="flex relative w-full"
+            class="flex w-full"
             :class="`nc-erd-table-node-${data.table_name}-column-${col.title?.toLowerCase().replace(' ', '_')}`"
           >
             <Handle
               :id="`s-${relatedColumnId(col.colOptions)}-${data.id}`"
-              class="-right-4 opacity-0"
+              class="opacity-0 !right-[-3px]"
               type="source"
               :position="Position.Right"
             />
 
             <Handle
               :id="`d-${relatedColumnId(col.colOptions)}-${data.id}`"
-              class="-left-1 opacity-0"
+              class="opacity-0"
               type="target"
               :position="Position.Left"
             />

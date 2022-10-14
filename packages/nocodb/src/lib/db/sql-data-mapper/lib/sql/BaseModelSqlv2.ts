@@ -1332,7 +1332,7 @@ class BaseModelSqlv2 {
     );
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
     obj.fields = args.fields || args.f || '*';
-    obj.sort = args.sort || args.s || this.model.primaryKey?.title;
+    obj.sort = args.sort || args.s;
     return obj;
   }
 

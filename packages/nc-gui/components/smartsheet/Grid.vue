@@ -258,7 +258,8 @@ const onNavigate = (dir: NavigateDir) => {
       if (selected.row < data.value.length - 1) {
         selected.row++
       } else {
-        editEnabled = false
+        addEmptyRow()
+        selected.row++
       }
       break
     case NavigateDir.PREV:

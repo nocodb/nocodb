@@ -13,21 +13,32 @@ export class ViewSidebarPage extends BasePage {
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
-    this.createGalleryButton = this.get().locator('.nc-create-gallery-view');
-    this.createGridButton = this.get().locator('.nc-create-grid-view');
-    this.createFormButton = this.get().locator('.nc-create-form-view');
-    this.createKanbanButton = this.get().locator('.nc-create-kanban-view');
+    this.createGalleryButton = this.get().locator(".nc-create-gallery-view");
+    this.createGridButton = this.get().locator(".nc-create-grid-view");
+    this.createFormButton = this.get().locator(".nc-create-form-view");
+    this.createKanbanButton = this.get().locator(".nc-create-kanban-view");
   }
 
   get() {
-    return this.dashboard.get().locator('.nc-view-sidebar');
+    return this.dashboard.get().locator(".nc-view-sidebar");
   }
 
-  private async createView({ title, locator }: { title: string, locator: Locator }) {
+  private async createView({
+    title,
+    locator,
+  }: {
+    title: string;
+    locator: Locator;
+  }) {
     await locator.click();
-    await this.rootPage.locator('input[id="form_item_title"]').fill(title);
-    await this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit")').click();
-    await this.toastWait({ message: 'View created successfully'});
+    await this.rootPage
+      .locator('input[id="form_item_title"]:visible')
+      .fill(title);
+    await this.rootPage
+      .locator(".ant-modal-content")
+      .locator('button:has-text("Submit"):visible')
+      .click();
+    await this.toastWait({ message: "View created successfully" });
   }
 
   async createGalleryView({ title }: { title: string }) {
@@ -46,42 +57,84 @@ export class ViewSidebarPage extends BasePage {
     await this.createView({ title, locator: this.createKanbanButton });
   }
 
-  async verifyView({ title, index }: { title: string, index: number }) {
-    return await expect.poll(async() => {
-      await this.get().locator(`.nc-views-menu`).locator('.ant-menu-title-content').nth(index).textContent();
-    }).toBe(title);
+  async verifyView({ title, index }: { title: string; index: number }) {
+    expect(
+      await this.get()
+        .locator(".ant-menu-title-content")
+        .nth(index)
+        .textContent()
+    ).toBe(`${title}${title}`);
   }
 
-  async verifyViewNotPresent({ title, index }: { title: string, index: number }) {
-    const viewList = this.get().locator(`.nc-views-menu`).locator('.ant-menu-title-content');
-    if(await viewList.count() <= index) {
-      return true
+  async verifyViewNotPresent({
+    title,
+    index,
+  }: {
+    title: string;
+    index: number;
+  }) {
+    const viewList = this.get()
+      .locator(`.nc-views-menu`)
+      .locator(".ant-menu-title-content");
+    if ((await viewList.count()) <= index) {
+      return true;
     }
 
-    return await expect.poll(async() => {
-      await this.get().locator(`.nc-views-menu`).locator('.ant-menu-title-content').nth(index).textContent();
-    }).not.toBe(title);
+    return await expect
+      .poll(async () => {
+        await this.get()
+          .locator(`.nc-views-menu`)
+          .locator(".ant-menu-title-content")
+          .nth(index)
+          .textContent();
+      })
+      .not.toBe(title);
   }
 
-  async reorderViews({sourceView, destinationView}: {
-    sourceView: string,
-    destinationView: string,
+  async reorderViews({
+    sourceView,
+    destinationView,
+  }: {
+    sourceView: string;
+    destinationView: string;
   }) {
-
-    await this.dashboard.get().locator(`[pw-data="view-sidebar-drag-handle-${sourceView}"]`).dragTo(
-      this.get().locator(`[pw-data="view-sidebar-view-${destinationView}"]`),
-    );
+    await this.dashboard
+      .get()
+      .locator(`[pw-data="view-sidebar-drag-handle-${sourceView}"]`)
+      .dragTo(
+        this.get().locator(`[pw-data="view-sidebar-view-${destinationView}"]`)
+      );
   }
 
   async deleteView({ title }: { title: string }) {
     await this.get().locator(`[pw-data="view-sidebar-view-${title}"]`).hover();
     await this.get()
       .locator(`[pw-data="view-sidebar-view-actions-${title}"]`)
-      .locator('.nc-view-delete-icon')
+      .locator(".nc-view-delete-icon")
       .click();
 
-    await this.rootPage.locator('.nc-modal-view-delete').locator('button:has-text("Submit")').click();
-    await this.rootPage.locator('.nc-modal-view-delete').locator('button:has-text("Submit")').waitFor({ state: 'detached' });
-    await this.toastWait({ message: 'View deleted successfully'});
+    await this.rootPage
+      .locator(".nc-modal-view-delete")
+      .locator('button:has-text("Submit"):visible')
+      .click();
+
+    // waiting for button to get detached, we will miss toast
+    // await this.rootPage
+    //   .locator(".nc-modal-view-delete")
+    //   .locator('button:has-text("Submit")')
+    //   .waitFor({ state: "detached" });
+    await this.toastWait({ message: "View deleted successfully" });
+  }
+
+  async renameView({ title, newTitle }: { title: string; newTitle: string }) {
+    await this.get()
+      .locator(`[pw-data="view-sidebar-view-${title}"]`)
+      .dblclick();
+    await this.get()
+      .locator(`[pw-data="view-sidebar-view-${title}"]`)
+      .locator("input")
+      .fill(newTitle);
+    await this.get().press("Enter");
+    await this.toastWait({ message: "View renamed successfully" });
   }
 }

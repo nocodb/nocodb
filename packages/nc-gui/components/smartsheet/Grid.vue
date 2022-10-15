@@ -171,7 +171,8 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
     if (row !== undefined && col !== undefined && row !== null && col !== null) {
       // get active cell
       const rows = tbodyEl.value?.querySelectorAll('tr')
-      const td = rows?.[row].querySelectorAll('td')[col === 0 ? 0 : col + 1]
+      const cols = rows?.[row].querySelectorAll('td')
+      const td = cols?.[col === 0 ? 0 : col + 1]
 
       if (!td || !gridWrapper.value) return
 
@@ -182,7 +183,20 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
         // if last row make 'Add New Row' visible
         gridWrapper.value.scrollTo({
           top: gridWrapper.value.scrollHeight,
-          left: tdScroll.left,
+          left:
+            cols && col === cols.length - 2 // if corner cell
+              ? gridWrapper.value.scrollWidth
+              : tdScroll.left,
+          behavior: 'smooth',
+        })
+        return
+      }
+
+      if (cols && col === cols.length - 2) {
+        // if last column make 'Add New Column' visible
+        gridWrapper.value.scrollTo({
+          top: tdScroll.top,
+          left: gridWrapper.value.scrollWidth,
           behavior: 'smooth',
         })
         return

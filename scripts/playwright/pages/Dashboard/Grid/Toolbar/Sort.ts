@@ -25,13 +25,14 @@ export class ToolbarSortPage extends BasePage {
 
     await this.get().locator(`button:has-text("Add Sort Option")`).click();
 
-    await this.rootPage.locator(".nc-sort-field-select").click();
+    await this.rootPage.locator(".nc-sort-field-select").last().click();
     await this.rootPage
       .locator("div.ant-select-dropdown.nc-dropdown-toolbar-field-list")
       .locator(`div[label="${columnTitle}"]`)
+      .last()
       .click();
 
-    await this.rootPage.locator(".nc-sort-dir-select").click();
+    await this.rootPage.locator(".nc-sort-dir-select").last().click();
     await this.rootPage
       .locator(".nc-dropdown-sort-dir")
       .locator(".ant-select-item")

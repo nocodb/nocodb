@@ -213,13 +213,13 @@ export class ColumnPageObject extends BasePage {
   }
 
   async verify({ title, isVisible }: { title: string; isVisible?: boolean }) {
-    if (isVisible) {
+    if (false === isVisible) {
       return expect(
         await this.rootPage.locator(`th[data-title="${title}"]`).count()
       ).toBe(0);
     }
-    await expect(this.rootPage.locator(`th[data-title="${title}"]`)).toHaveText(
-      title
-    );
+    await expect(
+      this.rootPage.locator(`th[data-title="${title}"]`)
+    ).toContainText(title);
   }
 }

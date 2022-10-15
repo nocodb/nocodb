@@ -17,5 +17,8 @@
     "dotenv": "^16.0.3",
     "mysql2": "^2.3.3",
     "promised-sqlite3": "^1.2.0"
+  },
+  "dependencies": {
+    "fs": "^0.0.1-security"
   }
 }

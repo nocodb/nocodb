@@ -96,7 +96,6 @@ const vModel = computed({
       if (isAutoSaved) {
         syncValue()
       } else if (!isManualSaved) {
-        console.log('save')
         emit('save')
         currentRow.value.rowMeta.changed = true
       }

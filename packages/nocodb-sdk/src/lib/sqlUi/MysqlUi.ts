@@ -944,7 +944,7 @@ export class MysqlUi {
     }
   }
 
-  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+  static getDataTypeForUiType(col: { uidt: UITypes, dtxp?: string, colOptions?: any }, idType?: IDType) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
@@ -977,6 +977,9 @@ export class MysqlUi {
         break;
       case 'MultiSelect':
         colProp.dt = 'set';
+        if (col.colOptions?.options.length > 64 || col.dtxp?.split(',').length > 64) {
+          colProp.dt = 'text';
+        }
         break;
       case 'SingleSelect':
         colProp.dt = 'enum';

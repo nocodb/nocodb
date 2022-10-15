@@ -109,6 +109,55 @@ const { getMeta } = useMetas()
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 
+const getContainerScrollForElement = (
+  el: HTMLElement,
+  container: HTMLElement,
+  offset?: {
+    top?: number
+    bottom?: number
+    left?: number
+    right?: number
+  },
+) => {
+  const childPos = el.getBoundingClientRect()
+  const parentPos = container.getBoundingClientRect()
+  const relativePos = {
+    top: childPos.top - parentPos.top,
+    right: childPos.right - parentPos.right,
+    bottom: childPos.bottom - parentPos.bottom,
+    left: childPos.left - parentPos.left,
+  }
+
+  const scroll = {
+    top: 0,
+    left: 0,
+  }
+
+  /*
+   * If the element is to the right of the container, scroll right (positive)
+   * If the element is to the left of the container, scroll left (negative)
+   */
+  scroll.left =
+    relativePos.right + (offset?.right || 0) > 0
+      ? container.scrollLeft + relativePos.right + (offset?.right || 0)
+      : relativePos.left - (offset?.left || 0) < 0
+      ? container.scrollLeft + relativePos.left - (offset?.left || 0)
+      : container.scrollLeft
+
+  /*
+   * If the element is below the container, scroll down (positive)
+   * If the element is above the container, scroll up (negative)
+   */
+  scroll.top =
+    relativePos.bottom + (offset?.bottom || 0) > 0
+      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0)
+      : relativePos.top - (offset?.top || 0) < 0
+      ? container.scrollTop + relativePos.top - (offset?.top || 0)
+      : container.scrollTop
+
+  return scroll
+}
+
 const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange, selected } = useMultiSelect(
   fields,
   data,
@@ -127,26 +176,13 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
       if (!td || !gridWrapper.value) return
 
       const { height: headerHeight } = tableHead.value!.getBoundingClientRect()
-
-      const childPos = td.getBoundingClientRect()
-      const parentPos = gridWrapper.value.getBoundingClientRect()
-      const relativePos = {
-        top: childPos.top - parentPos.top,
-        right: childPos.right - parentPos.right,
-        bottom: childPos.bottom - parentPos.bottom,
-        left: childPos.left - parentPos.left,
-      }
+      const tdScroll = getContainerScrollForElement(td, gridWrapper.value, { top: headerHeight, bottom: 9, right: 9 })
 
       if (rows && row === rows.length - 2) {
         // if last row make 'Add New Row' visible
         gridWrapper.value.scrollTo({
           top: gridWrapper.value.scrollHeight,
-          left:
-            relativePos.right > 0
-              ? gridWrapper.value.scrollLeft + relativePos.right + 9 // 9 is for border
-              : relativePos.left < 0
-              ? gridWrapper.value.scrollLeft + relativePos.left
-              : gridWrapper.value.scrollLeft,
+          left: tdScroll.left,
           behavior: 'smooth',
         })
         return
@@ -154,18 +190,8 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
 
       // scroll into the active cell
       gridWrapper.value.scrollTo({
-        top:
-          relativePos.bottom > 0
-            ? gridWrapper.value.scrollTop + relativePos.bottom + 9 // 9 is for border
-            : relativePos.top - headerHeight < 0
-            ? gridWrapper.value.scrollTop + relativePos.top - headerHeight
-            : gridWrapper.value.scrollTop,
-        left:
-          relativePos.right > 0
-            ? gridWrapper.value.scrollLeft + relativePos.right + 9 // 9 is for border
-            : relativePos.left < 0
-            ? gridWrapper.value.scrollLeft + relativePos.left
-            : gridWrapper.value.scrollLeft,
+        top: tdScroll.top,
+        left: tdScroll.left,
         behavior: 'smooth',
       })
     }

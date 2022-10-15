@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -81,6 +81,7 @@ const isAutoSaved = $computed(() => {
     UITypes.AutoNumber,
     UITypes.SpecificDBType,
     UITypes.Geometry,
+    UITypes.Duration,
   ].includes(column?.value?.uidt as UITypes)
 })
 
@@ -95,6 +96,7 @@ const vModel = computed({
       if (isAutoSaved) {
         syncValue()
       } else if (!isManualSaved) {
+        console.log('save')
         emit('save')
         currentRow.value.rowMeta.changed = true
       }

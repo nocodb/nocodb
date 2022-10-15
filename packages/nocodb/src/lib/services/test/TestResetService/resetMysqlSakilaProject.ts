@@ -1,9 +1,8 @@
 import axios from 'axios';
 import Knex from 'knex';
 
-import fs from 'fs';
+import { promises as fs } from 'fs';
 import Audit from '../../../models/Audit';
-import { sakilaTableNames } from '../../../utils/globals';
 import Project from '../../../models/Project';
 
 const config = {
@@ -41,30 +40,6 @@ const extMysqlProject = (title, parallelId) => ({
   external: true,
 });
 
-const mysqlSakilaSqlViews = [
-  'actor_info',
-  'customer_list',
-  'film_list',
-  'nicer_but_slower_film_list',
-  'sales_by_film_category',
-  'sales_by_store',
-  'staff_list',
-];
-
-const dropTablesAndViews = async (knex: Knex) => {
-  for (const view of mysqlSakilaSqlViews) {
-    try {
-      await knex.raw(`DROP VIEW ${view}`);
-    } catch (e) {}
-  }
-
-  for (const table of sakilaTableNames) {
-    try {
-      await knex.raw(`DROP TABLE ${table}`);
-    } catch (e) {}
-  }
-};
-
 const isSakilaMysqlToBeReset = async (
   knex: Knex,
   parallelId: string,
@@ -89,8 +64,6 @@ const isSakilaMysqlToBeReset = async (
 };
 
 const resetSakilaMysql = async (knex: Knex, parallelId: string) => {
-  await dropTablesAndViews(knex);
-
   const testsDir = __dirname.replace(
     '/src/lib/services/test/TestResetService',
     '/tests'
@@ -106,18 +79,19 @@ const resetSakilaMysql = async (knex: Knex, parallelId: string) => {
   const trx = await knex.transaction();
 
   try {
-    const schemaFile = fs
-      .readFileSync(`${testsDir}/mysql-sakila-db/03-test-sakila-schema.sql`)
-      .toString()
-      .replace(/test_sakila/g, `test_sakila_${parallelId}`);
+    const schemaFile = await fs.readFile(
+      `${testsDir}/mysql-sakila-db/03-test-sakila-schema.sql`
+    );
+    const dataFile = await fs.readFile(
+      `${testsDir}/mysql-sakila-db/04-test-sakila-data.sql`
+    );
 
-    const dataFile = fs
-      .readFileSync(`${testsDir}/mysql-sakila-db/04-test-sakila-data.sql`)
-      .toString()
-      .replace(/test_sakila/g, `test_sakila_${parallelId}`);
-
-    await trx.raw(schemaFile);
-    await trx.raw(dataFile);
+    await trx.raw(
+      schemaFile.toString().replace(/test_sakila/g, `test_sakila_${parallelId}`)
+    );
+    await trx.raw(
+      dataFile.toString().replace(/test_sakila/g, `test_sakila_${parallelId}`)
+    );
 
     await trx.commit();
   } catch (e) {

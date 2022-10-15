@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Knex from 'knex';
 
-import fs from 'fs';
+import { promises as fs } from 'fs';
 import Audit from '../../../models/Audit';
 import { sakilaTableNames } from '../../../utils/globals';
 
@@ -61,21 +61,17 @@ const resetMetaSakilaSqlite = async (metaKnex: Knex, prefix: string) => {
   const trx = await metaKnex.transaction();
 
   try {
-    const schemaFile = fs
-      .readFileSync(
-        `${testsDir}/sqlite-sakila-db/03-sqlite-prefix-sakila-schema.sql`
-      )
-      .toString()
-      .replace(/prefix___/g, prefix);
+    const schemaFile = await fs.readFile(
+      `${testsDir}/sqlite-sakila-db/03-sqlite-prefix-sakila-schema.sql`
+    );
+    const schemaFileStr = schemaFile.toString().replace(/prefix___/g, prefix);
 
-    const dataFile = fs
-      .readFileSync(
-        `${testsDir}/sqlite-sakila-db/04-sqlite-prefix-sakila-insert-data.sql`
-      )
-      .toString()
-      .replace(/prefix___/g, prefix);
+    const dataFile = await fs.readFile(
+      `${testsDir}/sqlite-sakila-db/04-sqlite-prefix-sakila-insert-data.sql`
+    );
+    const dataFileStr = dataFile.toString().replace(/prefix___/g, prefix);
 
-    const schemaSqlQueries = schemaFile.split(';');
+    const schemaSqlQueries = schemaFileStr.split(';');
     for (const sqlQuery of schemaSqlQueries) {
       if (sqlQuery.trim().length > 0) {
         await trx.raw(
@@ -86,7 +82,7 @@ const resetMetaSakilaSqlite = async (metaKnex: Knex, prefix: string) => {
       }
     }
 
-    const dataSqlQueries = dataFile.split(';');
+    const dataSqlQueries = dataFileStr.split(';');
     for (const sqlQuery of dataSqlQueries) {
       if (sqlQuery.trim().length > 0) {
         await trx.raw(sqlQuery.trim());

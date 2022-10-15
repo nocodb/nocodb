@@ -7,6 +7,7 @@ import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
 import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
 import Model from '../../../models/Model';
+import resetPgSakilaProject from './resetPgSakilaProject';
 
 const loginRootUser = async () => {
   const response = await axios.post(
@@ -20,6 +21,7 @@ const loginRootUser = async () => {
 const projectTitleByType = {
   sqlite: 'sampleREST',
   mysql: 'externalREST',
+  pg: 'pgExtREST',
 };
 
 export class TestResetService {
@@ -77,6 +79,13 @@ export class TestResetService {
       await resetMetaSakilaSqliteProject({ token, metaKnex, title });
     } else if (dbType == 'mysql') {
       await resetMysqlSakilaProject({
+        token,
+        title,
+        parallelId,
+        oldProject: project,
+      });
+    } else if (dbType == 'pg') {
+      await resetPgSakilaProject({
         token,
         title,
         parallelId,

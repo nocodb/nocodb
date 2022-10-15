@@ -117,7 +117,7 @@ async function submitForm() {
     if (e.errorFields.length) return
   }
 
-  const insertedRowData = await insertRow(formState)
+  const insertedRowData = await insertRow({ row: formState, oldRow: {}, rowMeta: { new: true } })
 
   if (insertedRowData) {
     await syncLTARRefs(insertedRowData)

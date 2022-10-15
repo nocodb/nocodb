@@ -479,7 +479,7 @@ watch(
                       </div>
                       <span class="flex-1" />
                       <div v-if="!readOnly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
-                        <a-spin class="!flex items-center" v-if="row.rowMeta.saving" />
+                        <a-spin v-if="row.rowMeta.saving" class="!flex items-center" />
                         <template v-else>
                           <span
                             v-if="row.rowMeta?.commentCount"

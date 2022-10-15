@@ -180,12 +180,12 @@ export function useViewData(
     if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
     const response = !isPublic.value
       ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-          ...queryParams.value,
-          ...params,
-          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-          where: where?.value,
-        })
+        ...queryParams.value,
+        ...params,
+        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+        where: where?.value,
+      })
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
@@ -204,9 +204,12 @@ export function useViewData(
     row: Record<string, any>,
     rowIndex = formattedData.value?.length,
     ltarState: Record<string, any> = {},
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
-    formattedData.value[rowIndex].rowMeta.saving = true
+    if (formattedData.value[rowIndex].rowMeta) formattedData.value[rowIndex].rowMeta.saving = true
     try {
       const { missingRequiredColumns, insertObj } = await populateInsertObject({
         meta: metaValue!,
@@ -227,7 +230,7 @@ export function useViewData(
 
       Object.assign(formattedData.value[rowIndex], {
         row: { ...insertedData, ...row },
-        rowMeta: { ...row.rowMeta, new: undefined },
+        rowMeta: { ...(row.rowMeta || {}), new: undefined },
         oldRow: { ...insertedData },
       })
 
@@ -236,16 +239,19 @@ export function useViewData(
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
     } finally {
-      formattedData.value[rowIndex].rowMeta.saving = false
+      if (formattedData.value[rowIndex].rowMeta) formattedData.value[rowIndex].rowMeta.saving = false
     }
   }
 
   async function updateRowProperty(
     toUpdate: Row,
     property: string,
-    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    {
+      metaValue = meta.value,
+      viewMetaValue = viewMeta.value,
+    }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
-    toUpdate.rowMeta.saving = true
+    if (toUpdate.rowMeta) toUpdate.rowMeta.saving = true
     try {
       const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
 
@@ -278,7 +284,7 @@ export function useViewData(
     } catch (e: any) {
       message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
     } finally {
-      toUpdate.rowMeta.saving = false
+      if (toUpdate.rowMeta) toUpdate.rowMeta.saving = false
     }
   }
 
@@ -289,7 +295,7 @@ export function useViewData(
     args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
     // if new row and save is in progress then wait until the save is complete
-    await until(() => !(row.rowMeta.new && row.rowMeta.saving)).toMatch((v) => v)
+    await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
 
     if (row.rowMeta.new) {
       return await insertRow(row.row, formattedData.value.indexOf(row), ltarState, args)
@@ -309,7 +315,7 @@ export function useViewData(
 
   async function deleteRowById(id: string) {
     if (!id) {
-      throw new Error("Delete not allowed for table which doesn't have primary Key")
+      throw new Error('Delete not allowed for table which doesn\'t have primary Key')
     }
 
     const res: any = await $api.dbViewRow.delete(

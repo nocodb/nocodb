@@ -88,6 +88,8 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
 const tbodyEl = ref<HTMLElement>()
+const gridWrapper = ref<HTMLElement>()
+const tableHead = ref<HTMLElement>()
 
 const {
   isLoading,
@@ -114,16 +116,57 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
   isPkAvail,
   clearCell,
   makeEditable,
-  () => {
-    if (selected.row !== null && selected.col !== null) {
+  (row?: number | null, col?: number | null) => {
+    row = row ?? selected.row
+    col = col ?? selected.col
+    if (row !== undefined && col !== undefined && row !== null && col !== null) {
       // get active cell
-      const td = tbodyEl.value?.querySelectorAll('tr')[selected.row]?.querySelectorAll('td')[selected.col + 1]
-      if (!td) return
+      const rows = tbodyEl.value?.querySelectorAll('tr')
+      const td = rows?.[row].querySelectorAll('td')[col === 0 ? 0 : col + 1]
+
+      if (!td || !gridWrapper.value) return
+
+      const { height: headerHeight } = tableHead.value!.getBoundingClientRect()
+
+      const childPos = td.getBoundingClientRect()
+      const parentPos = gridWrapper.value.getBoundingClientRect()
+      const relativePos = {
+        top: childPos.top - parentPos.top,
+        right: childPos.right - parentPos.right,
+        bottom: childPos.bottom - parentPos.bottom,
+        left: childPos.left - parentPos.left,
+      }
+
+      if (rows && row === rows.length - 2) {
+        // if last row make 'Add New Row' visible
+        gridWrapper.value.scrollTo({
+          top: gridWrapper.value.scrollHeight,
+          left:
+            relativePos.right > 0
+              ? gridWrapper.value.scrollLeft + relativePos.right + 9 // 9 is for border
+              : relativePos.left < 0
+              ? gridWrapper.value.scrollLeft + relativePos.left
+              : gridWrapper.value.scrollLeft,
+          behavior: 'smooth',
+        })
+        return
+      }
+
       // scroll into the active cell
-      td.scrollIntoView({
+      gridWrapper.value.scrollTo({
+        top:
+          relativePos.bottom > 0
+            ? gridWrapper.value.scrollTop + relativePos.bottom + 9 // 9 is for border
+            : relativePos.top - headerHeight < 0
+            ? gridWrapper.value.scrollTop + relativePos.top - headerHeight
+            : gridWrapper.value.scrollTop,
+        left:
+          relativePos.right > 0
+            ? gridWrapper.value.scrollLeft + relativePos.right + 9 // 9 is for border
+            : relativePos.left < 0
+            ? gridWrapper.value.scrollLeft + relativePos.left
+            : gridWrapper.value.scrollLeft,
         behavior: 'smooth',
-        block: 'nearest',
-        inline: 'nearest',
       })
     }
   },
@@ -380,7 +423,7 @@ watch(
       </div>
     </general-overlay>
 
-    <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
+    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown
         v-model:visible="contextMenu"
         :trigger="isSqlView ? [] : ['contextmenu']"
@@ -391,7 +434,7 @@ watch(
           class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white"
           @contextmenu="showContextMenu"
         >
-          <thead>
+          <thead ref="tableHead">
             <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
               <th>
                 <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center">

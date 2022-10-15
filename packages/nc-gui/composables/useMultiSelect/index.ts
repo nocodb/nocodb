@@ -17,7 +17,7 @@ export function useMultiSelect(
   isPkAvail: MaybeRef<boolean>,
   clearCell: Function,
   makeEditable: Function,
-  scrollToActiveCell?: () => void,
+  scrollToActiveCell?: (row?: number | null, col?: number | null) => void,
 ) {
   const { t } = useI18n()
 

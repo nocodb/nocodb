@@ -577,11 +577,15 @@ export default async (
             ncCol.colOptions = {
               options: [...colOptions.data],
             };
-            // if options are empty, configure '' as default option
-            ncCol.dtxp =
-              colOptions.data
-                .map((el) => `'${el.title.replace(/'/gi, "''")}'`)
-                .join(',') || "''";
+
+            if (['mysql', 'mysql2'].includes(getRootDbType())) {
+              // if options are empty, configure '' as an option
+              ncCol.dtxp =
+                colOptions.data
+                  .map((el) => `'${el.title.replace(/'/gi, "''")}'`)
+                  .join(',') || "''";
+            }
+            
             break;
           case undefined:
             break;

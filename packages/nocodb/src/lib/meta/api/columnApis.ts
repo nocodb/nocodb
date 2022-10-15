@@ -605,6 +605,12 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             ) {
               colBody.dtxp = "''";
             }
+
+            if (colBody.dt === 'set') {
+              if (colBody.colOptions?.options.length > 64) {
+                colBody.dt = 'text';
+              }
+            }
           }
         }
 
@@ -900,6 +906,12 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           (!colBody.dtxp || colBody.dtxp === '')
         ) {
           colBody.dtxp = "''";
+        }
+
+        if (colBody.dt === 'set') {
+          if (colBody.colOptions?.options.length > 64) {
+            colBody.dt = 'text';
+          }
         }
       }
 

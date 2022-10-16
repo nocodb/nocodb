@@ -97,18 +97,46 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
     }, [] as Relation[]),
   )
 
-  const edgeMMTableLabel = (modelId?: string) => {
-    if (!modelId) return ''
+  function edgeLabel({ type, source, target, modelId, childColId, parentColId }: Relation) {
+    const typeLabel = type === 'mm' ? 'many to many' : 'has many'
 
-    const mmModel = metasWithIdAsKey.value[modelId]
+    const parentCol = metasWithIdAsKey.value[source].columns?.find((col) => {
+      const colOptions = col.colOptions as LinkToAnotherRecordType
+      if (!colOptions) return false
 
-    if (!mmModel) return ''
+      return (
+        colOptions.fk_child_column_id === childColId &&
+        colOptions.fk_parent_column_id === parentColId &&
+        colOptions.fk_mm_model_id === modelId
+      )
+    })
 
-    if (mmModel.title !== mmModel.table_name) {
-      return `${mmModel.title} (${mmModel.table_name})`
+    const childCol = metasWithIdAsKey.value[target].columns?.find((col) => {
+      const colOptions = col.colOptions as LinkToAnotherRecordType
+      if (!colOptions) return false
+
+      return colOptions.fk_parent_column_id === (type === 'mm' ? childColId : parentColId)
+    })
+
+    if (!parentCol || !childCol) return
+
+    if (type === 'mm') {
+      if (config.showJunctionTableNames) {
+        if (!modelId) return undefined
+
+        const mmModel = metasWithIdAsKey.value[modelId]
+
+        if (!mmModel) return undefined
+
+        if (mmModel.title !== mmModel.table_name) {
+          return `${mmModel.title} (${mmModel.table_name})`
+        }
+
+        return mmModel.title
+      }
     }
 
-    return mmModel.title
+    return `${parentCol.title} ${typeLabel} ${childCol.title}`
   }
 
   function createNodes() {
@@ -139,7 +167,6 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
   function createEdges() {
     return relations.value.reduce<Edge[]>((acc, { source, target, childColId, parentColId, type, modelId }) => {
       let sourceColumnId, targetColumnId
-      let edgeLabel = ''
 
       if (type === 'hm') {
         sourceColumnId = childColId
@@ -149,13 +176,19 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
       if (type === 'mm') {
         sourceColumnId = parentColId
         targetColumnId = childColId
-        edgeLabel = config.showJunctionTableNames ? edgeMMTableLabel(modelId) : ''
       }
 
       if (source !== target) dagreGraph.setEdge(source, target)
 
       acc.push({
-        id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}-#${edgeLabel}`,
+        id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}-#${edgeLabel({
+          source,
+          target,
+          type,
+          childColId,
+          parentColId,
+          modelId,
+        })}`,
         source: `${source}`,
         target: `${target}`,
         sourceHandle: `s-${sourceColumnId}-${source}`,
@@ -168,7 +201,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
         data: {
           isManyToMany: type === 'mm',
           isSelfRelation: source === target && sourceColumnId === targetColumnId,
-          label: edgeLabel,
+          label: edgeLabel({ type, source, target, childColId, parentColId, modelId }),
         },
       } as Edge)
 
@@ -221,6 +254,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
 
     elements.value.forEach((el) => {
       if (isNode(el)) {
+        console.log(el.data.columnLength)
+
         dagreGraph.setNode(el.id, {
           width: skeleton ? nodeWidth * 2.5 : nodeWidth,
           height: nodeHeight + (skeleton ? 250 : nodeHeight * el.data.columnLength),

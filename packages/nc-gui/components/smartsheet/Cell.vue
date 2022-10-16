@@ -163,7 +163,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     <LazyCellUrl v-else-if="isURL" v-model="vModel" />
     <LazyCellPhoneNumber v-else-if="isPhoneNumber" v-model="vModel" />
     <LazyCellPercent v-else-if="isPercent" v-model="vModel" />
-    <LazyCellCurrency v-else-if="isCurrency" v-model="vModel" />
+    <LazyCellCurrency v-else-if="isCurrency" v-model="vModel" @save="emit('save')" />
     <LazyCellDecimal v-else-if="isDecimal" v-model="vModel" />
     <LazyCellInteger v-else-if="isInt" v-model="vModel" />
     <LazyCellFloat v-else-if="isFloat" v-model="vModel" />

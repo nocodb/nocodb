@@ -27,7 +27,7 @@ interface Relation {
 }
 
 const nodeWidth = 300
-const nodeHeight = 50
+const nodeHeight = 35
 
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ErdFlowConfig>) {
   const elements = ref<Elements>([])
@@ -145,17 +145,27 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
 
       const columns =
         metasWithIdAsKey.value[table.id].columns?.filter(
-          (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
+          (col) => !(col.uidt === UITypes.LinkToAnotherRecord && col.system === 1),
         ) || []
+
+      const pkAndFkColumns = columns
+        .filter(() => config.showPkAndFk && config.showAllColumns)
+        .filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
+
+      const nonPkColumns = columns
+        .filter((col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord))
+        .filter((col: ColumnType) => !col.pk && col.uidt !== UITypes.ForeignKey)
 
       return [
         {
           id: table.id,
           data: {
-            ...metasWithIdAsKey.value[table.id],
+            table: metasWithIdAsKey.value[table.id],
+            pkAndFkColumns,
+            nonPkColumns,
             showPkAndFk: config.showPkAndFk,
             showAllColumns: config.showAllColumns,
-            columnLength: columns.length,
+            columnLength: pkAndFkColumns.length + nonPkColumns.length,
           },
           type: 'custom',
           position: { x: 0, y: 0 },
@@ -254,11 +264,9 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
 
     elements.value.forEach((el) => {
       if (isNode(el)) {
-        console.log(el.data.columnLength)
-
         dagreGraph.setNode(el.id, {
           width: skeleton ? nodeWidth * 2.5 : nodeWidth,
-          height: nodeHeight + (skeleton ? 250 : nodeHeight * el.data.columnLength),
+          height: 50 + (skeleton ? 250 : nodeHeight * el.data.columnLength),
         })
       } else if (isEdge(el)) {
         // avoid duplicate edges when using skeleton

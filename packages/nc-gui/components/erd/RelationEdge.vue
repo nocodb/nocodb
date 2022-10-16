@@ -70,32 +70,33 @@ export default {
     </linearGradient>
   </defs>
 
-  <path
-    :id="id"
-    class="opacity-100 hover:(opacity-0) stroke-slate-500"
-    :class="selected || isHovering ? 'opacity-0' : ''"
-    :style="style"
-    :stroke-width="showSkeleton ? baseStroke * 4 : baseStroke"
-    fill="none"
-    :d="edgePath[0]"
-    :marker-end="showSkeleton ? markerEnd : ''"
-  />
+  <Transition name="layout" :duration="50" mode="in-out">
+    <path
+      v-if="selected || isHovering"
+      style="stroke: url(#linear-gradient)"
+      :stroke-width="(showSkeleton ? baseStroke * 12 : baseStroke * 8) / (selected || isHovering ? 2 : 1)"
+      fill="none"
+      :d="edgePath[0]"
+      :marker-end="showSkeleton ? markerEnd : ''"
+    />
 
-  <path
-    class="opacity-0 hover:(opacity-100 transition-all duration-100 ease)"
-    :class="selected || isHovering ? 'opacity-100' : ''"
-    style="stroke: url(#linear-gradient)"
-    :stroke-width="(showSkeleton ? baseStroke * 12 : baseStroke * 8) / (selected || isHovering ? 2 : 1)"
-    fill="none"
-    :d="edgePath[0]"
-    :marker-end="showSkeleton ? markerEnd : ''"
-  />
+    <path
+      v-else
+      :id="id"
+      class="stroke-slate-500"
+      :style="style"
+      :stroke-width="showSkeleton ? baseStroke * 4 : baseStroke"
+      fill="none"
+      :d="edgePath[0]"
+      :marker-end="showSkeleton ? markerEnd : ''"
+    />
+  </Transition>
 
   <path class="opacity-0" :stroke-width="showSkeleton ? baseStroke * 12 : baseStroke * 8" fill="none" :d="edgePath[0]" />
 
   <Transition name="layout">
     <EdgeText
-      v-if="data.label?.length > 0 && isHovering"
+      v-if="data.label?.length > 0 && (selected || isHovering)"
       :key="`edge-text-${id}.${showSkeleton}`"
       :class="`nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`"
       :x="edgePath[1]"

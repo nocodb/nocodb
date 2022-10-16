@@ -73,7 +73,7 @@ export default {
   <path
     :id="id"
     class="opacity-100 hover:(opacity-0) stroke-slate-500"
-    :class="selected ? 'opacity-0' : ''"
+    :class="selected || isHovering ? 'opacity-0' : ''"
     :style="style"
     :stroke-width="showSkeleton ? baseStroke * 4 : baseStroke"
     fill="none"
@@ -83,9 +83,9 @@ export default {
 
   <path
     class="opacity-0 hover:(opacity-100 transition-all duration-100 ease)"
-    :class="selected ? 'opacity-100' : ''"
+    :class="selected || isHovering ? 'opacity-100' : ''"
     style="stroke: url(#linear-gradient)"
-    :stroke-width="(showSkeleton ? baseStroke * 12 : baseStroke * 8) / (isHovering || selected ? 2 : 1)"
+    :stroke-width="(showSkeleton ? baseStroke * 12 : baseStroke * 8) / (selected || isHovering ? 2 : 1)"
     fill="none"
     :d="edgePath[0]"
     :marker-end="showSkeleton ? markerEnd : ''"

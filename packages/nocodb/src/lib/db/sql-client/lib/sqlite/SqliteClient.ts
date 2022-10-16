@@ -1491,7 +1491,7 @@ class SqliteClient extends KnexClient {
 
         if (args.columns[i].altered & 4) {
           // col remove
-          upQuery += await this.alterTableRemoveColumn(
+          upQuery += this.alterTableRemoveColumn(
             args.table,
             args.columns[i],
             oldColumn,
@@ -1546,18 +1546,7 @@ class SqliteClient extends KnexClient {
       );
       //downQuery += alterTablePK(args.originalColumns, args.columns, downQuery);
 
-      if (upQuery) {
-        //upQuery = `ALTER TABLE ${args.columns[0].tn} ${upQuery};`;
-        //downQuery = `ALTER TABLE ${args.columns[0].tn} ${downQuery};`;
-      }
-
-      await Promise.all(
-        upQuery.split(';').map(async (query) => {
-          if (query.trim().length) await this.sqlClient.raw(query);
-        })
-      );
-
-      // await this.sqlClient.raw(upQuery);
+      await this.sqlClient.raw(upQuery);
 
       console.log(upQuery);
 
@@ -1912,16 +1901,15 @@ class SqliteClient extends KnexClient {
     return query;
   }
 
-  async alterTableRemoveColumn(t, n, _o, _existingQuery) {
-    // let query = existingQuery ? "," : "";
-    // query += ` DROP COLUMN ${n.cn}`;
-    // query = existingQuery ? query : `ALTER TABLE "${t}" ${query};`;
-    // return query;
-    await this.sqlClient.schema.alterTable(t, (tb) => {
-      tb.dropColumn(n.cn);
-    });
-
-    return '';
+  alterTableRemoveColumn(t, n, _o, existingQuery) {
+    const shouldSanitize = true;
+    let query = existingQuery ? ';' : '';
+    query += this.genQuery(
+      `ALTER TABLE ?? DROP COLUMN ??`,
+      [t, n.cn],
+      shouldSanitize
+    );
+    return query;
   }
 
   createTableColumn(t, n, o, existingQuery) {

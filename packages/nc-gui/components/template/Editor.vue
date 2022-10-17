@@ -25,7 +25,6 @@ import {
   useNuxtApp,
   useProject,
   useTabs,
-  useTemplateRefsList,
 } from '#imports'
 import { TabType } from '~/lib'
 
@@ -71,7 +70,7 @@ const expansionPanel = ref<number[]>([])
 
 const editableTn = ref<boolean[]>([])
 
-const inputRefs = useTemplateRefsList<HTMLInputElement>()
+const inputRefs = ref<HTMLInputElement[]>([])
 
 const isImporting = ref(false)
 
@@ -208,14 +207,13 @@ function deleteTableColumn(tableIdx: number, columnIdx: number) {
 
 function addNewColumnRow(tableIdx: number, uidt: string) {
   data.tables[tableIdx].columns.push({
-    key: data.tables[tableIdx].columns.length + 1,
+    key: data.tables[tableIdx].columns.length,
     column_name: `title${data.tables[tableIdx].columns.length + 1}`,
     uidt,
   })
 
   nextTick(() => {
     const input = inputRefs.value[data.tables[tableIdx].columns.length - 1]
-
     input.focus()
     input.select()
   })
@@ -723,7 +721,14 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'column_name'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-input :ref="inputRefs.set" v-model:value="record.column_name" />
+                    <a-input
+                      :ref="
+                        (el) => {
+                          inputRefs[record.key] = el
+                        }
+                      "
+                      v-model:value="record.column_name"
+                    />
                   </a-form-item>
                 </template>
 

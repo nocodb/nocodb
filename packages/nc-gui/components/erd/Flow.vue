@@ -36,7 +36,7 @@ onPaneReady(() => {
   layout(showSkeleton.value)
 
   setTimeout(() => {
-    fitView({ duration: 250, padding: 0.5 })
+    fitView({ duration: 250, minZoom: 0.16 })
   }, 100)
 })
 

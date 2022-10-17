@@ -65,7 +65,7 @@ onScopeDispose($destroy)
 
 <template>
   <VueFlow v-model="elements">
-    <Controls class="rounded" position="top-right" :show-fit-view="false" :show-interactive="false" />
+    <Controls class="rounded" position="bottom-left" :show-fit-view="false" :show-interactive="false" />
 
     <template #node-custom="{ data }">
       <ErdTableNode :data="data" :show-skeleton="showSkeleton" />
@@ -104,6 +104,8 @@ onScopeDispose($destroy)
         Zoom in to view columns
       </div>
     </Transition>
+
+    <slot />
   </VueFlow>
 </template>
 

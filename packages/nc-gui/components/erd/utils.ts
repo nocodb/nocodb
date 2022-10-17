@@ -136,15 +136,15 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
       return colOptions.fk_parent_column_id === (type === 'mm' ? childColId : parentColId)
     })
 
-    if (!parentCol || !childCol) return
+    if (!parentCol || !childCol) return ''
 
     if (type === 'mm') {
       if (config.showJunctionTableNames) {
-        if (!modelId) return undefined
+        if (!modelId) return ''
 
         const mmModel = metasWithIdAsKey.value[modelId]
 
-        if (!mmModel) return undefined
+        if (!mmModel) return ''
 
         if (mmModel.title !== mmModel.table_name) {
           return `${mmModel.title} (${mmModel.table_name})`

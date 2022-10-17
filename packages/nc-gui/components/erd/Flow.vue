@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { Background, Controls, Panel } from '@vue-flow/additional-components'
+import { Background, Controls } from '@vue-flow/additional-components'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { TableType } from 'nocodb-sdk'
-import type { ErdFlowConfig } from './utils'
+import type { ERDConfig } from './utils'
 import { useErdElements } from './utils'
 import { computed, onScopeDispose, toRefs, watch } from '#imports'
 
 interface Props {
   tables: TableType[]
-  config: ErdFlowConfig
+  config: ERDConfig
 }
 
 const props = defineProps<Props>()
@@ -76,24 +76,6 @@ onScopeDispose($destroy)
     </template>
 
     <Background :size="showSkeleton ? 2 : undefined" :gap="showSkeleton ? 50 : undefined" />
-
-    <Panel
-      v-if="!config.singleTableMode"
-      class="text-xs bg-white border-1 rounded border-gray-200 z-50 nc-erd-histogram"
-      position="bottom-right"
-    >
-      <div class="flex flex-col divide-y-1">
-        <div class="flex items-center gap-1 p-2">
-          <MdiTableLarge class="text-primary" />
-          <div>{{ $t('objects.table') }}</div>
-        </div>
-
-        <div class="flex items-center gap-1 p-2">
-          <MdiEyeCircleOutline class="text-primary" />
-          <div>{{ $t('objects.sqlVIew') }}</div>
-        </div>
-      </div>
-    </Panel>
 
     <Transition name="layout">
       <div

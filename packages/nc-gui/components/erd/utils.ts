@@ -8,7 +8,7 @@ import { scaleLinear as d3ScaleLinear } from 'd3-scale'
 import tinycolor from 'tinycolor2'
 import { computed, ref, unref, useMetas, useTheme } from '#imports'
 
-export interface ErdFlowConfig {
+export interface ERDConfig {
   showPkAndFk: boolean
   showViews: boolean
   showAllColumns: boolean
@@ -47,7 +47,7 @@ interface Relation {
 const nodeWidth = 300
 const nodeHeight = 50
 
-export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ErdFlowConfig>) {
+export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ERDConfig>) {
   const elements = ref<Elements<NodeData | EdgeData>>([])
 
   const { theme } = useTheme()

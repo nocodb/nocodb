@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { Panel } from '@vue-flow/additional-components'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import type { ErdFlowConfig } from './utils'
-import { reactive, ref, useGlobal, useMetas, useProject, watch } from '#imports'
+import type { ERDConfig } from './utils'
+import { reactive, ref, useMetas, useProject, watch } from '#imports'
 
 const { table } = defineProps<{ table?: TableType }>()
-
-const { includeM2M } = useGlobal()
 
 const { tables: projectTables } = useProject()
 
@@ -17,9 +14,7 @@ const tables = ref<TableType[]>([])
 
 let isLoading = $ref(true)
 
-const showAdvancedOptions = ref(false)
-
-const config = reactive<ErdFlowConfig>({
+const config = reactive<ERDConfig>({
   showPkAndFk: true,
   showViews: false,
   showAllColumns: true,
@@ -106,56 +101,8 @@ watch(
           </div>
         </GeneralOverlay>
 
-        <Panel
-          class="flex flex-col bg-white border-1 rounded border-gray-200 z-50 px-3 py-1 nc-erd-context-menu"
-          position="top-right"
-        >
-          <div class="flex items-center gap-2">
-            <a-checkbox
-              v-model:checked="config.showAllColumns"
-              v-e="['c:erd:showAllColumns']"
-              class="nc-erd-showColumns-checkbox"
-            />
-            <span class="select-none nc-erd-showColumns-label" style="font-size: 0.65rem" @dblclick="showAdvancedOptions = true">
-              {{ $t('activity.erd.showColumns') }}
-            </span>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <a-checkbox
-              v-model:checked="config.showPkAndFk"
-              v-e="['c:erd:showPkAndFk']"
-              class="nc-erd-showPkAndFk-checkbox"
-              :class="{
-                'nc-erd-showPkAndFk-checkbox-enabled': config.showAllColumns,
-                'nc-erd-showPkAndFk-checkbox-disabled': !config.showAllColumns,
-                'nc-erd-showPkAndFk-checkbox-checked': config.showPkAndFk,
-                'nc-erd-showPkAndFk-checkbox-unchecked': !config.showPkAndFk,
-              }"
-              :disabled="!config.showAllColumns"
-            />
-            <span class="select-none text-[0.65rem]">{{ $t('activity.erd.showPkAndFk') }}</span>
-          </div>
-
-          <div v-if="!table" class="flex items-center gap-2">
-            <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" class="nc-erd-showViews-checkbox" />
-            <span class="select-none text-[0.65rem]">{{ $t('activity.erd.showSqlViews') }}</span>
-          </div>
-
-          <div v-if="!table && showAdvancedOptions && includeM2M" class="flex flex-row items-center">
-            <a-checkbox v-model:checked="config.showMMTables" v-e="['c:erd:showMMTables']" class="nc-erd-showMMTables-checkbox" />
-            <span class="ml-2 select-none text-[0.65rem]">{{ $t('activity.erd.showMMTables') }}</span>
-          </div>
-
-          <div v-if="showAdvancedOptions && includeM2M" class="flex items-center gap-2">
-            <a-checkbox
-              v-model:checked="config.showJunctionTableNames"
-              v-e="['c:erd:showJunctionTableNames']"
-              class="nc-erd-showJunctionTableNames-checkbox"
-            />
-            <span class="select-none text-[0.65rem]">{{ $t('activity.erd.showJunctionTableNames') }}</span>
-          </div>
-        </Panel>
+        <ErdConfigPanel :config="config" />
+        <ErdHistogramPanel v-if="!config.singleTableMode" />
       </LazyErdFlow>
     </div>
   </div>

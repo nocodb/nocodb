@@ -97,7 +97,7 @@ const srcDestMapping = ref<Record<string, any>[]>([])
 const data = reactive<{
   title: string | null
   name: string
-  tables: (TableType & { ref_table_name: string; columns: (ColumnType & { _disableSelect?: boolean })[] })[]
+  tables: (TableType & { ref_table_name: string; columns: (ColumnType & { key: number; _disableSelect?: boolean })[] })[]
 }>({
   title: null,
   name: 'Project Name',
@@ -206,15 +206,15 @@ function deleteTableColumn(tableIdx: number, columnIdx: number) {
   data.tables[tableIdx].columns?.splice(columnIdx, 1)
 }
 
-function addNewColumnRow(table: Record<string, any>, uidt?: string) {
-  table.columns.push({
-    key: table.columns.length,
-    column_name: `title${table.columns.length + 1}`,
+function addNewColumnRow(tableIdx: number, uidt: string) {
+  data.tables[tableIdx].columns.push({
+    key: data.tables[tableIdx].columns.length + 1,
+    column_name: `title${data.tables[tableIdx].columns.length + 1}`,
     uidt,
   })
 
   nextTick(() => {
-    const input = inputRefs.value[table.columns.length - 1]
+    const input = inputRefs.value[data.tables[tableIdx].columns.length - 1]
 
     input.focus()
     input.select()
@@ -794,7 +794,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
                   <span>Add Number Column</span>
                 </template>
 
-                <a-button class="group" @click="addNewColumnRow(table, 'Number')">
+                <a-button class="group" @click="addNewColumnRow(tableIdx, 'Number')">
                   <div class="flex items-center">
                     <mdi-numeric class="group-hover:!text-accent flex text-lg" />
                   </div>
@@ -807,7 +807,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
                   <span>Add SingleLineText Column</span>
                 </template>
 
-                <a-button class="group" @click="addNewColumnRow(table, 'SingleLineText')">
+                <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
                   <div class="flex items-center">
                     <mdi-alpha-a class="group-hover:!text-accent text-lg" />
                   </div>
@@ -820,7 +820,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
                   <span>Add LongText Column</span>
                 </template>
 
-                <a-button class="group" @click="addNewColumnRow(table, 'LongText')">
+                <a-button class="group" @click="addNewColumnRow(tableIdx, 'LongText')">
                   <div class="flex items-center">
                     <mdi-text class="group-hover:!text-accent text-lg" />
                   </div>
@@ -833,7 +833,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
                   <span>Add Other Column</span>
                 </template>
 
-                <a-button class="group" @click="addNewColumnRow(table, 'SingleLineText')">
+                <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
                   <div class="flex items-center gap-1">
                     <mdi-plus class="group-hover:!text-accent text-lg" />
                   </div>

@@ -18,7 +18,7 @@ export const rolePermissions = {
   [Role.Super]: '*',
   [Role.Admin]: {} as Record<string, boolean>,
   [Role.Guest]: {} as Record<string, boolean>,
-  [Role.User]: {
+  [Role.OrgLevelCreator]: {
     include: {
       projectCreate: true,
       projectActions: true,

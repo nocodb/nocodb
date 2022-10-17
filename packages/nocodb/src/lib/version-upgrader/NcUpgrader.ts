@@ -5,8 +5,8 @@ import NcMetaIO from '../meta/NcMetaIO';
 import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
 import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
-import ncProjectRolesUpdate from './ncProjectRolesUpdate';
 import ncDataTypesUpgrader from './ncDataTypesUpgrader';
+import ncProjectRolesUpgrader from './ncProjectRolesUpgrader';
 
 const log = debug('nc:version-upgrader');
 import { Tele } from 'nc-help';
@@ -34,7 +34,7 @@ export default class NcUpgrader {
         { name: '0011045', handler: ncProjectEnvUpgrader0011045 },
         { name: '0090000', handler: ncProjectUpgraderV2_0090000 },
         { name: '0098004', handler: ncDataTypesUpgrader },
-        { name: '0098005', handler: ncProjectRolesUpdate },
+        { name: '0098005', handler: ncProjectRolesUpgrader },
       ];
       if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
         return;

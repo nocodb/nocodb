@@ -1,3 +1,4 @@
+import { OrgUserRoles } from '../../enums/OrgUserRoles'
 import { MetaTable } from '../utils/globals';
 import { NcUpgraderCtx } from './NcUpgrader';
 
@@ -10,9 +11,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       .split(',')
       .map((r) => {
         if (r === 'user') {
-          return 'org-level-creator';
+          return OrgUserRoles.CREATOR;
         } else if (r === 'user-new') {
-          return 'org-level-viewer';
+          return OrgUserRoles.VIEWER;
         }
         return r;
       })

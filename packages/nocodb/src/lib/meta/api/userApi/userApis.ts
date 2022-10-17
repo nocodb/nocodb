@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { TableType, validatePassword } from 'nocodb-sdk';
+import { OrgUserRoles } from '../../../../enums/OrgUserRoles'
 import catchError, { NcError } from '../../helpers/catchError';
 const { isEmail } = require('validator');
 import * as ejs from 'ejs';
@@ -84,10 +85,10 @@ export async function signup(req: Request, res: Response<TableType>) {
       NcError.badRequest('User already exist');
     }
   } else {
-    let roles = 'user';
+    let roles: string = OrgUserRoles.CREATOR;
 
     if (await User.isFirst()) {
-      roles = 'user,super';
+      roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER}`;
       // todo: update in nc_store
       // roles = 'owner,creator,editor'
       Tele.emit('evt', {
@@ -98,7 +99,7 @@ export async function signup(req: Request, res: Response<TableType>) {
       if (process.env.NC_INVITE_ONLY_SIGNUP) {
         NcError.badRequest('Not allowed to signup, contact super admin.');
       } else {
-        roles = 'user_new';
+        roles = OrgUserRoles.VIEWER;
       }
     }
 

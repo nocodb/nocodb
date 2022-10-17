@@ -1,7 +1,8 @@
 export enum Role {
   Super = 'super',
   Admin = 'admin',
-  User = 'user',
+  OrgLevelCreator = 'org-level-creator',
+  OrgLevelViewer = 'org-level-viewer',
   Guest = 'guest',
 }
 

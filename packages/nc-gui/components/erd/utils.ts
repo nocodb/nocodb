@@ -137,10 +137,10 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
     }
 
     if (simple) {
-      return `${metasWithIdAsKey.value[source].title} ${type} ${metasWithIdAsKey.value[target].title}`
+      return `${metasWithIdAsKey.value[source].title} - ${typeLabel} - ${metasWithIdAsKey.value[target].title}`
     }
 
-    return `[${metasWithIdAsKey.value[source].title}] ${parentCol.title} ${typeLabel} ${childCol.title} [${metasWithIdAsKey.value[target].title}]`
+    return `[${metasWithIdAsKey.value[source].title}] ${parentCol.title} - ${typeLabel} - ${childCol.title} [${metasWithIdAsKey.value[target].title}]`
   }
 
   function createNodes() {

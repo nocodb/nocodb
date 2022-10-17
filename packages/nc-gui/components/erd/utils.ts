@@ -48,7 +48,7 @@ const nodeWidth = 300
 const nodeHeight = 50
 
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ErdFlowConfig>) {
-  const elements = ref<Elements>([])
+  const elements = ref<Elements<NodeData | EdgeData>>([])
 
   const { theme } = useTheme()
 
@@ -170,13 +170,9 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
           (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
         ) || []
 
-      const pkAndFkColumns = columns
-        .filter(() => config.showPkAndFk && config.showAllColumns)
-        .filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
+      const pkAndFkColumns = columns.filter(() => config.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
 
-      const nonPkColumns = columns
-        .filter((col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord))
-        .filter((col: ColumnType) => !col.pk && col.uidt !== UITypes.ForeignKey)
+      const nonPkColumns = columns.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
 
       return [
         {
@@ -187,7 +183,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
             nonPkColumns,
             showPkAndFk: config.showPkAndFk,
             showAllColumns: config.showAllColumns,
-            columnLength: pkAndFkColumns.length + nonPkColumns.length,
+            columnLength: columns.length,
+            color: '',
           },
           type: 'custom',
           position: { x: 0, y: 0 },
@@ -209,8 +206,6 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
         sourceColumnId = parentColId
         targetColumnId = childColId
       }
-
-      if (source !== target) dagreGraph.setEdge(source, target)
 
       acc.push({
         id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}-#${edgeLabel({
@@ -235,6 +230,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
           isSelfRelation: source === target && sourceColumnId === targetColumnId,
           label: edgeLabel({ type, source, target, childColId, parentColId, modelId }),
           simpleLabel: edgeLabel({ type, source, target, childColId, parentColId, modelId }, true),
+          color: '',
         },
       })
 
@@ -247,53 +243,22 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
     boxShadow: `0 0 0 ${skeleton ? '12' : '2'}px ${color}`,
   })
 
-  function connectNonConnectedNodes() {
-    const connectedNodes = new Set<string>()
-
-    elements.value.forEach((el) => {
-      if (isEdge(el)) {
-        connectedNodes.add(el.source)
-        connectedNodes.add(el.target)
-      }
-    })
-
-    const nonConnectedNodes = erdTables.value.filter((table) => !connectedNodes.has(table.id!))
-
-    if (nonConnectedNodes.length === 0) return
-
-    if (nonConnectedNodes.length === 1) {
-      const firstTable = erdTables.value.find((table) => table.type === 'table' && table.id !== nonConnectedNodes[0].id)
-      if (!firstTable) return
-
-      dagreGraph.setEdge(nonConnectedNodes[0].id!, firstTable.id!)
-      return
-    }
-
-    const firstNode = nonConnectedNodes[0]
-    nonConnectedNodes.forEach((node, index) => {
-      if (index === 0) return
-
-      const source = firstNode.id!
-      const target = node.id!
-
-      dagreGraph.setEdge(source, target)
-    })
-  }
-
   const layout = (skeleton = false) => {
     elements.value = [...createNodes(), ...createEdges()] as Elements<NodeData | EdgeData>
 
     elements.value.forEach((el) => {
       if (isNode(el)) {
+        const node = el as Node<NodeData>
+        const colLength = node.data!.columnLength
+
+        const width = skeleton ? nodeWidth * 3 : nodeWidth
+        const height = nodeHeight + (skeleton ? 250 : colLength > 0 ? nodeHeight * colLength : nodeHeight)
         dagreGraph.setNode(el.id, {
-          width: skeleton ? nodeWidth * 2.5 : nodeWidth,
-          height: nodeHeight + (skeleton ? 250 : nodeHeight * el.data.columnLength),
+          width,
+          height,
         })
       } else if (isEdge(el)) {
-        // avoid duplicate edges when using skeleton
-        if ((skeleton && !dagreGraph.edge(el.source, el.target)) || !skeleton) {
-          dagreGraph.setEdge(el.source, el.target)
-        }
+        dagreGraph.setEdge(el.source, el.target)
       }
     })
 
@@ -321,7 +286,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
       } else if (isEdge(el)) {
         const node = elements.value.find((nodes) => nodes.id === el.source)
         if (node) {
-          const color = node.data.color
+          const color = node.data!.color
           el.data.color = color
           ;(el.markerEnd as EdgeMarker).color = skeleton ? `#${tinycolor(color).toHex()}` : undefined
         }

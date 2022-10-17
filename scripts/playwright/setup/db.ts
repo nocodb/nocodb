@@ -1,8 +1,6 @@
 import { NcContext } from ".";
 
-import { PromisedDatabase } from "promised-sqlite3";
-
-const sqliteDb = new PromisedDatabase(); 
+import axios from "axios";
 
 const isMysql = (context: NcContext) => context.dbType === 'mysql';
 
@@ -35,10 +33,14 @@ const mysqlExec = async (query) => {
 }
 
 async function sqliteExec(query) {
-  const rootProjectDir = __dirname.replace("/scripts/playwright/setup", "");
-  await sqliteDb.open(`${rootProjectDir}/packages/nocodb/test_noco.db`);
-
-  await sqliteDb.run(query);
+  try {
+    await axios.post('http://localhost:8080/api/v1/meta/test/sqlite_exec', {
+      "sql": query,
+    });
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
 }
 
 export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg };

@@ -44,9 +44,6 @@ interface Relation {
   type: 'mm' | 'hm'
 }
 
-const nodeWidth = 300
-const nodeHeight = 50
-
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ERDConfig>) {
   const elements = ref<Elements<NodeData | EdgeData>>([])
 
@@ -62,6 +59,9 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
 
   const erdTables = computed(() => unref(tables))
   const config = $computed(() => unref(props))
+
+  const nodeWidth = 300
+  const nodeHeight = $computed(() => (config.showViews && config.showAllColumns ? 50 : 40))
 
   const relations = computed(() =>
     erdTables.value.reduce((acc, table) => {
@@ -115,7 +115,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     }, [] as Relation[]),
   )
 
-  function edgeLabel({ type, source, target, modelId, childColId, parentColId }: Relation, simple = false) {
+  function edgeLabel({ type, source, target, modelId, childColId, parentColId }: Relation) {
     const typeLabel = type === 'mm' ? 'many to many' : 'has many'
 
     const parentCol = metasWithIdAsKey.value[source].columns?.find((col) => {
@@ -147,18 +147,19 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
         if (!mmModel) return ''
 
         if (mmModel.title !== mmModel.table_name) {
-          return `${mmModel.title} (${mmModel.table_name})`
+          return [`${mmModel.title} (${mmModel.table_name})`]
         }
 
-        return mmModel.title
+        return [mmModel.title]
       }
     }
 
-    if (simple) {
-      return `${metasWithIdAsKey.value[source].title} - ${typeLabel} - ${metasWithIdAsKey.value[target].title}`
-    }
-
-    return `[${metasWithIdAsKey.value[source].title}] ${parentCol.title} - ${typeLabel} - ${childCol.title} [${metasWithIdAsKey.value[target].title}]`
+    return [
+      // detailed edge label
+      `[${metasWithIdAsKey.value[source].title}] ${parentCol.title} - ${typeLabel} - ${childCol.title} [${metasWithIdAsKey.value[target].title}]`,
+      // simple edge label (for skeleton)
+      `${metasWithIdAsKey.value[source].title} - ${typeLabel} - ${metasWithIdAsKey.value[target].title}`,
+    ]
   }
 
   function createNodes() {
@@ -207,15 +208,17 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
         targetColumnId = childColId
       }
 
+      const [label, simpleLabel] = edgeLabel({
+        source,
+        target,
+        type,
+        childColId,
+        parentColId,
+        modelId,
+      })
+
       acc.push({
-        id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}-#${edgeLabel({
-          source,
-          target,
-          type,
-          childColId,
-          parentColId,
-          modelId,
-        })}`,
+        id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}-#${label}`,
         source: `${source}`,
         target: `${target}`,
         sourceHandle: `s-${sourceColumnId}-${source}`,
@@ -228,8 +231,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
         data: {
           isManyToMany: type === 'mm',
           isSelfRelation: source === target && sourceColumnId === targetColumnId,
-          label: edgeLabel({ type, source, target, childColId, parentColId, modelId }),
-          simpleLabel: edgeLabel({ type, source, target, childColId, parentColId, modelId }, true),
+          label,
+          simpleLabel,
           color: '',
         },
       })

@@ -1,19 +1,25 @@
 <script lang="ts" setup>
 import { onKeyStroke } from '@vueuse/core'
 import type { CSSProperties } from '@vue/runtime-dom'
-import { ref, useElementHover, watch } from '#imports'
+import { controlledRef, ref, useElementHover, watch } from '#imports'
 
 interface Props {
   // Key to be pressed on hover to trigger the tooltip
   modifierKey?: string
   tooltipStyle?: CSSProperties
+  // force disable tooltip
+  disabled?: boolean
 }
 
-const { modifierKey, tooltipStyle } = defineProps<Props>()
+const { modifierKey, tooltipStyle, disabled } = defineProps<Props>()
 
 const el = ref()
 
-const showTooltip = ref(false)
+const showTooltip = controlledRef(false, {
+  onBeforeChange: (shouldShow) => {
+    if (shouldShow && disabled) return false
+  },
+})
 
 const isHovering = useElementHover(() => el.value)
 
@@ -44,8 +50,8 @@ onKeyStroke(
   { eventName: 'keyup' },
 )
 
-watch([isHovering, () => modifierKey], ([hovering, key]) => {
-  if (!hovering) {
+watch([isHovering, () => modifierKey, () => disabled], ([hovering, key, isDisabled]) => {
+  if (!hovering || isDisabled) {
     showTooltip.value = false
     return
   }

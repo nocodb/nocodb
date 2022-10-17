@@ -388,7 +388,7 @@ watch(view, (nextView) => {
 </script>
 
 <template>
-  <a-row v-if="submitted" class="h-full">
+  <a-row v-if="submitted" class="h-full" data-pw="nc-form-wrapper-submit">
     <a-col :span="24">
       <div v-if="formViewData" class="items-center justify-center text-center mt-2">
         <a-alert type="success">
@@ -408,7 +408,7 @@ watch(view, (nextView) => {
     </a-col>
   </a-row>
 
-  <a-row v-else class="h-full flex">
+  <a-row v-else class="h-full flex" data-pw="nc-form-wrapper">
     <a-col v-if="isEditable" :span="8" class="shadow p-2 md:p-4 h-full overflow-auto scrollbar-thin-dull nc-form-left-drawer">
       <div class="flex flex-wrap gap-2">
         <div class="flex-1 text-lg">
@@ -420,6 +420,7 @@ watch(view, (nextView) => {
             v-if="hiddenColumns.length"
             type="button"
             class="nc-form-add-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
+            data-pw="nc-form-add-all"
             @click="addAllColumns"
           >
             <!-- Add all -->
@@ -430,6 +431,7 @@ watch(view, (nextView) => {
             v-if="localColumns.length"
             type="button"
             class="nc-form-remove-all color-transition bg-white transform hover:(text-primary ring ring-accent ring-opacity-100) active:translate-y-[1px] px-2 py-1 shadow-md rounded"
+            data-pw="nc-form-remove-all"
             @click="removeAllColumns"
           >
             <!-- Remove all -->
@@ -451,6 +453,7 @@ watch(view, (nextView) => {
           <a-card
             size="small"
             class="!border-0 color-transition cursor-pointer item hover:(bg-primary ring-1 ring-accent ring-opacity-100) bg-opacity-10 !rounded !shadow-lg"
+            :data-pw="`nc-form-hidden-column-${element.label || element.title}`"
             @mousedown="moved = false"
             @mousemove="moved = false"
             @mouseup="handleMouseUp(element, index)"
@@ -478,6 +481,7 @@ watch(view, (nextView) => {
         <template #footer>
           <div
             class="my-4 select-none border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide"
+            data-pw="nc-drag-n-drop-to-hide"
           >
             <!-- Drag and drop fields here to hide -->
             {{ $t('msg.info.dragDropHide') }}
@@ -535,6 +539,7 @@ watch(view, (nextView) => {
                   hide-details
                   placeholder="Form Title"
                   :bordered="false"
+                  data-pw="nc-form-heading"
                   @blur="updateView"
                   @keydown.enter="updateView"
                 />
@@ -554,6 +559,7 @@ watch(view, (nextView) => {
                   :placeholder="$t('msg.info.formDesc')"
                   :bordered="false"
                   :disabled="!isEditable"
+                  data-pw="nc-form-sub-heading"
                   @blur="updateView"
                   @click="updateView"
                 />
@@ -583,19 +589,25 @@ watch(view, (nextView) => {
                       'bg-primary bg-opacity-5 ring-0.5 ring-accent ring-opacity-100': activeRow === element.title,
                     },
                   ]"
+                  data-pw="nc-form-fields"
                   @click="activeRow = element.title"
                 >
                   <div
                     v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)"
                     class="absolute flex top-2 right-2"
                   >
-                    <MdiEyeOffOutline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
+                    <MdiEyeOffOutline
+                      class="opacity-0 nc-field-remove-icon"
+                      data-pw="nc-field-remove-icon"
+                      @click.stop="hideColumn(index)"
+                    />
                   </div>
 
                   <div v-if="activeRow === element.title" class="flex flex-col gap-3 mb-3">
                     <div class="flex gap-2 items-center">
                       <span
                         class="text-gray-500 mr-2 nc-form-input-required"
+                        data-pw="nc-form-input-required"
                         @click="
                           () => {
                             element.required = !element.required
@@ -619,6 +631,7 @@ watch(view, (nextView) => {
                         v-model:value="element.label"
                         type="text"
                         class="form-meta-input nc-form-input-label"
+                        data-pw="nc-form-input-label"
                         :placeholder="$t('msg.info.formInput')"
                         @change="updateColMeta(element)"
                       >
@@ -630,6 +643,7 @@ watch(view, (nextView) => {
                         v-model:value="element.description"
                         type="text"
                         class="form-meta-input text-sm nc-form-input-help-text"
+                        data-pw="nc-form-input-help-text"
                         :placeholder="$t('msg.info.formHelpText')"
                         @change="updateColMeta(element)"
                       />
@@ -642,6 +656,7 @@ watch(view, (nextView) => {
                       :column="{ ...element, title: element.label || element.title }"
                       :required="isRequired(element, element.required)"
                       :hide-menu="true"
+                      data-pw="nc-form-input-label"
                     />
 
                     <LazySmartsheetHeaderCell
@@ -649,6 +664,7 @@ watch(view, (nextView) => {
                       :column="{ ...element, title: element.label || element.title }"
                       :required="isRequired(element, element.required)"
                       :hide-menu="true"
+                      data-pw="nc-form-input-label"
                     />
                   </div>
 
@@ -663,6 +679,7 @@ watch(view, (nextView) => {
                       :row="row"
                       class="nc-input"
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                      :data-pw="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
                       @click.stop.prevent
                     />
@@ -678,6 +695,7 @@ watch(view, (nextView) => {
                       v-model="formState[element.title]"
                       class="nc-input"
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                      :data-pw="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
                       :edit-enabled="true"
                       @click.stop.prevent
@@ -699,7 +717,7 @@ watch(view, (nextView) => {
             </Draggable>
 
             <div class="justify-center flex mt-6">
-              <button type="submit" class="uppercase scaling-btn nc-form-submit" @click="submitForm">
+              <button type="submit" class="uppercase scaling-btn nc-form-submit" data-pw="nc-form-submit" @click="submitForm">
                 {{ $t('general.submit') }}
               </button>
             </div>
@@ -721,6 +739,7 @@ watch(view, (nextView) => {
             :rows="3"
             hide-details
             class="nc-form-after-submit-msg"
+            data-pw="nc-form-after-submit-msg"
             @change="updateView"
           />
 
@@ -733,6 +752,7 @@ watch(view, (nextView) => {
                 v-e="[`a:form-view:submit-another-form`]"
                 size="small"
                 class="nc-form-checkbox-submit-another-form"
+                data-pw="nc-form-checkbox-submit-another-form"
                 @change="updateView"
               />
               <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
@@ -745,6 +765,7 @@ watch(view, (nextView) => {
                 v-e="[`a:form-view:show-blank-form`]"
                 size="small"
                 class="nc-form-checkbox-show-blank-form"
+                data-pw="nc-form-checkbox-show-blank-form"
                 @change="updateView"
               />
 
@@ -757,6 +778,7 @@ watch(view, (nextView) => {
                 v-e="[`a:form-view:email-me`]"
                 size="small"
                 class="nc-form-checkbox-send-email"
+                data-pw="nc-form-checkbox-send-email"
                 @change="onEmailChange"
               />
 

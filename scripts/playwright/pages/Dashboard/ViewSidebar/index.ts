@@ -53,6 +53,10 @@ export class ViewSidebarPage extends BasePage {
     await this.createView({ title, locator: this.createFormButton });
   }
 
+  async openView({ title }: { title: string }) {
+    await this.get().locator(`[pw-data="view-sidebar-view-${title}"]`).click();
+  }
+
   async createKanbanView({ title }: { title: string }) {
     await this.createView({ title, locator: this.createKanbanButton });
   }

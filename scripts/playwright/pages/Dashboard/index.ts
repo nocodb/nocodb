@@ -2,6 +2,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 import BasePage from "../Base";
 import { GridPage } from "./Grid";
+import { FormPage } from "./Form";
 import { ExpandedFormPage } from "./ExpandedForm";
 import { ChildList } from "./Grid/Column/LTAR/ChildList";
 import { LinkRecord } from "./Grid/Column/LTAR/LinkRecord";
@@ -15,6 +16,7 @@ export class DashboardPage extends BasePage {
   readonly tabBar: Locator;
   readonly treeView: TreeViewPage;
   readonly grid: GridPage;
+  readonly form: FormPage;
   readonly expandedForm: ExpandedFormPage;
   readonly childList: ChildList;
   readonly linkRecord: LinkRecord;
@@ -28,6 +30,7 @@ export class DashboardPage extends BasePage {
     this.tabBar = rootPage.locator(".nc-tab-bar");
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
+    this.form = new FormPage(this);
     this.expandedForm = new ExpandedFormPage(this);
     this.childList = new ChildList(this);
     this.linkRecord = new LinkRecord(this);
@@ -66,21 +69,26 @@ export class DashboardPage extends BasePage {
   }
 
   async waitForTabRender({ title }: { title: string }) {
-        // wait for the column, active tab animation will be started
+    // wait for the column, active tab animation will be started
     await this.get().locator('[pw-data="grid-id-column"]').waitFor();
-    await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).waitFor();
+    await this.tabBar
+      .locator(`.ant-tabs-tab-active:has-text("${title}")`)
+      .waitFor();
 
     // wait active tab animation to finish
-    await expect.poll(async () => {
-      return await this.tabBar.locator(`[data-pw="nc-root-tabs-${title}"]`).evaluate((el) => {
-        return window.getComputedStyle(el).getPropertyValue("color")
+    await expect
+      .poll(async () => {
+        return await this.tabBar
+          .locator(`[data-pw="nc-root-tabs-${title}"]`)
+          .evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue("color");
+          });
       })
-    }).toBe("rgb(67, 81, 232)"); // active tab text color
+      .toBe("rgb(67, 81, 232)"); // active tab text color
 
-    await this
-    .get()
-    .locator('[pw-data="grid-load-spinner"]')
-    .waitFor({ state: "hidden" });
+    await this.get()
+      .locator('[pw-data="grid-load-spinner"]')
+      .waitFor({ state: "hidden" });
 
     await expect(this.rootPage).toHaveURL(
       `/#/nc/${this.project.id}/table/${title}`

@@ -5,7 +5,7 @@ import { ToolbarFieldsPage } from "./Fields";
 import { ToolbarSortPage } from "./Sort";
 import { ToolbarFilterPage } from "./Filter";
 import { ToolbarShareViewPage } from "./ShareView";
-import fs from "fs";
+import * as fs from "fs";
 
 export class ToolbarPage extends BasePage {
   readonly grid: GridPage;

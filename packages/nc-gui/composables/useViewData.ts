@@ -202,11 +202,11 @@ export function useViewData(
 
   async function insertRow(
     currentRow: Row,
-    rowIndex = formattedData.value?.length,
+    _rowIndex = formattedData.value?.length,
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
-    const row = currentRow.row;
+    const row = currentRow.row
     if (currentRow.rowMeta) currentRow.rowMeta.saving = true
     try {
       const { missingRequiredColumns, insertObj } = await populateInsertObject({

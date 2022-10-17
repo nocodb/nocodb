@@ -96,7 +96,10 @@ const resetMetaSakilaSqlite = async (
     );
     const schemaFileStr = schemaFile.toString().replace(/prefix___/g, prefix);
 
-    const schemaSqlQueries = schemaFileStr.split(';');
+    const schemaSqlQueries = schemaFileStr
+      .split(';')
+      .filter((str) => str.trim().length > 0)
+      .map((str) => str.trim());
     for (const sqlQuery of schemaSqlQueries) {
       if (sqlQuery.trim().length > 0) {
         await metaKnex.raw(

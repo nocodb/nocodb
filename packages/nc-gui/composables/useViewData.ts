@@ -1,4 +1,4 @@
-import { ViewTypes } from 'nocodb-sdk'
+import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
@@ -206,7 +206,7 @@ export function useViewData(
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
-    const row = currentRow.row;
+    const row = currentRow.row
     if (currentRow.rowMeta) currentRow.rowMeta.saving = true
     try {
       const { missingRequiredColumns, insertObj } = await populateInsertObject({
@@ -266,15 +266,23 @@ export function useViewData(
       )
       // audit
       $api.utils.auditRowUpdate(id, {
-        fk_model_id: meta.value?.id as string,
+        fk_model_id: metaValue?.id as string,
         column_name: property,
         row_id: id,
         value: getHTMLEncodedText(toUpdate.row[property]),
         prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
       })
 
-      /** update row data(to sync formula and other related columns) */
-      Object.assign(toUpdate.row, updatedRowData)
+      /** update row data(to sync formula and other related columns)
+       * update only virtual columns data to avoid overwriting any changes made by user
+       */
+      Object.assign(
+        toUpdate.row,
+        metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
+          if (isVirtualCol(col)) acc[col.title!] = updatedRowData[col.title!]
+          return acc
+        }, {} as Record<string, any>),
+      )
       Object.assign(toUpdate.oldRow, updatedRowData)
     } catch (e: any) {
       message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)

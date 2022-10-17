@@ -167,7 +167,9 @@ test.describe("Shared view", () => {
       "Download as CSV",
       "./expectedData.txt"
     );
+  });
 
+  test("Shared view: password", async ({ page }) => {
     /**
      * 5. Enable shared view password, disable download: verify
      * - Incorrect password
@@ -176,9 +178,7 @@ test.describe("Shared view", () => {
      * - Add new record & column after shared view creation; verify
      **/
 
-    // visit main page
-    await page.goto(mainPageLink);
-    await dashboard.closeTab({ title: "Address" });
+    await dashboard.closeTab({ title: "Team & Auth" });
     await dashboard.treeView.openTable({ title: "Country" });
 
     // enable password & verify share link

@@ -35,7 +35,7 @@ const selectedView = inject(ActiveViewInj)
       </div>
     </div>
 
-    <div class="w-full h-full !py-0 !px-2" style="height: 70vh">
+    <div class="w-full h-70vh">
       <LazyErdView :table="meta" />
     </div>
   </a-modal>

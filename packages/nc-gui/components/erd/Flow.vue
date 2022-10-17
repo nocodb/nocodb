@@ -19,7 +19,7 @@ const { $destroy, fitView, onPaneReady, viewport, onNodeDoubleClick } = useVueFl
 
 const { layout, elements } = useErdElements(tables, config)
 
-const showSkeleton = computed(() => viewport.value.zoom < 0.25)
+const showSkeleton = computed(() => viewport.value.zoom < 0.2)
 
 function init() {
   layout(showSkeleton.value)
@@ -29,10 +29,16 @@ function init() {
 }
 
 function zoomIn(nodeId?: string) {
-  fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 300, minZoom: 0.4 })
+  fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 300, minZoom: 0.3 })
 }
 
-onPaneReady(init)
+onPaneReady(() => {
+  layout(showSkeleton.value)
+
+  setTimeout(() => {
+    fitView({ duration: 250, padding: 0.5 })
+  }, 100)
+})
 
 onNodeDoubleClick(({ node }) => {
   if (showSkeleton.value) zoomIn()

@@ -1,18 +1,10 @@
 <script lang="ts" setup>
 import type { NodeProps } from '@vue-flow/core'
 import { Handle, Position } from '@vue-flow/core'
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { LinkToAnotherRecordType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import type { NodeData } from './utils'
 import { MetaInj, computed, provide, toRef, useNuxtApp } from '#imports'
-
-interface NodeData {
-  table: TableType
-  pkAndFkColumns: ColumnType[]
-  nonPkColumns: ColumnType[]
-  showPkAndFk: boolean
-  showAllColumns: boolean
-  color: string
-}
 
 interface Props extends NodeProps<NodeData> {
   data: NodeData
@@ -35,10 +27,10 @@ const hasColumns = computed(() => data.pkAndFkColumns.length || data.nonPkColumn
 
 <template>
   <div
-    class="relative h-full flex flex-col justify-center items-center bg-slate-50 min-w-16 rounded-lg nc-erd-table-node"
+    class="relative h-full flex flex-col justify-center bg-slate-50 min-w-16 min-h-8 rounded-lg nc-erd-table-node"
     :class="[
       `nc-erd-table-node-${table.table_name}`,
-      showSkeleton ? 'cursor-pointer bg-slate-200 min-h-200px min-w-300px px-4' : '',
+      showSkeleton ? 'cursor-pointer items-center bg-slate-200 min-h-200px min-w-300px px-4' : '',
     ]"
     @click="$e('c:erd:node-click')"
   >

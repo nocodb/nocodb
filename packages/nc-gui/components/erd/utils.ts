@@ -1,7 +1,7 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
-import type { Edge, EdgeMarker, Elements } from '@vue-flow/core'
+import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
 import type { MaybeRef } from '@vueuse/core'
 import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
 import { scaleLinear as d3ScaleLinear } from 'd3-scale'
@@ -15,6 +15,24 @@ export interface ErdFlowConfig {
   singleTableMode: boolean
   showJunctionTableNames: boolean
   showMMTables: boolean
+}
+
+export interface NodeData {
+  table: TableType
+  pkAndFkColumns: ColumnType[]
+  nonPkColumns: ColumnType[]
+  showPkAndFk: boolean
+  showAllColumns: boolean
+  color: string
+  columnLength: number
+}
+
+export interface EdgeData {
+  isManyToMany: boolean
+  isSelfRelation: boolean
+  label?: string
+  simpleLabel?: string
+  color: string
 }
 
 interface Relation {
@@ -144,7 +162,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
   }
 
   function createNodes() {
-    return erdTables.value.flatMap((table) => {
+    return erdTables.value.flatMap<Node<NodeData>[]>((table) => {
       if (!table.id) return []
 
       const columns =
@@ -173,13 +191,13 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
           },
           type: 'custom',
           position: { x: 0, y: 0 },
-        },
+        } as Node<NodeData>,
       ]
     })
   }
 
   function createEdges() {
-    return relations.value.reduce<Edge[]>((acc, { source, target, childColId, parentColId, type, modelId }) => {
+    return relations.value.reduce<Edge<EdgeData>[]>((acc, { source, target, childColId, parentColId, type, modelId }) => {
       let sourceColumnId, targetColumnId
 
       if (type === 'hm') {
@@ -218,7 +236,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
           label: edgeLabel({ type, source, target, childColId, parentColId, modelId }),
           simpleLabel: edgeLabel({ type, source, target, childColId, parentColId, modelId }, true),
         },
-      } as Edge)
+      })
 
       return acc
     }, [])
@@ -263,7 +281,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
   }
 
   const layout = (skeleton = false) => {
-    elements.value = [...createNodes(), ...createEdges()]
+    elements.value = [...createNodes(), ...createEdges()] as Elements<NodeData | EdgeData>
 
     elements.value.forEach((el) => {
       if (isNode(el)) {

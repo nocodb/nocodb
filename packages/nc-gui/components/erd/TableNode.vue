@@ -3,7 +3,7 @@ import type { NodeProps } from '@vue-flow/core'
 import { Handle, Position } from '@vue-flow/core'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, provide, toRef, useNuxtApp } from '#imports'
+import { MetaInj, computed, provide, toRef, useNuxtApp } from '#imports'
 
 interface NodeData {
   table: TableType
@@ -29,6 +29,8 @@ const { $e } = useNuxtApp()
 
 const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
   colOptions.type === 'mm' ? colOptions.fk_parent_column_id : colOptions.fk_child_column_id
+
+const hasColumns = computed(() => data.pkAndFkColumns.length || data.nonPkColumns.length)
 </script>
 
 <template>
@@ -44,7 +46,7 @@ const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
       <template #title> {{ table.table_name }} </template>
 
       <div
-        :class="[showSkeleton ? '' : 'bg-primary bg-opacity-10 border-b-1']"
+        :class="[showSkeleton ? '' : 'bg-primary bg-opacity-10', hasColumns ? 'border-b-1' : '']"
         class="text-slate-600 text-md py-2 border-slate-500 rounded-t-lg w-full h-full px-3 font-semibold flex items-center"
       >
         <MdiTableLarge v-if="table.type === 'table'" class="text-primary" :class="showSkeleton ? 'text-6xl !px-2' : ''" />
@@ -61,7 +63,7 @@ const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
       <Handle style="right: -15px" class="opacity-0" :position="Position.Right" type="source" :connectable="false" />
     </div>
 
-    <div v-else-if="data.nonPkColumns.length || data.pkAndFkColumns.length">
+    <div v-else-if="hasColumns">
       <div
         v-for="col in data.pkAndFkColumns"
         :key="col.title"

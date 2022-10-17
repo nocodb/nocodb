@@ -28,12 +28,10 @@ const showAdvancedOptions = ref(false)
         v-model:checked="config.showPkAndFk"
         v-e="['c:erd:showPkAndFk']"
         class="nc-erd-showPkAndFk-checkbox"
-        :class="{
-          'nc-erd-showPkAndFk-checkbox-enabled': config.showAllColumns,
-          'nc-erd-showPkAndFk-checkbox-disabled': !config.showAllColumns,
-          'nc-erd-showPkAndFk-checkbox-checked': config.showPkAndFk,
-          'nc-erd-showPkAndFk-checkbox-unchecked': !config.showPkAndFk,
-        }"
+        :class="[
+          `nc-erd-showPkAndFk-checkbox-${config.showAllColumns ? 'enabled' : 'disabled'}`,
+          `nc-erd-showPkAndFk-checkbox-${config.showPkAndFk ? 'checked' : 'unchecked'}`,
+        ]"
         :disabled="!config.showAllColumns"
       />
       <span class="select-none text-[0.65rem]">{{ $t('activity.erd.showPkAndFk') }}</span>

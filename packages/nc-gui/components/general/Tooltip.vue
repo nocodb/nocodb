@@ -23,7 +23,8 @@ onKeyStroke(
   (e) => e.key === modifierKey,
   (e) => {
     e.preventDefault()
-    if (modifierKey && isHovering.value) {
+
+    if (isHovering.value) {
       showTooltip.value = true
     }
 
@@ -36,10 +37,8 @@ onKeyStroke(
   (e) => e.key === modifierKey,
   (e) => {
     e.preventDefault()
-    if (modifierKey) {
-      showTooltip.value = false
-    }
 
+    showTooltip.value = false
     isKeyPressed.value = false
   },
   { eventName: 'keyup' },

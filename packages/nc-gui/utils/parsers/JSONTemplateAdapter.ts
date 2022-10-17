@@ -1,13 +1,5 @@
 import { UITypes } from 'nocodb-sdk'
-import {
-  extractMultiOrSingleSelectProps,
-  getCheckboxValue,
-  isCheckboxType,
-  isDecimalType,
-  isEmailType,
-  isMultiLineTextType,
-  isUrlType,
-} from './parserHelpers'
+import { getCheckboxValue, getColumnUIDTAndMetas } from './parserHelpers'
 import TemplateGenerator from './TemplateGenerator'
 
 const jsonTypeToUidt: Record<string, string> = {
@@ -110,40 +102,11 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
       column.uidt = jsonTypeToUidt[typeof firstRowVal] || UITypes.SingleLineText
 
       const colData = jsonData.map((r: any) => extractNestedData(r, path))
-      Object.assign(column, this._getColumnUIDTAndMetas(colData, column.uidt))
+      Object.assign(column, getColumnUIDTAndMetas(colData, column.uidt))
       columns.push(column)
     }
 
     return columns
-  }
-
-  _getColumnUIDTAndMetas(colData: any, defaultType: any) {
-    const colProps = { uidt: defaultType }
-    // todo: optimize
-    if (colProps.uidt === UITypes.SingleLineText) {
-      // check for long text
-      if (isMultiLineTextType(colData)) {
-        colProps.uidt = UITypes.LongText
-      }
-      if (isEmailType(colData)) {
-        colProps.uidt = UITypes.Email
-      }
-      if (isUrlType(colData)) {
-        colProps.uidt = UITypes.URL
-      } else {
-        const checkboxType = isCheckboxType(colData)
-        if (checkboxType.length === 1) {
-          colProps.uidt = UITypes.Checkbox
-        } else {
-          Object.assign(colProps, extractMultiOrSingleSelectProps(colData))
-        }
-      }
-    } else if (colProps.uidt === UITypes.Number) {
-      if (isDecimalType(colData)) {
-        colProps.uidt = UITypes.Decimal
-      }
-    }
-    return colProps
   }
 
   _parseTableData(tableMeta: any) {

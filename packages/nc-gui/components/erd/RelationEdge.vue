@@ -2,9 +2,10 @@
 import type { EdgeProps, Position } from '@vue-flow/core'
 import { EdgeText, getBezierPath } from '@vue-flow/core'
 import type { CSSProperties } from '@vue/runtime-dom'
+import type { EdgeData } from './utils'
 import { computed, toRef } from '#imports'
 
-interface RelationEdgeProps extends EdgeProps {
+interface RelationEdgeProps extends EdgeProps<EdgeData> {
   id: string
   sourceX: number
   sourceY: number
@@ -12,12 +13,7 @@ interface RelationEdgeProps extends EdgeProps {
   targetY: number
   sourcePosition: Position
   targetPosition: Position
-  data: {
-    isManyToMany: boolean
-    isSelfRelation: boolean
-    label: string
-    color: string
-  }
+  data: EdgeData
   style: CSSProperties
   selected?: boolean
   showSkeleton: boolean

@@ -229,9 +229,9 @@ export const genTest = (apiType, dbType) => {
         Math.sqrt(countryId[i])
       );
 
-      RESULT_DATE_DIFF_0[i] = -1440;
-      RESULT_DATE_DIFF_1[i] = -86400;
-      RESULT_DATE_DIFF_2[i] = -86400000;
+      RESULT_DATE_DIFF_0[i] = -86400;
+      RESULT_DATE_DIFF_1[i] = -86400000;
+      RESULT_DATE_DIFF_2[i] = -1440;
       RESULT_DATE_DIFF_3[i] = -24;
       RESULT_DATE_DIFF_4[i] = -52;
       RESULT_DATE_DIFF_5[i] = -12;
@@ -271,42 +271,43 @@ export const genTest = (apiType, dbType) => {
       editColumnByName(
         "NC_DATEDIFF_0",
         "NC_DATEDIFF_0",
-        `DATETIME_DIFF("2022/10/14", "2022/10/15", "minutes")`
-      );
-      rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
-
-      editColumnByName(
-        "NC_DATEDIFF_0",
-        "NC_DATEDIFF_0",
-        `DATETIME_DIFF("2022/10/14", "2022/10/15", "m")`
-      );
-      rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
-
-      editColumnByName(
-        "NC_DATEDIFF_0",
-        "NC_DATEDIFF_1",
         `DATETIME_DIFF("2022/10/14", "2022/10/15", "seconds")`
       );
-      rowValidation("NC_DATEDIFF_1", RESULT_DATE_DIFF_1);
+      rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
 
+      editColumnByName(
+        "NC_DATEDIFF_0",
+        "NC_DATEDIFF_0",
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "s")`
+      );
+      rowValidation("NC_DATEDIFF_0", RESULT_DATE_DIFF_0);
+
+      
+      editColumnByName(
+        "NC_DATEDIFF_0",
+        "NC_DATEDIFF_1",
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "milliseconds")`
+        );
+      rowValidation("NC_DATEDIFF_1", RESULT_DATE_DIFF_1);
+        
       editColumnByName(
         "NC_DATEDIFF_1",
         "NC_DATEDIFF_1",
-        `DATETIME_DIFF("2022/10/14", "2022/10/15", "s")`
-      );
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "ms")`
+        );
       rowValidation("NC_DATEDIFF_1", RESULT_DATE_DIFF_1);
-
+          
       editColumnByName(
         "NC_DATEDIFF_1",
         "NC_DATEDIFF_2",
-        `DATETIME_DIFF("2022/10/14", "2022/10/15", "milliseconds")`
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "minutes")`
       );
       rowValidation("NC_DATEDIFF_2", RESULT_DATE_DIFF_2);
 
       editColumnByName(
         "NC_DATEDIFF_2",
         "NC_DATEDIFF_2",
-        `DATETIME_DIFF("2022/10/14", "2022/10/15", "ms")`
+        `DATETIME_DIFF("2022/10/14", "2022/10/15", "m")`
       );
       rowValidation("NC_DATEDIFF_2", RESULT_DATE_DIFF_2);
 

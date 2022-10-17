@@ -97,7 +97,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
     }, [] as Relation[]),
   )
 
-  function edgeLabel({ type, source, target, modelId, childColId, parentColId }: Relation) {
+  function edgeLabel({ type, source, target, modelId, childColId, parentColId }: Relation, simple = false) {
     const typeLabel = type === 'mm' ? 'many to many' : 'has many'
 
     const parentCol = metasWithIdAsKey.value[source].columns?.find((col) => {
@@ -136,7 +136,11 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
       }
     }
 
-    return `${parentCol.title} ${typeLabel} ${childCol.title}`
+    if (simple) {
+      return `${metasWithIdAsKey.value[source].title} ${type} ${metasWithIdAsKey.value[target].title}`
+    }
+
+    return `[${metasWithIdAsKey.value[source].title}] ${parentCol.title} ${typeLabel} ${childCol.title} [${metasWithIdAsKey.value[target].title}]`
   }
 
   function createNodes() {
@@ -212,6 +216,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
           isManyToMany: type === 'mm',
           isSelfRelation: source === target && sourceColumnId === targetColumnId,
           label: edgeLabel({ type, source, target, childColId, parentColId, modelId }),
+          simpleLabel: edgeLabel({ type, source, target, childColId, parentColId, modelId }, true),
         },
       } as Edge)
 

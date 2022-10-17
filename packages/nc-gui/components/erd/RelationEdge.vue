@@ -98,10 +98,13 @@ export default {
     <EdgeText
       v-if="data.label?.length > 0 && (selected || isHovering)"
       :key="`edge-text-${id}.${showSkeleton}`"
-      :class="`nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`"
+      :class="[
+        showSkeleton ? '!text-5xl' : '!text-xs',
+        `nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`,
+      ]"
       :x="edgePath[1]"
       :y="edgePath[2]"
-      :label="data.label"
+      :label="showSkeleton ? data.simpleLabel : data.label"
       :label-style="{ fill: 'white', fontSize: `${showSkeleton ? baseStroke * 2 : baseStroke / 2}rem` }"
       :label-show-bg="true"
       :label-bg-style="{ fill: data.color }"

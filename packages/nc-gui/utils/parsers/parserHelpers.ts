@@ -63,9 +63,9 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
             .split(/\s*,\s*/)
         : [],
     )
-    const uniqueVals = (flattenedVals = flattenedVals.filter(
-      (v, i, arr) => i === arr.findIndex((v1) => v.toLowerCase() === v1.toLowerCase()),
-    ))
+
+    const uniqueVals = [...new Set(flattenedVals.map((v: any) => v.toString().trim().toLowerCase()))]
+
     if (uniqueVals.length > maxSelectOptionsAllowed) {
       // too many options are detected, convert the column to SingleLineText instead
       colProps.uidt = UITypes.SingleLineText

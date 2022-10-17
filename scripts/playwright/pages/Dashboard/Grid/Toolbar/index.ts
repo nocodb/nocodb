@@ -87,4 +87,10 @@ export class ToolbarPage extends BasePage {
     const file = fs.readFileSync("./at.txt", "utf8");
     await expect(file).toEqual(expectedData);
   }
+
+  async verifyDownloadDisabled() {
+    await this.get()
+      .locator(`.nc-toolbar-btn.nc-actions-menu-btn`)
+      .waitFor({ state: "hidden" });
+  }
 }

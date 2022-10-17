@@ -6,12 +6,26 @@ test.describe("Shared view", () => {
   let dashboard: DashboardPage;
   let context: any;
 
+  let mainPageLink: string;
+  let sharedLink: string;
+
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test("Grid share", async ({ page }) => {
+  test("Grid share ", async ({ page }) => {
+    /**
+     * 1. Create Shared view
+     * - hide column
+     * - add sort
+     * - add filter
+     * - enable download
+     * - disable password
+     * - generate shared view link
+     * - copy link
+     **/
+
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: "Team & Auth" });
     await dashboard.treeView.openTable({ title: "Address" });
@@ -30,13 +44,21 @@ test.describe("Shared view", () => {
       opType: "is like",
     });
 
-    const mainPageLink = page.url();
+    mainPageLink = page.url();
 
     // share with password disabled, download enabled
     await dashboard.grid.toolbar.clickShareView();
-    let link = await dashboard.grid.toolbar.shareView.getShareLink();
+    sharedLink = await dashboard.grid.toolbar.shareView.getShareLink();
 
-    await page.goto(link);
+    /**
+     * 2. Access shared view: verify
+     * - access without password
+     * - column order
+     * - data order (sort & filter)
+     * - virtual columns (hm, bt)
+     **/
+
+    await page.goto(sharedLink);
     const sharedPage = new DashboardPage(page, context.project);
 
     let expectedColumns = [
@@ -78,6 +100,24 @@ test.describe("Shared view", () => {
     for (const record of expectedRecords) {
       await sharedPage.grid.cell.verify(record);
     }
+    const expectedVirtualRecords = [
+      { index: 0, columnHeader: "Customer List", count: 1, value: ["2"] },
+      { index: 1, columnHeader: "Customer List", count: 1, value: ["2"] },
+      { index: 0, columnHeader: "City", count: 1, value: ["Kanchrapara"] },
+      { index: 1, columnHeader: "City", count: 1, value: ["Tafuna"] },
+    ];
+
+    // verify virtual records
+    for (const record of expectedVirtualRecords) {
+      await sharedPage.grid.cell.verifyVirtualCell(record);
+    }
+
+    /**
+     * 3. Shared view: verify
+     * - new sort
+     * - new filter
+     * - new column hidden
+     **/
 
     // create new sort & filter criteria in shared view
     await sharedPage.grid.toolbar.sort.addSort({
@@ -117,12 +157,82 @@ test.describe("Shared view", () => {
       await sharedPage.grid.cell.verify(record);
     }
 
+    /**
+     * 4. Download
+     * - Verify download data (order, filter, sort)
+     **/
+
     // verify download
     await sharedPage.grid.toolbar.clickDownload(
       "Download as CSV",
       "./expectedData.txt"
     );
 
-    // await dashboard.closeTab({ title: "Address" });
+    /**
+     * 5. Enable shared view password, disable download: verify
+     * - Incorrect password
+     * - Correct password
+     * - Download disabled
+     * - Add new record & column after shared view creation; verify
+     **/
+
+    // visit main page
+    await page.goto(mainPageLink);
+    await dashboard.closeTab({ title: "Address" });
+    await dashboard.treeView.openTable({ title: "Country" });
+
+    // enable password & verify share link
+    await dashboard.grid.toolbar.clickShareView();
+    await dashboard.grid.toolbar.shareView.enablePassword("p@ssword");
+    // disable download
+    await dashboard.grid.toolbar.shareView.toggleDownload();
+
+    sharedLink = await dashboard.grid.toolbar.shareView.getShareLink();
+    await dashboard.grid.toolbar.shareView.close();
+
+    // add new column, record after share view creation
+    await dashboard.grid.column.create({
+      title: "New Column",
+    });
+    await dashboard.grid.addNewRow({
+      index: 25,
+      columnHeader: "Country",
+      value: "New Country",
+    });
+
+    await page.goto(sharedLink);
+
+    // verify if password request modal exists
+    const sharedPage2 = new DashboardPage(page, context.project);
+    await sharedPage2.rootPage
+      .locator('input[placeholder="Enter password"]')
+      .fill("incorrect p@ssword");
+    await sharedPage2.rootPage.click('button:has-text("Unlock")');
+    await sharedPage2.toastWait({ message: "INVALID_SHARED_VIEW_PASSWORD" });
+
+    // correct password
+    await sharedPage2.rootPage
+      .locator('input[placeholder="Enter password"]')
+      .fill("p@ssword");
+    await sharedPage2.rootPage.click('button:has-text("Unlock")');
+
+    // verify if download button is disabled
+    await sharedPage2.grid.toolbar.verifyDownloadDisabled();
+
+    // verify new column & record
+    await sharedPage2.grid.column.verify({
+      title: "New Column",
+      isVisible: true,
+    });
+    await sharedPage2.grid.toolbar.filter.addNew({
+      columnTitle: "Country",
+      value: "New Country",
+      opType: "is like",
+    });
+    await sharedPage2.grid.cell.verify({
+      index: 0,
+      columnHeader: "Country",
+      value: "New Country",
+    });
   });
 });

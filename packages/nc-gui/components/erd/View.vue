@@ -98,14 +98,14 @@ watch(
       'nc-erd-vue-flow-single-table': config.singleTableMode,
     }"
   >
-    <GeneralOverlay v-model="isLoading" inline class="bg-gray-300/50">
-      <div class="h-full w-full flex flex-col justify-center items-center">
-        <a-spin size="large" />
-      </div>
-    </GeneralOverlay>
-
     <div class="relative h-full">
       <LazyErdFlow :tables="tables" :config="config">
+        <GeneralOverlay v-model="isLoading" inline class="bg-gray-300/50">
+          <div class="h-full w-full flex flex-col justify-center items-center">
+            <a-spin size="large" />
+          </div>
+        </GeneralOverlay>
+
         <Panel
           class="flex flex-col bg-white border-1 rounded border-gray-200 z-50 px-3 py-1 nc-erd-context-menu"
           position="top-right"

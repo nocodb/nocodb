@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Background, Controls } from '@vue-flow/additional-components'
+import { Background, Controls, Panel } from '@vue-flow/additional-components'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { TableType } from 'nocodb-sdk'
 import type { ErdFlowConfig } from './utils'
@@ -15,11 +15,11 @@ const props = defineProps<Props>()
 
 const { tables, config } = toRefs(props)
 
-const { $destroy, fitView, onPaneReady, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.1, maxZoom: 2 })
+const { $destroy, fitView, onPaneReady, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
 
 const { layout, elements } = useErdElements(tables, config)
 
-const showSkeleton = computed(() => viewport.value.zoom < 0.2)
+const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
 function init() {
   layout(showSkeleton.value)
@@ -29,7 +29,7 @@ function init() {
 }
 
 function zoomIn(nodeId?: string) {
-  fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 300, minZoom: 0.3 })
+  fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 300, minZoom: 0.2 })
 }
 
 onPaneReady(() => {
@@ -77,21 +77,23 @@ onScopeDispose($destroy)
 
     <Background :size="showSkeleton ? 2 : undefined" :gap="showSkeleton ? 50 : undefined" />
 
-    <div
+    <Panel
       v-if="!config.singleTableMode"
-      class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200 z-50 nc-erd-histogram"
-      style="font-size: 0.6rem"
+      class="text-xs bg-white border-1 rounded border-gray-200 z-50 nc-erd-histogram"
+      position="bottom-right"
     >
-      <div class="flex flex-row items-center space-x-1 border-b-1 pb-1 border-gray-100">
-        <MdiTableLarge class="text-primary" />
-        <div>{{ $t('objects.table') }}</div>
-      </div>
+      <div class="flex flex-col divide-y-1">
+        <div class="flex items-center gap-1 px-2 py-1">
+          <MdiTableLarge class="text-primary" />
+          <div>{{ $t('objects.table') }}</div>
+        </div>
 
-      <div class="flex flex-row items-center space-x-1 pt-1">
-        <MdiEyeCircleOutline class="text-primary" />
-        <div>{{ $t('objects.sqlVIew') }}</div>
+        <div class="flex items-center gap-1 px-2 py-1">
+          <MdiEyeCircleOutline class="text-primary" />
+          <div>{{ $t('objects.sqlVIew') }}</div>
+        </div>
       </div>
-    </div>
+    </Panel>
 
     <Transition name="layout">
       <div

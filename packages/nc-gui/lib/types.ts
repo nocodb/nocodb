@@ -57,6 +57,7 @@ export interface Row {
     selected?: boolean
     commentCount?: number
     changed?: boolean
+    saving?: boolean
   }
 }
 

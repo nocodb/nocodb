@@ -22,6 +22,7 @@ watch(
     until(tables)
       .toMatch((tables) => tables.length > 0)
       .then(() => {
+        loading.value = true
         getMeta(tableTitle as string, true).finally(() => (loading.value = false))
       })
   },
@@ -30,7 +31,13 @@ watch(
 </script>
 
 <template>
-  <div class="w-full h-full">
+  <div class="w-full h-full relative">
     <LazyTabsSmartsheet :active-tab="activeTab" />
+
+    <general-overlay :model-value="loading" inline transition class="!bg-opacity-15">
+      <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+        <a-spin size="large" />
+      </div>
+    </general-overlay>
   </div>
 </template>

@@ -1,3 +1,5 @@
+import { OrgUserRoles } from '../../enums/OrgUserRoles'
+
 export default {
   owner: {
     exclude: {
@@ -187,7 +189,7 @@ export default {
       dataGroupBy: true,
       commentsCount: true,
 
-      galleryViewGet: true,
+      alleryViewGet: true,
       kanbanViewGet: true,
       groupedDataList: true,
 
@@ -271,14 +273,14 @@ export default {
       dataCount: true,
     },
   },
-  user_new: {
+  [OrgUserRoles.VIEWER]: {
     include: {
       passwordChange: true,
       projectList: true,
     },
   },
-  super: '*',
-  user: {
+  [OrgUserRoles.SUPER]: '*',
+  [OrgUserRoles.CREATOR]: {
     include: {
       upload: true,
       uploadViaURL: true,
@@ -301,4 +303,4 @@ export default {
       auditRowUpdate: true,
     },
   },
-};
+}

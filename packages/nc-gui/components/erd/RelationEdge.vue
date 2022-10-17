@@ -92,9 +92,11 @@ export default {
 
   <Transition name="layout">
     <EdgeText
-      v-if="data.label?.length > 0 && (selected || isHovering)"
+      v-if="data.label?.length > 0"
       :key="`edge-text-${id}.${showSkeleton}`"
+      class="color-transition"
       :class="[
+        selected || isHovering ? 'opacity-100' : 'opacity-0 !pointer-events-none',
         showSkeleton ? '!text-6xl' : '!text-xs',
         `nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`,
       ]"

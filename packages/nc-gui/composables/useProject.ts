@@ -1,5 +1,5 @@
 import type { MaybeRef } from '@vueuse/core'
-import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
+import type { OracleUi, ProjectType, TableType, ViewType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vueuse/core'
 import {
@@ -38,6 +38,8 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
   const tables = ref<TableType[]>([])
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
+
+  const lastOpenedViewMap = ref<Record<string, ViewType>>({})
 
   const projectId = computed(() => (_projectId ? unref(_projectId) : (route.params.projectId as string)))
 
@@ -179,6 +181,7 @@ const [setup, use] = useInjectionState((_projectId?: MaybeRef<string>) => {
     projectLoadedHook: projectLoadedHook.on,
     reset,
     isLoading,
+    lastOpenedViewMap,
   }
 }, 'useProject')
 

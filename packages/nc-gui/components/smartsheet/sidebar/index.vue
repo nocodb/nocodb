@@ -11,6 +11,7 @@ import {
   inject,
   provide,
   ref,
+  useProject,
   useRoute,
   useRouter,
   useSidebar,
@@ -22,6 +23,14 @@ import {
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
+
+const { lastOpenedViewMap } = useProject()
+
+const setLastOpenedView = (view?: ViewType) => {
+  if (view && meta.value?.table_name) {
+    lastOpenedViewMap.value[meta.value?.table_name] = view
+  }
+}
 
 const { views, loadViews } = useViews(meta)
 
@@ -75,10 +84,24 @@ watch(
         }
       }
     }
-    /** if active view is not found, set it to first view */
+
+    const lastOpenedView = meta.value?.table_name && lastOpenedViewMap.value[meta.value?.table_name]
+
+    // /** if active view is not found, set it to last opened view */
+    if (!activeView.value && lastOpenedView) {
+      router.replace({
+        params: {
+          viewTitle: lastOpenedView.title,
+        },
+      })
+    }
+
+    /** if last opened view is not found, set it to first view */
     if (!activeView.value && nextViews.length) {
       activeView.value = nextViews[0]
     }
+
+    setLastOpenedView(activeView.value)
   },
   { immediate: true },
 )

@@ -1423,7 +1423,7 @@ class BaseModelSqlv2 {
       // const driver = trx ? trx : this.dbDriver;
 
       const query = this.dbDriver(this.tnPath).insert(insertObj);
-      if (this.isPg || this.isMssql) {
+      if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`
         );

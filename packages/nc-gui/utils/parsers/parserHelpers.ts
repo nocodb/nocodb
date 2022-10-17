@@ -108,13 +108,13 @@ export const isDecimalType = (colData: []) =>
   })
 
 export const isEmailType = (colData: []) =>
-  !colData.some((v: any) => {
-    return v && !isEmail(v)
+  colData.some((v: any) => {
+    return v && isEmail(v)
   })
 
 export const isUrlType = (colData: []) =>
-  !colData.some((v: any) => {
-    return v && !isValidURL(v)
+  colData.some((v: any) => {
+    return v && isValidURL(v)
   })
 
 export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {

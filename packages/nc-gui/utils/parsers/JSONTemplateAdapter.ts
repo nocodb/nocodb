@@ -18,7 +18,10 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   data: Record<string, any>
   _jsonData: string | Record<string, any>
   jsonData: Record<string, any>
-  project: Record<string, any>
+  project: {
+    title: string
+    tables: Record<string, any>[]
+  }
   columns: object
   constructor(name = 'test', data: object, parserConfig = {}) {
     super()

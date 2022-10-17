@@ -253,6 +253,13 @@ export default {
     dataCount: true,
     apiTokenCreate: true,
     apiTokenList: true,
+
+    /* filters */
+    filterCreate: true,
+    filterUpdate: true,
+    filterDelete: true,
+    filterGet: true,
+    filterChildrenRead: true,
   },
   user_new: {
     passwordChange: true,

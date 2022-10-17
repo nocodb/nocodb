@@ -76,7 +76,12 @@ export class TestResetService {
     }
 
     if (dbType == 'sqlite') {
-      await resetMetaSakilaSqliteProject({ token, metaKnex, title });
+      await resetMetaSakilaSqliteProject({
+        token,
+        metaKnex,
+        title,
+        oldProject: project,
+      });
     } else if (dbType == 'mysql') {
       await resetMysqlSakilaProject({
         token,

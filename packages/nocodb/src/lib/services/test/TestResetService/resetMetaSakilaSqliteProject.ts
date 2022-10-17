@@ -2,8 +2,8 @@ import axios from 'axios';
 import Knex from 'knex';
 
 import { promises as fs } from 'fs';
-import Audit from '../../../models/Audit';
 import { sakilaTableNames } from '../../../utils/globals';
+import Project from '../../../models/Project';
 
 const sqliteSakilaSqlViews = [
   'actor_info',
@@ -14,6 +14,55 @@ const sqliteSakilaSqlViews = [
   'sales_by_store',
   'staff_list',
 ];
+
+const resetMetaSakilaSqliteProject = async ({
+  metaKnex,
+  token,
+  title,
+  oldProject,
+}: {
+  metaKnex: Knex;
+  token: string;
+  title: string;
+  oldProject: Project;
+}) => {
+  const project = await createProject(token, title);
+
+  await dropTablesAndViews(metaKnex, oldProject.prefix);
+  await dropTablesAndViews(metaKnex, project.prefix);
+
+  await resetMetaSakilaSqlite(metaKnex, project.prefix, oldProject);
+
+  await syncMeta(project, token);
+};
+
+const createProject = async (token: string, title: string) => {
+  const response = await axios.post(
+    'http://localhost:8080/api/v1/db/meta/projects/',
+    { title },
+    {
+      headers: {
+        'xc-auth': token,
+      },
+    }
+  );
+  if (response.status !== 200) {
+    console.error('Error creating project', response.data);
+  }
+  return response.data;
+};
+
+const syncMeta = async (project: Project, token: string) => {
+  await axios.post(
+    `http://localhost:8080/api/v1/db/meta/projects/${project.id}/meta-diff`,
+    {},
+    {
+      headers: {
+        'xc-auth': token,
+      },
+    }
+  );
+};
 
 const dropTablesAndViews = async (metaKnex: Knex, prefix: string) => {
   try {
@@ -29,25 +78,12 @@ const dropTablesAndViews = async (metaKnex: Knex, prefix: string) => {
   }
 };
 
-const isMetaSakilaSqliteToBeReset = async (metaKnex: Knex, project: any) => {
-  const tablesInDb: Array<string> = await metaKnex.raw(
-    `SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '${project.prefix}%'`
-  );
-
-  if (
-    tablesInDb.length === 0 ||
-    (tablesInDb.length > 0 && !tablesInDb.includes(`${project.prefix}actor`))
-  ) {
-    return true;
-  }
-
-  const audits = await Audit.projectAuditList(project.id, {});
-
-  return audits?.length > 0;
-};
-
-const resetMetaSakilaSqlite = async (metaKnex: Knex, prefix: string) => {
-  await dropTablesAndViews(metaKnex, prefix);
+const resetMetaSakilaSqlite = async (
+  metaKnex: Knex,
+  prefix: string,
+  oldProject: Project
+) => {
+  await dropTablesAndViews(metaKnex, oldProject.prefix);
 
   const testsDir = __dirname.replace(
     '/src/lib/services/test/TestResetService',
@@ -74,62 +110,35 @@ const resetMetaSakilaSqlite = async (metaKnex: Knex, prefix: string) => {
     console.error('Error resetting meta sakila sqlite:db', e);
   }
 
-  const trx = await metaKnex.transaction();
-  try {
-    const dataFile = await fs.readFile(
-      `${testsDir}/sqlite-sakila-db/04-sqlite-prefix-sakila-insert-data.sql`
-    );
-    const dataFileStr = dataFile.toString().replace(/prefix___/g, prefix);
-    const dataSqlQueries = dataFileStr.split(';');
+  const dataFile = await fs.readFile(
+    `${testsDir}/sqlite-sakila-db/04-sqlite-prefix-sakila-insert-data.sql`
+  );
+  const dataFileStr = dataFile.toString().replace(/prefix___/g, prefix);
+  const dataSqlQueries = dataFileStr
+    .split(';')
+    .filter((str) => str.trim().length > 0)
+    .map((str) => str.trim());
 
-    for (const sqlQuery of dataSqlQueries) {
-      if (sqlQuery.trim().length > 0) {
-        await trx.raw(sqlQuery.trim());
-      }
+  const batchSize = 1000;
+  const batches = dataSqlQueries.reduce((acc, _, i) => {
+    if (!(i % batchSize)) {
+      // if index is 0 or can be divided by the `size`...
+      acc.push(dataSqlQueries.slice(i, i + batchSize)); // ..push a chunk of the original array to the accumulator
     }
+    return acc;
+  }, []);
+
+  for (const sqlQueryBatch of batches) {
+    const trx = await metaKnex.transaction();
+
+    for (const sqlQuery of sqlQueryBatch) {
+      await trx.raw(sqlQuery);
+    }
+
     await trx.commit();
-  } catch (e) {
-    console.log('Error resetting sqlite db', e);
-    await trx.rollback(e);
+    // wait for 40 ms to avoid SQLITE_BUSY error
+    await new Promise((resolve) => setTimeout(resolve, 40));
   }
-};
-
-const resetMetaSakilaSqliteProject = async ({
-  metaKnex,
-  token,
-  title,
-}: {
-  metaKnex: Knex;
-  token: string;
-  title: string;
-}) => {
-  const response = await axios.post(
-    'http://localhost:8080/api/v1/db/meta/projects/',
-    { title },
-    {
-      headers: {
-        'xc-auth': token,
-      },
-    }
-  );
-  if (response.status !== 200) {
-    console.error('Error creating project', response.data);
-  }
-  const project = response.data;
-
-  if (await isMetaSakilaSqliteToBeReset(metaKnex, project)) {
-    await resetMetaSakilaSqlite(metaKnex, project.prefix);
-  }
-
-  await axios.post(
-    `http://localhost:8080/api/v1/db/meta/projects/${project.id}/meta-diff`,
-    {},
-    {
-      headers: {
-        'xc-auth': token,
-      },
-    }
-  );
 };
 
 export default resetMetaSakilaSqliteProject;

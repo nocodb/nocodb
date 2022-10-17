@@ -16,20 +16,16 @@ const sqliteSakilaSqlViews = [
 ];
 
 const dropTablesAndViews = async (metaKnex: Knex, prefix: string) => {
-  for (const view of sqliteSakilaSqlViews) {
-    try {
+  try {
+    for (const view of sqliteSakilaSqlViews) {
       await metaKnex.raw(`DROP VIEW IF EXISTS ${prefix}${view}`);
-    } catch (e) {
-      console.log('Error dropping sqlite view', e);
     }
-  }
 
-  for (const table of sakilaTableNames) {
-    try {
+    for (const table of sakilaTableNames) {
       await metaKnex.raw(`DROP TABLE IF EXISTS ${prefix}${table}`);
-    } catch (e) {
-      console.log('Error dropping sqlite table', e);
     }
+  } catch (e) {
+    console.error('Error dropping tables and views', e);
   }
 };
 
@@ -58,31 +54,34 @@ const resetMetaSakilaSqlite = async (metaKnex: Knex, prefix: string) => {
     '/tests'
   );
 
-  const trx = await metaKnex.transaction();
-
   try {
     const schemaFile = await fs.readFile(
       `${testsDir}/sqlite-sakila-db/03-sqlite-prefix-sakila-schema.sql`
     );
     const schemaFileStr = schemaFile.toString().replace(/prefix___/g, prefix);
 
-    const dataFile = await fs.readFile(
-      `${testsDir}/sqlite-sakila-db/04-sqlite-prefix-sakila-insert-data.sql`
-    );
-    const dataFileStr = dataFile.toString().replace(/prefix___/g, prefix);
-
     const schemaSqlQueries = schemaFileStr.split(';');
     for (const sqlQuery of schemaSqlQueries) {
       if (sqlQuery.trim().length > 0) {
-        await trx.raw(
+        await metaKnex.raw(
           sqlQuery
             .trim()
             .replace(/WHERE rowid = new.rowid/g, 'WHERE rowid = new.rowid;')
         );
       }
     }
+  } catch (e) {
+    console.error('Error resetting meta sakila sqlite:db', e);
+  }
 
+  const trx = await metaKnex.transaction();
+  try {
+    const dataFile = await fs.readFile(
+      `${testsDir}/sqlite-sakila-db/04-sqlite-prefix-sakila-insert-data.sql`
+    );
+    const dataFileStr = dataFile.toString().replace(/prefix___/g, prefix);
     const dataSqlQueries = dataFileStr.split(';');
+
     for (const sqlQuery of dataSqlQueries) {
       if (sqlQuery.trim().length > 0) {
         await trx.raw(sqlQuery.trim());

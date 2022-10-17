@@ -1443,6 +1443,107 @@ class SqliteClient extends KnexClient {
     return result;
   }
 
+  private async _tableUpdate(args) {
+    const result = new Result();
+
+    args.table = args.tn;
+    const originalColumns = args.originalColumns;
+    args.connectionConfig = this._connectionConfig;
+    args.sqlClient = this.sqlClient;
+
+    let upQuery = '';
+    let downQuery = '';
+
+    for (let i = 0; i < args.columns.length; ++i) {
+      const oldColumn = lodash.find(originalColumns, {
+        cn: args.columns[i].cno,
+      });
+
+      if (args.columns[i].altered & 4) {
+        // col remove
+        upQuery += await this.alterTableRemoveColumn(
+          args.table,
+          args.columns[i],
+          oldColumn,
+          upQuery
+        );
+        downQuery += this.alterTableAddColumn(
+          args.table,
+          oldColumn,
+          args.columns[i],
+          downQuery
+        );
+      } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
+        // col edit
+        upQuery += this.alterTableChangeColumn(
+          args.table,
+          args.columns[i],
+          oldColumn,
+          upQuery
+        );
+        downQuery += ';';
+        // downQuery += this.alterTableChangeColumn(
+        //   args.table,
+        //   oldColumn,
+        //   args.columns[i],
+        //   downQuery,
+        //             this.sqlClient
+        // );
+      } else if (args.columns[i].altered & 1) {
+        // col addition
+        upQuery += this.alterTableAddColumn(
+          args.table,
+          args.columns[i],
+          oldColumn,
+          upQuery
+        );
+        downQuery += ';';
+        // downQuery += alterTableRemoveColumn(
+        //   args.table,
+        //   args.columns[i],
+        //   oldColumn,
+        //   downQuery,
+        //             this.sqlClient
+        // );
+      }
+    }
+
+    upQuery += this.alterTablePK(
+      args.columns,
+      args.originalColumns,
+      upQuery,
+      this.sqlClient
+    );
+    //downQuery += alterTablePK(args.originalColumns, args.columns, downQuery);
+
+    if (upQuery) {
+      //upQuery = `ALTER TABLE ${args.columns[0].tn} ${upQuery};`;
+      //downQuery = `ALTER TABLE ${args.columns[0].tn} ${downQuery};`;
+    }
+
+    await Promise.all(
+      upQuery.split(';').map(async (query) => {
+        if (query.trim().length) await this.sqlClient.raw(query);
+      })
+    );
+
+    // await this.sqlClient.raw(upQuery);
+
+    console.log(upQuery);
+
+    const afterUpdate = await this.afterTableUpdate(args);
+
+    result.data.object = {
+      upStatement: [
+        { sql: this.querySeparator() + upQuery },
+        ...afterUpdate.upStatement,
+      ],
+      downStatement: [{ sql: ';' }],
+    };
+
+    return result;
+  }
+
   /**
    *
    * @param {Object} - args
@@ -1472,109 +1573,24 @@ class SqliteClient extends KnexClient {
    */
   async tableUpdate(args) {
     const _func = this.tableUpdate.name;
-    const result = new Result();
     log.api(`${_func}:args:`, args);
 
+    for (let retry = 0; retry < 3; retry++) {
+      try {
+        return await this._tableUpdate(args);
+      } catch (e) {
+        console.log('retrying:tableUpdate', e);
+      }
+      // Wait for 300ms
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+
     try {
-      args.table = args.tn;
-      const originalColumns = args.originalColumns;
-      args.connectionConfig = this._connectionConfig;
-      args.sqlClient = this.sqlClient;
-
-      let upQuery = '';
-      let downQuery = '';
-
-      for (let i = 0; i < args.columns.length; ++i) {
-        const oldColumn = lodash.find(originalColumns, {
-          cn: args.columns[i].cno,
-        });
-
-        if (args.columns[i].altered & 4) {
-          // col remove
-          upQuery += await this.alterTableRemoveColumn(
-            args.table,
-            args.columns[i],
-            oldColumn,
-            upQuery
-          );
-          downQuery += this.alterTableAddColumn(
-            args.table,
-            oldColumn,
-            args.columns[i],
-            downQuery
-          );
-        } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
-          // col edit
-          upQuery += this.alterTableChangeColumn(
-            args.table,
-            args.columns[i],
-            oldColumn,
-            upQuery
-          );
-          downQuery += ';';
-          // downQuery += this.alterTableChangeColumn(
-          //   args.table,
-          //   oldColumn,
-          //   args.columns[i],
-          //   downQuery,
-          //             this.sqlClient
-          // );
-        } else if (args.columns[i].altered & 1) {
-          // col addition
-          upQuery += this.alterTableAddColumn(
-            args.table,
-            args.columns[i],
-            oldColumn,
-            upQuery
-          );
-          downQuery += ';';
-          // downQuery += alterTableRemoveColumn(
-          //   args.table,
-          //   args.columns[i],
-          //   oldColumn,
-          //   downQuery,
-          //             this.sqlClient
-          // );
-        }
-      }
-
-      upQuery += this.alterTablePK(
-        args.columns,
-        args.originalColumns,
-        upQuery,
-        this.sqlClient
-      );
-      //downQuery += alterTablePK(args.originalColumns, args.columns, downQuery);
-
-      if (upQuery) {
-        //upQuery = `ALTER TABLE ${args.columns[0].tn} ${upQuery};`;
-        //downQuery = `ALTER TABLE ${args.columns[0].tn} ${downQuery};`;
-      }
-
-      await Promise.all(
-        upQuery.split(';').map(async (query) => {
-          if (query.trim().length) await this.sqlClient.raw(query);
-        })
-      );
-
-      // await this.sqlClient.raw(upQuery);
-
-      console.log(upQuery);
-
-      const afterUpdate = await this.afterTableUpdate(args);
-
-      result.data.object = {
-        upStatement: [
-          { sql: this.querySeparator() + upQuery },
-          ...afterUpdate.upStatement,
-        ],
-        downStatement: [{ sql: ';' }],
-      };
+      return await this._tableUpdate(args);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
     }
-    return result;
   }
 
   /**

@@ -590,6 +590,10 @@ export default class NcConfigFactory implements NcConfig {
         ...args.meta.db,
         connection: args.meta.db,
       });
+      if (process.env['TEST'] === 'true') {
+        await metaSqlClient.raw('PRAGMA journal_mode=WAL');
+        await metaSqlClient.raw('PRAGMA busy_timeout=60000');
+      }
       await metaSqlClient.createDatabaseIfNotExists({
         database: args.meta.db?.connection?.filename,
       });

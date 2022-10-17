@@ -3,7 +3,7 @@ import { Panel } from '@vue-flow/additional-components'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { ErdFlowConfig } from './utils'
-import { ref, useGlobal, useMetas, useProject, watch } from '#imports'
+import { reactive, ref, useGlobal, useMetas, useProject, watch } from '#imports'
 
 const { table } = defineProps<{ table?: TableType }>()
 
@@ -19,7 +19,7 @@ let isLoading = $ref(true)
 
 const showAdvancedOptions = ref(false)
 
-const config = ref<ErdFlowConfig>({
+const config = reactive<ErdFlowConfig>({
   showPkAndFk: true,
   showViews: false,
   showAllColumns: true,
@@ -61,12 +61,12 @@ const populateTables = async () => {
   tables.value = localTables
     .filter(
       (t) =>
-        config.value.showMMTables ||
-        (!config.value.showMMTables && !t.mm) ||
+        config.showMMTables ||
+        (!config.showMMTables && !t.mm) ||
         // Show mm table if it's the selected table
         t.id === table?.id,
     )
-    .filter((t) => (!config.value.showViews && t.type !== 'view') || config.value.showViews)
+    .filter((t) => config.singleTableMode || (!config.showViews && t.type !== 'view') || config.showViews)
 
   isLoading = false
 }
@@ -82,9 +82,9 @@ watch(config, populateTables, {
 })
 
 watch(
-  () => config.value.showAllColumns,
+  () => config.showAllColumns,
   () => {
-    config.value.showPkAndFk = config.value.showAllColumns
+    config.showPkAndFk = config.showAllColumns
   },
 )
 </script>

@@ -83,12 +83,12 @@ onScopeDispose($destroy)
       position="bottom-right"
     >
       <div class="flex flex-col divide-y-1">
-        <div class="flex items-center gap-1 px-2 py-1">
+        <div class="flex items-center gap-1 p-2">
           <MdiTableLarge class="text-primary" />
           <div>{{ $t('objects.table') }}</div>
         </div>
 
-        <div class="flex items-center gap-1 px-2 py-1">
+        <div class="flex items-center gap-1 p-2">
           <MdiEyeCircleOutline class="text-primary" />
           <div>{{ $t('objects.sqlVIew') }}</div>
         </div>

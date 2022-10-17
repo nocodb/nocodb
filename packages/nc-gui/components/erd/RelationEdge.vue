@@ -95,7 +95,7 @@ export default {
       v-if="data.label?.length > 0 && (selected || isHovering)"
       :key="`edge-text-${id}.${showSkeleton}`"
       :class="[
-        showSkeleton ? '!text-5xl' : '!text-xs',
+        showSkeleton ? '!text-6xl' : '!text-xs',
         `nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`,
       ]"
       :x="edgePath[1]"

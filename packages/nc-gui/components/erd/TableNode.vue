@@ -4,18 +4,21 @@ import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { NodeData } from './utils'
-import { MetaInj, computed, provide, toRef, useNuxtApp } from '#imports'
+import { MetaInj, computed, provide, refAutoReset, toRef, useNuxtApp, watch } from '#imports'
 
 interface Props extends NodeProps<NodeData> {
   data: NodeData
   showSkeleton: boolean
+  dragging: boolean
 }
 
-const { data, showSkeleton } = defineProps<Props>()
+const { data, showSkeleton, dragging } = defineProps<Props>()
 
 const { viewport } = useVueFlow()
 
 const table = toRef(data, 'table')
+
+const isZooming = refAutoReset(false, 200)
 
 provide(MetaInj, table)
 
@@ -25,12 +28,20 @@ const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
   colOptions.type === 'mm' ? colOptions.fk_parent_column_id : colOptions.fk_child_column_id
 
 const hasColumns = computed(() => data.pkAndFkColumns.length || data.nonPkColumns.length)
+
+watch(
+  () => viewport.value.zoom,
+  () => {
+    isZooming.value = true
+  },
+)
 </script>
 
 <template>
   <GeneralTooltip
     class="h-full flex flex-1 justify-center items-center"
     :modifier-key="showSkeleton || viewport.zoom > 0.35 ? 'Alt' : undefined"
+    :disabled="dragging || isZooming"
   >
     <template #title>
       <div class="capitalize">{{ table.table_name }}</div>

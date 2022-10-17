@@ -67,8 +67,8 @@ onScopeDispose($destroy)
   <VueFlow v-model="elements">
     <Controls class="rounded" position="bottom-left" :show-fit-view="false" :show-interactive="false" />
 
-    <template #node-custom="{ data }">
-      <ErdTableNode :data="data" :show-skeleton="showSkeleton" />
+    <template #node-custom="{ data, dragging }">
+      <ErdTableNode :data="data" :dragging="dragging" :show-skeleton="showSkeleton" />
     </template>
 
     <template #edge-custom="edgeProps">

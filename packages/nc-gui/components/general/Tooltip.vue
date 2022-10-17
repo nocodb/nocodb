@@ -1,46 +1,81 @@
 <script lang="ts" setup>
 import { onKeyStroke } from '@vueuse/core'
-import { ref, watch } from '#imports'
+import type { CSSProperties } from '@vue/runtime-dom'
+import { ref, useElementHover, watch } from '#imports'
 
 interface Props {
   // Key to be pressed on hover to trigger the tooltip
   modifierKey?: string
-  wrapperClass?: string
+  tooltipStyle?: CSSProperties
 }
 
-const { modifierKey, wrapperClass } = defineProps<Props>()
+const { modifierKey, tooltipStyle } = defineProps<Props>()
+
+const el = ref()
 
 const showTooltip = ref(false)
 
-const isMouseOver = ref(false)
+const isHovering = useElementHover(() => el.value)
 
-if (modifierKey) {
-  onKeyStroke(modifierKey, (e) => {
+const isKeyPressed = ref(false)
+
+onKeyStroke(
+  (e) => e.key === modifierKey,
+  (e) => {
     e.preventDefault()
-    if (modifierKey && isMouseOver.value) {
+
+    if (isHovering.value) {
       showTooltip.value = true
     }
-  })
-}
 
-watch(isMouseOver, (val) => {
-  if (!val) {
+    isKeyPressed.value = true
+  },
+  { eventName: 'keydown' },
+)
+
+onKeyStroke(
+  (e) => e.key === modifierKey,
+  (e) => {
+    e.preventDefault()
+
     showTooltip.value = false
+    isKeyPressed.value = false
+  },
+  { eventName: 'keyup' },
+)
+
+watch([isHovering, () => modifierKey], ([hovering, key]) => {
+  if (!hovering) {
+    showTooltip.value = false
+    return
   }
 
   // Show tooltip on mouseover if no modifier key is provided
-  if (val && !modifierKey) {
+  if (hovering && !key) {
+    showTooltip.value = true
+    return
+  }
+
+  // While hovering if the modifier key was changed and the key is not pressed, hide tooltip
+  if (hovering && key && !isKeyPressed.value) {
+    showTooltip.value = false
+    return
+  }
+
+  // When mouse leaves the element, then re-enters the element while key stays pressed, show the tooltip
+  if (!showTooltip.value && hovering && key && isKeyPressed.value) {
     showTooltip.value = true
   }
 })
 </script>
 
 <template>
-  <a-tooltip v-model:visible="showTooltip" :trigger="[]">
+  <a-tooltip v-model:visible="showTooltip" :overlay-style="tooltipStyle" :trigger="[]">
     <template #title>
       <slot name="title" />
     </template>
-    <div class="w-full" :class="wrapperClass" @mouseenter="isMouseOver = true" @mouseleave="isMouseOver = false">
+
+    <div ref="el" class="w-full" :class="$attrs.class" :style="$attrs.style">
       <slot />
     </div>
   </a-tooltip>

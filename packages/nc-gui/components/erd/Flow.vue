@@ -65,7 +65,7 @@ onScopeDispose($destroy)
 
 <template>
   <VueFlow v-model="elements">
-    <Controls position="top-right" :show-fit-view="false" :show-interactive="false" />
+    <Controls class="rounded" position="top-right" :show-fit-view="false" :show-interactive="false" />
 
     <template #node-custom="{ data }">
       <ErdTableNode :data="data" :show-skeleton="showSkeleton" />
@@ -108,5 +108,13 @@ onScopeDispose($destroy)
 <style>
 .vue-flow__edges {
   z-index: 1000 !important;
+}
+
+.vue-flow__controls-zoomin {
+  @apply rounded-t;
+}
+
+.vue-flow__controls-zoomout {
+  @apply rounded-b;
 }
 </style>

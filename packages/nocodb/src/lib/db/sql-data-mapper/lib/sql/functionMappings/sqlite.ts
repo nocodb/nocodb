@@ -83,45 +83,45 @@ const sqlite3 = {
     const date2 = fn(pt.arguments[1]);
     const rawUnit = pt.arguments[2]
       ? fn(pt.arguments[2]).bindings[0]
-      : 'minutes';
+      : 'seconds';
     const unit = convertUnits(rawUnit, 'sqlite');
 
     return knex.raw(
       `CASE
           WHEN '${unit}' LIKE '%days%'
-               THEN JULIANDAY(${date2}) - JULIANDAY(${date1})
+               THEN JULIANDAY(${date1}) - JULIANDAY(${date2})
           WHEN  '${unit}' LIKE '%years%'
               ${/*Divide by 365 to get the value in years*/ ''}
-               THEN ROUND((JULIANDAY(${date2}) - JULIANDAY(${date1})) / 365)
+               THEN ROUND((JULIANDAY(${date1}) - JULIANDAY(${date2})) / 365)
           WHEN  '${unit}' LIKE '%quarters%'
               ${
                 /*Divide by 91.25 to get the value in quarters: https://www.convertunits.com/from/days/to/quarter */ ''
               }
-               THEN ROUND((JULIANDAY(${date2}) - JULIANDAY(${date1})) / 91.25)
+               THEN ROUND((JULIANDAY(${date1}) - JULIANDAY(${date2})) / 91.25)
           WHEN  '${unit}' LIKE '%months%'
               ${
                 /*Multiply by 0.032855 to get the value in months: https://www.inchcalculator.com/convert/day-to-month/ */ ''
               }
-               THEN ROUND((JULIANDAY(${date2}) - JULIANDAY(${date1})) * 0.032855)
+               THEN ROUND((JULIANDAY(${date1}) - JULIANDAY(${date2})) * 0.032855)
           WHEN  '${unit}' LIKE '%weeks%'
               ${/*Divide by 7 to get the value in weeks*/ ''}
-               THEN ROUND((JULIANDAY(${date2}) - JULIANDAY(${date1})) / 7)
+               THEN ROUND((JULIANDAY(${date1}) - JULIANDAY(${date2})) / 7)
           WHEN  '${unit}' LIKE '%hours%'
               ${/*Multiply by 24 to get the value in hours*/ ''}
-               THEN ROUND((JULIANDAY(${date2}) - JULIANDAY(${date1})) * 24)
+               THEN ROUND((JULIANDAY(${date1}) - JULIANDAY(${date2})) * 24)
           WHEN  '${unit}' LIKE '%minutes%'
               ${/*Multiply by 1440 to get the value in minutes*/ ''}
-               THEN ROUND((JULIANDAY(${date2}) - JULIANDAY(${date1})) * 1440)
+               THEN ROUND((JULIANDAY(${date1}) - JULIANDAY(${date2})) * 1440)
           WHEN  '${unit}' LIKE '%milliseconds%'
               ${
                 /*Multiply by 8.64e+7 to get the value in milliseconds: https://www.inchcalculator.com/convert/day-to-millisecond/ */ ''
               }
-              THEN ROUND((JULIANDAY(${date2}) - JULIANDAY(${date1})) * 8.64e+7)
+              THEN ROUND((JULIANDAY(${date1}) - JULIANDAY(${date2})) * 8.64e+7)
           WHEN  '${unit}' LIKE '%seconds%'
               ${/*Multiply by 86400 to get the value in seconds*/ ''}
-               THEN ROUND((JULIANDAY(${date2}) - JULIANDAY(${date1})) * 86400)
+               THEN ROUND((JULIANDAY(${date1}) - JULIANDAY(${date2})) * 86400)
           ELSE
-              JULIANDAY(${date2}) - JULIANDAY(${date1})
+              JULIANDAY(${date1}) - JULIANDAY(${date2})
           END${colAlias}
       `
     );

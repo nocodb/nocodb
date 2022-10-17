@@ -229,15 +229,15 @@ export const genTest = (apiType, dbType) => {
         Math.sqrt(countryId[i])
       );
 
-      RESULT_DATE_DIFF_0[i] = 1440;
-      RESULT_DATE_DIFF_1[i] = 86400;
-      RESULT_DATE_DIFF_2[i] = 86400000;
-      RESULT_DATE_DIFF_3[i] = 24;
-      RESULT_DATE_DIFF_4[i] = 52;
-      RESULT_DATE_DIFF_5[i] = 12;
-      RESULT_DATE_DIFF_6[i] = 4;
-      RESULT_DATE_DIFF_7[i] = 1;
-      RESULT_DATE_DIFF_8[i] = 365;
+      RESULT_DATE_DIFF_0[i] = -1440;
+      RESULT_DATE_DIFF_1[i] = -86400;
+      RESULT_DATE_DIFF_2[i] = -86400000;
+      RESULT_DATE_DIFF_3[i] = -24;
+      RESULT_DATE_DIFF_4[i] = -52;
+      RESULT_DATE_DIFF_5[i] = -12;
+      RESULT_DATE_DIFF_6[i] = -4;
+      RESULT_DATE_DIFF_7[i] = -1;
+      RESULT_DATE_DIFF_8[i] = -365;
 
       // WEEKDAY: starts from Monday
       RESULT_WEEKDAY_0[i] = 1;

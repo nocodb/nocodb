@@ -116,10 +116,10 @@ const mssql = {
     const date2 = fn(pt.arguments[1]);
     const rawUnit = pt.arguments[2]
       ? fn(pt.arguments[2]).bindings[0]
-      : 'minutes';
+      : 'seconds';
     const unit = convertUnits(rawUnit, 'mssql');
 
-    return knex.raw(`DATEDIFF('${unit}', ${date2}, ${date1}) ${colAlias}`);
+    return knex.raw(`DATEDIFF('${unit}', ${date1}, ${date2}) ${colAlias}`);
   },
   WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     // DATEPART(WEEKDAY, DATE): sunday = 1, monday = 2, ..., saturday = 7

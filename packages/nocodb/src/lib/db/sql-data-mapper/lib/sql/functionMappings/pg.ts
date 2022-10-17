@@ -50,11 +50,11 @@ const pg = {
     const date2 = fn(pt.arguments[1]);
     const rawUnit = pt.arguments[2]
       ? fn(pt.arguments[2]).bindings[0]
-      : 'minutes';
+      : 'seconds';
     const unit = convertUnits(rawUnit, 'pg');
 
     return knex.raw(
-      `DATE_PART('${unit}', ${date2}) - DATE_PART('${unit}', ${date1}) ${colAlias}`
+      `DATE_PART('${unit}', ${date1}) - DATE_PART('${unit}', ${date2}) ${colAlias}`
     );
   },
   WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {

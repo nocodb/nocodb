@@ -27,7 +27,7 @@ interface Relation {
 }
 
 const nodeWidth = 300
-const nodeHeight = 35
+const nodeHeight = 50
 
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ErdFlowConfig>) {
   const elements = ref<Elements>([])
@@ -149,7 +149,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
 
       const columns =
         metasWithIdAsKey.value[table.id].columns?.filter(
-          (col) => !(col.uidt === UITypes.LinkToAnotherRecord && col.system === 1),
+          (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
         ) || []
 
       const pkAndFkColumns = columns
@@ -263,15 +263,13 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<Er
   }
 
   const layout = (skeleton = false) => {
-    if (!skeleton) elements.value = [...createNodes(), ...createEdges()]
-
-    if (!config.singleTableMode) connectNonConnectedNodes()
+    elements.value = [...createNodes(), ...createEdges()]
 
     elements.value.forEach((el) => {
       if (isNode(el)) {
         dagreGraph.setNode(el.id, {
           width: skeleton ? nodeWidth * 2.5 : nodeWidth,
-          height: 50 + (skeleton ? 250 : nodeHeight * el.data.columnLength),
+          height: nodeHeight + (skeleton ? 250 : nodeHeight * el.data.columnLength),
         })
       } else if (isEdge(el)) {
         // avoid duplicate edges when using skeleton

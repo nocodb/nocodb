@@ -48,16 +48,19 @@ onKeyStroke(
 watch([isHovering, () => modifierKey], ([hovering, key]) => {
   if (!hovering) {
     showTooltip.value = false
+    return
   }
 
   // Show tooltip on mouseover if no modifier key is provided
   if (hovering && !key) {
     showTooltip.value = true
+    return
   }
 
   // While hovering if the modifier key was changed and the key is not pressed, hide tooltip
   if (hovering && key && !isKeyPressed.value) {
     showTooltip.value = false
+    return
   }
 
   // When mouse leaves the element, then re-enters the element while key stays pressed, show the tooltip

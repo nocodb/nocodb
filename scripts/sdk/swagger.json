@@ -441,6 +441,125 @@
       },
       "parameters": []
     },
+    "/api/v1/users": {
+      "get": {
+        "summary": "Project users",
+        "operationId": "org-users-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "uniqueItems": true,
+                          "minItems": 1,
+                          "items": {
+                            "$ref": "#/components/schemas/User"
+                          }
+                        },
+                        "pageInfo": {
+                          "$ref": "#/components/schemas/Paginated"
+                        }
+                      },
+                      "required": [
+                        "list",
+                        "pageInfo"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "",
+        "tags": [
+          "OrgUsers"
+        ]
+      },
+      "parameters": [],
+      "post": {
+        "summary": "Project User Add",
+        "operationId": "rgo-users-add",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "org-users-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "OrgUsers"
+        ],
+        "description": "",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          },
+          "description": ""
+        }
+      },
+      "delete": {
+        "summary": "",
+        "operationId": "org-users-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "OrgUsers"
+        ],
+        "description": ""
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/users": {
       "get": {
         "summary": "Project users",
@@ -4961,9 +5080,6 @@
         "description": "",
         "parameters": [
           {
-            "schema": {
-              "type": "array"
-            },
             "in": "query",
             "name": "ids",
             "required": true

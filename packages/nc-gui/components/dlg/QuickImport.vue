@@ -51,6 +51,8 @@ const importColumns = ref([])
 
 const templateEditorModal = ref(false)
 
+const isParsingData = ref(false)
+
 const useForm = Form.useForm
 
 const importState = reactive({
@@ -134,6 +136,7 @@ const modalWidth = computed(() => {
 
 async function handlePreImport() {
   loading.value = true
+  isParsingData.value = true
 
   if (activeKey.value === 'uploadTab') {
     // TODO: update
@@ -149,7 +152,9 @@ async function handlePreImport() {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor))
   }
 
-  loading.value = false
+  // TODO: fix
+  // loading.value = false
+  // isParsingData.value = false
 }
 
 async function handleImport() {
@@ -188,8 +193,8 @@ async function parseAndExtractData2(val: UploadFile[]) {
       // importData.value = templateGenerator.getData()
 
       // if (importOnly) importColumns.value = templateGenerator.getColumns()
-
       templateEditorModal.value = true
+      isParsingData.value = false
     })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -338,115 +343,116 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
     wrap-class-name="nc-modal-quick-import"
     @keydown.esc="dialogShow = false"
   >
-    <div class="px-5">
-      <div class="prose-xl font-weight-bold my-5">{{ importMeta.header }}</div>
+    <a-spin :spinning="isParsingData" tip="Parsing Data ..." size="large">
+      <div class="px-5">
+        <div class="prose-xl font-weight-bold my-5">{{ importMeta.header }}</div>
 
-      <div class="mt-5">
-        <LazyTemplateEditor
-          v-if="templateEditorModal"
-          ref="templateEditorRef"
-          :project-template="templateData"
-          :import-data="importData"
-          :import-columns="importColumns"
-          :import-only="importOnly"
-          :quick-import-type="importType"
-          :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
-          class="nc-quick-import-template-editor"
-          @import="handleImport"
-        />
+        <div class="mt-5">
+          <LazyTemplateEditor
+            v-if="templateEditorModal"
+            ref="templateEditorRef"
+            :project-template="templateData"
+            :import-data="importData"
+            :import-columns="importColumns"
+            :import-only="importOnly"
+            :quick-import-type="importType"
+            :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+            class="nc-quick-import-template-editor"
+            @import="handleImport"
+          />
 
-        <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" tab-position="top">
-          <a-tab-pane key="uploadTab" :closable="false">
-            <template #tab>
-              <!--              Upload -->
-              <div class="flex items-center gap-2">
-                <MdiFileUploadOutline />
-                {{ $t('general.upload') }}
+          <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" tab-position="top">
+            <a-tab-pane key="uploadTab" :closable="false">
+              <template #tab>
+                <!--              Upload -->
+                <div class="flex items-center gap-2">
+                  <MdiFileUploadOutline />
+                  {{ $t('general.upload') }}
+                </div>
+              </template>
+
+              <div class="py-6">
+                <a-upload-dragger
+                  v-model:fileList="importState.fileList"
+                  name="file"
+                  class="nc-input-import !scrollbar-thin-dull"
+                  :accept="importMeta.acceptTypes"
+                  :max-count="1"
+                  list-type="picture"
+                  :custom-request="customReqCbk"
+                  @change="handleChange"
+                  @reject="rejectDrop"
+                >
+                  <MdiFilePlusOutline size="large" />
+
+                  <!--                Click or drag file to this area to upload -->
+                  <p class="ant-upload-text">{{ $t('msg.info.import.clickOrDrag') }}</p>
+
+                  <p class="ant-upload-hint">
+                    {{ importMeta.uploadHint }}
+                  </p>
+                </a-upload-dragger>
               </div>
-            </template>
+            </a-tab-pane>
 
-            <div class="py-6">
-              <a-upload-dragger
-                v-model:fileList="importState.fileList"
-                name="file"
-                class="nc-input-import !scrollbar-thin-dull"
-                :accept="importMeta.acceptTypes"
-                :max-count="1"
-                list-type="picture"
-                :custom-request="customReqCbk"
-                @change="handleChange"
-                @reject="rejectDrop"
-              >
-                <MdiFilePlusOutline size="large" />
+            <a-tab-pane v-if="isImportTypeJson" key="jsonEditorTab" :closable="false">
+              <template #tab>
+                <span class="flex items-center gap-2">
+                  <MdiCodeJson />
+                  JSON Editor
+                </span>
+              </template>
 
-                <!--                Click or drag file to this area to upload -->
-                <p class="ant-upload-text">{{ $t('msg.info.import.clickOrDrag') }}</p>
+              <div class="pb-3 pt-3">
+                <LazyMonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
+              </div>
+            </a-tab-pane>
 
-                <p class="ant-upload-hint">
-                  {{ importMeta.uploadHint }}
-                </p>
-              </a-upload-dragger>
+            <a-tab-pane v-else key="urlTab" :closable="false">
+              <template #tab>
+                <span class="flex items-center gap-2">
+                  <MdiLinkVariant />
+                  URL
+                </span>
+              </template>
+
+              <div class="pr-10 pt-5">
+                <a-form :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
+                  <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
+                    <a-input v-model:value="importState.url" size="large" />
+                  </a-form-item>
+                </a-form>
+              </div>
+            </a-tab-pane>
+          </a-tabs>
+        </div>
+
+        <div v-if="!templateEditorModal">
+          <a-divider />
+
+          <div class="mb-4">
+            <!--          Advanced Settings -->
+            <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
+
+            <a-form-item class="mt-4 mb-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
+              <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
+            </a-form-item>
+
+            <!--          Flatten nested -->
+            <div v-if="isImportTypeJson" class="mt-3">
+              <a-checkbox v-model:checked="importState.parserConfig.normalizeNested">
+                <span class="caption">{{ $t('labels.flattenNested') }}</span>
+              </a-checkbox>
             </div>
-          </a-tab-pane>
 
-          <a-tab-pane v-if="isImportTypeJson" key="jsonEditorTab" :closable="false">
-            <template #tab>
-              <span class="flex items-center gap-2">
-                <MdiCodeJson />
-                JSON Editor
-              </span>
-            </template>
-
-            <div class="pb-3 pt-3">
-              <LazyMonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
+            <!--          Import Data -->
+            <div v-if="isImportTypeJson" class="mt-4">
+              <a-checkbox v-model:checked="importState.parserConfig.importData">{{ $t('labels.importData') }}</a-checkbox>
             </div>
-          </a-tab-pane>
-
-          <a-tab-pane v-else key="urlTab" :closable="false">
-            <template #tab>
-              <span class="flex items-center gap-2">
-                <MdiLinkVariant />
-                URL
-              </span>
-            </template>
-
-            <div class="pr-10 pt-5">
-              <a-form :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
-                <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-                  <a-input v-model:value="importState.url" size="large" />
-                </a-form-item>
-              </a-form>
-            </div>
-          </a-tab-pane>
-        </a-tabs>
-      </div>
-
-      <div v-if="!templateEditorModal">
-        <a-divider />
-
-        <div class="mb-4">
-          <!--          Advanced Settings -->
-          <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
-
-          <a-form-item class="mt-4 mb-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
-            <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
-          </a-form-item>
-
-          <!--          Flatten nested -->
-          <div v-if="isImportTypeJson" class="mt-3">
-            <a-checkbox v-model:checked="importState.parserConfig.normalizeNested">
-              <span class="caption">{{ $t('labels.flattenNested') }}</span>
-            </a-checkbox>
-          </div>
-
-          <!--          Import Data -->
-          <div v-if="isImportTypeJson" class="mt-4">
-            <a-checkbox v-model:checked="importState.parserConfig.importData">{{ $t('labels.importData') }}</a-checkbox>
           </div>
         </div>
       </div>
-    </div>
-
+    </a-spin>
     <template #footer>
       <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>
 

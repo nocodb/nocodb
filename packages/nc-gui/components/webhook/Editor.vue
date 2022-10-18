@@ -543,7 +543,12 @@ onMounted(loadPluginList)
         <a-col :span="24">
           <a-tabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="shadow-sm">
             <a-tab-pane key="body" tab="Body">
-              <LazyMonacoEditor v-model="hook.notification.payload.body" :validate="false" class="min-h-60 max-h-80" />
+              <LazyMonacoEditor
+                v-model="hook.notification.payload.body"
+                disable-deep-compare
+                :validate="false"
+                class="min-h-60 max-h-80"
+              />
             </a-tab-pane>
 
             <a-tab-pane key="params" tab="Params" force-render>

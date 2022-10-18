@@ -4,6 +4,7 @@ import { UITypes } from 'nocodb-sdk'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
+  getDateFormat,
   isCheckboxType,
   isDecimalType,
   isEmailType,
@@ -85,7 +86,7 @@ export default class CSVTemplateAdapter {
     return UITypes.SingleLineText
   }
 
-  detectColumnType(data: []) {
+  detectColumnType(tableIdx: number, data: []) {
     for (let columnIdx = 0; columnIdx < data.length; columnIdx++) {
       const colData: any = [data[columnIdx]]
       const colProps = { uidt: this.detectInitialUidt(data[columnIdx]) }
@@ -107,6 +108,7 @@ export default class CSVTemplateAdapter {
             if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
               this.columnValues[columnIdx].push(data[columnIdx])
             }
+            colProps.uidt = UITypes.SingleSelect
           }
         }
       } else if (colProps.uidt === UITypes.Number) {
@@ -125,6 +127,8 @@ export default class CSVTemplateAdapter {
         }
       }
       this.detectedColumnTypes[columnIdx][colProps.uidt] += 1
+      this.project.tables[tableIdx].columns[columnIdx].uidt = colProps.uidt
+
       if (data[columnIdx]) {
         this.distinctValues[columnIdx].add(data[columnIdx])
       }
@@ -146,14 +150,29 @@ export default class CSVTemplateAdapter {
   updateTemplate(tableIdx: number) {
     for (let columnIdx = 0; columnIdx < this.headers[tableIdx].length; columnIdx++) {
       if (this.columnValues[columnIdx].length > 0) {
-        if (this.project.tables[tableIdx].columns[columnIdx].uidt === UITypes.DateTime) {
-          // TODO(import): handle DateTime
-          // set meta
+        const uidt = this.project.tables[tableIdx].columns[columnIdx].uidt
+        if (uidt === UITypes.DateTime) {
+          const dateFormat: Record<string, number> = {}
+          if (
+            this.columnValues[columnIdx].slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
+              const isDate = v.split(' ').length === 1
+              if (isDate) {
+                dateFormat[getDateFormat(v)] = (dateFormat[getDateFormat(v)] || 0) + 1
+              }
+              return isDate
+            })
+          ) {
+            this.project.tables[tableIdx].columns[columnIdx].uidt = UITypes.Date
+            // take the date format with the max occurrence
+            this.project.tables[tableIdx].columns[columnIdx].meta.date_format =
+              Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
+          }
+        } else if (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) {
+          Object.assign(
+            this.project.tables[tableIdx].columns[columnIdx],
+            extractMultiOrSingleSelectProps(this.columnValues[columnIdx]),
+          )
         }
-        Object.assign(
-          this.project.tables[tableIdx].columns[columnIdx],
-          extractMultiOrSingleSelectProps(this.columnValues[columnIdx]),
-        )
       } else {
         this.project.tables[tableIdx].columns[columnIdx].uidt = this.getMaxPossibleUidt(columnIdx)
       }
@@ -174,7 +193,7 @@ export default class CSVTemplateAdapter {
             if (steppers === 1) {
               that.initTemplate(tableIdx, tn, row.data as [])
             } else {
-              that.detectColumnType(row.data as [])
+              that.detectColumnType(tableIdx, row.data as [])
             }
           }
         },

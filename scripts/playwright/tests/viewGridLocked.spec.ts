@@ -34,7 +34,5 @@ test.describe("Grid view locked", () => {
     });
 
     await dashboard.grid.toolbar.viewsMenu.verifyCollaborativeMode();
-
-    await dashboard.rootPage.waitForTimeout(1000);
   });
 });

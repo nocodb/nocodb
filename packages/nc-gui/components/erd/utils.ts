@@ -296,8 +296,9 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
         const node = elements.value.find((nodes) => nodes.id === el.source)
         if (node) {
           const color = node.data!.color
+
           el.data.color = color
-          ;(el.markerEnd as EdgeMarker).color = skeleton ? `#${tinycolor(color).toHex()}` : undefined
+          ;(el.markerEnd as EdgeMarker).color = `#${tinycolor(color).toHex()}`
         }
       }
     })

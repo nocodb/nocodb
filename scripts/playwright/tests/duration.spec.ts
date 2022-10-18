@@ -100,7 +100,7 @@ const durationData = [
   },
 ];
 
-test.describe("Duration column", () => {
+test.describe.skip("Duration column", () => {
   let dashboard: DashboardPage;
   let context: any;
 

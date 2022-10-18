@@ -41,7 +41,9 @@ const jsonEditorRef = ref()
 
 const templateEditorRef = ref()
 
-const loading = ref(false)
+const preImportLoading = ref(false)
+
+const importLoading = ref(false)
 
 const templateData = ref()
 
@@ -135,7 +137,7 @@ const modalWidth = computed(() => {
 })
 
 async function handlePreImport() {
-  loading.value = true
+  preImportLoading.value = true
   isParsingData.value = true
 
   if (activeKey.value === 'uploadTab') {
@@ -152,22 +154,20 @@ async function handlePreImport() {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor))
   }
 
-  // TODO(import): fix
-  // loading.value = false
+  // TODO(import):
+  preImportLoading.value = false
   // isParsingData.value = false
 }
 
 async function handleImport() {
   try {
-    loading.value = true
-
+    importLoading.value = true
     await templateEditorRef.value.importTemplate()
   } catch (e: any) {
     return message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    loading.value = false
+    importLoading.value = false
   }
-
   dialogShow.value = false
 }
 
@@ -472,14 +472,14 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
         key="pre-import"
         type="primary"
         class="nc-btn-import"
-        :loading="loading"
+        :loading="preImportLoading"
         :disabled="disablePreImportButton"
         @click="handlePreImport"
       >
         {{ $t('activity.import') }}
       </a-button>
 
-      <a-button v-else key="import" type="primary" :loading="loading" :disabled="disableImportButton" @click="handleImport">
+      <a-button v-else key="import" type="primary" :loading="importLoading" :disabled="disableImportButton" @click="handleImport">
         {{ $t('activity.import') }}
       </a-button>
     </template>

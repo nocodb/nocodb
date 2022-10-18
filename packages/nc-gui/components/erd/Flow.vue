@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Background, Controls } from '@vue-flow/additional-components'
+import { Background, Controls, Panel } from '@vue-flow/additional-components'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { TableType } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
@@ -78,13 +78,15 @@ onScopeDispose($destroy)
     <Background :size="showSkeleton ? 2 : undefined" :gap="showSkeleton ? 50 : undefined" />
 
     <Transition name="layout">
-      <div
+      <Panel
         v-if="showSkeleton && config.showAllColumns"
-        class="color-transition z-5 cursor-pointer absolute bottom-4 left-[50%] transform translate-x-[-50%] text-slate-400 hover:(text-slate-900 ring ring-accent ring-opacity-100) font-semibold px-4 py-2 bg-slate-100/50 hover:bg-slate-100/90 rounded"
+        position="bottom-center"
+        class="color-transition z-5 cursor-pointer rounded shadow-sm text-slate-400 font-semibold px-4 py-2 bg-slate-100/50 hover:(text-slate-900 ring ring-accent ring-opacity-100 bg-slate-100/90)"
         @click="zoomIn"
       >
+        <!-- todo: i18n -->
         Zoom in to view columns
-      </div>
+      </Panel>
     </Transition>
 
     <slot />

@@ -85,14 +85,7 @@ watch(
 </script>
 
 <template>
-  <div
-    class="w-full"
-    style="height: inherit"
-    :class="{
-      'nc-erd-vue-flow': !config.singleTableMode,
-      'nc-erd-vue-flow-single-table': config.singleTableMode,
-    }"
-  >
+  <div class="w-full" style="height: inherit" :class="[`nc-erd-vue-flow${config.singleTableMode ? '-single-table' : ''}`]">
     <div class="relative h-full">
       <LazyErdFlow :tables="tables" :config="config">
         <GeneralOverlay v-model="isLoading" inline class="bg-gray-300/50">

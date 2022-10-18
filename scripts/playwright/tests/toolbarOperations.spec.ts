@@ -2,7 +2,7 @@ import { test } from "@playwright/test";
 import { DashboardPage } from "../pages/Dashboard";
 import setup from "../setup";
 
-test.describe("Toolbar operations (GRID)", () => {
+test.describe.only("Toolbar operations (GRID)", () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -28,33 +28,38 @@ test.describe("Toolbar operations (GRID)", () => {
 
     await dashboard.grid.column.verify({
       title: "LastUpdate",
-      isVisible: false,
+      isVisible: true,
     });
 
     // hide column
+    console.log("hide column");
+    await toolbar.fields.toggle({ title: "LastUpdate" });
+    await dashboard.grid.column.verify({
+      title: "LastUpdate",
+      isVisible: false,
+    });
+
+    // un-hide column
+    console.log("un-hide column");
     await toolbar.fields.toggle({ title: "LastUpdate" });
     await dashboard.grid.column.verify({
       title: "LastUpdate",
       isVisible: true,
     });
 
-    // un-hide column
-    await toolbar.fields.toggle({ title: "LastUpdate" });
-    await dashboard.grid.column.verify({
-      title: "LastUpdate",
-      isVisible: false,
-    });
-
     await validateFirstRow("Afghanistan");
     // Sort column
+    console.log("sort column");
     await toolbar.sort.addSort({ columnTitle: "Country", isAscending: false });
     await validateFirstRow("Zambia");
 
     // reset sort
+    console.log("reset sort");
     await toolbar.sort.resetSort();
     await validateFirstRow("Afghanistan");
 
     // Filter column
+    console.log("filter column");
     await toolbar.filter.addNew({
       columnTitle: "Country",
       value: "India",
@@ -63,6 +68,7 @@ test.describe("Toolbar operations (GRID)", () => {
     await validateFirstRow("India");
 
     // Reset filter
+    console.log("reset filter");
     await toolbar.filter.resetFilter();
     await validateFirstRow("Afghanistan");
 

@@ -1,66 +1,108 @@
 <script setup lang="ts">
-import { Background, Controls } from '@vue-flow/additional-components'
+import { Background, Controls, Panel } from '@vue-flow/additional-components'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { TableType } from 'nocodb-sdk'
-import type { ErdFlowConfig } from './utils'
+import type { ERDConfig } from './utils'
 import { useErdElements } from './utils'
-import { onScopeDispose, toRefs, watch } from '#imports'
+import { computed, onScopeDispose, toRefs, watch } from '#imports'
 
 interface Props {
   tables: TableType[]
-  config: ErdFlowConfig
+  config: ERDConfig
 }
 
 const props = defineProps<Props>()
 
 const { tables, config } = toRefs(props)
 
-const { $destroy, fitView, onPaneReady } = useVueFlow({ minZoom: 0.1, maxZoom: 2 })
+const { $destroy, fitView, onPaneReady, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
 
 const { layout, elements } = useErdElements(tables, config)
 
+const showSkeleton = computed(() => viewport.value.zoom < 0.15)
+
 function init() {
-  layout()
-  setTimeout(() => {
-    fitView({ duration: 500 })
-  }, 100)
+  layout(showSkeleton.value)
+  if (!showSkeleton.value) {
+    setTimeout(zoomIn, 100)
+  }
 }
 
-onPaneReady(init)
+function zoomIn(nodeId?: string) {
+  fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 300, minZoom: 0.2 })
+}
 
-watch([() => tables, () => config], init, { deep: true, flush: 'post' })
+onPaneReady(() => {
+  layout(showSkeleton.value)
+
+  setTimeout(() => {
+    fitView({ duration: 250, minZoom: 0.16 })
+  }, 100)
+})
+
+onNodeDoubleClick(({ node }) => {
+  if (showSkeleton.value) zoomIn()
+
+  setTimeout(() => {
+    zoomIn(node.id)
+  }, 250)
+})
+
+watch(tables, init)
+watch(showSkeleton, (isSkeleton) => {
+  layout(isSkeleton)
+  setTimeout(() => {
+    fitView({
+      duration: 300,
+      minZoom: isSkeleton ? undefined : viewport.value.zoom,
+      maxZoom: isSkeleton ? viewport.value.zoom : undefined,
+    })
+  }, 100)
+})
 
 onScopeDispose($destroy)
 </script>
 
 <template>
-  <VueFlow v-model="elements" elevate-edges-on-select>
-    <Controls position="top-right" :show-fit-view="false" :show-interactive="false" />
+  <VueFlow v-model="elements">
+    <Controls class="rounded" position="bottom-left" :show-fit-view="false" :show-interactive="false" />
 
-    <template #node-custom="{ data }">
-      <ErdTableNode :data="data" />
+    <template #node-custom="{ data, dragging }">
+      <ErdTableNode :data="data" :dragging="dragging" :show-skeleton="showSkeleton" />
     </template>
 
     <template #edge-custom="edgeProps">
-      <ErdRelationEdge v-bind="edgeProps" />
+      <ErdRelationEdge v-bind="edgeProps" :show-skeleton="showSkeleton" />
     </template>
 
-    <Background />
+    <Background :size="showSkeleton ? 2 : undefined" :gap="showSkeleton ? 50 : undefined" />
 
-    <div
-      v-if="!config.singleTableMode"
-      class="absolute bottom-0 right-0 flex flex-col text-xs bg-white px-2 py-1 border-1 rounded-md border-gray-200 z-50 nc-erd-histogram"
-      style="font-size: 0.6rem"
-    >
-      <div class="flex flex-row items-center space-x-1 border-b-1 pb-1 border-gray-100">
-        <MdiTableLarge class="text-primary" />
-        <div>{{ $t('objects.table') }}</div>
-      </div>
+    <Transition name="layout">
+      <Panel
+        v-if="showSkeleton && config.showAllColumns"
+        position="bottom-center"
+        class="color-transition z-5 cursor-pointer rounded shadow-sm text-slate-400 font-semibold px-4 py-2 bg-slate-100/50 hover:(text-slate-900 ring ring-accent ring-opacity-100 bg-slate-100/90)"
+        @click="zoomIn"
+      >
+        <!-- todo: i18n -->
+        Zoom in to view columns
+      </Panel>
+    </Transition>
 
-      <div class="flex flex-row items-center space-x-1 pt-1">
-        <MdiEyeCircleOutline class="text-primary" />
-        <div>{{ $t('objects.sqlVIew') }}</div>
-      </div>
-    </div>
+    <slot />
   </VueFlow>
 </template>
+
+<style>
+.vue-flow__edges {
+  z-index: 1000 !important;
+}
+
+.vue-flow__controls-zoomin {
+  @apply rounded-t;
+}
+
+.vue-flow__controls-zoomout {
+  @apply rounded-b;
+}
+</style>

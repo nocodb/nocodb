@@ -20,6 +20,7 @@ export default class CSVTemplateAdapter {
     tables: Record<string, any>[]
   }
 
+  data: Record<string, any> = {}
   columnValues: Record<number, []>
 
   constructor(files: UploadFile[], parserConfig = {}) {
@@ -39,10 +40,9 @@ export default class CSVTemplateAdapter {
 
   async init() {}
 
-  initTemplate(tableIdx: number, fileName: string, columnNames: string[]) {
+  initTemplate(tableIdx: number, tn: string, columnNames: string[]) {
     const columnNameRowExist = +columnNames.every((v: any) => v === null || typeof v === 'string')
     const columnNamePrefixRef: Record<string, any> = { id: 0 }
-    const tn = fileName.replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
 
     this.project.tables.push({
       table_name: tn,
@@ -156,6 +156,7 @@ export default class CSVTemplateAdapter {
       } else {
         this.project.tables[tableIdx].columns[columnIdx].uidt = this.getMaxPossibleUidt(columnIdx)
       }
+      delete this.columnValues[columnIdx]
     }
   }
 
@@ -163,13 +164,14 @@ export default class CSVTemplateAdapter {
     const that = this
     for (const [tableIdx, file] of this.files.entries()) {
       let steppers = 0
+      const tn = file.name.replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
       parse(file.originFileObj as File, {
         worker: true,
         step(row) {
           steppers += 1
           if (row) {
             if (steppers === 1) {
-              that.initTemplate(tableIdx, file.name!, row.data as [])
+              that.initTemplate(tableIdx, tn, row.data as [])
             } else {
               that.detectColumnType(row.data as [])
             }
@@ -197,7 +199,7 @@ export default class CSVTemplateAdapter {
   }
 
   getData() {
-    // return this.data
+    return this.data
   }
 
   getTemplate() {

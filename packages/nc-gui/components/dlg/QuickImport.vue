@@ -2,6 +2,7 @@
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import {
+  CSVTemplateAdapter,
   ExcelTemplateAdapter,
   ExcelUrlTemplateAdapter,
   Form,
@@ -136,6 +137,8 @@ const modalWidth = computed(() => {
   return 'max(60vw, 600px)'
 })
 
+let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateAdapter | null
+
 async function handlePreImport() {
   preImportLoading.value = true
   isParsingData.value = true
@@ -161,7 +164,13 @@ async function handlePreImport() {
 
 async function handleImport() {
   try {
+    if (!templateGenerator) {
+      message.error(t('msg.error.templateGeneratorNotFound'))
+      return
+    }
+
     importLoading.value = true
+    importData.value = templateGenerator.getData()
     await templateEditorRef.value.importTemplate()
   } catch (e: any) {
     return message.error(await extractSdkResponseErrorMsg(e))
@@ -178,7 +187,7 @@ async function parseAndExtractData2(val: UploadFile[]) {
     importData.value = null
     importColumns.value = []
 
-    const templateGenerator = getAdapter(val)
+    templateGenerator = getAdapter(val)
 
     if (!templateGenerator) {
       message.error(t('msg.error.templateGeneratorNotFound'))
@@ -188,10 +197,9 @@ async function parseAndExtractData2(val: UploadFile[]) {
     await templateGenerator.init()
 
     templateGenerator.parse(() => {
-      templateData.value = templateGenerator.getTemplate()
+      templateData.value = templateGenerator!.getTemplate()
+      // TODO(import): remove
       // templateData.value.tables[0].table_name = populateUniqueTableName()
-      // importData.value = templateGenerator.getData()
-
       // if (importOnly) importColumns.value = templateGenerator.getColumns()
       templateEditorModal.value = true
       isParsingData.value = false
@@ -218,9 +226,8 @@ async function parseAndExtractData(val: string | ArrayBuffer) {
 
     templateGenerator.parse(() => {})
     templateData.value = templateGenerator.getTemplate()
-    templateData.value.tables[0].table_name = populateUniqueTableName()
-    importData.value = templateGenerator.getData()
 
+    // TODO(import): check
     if (importOnly) importColumns.value = templateGenerator.getColumns()
 
     templateEditorModal.value = true

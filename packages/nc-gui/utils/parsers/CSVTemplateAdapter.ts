@@ -1,5 +1,5 @@
 import { parse } from 'papaparse'
-import { UploadFile } from 'ant-design-vue'
+import type { UploadFile } from 'ant-design-vue'
 import { UITypes } from 'nocodb-sdk'
 import {
   extractMultiOrSingleSelectProps,
@@ -12,26 +12,23 @@ import {
 
 export default class CSVTemplateAdapter {
   config: Record<string, any>
-  fileName: string
   files: UploadFile[]
   detectedColumnTypes: Record<number, Record<string, number>>
   distinctValues: Record<number, Set<string>>
   headers: Record<number, string[]>
   project: {
-    title: string
     tables: Record<string, any>[]
   }
+
   columnValues: Record<number, []>
 
-  constructor(fileName: string, files: UploadFile[], parserConfig = {}) {
+  constructor(files: UploadFile[], parserConfig = {}) {
     this.config = {
       maxRowsToParse: 500,
       ...parserConfig,
     }
-    this.fileName = fileName // TODO: check usage
     this.files = files
     this.project = {
-      title: this.fileName,
       tables: [],
     }
     this.detectedColumnTypes = {}
@@ -167,10 +164,10 @@ export default class CSVTemplateAdapter {
       let steppers = 0
       parse(file.originFileObj as File, {
         worker: true,
-        step: function (row) {
+        step(row) {
           steppers += 1
           if (row) {
-            if (steppers == 1) {
+            if (steppers === 1) {
               that.initTemplate(tableIdx, file.name!, row.data as [])
             } else {
               that.detectColumnType(row.data as [])
@@ -181,9 +178,9 @@ export default class CSVTemplateAdapter {
             }
           }
         },
-        complete: function () {
+        complete() {
           console.log('complete')
-          console.log('steppers: ' + steppers)
+          console.log(`steppers: ${steppers}`)
           that.updateTemplate(tableIdx)
           console.log(that.project.tables)
           // TODO: enable import button

@@ -22,13 +22,10 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
     maxRowsToParse: number
   } & Record<string, any>
 
-  name: string
-
   excelData: any
 
   project: {
-    title: string
-    tables: any[]
+    tables: Record<string, any>[]
   }
 
   data: Record<string, any> = {}
@@ -37,19 +34,16 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
   xlsx: typeof import('xlsx')
 
-  constructor(name = '', data = {}, parserConfig = {}) {
+  constructor(data = {}, parserConfig = {}) {
     super()
     this.config = {
       maxRowsToParse: 500,
       ...parserConfig,
     }
 
-    this.name = name
-
     this.excelData = data
 
     this.project = {
-      title: this.name,
       tables: [],
     }
 
@@ -64,17 +58,22 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       cellDates: true,
     }
 
-    if (this.name.slice(-3) === 'csv') {
-      this.wb = this.xlsx.read(new TextDecoder().decode(new Uint8Array(this.excelData)), {
-        type: 'string',
-        ...options,
-      })
-    } else {
-      this.wb = this.xlsx.read(new Uint8Array(this.excelData), {
-        type: 'array',
-        ...options,
-      })
-    }
+    // TODO: remove later
+    // if (this.name.slice(-3) === 'csv') {
+    //   this.wb = this.xlsx.read(new TextDecoder().decode(new Uint8Array(this.excelData)), {
+    //     type: 'string',
+    //     ...options,
+    //   })
+    // } else {
+    //   this.wb = this.xlsx.read(new Uint8Array(this.excelData), {
+    //     type: 'array',
+    //     ...options,
+    //   })
+    // }
+    this.wb = this.xlsx.read(new Uint8Array(this.excelData), {
+      type: 'array',
+      ...options,
+    })
   }
 
   parse() {
@@ -94,33 +93,33 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       this.data[tn] = []
       const ws: any = this.wb.Sheets[sheet]
       const range = this.xlsx.utils.decode_range(ws['!ref'])
-      let rows: any = this.xlsx.utils.sheet_to_json(ws, { header: 1, blankrows: false, defval: null })
+      const rows: any = this.xlsx.utils.sheet_to_json(ws, { header: 1, blankrows: false, defval: null })
 
-      if (this.name.slice(-3) !== 'csv') {
-        // fix precision bug & timezone offset issues introduced by xlsx
-        const basedate = new Date(1899, 11, 30, 0, 0, 0)
-        // number of milliseconds since base date
-        const dnthresh = basedate.getTime() + (new Date().getTimezoneOffset() - basedate.getTimezoneOffset()) * 60000
-        // number of milliseconds in a day
-        const day_ms = 24 * 60 * 60 * 1000
-        // handle date1904 property
-        const fixImportedDate = (date: Date) => {
-          const parsed = this.xlsx.SSF.parse_date_code((date.getTime() - dnthresh) / day_ms, {
-            date1904: this.wb.Workbook.WBProps.date1904,
-          })
-          return new Date(parsed.y, parsed.m, parsed.d, parsed.H, parsed.M, parsed.S)
-        }
-        // fix imported date
-        rows = rows.map((r: any) =>
-          r.map((v: any) => {
-            return v instanceof Date ? fixImportedDate(v) : v
-          }),
-        )
-      }
+      // TODO: remove later
+      // if (this.name.slice(-3) !== 'csv') {
+      //   // fix precision bug & timezone offset issues introduced by xlsx
+      //   const basedate = new Date(1899, 11, 30, 0, 0, 0)
+      //   // number of milliseconds since base date
+      //   const dnthresh = basedate.getTime() + (new Date().getTimezoneOffset() - basedate.getTimezoneOffset()) * 60000
+      //   // number of milliseconds in a day
+      //   const day_ms = 24 * 60 * 60 * 1000
+      //   // handle date1904 property
+      //   const fixImportedDate = (date: Date) => {
+      //     const parsed = this.xlsx.SSF.parse_date_code((date.getTime() - dnthresh) / day_ms, {
+      //       date1904: this.wb.Workbook.WBProps.date1904,
+      //     })
+      //     return new Date(parsed.y, parsed.m, parsed.d, parsed.H, parsed.M, parsed.S)
+      //   }
+      //   // fix imported date
+      //   rows = rows.map((r: any) =>
+      //     r.map((v: any) => {
+      //       return v instanceof Date ? fixImportedDate(v) : v
+      //     }),
+      //   )
+      // }
 
       const columnNameRowExist = +rows[0].every((v: any) => v === null || typeof v === 'string')
 
-      // const colLen = Math.max()
       for (let col = 0; col < rows[0].length; col++) {
         let cn: string = ((columnNameRowExist && rows[0] && rows[0][col] && rows[0][col].toString().trim()) || `field_${col + 1}`)
           .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
@@ -193,6 +192,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             column.uidt = UITypes.Currency
           }
         } else if (column.uidt === UITypes.DateTime) {
+          // TODO: centralise
           // hold the possible date format found in the date
           const dateFormat: Record<string, number> = {}
           if (

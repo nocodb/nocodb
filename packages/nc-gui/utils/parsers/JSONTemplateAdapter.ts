@@ -14,25 +14,22 @@ const extractNestedData: any = (obj: any, path: any) => path.reduce((val: any, k
 
 export default class JSONTemplateAdapter extends TemplateGenerator {
   config: Record<string, any>
-  name: string
   data: Record<string, any>
   _jsonData: string | Record<string, any>
   jsonData: Record<string, any>
   project: {
-    title: string
     tables: Record<string, any>[]
   }
+
   columns: object
-  constructor(name = 'test', data: object, parserConfig = {}) {
+  constructor(data: object, parserConfig = {}) {
     super()
     this.config = {
       maxRowsToParse: 500,
       ...parserConfig,
     }
-    this.name = name
     this._jsonData = data
     this.project = {
-      title: this.name,
       tables: [],
     }
     this.jsonData = []

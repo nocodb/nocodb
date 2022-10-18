@@ -1,4 +1,4 @@
-name: Pack latest GUI
+name: Pack latest nocodb-sdk and nc-lib-gui
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  add-gui-package:
+  add-sdk-and-gui-package:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,6 +24,42 @@ jobs:
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
           cache: 'npm'
+
+      - name: Build nocodb-sdk package
+        working-directory: ./packages/nocodb-sdk
+        run: |
+          npm ci
+          npm run build
+
+      - name: remove old nocodb-sdk package
+        working-directory: ./packages/nocodb
+        run: |
+          rm nocodb-sdk-*.tgz
+
+      - name: pack nocodb-sdk package
+        working-directory: ./packages/nocodb-sdk
+        run: |
+          npm pack
+
+      - name: get-npm-version of nocodb-sdk
+        id: nocodb-sdk-version
+        uses: martinbeentjes/npm-get-version-action@main
+        with:
+          path: ./packages/nocodb-sdk
+
+      - name: move-nocodb-sdk-package-to-nocodb
+        run: |
+          mv ./packages/nocodb-sdk/nocodb-sdk-${{ steps.nocodb-sdk-version.outputs.current-version }}.tgz ./packages/nocodb/
+
+      - name: add-nocodb-sdk-to-nc-gui
+        working-directory: ./packages/nc-gui
+        run: |
+          npm install ../nocodb/nocodb-sdk-${{ steps.nocodb-sdk-version.outputs.current-version }}.tgz
+
+      - name: add-nocodb-sdk-to-nocodb-package
+        working-directory: ./packages/nocodb
+        run: |
+          npm install nocodb-sdk-${{ steps.nocodb-sdk-version.outputs.current-version }}.tgz
 
       - name: Build and copy nc-lib-gui package
         working-directory: ./packages/nc-gui

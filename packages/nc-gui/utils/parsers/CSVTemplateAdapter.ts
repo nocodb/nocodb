@@ -107,8 +107,8 @@ export default class CSVTemplateAdapter {
           } else {
             if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
               this.columnValues[columnIdx].push(data[columnIdx])
+              colProps.uidt = UITypes.SingleSelect
             }
-            colProps.uidt = UITypes.SingleSelect
           }
         }
       } else if (colProps.uidt === UITypes.Number) {
@@ -168,6 +168,9 @@ export default class CSVTemplateAdapter {
               Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
           }
         } else if (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) {
+          // assume it is a SingleLineText first
+          this.project.tables[tableIdx].columns[columnIdx].uidt = UITypes.SingleLineText
+          // override with UITypes.SingleSelect or UITypes.MultiSelect if applicable
           Object.assign(
             this.project.tables[tableIdx].columns[columnIdx],
             extractMultiOrSingleSelectProps(this.columnValues[columnIdx]),

@@ -44,6 +44,12 @@ interface Relation {
   type: 'mm' | 'hm'
 }
 
+/**
+ * This util is used to generate the ERD graph elements and layout them
+ *
+ * @param tables
+ * @param props
+ */
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ERDConfig>) {
   const elements = ref<Elements<NodeData | EdgeData>>([])
 
@@ -163,8 +169,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
   }
 
   function createNodes() {
-    return erdTables.value.flatMap<Node<NodeData>[]>((table) => {
-      if (!table.id) return []
+    return erdTables.value.reduce<Node<NodeData>[]>((acc, table) => {
+      if (!table.id) return acc
 
       const columns =
         metasWithIdAsKey.value[table.id].columns?.filter(
@@ -175,23 +181,23 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
 
       const nonPkColumns = columns.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
 
-      return [
-        {
-          id: table.id,
-          data: {
-            table: metasWithIdAsKey.value[table.id],
-            pkAndFkColumns,
-            nonPkColumns,
-            showPkAndFk: config.showPkAndFk,
-            showAllColumns: config.showAllColumns,
-            columnLength: columns.length,
-            color: '',
-          },
-          type: 'custom',
-          position: { x: 0, y: 0 },
-        } as Node<NodeData>,
-      ]
-    })
+      acc.push({
+        id: table.id,
+        data: {
+          table: metasWithIdAsKey.value[table.id],
+          pkAndFkColumns,
+          nonPkColumns,
+          showPkAndFk: config.showPkAndFk,
+          showAllColumns: config.showAllColumns,
+          columnLength: columns.length,
+          color: '',
+        },
+        type: 'custom',
+        position: { x: 0, y: 0 },
+      })
+
+      return acc
+    }, [])
   }
 
   function createEdges() {

@@ -5,6 +5,7 @@ import { ToolbarFieldsPage } from "./Fields";
 import { ToolbarSortPage } from "./Sort";
 import { ToolbarFilterPage } from "./Filter";
 import { ToolbarShareViewPage } from "./ShareView";
+import { ToolbarViewMenuPage } from "./ViewMenu";
 import * as fs from "fs";
 
 export class ToolbarPage extends BasePage {
@@ -13,6 +14,7 @@ export class ToolbarPage extends BasePage {
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
   readonly shareView: ToolbarShareViewPage;
+  readonly viewsMenu: ToolbarViewMenuPage;
 
   constructor(grid: GridPage) {
     super(grid.rootPage);
@@ -21,6 +23,7 @@ export class ToolbarPage extends BasePage {
     this.sort = new ToolbarSortPage(this);
     this.filter = new ToolbarFilterPage(this);
     this.shareView = new ToolbarShareViewPage(this);
+    this.viewsMenu = new ToolbarViewMenuPage(this);
   }
 
   get() {

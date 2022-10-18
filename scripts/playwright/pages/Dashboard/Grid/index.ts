@@ -196,4 +196,74 @@ export class GridPage extends BasePage {
       .locator('[pw-data="grid-load-spinner"]')
       .waitFor({ state: "hidden" });
   }
+
+  async verifyEditDisabled({
+    columnHeader = "Title",
+  }: { columnHeader?: string } = {}) {
+    // double click to toggle to edit mode
+    const cell = this.cell.get({ index: 0, columnHeader: columnHeader });
+    await this.cell.dblclick({
+      index: 0,
+      columnHeader: columnHeader,
+    });
+    expect(await cell.locator("input")).not.toBeVisible();
+
+    // right click menu
+    await this.get().locator(`td[data-pw="cell-${columnHeader}-0"]`).click({
+      button: "right",
+    });
+    expect(
+      await this.rootPage.locator("text=Insert New Row")
+    ).not.toBeVisible();
+
+    // in cell-add
+    await this.cell.get({ index: 0, columnHeader: "City List" }).hover();
+    expect(
+      await this.cell
+        .get({ index: 0, columnHeader: "City List" })
+        .locator(".nc-action-icon.nc-plus")
+    ).not.toBeVisible();
+
+    // expand row
+    await this.cell.get({ index: 0, columnHeader: "City List" }).hover();
+    expect(
+      await this.cell
+        .get({ index: 0, columnHeader: "City List" })
+        .locator(".nc-action-icon >> nth=0")
+    ).not.toBeVisible();
+  }
+
+  async verifyEditEnabled({
+    columnHeader = "Title",
+  }: { columnHeader?: string } = {}) {
+    // double click to toggle to edit mode
+    const cell = this.cell.get({ index: 0, columnHeader: columnHeader });
+    await this.cell.dblclick({
+      index: 0,
+      columnHeader: columnHeader,
+    });
+    expect(await cell.locator("input")).toBeVisible();
+
+    // right click menu
+    await this.get().locator(`td[data-pw="cell-${columnHeader}-0"]`).click({
+      button: "right",
+    });
+    expect(await this.rootPage.locator("text=Insert New Row")).toBeVisible();
+
+    // in cell-add
+    await this.cell.get({ index: 0, columnHeader: "City List" }).hover();
+    expect(
+      await this.cell
+        .get({ index: 0, columnHeader: "City List" })
+        .locator(".nc-action-icon.nc-plus")
+    ).toBeVisible();
+
+    // expand row
+    await this.cell.get({ index: 0, columnHeader: "City List" }).hover();
+    expect(
+      await this.cell
+        .get({ index: 0, columnHeader: "City List" })
+        .locator(".nc-action-icon >> nth=0")
+    ).toBeVisible();
+  }
 }

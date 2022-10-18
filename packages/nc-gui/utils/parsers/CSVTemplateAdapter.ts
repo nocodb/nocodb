@@ -1,5 +1,4 @@
 import { parse } from 'papaparse'
-import TemplateGenerator from './TemplateGenerator'
 import { UploadFile } from 'ant-design-vue'
 import { UITypes } from 'nocodb-sdk'
 import {
@@ -11,7 +10,7 @@ import {
   isUrlType,
 } from '#imports'
 
-export default class CSVTemplateAdapter extends TemplateGenerator {
+export default class CSVTemplateAdapter {
   config: Record<string, any>
   fileName: string
   files: UploadFile[]
@@ -25,7 +24,6 @@ export default class CSVTemplateAdapter extends TemplateGenerator {
   columnValues: Record<number, []>
 
   constructor(fileName: string, files: UploadFile[], parserConfig = {}) {
-    super()
     this.config = {
       maxRowsToParse: 500,
       ...parserConfig,
@@ -107,7 +105,7 @@ export default class CSVTemplateAdapter extends TemplateGenerator {
           if (checkboxType.length === 1) {
             colProps.uidt = UITypes.Checkbox
           } else {
-            if (columnIdx < this.config.maxRowsToParse) {
+            if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
               this.columnValues[columnIdx].push(data[columnIdx])
             }
           }
@@ -117,7 +115,7 @@ export default class CSVTemplateAdapter extends TemplateGenerator {
           colProps.uidt = UITypes.Decimal
         }
       } else if (colProps.uidt === UITypes.DateTime) {
-        if (columnIdx < this.config.maxRowsToParse) {
+        if (data[columnIdx] && columnIdx < this.config.maxRowsToParse) {
           this.columnValues[columnIdx].push(data[columnIdx])
         }
       }
@@ -163,7 +161,7 @@ export default class CSVTemplateAdapter extends TemplateGenerator {
     }
   }
 
-  parse() {
+  parse(callback: Function) {
     const that = this
     for (const [tableIdx, file] of this.files.entries()) {
       let steppers = 0
@@ -190,6 +188,7 @@ export default class CSVTemplateAdapter extends TemplateGenerator {
           console.log(that.project.tables)
           // TODO: enable import button
           // TODO: put info.file.originFileObj to list
+          callback()
         },
       })
     }

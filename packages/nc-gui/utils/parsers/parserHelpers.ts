@@ -55,7 +55,7 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
   const maxSelectOptionsAllowed = 64
   const colProps: any = {}
   if (colData.some((v: any) => v && (v || '').toString().includes(','))) {
-    let flattenedVals = colData.flatMap((v: any) =>
+    const flattenedVals = colData.flatMap((v: any) =>
       v
         ? v
             .toString()
@@ -143,7 +143,7 @@ export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
       colProps.uidt = UITypes.Decimal
     }
   }
-  // TODO: currency
-  // TODO: date / datetime
+  // TODO(import): currency
+  // TODO(import): date / datetime
   return colProps
 }

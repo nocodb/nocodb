@@ -4,7 +4,7 @@ import { DashboardPage } from "..";
 import BasePage from "../../Base";
 import { CellPageObject } from "./Cell";
 import { ColumnPageObject } from "./Column";
-import { ToolbarPage } from "./Toolbar";
+import { ToolbarPage } from "../Toolbar";
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -20,7 +20,7 @@ export class GridPage extends BasePage {
     this.addNewTableButton = dashboardPage.get().locator(".nc-add-new-table");
     this.column = new ColumnPageObject(this);
     this.cell = new CellPageObject(this);
-    this.toolbar = new ToolbarPage(this);
+    this.toolbar = dashboardPage.toolbar;
   }
 
   get() {
@@ -263,7 +263,7 @@ export class GridPage extends BasePage {
     expect(
       await this.cell
         .get({ index: 0, columnHeader: "City List" })
-        .locator(".nc-action-icon >> nth=0")
+        .locator(".nc-action-icon.nc-arrow-expand")
     ).toBeVisible();
   }
 }

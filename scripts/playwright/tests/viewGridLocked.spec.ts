@@ -16,23 +16,23 @@ test.describe("Grid view locked", () => {
     await dashboard.closeTab({ title: "Team & Auth" });
     await dashboard.treeView.openTable({ title: "Country" });
 
-    await dashboard.grid.toolbar.viewsMenu.verifyCollaborativeMode();
+    await dashboard.toolbar.viewsMenu.verifyCollaborativeMode();
 
     // enable view lock
-    await dashboard.grid.toolbar.viewsMenu.click({
+    await dashboard.toolbar.viewsMenu.click({
       menu: "Collaborative View",
       subMenu: "Locked View",
     });
 
     // verify view lock
-    await dashboard.grid.toolbar.viewsMenu.verifyLockMode();
+    await dashboard.toolbar.viewsMenu.verifyLockMode();
 
     // enable collaborative view
-    await dashboard.grid.toolbar.viewsMenu.click({
+    await dashboard.toolbar.viewsMenu.click({
       menu: "Locked View",
       subMenu: "Collaborative View",
     });
 
-    await dashboard.grid.toolbar.viewsMenu.verifyCollaborativeMode();
+    await dashboard.toolbar.viewsMenu.verifyCollaborativeMode();
   });
 });

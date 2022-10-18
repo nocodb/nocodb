@@ -1,5 +1,5 @@
-import BasePage from "../../../Base";
-import { ToolbarPage } from ".";
+import BasePage from "../../Base";
+import { ToolbarPage } from "./index";
 
 export class ToolbarShareViewPage extends BasePage {
   readonly toolbar: ToolbarPage;

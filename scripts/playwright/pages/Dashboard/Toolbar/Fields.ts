@@ -1,5 +1,5 @@
-import BasePage from "../../../Base";
-import { ToolbarPage } from ".";
+import BasePage from "../../Base";
+import { ToolbarPage } from "./index";
 
 export class ToolbarFieldsPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -10,20 +10,23 @@ export class ToolbarFieldsPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator(`[pw-data="grid-fields-menu"]`);
+    return this.rootPage.locator(`[pw-data="nc-fields-menu"]`);
   }
 
   async toggle({ title }: { title: string }) {
     await this.toolbar.clickFields();
     await this.get()
-      .locator(`[pw-data="grid-fields-menu-${title}"]`)
+      .locator(`[pw-data="nc-fields-menu-${title}"]`)
       .locator('input[type="checkbox"]')
       .click();
     await this.toolbar.clickFields();
   }
-  
-  async click({ title}: { title: string }) {
-    await this.get().locator(`[pw-data="grid-fields-menu-${title}"]`).locator('input[type="checkbox"]').click();
-    await this.toolbar.grid.waitLoading();
+
+  async click({ title }: { title: string }) {
+    await this.get()
+      .locator(`[pw-data="nc-fields-menu-${title}"]`)
+      .locator('input[type="checkbox"]')
+      .click();
+    await this.toolbar.waitLoading();
   }
 }

@@ -53,7 +53,7 @@ test.describe("LTAR create & update", () => {
 
     // Expanded form insert
 
-    await dashboard.grid.toolbar.clickAddNewRow();
+    await dashboard.toolbar.clickAddNewRow();
     await dashboard.expandedForm.fillField({
       columnTitle: "Title",
       value: "2a",

@@ -1,9 +1,10 @@
 import { test } from "@playwright/test";
 import { DashboardPage } from "../pages/Dashboard";
 import setup from "../setup";
+import { ToolbarPage } from "../pages/Dashboard/Toolbar";
 
-test.describe.only("Toolbar operations (GRID)", () => {
-  let dashboard: DashboardPage;
+test.describe("Toolbar operations (GRID)", () => {
+  let dashboard: DashboardPage, toolbar: ToolbarPage;
   let context: any;
 
   async function validateFirstRow(value: string) {
@@ -17,6 +18,7 @@ test.describe.only("Toolbar operations (GRID)", () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
+    toolbar = dashboard.toolbar;
   });
 
   test("Hide, Sort, Filter", async () => {
@@ -24,7 +26,6 @@ test.describe.only("Toolbar operations (GRID)", () => {
     await dashboard.closeTab({ title: "Team & Auth" });
 
     await dashboard.treeView.openTable({ title: "Country" });
-    const toolbar = dashboard.grid.toolbar;
 
     await dashboard.grid.column.verify({
       title: "LastUpdate",

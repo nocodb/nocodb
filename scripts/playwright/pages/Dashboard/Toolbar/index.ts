@@ -1,29 +1,32 @@
 import { expect } from "@playwright/test";
-import BasePage from "../../../Base";
-import { GridPage } from "..";
+import BasePage from "../../Base";
 import { ToolbarFieldsPage } from "./Fields";
 import { ToolbarSortPage } from "./Sort";
 import { ToolbarFilterPage } from "./Filter";
 import { ToolbarShareViewPage } from "./ShareView";
 import { ToolbarViewMenuPage } from "./ViewMenu";
 import * as fs from "fs";
+import { DashboardPage } from "..";
+import { GridPage } from "../Grid";
 
 export class ToolbarPage extends BasePage {
-  readonly grid: GridPage;
+  readonly dashboard: DashboardPage;
   readonly fields: ToolbarFieldsPage;
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
   readonly shareView: ToolbarShareViewPage;
   readonly viewsMenu: ToolbarViewMenuPage;
+  readonly grid: GridPage;
 
-  constructor(grid: GridPage) {
-    super(grid.rootPage);
-    this.grid = grid;
+  constructor(dashboard: DashboardPage) {
+    super(dashboard.rootPage);
+    this.dashboard = dashboard;
     this.fields = new ToolbarFieldsPage(this);
     this.sort = new ToolbarSortPage(this);
     this.filter = new ToolbarFilterPage(this);
     this.shareView = new ToolbarShareViewPage(this);
     this.viewsMenu = new ToolbarViewMenuPage(this);
+    this.grid = dashboard.grid;
   }
 
   get() {
@@ -94,6 +97,13 @@ export class ToolbarPage extends BasePage {
   async verifyDownloadDisabled() {
     await this.get()
       .locator(`.nc-toolbar-btn.nc-actions-menu-btn`)
+      .waitFor({ state: "hidden" });
+  }
+
+  async waitLoading() {
+    await this.dashboard
+      .get()
+      .locator('[pw-data="grid-load-spinner"]')
       .waitFor({ state: "hidden" });
   }
 }

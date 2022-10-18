@@ -1,5 +1,5 @@
-import BasePage from "../../../Base";
-import { ToolbarPage } from ".";
+import BasePage from "../../Base";
+import { ToolbarPage } from "./index";
 
 export class ToolbarSortPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -10,7 +10,7 @@ export class ToolbarSortPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator(`[pw-data="grid-sorts-menu"]`);
+    return this.rootPage.locator(`[pw-data="nc-sorts-menu"]`);
   }
 
   async addSort({
@@ -41,7 +41,7 @@ export class ToolbarSortPage extends BasePage {
 
     // close sort menu
     await this.toolbar.clickSort();
-    await this.toolbar.grid.waitLoading();
+    await this.toolbar.waitLoading();
   }
 
   async resetSort() {
@@ -56,7 +56,7 @@ export class ToolbarSortPage extends BasePage {
 
   click({ title }: { title: string }) {
     return this.get()
-      .locator(`[pw-data="grid-fields-menu-${title}"]`)
+      .locator(`[pw-data="nc-fields-menu-${title}"]`)
       .locator('input[type="checkbox"]')
       .click();
   }

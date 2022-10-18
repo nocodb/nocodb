@@ -1,6 +1,6 @@
 import { Locator, expect } from "@playwright/test";
-import BasePage from "../../../Base";
-import { ToolbarPage } from ".";
+import BasePage from "../../Base";
+import { ToolbarPage } from "./index";
 
 export class ToolbarViewMenuPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -55,7 +55,7 @@ export class ToolbarViewMenuPage extends BasePage {
           break;
       }
     }
-    await this.toolbar.grid.waitLoading();
+    await this.toolbar.waitLoading();
   }
 
   async verifyLockMode() {

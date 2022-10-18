@@ -1,5 +1,5 @@
-import BasePage from "../../../Base";
-import { ToolbarPage } from ".";
+import BasePage from "../../Base";
+import { ToolbarPage } from "./index";
 
 export class ToolbarFilterPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -10,7 +10,7 @@ export class ToolbarFilterPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator(`[pw-data="grid-filter-menu"]`);
+    return this.rootPage.locator(`[pw-data="nc-filter-menu"]`);
   }
 
   async addNew({
@@ -41,12 +41,12 @@ export class ToolbarFilterPage extends BasePage {
     await this.rootPage.locator(".nc-filter-value-select").last().fill(value);
 
     await this.toolbar.clickFilter();
-    await this.toolbar.grid.waitLoading();
+    await this.toolbar.waitLoading();
   }
 
   click({ title }: { title: string }) {
     return this.get()
-      .locator(`[pw-data="grid-fields-menu-${title}"]`)
+      .locator(`[pw-data="nc-fields-menu-${title}"]`)
       .locator('input[type="checkbox"]')
       .click();
   }

@@ -36,7 +36,7 @@ export class GalleryPage extends BasePage {
     await this.rootPage.locator(`.nc-fields-menu-btn`).click();
     await this.rootPage.waitForTimeout(1000);
     await this.rootPage
-      .locator(`[pw-data="grid-fields-menu-${title}"]`)
+      .locator(`[pw-data="nc-fields-menu-${title}"]`)
       .locator('input[type="checkbox"]')
       .click();
     await this.rootPage.waitForTimeout(1000);

@@ -134,10 +134,21 @@ export default class User implements UserType {
     return false;
   }
 
-  static async count(ncMeta = Noco.ncMeta) {
-    return (
-      await ncMeta.knex(MetaTable.USERS).count('id', { as: 'count' }).first()
-    )?.count;
+  public static async count(
+    {
+      query = '',
+    }: {
+      query?: string;
+    } = {},
+    ncMeta = Noco.ncMeta
+  ): Promise<number> {
+    const qb = ncMeta.knex(MetaTable.USERS);
+
+    if (query) {
+      qb.where('email', 'like', `%${query.toLowerCase?.()}%`);
+    }
+
+    return (await qb.count('id', { as: 'count' }).first()).count;
   }
 
   static async get(userId, ncMeta = Noco.ncMeta) {

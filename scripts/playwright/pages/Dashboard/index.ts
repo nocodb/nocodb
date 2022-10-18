@@ -9,6 +9,7 @@ import { LinkRecord } from "./Grid/Column/LTAR/LinkRecord";
 import { TreeViewPage } from "./TreeView";
 import { SettingsPage } from "./Settings";
 import { ViewSidebarPage } from "./ViewSidebar";
+import { GalleryPage } from "./Gallery";
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -16,6 +17,7 @@ export class DashboardPage extends BasePage {
   readonly tabBar: Locator;
   readonly treeView: TreeViewPage;
   readonly grid: GridPage;
+  readonly gallery: GalleryPage;
   readonly form: FormPage;
   readonly expandedForm: ExpandedFormPage;
   readonly childList: ChildList;
@@ -30,6 +32,7 @@ export class DashboardPage extends BasePage {
     this.tabBar = rootPage.locator(".nc-tab-bar");
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
+    this.gallery = new GalleryPage(this);
     this.form = new FormPage(this);
     this.expandedForm = new ExpandedFormPage(this);
     this.childList = new ChildList(this);

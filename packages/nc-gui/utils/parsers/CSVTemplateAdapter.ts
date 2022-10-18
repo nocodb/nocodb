@@ -42,10 +42,11 @@ export default class CSVTemplateAdapter {
   initTemplate(tableIdx: number, fileName: string, columnNames: string[]) {
     const columnNameRowExist = +columnNames.every((v: any) => v === null || typeof v === 'string')
     const columnNamePrefixRef: Record<string, any> = { id: 0 }
+    const tn = fileName.replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
 
     this.project.tables.push({
-      table_name: fileName,
-      ref_table_name: fileName,
+      table_name: tn,
+      ref_table_name: tn,
       columns: [],
     })
 

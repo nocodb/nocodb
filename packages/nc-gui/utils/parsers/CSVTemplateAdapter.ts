@@ -87,7 +87,7 @@ export default class CSVTemplateAdapter {
     for (let columnIdx = 0; columnIdx < data.length; columnIdx++) {
       const colData: any = [data[columnIdx]]
       const colProps = { uidt: this.detectInitialUidt(data[columnIdx]) }
-      // TODO: centralise
+      // TODO(import): centralise
       if (colProps.uidt === UITypes.SingleLineText) {
         if (isMultiLineTextType(colData)) {
           colProps.uidt = UITypes.LongText
@@ -145,7 +145,7 @@ export default class CSVTemplateAdapter {
     for (let columnIdx = 0; columnIdx < this.headers[tableIdx].length; columnIdx++) {
       if (this.columnValues[columnIdx].length > 0) {
         if (this.project.tables[tableIdx].columns[columnIdx].uidt === UITypes.DateTime) {
-          // TODO: handle DateTime
+          // TODO(import): handle DateTime
           // set meta
         }
         Object.assign(
@@ -172,7 +172,7 @@ export default class CSVTemplateAdapter {
             } else {
               that.detectColumnType(row.data as [])
             }
-            // TODO: remove
+            // TODO(import): remove
             if (steppers <= 10) {
               console.log('Row:', row.data)
             }
@@ -183,8 +183,8 @@ export default class CSVTemplateAdapter {
           console.log(`steppers: ${steppers}`)
           that.updateTemplate(tableIdx)
           console.log(that.project.tables)
-          // TODO: enable import button
-          // TODO: put info.file.originFileObj to list
+          // TODO(import): enable import button
+          // TODO(import): put info.file.originFileObj to list
           callback()
         },
       })

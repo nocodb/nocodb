@@ -56,7 +56,7 @@ const isParsingData = ref(false)
 const useForm = Form.useForm
 
 const importState = reactive({
-  // TODO: remove
+  // TODO(import): remove
   // fileList: [] as (UploadFile & { data: string | ArrayBuffer })[],
   fileList: [] as UploadFile[],
   url: '',
@@ -139,7 +139,7 @@ async function handlePreImport() {
   isParsingData.value = true
 
   if (activeKey.value === 'uploadTab') {
-    // TODO: update
+    // TODO(import): update
     await parseAndExtractData2(importState.fileList)
   } else if (activeKey.value === 'urlTab') {
     try {
@@ -152,7 +152,7 @@ async function handlePreImport() {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor))
   }
 
-  // TODO: fix
+  // TODO(import): fix
   // loading.value = false
   // isParsingData.value = false
 }
@@ -296,7 +296,7 @@ function getAdapter(val: any) {
       case 'uploadTab':
         return new CSVTemplateAdapter(val, importState.parserConfig)
       case 'urlTab':
-        // TODO: implement one for CSV
+        // TODO(import): implement one for CSV
         return new ExcelUrlTemplateAdapter(val, importState.parserConfig)
     }
   } else if (IsImportTypeExcel.value || isImportTypeCsv.value) {

@@ -58,7 +58,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       cellDates: true,
     }
 
-    // TODO: remove later
+    // TODO(import): remove later
     // if (this.name.slice(-3) === 'csv') {
     //   this.wb = this.xlsx.read(new TextDecoder().decode(new Uint8Array(this.excelData)), {
     //     type: 'string',
@@ -95,7 +95,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       const range = this.xlsx.utils.decode_range(ws['!ref'])
       const rows: any = this.xlsx.utils.sheet_to_json(ws, { header: 1, blankrows: false, defval: null })
 
-      // TODO: remove later
+      // TODO(import): remove later
       // if (this.name.slice(-3) !== 'csv') {
       //   // fix precision bug & timezone offset issues introduced by xlsx
       //   const basedate = new Date(1899, 11, 30, 0, 0, 0)
@@ -192,7 +192,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             column.uidt = UITypes.Currency
           }
         } else if (column.uidt === UITypes.DateTime) {
-          // TODO: centralise
+          // TODO(import): centralise
           // hold the possible date format found in the date
           const dateFormat: Record<string, number> = {}
           if (

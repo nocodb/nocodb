@@ -211,8 +211,7 @@ export default class CSVTemplateAdapter {
               const column = that.project.tables[tableIdx].columns[columnIdx]
               const data = (row.data as [])[columnIdx] === '' ? null : (row.data as [])[columnIdx]
               if (column.uidt === UITypes.Checkbox) {
-                // TODO(import): check type
-                // rowData[column.column_name] = getCheckboxValue(+data)
+                rowData[column.column_name] = getCheckboxValue(data)
                 rowData[column.column_name] = data
               } else if (column.uidt === UITypes.Currency) {
                 rowData[column.column_name] = data

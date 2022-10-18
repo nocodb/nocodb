@@ -41,7 +41,7 @@ export const isCheckboxType: any = (values: [], col = null) => {
   return options
 }
 
-export const getCheckboxValue = (value: number) => {
+export const getCheckboxValue = (value: any) => {
   return value && aggBooleanOptions[value]
 }
 

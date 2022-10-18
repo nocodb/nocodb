@@ -3,6 +3,7 @@ import type { UploadFile } from 'ant-design-vue'
 import { UITypes } from 'nocodb-sdk'
 import {
   extractMultiOrSingleSelectProps,
+  getCheckboxValue,
   isCheckboxType,
   isDecimalType,
   isEmailType,
@@ -175,10 +176,6 @@ export default class CSVTemplateAdapter {
             } else {
               that.detectColumnType(row.data as [])
             }
-            // TODO(import): remove
-            if (steppers <= 10) {
-              console.log('Row:', row.data)
-            }
           }
         },
         complete() {
@@ -199,6 +196,46 @@ export default class CSVTemplateAdapter {
   }
 
   getData() {
+    const that = this
+    for (const [tableIdx, file] of this.files.entries()) {
+      let steppers = 0
+      const tn = file.name.replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
+      this.data[tn] = []
+      parse(file.originFileObj as File, {
+        worker: true,
+        step(row) {
+          steppers += 1
+          if (row && steppers >= 2) {
+            const rowData: Record<string, any> = {}
+            for (let columnIdx = 0; columnIdx < that.headers[tableIdx].length; columnIdx++) {
+              const column = that.project.tables[tableIdx].columns[columnIdx]
+              const data = (row.data as [])[columnIdx] === '' ? null : (row.data as [])[columnIdx]
+              if (column.uidt === UITypes.Checkbox) {
+                // TODO(import): check type
+                // rowData[column.column_name] = getCheckboxValue(+data)
+                rowData[column.column_name] = data
+              } else if (column.uidt === UITypes.Currency) {
+                rowData[column.column_name] = data
+              } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
+                rowData[column.column_name] = (data || '').toString().trim() || null
+              } else if (column.uidt === UITypes.Date) {
+                // TODO(import): check format
+                rowData[column.column_name] = data
+              } else {
+                // TODO(import): do parsing if necessary based on type
+                rowData[column.column_name] = data
+              }
+            }
+            that.data[tn].push(rowData)
+          }
+        },
+        complete() {
+          console.log('getData(): complete')
+          console.log(`getData(): steppers: ${steppers}`)
+          console.log(that.data[tn])
+        },
+      })
+    }
     return this.data
   }
 

@@ -66,43 +66,6 @@ const syncValue = useDebounceFn(
   500,
   { maxWait: 2000 },
 )
-
-const isAutoSaved = $computed(() => {
-  return [
-    UITypes.SingleLineText,
-    UITypes.LongText,
-    UITypes.PhoneNumber,
-    UITypes.Email,
-    UITypes.URL,
-    UITypes.Number,
-    UITypes.Decimal,
-    UITypes.Percent,
-    UITypes.Count,
-    UITypes.AutoNumber,
-    UITypes.SpecificDBType,
-    UITypes.Geometry,
-    UITypes.Duration,
-  ].includes(column?.value?.uidt as UITypes)
-})
-
-const isManualSaved = $computed(() => [UITypes.Currency].includes(column?.value?.uidt as UITypes))
-
-const vModel = computed({
-  get: () => props.modelValue,
-  set: (val) => {
-    if (val !== props.modelValue) {
-      currentRow.value.rowMeta.changed = true
-      emit('update:modelValue', val)
-      if (isAutoSaved) {
-        syncValue()
-      } else if (!isManualSaved) {
-        emit('save')
-        currentRow.value.rowMeta.changed = true
-      }
-    }
-  },
-})
-
 const {
   isPrimary,
   isURL,
@@ -126,7 +89,25 @@ const {
   isMultiSelect,
   isPercent,
   isPhoneNumber,
+  isAutoSaved,
+  isManualSaved,
 } = useColumn(column)
+
+const vModel = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    if (val !== props.modelValue) {
+      currentRow.value.rowMeta.changed = true
+      emit('update:modelValue', val)
+      if (isAutoSaved.value) {
+        syncValue()
+      } else if (!isManualSaved.value) {
+        emit('save')
+        currentRow.value.rowMeta.changed = true
+      }
+    }
+  },
+})
 
 const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   if (isJSON.value) return
@@ -163,7 +144,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     <LazyCellUrl v-else-if="isURL" v-model="vModel" />
     <LazyCellPhoneNumber v-else-if="isPhoneNumber" v-model="vModel" />
     <LazyCellPercent v-else-if="isPercent" v-model="vModel" />
-    <LazyCellCurrency v-else-if="isCurrency" v-model="vModel" />
+    <LazyCellCurrency v-else-if="isCurrency" v-model="vModel" @save="emit('save')" />
     <LazyCellDecimal v-else-if="isDecimal" v-model="vModel" />
     <LazyCellInteger v-else-if="isInt" v-model="vModel" />
     <LazyCellFloat v-else-if="isFloat" v-model="vModel" />

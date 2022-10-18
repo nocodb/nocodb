@@ -54,7 +54,9 @@ const templateEditorModal = ref(false)
 const useForm = Form.useForm
 
 const importState = reactive({
-  fileList: [] as (UploadFile & { data: string | ArrayBuffer })[],
+  // TODO: remove
+  // fileList: [] as (UploadFile & { data: string | ArrayBuffer })[],
+  fileList: [] as UploadFile[],
   url: '',
   jsonEditor: {},
   parserConfig: {
@@ -134,17 +136,17 @@ async function handlePreImport() {
   loading.value = true
 
   if (activeKey.value === 'uploadTab') {
-    await parseAndExtractData(importState.fileList[0].data, importState.fileList[0].name)
+    // TODO: update
+    await parseAndExtractData2(importState.fileList)
   } else if (activeKey.value === 'urlTab') {
     try {
       await validate()
-
-      await parseAndExtractData(importState.url, '')
+      await parseAndExtractData(importState.url)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   } else if (activeKey.value === 'jsonEditorTab') {
-    await parseAndExtractData(JSON.stringify(importState.jsonEditor), '')
+    await parseAndExtractData(JSON.stringify(importState.jsonEditor))
   }
 
   loading.value = false
@@ -164,13 +166,14 @@ async function handleImport() {
   dialogShow.value = false
 }
 
-async function parseAndExtractData(val: string | ArrayBuffer, name: string) {
+// papaparse experiment
+async function parseAndExtractData2(val: UploadFile[]) {
   try {
     templateData.value = null
     importData.value = null
     importColumns.value = []
 
-    const templateGenerator = getAdapter(name, val)
+    const templateGenerator = getAdapter(val)
 
     if (!templateGenerator) {
       message.error(t('msg.error.templateGeneratorNotFound'))
@@ -179,7 +182,36 @@ async function parseAndExtractData(val: string | ArrayBuffer, name: string) {
 
     await templateGenerator.init()
 
-    templateGenerator.parse()
+    templateGenerator.parse(() => {
+      templateData.value = templateGenerator.getTemplate()
+      // templateData.value.tables[0].table_name = populateUniqueTableName()
+      // importData.value = templateGenerator.getData()
+
+      // if (importOnly) importColumns.value = templateGenerator.getColumns()
+
+      templateEditorModal.value = true
+    })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+async function parseAndExtractData(val: string | ArrayBuffer) {
+  try {
+    templateData.value = null
+    importData.value = null
+    importColumns.value = []
+
+    const templateGenerator = getAdapter(val)
+
+    if (!templateGenerator) {
+      message.error(t('msg.error.templateGeneratorNotFound'))
+      return
+    }
+
+    await templateGenerator.init()
+
+    templateGenerator.parse(() => {})
     templateData.value = templateGenerator.getTemplate()
     templateData.value.tables[0].table_name = populateUniqueTableName()
     importData.value = templateGenerator.getData()
@@ -202,27 +234,34 @@ function handleChange(info: UploadChangeParam) {
   const status = info.file.status
 
   if (status !== 'uploading' && status !== 'removed') {
-    const reader = new FileReader()
+    // const reader = new FileReader()
+    // reader.onload = (e: ProgressEvent<FileReader>) => {
+    //   const target = importState.fileList.find((f) => f.uid === info.file.uid)
+    //   if (e.target && e.target.result) {
+    //     /** if the file was pushed into the list by `<a-upload-dragger>` we just add the data to the file */
+    //     if (target) {
+    //       target.data = e.target.result
+    //     } else if (!target) {
+    //       /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
+    //       importState.fileList.push({
+    //         ...info.file,
+    //         status: 'done',
+    //         data: e.target.result,
+    //       })
+    //     }
+    //   }
+    // }
+    // reader.readAsArrayBuffer(info.file.originFileObj!)
 
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      const target = importState.fileList.find((f) => f.uid === info.file.uid)
-
-      if (e.target && e.target.result) {
-        /** if the file was pushed into the list by `<a-upload-dragger>` we just add the data to the file */
-        if (target) {
-          target.data = e.target.result
-        } else if (!target) {
-          /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
-          importState.fileList.push({
-            ...info.file,
-            status: 'done',
-            data: e.target.result,
-          })
-        }
-      }
+    if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
+      /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
+      importState.fileList.push({
+        ...info.file,
+        status: 'done',
+      })
     }
-
-    reader.readAsArrayBuffer(info.file.originFileObj!)
+    console.log(info)
+    console.log(importState.fileList)
   }
 
   if (status === 'done') {
@@ -246,22 +285,30 @@ function populateUniqueTableName() {
   return `Sheet${c}`
 }
 
-function getAdapter(name: string, val: any) {
-  if (IsImportTypeExcel.value || isImportTypeCsv.value) {
+function getAdapter(val: any) {
+  if (isImportTypeCsv.value) {
     switch (activeKey.value) {
       case 'uploadTab':
-        return new ExcelTemplateAdapter(name, val, importState.parserConfig)
+        return new CSVTemplateAdapter(val, importState.parserConfig)
+      case 'urlTab':
+        // TODO: implement one for CSV
+        return new ExcelUrlTemplateAdapter(val, importState.parserConfig)
+    }
+  } else if (IsImportTypeExcel.value || isImportTypeCsv.value) {
+    switch (activeKey.value) {
+      case 'uploadTab':
+        return new ExcelTemplateAdapter(val, importState.parserConfig)
       case 'urlTab':
         return new ExcelUrlTemplateAdapter(val, importState.parserConfig)
     }
   } else if (isImportTypeJson.value) {
     switch (activeKey.value) {
       case 'uploadTab':
-        return new JSONTemplateAdapter(name, val, importState.parserConfig)
+        return new JSONTemplateAdapter(val, importState.parserConfig)
       case 'urlTab':
         return new JSONUrlTemplateAdapter(val, importState.parserConfig)
       case 'jsonEditorTab':
-        return new JSONTemplateAdapter(name, val, importState.parserConfig)
+        return new JSONTemplateAdapter(val, importState.parserConfig)
     }
   }
 

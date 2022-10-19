@@ -6407,8 +6407,7 @@
             "format": "email"
           },
           "roles": {
-            "type": "string",
-            "format": "email"
+            "type": "string"
           },
           "date_of_birth": {
             "type": "string",

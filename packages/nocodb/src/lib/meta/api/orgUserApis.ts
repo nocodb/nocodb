@@ -22,7 +22,7 @@ async function userUpdate(req, res) {
   const user = await User.get(req.params.userId);
 
   if (user.roles.includes(OrgUserRoles.SUPER)) {
-    throw new Error('Cannot update super admin roles');
+    NcError.badRequest('Cannot update super admin roles');
   }
 
   res.json(await User.update(req.params.userId, updteBody));
@@ -32,7 +32,7 @@ async function userDelete(req, res) {
   const user = await User.get(req.params.userId);
 
   if (user.roles.includes(OrgUserRoles.SUPER)) {
-    throw new Error('Cannot delete super admin');
+    NcError.badRequest('Cannot delete super admin');
   }
 
   res.json(await User.delete(req.params.userId));
@@ -49,17 +49,17 @@ router.get(
   ncMetaAclMw(userList, 'userList', [OrgUserRoles.SUPER])
 );
 router.patch(
-  '/api/v1/db/meta/users/:userId',
+  '/api/v1/users/:userId',
   metaApiMetrics,
   ncMetaAclMw(userUpdate, 'userUpdate', [OrgUserRoles.SUPER])
 );
 router.delete(
-  '/api/v1/db/meta/users/:userId',
+  '/api/v1/users/:userId',
   metaApiMetrics,
   ncMetaAclMw(userAdd, 'userAdd', [OrgUserRoles.SUPER])
 );
 router.post(
-  '/api/v1/db/meta/users/:userId',
+  '/api/v1/users/:userId',
   metaApiMetrics,
   ncMetaAclMw(userDelete, 'userDelete', [OrgUserRoles.SUPER])
 );

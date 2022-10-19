@@ -29,4 +29,16 @@ export class ToolbarFieldsPage extends BasePage {
       .click();
     await this.toolbar.parent.waitLoading();
   }
+
+  async hideAll() {
+    await this.toolbar.clickFields();
+    await this.get().locator(`button:has-text("Hide all")`).click();
+    await this.toolbar.clickFields();
+  }
+
+  async showAll() {
+    await this.toolbar.clickFields();
+    await this.get().locator(`button:has-text("Show all")`).click();
+    await this.toolbar.clickFields();
+  }
 }

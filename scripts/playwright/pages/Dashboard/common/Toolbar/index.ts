@@ -9,18 +9,21 @@ import * as fs from "fs";
 import { GridPage } from "../../Grid";
 import { ToolbarActionsPage } from "./Actions";
 import { GalleryPage } from "../../Gallery";
+import { KanbanPage } from "../../Kanban";
 import { FormPage } from "../../Form";
+import { ToolbarStackbyPage } from "./StackBy";
 
 export class ToolbarPage extends BasePage {
-  readonly parent: GridPage | GalleryPage | FormPage;
+  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage;
   readonly fields: ToolbarFieldsPage;
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
   readonly shareView: ToolbarShareViewPage;
   readonly viewsMenu: ToolbarViewMenuPage;
   readonly actions: ToolbarActionsPage;
+  readonly stackBy: ToolbarStackbyPage;
 
-  constructor(parent: GridPage | GalleryPage | FormPage) {
+  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage) {
     super(parent.rootPage);
     this.parent = parent;
     this.fields = new ToolbarFieldsPage(this);
@@ -29,6 +32,7 @@ export class ToolbarPage extends BasePage {
     this.shareView = new ToolbarShareViewPage(this);
     this.viewsMenu = new ToolbarViewMenuPage(this);
     this.actions = new ToolbarActionsPage(this);
+    this.stackBy = new ToolbarStackbyPage(this);
   }
 
   get() {
@@ -43,7 +47,6 @@ export class ToolbarPage extends BasePage {
     // Wait for the menu to close
     if (menuOpen) await this.fields.get().waitFor({ state: "hidden" });
   }
-
 
   async clickFields() {
     const menuOpen = await this.fields.get().isVisible();
@@ -80,6 +83,12 @@ export class ToolbarPage extends BasePage {
     if (menuOpen) await this.shareView.get().waitFor({ state: "hidden" });
   }
 
+  async clickStackByField() {
+    await this.get()
+      .locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn`)
+      .click();
+  }
+
   async clickAddNewRow() {
     await this.get().locator(`.nc-toolbar-btn.nc-add-new-row-btn`).click();
   }
@@ -104,6 +113,17 @@ export class ToolbarPage extends BasePage {
     const expectedData = fs.readFileSync("./fixtures/expectedData.txt", "utf8");
     const file = fs.readFileSync("./at.txt", "utf8");
     await expect(file).toEqual(expectedData);
+  }
+
+  async verifyStackByButton({ title }: { title: string }) {
+    await this.get()
+      .locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn`)
+      .waitFor({ state: "visible" });
+    expect(
+      await this.get().locator(
+        `.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn:has-text("${title}")`
+      )
+    ).toBeVisible();
   }
 
   async verifyDownloadDisabled() {

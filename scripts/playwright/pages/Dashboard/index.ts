@@ -10,6 +10,7 @@ import { TreeViewPage } from "./TreeView";
 import { SettingsPage } from "./Settings";
 import { ViewSidebarPage } from "./ViewSidebar";
 import { GalleryPage } from "./Gallery";
+import { KanbanPage } from "./Kanban";
 import { ToolbarPage } from "./common/Toolbar";
 
 export class DashboardPage extends BasePage {
@@ -20,6 +21,7 @@ export class DashboardPage extends BasePage {
   readonly grid: GridPage;
   readonly gallery: GalleryPage;
   readonly form: FormPage;
+  readonly kanban: KanbanPage;
   readonly expandedForm: ExpandedFormPage;
   readonly childList: ChildList;
   readonly linkRecord: LinkRecord;
@@ -35,6 +37,7 @@ export class DashboardPage extends BasePage {
     this.grid = new GridPage(this);
     this.gallery = new GalleryPage(this);
     this.form = new FormPage(this);
+    this.kanban = new KanbanPage(this);
     this.expandedForm = new ExpandedFormPage(this);
     this.childList = new ChildList(this);
     this.linkRecord = new LinkRecord(this);

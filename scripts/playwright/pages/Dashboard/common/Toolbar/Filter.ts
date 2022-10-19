@@ -41,13 +41,16 @@ export class ToolbarFilterPage extends BasePage {
       .locator(`.ant-select-item:has-text("${opType}")`)
       .click();
 
-    const fillFilter = this.rootPage.locator(".nc-filter-value-select").last().fill(value);
+    const fillFilter = this.rootPage
+      .locator(".nc-filter-value-select")
+      .last()
+      .fill(value);
 
     if (isLocallySaved) {
       await this.waitForResponse({
         uiAction: fillFilter,
         httpMethodsToMatch: ["GET"],
-        requestUrlPathToMatch: `${value.replace(' ', '+')}`,
+        requestUrlPathToMatch: `${value.replace(" ", "+")}`,
       });
     } else {
       await this.waitForResponse({
@@ -56,7 +59,6 @@ export class ToolbarFilterPage extends BasePage {
         requestUrlPathToMatch: "/filters",
       });
     }
-
     await this.toolbar.clickFilter();
   }
 
@@ -69,12 +71,12 @@ export class ToolbarFilterPage extends BasePage {
 
   async resetFilter() {
     await this.toolbar.clickFilter();
-    await this.waitForResponse({
-      uiAction: this.get().locator(".nc-filter-item-remove-btn").click(),
-      httpMethodsToMatch: ["DELETE"],
-      requestUrlPathToMatch: "/api/v1/db/meta/filters/",
-    })
-   
+    await this.get().locator(".nc-filter-item-remove-btn").click();
+    // await this.waitForResponse({
+    //   uiAction: this.get().locator(".nc-filter-item-remove-btn").click(),
+    //   httpMethodsToMatch: ["DELETE"],
+    //   requestUrlPathToMatch: "/api/v1/db/meta/filters/",
+    // });
     await this.toolbar.clickFilter();
   }
 }

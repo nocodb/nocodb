@@ -68,6 +68,8 @@ const importState = reactive({
   parserConfig: {
     maxRowsToParse: 500,
     normalizeNested: true,
+    autoSelectFieldTypes: true,
+    firstRowAsHeaders: true,
     importData: true,
   },
 })
@@ -446,21 +448,33 @@ const beforeUpload = (file: UploadFile) => {
           <a-divider />
 
           <div class="mb-4">
-            <!--          Advanced Settings -->
+            <!-- Advanced Settings -->
             <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
 
-            <a-form-item class="mt-4 mb-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
+            <a-form-item class="!my-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
               <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
             </a-form-item>
 
-            <!--          Flatten nested -->
+            <a-form-item v-if="isImportTypeCsv" class="!my-2">
+              <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes">
+                <span class="caption">Auto-Select Field Types</span>
+              </a-checkbox>
+            </a-form-item>
+
+            <a-form-item v-if="isImportTypeCsv" class="!my-2">
+              <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
+                <span class="caption">Use First Row as Headers</span>
+              </a-checkbox>
+            </a-form-item>
+
+            <!-- Flatten nested -->
             <div v-if="isImportTypeJson" class="mt-3">
               <a-checkbox v-model:checked="importState.parserConfig.normalizeNested">
                 <span class="caption">{{ $t('labels.flattenNested') }}</span>
               </a-checkbox>
             </div>
 
-            <!--          Import Data -->
+            <!-- Import Data -->
             <div v-if="isImportTypeJson" class="mt-4">
               <a-checkbox v-model:checked="importState.parserConfig.importData">{{ $t('labels.importData') }}</a-checkbox>
             </div>

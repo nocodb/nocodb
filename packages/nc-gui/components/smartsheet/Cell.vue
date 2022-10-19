@@ -154,7 +154,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
     <CellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />
     <CellSingleSelect v-else-if="isSingleSelect" v-model="vModel" />
     <CellMultiSelect v-else-if="isMultiSelect" v-model="vModel" />
-    <CellDatePicker v-else-if="isDate" v-model="vModel" />
+    <CellDatePicker v-else-if="isDate" v-model="vModel" :edit-enabled="props.editEnabled" />
     <CellYearPicker v-else-if="isYear" v-model="vModel" />
     <CellDateTimePicker v-else-if="isDateTime" v-model="vModel" />
     <CellTimePicker v-else-if="isTime" v-model="vModel" />

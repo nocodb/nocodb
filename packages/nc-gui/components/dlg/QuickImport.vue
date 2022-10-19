@@ -22,6 +22,7 @@ import {
   useProject,
   useVModel,
 } from '#imports'
+import type { importFileList, streamImportFileList } from '~/lib'
 
 interface Props {
   modelValue: boolean
@@ -60,9 +61,7 @@ const isParsingData = ref(false)
 const useForm = Form.useForm
 
 const importState = reactive({
-  // TODO(import): remove
-  // fileList: [] as (UploadFile & { data: string | ArrayBuffer })[],
-  fileList: [] as UploadFile[],
+  fileList: [] as importFileList | streamImportFileList,
   url: '',
   jsonEditor: {},
   parserConfig: {
@@ -147,8 +146,11 @@ async function handlePreImport() {
   isParsingData.value = true
 
   if (activeKey.value === 'uploadTab') {
-    // TODO(import): update
-    await parseAndExtractData2(importState.fileList)
+    if (isImportTypeCsv) {
+      await parseAndExtractStreamData(importState.fileList as streamImportFileList)
+    } else {
+      await parseAndExtractData((importState.fileList as importFileList)[0].data)
+    }
   } else if (activeKey.value === 'urlTab') {
     try {
       await validate()
@@ -183,8 +185,7 @@ async function handleImport() {
   dialogShow.value = false
 }
 
-// papaparse experiment
-async function parseAndExtractData2(val: UploadFile[]) {
+async function parseAndExtractStreamData(val: UploadFile[]) {
   try {
     templateData.value = null
     importData.value = null
@@ -248,31 +249,32 @@ function rejectDrop(fileList: UploadFile[]) {
 function handleChange(info: UploadChangeParam) {
   const status = info.file.status
   if (status && status !== 'uploading' && status !== 'removed') {
-    // const reader = new FileReader()
-    // reader.onload = (e: ProgressEvent<FileReader>) => {
-    //   const target = importState.fileList.find((f) => f.uid === info.file.uid)
-    //   if (e.target && e.target.result) {
-    //     /** if the file was pushed into the list by `<a-upload-dragger>` we just add the data to the file */
-    //     if (target) {
-    //       target.data = e.target.result
-    //     } else if (!target) {
-    //       /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
-    //       importState.fileList.push({
-    //         ...info.file,
-    //         status: 'done',
-    //         data: e.target.result,
-    //       })
-    //     }
-    //   }
-    // }
-    // reader.readAsArrayBuffer(info.file.originFileObj!)
-
-    if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
-      /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
-      importState.fileList.push({
-        ...info.file,
-        status: 'done',
-      })
+    if (isImportTypeCsv) {
+      if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
+        ;(importState.fileList as streamImportFileList).push({
+          ...info.file,
+          status: 'done',
+        })
+      }
+    } else {
+      const reader = new FileReader()
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        const target = (importState.fileList as importFileList).find((f) => f.uid === info.file.uid)
+        if (e.target && e.target.result) {
+          /** if the file was pushed into the list by `<a-upload-dragger>` we just add the data to the file */
+          if (target) {
+            target.data = e.target.result
+          } else if (!target) {
+            /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
+            importState.fileList.push({
+              ...info.file,
+              status: 'done',
+              data: e.target.result,
+            })
+          }
+        }
+      }
+      reader.readAsArrayBuffer(info.file.originFileObj!)
     }
   }
 

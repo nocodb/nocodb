@@ -1,4 +1,4 @@
-import BasePage from "../../Base";
+import BasePage from "../../../Base";
 import { ToolbarPage } from "./index";
 
 export class ToolbarFilterPage extends BasePage {
@@ -40,8 +40,12 @@ export class ToolbarFilterPage extends BasePage {
 
     await this.rootPage.locator(".nc-filter-value-select").last().fill(value);
 
+    await this.waitForResponse({
+      requestHttpMethod: "POST",
+      requestUrlPathToMatch: "/filters",
+    })
+
     await this.toolbar.clickFilter();
-    await this.toolbar.waitLoading();
   }
 
   click({ title }: { title: string }) {
@@ -54,6 +58,11 @@ export class ToolbarFilterPage extends BasePage {
   async resetFilter() {
     await this.toolbar.clickFilter();
     await this.get().locator(".nc-filter-item-remove-btn").click();
+    await this.waitForResponse({
+      requestHttpMethod: "DELETE",
+      requestUrlPathToMatch: "/api/v1/db/meta/filters/",
+    })
+   
     await this.toolbar.clickFilter();
   }
 }

@@ -212,11 +212,11 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(200);
   }
 
-  async verify({ title, isVisible }: { title: string; isVisible?: boolean }) {
-    if (false === isVisible) {
+  async verify({ title, isVisible = true }: { title: string; isVisible?: boolean }) {
+    if (!isVisible) {
       return expect(
-        await this.rootPage.locator(`th[data-title="${title}"]`).count()
-      ).toBe(0);
+        await this.rootPage.locator(`th[data-title="${title}"]`)
+      ).not.toBeVisible();
     }
     await expect(
       this.rootPage.locator(`th[data-title="${title}"]`)

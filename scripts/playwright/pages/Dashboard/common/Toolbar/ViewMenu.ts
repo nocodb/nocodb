@@ -1,5 +1,6 @@
 import { Locator, expect } from "@playwright/test";
-import BasePage from "../../Base";
+import BasePage from "../../../Base";
+import { GridPage } from "../../Grid";
 import { ToolbarPage } from "./index";
 
 export class ToolbarViewMenuPage extends BasePage {
@@ -55,7 +56,7 @@ export class ToolbarViewMenuPage extends BasePage {
           break;
       }
     }
-    await this.toolbar.waitLoading();
+    await this.toolbar.parent.waitLoading();
   }
 
   async verifyLockMode() {
@@ -74,7 +75,7 @@ export class ToolbarViewMenuPage extends BasePage {
         .locator(`.nc-add-new-row-btn.nc-toolbar-btn > .nc-icon.disabled`)
     ).toBeVisible();
 
-    await this.toolbar.grid.verifyEditDisabled({ columnHeader: "Country" });
+    await (this.toolbar.parent as GridPage).verifyEditDisabled({ columnHeader: "Country" });
   }
 
   async verifyCollaborativeMode() {
@@ -93,6 +94,6 @@ export class ToolbarViewMenuPage extends BasePage {
         .locator(`.nc-add-new-row-btn.nc-toolbar-btn > .nc-icon`)
     ).toBeVisible();
 
-    await this.toolbar.grid.verifyEditEnabled({ columnHeader: "Country" });
+    await (this.toolbar.parent as GridPage).verifyEditEnabled({ columnHeader: "Country" });
   }
 }

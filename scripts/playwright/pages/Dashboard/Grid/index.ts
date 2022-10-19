@@ -4,7 +4,7 @@ import { DashboardPage } from "..";
 import BasePage from "../../Base";
 import { CellPageObject } from "./Cell";
 import { ColumnPageObject } from "./Column";
-import { ToolbarPage } from "../Toolbar";
+import { ToolbarPage } from "../common/Toolbar";
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -20,7 +20,7 @@ export class GridPage extends BasePage {
     this.addNewTableButton = dashboardPage.get().locator(".nc-add-new-table");
     this.column = new ColumnPageObject(this);
     this.cell = new CellPageObject(this);
-    this.toolbar = new ToolbarPage(this.dashboard);
+    this.toolbar = new ToolbarPage(this);
   }
 
   get() {

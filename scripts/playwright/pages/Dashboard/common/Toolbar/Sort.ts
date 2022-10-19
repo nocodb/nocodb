@@ -1,4 +1,4 @@
-import BasePage from "../../Base";
+import BasePage from "../../../Base";
 import { ToolbarPage } from "./index";
 
 export class ToolbarSortPage extends BasePage {
@@ -41,7 +41,7 @@ export class ToolbarSortPage extends BasePage {
 
     // close sort menu
     await this.toolbar.clickSort();
-    await this.toolbar.waitLoading();
+    await this.toolbar.parent.waitLoading();
   }
 
   async resetSort() {

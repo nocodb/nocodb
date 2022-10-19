@@ -1,5 +1,5 @@
 import { ToolbarActionsPage } from ".";
-import { ErdBasePage } from "../../commonBase/Erd";
+import { ErdBasePage } from "../../../commonBase/Erd";
 
 export class ToolbarActionsErdPage extends ErdBasePage {
   readonly toolbarActions: ToolbarActionsPage;

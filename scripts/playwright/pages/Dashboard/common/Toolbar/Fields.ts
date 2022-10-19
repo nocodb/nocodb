@@ -1,4 +1,4 @@
-import BasePage from "../../Base";
+import BasePage from "../../../Base";
 import { ToolbarPage } from "./index";
 
 export class ToolbarFieldsPage extends BasePage {
@@ -27,6 +27,6 @@ export class ToolbarFieldsPage extends BasePage {
       .locator(`[pw-data="nc-fields-menu-${title}"]`)
       .locator('input[type="checkbox"]')
       .click();
-    await this.toolbar.waitLoading();
+    await this.toolbar.parent.waitLoading();
   }
 }

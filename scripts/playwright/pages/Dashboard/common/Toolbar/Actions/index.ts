@@ -1,4 +1,4 @@
-import BasePage from "../../../Base";
+import BasePage from "../../../../Base";
 import { ToolbarPage } from "..";
 import { ToolbarActionsErdPage } from "./Erd";
 

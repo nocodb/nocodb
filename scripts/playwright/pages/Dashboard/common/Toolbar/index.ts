@@ -1,17 +1,18 @@
 import { expect } from "@playwright/test";
-import BasePage from "../../Base";
+import BasePage from "../../../Base";
 import { ToolbarFieldsPage } from "./Fields";
 import { ToolbarSortPage } from "./Sort";
 import { ToolbarFilterPage } from "./Filter";
 import { ToolbarShareViewPage } from "./ShareView";
 import { ToolbarViewMenuPage } from "./ViewMenu";
 import * as fs from "fs";
-import { DashboardPage } from "..";
-import { GridPage } from "../Grid";
+import { GridPage } from "../../Grid";
 import { ToolbarActionsPage } from "./Actions";
+import { GalleryPage } from "../../Gallery";
+import { FormPage } from "../../Form";
 
 export class ToolbarPage extends BasePage {
-  readonly dashboard: DashboardPage;
+  readonly parent: GridPage | GalleryPage | FormPage;
   readonly fields: ToolbarFieldsPage;
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
@@ -19,9 +20,9 @@ export class ToolbarPage extends BasePage {
   readonly viewsMenu: ToolbarViewMenuPage;
   readonly actions: ToolbarActionsPage;
 
-  constructor(dashboard: DashboardPage) {
-    super(dashboard.rootPage);
-    this.dashboard = dashboard;
+  constructor(parent: GridPage | GalleryPage | FormPage) {
+    super(parent.rootPage);
+    this.parent = parent;
     this.fields = new ToolbarFieldsPage(this);
     this.sort = new ToolbarSortPage(this);
     this.filter = new ToolbarFilterPage(this);
@@ -108,13 +109,6 @@ export class ToolbarPage extends BasePage {
   async verifyDownloadDisabled() {
     await this.get()
       .locator(`.nc-toolbar-btn.nc-actions-menu-btn`)
-      .waitFor({ state: "hidden" });
-  }
-
-  async waitLoading() {
-    await this.dashboard
-      .get()
-      .locator('[pw-data="grid-load-spinner"]')
       .waitFor({ state: "hidden" });
   }
 }

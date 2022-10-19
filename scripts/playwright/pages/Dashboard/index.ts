@@ -10,7 +10,7 @@ import { TreeViewPage } from "./TreeView";
 import { SettingsPage } from "./Settings";
 import { ViewSidebarPage } from "./ViewSidebar";
 import { GalleryPage } from "./Gallery";
-import { ToolbarPage } from "./Toolbar";
+import { ToolbarPage } from "./common/Toolbar";
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -25,7 +25,6 @@ export class DashboardPage extends BasePage {
   readonly linkRecord: LinkRecord;
   readonly settings: SettingsPage;
   readonly viewSidebar: ViewSidebarPage;
-  readonly toolbar: ToolbarPage;
 
   constructor(rootPage: Page, project: any) {
     super(rootPage);
@@ -41,7 +40,6 @@ export class DashboardPage extends BasePage {
     this.linkRecord = new LinkRecord(this);
     this.settings = new SettingsPage(this);
     this.viewSidebar = new ViewSidebarPage(this);
-    this.toolbar = new ToolbarPage(this);
   }
 
   get() {

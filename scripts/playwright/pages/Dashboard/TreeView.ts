@@ -77,6 +77,7 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteTable({ title }: { title: string }) {
+    const tabCount = await this.rootPage.locator('.nc-container').count()
     await this.get()
       .locator(`.nc-project-tree-tbl-${title}`)
       .click({ button: "right" });
@@ -90,6 +91,9 @@ export class TreeViewPage extends BasePage {
       requestHttpMethod: "DELETE",
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
     });
+    await expect.poll(async () => await this.rootPage.locator('.nc-container').count() === tabCount - 1).toBe(true);
+
+    (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async renameTable({ title, newTitle }: { title: string; newTitle: string }) {

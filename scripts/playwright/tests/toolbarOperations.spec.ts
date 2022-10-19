@@ -1,7 +1,8 @@
 import { test } from "@playwright/test";
 import { DashboardPage } from "../pages/Dashboard";
+import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
 import setup from "../setup";
-import { ToolbarPage } from "../pages/Dashboard/Toolbar";
+
 
 test.describe("Toolbar operations (GRID)", () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage;
@@ -18,7 +19,7 @@ test.describe("Toolbar operations (GRID)", () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
-    toolbar = dashboard.toolbar;
+    toolbar = dashboard.grid.toolbar;
   });
 
   test("Hide, Sort, Filter", async () => {

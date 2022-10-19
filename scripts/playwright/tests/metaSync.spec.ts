@@ -33,7 +33,7 @@ test.describe("Meta sync", () => {
     test.setTimeout(process.env.CI ? 100000 : 70000);
 
     await dashboard.gotoSettings();
-    await settings.selectTab({tab: SettingTab['Project Metadata']});
+    await settings.selectTab({tab: SettingTab.ProjectMetadata});
 
     await dbExec(
       `CREATE TABLE ${projectPrefix}table1 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`
@@ -230,16 +230,16 @@ test.describe("Meta sync", () => {
 
     await dashboard.treeView.openTable({ title: "Table1" });
 
-    await dashboard.toolbar.clickFields();
-    await dashboard.toolbar.fields.click({ title: "Col1" });
-    await dashboard.toolbar.clickFields();
+    await dashboard.grid.toolbar.clickFields();
+    await dashboard.grid.toolbar.fields.click({ title: "Col1" });
+    await dashboard.grid.toolbar.clickFields();
 
-    await dashboard.toolbar.sort.addSort({
+    await dashboard.grid.toolbar.sort.addSort({
       columnTitle: "Col1",
       isAscending: false,
     });
 
-    await dashboard.toolbar.filter.addNew({
+    await dashboard.grid.toolbar.filter.addNew({
       columnTitle: "Col1",
       opType: ">=",
       value: "5",

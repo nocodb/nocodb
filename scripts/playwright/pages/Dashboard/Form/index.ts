@@ -2,10 +2,11 @@
 import { Locator, expect } from "@playwright/test";
 import { DashboardPage } from "..";
 import BasePage from "../../Base";
+import { ToolbarPage } from "../common/Toolbar";
 
 export class FormPage extends BasePage {
   readonly dashboard: DashboardPage;
-  readonly dashboardPage: DashboardPage;
+  readonly toolbar: ToolbarPage;
 
   readonly addAllButton: Locator;
   readonly removeAllButton: Locator;
@@ -19,35 +20,37 @@ export class FormPage extends BasePage {
   readonly formSubHeading: Locator;
   readonly afterSubmitMsg: Locator;
 
-  constructor(dashboardPage: DashboardPage) {
-    super(dashboardPage.rootPage);
-    this.dashboard = dashboardPage;
-    this.addAllButton = dashboardPage
+  constructor(dashboard: DashboardPage) {
+    super(dashboard.rootPage);
+    this.dashboard = dashboard;
+    this.toolbar = new ToolbarPage(this);
+    
+    this.addAllButton = dashboard
       .get()
       .locator('[data-pw="nc-form-add-all"]');
-    this.removeAllButton = dashboardPage
+    this.removeAllButton = dashboard
       .get()
       .locator('[data-pw="nc-form-remove-all"]');
-    this.submitButton = dashboardPage
+    this.submitButton = dashboard
       .get()
       .locator('[data-pw="nc-form-submit"]');
 
-    this.showAnotherFormRadioButton = dashboardPage
+    this.showAnotherFormRadioButton = dashboard
       .get()
       .locator('[data-pw="nc-form-checkbox-submit-another-form"]');
-    this.showAnotherFormAfter5SecRadioButton = dashboardPage
+    this.showAnotherFormAfter5SecRadioButton = dashboard
       .get()
       .locator('[data-pw="nc-form-checkbox-show-blank-form"]');
-    this.emailMeRadioButton = dashboardPage
+    this.emailMeRadioButton = dashboard
       .get()
       .locator('[data-pw="nc-form-checkbox-send-email"]');
-    this.formHeading = dashboardPage
+    this.formHeading = dashboard
       .get()
       .locator('[data-pw="nc-form-heading"]');
-    this.formSubHeading = dashboardPage
+    this.formSubHeading = dashboard
       .get()
       .locator('[data-pw="nc-form-sub-heading"]');
-    this.afterSubmitMsg = dashboardPage
+    this.afterSubmitMsg = dashboard
       .get()
       .locator('[data-pw="nc-form-after-submit-msg"]');
   }
@@ -244,6 +247,10 @@ export class FormPage extends BasePage {
     return this.getFormAfterSubmit().locator(
       'button:has-text("Submit Another Form")'
     );
+  }
+
+  async waitLoading() {
+    await this.rootPage.waitForTimeout(1000);
   }
 
   verifyAfterSubmitMenuState(param: {

@@ -2,14 +2,16 @@
 import { Locator, expect } from "@playwright/test";
 import { DashboardPage } from "..";
 import BasePage from "../../Base";
+import { ToolbarPage } from "../common/Toolbar";
 
 export class GalleryPage extends BasePage {
   readonly dashboard: DashboardPage;
-  readonly dashboardPage: DashboardPage;
+  readonly toolbar: ToolbarPage;
 
-  constructor(dashboardPage: DashboardPage) {
-    super(dashboardPage.rootPage);
-    this.dashboard = dashboardPage;
+  constructor(dashboard: DashboardPage) {
+    super(dashboard.rootPage);
+    this.dashboard = dashboard;
+    this.toolbar = new ToolbarPage(this);
   }
 
   get() {
@@ -41,5 +43,9 @@ export class GalleryPage extends BasePage {
       .click();
     await this.rootPage.waitForTimeout(1000);
     await this.rootPage.locator(`.nc-fields-menu-btn`).click();
+  }
+
+  async waitLoading() {
+    await this.rootPage.waitForTimeout(1000);
   }
 }

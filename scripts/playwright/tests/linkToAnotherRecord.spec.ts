@@ -2,7 +2,7 @@ import { test } from "@playwright/test";
 import { DashboardPage } from "../pages/Dashboard";
 import setup from "../setup";
 
-test.describe("LTAR create & update", () => {
+test.describe.only("LTAR create & update", () => {
   let dashboard: DashboardPage;
   let context: any;
 

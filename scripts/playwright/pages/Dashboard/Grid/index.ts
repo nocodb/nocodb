@@ -66,7 +66,7 @@ export class GridPage extends BasePage {
     const rowCount = await this.get().locator(".nc-grid-row").count();
     await this.get().locator(".nc-grid-add-new-cell").click();
 
-    expect
+    await expect
       .poll(async () => await this.get().locator(".nc-grid-row").count())
       .toBe(rowCount + 1);
 

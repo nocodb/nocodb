@@ -18,6 +18,4 @@ noco.db*
 /docker/main.js
 test_meta.db
 test_sakila.db
-test_noco.db-shm
-test_noco.db-wal
 .env

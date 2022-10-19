@@ -21,7 +21,7 @@ export default function (
           roles?.editor ||
           roles?.viewer ||
           roles?.commenter ||
-          roles?.[OrgUserRoles.SUPER] ||a
+          roles?.[OrgUserRoles.SUPER] ||
           roles?.[OrgUserRoles.CREATOR] ||
           roles?.[OrgUserRoles.VIEWER]
         )

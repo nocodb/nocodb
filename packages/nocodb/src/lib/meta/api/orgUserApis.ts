@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { OrgUserRoles } from '../../../enums/OrgUserRoles';
 import User from '../../models/User';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { NcError } from '../helpers/catchError';
 import { extractProps } from '../helpers/extractProps';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
@@ -37,8 +38,8 @@ async function userDelete(req, res) {
   res.json(await User.delete(req.params.userId));
 }
 
-async function userAdd(req, res) {
-
+async function userAdd(_req, _res) {
+  NcError.notImplemented();
 }
 
 const router = Router({ mergeParams: true });

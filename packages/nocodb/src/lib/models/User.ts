@@ -1,4 +1,5 @@
 import { UserType } from 'nocodb-sdk';
+import { NcError } from '../meta/helpers/catchError'
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import { extractProps } from '../meta/helpers/extractProps';
@@ -151,7 +152,7 @@ export default class User implements UserType {
     return (await qb.count('id', { as: 'count' }).first()).count;
   }
 
-  static async get(userId, ncMeta = Noco.ncMeta) {
+  static async get(userId, ncMeta = Noco.ncMeta): Promise<UserType> {
     let user =
       userId &&
       (await NocoCache.get(
@@ -224,5 +225,9 @@ export default class User implements UserType {
     await NocoCache.delAll(CacheScope.USER, `${userId}___*`);
     await NocoCache.del(`${CacheScope.USER}:${userId}`);
     await ncMeta.metaDelete(null, null, MetaTable.USERS, userId);
+  }
+
+  static async delete(_userId:string) {
+    NcError.notImplemented()
   }
 }

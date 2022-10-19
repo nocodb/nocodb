@@ -1,3 +1,4 @@
+import orgUserApis from './orgUserApis'
 import projectApis from './projectApis';
 import tableApis from './tableApis';
 import columnApis from './columnApis';
@@ -87,6 +88,7 @@ export default function (router: Router, server) {
   router.use(hookApis);
   router.use(pluginApis);
   router.use(projectUserApis);
+  router.use(orgUserApis);
   router.use(sharedBaseApis);
   router.use(modelVisibilityApis);
   router.use(metaDiffApis);

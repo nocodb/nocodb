@@ -1,4 +1,3 @@
-import { OrgUserRoles } from '../../../../enums/OrgUserRoles';
 import User from '../../../models/User';
 import ProjectUser from '../../../models/ProjectUser';
 import { promisify } from 'util';
@@ -93,11 +92,11 @@ export function initStrategies(router): void {
       },
       async (req, jwtPayload, done) => {
         // todo: improve this
-        if (req.roles.split(',').includes(OrgUserRoles.SUPER)) {
-          return User.getByEmail(jwtPayload?.email).then(async (user) => {
-            return done(null, { ...user, roles: 'owner,creator' });
-          });
-        }
+        // if (req.roles.split(',').includes(OrgUserRoles.SUPER)) {
+        //   return User.getByEmail(jwtPayload?.email).then(async (user) => {
+        //     return done(null, { ...user, roles: 'owner,creator' });
+        //   });
+        // }
 
         const keyVals = [jwtPayload?.email];
         if (req.ncProjectId) {

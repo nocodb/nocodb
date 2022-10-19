@@ -29,6 +29,7 @@ export default class CSVTemplateAdapter {
   constructor(files: UploadFile[], parserConfig = {}) {
     this.config = {
       maxRowsToParse: 500,
+      firstRowAsHeaders: true,
       ...parserConfig,
     }
     this.files = files
@@ -213,7 +214,19 @@ export default class CSVTemplateAdapter {
           steppers += 1
           if (row) {
             if (steppers === 1) {
-              that.initTemplate(tableIdx, tn, row.data as [])
+              if (that.config.header) {
+                // row.data is header
+                that.initTemplate(tableIdx, tn, row.data as [])
+              } else {
+                // use dummy column names as header
+                that.initTemplate(
+                  tableIdx,
+                  tn,
+                  [...Array((row.data as []).length)].map((_, i) => `column${i + 1}`),
+                )
+                // row.data is data
+                that.detectColumnType(tableIdx, row.data as [])
+              }
             } else {
               that.detectColumnType(tableIdx, row.data as [])
             }

@@ -73,8 +73,15 @@ const deleteUser = async (userId: string) => {
 <template>
   <div class=" h-full overflow-y-scroll scrollbar-thin-dull">
     <div class="max-w-[700px] mx-auto p-4">
-      <a-input-search size="small" class="my-4 max-w-[300px]" placeholder="Filter by email" v-model:value="searchText"
-                      @change="loadUsers" @keydown.enter="loadUsers"></a-input-search>
+      <div class="py-2 flex"><a-input-search size="small" class=" max-w-[300px]" placeholder="Filter by email" v-model:value="searchText"
+                      @blur="loadUsers" @keydown.enter="loadUsers"></a-input-search>
+        <div class="flex-grow"></div>
+        <a-button size="small">
+          <div class="flex items-center gap-1">
+          <MdiAdd/> Add new user
+          </div>
+        </a-button>
+      </div>
       <a-table
         :row-key="(record) => record.id"
         :data-source="users"

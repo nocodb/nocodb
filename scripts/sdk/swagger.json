@@ -481,7 +481,7 @@
         },
         "description": "",
         "tags": [
-          "OrgUsers"
+          "Org users"
         ]
       },
       "parameters": [],
@@ -532,7 +532,7 @@
           }
         },
         "tags": [
-          "OrgUsers"
+          "Org users"
         ],
         "description": "",
         "requestBody": {
@@ -555,7 +555,7 @@
           }
         },
         "tags": [
-          "OrgUsers"
+          "Org users"
         ],
         "description": ""
       }

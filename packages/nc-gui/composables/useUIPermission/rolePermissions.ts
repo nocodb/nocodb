@@ -41,11 +41,13 @@ const rolePermissions = {
     column: true,
     rowComments: true,
     projectSettings: true,
+    filterSync: true,
   },
   [ProjectRole.Viewer]: {
     smartSheet: true,
     column: true,
     projectSettings: true,
+    filterSync: true,
   },
 } as const
 

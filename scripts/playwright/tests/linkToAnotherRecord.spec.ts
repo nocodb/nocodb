@@ -6,12 +6,15 @@ test.describe("LTAR create & update", () => {
   let dashboard: DashboardPage;
   let context: any;
 
+  // todo: Break the test into smaller tests
+  test.setTimeout(150000);
+
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test.only("LTAR", async () => {
+  test("LTAR", async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: "Team & Auth" });
 

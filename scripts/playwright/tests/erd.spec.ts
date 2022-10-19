@@ -13,6 +13,9 @@ test.describe("Erd", () => {
   let project: any;
   let sakilaTables, sakilaSqlViews;
 
+  // todo: Break the test into smaller tests
+  test.setTimeout(150000);
+
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);

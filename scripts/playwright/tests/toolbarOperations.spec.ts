@@ -34,7 +34,6 @@ test.describe("Toolbar operations (GRID)", () => {
     });
 
     // hide column
-    console.log("hide column");
     await toolbar.fields.toggle({ title: "LastUpdate" });
     await dashboard.grid.column.verify({
       title: "LastUpdate",
@@ -42,7 +41,6 @@ test.describe("Toolbar operations (GRID)", () => {
     });
 
     // un-hide column
-    console.log("un-hide column");
     await toolbar.fields.toggle({ title: "LastUpdate" });
     await dashboard.grid.column.verify({
       title: "LastUpdate",
@@ -51,26 +49,23 @@ test.describe("Toolbar operations (GRID)", () => {
 
     await validateFirstRow("Afghanistan");
     // Sort column
-    console.log("sort column");
-    await toolbar.sort.addSort({ columnTitle: "Country", isAscending: false });
+    await toolbar.sort.addSort({ columnTitle: "Country", isAscending: false, isLocallySaved: true });
     await validateFirstRow("Zambia");
 
     // reset sort
-    console.log("reset sort");
     await toolbar.sort.resetSort();
     await validateFirstRow("Afghanistan");
 
     // Filter column
-    console.log("filter column");
     await toolbar.filter.addNew({
       columnTitle: "Country",
       value: "India",
       opType: "is equal",
+      isLocallySaved: true
     });
     await validateFirstRow("India");
 
     // Reset filter
-    console.log("reset filter");
     await toolbar.filter.resetFilter();
     await validateFirstRow("Afghanistan");
 

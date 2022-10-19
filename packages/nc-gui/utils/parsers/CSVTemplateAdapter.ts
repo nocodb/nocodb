@@ -141,11 +141,11 @@ export default class CSVTemplateAdapter {
     const detectedColTypes = this.detectedColumnTypes[columnIdx]
     const len = Object.keys(detectedColTypes).length
     // all records are null
-    if (len == 0) {
+    if (len === 0) {
       return UITypes.SingleLineText
     }
     // handle numeric case
-    if (len == 2 && UITypes.Number in detectedColTypes && UITypes.Decimal in detectedColTypes) {
+    if (len === 2 && UITypes.Number in detectedColTypes && UITypes.Decimal in detectedColTypes) {
       if (detectedColTypes[UITypes.Number] > detectedColTypes[UITypes.Decimal]) {
         return UITypes.Number
       }
@@ -170,7 +170,7 @@ export default class CSVTemplateAdapter {
         if (uidt === UITypes.DateTime) {
           const dateFormat: Record<string, number> = {}
           if (
-            this.columnValues[columnIdx].slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
+            this.columnValues[columnIdx].slice(1, this.config.maxRowsToParse).every((v: any) => {
               const isDate = v.split(' ').length === 1
               if (isDate) {
                 dateFormat[getDateFormat(v)] = (dateFormat[getDateFormat(v)] || 0) + 1
@@ -208,7 +208,7 @@ export default class CSVTemplateAdapter {
       let steppers = 0
       const tn = file.name.replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
       parse(file.originFileObj as File, {
-        worker: true,
+        skipEmptyLines: 'greedy',
         step(row) {
           steppers += 1
           if (row) {

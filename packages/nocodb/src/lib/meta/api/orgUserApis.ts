@@ -17,7 +17,7 @@ async function userList(req, res) {
 }
 
 async function userUpdate(req, res) {
-  const updteBody = extractProps(req.body, ['role']);
+  const updateBody = extractProps(req.body, ['roles']);
 
   const user = await User.get(req.params.userId);
 
@@ -25,7 +25,7 @@ async function userUpdate(req, res) {
     NcError.badRequest('Cannot update super admin roles');
   }
 
-  res.json(await User.update(req.params.userId, updteBody));
+  res.json(await User.update(req.params.userId, updateBody));
 }
 
 async function userDelete(req, res) {

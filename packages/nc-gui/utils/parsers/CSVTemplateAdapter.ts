@@ -138,32 +138,29 @@ export default class CSVTemplateAdapter {
   }
 
   getPossibleUidt(columnIdx: number) {
-    const len = Object.keys(this.detectedColumnTypes[columnIdx]).length
+    const detectedColTypes = this.detectedColumnTypes[columnIdx]
+    const len = Object.keys(detectedColTypes).length
     // all records are null
     if (len == 0) {
       return UITypes.SingleLineText
     }
     // handle numeric case
-    if (
-      Object.keys(this.detectedColumnTypes[columnIdx]).length == 2 &&
-      UITypes.Number in this.detectedColumnTypes[columnIdx] &&
-      UITypes.Decimal in this.detectedColumnTypes[columnIdx]
-    ) {
-      if (this.detectedColumnTypes[columnIdx][UITypes.Number] > this.detectedColumnTypes[columnIdx][UITypes.Decimal]) {
+    if (len == 2 && UITypes.Number in detectedColTypes && UITypes.Decimal in detectedColTypes) {
+      if (detectedColTypes[UITypes.Number] > detectedColTypes[UITypes.Decimal]) {
         return UITypes.Number
       }
       return UITypes.Decimal
     }
     // if there are multiple detected column types
     // then return either LongText or SingleLineText
-    if (Object.keys(this.detectedColumnTypes[columnIdx]).length > 1) {
-      if (UITypes.LongText in this.detectedColumnTypes[columnIdx]) {
+    if (len > 1) {
+      if (UITypes.LongText in detectedColTypes) {
         return UITypes.LongText
       }
       return UITypes.SingleLineText
     }
     // otherwise, all records have the same column type
-    return Object.keys(this.detectedColumnTypes[columnIdx])[0]
+    return Object.keys(detectedColTypes)[0]
   }
 
   updateTemplate(tableIdx: number) {

@@ -446,7 +446,7 @@ export default async (
           // TODO fix record mapping (this causes every record to map first option, we can't handle them using data api as they don't provide option id within data we might instead get the correct mapping from schema file )
           let dupNo = 1;
           const defaultName = (value as any).name;
-          while (options.find((el) => el.title === (value as any).name)) {
+          while (options.find((el) => el.title.toLowerCase() === (value as any).name.toLowerCase())) {
             (value as any).name = `${defaultName}_${dupNo++}`;
           }
           options.push({
@@ -577,11 +577,15 @@ export default async (
             ncCol.colOptions = {
               options: [...colOptions.data],
             };
-            // if options are empty, configure '' as default option
-            ncCol.dtxp =
-              colOptions.data
-                .map((el) => `'${el.title.replace(/'/gi, "''")}'`)
-                .join(',') || "''";
+
+            if (['mysql', 'mysql2'].includes(getRootDbType())) {
+              // if options are empty, configure '' as an option
+              ncCol.dtxp =
+                colOptions.data
+                  .map((el) => `'${el.title.replace(/'/gi, "''")}'`)
+                  .join(',') || "''";
+            }
+            
             break;
           case undefined:
             break;

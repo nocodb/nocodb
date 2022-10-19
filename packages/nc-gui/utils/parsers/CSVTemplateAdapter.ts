@@ -10,6 +10,7 @@ import {
   isEmailType,
   isMultiLineTextType,
   isUrlType,
+  validateDateWithUnknownFormat,
 } from '#imports'
 
 export default class CSVTemplateAdapter {
@@ -81,13 +82,15 @@ export default class CSVTemplateAdapter {
 
   detectInitialUidt(v: string) {
     if (!isNaN(Number(v)) && !isNaN(parseFloat(v))) return UITypes.Number
-    if (!isNaN(new Date(v).getDate())) return UITypes.DateTime
+    if (validateDateWithUnknownFormat(v)) return UITypes.DateTime
     if (['true', 'True', 'false', 'False', '1', '0', 'T', 'F', 'Y', 'N'].includes(v)) return UITypes.Checkbox
     return UITypes.SingleLineText
   }
 
   detectColumnType(tableIdx: number, data: []) {
     for (let columnIdx = 0; columnIdx < data.length; columnIdx++) {
+      // skip null data
+      if (!data[columnIdx]) continue
       const colData: any = [data[columnIdx]]
       const colProps = { uidt: this.detectInitialUidt(data[columnIdx]) }
       // TODO(import): centralise
@@ -135,6 +138,11 @@ export default class CSVTemplateAdapter {
   }
 
   getPossibleUidt(columnIdx: number) {
+    const len = Object.keys(this.detectedColumnTypes[columnIdx]).length
+    // all records are null
+    if (len == 0) {
+      return UITypes.SingleLineText
+    }
     // if there are multiple detected column types
     // then return either LongText or SingleLineText
     if (Object.keys(this.detectedColumnTypes[columnIdx]).length > 1) {
@@ -166,6 +174,9 @@ export default class CSVTemplateAdapter {
             // take the date format with the max occurrence
             this.project.tables[tableIdx].columns[columnIdx].meta.date_format =
               Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
+          } else {
+            // Datetime
+            this.project.tables[tableIdx].columns[columnIdx].uidt = uidt
           }
         } else if (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) {
           // assume it is a SingleLineText first

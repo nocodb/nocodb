@@ -227,7 +227,7 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
   const dateFormatMap: Record<number, string> = {}
   return batchData.map((data) =>
     (columns || []).reduce((aggObj, col: Record<string, any>) => {
-      let d = data[col.ref_column_name || col.column_name]
+      let d = data[col.column_name || col.ref_column_name]
       if (col.uidt === UITypes.Date && d) {
         let dateFormat
         if (col?.meta?.date_format) {
@@ -242,13 +242,13 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
         d = dayjs(d).utc().format(dateFormat)
       } else if (col.uidt === UITypes.DateTime && d) {
         // TODO: handle more formats for DateTime
-        d = dayjs(data[col.ref_column_name || col.column_name])
+        d = dayjs(data[col.column_name || col.ref_column_name])
           .utc()
           .format('YYYY-MM-DD HH:mm')
       }
       return {
         ...aggObj,
-        [col.column_name]: d,
+        [col.column_name || col.ref_column_name]: d,
       }
     }, {}),
   )

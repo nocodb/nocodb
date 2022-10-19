@@ -104,7 +104,9 @@
       "creator": "Creator",
       "editor": "Editor",
       "commenter": "Commenter",
-      "viewer": "Viewer"
+      "viewer": "Viewer",
+      "orgLevelCreator" : "Organization level creator",
+      "orgLevelViewer" : "Organization level viewer"
     },
     "sqlVIew": "SQL View"
   },

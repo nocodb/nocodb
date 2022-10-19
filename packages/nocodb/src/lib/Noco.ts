@@ -108,7 +108,7 @@ export default class Noco {
       process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED = 'true';
     }
 
-    this.router = express.Router();s
+    this.router = express.Router();
     this.projectRouter = express.Router();
 
     /* prepare config */

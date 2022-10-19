@@ -571,7 +571,7 @@ watch(
                         :pw-data="`nc-expand-${rowIndex}`"
                         :class="{ 'nc-comment': row.rowMeta?.commentCount }"
                       >
-                        <a-spin v-if="row.rowMeta.saving" class="!flex items-center" />
+                        <a-spin v-if="row.rowMeta.saving" class="!flex items-center" :pw="`row-save-spinner-${rowIndex}`" />
                         <template v-else>
                           <span
                             v-if="row.rowMeta?.commentCount"

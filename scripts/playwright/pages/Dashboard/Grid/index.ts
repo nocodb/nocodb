@@ -39,11 +39,30 @@ export class GridPage extends BasePage {
     return expect(await this.get().locator(".nc-grid-row").count()).toBe(count);
   }
 
+  private async _fillRow({
+    index,
+    columnHeader,
+    value,
+  }: {
+    index: number;
+    columnHeader: string;
+    value: string;
+  }) {
+    const cell = this.cell.get({ index, columnHeader });
+    await this.cell.dblclick({
+      index,
+      columnHeader,
+    });
+
+    await cell.locator("input").fill(value);
+  }
+
   async addNewRow({
     index = 0,
     columnHeader = "Title",
     value,
   }: { index?: number; columnHeader?: string; value?: string } = {}) {
+    const rowValue = value ?? `Row ${index}`;
     const rowCount = await this.get().locator(".nc-grid-row").count();
     await this.get().locator(".nc-grid-add-new-cell").click();
 
@@ -51,30 +70,41 @@ export class GridPage extends BasePage {
       .poll(async () => await this.get().locator(".nc-grid-row").count())
       .toBe(rowCount + 1);
 
-    await this.editRow({ index, columnHeader, value });
+    await this._fillRow({ index, columnHeader, value: rowValue });
+
+    const clickOnColumnHeaderToSave = this.cell.grid
+    .get()
+    .locator(`[data-title="${columnHeader}"]`)
+    .locator(`span[title="${columnHeader}"]`)
+    .click();
+
+    await this.waitForResponse({
+      uiAction: clickOnColumnHeaderToSave,
+      requestUrlPathToMatch: "api/v1/db/data/noco",
+      httpMethodsToMatch:[ "POST"],
+      responseJsonMatcher: (resJson) => resJson?.[columnHeader] === value,
+    });
+
   }
 
   async editRow({
     index = 0,
     columnHeader = "Title",
     value,
-  }: { index?: number; columnHeader?: string; value?: string } = {}) {
-    const cell = this.cell.get({ index, columnHeader });
-    await this.cell.dblclick({
-      index,
-      columnHeader,
-    });
+  }: { index?: number; columnHeader?: string; value: string }) {
+    await this._fillRow({ index, columnHeader, value });
 
-    await cell.locator("input").fill(value ?? `Row ${index}`);
+    const clickOnColumnHeaderToSave = this.cell.grid
+    .get()
+    .locator(`[data-title="${columnHeader}"]`)
+    .locator(`span[title="${columnHeader}"]`)
+    .click();
 
-    await this.cell.grid
-      .get()
-      .locator(`[data-title="${columnHeader}"]`)
-      .locator(`span[title="${columnHeader}"]`)
-      .click();
-
-    await this.waitForResponseJson({
-      responseSelector: (resJson) => resJson?.[columnHeader] === value,
+    await this.waitForResponse({
+      uiAction: clickOnColumnHeaderToSave,
+      requestUrlPathToMatch: "api/v1/db/data/noco",
+      httpMethodsToMatch: ["PATCH"],
+      responseJsonMatcher: (resJson) => resJson?.[columnHeader] === value,
     });
   }
 
@@ -176,10 +206,12 @@ export class GridPage extends BasePage {
 
   async clickPagination({ page }: { page: string }) {
     (await this.pagination({ page })).click();
-
-    await this.waitForResponseJson({
-      responseSelector: (resJson) => resJson?.pageInfo,
-    });
+    await this.waitForResponse({
+      uiAction: (await this.pagination({ page })).click(),
+      httpMethodsToMatch: ["GET"],
+      requestUrlPathToMatch: "/views/",
+      responseJsonMatcher: (resJson) => resJson?.pageInfo,
+    })
 
     await this.waitLoading();
   }

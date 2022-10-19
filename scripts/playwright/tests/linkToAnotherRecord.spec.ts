@@ -11,7 +11,7 @@ test.describe("LTAR create & update", () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test("LTAR", async () => {
+  test.only("LTAR", async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: "Team & Auth" });
 

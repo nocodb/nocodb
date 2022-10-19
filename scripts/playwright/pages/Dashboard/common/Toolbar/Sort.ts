@@ -16,9 +16,11 @@ export class ToolbarSortPage extends BasePage {
   async addSort({
     columnTitle,
     isAscending,
+    isLocallySaved,
   }: {
     columnTitle: string;
     isAscending: boolean;
+    isLocallySaved: boolean;
   }) {
     // open sort menu
     await this.toolbar.clickSort();
@@ -33,11 +35,26 @@ export class ToolbarSortPage extends BasePage {
       .click();
 
     await this.rootPage.locator(".nc-sort-dir-select").last().click();
-    await this.rootPage
+    const selectSortDirection =  this.rootPage
       .locator(".nc-dropdown-sort-dir")
       .locator(".ant-select-item")
       .nth(isAscending ? 0 : 1)
       .click();
+    
+    if(isLocallySaved) {
+      await this.waitForResponse({
+        uiAction: selectSortDirection,
+        httpMethodsToMatch: ["GET"],
+        requestUrlPathToMatch:  `${isAscending ? "asc" : "desc"}`,
+      })
+    } else {
+      await this.waitForResponse({
+        uiAction: selectSortDirection,
+        httpMethodsToMatch: ["POST", "PATCH"],
+        requestUrlPathToMatch: "/sorts",
+      })
+    }
+
 
     // close sort menu
     await this.toolbar.clickSort();

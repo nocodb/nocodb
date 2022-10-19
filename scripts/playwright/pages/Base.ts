@@ -26,42 +26,34 @@ export default abstract class BasePage {
   }
 
   async waitForResponse({
-    requestHttpMethod,
+    uiAction,
+    httpMethodsToMatch = [],
     requestUrlPathToMatch,
     responseJsonMatcher,
   }: {
-    requestHttpMethod: string;
+    uiAction: Promise<any>;
     requestUrlPathToMatch: string;
+    httpMethodsToMatch?: string[];
     responseJsonMatcher?: ResponseSelector;
   }) {
-    await this.rootPage.waitForResponse(async (res) => {
-      let isResJsonMatched = true;
-      if(responseJsonMatcher){
-        try {
-          isResJsonMatched = responseJsonMatcher(await res.json());
-        } catch (e) {
-          return false;
+    await Promise.all([
+      this.rootPage.waitForResponse(async (res) => {
+        let isResJsonMatched = true;
+        if(responseJsonMatcher){
+          try {
+            isResJsonMatched = responseJsonMatcher(await res.json());
+          } catch (e) {
+            return false;
+          }
         }
-      }
-      return (
-        res.request().method() === requestHttpMethod &&
-        res.request().url().includes(requestUrlPathToMatch) &&
-        isResJsonMatched
-      );
-    });
-  }
 
-  async waitForResponseJson({
-    responseSelector,
-  }: {
-    responseSelector: ResponseSelector;
-  }) {
-    await this.rootPage.waitForResponse(async (res) => {
-      try {
-        return responseSelector(await res.json());
-      } catch (e) {
-        return false;
-      }
-    });
+        return (
+          res.request().url().includes(requestUrlPathToMatch) &&
+          httpMethodsToMatch.includes(res.request().method()) &&
+          isResJsonMatched
+          );
+      }),
+      uiAction,
+    ]);
   }
 }

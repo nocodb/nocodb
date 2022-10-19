@@ -36,12 +36,14 @@ test.describe("Shared view", () => {
     await dashboard.grid.toolbar.sort.addSort({
       columnTitle: "District",
       isAscending: false,
+      isLocallySaved: false
     });
     // filter
     await dashboard.grid.toolbar.filter.addNew({
       columnTitle: "Address",
       value: "Ab",
       opType: "is like",
+      isLocallySaved: false
     });
 
     mainPageLink = page.url();
@@ -123,11 +125,13 @@ test.describe("Shared view", () => {
     await sharedPage.grid.toolbar.sort.addSort({
       columnTitle: "Address",
       isAscending: true,
+      isLocallySaved: true,
     });
     await sharedPage.grid.toolbar.filter.addNew({
       columnTitle: "District",
       value: "Ta",
       opType: "is like",
+      isLocallySaved: true,
     });
     await sharedPage.grid.toolbar.fields.toggle({ title: "LastUpdate" });
     expectedColumns[6].isVisible = false;
@@ -228,6 +232,7 @@ test.describe("Shared view", () => {
       columnTitle: "Country",
       value: "New Country",
       opType: "is like",
+      isLocallySaved: true,
     });
     await sharedPage2.grid.cell.verify({
       index: 0,

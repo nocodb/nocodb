@@ -34,11 +34,19 @@ export class ViewSidebarPage extends BasePage {
     await this.rootPage
       .locator('input[id="form_item_title"]:visible')
       .fill(title);
-    await this.rootPage
+    const submitAction = this.rootPage
       .locator(".ant-modal-content")
       .locator('button:has-text("Submit"):visible')
       .click();
+      await this.waitForResponse({
+        httpMethodsToMatch: ["POST"],
+        requestUrlPathToMatch: "/api/v1/db/meta/tables/",
+        uiAction: submitAction,
+        responseJsonMatcher: (json) => json.title === title,
+      });
     await this.toastWait({ message: "View created successfully" });
+    // Todo: Wait for view to be rendered
+    await this.rootPage.waitForTimeout(1000);
   }
 
   async createGalleryView({ title }: { title: string }) {

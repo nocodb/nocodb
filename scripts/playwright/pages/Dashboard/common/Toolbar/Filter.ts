@@ -13,14 +13,17 @@ export class ToolbarFilterPage extends BasePage {
     return this.rootPage.locator(`[pw-data="nc-filter-menu"]`);
   }
 
+  // Todo: Handle the case of operator does not need a value
   async addNew({
     columnTitle,
     opType,
     value,
+    isLocallySaved,
   }: {
     columnTitle: string;
     opType: string;
     value: string;
+    isLocallySaved: boolean;
   }) {
     await this.toolbar.clickFilter();
 
@@ -38,12 +41,21 @@ export class ToolbarFilterPage extends BasePage {
       .locator(`.ant-select-item:has-text("${opType}")`)
       .click();
 
-    await this.rootPage.locator(".nc-filter-value-select").last().fill(value);
+    const fillFilter = this.rootPage.locator(".nc-filter-value-select").last().fill(value);
 
-    await this.waitForResponse({
-      requestHttpMethod: "POST",
-      requestUrlPathToMatch: "/filters",
-    })
+    if (isLocallySaved) {
+      await this.waitForResponse({
+        uiAction: fillFilter,
+        httpMethodsToMatch: ["GET"],
+        requestUrlPathToMatch: `${value.replace(' ', '+')}`,
+      });
+    } else {
+      await this.waitForResponse({
+        uiAction: fillFilter,
+        httpMethodsToMatch: ["POST", "PATCH"],
+        requestUrlPathToMatch: "/filters",
+      });
+    }
 
     await this.toolbar.clickFilter();
   }
@@ -57,9 +69,9 @@ export class ToolbarFilterPage extends BasePage {
 
   async resetFilter() {
     await this.toolbar.clickFilter();
-    await this.get().locator(".nc-filter-item-remove-btn").click();
     await this.waitForResponse({
-      requestHttpMethod: "DELETE",
+      uiAction: this.get().locator(".nc-filter-item-remove-btn").click(),
+      httpMethodsToMatch: ["DELETE"],
       requestUrlPathToMatch: "/api/v1/db/meta/filters/",
     })
    

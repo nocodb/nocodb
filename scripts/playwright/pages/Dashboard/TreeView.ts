@@ -30,11 +30,9 @@ export class TreeViewPage extends BasePage {
       }
     }
 
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({
-      noWaitAfter: true,
-    });
     await this.waitForResponse({
-      requestHttpMethod: "GET",
+      uiAction: this.get().locator(`.nc-project-tree-tbl-${title}`).click(),
+      httpMethodsToMatch: ["GET"],
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
       responseJsonMatcher: (json) => json.title === title,
     });
@@ -50,9 +48,13 @@ export class TreeViewPage extends BasePage {
       .get()
       .locator('[placeholder="Enter table name"]')
       .fill(title);
-    
-    await this.dashboard.get().locator('button:has-text("Submit")').click(),
-    await this.waitForResponseJson({responseSelector:(json) => json.title === title &&  json.type === 'table'}),
+
+    await this.waitForResponse({
+      uiAction: this.dashboard.get().locator('button:has-text("Submit")').click(),
+      httpMethodsToMatch: ["POST"],
+      requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
+      responseJsonMatcher: (json) => json.title === title &&  json.type === 'table',
+    });
     
 
     await this.dashboard.waitForTabRender({ title });
@@ -77,7 +79,7 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteTable({ title }: { title: string }) {
-    const tabCount = await this.rootPage.locator('.nc-container').count()
+    const tabCount = await this.dashboard.tabBar.locator('.ant-tabs-tab').count()
     await this.get()
       .locator(`.nc-project-tree-tbl-${title}`)
       .click({ button: "right" });
@@ -85,13 +87,13 @@ export class TreeViewPage extends BasePage {
       .get()
       .locator('div.nc-project-menu-item:has-text("Delete")')
       .click();
-    await this.dashboard.get().locator('button:has-text("Yes")').click();
-    // await this.toastWait({ message: "Deleted table successfully" });
+
     await this.waitForResponse({
-      requestHttpMethod: "DELETE",
+      uiAction: this.dashboard.get().locator('button:has-text("Yes")').click(),
+      httpMethodsToMatch: ["DELETE"],
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
     });
-    await expect.poll(async () => await this.rootPage.locator('.nc-container').count() === tabCount - 1).toBe(true);
+    await expect.poll(async () => await this.dashboard.tabBar.locator('.ant-tabs-tab').count()).toBe(tabCount - 1);
 
     (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }

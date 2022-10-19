@@ -227,6 +227,15 @@ const makeEditable = (row: Row, col: ColumnType) => {
   return (editEnabled = true)
 }
 
+const copyValue = async (ctx: { row: number; col: number }) => {
+  const rowObj = data.value[ctx.row]
+  const columnObj = fields.value[ctx.col]
+
+  await copy(rowObj.row[columnObj.title] || '')
+
+  message.success(t('msg.info.copiedToClipboard'))
+}
+
 /** handle keypress events */
 const onKeyDown = async (e: KeyboardEvent) => {
   if (e.key === 'Alt') {
@@ -292,7 +301,7 @@ const onKeyDown = async (e: KeyboardEvent) => {
           switch (e.keyCode) {
             // copy - ctrl/cmd +c
             case 67:
-              await copy(rowObj.row[columnObj.title] || '')
+              await copyValue({ row: selected.row, col: selected.col })
               break
           }
         }
@@ -633,6 +642,13 @@ reloadViewDataHook.trigger()
               <div v-e="['a:row:insert']" class="nc-project-menu-item">
                 <!-- Insert New Row -->
                 {{ $t('activity.insertRow') }}
+              </div>
+            </a-menu-item>
+
+            <a-menu-item v-if="contextMenuTarget" @click="copyValue(contextMenuTarget)">
+              <div v-e="['a:row:copy']" class="nc-project-menu-item">
+                <!-- Copy -->
+                {{ $t('general.copy') }}
               </div>
             </a-menu-item>
           </a-menu>

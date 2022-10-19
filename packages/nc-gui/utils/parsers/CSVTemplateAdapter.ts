@@ -215,7 +215,7 @@ export default class CSVTemplateAdapter {
           steppers += 1
           if (row) {
             if (steppers === 1) {
-              if (that.config.header) {
+              if (that.config.firstRowAsHeaders) {
                 // row.data is header
                 that.initTemplate(tableIdx, tn, row.data as [])
               } else {

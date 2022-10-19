@@ -103,11 +103,12 @@ export default class Noco {
     // todo: move
     process.env.NC_VERSION = '0090000';
 
+    // if env variable NC_MINIMAL_DBS is set, then disable project creation with external sources
     if (process.env.NC_MINIMAL_DBS) {
       process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED = 'true';
     }
 
-    this.router = express.Router();
+    this.router = express.Router();s
     this.projectRouter = express.Router();
 
     /* prepare config */

@@ -109,6 +109,8 @@ async function projectCreate(req: Request<any, any>, res) {
     projectBody.prefix = `nc_${ranId}__`;
     projectBody.is_meta = true;
     if (process.env.NC_MINIMAL_DBS) {
+      // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each project
+      // each file will be named as nc_<random_id>.db
       const fs = require('fs');
       const toolDir = NcConfigFactory.getToolDir();
       const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
@@ -127,7 +129,7 @@ async function projectCreate(req: Request<any, any>, res) {
               client: "sqlite3",
               database: projectTitle,
               connection: {
-                filename: `${toolDir}/nc_minimal_dbs/${projectTitle}_${dbId}.sql`,
+                filename: `${toolDir}/nc_minimal_dbs/${projectTitle}_${dbId}.db`,
               },
               useNullAsDefault: true,
             },

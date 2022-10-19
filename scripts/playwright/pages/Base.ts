@@ -5,7 +5,7 @@ type ResponseSelector = (json: any) => boolean;
 export default abstract class BasePage {
   readonly rootPage: Page;
 
-  abstract get(args: any): Locator;
+  abstract get(args?: any): Locator;
 
   constructor(rootPage: Page) {
     this.rootPage = rootPage;
@@ -23,6 +23,32 @@ export default abstract class BasePage {
     //   .locator(".ant-message .ant-message-notice-content", { hasText: message })
     //   .last()
     //   .waitFor({ state: "detached" });
+  }
+
+  async waitForResponse({
+    requestHttpMethod,
+    requestUrlPathToMatch,
+    responseJsonMatcher,
+  }: {
+    requestHttpMethod: string;
+    requestUrlPathToMatch: string;
+    responseJsonMatcher?: ResponseSelector;
+  }) {
+    await this.rootPage.waitForResponse(async (res) => {
+      let isResJsonMatched = true;
+      if(responseJsonMatcher){
+        try {
+          isResJsonMatched = responseJsonMatcher(await res.json());
+        } catch (e) {
+          return false;
+        }
+      }
+      return (
+        res.request().method() === requestHttpMethod &&
+        res.request().url().includes(requestUrlPathToMatch) &&
+        isResJsonMatched
+      );
+    });
   }
 
   async waitForResponseJson({

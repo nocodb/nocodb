@@ -23,20 +23,37 @@ export class TreeViewPage extends BasePage {
   // assumption: first view rendered is always GRID
   //
   async openTable({ title }: { title: string }) {
-    await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
+    if(await this.get().locator('.active.nc-project-tree-tbl').count() > 0) {
+      if(await this.get().locator('.active.nc-project-tree-tbl').innerText() === title) {
+        // table already open
+        return;
+      }
+    }
+
+    await this.get().locator(`.nc-project-tree-tbl-${title}`).click({
+      noWaitAfter: true,
+    });
+    await this.waitForResponse({
+      requestHttpMethod: "GET",
+      requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
+      responseJsonMatcher: (json) => json.title === title,
+    });
     await this.dashboard.waitForTabRender({ title });
   }
 
   async createTable({ title }: { title: string }) {
     await this.get().locator(".nc-add-new-table").click();
 
-    await this.dashboard.get().locator(".ant-modal-body").waitFor();
+    await this.dashboard.get().locator('.nc-modal-table-create').locator(".ant-modal-body").waitFor();
 
     await this.dashboard
       .get()
       .locator('[placeholder="Enter table name"]')
       .fill(title);
-    await this.dashboard.get().locator('button:has-text("Submit")').click();
+    
+    await this.dashboard.get().locator('button:has-text("Submit")').click(),
+    await this.waitForResponseJson({responseSelector:(json) => json.title === title &&  json.type === 'table'}),
+    
 
     await this.dashboard.waitForTabRender({ title });
   }
@@ -68,7 +85,11 @@ export class TreeViewPage extends BasePage {
       .locator('div.nc-project-menu-item:has-text("Delete")')
       .click();
     await this.dashboard.get().locator('button:has-text("Yes")').click();
-    await this.toastWait({ message: "Deleted table successfully" });
+    // await this.toastWait({ message: "Deleted table successfully" });
+    await this.waitForResponse({
+      requestHttpMethod: "DELETE",
+      requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
+    });
   }
 
   async renameTable({ title, newTitle }: { title: string; newTitle: string }) {

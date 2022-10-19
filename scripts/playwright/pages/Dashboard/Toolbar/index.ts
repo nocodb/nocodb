@@ -8,6 +8,7 @@ import { ToolbarViewMenuPage } from "./ViewMenu";
 import * as fs from "fs";
 import { DashboardPage } from "..";
 import { GridPage } from "../Grid";
+import { ToolbarActionsPage } from "./Actions";
 
 export class ToolbarPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -16,7 +17,7 @@ export class ToolbarPage extends BasePage {
   readonly filter: ToolbarFilterPage;
   readonly shareView: ToolbarShareViewPage;
   readonly viewsMenu: ToolbarViewMenuPage;
-  readonly grid: GridPage;
+  readonly actions: ToolbarActionsPage;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
@@ -26,12 +27,22 @@ export class ToolbarPage extends BasePage {
     this.filter = new ToolbarFilterPage(this);
     this.shareView = new ToolbarShareViewPage(this);
     this.viewsMenu = new ToolbarViewMenuPage(this);
-    this.grid = dashboard.grid;
+    this.actions = new ToolbarActionsPage(this);
   }
 
   get() {
     return this.rootPage.locator(`.nc-table-toolbar`);
   }
+
+  async clickActions() {
+    const menuOpen = await this.actions.get().isVisible();
+
+    await this.get().locator(`button.nc-actions-menu-btn`).click();
+
+    // Wait for the menu to close
+    if (menuOpen) await this.fields.get().waitFor({ state: "hidden" });
+  }
+
 
   async clickFields() {
     const menuOpen = await this.fields.get().isVisible();

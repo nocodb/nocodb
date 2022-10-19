@@ -1,5 +1,6 @@
 import { test } from "@playwright/test";
 import { DashboardPage } from "../pages/Dashboard";
+import { SettingTab } from "../pages/Dashboard/Settings";
 import setup from "../setup";
 
 test.describe("Form view", () => {
@@ -142,7 +143,7 @@ test.describe("Form view", () => {
 
     // activate SMTP plugin
     await dashboard.gotoSettings();
-    await dashboard.settings.selectTab({ title: "App Store" });
+    await dashboard.settings.selectTab({ tab: SettingTab.AppStore });
     await dashboard.settings.appStore.install({ name: "SMTP" });
     await dashboard.settings.appStore.configureSMTP({
       email: "a@b.com",
@@ -166,7 +167,7 @@ test.describe("Form view", () => {
 
     // reset SMTP
     await dashboard.gotoSettings();
-    await dashboard.settings.selectTab({ title: "App Store" });
+    await dashboard.settings.selectTab({ tab: SettingTab.AppStore });
     await dashboard.settings.appStore.uninstall({ name: "SMTP" });
 
     await dashboard.toastWait({

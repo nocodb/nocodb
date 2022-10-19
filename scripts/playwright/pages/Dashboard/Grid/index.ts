@@ -20,7 +20,7 @@ export class GridPage extends BasePage {
     this.addNewTableButton = dashboardPage.get().locator(".nc-add-new-table");
     this.column = new ColumnPageObject(this);
     this.cell = new CellPageObject(this);
-    this.toolbar = dashboardPage.toolbar;
+    this.toolbar = new ToolbarPage(this.dashboard);
   }
 
   get() {

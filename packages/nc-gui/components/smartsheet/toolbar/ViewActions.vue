@@ -103,7 +103,7 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
       </a-button>
 
       <template #overlay>
-        <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
+        <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded" pw-data="toolbar-actions">
           <a-menu-item-group>
             <a-sub-menu
               v-if="isUIAllowed('view-type')"

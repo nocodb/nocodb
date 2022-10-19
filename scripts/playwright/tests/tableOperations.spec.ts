@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
-import { SettingsPage } from '../pages/Dashboard/Settings';
+import { SettingsPage, SettingTab } from '../pages/Dashboard/Settings';
 import setup from '../setup';
 
 
@@ -22,7 +22,7 @@ test.describe('Table Operations', () => {
     await dashboard.treeView.verifyTableDoesNotExist({title: "tablex"});
     
     await dashboard.gotoSettings();
-    await settings.selectTab({title: 'Audit'});
+    await settings.selectTab({tab: SettingTab.Audit});
     await settings.audit.verifyRow({index: 0, opType: 'TABLE', opSubtype: 'DELETED', user: 'user@nocodb.com'});
     await settings.audit.verifyRow({index: 1, opType: 'TABLE', opSubtype: 'CREATED', user: 'user@nocodb.com'});
     await settings.close();

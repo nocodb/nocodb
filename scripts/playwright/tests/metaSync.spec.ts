@@ -1,8 +1,8 @@
-import { test } from "@playwright/test";
-import { DashboardPage } from "../pages/Dashboard";
-import { SettingsPage } from "../pages/Dashboard/Settings";
-import setup, { NcContext } from "../setup";
-import { isSqlite, mysqlExec, sqliteExec } from "../setup/db";
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import { SettingsPage, SettingTab } from '../pages/Dashboard/Settings';
+import setup, { NcContext } from '../setup';
+import { isSqlite, mysqlExec, sqliteExec } from '../setup/db';
 
 // todo: Enable when view bug is fixed
 test.describe("Meta sync", () => {
@@ -33,7 +33,7 @@ test.describe("Meta sync", () => {
     test.setTimeout(process.env.CI ? 100000 : 70000);
 
     await dashboard.gotoSettings();
-    await settings.selectTab({ title: "Project Metadata" });
+    await settings.selectTab({tab: SettingTab['Project Metadata']});
 
     await dbExec(
       `CREATE TABLE ${projectPrefix}table1 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`
@@ -222,7 +222,7 @@ test.describe("Meta sync", () => {
     );
 
     await dashboard.gotoSettings();
-    await settings.selectTab({ title: "Project Metadata" });
+    await settings.selectTab({tab: SettingTab.ProjectMetadata});
 
     await settings.metaData.clickReload();
     await settings.metaData.sync();

@@ -1575,15 +1575,15 @@ class SqliteClient extends KnexClient {
     const _func = this.tableUpdate.name;
     log.api(`${_func}:args:`, args);
 
-    for (let retry = 0; retry < 3; retry++) {
-      try {
-        return await this._tableUpdate(args);
-      } catch (e) {
-        console.log('retrying:tableUpdate', e);
-      }
-      // Wait for 300ms
-      await new Promise((resolve) => setTimeout(resolve, 300));
-    }
+    // for (let retry = 0; retry < 3; retry++) {
+    //   try {
+    //     return await this._tableUpdate(args);
+    //   } catch (e) {
+    //     console.log('retrying:tableUpdate', e);
+    //   }
+    //   // Wait for 300ms
+    //   await new Promise((resolve) => setTimeout(resolve, 300));
+    // }
 
     try {
       return await this._tableUpdate(args);

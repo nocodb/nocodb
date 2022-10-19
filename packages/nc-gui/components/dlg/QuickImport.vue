@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
+import { Upload } from 'ant-design-vue'
 import {
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
@@ -244,8 +245,7 @@ function rejectDrop(fileList: UploadFile[]) {
 
 function handleChange(info: UploadChangeParam) {
   const status = info.file.status
-
-  if (status !== 'uploading' && status !== 'removed') {
+  if (status && status !== 'uploading' && status !== 'removed') {
     // const reader = new FileReader()
     // reader.onload = (e: ProgressEvent<FileReader>) => {
     //   const target = importState.fileList.find((f) => f.uid === info.file.uid)
@@ -272,8 +272,6 @@ function handleChange(info: UploadChangeParam) {
         status: 'done',
       })
     }
-    console.log(info)
-    console.log(importState.fileList)
   }
 
   if (status === 'done') {
@@ -341,6 +339,15 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
   })
   customReqArgs.onSuccess()
 }
+
+/** check if the file size exceeds the limit */
+const beforeUpload = (file: UploadFile) => {
+  const exceedLimit = file.size! / 1024 / 1024 > 5
+  if (exceedLimit) {
+    message.error(`File ${file.name} is too big. The accepted file size is less than 5MB.`)
+  }
+  return !exceedLimit || Upload.LIST_IGNORE
+}
 </script>
 
 <template>
@@ -387,6 +394,7 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
                   :max-count="1"
                   list-type="picture"
                   :custom-request="customReqCbk"
+                  :before-upload="beforeUpload"
                   @change="handleChange"
                   @reject="rejectDrop"
                 >

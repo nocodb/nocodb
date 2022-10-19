@@ -47,4 +47,10 @@ export class ToolbarShareViewPage extends BasePage {
   async close() {
     await this.get().locator(`.ant-modal-close-x`).click();
   }
+
+  async toggleSurveyMode() {
+    await this.get()
+      .locator(`[data-pw="nc-modal-share-view__survey-mode"]`)
+      .click();
+  }
 }

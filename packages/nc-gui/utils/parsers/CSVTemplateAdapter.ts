@@ -127,7 +127,6 @@ export default class CSVTemplateAdapter {
         }
       }
       this.detectedColumnTypes[columnIdx][colProps.uidt] += 1
-      this.project.tables[tableIdx].columns[columnIdx].uidt = colProps.uidt
 
       if (data[columnIdx]) {
         this.distinctValues[columnIdx].add(data[columnIdx])
@@ -135,22 +134,23 @@ export default class CSVTemplateAdapter {
     }
   }
 
-  getMaxPossibleUidt(columnIdx: number) {
-    let mx = -1
-    let key: string = UITypes.SingleLineText
-    Object.entries(this.detectedColumnTypes[columnIdx]).forEach(([k, v]) => {
-      if (v > mx) {
-        mx = v
-        key = k
+  getPossibleUidt(columnIdx: number) {
+    // if there are multiple detected column types
+    // then return either LongText or SingleLineText
+    if (Object.keys(this.detectedColumnTypes[columnIdx]).length > 1) {
+      if (UITypes.LongText in this.detectedColumnTypes[columnIdx]) {
+        return UITypes.LongText
       }
-    })
-    return key
+      return UITypes.SingleLineText
+    }
+    // otherwise, all records have the same column type
+    return Object.keys(this.detectedColumnTypes[columnIdx])[0]
   }
 
   updateTemplate(tableIdx: number) {
     for (let columnIdx = 0; columnIdx < this.headers[tableIdx].length; columnIdx++) {
+      const uidt = this.getPossibleUidt(columnIdx)
       if (this.columnValues[columnIdx].length > 0) {
-        const uidt = this.project.tables[tableIdx].columns[columnIdx].uidt
         if (uidt === UITypes.DateTime) {
           const dateFormat: Record<string, number> = {}
           if (
@@ -176,10 +176,10 @@ export default class CSVTemplateAdapter {
             extractMultiOrSingleSelectProps(this.columnValues[columnIdx]),
           )
         }
+        delete this.columnValues[columnIdx]
       } else {
-        this.project.tables[tableIdx].columns[columnIdx].uidt = this.getMaxPossibleUidt(columnIdx)
+        this.project.tables[tableIdx].columns[columnIdx].uidt = uidt
       }
-      delete this.columnValues[columnIdx]
     }
   }
 
@@ -204,7 +204,6 @@ export default class CSVTemplateAdapter {
           console.log('complete')
           console.log(`steppers: ${steppers}`)
           that.updateTemplate(tableIdx)
-          console.log(that.project.tables)
           // TODO(import): enable import button
           // TODO(import): put info.file.originFileObj to list
           callback()

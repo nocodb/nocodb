@@ -143,6 +143,17 @@ export default class CSVTemplateAdapter {
     if (len == 0) {
       return UITypes.SingleLineText
     }
+    // handle numeric case
+    if (
+      Object.keys(this.detectedColumnTypes[columnIdx]).length == 2 &&
+      UITypes.Number in this.detectedColumnTypes[columnIdx] &&
+      UITypes.Decimal in this.detectedColumnTypes[columnIdx]
+    ) {
+      if (this.detectedColumnTypes[columnIdx][UITypes.Number] > this.detectedColumnTypes[columnIdx][UITypes.Decimal]) {
+        return UITypes.Number
+      }
+      return UITypes.Decimal
+    }
     // if there are multiple detected column types
     // then return either LongText or SingleLineText
     if (Object.keys(this.detectedColumnTypes[columnIdx]).length > 1) {
@@ -215,8 +226,6 @@ export default class CSVTemplateAdapter {
           console.log('complete')
           console.log(`steppers: ${steppers}`)
           that.updateTemplate(tableIdx)
-          // TODO(import): enable import button
-          // TODO(import): put info.file.originFileObj to list
           callback()
         },
       })
@@ -263,7 +272,6 @@ export default class CSVTemplateAdapter {
         complete() {
           console.log('getData(): complete')
           console.log(`getData(): steppers: ${steppers}`)
-          console.log(that.data[tn])
         },
       })
     }

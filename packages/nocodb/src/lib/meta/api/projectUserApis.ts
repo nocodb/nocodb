@@ -1,3 +1,4 @@
+import { OrgUserRoles } from '../../../enums/OrgUserRoles'
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Router } from 'express';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
@@ -65,7 +66,7 @@ async function userInvite(req, res, next): Promise<any> {
 
       // todo : provide a different role
       await User.update(user.id, {
-        roles: 'user',
+        roles: OrgUserRoles.VIEWER,
       });
 
       await ProjectUser.insert({
@@ -102,7 +103,7 @@ async function userInvite(req, res, next): Promise<any> {
           invite_token,
           invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
           email,
-          roles: 'user',
+          roles: OrgUserRoles.VIEWER,
           token_version: randomTokenString(),
         });
 

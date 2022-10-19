@@ -757,22 +757,22 @@ jobs:
     #         name: cypress-restMisc-run-cache-snapshots
     #         path: scripts/cypress/screenshots
     #         retention-days: 2
-    playwright:
-      runs-on: ubuntu-20.04
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      steps:
-        - name: Setup Node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 16.15.0
-        - name: Checkout
-          uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-        - name: Cache node modules
-          uses: actions/cache@v3
-          env:
-            cache-name: cache-node-modules
+    # playwright:
+    #   runs-on: ubuntu-20.04
+    #   if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    #   steps:
+    #     - name: Setup Node
+    #       uses: actions/setup-node@v3
+    #       with:
+    #         node-version: 16.15.0
+    #     - name: Checkout
+    #       uses: actions/checkout@v3
+    #       with:
+    #         fetch-depth: 0
+    #     - name: Cache node modules
+    #       uses: actions/cache@v3
+    #       env:
+    #         cache-name: cache-node-modules
 
           with:
             # npm cache files are stored in `~/.npm` on Linux/macOS
@@ -1142,189 +1142,189 @@ jobs:
           env:
             cache-name: cache-node-modules
 
-          with:
-            # npm cache files are stored in `~/.npm` on Linux/macOS
-            path: ~/.npm
-            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-            restore-keys: |
-              ${{ runner.os }}-build-${{ env.cache-name }}-
-              ${{ runner.os }}-build-
-              ${{ runner.os }}-
-        - name: Set env
-          run: echo "NODE_ENV=test" >> $GITHUB_ENV
-        - name: Cypress run
-          uses: cypress-io/github-action@v4
-          with:
-            start: |
-              npm run start:api:cache
-              npm run start:web
-              docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
-            spec: "./scripts/cypress/integration/test/pg-restTableOps.js"
-            wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
-            wait-on-timeout: 1200
-            config-file: scripts/cypress/cypress.json
-        - name: Upload screenshots
-          if: always()
-          uses: actions/upload-artifact@v3
-          with:
-            name: cypress-pg-restTableOps-run-cache-snapshots
-            path: scripts/cypress/screenshots
-            retention-days: 2
-    cypress-pg-restViews-run-cache:
-      runs-on: ubuntu-20.04
-      timeout-minutes: 30
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      steps:
-        - name: Setup Node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 16.15.0
-        - name: Checkout
-          uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-        - name: Cache node modules
-          uses: actions/cache@v3
-          env:
-            cache-name: cache-node-modules
+    #       with:
+    #         # npm cache files are stored in `~/.npm` on Linux/macOS
+    #         path: ~/.npm
+    #         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+    #         restore-keys: |
+    #           ${{ runner.os }}-build-${{ env.cache-name }}-
+    #           ${{ runner.os }}-build-
+    #           ${{ runner.os }}-
+    #     - name: Set env
+    #       run: echo "NODE_ENV=test" >> $GITHUB_ENV
+    #     - name: Cypress run
+    #       uses: cypress-io/github-action@v4
+    #       with:
+    #         start: |
+    #           npm run start:api:cache
+    #           npm run start:web
+    #           docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+    #         spec: "./scripts/cypress/integration/test/pg-restTableOps.js"
+    #         wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
+    #         wait-on-timeout: 1200
+    #         config-file: scripts/cypress/cypress.json
+    #     - name: Upload screenshots
+    #       if: always()
+    #       uses: actions/upload-artifact@v3
+    #       with:
+    #         name: cypress-pg-restTableOps-run-cache-snapshots
+    #         path: scripts/cypress/screenshots
+    #         retention-days: 2
+    # cypress-pg-restViews-run-cache:
+    #   runs-on: ubuntu-20.04
+    #   timeout-minutes: 30
+    #   if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    #   steps:
+    #     - name: Setup Node
+    #       uses: actions/setup-node@v3
+    #       with:
+    #         node-version: 16.15.0
+    #     - name: Checkout
+    #       uses: actions/checkout@v3
+    #       with:
+    #         fetch-depth: 0
+    #     - name: Cache node modules
+    #       uses: actions/cache@v3
+    #       env:
+    #         cache-name: cache-node-modules
 
-          with:
-            # npm cache files are stored in `~/.npm` on Linux/macOS
-            path: ~/.npm
-            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-            restore-keys: |
-              ${{ runner.os }}-build-${{ env.cache-name }}-
-              ${{ runner.os }}-build-
-              ${{ runner.os }}-
-        - name: Set env
-          run: echo "NODE_ENV=test" >> $GITHUB_ENV
-        - name: Cypress run
-          uses: cypress-io/github-action@v4
-          with:
-            start: |
-              npm run start:api:cache
-              npm run start:web
-              docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
-            spec: "./scripts/cypress/integration/test/pg-restViews.js"
-            wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
-            wait-on-timeout: 1200
-            config-file: scripts/cypress/cypress.json
-        - name: Upload screenshots
-          if: always()
-          uses: actions/upload-artifact@v3
-          with:
-            name: cypress-pg-restViews-run-cache-snapshots
-            path: scripts/cypress/screenshots
-            retention-days: 2
-    cypress-pg-restRoles-run-cache:
-      runs-on: ubuntu-20.04
-      timeout-minutes: 30
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      steps:
-        - name: Setup Node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 16.15.0
-        - name: Checkout
-          uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-        - name: Cache node modules
-          uses: actions/cache@v3
-          env:
-            cache-name: cache-node-modules
+    #       with:
+    #         # npm cache files are stored in `~/.npm` on Linux/macOS
+    #         path: ~/.npm
+    #         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+    #         restore-keys: |
+    #           ${{ runner.os }}-build-${{ env.cache-name }}-
+    #           ${{ runner.os }}-build-
+    #           ${{ runner.os }}-
+    #     - name: Set env
+    #       run: echo "NODE_ENV=test" >> $GITHUB_ENV
+    #     - name: Cypress run
+    #       uses: cypress-io/github-action@v4
+    #       with:
+    #         start: |
+    #           npm run start:api:cache
+    #           npm run start:web
+    #           docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+    #         spec: "./scripts/cypress/integration/test/pg-restViews.js"
+    #         wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
+    #         wait-on-timeout: 1200
+    #         config-file: scripts/cypress/cypress.json
+    #     - name: Upload screenshots
+    #       if: always()
+    #       uses: actions/upload-artifact@v3
+    #       with:
+    #         name: cypress-pg-restViews-run-cache-snapshots
+    #         path: scripts/cypress/screenshots
+    #         retention-days: 2
+    # cypress-pg-restRoles-run-cache:
+    #   runs-on: ubuntu-20.04
+    #   timeout-minutes: 30
+    #   if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    #   steps:
+    #     - name: Setup Node
+    #       uses: actions/setup-node@v3
+    #       with:
+    #         node-version: 16.15.0
+    #     - name: Checkout
+    #       uses: actions/checkout@v3
+    #       with:
+    #         fetch-depth: 0
+    #     - name: Cache node modules
+    #       uses: actions/cache@v3
+    #       env:
+    #         cache-name: cache-node-modules
 
-          with:
-            # npm cache files are stored in `~/.npm` on Linux/macOS
-            path: ~/.npm
-            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-            restore-keys: |
-              ${{ runner.os }}-build-${{ env.cache-name }}-
-              ${{ runner.os }}-build-
-              ${{ runner.os }}-
-        - name: Set env
-          run: echo "NODE_ENV=test" >> $GITHUB_ENV
-        - name: Cypress run
-          uses: cypress-io/github-action@v4
-          with:
-            start: |
-              npm run start:api:cache
-              npm run start:web
-              docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
-            spec: "./scripts/cypress/integration/test/pg-restRoles.js"
-            wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
-            wait-on-timeout: 1200
-            config-file: scripts/cypress/cypress.json
-        - name: Upload screenshots
-          if: always()
-          uses: actions/upload-artifact@v3
-          with:
-            name: cypress-pg-restRoles-run-cache-snapshots
-            path: scripts/cypress/screenshots
-            retention-days: 2
-    cypress-pg-restMisc-run-cache:
-      runs-on: ubuntu-20.04
-      timeout-minutes: 30
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      steps:
-        - name: Setup Node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 16.15.0
-        - name: Checkout
-          uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-        - name: Cache node modules
-          uses: actions/cache@v3
-          env:
-            cache-name: cache-node-modules
+    #       with:
+    #         # npm cache files are stored in `~/.npm` on Linux/macOS
+    #         path: ~/.npm
+    #         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+    #         restore-keys: |
+    #           ${{ runner.os }}-build-${{ env.cache-name }}-
+    #           ${{ runner.os }}-build-
+    #           ${{ runner.os }}-
+    #     - name: Set env
+    #       run: echo "NODE_ENV=test" >> $GITHUB_ENV
+    #     - name: Cypress run
+    #       uses: cypress-io/github-action@v4
+    #       with:
+    #         start: |
+    #           npm run start:api:cache
+    #           npm run start:web
+    #           docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+    #         spec: "./scripts/cypress/integration/test/pg-restRoles.js"
+    #         wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
+    #         wait-on-timeout: 1200
+    #         config-file: scripts/cypress/cypress.json
+    #     - name: Upload screenshots
+    #       if: always()
+    #       uses: actions/upload-artifact@v3
+    #       with:
+    #         name: cypress-pg-restRoles-run-cache-snapshots
+    #         path: scripts/cypress/screenshots
+    #         retention-days: 2
+    # cypress-pg-restMisc-run-cache:
+    #   runs-on: ubuntu-20.04
+    #   timeout-minutes: 30
+    #   if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    #   steps:
+    #     - name: Setup Node
+    #       uses: actions/setup-node@v3
+    #       with:
+    #         node-version: 16.15.0
+    #     - name: Checkout
+    #       uses: actions/checkout@v3
+    #       with:
+    #         fetch-depth: 0
+    #     - name: Cache node modules
+    #       uses: actions/cache@v3
+    #       env:
+    #         cache-name: cache-node-modules
 
-          with:
-            # npm cache files are stored in `~/.npm` on Linux/macOS
-            path: ~/.npm
-            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-            restore-keys: |
-              ${{ runner.os }}-build-${{ env.cache-name }}-
-              ${{ runner.os }}-build-
-              ${{ runner.os }}-
-        - name: Set env
-          run: echo "NODE_ENV=test" >> $GITHUB_ENV
-        - name: Cypress run
-          uses: cypress-io/github-action@v4
-          with:
-            start: |
-              npm run start:api:cache
-              npm run start:web
-              docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
-            spec: "./scripts/cypress/integration/test/pg-restMisc.js"
-            wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
-            wait-on-timeout: 1200
-            config-file: scripts/cypress/cypress.json
-        - name: Upload screenshots
-          if: always()
-          uses: actions/upload-artifact@v3
-          with:
-            name: cypress-pg-restMisc-run-cache-snapshots
-            path: scripts/cypress/screenshots
-            retention-days: 2
-    cy-quick-sqlite:
-      runs-on: ubuntu-20.04
-      timeout-minutes: 30
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      steps:
-        - name: Setup Node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 16.15.0
-        - name: Checkout
-          uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-        - name: Cache node modules
-          uses: actions/cache@v3
-          env:
-            cache-name: cache-node-modules
+    #       with:
+    #         # npm cache files are stored in `~/.npm` on Linux/macOS
+    #         path: ~/.npm
+    #         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+    #         restore-keys: |
+    #           ${{ runner.os }}-build-${{ env.cache-name }}-
+    #           ${{ runner.os }}-build-
+    #           ${{ runner.os }}-
+    #     - name: Set env
+    #       run: echo "NODE_ENV=test" >> $GITHUB_ENV
+    #     - name: Cypress run
+    #       uses: cypress-io/github-action@v4
+    #       with:
+    #         start: |
+    #           npm run start:api:cache
+    #           npm run start:web
+    #           docker-compose -f ./scripts/cypress/docker-compose-pg.yml up -d
+    #         spec: "./scripts/cypress/integration/test/pg-restMisc.js"
+    #         wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
+    #         wait-on-timeout: 1200
+    #         config-file: scripts/cypress/cypress.json
+    #     - name: Upload screenshots
+    #       if: always()
+    #       uses: actions/upload-artifact@v3
+    #       with:
+    #         name: cypress-pg-restMisc-run-cache-snapshots
+    #         path: scripts/cypress/screenshots
+    #         retention-days: 2
+    # cy-quick-sqlite:
+    #   runs-on: ubuntu-20.04
+    #   timeout-minutes: 30
+    #   if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    #   steps:
+    #     - name: Setup Node
+    #       uses: actions/setup-node@v3
+    #       with:
+    #         node-version: 16.15.0
+    #     - name: Checkout
+    #       uses: actions/checkout@v3
+    #       with:
+    #         fetch-depth: 0
+    #     - name: Cache node modules
+    #       uses: actions/cache@v3
+    #       env:
+    #         cache-name: cache-node-modules
 
           with:
             # npm cache files are stored in `~/.npm` on Linux/macOS
@@ -1373,51 +1373,51 @@ jobs:
           env:
             cache-name: cache-node-modules
 
-          with:
-            # npm cache files are stored in `~/.npm` on Linux/macOS
-            path: ~/.npm
-            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-            restore-keys: |
-              ${{ runner.os }}-build-${{ env.cache-name }}-
-              ${{ runner.os }}-build-
-              ${{ runner.os }}-
-        - name: Set env
-          run: echo "NODE_ENV=test" >> $GITHUB_ENV
-        - name: Cypress run
-          uses: cypress-io/github-action@v4
-          with:
-            start: |
-              docker-compose -f ./scripts/cypress/docker-compose-pg-cy-quick.yml up -d
-              npm run start:api:cache:pg:cyquick
-              npm run start:web
-            spec: "./scripts/cypress/integration/test/quickTest.js"
-            wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
-            wait-on-timeout: 1200
-            config-file: scripts/cypress/cypress.json
-        - name: Upload screenshots
-          if: always()
-          uses: actions/upload-artifact@v3
-          with:
-            name: cy-quick-pg-snapshots
-            path: scripts/cypress/screenshots
-            retention-days: 2
-    unit-tests:
-      runs-on: ubuntu-20.04
-      timeout-minutes: 30
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      steps:
-        - name: Setup Node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 16.15.0
-        - name: Checkout
-          uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-        - name: Cache node modules
-          uses: actions/cache@v3
-          env:
-            cache-name: cache-node-modules
+    #       with:
+    #         # npm cache files are stored in `~/.npm` on Linux/macOS
+    #         path: ~/.npm
+    #         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+    #         restore-keys: |
+    #           ${{ runner.os }}-build-${{ env.cache-name }}-
+    #           ${{ runner.os }}-build-
+    #           ${{ runner.os }}-
+    #     - name: Set env
+    #       run: echo "NODE_ENV=test" >> $GITHUB_ENV
+    #     - name: Cypress run
+    #       uses: cypress-io/github-action@v4
+    #       with:
+    #         start: |
+    #           docker-compose -f ./scripts/cypress/docker-compose-pg-cy-quick.yml up -d
+    #           npm run start:api:cache:pg:cyquick
+    #           npm run start:web
+    #         spec: "./scripts/cypress/integration/test/quickTest.js"
+    #         wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
+    #         wait-on-timeout: 1200
+    #         config-file: scripts/cypress/cypress.json
+    #     - name: Upload screenshots
+    #       if: always()
+    #       uses: actions/upload-artifact@v3
+    #       with:
+    #         name: cy-quick-pg-snapshots
+    #         path: scripts/cypress/screenshots
+    #         retention-days: 2
+    # unit-tests:
+    #   runs-on: ubuntu-20.04
+    #   timeout-minutes: 30
+    #   if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    #   steps:
+    #     - name: Setup Node
+    #       uses: actions/setup-node@v3
+    #       with:
+    #         node-version: 16.15.0
+    #     - name: Checkout
+    #       uses: actions/checkout@v3
+    #       with:
+    #         fetch-depth: 0
+    #     - name: Cache node modules
+    #       uses: actions/cache@v3
+    #       env:
+    #         cache-name: cache-node-modules
 
           with:
             # npm cache files are stored in `~/.npm` on Linux/macOS

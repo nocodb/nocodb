@@ -262,7 +262,7 @@ export default class CSVTemplateAdapter {
         worker: true,
         step(row) {
           steppers += 1
-          if (row && steppers >= 2) {
+          if (row && steppers >= +that.config.firstRowAsHeaders + 1) {
             const rowData: Record<string, any> = {}
             for (let columnIdx = 0; columnIdx < that.headers[tableIdx].length; columnIdx++) {
               const column = that.project.tables[tableIdx].columns[columnIdx]

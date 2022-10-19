@@ -31,14 +31,14 @@ test.describe("Shared view", () => {
     await dashboard.treeView.openTable({ title: "Address" });
 
     // hide column
-    await dashboard.toolbar.fields.toggle({ title: "Address2" });
+    await dashboard.grid.toolbar.fields.toggle({ title: "Address2" });
     // sort
-    await dashboard.toolbar.sort.addSort({
+    await dashboard.grid.toolbar.sort.addSort({
       columnTitle: "District",
       isAscending: false,
     });
     // filter
-    await dashboard.toolbar.filter.addNew({
+    await dashboard.grid.toolbar.filter.addNew({
       columnTitle: "Address",
       value: "Ab",
       opType: "is like",
@@ -47,8 +47,8 @@ test.describe("Shared view", () => {
     mainPageLink = page.url();
 
     // share with password disabled, download enabled
-    await dashboard.toolbar.clickShareView();
-    sharedLink = await dashboard.toolbar.shareView.getShareLink();
+    await dashboard.grid.toolbar.clickShareView();
+    sharedLink = await dashboard.grid.toolbar.shareView.getShareLink();
 
     /**
      * 2. Access shared view: verify
@@ -182,13 +182,13 @@ test.describe("Shared view", () => {
     await dashboard.treeView.openTable({ title: "Country" });
 
     // enable password & verify share link
-    await dashboard.toolbar.clickShareView();
-    await dashboard.toolbar.shareView.enablePassword("p@ssword");
+    await dashboard.grid.toolbar.clickShareView();
+    await dashboard.grid.toolbar.shareView.enablePassword("p@ssword");
     // disable download
-    await dashboard.toolbar.shareView.toggleDownload();
+    await dashboard.grid.toolbar.shareView.toggleDownload();
 
-    sharedLink = await dashboard.toolbar.shareView.getShareLink();
-    await dashboard.toolbar.shareView.close();
+    sharedLink = await dashboard.grid.toolbar.shareView.getShareLink();
+    await dashboard.grid.toolbar.shareView.close();
 
     // add new column, record after share view creation
     await dashboard.grid.column.create({

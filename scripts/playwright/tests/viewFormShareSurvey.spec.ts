@@ -30,10 +30,10 @@ test.describe("Share form", () => {
     });
     await dashboard.form.showAnotherFormRadioButton.click();
     await dashboard.form.showAnotherFormAfter5SecRadioButton.click();
-    await dashboard.toolbar.clickShareView();
-    await dashboard.toolbar.shareView.toggleSurveyMode();
+    await dashboard.form.toolbar.clickShareView();
+    await dashboard.form.toolbar.shareView.toggleSurveyMode();
 
-    const surveyLink = await dashboard.toolbar.shareView.getShareLink();
+    const surveyLink = await dashboard.form.toolbar.shareView.getShareLink();
     await dashboard.rootPage.waitForTimeout(2000);
     await dashboard.rootPage.goto(surveyLink);
     await dashboard.rootPage.waitForTimeout(2000);

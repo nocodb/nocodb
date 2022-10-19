@@ -29,6 +29,7 @@ export default class CSVTemplateAdapter {
   constructor(files: UploadFile[], parserConfig = {}) {
     this.config = {
       maxRowsToParse: 500,
+      autoSelectFieldTypes: true,
       firstRowAsHeaders: true,
       ...parserConfig,
     }
@@ -224,11 +225,16 @@ export default class CSVTemplateAdapter {
                   tn,
                   [...Array((row.data as []).length)].map((_, i) => `column${i + 1}`),
                 )
+                if (that.config.autoSelectFieldTypes) {
+                  // row.data is data
+                  that.detectColumnType(tableIdx, row.data as [])
+                }
+              }
+            } else {
+              if (that.config.autoSelectFieldTypes) {
                 // row.data is data
                 that.detectColumnType(tableIdx, row.data as [])
               }
-            } else {
-              that.detectColumnType(tableIdx, row.data as [])
             }
           }
         },

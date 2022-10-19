@@ -179,6 +179,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         formState.value.table_name = meta.value?.table_name
         // formState.value.title = formState.value.column_name
         if (column.value) {
+          if (!columnToValidate.includes(formState.value.uidt)) {
+            formState.value.validate = ''
+          }
           await $api.dbTableColumn.update(column.value?.id as string, formState.value)
           // Column updated
           message.success(t('msg.success.columnUpdated'))

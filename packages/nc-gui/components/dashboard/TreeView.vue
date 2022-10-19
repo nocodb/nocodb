@@ -578,7 +578,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                       :data-testid="`tree-view-table-${table.title}`"
                       @click="addTableTab(table)"
                     >
-                      <GeneralTooltip wrapper-class="pl-5 pr-3 py-2" modifier-key="Alt">
+                      <GeneralTooltip class="pl-5 pr-3 py-2" modifier-key="Alt">
                         <template #title>{{ table.table_name }}</template>
                         <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">

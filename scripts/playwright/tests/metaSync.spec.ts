@@ -237,14 +237,14 @@ test.describe("Meta sync", () => {
     await dashboard.grid.toolbar.sort.addSort({
       columnTitle: "Col1",
       isAscending: false,
-      isLocallySaved: true
+      isLocallySaved: false
     });
 
     await dashboard.grid.toolbar.filter.addNew({
       columnTitle: "Col1",
       opType: ">=",
       value: "5",
-      isLocallySaved: true
+      isLocallySaved: false
     });
 
     await dashboard.grid.verifyRowCount({ count: 5 });

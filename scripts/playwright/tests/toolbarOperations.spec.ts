@@ -49,7 +49,7 @@ test.describe("Toolbar operations (GRID)", () => {
 
     await validateFirstRow("Afghanistan");
     // Sort column
-    await toolbar.sort.addSort({ columnTitle: "Country", isAscending: false, isLocallySaved: true });
+    await toolbar.sort.addSort({ columnTitle: "Country", isAscending: false, isLocallySaved: false });
     await validateFirstRow("Zambia");
 
     // reset sort
@@ -61,7 +61,7 @@ test.describe("Toolbar operations (GRID)", () => {
       columnTitle: "Country",
       value: "India",
       opType: "is equal",
-      isLocallySaved: true
+      isLocallySaved: false
     });
     await validateFirstRow("India");
 

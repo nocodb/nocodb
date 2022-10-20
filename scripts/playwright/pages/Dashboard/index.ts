@@ -75,12 +75,16 @@ export class DashboardPage extends BasePage {
     await this.rootPage.waitForTimeout(2000);
   }
 
+  async clickHome() {
+    await this.rootPage.locator('[data-cy="nc-noco-brand-icon"]').click();
+  }
+
   async waitForTabRender({ title }: { title: string }) {
     await this.get().locator('[pw-data="grid-id-column"]').waitFor();
 
     await this.tabBar
-    .locator(`.ant-tabs-tab-active:has-text("${title}")`)
-    .waitFor();
+      .locator(`.ant-tabs-tab-active:has-text("${title}")`)
+      .waitFor();
 
     // wait active tab animation to finish
     await expect
@@ -100,5 +104,30 @@ export class DashboardPage extends BasePage {
     await expect(this.rootPage).toHaveURL(
       `/#/nc/${this.project.id}/table/${title}`
     );
+  }
+
+  // Project page language menu
+  async openLanguageMenu() {
+    await this.rootPage.locator(".nc-menu-translate").click();
+  }
+
+  async selectLanguage({ index }: { index: number }) {
+    let modal = await this.rootPage.locator(".nc-dropdown-menu-translate");
+    await modal.locator(`.ant-dropdown-menu-item`).nth(index).click();
+  }
+
+  async verifyLanguage(param: { json: any }) {
+    let title = await this.rootPage
+      .locator(`.nc-project-page-title`)
+      .textContent();
+    let menu = await this.rootPage
+      .locator(`.nc-new-project-menu`)
+      .textContent();
+    console.log(title, menu);
+    expect(title).toContain(param.json.title.myProject);
+    expect(menu).toContain(param.json.title.newProj);
+    await this.rootPage
+      .locator(`[placeholder="${param.json.activity.searchProject}"]`)
+      .waitFor();
   }
 }

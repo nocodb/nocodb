@@ -284,7 +284,7 @@ function fieldsValidation(record: Record<string, any>) {
     case UITypes.Number:
       if (
         importData[tableName]
-          .slice(0, maxRowsToParse)
+          ?.slice(0, maxRowsToParse)
           .some(
             (r: Record<string, any>) => r[record.sourceCn] !== null && r[record.srcCn] !== undefined && isNaN(+r[record.srcCn]),
           )

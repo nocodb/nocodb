@@ -56,8 +56,9 @@ const updateRole = async (userId: string, roles: Role) => {
 const deleteUser = async (userId: string) => {
   Modal.confirm({
     title: 'Are you sure you want to delete this user?',
-    type:"warn",
-    content: 'On deleting, user will remove from from organization and any sync source(Airtable) created by user will get removed',
+    type: 'warn',
+    content:
+      'On deleting, user will remove from from organization and any sync source(Airtable) created by user will get removed',
     onOk: async () => {
       try {
         await api.orgUsers.delete(userId)
@@ -120,13 +121,23 @@ const deleteUser = async (userId: string) => {
               <a-select
                 v-else
                 v-model:value="record.roles"
-                class="min-w-[220px]"
-                :options="[
-                  { value: Role.OrgLevelCreator, label: $t(`objects.roleType.orgLevelCreator`) },
-                  { value: Role.OrgLevelViewer, label: $t(`objects.roleType.orgLevelViewer`) },
-                ]"
+                class="w-[220px]"
+                :dropdown-match-select-width="false"
                 @change="updateRole(record.id, record.roles)"
               >
+                <a-select-option :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
+                  <div >{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                  <span class="text-gray-500 text-xs whitespace-normal"
+                    >Creator can create new projects and access any invited project.</span
+                  >
+                </a-select-option>
+
+                <a-select-option :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
+                  <div >{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
+                  <span class="text-gray-500 text-xs whitespace-normal"
+                    >Viewer is not allowed to create new projects but they can access any invited project.</span
+                  >
+                </a-select-option>
               </a-select>
             </div>
           </template>

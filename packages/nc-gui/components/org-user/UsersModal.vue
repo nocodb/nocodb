@@ -1,20 +1,20 @@
 <script setup lang="ts">
+import type { UserType } from 'nocodb-sdk'
 import {
+  Form,
   computed,
   extractSdkResponseErrorMsg,
-  Form,
   isEmail,
   message,
   onMounted,
-  projectRoles,
   projectRoleTagColors,
+  projectRoles,
   ref,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
 } from '#imports'
-import { UserType } from 'nocodb-sdk'
 import type { User } from '~/lib'
 import { ProjectRole, Role } from '~/lib'
 
@@ -75,7 +75,6 @@ const saveUser = async () => {
   await formRef.value?.validateFields()
 
   try {
-
     // todo: update sdk(swagger.json)
     const res = await $api.orgUsers.add({
       roles: usersData.role,
@@ -126,8 +125,7 @@ const clickInviteMore = () => {
   >
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title class="select-none" :level="4"> {{ $t('activity.inviteUser') }}
-        </a-typography-title>
+        <a-typography-title class="select-none" :level="4"> {{ $t('activity.inviteUser') }} </a-typography-title>
 
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
@@ -180,8 +178,7 @@ const clickInviteMore = () => {
         <div v-else class="flex flex-col pb-4">
           <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
             <MdiAccountOutline />
-            <div class="text-xs ml-0.5 mt-0.5">{{$t('activity.inviteUser') }}
-            </div>
+            <div class="text-xs ml-0.5 mt-0.5">{{ $t('activity.inviteUser') }}</div>
           </div>
 
           <div class="border-1 py-3 px-4 rounded-md mt-1">
@@ -202,30 +199,23 @@ const clickInviteMore = () => {
                   >
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
 
-                    <a-input
-                      v-model:value="usersData.emails"
-                      validate-trigger="onBlur"
-                      :placeholder="$t('labels.email')"
-                    />
+                    <a-input v-model:value="usersData.emails" validate-trigger="onBlur" :placeholder="$t('labels.email')" />
                   </a-form-item>
                 </div>
 
-                <div class="flex flex-col w-1/4">
+                <div class="flex flex-col w-2/4">
                   <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 
-                    <a-select v-model:value="usersData.role" class="nc-user-roles"
-                              dropdown-class-name="nc-dropdown-user-role">
-                      <a-select-option v-for="(role, index) in [Role.OrgLevelViewer, Role.OrgLevelCreator]" :key="index" :value="role"
-                                       class="nc-role-option">
-                        <div class="flex flex-row h-full justify-start items-center">
-                          <div
-                            class="px-2 py-1 flex rounded-full text-xs"
-                            :style="{ backgroundColor: projectRoleTagColors[role] }"
-                          >
-                            {{ role }}
-                          </div>
-                        </div>
+                    <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
+                      <a-select-option :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
+                        <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                        <span class="text-gray-500 text-xs whitespace-normal ">Creator can create new projects and access any invited project.</span>
+                      </a-select-option>
+
+                      <a-select-option :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
+                        <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
+                        <span class="text-gray-500 text-xs whitespace-normal">Viewer is not allowed to create new projects but they can access any invited project.</span>
                       </a-select-option>
                     </a-select>
                   </a-form-item>
@@ -234,7 +224,6 @@ const clickInviteMore = () => {
 
               <div class="flex flex-row justify-center">
                 <a-button type="primary" html-type="submit">
-
                   <div class="flex flex-row justify-center items-center space-x-1.5">
                     <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
                     <div>{{ $t('activity.invite') }}</div>

@@ -64,7 +64,9 @@ const tablesById = $computed(() =>
 )
 
 const filteredTables = $computed(() =>
-  tables.value?.filter((table) => !filterQuery || table.title.toLowerCase().includes(filterQuery.toLowerCase())),
+  tables.value?.filter(
+    (table) => !searchActive.value || !filterQuery || table.title.toLowerCase().includes(filterQuery.toLowerCase()),
+  ),
 )
 
 const filteredBases = $computed(() => bases.value.filter((base) => base.enabled))
@@ -470,7 +472,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     </GeneralTooltip>
                   </div>
                 </div>
-                <a-collapse v-else v-model:activeKey="activeKey" expand-icon-position="right" :bordered="false" accordion ghost>
+                <a-collapse
+                  v-else
+                  v-model:activeKey="activeKey"
+                  :class="[{ hidden: searchActive && !!filterQuery && !filteredTables?.find((el) => el.base_id === base.id) }]"
+                  expand-icon-position="right"
+                  :bordered="false"
+                  accordion
+                  ghost
+                >
                   <a-collapse-panel :key="index">
                     <template #header>
                       <div v-if="index !== '0'" class="flex items-center gap-2 text-gray-500 font-weightd">

@@ -4,6 +4,7 @@ import { ColumnInj, ReadonlyInj, computed, inject, ref, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null
+  editEnabled?: boolean | undefined
 }
 
 const { modelValue } = defineProps<Props>()
@@ -65,10 +66,10 @@ const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
     class="!w-full px-1"
     :format="dateFormat"
     :placeholder="placeholder"
-    :allow-clear="!readOnly"
+    :allow-clear="!readOnly && $props.editEnabled"
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-date`"
-    :open="readOnly ? false : open"
+    :open="readOnly || !$props.editEnabled ? false : open"
     @click="open = !open"
   >
     <template #suffixIcon></template>

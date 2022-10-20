@@ -266,13 +266,8 @@ export default class CSVTemplateAdapter {
                 if (column.uidt === UITypes.Checkbox) {
                   rowData[column.column_name] = getCheckboxValue(data)
                   rowData[column.column_name] = data
-                } else if (column.uidt === UITypes.Currency) {
-                  rowData[column.column_name] = data
                 } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
                   rowData[column.column_name] = (data || '').toString().trim() || null
-                } else if (column.uidt === UITypes.Date) {
-                  // TODO(import): check format
-                  rowData[column.column_name] = data
                 } else {
                   // TODO(import): do parsing if necessary based on type
                   rowData[column.column_name] = data

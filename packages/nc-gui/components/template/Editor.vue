@@ -227,7 +227,12 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
   const dateFormatMap: Record<number, string> = {}
   return batchData.map((data) =>
     (columns || []).reduce((aggObj, col: Record<string, any>) => {
-      let d = data[col.column_name || col.ref_column_name]
+      // for excel & json, if the column name is changed in TemplateEditor,
+      // then only col.column_name exists in data, else col.ref_column_name
+      // for csv, col.column_name always exists in data
+      // since it streams the data in getData() with the updated col.column_name
+      const key = col.column_name in data ? col.column_name : col.ref_column_name
+      let d = data[key]
       if (col.uidt === UITypes.Date && d) {
         let dateFormat
         if (col?.meta?.date_format) {
@@ -242,13 +247,11 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
         d = dayjs(d).utc().format(dateFormat)
       } else if (col.uidt === UITypes.DateTime && d) {
         // TODO: handle more formats for DateTime
-        d = dayjs(data[col.column_name || col.ref_column_name])
-          .utc()
-          .format('YYYY-MM-DD HH:mm')
+        d = dayjs(data[key]).utc().format('YYYY-MM-DD HH:mm')
       }
       return {
         ...aggObj,
-        [col.column_name || col.ref_column_name]: d,
+        [col.column_name]: d,
       }
     }, {}),
   )

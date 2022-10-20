@@ -268,7 +268,7 @@ async function projectUserInviteResend(req, res): Promise<any> {
   res.json({ msg: 'success' });
 }
 
-async function sendInviteEmail(
+export async function sendInviteEmail(
   email: string,
   token: string,
   req: any

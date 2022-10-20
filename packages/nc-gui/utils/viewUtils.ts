@@ -6,6 +6,7 @@ import MdiFormIcon from '~icons/mdi/form-select'
 import MdiCalendarIcon from '~icons/mdi/calendar'
 import MdiGalleryIcon from '~icons/mdi/camera-image'
 import MdiKanbanIcon from '~icons/mdi/tablet-dashboard'
+import MdiMapIcon from '~icons/mdi/map-outline'
 import MdiEyeIcon from '~icons/mdi/eye-circle-outline'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {
@@ -13,6 +14,7 @@ export const viewIcons: Record<number | string, { icon: any; color: string }> = 
   [ViewTypes.FORM]: { icon: MdiFormIcon, color: themeV2Colors.pink['500'] },
   calendar: { icon: MdiCalendarIcon, color: 'purple' },
   [ViewTypes.GALLERY]: { icon: MdiGalleryIcon, color: 'orange' },
+  [ViewTypes.MAP]: { icon: MdiMapIcon, color: 'blue' },
   [ViewTypes.KANBAN]: { icon: MdiKanbanIcon, color: 'green' },
   view: { icon: MdiEyeIcon, color: 'blue' },
 }
@@ -22,4 +24,5 @@ export const viewTypeAlias = {
   [ViewTypes.FORM]: 'form',
   [ViewTypes.GALLERY]: 'gallery',
   [ViewTypes.KANBAN]: 'kanban',
+  [ViewTypes.MAP]: 'map',
 }

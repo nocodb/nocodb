@@ -2,7 +2,7 @@
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { Form as AntForm, SelectProps } from 'ant-design-vue'
 import { capitalize } from '@vue/runtime-core'
-import type { FormType, GalleryType, GridType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
+import type { FormType, GalleryType, GridType, KanbanType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 import {
   computed,
@@ -92,6 +92,7 @@ const typeAlias = computed(
       [ViewTypes.GALLERY]: 'gallery',
       [ViewTypes.FORM]: 'form',
       [ViewTypes.KANBAN]: 'kanban',
+      [ViewTypes.MAP]: 'map',
     }[props.type]),
 )
 
@@ -150,7 +151,7 @@ async function onSubmit() {
     if (!_meta || !_meta.id) return
 
     try {
-      let data: GridType | KanbanType | GalleryType | FormType | null = null
+      let data: GridType | KanbanType | GalleryType | FormType | MapType | null = null
 
       switch (form.type) {
         case ViewTypes.GRID:
@@ -164,6 +165,9 @@ async function onSubmit() {
           break
         case ViewTypes.KANBAN:
           data = await api.dbView.kanbanCreate(_meta.id, form)
+          break
+        case ViewTypes.MAP:
+          data = await api.dbView.mapCreate(_meta.id, form)
       }
 
       if (data) {

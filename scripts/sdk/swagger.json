@@ -560,6 +560,30 @@
         "description": ""
       }
     },
+    "/api/v1/users/{userId}/resend-invite": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "org-users-resend-invite",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org users"
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/users": {
       "get": {
         "summary": "Project users",

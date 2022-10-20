@@ -146,7 +146,7 @@ async function handlePreImport() {
   isParsingData.value = true
 
   if (activeKey.value === 'uploadTab') {
-    if (isImportTypeCsv) {
+    if (isImportTypeCsv.value) {
       await parseAndExtractStreamData(importState.fileList as streamImportFileList)
     } else {
       await parseAndExtractData((importState.fileList as importFileList)[0].data)
@@ -161,10 +161,6 @@ async function handlePreImport() {
   } else if (activeKey.value === 'jsonEditorTab') {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor))
   }
-
-  // TODO(import):
-  preImportLoading.value = false
-  // isParsingData.value = false
 }
 
 async function handleImport() {
@@ -207,6 +203,7 @@ async function parseAndExtractStreamData(val: UploadFile[]) {
       // if (importOnly) importColumns.value = templateGenerator.getColumns()
       templateEditorModal.value = true
       isParsingData.value = false
+      preImportLoading.value = false
     })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -219,7 +216,7 @@ async function parseAndExtractData(val: string | ArrayBuffer) {
     importData.value = null
     importColumns.value = []
 
-    const templateGenerator = getAdapter(val)
+    templateGenerator = getAdapter(val)
 
     if (!templateGenerator) {
       message.error(t('msg.error.templateGeneratorNotFound'))
@@ -228,13 +225,13 @@ async function parseAndExtractData(val: string | ArrayBuffer) {
 
     await templateGenerator.init()
 
-    templateGenerator.parse(() => {})
-    templateData.value = templateGenerator.getTemplate()
-
-    // TODO(import): check
-    if (importOnly) importColumns.value = templateGenerator.getColumns()
-
-    templateEditorModal.value = true
+    templateGenerator.parse(() => {
+      templateData.value = templateGenerator!.getTemplate()
+      if (importOnly) importColumns.value = templateGenerator!.getColumns()
+      templateEditorModal.value = true
+      isParsingData.value = false
+      preImportLoading.value = false
+    })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -249,7 +246,7 @@ function rejectDrop(fileList: UploadFile[]) {
 function handleChange(info: UploadChangeParam) {
   const status = info.file.status
   if (status && status !== 'uploading' && status !== 'removed') {
-    if (isImportTypeCsv) {
+    if (isImportTypeCsv.value) {
       if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
         ;(importState.fileList as streamImportFileList).push({
           ...info.file,
@@ -308,7 +305,7 @@ function getAdapter(val: any) {
         // TODO(import): implement one for CSV
         return new ExcelUrlTemplateAdapter(val, importState.parserConfig)
     }
-  } else if (IsImportTypeExcel.value || isImportTypeCsv.value) {
+  } else if (IsImportTypeExcel.value) {
     switch (activeKey.value) {
       case 'uploadTab':
         return new ExcelTemplateAdapter(val, importState.parserConfig)

@@ -38,12 +38,12 @@ export class ViewSidebarPage extends BasePage {
       .locator(".ant-modal-content")
       .locator('button:has-text("Submit"):visible')
       .click();
-      await this.waitForResponse({
-        httpMethodsToMatch: ["POST"],
-        requestUrlPathToMatch: "/api/v1/db/meta/tables/",
-        uiAction: submitAction,
-        responseJsonMatcher: (json) => json.title === title,
-      });
+    await this.waitForResponse({
+      httpMethodsToMatch: ["POST"],
+      requestUrlPathToMatch: "/api/v1/db/meta/tables/",
+      uiAction: submitAction,
+      responseJsonMatcher: (json) => json.title === title,
+    });
     await this.toastWait({ message: "View created successfully" });
     // Todo: Wait for view to be rendered
     await this.rootPage.waitForTimeout(1000);
@@ -148,5 +148,18 @@ export class ViewSidebarPage extends BasePage {
       .fill(newTitle);
     await this.get().press("Enter");
     await this.toastWait({ message: "View renamed successfully" });
+  }
+
+  async copyView({ title }: { title: string }) {
+    await this.get().locator(`[pw-data="view-sidebar-view-${title}"]`).hover();
+    await this.get()
+      .locator(`[pw-data="view-sidebar-view-actions-${title}"]`)
+      .locator(".nc-view-copy-icon")
+      .click();
+    const submitAction = this.rootPage
+      .locator(".ant-modal-content")
+      .locator('button:has-text("Submit"):visible')
+      .click();
+    await this.toastWait({ message: "View created successfully" });
   }
 }

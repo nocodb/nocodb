@@ -109,4 +109,61 @@ export class KanbanPage extends BasePage {
   async waitLoading() {
     await this.rootPage.waitForTimeout(1000);
   }
+
+  async addNewStack(param: { title: string }) {
+    await this.toolbar.clickAddEditStack();
+    await this.toolbar.addEditStack.addOption({ title: param.title });
+  }
+
+  async collapseStack(param: { index: number }) {
+    await this.get().locator(`.nc-kanban-stack-head`).nth(param.index).click();
+    const modal = await this.rootPage.locator(
+      `.nc-dropdown-kanban-stack-context-menu`
+    );
+    await modal
+      .locator('.ant-dropdown-menu-item:has-text("Collapse Stack")')
+      .click();
+  }
+
+  async expandStack(param: { index: number }) {
+    await this.rootPage
+      .locator(`.nc-kanban-collapsed-stack`)
+      .nth(param.index)
+      .click();
+  }
+
+  async collapseStackCount() {
+    return await this.rootPage.locator(".nc-kanban-collapsed-stack").count();
+  }
+
+  async verifyCollapseStackCount(param: { count: number }) {
+    expect(await this.collapseStackCount()).toBe(param.count);
+  }
+
+  async addCard(param: { stackIndex: number }) {
+    await this.get()
+      .locator(`.nc-kanban-stack-head`)
+      .nth(param.stackIndex)
+      .click();
+    const modal = await this.rootPage.locator(
+      `.nc-dropdown-kanban-stack-context-menu`
+    );
+    await modal
+      .locator('.ant-dropdown-menu-item:has-text("Add new record")')
+      .click();
+  }
+
+  async deleteStack(param: { index: number }) {
+    await this.get().locator(`.nc-kanban-stack-head`).nth(param.index).click();
+    const modal = await this.rootPage.locator(
+      `.nc-dropdown-kanban-stack-context-menu`
+    );
+    await modal
+      .locator('.ant-dropdown-menu-item:has-text("Delete Stack")')
+      .click();
+    const confirmationModal = await this.rootPage.locator(
+      `.nc-modal-kanban-delete-stack`
+    );
+    await confirmationModal.locator(`button:has-text("Delete")`).click();
+  }
 }

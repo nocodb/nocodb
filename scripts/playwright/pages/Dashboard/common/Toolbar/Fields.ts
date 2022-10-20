@@ -41,4 +41,10 @@ export class ToolbarFieldsPage extends BasePage {
     await this.get().locator(`button:has-text("Show all")`).click();
     await this.toolbar.clickFields();
   }
+
+  async toggleShowSystemFields() {
+    await this.toolbar.clickFields();
+    await this.get().locator(`.nc-fields-show-system-fields`).click();
+    await this.toolbar.clickFields();
+  }
 }

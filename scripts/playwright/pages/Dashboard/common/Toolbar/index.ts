@@ -12,6 +12,7 @@ import { GalleryPage } from "../../Gallery";
 import { KanbanPage } from "../../Kanban";
 import { FormPage } from "../../Form";
 import { ToolbarStackbyPage } from "./StackBy";
+import { ToolbarAddEditStackPage } from "./AddEditKanbanStack";
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage;
@@ -22,6 +23,7 @@ export class ToolbarPage extends BasePage {
   readonly viewsMenu: ToolbarViewMenuPage;
   readonly actions: ToolbarActionsPage;
   readonly stackBy: ToolbarStackbyPage;
+  readonly addEditStack: ToolbarAddEditStackPage;
 
   constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage) {
     super(parent.rootPage);
@@ -33,6 +35,7 @@ export class ToolbarPage extends BasePage {
     this.viewsMenu = new ToolbarViewMenuPage(this);
     this.actions = new ToolbarActionsPage(this);
     this.stackBy = new ToolbarStackbyPage(this);
+    this.addEditStack = new ToolbarAddEditStackPage(this);
   }
 
   get() {
@@ -130,5 +133,9 @@ export class ToolbarPage extends BasePage {
     await this.get()
       .locator(`.nc-toolbar-btn.nc-actions-menu-btn`)
       .waitFor({ state: "hidden" });
+  }
+
+  async clickAddEditStack() {
+    await this.get().locator(`.nc-kanban-add-edit-stack-menu-btn`).click();
   }
 }

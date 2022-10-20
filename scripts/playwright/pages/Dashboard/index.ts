@@ -12,6 +12,7 @@ import { ViewSidebarPage } from "./ViewSidebar";
 import { GalleryPage } from "./Gallery";
 import { KanbanPage } from "./Kanban";
 import { ToolbarPage } from "./common/Toolbar";
+import { ImportAirtablePage } from "./Import/Airtable";
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -27,6 +28,7 @@ export class DashboardPage extends BasePage {
   readonly linkRecord: LinkRecord;
   readonly settings: SettingsPage;
   readonly viewSidebar: ViewSidebarPage;
+  readonly importAirtable: ImportAirtablePage;
 
   constructor(rootPage: Page, project: any) {
     super(rootPage);
@@ -43,6 +45,7 @@ export class DashboardPage extends BasePage {
     this.linkRecord = new LinkRecord(this);
     this.settings = new SettingsPage(this);
     this.viewSidebar = new ViewSidebarPage(this);
+    this.importAirtable = new ImportAirtablePage(this);
   }
 
   get() {
@@ -129,5 +132,37 @@ export class DashboardPage extends BasePage {
     await this.rootPage
       .locator(`[placeholder="${param.json.activity.searchProject}"]`)
       .waitFor();
+  }
+
+  // create project
+  async createProject({
+    name = "sample",
+    type = "xcdb",
+  }: {
+    name?: string;
+    type?: string;
+  }) {
+    // fix me! wait for page to be rendered completely
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.locator(".nc-new-project-menu").click();
+
+    const createProjectMenu = await this.rootPage.locator(
+      ".nc-dropdown-create-project"
+    );
+    if (type === "xcdb") {
+      await createProjectMenu
+        .locator(`.ant-dropdown-menu-title-content`)
+        .nth(0)
+        .click();
+    } else {
+      await createProjectMenu
+        .locator(`.ant-dropdown-menu-title-content`)
+        .nth(1)
+        .click();
+    }
+
+    await this.rootPage.locator(`.nc-metadb-project-name`).waitFor();
+    await this.rootPage.locator(`input.nc-metadb-project-name`).fill(name);
+    await this.rootPage.locator(`input.nc-metadb-project-name`).press("Enter");
   }
 }

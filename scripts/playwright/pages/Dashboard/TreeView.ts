@@ -1,15 +1,17 @@
-import { expect } from "@playwright/test";
+import { Locator, expect } from "@playwright/test";
 import { DashboardPage } from ".";
 import BasePage from "../Base";
 
 export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly project: any;
+  readonly quickImportButton: Locator;
 
   constructor(dashboard: DashboardPage, project: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.project = project;
+    this.quickImportButton = dashboard.get().locator(".nc-import-menu");
   }
 
   get() {
@@ -23,8 +25,12 @@ export class TreeViewPage extends BasePage {
   // assumption: first view rendered is always GRID
   //
   async openTable({ title }: { title: string }) {
-    if(await this.get().locator('.active.nc-project-tree-tbl').count() > 0) {
-      if(await this.get().locator('.active.nc-project-tree-tbl').innerText() === title) {
+    if ((await this.get().locator(".active.nc-project-tree-tbl").count()) > 0) {
+      if (
+        (await this.get()
+          .locator(".active.nc-project-tree-tbl")
+          .innerText()) === title
+      ) {
         // table already open
         return;
       }
@@ -42,7 +48,11 @@ export class TreeViewPage extends BasePage {
   async createTable({ title }: { title: string }) {
     await this.get().locator(".nc-add-new-table").click();
 
-    await this.dashboard.get().locator('.nc-modal-table-create').locator(".ant-modal-body").waitFor();
+    await this.dashboard
+      .get()
+      .locator(".nc-modal-table-create")
+      .locator(".ant-modal-body")
+      .waitFor();
 
     await this.dashboard
       .get()
@@ -50,12 +60,15 @@ export class TreeViewPage extends BasePage {
       .fill(title);
 
     await this.waitForResponse({
-      uiAction: this.dashboard.get().locator('button:has-text("Submit")').click(),
+      uiAction: this.dashboard
+        .get()
+        .locator('button:has-text("Submit")')
+        .click(),
       httpMethodsToMatch: ["POST"],
       requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
-      responseJsonMatcher: (json) => json.title === title &&  json.type === 'table',
+      responseJsonMatcher: (json) =>
+        json.title === title && json.type === "table",
     });
-    
 
     await this.dashboard.waitForTabRender({ title });
   }
@@ -93,13 +106,20 @@ export class TreeViewPage extends BasePage {
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
     });
 
-    await expect.poll(async () => 
-      await this.dashboard.tabBar.locator('.ant-tabs-tab', {
-        hasText: title
-      }).isVisible()
-    ).toBe(false);
+    await expect
+      .poll(
+        async () =>
+          await this.dashboard.tabBar
+            .locator(".ant-tabs-tab", {
+              hasText: title,
+            })
+            .isVisible()
+      )
+      .toBe(false);
 
-    (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
+    (
+      await this.rootPage.locator(".nc-container").last().elementHandle()
+    )?.waitForElementState("stable");
   }
 
   async renameTable({ title, newTitle }: { title: string; newTitle: string }) {
@@ -131,5 +151,14 @@ export class TreeViewPage extends BasePage {
       .dragTo(
         this.get().locator(`[pw-data="tree-view-table-${destinationTable}"]`)
       );
+  }
+
+  async quickImport({ title }: { title: string }) {
+    await this.get().locator(".nc-add-new-table").hover();
+    await this.quickImportButton.click();
+    const importMenu = this.dashboard.get().locator(".nc-dropdown-import-menu");
+    await importMenu
+      .locator(`.ant-dropdown-menu-title-content:has-text("${title}")`)
+      .click();
   }
 }

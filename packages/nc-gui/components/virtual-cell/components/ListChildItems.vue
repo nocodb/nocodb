@@ -11,6 +11,7 @@ import {
   h,
   inject,
   ref,
+  useExpandedFormDetached,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useVModel,
@@ -30,6 +31,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 const column = inject(ColumnInj)
 
 const readonly = inject(ReadonlyInj, false)
+
+const { open } = useExpandedFormDetached()
 
 const {
   childrenList,
@@ -88,6 +91,18 @@ watch(
     if (!isNew.value && vModel.value) loadChildrenList()
   },
 )
+
+function openExpandedForm() {
+  if (expandedFormRow.value) {
+    open({
+      isOpen: true,
+      row: { row: expandedFormRow.value, oldRow: expandedFormRow.value },
+      meta: relatedTableMeta.value,
+      loadRow: true,
+      useMetaFields: true,
+    })
+  }
+}
 </script>
 
 <template>
@@ -176,17 +191,6 @@ watch(
         :image-style="isForm ? { height: '20px' } : {}"
       />
     </div>
-
-    <Suspense>
-      <LazySmartsheetExpandedForm
-        v-if="expandedFormRow && expandedFormDlg"
-        v-model="expandedFormDlg"
-        :row="{ row: expandedFormRow }"
-        :meta="relatedTableMeta"
-        load-row
-        use-meta-fields
-      />
-    </Suspense>
   </component>
 </template>
 

@@ -5,6 +5,8 @@ const props = defineProps<{
   baseId: string
 }>()
 
+const emit = defineEmits(['baseSynced'])
+
 const { $api } = useNuxtApp()
 
 const { project, loadTables } = useProject()
@@ -47,6 +49,7 @@ async function syncMetaDiff() {
     message.info(t('msg.info.metaDataRecreated'))
     await loadTables()
     await loadMetaDiff()
+    emit('baseSynced')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

@@ -326,7 +326,7 @@ watch(
         <CreateBase :connection-type="clientType" @base-created="loadBases" />
       </div>
       <div v-else-if="vState === DataSourcesSubTab.Metadata" class="max-h-600px overflow-y-auto">
-        <Metadata :base-id="activeBaseId" />
+        <Metadata :base-id="activeBaseId" @base-synced="loadBases" />
       </div>
       <div v-else-if="vState === DataSourcesSubTab.UIAcl" class="max-h-600px overflow-y-auto">
         <UIAcl :base-id="activeBaseId" />

@@ -13,6 +13,7 @@ import { GalleryPage } from "./Gallery";
 import { KanbanPage } from "./Kanban";
 import { ToolbarPage } from "./common/Toolbar";
 import { ImportAirtablePage } from "./Import/Airtable";
+import { WebhookFormPage } from "./WebhookForm";
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -24,6 +25,7 @@ export class DashboardPage extends BasePage {
   readonly form: FormPage;
   readonly kanban: KanbanPage;
   readonly expandedForm: ExpandedFormPage;
+  readonly webhookForm: WebhookFormPage;
   readonly childList: ChildList;
   readonly linkRecord: LinkRecord;
   readonly settings: SettingsPage;
@@ -41,6 +43,7 @@ export class DashboardPage extends BasePage {
     this.form = new FormPage(this);
     this.kanban = new KanbanPage(this);
     this.expandedForm = new ExpandedFormPage(this);
+    this.webhookForm = new WebhookFormPage(this);
     this.childList = new ChildList(this);
     this.linkRecord = new LinkRecord(this);
     this.settings = new SettingsPage(this);

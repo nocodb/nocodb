@@ -20,8 +20,4 @@ export class ToolbarStackbyPage extends BasePage {
       .locator(`div[title="${title}"]`)
       .click();
   }
-
-  // click({ title }: { title: string }) {
-  //   return this.get().locator(`[pw-data="nc-fields-menu-${title}"]`).click();
-  // }
 }

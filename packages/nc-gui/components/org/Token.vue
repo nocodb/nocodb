@@ -1,10 +1,18 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
 import type { RequestParams, UserType } from 'nocodb-sdk'
-import { Role, extractSdkResponseErrorMsg } from '#imports'
-import { useApi } from '~/composables/useApi'
+import { Role, extractSdkResponseErrorMsg, useApi, useDashboard, useNuxtApp , useCopy} from '#imports'
+import type { User } from '~/lib'
 
 const { api, isLoading } = useApi()
+
+const { $e } = useNuxtApp()
+
+const { t } = useI18n()
+
+const { dashboardUrl } = $(useDashboard())
+
+const { copy } = useCopy()
 
 let users = $ref<UserType[]>([])
 
@@ -70,6 +78,30 @@ const deleteUser = async (userId: string) => {
     },
   })
 }
+
+const resendInvite = async (user: User) => {
+  try {
+    await api.orgUsers.resendInvite(user.id)
+
+    // Invite email sent successfully
+    message.success(t('msg.success.inviteEmailSent'))
+    await loadUsers()
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+
+  $e('a:org-user:resend-invite')
+}
+
+const copyInviteUrl = (user: User) => {
+  if (!user.invite_token) return
+
+  copy(`${dashboardUrl}#/signup/${user.invite_token}`)
+
+  // Invite URL copied to clipboard
+  message.success(t('msg.success.inviteURLCopied'))
+  $e('c:user:copy-url')
+}
 </script>
 
 <template>
@@ -99,6 +131,7 @@ const deleteUser = async (userId: string) => {
         :pagination="pagination"
         :loading="isLoading"
         @change="loadUsers($event.current)"
+        size="small"
       >
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
@@ -126,14 +159,14 @@ const deleteUser = async (userId: string) => {
                 @change="updateRole(record.id, record.roles)"
               >
                 <a-select-option :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
-                  <div >{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                  <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
                   <span class="text-gray-500 text-xs whitespace-normal"
                     >Creator can create new projects and access any invited project.</span
                   >
                 </a-select-option>
 
                 <a-select-option :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
-                  <div >{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
+                  <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
                   <span class="text-gray-500 text-xs whitespace-normal"
                     >Viewer is not allowed to create new projects but they can access any invited project.</span
                   >
@@ -143,21 +176,55 @@ const deleteUser = async (userId: string) => {
           </template>
         </a-table-column>
 
-        <!-- Projects -->
+<!--        &lt;!&ndash; Projects &ndash;&gt;
         <a-table-column key="projectsCount" :title="$t('objects.projects')" data-index="projectsCount">
           <template #default="{ text }">
             <div>
               {{ text }}
             </div>
           </template>
-        </a-table-column>
+        </a-table-column>-->
 
         <!-- Actions -->
 
         <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
-          <template #default="{ text }">
+          <template #default="{ text, record }">
             <div class="flex items-center gap-2">
               <MdiDeleteOutline class="nc-action-btn cursor-pointer" @click="deleteUser(text)" />
+
+              <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
+                <div class="flex flex-row items-center">
+                  <a-button type="text" class="!px-0">
+                    <div class="flex flex-row items-center h-[1.2rem]">
+                      <IcBaselineMoreVert />
+                    </div>
+                  </a-button>
+                </div>
+
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item>
+                      <!-- Resend invite Email -->
+                      <div class="flex flex-row items-center py-3" @click="resendInvite(record)">
+                        <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
+                        <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
+                      </div>
+                    </a-menu-item>
+                    <a-menu-item>
+                      <div class="flex flex-row items-center py-3" @click="copyInviteUrl(record)">
+                        <MdiContentCopy class="flex h-[1rem] text-gray-500" />
+                        <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
+                      </div>
+                    </a-menu-item>
+                    <!--                    <a-menu-item>
+                      <div class="flex flex-row items-center py-3" @click="copyInviteUrl(user)">
+                        <MdiContentCopy class="flex h-[1rem] text-gray-500" />
+                        <div class="text-xs pl-2">{{ $t('activity.copyPasswordResetURL') }}</div>
+                      </div>
+                    </a-menu-item> -->
+                  </a-menu>
+                </template>
+              </a-dropdown>
             </div>
           </template>
         </a-table-column>

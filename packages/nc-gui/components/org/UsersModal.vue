@@ -6,9 +6,6 @@ import {
   extractSdkResponseErrorMsg,
   isEmail,
   message,
-  onMounted,
-  projectRoleTagColors,
-  projectRoles,
   ref,
   useCopy,
   useDashboard,
@@ -16,7 +13,7 @@ import {
   useNuxtApp,
 } from '#imports'
 import type { User } from '~/lib'
-import { ProjectRole, Role } from '~/lib'
+import { Role } from '~/lib'
 
 interface Props {
   show: boolean
@@ -210,12 +207,16 @@ const clickInviteMore = () => {
                     <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
                       <a-select-option :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
                         <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
-                        <span class="text-gray-500 text-xs whitespace-normal ">Creator can create new projects and access any invited project.</span>
+                        <span class="text-gray-500 text-xs whitespace-normal"
+                          >Creator can create new projects and access any invited project.</span
+                        >
                       </a-select-option>
 
                       <a-select-option :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
                         <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
-                        <span class="text-gray-500 text-xs whitespace-normal">Viewer is not allowed to create new projects but they can access any invited project.</span>
+                        <span class="text-gray-500 text-xs whitespace-normal"
+                          >Viewer is not allowed to create new projects but they can access any invited project.</span
+                        >
                       </a-select-option>
                     </a-select>
                   </a-form-item>

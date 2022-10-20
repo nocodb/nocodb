@@ -9,7 +9,10 @@ import {
   MetaInj,
   ReloadRowDataHookInj,
   computedInject,
+  createEventHook,
+  inject,
   message,
+  onBeforeMount,
   provide,
   ref,
   toRef,
@@ -57,21 +60,23 @@ provide(MetaInj, meta)
 
 const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
 
-if (props.loadRow) {
-  await loadRow()
-}
-
-if (props.rowId) {
-  try {
-    await loadRow(props.rowId)
-  } catch (e: any) {
-    if (e.response?.status === 404) {
-      // todo: i18n
-      message.error('Record not found')
-      router.replace({ query: {} })
-    } else throw e
+onBeforeMount(async () => {
+  if (props.loadRow) {
+    await loadRow()
   }
-}
+
+  if (props.rowId) {
+    try {
+      await loadRow(props.rowId)
+    } catch (e: any) {
+      if (e.response?.status === 404) {
+        // todo: i18n
+        message.error('Record not found')
+        router.replace({ query: {} })
+      } else throw e
+    }
+  }
+})
 
 useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 
@@ -134,6 +139,7 @@ export default {
     width="min(90vw,1000px)"
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
+    destroy-on-close
     class="nc-drawer-expanded-form"
   >
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />

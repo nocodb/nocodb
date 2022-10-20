@@ -7,6 +7,7 @@ import {
   IsLockedInj,
   MetaInj,
   OpenNewRecordFormHookInj,
+  ReadonlyInj,
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
   TabMetaInj,
@@ -55,6 +56,7 @@ provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
+provide(ReadonlyInj, false)
 </script>
 
 <template>
@@ -78,6 +80,8 @@ provide(TabMetaInj, activeTab)
         </template>
       </Transition>
     </div>
+
+    <LazySmartsheetExpandedFormDetached />
 
     <!-- Lazy loading the sidebar causes issues when deleting elements, i.e. it appears as if multiple elements are removed when they are not -->
     <SmartsheetSidebar v-if="meta" class="nc-right-sidebar" />

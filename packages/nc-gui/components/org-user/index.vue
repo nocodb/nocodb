@@ -1,19 +1,18 @@
 <script lang="ts" setup>
-import { message, Modal } from 'ant-design-vue'
-import type { RequestParams } from 'nocodb-sdk'
-import type { User } from '#imports'
-import { Role, extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
+import { Modal, message } from 'ant-design-vue'
+import type { RequestParams, UserType } from 'nocodb-sdk'
+import { Role, extractSdkResponseErrorMsg } from '#imports'
 import { useApi } from '~/composables/useApi'
 
 const { api, isLoading } = useApi()
 
-let users = $ref<null | User[]>(null)
-
-let totalRows = $ref(0)
+let users = $ref<UserType[]>([])
 
 const currentPage = $ref(1)
 
 const currentLimit = $ref(10)
+
+const showUserModal = ref(false)
 
 const searchText = ref<string>('')
 
@@ -35,12 +34,11 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     pagination.total = response.pageInfo.totalRows ?? 0
     pagination.pageSize = 10
 
-    users = response.list as User[]
+    users = response.list as UserType[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
-
 
 loadUsers()
 
@@ -48,7 +46,7 @@ const updateRole = async (userId: string, roles: Role) => {
   try {
     await api.orgUsers.update(userId, {
       roles,
-    } as unknown as User)
+    } as unknown as UserType)
     message.success('Role updated successfully')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -71,14 +69,23 @@ const deleteUser = async (userId: string) => {
 </script>
 
 <template>
-  <div class=" h-full overflow-y-scroll scrollbar-thin-dull">
+  <div class="h-full overflow-y-scroll scrollbar-thin-dull">
     <div class="max-w-[700px] mx-auto p-4">
-      <div class="py-2 flex"><a-input-search size="small" class=" max-w-[300px]" placeholder="Filter by email" v-model:value="searchText"
-                      @blur="loadUsers" @keydown.enter="loadUsers"></a-input-search>
+      <div class="py-2 flex">
+        <a-input-search
+          v-model:value="searchText"
+          size="small"
+          class="max-w-[300px]"
+          placeholder="Filter by email"
+          @blur="loadUsers"
+          @keydown.enter="loadUsers"
+        >
+        </a-input-search>
         <div class="flex-grow"></div>
-        <a-button size="small">
+        <a-button size="small" @click="showUserModal = true">
           <div class="flex items-center gap-1">
-          <MdiAdd/> Add new user
+            <MdiAdd />
+            Invite new user
           </div>
         </a-button>
       </div>
@@ -106,13 +113,15 @@ const deleteUser = async (userId: string) => {
         <a-table-column key="roles" :title="$t('objects.role')" data-index="roles">
           <template #default="{ record }">
             <div>
+              <div v-if="record.roles.includes('super')" class="font-weight-bold">Super Admin</div>
               <a-select
+                v-else
                 v-model:value="record.roles"
                 class="min-w-[220px]"
                 :options="[
-                { value: Role.OrgLevelCreator, label: $t(`objects.roleType.orgLevelCreator`) },
-                { value: Role.OrgLevelViewer, label: $t(`objects.roleType.orgLevelViewer`) },
-              ]"
+                  { value: Role.OrgLevelCreator, label: $t(`objects.roleType.orgLevelCreator`) },
+                  { value: Role.OrgLevelViewer, label: $t(`objects.roleType.orgLevelViewer`) },
+                ]"
                 @change="updateRole(record.id, record.roles)"
               >
               </a-select>
@@ -140,68 +149,7 @@ const deleteUser = async (userId: string) => {
         </a-table-column>
       </a-table>
 
-      <!--    <div class="py-4"> -->
-      <!--      <a-input-search class="mx-w-[300px]" v-model="searchText" @search="loadUsers" /> -->
-      <!--    </div> -->
-
-      <!--    <div class="px-5">
-            <div class="flex flex-row border-b-1 pb-2 px-2">
-              <div class="flex flex-row w-4/6 space-x-1 items-center pl-1">
-                <EvaEmailOutline class="flex text-gray-500 -mt-0.5" />
-
-                <div class="text-gray-600 text-xs space-x-1">{{ $t('labels.email') }}</div>
-              </div>
-              <div class="flex flex-row w-4/6 space-x-1 items-center pl-1">
-                <EvaEmailOutline class="flex text-gray-500 -mt-0.5" />
-
-                <div class="text-gray-600 text-xs space-x-1">{{ $t('object.projects') }}</div>
-              </div>
-              <div class="flex flex-row justify-center w-1/6 space-x-1 items-center pl-1">
-                <MdiDramaMasks class="flex text-gray-500 -mt-0.5" />
-
-                <div class="text-gray-600 text-xs">{{ $t('objects.role') }}</div>
-              </div>
-              <div class="flex flex-row w-1/6 justify-end items-center pl-1">
-                <div class="text-gray-600 text-xs">{{ $t('labels.actions') }}</div>
-              </div>
-            </div>
-            <div v-for="(user, index) of users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
-              <div class="flex w-4/6 flex-wrap nc-user-email">
-                {{ user.email }}
-              </div>
-
-              <div class="flex w-1/6 justify-center flex-wrap ml-4">
-                {{ user.projectsCount }}
-                </div>
-              <div class="flex w-1/6 justify-center flex-wrap ml-4">
-      &lt;!&ndash;          <div v-if="user.roles" class="rounded-full px-2 py-1 nc-user-role">
-                  {{ $t(`objects.roleType.${user.roles.split(',')[0].replace(/-(\w)/g, (_, m1) => m1.toUpperCase())}`) }}
-                </div>&ndash;&gt;
-
-                <a-select
-                  class="min-w-[220px]"
-                  :options="[
-                    { value: Role.OrgLevelCreator, label: $t(`objects.roleType.orgLevelCreator`) },
-                    { value: Role.OrgLevelViewer, label: $t(`objects.roleType.orgLevelViewer`) },
-                  ]"
-                >
-                </a-select>
-              </div>
-              <div class="flex w-1/6 flex-wrap justify-end">
-                <MdiDeleteOutline />
-              </div>
-            </div>
-
-            <a-pagination
-              v-model:current="currentPage"
-              hide-on-single-page
-              class="mt-4"
-              :page-size="currentLimit"
-              :total="totalRows"
-              show-less-items
-              @change="loadUsers"
-            />
-          </div> -->
+      <LazyOrgUserUsersModal :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
     </div>
   </div>
 </template>

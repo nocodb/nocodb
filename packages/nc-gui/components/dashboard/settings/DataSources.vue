@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { Empty } from 'ant-design-vue'
 import type { BaseType } from 'nocodb-sdk'
-import type { CheckboxChangeEvent } from 'ant-design-vue/lib/checkbox/interface'
 import CreateBase from './data-sources/CreateBase.vue'
 import EditBase from './data-sources/EditBase.vue'
 import Metadata from './Metadata.vue'
@@ -95,9 +93,9 @@ const deleteBase = (base: BaseType) => {
   })
 }
 
-const toggleBase = async (base: BaseType, e: CheckboxChangeEvent) => {
+const toggleBase = async (base: BaseType, state: boolean) => {
   try {
-    base.enabled = e.target.checked
+    base.enabled = state
     await $api.base.update(base.project_id as string, base.id as string, {
       id: base.id,
       project_id: base.project_id,
@@ -256,8 +254,20 @@ watch(
                   <MdiDragVertical small class="ds-table-handle" />
                   <div v-if="!base.is_meta" class="flex items-center gap-1">
                     <a-tooltip>
-                      <template #title>Show in UI</template>
-                      <a-checkbox :checked="base.enabled ? true : false" @change="toggleBase(base, $event)"></a-checkbox>
+                      <template #title>
+                        <template v-if="base.enabled">Hide in UI</template>
+                        <template v-else>Show in UI</template>
+                      </template>
+                      <MdiEyeSettings
+                        v-if="base.enabled"
+                        class="text-lg text-primary outline-0"
+                        @click="toggleBase(base, false)"
+                      ></MdiEyeSettings>
+                      <MdiEyeSettingsOutline
+                        v-else
+                        class="text-lg text-red-500 outline-0"
+                        @click="toggleBase(base, true)"
+                      ></MdiEyeSettingsOutline>
                     </a-tooltip>
                   </div>
                 </div>

@@ -105,7 +105,7 @@ const data = reactive<{
 
 const validators = computed(() =>
   data.tables.reduce<Record<string, [ReturnType<typeof fieldRequiredValidator>]>>((acc, table, tableIdx) => {
-    acc[`tables.${tableIdx}.ref_table_name`] = [fieldRequiredValidator()]
+    acc[`tables.${tableIdx}.table_name`] = [fieldRequiredValidator()]
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
@@ -149,7 +149,7 @@ onMounted(() => {
   // used to record the previous EditableTn values
   // for checking the table duplication in current import
   // and updating the key in importData
-  prevEditableTn.value = data.tables.map((t) => t.ref_table_name)
+  prevEditableTn.value = data.tables.map((t) => t.table_name)
 
   nextTick(() => {
     inputRefs.value[0]?.focus()
@@ -182,7 +182,7 @@ function parseTemplate({ tables = [], ...rest }: Props['projectTemplate']) {
         }),
         ...v.map((v: any) => ({
           column_name: v.title,
-          ref_table_name: {
+          table_name: {
             ...v,
           },
         })),
@@ -478,8 +478,8 @@ async function importTemplate() {
         }
 
         const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
-          table_name: table.ref_table_name,
-          // leave title empty to get a generated one based on ref_table_name
+          table_name: table.table_name,
+          // leave title empty to get a generated one based on table_name
           title: '',
           columns: table.columns || [],
         })
@@ -505,6 +505,8 @@ async function importTemplate() {
         await Promise.all(
           data.tables.map((table: Record<string, any>) =>
             (async (tableMeta) => {
+              // use ref_table_name here instead of table_name
+              // since importData[talbeMeta.table_name] would be empty after renaming
               const data = importData[tableMeta.ref_table_name]
               if (data) {
                 total += data.length
@@ -563,16 +565,12 @@ onMounted(() => {
 
 function handleEditableTnChange(idx: number) {
   const oldValue = prevEditableTn.value[idx]
-  const newValue = data.tables[idx].ref_table_name
-  if (data.tables.filter((t) => t.ref_table_name === newValue).length > 1) {
+  const newValue = data.tables[idx].table_name
+  if (data.tables.filter((t) => t.table_name === newValue).length > 1) {
     message.warn('Duplicate Table Name')
-    data.tables[idx].ref_table_name = oldValue
+    data.tables[idx].table_name = oldValue
   } else {
     prevEditableTn.value[idx] = newValue
-    if (oldValue !== newValue) {
-      // update the key name of importData
-      delete Object.assign(importData, { [newValue]: importData[oldValue] })[oldValue]
-    }
   }
   setEditableTn(idx, false)
 }
@@ -598,7 +596,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
             <span class="font-weight-bold text-lg flex items-center gap-2">
               <mdi-table class="text-primary" />
 
-              {{ table.ref_table_name }}
+              {{ table.table_name }}
             </span>
           </template>
 
@@ -665,21 +663,21 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
         >
           <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
             <template #header>
-              <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.ref_table_name`]" no-style>
+              <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <a-input
-                  v-model:value="table.ref_table_name"
-                  class="max-w-xs"
+                  v-model:value="table.table_name"
+                  class="max-w-xs font-weight-bold text-lg"
                   size="large"
                   hide-details
+                  :bordered="false"
                   @click="$event.stopPropagation()"
                   @blur="handleEditableTnChange(tableIdx)"
                   @keydown.enter="handleEditableTnChange(tableIdx)"
                 />
               </a-form-item>
-
               <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
                 <mdi-table class="text-primary" />
-                {{ table.ref_table_name }}
+                {{ table.table_name }}
               </span>
             </template>
 

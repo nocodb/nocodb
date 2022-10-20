@@ -88,6 +88,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               })
               return new Date(parsed.y, parsed.m, parsed.d, parsed.H, parsed.M, parsed.S)
             }
+
             // fix imported date
             rows = rows.map((r: any) =>
               r.map((v: any) => {
@@ -209,28 +210,39 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               for (const row of rows.slice(1)) {
                 const rowData: Record<string, any> = {}
                 for (let i = 0; i < table.columns.length; i++) {
-                  if (table.columns[i].uidt === UITypes.Checkbox) {
-                    rowData[table.columns[i].column_name] = getCheckboxValue(row[i])
-                  } else if (table.columns[i].uidt === UITypes.Currency) {
-                    const cellId = this.xlsx.utils.encode_cell({
-                      c: range.s.c + i,
-                      r: rowIndex + columnNameRowExist,
-                    })
-
-                    const cellObj = ws[cellId]
-                    rowData[table.columns[i].column_name] = (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
-                  } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
-                    rowData[table.columns[i].column_name] = (row[i] || '').toString().trim() || null
-                  } else if (table.columns[i].uidt === UITypes.Date) {
+                  if (!this.config.autoSelectFieldType) {
+                    // take raw data instead of data parsed by xlsx
                     const cellId = this.xlsx.utils.encode_cell({
                       c: range.s.c + i,
                       r: rowIndex + columnNameRowExist,
                     })
                     const cellObj = ws[cellId]
-                    rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
+                    rowData[table.columns[i].column_name] = cellObj.w
                   } else {
-                    // toto: do parsing if necessary based on type
-                    rowData[table.columns[i].column_name] = row[i]
+                    if (table.columns[i].uidt === UITypes.Checkbox) {
+                      rowData[table.columns[i].column_name] = getCheckboxValue(row[i])
+                    } else if (table.columns[i].uidt === UITypes.Currency) {
+                      const cellId = this.xlsx.utils.encode_cell({
+                        c: range.s.c + i,
+                        r: rowIndex + columnNameRowExist,
+                      })
+
+                      const cellObj = ws[cellId]
+                      rowData[table.columns[i].column_name] =
+                        (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
+                    } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
+                      rowData[table.columns[i].column_name] = (row[i] || '').toString().trim() || null
+                    } else if (table.columns[i].uidt === UITypes.Date) {
+                      const cellId = this.xlsx.utils.encode_cell({
+                        c: range.s.c + i,
+                        r: rowIndex + columnNameRowExist,
+                      })
+                      const cellObj = ws[cellId]
+                      rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
+                    } else {
+                      // TODO: do parsing if necessary based on type
+                      rowData[table.columns[i].column_name] = row[i]
+                    }
                   }
                 }
                 this.data[tn].push(rowData)

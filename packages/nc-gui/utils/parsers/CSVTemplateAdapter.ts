@@ -27,12 +27,7 @@ export default class CSVTemplateAdapter {
   columnValues: Record<number, []>
 
   constructor(files: UploadFile[], parserConfig = {}) {
-    this.config = {
-      maxRowsToParse: 500,
-      autoSelectFieldTypes: true,
-      firstRowAsHeaders: true,
-      ...parserConfig,
-    }
+    this.config = parserConfig
     this.files = files
     this.project = {
       tables: [],
@@ -258,38 +253,40 @@ export default class CSVTemplateAdapter {
       let steppers = 0
       const tn = file.name.replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
       this.data[tn] = []
-      parse(file.originFileObj as File, {
-        worker: true,
-        step(row) {
-          steppers += 1
-          if (row && steppers >= +that.config.firstRowAsHeaders + 1) {
-            const rowData: Record<string, any> = {}
-            for (let columnIdx = 0; columnIdx < that.headers[tableIdx].length; columnIdx++) {
-              const column = that.project.tables[tableIdx].columns[columnIdx]
-              const data = (row.data as [])[columnIdx] === '' ? null : (row.data as [])[columnIdx]
-              if (column.uidt === UITypes.Checkbox) {
-                rowData[column.column_name] = getCheckboxValue(data)
-                rowData[column.column_name] = data
-              } else if (column.uidt === UITypes.Currency) {
-                rowData[column.column_name] = data
-              } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
-                rowData[column.column_name] = (data || '').toString().trim() || null
-              } else if (column.uidt === UITypes.Date) {
-                // TODO(import): check format
-                rowData[column.column_name] = data
-              } else {
-                // TODO(import): do parsing if necessary based on type
-                rowData[column.column_name] = data
+      if (this.config.importData) {
+        parse(file.originFileObj as File, {
+          worker: true,
+          step(row) {
+            steppers += 1
+            if (row && steppers >= +that.config.firstRowAsHeaders + 1) {
+              const rowData: Record<string, any> = {}
+              for (let columnIdx = 0; columnIdx < that.headers[tableIdx].length; columnIdx++) {
+                const column = that.project.tables[tableIdx].columns[columnIdx]
+                const data = (row.data as [])[columnIdx] === '' ? null : (row.data as [])[columnIdx]
+                if (column.uidt === UITypes.Checkbox) {
+                  rowData[column.column_name] = getCheckboxValue(data)
+                  rowData[column.column_name] = data
+                } else if (column.uidt === UITypes.Currency) {
+                  rowData[column.column_name] = data
+                } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
+                  rowData[column.column_name] = (data || '').toString().trim() || null
+                } else if (column.uidt === UITypes.Date) {
+                  // TODO(import): check format
+                  rowData[column.column_name] = data
+                } else {
+                  // TODO(import): do parsing if necessary based on type
+                  rowData[column.column_name] = data
+                }
               }
+              that.data[tn].push(rowData)
             }
-            that.data[tn].push(rowData)
-          }
-        },
-        complete() {
-          console.log('getData(): complete')
-          console.log(`getData(): steppers: ${steppers}`)
-        },
-      })
+          },
+          complete() {
+            console.log('getData(): complete')
+            console.log(`getData(): steppers: ${steppers}`)
+          },
+        })
+      }
     }
     return this.data
   }

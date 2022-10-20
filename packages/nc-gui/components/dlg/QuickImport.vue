@@ -467,16 +467,16 @@ const beforeUpload = (file: UploadFile) => {
             </a-form-item>
 
             <!-- Flatten nested -->
-            <div v-if="isImportTypeJson" class="mt-3">
+            <a-form-item v-if="isImportTypeJson" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.normalizeNested">
                 <span class="caption">{{ $t('labels.flattenNested') }}</span>
               </a-checkbox>
-            </div>
+            </a-form-item>
 
             <!-- Import Data -->
-            <div v-if="isImportTypeJson" class="mt-4">
+            <a-form-item class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.importData">{{ $t('labels.importData') }}</a-checkbox>
-            </div>
+            </a-form-item>
           </div>
         </div>
       </div>

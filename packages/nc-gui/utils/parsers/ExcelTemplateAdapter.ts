@@ -18,9 +18,7 @@ const excelTypeToUidt: Record<string, UITypes> = {
 }
 
 export default class ExcelTemplateAdapter extends TemplateGenerator {
-  config: {
-    maxRowsToParse: number
-  } & Record<string, any>
+  config: Record<string, any>
 
   excelData: any
 
@@ -36,17 +34,11 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
   constructor(data = {}, parserConfig = {}) {
     super()
-    this.config = {
-      maxRowsToParse: 500,
-      ...parserConfig,
-    }
-
+    this.config = parserConfig
     this.excelData = data
-
     this.project = {
       tables: [],
     }
-
     this.xlsx = {} as any
   }
 
@@ -79,7 +71,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             tableNamePrefixRef[tn] = 0
 
             const table = { table_name: tn, ref_table_name: tn, columns: [] as any[] }
-            this.data[tn] = []
             const ws: any = this.wb.Sheets[sheet]
             const range = this.xlsx.utils.decode_range(ws['!ref'])
             let rows: any = this.xlsx.utils.sheet_to_json(ws, { header: 1, blankrows: false, defval: null })
@@ -207,39 +198,43 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               }
               table.columns.push(column)
             }
-
-            let rowIndex = 0
-            for (const row of rows.slice(1)) {
-              const rowData: Record<string, any> = {}
-              for (let i = 0; i < table.columns.length; i++) {
-                if (table.columns[i].uidt === UITypes.Checkbox) {
-                  rowData[table.columns[i].column_name] = getCheckboxValue(row[i])
-                } else if (table.columns[i].uidt === UITypes.Currency) {
-                  const cellId = this.xlsx.utils.encode_cell({
-                    c: range.s.c + i,
-                    r: rowIndex + columnNameRowExist,
-                  })
-
-                  const cellObj = ws[cellId]
-                  rowData[table.columns[i].column_name] = (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
-                } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
-                  rowData[table.columns[i].column_name] = (row[i] || '').toString().trim() || null
-                } else if (table.columns[i].uidt === UITypes.Date) {
-                  const cellId = this.xlsx.utils.encode_cell({
-                    c: range.s.c + i,
-                    r: rowIndex + columnNameRowExist,
-                  })
-                  const cellObj = ws[cellId]
-                  rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
-                } else {
-                  // toto: do parsing if necessary based on type
-                  rowData[table.columns[i].column_name] = row[i]
-                }
-              }
-              this.data[tn].push(rowData)
-              rowIndex++
-            }
             this.project.tables.push(table)
+
+            this.data[tn] = []
+            if (this.config.importData) {
+              let rowIndex = 0
+              for (const row of rows.slice(1)) {
+                const rowData: Record<string, any> = {}
+                for (let i = 0; i < table.columns.length; i++) {
+                  if (table.columns[i].uidt === UITypes.Checkbox) {
+                    rowData[table.columns[i].column_name] = getCheckboxValue(row[i])
+                  } else if (table.columns[i].uidt === UITypes.Currency) {
+                    const cellId = this.xlsx.utils.encode_cell({
+                      c: range.s.c + i,
+                      r: rowIndex + columnNameRowExist,
+                    })
+
+                    const cellObj = ws[cellId]
+                    rowData[table.columns[i].column_name] = (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
+                  } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
+                    rowData[table.columns[i].column_name] = (row[i] || '').toString().trim() || null
+                  } else if (table.columns[i].uidt === UITypes.Date) {
+                    const cellId = this.xlsx.utils.encode_cell({
+                      c: range.s.c + i,
+                      r: rowIndex + columnNameRowExist,
+                    })
+                    const cellObj = ws[cellId]
+                    rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
+                  } else {
+                    // toto: do parsing if necessary based on type
+                    rowData[table.columns[i].column_name] = row[i]
+                  }
+                }
+                this.data[tn].push(rowData)
+                rowIndex++
+              }
+            }
+
             resolve(true)
           }),
       )

@@ -24,10 +24,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   columns: object
   constructor(data: object, parserConfig = {}) {
     super()
-    this.config = {
-      maxRowsToParse: 500,
-      ...parserConfig,
-    }
+    this.config = parserConfig
     this._jsonData = data
     this.project = {
       tables: [],

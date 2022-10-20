@@ -210,7 +210,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               for (const row of rows.slice(1)) {
                 const rowData: Record<string, any> = {}
                 for (let i = 0; i < table.columns.length; i++) {
-                  if (!this.config.autoSelectFieldType) {
+                  if (!this.config.autoSelectFieldTypes) {
                     // take raw data instead of data parsed by xlsx
                     const cellId = this.xlsx.utils.encode_cell({
                       c: range.s.c + i,

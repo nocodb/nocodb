@@ -35,4 +35,15 @@ test.describe("Grid view locked", () => {
 
     await dashboard.grid.toolbar.viewsMenu.verifyCollaborativeMode();
   });
+
+  test("Download CSV", async () => {
+    // close 'Team & Auth' tab
+    await dashboard.closeTab({ title: "Team & Auth" });
+    await dashboard.treeView.openTable({ title: "Country" });
+
+    await dashboard.grid.toolbar.viewsMenu.click({
+      menu: "Download",
+      subMenu: "Download as CSV",
+    });
+  });
 });

@@ -228,6 +228,7 @@ async function parseAndExtractData(val: string | ArrayBuffer) {
     templateGenerator.parse(() => {
       templateData.value = templateGenerator!.getTemplate()
       if (importOnly) importColumns.value = templateGenerator!.getColumns()
+      importData.value = templateGenerator!.getData()
       templateEditorModal.value = true
       isParsingData.value = false
       preImportLoading.value = false

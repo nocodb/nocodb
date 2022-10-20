@@ -4,19 +4,12 @@ import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import { extractProps } from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
-import { NcError } from '../meta/helpers/catchError';
-import { UserType } from 'nocodb-sdk';
-import { NcError } from '../meta/helpers/catchError';
-import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
-import Noco from '../Noco';
-import { extractProps } from '../meta/helpers/extractProps';
-import NocoCache from '../cache/NocoCache';
 
 export default class User implements UserType {
   id: string;
 
   /** @format email */
-  email: string
+  email: string;
 
   password?: string;
   salt?: string;

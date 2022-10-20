@@ -183,4 +183,10 @@ export default class ProjectUser {
       project_id: projectId,
     });
   }
+
+  static async getProjectsList(userId:string, ncMeta = Noco.ncMeta): Promise<ProjectUser[]> {
+    return await ncMeta.metaList2(null, null, MetaTable.PROJECT_USERS, {
+      condition: { fk_user_id: userId },
+    });
+  }
 }

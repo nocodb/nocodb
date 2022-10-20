@@ -1,47 +1,78 @@
-import { Router } from 'express';
-import { v4 as uuidv4 } from 'uuid';
-import validator from 'validator';
-import { OrgUserRoles } from '../../../enums/OrgUserRoles';
-import Audit from '../../models/Audit';
-import User from '../../models/User';
-import { metaApiMetrics } from '../helpers/apiMetrics';
-import { NcError } from '../helpers/catchError';
-import { extractProps } from '../helpers/extractProps';
-import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
-import { randomTokenString } from '../helpers/stringHelpers';
-import { Tele } from 'nc-help';
-import { sendInviteEmail } from './projectUserApis';
+import { Router } from 'express'
+import { v4 as uuidv4 } from 'uuid'
+import validator from 'validator'
+import { OrgUserRoles } from '../../../enums/OrgUserRoles'
+import Audit from '../../models/Audit'
+import ProjectUser from '../../models/ProjectUser'
+import SyncSource from '../../models/SyncSource'
+import User from '../../models/User'
+import Noco from '../../Noco'
+import { metaApiMetrics } from '../helpers/apiMetrics'
+import { NcError } from '../helpers/catchError'
+import { extractProps } from '../helpers/extractProps'
+import ncMetaAclMw from '../helpers/ncMetaAclMw'
+import { PagedResponseImpl } from '../helpers/PagedResponse'
+import { randomTokenString } from '../helpers/stringHelpers'
+import { Tele } from 'nc-help'
+import { sendInviteEmail } from './projectUserApis'
 
 async function userList(req, res) {
   res.json(
     new PagedResponseImpl(await User.list(req.query), {
       ...req.query,
       count: await User.count(req.query),
-    })
-  );
+    }),
+  )
 }
 
 async function userUpdate(req, res) {
-  const updateBody = extractProps(req.body, ['roles']);
+  const updateBody = extractProps(req.body, ['roles'])
 
-  const user = await User.get(req.params.userId);
+  const user = await User.get(req.params.userId)
 
   if (user.roles.includes(OrgUserRoles.SUPER)) {
-    NcError.badRequest('Cannot update super admin roles');
+    NcError.badRequest('Cannot update super admin roles')
   }
 
-  res.json(await User.update(req.params.userId, updateBody));
+  res.json(await User.update(req.params.userId, updateBody))
 }
 
 async function userDelete(req, res) {
-  const user = await User.get(req.params.userId);
+  const ncMeta = await Noco.ncMeta.startTransaction()
+  try {
+    const user = await User.get(req.params.userId, ncMeta)
 
-  if (user.roles.includes(OrgUserRoles.SUPER)) {
-    NcError.badRequest('Cannot delete super admin');
+    if (user.roles.includes(OrgUserRoles.SUPER)) {
+      NcError.badRequest('Cannot delete super admin')
+    }
+
+    // delete project user entry and assign to super admin
+    const projectUsers = await ProjectUser.getProjectsList(
+      req.params.userId,
+      ncMeta,
+    )
+
+    // TODO: assign super admin as project owner
+    for (const projectUser of projectUsers) {
+      await ProjectUser.delete(
+        projectUser.project_id,
+        projectUser.fk_user_id,
+        ncMeta
+      );
+    }
+
+    // delete sync source entry
+    await SyncSource.deleteByUserId(req.params.userId, ncMeta)
+
+    // delete user
+    await User.delete(req.params.userId, ncMeta)
+
+    await ncMeta.commit()
+  } catch (e) {
+    await ncMeta.rollback(e)
   }
 
-  res.json(await User.delete(req.params.userId));
+  res.json(await User.delete(req.params.userId))
 }
 
 async function userAdd(req, res, next) {
@@ -50,34 +81,34 @@ async function userAdd(req, res, next) {
     req.body.roles &&
     ![OrgUserRoles.VIEWER, OrgUserRoles.CREATOR].includes(req.body.roles)
   ) {
-    NcError.badRequest('Invalid role');
+    NcError.badRequest('Invalid role')
   }
 
   // extract emails from request body
   const emails = (req.body.email || '')
     .toLowerCase()
     .split(/\s*,\s*/)
-    .map((v) => v.trim());
+    .map((v) => v.trim())
 
   // check for invalid emails
-  const invalidEmails = emails.filter((v) => !validator.isEmail(v));
+  const invalidEmails = emails.filter((v) => !validator.isEmail(v))
 
   if (!emails.length) {
-    return NcError.badRequest('Invalid email address');
+    return NcError.badRequest('Invalid email address')
   }
   if (invalidEmails.length) {
-    NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
+    NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '))
   }
 
-  const invite_token = uuidv4();
-  const error = [];
+  const invite_token = uuidv4()
+  const error = []
 
   for (const email of emails) {
     // add user to project if user already exist
-    const user = await User.getByEmail(email);
+    const user = await User.getByEmail(email)
 
     if (user) {
-      NcError.badRequest('User already exist');
+      NcError.badRequest('User already exist')
     } else {
       try {
         // create new user with invite token
@@ -87,10 +118,10 @@ async function userAdd(req, res, next) {
           email,
           roles: OrgUserRoles.VIEWER,
           token_version: randomTokenString(),
-        });
+        })
 
-        const count = await User.count();
-        Tele.emit('evt', { evt_type: 'org:user:invite', count });
+        const count = await User.count()
+        Tele.emit('evt', { evt_type: 'org:user:invite', count })
 
         await Audit.insert({
           project_id: req.params.projectId,
@@ -99,23 +130,23 @@ async function userAdd(req, res, next) {
           user: req.user.email,
           description: `invited ${email} to ${req.params.projectId} project `,
           ip: req.clientIp,
-        });
+        })
         // in case of single user check for smtp failure
         // and send back token if failed
         if (
           emails.length === 1 &&
           !(await sendInviteEmail(email, invite_token, req))
         ) {
-          return res.json({ invite_token, email });
+          return res.json({ invite_token, email })
         } else {
-          sendInviteEmail(email, invite_token, req);
+          sendInviteEmail(email, invite_token, req)
         }
       } catch (e) {
-        console.log(e);
+        console.log(e)
         if (emails.length === 1) {
-          return next(e);
+          return next(e)
         } else {
-          error.push({ email, error: e.message });
+          error.push({ email, error: e.message })
         }
       }
     }
@@ -124,31 +155,31 @@ async function userAdd(req, res, next) {
   if (emails.length === 1) {
     res.json({
       msg: 'success',
-    });
+    })
   } else {
-    return res.json({ invite_token, emails, error });
+    return res.json({ invite_token, emails, error })
   }
 }
 
-const router = Router({ mergeParams: true });
+const router = Router({ mergeParams: true })
 router.get(
   '/api/v1/users',
   metaApiMetrics,
-  ncMetaAclMw(userList, 'userList', [OrgUserRoles.SUPER])
-);
+  ncMetaAclMw(userList, 'userList', [OrgUserRoles.SUPER]),
+)
 router.patch(
   '/api/v1/users/:userId',
   metaApiMetrics,
-  ncMetaAclMw(userUpdate, 'userUpdate', [OrgUserRoles.SUPER])
-);
+  ncMetaAclMw(userUpdate, 'userUpdate', [OrgUserRoles.SUPER]),
+)
 router.delete(
   '/api/v1/users/:userId',
   metaApiMetrics,
-  ncMetaAclMw(userDelete, 'userAdd', [OrgUserRoles.SUPER])
-);
+  ncMetaAclMw(userDelete, 'userAdd', [OrgUserRoles.SUPER]),
+)
 router.post(
   '/api/v1/users',
   metaApiMetrics,
-  ncMetaAclMw(userAdd, 'userDelete', [OrgUserRoles.SUPER])
-);
-export default router;
+  ncMetaAclMw(userAdd, 'userDelete', [OrgUserRoles.SUPER]),
+)
+export default router

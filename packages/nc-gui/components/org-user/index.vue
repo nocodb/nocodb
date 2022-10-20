@@ -8,7 +8,7 @@ const { api, isLoading } = useApi()
 
 let users = $ref<UserType[]>([])
 
-const currentPage = $ref(1)
+let currentPage = $ref(1)
 
 const currentLimit = $ref(10)
 
@@ -21,6 +21,7 @@ const pagination = reactive({
   pageSize: 10,
 })
 const loadUsers = async (page = currentPage, limit = currentLimit) => {
+  currentPage = page
   try {
     const response: any = await api.orgUsers.list({
       query: {
@@ -55,6 +56,8 @@ const updateRole = async (userId: string, roles: Role) => {
 const deleteUser = async (userId: string) => {
   Modal.confirm({
     title: 'Are you sure you want to delete this user?',
+    type:"warn",
+    content: 'On deleting, user will remove from from organization and any sync source(Airtable) created by user will get removed',
     onOk: async () => {
       try {
         await api.orgUsers.delete(userId)
@@ -94,7 +97,7 @@ const deleteUser = async (userId: string) => {
         :data-source="users"
         :pagination="pagination"
         :loading="isLoading"
-        @change="loadUsers"
+        @change="loadUsers($event.current)"
       >
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />

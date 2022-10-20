@@ -49,6 +49,7 @@ import crypto from 'crypto';
 import swaggerApis from './swagger/swaggerApis';
 import importApis from './sync/importApis';
 import syncSourceApis from './sync/syncSourceApis';
+import mapViewApis from './mapViewApis';
 
 const clients: { [id: string]: Socket } = {};
 
@@ -92,6 +93,7 @@ export default function (router: Router, server) {
   router.use(swaggerApis);
   router.use(syncSourceApis);
   router.use(kanbanViewApis);
+  router.use(mapViewApis);
 
   userApis(router);
 

@@ -244,9 +244,13 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
           dateFormat = getDateFormat(d)
           dateFormatMap[col.key] = dateFormat
         }
-        d = dayjs(d).utc().format(dateFormat)
+        const dayjsObj = dayjs(d)
+        if (dayjsObj.isValid()) {
+          d = dayjsObj.format('YYYY-MM-DD')
+        } else {
+          d = dayjs(d, dateFormat).format('YYYY-MM-DD')
+        }
       } else if (col.uidt === UITypes.DateTime && d) {
-        // TODO: handle more formats for DateTime
         d = dayjs(data[key]).utc().format('YYYY-MM-DD HH:mm')
       }
       return {

@@ -114,86 +114,89 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                 column_name: cn,
                 ref_column_name: cn,
                 meta: {},
+                uidt: UITypes.SingleLineText,
               }
 
-              const cellId = this.xlsx.utils.encode_cell({
-                c: range.s.c + col,
-                r: columnNameRowExist,
-              })
-              const cellProps = ws[cellId] || {}
-              column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
+              if (this.config.autoSelectFieldTypes) {
+                const cellId = this.xlsx.utils.encode_cell({
+                  c: range.s.c + col,
+                  r: columnNameRowExist,
+                })
+                const cellProps = ws[cellId] || {}
+                column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
 
-              if (column.uidt === UITypes.SingleLineText) {
-                // check for long text
-                if (isMultiLineTextType(rows)) {
-                  column.uidt = UITypes.LongText
-                }
-
-                if (isEmailType(rows)) {
-                  column.uidt = UITypes.Email
-                }
-
-                if (isUrlType(rows)) {
-                  column.uidt = UITypes.URL
-                } else {
-                  const vals = rows
-                    .slice(columnNameRowExist ? 1 : 0)
-                    .map((r: any) => r[col])
-                    .filter((v: any) => v !== null && v !== undefined && v.toString().trim() !== '')
-
-                  const checkboxType = isCheckboxType(vals)
-                  if (checkboxType.length === 1) {
-                    column.uidt = UITypes.Checkbox
-                  } else {
-                    // Single Select / Multi Select
-                    Object.assign(column, extractMultiOrSingleSelectProps(vals))
+                if (column.uidt === UITypes.SingleLineText) {
+                  // check for long text
+                  if (isMultiLineTextType(rows)) {
+                    column.uidt = UITypes.LongText
                   }
-                }
-              } else if (column.uidt === UITypes.Number) {
-                if (
-                  rows.slice(1, this.config.maxRowsToParse).some((v: any) => {
-                    return v && v[col] && parseInt(v[col]) !== +v[col]
-                  })
-                ) {
-                  column.uidt = UITypes.Decimal
-                }
-                if (
-                  rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
-                    const cellId = this.xlsx.utils.encode_cell({
-                      c: range.s.c + col,
-                      r: i + columnNameRowExist,
-                    })
 
-                    const cellObj = ws[cellId]
+                  if (isEmailType(rows)) {
+                    column.uidt = UITypes.Email
+                  }
 
-                    return !cellObj || (cellObj.w && cellObj.w.startsWith('$'))
-                  })
-                ) {
-                  column.uidt = UITypes.Currency
-                }
-              } else if (column.uidt === UITypes.DateTime) {
-                // TODO(import): centralise
-                // hold the possible date format found in the date
-                const dateFormat: Record<string, number> = {}
-                if (
-                  rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
-                    const cellId = this.xlsx.utils.encode_cell({
-                      c: range.s.c + col,
-                      r: i + columnNameRowExist,
-                    })
+                  if (isUrlType(rows)) {
+                    column.uidt = UITypes.URL
+                  } else {
+                    const vals = rows
+                      .slice(columnNameRowExist ? 1 : 0)
+                      .map((r: any) => r[col])
+                      .filter((v: any) => v !== null && v !== undefined && v.toString().trim() !== '')
 
-                    const cellObj = ws[cellId]
-                    const isDate = !cellObj || (cellObj.w && cellObj.w.split(' ').length === 1)
-                    if (isDate && cellObj) {
-                      dateFormat[getDateFormat(cellObj.w)] = (dateFormat[getDateFormat(cellObj.w)] || 0) + 1
+                    const checkboxType = isCheckboxType(vals)
+                    if (checkboxType.length === 1) {
+                      column.uidt = UITypes.Checkbox
+                    } else {
+                      // Single Select / Multi Select
+                      Object.assign(column, extractMultiOrSingleSelectProps(vals))
                     }
-                    return isDate
-                  })
-                ) {
-                  column.uidt = UITypes.Date
-                  // take the date format with the max occurrence
-                  column.meta.date_format =
-                    Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
+                  }
+                } else if (column.uidt === UITypes.Number) {
+                  if (
+                    rows.slice(1, this.config.maxRowsToParse).some((v: any) => {
+                      return v && v[col] && parseInt(v[col]) !== +v[col]
+                    })
+                  ) {
+                    column.uidt = UITypes.Decimal
+                  }
+                  if (
+                    rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
+                      const cellId = this.xlsx.utils.encode_cell({
+                        c: range.s.c + col,
+                        r: i + columnNameRowExist,
+                      })
+
+                      const cellObj = ws[cellId]
+
+                      return !cellObj || (cellObj.w && cellObj.w.startsWith('$'))
+                    })
+                  ) {
+                    column.uidt = UITypes.Currency
+                  }
+                } else if (column.uidt === UITypes.DateTime) {
+                  // TODO(import): centralise
+                  // hold the possible date format found in the date
+                  const dateFormat: Record<string, number> = {}
+                  if (
+                    rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
+                      const cellId = this.xlsx.utils.encode_cell({
+                        c: range.s.c + col,
+                        r: i + columnNameRowExist,
+                      })
+
+                      const cellObj = ws[cellId]
+                      const isDate = !cellObj || (cellObj.w && cellObj.w.split(' ').length === 1)
+                      if (isDate && cellObj) {
+                        dateFormat[getDateFormat(cellObj.w)] = (dateFormat[getDateFormat(cellObj.w)] || 0) + 1
+                      }
+                      return isDate
+                    })
+                  ) {
+                    column.uidt = UITypes.Date
+                    // take the date format with the max occurrence
+                    column.meta.date_format =
+                      Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
+                  }
                 }
               }
               table.columns.push(column)

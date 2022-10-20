@@ -89,17 +89,17 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
       }
     } else {
       const cn = path.join('_').replace(/\W/g, '_').trim()
-
       const column: Record<string, any> = {
         column_name: cn,
         ref_column_name: cn,
+        uidt: UITypes.SingleLineText,
         path,
       }
-
-      column.uidt = jsonTypeToUidt[typeof firstRowVal] || UITypes.SingleLineText
-
-      const colData = jsonData.map((r: any) => extractNestedData(r, path))
-      Object.assign(column, getColumnUIDTAndMetas(colData, column.uidt))
+      if (this.config.autoSelectFieldTypes) {
+        column.uidt = jsonTypeToUidt[typeof firstRowVal] || UITypes.SingleLineText
+        const colData = jsonData.map((r: any) => extractNestedData(r, path))
+        Object.assign(column, getColumnUIDTAndMetas(colData, column.uidt))
+      }
       columns.push(column)
     }
 

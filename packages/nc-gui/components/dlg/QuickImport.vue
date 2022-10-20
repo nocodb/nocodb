@@ -454,7 +454,7 @@ const beforeUpload = (file: UploadFile) => {
               <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
             </a-form-item>
 
-            <a-form-item v-if="isImportTypeCsv" class="!my-2">
+            <a-form-item class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes">
                 <span class="caption">Auto-Select Field Types</span>
               </a-checkbox>

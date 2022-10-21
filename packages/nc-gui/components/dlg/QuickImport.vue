@@ -438,7 +438,7 @@ const beforeUpload = (file: UploadFile) => {
               </a-checkbox>
             </a-form-item>
 
-            <a-form-item v-if="isImportTypeCsv" class="!my-2">
+            <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
                 <span class="caption">Use First Row as Headers</span>
               </a-checkbox>

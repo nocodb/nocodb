@@ -8,6 +8,7 @@ import {
   IsFormInj,
   IsLockedInj,
   IsPublicInj,
+  ReadonlyInj,
   computed,
   inject,
   provide,
@@ -47,7 +48,7 @@ provide(EditModeInj, useVModel(props, 'editEnabled', emit))
 provide(ActiveCellInj, active)
 
 if (readOnly?.value) {
-  provide(ReadonlyInj, readOnly.value)
+  provide(ReadonlyInj, readOnly)
 }
 
 const isForm = inject(IsFormInj, ref(false))

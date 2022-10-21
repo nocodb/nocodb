@@ -29,7 +29,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const column = inject(ColumnInj)
 
-const readonly = inject(ReadonlyInj, false)
+const readonly = inject(ReadonlyInj, ref(false))
 
 const {
   childrenList,
@@ -72,8 +72,8 @@ const unlinkIfNewRow = async (row: Record<string, any>) => {
 const container = computed(() =>
   isForm.value
     ? h('div', {
-      class: 'w-full p-2',
-    })
+        class: 'w-full p-2',
+      })
     : Modal,
 )
 

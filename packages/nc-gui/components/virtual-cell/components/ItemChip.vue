@@ -24,7 +24,7 @@ const { relatedTableMeta } = useLTARStoreOrThrow()!
 
 const { isUIAllowed } = useUIPermission()
 
-const readOnly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
 

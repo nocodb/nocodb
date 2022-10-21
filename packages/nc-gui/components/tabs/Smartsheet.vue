@@ -59,7 +59,10 @@ provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
-provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
+provide(
+  ReadonlyInj,
+  computed(() => !isUIAllowed('xcDatatableEditable')),
+)
 </script>
 
 <template>

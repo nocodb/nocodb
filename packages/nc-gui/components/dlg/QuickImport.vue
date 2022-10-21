@@ -197,14 +197,14 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
     await templateGenerator.init()
 
-    templateGenerator.parse(() => {
-      templateData.value = templateGenerator!.getTemplate()
-      if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
-      importData.value = templateGenerator!.getData()
-      templateEditorModal.value = true
-      isParsingData.value = false
-      preImportLoading.value = false
-    })
+    await templateGenerator.parse()
+
+    templateData.value = templateGenerator!.getTemplate()
+    if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
+    importData.value = templateGenerator!.getData()
+    templateEditorModal.value = true
+    isParsingData.value = false
+    preImportLoading.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -273,10 +273,15 @@ function getAdapter(val: any) {
   if (isImportTypeCsv.value) {
     switch (activeKey.value) {
       case 'uploadTab':
-        return new CSVTemplateAdapter(val, importState.parserConfig)
+        return new CSVTemplateAdapter(val, {
+          ...importState.parserConfig,
+          importFromURL: false,
+        })
       case 'urlTab':
-        // TODO(import): implement one for CSV
-        return new ExcelUrlTemplateAdapter(val, importState.parserConfig)
+        return new CSVTemplateAdapter(val, {
+          ...importState.parserConfig,
+          importFromURL: true,
+        })
     }
   } else if (IsImportTypeExcel.value) {
     switch (activeKey.value) {

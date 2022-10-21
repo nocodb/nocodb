@@ -56,7 +56,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
     })
   }
 
-  parse(callback: Function) {
+  async parse() {
     const tableNamePrefixRef: Record<string, any> = {}
     this.wb.SheetNames.reduce((acc: any, sheet: any) => {
       return acc.then(
@@ -253,7 +253,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             resolve(true)
           }),
       )
-    }, Promise.resolve()).then(callback)
+    }, Promise.resolve())
   }
 
   getTemplate() {

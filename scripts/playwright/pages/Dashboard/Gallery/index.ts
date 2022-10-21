@@ -45,6 +45,7 @@ export class GalleryPage extends BasePage {
     await this.rootPage.locator(`.nc-fields-menu-btn`).click();
   }
 
+  // todo: Wait for render to complete
   async waitLoading() {
     await this.rootPage.waitForTimeout(1000);
   }

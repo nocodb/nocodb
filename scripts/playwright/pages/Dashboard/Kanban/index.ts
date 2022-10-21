@@ -106,6 +106,7 @@ export class KanbanPage extends BasePage {
     }
   }
 
+  // todo: Wait for render to complete
   async waitLoading() {
     await this.rootPage.waitForTimeout(1000);
   }

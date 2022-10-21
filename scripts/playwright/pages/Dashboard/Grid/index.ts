@@ -2,7 +2,7 @@
 import { Locator, expect } from "@playwright/test";
 import { DashboardPage } from "..";
 import BasePage from "../../Base";
-import { CellPageObject } from "./Cell";
+import { CellPageObject } from "../common/Cell";
 import { ColumnPageObject } from "./Column";
 import { ToolbarPage } from "../common/Toolbar";
 
@@ -72,7 +72,7 @@ export class GridPage extends BasePage {
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
-    const clickOnColumnHeaderToSave = this.cell.grid
+    const clickOnColumnHeaderToSave = this
     .get()
     .locator(`[data-title="${columnHeader}"]`)
     .locator(`span[title="${columnHeader}"]`)
@@ -94,7 +94,7 @@ export class GridPage extends BasePage {
   }: { index?: number; columnHeader?: string; value: string }) {
     await this._fillRow({ index, columnHeader, value });
 
-    const clickOnColumnHeaderToSave = this.cell.grid
+    const clickOnColumnHeaderToSave = this
     .get()
     .locator(`[data-title="${columnHeader}"]`)
     .locator(`span[title="${columnHeader}"]`)

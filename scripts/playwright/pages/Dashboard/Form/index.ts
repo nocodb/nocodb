@@ -249,6 +249,7 @@ export class FormPage extends BasePage {
     );
   }
 
+  // todo: Wait for render to complete
   async waitLoading() {
     await this.rootPage.waitForTimeout(1000);
   }

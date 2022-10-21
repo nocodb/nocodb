@@ -1,28 +1,38 @@
 import { expect, Locator } from "@playwright/test";
-import { GridPage } from "..";
+import { GridPage } from "../../Grid";
 import BasePage from "../../../Base";
+import { AttachmentCellPageObject } from "./AttachmentCell";
 import { SelectOptionCellPageObject } from "./SelectOptionCell";
+import { SharedFormPage } from "../../../SharedForm";
 
 export class CellPageObject extends BasePage {
-  readonly grid: GridPage;
+  readonly parent: GridPage | SharedFormPage;
   readonly selectOption: SelectOptionCellPageObject;
+  readonly attachment: AttachmentCellPageObject;
 
-  constructor(grid: GridPage) {
-    super(grid.rootPage);
-    this.grid = grid;
+  constructor(parent: GridPage | SharedFormPage) {
+    super(parent.rootPage);
+    this.parent = parent;
     this.selectOption = new SelectOptionCellPageObject(this);
+    this.attachment = new AttachmentCellPageObject(this);
   }
 
   get({
     index,
     columnHeader,
   }: {
-    index: number;
+    index?: number;
     columnHeader: string;
   }): Locator {
-    return this.grid
+    if(this.parent instanceof SharedFormPage) {
+      return this.parent
+      .get()
+      .locator(`[pw-data="nc-form-input-cell-${columnHeader}"]`);
+    } else {
+      return this.parent
       .get()
       .locator(`td[data-pw="cell-${columnHeader}-${index}"]`);
+    }
   }
 
   async click({

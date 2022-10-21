@@ -33,18 +33,6 @@ export class GalleryPage extends BasePage {
     return;
   }
 
-  // kludge: move toolbar outside grid scope
-  async fields({ title }: { title: string }) {
-    await this.rootPage.locator(`.nc-fields-menu-btn`).click();
-    await this.rootPage.waitForTimeout(1000);
-    await this.rootPage
-      .locator(`[pw-data="nc-fields-menu-${title}"]`)
-      .locator('input[type="checkbox"]')
-      .click();
-    await this.rootPage.waitForTimeout(1000);
-    await this.rootPage.locator(`.nc-fields-menu-btn`).click();
-  }
-
   // todo: Wait for render to complete
   async waitLoading() {
     await this.rootPage.waitForTimeout(1000);

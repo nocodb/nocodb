@@ -2,6 +2,7 @@ import { NcConfig } from '../../interface/config';
 
 import debug from 'debug';
 import NcMetaIO from '../meta/NcMetaIO';
+import { Tele } from '../utils/Tele';
 import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
 import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';
@@ -9,7 +10,6 @@ import ncDataTypesUpgrader from './ncDataTypesUpgrader';
 import ncProjectRolesUpgrader from './ncProjectRolesUpgrader';
 
 const log = debug('nc:version-upgrader');
-import { Tele } from 'nc-help';
 import boxen from 'boxen';
 
 export interface NcUpgraderCtx {

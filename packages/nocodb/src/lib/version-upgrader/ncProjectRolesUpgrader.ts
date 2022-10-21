@@ -1,4 +1,4 @@
-import { OrgUserRoles } from '../../enums/OrgUserRoles'
+import { OrgUserRoles } from '../../enums/OrgUserRoles';
 import { MetaTable } from '../utils/globals';
 import { NcUpgraderCtx } from './NcUpgrader';
 
@@ -10,6 +10,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     user.roles = user.roles
       .split(',')
       .map((r) => {
+        // update old role names with new roles
         if (r === 'user') {
           return OrgUserRoles.CREATOR;
         } else if (r === 'user-new') {

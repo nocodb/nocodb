@@ -2,8 +2,8 @@ import { Request, Response, Router } from 'express';
 import { KanbanType, ViewTypes } from 'nocodb-sdk';
 import View from '../../models/View';
 import KanbanView from '../../models/KanbanView';
+import { Tele } from '../../utils/Tele';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 
 export async function kanbanViewGet(req: Request, res: Response<KanbanType>) {

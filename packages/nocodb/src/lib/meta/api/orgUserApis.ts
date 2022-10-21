@@ -9,13 +9,13 @@ import SyncSource from '../../models/SyncSource';
 import User from '../../models/User';
 import Noco from '../../Noco';
 import { MetaTable } from '../../utils/globals';
+import { Tele } from '../../utils/Tele';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { NcError } from '../helpers/catchError';
 import { extractProps } from '../helpers/extractProps';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { randomTokenString } from '../helpers/stringHelpers';
-import { Tele } from 'nc-help';
 import { sendInviteEmail } from './projectUserApis';
 
 async function userList(req, res) {
@@ -54,6 +54,8 @@ async function userDelete(req, res) {
       ncMeta
     );
 
+    // todo: clear cache
+
     // TODO: assign super admin as project owner
     for (const projectUser of projectUsers) {
       await ProjectUser.delete(
@@ -68,13 +70,14 @@ async function userDelete(req, res) {
 
     // delete user
     await User.delete(req.params.userId, ncMeta);
-
+    await User.delete(req.params.userId, ncMeta);
     await ncMeta.commit();
   } catch (e) {
     await ncMeta.rollback(e);
+    throw e;
   }
 
-  res.json(await User.delete(req.params.userId));
+  res.json({ msg: 'success' });
 }
 
 async function userAdd(req, res, next) {

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { TableType, validatePassword } from 'nocodb-sdk';
-import { OrgUserRoles } from '../../../../enums/OrgUserRoles'
+import { OrgUserRoles } from '../../../../enums/OrgUserRoles';
+import { Tele } from '../../../utils/Tele'
 import catchError, { NcError } from '../../helpers/catchError';
 const { isEmail } = require('validator');
 import * as ejs from 'ejs';
@@ -8,7 +9,6 @@ import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import { promisify } from 'util';
 import User from '../../../models/User';
-import { Tele } from 'nc-help';
 
 const { v4: uuidv4 } = require('uuid');
 import Audit from '../../../models/Audit';

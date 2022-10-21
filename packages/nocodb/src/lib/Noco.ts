@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { NcConfig } from '../interface/config';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
 import NcConfigFactory from './utils/NcConfigFactory';
+import { Tele } from './utils/Tele';
 
 import NcProjectBuilderCE from './v1-legacy/NcProjectBuilder';
 import NcProjectBuilderEE from './v1-legacy/NcProjectBuilderEE';
@@ -38,7 +39,6 @@ import NocoCache from './cache/NocoCache';
 import registerMetaApis from './meta/api';
 import NcPluginMgrv2 from './meta/helpers/NcPluginMgrv2';
 import User from './models/User';
-import { Tele } from 'nc-help';
 import * as http from 'http';
 import weAreHiring from './utils/weAreHiring';
 import getInstance from './utils/getInstance';

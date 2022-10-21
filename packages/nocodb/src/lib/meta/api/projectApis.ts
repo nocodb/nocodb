@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import Project from '../../models/Project';
 import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
 import DOMPurify from 'isomorphic-dompurify';
+import { packageVersion } from '../../utils/packageVersion'
+import { Tele } from '../../utils/Tele';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import syncMigration from '../helpers/syncMigration';
 import { IGNORE_TABLES } from '../../utils/common/BaseApiBuilder';
@@ -17,7 +19,6 @@ import ProjectUser from '../../models/ProjectUser';
 import { customAlphabet } from 'nanoid';
 import Noco from '../../Noco';
 import isDocker from 'is-docker';
-import { packageVersion, Tele } from 'nc-help';
 import { NcError } from '../helpers/catchError';
 import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';

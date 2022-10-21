@@ -1,4 +1,4 @@
-import { OrgUserRoles } from '../../enums/OrgUserRoles'
+import { OrgUserRoles } from '../../enums/OrgUserRoles';
 
 export default {
   owner: {
@@ -303,4 +303,4 @@ export default {
       auditRowUpdate: true,
     },
   },
-}
+};

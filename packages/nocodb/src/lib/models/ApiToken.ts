@@ -46,6 +46,7 @@ export default class ApiToken {
     }
     return tokens?.map((t) => new ApiToken(t));
   }
+
   static async delete(token, ncMeta = Noco.ncMeta) {
     await NocoCache.deepDel(
       CacheScope.API_TOKEN,
@@ -67,5 +68,39 @@ export default class ApiToken {
       await NocoCache.set(`${CacheScope.API_TOKEN}:${token}`, data);
     }
     return data && new ApiToken(data);
+  }
+
+  public static async count(ncMeta = Noco.ncMeta): Promise<number> {
+    const qb = ncMeta.knex(MetaTable.API_TOKENS);
+    return (await qb.count('id', { as: 'count' }).first())?.count ?? 0;
+  }
+
+  public static async listWithCreatedBy(
+    { limit = 10, offset = 0 }: { limit: number; offset: number },
+    ncMeta = Noco.ncMeta
+  ) {
+    const queryBuilder = ncMeta
+      .knex(MetaTable.API_TOKENS)
+      .offset(offset)
+      .limit(limit)
+      .select(
+        `${MetaTable.API_TOKENS}.id`,
+        `${MetaTable.API_TOKENS}.token`,
+        `${MetaTable.API_TOKENS}.description`,
+        `${MetaTable.API_TOKENS}.fk_user_id`,
+        `${MetaTable.API_TOKENS}.project_id`,
+        `${MetaTable.API_TOKENS}.created_at`,
+        `${MetaTable.API_TOKENS}.updated_at`
+      )
+      .select(
+        ncMeta
+          .knex(MetaTable.USERS)
+          .select('email')
+          .whereRaw(
+            `${MetaTable.USERS}.id = ${MetaTable.API_TOKENS}.fk_user_id`
+          )
+          .as('created_by')
+      );
+    return queryBuilder;
   }
 }

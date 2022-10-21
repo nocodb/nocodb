@@ -18,6 +18,8 @@ let users = $ref<UserType[]>([])
 
 let currentPage = $ref(1)
 
+const selectedTabKey = ref(0)
+
 const currentLimit = $ref(10)
 
 const showUserModal = ref(false)
@@ -106,6 +108,19 @@ const copyInviteUrl = (user: User) => {
 
 <template>
   <div class="h-full overflow-y-scroll scrollbar-thin-dull">
+
+    <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs ">
+      <a-tab-pane v-for="(tab, key) of [{label:'Users'},{label:'Settings'}]" :key="key" class="select-none">
+        <template #tab>
+          <span>
+            {{ tab.label }}
+          </span>
+        </template>
+      </a-tab-pane>
+    </a-tabs>
+    <template v-if="selectedTabKey === 0">
+<!--    <div class="text-xl mt-4">User Management</div>-->
+<!--    <a-divider class="!my-3" />-->
     <div class="max-w-[700px] mx-auto p-4">
       <div class="py-2 flex">
         <a-input-search
@@ -128,7 +143,7 @@ const copyInviteUrl = (user: User) => {
       <a-table
         :row-key="(record) => record.id"
         :data-source="users"
-        :pagination="pagination"
+        :pagination="{ position: ['bottomCenter'] }"
         :loading="isLoading"
         @change="loadUsers($event.current)"
         size="small"
@@ -189,7 +204,7 @@ const copyInviteUrl = (user: User) => {
 
         <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
           <template #default="{ text, record }">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2" v-if="!record.roles.includes('super')">
               <MdiDeleteOutline class="nc-action-btn cursor-pointer" @click="deleteUser(text)" />
 
               <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
@@ -226,12 +241,21 @@ const copyInviteUrl = (user: User) => {
                 </template>
               </a-dropdown>
             </div>
+            <span v-else></span>
           </template>
         </a-table-column>
       </a-table>
 
-      <LazyOrgUserUsersModal :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
+      <LazyAdminUsersModal :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
     </div>
+    </template>
+    <template v-else>
+<!--      <div class="text-xl mt-4">Settings</div>-->
+<!--      <a-divider class="!my-3" />-->
+      <a-form-item>
+        <a-checkbox  name="virtual">Enable user signup</a-checkbox>
+      </a-form-item>
+    </template>
   </div>
 </template>
 

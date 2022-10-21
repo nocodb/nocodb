@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Tele } from 'nc-help';
+import { Tele } from '../../utils/Tele';
 
 const countMap = {};
 

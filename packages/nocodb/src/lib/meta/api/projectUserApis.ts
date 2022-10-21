@@ -1,4 +1,5 @@
-import { OrgUserRoles } from '../../../enums/OrgUserRoles'
+import { OrgUserRoles } from '../../../enums/OrgUserRoles';
+import { Tele } from '../../utils/Tele';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Router } from 'express';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
@@ -7,7 +8,6 @@ import validator from 'validator';
 import { NcError } from '../helpers/catchError';
 import { v4 as uuidv4 } from 'uuid';
 import User from '../../models/User';
-import { Tele } from 'nc-help';
 import Audit from '../../models/Audit';
 import NocoCache from '../../cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';

@@ -441,9 +441,54 @@
       },
       "parameters": []
     },
+    "/api/v1/tokens": {
+      "get": {
+        "summary": "Organisation API Tokens List",
+        "operationId": "org-tokens-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "uniqueItems": true,
+                          "minItems": 1,
+                          "items": {
+                            "$ref": "#/components/schemas/ApiToken"
+                          }
+                        },
+                        "pageInfo": {
+                          "$ref": "#/components/schemas/Paginated"
+                        }
+                      },
+                      "required": [
+                        "list",
+                        "pageInfo"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "",
+        "tags": [
+          "Org tokens"
+        ]
+      },
+      "parameters": []
+    },
     "/api/v1/users": {
       "get": {
-        "summary": "Project users",
+        "summary": "Organisation Users",
         "operationId": "org-users-list",
         "responses": {
           "200": {
@@ -486,7 +531,7 @@
       },
       "parameters": [],
       "post": {
-        "summary": "Project User Add",
+        "summary": "Organisation User Add",
         "operationId": "org-users-add",
         "responses": {
           "200": {
@@ -524,7 +569,7 @@
         }
       ],
       "patch": {
-        "summary": "",
+        "summary": "Organisation User Update",
         "operationId": "org-users-update",
         "responses": {
           "200": {
@@ -547,7 +592,7 @@
         }
       },
       "delete": {
-        "summary": "",
+        "summary": "Organisation User Delete",
         "operationId": "org-users-delete",
         "responses": {
           "200": {
@@ -572,7 +617,7 @@
         }
       ],
       "post": {
-        "summary": "",
+        "summary": "Organisation User Invite",
         "operationId": "org-users-resend-invite",
         "responses": {
           "200": {

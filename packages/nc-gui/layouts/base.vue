@@ -111,7 +111,7 @@ hooks.hook('page:finish', () => {
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
                     class="nc-project-menu-item group !no-underline"
-                    to="/org/users"
+                    to="/admin/users"
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
 

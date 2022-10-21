@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
+import { Tele } from '../../utils/Tele';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import ApiToken from '../../models/ApiToken';
-import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 
 export async function apiTokenList(_req: Request, res: Response) {

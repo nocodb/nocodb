@@ -58,10 +58,10 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
   async parse() {
     const tableNamePrefixRef: Record<string, any> = {}
-    this.wb.SheetNames.reduce((acc: any, sheet: any) => {
-      return acc.then(
-        () =>
-          new Promise((resolve) => {
+    await Promise.all(
+      this.wb.SheetNames.map((sheetName: string) =>
+        (async (sheet) => {
+          await new Promise((resolve) => {
             const columnNamePrefixRef: Record<string, any> = { id: 0 }
             let tn: string = (sheet || 'table').replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
 
@@ -251,9 +251,10 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             }
 
             resolve(true)
-          }),
-      )
-    }, Promise.resolve())
+          })
+        })(sheetName),
+      ),
+    )
   }
 
   getTemplate() {

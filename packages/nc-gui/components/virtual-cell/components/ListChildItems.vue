@@ -11,13 +11,11 @@ import {
   h,
   inject,
   ref,
-  useExpandedFormDetached,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useVModel,
   watch,
 } from '#imports'
-import type { Row } from '~/lib'
 
 const props = defineProps<{ modelValue?: boolean; cellValue: any }>()
 
@@ -32,8 +30,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 const column = inject(ColumnInj)
 
 const readonly = inject(ReadonlyInj, false)
-
-const { open } = useExpandedFormDetached()
 
 const {
   childrenList,
@@ -76,10 +72,14 @@ const unlinkIfNewRow = async (row: Record<string, any>) => {
 const container = computed(() =>
   isForm.value
     ? h('div', {
-        class: 'w-full p-2',
-      })
+      class: 'w-full p-2',
+    })
     : Modal,
 )
+
+const expandedFormDlg = ref(false)
+
+const expandedFormRow = ref()
 
 /** reload children list whenever cell value changes and list is visible */
 watch(
@@ -88,18 +88,6 @@ watch(
     if (!isNew.value && vModel.value) loadChildrenList()
   },
 )
-
-function openExpandedForm(row: Row) {
-  if (readonly) return
-
-  open({
-    isOpen: true,
-    row: { row, oldRow: row, rowMeta: {} },
-    meta: relatedTableMeta.value,
-    loadRow: true,
-    useMetaFields: true,
-  })
-}
 </script>
 
 <template>
@@ -138,7 +126,13 @@ function openExpandedForm(row: Row) {
             v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
             :key="i"
             class="!my-4 hover:(!bg-gray-200/50 shadow-md)"
-            @click="openExpandedForm(row)"
+            @click="
+              () => {
+                if (readonly) return
+                expandedFormRow = row
+                expandedFormDlg = true
+              }
+            "
           >
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">
@@ -182,6 +176,17 @@ function openExpandedForm(row: Row) {
         :image-style="isForm ? { height: '20px' } : {}"
       />
     </div>
+
+    <Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormRow && expandedFormDlg"
+        v-model="expandedFormDlg"
+        :row="{ row: expandedFormRow, oldRow: expandedFormRow, rowMeta: {} }"
+        :meta="relatedTableMeta"
+        load-row
+        use-meta-fields
+      />
+    </Suspense>
   </component>
 </template>
 

@@ -18,6 +18,7 @@ import {
   ReloadViewDataHookInj,
   computed,
   createEventHook,
+  enumColor,
   extractPkFromRow,
   inject,
   isColumnRequiredAndNull,

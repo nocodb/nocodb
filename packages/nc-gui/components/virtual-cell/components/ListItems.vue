@@ -7,7 +7,6 @@ import {
   computed,
   inject,
   ref,
-  useExpandedFormDetached,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useVModel,
@@ -22,8 +21,6 @@ const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 const vModel = useVModel(props, 'modelValue', emit)
 
 const column = inject(ColumnInj)
-
-const { open, close } = useExpandedFormDetached()
 
 const {
   childrenExcludedList,
@@ -60,6 +57,8 @@ watch(vModel, (nextVal, prevVal) => {
   }
 })
 
+const expandedFormDlg = ref(false)
+
 /** populate initial state for a new row which is parent/child of current record */
 const newRowState = computed(() => {
   if (isNew.value) return {}
@@ -94,23 +93,11 @@ const newRowState = computed(() => {
   }
 })
 
-function openExpandedForm() {
-  // if it's an existing record close the list
-  // after new record creation since it's already linking while creating
-  if (!isNew.value) {
-    vModel.value = false
-    return close()
-  }
-
-  open({
-    isOpen: true,
-    row: { row: {}, oldRow: {}, rowMeta: { new: true } },
-    meta: relatedTableMeta.value,
-    loadRow: false,
-    useMetaFields: true,
-    state: newRowState.value,
-  })
-}
+// if it's an existing record close the list
+// after new record creation since it's already linking while creating
+watch(expandedFormDlg, (nexVal) => {
+  if (!nexVal && !isNew.value) vModel.value = false
+})
 </script>
 
 <template>
@@ -135,7 +122,7 @@ function openExpandedForm() {
         <MdiReload class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
 
         <!--        Add new record -->
-        <a-button v-if="!isPublic" type="primary" size="small" @click="openExpandedForm">
+        <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">
           {{ $t('activity.addNewRecord') }}
         </a-button>
       </div>
@@ -169,6 +156,17 @@ function openExpandedForm() {
       </template>
 
       <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+
+      <Suspense>
+        <LazySmartsheetExpandedForm
+          v-if="expandedFormDlg"
+          v-model="expandedFormDlg"
+          :meta="relatedTableMeta"
+          :row="{ row: {}, oldRow: {}, rowMeta: { new: true } }"
+          :state="newRowState"
+          use-meta-fields
+        />
+      </Suspense>
     </div>
   </a-modal>
 </template>

@@ -169,9 +169,7 @@ async function handleImport() {
       message.error(t('msg.error.templateGeneratorNotFound'))
       return
     }
-
     importLoading.value = true
-    importData.value = templateGenerator.getData()
     await templateEditorRef.value.importTemplate()
   } catch (e: any) {
     return message.error(await extractSdkResponseErrorMsg(e))
@@ -200,7 +198,8 @@ async function parseAndExtractStreamData(val: UploadFile[]) {
       templateData.value = templateGenerator!.getTemplate()
       // TODO(import): remove
       // templateData.value.tables[0].table_name = populateUniqueTableName()
-      // if (importOnly) importColumns.value = templateGenerator.getColumns()
+      if (importOnly) importColumns.value = templateGenerator!.getColumns()
+      importData.value = templateGenerator!.getData()
       templateEditorModal.value = true
       isParsingData.value = false
       preImportLoading.value = false

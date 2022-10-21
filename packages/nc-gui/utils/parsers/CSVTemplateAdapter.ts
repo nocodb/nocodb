@@ -204,6 +204,9 @@ export default class CSVTemplateAdapter {
     for (const [tableIdx, file] of this.files.entries()) {
       let steppers = 0
       const tn = file.name.replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
+      this.data[tn] = []
+
+      // parse column meta
       parse(file.originFileObj as File, {
         worker: true,
         skipEmptyLines: 'greedy',
@@ -238,53 +241,54 @@ export default class CSVTemplateAdapter {
           console.log('complete')
           console.log(`steppers: ${steppers}`)
           that.updateTemplate(tableIdx)
-          callback()
+
+          // parse table data
+          if (that.config.importData) {
+            steppers = 0
+            parse(file.originFileObj as File, {
+              worker: true,
+              skipEmptyLines: 'greedy',
+              step(row) {
+                steppers += 1
+                if (row && steppers >= +that.config.firstRowAsHeaders + 1) {
+                  const rowData: Record<string, any> = {}
+                  for (let columnIdx = 0; columnIdx < that.headers[tableIdx].length; columnIdx++) {
+                    const column = that.project.tables[tableIdx].columns[columnIdx]
+                    const data = (row.data as [])[columnIdx] === '' ? null : (row.data as [])[columnIdx]
+                    if (column.uidt === UITypes.Checkbox) {
+                      rowData[column.column_name] = getCheckboxValue(data)
+                      rowData[column.column_name] = data
+                    } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
+                      rowData[column.column_name] = (data || '').toString().trim() || null
+                    } else {
+                      // TODO(import): do parsing if necessary based on type
+                      rowData[column.column_name] = data
+                    }
+                  }
+                  that.data[tn].push(rowData)
+                }
+              },
+              complete() {
+                console.log('getData(): complete')
+                console.log(`getData(): steppers: ${steppers}`)
+                callback()
+              },
+              // TODO(import): add error
+            })
+          } else {
+            callback()
+          }
         },
       })
     }
   }
 
   getColumns() {
-    // return this.columns
+    console.log(this.project.tables.map((t: Record<string, any>) => t.columns))
+    return this.project.tables.map((t: Record<string, any>) => t.columns)
   }
 
   getData() {
-    const that = this
-    for (const [tableIdx, file] of this.files.entries()) {
-      let steppers = 0
-      const tn = file.name.replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
-      this.data[tn] = []
-      if (this.config.importData) {
-        parse(file.originFileObj as File, {
-          worker: true,
-          skipEmptyLines: 'greedy',
-          step(row) {
-            steppers += 1
-            if (row && steppers >= +that.config.firstRowAsHeaders + 1) {
-              const rowData: Record<string, any> = {}
-              for (let columnIdx = 0; columnIdx < that.headers[tableIdx].length; columnIdx++) {
-                const column = that.project.tables[tableIdx].columns[columnIdx]
-                const data = (row.data as [])[columnIdx] === '' ? null : (row.data as [])[columnIdx]
-                if (column.uidt === UITypes.Checkbox) {
-                  rowData[column.column_name] = getCheckboxValue(data)
-                  rowData[column.column_name] = data
-                } else if (column.uidt === UITypes.SingleSelect || column.uidt === UITypes.MultiSelect) {
-                  rowData[column.column_name] = (data || '').toString().trim() || null
-                } else {
-                  // TODO(import): do parsing if necessary based on type
-                  rowData[column.column_name] = data
-                }
-              }
-              that.data[tn].push(rowData)
-            }
-          },
-          complete() {
-            console.log('getData(): complete')
-            console.log(`getData(): steppers: ${steppers}`)
-          },
-        })
-      }
-    }
     return this.data
   }
 

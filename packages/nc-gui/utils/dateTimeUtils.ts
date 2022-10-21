@@ -51,3 +51,13 @@ export function getDateFormat(v: string) {
   }
   return 'YYYY/MM/DD'
 }
+
+export function parseStringDate(v: string, dateFormat: string) {
+  const dayjsObj = dayjs(v)
+  if (dayjsObj.isValid()) {
+    v = dayjsObj.format('YYYY-MM-DD')
+  } else {
+    v = dayjs(v, dateFormat).format('YYYY-MM-DD')
+  }
+  return v
+}

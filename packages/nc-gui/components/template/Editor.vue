@@ -19,6 +19,7 @@ import {
   message,
   nextTick,
   onMounted,
+  parseStringDate,
   reactive,
   ref,
   useI18n,
@@ -244,12 +245,7 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
           dateFormat = getDateFormat(d)
           dateFormatMap[col.key] = dateFormat
         }
-        const dayjsObj = dayjs(d)
-        if (dayjsObj.isValid()) {
-          d = dayjsObj.format('YYYY-MM-DD')
-        } else {
-          d = dayjs(d, dateFormat).format('YYYY-MM-DD')
-        }
+        d = parseStringDate(d, dateFormat)
       } else if (col.uidt === UITypes.DateTime && d) {
         d = dayjs(data[key]).utc().format('YYYY-MM-DD HH:mm')
       }
@@ -406,6 +402,8 @@ async function importTemplate() {
                 if (input === '') {
                   input = null
                 }
+              } else if (v.uidt === UITypes.Date) {
+                input = parseStringDate(input, v.meta.date_format)
               }
               res[col.destCn] = input
             }

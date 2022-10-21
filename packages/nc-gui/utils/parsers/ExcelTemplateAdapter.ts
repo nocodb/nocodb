@@ -217,7 +217,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       r: rowIndex + columnNameRowExist,
                     })
                     const cellObj = ws[cellId]
-                    rowData[table.columns[i].column_name] = cellObj.w
+                    rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
                   } else {
                     if (table.columns[i].uidt === UITypes.Checkbox) {
                       rowData[table.columns[i].column_name] = getCheckboxValue(row[i])

@@ -86,29 +86,30 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           Array.from(selectedFiles).map(
             (file) =>
               new Promise<AttachmentProps>((resolve) => {
-                  const res: AttachmentProps = {...file, file, title: file.name, mimetype: file.type }
+                const res: AttachmentProps = { ...file, file, title: file.name, mimetype: file.type }
 
-                  renameFile(file).then((renamedFile) => {
-                      if (isImage(renamedFile.name, (<any>renamedFile).mimetype ?? renamedFile.type)) {
-                          const reader = new FileReader()
+                renameFile(file).then((renamedFile) => {
+                  if (isImage(renamedFile.name, (<any>renamedFile).mimetype ?? renamedFile.type)) {
+                    const reader = new FileReader()
 
-                          reader.onload = (e) => {
-                              res.data = e.target?.result
+                    reader.onload = (e) => {
+                      res.data = e.target?.result
 
-                              resolve(res)
-                          }
+                      resolve(res)
+                    }
 
-                          reader.onerror = () => {
-                              resolve(res)
-                          }
+                    reader.onerror = () => {
+                      resolve(res)
+                    }
 
-                          reader.readAsDataURL(file)
-                      } else {
-                          resolve(res)
-                      }
-                  })
-              })
-        ))
+                    reader.readAsDataURL(file)
+                  } else {
+                    resolve(res)
+                  }
+                })
+              }),
+          ),
+        )
 
         attachments.value = [...attachments.value, ...newFiles]
 

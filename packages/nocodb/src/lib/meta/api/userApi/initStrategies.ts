@@ -1,3 +1,4 @@
+import { OrgUserRoles } from '../../../../enums/OrgUserRoles';
 import User from '../../../models/User';
 import ProjectUser from '../../../models/ProjectUser';
 import { promisify } from 'util';
@@ -27,20 +28,45 @@ import Plugin from '../../../models/Plugin';
 export function initStrategies(router): void {
   passport.use(
     'authtoken',
-    new AuthTokenStrategy({ headerFields: ['xc-token'] }, (token, done) => {
-      ApiToken.getByToken(token)
-        .then((apiToken) => {
-          if (apiToken) {
-            done(null, { roles: 'editor' });
-          } else {
-            return done({ msg: 'Invalid tok' });
-          }
-        })
-        .catch((e) => {
-          console.log(e);
-          done({ msg: 'Invalid tok' });
-        });
-    })
+    new AuthTokenStrategy(
+      { headerFields: ['xc-token'], passReqToCallback: true },
+      (req, token, done) => {
+        ApiToken.getByToken(token)
+          .then((apiToken) => {
+            if (!apiToken) {
+              return done({ msg: 'Invalid tok' });
+            }
+
+            if (!apiToken.fk_user_id) return done(null, { roles: 'editor' });
+            User.get(apiToken.fk_user_id)
+              .then((user) => {
+                if (req.ncProjectId) {
+                  ProjectUser.get(req.ncProjectId, user.id)
+                    .then(async (projectUser) => {
+                      user.roles = projectUser?.roles || 'user';
+                      user.roles =
+                        user.roles === 'owner' ? 'owner,creator' : user.roles;
+                      // + (user.roles ? `,${user.roles}` : '');
+                      // todo : cache
+                      // await NocoCache.set(`${CacheScope.USER}:${key}`, user);
+                      done(null, user);
+                    })
+                    .catch((e) => done(e));
+                } else {
+                  return done(null, user);
+                }
+              })
+              .catch((e) => {
+                console.log(e);
+                done({ msg: 'User not found' });
+              });
+          })
+          .catch((e) => {
+            console.log(e);
+            done({ msg: 'Invalid token' });
+          });
+      }
+    )
   );
 
   passport.serializeUser(function (
@@ -92,11 +118,11 @@ export function initStrategies(router): void {
       },
       async (req, jwtPayload, done) => {
         // todo: improve this
-        // if (req.roles.split(',').includes(OrgUserRoles.SUPER)) {
-        //   return User.getByEma,il(jwtPayload?.email).then(async (user) => {
-        //     return done(null, { ...user, roles: 'owner,creator' });
-        //   });
-        // }
+        if (jwtPayload.roles?.split(',').includes(OrgUserRoles.SUPER)) {
+          return User.getByEmail(jwtPayload?.email).then(async (user) => {
+            return done(null, { ...user, roles: 'owner,creator' });
+          });
+        }
 
         const keyVals = [jwtPayload?.email];
         if (req.ncProjectId) {

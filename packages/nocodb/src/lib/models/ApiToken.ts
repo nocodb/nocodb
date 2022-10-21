@@ -11,6 +11,7 @@ import NocoCache from '../cache/NocoCache';
 export default class ApiToken {
   project_id?: string;
   db_alias?: string;
+  fk_user_id?: string;
   description?: string;
   permissions?: string;
   token?: string;
@@ -29,6 +30,7 @@ export default class ApiToken {
     await ncMeta.metaInsert(null, null, MetaTable.API_TOKENS, {
       description: apiToken.description,
       token,
+      fk_user_id: apiToken.fk_user_id,
     });
     await NocoCache.appendToList(
       CacheScope.API_TOKEN,

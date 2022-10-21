@@ -26,7 +26,7 @@ import ExpressXcTsRoutesBt from '../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRout
 import ExpressXcTsRoutesHm from '../db/sql-mgr/code/routes/xc-ts/ExpressXcTsRoutesHm';
 import NcHelp from '../utils/NcHelp';
 import mimetypes, { mimeIcons } from '../utils/mimeTypes';
-import { packageVersion } from '../utils/packageVersion'
+import { packageVersion } from '../utils/packageVersion';
 import projectAcl from '../utils/projectAcl';
 import Noco from '../Noco';
 import { GqlApiBuilder } from '../v1-legacy/gql/GqlApiBuilder';

@@ -458,10 +458,18 @@
                       "properties": {
                         "list": {
                           "type": "array",
-                          "uniqueItems": true,
-                          "minItems": 1,
                           "items": {
-                            "$ref": "#/components/schemas/ApiToken"
+                            "allOf": [
+                              {
+                                "$ref": "#/components/schemas/ApiToken"
+                              },
+                              {
+                                created_by: {
+                                  type: "string"
+                                }
+                              }
+                            ],
+                            "type": "object"
                           }
                         },
                         "pageInfo": {
@@ -484,7 +492,52 @@
           "Org tokens"
         ]
       },
-      "parameters": []
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "org-tokens-create",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiToken"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Org tokens"
+        ]
+      }
+    },
+    "/api/v1/tokens/{token}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "token",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "delete": {
+        "summary": "",
+        "operationId": "org-tokens-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Org tokens"
+        ]
+      }
     },
     "/api/v1/users": {
       "get": {
@@ -8680,7 +8733,12 @@
           },
           "description": {
             "type": "string"
-          }
+          },
+          "fk_user_id": {
+            "type": "string"
+          },
+          "created_at": {},
+          "updated_at": {}
         }
       },
       "HookLog": {

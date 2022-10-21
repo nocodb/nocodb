@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Project from '../../models/Project';
 import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
 import DOMPurify from 'isomorphic-dompurify';
-import { packageVersion } from '../../utils/packageVersion'
+import { packageVersion } from '../../utils/packageVersion';
 import { Tele } from '../../utils/Tele';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import syncMigration from '../helpers/syncMigration';

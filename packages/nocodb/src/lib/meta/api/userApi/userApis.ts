@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { TableType, validatePassword } from 'nocodb-sdk';
 import { OrgUserRoles } from '../../../../enums/OrgUserRoles';
-import { Tele } from '../../../utils/Tele'
+import { Tele } from '../../../utils/Tele';
 import catchError, { NcError } from '../../helpers/catchError';
 const { isEmail } = require('validator');
 import * as ejs from 'ejs';

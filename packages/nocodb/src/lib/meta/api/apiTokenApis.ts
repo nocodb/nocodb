@@ -13,8 +13,11 @@ export async function apiTokenCreate(req: Request, res: Response) {
 }
 export async function apiTokenDelete(req: Request, res: Response) {
   Tele.emit('evt', { evt_type: 'apiToken:deleted' });
+  // todo: verify token belongs to the user
   res.json(await ApiToken.delete(req.params.token));
 }
+
+// todo: add reset token api to regenerate token
 
 const router = Router({ mergeParams: true });
 

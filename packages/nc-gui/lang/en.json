@@ -202,6 +202,7 @@
     "codeSnippet": "Code Snippet"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "Notify Via",
     "projName": "Project name",
     "tableName": "Table name",

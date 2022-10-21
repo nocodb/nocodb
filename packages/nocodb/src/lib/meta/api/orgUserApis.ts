@@ -165,6 +165,10 @@ async function userAdd(req, res, next) {
   }
 }
 
+async function userSettings(_req, _res): Promise<any> {
+  NcError.notImplemented();
+}
+
 async function userInviteResend(req, res): Promise<any> {
   const user = await User.get(req.params.userId);
 
@@ -217,12 +221,17 @@ router.patch(
 router.delete(
   '/api/v1/users/:userId',
   metaApiMetrics,
-  ncMetaAclMw(userDelete, 'userAdd', [OrgUserRoles.SUPER])
+  ncMetaAclMw(userDelete, 'userDelete', [OrgUserRoles.SUPER])
 );
 router.post(
   '/api/v1/users',
   metaApiMetrics,
-  ncMetaAclMw(userAdd, 'userDelete', [OrgUserRoles.SUPER])
+  ncMetaAclMw(userAdd, 'userAdd', [OrgUserRoles.SUPER])
+);
+router.post(
+  '/api/v1/users/settings',
+  metaApiMetrics,
+  ncMetaAclMw(userSettings, 'userSettings', [OrgUserRoles.SUPER])
 );
 router.post(
   '/api/v1/users/:userId/resend-invite',

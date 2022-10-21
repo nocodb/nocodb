@@ -1,21 +1,25 @@
 <script lang="ts" setup>
-import { message, Empty, Modal } from 'ant-design-vue'
-
-import type { RequestParams, UserType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, useApi , useCopy} from '#imports'
+import { Empty, Modal, message } from 'ant-design-vue'
+import type { ApiTokenType, RequestParams, UserType } from 'nocodb-sdk'
+import { extractSdkResponseErrorMsg, useApi, useCopy, useNuxtApp } from '#imports'
 
 const { api, isLoading } = useApi()
 
+const { $e } = useNuxtApp()
 
 const { copy } = useCopy()
+
+const { t } = useI18n()
 
 let tokens = $ref<UserType[]>([])
 
 let currentPage = $ref(1)
 
+let showNewTokenModal = $ref(false)
+
 const currentLimit = $ref(10)
 
-const showUserModal = ref(false)
+let selectedTokenData = $ref<ApiTokenType>({})
 
 const searchText = ref<string>('')
 
@@ -38,40 +42,65 @@ const loadTokens = async (page = currentPage, limit = currentLimit) => {
     pagination.pageSize = 10
 
     tokens = response.list as UserType[]
-  } catch (e: any) {
+  } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 loadTokens()
 
-const deleteToken = async (userId: string) => {
+const deleteToken = async (token: string) => {
   Modal.confirm({
     title: 'Are you sure you want to delete this token?',
     type: 'warn',
-       onOk: async () => {
+    onOk: async () => {
       try {
         // todo: delete token
-        // await api.orgUsers.delete(userId)
-        // message.success('User deleted successfully')
-        // await loadUsers()
-      } catch (e: any) {
+        await api.orgTokens.delete(token)
+        message.success('Token deleted successfully')
+        await loadTokens()
+      } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     },
   })
 }
 
+const generateToken = async () => {
+  try {
+    await api.orgTokens.create(selectedTokenData)
+    showNewTokenModal = false
+    // Token generated successfully
+    message.success(t('msg.success.tokenGenerated'))
+    selectedTokenData = {}
+    await loadTokens()
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+
+  $e('a:api-token:generate')
+}
+
+const copyToken = (token: string | undefined) => {
+  if (!token) return
+
+  copy(token)
+  // Copied to clipboard
+  message.info(t('msg.info.copiedToClipboard'))
+
+  $e('c:api-token:copy')
+}
 </script>
 
 <template>
   <div class="h-full overflow-y-scroll scrollbar-thin-dull">
     <div class="text-xl mt-4">Token Management</div>
     <a-divider class="!my-3" />
-    <div class="max-w-[700px] mx-auto p-4">
-      <div class="py-2 flex">
+    <div class="max-w-[900px] mx-auto p-4">
+      <div class="py-2 flex gap-4 items-center">
         <div class="flex-grow"></div>
-        <a-button size="small" @click="showUserModal = true">
+        <MdiReload @click="loadTokens" class="cursor-pointer"/>
+        <a-button size="small" @click="showNewTokenModal = true">
           <div class="flex items-center gap-1">
             <MdiAdd />
             Add new token
@@ -83,26 +112,29 @@ const deleteToken = async (userId: string) => {
         :data-source="tokens"
         :pagination="{ position: ['bottomCenter'] }"
         :loading="isLoading"
-        @change="loadTokens($event.current)"
         size="small"
+        @change="loadTokens($event.current)"
       >
         <template #emptyText>
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </template>
 
-
-        <!-- Token -->
-        <a-table-column key="createdBy" :title="$t('labels.createdBy')" data-index="createdBy">
+        <!-- Description -->
+        <a-table-column key="description" :title="$t('labels.description')" data-index="description">
           <template #default="{ text }">
-            <div>
-              {{ text ?? 'N/A' }}
-            </div>
+            {{ text }}
           </template>
         </a-table-column>
 
-
-
-
+        <!-- Token -->
+        <a-table-column key="created_by" :title="$t('labels.createdBy')" data-index="created_by">
+          <template #default="{ text }">
+            <div v-if="text">
+              {{ text }}
+            </div>
+            <div v-else class="text-gray-400">N/A</div>
+          </template>
+        </a-table-column>
 
         <!-- Token -->
         <a-table-column key="token" :title="$t('labels.token')" data-index="token">
@@ -114,12 +146,9 @@ const deleteToken = async (userId: string) => {
           </template>
         </a-table-column>
 
-
-
-
         <!-- Actions -->
 
-        <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
+        <a-table-column key="actions" :title="$t('labels.actions')" data-index="token">
           <template #default="{ record }">
             <div class="flex items-center gap-2">
               <a-tooltip placement="bottom">
@@ -137,16 +166,21 @@ const deleteToken = async (userId: string) => {
               </a-tooltip>
 
               <a-tooltip placement="bottom">
-                <template #title> {{ $t('general.copy') }} </template>
+                <template #title> {{ $t('general.copy') }}</template>
 
-                <a-button type="text" class="!rounded-md" @click="copy(record.token)">
+                <a-button type="text" class="!rounded-md" @click="copyToken(record.token)">
                   <template #icon>
                     <MdiContentCopy class="flex mx-auto h-[1rem]" />
                   </template>
                 </a-button>
               </a-tooltip>
 
-              <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-api-token-mgmt">
+              <a-dropdown
+                :trigger="['click']"
+                class="flex"
+                placement="bottomRight"
+                overlay-class-name="nc-dropdown-api-token-mgmt"
+              >
                 <div class="flex flex-row items-center">
                   <a-button type="text" class="!px-0">
                     <div class="flex flex-row items-center h-[1.2rem]">
@@ -158,7 +192,7 @@ const deleteToken = async (userId: string) => {
                 <template #overlay>
                   <a-menu>
                     <a-menu-item>
-                      <div class="flex flex-row items-center py-3 h-[1rem]" @click="deleteToken(record)">
+                      <div class="flex flex-row items-center py-3 h-[1rem]" @click="deleteToken(record.token)">
                         <MdiDeleteOutline class="flex" />
                         <div class="text-xs pl-2">{{ $t('general.remove') }}</div>
                       </div>
@@ -166,13 +200,10 @@ const deleteToken = async (userId: string) => {
                   </a-menu>
                 </template>
               </a-dropdown>
-
-
             </div>
           </template>
         </a-table-column>
       </a-table>
-
     </div>
 
     <a-modal

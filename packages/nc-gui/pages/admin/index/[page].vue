@@ -1,3 +1,9 @@
+<script>
+export default {
+  name: 'Index',
+}
+</script>
+
 <template>
   <AdminUser v-if="$route.params.page === 'users'" />
   <AdminToken v-else-if="$route.params.page === 'tokens'" />
@@ -5,12 +11,4 @@
   <span v-else></span>
 </template>
 
-<script>
-export default {
-  name: 'index'
-};
-</script>
-
-<style scoped>
-
-</style>
+<style scoped></style>

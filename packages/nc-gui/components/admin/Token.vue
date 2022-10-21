@@ -139,7 +139,7 @@ const copyToken = (token: string | undefined) => {
         <!-- Token -->
         <a-table-column key="token" :title="$t('labels.token')" data-index="token">
           <template #default="{ text, record }">
-            <div>
+            <div class="w-[320px]">
               <span v-if="record.show">{{ text }}</span>
               <span v-else>****************************************</span>
             </div>

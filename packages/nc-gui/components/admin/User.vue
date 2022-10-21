@@ -118,8 +118,8 @@ const copyInviteUrl = (user: User) => {
       </a-tab-pane>
     </a-tabs>
     <template v-if="selectedTabKey === 0">
-      <!--    <div class="text-xl mt-4">User Management</div> -->
-      <!--    <a-divider class="!my-3" /> -->
+      <div class="text-xl mt-4">User Management</div>
+      <a-divider class="!my-3" />
       <div class="max-w-[900px] mx-auto p-4">
         <div class="py-2 flex gap-4 items-center">
           <a-input-search
@@ -132,7 +132,7 @@ const copyInviteUrl = (user: User) => {
           >
           </a-input-search>
           <div class="flex-grow"></div>
-            <MdiReload @click="loadUsers" class="cursor-pointer"/>
+          <MdiReload @click="loadUsers" class="cursor-pointer" />
           <a-button size="small" @click="showUserModal = true">
             <div class="flex items-center gap-1">
               <MdiAdd />
@@ -176,14 +176,14 @@ const copyInviteUrl = (user: User) => {
                   <a-select-option :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
                     <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
                     <span class="text-gray-500 text-xs whitespace-normal"
-                      >Creator can create new projects and access any invited project.</span
+                    >Creator can create new projects and access any invited project.</span
                     >
                   </a-select-option>
 
                   <a-select-option :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
                     <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
                     <span class="text-gray-500 text-xs whitespace-normal"
-                      >Viewer is not allowed to create new projects but they can access any invited project.</span
+                    >Viewer is not allowed to create new projects but they can access any invited project.</span
                     >
                   </a-select-option>
                 </a-select>
@@ -207,7 +207,8 @@ const copyInviteUrl = (user: User) => {
               <div v-if="!record.roles.includes('super')" class="flex items-center gap-2">
                 <MdiDeleteOutline class="nc-action-btn cursor-pointer" @click="deleteUser(text)" />
 
-                <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
+                <a-dropdown :trigger="['click']" class="flex" placement="bottomRight"
+                            overlay-class-name="nc-dropdown-user-mgmt">
                   <div class="flex flex-row items-center">
                     <a-button type="text" class="!px-0">
                       <div class="flex flex-row items-center h-[1.2rem]">
@@ -250,8 +251,8 @@ const copyInviteUrl = (user: User) => {
       </div>
     </template>
     <template v-else>
-      <!--      <div class="text-xl mt-4">Settings</div> -->
-      <!--      <a-divider class="!my-3" /> -->
+      <div class="text-xl mt-4">Settings</div>
+      <a-divider class="!my-3" />
       <a-form-item>
         <a-checkbox name="virtual">Enable user signup</a-checkbox>
       </a-form-item>

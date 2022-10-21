@@ -4,7 +4,7 @@ import request from 'supertest';
 import init from '../../init';
 import { defaultUserArgs } from '../../factory/user';
 
-function authTests() {
+function orgTests() {
   let context;
 
   beforeEach(async function () {
@@ -74,7 +74,7 @@ function authTests() {
       .get('/api/v1/auth/user/me')
       .unset('xc-auth')
       .expect(200);
-      
+
       if (!response.body?.roles?.guest) {
         return new Error('User should be guest');
       }

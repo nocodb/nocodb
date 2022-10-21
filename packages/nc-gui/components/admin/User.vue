@@ -265,17 +265,15 @@ const copyPasswordResetUrl = async (user: User) => {
         <LazyAdminUsersModal :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
       </div>
     </template>
-    <template v-else-if="1">
+    <template v-else-if="selectedTabKey === 1">
       <div class="text-xl mt-4">Settings</div>
       <a-divider class="!my-3" />
       <a-form-item>
         <a-checkbox name="virtual">Enable user signup</a-checkbox>
       </a-form-item>
     </template>
-    <template v-else>
-      <div class="text-xl mt-4">Reset Password</div>
-      <a-divider class="!my-3" />
-     <LazyResetPassword/>
+    <template v-else-if="selectedTabKey === 2">
+      <LazyAdminResetPassword class="mt-10"/>
     </template>
   </div>
 </template>

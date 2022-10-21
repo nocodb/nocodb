@@ -8,7 +8,6 @@ export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
 
   constructor(url: string, parserConfig: Record<string, any>) {
     const { $api } = useNuxtApp()
-    const name = url?.split('/').pop()
     super({}, parserConfig)
     this.url = url
     this.excelData = null

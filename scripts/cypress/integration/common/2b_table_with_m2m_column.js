@@ -69,8 +69,26 @@ export const genTest = (apiType, dbType) => {
       cy.getActiveModal(".nc-modal-child-list")
         .find("button:contains(Link to 'Film')")
         .click()
-
-        cy.getActiveModal('.nc-modal-link-record').find('.ant-modal-close').click()
+        .then(() => {
+          // Link record form validation
+          cy.getActiveModal(".nc-modal-link-record")
+              .contains("Link record")
+              .should("exist");
+          cy.getActiveModal(".nc-modal-link-record")
+              .find(".nc-reload")
+              .should("exist");
+          cy.getActiveModal(".nc-modal-link-record")
+              .find('button:contains("Add new record")')
+              .should("exist");
+          cy.getActiveModal(".nc-modal-link-record")
+              .find(".ant-card")
+              .eq(0)
+              .contains("ACE GOLDFINGER")
+              .should("exist");
+          cy.getActiveModal(".nc-modal-link-record")
+              .find("button.ant-modal-close")
+              .click();
+        });
     });
 
     it("Expand first linked card, validate", () => {

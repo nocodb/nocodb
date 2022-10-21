@@ -290,8 +290,6 @@ function fieldsValidation(record: Record<string, any>) {
     return true
   }
 
-  const tableName = meta.value?.title || ''
-
   if (!record.destCn) {
     message.error(`${t('msg.error.columnDescriptionNotFound')} ${record.srcCn}`)
     return false
@@ -304,63 +302,62 @@ function fieldsValidation(record: Record<string, any>) {
 
   const v = columns.value.find((c) => c.title === record.destCn) as Record<string, any>
 
-  // check if the input contains null value for a required column
-  if (v.pk ? !v.ai && !v.cdf : !v.cdf && v.rqd) {
-    if (
-      importData[tableName]
-        .slice(0, maxRowsToParse)
-        .some((r: Record<string, any>) => r[record.srcCn] === null || r[record.srcCn] === undefined || r[record.srcCn] === '')
-    ) {
-      message.error(t('msg.error.nullValueViolatesNotNull'))
-    }
-  }
-
-  switch (v.uidt) {
-    case UITypes.Number:
+  for (const tableName of Object.keys(importData)) {
+    // check if the input contains null value for a required column
+    if (v.pk ? !v.ai && !v.cdf : !v.cdf && v.rqd) {
       if (
         importData[tableName]
           .slice(0, maxRowsToParse)
-          .some(
-            (r: Record<string, any>) => r[record.sourceCn] !== null && r[record.srcCn] !== undefined && isNaN(+r[record.srcCn]),
-          )
+          .some((r: Record<string, any>) => r[record.srcCn] === null || r[record.srcCn] === undefined || r[record.srcCn] === '')
       ) {
-        message.error(t('msg.error.sourceHasInvalidNumbers'))
-        return false
+        message.error(t('msg.error.nullValueViolatesNotNull'))
       }
+    }
 
-      break
-    case UITypes.Checkbox:
-      if (
-        importData[tableName].slice(0, maxRowsToParse).some((r: Record<string, any>) => {
-          if (r[record.srcCn] !== null && r[record.srcCn] !== undefined) {
-            let input = r[record.srcCn]
-            if (typeof input === 'string') {
-              input = input.replace(/["']/g, '').toLowerCase().trim()
-              return !(
-                input === 'false' ||
-                input === 'no' ||
-                input === 'n' ||
-                input === '0' ||
-                input === 'true' ||
-                input === 'yes' ||
-                input === 'y' ||
-                input === '1'
-              )
-            }
-
-            return input !== 1 && input !== 0 && input !== true && input !== false
-          }
-
+    switch (v.uidt) {
+      case UITypes.Number:
+        if (
+          importData[tableName]
+            .slice(0, maxRowsToParse)
+            .some(
+              (r: Record<string, any>) => r[record.sourceCn] !== null && r[record.srcCn] !== undefined && isNaN(+r[record.srcCn]),
+            )
+        ) {
+          message.error(t('msg.error.sourceHasInvalidNumbers'))
           return false
-        })
-      ) {
-        message.error(t('msg.error.sourceHasInvalidBoolean'))
+        }
 
-        return false
-      }
-      break
+        break
+      case UITypes.Checkbox:
+        if (
+          importData[tableName].slice(0, maxRowsToParse).some((r: Record<string, any>) => {
+            if (r[record.srcCn] !== null && r[record.srcCn] !== undefined) {
+              let input = r[record.srcCn]
+              if (typeof input === 'string') {
+                input = input.replace(/["']/g, '').toLowerCase().trim()
+                return !(
+                  input === 'false' ||
+                  input === 'no' ||
+                  input === 'n' ||
+                  input === '0' ||
+                  input === 'true' ||
+                  input === 'yes' ||
+                  input === 'y' ||
+                  input === '1'
+                )
+              }
+
+              return input !== 1 && input !== 0 && input !== true && input !== false
+            }
+            return false
+          })
+        ) {
+          message.error(t('msg.error.sourceHasInvalidBoolean'))
+          return false
+        }
+        break
+    }
   }
-
   return true
 }
 
@@ -541,7 +538,7 @@ function mapDefaultColumns() {
   for (const col of importColumns[0]) {
     const o = { srcCn: col.column_name, destCn: '', enabled: true }
     if (columns.value) {
-      const tableColumn = columns.value.find((c: Record<string, any>) => c.title === col.column_name)
+      const tableColumn = columns.value.find((c) => c.column_name === col.column_name)
       if (tableColumn) {
         o.destCn = tableColumn.title as string
       } else {

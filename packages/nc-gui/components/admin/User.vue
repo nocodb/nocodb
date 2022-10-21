@@ -123,7 +123,7 @@ const copyPasswordResetUrl = async (user: User) => {
 <template>
   <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-4">
     <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs">
-      <a-tab-pane v-for="(tab, key) of [{ label: 'Users' }, { label: 'Settings' }]" :key="key" class="select-none">
+      <a-tab-pane v-for="(tab, key) of [{ label: 'Users' }, { label: 'Settings' }, { label: 'Reset Password' }]" :key="key" class="select-none">
         <template #tab>
           <span>
             {{ tab.label }}
@@ -265,12 +265,17 @@ const copyPasswordResetUrl = async (user: User) => {
         <LazyAdminUsersModal :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
       </div>
     </template>
-    <template v-else>
+    <template v-else-if="1">
       <div class="text-xl mt-4">Settings</div>
       <a-divider class="!my-3" />
       <a-form-item>
         <a-checkbox name="virtual">Enable user signup</a-checkbox>
       </a-form-item>
+    </template>
+    <template v-else>
+      <div class="text-xl mt-4">Reset Password</div>
+      <a-divider class="!my-3" />
+     <LazyResetPassword/>
     </template>
   </div>
 </template>

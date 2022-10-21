@@ -78,7 +78,11 @@ export default class ApiToken {
   }
 
   public static async listWithCreatedBy(
-    { limit = 10, offset = 0 }: { limit: number; offset: number },
+    {
+      limit = 10,
+      offset = 0,
+      fk_user_id,
+    }: { limit: number; offset: number; fk_user_id?: string },
     ncMeta = Noco.ncMeta
   ) {
     const queryBuilder = ncMeta
@@ -103,6 +107,11 @@ export default class ApiToken {
           )
           .as('created_by')
       );
+
+    if (fk_user_id) {
+      queryBuilder.where('fk_user_id', fk_user_id);
+    }
+
     return queryBuilder;
   }
 }

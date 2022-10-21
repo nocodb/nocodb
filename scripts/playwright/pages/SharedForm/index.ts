@@ -16,6 +16,16 @@ export class SharedFormPage extends BasePage {
   }
 
   async submit() {
-    await this.get().locator('[pw-data="shared-form-submit-button"]').click();
+    await this.waitForResponse({
+      uiAction:this.get().locator('[pw-data="shared-form-submit-button"]').click(),
+      httpMethodsToMatch: ["POST"],
+      requestUrlPathToMatch: '/rows'
+    });
+  }
+
+  async verifySuccessMessage() {
+    await expect(await this.get().locator('.ant-alert-success', {
+      hasText: 'Successfully submitted form data'
+    })).toBeVisible();
   }
 }

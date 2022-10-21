@@ -49,10 +49,26 @@ export class CellPageObject extends BasePage {
     index,
     columnHeader,
   }: {
-    index: number;
+    index?: number;
     columnHeader: string;
   }) {
     return this.get({ index, columnHeader }).dblclick();
+  }
+
+  async fillText({
+    index,
+    columnHeader,
+    text
+  }: {
+    index?: number;
+    columnHeader: string;
+    text: string;
+  }) {
+    await this.dblclick({
+      index,
+      columnHeader,
+    });
+    await this.get({ index, columnHeader }).locator("input").fill(text);
   }
 
   async inCellExpand({

@@ -66,4 +66,26 @@ export default abstract class BasePage {
     ]);
     await fileChooser.setFiles(filePath);
   }
+
+  async downloadAndGetFile({downloadUIAction}:{ downloadUIAction: Promise<any>,}) {
+    const [ download ] = await Promise.all([
+      // It is important to call waitForEvent before click to set up waiting.
+      this.rootPage.waitForEvent('download'),
+      // Triggers the download.
+      downloadUIAction,
+    ]);
+    // wait for download to complete
+    if(await download.failure()) {
+      throw new Error('Download failed');
+    }
+    
+    const file = await download.createReadStream();
+    const data = await new Promise((resolve, reject) => {
+      let data = '';
+      file?.on('data', chunk => data += chunk);
+      file?.on('end', () => resolve(data));
+      file?.on('error', reject);
+    });
+    return data as any;
+  }
 }

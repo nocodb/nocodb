@@ -73,7 +73,13 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             const table = { table_name: tn, ref_table_name: tn, columns: [] as any[] }
             const ws: any = this.wb.Sheets[sheet]
             const range = this.xlsx.utils.decode_range(ws['!ref'])
-            let rows: any = this.xlsx.utils.sheet_to_json(ws, { header: 1, blankrows: false, defval: null })
+            let rows: any = this.xlsx.utils.sheet_to_json(ws, {
+              // header has to be 1 disregarding this.config.firstRowAsHeaders
+              // so that it generates an array of arrays
+              header: 1,
+              blankrows: false,
+              defval: null,
+            })
 
             // fix precision bug & timezone offset issues introduced by xlsx
             const basedate = new Date(1899, 11, 30, 0, 0, 0)
@@ -96,11 +102,9 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               }),
             )
 
-            const columnNameRowExist = +rows[0].every((v: any) => v === null || typeof v === 'string')
-
             for (let col = 0; col < rows[0].length; col++) {
               let cn: string = (
-                (columnNameRowExist && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
+                (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
                 `field_${col + 1}`
               )
                 .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
@@ -121,9 +125,10 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               if (this.config.autoSelectFieldTypes) {
                 const cellId = this.xlsx.utils.encode_cell({
                   c: range.s.c + col,
-                  r: columnNameRowExist,
+                  r: +this.config.firstRowAsHeaders,
                 })
                 const cellProps = ws[cellId] || {}
+                console.log(cn, cellProps)
                 column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
 
                 if (column.uidt === UITypes.SingleLineText) {
@@ -140,7 +145,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     column.uidt = UITypes.URL
                   } else {
                     const vals = rows
-                      .slice(columnNameRowExist ? 1 : 0)
+                      .slice(+this.config.firstRowAsHeaders)
                       .map((r: any) => r[col])
                       .filter((v: any) => v !== null && v !== undefined && v.toString().trim() !== '')
 
@@ -164,7 +169,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
                       const cellId = this.xlsx.utils.encode_cell({
                         c: range.s.c + col,
-                        r: i + columnNameRowExist,
+                        r: i + +this.config.firstRowAsHeaders,
                       })
 
                       const cellObj = ws[cellId]
@@ -182,7 +187,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
                       const cellId = this.xlsx.utils.encode_cell({
                         c: range.s.c + col,
-                        r: i + columnNameRowExist,
+                        r: i + +this.config.firstRowAsHeaders,
                       })
 
                       const cellObj = ws[cellId]
@@ -214,7 +219,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     // take raw data instead of data parsed by xlsx
                     const cellId = this.xlsx.utils.encode_cell({
                       c: range.s.c + i,
-                      r: rowIndex + columnNameRowExist,
+                      r: rowIndex + +this.config.firstRowAsHeaders,
                     })
                     const cellObj = ws[cellId]
                     rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
@@ -224,7 +229,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     } else if (table.columns[i].uidt === UITypes.Currency) {
                       const cellId = this.xlsx.utils.encode_cell({
                         c: range.s.c + i,
-                        r: rowIndex + columnNameRowExist,
+                        r: rowIndex + +this.config.firstRowAsHeaders,
                       })
 
                       const cellObj = ws[cellId]
@@ -235,7 +240,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     } else if (table.columns[i].uidt === UITypes.Date) {
                       const cellId = this.xlsx.utils.encode_cell({
                         c: range.s.c + i,
-                        r: rowIndex + columnNameRowExist,
+                        r: rowIndex + +this.config.firstRowAsHeaders,
                       })
                       const cellObj = ws[cellId]
                       rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]

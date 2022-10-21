@@ -99,7 +99,7 @@ const copyToken = (token: string | undefined) => {
     <div class="max-w-[900px] mx-auto p-4">
       <div class="py-2 flex gap-4 items-center">
         <div class="flex-grow"></div>
-        <MdiReload @click="loadTokens" class="cursor-pointer"/>
+        <MdiReload class="cursor-pointer" @click="loadTokens" />
         <a-button size="small" @click="showNewTokenModal = true">
           <div class="flex items-center gap-1">
             <MdiAdd />
@@ -135,7 +135,6 @@ const copyToken = (token: string | undefined) => {
             {{ text }}
           </template>
         </a-table-column>
-
 
         <!-- Token -->
         <a-table-column key="token" :title="$t('labels.token')" data-index="token">

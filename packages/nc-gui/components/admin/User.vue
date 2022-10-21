@@ -146,7 +146,7 @@ const copyPasswordResetUrl = async (user: User) => {
           >
           </a-input-search>
           <div class="flex-grow"></div>
-          <MdiReload @click="loadUsers" class="cursor-pointer" />
+          <MdiReload class="cursor-pointer" @click="loadUsers" />
           <a-button size="small" @click="showUserModal = true">
             <div class="flex items-center gap-1">
               <MdiAdd />
@@ -190,14 +190,14 @@ const copyPasswordResetUrl = async (user: User) => {
                   <a-select-option :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
                     <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
                     <span class="text-gray-500 text-xs whitespace-normal"
-                    >Creator can create new projects and access any invited project.</span
+                      >Creator can create new projects and access any invited project.</span
                     >
                   </a-select-option>
 
                   <a-select-option :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
                     <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
                     <span class="text-gray-500 text-xs whitespace-normal"
-                    >Viewer is not allowed to create new projects but they can access any invited project.</span
+                      >Viewer is not allowed to create new projects but they can access any invited project.</span
                     >
                   </a-select-option>
                 </a-select>
@@ -221,8 +221,7 @@ const copyPasswordResetUrl = async (user: User) => {
               <div v-if="!record.roles.includes('super')" class="flex items-center gap-2">
                 <MdiDeleteOutline class="nc-action-btn cursor-pointer" @click="deleteUser(text)" />
 
-                <a-dropdown :trigger="['click']" class="flex" placement="bottomRight"
-                            overlay-class-name="nc-dropdown-user-mgmt">
+                <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
                   <div class="flex flex-row items-center">
                     <a-button type="text" class="!px-0">
                       <div class="flex flex-row items-center h-[1.2rem]">
@@ -233,25 +232,27 @@ const copyPasswordResetUrl = async (user: User) => {
 
                   <template #overlay>
                     <a-menu>
-                      <a-menu-item>
-                        <!-- Resend invite Email -->
-                        <div class="flex flex-row items-center py-3" @click="resendInvite(record)">
-                          <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
-                          <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
-                        </div>
-                      </a-menu-item>
-                      <a-menu-item>
-                        <div class="flex flex-row items-center py-3" @click="copyInviteUrl(record)">
+                      <template v-if="record.invite_token">
+                        <a-menu-item>
+                          <!-- Resend invite Email -->
+                          <div class="flex flex-row items-center py-3" @click="resendInvite(record)">
+                            <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
+                          </div>
+                        </a-menu-item>
+                        <a-menu-item>
+                          <div class="flex flex-row items-center py-3" @click="copyInviteUrl(record)">
+                            <MdiContentCopy class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
+                          </div>
+                        </a-menu-item>
+                      </template>
+                      <a-menu-item v-else>
+                        <div class="flex flex-row items-center py-3" @click="copyPasswordResetUrl(record)">
                           <MdiContentCopy class="flex h-[1rem] text-gray-500" />
-                          <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
+                          <div class="text-xs pl-2">{{ $t('activity.copyPasswordResetURL') }}</div>
                         </div>
                       </a-menu-item>
-                                          <a-menu-item>
-                      <div class="flex flex-row items-center py-3" @click="copyPasswordResetUrl(record)">
-                        <MdiContentCopy class="flex h-[1rem] text-gray-500" />
-                        <div class="text-xs pl-2">{{ $t('activity.copyPasswordResetURL') }}</div>
-                      </div>
-                    </a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>

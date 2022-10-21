@@ -351,6 +351,7 @@
     "deleteUser": "Remove user from project",
     "resendInvite": "Resend invite E-mail",
     "copyInviteURL": "Copy invite URL",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "New role",
     "reloadRoles": "Reload roles",
     "nextPage": "Next page",

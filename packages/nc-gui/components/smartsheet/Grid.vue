@@ -477,7 +477,7 @@ watch(
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
                       </div>
                       <span class="flex-1" />
-                      <div v-if="!readOnly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
+                      <div v-if="!isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
                         <a-spin v-if="row.rowMeta.saving" class="!flex items-center" />
                         <template v-else>
                           <span
@@ -541,7 +541,7 @@ watch(
                         "
                         :row-index="rowIndex"
                         :active="selected.col === colIndex && selected.row === rowIndex"
-                        @update:edit-enabled="editEnabled = false"
+                        @update:edit-enabled="editEnabled = $event"
                         @save="updateOrSaveRow(row, columnObj.title, state)"
                         @navigate="onNavigate"
                         @cancel="editEnabled = false"

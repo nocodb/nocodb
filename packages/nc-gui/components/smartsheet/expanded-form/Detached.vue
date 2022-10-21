@@ -1,7 +1,11 @@
 <script lang="ts" setup>
 import { useExpandedFormDetached } from '#imports'
 
-const { states } = useExpandedFormDetached()
+const { states, close } = useExpandedFormDetached()
+
+const shouldClose = (isVisible: boolean, i: number) => {
+  if (!isVisible) close(i)
+}
 </script>
 
 <template>
@@ -15,6 +19,8 @@ const { states } = useExpandedFormDetached()
       :state="state.state"
       :use-meta-fields="state.useMetaFields"
       :view="state.view"
+      @update:model-value="shouldClose($event, i)"
+      @cancel="close(i)"
     />
   </template>
 </template>

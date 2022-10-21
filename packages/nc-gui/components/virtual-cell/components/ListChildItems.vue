@@ -17,6 +17,7 @@ import {
   useVModel,
   watch,
 } from '#imports'
+import type { Row } from '~/lib'
 
 const props = defineProps<{ modelValue?: boolean; cellValue: any }>()
 
@@ -80,10 +81,6 @@ const container = computed(() =>
     : Modal,
 )
 
-const expandedFormDlg = ref(false)
-
-const expandedFormRow = ref()
-
 /** reload children list whenever cell value changes and list is visible */
 watch(
   () => props.cellValue,
@@ -92,16 +89,16 @@ watch(
   },
 )
 
-function openExpandedForm() {
-  if (expandedFormRow.value) {
-    open({
-      isOpen: true,
-      row: { row: expandedFormRow.value, oldRow: expandedFormRow.value },
-      meta: relatedTableMeta.value,
-      loadRow: true,
-      useMetaFields: true,
-    })
-  }
+function openExpandedForm(row: Row) {
+  if (readonly) return
+
+  open({
+    isOpen: true,
+    row: { row, oldRow: row, rowMeta: {} },
+    meta: relatedTableMeta.value,
+    loadRow: true,
+    useMetaFields: true,
+  })
 }
 </script>
 
@@ -141,13 +138,7 @@ function openExpandedForm() {
             v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
             :key="i"
             class="!my-4 hover:(!bg-gray-200/50 shadow-md)"
-            @click="
-              () => {
-                if (readonly) return
-                expandedFormRow = row
-                expandedFormDlg = true
-              }
-            "
+            @click="openExpandedForm(row)"
           >
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">

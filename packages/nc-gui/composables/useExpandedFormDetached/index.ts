@@ -1,5 +1,5 @@
 import type { TableType, ViewType } from 'nocodb-sdk'
-import { ref, useInjectionState } from '#imports'
+import { createEventHook, ref, useInjectionState } from '#imports'
 import type { Row } from '~/lib'
 
 interface UseExpandedFormDetachedProps {
@@ -26,6 +26,8 @@ export function useExpandedFormDetached() {
     states = setup()
   }
 
+  const closeHook = createEventHook<void>()
+
   const index = ref(-1)
 
   const open = (props: UseExpandedFormDetachedProps) => {
@@ -33,9 +35,10 @@ export function useExpandedFormDetached() {
     index.value = states.value.length - 1
   }
 
-  const close = () => {
-    states.value.splice(index.value, 1)
+  const close = (i?: number) => {
+    states.value.splice(i || index.value, 1)
+    if (index.value === i || !i) closeHook.trigger()
   }
 
-  return { states, open, close }
+  return { states, open, close, onClose: closeHook.on }
 }

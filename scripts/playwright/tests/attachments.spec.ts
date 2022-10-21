@@ -32,7 +32,8 @@ test.describe("Attachment column", () => {
     await dashboard.form.toolbar.shareView.close();
     await dashboard.viewSidebar.openView({title: "Country"});
 
-    const newPage  = await context.newPage()
+    // Verify attachment in shared form
+    const newPage = await context.newPage()
     await newPage.goto(sharedFormUrl);
     const sharedForm = new SharedFormPage(newPage);
     await sharedForm.cell.fillText({index: 0, columnHeader: "Country", text: "test"});
@@ -41,6 +42,7 @@ test.describe("Attachment column", () => {
     await sharedForm.verifySuccessMessage();
     await newPage.close();
 
+    // Verify attachment in csv
     await dashboard.grid.toolbar.clickFields()
     await dashboard.grid.toolbar.fields.click({title: "LastUpdate"});
     await dashboard.grid.toolbar.clickActions();

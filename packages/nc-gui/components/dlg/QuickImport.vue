@@ -147,7 +147,7 @@ async function handlePreImport() {
 
   if (activeKey.value === 'uploadTab') {
     if (isImportTypeCsv.value) {
-      await parseAndExtractStreamData(importState.fileList as streamImportFileList)
+      await parseAndExtractData(importState.fileList as streamImportFileList)
     } else {
       await parseAndExtractData((importState.fileList as importFileList)[0].data)
     }
@@ -179,37 +179,10 @@ async function handleImport() {
   dialogShow.value = false
 }
 
-async function parseAndExtractStreamData(val: UploadFile[]) {
-  try {
-    templateData.value = null
-    importData.value = null
-    importColumns.value = []
-
-    templateGenerator = getAdapter(val)
-
-    if (!templateGenerator) {
-      message.error(t('msg.error.templateGeneratorNotFound'))
-      return
-    }
-
-    await templateGenerator.init()
-
-    templateGenerator.parse(() => {
-      templateData.value = templateGenerator!.getTemplate()
-      // TODO(import): remove
-      // templateData.value.tables[0].table_name = populateUniqueTableName()
-      if (importOnly) importColumns.value = templateGenerator!.getColumns()
-      importData.value = templateGenerator!.getData()
-      templateEditorModal.value = true
-      isParsingData.value = false
-      preImportLoading.value = false
-    })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-async function parseAndExtractData(val: string | ArrayBuffer) {
+// UploadFile[] for csv import (streaming)
+// ArrayBuffer for excel import
+// string for json import
+async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
   try {
     templateData.value = null
     importData.value = null

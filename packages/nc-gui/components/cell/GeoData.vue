@@ -1,41 +1,46 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, inject, useVModel } from '#imports'
+import type { GeoLocationType } from 'nocodb-sdk'
+import { EditModeInj, inject, ReadonlyInj, ref, useVModel } from '#imports'
+import { onKeyDown } from '@vueuse/core'
 
 interface Props {
-  modelValue?: number | null | string
+  modelValue?: GeoLocationType
 }
 
 interface Emits {
-  (event: 'update:modelValue', model: number): void
+  (event: 'update:modelValue', model: GeoLocationType): void
 }
 
 const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
+const isOpen = ref(false)
+
+const visible = ref<boolean>(false)
+
 const editEnabled = inject(EditModeInj)
+
+const readOnly = inject(ReadonlyInj)!
 
 const vModel = useVModel(props, 'modelValue', emits)
 
 const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+
+const toggleVisbility = () => {
+  visible.value = !visible.value
+}
 </script>
 
 <template>
-  <div>
-    TEST
-    <a-input-group v-if="editEnabled">
-      <a-input
-        :ref="focus"
-        v-model="vModel"
-        class="outline-none px-2 border-none w-full h-full text-sm"
-        type="number"
-        step="0.1"
-        @blur="editEnabled = false"
-      />
-      <a-input />
-    </a-input-group>
-    <span v-else class="text-sm">{{ vModel }}</span>
+  <div v-on:click="toggleVisbility" :style="{ minWidth: '100%', minHeight: '100%', backgroundColor: 'red' }">
+    <a-popover v-model:visible="visible" title="Title" trigger="click">
+      <template>
+        <a-input />
+        <a-input />
+      </template>
+    </a-popover>
   </div>
 </template>
 

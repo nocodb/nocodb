@@ -130,6 +130,7 @@
     "Currency": "Currency",
     "Percent": "Percent",
     "Duration": "Duration",
+    "GeoData": "GeoData",
     "Rating": "Rating",
     "Formula": "Formula",
     "Rollup": "Rollup",

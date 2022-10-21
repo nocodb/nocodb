@@ -8726,6 +8726,7 @@
                   "Year",
                   "Time",
                   "PhoneNumber",
+                  "GeoData",
                   "Email",
                   "URL",
                   "Number",

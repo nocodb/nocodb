@@ -71,6 +71,7 @@ const {
   isURL,
   isEmail,
   isJSON,
+  isGeoData,
   isDate,
   isYear,
   isDateTime,
@@ -130,6 +131,9 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
   >
     <LazyCellTextArea v-if="isTextArea" v-model="vModel" />
+    <!-- TODO: review the hacky type checking here (we had to move geoData check at the beginning atm,
+     otherwise isString would kick in also for the current GeoData types, since it's abstractType is also a string) -->
+    <LazyCellGeoData v-else-if="isGeoData" v-model="vModel" />
     <LazyCellCheckbox v-else-if="isBoolean" v-model="vModel" />
     <LazyCellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />
     <LazyCellSingleSelect v-else-if="isSingleSelect" v-model="vModel" />
@@ -151,6 +155,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     <LazyCellText v-else-if="isString" v-model="vModel" />
     <LazyCellJson v-else-if="isJSON" v-model="vModel" />
     <LazyCellText v-else v-model="vModel" />
+
     <div v-if="(isLocked || (isPublic && readOnly && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
   </div>
 </template>

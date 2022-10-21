@@ -24,6 +24,7 @@ import PercentIcon from '~icons/mdi/percent-outline'
 import DecimalIcon from '~icons/mdi/decimal'
 import SpecificDBTypeIcon from '~icons/mdi/database-settings'
 import DurationIcon from '~icons/mdi/timer-outline'
+import GeoDataIcon from '~icons/mdi/map-marker'
 
 const props = defineProps<{ columnMeta?: ColumnType }>()
 
@@ -38,6 +39,8 @@ const icon = computed(() => {
     return KeyIcon
   } else if (additionalColMeta.isJSON.value) {
     return JSONIcon
+  } else if (additionalColMeta.isGeoData.value) {
+    return GeoDataIcon
   } else if (additionalColMeta.isDate.value) {
     return CalendarIcon
   } else if (additionalColMeta.isDateTime.value) {

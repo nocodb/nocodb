@@ -595,6 +595,7 @@ export type ColumnReqType =
         | 'Year'
         | 'Time'
         | 'PhoneNumber'
+        | 'GeoData'
         | 'Email'
         | 'URL'
         | 'Number'

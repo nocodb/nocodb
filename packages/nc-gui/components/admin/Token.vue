@@ -93,7 +93,7 @@ const copyToken = (token: string | undefined) => {
 </script>
 
 <template>
-  <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-4">
+  <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-2">
     <div class="text-xl mt-4">Token Management</div>
     <a-divider class="!my-3" />
     <div class="max-w-[900px] mx-auto p-4">

@@ -7,12 +7,21 @@ import extractProjectIdAndAuthenticate from './extractProjectIdAndAuthenticate';
 export default function (
   handlerFn,
   permissionName,
-  allowedRoles?: (OrgUserRoles | string)[]
+  {
+    allowedRoles,
+    blockApiTokenAccess,
+  }: {
+    allowedRoles?: (OrgUserRoles | string)[];
+    blockApiTokenAccess?: boolean;
+  } = {}
 ) {
   return [
     extractProjectIdAndAuthenticate,
     catchError(async function authMiddleware(req, _res, next) {
       const roles = req?.session?.passport?.user?.roles;
+      if (req?.session?.passport?.user?.is_api_token && blockApiTokenAccess) {
+        NcError.forbidden('Not allowed with API token');
+      }
       if (
         (!allowedRoles || allowedRoles.some((role) => roles?.[role])) &&
         !(

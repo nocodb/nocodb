@@ -1,7 +1,7 @@
-import { Request, Response, Router } from 'express'
+import { Request, Response, Router } from 'express';
 import { OrgUserRoles } from '../../../enums/OrgUserRoles';
 import ApiToken from '../../models/ApiToken';
-import { Tele } from '../../utils/Tele'
+import { Tele } from '../../utils/Tele';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
@@ -30,16 +30,25 @@ const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/tokens',
   metaApiMetrics,
-  ncMetaAclMw(apiTokenList, 'apiTokenList', [OrgUserRoles.SUPER])
+  ncMetaAclMw(apiTokenList, 'apiTokenList', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  })
 );
 router.post(
   '/api/v1/tokens',
   metaApiMetrics,
-  ncMetaAclMw(apiTokenCreate, 'apiTokenCreate', [OrgUserRoles.SUPER])
+  ncMetaAclMw(apiTokenCreate, 'apiTokenCreate', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  })
 );
 router.delete(
   '/api/v1/tokens/:token',
   metaApiMetrics,
-  ncMetaAclMw(apiTokenDelete, 'apiTokenDelete', [OrgUserRoles.SUPER])
+  ncMetaAclMw(apiTokenDelete, 'apiTokenDelete', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  })
 );
 export default router;

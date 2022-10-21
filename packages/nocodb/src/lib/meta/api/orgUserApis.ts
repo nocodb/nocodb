@@ -231,36 +231,57 @@ const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/users',
   metaApiMetrics,
-  ncMetaAclMw(userList, 'userList', [OrgUserRoles.SUPER])
+  ncMetaAclMw(userList, 'userList', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  })
 );
 router.patch(
   '/api/v1/users/:userId',
   metaApiMetrics,
-  ncMetaAclMw(userUpdate, 'userUpdate', [OrgUserRoles.SUPER])
+  ncMetaAclMw(userUpdate, 'userUpdate', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  })
 );
 router.delete(
   '/api/v1/users/:userId',
   metaApiMetrics,
-  ncMetaAclMw(userDelete, 'userDelete', [OrgUserRoles.SUPER])
+  ncMetaAclMw(userDelete, 'userDelete', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  })
 );
 router.post(
   '/api/v1/users',
   metaApiMetrics,
-  ncMetaAclMw(userAdd, 'userAdd', [OrgUserRoles.SUPER])
+  ncMetaAclMw(userAdd, 'userAdd', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  })
 );
 router.post(
   '/api/v1/users/settings',
   metaApiMetrics,
-  ncMetaAclMw(userSettings, 'userSettings', [OrgUserRoles.SUPER])
+  ncMetaAclMw(userSettings, 'userSettings', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  })
 );
 router.post(
   '/api/v1/users/:userId/resend-invite',
   metaApiMetrics,
-  ncMetaAclMw(userInviteResend, 'userInviteResend', [OrgUserRoles.SUPER])
+  ncMetaAclMw(userInviteResend, 'userInviteResend', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  })
 );
 router.post(
   '/api/v1/users/:userId/generate-reset-url',
   metaApiMetrics,
-  ncMetaAclMw(generateResetUrl, 'generateResetUrl', [OrgUserRoles.SUPER])
+  ncMetaAclMw(generateResetUrl, 'generateResetUrl', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  })
 );
 export default router;

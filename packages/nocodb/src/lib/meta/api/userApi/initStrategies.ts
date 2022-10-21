@@ -40,6 +40,7 @@ export function initStrategies(router): void {
             if (!apiToken.fk_user_id) return done(null, { roles: 'editor' });
             User.get(apiToken.fk_user_id)
               .then((user) => {
+                user['is_api_token'] = true;
                 if (req.ncProjectId) {
                   ProjectUser.get(req.ncProjectId, user.id)
                     .then(async (projectUser) => {

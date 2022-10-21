@@ -1,32 +1,242 @@
-import { test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { DashboardPage } from "../pages/Dashboard";
 import setup from "../setup";
 import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
+import makeServer from "../setup/server";
+import { WebhookFormPage } from "../pages/Dashboard/WebhookForm";
 
-test.describe.skip("Webhook", () => {
-  let dashboard: DashboardPage, toolbar: ToolbarPage;
+let hookPath = "http://localhost:9090/hook";
+
+// clear server data
+async function clearServerData({ request }) {
+  // clear stored data in server
+  await request.get(hookPath + "/clear");
+
+  // ensure stored message count is 0
+  const response = await request.get(hookPath + "/count");
+  expect(await response.json()).toBe(0);
+}
+
+async function verifyHookTrigger(count: number, value: string, request) {
+  let response = await request.get(hookPath + "/count");
+  expect(await response.json()).toBe(count);
+
+  if (count) {
+    response = await request.get(hookPath + "/last");
+    console.log(await response.json());
+    expect((await response.json()).Title).toBe(value);
+  }
+}
+
+test.describe("Webhook", () => {
+  let dashboard: DashboardPage, toolbar: ToolbarPage, webhook: WebhookFormPage;
   let context: any;
+
+  test.beforeAll(async () => {
+    // start a server locally for webhook tests
+    await makeServer();
+  });
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+    webhook = dashboard.webhookForm;
   });
 
-  test("CRUD", async () => {
+  test("CRUD", async ({ request }) => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: "Team & Auth" });
     await dashboard.treeView.createTable({ title: "Test" });
 
-    await toolbar.clickActions();
-    await toolbar.actions.click("Webhooks");
-
-    await dashboard.webhookForm.create({
-      title: "Test",
-      url: "https://example.com",
+    // after insert hook
+    await webhook.create({
+      title: "hook-1",
       event: "After Insert",
     });
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 0,
+      columnHeader: "Title",
+      value: "Poole",
+    });
+    await verifyHookTrigger(1, "Poole", request);
+    await dashboard.grid.editRow({ index: 0, value: "Delaware" });
+    await verifyHookTrigger(1, "Poole", request);
+    await dashboard.grid.deleteRow(0);
+    await verifyHookTrigger(1, "Poole", request);
 
-    await dashboard.webhookForm.addCondition();
+    // after update hook
+    await webhook.create({
+      title: "hook-2",
+      event: "After Update",
+    });
+
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 0,
+      columnHeader: "Title",
+      value: "Poole",
+    });
+    await verifyHookTrigger(1, "Poole", request);
+    await dashboard.grid.editRow({ index: 0, value: "Delaware" });
+    await verifyHookTrigger(2, "Delaware", request);
+    await dashboard.grid.deleteRow(0);
+    await verifyHookTrigger(2, "Delaware", request);
+
+    // after delete hook
+    await webhook.create({
+      title: "hook-3",
+      event: "After Delete",
+    });
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 0,
+      columnHeader: "Title",
+      value: "Poole",
+    });
+    await verifyHookTrigger(1, "Poole", request);
+    await dashboard.grid.editRow({ index: 0, value: "Delaware" });
+    await verifyHookTrigger(2, "Delaware", request);
+    await dashboard.grid.deleteRow(0);
+    await verifyHookTrigger(3, "Delaware", request);
+
+    // modify webhook
+    await webhook.open({ index: 0 });
+    await webhook.configureWebhook({
+      title: "hook-1-modified",
+      event: "After Delete",
+    });
+    await webhook.save();
+    await webhook.close();
+    await webhook.open({ index: 1 });
+    await webhook.configureWebhook({
+      title: "hook-2-modified",
+      event: "After Delete",
+    });
+    await webhook.save();
+    await webhook.close();
+
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 0,
+      columnHeader: "Title",
+      value: "Poole",
+    });
+    await verifyHookTrigger(0, "Poole", request);
+    await dashboard.grid.editRow({ index: 0, value: "Delaware" });
+    await verifyHookTrigger(0, "Delaware", request);
+    await dashboard.grid.deleteRow(0);
+    await verifyHookTrigger(3, "Delaware", request);
+
+    // delete webhook
+    await webhook.delete({ index: 0 });
+    await webhook.delete({ index: 0 });
+    await webhook.delete({ index: 0 });
+
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 0,
+      columnHeader: "Title",
+      value: "Poole",
+    });
+    await verifyHookTrigger(0, "", request);
+    await dashboard.grid.editRow({ index: 0, value: "Delaware" });
+    await verifyHookTrigger(0, "", request);
+    await dashboard.grid.deleteRow(0);
+    await verifyHookTrigger(0, "", request);
+  });
+
+  test("Conditional webhooks", async ({ request }) => {
+    // close 'Team & Auth' tab
+    await dashboard.closeTab({ title: "Team & Auth" });
+    await dashboard.treeView.createTable({ title: "Test" });
+
+    // after insert hook
+    await webhook.create({
+      title: "hook-1",
+      event: "After Insert",
+    });
+    // after insert hook
+    await webhook.create({
+      title: "hook-2",
+      event: "After Update",
+    });
+    // after insert hook
+    await webhook.create({
+      title: "hook-3",
+      event: "After Delete",
+    });
+
+    await webhook.open({ index: 0 });
+    await webhook.addCondition({
+      column: "Title",
+      operator: "is like",
+      value: "Poole",
+      save: true,
+    });
+
+    await webhook.open({ index: 1 });
+    await webhook.addCondition({
+      column: "Title",
+      operator: "is like",
+      value: "Poole",
+      save: true,
+    });
+
+    await webhook.open({ index: 2 });
+    await webhook.addCondition({
+      column: "Title",
+      operator: "is like",
+      value: "Poole",
+      save: true,
+    });
+
+    // verify
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 0,
+      columnHeader: "Title",
+      value: "Poole",
+    });
+    await dashboard.grid.addNewRow({
+      index: 1,
+      columnHeader: "Title",
+      value: "Delaware",
+    });
+    await verifyHookTrigger(1, "Poole", request);
+    await dashboard.grid.editRow({ index: 0, value: "Delaware" });
+    await dashboard.grid.editRow({ index: 1, value: "Poole" });
+    await verifyHookTrigger(2, "Poole", request);
+    await dashboard.grid.deleteRow(1);
+    await dashboard.grid.deleteRow(0);
+    await verifyHookTrigger(3, "Poole", request);
+
+    // Delete condition
+    await webhook.open({ index: 2 });
+    await webhook.deleteCondition({ save: true });
+    await webhook.open({ index: 1 });
+    await webhook.deleteCondition({ save: true });
+    await webhook.open({ index: 0 });
+    await webhook.deleteCondition({ save: true });
+
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 0,
+      columnHeader: "Title",
+      value: "Poole",
+    });
+    await dashboard.grid.addNewRow({
+      index: 1,
+      columnHeader: "Title",
+      value: "Delaware",
+    });
+    await verifyHookTrigger(2, "Delaware", request);
+    await dashboard.grid.editRow({ index: 0, value: "Delaware" });
+    await dashboard.grid.editRow({ index: 1, value: "Poole" });
+    await verifyHookTrigger(4, "Poole", request);
+    await dashboard.grid.deleteRow(1);
+    await dashboard.grid.deleteRow(0);
+    await verifyHookTrigger(6, "Delaware", request);
   });
 });

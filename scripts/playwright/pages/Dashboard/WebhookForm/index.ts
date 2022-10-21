@@ -2,10 +2,12 @@
 import { expect, Locator } from "@playwright/test";
 import BasePage from "../../Base";
 import { DashboardPage } from "..";
+import { ToolbarPage } from "../common/Toolbar";
 // import clipboard from "clipboardy";
 
 export class WebhookFormPage extends BasePage {
   readonly dashboard: DashboardPage;
+  readonly toolbar: ToolbarPage;
   readonly addNewButton: Locator;
   readonly saveButton: Locator;
   readonly testButton: Locator;
@@ -13,6 +15,7 @@ export class WebhookFormPage extends BasePage {
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
+    this.toolbar = dashboard.grid.toolbar;
     this.addNewButton = this.dashboard.get().locator(".nc-btn-create-webhook");
     this.saveButton = this.get().locator('button:has-text("Save")');
     this.testButton = this.get().locator('button:has-text("Test Webhook")');
@@ -25,12 +28,15 @@ export class WebhookFormPage extends BasePage {
   async create({
     title,
     event,
-    url,
+    url = "http://localhost:9090/hook",
   }: {
     title: string;
     event: string;
-    url: string;
+    url?: string;
   }) {
+    await this.toolbar.clickActions();
+    await this.toolbar.actions.click("Webhooks");
+
     await this.addNewButton.click();
     await this.get().waitFor({ state: "visible" });
 
@@ -38,8 +44,9 @@ export class WebhookFormPage extends BasePage {
       key: "Content-type",
       value: "application/json",
     });
-
     await this.configureWebhook({ title, event, url });
+    await this.save();
+    await this.close();
   }
 
   async configureWebhook({
@@ -64,14 +71,49 @@ export class WebhookFormPage extends BasePage {
     }
   }
 
-  async addCondition() {
+  async addCondition({
+    column,
+    operator,
+    value,
+    save,
+  }: {
+    column: string;
+    operator: string;
+    value: string;
+    save: boolean;
+  }) {
     await this.get().locator(`.nc-check-box-hook-condition`).click();
     const modal = await this.get().locator(`.menu-filter-dropdown`).last();
     await modal.locator(`button:has-text("Add Filter")`).click();
+
+    await modal.locator(".nc-filter-field-select").click();
+    const modalField = await this.dashboard.rootPage.locator(
+      ".nc-dropdown-toolbar-field-list:visible"
+    );
+    await modalField.locator(`.ant-select-item:has-text("${column}")`).click();
+
+    await modal.locator(".nc-filter-operation-select").click();
+    const modalOp = await this.dashboard.rootPage.locator(
+      ".nc-dropdown-filter-comp-op:visible"
+    );
+    await modalOp.locator(`.ant-select-item:has-text("${operator}")`).click();
+
+    if (operator != "is null" && operator != "is not null") {
+      await modal.locator("input.nc-filter-value-select").fill(value);
+    }
+
+    if (save) {
+      await this.save();
+      await this.close();
+    }
   }
 
-  async deleteCondition() {
+  async deleteCondition(p: { save: boolean }) {
     await this.get().locator(`.nc-filter-item-remove-btn`).click();
+    if (p.save) {
+      await this.save();
+      await this.close();
+    }
   }
 
   async save() {
@@ -84,8 +126,14 @@ export class WebhookFormPage extends BasePage {
   }
 
   async delete({ index }: { index: number }) {
+    await this.toolbar.clickActions();
+    await this.toolbar.actions.click("Webhooks");
+
     await this.get().locator(`.nc-hook-delete-icon`).nth(index).click();
     await this.toastWait({ message: "Hook deleted successfully" });
+
+    // click escape to close the drawer
+    await this.get().press("Escape");
   }
 
   async close() {
@@ -94,6 +142,8 @@ export class WebhookFormPage extends BasePage {
   }
 
   async open({ index }: { index: number }) {
+    await this.toolbar.clickActions();
+    await this.toolbar.actions.click("Webhooks");
     await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
   }
 

@@ -19,12 +19,15 @@ import {
   useMetas,
   useProvideKanbanViewStore,
   useProvideSmartsheetStore,
+  useUIPermission,
 } from '#imports'
 import type { TabItem } from '~/lib'
 
 const props = defineProps<{
   activeTab: TabItem
 }>()
+
+const { isUIAllowed } = useUIPermission()
 
 const { metas } = useMetas()
 
@@ -56,7 +59,7 @@ provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(FieldsInj, fields)
 provide(IsFormInj, isForm)
 provide(TabMetaInj, activeTab)
-provide(ReadonlyInj, false)
+provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 </script>
 
 <template>

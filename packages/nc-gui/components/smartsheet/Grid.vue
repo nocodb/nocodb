@@ -141,8 +141,6 @@ provide(PaginationDataInj, paginationData)
 
 provide(ChangePageInj, changePage)
 
-provide(ReadonlyInj, !hasEditPermission)
-
 const disableUrlOverlay = ref(false)
 provide(CellUrlDisableOverlayInj, disableUrlOverlay)
 

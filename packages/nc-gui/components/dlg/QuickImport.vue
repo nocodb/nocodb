@@ -427,13 +427,13 @@ const beforeUpload = (file: UploadFile) => {
               <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
             </a-form-item>
 
-            <a-form-item class="!my-2">
+            <a-form-item v-if="!importDataOnly" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes">
                 <span class="caption">Auto-Select Field Types</span>
               </a-checkbox>
             </a-form-item>
 
-            <a-form-item v-if="isImportTypeCsv" class="!my-2">
+            <a-form-item v-if="isImportTypeCsv && !importDataOnly" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
                 <span class="caption">Use First Row as Headers</span>
               </a-checkbox>
@@ -447,7 +447,7 @@ const beforeUpload = (file: UploadFile) => {
             </a-form-item>
 
             <!-- Import Data -->
-            <a-form-item class="!my-2">
+            <a-form-item v-if="!importDataOnly" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }}</a-checkbox>
             </a-form-item>
           </div>

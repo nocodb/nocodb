@@ -205,6 +205,7 @@ export default class CSVTemplateAdapter {
       let steppers = 0
       const tn = file.name.replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
       parse(file.originFileObj as File, {
+        worker: true,
         skipEmptyLines: 'greedy',
         step(row) {
           steppers += 1
@@ -256,6 +257,7 @@ export default class CSVTemplateAdapter {
       if (this.config.importData) {
         parse(file.originFileObj as File, {
           worker: true,
+          skipEmptyLines: 'greedy',
           step(row) {
             steppers += 1
             if (row && steppers >= +that.config.firstRowAsHeaders + 1) {

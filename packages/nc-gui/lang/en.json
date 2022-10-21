@@ -238,6 +238,7 @@
     "created": "Created",
     "sqlOutput": "SQL Output",
     "addOption": "Add option",
+    "chooseQrValueColumn": "Column to use for the QR code value",
     "aggregateFunction": "Aggregate function",
     "dbCreateIfNotExists": "Database : create if not exists",
     "clientKey": "Client Key",

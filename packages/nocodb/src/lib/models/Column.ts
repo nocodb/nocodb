@@ -18,6 +18,7 @@ import Sort from './Sort';
 import Filter from './Filter';
 import addFormulaErrorIfMissingColumn from '../meta/helpers/addFormulaErrorIfMissingColumn';
 import { NcError } from '../meta/helpers/catchError';
+import QrCodeColumn from './QrCodeColumn';
 
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;
@@ -219,6 +220,20 @@ export default class Column<T = any> implements ColumnType {
         );
         break;
       }
+      case UITypes.QrCode: {
+        // BOOKMARK
+        await QrCodeColumn.insert(
+          {
+            fk_column_id: colId,
+            // TODO: probably do here (or maybe before - in columnApis)
+            // substitutions / special handling of virtual columns 
+            // (similar to how e.g. Formular is doing it)
+            fk_qr_value_column_id: column.fk_qr_value_column_id,
+          },
+          ncMeta
+        );
+        break;
+      }
       case UITypes.Formula: {
         await FormulaColumn.insert(
           {
@@ -395,6 +410,9 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.Formula:
         res = await FormulaColumn.read(this.id, ncMeta);
         break;
+      case UITypes.QrCode:
+        res = await QrCodeColumn.read(this.id, ncMeta);
+        break;
       // default:
       //   res = await DbColumn.read(this.id);
       //   break;
@@ -508,6 +526,7 @@ export default class Column<T = any> implements ColumnType {
     return columns.map(c => new Column(c));*/
   }
 
+  // BOOKMARK
   public static async get(
     {
       base_id,
@@ -691,6 +710,10 @@ export default class Column<T = any> implements ColumnType {
         colOptionTableName = MetaTable.COL_FORMULA;
         cacheScopeName = CacheScope.COL_FORMULA;
         break;
+      case UITypes.QrCode:
+        colOptionTableName = MetaTable.COL_QRCODE;
+        cacheScopeName = CacheScope.COL_QRCODE;
+        break;
     }
 
     if (colOptionTableName && cacheScopeName) {
@@ -851,6 +874,18 @@ export default class Column<T = any> implements ColumnType {
         await NocoCache.deepDel(
           CacheScope.COL_FORMULA,
           `${CacheScope.COL_FORMULA}:${colId}`,
+          CacheDelDirection.CHILD_TO_PARENT
+        );
+        break;
+      }
+      case UITypes.QrCode: {
+        await ncMeta.metaDelete(null, null, MetaTable.COL_QRCODE, {
+          fk_column_id: colId,
+        });
+
+        await NocoCache.deepDel(
+          CacheScope.COL_QRCODE,
+          `${CacheScope.COL_QRCODE}:${colId}`,
           CacheDelDirection.CHILD_TO_PARENT
         );
         break;

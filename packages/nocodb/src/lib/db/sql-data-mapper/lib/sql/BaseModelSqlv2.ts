@@ -44,6 +44,7 @@ import { NcError } from '../../../../meta/helpers/catchError';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { sanitize, unsanitize } from './helpers/sanitize';
+import QrCodeColumn from '../../../../models/QrCodeColumn';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -1360,6 +1361,16 @@ class BaseModelSqlv2 {
         case 'LinkToAnotherRecord':
         case 'Lookup':
           break;
+        case 'QrCode': {
+          const qrCodeColumn = await column.getColOptions<QrCodeColumn>();
+          const qrValueColumn = await Column.get({
+            colId: qrCodeColumn.fk_qr_value_column_id,
+          });
+          console.log('qrCodeColumn', qrCodeColumn);
+          console.log('qrValueColumn', qrValueColumn);
+          qb.select({ [column.column_name]: qrValueColumn.column_name });
+          break;
+        }
         case 'Formula':
           {
             const formula = await column.getColOptions<FormulaColumn>();
@@ -2097,6 +2108,7 @@ class BaseModelSqlv2 {
               f.uidt !== UITypes.Rollup &&
               f.uidt !== UITypes.Lookup &&
               f.uidt !== UITypes.Formula &&
+              f.uidt !== UITypes.QrCode &&
               f.uidt !== UITypes.SpecificDBType
           )
           .sort(

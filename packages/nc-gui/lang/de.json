@@ -238,6 +238,7 @@
     "created": "Erstellt",
     "sqlOutput": "SQL-Ausgabe",
     "addOption": "Option hinzufügen",
+    "chooseQrValueColumn": "Spalte für den QR-Code-Inhalt wählen",
     "aggregateFunction": "Globale Funktion",
     "dbCreateIfNotExists": "Datenbank: Erstellen, falls nicht vorhanden",
     "clientKey": "Client-Schlüssel",

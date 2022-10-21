@@ -23,6 +23,7 @@ export function useVirtualCell(column: Ref<ColumnType | undefined>) {
   const isRollup = computed(() => column.value?.uidt === UITypes.Rollup)
   const isFormula = computed(() => column.value?.uidt === UITypes.Formula)
   const isCount = computed(() => column.value?.uidt === UITypes.Count)
+  const isQrCode = computed(() => column.value?.uidt === UITypes.QrCode)
 
   return {
     isHm,
@@ -32,5 +33,6 @@ export function useVirtualCell(column: Ref<ColumnType | undefined>) {
     isRollup,
     isFormula,
     isCount,
+    isQrCode,
   }
 }

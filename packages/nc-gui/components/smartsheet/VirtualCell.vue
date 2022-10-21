@@ -24,7 +24,7 @@ provide(CellValueInj, toRef(props, 'modelValue'))
 
 const isForm = inject(IsFormInj, ref(false))
 
-const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
+const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isQrCode, isCount } = useVirtualCell(column)
 
 function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
   emit('navigate', dir)
@@ -44,6 +44,7 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
     <LazyVirtualCellBelongsTo v-else-if="isBt" />
     <LazyVirtualCellRollup v-else-if="isRollup" />
     <LazyVirtualCellFormula v-else-if="isFormula" />
+    <LazyVirtualCellQrCode v-else-if="isQrCode" />
     <LazyVirtualCellCount v-else-if="isCount" />
     <LazyVirtualCellLookup v-else-if="isLookup" />
   </div>

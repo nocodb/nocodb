@@ -80,6 +80,7 @@ const {
   isRating,
   isCurrency,
   isAttachment,
+  isQrCode,
   isTextArea,
   isString,
   isInt,

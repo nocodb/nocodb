@@ -13,6 +13,7 @@ import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 
 // todo: Handle the error case where view doesnt belong to model
 async function dataList(req: Request, res: Response) {
+  // BOOKMARK
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   res.json(await getDataList(model, view, req));
 }
@@ -128,6 +129,7 @@ async function getDataList(model, view: View, req) {
     // e.g. search some text in a numeric field
   }
 
+  // BOOKMARK
   return new PagedResponseImpl(data, {
     ...req.query,
     count,

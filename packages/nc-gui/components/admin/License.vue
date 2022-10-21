@@ -47,7 +47,7 @@ loadTokens()
 </script>
 
 <template>
-  <div class="h-full overflow-y-scroll scrollbar-thin-dull">
+  <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-4">
     <div class="text-xl mt-4">License</div>
     <a-divider class="!my-3" />
     <a-textarea placeholder="License key" class="!mt-4 max-w-[300px]"></a-textarea>

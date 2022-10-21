@@ -6,9 +6,10 @@ const selectedTabKeys = computed(() => [$route.params.page])
 
 <template>
   <div class="container mx-auto h-full">
-    <a-layout class="mt-3 h-full overflow-y-auto flex">
+    <a-layout class=" h-full overflow-y-auto flex">
       <!-- Side tabs -->
-      <a-layout-sider>
+      <a-layout-sider >
+        <div class="pt-4 h-full bg-white">
         <a-menu :selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
           <a-menu-item
             key="users"
@@ -43,6 +44,7 @@ const selectedTabKeys = computed(() => [$route.params.page])
             </div>
           </a-menu-item>
         </a-menu>
+        </div>
       </a-layout-sider>
 
       <!-- Sub Tabs -->

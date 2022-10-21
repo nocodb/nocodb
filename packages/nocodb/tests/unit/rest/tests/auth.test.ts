@@ -4,7 +4,7 @@ import request from 'supertest';
 import init from '../../init';
 import { defaultUserArgs } from '../../factory/user';
 
-function orgTests() {
+function authTests() {
   let context;
 
   beforeEach(async function () {

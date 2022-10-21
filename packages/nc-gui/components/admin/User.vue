@@ -104,10 +104,24 @@ const copyInviteUrl = (user: User) => {
   message.success(t('msg.success.inviteURLCopied'))
   $e('c:user:copy-url')
 }
+
+const copyPasswordResetUrl = async (user: User) => {
+  try {
+    const { reset_password_url } = await api.orgUsers.generatePasswordResetToken(user.id)
+
+    copy(`${dashboardUrl}/auth/password/reset/${reset_password_url}`)
+
+    // Invite URL copied to clipboard
+    message.success(t('msg.success.inviteURLCopied'))
+    $e('c:user:copy-url')
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
-  <div class="h-full overflow-y-scroll scrollbar-thin-dull">
+  <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-4">
     <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs">
       <a-tab-pane v-for="(tab, key) of [{ label: 'Users' }, { label: 'Settings' }]" :key="key" class="select-none">
         <template #tab>
@@ -232,12 +246,12 @@ const copyInviteUrl = (user: User) => {
                           <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
                         </div>
                       </a-menu-item>
-                      <!--                    <a-menu-item>
-                      <div class="flex flex-row items-center py-3" @click="copyInviteUrl(user)">
+                                          <a-menu-item>
+                      <div class="flex flex-row items-center py-3" @click="copyPasswordResetUrl(record)">
                         <MdiContentCopy class="flex h-[1rem] text-gray-500" />
                         <div class="text-xs pl-2">{{ $t('activity.copyPasswordResetURL') }}</div>
                       </div>
-                    </a-menu-item> -->
+                    </a-menu-item>
                     </a-menu>
                   </template>
                 </a-dropdown>

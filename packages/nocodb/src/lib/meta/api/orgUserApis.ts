@@ -207,6 +207,26 @@ async function userInviteResend(req, res): Promise<any> {
   res.json({ msg: 'success' });
 }
 
+async function generateResetUrl(req, res) {
+  const user = await User.get(req.params.userId);
+
+  if (!user) {
+    NcError.badRequest(`User with id '${req.params.userId}' not found`);
+  }
+  const token = uuidv4();
+  await User.update(user.id, {
+    email: user.email,
+    reset_password_token: token,
+    reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
+    token_version: null,
+  });
+
+  res.json({
+    reset_password_token: token,
+    reset_password_url: req.ncSiteUrl + `/auth/password/reset/${token}`,
+  });
+}
+
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/users',
@@ -237,5 +257,10 @@ router.post(
   '/api/v1/users/:userId/resend-invite',
   metaApiMetrics,
   ncMetaAclMw(userInviteResend, 'userInviteResend', [OrgUserRoles.SUPER])
+);
+router.post(
+  '/api/v1/users/:userId/generate-reset-url',
+  metaApiMetrics,
+  ncMetaAclMw(generateResetUrl, 'generateResetUrl', [OrgUserRoles.SUPER])
 );
 export default router;

@@ -93,7 +93,7 @@ const copyToken = (token: string | undefined) => {
 </script>
 
 <template>
-  <div class="h-full overflow-y-scroll scrollbar-thin-dull">
+  <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-4">
     <div class="text-xl mt-4">Token Management</div>
     <a-divider class="!my-3" />
     <div class="max-w-[900px] mx-auto p-4">
@@ -119,14 +119,7 @@ const copyToken = (token: string | undefined) => {
           <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
         </template>
 
-        <!-- Description -->
-        <a-table-column key="description" :title="$t('labels.description')" data-index="description">
-          <template #default="{ text }">
-            {{ text }}
-          </template>
-        </a-table-column>
-
-        <!-- Token -->
+        <!-- Created By -->
         <a-table-column key="created_by" :title="$t('labels.createdBy')" data-index="created_by">
           <template #default="{ text }">
             <div v-if="text">
@@ -136,12 +129,20 @@ const copyToken = (token: string | undefined) => {
           </template>
         </a-table-column>
 
+        <!-- Description -->
+        <a-table-column key="description" :title="$t('labels.description')" data-index="description">
+          <template #default="{ text }">
+            {{ text }}
+          </template>
+        </a-table-column>
+
+
         <!-- Token -->
         <a-table-column key="token" :title="$t('labels.token')" data-index="token">
           <template #default="{ text, record }">
             <div class="w-[320px]">
               <span v-if="record.show">{{ text }}</span>
-              <span v-else>****************************************</span>
+              <span v-else>*******************************************</span>
             </div>
           </template>
         </a-table-column>

@@ -682,6 +682,45 @@
         ]
       }
     },
+    "/api/v1/users/{userId}/generate-reset-url": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "Organisation User Generate Password Reset Token",
+        "operationId": "org-users-generate-password-reset-token",
+        "tags": [
+          "Org users"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reset_password_token": {
+                      "type": "string"
+                    },
+                    "reset_password_url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/users": {
       "get": {
         "summary": "Project users",

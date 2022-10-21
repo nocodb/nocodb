@@ -284,7 +284,6 @@ export default class CSVTemplateAdapter {
   }
 
   getColumns() {
-    console.log(this.project.tables.map((t: Record<string, any>) => t.columns))
     return this.project.tables.map((t: Record<string, any>) => t.columns)
   }
 

@@ -12,7 +12,7 @@ test.describe("Attachment column", () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test.only("Create and verify atttachent column, verify it in shared form,", async ({page, context}) => {
+  test("Create and verify atttachent column, verify it in shared form,", async ({page, context}) => {
     await dashboard.treeView.openTable({title: "Country"});
     await dashboard.grid.column.create({
       title: "testAttach",

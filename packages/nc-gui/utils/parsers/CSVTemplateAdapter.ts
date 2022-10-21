@@ -243,7 +243,7 @@ export default class CSVTemplateAdapter {
           that.updateTemplate(tableIdx)
 
           // parse table data
-          if (that.config.importData) {
+          if (that.config.shouldImportData) {
             steppers = 0
             parse(file.originFileObj as File, {
               worker: true,

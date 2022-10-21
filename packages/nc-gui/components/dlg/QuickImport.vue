@@ -27,10 +27,10 @@ import type { importFileList, streamImportFileList } from '~/lib'
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
-  importOnly?: boolean
+  importDataOnly?: boolean
 }
 
-const { importType, importOnly = false, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -69,7 +69,7 @@ const importState = reactive({
     normalizeNested: true,
     autoSelectFieldTypes: true,
     firstRowAsHeaders: true,
-    importData: true,
+    shouldImportData: true,
   },
 })
 
@@ -199,7 +199,7 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
 
     templateGenerator.parse(() => {
       templateData.value = templateGenerator!.getTemplate()
-      if (importOnly) importColumns.value = templateGenerator!.getColumns()
+      if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
       importData.value = templateGenerator!.getData()
       templateEditorModal.value = true
       isParsingData.value = false
@@ -342,7 +342,7 @@ const beforeUpload = (file: UploadFile) => {
             :project-template="templateData"
             :import-data="importData"
             :import-columns="importColumns"
-            :import-only="importOnly"
+            :import-data-only="importDataOnly"
             :quick-import-type="importType"
             :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
             class="nc-quick-import-template-editor"
@@ -448,7 +448,7 @@ const beforeUpload = (file: UploadFile) => {
 
             <!-- Import Data -->
             <a-form-item class="!my-2">
-              <a-checkbox v-model:checked="importState.parserConfig.importData">{{ $t('labels.importData') }}</a-checkbox>
+              <a-checkbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }}</a-checkbox>
             </a-form-item>
           </div>
         </div>

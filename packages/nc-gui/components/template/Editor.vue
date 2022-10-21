@@ -28,7 +28,7 @@ import {
 } from '#imports'
 import { TabType } from '~/lib'
 
-const { quickImportType, projectTemplate, importData, importColumns, importOnly, maxRowsToParse } = defineProps<Props>()
+const { quickImportType, projectTemplate, importData, importColumns, importDataOnly, maxRowsToParse } = defineProps<Props>()
 
 const emit = defineEmits(['import'])
 
@@ -41,7 +41,7 @@ interface Props {
   projectTemplate: Record<string, any>
   importData: Record<string, any>
   importColumns: any[]
-  importOnly: boolean
+  importDataOnly: boolean
   maxRowsToParse: number
 }
 
@@ -123,7 +123,7 @@ const validators = computed(() =>
 const { validate, validateInfos } = useForm(data, validators)
 
 const isValid = computed(() => {
-  if (importOnly) {
+  if (importDataOnly) {
     for (const record of srcDestMapping.value) {
       if (!fieldsValidation(record)) {
         return false
@@ -362,7 +362,7 @@ function fieldsValidation(record: Record<string, any>) {
 }
 
 async function importTemplate() {
-  if (importOnly) {
+  if (importDataOnly) {
     // validate required columns
     if (!missingRequiredColumnsValidation()) return
 
@@ -555,7 +555,7 @@ defineExpose({
 })
 
 onMounted(() => {
-  if (importOnly) {
+  if (importDataOnly) {
     mapDefaultColumns()
   }
 })
@@ -579,7 +579,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 
 <template>
   <a-spin :spinning="isImporting" :tip="importingTip" size="large">
-    <a-card v-if="importOnly">
+    <a-card v-if="importDataOnly">
       <a-form :model="data" name="import-only">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}

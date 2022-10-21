@@ -205,7 +205,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             this.project.tables.push(table)
 
             this.data[tn] = []
-            if (this.config.importData) {
+            if (this.config.shouldImportData) {
               let rowIndex = 0
               for (const row of rows.slice(1)) {
                 const rowData: Record<string, any> = {}

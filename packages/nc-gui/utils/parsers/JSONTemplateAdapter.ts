@@ -64,7 +64,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
       table.columns.push(...columns)
     }
 
-    if (this.config.importData) {
+    if (this.config.shouldImportData) {
       this._parseTableData(table)
     }
 

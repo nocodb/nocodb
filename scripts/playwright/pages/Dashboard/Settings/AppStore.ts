@@ -17,15 +17,12 @@ export class AppStoreSettingsPage extends BasePage {
   }
 
   async install({ name }: { name: string }) {
-    let card = this.settings.get().locator(`.nc-app-store-card-${name}`);
-    // get()
-    //   .locator(`[pw-data="nc-app-store-card-${name}"]`)
-    //   .scrollIntoViewIfNeeded();
-
-    // await card.scrollIntoViewIfNeeded();
+    let card = await this.settings.get().locator(`.nc-app-store-card-${name}`);
     await card.click();
     await card.locator(".nc-app-store-card-install").click();
   }
+
+  async configureSlack() {}
 
   async configureSMTP({
     email,

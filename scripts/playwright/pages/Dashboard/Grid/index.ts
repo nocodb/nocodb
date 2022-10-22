@@ -5,6 +5,7 @@ import BasePage from "../../Base";
 import { CellPageObject } from "../common/Cell";
 import { ColumnPageObject } from "./Column";
 import { ToolbarPage } from "../common/Toolbar";
+import { ProjectMenuObject } from "../common/ProjectMenu";
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -13,6 +14,7 @@ export class GridPage extends BasePage {
   readonly column: ColumnPageObject;
   readonly cell: CellPageObject;
   readonly toolbar: ToolbarPage;
+  readonly projectMenu: ProjectMenuObject;
 
   constructor(dashboardPage: DashboardPage) {
     super(dashboardPage.rootPage);
@@ -21,6 +23,7 @@ export class GridPage extends BasePage {
     this.column = new ColumnPageObject(this);
     this.cell = new CellPageObject(this);
     this.toolbar = new ToolbarPage(this);
+    this.projectMenu = new ProjectMenuObject(this);
   }
 
   get() {

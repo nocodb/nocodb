@@ -13,10 +13,14 @@ export class ViewSidebarPage extends BasePage {
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
-    this.createGalleryButton = this.get().locator(".nc-create-gallery-view");
-    this.createGridButton = this.get().locator(".nc-create-grid-view");
-    this.createFormButton = this.get().locator(".nc-create-form-view");
-    this.createKanbanButton = this.get().locator(".nc-create-kanban-view");
+    this.createGalleryButton = this.get().locator(
+      ".nc-create-gallery-view:visible"
+    );
+    this.createGridButton = this.get().locator(".nc-create-grid-view:visible");
+    this.createFormButton = this.get().locator(".nc-create-form-view:visible");
+    this.createKanbanButton = this.get().locator(
+      ".nc-create-kanban-view:visible"
+    );
   }
 
   get() {

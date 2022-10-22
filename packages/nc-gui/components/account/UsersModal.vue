@@ -108,6 +108,9 @@ const clickInviteMore = () => {
   usersData.role = Role.OrgLevelViewer
   usersData.emails = ''
 }
+const emailInput = ref((el) => {
+  el?.focus()
+})
 </script>
 
 <template>
@@ -122,7 +125,7 @@ const clickInviteMore = () => {
   >
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title class="select-none" :level="4"> {{ $t('activity.inviteUser') }} </a-typography-title>
+        <a-typography-title class="select-none" :level="4"> {{ $t('activity.inviteUser') }}</a-typography-title>
 
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
@@ -196,7 +199,12 @@ const clickInviteMore = () => {
                   >
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
 
-                    <a-input v-model:value="usersData.emails" validate-trigger="onBlur" :placeholder="$t('labels.email')" />
+                    <a-input
+                      :ref="emailInput"
+                      v-model:value="usersData.emails"
+                      validate-trigger="onBlur"
+                      :placeholder="$t('labels.email')"
+                    />
                   </a-form-item>
                 </div>
 

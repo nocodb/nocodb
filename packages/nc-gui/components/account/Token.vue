@@ -90,6 +90,10 @@ const copyToken = (token: string | undefined) => {
 
   $e('c:api-token:copy')
 }
+
+const descriptionInput = ref((el) => {
+  el?.focus()
+})
 </script>
 
 <template>
@@ -237,7 +241,11 @@ const copyToken = (token: string | undefined) => {
           autocomplete="off"
           @finish="generateToken"
         >
-          <a-input v-model:value="selectedTokenData.description" :placeholder="$t('labels.description')" />
+          <a-input
+            :ref="descriptionInput"
+            v-model:value="selectedTokenData.description"
+            :placeholder="$t('labels.description')"
+          />
 
           <!-- Generate -->
           <div class="flex flex-row justify-center">

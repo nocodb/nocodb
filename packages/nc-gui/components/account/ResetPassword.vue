@@ -1,9 +1,7 @@
 <script lang="ts" setup>
-import { message, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useRouter } from '#imports'
+import { message, navigateTo, reactive, ref, useApi, useGlobal, useI18n } from '#imports'
 
-const router = useRouter()
-
-const { api, error, isLoading } = useApi({ useGlobalInstance: true })
+const { api, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
@@ -68,7 +66,6 @@ const resetError = () => {
 
 <template>
   <div class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white) max-w-[900px]">
-
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.changePwd') }}</h1>
     <a-form
       ref="formValidator"

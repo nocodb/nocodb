@@ -94,7 +94,7 @@ export class FormPage extends BasePage {
   }
 
   getFormFields() {
-    return this.get().locator('[data-pw="nc-form-field"]');
+    return this.get().locator('[data-pw="nc-form-fields"]');
   }
 
   getDragNDropToHide() {
@@ -119,6 +119,22 @@ export class FormPage extends BasePage {
 
   ///////////////////////////
   // Form Actions
+
+  async verifyFormFieldLabel({ index, label }: { index: number; label: string }) {
+    await expect(await this.getFormFields().nth(index).locator('[data-pw="nc-form-input-label"]')).toContainText(label);
+  }
+
+  async verifyFormFieldHelpText({ index, helpText }: { index: number; helpText: string }) {
+    await expect(await this.getFormFields().nth(index).locator('[pw-data="nc-form-input-help-text-label"]')).toContainText(helpText);
+  }
+
+  async verifyFieldsIsEditable({ index }: { index: number }) {
+    await expect(await this.getFormFields().nth(index)).toHaveClass(/nc-editable/);
+  }
+
+  async verifyAfterSubmitMsg({ msg }: { msg: string }) {
+    await expect((await this.afterSubmitMsg.inputValue()).includes(msg)).toBeTruthy()
+  }
 
   async verifyFormViewFieldsOrder({ fields }: { fields: string[] }) {
     let fieldLabels = await this.get().locator(

@@ -4,17 +4,22 @@ import BasePage from "../../../Base";
 import { AttachmentCellPageObject } from "./AttachmentCell";
 import { SelectOptionCellPageObject } from "./SelectOptionCell";
 import { SharedFormPage } from "../../../SharedForm";
+import { CheckboxCellPageObject } from "./CheckboxCell";
+import { RatingCellPageObject } from "./RatingCell";
 
 export class CellPageObject extends BasePage {
   readonly parent: GridPage | SharedFormPage;
   readonly selectOption: SelectOptionCellPageObject;
   readonly attachment: AttachmentCellPageObject;
-
+  readonly checkbox: CheckboxCellPageObject;
+  readonly rating: RatingCellPageObject;
   constructor(parent: GridPage | SharedFormPage) {
     super(parent.rootPage);
     this.parent = parent;
     this.selectOption = new SelectOptionCellPageObject(this);
     this.attachment = new AttachmentCellPageObject(this);
+    this.checkbox = new CheckboxCellPageObject(this);
+    this.rating = new RatingCellPageObject(this);
   }
 
   get({
@@ -127,6 +132,7 @@ export class CellPageObject extends BasePage {
     }
   }
 
+  // todo: Improve param names (i.e value => values)
   // verifyVirtualCell
   //  : virtual relational cell- HM, BT, MM
   //  : verify link count & cell value
@@ -139,7 +145,7 @@ export class CellPageObject extends BasePage {
   }: {
     index: number;
     columnHeader: string;
-    count: number;
+    count?: number;
     value: string[];
   }) {
     // const count = value.length;
@@ -148,7 +154,7 @@ export class CellPageObject extends BasePage {
     const chipCount = await chips.count();
 
     // verify chip count & contents
-    expect(chipCount).toEqual(count);
+    if(count) expect(chipCount).toEqual(count);
 
     // verify only the elements that are passed in
     for (let i = 0; i < value.length; ++i) {

@@ -702,7 +702,7 @@ watch(view, (nextView) => {
                     />
                   </a-form-item>
 
-                  <div class="text-gray-500 text-xs">{{ element.description }}</div>
+                  <div class="text-gray-500 text-xs" pw-data="nc-form-input-help-text-label">{{ element.description }}</div>
                 </div>
               </template>
 

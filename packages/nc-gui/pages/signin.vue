@@ -88,6 +88,7 @@ function resetError() {
             <a-input
               v-model:value="form.email"
               data-cy="nc-form-signin__email"
+              pw-data="nc-form-signin__email"
               size="large"
               :placeholder="$t('msg.info.signUp.workEmail')"
               @focus="resetError"
@@ -98,6 +99,7 @@ function resetError() {
             <a-input-password
               v-model:value="form.password"
               data-cy="nc-form-signin__password"
+              pw-data="nc-form-signin__password"
               size="large"
               class="password"
               :placeholder="$t('msg.info.signUp.enterPassword')"
@@ -112,7 +114,12 @@ function resetError() {
           </div>
 
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-            <button data-cy="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
+            <button
+              data-cy="nc-form-signin__submit"
+              pw-data="nc-form-signin__submit"
+              class="scaling-btn bg-opacity-100"
+              type="submit"
+            >
               <span class="flex items-center gap-2">
                 <MdiLogin />
                 {{ $t('general.signIn') }}

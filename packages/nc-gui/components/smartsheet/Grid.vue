@@ -561,7 +561,7 @@ watch(
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
                       </div>
                       <span class="flex-1" />
-                      <div v-if="!readOnly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
+                      <div v-if="!readOnly" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
                         <a-spin v-if="row.rowMeta.saving" class="!flex items-center" />
                         <template v-else>
                           <span

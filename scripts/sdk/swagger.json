@@ -572,6 +572,60 @@
         ]
       }
     },
+    "/api/v1/app-settings": {
+      "get": {
+        "summary": "App settings get",
+        "operationId": "org-app-settings-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enable_user_signup": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "",
+        "tags": [
+          "Org app settings"
+        ]
+      },
+      "parameters": [],
+      "post": {
+        "summary": "App app settings get",
+        "operationId": "org-app-settings-set",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enable_user_signup": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Org app settings"
+        ]
+      }
+    },
     "/api/v1/tokens/{token}": {
       "parameters": [
         {

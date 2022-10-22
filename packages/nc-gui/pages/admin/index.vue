@@ -6,7 +6,7 @@ const $route = useRoute()
 
 const selectedTabKeys = computed(() => [$route.params.page])
 
-const {isUIAllowed} = useUIPermission()
+const { isUIAllowed } = useUIPermission()
 </script>
 
 <template>
@@ -39,10 +39,10 @@ const {isUIAllowed} = useUIPermission()
               </div>
             </a-menu-item>
             <a-menu-item
+              v-if="isUIAllowed('appLicense')"
               key="license"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
               @click="navigateTo('/admin/license')"
-              v-if="isUIAllowed('appLicense')"
             >
               <div class="flex items-center space-x-2">
                 <MdiKeyChainVariant />

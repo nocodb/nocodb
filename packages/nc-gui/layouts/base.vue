@@ -107,7 +107,7 @@ hooks.hook('page:finish', () => {
                   </nuxt-link>
                 </a-menu-item>
                 <a-menu-divider class="!m-0" />
-<!--                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
+                <!--                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
                     class="nc-project-menu-item group !no-underline"
@@ -120,7 +120,7 @@ hooks.hook('page:finish', () => {
                   </nuxt-link>
                 </a-menu-item>
 
-                <a-menu-divider class="!m-0" />-->
+                <a-menu-divider class="!m-0" /> -->
 
                 <a-menu-item key="1" class="!rounded-b group">
                   <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">

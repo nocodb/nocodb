@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { OrgUserRoles } from '../../../enums/OrgUserRoles';
+import { LICENSE_KEY } from '../../constants'
 import Store from '../../models/Store';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 
-const LICENSE_KEY = 'nc-license-key';
+
 
 async function licenseGet(_req, res) {
   const license = await Store.get(LICENSE_KEY);

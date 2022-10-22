@@ -18,13 +18,11 @@ let users = $ref<UserType[]>([])
 
 let currentPage = $ref(1)
 
-
 const currentLimit = $ref(10)
 
 const showUserModal = ref(false)
 
 const searchText = ref<string>('')
-
 
 const pagination = reactive({
   total: 0,
@@ -118,85 +116,84 @@ const copyPasswordResetUrl = async (user: User) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
-
 </script>
 
 <template>
   <div>
-      <div class="text-xl ">User Management</div>
-      <a-divider class="!my-3" />
-      <div class="max-w-[900px] mx-auto p-4">
-        <div class="py-2 flex gap-4 items-center">
-          <a-input-search
-            v-model:value="searchText"
-            size="small"
-            class="max-w-[300px]"
-            placeholder="Filter by email"
-            @blur="loadUsers"
-            @keydown.enter="loadUsers"
-          >
-          </a-input-search>
-          <div class="flex-grow"></div>
-          <MdiReload class="cursor-pointer" @click="loadUsers" />
-          <a-button size="small" @click="showUserModal = true">
-            <div class="flex items-center gap-1">
-              <MdiAdd />
-              Invite new user
-            </div>
-          </a-button>
-        </div>
-        <a-table
-          :row-key="(record) => record.id"
-          :data-source="users"
-          :pagination="{ position: ['bottomCenter'] }"
-          :loading="isLoading"
+    <div class="text-xl">User Management</div>
+    <a-divider class="!my-3" />
+    <div class="max-w-[900px] mx-auto p-4">
+      <div class="py-2 flex gap-4 items-center">
+        <a-input-search
+          v-model:value="searchText"
           size="small"
-          @change="loadUsers($event.current)"
+          class="max-w-[300px]"
+          placeholder="Filter by email"
+          @blur="loadUsers"
+          @keydown.enter="loadUsers"
         >
-          <template #emptyText>
-            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+        </a-input-search>
+        <div class="flex-grow"></div>
+        <MdiReload class="cursor-pointer" @click="loadUsers" />
+        <a-button size="small" @click="showUserModal = true">
+          <div class="flex items-center gap-1">
+            <MdiAdd />
+            Invite new user
+          </div>
+        </a-button>
+      </div>
+      <a-table
+        :row-key="(record) => record.id"
+        :data-source="users"
+        :pagination="{ position: ['bottomCenter'] }"
+        :loading="isLoading"
+        size="small"
+        @change="loadUsers($event.current)"
+      >
+        <template #emptyText>
+          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
+        </template>
+
+        <!-- Email -->
+        <a-table-column key="email" :title="$t('labels.email')" data-index="email">
+          <template #default="{ text }">
+            <div>
+              {{ text }}
+            </div>
           </template>
+        </a-table-column>
 
-          <!-- Email -->
-          <a-table-column key="email" :title="$t('labels.email')" data-index="email">
-            <template #default="{ text }">
-              <div>
-                {{ text }}
-              </div>
-            </template>
-          </a-table-column>
-
-          <!-- Role -->
-          <a-table-column key="roles" :title="$t('objects.role')" data-index="roles">
-            <template #default="{ record }">
-              <div>
-                <div v-if="record.roles.includes('super')" class="font-weight-bold">Super Admin</div>
-                <a-select
-                  v-else
-                  v-model:value="record.roles"
-                  class="w-[220px]"
-                  :dropdown-match-select-width="false"
-                  @change="updateRole(record.id, record.roles)"
-                >
-                  <a-select-option :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
-                    <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
-                    <span class="text-gray-500 text-xs whitespace-normal"
+        <!-- Role -->
+        <a-table-column key="roles" :title="$t('objects.role')" data-index="roles">
+          <template #default="{ record }">
+            <div>
+              <div v-if="record.roles.includes('super')" class="font-weight-bold">Super Admin</div>
+              <a-select
+                v-else
+                v-model:value="record.roles"
+                class="w-[220px]"
+                :dropdown-match-select-width="false"
+                @change="updateRole(record.id, record.roles)"
+              >
+                <a-select-option :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
+                  <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                  <span class="text-gray-500 text-xs whitespace-normal"
                     >Creator can create new projects and access any invited project.</span
-                    >
-                  </a-select-option>
+                  >
+                </a-select-option>
 
-                  <a-select-option :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
-                    <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
-                    <span class="text-gray-500 text-xs whitespace-normal"
+                <a-select-option :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
+                  <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
+                  <span class="text-gray-500 text-xs whitespace-normal"
                     >Viewer is not allowed to create new projects but they can access any invited project.</span
-                    >
-                  </a-select-option>
-                </a-select>
-              </div>
-            </template>
-          </a-table-column>
+                  >
+                </a-select-option>
+              </a-select>
+            </div>
+          </template>
+        </a-table-column>
 
-          <!--        &lt;!&ndash; Projects &ndash;&gt;
+        <!--        &lt;!&ndash; Projects &ndash;&gt;
         <a-table-column key="projectsCount" :title="$t('objects.projects')" data-index="projectsCount">
           <template #default="{ text }">
             <div>
@@ -205,58 +202,56 @@ const copyPasswordResetUrl = async (user: User) => {
           </template>
         </a-table-column> -->
 
-          <!-- Actions -->
+        <!-- Actions -->
 
-          <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
-            <template #default="{ text, record }">
-              <div v-if="!record.roles.includes('super')" class="flex items-center gap-2">
-                <MdiDeleteOutline class="nc-action-btn cursor-pointer" @click="deleteUser(text)" />
+        <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
+          <template #default="{ text, record }">
+            <div v-if="!record.roles.includes('super')" class="flex items-center gap-2">
+              <MdiDeleteOutline class="nc-action-btn cursor-pointer" @click="deleteUser(text)" />
 
-                <a-dropdown :trigger="['click']" class="flex" placement="bottomRight"
-                            overlay-class-name="nc-dropdown-user-mgmt">
-                  <div class="flex flex-row items-center">
-                    <a-button type="text" class="!px-0">
-                      <div class="flex flex-row items-center h-[1.2rem]">
-                        <IcBaselineMoreVert />
-                      </div>
-                    </a-button>
-                  </div>
+              <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
+                <div class="flex flex-row items-center">
+                  <a-button type="text" class="!px-0">
+                    <div class="flex flex-row items-center h-[1.2rem]">
+                      <IcBaselineMoreVert />
+                    </div>
+                  </a-button>
+                </div>
 
-                  <template #overlay>
-                    <a-menu>
-                      <template v-if="record.invite_token">
-                        <a-menu-item>
-                          <!-- Resend invite Email -->
-                          <div class="flex flex-row items-center py-3" @click="resendInvite(record)">
-                            <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
-                            <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
-                          </div>
-                        </a-menu-item>
-                        <a-menu-item>
-                          <div class="flex flex-row items-center py-3" @click="copyInviteUrl(record)">
-                            <MdiContentCopy class="flex h-[1rem] text-gray-500" />
-                            <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
-                          </div>
-                        </a-menu-item>
-                      </template>
-                      <a-menu-item v-else>
-                        <div class="flex flex-row items-center py-3" @click="copyPasswordResetUrl(record)">
-                          <MdiContentCopy class="flex h-[1rem] text-gray-500" />
-                          <div class="text-xs pl-2">{{ $t('activity.copyPasswordResetURL') }}</div>
+                <template #overlay>
+                  <a-menu>
+                    <template v-if="record.invite_token">
+                      <a-menu-item>
+                        <!-- Resend invite Email -->
+                        <div class="flex flex-row items-center py-3" @click="resendInvite(record)">
+                          <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
+                          <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
                         </div>
                       </a-menu-item>
-                    </a-menu>
-                  </template>
-                </a-dropdown>
-              </div>
-              <span v-else></span>
-            </template>
-          </a-table-column>
-        </a-table>
+                      <a-menu-item>
+                        <div class="flex flex-row items-center py-3" @click="copyInviteUrl(record)">
+                          <MdiContentCopy class="flex h-[1rem] text-gray-500" />
+                          <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
+                        </div>
+                      </a-menu-item>
+                    </template>
+                    <a-menu-item v-else>
+                      <div class="flex flex-row items-center py-3" @click="copyPasswordResetUrl(record)">
+                        <MdiContentCopy class="flex h-[1rem] text-gray-500" />
+                        <div class="text-xs pl-2">{{ $t('activity.copyPasswordResetURL') }}</div>
+                      </div>
+                    </a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+            </div>
+            <span v-else></span>
+          </template>
+        </a-table-column>
+      </a-table>
 
-        <LazyAdminUsersModal :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
-      </div>
-
+      <LazyAdminUsersModal :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
+    </div>
   </div>
 </template>
 

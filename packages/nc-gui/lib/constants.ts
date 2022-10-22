@@ -31,14 +31,14 @@ export const rolePermissions = {
     exclude: {
       appStore: true,
       superAdminUserManagement: true,
-      appLicense:true
+      appLicense: true,
     },
   },
   [ProjectRole.Owner]: {
     exclude: {
       appStore: true,
       superAdminUserManagement: true,
-      appLicense:true
+      appLicense: true,
     },
   },
   [ProjectRole.Editor]: {

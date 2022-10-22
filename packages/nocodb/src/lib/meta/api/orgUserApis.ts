@@ -3,8 +3,10 @@ import { PluginCategory } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import { OrgUserRoles } from '../../../enums/OrgUserRoles';
+import { NC_APP_SETTINGS } from '../../constants';
 import Audit from '../../models/Audit';
 import ProjectUser from '../../models/ProjectUser';
+import Store from '../../models/Store';
 import SyncSource from '../../models/SyncSource';
 import User from '../../models/User';
 import Noco from '../../Noco';
@@ -227,6 +229,23 @@ async function generateResetUrl(req, res) {
   });
 }
 
+async function appSettingsGet(_req, res) {
+  let settings = {};
+  try {
+    settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+  } catch {}
+  res.json(settings);
+}
+
+async function appSettingsSet(req, res) {
+  await Store.saveOrUpdate({
+    value: JSON.stringify(req.body),
+    key: NC_APP_SETTINGS,
+  });
+
+  res.json({ msg: 'License key saved' });
+}
+
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/users',
@@ -283,23 +302,25 @@ router.post(
   ncMetaAclMw(generateResetUrl, 'generateResetUrl', {
     allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,
-  }));
+  })
+);
 
 router.get(
-  '/api/v1/users/settings',
+  '/api/v1/app-settings',
   metaApiMetrics,
-  ncMetaAclMw(generateResetUrl, 'generateResetUrl', {
+  ncMetaAclMw(appSettingsGet, 'appSettingsGet', {
     allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,
   })
 );
 
 router.post(
-  '/api/v1/users/settings',
+  '/api/v1/app-settings',
   metaApiMetrics,
-  ncMetaAclMw(generateResetUrl, 'generateResetUrl', {
+  ncMetaAclMw(appSettingsSet, 'appSettingsSet', {
     allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,
   })
 );
+
 export default router;

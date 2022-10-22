@@ -275,6 +275,9 @@ export default {
   },
   [OrgUserRoles.VIEWER]: {
     include: {
+      apiTokenList: true,
+      apiTokenCreate: true,
+      apiTokenDelete: true,
       passwordChange: true,
       projectList: true,
     },
@@ -282,6 +285,9 @@ export default {
   [OrgUserRoles.SUPER]: '*',
   [OrgUserRoles.CREATOR]: {
     include: {
+      apiTokenList: true,
+      apiTokenCreate: true,
+      apiTokenDelete: true,
       upload: true,
       uploadViaURL: true,
       passwordChange: true,

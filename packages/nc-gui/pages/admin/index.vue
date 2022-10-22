@@ -1,7 +1,12 @@
 <script lang="ts" setup>
 import { navigateTo } from '#imports'
+import { useUIPermission } from '~/composables/useUIPermission'
+
 const $route = useRoute()
+
 const selectedTabKeys = computed(() => [$route.params.page])
+
+const {isUIAllowed} = useUIPermission()
 </script>
 
 <template>
@@ -37,6 +42,7 @@ const selectedTabKeys = computed(() => [$route.params.page])
               key="license"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
               @click="navigateTo('/admin/license')"
+              v-if="isUIAllowed('appLicense')"
             >
               <div class="flex items-center space-x-2">
                 <MdiKeyChainVariant />

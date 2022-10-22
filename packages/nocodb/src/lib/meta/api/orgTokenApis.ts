@@ -9,9 +9,12 @@ import { PagedResponseImpl } from '../helpers/PagedResponse';
 
 async function apiTokenList(req, res) {
   let fk_user_id = req.user.id;
+
+  // if super admin get all tokens
   if (req.user.roles.includes(OrgUserRoles.SUPER)) {
     fk_user_id = undefined;
   }
+
   res.json(
     new PagedResponseImpl(await ApiToken.listWithCreatedBy(req.query), {
       ...req.query,

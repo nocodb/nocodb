@@ -18,13 +18,13 @@ let users = $ref<UserType[]>([])
 
 let currentPage = $ref(1)
 
-const selectedTabKey = ref(0)
 
 const currentLimit = $ref(10)
 
 const showUserModal = ref(false)
 
 const searchText = ref<string>('')
+
 
 const pagination = reactive({
   total: 0,
@@ -118,20 +118,11 @@ const copyPasswordResetUrl = async (user: User) => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
 </script>
 
 <template>
-  <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-4">
-    <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs">
-      <a-tab-pane v-for="(tab, key) of [{ label: 'Users' }, { label: 'Settings' }, { label: 'Reset Password' }]" :key="key" class="select-none">
-        <template #tab>
-          <span>
-            {{ tab.label }}
-          </span>
-        </template>
-      </a-tab-pane>
-    </a-tabs>
-    <template v-if="selectedTabKey === 0">
+  <div>
       <div class="text-xl mt-4">User Management</div>
       <a-divider class="!my-3" />
       <div class="max-w-[900px] mx-auto p-4">
@@ -190,14 +181,14 @@ const copyPasswordResetUrl = async (user: User) => {
                   <a-select-option :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
                     <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
                     <span class="text-gray-500 text-xs whitespace-normal"
-                      >Creator can create new projects and access any invited project.</span
+                    >Creator can create new projects and access any invited project.</span
                     >
                   </a-select-option>
 
                   <a-select-option :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
                     <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
                     <span class="text-gray-500 text-xs whitespace-normal"
-                      >Viewer is not allowed to create new projects but they can access any invited project.</span
+                    >Viewer is not allowed to create new projects but they can access any invited project.</span
                     >
                   </a-select-option>
                 </a-select>
@@ -221,7 +212,8 @@ const copyPasswordResetUrl = async (user: User) => {
               <div v-if="!record.roles.includes('super')" class="flex items-center gap-2">
                 <MdiDeleteOutline class="nc-action-btn cursor-pointer" @click="deleteUser(text)" />
 
-                <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
+                <a-dropdown :trigger="['click']" class="flex" placement="bottomRight"
+                            overlay-class-name="nc-dropdown-user-mgmt">
                   <div class="flex flex-row items-center">
                     <a-button type="text" class="!px-0">
                       <div class="flex flex-row items-center h-[1.2rem]">
@@ -264,17 +256,7 @@ const copyPasswordResetUrl = async (user: User) => {
 
         <LazyAdminUsersModal :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
       </div>
-    </template>
-    <template v-else-if="selectedTabKey === 1">
-      <div class="text-xl mt-4">Settings</div>
-      <a-divider class="!my-3" />
-      <a-form-item>
-        <a-checkbox name="virtual">Enable user signup</a-checkbox>
-      </a-form-item>
-    </template>
-    <template v-else-if="selectedTabKey === 2">
-      <LazyAdminResetPassword class="mt-10"/>
-    </template>
+
   </div>
 </template>
 

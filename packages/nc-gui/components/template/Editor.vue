@@ -93,7 +93,7 @@ const uiTypeOptions = ref<Option[]>(
     })),
 )
 
-const srcDestMapping = ref<Record<string, any>[]>([])
+const srcDestMapping = ref<Record<string, Record<string, any>[]>>({})
 
 const data = reactive<{
   title: string | null
@@ -124,11 +124,17 @@ const validators = computed(() =>
 
 const { validate, validateInfos } = useForm(data, validators)
 
+// TODO(import): show error message once
 const isValid = computed(() => {
   if (importDataOnly) {
-    for (const record of srcDestMapping.value) {
-      if (!fieldsValidation(record)) {
+    for (const tn of Object.keys(srcDestMapping.value)) {
+      if (!atLeastOneEnabledValidation(tn)) {
         return false
+      }
+      for (const record of srcDestMapping.value[tn]) {
+        if (!fieldsValidation(record, tn)) {
+          return false
+        }
       }
     }
   } else {
@@ -258,10 +264,11 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
   )
 }
 
-function missingRequiredColumnsValidation() {
+function missingRequiredColumnsValidation(tn: string) {
   const missingRequiredColumns = columns.value.filter(
     (c: Record<string, any>) =>
-      (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) && !srcDestMapping.value.some((r) => r.destCn === c.title),
+      (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) &&
+      !srcDestMapping.value[tn].some((r: Record<string, any>) => r.destCn === c.title),
   )
 
   if (missingRequiredColumns.length) {
@@ -272,16 +279,15 @@ function missingRequiredColumnsValidation() {
   return true
 }
 
-function atLeastOneEnabledValidation() {
-  if (srcDestMapping.value.filter((v) => v.enabled === true).length === 0) {
+function atLeastOneEnabledValidation(tn: string) {
+  if (srcDestMapping.value[tn].filter((v: Record<string, any>) => v.enabled === true).length === 0) {
     message.error(t('msg.error.selectAtleastOneColumn'))
     return false
   }
-
   return true
 }
 
-function fieldsValidation(record: Record<string, any>) {
+function fieldsValidation(record: Record<string, any>, tn: string) {
   // if it is not selected, then pass validation
   if (!record.enabled) {
     return true
@@ -292,7 +298,7 @@ function fieldsValidation(record: Record<string, any>) {
     return false
   }
 
-  if (srcDestMapping.value.filter((v) => v.destCn === record.destCn).length > 1) {
+  if (srcDestMapping.value[tn].filter((v: Record<string, any>) => v.destCn === record.destCn).length > 1) {
     message.error(t('msg.error.duplicateMappingFound'))
     return false
   }
@@ -366,11 +372,13 @@ function updateImportTips(projectName: string, tableName: string, progress: numb
 
 async function importTemplate() {
   if (importDataOnly) {
-    // validate required columns
-    if (!missingRequiredColumnsValidation()) return
+    for (const table of data.tables) {
+      // validate required columns
+      if (!missingRequiredColumnsValidation(table.table_name)) return
 
-    // validate at least one column needs to be selected
-    if (!atLeastOneEnabledValidation()) return
+      // validate at least one column needs to be selected
+      if (!atLeastOneEnabledValidation(table.table_name)) return
+    }
 
     try {
       isImporting.value = true
@@ -386,7 +394,7 @@ async function importTemplate() {
 
             for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
               const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
-                srcDestMapping.value.reduce((res: Record<string, any>, col: Record<string, any>) => {
+                srcDestMapping.value[k].reduce((res: Record<string, any>, col: Record<string, any>) => {
                   if (col.enabled && col.destCn) {
                     const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
                     let input = row[col.srcCn]
@@ -537,18 +545,23 @@ async function importTemplate() {
 }
 
 function mapDefaultColumns() {
-  srcDestMapping.value = []
-  for (const col of importColumns[0]) {
-    const o = { srcCn: col.column_name, destCn: '', enabled: true }
-    if (columns.value) {
-      const tableColumn = columns.value.find((c) => c.column_name === col.column_name)
-      if (tableColumn) {
-        o.destCn = tableColumn.title as string
-      } else {
-        o.enabled = false
+  srcDestMapping.value = {}
+  for (let i = 0; i < data.tables.length; i++) {
+    for (const col of importColumns[i]) {
+      const o = { srcCn: col.column_name, destCn: '', enabled: true }
+      if (columns.value) {
+        const tableColumn = columns.value.find((c) => c.column_name === col.column_name)
+        if (tableColumn) {
+          o.destCn = tableColumn.title as string
+        } else {
+          o.enabled = false
+        }
       }
+      if (!(data.tables[i].table_name in srcDestMapping.value)) {
+        srcDestMapping.value[data.tables[i].table_name] = []
+      }
+      srcDestMapping.value[data.tables[i].table_name].push(o)
     }
-    srcDestMapping.value.push(o)
   }
 }
 
@@ -608,7 +621,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
             v-if="srcDestMapping"
             class="template-form"
             row-class-name="template-form-row"
-            :data-source="srcDestMapping"
+            :data-source="srcDestMapping[table.table_name]"
             :columns="srcDestMappingColumns"
             :pagination="false"
           >

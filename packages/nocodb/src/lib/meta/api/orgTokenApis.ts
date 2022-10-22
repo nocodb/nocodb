@@ -16,11 +16,13 @@ async function apiTokenList(req, res) {
   }
 
   res.json(
-    new PagedResponseImpl(await ApiToken.listWithCreatedBy(req.query), {
-      ...req.query,
-      count: await ApiToken.count(),
-      fk_user_id,
-    })
+    new PagedResponseImpl(
+      await ApiToken.listWithCreatedBy({ ...req.query, fk_user_id }),
+      {
+        ...req.query,
+        count: await ApiToken.count(),
+      }
+    )
   );
 }
 

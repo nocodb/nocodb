@@ -87,7 +87,7 @@ hooks.hook('page:finish', () => {
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded">
                 <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
-                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
+                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/admin/users">
                     <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
 
                     <span class="prose group-hover:text-primary"> {{ email }}</span>
@@ -107,7 +107,7 @@ hooks.hook('page:finish', () => {
                   </nuxt-link>
                 </a-menu-item>
                 <a-menu-divider class="!m-0" />
-                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
+<!--                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
                   <nuxt-link
                     v-e="['c:settings:appstore', { page: true }]"
                     class="nc-project-menu-item group !no-underline"
@@ -115,12 +115,12 @@ hooks.hook('page:finish', () => {
                   >
                     <MdiShieldAccountOutline class="mt-1 group-hover:text-accent" />&nbsp;
 
-                    <!-- todo: i18n -->
+                    &lt;!&ndash; todo: i18n &ndash;&gt;
                     <span class="prose group-hover:text-primary">Account management</span>
                   </nuxt-link>
                 </a-menu-item>
 
-                <a-menu-divider class="!m-0" />
+                <a-menu-divider class="!m-0" />-->
 
                 <a-menu-item key="1" class="!rounded-b group">
                   <div v-e="['a:navbar:user:sign-out']" class="nc-project-menu-item group" @click="logout">

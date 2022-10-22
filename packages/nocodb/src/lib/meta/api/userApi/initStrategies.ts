@@ -119,9 +119,15 @@ export function initStrategies(router): void {
       },
       async (req, jwtPayload, done) => {
         // todo: improve this
-        if (jwtPayload.roles?.split(',').includes(OrgUserRoles.SUPER)) {
+        if (
+          req.ncProjectId &&
+          jwtPayload.roles?.split(',').includes(OrgUserRoles.SUPER)
+        ) {
           return User.getByEmail(jwtPayload?.email).then(async (user) => {
-            return done(null, { ...user, roles: 'owner,creator' });
+            return done(null, {
+              ...user,
+              roles: `owner,creator,${OrgUserRoles.SUPER}`,
+            });
           });
         }
 

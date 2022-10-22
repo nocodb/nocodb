@@ -106,6 +106,8 @@ export default class User implements UserType {
         await NocoCache.set(key, o);
       }
     }
+
+    await NocoCache.del(`${CacheScope.USER}:${user.email}`);
     // as <projectId> is unknown, delete user:<email>___<projectId> in cache
     await NocoCache.delAll(CacheScope.USER, `${user.email}___*`);
 

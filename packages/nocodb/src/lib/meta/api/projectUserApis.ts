@@ -64,11 +64,6 @@ async function userInvite(req, res, next): Promise<any> {
         );
       }
 
-      // todo : provide a different role
-      await User.update(user.id, {
-        roles: OrgUserRoles.VIEWER,
-      });
-
       await ProjectUser.insert({
         project_id: req.params.projectId,
         fk_user_id: user.id,

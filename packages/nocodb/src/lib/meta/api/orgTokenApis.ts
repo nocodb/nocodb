@@ -10,7 +10,7 @@ import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { apiTokenListEE } from './ee/orgTokenApis';
 
 async function apiTokenList(req, res) {
-  let fk_user_id = req.user.id;
+  const fk_user_id = req.user.id;
 
   res.json(
     new PagedResponseImpl(

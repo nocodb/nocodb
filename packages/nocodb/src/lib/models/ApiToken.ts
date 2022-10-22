@@ -40,12 +40,14 @@ export default class ApiToken {
     return this.getByToken(token);
   }
 
-  static async list(ncMeta = Noco.ncMeta) {
-    let tokens = await NocoCache.getList(CacheScope.API_TOKEN, []);
-    if (!tokens.length) {
-      tokens = await ncMeta.metaList(null, null, MetaTable.API_TOKENS);
-      await NocoCache.setList(CacheScope.API_TOKEN, [], tokens);
-    }
+  static async list(userId: string, ncMeta = Noco.ncMeta) {
+    // let tokens = await NocoCache.getList(CacheScope.API_TOKEN, []);
+    // if (!tokens.length) {
+    const tokens = await ncMeta.metaList(null, null, MetaTable.API_TOKENS, {
+      condition: { fk_user_id: userId },
+    });
+    // await NocoCache.setList(CacheScope.API_TOKEN, [], tokens);
+    // }
     return tokens?.map((t) => new ApiToken(t));
   }
 

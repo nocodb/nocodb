@@ -58,7 +58,7 @@ export const useRoles = createSharedComposable(() => {
   }
 
   function hasRole(role: Role | ProjectRole | string, includePreviewRoles = false) {
-    if (includePreviewRoles) {
+    if (previewAs.value && includePreviewRoles) {
       return previewAs.value === role
     }
 

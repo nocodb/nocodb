@@ -104,6 +104,16 @@ test.describe("User roles", () => {
     await dashboard.expandedForm.validateRoleAccess({
       role: roleDb[roleIdx].role,
     });
+
+    // Access control validation
+    await dashboard.treeView.verifyTable({
+      title: "Language",
+      exists: roleDb[roleIdx].role === "creator" ? true : false,
+    });
+    await dashboard.treeView.verifyTable({
+      title: "CustomerList",
+      exists: roleDb[roleIdx].role === "creator" ? true : false,
+    });
   }
 
   test("Role Test", async () => {

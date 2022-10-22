@@ -73,22 +73,30 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.waitForTabRender({ title });
   }
 
-  async verifyTable({ title, index }: { title: string; index?: number }) {
-    await expect(
-      this.get().locator(`.nc-project-tree-tbl-${title}`)
-    ).toBeVisible();
+  async verifyTable({
+    title,
+    index,
+    exists = true,
+  }: {
+    title: string;
+    index?: number;
+    exists?: boolean;
+  }) {
+    if (exists) {
+      await expect(
+        this.get().locator(`.nc-project-tree-tbl-${title}`)
+      ).toBeVisible();
 
-    if (index) {
-      expect(await this.get().locator(".nc-tbl-title").nth(index)).toHaveText(
-        title
-      );
+      if (index) {
+        expect(await this.get().locator(".nc-tbl-title").nth(index)).toHaveText(
+          title
+        );
+      }
+    } else {
+      await expect(
+        await this.get().locator(`.nc-project-tree-tbl-${title}`).count()
+      ).toBe(0);
     }
-  }
-
-  async verifyTableDoesNotExist({ title }: { title: string }) {
-    await expect(
-      await this.get().locator(`.nc-project-tree-tbl-${title}`).count()
-    ).toBe(0);
   }
 
   async deleteTable({ title }: { title: string }) {

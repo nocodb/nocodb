@@ -235,7 +235,9 @@ export default class CSVTemplateAdapter {
             console.log(`getData(): steppers: ${steppers}`)
             resolve(true)
           },
-          // TODO(import): add error
+          error(error: Error) {
+            message.error(error.message)
+          },
         })
       }
     })
@@ -288,6 +290,9 @@ export default class CSVTemplateAdapter {
           that.project.tables.push(that.tables[tableIdx])
           await that._parseTableData(tableIdx, source, tn)
           resolve(true)
+        },
+        error(error: Error) {
+          message.error(error.message)
         },
       })
     })

@@ -24,7 +24,14 @@ const setup = async ({page}: {page: Page}): Promise<NcContext> => {
 
   await page.addInitScript(async ({token}) => {
     try {
+      let initialLocalStorage = {};
+      try {
+        initialLocalStorage = JSON.parse(localStorage.getItem('nocodb-gui-v2') || '{}');
+      } catch(e) {
+        console.error('Failed to parse local storage', e);
+      }
       window.localStorage.setItem('nocodb-gui-v2', JSON.stringify({
+        ...initialLocalStorage,
         token: token,
       }));
     } catch (e) {

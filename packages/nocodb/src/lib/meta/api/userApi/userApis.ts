@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 import { TableType, validatePassword } from 'nocodb-sdk';
 import { OrgUserRoles } from '../../../../enums/OrgUserRoles';
+import { NC_APP_SETTINGS } from '../../../constants';
+import Store from '../../../models/Store';
 import { Tele } from '../../../utils/Tele';
 import catchError, { NcError } from '../../helpers/catchError';
+
 const { isEmail } = require('validator');
 import * as ejs from 'ejs';
 
@@ -96,7 +99,12 @@ export async function signup(req: Request, res: Response<TableType>) {
         count: 1,
       });
     } else {
-      if (process.env.NC_INVITE_ONLY_SIGNUP) {
+      let settings: { disable_user_signup?: boolean } = {};
+      try {
+        settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+      } catch {}
+
+      if (process.env.NC_INVITE_ONLY_SIGNUP || settings?.disable_user_signup) {
         NcError.badRequest('Not allowed to signup, contact super admin.');
       } else {
         roles = OrgUserRoles.VIEWER;

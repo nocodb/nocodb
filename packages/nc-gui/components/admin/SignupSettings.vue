@@ -4,7 +4,7 @@ import { extractSdkResponseErrorMsg, useApi } from '#imports'
 
 const { api } = useApi()
 
-let settings = $ref({ enable_user_signup: false })
+let settings = $ref({ disable_user_signup: false })
 
 const loadSettings = async () => {
   try {
@@ -33,8 +33,8 @@ loadSettings()
     <div class="text-xl">Settings</div>
     <a-divider class="!my-3" />
     <a-form-item>
-      <a-checkbox v-model:checked="settings.enable_user_signup" name="virtual" @change="saveSettings"
-        >Enable user signup</a-checkbox
+      <a-checkbox v-model:checked="settings.disable_user_signup" name="virtual" @change="saveSettings"
+        >Disable user signup</a-checkbox
       >
     </a-form-item>
   </div>

@@ -243,7 +243,7 @@ async function appSettingsSet(req, res) {
     key: NC_APP_SETTINGS,
   });
 
-  res.json({ msg: 'License key saved' });
+  res.json({ msg: 'Settings saved' });
 }
 
 const router = Router({ mergeParams: true });

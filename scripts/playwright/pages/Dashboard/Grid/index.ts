@@ -72,33 +72,34 @@ export class GridPage extends BasePage {
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
-    const clickOnColumnHeaderToSave = this
-    .get()
-    .locator(`[data-title="${columnHeader}"]`)
-    .locator(`span[title="${columnHeader}"]`)
-    .click();
+    const clickOnColumnHeaderToSave = this.get()
+      .locator(`[data-title="${columnHeader}"]`)
+      .locator(`span[title="${columnHeader}"]`)
+      .click();
 
     await this.waitForResponse({
       uiAction: clickOnColumnHeaderToSave,
       requestUrlPathToMatch: "api/v1/db/data/noco",
-      httpMethodsToMatch:[ "POST"],
+      httpMethodsToMatch: ["POST"],
       responseJsonMatcher: (resJson) => resJson?.[columnHeader] === value,
     });
-
   }
 
   async editRow({
     index = 0,
     columnHeader = "Title",
     value,
-  }: { index?: number; columnHeader?: string; value: string }) {
+  }: {
+    index?: number;
+    columnHeader?: string;
+    value: string;
+  }) {
     await this._fillRow({ index, columnHeader, value });
 
-    const clickOnColumnHeaderToSave = this
-    .get()
-    .locator(`[data-title="${columnHeader}"]`)
-    .locator(`span[title="${columnHeader}"]`)
-    .click();
+    const clickOnColumnHeaderToSave = this.get()
+      .locator(`[data-title="${columnHeader}"]`)
+      .locator(`span[title="${columnHeader}"]`)
+      .click();
 
     await this.waitForResponse({
       uiAction: clickOnColumnHeaderToSave,
@@ -211,7 +212,7 @@ export class GridPage extends BasePage {
       httpMethodsToMatch: ["GET"],
       requestUrlPathToMatch: "/views/",
       responseJsonMatcher: (resJson) => resJson?.pageInfo,
-    })
+    });
 
     await this.waitLoading();
   }
@@ -297,5 +298,13 @@ export class GridPage extends BasePage {
         .get({ index: 0, columnHeader: "City List" })
         .locator(".nc-action-icon.nc-arrow-expand")
     ).toBeVisible();
+  }
+
+  async validateRoleAccess(param: { role: string }) {
+    await this.column.verifyRoleAccess(param);
+    await this.cell.verifyRoleAccess(param);
+    expect(await this.get().locator(".nc-grid-add-new-cell").count()).toBe(
+      param.role === "creator" || param.role === "editor" ? 1 : 0
+    );
   }
 }

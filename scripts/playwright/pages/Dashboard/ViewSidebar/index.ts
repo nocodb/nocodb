@@ -162,4 +162,12 @@ export class ViewSidebarPage extends BasePage {
       .click();
     await this.toastWait({ message: "View created successfully" });
   }
+
+  async validateRoleAccess(param: { role: string }) {
+    let count = param.role === "creator" ? 1 : 0;
+    expect(await this.createGridButton.count()).toBe(count);
+    expect(await this.createGalleryButton.count()).toBe(count);
+    expect(await this.createFormButton.count()).toBe(count);
+    expect(await this.createKanbanButton.count()).toBe(count);
+  }
 }

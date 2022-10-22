@@ -8,12 +8,18 @@ export class ExpandedFormPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly addNewTableButton: Locator;
   readonly copyUrlButton: Locator;
+  readonly toggleCommentsButton: Locator;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.addNewTableButton = this.dashboard.get().locator(".nc-add-new-table");
-    this.copyUrlButton = this.dashboard.get().locator(".nc-copy-row-url");
+    this.copyUrlButton = this.dashboard
+      .get()
+      .locator(".nc-copy-row-url:visible");
+    this.toggleCommentsButton = this.dashboard
+      .get()
+      .locator(".nc-toggle-comments:visible");
   }
 
   get() {
@@ -92,5 +98,25 @@ export class ExpandedFormPage extends BasePage {
     return await this.rootPage
       .locator(`.nc-drawer-expanded-form .ant-drawer-content`)
       .count();
+  }
+
+  async validateRoleAccess(param: { role: string }) {
+    console.log(param.role);
+    if (param.role === "commenter" || param.role === "viewer") {
+      expect(
+        await this.get().locator('button:has-text("Save Row")')
+      ).toBeDisabled();
+    } else {
+      expect(
+        await this.get().locator('button:has-text("Save Row")')
+      ).toBeEnabled();
+    }
+    if (param.role === "viewer") {
+      expect(await this.toggleCommentsButton.count()).toBe(0);
+    } else {
+      expect(await this.toggleCommentsButton.count()).toBe(1);
+    }
+    // press escape to close the expanded form
+    await this.rootPage.keyboard.press("Escape");
   }
 }

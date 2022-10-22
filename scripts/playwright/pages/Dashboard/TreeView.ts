@@ -161,4 +161,28 @@ export class TreeViewPage extends BasePage {
       .locator(`.ant-dropdown-menu-title-content:has-text("${title}")`)
       .click();
   }
+
+  async validateRoleAccess(param: { role: string }) {
+    // Add new table button
+    expect(await this.get().locator(`.nc-add-new-table`).count()).toBe(
+      param.role === "creator" ? 1 : 0
+    );
+    // Import menu
+    expect(await this.get().locator(`.nc-import-menu`).count()).toBe(
+      param.role === "creator" ? 1 : 0
+    );
+    // Invite Team button
+    expect(await this.get().locator(`.nc-share-base`).count()).toBe(
+      param.role === "creator" ? 1 : 0
+    );
+    // Right click context menu
+    await this.get().locator(`.nc-project-tree-tbl-Country`).click({
+      button: "right",
+    });
+    expect(
+      await this.rootPage
+        .locator(`.nc-dropdown-tree-view-context-menu:visible`)
+        .count()
+    ).toBe(param.role === "creator" ? 1 : 0);
+  }
 }

@@ -168,4 +168,72 @@ export class DashboardPage extends BasePage {
     await this.rootPage.locator(`input.nc-metadb-project-name`).fill(name);
     await this.rootPage.locator(`input.nc-metadb-project-name`).press("Enter");
   }
+
+  async signOut() {
+    await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
+    let projMenu = await this.rootPage.locator(".nc-dropdown-project-menu");
+    await projMenu.locator('[data-menu-id="account"]:visible').click();
+    await this.rootPage
+      .locator('div.nc-project-menu-item:has-text("Sign Out"):visible')
+      .click();
+    await this.rootPage.locator('[data-cy="nc-form-signin"]').waitFor();
+  }
+
+  async signUp({ email, password }: { email: string; password: string }) {
+    const signUp = this.rootPage;
+    await signUp.locator('button:has-text("SIGN UP")').waitFor();
+
+    await signUp
+      .locator(`input[placeholder="Enter your work email"]`)
+      .fill(email);
+    await signUp
+      .locator(`input[placeholder="Enter your password"]`)
+      .fill(password);
+    await signUp.locator(`button:has-text("SIGN UP")`).click();
+  }
+
+  async openProject({ title }: { title?: string }) {
+    const project = this.rootPage;
+    await project.locator(`td.ant-table-cell:has-text("${title}")`).click();
+  }
+
+  async validateProjectMenu(param: { role: string }) {
+    await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
+    let pMenu = this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
+
+    // menu items
+    let menuItems = {
+      creator: [
+        "Copy Project Info",
+        "Swagger: REST APIs",
+        "Copy Auth Token",
+        "Team & Settings",
+        "Themes",
+        "Preview as",
+        "Language",
+        "Account",
+      ],
+      editor: [
+        "Copy Project Info",
+        "Swagger: REST APIs",
+        "Copy Auth Token",
+        "Language",
+        "Account",
+      ],
+      commenter: [
+        "Copy Project Info",
+        "Copy Auth Token",
+        "Language",
+        "Account",
+      ],
+      viewer: ["Copy Project Info", "Copy Auth Token", "Language", "Account"],
+    };
+
+    // common items
+
+    for (let item of menuItems[param.role]) {
+      await expect(pMenu).toContainText(item);
+    }
+    await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
+  }
 }

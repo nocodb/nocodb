@@ -24,14 +24,14 @@ export class CellPageObject extends BasePage {
     index?: number;
     columnHeader: string;
   }): Locator {
-    if(this.parent instanceof SharedFormPage) {
+    if (this.parent instanceof SharedFormPage) {
       return this.parent
-      .get()
-      .locator(`[pw-data="nc-form-input-cell-${columnHeader}"]`);
+        .get()
+        .locator(`[pw-data="nc-form-input-cell-${columnHeader}"]`);
     } else {
       return this.parent
-      .get()
-      .locator(`td[data-pw="cell-${columnHeader}-${index}"]`);
+        .get()
+        .locator(`td[data-pw="cell-${columnHeader}-${index}"]`);
     }
   }
 
@@ -166,5 +166,41 @@ export class CellPageObject extends BasePage {
     const cell = this.get({ index, columnHeader });
     await cell.click();
     await cell.locator(".nc-icon.unlink-icon").click();
+  }
+
+  async verifyRoleAccess(param: { role: string }) {
+    console.log("verifyRoleAccess", param);
+
+    // normal text cell
+    const cell = await this.get({ index: 0, columnHeader: "Country" });
+    // editable cell
+    await cell.dblclick();
+    expect(await cell.locator(`input`).count()).toBe(
+      param.role === "creator" || param.role === "editor" ? 1 : 0
+    );
+    // right click context menu
+    await cell.click({ button: "right" });
+    expect(
+      await this.rootPage
+        .locator(`.nc-dropdown-grid-context-menu:visible`)
+        .count()
+    ).toBe(param.role === "creator" || param.role === "editor" ? 1 : 0);
+
+    // virtual cell
+    const vCell = await this.get({ index: 0, columnHeader: "City List" });
+    await vCell.hover();
+    // in-cell add
+    expect(await vCell.locator(".nc-action-icon.nc-plus:visible").count()).toBe(
+      param.role === "creator" || param.role === "editor" ? 1 : 0
+    );
+    // in-cell expand (all have access)
+    expect(
+      await vCell.locator(".nc-action-icon.nc-arrow-expand:visible").count()
+    ).toBe(1);
+    await vCell.click();
+    // unlink
+    expect(await vCell.locator(".nc-icon.unlink-icon:visible").count()).toBe(
+      param.role === "creator" || param.role === "editor" ? 1 : 0
+    );
   }
 }

@@ -138,4 +138,51 @@ export class ToolbarPage extends BasePage {
   async clickAddEditStack() {
     await this.get().locator(`.nc-kanban-add-edit-stack-menu-btn`).click();
   }
+
+  async validateViewsMenu(param: { role: string }) {
+    let menuItems = {
+      creator: [
+        "Download",
+        "Upload",
+        "Shared View List",
+        "Webhooks",
+        "Get API Snippet",
+        "ERD View",
+      ],
+      editor: ["Download", "Upload", "Get API Snippet", "ERD View"],
+      commenter: ["Download as CSV", "Download as XLSX"],
+      viewer: ["Download as CSV", "Download as XLSX"],
+    };
+
+    let vMenu = await this.rootPage.locator(
+      ".nc-dropdown-actions-menu:visible"
+    );
+
+    for (let item of menuItems[param.role]) {
+      await expect(vMenu).toContainText(item);
+    }
+  }
+
+  async validateRoleAccess(param: { role: string }) {
+    await this.clickActions();
+    await this.validateViewsMenu({
+      role: param.role,
+    });
+
+    let menuItems = {
+      creator: ["Fields", "Filter", "Sort", "Share View"],
+      editor: ["Fields", "Filter", "Sort"],
+      commenter: ["Fields", "Filter", "Sort", "Download"],
+      viewer: ["Fields", "Filter", "Sort", "Download"],
+    };
+
+    let text = await this.get().innerText();
+    for (let item of menuItems[param.role]) {
+      expect(text).toContain(item);
+    }
+
+    expect(await this.get().locator(".nc-add-new-row-btn").count()).toBe(
+      param.role === "creator" || param.role === "editor" ? 1 : 0
+    );
+  }
 }

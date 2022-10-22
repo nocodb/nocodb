@@ -1,4 +1,5 @@
 import { Tele } from '../../utils/Tele';
+import orgLicenseApis from './orgLicenseApis'
 import orgTokenApis from './orgTokenApis';
 import orgUserApis from './orgUserApis';
 import projectApis from './projectApis';
@@ -91,6 +92,7 @@ export default function (router: Router, server) {
   router.use(projectUserApis);
   router.use(orgUserApis);
   router.use(orgTokenApis);
+  router.use(orgLicenseApis);
   router.use(sharedBaseApis);
   router.use(modelVisibilityApis);
   router.use(metaDiffApis);

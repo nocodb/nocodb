@@ -464,8 +464,11 @@
                                 "$ref": "#/components/schemas/ApiToken"
                               },
                               {
-                                created_by: {
-                                  type: "string"
+                                "type": "object",
+                                "properties": {
+                                  "created_by": {
+                                    "type": "string"
+                                  }
                                 }
                               }
                             ],
@@ -512,6 +515,60 @@
         },
         "tags": [
           "Org tokens"
+        ]
+      }
+    },
+    "/api/v1/license": {
+      "get": {
+        "summary": "App license get",
+        "operationId": "org-license-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "",
+        "tags": [
+          "Org license"
+        ]
+      },
+      "parameters": [],
+      "post": {
+        "summary": "App license get",
+        "operationId": "org-license-set",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Org license"
         ]
       }
     },

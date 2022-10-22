@@ -276,8 +276,26 @@ router.post(
     blockApiTokenAccess: true,
   })
 );
+
 router.post(
   '/api/v1/users/:userId/generate-reset-url',
+  metaApiMetrics,
+  ncMetaAclMw(generateResetUrl, 'generateResetUrl', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  }));
+
+router.get(
+  '/api/v1/users/settings',
+  metaApiMetrics,
+  ncMetaAclMw(generateResetUrl, 'generateResetUrl', {
+    allowedRoles: [OrgUserRoles.SUPER],
+    blockApiTokenAccess: true,
+  })
+);
+
+router.post(
+  '/api/v1/users/settings',
   metaApiMetrics,
   ncMetaAclMw(generateResetUrl, 'generateResetUrl', {
     allowedRoles: [OrgUserRoles.SUPER],

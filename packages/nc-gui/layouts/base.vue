@@ -39,7 +39,7 @@ hooks.hook('page:finish', () => {
     <a-layout class="!flex-col">
       <a-layout-header
         v-if="!route.meta.public && signedIn && !route.meta.hideHeader"
-        class="flex !bg-primary items-center text-white pl-4 pr-5 shadow-lg"
+        class="flex !bg-primary items-center text-white pl-4 pr-5"
       >
         <div
           v-if="!route.params.projectType"

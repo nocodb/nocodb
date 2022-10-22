@@ -123,7 +123,7 @@ const copyPasswordResetUrl = async (user: User) => {
 
 <template>
   <div>
-      <div class="text-xl mt-4">User Management</div>
+      <div class="text-xl ">User Management</div>
       <a-divider class="!my-3" />
       <div class="max-w-[900px] mx-auto p-4">
         <div class="py-2 flex gap-4 items-center">

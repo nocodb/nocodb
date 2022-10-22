@@ -37,6 +37,7 @@ export enum MetaTable {
   API_TOKENS = 'nc_api_tokens',
   SYNC_SOURCE = 'nc_sync_source_v2',
   SYNC_LOGS = 'nc_sync_logs_v2',
+  STORE = 'nc_store',
 }
 
 export const orderedMetaTables = [

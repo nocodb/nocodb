@@ -117,6 +117,45 @@ export class DashboardPage extends BasePage {
     await this.rootPage.locator(".nc-menu-translate").click();
   }
 
+  async openPasswordChangeModal() {
+    // open change password portal
+    await this.rootPage.locator(".nc-menu-accounts").click();
+    await this.rootPage
+      .locator(
+        `.nc-dropdown-user-accounts-menu >> [data-cy="nc-menu-accounts__user-settings"]`
+      )
+      .click();
+  }
+
+  async changePassword({
+    oldPass,
+    newPass,
+    repeatPass,
+  }: {
+    oldPass: string;
+    newPass: string;
+    repeatPass: string;
+  }) {
+    // change password
+    const currentPassword = await this.rootPage.locator(
+      'input[data-cy="nc-user-settings-form__current-password"]'
+    );
+    const newPassword = await this.rootPage.locator(
+      'input[data-cy="nc-user-settings-form__new-password"]'
+    );
+    const confirmPassword = await this.rootPage.locator(
+      'input[data-cy="nc-user-settings-form__new-password-repeat"]'
+    );
+
+    await currentPassword.fill(oldPass);
+    await newPassword.fill(newPass);
+    await confirmPassword.fill(repeatPass);
+
+    await this.rootPage
+      .locator('button[data-cy="nc-user-settings-form__submit"]')
+      .click();
+  }
+
   async selectLanguage({ index }: { index: number }) {
     let modal = await this.rootPage.locator(".nc-dropdown-menu-translate");
     await modal.locator(`.ant-dropdown-menu-item`).nth(index).click();

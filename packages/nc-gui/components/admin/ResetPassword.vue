@@ -67,18 +67,9 @@ const resetError = () => {
 </script>
 
 <template>
-  <div class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)">
-    <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent)" :animate="isLoading" />
-
-    <div
-      class="color-transition transform group absolute top-5 left-5 text-4xl rounded-full cursor-pointer"
-      @click="() => router.back()"
-    >
-      <MdiChevronLeft class="text-black group-hover:(text-accent scale-110)" />
-    </div>
+  <div class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white) max-w-[900px]">
 
     <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.changePwd') }}</h1>
-
     <a-form
       ref="formValidator"
       data-cy="nc-user-settings-form"

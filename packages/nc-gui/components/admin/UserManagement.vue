@@ -28,13 +28,13 @@ const selectedTabKey = ref(tabs[0].key)
       </a-tab-pane>
     </a-tabs>
     <template v-if="selectedTabKey === 'users'">
-      <LazyAdminUserList class="mt-10" />
+      <LazyAdminUserList />
     </template>
     <template v-else-if="selectedTabKey === 'settings'">
-      <LazyAdminSignupSettings class="mt-10" />
+      <LazyAdminSignupSettings />
     </template>
     <template v-else-if="selectedTabKey === 'password-reset'">
-      <LazyAdminResetPassword class="mt-10" />
+      <LazyAdminResetPassword />
     </template>
   </div>
 </template>

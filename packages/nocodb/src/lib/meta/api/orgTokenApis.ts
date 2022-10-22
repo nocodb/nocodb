@@ -4,16 +4,13 @@ import ApiToken from '../../models/ApiToken';
 import { Tele } from '../../utils/Tele';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { NcError } from '../helpers/catchError';
+import getHandler from '../helpers/getHandler';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
+import { apiTokenListEE } from './ee/orgTokenApis';
 
 async function apiTokenList(req, res) {
   let fk_user_id = req.user.id;
-
-  // if super admin get all tokens
-  if (req.user.roles.includes(OrgUserRoles.SUPER)) {
-    fk_user_id = undefined;
-  }
 
   res.json(
     new PagedResponseImpl(
@@ -49,7 +46,7 @@ const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/tokens',
   metaApiMetrics,
-  ncMetaAclMw(apiTokenList, 'apiTokenList', {
+  ncMetaAclMw(getHandler(apiTokenList, apiTokenListEE), 'apiTokenList', {
     // allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,
   })

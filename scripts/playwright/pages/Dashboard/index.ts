@@ -197,6 +197,39 @@ export class DashboardPage extends BasePage {
     await project.locator(`td.ant-table-cell:has-text("${title}")`).click();
   }
 
+  async renameProject({
+    title,
+    newTitle,
+  }: {
+    title?: string;
+    newTitle?: string;
+  }) {
+    const project = this.rootPage;
+    const projRow = await project.locator(`tr`, {
+      has: project.locator(`td.ant-table-cell:has-text("${title}")`),
+    });
+    await projRow.locator(".nc-action-btn").nth(0).click();
+    await project.locator("input.nc-metadb-project-name").fill(newTitle);
+    // press enter to save
+    await project.locator("input.nc-metadb-project-name").press("Enter");
+  }
+
+  async deleteProject({ title }: { title?: string }) {
+    const project = this.rootPage;
+    const projRow = await project.locator(`tr`, {
+      has: project.locator(`td.ant-table-cell:has-text("${title}")`),
+    });
+    await projRow.locator(".nc-action-btn").nth(1).click();
+    const deleteModal = await project.locator(".nc-modal-project-delete");
+    await deleteModal.locator('button:has-text("Yes")').click();
+
+    await this.rootPage.waitForTimeout(1000);
+
+    expect(
+      await project.locator(`td.ant-table-cell:has-text("${title}")`).count()
+    ).toBe(0);
+  }
+
   async validateProjectMenu(param: { role: string }) {
     await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
     let pMenu = this.rootPage.locator(`.nc-dropdown-project-menu:visible`);

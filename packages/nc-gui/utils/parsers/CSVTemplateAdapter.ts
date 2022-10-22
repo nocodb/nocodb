@@ -19,6 +19,7 @@ export default class CSVTemplateAdapter {
   detectedColumnTypes: Record<number, Record<string, number>>
   distinctValues: Record<number, Set<string>>
   headers: Record<number, string[]>
+  tables: Record<number, any>
   project: {
     tables: Record<string, any>[]
   }
@@ -36,6 +37,7 @@ export default class CSVTemplateAdapter {
     this.distinctValues = {}
     this.headers = {}
     this.columnValues = {}
+    this.tables = {}
   }
 
   async init() {}
@@ -44,13 +46,14 @@ export default class CSVTemplateAdapter {
     const columnNameRowExist = +columnNames.every((v: any) => v === null || typeof v === 'string')
     const columnNamePrefixRef: Record<string, any> = { id: 0 }
 
-    this.project.tables.push({
+    const tableObj: Record<string, any> = {
       table_name: tn,
       ref_table_name: tn,
       columns: [],
-    })
+    }
 
     this.headers[tableIdx] = []
+    this.tables[tableIdx] = []
 
     for (const [columnIdx, columnName] of columnNames.entries()) {
       let cn: string = ((columnNameRowExist && columnName.toString().trim()) || `field_${columnIdx + 1}`)
@@ -64,8 +67,7 @@ export default class CSVTemplateAdapter {
       this.detectedColumnTypes[columnIdx] = {}
       this.distinctValues[columnIdx] = new Set<string>()
       this.columnValues[columnIdx] = []
-
-      this.project.tables[tableIdx].columns.push({
+      tableObj.columns.push({
         column_name: cn,
         ref_column_name: cn,
         meta: {},
@@ -74,6 +76,7 @@ export default class CSVTemplateAdapter {
       })
 
       this.headers[tableIdx].push(cn)
+      this.tables[tableIdx] = tableObj
     }
   }
 
@@ -175,26 +178,23 @@ export default class CSVTemplateAdapter {
               return isDate
             })
           ) {
-            this.project.tables[tableIdx].columns[columnIdx].uidt = UITypes.Date
+            this.tables[tableIdx].columns[columnIdx].uidt = UITypes.Date
             // take the date format with the max occurrence
-            this.project.tables[tableIdx].columns[columnIdx].meta.date_format =
+            this.tables[tableIdx].columns[columnIdx].meta.date_format =
               Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
           } else {
             // Datetime
-            this.project.tables[tableIdx].columns[columnIdx].uidt = uidt
+            this.tables[tableIdx].columns[columnIdx].uidt = uidt
           }
         } else if (uidt === UITypes.SingleSelect || uidt === UITypes.MultiSelect) {
           // assume it is a SingleLineText first
-          this.project.tables[tableIdx].columns[columnIdx].uidt = UITypes.SingleLineText
+          this.tables[tableIdx].columns[columnIdx].uidt = UITypes.SingleLineText
           // override with UITypes.SingleSelect or UITypes.MultiSelect if applicable
-          Object.assign(
-            this.project.tables[tableIdx].columns[columnIdx],
-            extractMultiOrSingleSelectProps(this.columnValues[columnIdx]),
-          )
+          Object.assign(this.tables[tableIdx].columns[columnIdx], extractMultiOrSingleSelectProps(this.columnValues[columnIdx]))
         }
         delete this.columnValues[columnIdx]
       } else {
-        this.project.tables[tableIdx].columns[columnIdx].uidt = uidt
+        this.tables[tableIdx].columns[columnIdx].uidt = uidt
       }
     }
   }
@@ -215,7 +215,7 @@ export default class CSVTemplateAdapter {
             if (row && steppers >= +that.config.firstRowAsHeaders + 1) {
               const rowData: Record<string, any> = {}
               for (let columnIdx = 0; columnIdx < that.headers[tableIdx].length; columnIdx++) {
-                const column = that.project.tables[tableIdx].columns[columnIdx]
+                const column = that.tables[tableIdx].columns[columnIdx]
                 const data = (row.data as [])[columnIdx] === '' ? null : (row.data as [])[columnIdx]
                 if (column.uidt === UITypes.Checkbox) {
                   rowData[column.column_name] = getCheckboxValue(data)
@@ -285,6 +285,7 @@ export default class CSVTemplateAdapter {
           console.log('complete')
           console.log(`steppers: ${steppers}`)
           that.updateTemplate(tableIdx)
+          that.project.tables.push(that.tables[tableIdx])
           await that._parseTableData(tableIdx, source, tn)
           resolve(true)
         },

@@ -200,6 +200,10 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
     await templateGenerator.parse()
 
     templateData.value = templateGenerator!.getTemplate()
+    templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
+      ...table,
+      table_name: populateUniqueTableName(table.table_name),
+    }))
     if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
     importData.value = templateGenerator!.getData()
     templateEditorModal.value = true
@@ -259,14 +263,19 @@ function formatJson() {
   jsonEditorRef.value?.format()
 }
 
-function populateUniqueTableName() {
+function populateUniqueTableName(tn: string) {
   let c = 1
-
-  while (tables.value.some((t: TableType) => t.title === `Sheet${c}`)) {
-    c++
+  while (
+    tables.value.some((t: TableType) => {
+      const s = t.table_name.split('___')
+      let target = t.table_name
+      if (s.length > 1) target = s[1]
+      return target === `${tn}`
+    })
+  ) {
+    tn = `${tn}_${c++}`
   }
-
-  return `Sheet${c}`
+  return tn
 }
 
 function getAdapter(val: any) {

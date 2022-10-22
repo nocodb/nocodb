@@ -250,7 +250,7 @@ const copyPasswordResetUrl = async (user: User) => {
         </a-table-column>
       </a-table>
 
-      <LazyAdminUsersModal :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
+      <LazyAccountUsersModal :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
     </div>
   </div>
 </template>

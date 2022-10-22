@@ -19,7 +19,7 @@ const { isUIAllowed } = useUIPermission()
             <a-menu-item
               key="users"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
-              @click="navigateTo('/admin/users')"
+              @click="navigateTo('/account/users')"
             >
               <div class="flex items-center space-x-2">
                 <MdiAccountSupervisorOutline />
@@ -30,7 +30,7 @@ const { isUIAllowed } = useUIPermission()
             <a-menu-item
               key="tokens"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
-              @click="navigateTo('/admin/tokens')"
+              @click="navigateTo('/account/tokens')"
             >
               <div class="flex items-center space-x-2">
                 <MdiShieldKeyOutline />
@@ -42,7 +42,7 @@ const { isUIAllowed } = useUIPermission()
               v-if="isUIAllowed('appLicense')"
               key="license"
               class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
-              @click="navigateTo('/admin/license')"
+              @click="navigateTo('/account/license')"
             >
               <div class="flex items-center space-x-2">
                 <MdiKeyChainVariant />

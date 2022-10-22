@@ -370,7 +370,7 @@ const beforeUpload = (file: UploadFile) => {
                   name="file"
                   class="nc-input-import !scrollbar-thin-dull"
                   :accept="importMeta.acceptTypes"
-                  :max-count="1"
+                  :max-count="5"
                   list-type="picture"
                   :custom-request="customReqCbk"
                   :before-upload="beforeUpload"
@@ -379,7 +379,7 @@ const beforeUpload = (file: UploadFile) => {
                 >
                   <MdiFilePlusOutline size="large" />
 
-                  <!--                Click or drag file to this area to upload -->
+                  <!-- Click or drag file to this area to upload -->
                   <p class="ant-upload-text">{{ $t('msg.info.import.clickOrDrag') }}</p>
 
                   <p class="ant-upload-hint">

@@ -55,4 +55,4 @@ Wait for your edits to be merged before proceeding.
 Hurray! <b>You've made a significant contribution! :partying_face:🎉<b>
 
   
-  <Small> [Thank You](https://github.com/Aniketmishra0) </small>
+  <Small> Thank You </small>

@@ -266,7 +266,7 @@ export default class CSVTemplateAdapter {
                 that.initTemplate(
                   tableIdx,
                   tn,
-                  [...Array((row.data as []).length)].map((_, i) => `column${i + 1}`),
+                  [...Array((row.data as []).length)].map((_, i) => `field_${i + 1}`),
                 )
                 if (that.config.autoSelectFieldTypes) {
                   // row.data is data

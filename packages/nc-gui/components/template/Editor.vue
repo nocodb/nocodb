@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UploadFile } from 'ant-design-vue'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   Empty,
@@ -75,7 +76,7 @@ const inputRefs = ref<HTMLInputElement[]>([])
 
 const isImporting = ref(false)
 
-const importingTip = ref('Importing')
+const importingTips = ref<Record<string, string>>({})
 
 const uiTypeOptions = ref<Option[]>(
   (Object.keys(UITypes) as (keyof typeof UITypes)[])
@@ -357,6 +358,12 @@ function fieldsValidation(record: Record<string, any>) {
   return true
 }
 
+function updateImportTips(projectName: string, tableName: string, progress: number, total: number) {
+  importingTips.value[
+    `${projectName}-${tableName}`
+  ] = `Importing data to ${projectName} - ${tableName}: ${progress}/${total} records`
+}
+
 async function importTemplate() {
   if (importDataOnly) {
     // validate required columns
@@ -369,54 +376,51 @@ async function importTemplate() {
       isImporting.value = true
 
       const tableName = meta.value?.title
-
-      // only one file is allowed currently
-      const data = importData[Object.keys(importData)[0]]
-
       const projectName = project.value.title!
 
-      const total = data.length
+      await Promise.all(
+        Object.keys(importData).map((key: string) =>
+          (async (k) => {
+            const data = importData[k]
+            const total = data.length
 
-      for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
-        const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
-          srcDestMapping.value.reduce((res: Record<string, any>, col: Record<string, any>) => {
-            if (col.enabled && col.destCn) {
-              const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
-
-              let input = row[col.srcCn]
-
-              // parse potential boolean values
-              if (v.uidt === UITypes.Checkbox) {
-                input = input.replace(/["']/g, '').toLowerCase().trim()
-
-                if (input === 'false' || input === 'no' || input === 'n') {
-                  input = '0'
-                } else if (input === 'true' || input === 'yes' || input === 'y') {
-                  input = '1'
-                }
-              } else if (v.uidt === UITypes.Number) {
-                if (input === '') {
-                  input = null
-                }
-              } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
-                if (input === '') {
-                  input = null
-                }
-              } else if (v.uidt === UITypes.Date) {
-                input = parseStringDate(input, v.meta.date_format)
-              }
-              res[col.destCn] = input
+            for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
+              const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
+                srcDestMapping.value.reduce((res: Record<string, any>, col: Record<string, any>) => {
+                  if (col.enabled && col.destCn) {
+                    const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
+                    let input = row[col.srcCn]
+                    // parse potential boolean values
+                    if (v.uidt === UITypes.Checkbox) {
+                      input = input.replace(/["']/g, '').toLowerCase().trim()
+                      if (input === 'false' || input === 'no' || input === 'n') {
+                        input = '0'
+                      } else if (input === 'true' || input === 'yes' || input === 'y') {
+                        input = '1'
+                      }
+                    } else if (v.uidt === UITypes.Number) {
+                      if (input === '') {
+                        input = null
+                      }
+                    } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
+                      if (input === '') {
+                        input = null
+                      }
+                    } else if (v.uidt === UITypes.Date) {
+                      input = parseStringDate(input, v.meta.date_format)
+                    }
+                    res[col.destCn] = input
+                  }
+                  return res
+                }, {}),
+              )
+              await $api.dbTableRow.bulkCreate('noco', projectName, tableName!, batchData)
+              updateImportTips(projectName, tableName!, progress, total)
+              progress += batchData.length
             }
-            return res
-          }, {}),
-        )
-
-        await $api.dbTableRow.bulkCreate('noco', projectName, tableName!, batchData)
-
-        importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
-
-        progress += batchData.length
-      }
+          })(key),
+        ),
+      )
 
       // reload table
       reloadHook.trigger()
@@ -493,24 +497,25 @@ async function importTemplate() {
       }
       // bulk insert data
       if (importData) {
-        let total = 0
-        let progress = 0
         const offset = maxRowsToParse
         const projectName = project.value.title as string
         await Promise.all(
           data.tables.map((table: Record<string, any>) =>
             (async (tableMeta) => {
+              let progress = 0
+              let total = 0
               // use ref_table_name here instead of table_name
               // since importData[talbeMeta.table_name] would be empty after renaming
               const data = importData[tableMeta.ref_table_name]
               if (data) {
                 total += data.length
                 for (let i = 0; i < data.length; i += offset) {
-                  importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
+                  updateImportTips(projectName, tableMeta.title, progress, total)
                   const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
                   await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.title, batchData)
                   progress += batchData.length
                 }
+                updateImportTips(projectName, tableMeta.title, total, total)
               }
             })(table),
           ),
@@ -576,7 +581,12 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 </script>
 
 <template>
-  <a-spin :spinning="isImporting" :tip="importingTip" size="large">
+  <a-spin :spinning="isImporting" size="large">
+    <template #tip>
+      <p v-for="importingTip of importingTips" class="mt-[10px]">
+        {{ importingTip }}
+      </p>
+    </template>
     <a-card v-if="importDataOnly">
       <a-form :model="data" name="import-only">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
@@ -590,7 +600,6 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
           <template #header>
             <span class="font-weight-bold text-lg flex items-center gap-2">
               <mdi-table class="text-primary" />
-
               {{ table.table_name }}
             </span>
           </template>

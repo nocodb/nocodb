@@ -76,7 +76,8 @@ export const genTest = (apiType, dbType) => {
         mainPage.getCell("Country", 1).dblclick();
         mainPage.getCell("Country", 1).find("input").should(`${vString}exist`);
 
-        cy.get(".nc-row-expand").should(`${vString}exist`);
+        // the expand button should be always enabled
+        cy.get(".nc-row-expand").should("exist");
 
         // check if add/ expand options available for 'has many' column type
         // GUI-v2: TBD

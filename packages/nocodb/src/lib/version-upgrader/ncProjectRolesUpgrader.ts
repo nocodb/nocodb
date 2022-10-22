@@ -19,8 +19,12 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         return r;
       })
       .join(',');
-    await ncMeta.metaUpdate(null, null, MetaTable.USERS, user, {
-      roles: user.roles,
-    });
+    await ncMeta.metaUpdate(
+      null,
+      null,
+      MetaTable.USERS,
+      { roles: user.roles },
+      user.id
+    );
   }
 }

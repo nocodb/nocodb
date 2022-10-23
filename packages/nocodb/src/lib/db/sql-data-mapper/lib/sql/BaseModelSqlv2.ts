@@ -1368,7 +1368,57 @@ class BaseModelSqlv2 {
           });
           console.log('qrCodeColumn', qrCodeColumn);
           console.log('qrValueColumn', qrValueColumn);
-          qb.select({ [column.column_name]: qrValueColumn.column_name });
+          // qb.select({ [column.column_name]: qrValueColumn.column_name });
+
+          switch (qrValueColumn.uidt) {
+            case UITypes.Formula:
+              {
+                const formula =
+                  await qrValueColumn.getColOptions<FormulaColumn>();
+                if (formula.error) continue;
+                const selectQb = await formulaQueryBuilderv2(
+                  formula.formula,
+                  null,
+                  this.dbDriver,
+                  this.model
+                  // this.aliasToColumn
+                );
+                // todo:  verify syntax of as ? / ??
+                // qb.select(
+                //   this.dbDriver.raw(`?? as ??`, [
+                //     selectQb.builder,
+                //     sanitize(column.title),
+                //   ])
+                // );
+                // qb.select({
+                //   [column.column_name]: this.dbDriver.raw(`?? as ??`, [
+                //     selectQb.builder,
+                //     sanitize(column.title),
+                //   ]),
+                // });
+
+                qb.select({
+                  [column.column_name]: selectQb.builder,
+                });
+
+                // const formulOption = await col.getColOptions<FormulaColumn>();
+                // const { builder } = await formulaQueryBuilderv2(
+                //   formulOption.formula,
+                //   alias,
+                //   knex,
+                //   model,
+                //   { ...aliasToColumn, [col.id]: null }
+                // );
+                // builder.sql = '(' + builder.sql + ')';
+                // aliasToColumn[col.id] = builder;
+              }
+              break;
+            default: {
+              qb.select({ [column.column_name]: qrValueColumn.column_name });
+              break;
+            }
+          }
+
           break;
         }
         case 'Formula':
@@ -1410,6 +1460,7 @@ class BaseModelSqlv2 {
           break;
       }
     }
+    console.debug('qb.toQuery(): ', qb.toQuery());
     qb.select(res);
   }
 

@@ -3,7 +3,7 @@ import { Tele } from '../../utils/Tele';
 
 const countMap = {};
 
-const metrics = async (req: Request, c = 50) => {
+const metrics = async (req: Request, c = 150) => {
   if (!req?.route?.path) return;
   const event = `a:api:${req.route.path}:${req.method}`;
   countMap[event] = (countMap[event] || 0) + 1;

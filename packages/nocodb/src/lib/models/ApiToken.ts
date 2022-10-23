@@ -74,8 +74,23 @@ export default class ApiToken {
     return data && new ApiToken(data);
   }
 
-  public static async count(ncMeta = Noco.ncMeta): Promise<number> {
+  public static async count(
+    {
+      fk_user_id,
+      includeUnmappedToken = false,
+    }: { fk_user_id?: string; includeUnmappedToken?: boolean } = {},
+    ncMeta = Noco.ncMeta
+  ): Promise<number> {
     const qb = ncMeta.knex(MetaTable.API_TOKENS);
+
+    if (fk_user_id) {
+      qb.where(`${MetaTable.API_TOKENS}.fk_user_id`, fk_user_id);
+    }
+
+    if (includeUnmappedToken) {
+      qb.orWhereNull(`${MetaTable.API_TOKENS}.fk_user_id`);
+    }
+
     return (await qb.count('id', { as: 'count' }).first())?.count ?? 0;
   }
 
@@ -84,7 +99,13 @@ export default class ApiToken {
       limit = 10,
       offset = 0,
       fk_user_id,
-    }: { limit: number; offset: number; fk_user_id?: string },
+      includeUnmappedToken = false,
+    }: {
+      limit: number;
+      offset: number;
+      fk_user_id?: string;
+      includeUnmappedToken: boolean;
+    },
     ncMeta = Noco.ncMeta
   ) {
     const queryBuilder = ncMeta
@@ -111,7 +132,11 @@ export default class ApiToken {
       );
 
     if (fk_user_id) {
-      queryBuilder.where('fk_user_id', fk_user_id);
+      queryBuilder.where(`${MetaTable.API_TOKENS}.fk_user_id`, fk_user_id);
+    }
+
+    if (includeUnmappedToken) {
+      queryBuilder.orWhereNull(`${MetaTable.API_TOKENS}.fk_user_id`);
     }
 
     return queryBuilder;

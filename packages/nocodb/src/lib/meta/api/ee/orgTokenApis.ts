@@ -15,7 +15,7 @@ export async function apiTokenListEE(req, res) {
       await ApiToken.listWithCreatedBy({ ...req.query, fk_user_id }),
       {
         ...req.query,
-        count: await ApiToken.count(),
+        count: await ApiToken.count({}),
       }
     )
   );

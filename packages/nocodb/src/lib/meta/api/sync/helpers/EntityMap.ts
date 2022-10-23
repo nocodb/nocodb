@@ -92,7 +92,11 @@ class EntityMap {
         if (rs) {
           for (const key of Object.keys(rs)) {
             if (rs[key] && rs[key].startsWith('JSON::')) {
-              rs[key] = JSON.parse(rs[key].replace('JSON::', ''));
+              try {
+                rs[key] = JSON.parse(rs[key].replace('JSON::', ''));
+              } catch (e) {
+                console.log(e);
+              }
             }
           }
         }
@@ -136,7 +140,11 @@ class EntityMap {
         for (const row of rs) {
           for (const key of Object.keys(row)) {
             if (row[key] && row[key].startsWith('JSON::')) {
-              row[key] = JSON.parse(row[key].replace('JSON::', ''));
+              try {
+                row[key] = JSON.parse(row[key].replace('JSON::', ''));
+              } catch (e) {
+                console.log(e);
+              }
             }
           }
         }
@@ -168,7 +176,11 @@ class DBStream extends Readable {
         if (result) {
           for (const key of Object.keys(result)) {
             if (result[key] && result[key].startsWith('JSON::')) {
-              result[key] = JSON.parse(result[key].replace('JSON::', ''));
+              try {
+                result[key] = JSON.parse(result[key].replace('JSON::', ''));
+              } catch (e) {
+                console.log(e);
+              }
             }
           }
         }

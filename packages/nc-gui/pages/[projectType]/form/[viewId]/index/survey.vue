@@ -18,14 +18,28 @@ import {
 enum TransitionDirection {
   Left = 'left',
   Right = 'right',
+  Top = 'top',
+  Bottom = 'bottom',
 }
 
 enum AnimationTarget {
   ArrowLeft = 'arrow-left',
   ArrowRight = 'arrow-right',
+  ArrowTop = 'arrow-top',
+  ArrowBottom = 'arrow-bottom',
   OkButton = 'ok-button',
   SubmitButton = 'submit-button',
 }
+
+/* Could be changed to support multiple transition animations
+enum TransitionAnimation {
+  Horizontal = 'x',
+  Vertical = 'y',
+  Fade = 'fade',
+}
+
+const TransitionAnimation = ref(TransitionAnimation.Vertical)
+ */
 
 const { md } = useBreakpoints(breakpointsTailwind)
 
@@ -34,9 +48,9 @@ const { v$, formState, formColumns, submitForm, submitted, secondsRemain, shared
 
 const isTransitioning = ref(false)
 
-const transitionName = ref<TransitionDirection>(TransitionDirection.Left)
+const transitionName = ref<TransitionDirection>(TransitionDirection.Bottom)
 
-const animationTarget = ref<AnimationTarget>(AnimationTarget.ArrowRight)
+const animationTarget = ref<AnimationTarget>(AnimationTarget.ArrowBottom)
 
 const isAnimating = ref(false)
 
@@ -81,11 +95,11 @@ function isRequired(column: ColumnType, required = false) {
 
 function transition(direction: TransitionDirection) {
   isTransitioning.value = true
+  const previousDir = transitionName.value
   transitionName.value = direction
 
   setTimeout(() => {
-    transitionName.value =
-      transitionName.value === TransitionDirection.Left ? TransitionDirection.Right : TransitionDirection.Left
+    transitionName.value = previousDir
   }, transitionDuration.value / 2)
 
   setTimeout(() => {
@@ -117,11 +131,11 @@ async function goNext(animationTarget?: AnimationTarget) {
     if (!isValid) return
   }
 
-  animate(animationTarget || AnimationTarget.ArrowRight)
+  animate(animationTarget || AnimationTarget.ArrowBottom)
 
   setTimeout(
     () => {
-      transition(TransitionDirection.Left)
+      transition(TransitionDirection.Top)
 
       goToNext()
     },
@@ -132,9 +146,9 @@ async function goNext(animationTarget?: AnimationTarget) {
 async function goPrevious(animationTarget?: AnimationTarget) {
   if (isFirst.value || submitted.value) return
 
-  animate(animationTarget || AnimationTarget.ArrowLeft)
+  animate(animationTarget || AnimationTarget.ArrowTop)
 
-  transition(TransitionDirection.Right)
+  transition(TransitionDirection.Bottom)
 
   goToPrevious()
 }
@@ -155,17 +169,17 @@ function focusInput() {
 function resetForm() {
   v$.value.$reset()
   submitted.value = false
-  transition(TransitionDirection.Right)
+  transition(TransitionDirection.Bottom)
   goTo(steps.value[0])
 }
 
 onReset(resetForm)
 
 onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {
-  goPrevious(AnimationTarget.ArrowLeft)
+  goPrevious(AnimationTarget.ArrowTop)
 })
 onKeyStroke(['ArrowRight', 'ArrowUp'], () => {
-  goNext(AnimationTarget.ArrowRight)
+  goNext(AnimationTarget.ArrowBottom)
 })
 onKeyStroke(['Enter', 'Space'], () => {
   if (isLast.value) {
@@ -183,9 +197,9 @@ onMounted(() => {
       onSwipe: () => {
         if (isTransitioning.value) return
 
-        if (direction.value === SwipeDirection.LEFT) {
+        if (direction.value === SwipeDirection.LEFT || direction.value === SwipeDirection.UP) {
           goNext()
-        } else if (direction.value === SwipeDirection.RIGHT) {
+        } else if (direction.value === SwipeDirection.RIGHT || direction.value === SwipeDirection.DOWN) {
           goPrevious()
         }
       },

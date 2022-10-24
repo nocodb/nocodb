@@ -273,7 +273,7 @@ function fieldsValidation(record: Record<string, any>) {
   if (v.pk ? !v.ai && !v.cdf : !v.cdf && v.rqd) {
     if (
       importData[tableName]
-        .slice(0, maxRowsToParse)
+        ?.slice(0, maxRowsToParse)
         .some((r: Record<string, any>) => r[record.srcCn] === null || r[record.srcCn] === undefined || r[record.srcCn] === '')
     ) {
       message.error(t('msg.error.nullValueViolatesNotNull'))
@@ -296,7 +296,7 @@ function fieldsValidation(record: Record<string, any>) {
       break
     case UITypes.Checkbox:
       if (
-        importData[tableName].slice(0, maxRowsToParse).some((r: Record<string, any>) => {
+        importData[tableName]?.slice(0, maxRowsToParse).some((r: Record<string, any>) => {
           if (r[record.srcCn] !== null && r[record.srcCn] !== undefined) {
             let input = r[record.srcCn]
             if (typeof input === 'string') {

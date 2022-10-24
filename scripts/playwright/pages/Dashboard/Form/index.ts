@@ -24,16 +24,12 @@ export class FormPage extends BasePage {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.toolbar = new ToolbarPage(this);
-    
-    this.addAllButton = dashboard
-      .get()
-      .locator('[data-pw="nc-form-add-all"]');
+
+    this.addAllButton = dashboard.get().locator('[data-pw="nc-form-add-all"]');
     this.removeAllButton = dashboard
       .get()
       .locator('[data-pw="nc-form-remove-all"]');
-    this.submitButton = dashboard
-      .get()
-      .locator('[data-pw="nc-form-submit"]');
+    this.submitButton = dashboard.get().locator('[data-pw="nc-form-submit"]');
 
     this.showAnotherFormRadioButton = dashboard
       .get()
@@ -44,9 +40,7 @@ export class FormPage extends BasePage {
     this.emailMeRadioButton = dashboard
       .get()
       .locator('[data-pw="nc-form-checkbox-send-email"]');
-    this.formHeading = dashboard
-      .get()
-      .locator('[data-pw="nc-form-heading"]');
+    this.formHeading = dashboard.get().locator('[data-pw="nc-form-heading"]');
     this.formSubHeading = dashboard
       .get()
       .locator('[data-pw="nc-form-sub-heading"]');
@@ -110,30 +104,56 @@ export class FormPage extends BasePage {
   }
 
   getFormFieldsInputLabel() {
-    return this.get().locator('[data-pw="nc-form-input-label"]');
+    return this.get().locator('input[data-pw="nc-form-input-label"]:visible');
   }
 
   getFormFieldsInputHelpText() {
-    return this.get().locator('[data-pw="nc-form-input-help-text"]');
+    return this.get().locator(
+      'input[data-pw="nc-form-input-help-text"]:visible'
+    );
   }
 
   ///////////////////////////
   // Form Actions
 
-  async verifyFormFieldLabel({ index, label }: { index: number; label: string }) {
-    await expect(await this.getFormFields().nth(index).locator('[data-pw="nc-form-input-label"]')).toContainText(label);
+  async verifyFormFieldLabel({
+    index,
+    label,
+  }: {
+    index: number;
+    label: string;
+  }) {
+    await expect(
+      await this.getFormFields()
+        .nth(index)
+        .locator('[data-pw="nc-form-input-label"]')
+    ).toContainText(label);
   }
 
-  async verifyFormFieldHelpText({ index, helpText }: { index: number; helpText: string }) {
-    await expect(await this.getFormFields().nth(index).locator('[pw-data="nc-form-input-help-text-label"]')).toContainText(helpText);
+  async verifyFormFieldHelpText({
+    index,
+    helpText,
+  }: {
+    index: number;
+    helpText: string;
+  }) {
+    await expect(
+      await this.getFormFields()
+        .nth(index)
+        .locator('[pw-data="nc-form-input-help-text-label"]')
+    ).toContainText(helpText);
   }
 
   async verifyFieldsIsEditable({ index }: { index: number }) {
-    await expect(await this.getFormFields().nth(index)).toHaveClass(/nc-editable/);
+    await expect(await this.getFormFields().nth(index)).toHaveClass(
+      /nc-editable/
+    );
   }
 
   async verifyAfterSubmitMsg({ msg }: { msg: string }) {
-    await expect((await this.afterSubmitMsg.inputValue()).includes(msg)).toBeTruthy()
+    await expect(
+      (await this.afterSubmitMsg.inputValue()).includes(msg)
+    ).toBeTruthy();
   }
 
   async verifyFormViewFieldsOrder({ fields }: { fields: string[] }) {
@@ -229,6 +249,61 @@ export class FormPage extends BasePage {
         )
         .fill(param[i].value);
     }
+  }
+
+  async configureField({
+    field,
+    required,
+    label,
+    helpText,
+  }: {
+    field: string;
+    required: boolean;
+    label: string;
+    helpText: string;
+  }) {
+    await this.get()
+      .locator(`.nc-form-drag-${field.replace(" ", "")}`)
+      .locator('div[data-pw="nc-form-input-label"]')
+      .click();
+    await this.getFormFieldsInputLabel().fill(label);
+    await this.getFormFieldsInputHelpText().fill(helpText);
+    if (required) {
+      await this.get()
+        .locator(`.nc-form-drag-${field.replace(" ", "")}`)
+        .click();
+    }
+    await this.formHeading.click();
+  }
+
+  async verifyField({
+    field,
+    required,
+    label,
+    helpText,
+  }: {
+    field: string;
+    required: boolean;
+    label: string;
+    helpText: string;
+  }) {
+    let expectText = "";
+    if (required) expectText = label + " *";
+    else expectText = label;
+
+    // data-pw="nc-form-input-label"
+    // data-pw="nc-form-input-help-text-label"
+    let fieldLabel = await this.get()
+      .locator(`.nc-form-drag-${field.replace(" ", "")}`)
+      .locator('div[data-pw="nc-form-input-label"]')
+      .innerText();
+    expect(fieldLabel).toBe(expectText);
+
+    let fieldHelpText = await this.get()
+      .locator(`.nc-form-drag-${field.replace(" ", "")}`)
+      .locator('div[data-pw="nc-form-input-help-text-label"]')
+      .innerText();
+    expect(fieldHelpText).toBe(helpText);
   }
 
   async submitForm() {

@@ -2,14 +2,17 @@ import { test } from "@playwright/test";
 import { DashboardPage } from "../pages/Dashboard";
 import { SettingTab } from "../pages/Dashboard/Settings";
 import setup from "../setup";
+import { FormPage } from "../pages/Dashboard/Form";
 
 test.describe("Form view", () => {
   let dashboard: DashboardPage;
+  let form: FormPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
+    form = dashboard.form;
   });
 
   test("Field re-order operations", async () => {
@@ -21,54 +24,54 @@ test.describe("Form view", () => {
     await dashboard.viewSidebar.verifyView({ title: "CountryForm", index: 1 });
 
     // verify form-view fields order
-    await dashboard.form.verifyFormViewFieldsOrder({
+    await form.verifyFormViewFieldsOrder({
       fields: ["Country", "LastUpdate", "City List"],
     });
 
     // reorder & verify
-    await dashboard.form.reorderFields({
+    await form.reorderFields({
       sourceField: "LastUpdate",
       destinationField: "Country",
     });
-    await dashboard.form.verifyFormViewFieldsOrder({
+    await form.verifyFormViewFieldsOrder({
       fields: ["LastUpdate", "Country", "City List"],
     });
 
     // remove & verify (drag-drop)
-    await dashboard.form.removeField({ field: "City List", mode: "dragDrop" });
-    await dashboard.form.verifyFormViewFieldsOrder({
+    await form.removeField({ field: "City List", mode: "dragDrop" });
+    await form.verifyFormViewFieldsOrder({
       fields: ["LastUpdate", "Country"],
     });
 
     // add & verify (drag-drop)
-    await dashboard.form.addField({ field: "City List", mode: "dragDrop" });
-    await dashboard.form.verifyFormViewFieldsOrder({
+    await form.addField({ field: "City List", mode: "dragDrop" });
+    await form.verifyFormViewFieldsOrder({
       fields: ["LastUpdate", "City List", "Country"],
     });
 
     // remove & verify (hide field button)
-    await dashboard.form.removeField({ field: "City List", mode: "hideField" });
-    await dashboard.form.verifyFormViewFieldsOrder({
+    await form.removeField({ field: "City List", mode: "hideField" });
+    await form.verifyFormViewFieldsOrder({
       fields: ["LastUpdate", "Country"],
     });
 
     // add & verify (hide field button)
-    await dashboard.form.addField({ field: "City List", mode: "clickField" });
-    await dashboard.form.verifyFormViewFieldsOrder({
+    await form.addField({ field: "City List", mode: "clickField" });
+    await form.verifyFormViewFieldsOrder({
       fields: ["LastUpdate", "Country", "City List"],
     });
 
     // remove-all & verify
-    await dashboard.form.removeAllFields();
+    await form.removeAllFields();
     await dashboard.rootPage.waitForTimeout(2000);
-    await dashboard.form.verifyFormViewFieldsOrder({
+    await form.verifyFormViewFieldsOrder({
       fields: ["Country"],
     });
 
     // // add-all & verify
-    await dashboard.form.addAllFields();
+    await form.addAllFields();
     await dashboard.rootPage.waitForTimeout(2000);
-    await dashboard.form.verifyFormViewFieldsOrder({
+    await form.verifyFormViewFieldsOrder({
       fields: ["LastUpdate", "Country", "City List"],
     });
   });
@@ -81,61 +84,85 @@ test.describe("Form view", () => {
     await dashboard.viewSidebar.createFormView({ title: "CountryForm" });
     await dashboard.viewSidebar.verifyView({ title: "CountryForm", index: 1 });
 
-    await dashboard.form.configureHeader({
+    await form.configureHeader({
       title: "Country",
       subtitle: "Country subtitle",
     });
-    await dashboard.form.verifyHeader({
+    await form.verifyHeader({
       title: "Country",
       subtitle: "Country subtitle",
+    });
+
+    // configure field title & description
+    await form.configureField({
+      field: "Country",
+      label: "Country new title",
+      helpText: "Country new description",
+      required: true,
+    });
+    await form.verifyFormFieldLabel({
+      index: 0,
+      label: "Country new title",
+    });
+    await form.verifyFormFieldHelpText({
+      index: 0,
+      helpText: "Country new description",
+    });
+
+    // revert configurations
+    await form.configureField({
+      field: "Country",
+      label: "Country",
+      helpText: "",
+      required: true,
     });
 
     // retain only 'Country' field
-    await dashboard.form.removeAllFields();
+    await form.removeAllFields();
 
     // submit default form validation
-    await dashboard.form.fillForm([{ field: "Country", value: "_abc" }]);
-    await dashboard.form.submitForm();
-    await dashboard.form.verifyStatePostSubmit({
+    await form.fillForm([{ field: "Country", value: "_abc" }]);
+    await form.submitForm();
+    await form.verifyStatePostSubmit({
       message: "Successfully submitted form data",
     });
 
     // submit custom form validation
     await dashboard.viewSidebar.openView({ title: "CountryForm" });
-    await dashboard.form.configureSubmitMessage({
+    await form.configureSubmitMessage({
       message: "Custom submit message",
     });
-    await dashboard.form.fillForm([{ field: "Country", value: "_abc" }]);
-    await dashboard.form.submitForm();
-    await dashboard.form.verifyStatePostSubmit({
+    await form.fillForm([{ field: "Country", value: "_abc" }]);
+    await form.submitForm();
+    await form.verifyStatePostSubmit({
       message: "Custom submit message",
     });
 
     // enable 'submit another form' option
     await dashboard.viewSidebar.openView({ title: "CountryForm" });
-    await dashboard.form.showAnotherFormRadioButton.click();
-    await dashboard.form.fillForm([{ field: "Country", value: "_abc" }]);
-    await dashboard.form.submitForm();
+    await form.showAnotherFormRadioButton.click();
+    await form.fillForm([{ field: "Country", value: "_abc" }]);
+    await form.submitForm();
     await dashboard.rootPage.waitForTimeout(2000);
-    await dashboard.form.verifyStatePostSubmit({
+    await form.verifyStatePostSubmit({
       submitAnotherForm: true,
     });
-    await dashboard.form.submitAnotherForm().click();
+    await form.submitAnotherForm().click();
 
     // enable 'show another form' option
-    await dashboard.form.showAnotherFormRadioButton.click();
-    await dashboard.form.showAnotherFormAfter5SecRadioButton.click();
-    await dashboard.form.fillForm([{ field: "Country", value: "_abc" }]);
-    await dashboard.form.fillForm([{ field: "Country", value: "_abc" }]);
-    await dashboard.form.submitForm();
+    await form.showAnotherFormRadioButton.click();
+    await form.showAnotherFormAfter5SecRadioButton.click();
+    await form.fillForm([{ field: "Country", value: "_abc" }]);
+    await form.fillForm([{ field: "Country", value: "_abc" }]);
+    await form.submitForm();
     await dashboard.rootPage.waitForTimeout(6000);
-    await dashboard.form.verifyStatePostSubmit({
+    await form.verifyStatePostSubmit({
       showBlankForm: true,
     });
 
     // enable 'email-me' option
-    await dashboard.form.showAnotherFormAfter5SecRadioButton.click();
-    await dashboard.form.emailMeRadioButton.click();
+    await form.showAnotherFormAfter5SecRadioButton.click();
+    await form.emailMeRadioButton.click();
     await dashboard.toastWait({
       message:
         "Please activate SMTP plugin in App store for enabling email notification",
@@ -158,8 +185,8 @@ test.describe("Form view", () => {
 
     // enable 'email-me' option
     await dashboard.viewSidebar.openView({ title: "CountryForm" });
-    await dashboard.form.emailMeRadioButton.click();
-    await dashboard.form.verifyAfterSubmitMenuState({
+    await form.emailMeRadioButton.click();
+    await form.verifyAfterSubmitMenuState({
       emailMe: true,
       submitAnotherForm: false,
       showBlankForm: false,

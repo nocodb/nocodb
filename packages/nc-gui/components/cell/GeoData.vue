@@ -1,11 +1,9 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
 import type { GeoLocationType } from 'nocodb-sdk'
-import { EditModeInj, inject, ReadonlyInj, ref, useVModel } from '#imports'
-import { onKeyDown } from '@vueuse/core'
+import { EditModeInj, inject, useVModel } from '#imports'
 
 interface Props {
-  modelValue?: GeoLocationType
+  modelValue?: GeoLocationType | null
 }
 
 interface Emits {
@@ -16,36 +14,57 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const isOpen = ref(false)
-
-const visible = ref<boolean>(false)
+const vModel = useVModel(props, 'modelValue', emits)
 
 const editEnabled = inject(EditModeInj)
 
-const readOnly = inject(ReadonlyInj)!
+const latitudeInput = ref(vModel?.value?.latitude || '')
+const longitudeeInput = ref(vModel?.value?.latitude || '')
 
-const vModel = useVModel(props, 'modelValue', emits)
+// const isOpen = ref(false)
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+// const visible = ref<boolean>(false)
 
-const toggleVisbility = () => {
-  visible.value = !visible.value
-}
+// const readOnly = inject(ReadonlyInj)!
+
+// const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+
+// const toggleVisbility = () => {
+//   visible.value = !visible.value
+// }
+
+// const latitude = computed(() => {
+
+// })
 </script>
 
 <template>
-  <div v-on:click="toggleVisbility" :style="{ minWidth: '100%', minHeight: '100%', backgroundColor: 'red' }">
-    <a-popover v-model:visible="visible" title="Title" trigger="click">
-      <template>
-        <a-input />
-        <a-input />
-      </template>
-    </a-popover>
-  </div>
+  <a-popover trigger="click" placement="bottomLeft" :style="{ maxWidth: '100px' }">
+    <template #content>
+      <div>
+        Test222
+        {{ JSON.stringify(vModel) }}
+        <div v-if="vModel" :style="{ display: 'flex', flexDirection: 'column' }">
+          <label for="latitude">latitude</label>
+          <a-input v-if="editEnabled" id="latitude" v-model="vModel.latitude" />
+          <span v-else class="text-sm">{{ vModel.latitude }}</span>
+          <label for="longitude">longitude</label>
+          <a-input v-if="editEnabled" id="longitude" v-model="vModel.longitude" />
+          <span v-else class="text-sm">{{ vModel.longitude }}</span>
+          <a-button type="primary">Ok</a-button>
+        </div>
+      </div>
+    </template>
+    <a-button type="primary" :style="{ width: '100%' }">hej</a-button>
+  </a-popover>
 </template>
 
 <style scoped lang="scss">
 input[type='number']:focus {
   @apply ring-transparent;
+}
+input {
+  margin-bottom: 8px;
+  max-width: 200px;
 }
 </style>

@@ -123,30 +123,36 @@ const validators = computed(() =>
 
 const { validate, validateInfos } = useForm(data, validators)
 
-// TODO(import): show error message once
-const isValid = computed(() => {
-  if (importDataOnly) {
-    for (const tn of Object.keys(srcDestMapping.value)) {
-      if (!atLeastOneEnabledValidation(tn)) {
-        return false
+const isValid = ref(false)
+
+watch(
+  () => srcDestMapping.value,
+  () => {
+    let res = true
+    if (importDataOnly) {
+      for (const tn of Object.keys(srcDestMapping.value)) {
+        if (!atLeastOneEnabledValidation(tn)) {
+          res = false
+        }
+        for (const record of srcDestMapping.value[tn]) {
+          if (!fieldsValidation(record, tn)) {
+            return false
+          }
+        }
       }
-      for (const record of srcDestMapping.value[tn]) {
-        if (!fieldsValidation(record, tn)) {
-          return false
+    } else {
+      for (const [_, o] of Object.entries(validateInfos)) {
+        if (o?.validateStatus) {
+          if (o.validateStatus === 'error') {
+            res = false
+          }
         }
       }
     }
-  } else {
-    for (const [_, o] of Object.entries(validateInfos)) {
-      if (o?.validateStatus) {
-        if (o.validateStatus === 'error') {
-          return false
-        }
-      }
-    }
-  }
-  return true
-})
+    isValid.value = res
+  },
+  { deep: true },
+)
 
 const prevEditableTn = ref<string[]>([])
 
@@ -157,6 +163,10 @@ onMounted(() => {
   // for checking the table duplication in current import
   // and updating the key in importData
   prevEditableTn.value = data.tables.map((t) => t.table_name)
+
+  if (importDataOnly) {
+    mapDefaultColumns()
+  }
 
   nextTick(() => {
     inputRefs.value[0]?.focus()
@@ -567,12 +577,6 @@ function mapDefaultColumns() {
 defineExpose({
   importTemplate,
   isValid,
-})
-
-onMounted(() => {
-  if (importDataOnly) {
-    mapDefaultColumns()
-  }
 })
 
 function handleEditableTnChange(idx: number) {

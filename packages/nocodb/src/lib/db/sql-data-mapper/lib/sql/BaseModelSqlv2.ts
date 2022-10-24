@@ -1381,36 +1381,10 @@ class BaseModelSqlv2 {
                   null,
                   this.dbDriver,
                   this.model
-                  // this.aliasToColumn
                 );
-                // todo:  verify syntax of as ? / ??
-                // qb.select(
-                //   this.dbDriver.raw(`?? as ??`, [
-                //     selectQb.builder,
-                //     sanitize(column.title),
-                //   ])
-                // );
-                // qb.select({
-                //   [column.column_name]: this.dbDriver.raw(`?? as ??`, [
-                //     selectQb.builder,
-                //     sanitize(column.title),
-                //   ]),
-                // });
-
                 qb.select({
                   [column.column_name]: selectQb.builder,
                 });
-
-                // const formulOption = await col.getColOptions<FormulaColumn>();
-                // const { builder } = await formulaQueryBuilderv2(
-                //   formulOption.formula,
-                //   alias,
-                //   knex,
-                //   model,
-                //   { ...aliasToColumn, [col.id]: null }
-                // );
-                // builder.sql = '(' + builder.sql + ')';
-                // aliasToColumn[col.id] = builder;
               }
               break;
             default: {

@@ -3,13 +3,13 @@ import { useQRCode } from '@vueuse/integrations/useQRCode'
 
 const value = inject(CellValueInj)
 
-const qrCode =
-  value?.value &&
-  useQRCode(value?.value, {
-    width: 150,
-  })
+const qrValue = computed(() => value?.value)
+
+const qrCode = useQRCode(qrValue, {
+  width: 150,
+})
 </script>
 
 <template>
-  <img v-if="qrCode" :src="qrCode" alt="QR Code" class="qr-code" />
+  <img v-if="qrValue" :src="qrCode" alt="QR Code" class="qr-code" />
 </template>

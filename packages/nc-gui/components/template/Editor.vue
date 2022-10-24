@@ -14,6 +14,7 @@ import {
   extractSdkResponseErrorMsg,
   fieldRequiredValidator,
   getDateFormat,
+  getDateTimeFormat,
   getUIDTIcon,
   inject,
   message,
@@ -123,7 +124,7 @@ const validators = computed(() =>
 
 const { validate, validateInfos } = useForm(data, validators)
 
-const isValid = ref(false)
+const isValid = ref(!importDataOnly)
 
 watch(
   () => srcDestMapping.value,
@@ -263,7 +264,8 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
         }
         d = parseStringDate(d, dateFormat)
       } else if (col.uidt === UITypes.DateTime && d) {
-        d = dayjs(data[key]).utc().format('YYYY-MM-DD HH:mm')
+        const dateTimeFormat = getDateTimeFormat(data[key])
+        d = dayjs(data[key], dateTimeFormat).format('YYYY-MM-DD HH:mm')
       }
       return {
         ...aggObj,

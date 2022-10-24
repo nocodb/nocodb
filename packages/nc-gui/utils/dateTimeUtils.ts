@@ -1,4 +1,7 @@
 import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+dayjs.extend(customParseFormat)
 
 export const timeAgo = (date: any) => {
   return dayjs.utc(date).fromNow()
@@ -36,17 +39,35 @@ export function validateDateFormat(v: string) {
 }
 
 export function validateDateWithUnknownFormat(v: string) {
-  let res = 0
   for (const format of dateFormats) {
-    res |= dayjs(v, format, true).isValid() as any
+    if (dayjs(v, format, true).isValid() as any) {
+      return true
+    }
+    for (const timeFormat of ['HH:mm', 'HH:mm:ss', 'HH:mm:ss.SSS']) {
+      if (dayjs(v, `${format} ${timeFormat}`, true).isValid() as any) {
+        return true
+      }
+    }
   }
-  return res
+  return false
 }
 
 export function getDateFormat(v: string) {
   for (const format of dateFormats) {
     if (dayjs(v, format, true).isValid()) {
       return format
+    }
+  }
+  return 'YYYY/MM/DD'
+}
+
+export function getDateTimeFormat(v: string) {
+  for (const format of dateFormats) {
+    for (const timeFormat of ['HH:mm', 'HH:mm:ss', 'HH:mm:ss.SSS']) {
+      const dateTimeFormat = `${format} ${timeFormat}`
+      if (dayjs(v, dateTimeFormat, true).isValid() as any) {
+        return dateTimeFormat
+      }
     }
   }
   return 'YYYY/MM/DD'

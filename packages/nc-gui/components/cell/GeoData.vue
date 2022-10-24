@@ -18,11 +18,18 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const editEnabled = inject(EditModeInj)
 
-const latitudeInput = ref(vModel?.value?.latitude || '')
-const longitudeInput = ref(vModel?.value?.latitude || '')
+const latitudeInput = ref(String(vModel?.value?.latitude) || '')
+const longitudeInput = ref(String(vModel?.value?.latitude) || '')
 
 const onSubmit = () => {
-  alert('SUBMIT')
+  if (latitudeInput == null || longitudeInput == null) {
+    console.error("Tried to submit a GeoLocation where latitude or longitude value wasn't provicde")
+    return
+  }
+  emits('update:modelValue', {
+    latitude: Number.parseFloat(latitudeInput.value),
+    longitude: Number.parseFloat(longitudeInput.value),
+  })
 }
 
 // const isOpen = ref(false)
@@ -43,18 +50,18 @@ const onSubmit = () => {
 </script>
 
 <template>
-  <a-popover trigger="click" placement="bottomLeft" :style="{ maxWidth: '100px' }">
+  <a-popover v-model:visible="editEnabled" placement="bottomLeft" :style="{ maxWidth: '100px' }">
     <template #content>
       <div>
         Test222
         {{ JSON.stringify(vModel) }}
         <div :style="{ display: 'flex', flexDirection: 'column' }">
           <label for="latitude">latitude</label>
-          <a-input v-if="editEnabled" id="latitude" v-model="latitudeInput" />
-          <span v-else class="text-sm">{{ latitudeInput }}</span>
+          <a-input id="latitude" v-model="latitudeInput" />
+          <!-- <span v-else class="text-sm">{{ latitudeInput }}</span> -->
           <label for="longitude">longitude</label>
-          <a-input v-if="editEnabled" id="longitude" v-model="longitudeInput" />
-          <span v-else class="text-sm">{{ longitudeInput }}</span>
+          <a-input id="longitude" v-model="longitudeInput" />
+          <!-- <span v-else class="text-sm">{{ longitudeInput }}</span> -->
           <a-button type="primary" @click="onSubmit">Ok</a-button>
         </div>
       </div>

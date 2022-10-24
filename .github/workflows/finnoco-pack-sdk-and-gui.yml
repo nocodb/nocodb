@@ -28,7 +28,7 @@ jobs:
       - name: Build nocodb-sdk package
         working-directory: ./packages/nocodb-sdk
         run: |
-          npm ci
+          npm i
           npm run build
 
       - name: remove old nocodb-sdk package

@@ -3,7 +3,6 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { UploadFile } from 'ant-design-vue'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import {
   Empty,
@@ -596,7 +595,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
 <template>
   <a-spin :spinning="isImporting" size="large">
     <template #tip>
-      <p v-for="importingTip of importingTips" class="mt-[10px]">
+      <p v-for="(importingTip, idx) of importingTips" :key="idx" class="mt-[10px]">
         {{ importingTip }}
       </p>
     </template>

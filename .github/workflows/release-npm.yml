@@ -38,13 +38,13 @@ jobs:
       working-directory: ./packages/nocodb
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
       - name: NPM Setup and Publish with 16.15.0
         # Setup .npmrc file to publish to npm
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.15.0
           registry-url: 'https://registry.npmjs.org'

@@ -129,42 +129,47 @@ watch(inputs, () => {
 
 <template>
   <div class="w-full">
-    <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
-      <template #item="{ element, index }">
-        <div class="flex py-1 items-center nc-select-option">
-          <MdiDragVertical v-if="!isKanban" small class="nc-child-draggable-icon handle" />
-          <a-dropdown
-            v-model:visible="colorMenus[index]"
-            :trigger="['click']"
-            overlay-class-name="nc-dropdown-select-color-options"
-          >
-            <template #overlay>
-              <LazyGeneralColorPicker
-                v-model="element.color"
-                :pick-button="true"
-                @update:model-value="colorMenus[index] = false"
+    <div class="max-h-[250px] overflow-x-auto scrollbar-thin-dull pr-3">
+      <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
+        <template #item="{ element, index }">
+          <div class="flex py-1 items-center nc-select-option">
+            <MdiDragVertical v-if="!isKanban" small class="nc-child-draggable-icon handle" />
+            <a-dropdown
+              v-model:visible="colorMenus[index]"
+              :trigger="['click']"
+              overlay-class-name="nc-dropdown-select-color-options"
+            >
+              <template #overlay>
+                <LazyGeneralColorPicker
+                  v-model="element.color"
+                  :pick-button="true"
+                  @update:model-value="colorMenus[index] = false"
+                />
+              </template>
+              <MdiArrowDownDropCircle
+                class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em]"
+                :class="{ 'text-[1.75em]': colorMenus[index] }"
+                :style="{ color: element.color }"
               />
-            </template>
-            <MdiArrowDownDropCircle :style="{ 'font-size': '1.5em', 'color': element.color }" class="mr-2" />
-          </a-dropdown>
+            </a-dropdown>
 
-          <a-input ref="inputs" v-model:value="element.title" class="caption" @change="optionChanged(element.id)" />
+            <a-input ref="inputs" v-model:value="element.title" class="caption" @change="optionChanged(element.id)" />
 
-          <MdiClose class="ml-2" :style="{ color: 'red' }" @click="removeOption(index)" />
-        </div>
-      </template>
-      <template #footer>
-        <div v-if="validateInfos?.['colOptions.options']?.help?.[0]?.[0]" class="text-error text-[10px] my-2">
-          {{ validateInfos['colOptions.options'].help[0][0] }}
-        </div>
-
-        <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
-          <div class="flex items-center">
-            <MdiPlus />
-            <span class="flex-auto">Add option</span>
+            <MdiClose class="ml-2 hover:!text-black" :style="{ color: 'red' }" @click="removeOption(index)" />
           </div>
-        </a-button>
-      </template>
-    </Draggable>
+        </template>
+        <template #footer>
+          <div v-if="validateInfos?.['colOptions.options']?.help?.[0]?.[0]" class="text-error text-[10px] my-2">
+            {{ validateInfos['colOptions.options'].help[0][0] }}
+          </div>
+        </template>
+      </Draggable>
+    </div>
+    <a-button type="dashed" class="w-full caption mt-2" @click="addNewOption()">
+      <div class="flex items-center">
+        <MdiPlus />
+        <span class="flex-auto">Add option</span>
+      </div>
+    </a-button>
   </div>
 </template>

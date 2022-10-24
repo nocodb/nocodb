@@ -1,23 +1,53 @@
 <script lang="ts" setup>
+import { autoResetRef, useThrottleFn } from '#imports'
+
 interface Props {
-  width?: number
-  height?: number
+  size?: number
   animate?: boolean
 }
 
-const { width = 90, height = 90, animate = false } = defineProps<Props>()
+const { size = 90, animate = false } = defineProps<Props>()
+
+const ping = autoResetRef(false, 1000)
+
+const onClick = useThrottleFn(() => {
+  ping.value = true
+}, 1000)
 </script>
 
 <template>
-  <div :style="{ left: `calc(50% - ${width / 2}px)`, top: `-${height / 2}px` }" class="absolute rounded-lg pt-1 pl-1 -ml-1">
+  <div
+    :style="{ left: `calc(50% - ${size / 2}px)`, top: `-${size / 2}px` }"
+    class="color-transition absolute rounded-lg pt-1 pl-1 -ml-1"
+    @click="onClick"
+  >
     <div class="relative">
-      <img class="hidden dark:block" :width="width" :height="height" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-      <img class="dark:hidden" :width="width" :height="height" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+      <img class="hidden dark:block" :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+      <img class="dark:hidden" :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
 
-      <template v-if="animate">
-        <div class="animated-bg-gradient opacity-100 rounded-full z-0 absolute bottom-1.45 right-1.45 h-4.5 w-4.5" />
-        <div class="animate-ping bg-primary bg-opacity-50 rounded-full z-0 absolute bottom-0.9 right-1 h-5.5 w-5.5" />
-      </template>
+      <TransitionGroup name="layout" :duration="500">
+        <template v-if="animate || ping">
+          <div
+            :class="ping ? 'bg-primary bg-opacity-100' : 'animated-bg-gradient'"
+            :style="{
+              bottom: `${6.25 / (90 / size)}px`,
+              right: `${6.25 / (90 / size)}px`,
+              width: `${1.1 / (90 / size)}rem`,
+              height: `${1.1 / (90 / size)}rem`,
+            }"
+            class="rounded-full z-0 absolute transform scale-102"
+          />
+          <div
+            :style="{
+              bottom: `${0.225 / (90 / size)}rem`,
+              right: `${0.25 / (90 / size)}rem`,
+              width: `${1.375 / (90 / size)}rem`,
+              height: `${1.375 / (90 / size)}rem`,
+            }"
+            class="animate-ping bg-primary bg-opacity-50 rounded-full z-0 absolute"
+          />
+        </template>
+      </TransitionGroup>
     </div>
   </div>
 </template>

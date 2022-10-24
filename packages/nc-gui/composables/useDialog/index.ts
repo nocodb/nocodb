@@ -1,8 +1,9 @@
 import type { VNode } from '@vue/runtime-dom'
 import { isVNode, render } from '@vue/runtime-dom'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
+import type { MaybeRef } from '@vueuse/core'
 import { isClient } from '@vueuse/core'
-import { createEventHook, h, ref, toReactive, tryOnScopeDispose, useNuxtApp, watch } from '#imports'
+import { createEventHook, h, ref, toReactive, tryOnScopeDispose, unref, useNuxtApp, watch } from '#imports'
 
 /**
  * Programmatically create a component and attach it to the body (or a specific mount target), like a dialog or modal.
@@ -38,7 +39,7 @@ import { createEventHook, h, ref, toReactive, tryOnScopeDispose, useNuxtApp, wat
 export function useDialog(
   componentOrVNode: any,
   props: NonNullable<Parameters<typeof h>[1]> = {},
-  mountTarget?: Element | ComponentPublicInstance,
+  mountTarget?: MaybeRef<Element | ComponentPublicInstance>,
 ) {
   if (typeof document === 'undefined' || !isClient) {
     console.warn('[useDialog]: Cannot use outside of browser!')
@@ -53,10 +54,12 @@ export function useDialog(
 
   const vNodeRef = ref<VNode>()
 
-  mountTarget = mountTarget ? ('$el' in mountTarget ? (mountTarget.$el as HTMLElement) : mountTarget) : document.body
+  let _mountTarget = unref(mountTarget)
+
+  _mountTarget = _mountTarget ? ('$el' in _mountTarget ? (_mountTarget.$el as HTMLElement) : _mountTarget) : document.body
 
   /** if specified, append vnode to mount target instead of document.body */
-  mountTarget.appendChild(domNode)
+  _mountTarget.appendChild(domNode)
 
   /** When props change, we want to re-render the element with the new prop values */
   const stop = watch(
@@ -87,7 +90,7 @@ export function useDialog(
 
       setTimeout(() => {
         try {
-          ;(mountTarget as HTMLElement)?.removeChild(domNode)
+          ;(_mountTarget as HTMLElement)?.removeChild(domNode)
         } catch (e) {}
       }, 100)
 

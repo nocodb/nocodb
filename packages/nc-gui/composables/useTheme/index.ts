@@ -6,12 +6,13 @@ import type { ThemeConfig } from '~/lib'
 export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
   const primaryColor = useCssVar('--color-primary', typeof document !== 'undefined' ? document.documentElement : null)
   const accentColor = useCssVar('--color-accent', typeof document !== 'undefined' ? document.documentElement : null)
-
-  /** current theme config */
-  const currentTheme = ref({
+  const defaultTheme = {
     primaryColor: themeV2Colors['royal-blue'].DEFAULT,
     accentColor: themeV2Colors.pink['500'],
-  })
+  }
+
+  /** current theme config */
+  const currentTheme = ref(defaultTheme)
 
   /** set initial config */
   setTheme(config ?? currentTheme.value)
@@ -40,5 +41,6 @@ export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
   return {
     theme: currentTheme,
     setTheme,
+    defaultTheme,
   }
 })

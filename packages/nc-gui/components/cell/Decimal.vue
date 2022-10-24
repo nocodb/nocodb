@@ -3,7 +3,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { EditModeInj, inject, useVModel } from '#imports'
 
 interface Props {
-  modelValue: number | null | string | undefined
+  modelValue?: number | null | string
 }
 
 interface Emits {

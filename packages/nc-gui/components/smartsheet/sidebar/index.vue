@@ -3,11 +3,11 @@ import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   MetaInj,
-  ViewListInj,
   computed,
   inject,
-  provide,
   ref,
+  resolveComponent,
+  useDialog,
   useNuxtApp,
   useRoute,
   useRouter,
@@ -21,7 +21,7 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { views, loadViews } = useViews(meta)
+const { views, loadViews, isLoading } = useViews(meta)
 
 const { isUIAllowed } = useUIPermission()
 
@@ -31,8 +31,6 @@ const route = useRoute()
 
 const { $e } = useNuxtApp()
 
-provide(ViewListInj, views)
-
 /** Sidebar visible */
 const { isOpen } = useSidebar('nc-right-sidebar')
 
@@ -40,21 +38,6 @@ const sidebarCollapsed = computed(() => !isOpen.value)
 
 /** Sidebar ref */
 const sidebar = ref()
-
-/** View type to create from modal */
-let viewCreateType = $ref<ViewTypes>()
-
-/** View title to create from modal (when duplicating) */
-let viewCreateTitle = $ref('')
-
-/** selected view id for copying view meta */
-let selectedViewId = $ref('')
-
-/** Kanban Grouping Column Id for copying view meta */
-let kanbanGrpColumnId = $ref('')
-
-/** is view creation modal open */
-let modalOpen = $ref(false)
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(
@@ -80,39 +63,54 @@ watch(
         activeView.value = nextViews[0]
       }
     }
+
     /** if active view is not found, set it to first view */
-    if (!activeView.value && nextViews.length) {
+    if (nextViews?.length && (!activeView.value || !nextViews.includes(activeView.value))) {
       activeView.value = nextViews[0]
     }
   },
   { immediate: true },
 )
 
-/** Open view creation modal */
-function openModal({
-  type,
+/** Open delete modal */
+function onOpenModal({
   title = '',
+  type,
   copyViewId,
   groupingFieldColumnId,
 }: {
+  title?: string
   type: ViewTypes
-  title: string
-  copyViewId: string
-  groupingFieldColumnId: string
+  copyViewId?: string
+  groupingFieldColumnId?: string
 }) {
-  modalOpen = true
-  viewCreateType = type
-  viewCreateTitle = title
-  selectedViewId = copyViewId
-  kanbanGrpColumnId = groupingFieldColumnId
-}
+  const isOpen = ref(true)
 
-/** Handle view creation */
-async function onCreate(view: ViewType) {
-  await loadViews()
-  router.push({ params: { viewTitle: view.title || '' } })
-  modalOpen = false
-  $e('a:view:create', { view: view.type })
+  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
+    'modelValue': isOpen,
+    title,
+    type,
+    meta,
+    'selectedViewId': copyViewId,
+    groupingFieldColumnId,
+    'views': views,
+    'onUpdate:modelValue': closeDialog,
+    'onCreated': async (view: ViewType) => {
+      closeDialog()
+
+      await loadViews()
+
+      router.push({ params: { viewTitle: view.title || '' } })
+
+      $e('a:view:create', { view: view.type })
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 </script>
 
@@ -127,27 +125,24 @@ async function onCreate(view: ViewType) {
     theme="light"
   >
     <LazySmartsheetSidebarToolbar
-      v-if="isOpen"
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     />
 
-    <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
-      <LazySmartsheetSidebarMenuTop @open-modal="openModal" @deleted="loadViews" />
+    <div class="flex-1 flex flex-col min-h-0">
+      <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">
+        <div class="w-full h-full flex items-center justify-center">
+          <a-spin />
+        </div>
+      </GeneralOverlay>
 
-      <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="!my-3 w-full border-b-1" />
+      <LazySmartsheetSidebarMenuTop :views="views" @open-modal="onOpenModal" @deleted="loadViews" />
 
-      <LazySmartsheetSidebarMenuBottom @open-modal="openModal" />
+      <template v-if="isUIAllowed('virtualViewsCreateOrEdit')">
+        <div class="!my-3 w-full border-b-1" />
+
+        <LazySmartsheetSidebarMenuBottom @open-modal="onOpenModal" />
+      </template>
     </div>
-
-    <LazyDlgViewCreate
-      v-if="views"
-      v-model="modalOpen"
-      :title="viewCreateTitle"
-      :type="viewCreateType"
-      :selected-view-id="selectedViewId"
-      :grouping-field-column-id="kanbanGrpColumnId"
-      @created="onCreate"
-    />
   </a-layout-sider>
 </template>
 

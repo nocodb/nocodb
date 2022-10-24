@@ -11,6 +11,7 @@ import {
   message,
   populateInsertObject,
   ref,
+  until,
   useApi,
   useGlobal,
   useI18n,
@@ -44,6 +45,9 @@ export function useViewData(
   const { api, isLoading, error } = useApi()
 
   const { appInfo } = $(useGlobal())
+
+  const { getMeta } = useMetas()
+
   const appInfoDefaultLimit = appInfo.defaultLimit || 25
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
@@ -197,14 +201,14 @@ export function useViewData(
   }
 
   async function insertRow(
-    row: Record<string, any>,
-    rowIndex = formattedData.value?.length,
+    currentRow: Row,
+    _rowIndex = formattedData.value?.length,
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    const row = currentRow.row
+    if (currentRow.rowMeta) currentRow.rowMeta.saving = true
     try {
-      const { getMeta } = useMetas()
-
       const { missingRequiredColumns, insertObj } = await populateInsertObject({
         meta: metaValue!,
         ltarState,
@@ -222,9 +226,9 @@ export function useViewData(
         insertObj,
       )
 
-      formattedData.value?.splice(rowIndex ?? 0, 1, {
-        row: insertedData,
-        rowMeta: {},
+      Object.assign(currentRow, {
+        row: { ...insertedData, ...row },
+        rowMeta: { ...(currentRow.rowMeta || {}), new: undefined },
         oldRow: { ...insertedData },
       })
 
@@ -232,6 +236,8 @@ export function useViewData(
       return insertedData
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
+    } finally {
+      if (currentRow.rowMeta) currentRow.rowMeta.saving = false
     }
   }
 
@@ -240,6 +246,7 @@ export function useViewData(
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    if (toUpdate.rowMeta) toUpdate.rowMeta.saving = true
     try {
       const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
 
@@ -258,21 +265,21 @@ export function useViewData(
         // }
       )
       // audit
-      $api.utils
-        .auditRowUpdate(id, {
-          fk_model_id: meta.value?.id as string,
-          column_name: property,
-          row_id: id,
-          value: getHTMLEncodedText(toUpdate.row[property]),
-          prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
-        })
-        .then(() => {})
+      $api.utils.auditRowUpdate(id, {
+        fk_model_id: meta.value?.id as string,
+        column_name: property,
+        row_id: id,
+        value: getHTMLEncodedText(toUpdate.row[property]),
+        prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
+      })
 
       /** update row data(to sync formula and other related columns) */
       Object.assign(toUpdate.row, updatedRowData)
       Object.assign(toUpdate.oldRow, updatedRowData)
     } catch (e: any) {
       message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
+    } finally {
+      if (toUpdate.rowMeta) toUpdate.rowMeta.saving = false
     }
   }
 
@@ -282,8 +289,11 @@ export function useViewData(
     ltarState?: Record<string, any>,
     args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    // if new row and save is in progress then wait until the save is complete
+    await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
+
     if (row.rowMeta.new) {
-      return await insertRow(row.row, formattedData.value.indexOf(row), ltarState, args)
+      return await insertRow(row, formattedData.value.indexOf(row), ltarState, args)
     } else {
       await updateRowProperty(row, property!, args)
     }

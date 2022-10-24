@@ -26,6 +26,6 @@ const { isUIAllowed } = useUIPermission()
       </div>
     </div>
 
-    <LazyTabsAuthUserManagementUsersModal :key="showUserModal" :show="showUserModal" @closed="showUserModal = false" />
+    <LazyTabsAuthUserManagementUsersModal :show="showUserModal" @closed="showUserModal = false" />
   </div>
 </template>

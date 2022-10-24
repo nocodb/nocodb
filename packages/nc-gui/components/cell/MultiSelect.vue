@@ -56,7 +56,14 @@ const options = computed<SelectOptionType[]>(() => {
 })
 
 const vModel = computed({
-  get: () => selectedIds.value.map((el) => options.value.find((op) => op.id === el)?.title) as string[],
+  get: () =>
+    selectedIds.value.reduce((acc, id) => {
+      const title = options.value.find((op) => op.id === id)?.title
+
+      if (title) acc.push(title)
+
+      return acc
+    }, [] as string[]),
   set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
 })
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { MetaInj, inject, ref, useSidebar, useTable } from '#imports'
+import { MetaInj, inject, useSidebar, useTable } from '#imports'
 
-const meta = inject(MetaInj, ref())
+const meta = inject(MetaInj)!
 
 const { deleteTable } = useTable()
 

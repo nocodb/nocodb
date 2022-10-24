@@ -106,20 +106,55 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-column-edit")
         .click();
 
-      cy.getActiveMenu(".nc-dropdown-edit-column")
-        .find("input.nc-column-name-input", { timeout: 3000 })
-        .should("exist")
-        .clear()
-        .type(newName);
+      if (newName !== oldName) {
+        cy.getActiveMenu(".nc-dropdown-edit-column")
+          .find("input.nc-column-name-input", { timeout: 3000 })
+          .should("exist")
+          .clear()
+          .type(newName);
+      }
 
       cy.get("textarea.nc-formula-input")
         .click()
         .clear()
         .type(newFormula, { parseSpecialCharSequences: false });
+
+      cy.get(".ant-form-item-explain-error").should('not.exist');
+
       cy.get(".ant-btn-primary").contains("Save").should("exist").click();
       // cy.toastWait(`Column created`);
-      cy.get(`th[data-title="${oldName}"]`).should("not.exist");
+      if (newName !== oldName) {
+        cy.get(`th[data-title="${oldName}"]`).should("not.exist");
+      }
       cy.get(`th[data-title="${newName}"]`).should("exist");
+    };
+
+    // routine to edit a column with Circular Reference
+    //
+    const editCircularColumnByName = (columnName, newFormula) => {
+      cy.get(`th:contains(${columnName}) .nc-icon.ant-dropdown-trigger`)
+        .trigger("mouseover", { force: true })
+        .click({ force: true });
+
+      cy.getActiveMenu(".nc-dropdown-column-operations")
+        .find(".nc-column-edit")
+        .click();
+
+      cy.getActiveMenu(".nc-dropdown-edit-column")
+        .find("input.nc-column-name-input", { timeout: 3000 })
+        .should("exist");
+
+      cy.get("textarea.nc-formula-input")
+        .click()
+        .clear()
+        .type(newFormula, { parseSpecialCharSequences: false });
+
+      // clicking the Save button, should NOT submit the form
+      cy.get(".ant-btn-primary").contains("Save").click();
+      // therefore we can see the error
+      cy.get(".ant-form-item-explain-error").contains("Can’t save field because it causes a circular reference");
+      // then close the form without saving
+      cy.get(".ant-btn").contains("Cancel").click();
     };
 
     ///////////////////////////////////////////////////
@@ -149,7 +184,12 @@ export const genTest = (apiType, dbType) => {
     let RESULT_MATH_3 = [];
     let RESULT_WEEKDAY_0 = [];
     let RESULT_WEEKDAY_1 = [];
-    
+    let RESULT_CIRC_REF_0 = [];
+    let RESULT_CIRC_REF_1 = [];
+    let RESULT_CIRC_REF_2 = [];
+    let RESULT_CIRC_REF_0_FINAL = [];
+    let RESULT_CIRC_REF_2_FINAL = [];
+
     for (let i = 0; i < 10; i++) {
       // CONCAT, LOWER, UPPER, TRIM
       RESULT_STRING[i] = `${city[i].toUpperCase()}${city[
@@ -179,15 +219,21 @@ export const genTest = (apiType, dbType) => {
       // only integer verification being computed, hence trunc
       RESULT_MATH_3[i] = Math.trunc(
         Math.log(cityId[i]) +
-          Math.exp(cityId[i]) +
-          Math.pow(cityId[i], 3) +
-          Math.sqrt(countryId[i])
+        Math.exp(cityId[i]) +
+        Math.pow(cityId[i], 3) +
+        Math.sqrt(countryId[i])
       );
 
       // WEEKDAY: starts from Monday
       RESULT_WEEKDAY_0[i] = 1;
       // WEEKDAY: starts from Sunday
       RESULT_WEEKDAY_1[i] = 2;
+
+      RESULT_CIRC_REF_0[i] = city[i]
+      RESULT_CIRC_REF_1[i] = city[i]
+      RESULT_CIRC_REF_2[i] = city[i] + city[i]
+      RESULT_CIRC_REF_0_FINAL[i] = city[i] + city[i]
+      RESULT_CIRC_REF_2_FINAL[i] = city[i] + city[i] + city[i] + city[i]
     }
 
     it("Formula: ADD, AVG, LEN", () => {
@@ -258,6 +304,64 @@ export const genTest = (apiType, dbType) => {
       if (dbType === "mysql") editColumnByName("NC_MATH_3", "NC_NOW", `NOW()`);
       else editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
       deleteColumnByName("NC_NOW");
+
+      cy.closeTableTab("City");
+    });
+
+    it("Formula: Circular references", () => {
+      cy.openTableTab("City", 25);
+
+      addFormulaBasedColumn(
+        "NC_CIRC_REF_0",
+        "{City}"
+      );
+      addFormulaBasedColumn(
+        "NC_CIRC_REF_1",
+        "{NC_CIRC_REF_0}"
+      );
+      editCircularColumnByName(
+        "NC_CIRC_REF_0",
+        "{NC_CIRC_REF_1}"
+      );
+
+      deleteColumnByName("NC_CIRC_REF_1");
+      deleteColumnByName("NC_CIRC_REF_0");
+
+      cy.closeTableTab("City");
+    });
+
+    it("Formula: Duplicated dependencies (neighbours)", () => {
+      cy.openTableTab("City", 25);
+
+      addFormulaBasedColumn(
+        "NC_CIRC_REF_0",
+        "{City}"
+      );
+      addFormulaBasedColumn(
+        "NC_CIRC_REF_1",
+        "{NC_CIRC_REF_0}"
+      );
+      addFormulaBasedColumn(
+        "NC_CIRC_REF_2",
+        "CONCAT({NC_CIRC_REF_1},{NC_CIRC_REF_1})"
+      );
+
+      rowValidation("NC_CIRC_REF_0", RESULT_CIRC_REF_0);
+      rowValidation("NC_CIRC_REF_1", RESULT_CIRC_REF_1);
+      rowValidation("NC_CIRC_REF_2", RESULT_CIRC_REF_2);
+
+      editColumnByName(
+        "NC_CIRC_REF_0",
+        "NC_CIRC_REF_0",
+        "CONCAT({City},{City})"
+      );
+
+      rowValidation("NC_CIRC_REF_0", RESULT_CIRC_REF_0_FINAL);
+      rowValidation("NC_CIRC_REF_2", RESULT_CIRC_REF_2_FINAL);
+
+      deleteColumnByName("NC_CIRC_REF_2");
+      deleteColumnByName("NC_CIRC_REF_1");
+      deleteColumnByName("NC_CIRC_REF_0");
 
       cy.closeTableTab("City");
     });

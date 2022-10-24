@@ -12,6 +12,11 @@ on:
       - "packages/nc-gui/**"
       - "packages/nc-plugin/**"
       - "packages/nocodb/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # enrich tag for pr release
   set-tag:

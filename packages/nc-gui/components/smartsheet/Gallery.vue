@@ -200,7 +200,7 @@ watch(view, async (nextView) => {
                   :key="`carousel-${record.row.id}-${index}`"
                   quality="90"
                   placeholder
-                  class="h-52 object-cover"
+                  class="h-52 object-contain"
                   :src="attachment.url"
                 />
               </a-carousel>
@@ -289,7 +289,7 @@ watch(view, async (nextView) => {
 .ant-carousel.gallery-carousel :deep(.slick-dots) {
   position: relative;
   height: auto;
-  bottom: 0px;
+  bottom: 0;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {

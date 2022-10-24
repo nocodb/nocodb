@@ -1,9 +1,27 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
-import { useI18n } from 'vue-i18n'
-import { message } from 'ant-design-vue'
 import type { Row } from '~/lib'
-import { SharedViewPasswordInj, deepCompare, enumColor, extractPkFromRow, useInjectionState, useNuxtApp } from '#imports'
+import {
+  IsPublicInj,
+  SharedViewPasswordInj,
+  deepCompare,
+  enumColor,
+  extractPkFromRow,
+  extractSdkResponseErrorMsg,
+  getHTMLEncodedText,
+  inject,
+  message,
+  provide,
+  ref,
+  useApi,
+  useI18n,
+  useInjectionState,
+  useNuxtApp,
+  useProject,
+  useSharedView,
+  useSmartsheetStoreOrThrow,
+  useUIPermission,
+} from '#imports'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
@@ -223,7 +241,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         groupingFieldColOptions.value = [
           ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
           // enrich uncategorized stack
-          { id: 'uncategorized', title: null, order: 0, color: enumColor.light[2] },
+          { id: 'uncategorized', title: null, order: 0, color: enumColor.light[2] } as any,
         ]
           // sort by initial order
           .sort((a, b) => a.order! - b.order!)
@@ -302,15 +320,13 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           // }
         )
         // audit
-        $api.utils
-          .auditRowUpdate(id, {
-            fk_model_id: meta.value?.id as string,
-            column_name: property,
-            row_id: id,
-            value: getHTMLEncodedText(toUpdate.row[property]),
-            prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
-          })
-          .then(() => {})
+        $api.utils.auditRowUpdate(id, {
+          fk_model_id: meta.value?.id as string,
+          column_name: property,
+          row_id: id,
+          value: getHTMLEncodedText(toUpdate.row[property]),
+          prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
+        })
 
         /** update row data(to sync formula and other related columns) */
         Object.assign(toUpdate.row, updatedRowData)

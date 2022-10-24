@@ -24,6 +24,7 @@ import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { extractAndGenerateManyToManyRelations } from './metaDiffApis';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { extractPropsAndSanitize } from '../helpers/extractProps';
+import NcConfigFactory from '../../utils/NcConfigFactory';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -107,16 +108,48 @@ async function projectCreate(req: Request<any, any>, res) {
     const ranId = nanoid();
     projectBody.prefix = `nc_${ranId}__`;
     projectBody.is_meta = true;
-    const db = Noco.getConfig().meta?.db;
-    projectBody.bases = [
-      {
-        type: db?.client,
-        config: null,
-        is_meta: true,
-        inflection_column: 'camelize',
-        inflection_table: 'camelize',
-      },
-    ];
+    if (process.env.NC_MINIMAL_DBS) {
+      // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each project
+      // each file will be named as nc_<random_id>.db
+      const fs = require('fs');
+      const toolDir = NcConfigFactory.getToolDir();
+      const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
+      if (!fs.existsSync(`${toolDir}/nc_minimal_dbs`)) {
+          fs.mkdirSync(`${toolDir}/nc_minimal_dbs`);
+      }
+      const dbId = nanoidv2();
+      const projectTitle = DOMPurify.sanitize(projectBody.title);
+      projectBody.prefix = '';
+      projectBody.bases = [
+        {
+          type: "sqlite3",
+          config: {
+            client: "sqlite3",
+            connection: {
+              client: "sqlite3",
+              database: projectTitle,
+              connection: {
+                filename: `${toolDir}/nc_minimal_dbs/${projectTitle}_${dbId}.db`,
+              },
+              useNullAsDefault: true,
+            },
+          },
+          inflection_column: "camelize",
+          inflection_table: "camelize",
+        },
+      ];
+    } else {
+      const db = Noco.getConfig().meta?.db;
+      projectBody.bases = [
+        {
+          type: db?.client,
+          config: null,
+          is_meta: true,
+          inflection_column: 'camelize',
+          inflection_table: 'camelize',
+        },
+      ];
+    }
   } else {
     if (process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED) {
       NcError.badRequest('Connecting to external db is disabled');

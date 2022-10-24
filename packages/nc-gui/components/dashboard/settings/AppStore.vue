@@ -77,6 +77,7 @@ onMounted(async () => {
     min-height="300"
     :footer="null"
     wrap-class-name="nc-modal-plugin-install"
+    v-bind="$attrs"
   >
     <LazyDashboardSettingsAppInstall
       v-if="pluginApp && showPluginInstallModal"

@@ -21,7 +21,7 @@ const { sharedView, meta, sorts, nestedFilters } = useSharedView()
 
 const { signedIn } = useGlobal()
 
-const { loadProject } = useProject(meta.value?.project_id)
+const { loadProject } = useProject()
 
 useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
 

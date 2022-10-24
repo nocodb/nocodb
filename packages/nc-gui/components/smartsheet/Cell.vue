@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -58,46 +58,14 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const syncValue = useDebounceFn(function () {
-  currentRow.value.rowMeta.changed = false
-  emit('save')
-}, 1000)
-
-const isAutoSaved = $computed(() => {
-  return [
-    UITypes.SingleLineText,
-    UITypes.LongText,
-    UITypes.PhoneNumber,
-    UITypes.Email,
-    UITypes.URL,
-    UITypes.Number,
-    UITypes.Decimal,
-    UITypes.Percent,
-    UITypes.Count,
-    UITypes.AutoNumber,
-    UITypes.SpecificDBType,
-    UITypes.Geometry,
-  ].includes(column?.value?.uidt as UITypes)
-})
-
-const isManualSaved = $computed(() => [UITypes.Currency, UITypes.Duration].includes(column?.value?.uidt as UITypes))
-
-const vModel = computed({
-  get: () => props.modelValue,
-  set: (val) => {
-    if (val !== props.modelValue) {
-      currentRow.value.rowMeta.changed = true
-      emit('update:modelValue', val)
-      if (isAutoSaved) {
-        syncValue()
-      } else if (!isManualSaved) {
-        emit('save')
-        currentRow.value.rowMeta.changed = true
-      }
-    }
+const syncValue = useDebounceFn(
+  () => {
+    currentRow.value.rowMeta.changed = false
+    emit('save')
   },
-})
-
+  500,
+  { maxWait: 2000 },
+)
 const {
   isPrimary,
   isURL,
@@ -121,7 +89,25 @@ const {
   isMultiSelect,
   isPercent,
   isPhoneNumber,
+  isAutoSaved,
+  isManualSaved,
 } = useColumn(column)
+
+const vModel = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    if (val !== props.modelValue) {
+      currentRow.value.rowMeta.changed = true
+      emit('update:modelValue', val)
+      if (isAutoSaved.value) {
+        syncValue()
+      } else if (!isManualSaved.value) {
+        emit('save')
+        currentRow.value.rowMeta.changed = true
+      }
+    }
+  },
+})
 
 const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   if (isJSON.value) return
@@ -158,7 +144,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     <LazyCellUrl v-else-if="isURL" v-model="vModel" />
     <LazyCellPhoneNumber v-else-if="isPhoneNumber" v-model="vModel" />
     <LazyCellPercent v-else-if="isPercent" v-model="vModel" />
-    <LazyCellCurrency v-else-if="isCurrency" v-model="vModel" />
+    <LazyCellCurrency v-else-if="isCurrency" v-model="vModel" @save="emit('save')" />
     <LazyCellDecimal v-else-if="isDecimal" v-model="vModel" />
     <LazyCellInteger v-else-if="isInt" v-model="vModel" />
     <LazyCellFloat v-else-if="isFloat" v-model="vModel" />

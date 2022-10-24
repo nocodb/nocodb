@@ -366,7 +366,6 @@ export default class NcMetaIOImpl extends NcMetaIO {
     return query;
   }
 
-
   public async metaCount(
     project_id: string,
     dbAlias: string,

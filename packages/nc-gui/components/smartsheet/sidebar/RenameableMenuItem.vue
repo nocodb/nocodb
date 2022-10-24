@@ -30,7 +30,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { is_default: boolean }>
+const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { alias?: string; is_default: boolean }>
 
 const { $e } = useNuxtApp()
 
@@ -56,6 +56,8 @@ const onClick = useDebounceFn(() => {
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
+  if (!isUIAllowed('virtualViewsCreateOrEdit')) return
+
   if (!isEditing) {
     isEditing = true
     originalTitle = vModel.value.title
@@ -162,7 +164,7 @@ function onStopEdit() {
 <template>
   <a-menu-item
     class="select-none group !flex !items-center !my-0 hover:(bg-primary !bg-opacity-5)"
-    @dblclick.stop="isUIAllowed('virtualViewsCreateOrEdit') && onDblClick()"
+    @dblclick.stop="onDblClick"
     @click.stop="onClick"
   >
     <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">

@@ -195,7 +195,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="el" class="pt-8 md:p-0 w-full h-full flex flex-col">
+  <div ref="el" class="survey pt-8 md:p-0 w-full h-full flex flex-col">
     <div
       v-if="sharedFormView"
       style="height: max(40vh, 225px); min-height: 225px"
@@ -232,6 +232,7 @@ onMounted(() => {
 
               <LazySmartsheetHeaderCell
                 v-else
+                :class="field.uidt === UITypes.Checkbox ? 'nc-form-column-label__checkbox' : ''"
                 :column="{ ...field, title: field.label || field.title }"
                 :required="isRequired(field, field.required)"
                 :hide-menu="true"
@@ -260,7 +261,11 @@ onMounted(() => {
                   {{ error.$message }}
                 </div>
 
-                <div class="block text-[14px]" data-cy="nc-survey-form__field-description">
+                <div
+                  class="block text-[14px]"
+                  :class="field.uidt === UITypes.Checkbox ? 'text-center' : ''"
+                  data-cy="nc-survey-form__field-description"
+                >
                   {{ field.description }}
                 </div>
 
@@ -425,21 +430,33 @@ onMounted(() => {
   @apply overscroll-x-none;
 }
 
-.nc-form-column-label {
-  > * {
-    @apply !prose-lg;
+.survey {
+  .nc-form-column-label {
+    > * {
+      @apply !prose-lg;
+    }
+
+    .nc-icon {
+      @apply mr-2;
+    }
   }
 
-  .nc-icon {
-    @apply mr-2;
+  .nc-form-column-label__checkbox {
+    @apply flex items-center justify-center gap-2 text-left;
   }
-}
 
-.nc-input {
-  @apply appearance-none w-full rounded px-2 py-2 my-2 border-solid border-1 border-primary border-opacity-50;
+  .nc-input {
+    @apply appearance-none w-full rounded px-2 py-2 my-2 border-solid border-1 border-primary border-opacity-50;
 
-  input {
-    @apply !py-1 !px-1;
+    &.nc-cell-checkbox {
+      > * {
+        @apply justify-center flex items-center;
+      }
+    }
+
+    input {
+      @apply !py-1 !px-1;
+    }
   }
 }
 </style>

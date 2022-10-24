@@ -5,10 +5,13 @@ import {
   ActiveCellInj,
   CellValueInj,
   ColumnInj,
+  IsFormInj,
+  IsLockedInj,
   ReadonlyInj,
   ReloadRowDataHookInj,
   RowInj,
-  defineAsyncComponent,
+  computed,
+  createEventHook,
   inject,
   ref,
   useProvideLTARStore,
@@ -17,10 +20,6 @@ import {
 } from '#imports'
 import MdiArrowExpand from '~icons/mdi/arrow-expand'
 import MdiPlus from '~icons/mdi/plus'
-
-const ItemChip = defineAsyncComponent(() => import('./components/ItemChip.vue'))
-
-const ListItems = defineAsyncComponent(() => import('./components/ListItems.vue'))
 
 const column = inject(ColumnInj)!
 
@@ -36,7 +35,7 @@ const readOnly = inject(ReadonlyInj, false)
 
 const isForm = inject(IsFormInj, ref(false))
 
-const isLocked = inject(IsLockedInj)
+const isLocked = inject(IsLockedInj, ref(false))
 
 const { isUIAllowed } = useUIPermission()
 
@@ -66,7 +65,7 @@ const value = computed(() => {
 
 const unlinkRef = async (rec: Record<string, any>) => {
   if (isNew.value) {
-    removeLTARRef(rec, column?.value as ColumnType)
+    await removeLTARRef(rec, column?.value as ColumnType)
   } else {
     await unlink(rec)
   }
@@ -77,9 +76,10 @@ const unlinkRef = async (rec: Record<string, any>) => {
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
     <div class="chips flex items-center flex-1">
       <template v-if="value && relatedTablePrimaryValueProp">
-        <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlinkRef(value)" />
+        <VirtualCellComponentsItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlinkRef(value)" />
       </template>
     </div>
+
     <div
       v-if="!readOnly && !isLocked && (isUIAllowed('xcDatatableEditable') || isForm)"
       class="flex justify-end gap-1 min-h-[30px] items-center"
@@ -87,10 +87,11 @@ const unlinkRef = async (rec: Record<string, any>) => {
       <component
         :is="addIcon"
         class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"
-        @click="listItemsDlg = true"
+        @click.stop="listItemsDlg = true"
       />
     </div>
-    <ListItems v-model="listItemsDlg" @attach-record="listItemsDlg = true" />
+
+    <LazyVirtualCellComponentsListItems v-model="listItemsDlg" @attach-record="listItemsDlg = true" />
   </div>
 </template>
 

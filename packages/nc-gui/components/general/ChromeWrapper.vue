@@ -26,5 +26,3 @@ const picked = computed({
 <template>
   <Chrome v-model="picked" />
 </template>
-
-<style scoped></style>

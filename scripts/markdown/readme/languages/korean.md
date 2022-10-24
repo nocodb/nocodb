@@ -198,15 +198,18 @@ docker-compose up -d
 
 ## 환경변수
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+여기서 확인해주세요.
+[환경변수 ](https://docs.nocodb.com/getting-started/installation#environment-variables)
 
 # 개발 환경에 설치하기
 
-Please refer to [Development Setup](https://docs-dev.nocodb.com/engineering/development-setup)
+여기서 확인해주세요.
+[개발 환경에 설치하는 법](https://docs.nocodb.com/engineering/development-setup)
 
 # 기여하기
 
-Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
+여기서 확인해주세요.
+[기여 가이드라인](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
 # 왜 이걸 만들었나요?
 

@@ -19,7 +19,7 @@ const { meta, isSqlView } = useSmartsheetStoreOrThrow()
 
 const { commentsDrawer, primaryValue, primaryKey, save: _save, loadRow } = useExpandedFormStoreOrThrow()
 
-const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
+const { isNew, syncLTARRefs, state } = useSmartsheetRowStoreOrThrow()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -27,7 +27,7 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const save = async () => {
   if (isNew.value) {
-    const data = await _save()
+    const data = await _save(state.value)
     await syncLTARRefs(data)
     reloadTrigger?.trigger()
   } else {
@@ -62,28 +62,29 @@ const copyRecordUrl = () => {
         {{ meta.title }}
       </template>
 
-      <!-- todo: table doesn't exist?
-      <template v-else>
-        {{ table }}
-      </template>
-      -->
       <template v-if="primaryValue">: {{ primaryValue }}</template>
     </h5>
 
     <div class="flex-1" />
+
     <a-tooltip placement="bottom">
       <template #title>
         <div class="text-center w-full">{{ $t('general.reload') }}</div>
       </template>
-      <mdi-reload v-if="!isNew" class="cursor-pointer select-none text-gray-500 mx-1" @click="loadRow" />
+      <mdi-reload v-if="!isNew" class="cursor-pointer select-none text-gray-500 mx-1 min-w-4" @click="loadRow" />
     </a-tooltip>
     <a-tooltip placement="bottom">
       <template #title>
         <!-- todo: i18n -->
         <div class="text-center w-full">Copy record URL</div>
       </template>
-      <mdi-link v-if="!isNew" class="cursor-pointer select-none text-gray-500 mx-1 nc-copy-row-url" @click="copyRecordUrl" />
+      <mdi-link
+        v-if="!isNew"
+        class="cursor-pointer select-none text-gray-500 mx-1 nc-copy-row-url min-w-4"
+        @click="copyRecordUrl"
+      />
     </a-tooltip>
+
     <a-tooltip v-if="!isSqlView" placement="bottom">
       <!--      Toggle comments draw -->
       <template #title>
@@ -92,7 +93,7 @@ const copyRecordUrl = () => {
       <MdiCommentTextOutline
         v-if="isUIAllowed('rowComments') && !isNew"
         v-e="['c:row-expand:comment-toggle']"
-        class="cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1"
+        class="cursor-pointer select-none nc-toggle-comments text-gray-500 mx-1 min-w-4"
         @click="commentsDrawer = !commentsDrawer"
       />
     </a-tooltip>

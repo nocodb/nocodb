@@ -1,21 +1,10 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
-import {
-  definePageMeta,
-  extractSdkResponseErrorMsg,
-  isEmail,
-  navigateTo,
-  reactive,
-  ref,
-  useApi,
-  useGlobal,
-  useI18n,
-  useSidebar,
-} from '#imports'
+import { definePageMeta, isEmail, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useSidebar } from '#imports'
 
 const { signIn: _signIn, appInfo } = useGlobal()
 
-const { api, isLoading } = useApi()
+const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
@@ -26,9 +15,9 @@ definePageMeta({
   title: 'title.headLogin',
 })
 
-const formValidator = ref()
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 
-let error = $ref<string | null>(null)
+const formValidator = ref()
 
 const form = reactive({
   email: '',
@@ -44,6 +33,7 @@ const formRules: Record<string, RuleObject[]> = {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
           if (isEmail(v)) return resolve()
+
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
       },
@@ -61,20 +51,15 @@ async function signIn() {
 
   resetError()
 
-  api.auth
-    .signin(form)
-    .then(async ({ token }) => {
-      _signIn(token!)
-      await navigateTo('/')
-    })
-    .catch(async (err) => {
-      // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
-      error = await extractSdkResponseErrorMsg(err)
-    })
+  api.auth.signin(form).then(async ({ token }) => {
+    _signIn(token!)
+
+    await navigateTo('/')
+  })
 }
 
 function resetError() {
-  if (error) error = null
+  if (error.value) error.value = null
 }
 
 const isSignupAllowed = () => {
@@ -85,11 +70,14 @@ const isSignupAllowed = () => {
 
 <template>
   <NuxtLayout>
-    <div class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin">
+    <div
+      data-cy="nc-form-signin"
+      class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
+    >
       <div
         class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
-        <general-noco-icon class="color-transition hover:(ring ring-accent)" :class="[isLoading ? 'animated-bg-gradient' : '']" />
+        <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
         <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 
@@ -104,12 +92,19 @@ const isSignupAllowed = () => {
           </Transition>
 
           <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-            <a-input v-model:value="form.email" size="large" :placeholder="$t('msg.info.signUp.workEmail')" @focus="resetError" />
+            <a-input
+              v-model:value="form.email"
+              data-cy="nc-form-signin__email"
+              size="large"
+              :placeholder="$t('msg.info.signUp.workEmail')"
+              @focus="resetError"
+            />
           </a-form-item>
 
           <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
             <a-input-password
               v-model:value="form.password"
+              data-cy="nc-form-signin__password"
               size="large"
               class="password"
               :placeholder="$t('msg.info.signUp.enterPassword')"
@@ -124,14 +119,26 @@ const isSignupAllowed = () => {
           </div>
 
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-            <button class="submit group" type="submit">
+            <button data-cy="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
                 <MdiLogin />
                 {{ $t('general.signIn') }}
               </span>
             </button>
 
-            <div class="text-end prose-sm" v-if="isSignupAllowed()">
+            <a
+              v-if="appInfo.googleAuthEnabled"
+              :href="`${appInfo.ncSiteUrl}/auth/google`"
+              class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+            >
+              <span class="flex items-center gap-2">
+                <LogosGoogleGmail />
+
+                {{ $t('labels.signInWithGoogle') }}
+              </span>
+            </a>
+
+            <div class="text-end prose-sm"  v-if="isSignupAllowed()">
               {{ $t('msg.info.signUp.dontHaveAccount') }}
               <nuxt-link to="/signup">{{ $t('general.signUp') }}</nuxt-link>
             </div>
@@ -165,30 +172,12 @@ const isSignupAllowed = () => {
 .signin {
   .ant-input-affix-wrapper,
   .ant-input {
-    @apply !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+    @apply !appearance-none my-1 border-1 border-solid border-primary border-opacity-50 rounded;
   }
 
   .password {
     input {
       @apply !border-none !m-0;
-    }
-  }
-
-  .submit {
-    @apply z-1 relative color-transition rounded p-3 text-white shadow-sm;
-
-    &::after {
-      @apply rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
-      content: '';
-      z-index: -1;
-    }
-
-    &:hover::after {
-      @apply transform scale-110 ring ring-accent;
-    }
-
-    &:active::after {
-      @apply ring ring-accent;
     }
   }
 }

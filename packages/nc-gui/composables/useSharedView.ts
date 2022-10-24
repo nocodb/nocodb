@@ -1,22 +1,39 @@
-import type { ExportTypes, FilterType, PaginatedType, RequestParams, SortType, TableType, ViewType } from 'nocodb-sdk'
+import type {
+  Api,
+  ExportTypes,
+  FilterType,
+  KanbanType,
+  PaginatedType,
+  RequestParams,
+  SortType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { useNuxtApp } from '#app'
+import { computed, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
 export function useSharedView() {
-  const nestedFilters = useState<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>(
-    'nestedFilters',
-    () => [],
-  )
-  const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: 25 }))
+  const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
+
+  const { appInfo } = $(useGlobal())
+
+  const appInfoDefaultLimit = appInfo.defaultLimit || 25
+
+  const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: appInfoDefaultLimit }))
+
   const sharedView = useState<ViewType | undefined>('sharedView', () => undefined)
-  const sorts = useState<SortType[]>('sorts', () => [])
+
+  const sorts = ref<SortType[]>([])
+
   const password = useState<string | undefined>('password', () => undefined)
+
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
-  const meta = useState<TableType | undefined>('meta', () => undefined)
+
+  const meta = useState<TableType | KanbanType | undefined>('meta', () => undefined)
 
   const formColumns = computed(
     () =>
-      meta.value?.columns
+      (meta.value as TableType)?.columns
         ?.filter(
           (f: Record<string, any>) =>
             f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,
@@ -26,6 +43,7 @@ export function useSharedView() {
   )
 
   const { $api } = useNuxtApp()
+
   const { setMeta } = useMetas()
 
   const loadSharedView = async (viewId: string, localPassword: string | undefined = undefined) => {
@@ -47,24 +65,24 @@ export function useSharedView() {
       .map((c) => ({ ...c, order: order++ }))
       .sort((a, b) => a.order - b.order)
 
-    setMeta(viewMeta.model)
+    await setMeta(viewMeta.model)
 
     const relatedMetas = { ...viewMeta.relatedMetas }
     Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
   }
 
-  const fetchSharedViewData = async () => {
+  const fetchSharedViewData = async ({ sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] }) => {
     if (!sharedView.value) return
 
     const page = paginationData.value.page || 1
-    const pageSize = paginationData.value.pageSize || 25
+    const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
 
     const { data } = await $api.public.dataList(
       sharedView.value.uuid!,
       {
         offset: (page - 1) * pageSize,
-        filterArrJson: JSON.stringify(nestedFilters.value),
-        sortArrJson: JSON.stringify(sorts.value),
+        filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
       } as any,
       {
         headers: {
@@ -72,7 +90,30 @@ export function useSharedView() {
         },
       },
     )
+    return data
+  }
 
+  const fetchSharedViewGroupedData = async (columnId: string, params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
+    if (!sharedView.value) return
+
+    const page = paginationData.value.page || 1
+    const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
+
+    const data = await $api.public.groupedDataList(
+      sharedView.value.uuid!,
+      columnId,
+      {
+        offset: (page - 1) * pageSize,
+        filterArrJson: JSON.stringify(nestedFilters.value),
+        sortArrJson: JSON.stringify(sorts.value),
+        ...params,
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
     return data
   }
 
@@ -81,15 +122,15 @@ export function useSharedView() {
     offset: number,
     type: ExportTypes.EXCEL | ExportTypes.CSV,
     responseType: 'base64' | 'blob',
+    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] },
   ) => {
     return await $api.public.csvExport(sharedView.value!.uuid!, type, {
       format: responseType,
       query: {
         fields: fields.map((field) => field.title),
         offset,
-        sortArrJson: JSON.stringify(sorts.value),
-
-        filterArrJson: JSON.stringify(nestedFilters.value),
+        filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
+        sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
       },
       headers: {
         'xc-password': password.value,
@@ -103,6 +144,7 @@ export function useSharedView() {
     meta,
     nestedFilters,
     fetchSharedViewData,
+    fetchSharedViewGroupedData,
     paginationData,
     sorts,
     exportFile,

@@ -1,6 +1,14 @@
 <script setup lang="ts">
-import { ColumnInj, computed, convertDurationToSeconds, convertMS2Duration, durationOptions, inject, ref } from '#imports'
-import { EditModeInj } from '~/context'
+import {
+  ColumnInj,
+  EditModeInj,
+  computed,
+  convertDurationToSeconds,
+  convertMS2Duration,
+  durationOptions,
+  inject,
+  ref,
+} from '#imports'
 
 interface Props {
   modelValue: number | string | null | undefined
@@ -67,12 +75,16 @@ const submitDuration = () => {
       v-if="editEnabled"
       ref="durationInput"
       v-model="localState"
+      class="w-full !border-none p-0"
+      :class="{ '!px-2': editEnabled }"
       :placeholder="durationPlaceholder"
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"
       @keydown.enter="submitDuration"
     />
+
     <span v-else> {{ localState }}</span>
+
     <div v-if="showWarningMessage" class="duration-warning">
       <!-- TODO: i18n -->
       Please enter a number
@@ -81,14 +93,8 @@ const submitDuration = () => {
 </template>
 
 <style scoped>
-.duration-cell-wrapper {
-  padding: 10px;
-}
-
 .duration-warning {
-  text-align: left;
-  margin-top: 10px;
-  color: #e65100;
+  @apply text-left mt-[10px] text-[#e65100];
 }
 </style>
 

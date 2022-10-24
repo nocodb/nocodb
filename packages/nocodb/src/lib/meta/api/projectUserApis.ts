@@ -87,7 +87,7 @@ async function userInvite(req, res, next): Promise<any> {
         );
       }
 
-      Audit.insert({
+      await Audit.insert({
         project_id: req.params.projectId,
         op_type: 'AUTHENTICATION',
         op_sub_type: 'INVITE',
@@ -188,7 +188,7 @@ async function projectUserUpdate(req, res, next): Promise<any> {
       req.body.roles
     );
 
-    Audit.insert({
+    await Audit.insert({
       op_type: 'AUTHENTICATION',
       op_sub_type: 'ROLES_MANAGEMENT',
       user: req.user.email,
@@ -255,7 +255,7 @@ async function projectUserInviteResend(req, res): Promise<any> {
 
   await sendInviteEmail(user.email, invite_token, req);
 
-  Audit.insert({
+  await Audit.insert({
     op_type: 'AUTHENTICATION',
     op_sub_type: 'RESEND_INVITE',
     user: user.email,

@@ -8,29 +8,43 @@ let t6f = require("../common/6f_attachments");
 let t6g = require("../common/6g_base_share");
 let t7a = require("../common/7a_create_project_from_excel");
 const {
-    setCurrentMode,
+  setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
 const t8a = require("../common/8a_webhook");
+const t9b = require("../common/9b_ERD");
 
 const nocoTestSuite = (apiType, dbType) => {
-    setCurrentMode(apiType, dbType);
-    t01.genTest(apiType, dbType);
+  setCurrentMode(apiType, dbType);
 
-    t6b.genTest(apiType, dbType);
-    t6d.genTest(apiType, dbType);
-    // exclude@ncv2 t6c.genTest(apiType, dbType);
-    t6f.genTest(apiType, dbType);
-    t6g.genTest(apiType, dbType);
+  // Sakila Ext DB project creation
+  t01.genTest(apiType, dbType);
 
-    // webhook tests
-    t8a.genTest(apiType, dbType)
+  // Download CSV
+  t6b.genTest(apiType, dbType);
 
-    // **deletes created project, hence place it @ end
-    t6e.genTest(apiType, dbType);
+  // i18n: language validation suffice to be done in REST MySQL suite
+  // t6d.genTest(apiType, dbType);
 
-    // intended to keep this after earlier project deletion
-    // creates project using excel & deletes it
-    t7a.genTest(apiType, dbType);
+  // Swagger API
+  // exclude@ncv2 t6c.genTest(apiType, dbType);
+
+  // Attachment cell
+  t6f.genTest(apiType, dbType);
+
+  // ERD:
+  t9b.genTest(apiType, dbType);
+
+  // Webhook tests
+  t8a.genTest(apiType, dbType);
+
+  // Base share (viewer, editor), iFrame tests
+  t6g.genTest(apiType, dbType);
+
+  // Project operations: Delete
+  t6e.genTest(apiType, dbType);
+
+  // Create project from Excel
+  t7a.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "postgres");

@@ -1,37 +1,34 @@
 import { ViewTypes } from 'nocodb-sdk'
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { message } from 'ant-design-vue'
 import {
   IsPublicInj,
   NOCO,
+  computed,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
   getHTMLEncodedText,
+  message,
+  populateInsertObject,
+  ref,
   useApi,
+  useGlobal,
   useI18n,
+  useMetas,
   useNuxtApp,
   useProject,
+  useSharedView,
+  useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
+import type { Row } from '~/lib'
 
-const formatData = (list: Record<string, any>[]) =>
+const formatData = (list: Row[]) =>
   list.map((row) => ({
     row: { ...row },
     oldRow: { ...row },
     rowMeta: {},
   }))
-
-export interface Row {
-  row: Record<string, any>
-  oldRow: Record<string, any>
-  rowMeta: {
-    new?: boolean
-    selected?: boolean
-    commentCount?: number
-    changed?: boolean
-  }
-}
 
 export function useViewData(
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
@@ -43,19 +40,35 @@ export function useViewData(
   }
 
   const { t } = useI18n()
+
   const { api, isLoading, error } = useApi()
-  const _paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
+
+  const { appInfo } = $(useGlobal())
+
+  const { getMeta } = useMetas()
+
+  const appInfoDefaultLimit = appInfo.defaultLimit || 25
+  const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
+
   const galleryData = ref<GalleryType>()
+
   const formColumnData = ref<FormType>()
+
   const formViewData = ref<FormType>()
+
   const formattedData = ref<Row[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
+
   const { project, isSharedBase } = useProject()
+
   const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
+
   const { $api, $e } = useNuxtApp()
+
   const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+
   const { isUIAllowed } = useUIPermission()
 
   const paginationData = computed({
@@ -79,8 +92,8 @@ export function useViewData(
   })
 
   const queryParams = computed(() => ({
-    offset: ((paginationData.value?.page ?? 0) - 1) * (paginationData.value?.pageSize ?? 25),
-    limit: paginationData.value?.pageSize ?? 25,
+    offset: ((paginationData.value.page ?? 0) - 1) * (paginationData.value.pageSize ?? appInfoDefaultLimit),
+    limit: paginationData.value.pageSize ?? appInfoDefaultLimit,
     where: where?.value ?? '',
   }))
 
@@ -116,9 +129,9 @@ export function useViewData(
     // total records in the current table
     const count = paginationData.value?.totalRows ?? Infinity
     // the number of rows in a page
-    const size = paginationData.value?.pageSize ?? 25
+    const size = paginationData.value.pageSize ?? appInfoDefaultLimit
     // the current page number
-    const currentPage = paginationData.value?.page ?? 1
+    const currentPage = paginationData.value.page ?? 1
     // the maximum possible page given the current count and the size
     const mxPage = Math.ceil(count / size)
     // calculate targetPage where 1 <= targetPage <= mxPage
@@ -172,7 +185,7 @@ export function useViewData(
           ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           where: where?.value,
         })
-      : await fetchSharedViewData()
+      : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
     if (viewMeta.value?.type === ViewTypes.GRID) {
@@ -186,20 +199,27 @@ export function useViewData(
     galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
   }
 
-  async function insertRow(row: Record<string, any>, rowIndex = formattedData.value?.length) {
+  async function insertRow(
+    row: Record<string, any>,
+    rowIndex = formattedData.value?.length,
+    ltarState: Record<string, any> = {},
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+  ) {
     try {
-      const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
-        if (!col.ai && row?.[col.title as string] !== null) {
-          o[col.title as string] = row?.[col.title as string]
-        }
-        return o
-      }, {})
+      const { missingRequiredColumns, insertObj } = await populateInsertObject({
+        meta: metaValue!,
+        ltarState,
+        getMeta,
+        row,
+      })
+
+      if (missingRequiredColumns.size) return
 
       const insertedData = await $api.dbViewRow.create(
         NOCO,
         project?.value.id as string,
-        meta.value?.id as string,
-        viewMeta?.value?.id as string,
+        metaValue?.id as string,
+        viewMetaValue?.id as string,
         insertObj,
       )
 
@@ -216,15 +236,19 @@ export function useViewData(
     }
   }
 
-  async function updateRowProperty(toUpdate: Row, property: string) {
+  async function updateRowProperty(
+    toUpdate: Row,
+    property: string,
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+  ) {
     try {
       const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
 
       const updatedRowData = await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
-        meta.value?.id as string,
-        viewMeta?.value?.id as string,
+        metaValue?.id as string,
+        viewMetaValue?.id as string,
         id,
         {
           [property]: toUpdate.row[property],
@@ -235,15 +259,13 @@ export function useViewData(
         // }
       )
       // audit
-      $api.utils
-        .auditRowUpdate(id, {
-          fk_model_id: meta.value?.id as string,
-          column_name: property,
-          row_id: id,
-          value: getHTMLEncodedText(toUpdate.row[property]),
-          prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
-        })
-        .then(() => {})
+      $api.utils.auditRowUpdate(id, {
+        fk_model_id: meta.value?.id as string,
+        column_name: property,
+        row_id: id,
+        value: getHTMLEncodedText(toUpdate.row[property]),
+        prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
+      })
 
       /** update row data(to sync formula and other related columns) */
       Object.assign(toUpdate.row, updatedRowData)
@@ -253,17 +275,25 @@ export function useViewData(
     }
   }
 
-  async function updateOrSaveRow(row: Row, property?: string) {
+  async function updateOrSaveRow(
+    row: Row,
+    property?: string,
+    ltarState?: Record<string, any>,
+    args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+  ) {
     if (row.rowMeta.new) {
-      return await insertRow(row.row, formattedData.value.indexOf(row))
+      return await insertRow(row.row, formattedData.value.indexOf(row), ltarState, args)
     } else {
-      await updateRowProperty(row, property!)
+      await updateRowProperty(row, property!, args)
     }
   }
 
   async function changePage(page: number) {
     paginationData.value.page = page
-    await loadData({ offset: (page - 1) * (paginationData.value.pageSize || 25), where: where?.value } as any)
+    await loadData({
+      offset: (page - 1) * (paginationData.value.pageSize || appInfoDefaultLimit),
+      where: where?.value,
+    } as any)
     $e('a:grid:pagination')
   }
 

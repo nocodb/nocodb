@@ -16,6 +16,10 @@ export function useInjectionState<Arguments extends any[], Return>(
 
     providableState = providedState
 
+    tryOnScopeDispose(() => {
+      providableState = undefined
+    })
+
     return providedState
   }
 

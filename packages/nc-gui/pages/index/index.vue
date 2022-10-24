@@ -1,19 +1,21 @@
 <script lang="ts" setup>
-import { useGlobal, useRoute } from '#imports'
+import { useGlobal, useRoute, useSidebar } from '#imports'
 
 const route = useRoute()
 
 const { appInfo } = useGlobal()
+
+useSidebar('nc-left-sidebar', { hasSidebar: false })
 </script>
 
 <template>
   <NuxtLayout>
     <div
-      class="min-h-[calc(100vh_-_var(--header-height))] h-auto bg-primary bg-opacity-5 flex flex-col lg:flex-row flex-wrap gap-6 py-6 px-12 pt-65px"
+      class="min-h-[calc(100vh_-_var(--header-height))] bg-primary bg-opacity-5 flex flex-wrap justify-between xl:flex-nowrap gap-6 py-6 px-4 md:(px-12 pt-65px)"
     >
-      <div v-if="!appInfo.useFinnTheme" class="flex-1 justify-end hidden xl:(flex)">
+      <div v-if="!appInfo.useFinnTheme" class="hidden xl:(flex)">
         <div>
-          <GeneralSponsors />
+          <LazyGeneralSponsors />
         </div>
       </div>
 
@@ -21,15 +23,18 @@ const { appInfo } = useGlobal()
         <NuxtPage />
       </div>
 
-      <div v-if="!appInfo.useFinnTheme" class="flex flex-1 justify-between gap-6 lg:block">
+      <div
+        v-if="!appInfo.useFinnTheme"
+        class="flex-1 flex gap-6 flex-col justify-center items-center md:(flex-row justify-between items-start)"
+      >
         <template v-if="route.name === 'index-index'">
           <TransitionGroup name="page" mode="out-in">
             <div key="social-card">
-              <GeneralSocialCard />
+              <LazyGeneralSocialCard />
             </div>
 
-            <div key="sponsors" class="block mt-0 lg:(!mt-6) xl:hidden">
-              <GeneralSponsors />
+            <div key="sponsors" class="inline-block xl:hidden">
+              <LazyGeneralSponsors />
             </div>
           </TransitionGroup>
         </template>

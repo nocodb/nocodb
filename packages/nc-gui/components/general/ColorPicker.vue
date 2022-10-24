@@ -57,14 +57,16 @@ watch(picked, (n, _o) => {
         {{ compare(picked, color) ? '&#10003;' : '' }}
       </button>
     </div>
+
     <a-card v-if="props.advanced" class="w-full mt-2" :body-style="{ padding: '0px' }" :bordered="false">
       <a-collapse accordion ghost expand-icon-position="right">
         <a-collapse-panel key="1" header="Advanced" class="">
           <a-button v-if="props.pickButton" class="!bg-primary text-white w-full" @click="selectColor(picked)">
             Pick Color
           </a-button>
+
           <div class="flex justify-center py-4">
-            <GeneralChromeWrapper v-model="picked" class="!w-full !shadow-none" />
+            <LazyGeneralChromeWrapper v-model="picked" class="!w-full !shadow-none" />
           </div>
         </a-collapse-panel>
       </a-collapse>

@@ -1,9 +1,7 @@
 import { isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
-import { useNuxtApp } from '#app'
-import { IsPublicInj } from '#imports'
+import { IsPublicInj, computed, inject, ref, useNuxtApp, useProject, useUIPermission, watch } from '#imports'
 import type { Field } from '~/lib'
 
 export function useViewColumns(
@@ -207,12 +205,18 @@ export function useViewColumns(
       ?.map((field: Field) => metaColumnById?.value?.[field.fk_column_id!]) || []) as ColumnType[]
   })
 
-  // reload view columns when table meta changes
-  watch(meta, async (newVal, oldVal) => {
-    if (newVal !== oldVal && meta.value) {
-      await loadViewColumns()
-    }
-  })
+  // reload view columns when active view changes
+  // or when columns count changes(delete/add)
+  watch(
+    [() => view?.value?.id, () => meta.value?.columns?.length],
+    async ([newViewId]) => {
+      // reload only if view belongs to current table
+      if (newViewId && view.value?.fk_model_id === meta.value?.id) {
+        await loadViewColumns()
+      }
+    },
+    { immediate: true },
+  )
 
   return {
     fields,

@@ -1,6 +1,8 @@
-import type { FilterType } from 'nocodb-sdk'
+import type { FilterType, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
-import type { ProjectRole, Role } from './enums'
+import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
+import type { ProjectRole, Role, TabType } from './enums'
+import type { rolePermissions } from './constants'
 
 export interface User {
   id: string
@@ -33,6 +35,61 @@ export interface Field {
 
 export type Roles<T extends Role | ProjectRole = Role | ProjectRole> = Record<T | string, boolean>
 
-export type Filter = FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string; readOnly?: boolean }
+export type Filter = FilterType & {
+  field?: string
+  status?: 'update' | 'delete' | 'create'
+  parentId?: string
+  readOnly?: boolean
+}
 
 export type NocoI18n = I18n<{}, unknown, unknown, string, false>
+
+export interface ThemeConfig extends AntTheme {
+  primaryColor: string
+  accentColor: string
+}
+
+export interface Row {
+  row: Record<string, any>
+  oldRow: Record<string, any>
+  rowMeta: {
+    new?: boolean
+    selected?: boolean
+    commentCount?: number
+    changed?: boolean
+  }
+}
+
+type RolePermissions = Omit<typeof rolePermissions, 'guest' | 'admin' | 'super'>
+
+type GetKeys<T> = T extends Record<any, Record<infer Key, boolean>> ? Key : never
+
+export type Permission<K extends keyof RolePermissions = keyof RolePermissions> = RolePermissions[K] extends Record<any, any>
+  ? GetKeys<RolePermissions[K]>
+  : never
+
+export interface TabItem {
+  type: TabType
+  title: string
+  id?: string
+  viewTitle?: string
+  viewId?: string
+  sortsState?: Map<string, any>
+  filterState?: Map<string, any>
+}
+
+export interface SharedViewMeta extends Record<string, any> {
+  surveyMode?: boolean
+  transitionDuration?: number // in ms
+  withTheme?: boolean
+  theme?: Partial<ThemeConfig>
+  allowCSVDownload?: boolean
+}
+
+export interface SharedView {
+  uuid?: string
+  id: string
+  password?: string
+  type?: ViewTypes
+  meta: SharedViewMeta
+}

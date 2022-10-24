@@ -1,8 +1,17 @@
 <script lang="ts" setup>
-import type { ViewType, ViewTypes } from 'nocodb-sdk'
-import { message } from 'ant-design-vue'
+import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { IsLockedInj, inject, onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel, viewIcons } from '#imports'
+import {
+  IsLockedInj,
+  inject,
+  message,
+  onKeyStroke,
+  useDebounceFn,
+  useNuxtApp,
+  useUIPermission,
+  useVModel,
+  viewIcons,
+} from '#imports'
 
 interface Props {
   view: ViewType
@@ -14,14 +23,14 @@ interface Emits {
   (event: 'changeView', view: Record<string, any>): void
   (event: 'rename', view: ViewType): void
   (event: 'delete', view: ViewType): void
-  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
+  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
 }
 
 const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { is_default: boolean }>
+const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { alias?: string; is_default: boolean }>
 
 const { $e } = useNuxtApp()
 
@@ -47,6 +56,8 @@ const onClick = useDebounceFn(() => {
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
+  if (!isUIAllowed('virtualViewsCreateOrEdit')) return
+
   if (!isEditing) {
     isEditing = true
     originalTitle = vModel.value.title
@@ -92,7 +103,12 @@ function focusInput(el: HTMLInputElement) {
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
 function onDuplicate() {
-  emits('openModal', { type: vModel.value.type!, title: vModel.value.title, copyViewId: vModel.value.id })
+  emits('openModal', {
+    type: vModel.value.type!,
+    title: vModel.value.title,
+    copyViewId: vModel.value.id,
+    groupingFieldColumnId: (vModel.value.view as KanbanType).fk_grp_col_id!,
+  })
 
   $e('c:view:copy', { view: vModel.value.type })
 }
@@ -148,7 +164,7 @@ function onStopEdit() {
 <template>
   <a-menu-item
     class="select-none group !flex !items-center !my-0 hover:(bg-primary !bg-opacity-5)"
-    @dblclick.stop="isUIAllowed('virtualViewsCreateOrEdit') && onDblClick()"
+    @dblclick.stop="onDblClick"
     @click.stop="onClick"
   >
     <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
@@ -168,7 +184,7 @@ function onStopEdit() {
       <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown="onKeyDown($event)" />
 
       <div v-else>
-        <GeneralTruncateText>{{ vModel.alias || vModel.title }}</GeneralTruncateText>
+        <LazyGeneralTruncateText>{{ vModel.alias || vModel.title }}</LazyGeneralTruncateText>
       </div>
 
       <div class="flex-1" />
@@ -180,7 +196,7 @@ function onStopEdit() {
               {{ $t('activity.copyView') }}
             </template>
 
-            <MdiContentCopy class="hidden group-hover:block text-gray-500" @click.stop="onDuplicate" />
+            <MdiContentCopy class="hidden group-hover:block text-gray-500 nc-view-copy-icon" @click.stop="onDuplicate" />
           </a-tooltip>
 
           <template v-if="!vModel.is_default">

@@ -201,7 +201,7 @@ docker-compose up -d
 
 # 開発セットアップ
 
-[開発セットアップ](https://docs-dev.nocodb.com/engineering/development-setup)をご参照ください
+[開発セットアップ](https://docs.nocodb.com/engineering/development-setup)をご参照ください
 
 # コントリビュート
 

@@ -28,6 +28,7 @@ declare module 'vue-router' {
     public?: boolean
     hideHeader?: boolean
     title?: string
+    allowedRoles?: Role[]
   }
 
   interface RouteParams {

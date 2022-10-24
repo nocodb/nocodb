@@ -2506,6 +2506,99 @@
         ]
       }
     },
+    "/api/v1/db/meta/tables/{tableId}/kanbans": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "db-view-kanban-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Kanban"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/kanbans/{kanbanId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "kanbanId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "db-view-kanban-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB view"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Kanban"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "",
+        "operationId": "db-view-kanban-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kanban"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB view"
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/meta-diff": {
       "parameters": [
         {
@@ -2608,6 +2701,20 @@
             },
             "in": "query",
             "name": "where"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit"
           }
         ],
         "responses": {
@@ -2785,6 +2892,180 @@
             },
             "in": "query",
             "name": "offset"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Table Group by Column",
+        "operationId": "db-view-row-grouped-data-list",
+        "description": "",
+        "tags": [
+          "DB view row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Table Group by Column",
+        "operationId": "db-table-row-grouped-data-list",
+        "description": "",
+        "tags": [
+          "DB table row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
           }
         ],
         "responses": {
@@ -3586,6 +3867,13 @@
           "name": "tableName",
           "in": "path",
           "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "where"
         }
       ],
       "patch": {
@@ -3818,7 +4106,8 @@
             "type": "string",
             "enum": [
               "mm",
-              "hm"
+              "hm",
+              "bt"
             ]
           },
           "name": "relationType",
@@ -3920,7 +4209,8 @@
             "type": "string",
             "enum": [
               "mm",
-              "hm"
+              "hm",
+              "bt"
             ]
           },
           "name": "relationType",
@@ -4035,7 +4325,8 @@
             "type": "string",
             "enum": [
               "mm",
-              "hm"
+              "hm",
+              "bt"
             ]
           },
           "name": "relationType",
@@ -4094,6 +4385,67 @@
             },
             "in": "query",
             "name": "where"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "public-grouped-data-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "offset"
           }
         ]
       }
@@ -4209,7 +4561,8 @@
             "type": "string",
             "enum": [
               "mm",
-              "hm"
+              "hm",
+              "bt"
             ]
           },
           "name": "relationType",
@@ -5323,6 +5676,339 @@
         "description": ""
       }
     },
+    "/api/v1/aggregated-meta-info": {
+      "parameters": [],
+      "get": {
+        "summary": "",
+        "operationId": "utils-aggregated-meta-info",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "projectCount": {
+                      "type": "integer"
+                    },
+                    "projects": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tableCount": {
+                            "type": "object",
+                            "properties": {
+                              "table": {
+                                "type": "integer"
+                              },
+                              "view": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "external": {
+                            "type": "boolean"
+                          },
+                          "viewCount": {
+                            "type": "object",
+                            "properties": {
+                              "formCount": {
+                                "type": "integer"
+                              },
+                              "gridCount": {
+                                "type": "integer"
+                              },
+                              "galleryCount": {
+                                "type": "integer"
+                              },
+                              "kanbanCount": {
+                                "type": "integer"
+                              },
+                              "total": {
+                                "type": "integer"
+                              },
+                              "sharedFormCount": {
+                                "type": "integer"
+                              },
+                              "sharedGridCount": {
+                                "type": "integer"
+                              },
+                              "sharedGalleryCount": {
+                                "type": "integer"
+                              },
+                              "sharedKanbanCount": {
+                                "type": "integer"
+                              },
+                              "sharedTotal": {
+                                "type": "integer"
+                              },
+                              "sharedLockedCount": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "webhookCount": {
+                            "type": "integer"
+                          },
+                          "filterCount": {
+                            "type": "integer"
+                          },
+                          "sortCount": {
+                            "type": "integer"
+                          },
+                          "rowCount": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "TotalRecords": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "userCount": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "userCount": {
+                      "type": "integer"
+                    },
+                    "sharedBaseCount": {
+                      "type": "integer"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "projectCount": 1,
+                      "projects": [
+                        {
+                          "tableCount": {
+                            "table": 3,
+                            "view": 0
+                          },
+                          "external": false,
+                          "viewCount": {
+                            "formCount": 0,
+                            "gridCount": 3,
+                            "galleryCount": 0,
+                            "kanbanCount": 0,
+                            "total": 3,
+                            "sharedFormCount": 0,
+                            "sharedGridCount": 0,
+                            "sharedGalleryCount": 0,
+                            "sharedKanbanCount": 0,
+                            "sharedTotal": 0,
+                            "sharedLockedCount": 0
+                          },
+                          "webhookCount": 0,
+                          "filterCount": 0,
+                          "sortCount": 0,
+                          "rowCount": [
+                            {
+                              "TotalRecords": "76"
+                            }
+                          ],
+                          "userCount": 1
+                        }
+                      ],
+                      "userCount": 1,
+                      "sharedBaseCount": 0
+                    }
+                  }
+                },
+                "examples": {
+                  "example-1": {
+                    "value": {
+                      "projectCount": 1,
+                      "projects": [
+                        {
+                          "tableCount": {
+                            "table": 3,
+                            "view": 0
+                          },
+                          "external": false,
+                          "viewCount": {
+                            "formCount": 0,
+                            "gridCount": 3,
+                            "galleryCount": 0,
+                            "kanbanCount": 0,
+                            "total": 3,
+                            "sharedFormCount": 0,
+                            "sharedGridCount": 0,
+                            "sharedGalleryCount": 0,
+                            "sharedKanbanCount": 0,
+                            "sharedTotal": 0,
+                            "sharedLockedCount": 0
+                          },
+                          "webhookCount": 0,
+                          "filterCount": 0,
+                          "sortCount": 0,
+                          "rowCount": [
+                            {
+                              "TotalRecords": "76"
+                            }
+                          ],
+                          "userCount": 1
+                        }
+                      ],
+                      "userCount": 1,
+                      "sharedBaseCount": 0
+                    }
+                  }
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "projectCount": {
+                      "type": "integer"
+                    },
+                    "projects": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tableCount": {
+                            "type": "object",
+                            "properties": {
+                              "table": {
+                                "type": "integer"
+                              },
+                              "view": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "viewCount": {
+                            "type": "object",
+                            "properties": {
+                              "formCount": {
+                                "type": "integer"
+                              },
+                              "gridCount": {
+                                "type": "integer"
+                              },
+                              "galleryCount": {
+                                "type": "integer"
+                              },
+                              "kanbanCount": {
+                                "type": "integer"
+                              },
+                              "total": {
+                                "type": "integer"
+                              },
+                              "sharedFormCount": {
+                                "type": "integer"
+                              },
+                              "sharedGridCount": {
+                                "type": "integer"
+                              },
+                              "sharedGalleryCount": {
+                                "type": "integer"
+                              },
+                              "sharedKanbanCount": {
+                                "type": "integer"
+                              },
+                              "sharedTotal": {
+                                "type": "integer"
+                              },
+                              "sharedLockedCount": {
+                                "type": "integer"
+                              }
+                            }
+                          },
+                          "webhookCount": {
+                            "type": "integer"
+                          },
+                          "filterCount": {
+                            "type": "integer"
+                          },
+                          "sortCount": {
+                            "type": "integer"
+                          },
+                          "rowCount": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "TotalRecords": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "userCount": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "userCount": {
+                      "type": "integer"
+                    },
+                    "sharedBaseCount": {
+                      "type": "integer"
+                    }
+                  },
+                  "x-examples": {
+                    "Example 1": {
+                      "projectCount": 1,
+                      "projects": [
+                        {
+                          "tableCount": {
+                            "table": 3,
+                            "view": 0
+                          },
+                          "viewCount": {
+                            "formCount": 0,
+                            "gridCount": 3,
+                            "galleryCount": 0,
+                            "kanbanCount": 0,
+                            "total": 3,
+                            "sharedFormCount": 0,
+                            "sharedGridCount": 0,
+                            "sharedGalleryCount": 0,
+                            "sharedKanbanCount": 0,
+                            "sharedTotal": 0,
+                            "sharedLockedCount": 0
+                          },
+                          "webhookCount": 0,
+                          "filterCount": 0,
+                          "sortCount": 0,
+                          "rowCount": [
+                            {
+                              "TotalRecords": "76"
+                            }
+                          ],
+                          "userCount": 1
+                        }
+                      ],
+                      "userCount": 1,
+                      "sharedBaseCount": 0
+                    }
+                  }
+                },
+                "examples": {
+                  "example-1": {
+                    "value": "{\n  \"projectCount\": 1,\n  \"projects\": [\n    {\n      \"tableCount\": {\n        \"table\": 3,\n        \"view\": 0\n      },\n      \"viewCount\": {\n        \"formCount\": 0,\n        \"gridCount\": 3,\n        \"galleryCount\": 0,\n        \"kanbanCount\": 0,\n        \"total\": 3,\n        \"sharedFormCount\": 0,\n        \"sharedGridCount\": 0,\n        \"sharedGalleryCount\": 0,\n        \"sharedKanbanCount\": 0,\n        \"sharedTotal\": 0,\n        \"sharedLockedCount\": 0\n      },\n      \"webhookCount\": 0,\n      \"filterCount\": 0,\n      \"sortCount\": 0,\n      \"rowCount\": [\n        {\n          \"TotalRecords\": \"76\"\n        }\n      ],\n      \"userCount\": 1\n    }\n  ],\n  \"userCount\": 1,\n  \"sharedBaseCount\": 0\n}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "description": ""
+      }
+    },
     "/api/v1/db/meta/cache": {
       "get": {
         "summary": "Your GET endpoint",
@@ -6197,6 +6883,9 @@
               },
               {
                 "$ref": "#/components/schemas/Gallery"
+              },
+              {
+                "$ref": "#/components/schemas/Kanban"
               }
             ]
           }
@@ -6991,7 +7680,9 @@
         "properties": {
           "options": {
             "type": "array",
-            "$ref": "#/components/schemas/SelectOption"
+            "items": {
+              "$ref": "#/components/schemas/SelectOption"
+            }
           }
         },
         "required": [
@@ -7157,7 +7848,7 @@
         }
       },
       "GridColumn": {
-        "title": "GalleryColumn",
+        "title": "GridColumn",
         "type": "object",
         "description": "",
         "properties": {
@@ -7217,12 +7908,6 @@
           "alias": {
             "type": "string"
           },
-          "public": {
-            "type": "boolean"
-          },
-          "password": {
-            "type": "string"
-          },
           "columns": {
             "type": "array",
             "items": {
@@ -7231,6 +7916,21 @@
           },
           "fk_model_id": {
             "type": "string"
+          },
+          "fk_grp_col_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fk_cover_image_col_id": {
+            "type": "string"
+          },
+          "meta": {
+            "type": [
+              "string",
+              "object"
+            ]
           }
         }
       },

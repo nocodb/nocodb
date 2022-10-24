@@ -3,7 +3,7 @@ import path from 'path'
 
 export default theme({
   docs: {
-    primaryColor: '#1348ba'
+    primaryColor: '#4351e8'
   },
   css: [
     "./assets/main.css"

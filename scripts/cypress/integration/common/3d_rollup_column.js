@@ -9,24 +9,9 @@ export const genTest = (apiType, dbType) => {
     //
     const fetchParentFromLabel = (label) => {
       cy.get("label").contains(label).parents(".ant-row").click();
-      cy.wait(500);
     };
 
-    // Run once before test- create project (rest/graphql)
-    //
     // before(() => {
-    //     cy.fileHook();
-    //     mainPage.tabReset();
-    //
-    //     // // kludge: wait for page load to finish
-    //     // cy.wait(1000);
-    //     // // close team & auth tab
-    //     // cy.get('button.ant-tabs-tab-remove').should('exist').click();
-    //     // cy.wait(1000);
-    //
-    //     // open a table to work on views
-    //     //
-    //     cy.openTableTab("Country", 25);
     // });
 
     beforeEach(() => {
@@ -69,8 +54,7 @@ export const genTest = (apiType, dbType) => {
         .contains("Rollup")
         .click();
 
-      // wait for re-rendering & title selection to re-appear
-      cy.wait(500);
+      cy.inputHighlightRenderWait();
 
       // Configure Child table & column names
       fetchParentFromLabel("Child table");

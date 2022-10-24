@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Text from './Text.vue'
+import { useVModel } from '#imports'
 
 interface Props {
   modelValue: any
@@ -17,7 +17,5 @@ const vModel = useVModel(props, 'modelValue', emits)
 </script>
 
 <template>
-  <Text v-model="vModel" />
+  <LazyCellText v-model="vModel" />
 </template>
-
-<style scoped></style>

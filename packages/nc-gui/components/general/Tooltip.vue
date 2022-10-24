@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { onKeyStroke } from '@vueuse/core'
+import { ref, watch } from '#imports'
 
 interface Props {
   // Key to be pressed on hover to trigger the tooltip
@@ -7,9 +8,10 @@ interface Props {
   wrapperClass?: string
 }
 
-const { modifierKey } = defineProps<Props>()
+const { modifierKey, wrapperClass } = defineProps<Props>()
 
 const showTooltip = ref(false)
+
 const isMouseOver = ref(false)
 
 if (modifierKey) {

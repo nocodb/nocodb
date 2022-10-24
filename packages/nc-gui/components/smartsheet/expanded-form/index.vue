@@ -1,18 +1,15 @@
 <script setup lang="ts">
-import { message } from 'ant-design-vue'
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import Cell from '../Cell.vue'
-import VirtualCell from '../VirtualCell.vue'
-import Comments from './Comments.vue'
-import Header from './Header.vue'
 import {
   FieldsInj,
   IsFormInj,
+  IsKanbanInj,
   MetaInj,
   ReloadRowDataHookInj,
   computedInject,
+  message,
   provide,
   ref,
   toRef,
@@ -22,7 +19,7 @@ import {
   useVModel,
   watch,
 } from '#imports'
-import type { Row } from '~/composables'
+import type { Row } from '~/lib'
 
 interface Props {
   modelValue?: boolean
@@ -39,7 +36,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel'])
 
-const row = toRef(props, 'row')
+const row = ref(props.row)
 
 const state = toRef(props, 'state')
 
@@ -54,6 +51,8 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return _fields?.value ?? []
 })
 
+const isKanban = inject(IsKanbanInj, ref(false))
+
 provide(MetaInj, meta)
 
 const { commentsDrawer, changedColumns, state: rowState, isNew, loadRow } = useProvideExpandedFormStore(meta, row)
@@ -65,7 +64,7 @@ if (props.loadRow) {
 if (props.rowId) {
   try {
     await loadRow(props.rowId)
-  } catch (e) {
+  } catch (e: any) {
     if (e.response?.status === 404) {
       // todo: i18n
       message.error('Record not found')
@@ -105,12 +104,21 @@ const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
 const reloadHook = createEventHook()
 
 reloadHook.on(() => {
-  reloadParentRowHook?.trigger()
+  reloadParentRowHook?.trigger(false)
   if (isNew.value) return
   loadRow()
 })
 
 provide(ReloadRowDataHookInj, reloadHook)
+
+if (isKanban.value) {
+  // adding column titles to changedColumns if they are preset
+  for (const [k, v] of Object.entries(row.value.row)) {
+    if (v) {
+      changedColumns.value.add(k)
+    }
+  }
+}
 </script>
 
 <script lang="ts">
@@ -128,7 +136,8 @@ export default {
     :closable="false"
     class="nc-drawer-expanded-form"
   >
-    <Header :view="view" @cancel="onClose" />
+    <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
+
     <div class="!bg-gray-100 rounded flex-1">
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[max(70vh,100%)]">
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
@@ -140,18 +149,19 @@ export default {
               class="mt-2 py-2"
               :class="`nc-expand-col-${col.title}`"
             >
-              <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+              <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
 
-              <SmartsheetHeaderCell v-else :column="col" />
+              <LazySmartsheetHeaderCell v-else :column="col" />
 
               <div class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2">
-                <VirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
+                <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
 
-                <Cell
+                <LazySmartsheetCell
                   v-else
                   v-model="row.row[col.title]"
                   :column="col"
                   :edit-enabled="true"
+                  :active="true"
                   @update:model-value="changedColumns.add(col.title)"
                 />
               </div>
@@ -161,7 +171,7 @@ export default {
 
         <div v-if="!isNew" class="nc-comments-drawer min-w-0 min-h-full max-h-full" :class="{ active: commentsDrawer }">
           <div class="h-full">
-            <Comments v-if="commentsDrawer" />
+            <LazySmartsheetExpandedFormComments v-if="commentsDrawer" />
           </div>
         </div>
       </div>

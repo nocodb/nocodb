@@ -1,27 +1,23 @@
 import { ConfigProvider } from 'ant-design-vue'
-import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import tinycolor from 'tinycolor2'
 import { createGlobalState, hexToRGB, ref, themeV2Colors, useCssVar } from '#imports'
-
-export interface ThemeConfig extends AntTheme {
-  primaryColor: string
-  accentColor: string
-}
+import type { ThemeConfig } from '~/lib'
 
 export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
   const primaryColor = useCssVar('--color-primary', typeof document !== 'undefined' ? document.documentElement : null)
   const accentColor = useCssVar('--color-accent', typeof document !== 'undefined' ? document.documentElement : null)
-
-  /** current theme config */
-  const currentTheme = ref({
+  const defaultTheme = {
     primaryColor: themeV2Colors['royal-blue'].DEFAULT,
     accentColor: themeV2Colors.pink['500'],
-  })
+  }
+
+  /** current theme config */
+  const currentTheme = ref(defaultTheme)
 
   /** set initial config */
   setTheme(config ?? currentTheme.value)
 
-  /** set theme (persists in localstorage) */
+  /** set theme */
   function setTheme(theme?: Partial<ThemeConfig>) {
     const themePrimary = theme?.primaryColor ? tinycolor(theme.primaryColor) : tinycolor(themeV2Colors['royal-blue'].DEFAULT)
     const themeAccent = theme?.accentColor ? tinycolor(theme.accentColor) : tinycolor(themeV2Colors.pink['500'])
@@ -33,8 +29,8 @@ export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
     accentColor.value = themeAccent.isValid() ? hexToRGB(themeAccent.toHex8String()) : hexToRGB(themeV2Colors.pink['500'])
 
     currentTheme.value = {
-      primaryColor: themePrimary.toHex8String().toUpperCase(),
-      accentColor: themeAccent.toHex8String().toUpperCase(),
+      primaryColor: themePrimary.toHex8String().toUpperCase().slice(0, -2),
+      accentColor: themeAccent.toHex8String().toUpperCase().slice(0, -2),
     }
 
     ConfigProvider.config({
@@ -45,5 +41,6 @@ export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
   return {
     theme: currentTheme,
     setTheme,
+    defaultTheme,
   }
 })

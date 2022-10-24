@@ -47,7 +47,10 @@ export class _settingsPage {
   }
 
   closeMenu() {
-    cy.getActiveModal().find(".nc-modal-close").click({ force: true });
+    cy.getActiveModal()
+      .find(".nc-modal-close")
+      .scrollIntoView()
+      .click({ force: true });
   }
 
   openProjectMenu() {
@@ -119,18 +122,22 @@ export class _mainPage {
     );
 
     // click on New User button, feed details
-    cy.get("button.nc-invite-team").click();
+    cy.getActiveModal(".nc-modal-settings")
+      .find("button.nc-invite-team")
+      .click();
 
     // additional wait to ensure the modal is fully loaded
     cy.getActiveModal(".nc-modal-invite-user-and-share-base").should("exist");
     cy.getActiveModal(".nc-modal-invite-user-and-share-base")
       .find('input[placeholder="E-mail"]')
       .should("exist");
-    cy.wait(1000);
 
-    cy.get('input[placeholder="E-mail"]').type(userCred.username);
-
-    cy.get(".ant-select.nc-user-roles").click();
+    cy.getActiveModal(".nc-modal-invite-user-and-share-base")
+      .find('input[placeholder="E-mail"]')
+      .type(userCred.username);
+    cy.getActiveModal(".nc-modal-invite-user-and-share-base")
+      .find(".ant-select.nc-user-roles")
+      .click();
 
     // opt-in requested role & submit
     // cy.getActiveSelection().contains(roleType).click({force: true});
@@ -156,6 +163,21 @@ export class _mainPage {
         cy.get("body").click("right");
       });
   };
+
+  addNewRowExpand(table) {
+    cy.get(".nc-add-new-row-btn:visible").should("exist");
+    cy.get(".nc-add-new-row-btn").click();
+
+    // cy.wait(2000);
+    // cy.get(`.nc-tooltip-content:contains("Add new row")`).should("not.exist");
+
+    // 'Add new row' tooltip persists for a while; force click on header to make it disappear
+    cy.get(
+      `.nc-drawer-expanded-form .nc-expanded-form-header :contains("${table}")`
+    )
+      .should("exist")
+      .click({ force: true });
+  }
 
   // addExistingUserToProject = (emailId, role) => {
   //     cy.get('.v-list-item:contains("Team & Auth")').click();
@@ -200,11 +222,11 @@ export class _mainPage {
   };
 
   addColumn = (colName, tableName) => {
-    cy.get(".nc-column-add").click({
-      force: true,
-    });
+    cy.get(".nc-column-add").click();
 
-    cy.getActiveMenu(".nc-dropdown-grid-add-column")
+    cy.wait(2000);
+
+    cy.getActiveMenu(".nc-dropdown-grid-add-column:has(.nc-column-name-input)")
       .find("input.nc-column-name-input")
       .should("exist")
       .clear()
@@ -215,22 +237,24 @@ export class _mainPage {
       .should("exist")
       .click();
     cy.toastWait(`Column created`);
+
+    cy.wait(2000);
+
     cy.get(`th[data-title="${colName}"]`).should("exist");
   };
 
   addColumnWithType = (colName, colType, tableName) => {
-    cy.get(".nc-column-add").click({
-      force: true,
-    });
+    cy.get(".nc-column-add").click();
 
-    cy.getActiveMenu(".nc-dropdown-grid-add-column")
+    cy.wait(2000);
+
+    cy.getActiveMenu(".nc-dropdown-grid-add-column:has(.nc-column-name-input)")
       .find("input.nc-column-name-input")
       .should("exist")
       .clear()
       .type(colName);
 
     // change column type and verify
-    // cy.get(".nc-column-type-input").last().click();
     cy.getActiveMenu(".nc-dropdown-grid-add-column")
       .find(".nc-column-type-input")
       .last()
@@ -239,13 +263,15 @@ export class _mainPage {
       .find(".ant-select-item-option")
       .contains(colType)
       .click();
-    // cy.get(".ant-btn-primary:visible").contains("Save").click();
     cy.getActiveMenu(".nc-dropdown-grid-add-column")
       .find(".ant-btn-primary:visible")
       .contains("Save")
       .click();
 
     cy.toastWait(`Column created`);
+
+    cy.wait(2000);
+
     cy.get(`th[data-title="${colName}"]`).should("exist");
   };
 
@@ -256,13 +282,18 @@ export class _mainPage {
       .trigger("mouseover", { force: true })
       .click({ force: true });
 
-    cy.wait(500);
+    // cy.get(".nc-column-delete").click();
+    cy.getActiveMenu(".nc-dropdown-column-operations")
+      .find(".nc-column-delete")
+      .click();
 
-    cy.get(".nc-column-delete").click();
-    cy.wait(500);
-    cy.get(".nc-column-delete").should("not.be.visible");
-    cy.get(".ant-btn-dangerous:visible").contains("Delete").click();
-    cy.wait(500);
+    // cy.get(".nc-column-delete").should("not.be.visible");
+    // cy.get(".ant-btn-dangerous:visible").contains("Delete").click();
+
+    cy.getActiveModal(".nc-modal-column-delete")
+      .find(".ant-btn-dangerous:visible")
+      .contains("Delete")
+      .click();
 
     cy.get(`th:contains(${colName})`).should("not.exist");
   };
@@ -361,24 +392,63 @@ export class _mainPage {
       .contains("Webhooks");
   };
 
+  hideAllColumns = () => {
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+    cy.getActiveMenu(".nc-dropdown-fields-menu")
+      .find(".ant-btn")
+      .contains("Hide all")
+      .click();
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+  };
+
+  showAllColumns = () => {
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+    cy.getActiveMenu(".nc-dropdown-fields-menu")
+      .find(".ant-btn")
+      .contains("Show all")
+      .click();
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+  };
+
+  toggleShowSystemFields = () => {
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+    cy.getActiveMenu(".nc-dropdown-fields-menu")
+      .find(".nc-fields-show-system-fields")
+      .click();
+    cy.get(".nc-fields-menu-btn").should("exist").click();
+  };
+
   hideField = (field) => {
     cy.get(`th[data-title="${field}"]`).should("be.visible");
     cy.get(".nc-fields-menu-btn").click();
+    // cy.getActiveMenu(".nc-dropdown-fields-menu")
+    //   .find(`.nc-fields-list label:contains(${field}):visible`)
+    //   .click();
     cy.getActiveMenu(".nc-dropdown-fields-menu")
-      .find(`.nc-fields-list label:contains(${field}):visible`)
+      .find(`.nc-fields-list label:visible`)
+      .contains(new RegExp("^" + field + "$", "g"))
       .click();
     cy.get(".nc-fields-menu-btn").click();
     cy.get(`th[data-title="${field}"]`).should("not.exist");
   };
 
-  unhideField = (field) => {
+  unhideField = (field, viewType = "grid") => {
+    if (viewType === "grid") {
+      cy.get(`th[data-title="${field}"]`).should("not.exist");
+    }
     cy.get(`th[data-title="${field}"]`).should("not.exist");
     cy.get(".nc-fields-menu-btn").click();
+    // cy.getActiveMenu(".nc-dropdown-fields-menu")
+    //   .find(`.nc-fields-list label:contains(${field}):visible`)
+    //   .click();
     cy.getActiveMenu(".nc-dropdown-fields-menu")
-      .find(`.nc-fields-list label:contains(${field}):visible`)
+      .find(`.nc-fields-list label:visible`)
+      .contains(new RegExp("^" + field + "$", "g"))
       .click();
     cy.get(".nc-fields-menu-btn").click();
-    cy.get(`th[data-title="${field}"]`).should("be.visible");
+    if (viewType === "grid") {
+      cy.get(`th[data-title="${field}"]`).should("be.visible");
+    }
   };
 
   sortField = (field, criteria) => {
@@ -387,7 +457,7 @@ export class _mainPage {
       .find(".ant-btn-primary")
       .contains("Add Sort Option")
       .click();
-    cy.getActiveMenu(".nc-dropdown-sort-menu")
+    cy.getActiveMenu(".nc-dropdown-sort-menu:has(.nc-sort-field-select div)")
       .find(".nc-sort-field-select div")
       .first()
       .click();
@@ -425,7 +495,8 @@ export class _mainPage {
       .find(".ant-btn-primary")
       .contains("Add Filter")
       .click();
-    cy.getActiveMenu(".nc-dropdown-filter-menu")
+
+    cy.getActiveMenu(".nc-dropdown-filter-menu:has(.nc-filter-field-select)")
       .find(".nc-filter-field-select")
       .should("exist")
       .last()
@@ -479,11 +550,10 @@ export class _mainPage {
         // one of the row would contain seggregation header ('other views)
         if (5 == $tableRow[0].childElementCount) {
           cy.wrap($tableRow).find(".nc-icon").last().click();
-          cy.wait(100);
+          cy.toastWait("Deleted shared view successfully");
         }
       })
       .then(() => {
-        cy.toastWait("Deleted shared view successfully");
         cy.getActiveModal()
           .find("button.ant-modal-close")
           .should("exist")
@@ -510,9 +580,7 @@ export class _mainPage {
         .find(".nc-project-menu-item")
         .contains("Download")
         .click();
-      cy.wait(1000);
-      cy.get(".nc-project-menu-item")
-        .contains("Download as CSV")
+      cy.get(".nc-project-menu-item:contains('Download as CSV')")
         .should("exist")
         .click();
     }
@@ -534,8 +602,7 @@ export class _mainPage {
 
   downloadAndVerifyCsvFromSharedView = (filename, verifyCsv) => {
     cy.get(".nc-actions-menu-btn").click();
-    cy.get(".nc-project-menu-item")
-      .contains("Download as CSV")
+    cy.get(".nc-project-menu-item:contains('Download as CSV')")
       .should("exist")
       .click();
 
@@ -585,9 +652,13 @@ export class _mainPage {
   }
 
   metaSyncValidate(tbl, msg) {
+    // http://localhost:8080/api/v1/db/meta/projects/p_bxp57hmks0n5o2/meta-diff
+    cy.intercept("GET", "/api/v1/db/meta/projects/**").as("metaSync");
+
     cy.get(".nc-btn-metasync-reload").should("exist").click();
-    cy.wait(2000);
-    cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("exist");
+    cy.wait("@metaSync");
+
+    cy.get(`.nc-metasync-row-${tbl}:contains(${msg})`).should("exist");
     cy.get(".nc-btn-metasync-sync-now")
       .should("exist")
       .click()
@@ -601,17 +672,7 @@ export class _mainPage {
     });
   }
 
-  tabReset() {
-    // temporary disable (kludge)
-    // mainPage.toolBarTopLeft(mainPage.HOME).click({ force: true });
-    // cy.get(".project-row").should("exist").click({ force: true });
-    // projectsPage.waitHomePageLoad();
-    // option-2
-    // cy.openTableTab("Country", 0);
-    // cy.get(".mdi-close").click({ multiple: true });
-    // cy.get("button.ant-tabs-tab-remove").click({ multiple: true });
-    // cy.get('.ant-tabs-tab-remove').should('not.exist')
-  }
+  tabReset() {}
 
   toggleRightSidebar() {
     cy.get(".nc-toggle-right-navbar").should("exist").click();

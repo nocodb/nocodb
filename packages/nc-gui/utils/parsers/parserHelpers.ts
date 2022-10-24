@@ -78,7 +78,7 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
       }
       // set dtxp here so that users can have the options even they switch the type from other types to MultiSelect
       // once it's set, dtxp needs to be reset if the final column type is not MultiSelect
-      colProps.dtxp = `'${uniqueVals.join("','")}'`
+      colProps.dtxp = `${uniqueVals.map((v) => `'${v.replace(/'/gi, "''")}'`).join(',')}`
     }
   } else {
     const uniqueVals = [...new Set(colData.map((v: any) => v.toString().trim().toLowerCase()))]
@@ -96,7 +96,7 @@ export const extractMultiOrSingleSelectProps = (colData: []) => {
       }
       // set dtxp here so that users can have the options even they switch the type from other types to SingleSelect
       // once it's set, dtxp needs to be reset if the final column type is not SingleSelect
-      colProps.dtxp = `'${uniqueVals.join("','")}'`
+      colProps.dtxp = `${uniqueVals.map((v) => `'${v.replace(/'/gi, "''")}'`).join(',')}`
     }
     return colProps
   }

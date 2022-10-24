@@ -50,11 +50,10 @@ const onSubmit = () => {
 </script>
 
 <template>
+  PLACEHOLDER FOR NON-EDITABLE LAT/LONG
   <a-popover v-model:visible="editEnabled" placement="bottomLeft" :style="{ maxWidth: '100px' }">
     <template #content>
       <div>
-        Test222
-        {{ JSON.stringify(vModel) }}
         <div :style="{ display: 'flex', flexDirection: 'column' }">
           <label for="latitude">latitude</label>
           <a-input id="latitude" v-model="latitudeInput" />
@@ -66,7 +65,7 @@ const onSubmit = () => {
         </div>
       </div>
     </template>
-    <a-button type="primary" :style="{ width: '100%' }">hej</a-button>
+    <!-- <a-button type="primary" :style="{ width: '100%' }">hej</a-button> -->
   </a-popover>
 </template>
 

@@ -100,11 +100,11 @@ const descriptionInput = ref((el) => {
   <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-2">
     <div class="text-xl mt-4">Token Management</div>
     <a-divider class="!my-3" />
-    <div class="max-w-[900px] mx-auto p-4">
+    <div class="max-w-[900px] mx-auto p-4"  data-cy="nc-token-list">
       <div class="py-2 flex gap-4 items-center">
         <div class="flex-grow"></div>
         <MdiReload class="cursor-pointer" @click="loadTokens" />
-        <a-button size="small" @click="showNewTokenModal = true">
+        <a-button data-cy="nc-token-create" size="small" type="primary" @click="showNewTokenModal = true">
           <div class="flex items-center gap-1">
             <MdiAdd />
             Add new token
@@ -242,6 +242,7 @@ const descriptionInput = ref((el) => {
           @finish="generateToken"
         >
           <a-input
+            data-cy="nc-token-modal-description"
             :ref="descriptionInput"
             v-model:value="selectedTokenData.description"
             :placeholder="$t('labels.description')"
@@ -249,7 +250,7 @@ const descriptionInput = ref((el) => {
 
           <!-- Generate -->
           <div class="flex flex-row justify-center">
-            <a-button type="primary" html-type="submit">
+            <a-button type="primary" html-type="submit" data-cy="nc-token-modal-save">
               {{ $t('general.generate') }}
             </a-button>
           </div>

@@ -38,17 +38,6 @@ const { isUIAllowed } = useUIPermission()
                 <div class="select-none">Tokens</div>
               </div>
             </a-menu-item>
-            <a-menu-item
-              v-if="isUIAllowed('appLicense')"
-              key="license"
-              class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
-              @click="navigateTo('/account/license')"
-            >
-              <div class="flex items-center space-x-2">
-                <MdiKeyChainVariant />
-                <div class="select-none">License</div>
-              </div>
-            </a-menu-item>
           </a-menu>
         </div>
       </a-layout-sider>

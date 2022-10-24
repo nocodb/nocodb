@@ -4,12 +4,11 @@ import { extractSdkResponseErrorMsg, useApi } from '#imports'
 
 const { api } = useApi()
 
-let settings = $ref({ disable_user_signup: false })
+let settings = $ref<{ disable_user_signup?: boolean }>({ disable_user_signup: false })
 
 const loadSettings = async () => {
   try {
     const response = await api.orgAppSettings.get()
-
     settings = response
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -33,9 +32,15 @@ loadSettings()
     <div class="text-xl">Settings</div>
     <a-divider class="!my-3" />
     <a-form-item>
-      <a-checkbox v-model:checked="settings.disable_user_signup" name="virtual" @change="saveSettings"
-        >Disable user signup</a-checkbox
-      >
+      <a-checkbox class="nc-checkbox" v-model:checked="settings.disable_user_signup" name="virtual"
+                  @change="saveSettings">
+        Disable user signup
+      </a-checkbox>
     </a-form-item>
   </div>
 </template>
+<style scoped>
+:deep(.nc-checkbox label) {
+  @apply flex-row-reverse !flex;
+}
+</style>

@@ -82,7 +82,7 @@ const saveUser = async () => {
     emit('reload')
 
     // Successfully updated the user details
-    message.success(t('msg.success.userDetailsUpdated'))
+    message.success(t('msg.success.userAdded'))
   } catch (e: any) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
@@ -120,7 +120,7 @@ const emailInput = ref((el) => {
     :visible="show"
     :closable="false"
     width="max(50vw, 44rem)"
-    wrap-class-name="nc-modal-invite-user-and-share-base"
+    wrap-class-name="nc-modal-invite-user"
     @cancel="emit('closed')"
   >
     <div class="flex flex-col">
@@ -129,7 +129,7 @@ const emailInput = ref((el) => {
 
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
-            <MaterialSymbolsCloseRounded class="flex mx-auto" />
+            <MaterialSymbolsCloseRounded data-cy="nc-root-user-invite-modal-close" class="flex mx-auto" />
           </template>
         </a-button>
       </div>

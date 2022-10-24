@@ -119,7 +119,7 @@ const copyPasswordResetUrl = async (user: User) => {
 </script>
 
 <template>
-  <div>
+  <div data-cy='nc-super-user-list'>
     <div class="text-xl">User Management</div>
     <a-divider class="!my-3" />
     <div class="max-w-[900px] mx-auto p-4">
@@ -135,7 +135,7 @@ const copyPasswordResetUrl = async (user: User) => {
         </a-input-search>
         <div class="flex-grow"></div>
         <MdiReload class="cursor-pointer" @click="loadUsers" />
-        <a-button size="small" @click="showUserModal = true">
+        <a-button data-cy="nc-super-user-invite" size="small" type="primary" @click="showUserModal = true">
           <div class="flex items-center gap-1">
             <MdiAdd />
             Invite new user
@@ -164,7 +164,7 @@ const copyPasswordResetUrl = async (user: User) => {
         </a-table-column>
 
         <!-- Role -->
-        <a-table-column key="roles" :title="$t('objects.role')" data-index="roles">
+        <a-table-column  key="roles" :title="$t('objects.role')" data-index="roles">
           <template #default="{ record }">
             <div>
               <div v-if="record.roles.includes('super')" class="font-weight-bold">Super Admin</div>
@@ -207,7 +207,7 @@ const copyPasswordResetUrl = async (user: User) => {
         <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
           <template #default="{ text, record }">
             <div v-if="!record.roles.includes('super')" class="flex items-center gap-2">
-              <MdiDeleteOutline class="nc-action-btn cursor-pointer" @click="deleteUser(text)" />
+              <MdiDeleteOutline data-cy="nc-super-user-delete" class="nc-action-btn cursor-pointer" @click="deleteUser(text)" />
 
               <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
                 <div class="flex flex-row items-center">

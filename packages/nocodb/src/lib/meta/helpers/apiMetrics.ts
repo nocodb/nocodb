@@ -14,7 +14,7 @@ const metrics = async (req: Request, c = 150) => {
 };
 
 const metaApiMetrics = (req: Request, _res, next) => {
-  metrics(req, 10).then(() => {});
+  metrics(req, 50).then(() => {});
   next();
 };
 export default (req: Request, _res, next) => {

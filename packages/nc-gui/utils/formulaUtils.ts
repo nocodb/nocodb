@@ -181,8 +181,8 @@ const formulas: Record<string, any> = {
       },
     },
     description: 'Rounded number to a specified number of decimal places or the nearest integer if not specified',
-    syntax: 'ROUND(value, length), ROUND(value)',
-    examples: ['ROUND(3.1415,2) => 3.14', 'ROUND(3.1415) => 3', 'ROUND({column1}, 3)'],
+    syntax: 'ROUND(value, precision), ROUND(value)',
+    examples: ['ROUND(3.1415) => 3', 'ROUND(3.1415,2) => 3.14', 'ROUND({column1}, 3)'],
   },
   MOD: {
     type: formulaTypes.NUMERIC,

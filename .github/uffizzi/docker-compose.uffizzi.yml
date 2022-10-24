@@ -1,0 +1,29 @@
+version: '3'
+
+x-uffizzi:
+  ingress:
+    service: nocodb
+    port: 8080
+
+services:
+  root_db:
+    image: postgres
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: root_db
+  nocodb:
+    image: nocodb/nocodb:latest
+    ports:
+      - "8080:8080"
+    restart: always
+    volumes:
+      - nc_data:/usr/app/data
+    environment:
+      NC_DB: "pg://localhost:5432?u=postgres&p=password&d=root_db"
+volumes:
+  db_data: {}
+  nc_data: {}

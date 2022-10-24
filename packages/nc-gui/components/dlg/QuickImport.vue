@@ -384,7 +384,7 @@ const beforeUpload = (file: UploadFile) => {
                   class="nc-input-import !scrollbar-thin-dull"
                   list-type="picture"
                   :accept="importMeta.acceptTypes"
-                  :max-count="5"
+                  :max-count="isImportTypeCsv ? 5 : 1"
                   :multiple="true"
                   :custom-request="customReqCbk"
                   :before-upload="beforeUpload"

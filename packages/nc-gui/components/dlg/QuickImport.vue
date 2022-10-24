@@ -210,10 +210,11 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
     }
     importData.value = templateGenerator!.getData()
     templateEditorModal.value = true
-    isParsingData.value = false
-    preImportLoading.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isParsingData.value = false
+    preImportLoading.value = false
   }
 }
 

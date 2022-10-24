@@ -200,7 +200,7 @@ export default class CSVTemplateAdapter {
   }
 
   async _parseTableData(tableIdx: number, source: UploadFile | string, tn: string) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const that = this
       let steppers = 0
       if (that.config.shouldImportData) {
@@ -235,8 +235,8 @@ export default class CSVTemplateAdapter {
             console.log(`getData(): steppers: ${steppers}`)
             resolve(true)
           },
-          error(error: Error) {
-            message.error(error.message)
+          error(e: Error) {
+            reject(e)
           },
         })
       }
@@ -244,7 +244,7 @@ export default class CSVTemplateAdapter {
   }
 
   async _parseTableMeta(tableIdx: number, source: UploadFile | string) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const that = this
       let steppers = 0
       const tn = ((this.config.importFromURL ? (source as string).split('/').pop() : (source as UploadFile).name) as string)
@@ -291,8 +291,8 @@ export default class CSVTemplateAdapter {
           await that._parseTableData(tableIdx, source, tn)
           resolve(true)
         },
-        error(error: Error) {
-          message.error(error.message)
+        error(e: Error) {
+          reject(e)
         },
       })
     })

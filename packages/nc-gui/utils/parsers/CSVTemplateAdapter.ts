@@ -94,10 +94,9 @@ export default class CSVTemplateAdapter {
       const colData: any = [data[columnIdx]]
       const colProps = { uidt: this.detectInitialUidt(data[columnIdx]) }
       // TODO(import): centralise
-      if (colProps.uidt === UITypes.SingleLineText) {
-        if (isMultiLineTextType(colData)) {
-          colProps.uidt = UITypes.LongText
-        }
+      if (isMultiLineTextType(colData)) {
+        colProps.uidt = UITypes.LongText
+      } else if (colProps.uidt === UITypes.SingleLineText) {
         if (isEmailType(colData)) {
           colProps.uidt = UITypes.Email
         }
@@ -191,6 +190,8 @@ export default class CSVTemplateAdapter {
           this.tables[tableIdx].columns[columnIdx].uidt = UITypes.SingleLineText
           // override with UITypes.SingleSelect or UITypes.MultiSelect if applicable
           Object.assign(this.tables[tableIdx].columns[columnIdx], extractMultiOrSingleSelectProps(this.columnValues[columnIdx]))
+        } else {
+          this.tables[tableIdx].columns[columnIdx].uidt = uidt
         }
         delete this.columnValues[columnIdx]
       } else {

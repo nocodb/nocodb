@@ -85,7 +85,13 @@ export class DashboardPage extends BasePage {
     await this.rootPage.locator('[data-cy="nc-noco-brand-icon"]').click();
   }
 
-  async waitForTabRender({ title }: { title: string }) {
+  async waitForTabRender({
+    title,
+    mode = "standard",
+  }: {
+    title: string;
+    mode?: string;
+  }) {
     await this.get().locator('[pw-data="grid-id-column"]').waitFor();
 
     await this.tabBar
@@ -107,9 +113,11 @@ export class DashboardPage extends BasePage {
       .locator('[pw-data="grid-load-spinner"]')
       .waitFor({ state: "hidden" });
 
-    await expect(this.rootPage).toHaveURL(
-      `/#/nc/${this.project.id}/table/${title}`
-    );
+    if (mode === "standard") {
+      await expect(this.rootPage).toHaveURL(
+        `/#/nc/${this.project.id}/table/${title}`
+      );
+    }
   }
 
   // Project page language menu
@@ -215,7 +223,7 @@ export class DashboardPage extends BasePage {
     await this.rootPage
       .locator('div.nc-project-menu-item:has-text("Sign Out"):visible')
       .click();
-    await this.rootPage.locator('[data-cy="nc-form-signin"]').waitFor();
+    await this.rootPage.locator('[data-cy="nc-form-signin"]:visible').waitFor();
   }
 
   async signUp({ email, password }: { email: string; password: string }) {
@@ -269,7 +277,7 @@ export class DashboardPage extends BasePage {
     ).toBe(0);
   }
 
-  async validateProjectMenu(param: { role: string }) {
+  async validateProjectMenu(param: { role: string; mode?: string }) {
     await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
     let pMenu = this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
 
@@ -300,6 +308,15 @@ export class DashboardPage extends BasePage {
       ],
       viewer: ["Copy Project Info", "Copy Auth Token", "Language", "Account"],
     };
+
+    if (param?.mode === "shareBase") {
+      menuItems = {
+        creator: [],
+        commenter: [],
+        editor: ["Language"],
+        viewer: ["Language"],
+      };
+    }
 
     // common items
 

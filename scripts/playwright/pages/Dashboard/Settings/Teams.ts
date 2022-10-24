@@ -24,6 +24,10 @@ export class TeamsPage extends BasePage {
       .locator(`[pw-data="nc-settings-subtab-Users Management"]`);
   }
 
+  getSharedBaseSubModal() {
+    return this.rootPage.locator(`[data-pw="nc-share-base-sub-modal"]`);
+  }
+
   async invite({ email, role }: { email: string; role: string }) {
     await this.inviteTeamBtn.click();
     await this.inviteTeamModal
@@ -41,7 +45,7 @@ export class TeamsPage extends BasePage {
   async closeInvite() {
     // two btn-icon-only in invite modal: close & copy url
     await this.inviteTeamModal
-      .locator(`button.ant-btn-icon-only`)
+      .locator(`button.ant-btn-icon-only:visible`)
       .first()
       .click();
   }
@@ -49,6 +53,68 @@ export class TeamsPage extends BasePage {
   async inviteMore() {
     await this.inviteTeamModal
       .locator(`button:has-text("Invite More")`)
+      .click();
+  }
+
+  async toggleSharedBase({ toggle }: { toggle: boolean }) {
+    const toggleBtn = await this.getSharedBaseSubModal().locator(
+      `.nc-disable-shared-base`
+    );
+    const toggleBtnText = await toggleBtn.first().innerText();
+
+    const disabledBase = toggleBtnText.includes("Disable");
+
+    if (disabledBase) {
+      if (toggle) {
+        // if share base was disabled && request was to enable
+        await toggleBtn.click();
+        const modal = await this.rootPage.locator(
+          `.nc-dropdown-shared-base-toggle`
+        );
+        await modal.locator(`.ant-dropdown-menu-title-content`).click();
+      }
+    } else {
+      if (!toggle) {
+        // if share base was enabled && request was to disable
+        await toggleBtn.click();
+        const modal = await this.rootPage.locator(
+          `.nc-dropdown-shared-base-toggle`
+        );
+        await modal.locator(`.ant-dropdown-menu-title-content`).click();
+      }
+    }
+  }
+
+  async getSharedBaseUrl() {
+    const url = await this.getSharedBaseSubModal()
+      .locator(`.nc-url:visible`)
+      .innerText();
+    return url;
+  }
+
+  async sharedBaseActions({ action }: { action: string }) {
+    let actionMenu = ["reload", "copy url", "open tab", "copy embed code"];
+    let index = actionMenu.indexOf(action);
+
+    await this.getSharedBaseSubModal()
+      .locator(`button.ant-btn-icon-only`)
+      .nth(index)
+      .click();
+  }
+
+  async sharedBaseRole({ role }: { role: string }) {
+    // editor | viewer
+    // await this.getSharedBaseSubModal()
+    //   .locator(`.nc-shared-base-role`)
+    //   .waitFor();
+    await this.getSharedBaseSubModal()
+      .locator(`.nc-shared-base-role:visible`)
+      .click();
+    const userRoleModal = await this.rootPage.locator(
+      `.nc-dropdown-share-base-role:visible`
+    );
+    await userRoleModal
+      .locator(`.ant-select-item-option-content:has-text("${role}"):visible`)
       .click();
   }
 }

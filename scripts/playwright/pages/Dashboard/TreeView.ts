@@ -6,12 +6,14 @@ export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly project: any;
   readonly quickImportButton: Locator;
+  readonly inviteTeamButton: Locator;
 
   constructor(dashboard: DashboardPage, project: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.project = project;
     this.quickImportButton = dashboard.get().locator(".nc-import-menu");
+    this.inviteTeamButton = dashboard.get().locator(".nc-share-base");
   }
 
   get() {
@@ -24,7 +26,13 @@ export class TreeViewPage extends BasePage {
 
   // assumption: first view rendered is always GRID
   //
-  async openTable({ title }: { title: string }) {
+  async openTable({
+    title,
+    mode = "standard",
+  }: {
+    title: string;
+    mode?: string;
+  }) {
     if ((await this.get().locator(".active.nc-project-tree-tbl").count()) > 0) {
       if (
         (await this.get()
@@ -42,7 +50,7 @@ export class TreeViewPage extends BasePage {
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
       responseJsonMatcher: (json) => json.title === title,
     });
-    await this.dashboard.waitForTabRender({ title });
+    await this.dashboard.waitForTabRender({ title, mode });
   }
 
   async createTable({ title }: { title: string }) {

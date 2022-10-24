@@ -139,7 +139,7 @@ export class ToolbarPage extends BasePage {
     await this.get().locator(`.nc-kanban-add-edit-stack-menu-btn`).click();
   }
 
-  async validateViewsMenu(param: { role: string }) {
+  async validateViewsMenu(param: { role: string; mode?: string }) {
     let menuItems = {
       creator: [
         "Download",
@@ -154,6 +154,15 @@ export class ToolbarPage extends BasePage {
       viewer: ["Download as CSV", "Download as XLSX"],
     };
 
+    if (param.mode === "shareBase") {
+      menuItems = {
+        creator: [],
+        editor: ["Download", "Upload", "ERD View"],
+        commenter: [],
+        viewer: ["Download as CSV", "Download as XLSX"],
+      };
+    }
+
     let vMenu = await this.rootPage.locator(
       ".nc-dropdown-actions-menu:visible"
     );
@@ -163,10 +172,11 @@ export class ToolbarPage extends BasePage {
     }
   }
 
-  async validateRoleAccess(param: { role: string }) {
+  async validateRoleAccess(param: { role: string; mode?: string }) {
     await this.clickActions();
     await this.validateViewsMenu({
       role: param.role,
+      mode: param.mode,
     });
 
     let menuItems = {

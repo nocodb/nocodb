@@ -128,7 +128,6 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   r: +this.config.firstRowAsHeaders,
                 })
                 const cellProps = ws[cellId] || {}
-                console.log(cn, cellProps)
                 column.uidt = excelTypeToUidt[cellProps.t] || UITypes.SingleLineText
 
                 if (column.uidt === UITypes.SingleLineText) {

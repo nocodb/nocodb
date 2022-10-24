@@ -231,8 +231,6 @@ export default class CSVTemplateAdapter {
             }
           },
           complete() {
-            console.log('getData(): complete')
-            console.log(`getData(): steppers: ${steppers}`)
             resolve(true)
           },
           error(e: Error) {
@@ -284,8 +282,6 @@ export default class CSVTemplateAdapter {
           }
         },
         async complete() {
-          console.log('complete')
-          console.log(`steppers: ${steppers}`)
           that.updateTemplate(tableIdx)
           that.project.tables.push(that.tables[tableIdx])
           await that._parseTableData(tableIdx, source, tn)

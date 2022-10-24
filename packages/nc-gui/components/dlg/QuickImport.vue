@@ -200,11 +200,14 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
     await templateGenerator.parse()
 
     templateData.value = templateGenerator!.getTemplate()
-    templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
-      ...table,
-      table_name: populateUniqueTableName(table.table_name),
-    }))
     if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
+    else {
+      // ensure the target table name not exist in current table list
+      templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
+        ...table,
+        table_name: populateUniqueTableName(table.table_name),
+      }))
+    }
     importData.value = templateGenerator!.getData()
     templateEditorModal.value = true
     isParsingData.value = false

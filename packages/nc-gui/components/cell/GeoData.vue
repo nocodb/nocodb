@@ -19,7 +19,11 @@ const vModel = useVModel(props, 'modelValue', emits)
 const editEnabled = inject(EditModeInj)
 
 const latitudeInput = ref(vModel?.value?.latitude || '')
-const longitudeeInput = ref(vModel?.value?.latitude || '')
+const longitudeInput = ref(vModel?.value?.latitude || '')
+
+const onSubmit = () => {
+  alert('SUBMIT')
+}
 
 // const isOpen = ref(false)
 
@@ -44,14 +48,14 @@ const longitudeeInput = ref(vModel?.value?.latitude || '')
       <div>
         Test222
         {{ JSON.stringify(vModel) }}
-        <div v-if="vModel" :style="{ display: 'flex', flexDirection: 'column' }">
+        <div :style="{ display: 'flex', flexDirection: 'column' }">
           <label for="latitude">latitude</label>
-          <a-input v-if="editEnabled" id="latitude" v-model="vModel.latitude" />
-          <span v-else class="text-sm">{{ vModel.latitude }}</span>
+          <a-input v-if="editEnabled" id="latitude" v-model="latitudeInput" />
+          <span v-else class="text-sm">{{ latitudeInput }}</span>
           <label for="longitude">longitude</label>
-          <a-input v-if="editEnabled" id="longitude" v-model="vModel.longitude" />
-          <span v-else class="text-sm">{{ vModel.longitude }}</span>
-          <a-button type="primary">Ok</a-button>
+          <a-input v-if="editEnabled" id="longitude" v-model="longitudeInput" />
+          <span v-else class="text-sm">{{ longitudeInput }}</span>
+          <a-button type="primary" @click="onSubmit">Ok</a-button>
         </div>
       </div>
     </template>

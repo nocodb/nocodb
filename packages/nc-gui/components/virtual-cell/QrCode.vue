@@ -20,7 +20,7 @@ const handleOk = (e: MouseEvent) => {
 </script>
 
 <template>
-  <a-modal v-model:visible="visible" :title="qrValue" @ok="handleOk" footer>
+  <a-modal v-model:visible="visible" :title="qrValue" footer @ok="handleOk" :bodyStyle="{ padding: '0px' }">
     <img v-if="qrValue" :src="qrCodeLarge" alt="QR Code" class="qr-code" />
   </a-modal>
   <img v-if="qrValue" :src="qrCode" alt="QR Code" class="qr-code" @click="showQrModal" />

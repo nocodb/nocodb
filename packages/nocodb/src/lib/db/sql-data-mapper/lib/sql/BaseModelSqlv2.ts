@@ -1368,7 +1368,12 @@ class BaseModelSqlv2 {
           });
           console.log('qrCodeColumn', qrCodeColumn);
           console.log('qrValueColumn', qrValueColumn);
-          // qb.select({ [column.column_name]: qrValueColumn.column_name });
+
+          // If the referenced
+          if (qrValueColumn == null) {
+            // res[sanitize(column.title || column.column_name)] = null;
+            break;
+          }
 
           switch (qrValueColumn.uidt) {
             case UITypes.Formula:

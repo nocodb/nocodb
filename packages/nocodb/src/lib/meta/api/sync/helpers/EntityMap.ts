@@ -8,7 +8,7 @@ class EntityMap {
 
   constructor(...args) {
     this.initialized = false;
-    this.cols = args;
+    this.cols = args.map((arg) => processKey(arg));
     this.db = new Promise((resolve, reject) => {
       const db = new sqlite3.Database(':memory:');
 
@@ -41,14 +41,15 @@ class EntityMap {
       throw 'Please initialize first!';
     }
     
-    const colStatement = Object.keys(row).map((key) => `'${key.replace(/'/gi, "''")}'`).join(', ');
-    const questionMarks = Object.keys(row).map(() => '?').join(', ');
+    const cols = Object.keys(row).map((key) => processKey(key));
+    const colStatement = cols.map((key) => `'${key}'`).join(', ');
+    const questionMarks = cols.map(() => '?').join(', ');
     
     const promises = [];
 
-    for (const col of Object.keys(row).filter((col) => !this.cols.includes(col))) {
+    for (const col of cols.filter((col) => !this.cols.includes(col))) {
       promises.push(new Promise((resolve, reject) => {
-        this.db.run(`ALTER TABLE mapping ADD '${col.replace(/'/gi, "''")}' TEXT;`, (err) => {
+        this.db.run(`ALTER TABLE mapping ADD '${col}' TEXT;`, (err) => {
           if (err) {
             console.log(err);
             reject(err);
@@ -84,21 +85,15 @@ class EntityMap {
       throw 'Please initialize first!';
     }
     return new Promise((resolve, reject) => {
+      col = processKey(col);
+      res = res.map((r) => processKey(r));
       this.db.get(`SELECT ${res.length ? res.join(', ') : '*'} FROM mapping WHERE ${col} = ?`, [val], (err, rs) => {
         if (err) {
           console.log(err);
           reject(err);
         }
         if (rs) {
-          for (const key of Object.keys(rs)) {
-            if (rs[key] && rs[key].startsWith('JSON::')) {
-              try {
-                rs[key] = JSON.parse(rs[key].replace('JSON::', ''));
-              } catch (e) {
-                console.log(e);
-              }
-            }
-          }
+          rs = processResponseRow(rs);
         }
         resolve(rs)
       });
@@ -124,6 +119,7 @@ class EntityMap {
     if (!this.initialized) {
       throw 'Please initialize first!';
     }
+    res = res.map((r) => processKey(r));
     return new DBStream(this.db, `SELECT ${res.length ? res.join(', ') : '*'} FROM mapping`);
   }
 
@@ -132,21 +128,14 @@ class EntityMap {
       throw 'Please initialize first!';
     }
     return new Promise((resolve, reject) => {
+      res = res.map((r) => processKey(r));
       this.db.all(`SELECT ${res.length ? res.join(', ') : '*'} FROM mapping LIMIT ${limit} OFFSET ${offset}`, (err, rs) => {
         if (err) {
           console.log(err);
           reject(err);
         }
-        for (const row of rs) {
-          for (const key of Object.keys(row)) {
-            if (row[key] && row[key].startsWith('JSON::')) {
-              try {
-                row[key] = JSON.parse(row[key].replace('JSON::', ''));
-              } catch (e) {
-                console.log(e);
-              }
-            }
-          }
+        for (let row of rs) {
+          row = processResponseRow(row);
         }
         resolve(rs)
       });
@@ -174,20 +163,37 @@ class DBStream extends Readable {
         stream.emit('error', err);
       } else {
         if (result) {
-          for (const key of Object.keys(result)) {
-            if (result[key] && result[key].startsWith('JSON::')) {
-              try {
-                result[key] = JSON.parse(result[key].replace('JSON::', ''));
-              } catch (e) {
-                console.log(e);
-              }
-            }
-          }
+          result = processResponseRow(result);
         }
         stream.push(result || null)
       }
     });
   }
+}
+
+function processResponseRow(res: any) {
+  for (const key of Object.keys(res)) {
+    if (res[key] && res[key].startsWith('JSON::')) {
+      try {
+        res[key] = JSON.parse(res[key].replace('JSON::', ''));
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    if (revertKey(key) !== key) {
+      res[revertKey(key)] = res[key];
+      delete res[key];
+    }
+  }
+  return res;
+}
+
+function processKey(key) {
+  return key.replace(/'/gi, "''").replace(/[A-Z]/g, (match) => `_${match}`);
+}
+
+function revertKey(key) {
+  return key.replace(/''/gi, "'").replace(/_[A-Z]/g, (match) => match[1]);
 }
 
 export default EntityMap;

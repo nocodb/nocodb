@@ -1,8 +1,11 @@
 <script lang="ts" setup>
+import { useNuxtApp } from '#app'
 import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg, useApi } from '#imports'
 
 const { api, isLoading } = useApi()
+
+const {$e} = useNuxtApp()
 
 let key = $ref('')
 
@@ -22,6 +25,7 @@ const setLicense = async () => {
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+  $e('a:account:license')
 }
 
 loadLicense()

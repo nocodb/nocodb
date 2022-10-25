@@ -1,3 +1,11 @@
+<script setup lang="ts">
+import { defineProps } from '#imports'
+
+const props = defineProps<{
+  tabKey: string
+}>()
+</script>
+
 <template>
   <template v-if="props.tabKey === 'list'">
     <LazyAccountUserList />
@@ -9,10 +17,3 @@
     <LazyAccountResetPassword />
   </template>
 </template>
-<script setup lang="ts">
-import { defineProps } from '#imports'
-
-const props = defineProps<{
-  tabKey: string
-}>()
-</script>

@@ -4,6 +4,8 @@ import { extractSdkResponseErrorMsg, useApi } from '#imports'
 
 const { api } = useApi()
 
+const { t } = useI18n()
+
 let settings = $ref<{ enable_user_signup?: boolean }>({ enable_user_signup: false })
 
 const loadSettings = async () => {
@@ -18,7 +20,7 @@ const loadSettings = async () => {
 const saveSettings = async () => {
   try {
     await api.orgAppSettings.set(settings)
-    message.success('Settings ky updated')
+    message.success(t('msg.success.settingsSaved'))
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -31,11 +33,19 @@ loadSettings()
   <div>
     <div class="text-xl">Settings</div>
     <a-divider class="!my-3" />
-    <a-form-item>
-      <a-checkbox v-model:checked="settings.enable_user_signup" class="nc-checkbox" name="virtual" @change="saveSettings">
-        Enable user signup
-      </a-checkbox>
-    </a-form-item>
+    <div class="-ml-6">
+      <a-form-item>
+        <a-checkbox
+          v-model:checked="settings.enable_user_signup"
+          v-e="['c:account:enable-signup']"
+          class="nc-checkbox"
+          name="virtual"
+          @change="saveSettings"
+        >
+          {{ $t('labels.enableSignup') }}
+        </a-checkbox>
+      </a-form-item>
+    </div>
   </div>
 </template>
 

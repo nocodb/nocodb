@@ -44,7 +44,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     pagination.pageSize = 10
 
     users = response.list as UserType[]
-  } catch (e: any) {
+  } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -56,8 +56,10 @@ const updateRole = async (userId: string, roles: Role) => {
     await api.orgUsers.update(userId, {
       roles,
     } as unknown as UserType)
-    message.success('Role updated successfully')
-  } catch (e: any) {
+    message.success(t('msg.success.roleUpdated'))
+
+    $e('a:org-user:role-updated', { role: roles })
+  } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -70,9 +72,10 @@ const deleteUser = async (userId: string) => {
     onOk: async () => {
       try {
         await api.orgUsers.delete(userId)
-        message.success('User deleted successfully')
+        message.success(t('msg.success.userDeleted'))
         await loadUsers()
-      } catch (e: any) {
+        $e('a:org-user:user-deleted')
+      } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     },
@@ -86,7 +89,7 @@ const resendInvite = async (user: User) => {
     // Invite email sent successfully
     message.success(t('msg.success.inviteEmailSent'))
     await loadUsers()
-  } catch (e: any) {
+  } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 
@@ -177,16 +180,16 @@ const copyPasswordResetUrl = async (user: User) => {
               >
                 <a-select-option :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
                   <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
-                  <span class="text-gray-500 text-xs whitespace-normal"
-                    >Creator can create new projects and access any invited project.</span
-                  >
+                  <span class="text-gray-500 text-xs whitespace-normal">
+                    {{ $t('msg.info.roles.orgCreator') }}
+                  </span>
                 </a-select-option>
 
                 <a-select-option :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
                   <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
-                  <span class="text-gray-500 text-xs whitespace-normal"
-                    >Viewer is not allowed to create new projects but they can access any invited project.</span
-                  >
+                  <span class="text-gray-500 text-xs whitespace-normal">
+                    {{ $t('msg.info.roles.orgViewer') }}
+                  </span>
                 </a-select-option>
               </a-select>
             </div>

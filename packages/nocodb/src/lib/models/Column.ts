@@ -112,7 +112,7 @@ export default class Column<T = any> implements ColumnType {
         column.meta && typeof column.meta === 'object'
           ? JSON.stringify(column.meta)
           : column.meta,
-      public: column.public === true
+      public: column.public === true,
     };
 
     if (column.validate) {
@@ -376,7 +376,7 @@ export default class Column<T = any> implements ColumnType {
   }
 
   public async getColOptions<T>(ncMeta = Noco.ncMeta): Promise<T> {
-    let res: any;
+    let res;
 
     switch (this.uidt) {
       case UITypes.Lookup:
@@ -397,9 +397,6 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.Formula:
         res = await FormulaColumn.read(this.id, ncMeta);
         break;
-      // default:
-      //   res = await DbColumn.read(this.id);
-      //   break;
     }
     this.colOptions = res;
     return res;

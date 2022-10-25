@@ -119,7 +119,7 @@ const copyPasswordResetUrl = async (user: User) => {
 </script>
 
 <template>
-  <div data-cy='nc-super-user-list'>
+  <div data-cy="nc-super-user-list">
     <div class="text-xl">User Management</div>
     <a-divider class="!my-3" />
     <div class="max-w-[900px] mx-auto p-4">
@@ -164,7 +164,7 @@ const copyPasswordResetUrl = async (user: User) => {
         </a-table-column>
 
         <!-- Role -->
-        <a-table-column  key="roles" :title="$t('objects.role')" data-index="roles">
+        <a-table-column key="roles" :title="$t('objects.role')" data-index="roles">
           <template #default="{ record }">
             <div>
               <div v-if="record.roles.includes('super')" class="font-weight-bold">Super Admin</div>

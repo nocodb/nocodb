@@ -32,13 +32,13 @@ loadSettings()
     <div class="text-xl">Settings</div>
     <a-divider class="!my-3" />
     <a-form-item>
-      <a-checkbox class="nc-checkbox" v-model:checked="settings.enable_user_signup" name="virtual"
-                  @change="saveSettings">
+      <a-checkbox v-model:checked="settings.enable_user_signup" class="nc-checkbox" name="virtual" @change="saveSettings">
         Enable user signup
       </a-checkbox>
     </a-form-item>
   </div>
 </template>
+
 <style scoped>
 :deep(.ant-checkbox-wrapper) {
   @apply !flex-row-reverse !flex !justify-start gap-4;

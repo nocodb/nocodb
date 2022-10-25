@@ -18,6 +18,7 @@ import {
   ReloadViewDataHookInj,
   computed,
   createEventHook,
+  enumColor,
   extractPkFromRow,
   inject,
   isColumnRequiredAndNull,
@@ -67,7 +68,7 @@ const isView = false
 
 let editEnabled = $ref(false)
 
-const { xWhere, isPkAvail, cellRefs, isSqlView } = useSmartsheetStoreOrThrow()
+const { xWhere, isPkAvail, isSqlView } = useSmartsheetStoreOrThrow()
 
 const visibleColLength = $computed(() => fields.value?.length)
 
@@ -273,7 +274,9 @@ watch(contextMenu, () => {
 
 const rowRefs = $ref<any[]>()
 
-async function clearCell(ctx: { row: number; col: number }) {
+async function clearCell(ctx: { row: number; col: number } | null) {
+  if (!ctx) return
+
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
@@ -586,9 +589,8 @@ watch(
                       </div>
                     </div>
                   </td>
-                  <td
+                  <SmartsheetTableDataCell
                     v-for="(columnObj, colIndex) of fields"
-                    :ref="cellRefs.set"
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
@@ -631,7 +633,7 @@ watch(
                         @cancel="editEnabled = false"
                       />
                     </div>
-                  </td>
+                  </SmartsheetTableDataCell>
                 </tr>
               </template>
             </LazySmartsheetRow>

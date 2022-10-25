@@ -88,7 +88,7 @@ export const genTest = (apiType, dbType) => {
 
       cy.visit('/#/account/users').then((win) => {
         cy.get('[data-cy="nc-super-user-list"]').should('exist')
-          .find('tbody tr').should('have.length', 1);
+          .find('tbody tr').should('have.length', 5);
 
         cy.get('[data-cy=\'nc-super-user-invite\'')
           .click();
@@ -117,7 +117,7 @@ export const genTest = (apiType, dbType) => {
 
 
         cy.get('[data-cy="nc-super-user-list"]').should('exist')
-          .find('tbody tr').should('have.length', 2)
+          .find('tbody tr').should('have.length', 6)
           .last().find('[data-cy="nc-super-user-delete"]').click();
 
         cy.getActiveModal().find('.ant-modal-confirm-btns .ant-btn-primary').click();
@@ -126,7 +126,7 @@ export const genTest = (apiType, dbType) => {
 
 
         cy.get('[data-cy="nc-super-user-list"]').should('exist')
-          .find('tbody tr').should('have.length', 1);
+          .find('tbody tr').should('have.length', 5);
       });
     });
 

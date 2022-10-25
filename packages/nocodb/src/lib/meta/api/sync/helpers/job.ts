@@ -1333,6 +1333,12 @@ export default async (
     for (const [key, value] of Object.entries(rec as { [key: string]: any })) {
       // retrieve datatype
       const dt = table.columns.find((x) => x.title === key)?.uidt;
+      
+      // always process LTAR, Lookup, and Rollup columns as we delete the key after processing
+      if (!value && dt !== UITypes.LinkToAnotherRecord && dt !== UITypes.Lookup && dt !== UITypes.Rollup) {
+        rec[key] = null;
+        continue;
+      }
 
       switch (dt) {
         // https://www.npmjs.com/package/validator

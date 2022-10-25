@@ -63,7 +63,11 @@ const isSakilaMysqlToBeReset = async (
   return audits?.length > 0;
 };
 
-const resetSakilaMysql = async (knex: Knex, parallelId: string) => {
+const resetSakilaMysql = async (
+  knex: Knex,
+  parallelId: string,
+  isEmptyProject: boolean
+) => {
   const testsDir = __dirname.replace(
     '/src/lib/services/test/TestResetService',
     '/tests'
@@ -75,6 +79,8 @@ const resetSakilaMysql = async (knex: Knex, parallelId: string) => {
     console.log('Error dropping db', e);
   }
   await knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);
+
+  if (isEmptyProject) return;
 
   const trx = await knex.transaction();
 
@@ -105,11 +111,13 @@ const resetMysqlSakilaProject = async ({
   title,
   parallelId,
   oldProject,
+  isEmptyProject,
 }: {
   token: string;
   title: string;
   parallelId: string;
   oldProject?: Project | undefined;
+  isEmptyProject: boolean;
 }) => {
   const knex = Knex(config);
 
@@ -120,8 +128,11 @@ const resetMysqlSakilaProject = async ({
     await knex.raw(`USE test_sakila_${parallelId}`);
   }
 
-  if (await isSakilaMysqlToBeReset(knex, parallelId, oldProject)) {
-    await resetSakilaMysql(knex, parallelId);
+  if (
+    isEmptyProject ||
+    (await isSakilaMysqlToBeReset(knex, parallelId, oldProject))
+  ) {
+    await resetSakilaMysql(knex, parallelId, isEmptyProject);
   }
 
   const response = await axios.post(

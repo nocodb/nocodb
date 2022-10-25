@@ -1,3 +1,4 @@
+import { expect } from "@playwright/test";
 import BasePage from "../../../Base";
 import { ToolbarPage } from "./index";
 
@@ -20,6 +21,15 @@ export class ToolbarFieldsPage extends BasePage {
       .locator('input[type="checkbox"]')
       .click();
     await this.toolbar.clickFields();
+  }
+
+  async verify({ title, checked }: { title: string, checked: boolean }) {
+    await expect(
+      await this.get()
+        .locator(`[pw-data="nc-fields-menu-${title}"]`)
+        .locator('input[type="checkbox"]')
+        .isChecked()
+    ).toBe(checked);
   }
 
   async click({ title }: { title: string }) {

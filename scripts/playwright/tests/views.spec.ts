@@ -70,7 +70,7 @@ test.describe("Views CRUD Operations", () => {
     await dashboard.viewSidebar.deleteView({ title: "CityGallery2" });
     await dashboard.viewSidebar.verifyViewNotPresent({
       title: "CityGallery2",
-      index: 2,
+      index: 1,
     });
   });
 });

@@ -41,4 +41,9 @@ export class ProjectsPage extends BasePage {
     return project;
   }
 
+  async delete({title}: {title: string}) {
+    await this.get().locator(`[pw-data="delete-project-${title}"]`).click();
+    await this.rootPage.locator(`button:has-text("Yes")`).click();
+  }
+
 }

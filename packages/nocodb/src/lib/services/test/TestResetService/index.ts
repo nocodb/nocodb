@@ -28,11 +28,21 @@ export class TestResetService {
   private knex: Knex | null = null;
   private readonly parallelId;
   private readonly dbType;
+  private readonly isEmptyProject: boolean;
 
-  constructor({ parallelId, dbType }: { parallelId: string; dbType: string }) {
+  constructor({
+    parallelId,
+    dbType,
+    isEmptyProject,
+  }: {
+    parallelId: string;
+    dbType: string;
+    isEmptyProject: boolean;
+  }) {
     this.knex = Noco.ncMeta.knex;
     this.parallelId = parallelId;
     this.dbType = dbType;
+    this.isEmptyProject = isEmptyProject;
   }
 
   async process() {
@@ -81,6 +91,7 @@ export class TestResetService {
         metaKnex,
         title,
         oldProject: project,
+        isEmptyProject: this.isEmptyProject,
       });
     } else if (dbType == 'mysql') {
       await resetMysqlSakilaProject({
@@ -88,6 +99,7 @@ export class TestResetService {
         title,
         parallelId,
         oldProject: project,
+        isEmptyProject: this.isEmptyProject,
       });
     } else if (dbType == 'pg') {
       await resetPgSakilaProject({
@@ -95,6 +107,7 @@ export class TestResetService {
         title,
         parallelId,
         oldProject: project,
+        isEmptyProject: this.isEmptyProject,
       });
     }
 

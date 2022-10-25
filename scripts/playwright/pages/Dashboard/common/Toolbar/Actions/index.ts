@@ -16,6 +16,7 @@ export class ToolbarActionsPage extends BasePage {
     return this.rootPage.locator(`[pw-data="toolbar-actions"]`);
   }
 
+  // todo: use enum
   async click(label: string) {
     await this.get().locator(`span:has-text("${label}")`).click();
   }

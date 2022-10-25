@@ -284,7 +284,11 @@ const copyProjectMeta = async () => {
             <div class="flex items-center gap-2">
               <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
 
-              <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
+              <MdiDeleteOutline
+                class="nc-action-btn"
+                :pw-data="`delete-project-${record.title}`"
+                @click.stop="deleteProject(record)"
+              />
             </div>
           </template>
         </a-table-column>

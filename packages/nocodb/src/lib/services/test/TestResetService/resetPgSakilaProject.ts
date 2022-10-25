@@ -66,7 +66,11 @@ const isSakilaPgToBeReset = async (knex: Knex, project?: Project) => {
   return audits?.length > 0;
 };
 
-const resetSakilaPg = async (pgknex: Knex, parallelId: string) => {
+const resetSakilaPg = async (
+  pgknex: Knex,
+  parallelId: string,
+  isEmptyProject: boolean
+) => {
   const testsDir = __dirname.replace(
     '/src/lib/services/test/TestResetService',
     '/tests'
@@ -74,6 +78,8 @@ const resetSakilaPg = async (pgknex: Knex, parallelId: string) => {
 
   await pgknex.raw(`DROP DATABASE IF EXISTS sakila_${parallelId}`);
   await pgknex.raw(`CREATE DATABASE sakila_${parallelId}`);
+
+  if (isEmptyProject) return;
 
   const sakilaKnex = Knex(sakilaKnexConfig(parallelId));
 
@@ -103,11 +109,13 @@ const resetPgSakilaProject = async ({
   title,
   parallelId,
   oldProject,
+  isEmptyProject,
 }: {
   token: string;
   title: string;
   parallelId: string;
   oldProject?: Project | undefined;
+  isEmptyProject: boolean;
 }) => {
   const pgknex = Knex(config);
 
@@ -117,9 +125,9 @@ const resetPgSakilaProject = async ({
 
   const sakilaKnex = Knex(sakilaKnexConfig(parallelId));
 
-  if (await isSakilaPgToBeReset(sakilaKnex, oldProject)) {
+  if (isEmptyProject || (await isSakilaPgToBeReset(sakilaKnex, oldProject))) {
     await sakilaKnex.destroy();
-    await resetSakilaPg(pgknex, parallelId);
+    await resetSakilaPg(pgknex, parallelId, isEmptyProject);
   } else {
     await sakilaKnex.destroy();
   }

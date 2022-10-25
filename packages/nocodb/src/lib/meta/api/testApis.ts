@@ -8,6 +8,7 @@ export async function reset(req: Request<any, any>, res) {
   const service = new TestResetService({
     parallelId: req.body.parallelId,
     dbType: req.body.dbType,
+    isEmptyProject: req.body.isEmptyProject,
   });
 
   res.json(await service.process());

@@ -22,9 +22,10 @@ export class WebhookFormPage extends BasePage {
   }
 
   get() {
-    return this.dashboard.get().locator(`.nc-drawer-webhook`);
+    return this.dashboard.get().locator(`.nc-drawer-webhook-body`);
   }
 
+  // todo: Removing opening webhook drawer logic as it belongs to `Toolbar` page
   async create({
     title,
     event,
@@ -147,6 +148,14 @@ export class WebhookFormPage extends BasePage {
     await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
   }
 
+  async openForm({ index }: { index: number }) {
+    await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
+  }
+
+  async click({ index }: { index: number }) {
+    await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
+  }
+
   async configureHeader({ key, value }: { key: string; value: string }) {
     // hardcode "Content-type: application/json"
     await this.get().locator(`.ant-tabs-tab-btn:has-text("Headers")`).click();
@@ -162,5 +171,32 @@ export class WebhookFormPage extends BasePage {
       .locator(".nc-hook-header-tab-checkbox")
       .locator("input.ant-checkbox-input")
       .click();
+  }
+
+  async verifyForm({
+    title,
+    hookEvent,
+    url,
+    notificationType,
+    urlMethod,
+    condition,
+  }: {
+    title: string;
+    hookEvent: string;
+    url: string;
+    notificationType: string;
+    urlMethod: string;
+    condition: boolean;
+  }) {
+    await expect(await this.get().locator('input.nc-text-field-hook-title').inputValue()).toBe(title);
+    await expect(await this.get().locator('.nc-text-field-hook-event >> .ant-select-selection-item').innerText()).toBe(hookEvent);
+    await expect(await this.get().locator('.nc-select-hook-notification-type >> .ant-select-selection-item').innerText()).toBe(notificationType);
+    await expect(await this.get().locator('.nc-select-hook-url-method >> .ant-select-selection-item').innerText()).toBe(urlMethod);
+    await expect(await this.get().locator('input.nc-text-field-hook-url-path').inputValue()).toBe(url);
+    await expect(await this.get().locator('label.nc-check-box-hook-condition >> input[type="checkbox"]').isChecked()).toBe(condition);
+  }
+
+  async goBackFromForm() {
+    await this.get().locator('svg.nc-icon-hook-navigate-left').click();
   }
 }

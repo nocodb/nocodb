@@ -1,3 +1,4 @@
+import { expect } from "@playwright/test";
 import BasePage from "../../../Base";
 import { ToolbarPage } from "./index";
 
@@ -11,6 +12,23 @@ export class ToolbarSortPage extends BasePage {
 
   get() {
     return this.rootPage.locator(`[pw-data="nc-sorts-menu"]`);
+  }
+
+  async verify({
+    index,
+    column,
+    direction,
+  }: {
+    index: number;
+    column: string;
+    direction: string;
+  }) {
+    await expect(
+      await this.get().locator('.nc-sort-field-select').nth(index).innerText()
+    ).toBe(column);
+    await expect(
+      await this.get().locator('.nc-sort-dir-select >> span.ant-select-selection-item').nth(index).innerText()
+    ).toBe(direction);
   }
 
   async addSort({
@@ -61,6 +79,7 @@ export class ToolbarSortPage extends BasePage {
     await this.toolbar.parent.waitLoading();
   }
 
+  // todo: remove this opening sort menu logic
   async resetSort() {
     // open sort menu
     await this.toolbar.clickSort();

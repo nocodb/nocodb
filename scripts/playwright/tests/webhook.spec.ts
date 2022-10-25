@@ -32,7 +32,7 @@ test.describe("Webhook", () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage, webhook: WebhookFormPage;
   let context: any;
 
-  test.beforeAll(async () => {
+  test.beforeEach(async () => {
     // start a server locally for webhook tests
     await makeServer();
   });

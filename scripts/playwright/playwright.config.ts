@@ -1,6 +1,9 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
 import { devices } from '@playwright/test';
 
+process.env.E2E_AIRTABLE_API_KEY = "keyn1MR87qgyUsYg4";
+process.env.E2E_AIRTABLE_BASE_ID = "https://airtable.com/shr4z0qmh6dg5s3eB";
+
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -11,7 +14,7 @@ require('dotenv').config();
  * See https://playwright.dev/docs/test-configuration.
  */
 const config: PlaywrightTestConfig = {
-  testDir: './tests',
+  testDir: process.env.PW_QUICK_TEST ? './quickTests' : './tests',
   /* Maximum time one test can run for. */
   timeout: process.env.CI ? 80 * 1000 : 65 * 1000,
   expect: {

@@ -20,16 +20,20 @@ const resetMetaSakilaSqliteProject = async ({
   token,
   title,
   oldProject,
+  isEmptyProject,
 }: {
   metaKnex: Knex;
   token: string;
   title: string;
   oldProject: Project;
+  isEmptyProject: boolean;
 }) => {
   const project = await createProject(token, title);
 
-  await dropTablesAndViews(metaKnex, oldProject.prefix);
+  if (oldProject) await dropTablesAndViews(metaKnex, oldProject.prefix);
   await dropTablesAndViews(metaKnex, project.prefix);
+
+  if (isEmptyProject) return;
 
   await resetMetaSakilaSqlite(metaKnex, project.prefix, oldProject);
 

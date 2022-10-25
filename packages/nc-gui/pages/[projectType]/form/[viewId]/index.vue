@@ -93,6 +93,14 @@ p {
       &.nc-input {
         @apply w-full rounded p-2 min-h-[40px] flex items-center border-solid border-1 border-gray-300 dark:border-slate-200;
 
+        .duration-cell-wrapper {
+          @apply w-full;
+
+          input {
+            @apply !outline-none;
+          }
+        }
+
         input,
         textarea,
         &.nc-virtual-cell,

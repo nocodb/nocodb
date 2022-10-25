@@ -19,7 +19,7 @@ test.describe('Multi select', () => {
     await grid.addNewRow({index: 0, value: "Row 0"});
   })
 
-  test('Select and clear options and rename options', async () => {
+  test.only('Select and clear options and rename options', async () => {
     await grid.cell.selectOption.select({index: 0, columnHeader: 'MultiSelect', option: 'Option 1', multiSelect: true});
     await grid.cell.selectOption.verify({index: 0, columnHeader: 'MultiSelect', option: 'Option 1', multiSelect: true});
 

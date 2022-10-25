@@ -35,6 +35,17 @@ const selectedTabKeys = computed(() => [$route.params.page])
                 <div class="select-none">Tokens</div>
               </div>
             </a-menu-item>
+            <a-menu-item
+              key="apps"
+              class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
+              @click="navigateTo('/account/apps')"
+            >
+              <div class="flex items-center space-x-2">
+                <MdiStorefrontOutline />
+
+                <div class="select-none">App Store</div>
+              </div>
+            </a-menu-item>
           </a-menu>
         </div>
       </a-layout-sider>

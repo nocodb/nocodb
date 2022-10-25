@@ -3,7 +3,7 @@ import { useQRCode } from '@vueuse/integrations/useQRCode'
 
 const value = inject(CellValueInj)
 
-const qrValue = computed(() => value?.value)
+const qrValue = computed(() => String(value?.value))
 const qrCode = useQRCode(qrValue, {
   width: 150,
 })

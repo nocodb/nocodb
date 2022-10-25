@@ -576,6 +576,19 @@ export default class Column<T = any> implements ColumnType {
 
     // todo: or instead of delete reset related foreign key value to null and handle in BaseModel
 
+    // get qr code columns and delete
+    {
+      let qrCodeCols = await NocoCache.getList(CacheScope.COL_QRCODE, [id]);
+      if (!qrCodeCols.length) {
+        qrCodeCols = await ncMeta.metaList2(null, null, MetaTable.COL_QRCODE, {
+          condition: { fk_qr_value_column_id: id },
+        });
+      }
+      for (const qrCodeCol of qrCodeCols) {
+        await Column.delete(qrCodeCol.fk_column_id, ncMeta);
+      }
+    }
+
     // get lookup columns and delete
     {
       let lookups = await NocoCache.getList(CacheScope.COL_LOOKUP, [id]);

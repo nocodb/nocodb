@@ -35,17 +35,11 @@ const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
 
 // set default value
 vModel.value.fk_qr_value_column_id = (column?.value?.colOptions as Record<string, any>)?.fk_qr_value_column_id || ''
-// console.log('vModel.value.fk_qr_value_column_id', vModel.value.fk_qr_value_column_id)
-
-const jsonstr = computed(() => {
-  return JSON.stringify(vModel.value, null, 2)
-})
 </script>
 
 <template>
   <a-row>
     <a-col :span="24">
-      <textarea v-model="jsonstr" rows="8" cols="40"></textarea>
       <div>
         <span class="font-bold"> {{ $t('labels.chooseQrValueColumn') }}</span>
         <a-divider class="!my-2" />

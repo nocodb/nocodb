@@ -18,7 +18,7 @@ const { fields, metaColumnById } = useViewColumns(activeView, meta, () => reload
 
 const vModel = useVModel(props, 'value', emit)
 
-const { column } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
 const allowedColumnTypesForQrValue = [UITypes.Formula, UITypes.SingleLineText, UITypes.LongText] as string[]
 
@@ -35,24 +35,30 @@ const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
 
 // set default value
 vModel.value.fk_qr_value_column_id = (column?.value?.colOptions as Record<string, any>)?.fk_qr_value_column_id || ''
+
+setAdditionalValidations({
+  fk_qr_value_column_id: [{ required: true, message: 'Required' }],
+})
 </script>
 
 <template>
   <a-row>
     <a-col :span="24">
-      <div>
-        <span class="font-bold"> {{ $t('labels.chooseQrValueColumn') }}</span>
-        <a-divider class="!my-2" />
-      </div>
       <div class="nc-fields-list py-1">
         <div class="grouping-field">
-          <a-select
-            v-model:value="vModel.fk_qr_value_column_id"
-            class="w-full nc-kanban-grouping-field-select"
-            :options="columnsAllowedAsQrValue"
-            placeholder="Select a Grouping Field"
-            @click.stop
-          />
+          <a-form-item
+            class="flex w-1/2 pb-2"
+            :label="$t('labels.qrCodeValueColumn')"
+            v-bind="validateInfos.fk_qr_value_column_id"
+          >
+            <a-select
+              v-model:value="vModel.fk_qr_value_column_id"
+              class="w-full nc-kanban-grouping-field-select"
+              :options="columnsAllowedAsQrValue"
+              placeholder="Select a Grouping Field"
+              @click.stop
+            />
+          </a-form-item>
         </div>
       </div>
     </a-col>

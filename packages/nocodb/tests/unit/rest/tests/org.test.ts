@@ -135,7 +135,7 @@ function authTests() {
 
   })
 
-  it.only('Delete token', async () => {
+  it('Delete token', async () => {
     const r = await request(context.app)
       .post('/api/v1/tokens')
       .set('xc-auth', context.token)
@@ -164,6 +164,48 @@ function authTests() {
     expect(response.body).to.have.keys(['list', 'pageInfo'])
     expect(response.body.list).to.have.length(0)
 
+  })
+
+  it('Disable/Enable signup', async () => {
+    const args = {
+      email: 'dummyuser@example.com',
+      password: 'A1234abh2@dsad',
+    };
+
+     const failedRes =  await request(context.app)
+        .post('/api/v1/auth/user/signup')
+        .send(args)
+        .expect(400)
+
+   expect(failedRes.body).to.be.an('object')
+     .to.have.property('msg')
+     .to.be.equal('Not allowed to signup, contact super admin.')
+
+    await request(context.app)
+      .post('/api/v1/app-settings')
+      .set('xc-auth', context.token)
+      .send({ enable_user_signup: true })
+      .expect(200)
+
+
+    const successRes =  await request(context.app)
+      .post('/api/v1/auth/user/signup')
+      .send(args)
+      .expect(200)
+
+    expect(successRes.body).to.be.an('object')
+      .to.have.property('token')
+      .to.be.a('string')
+
+
+    const userMeRes =  await request(context.app)
+      .get('/api/v1/auth/user/me')
+      .set('xc-auth', successRes.body.token)
+      .expect(200)
+
+    expect(userMeRes.body).to.be.an('object')
+      .to.have.property('email')
+      .to.be.eq(args.email)
   })
 
 }

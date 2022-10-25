@@ -98,6 +98,10 @@ p {
 
           input {
             @apply !outline-none;
+
+            &::placeholder {
+              @apply text-gray-400 dark:text-slate-300;
+            }
           }
         }
 

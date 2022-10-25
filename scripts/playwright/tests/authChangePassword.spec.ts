@@ -15,7 +15,7 @@ test.describe("Auth", () => {
     toolbar = dashboard.grid.toolbar;
   });
 
-  test("Change password", async ({ page }) => {
+  test.skip("Change password", async ({ page }) => {
     await dashboard.clickHome();
     await dashboard.openPasswordChangeModal();
 

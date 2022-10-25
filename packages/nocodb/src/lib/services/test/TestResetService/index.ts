@@ -15,6 +15,8 @@ const loginRootUser = async () => {
     { email: 'user@nocodb.com', password: 'Password123.' }
   );
 
+  console.log('Login response', response.data);
+
   return response.data.token;
 };
 

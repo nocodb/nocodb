@@ -27,7 +27,7 @@ async function verifyHookTrigger(count: number, value: string, request) {
   }
 }
 
-test.describe.skip("Webhook", () => {
+test.describe("Webhook", () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage, webhook: WebhookFormPage;
   let context: any;
 

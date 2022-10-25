@@ -194,7 +194,7 @@ jobs:
           cp ./mac-dist/Noco-macos-x64 ./mac-dist/nocodb
           tar -czf ./mac-dist/nocodb.tar.gz ./mac-dist/nocodb
           rm ./mac-dist/nocodb
-          echo "::set-output name=CHECKSUM::$(shasum -a 256 ./mac-dist/nocodb.tar.gz | awk '{print $1}')"
+          echo "CHECKSUM=$(shasum -a 256 ./mac-dist/nocodb.tar.gz | awk '{print $1}')" >> $GITHUB_OUTPUT
         id: compress
 
 
@@ -240,7 +240,7 @@ jobs:
             desc "NocoDB : Opensource smart spreadsheet"
             homepage "https://github.com/nocodb/nocodb"
             url "https://github.com/nocodb/nocodb/releases/download/${{ github.event.inputs.tag || inputs.tag }}/nocodb.tar.gz"
-            sha256 "${{ steps.compress.outputs.CHECKSUM }}"
+            sha256 "${{ env.CHECKSUM }}"
             license "MIT"
             version "${{ github.event.inputs.tag || inputs.tag }}"
 

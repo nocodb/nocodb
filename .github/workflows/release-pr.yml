@@ -35,15 +35,11 @@ jobs:
           CURRENT_VERSION=$(basename $(curl -fs -o/dev/null -w %{redirect_url} https://github.com/nocodb/nocodb/releases/latest))
           # Construct tag name
           TAG_NAME=pr-${PR_NUMBER}-${CURRENT_DATE}-${CURRENT_TIME}
-          echo "::set-output name=TARGET_TAG::${TAG_NAME}"
-          echo "::set-output name=CURRENT_VERSION::${CURRENT_VERSION}"
-      - name: verify-tag
-        run: |
-          echo ${{ steps.tag-step.outputs.TARGET_TAG }}
-          echo ${{ steps.tag-step.outputs.CURRENT_VERSION }}
-    outputs:
-      target_tag: ${{ steps.tag-step.outputs.TARGET_TAG }}
-      current_version: ${{ steps.tag-step.outputs.CURRENT_VERSION }}
+          echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+          # Verify
+          echo env.TARGET_TAG: ${{ env.TARGET_TAG }}
+          echo env.CURRENT_VERSION: ${{ env.CURRENT_VERSION }}
 
   # Build, install, publish frontend and backend to npm
   release-npm:
@@ -51,7 +47,7 @@ jobs:
     needs: [set-tag]
     uses: ./.github/workflows/release-npm.yml
     with:
-      tag: ${{ needs.set-tag.outputs.target_tag }}
+      tag: ${{ env.TARGET_TAG }}
       targetEnv: 'DEV'
     secrets:
       NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
@@ -62,8 +58,8 @@ jobs:
     needs: [release-npm, set-tag]
     uses: ./.github/workflows/release-docker.yml
     with:
-      currentVersion: ${{ needs.set-tag.outputs.current_version }}
-      tag: ${{ needs.set-tag.outputs.target_tag }}
+      currentVersion: ${{ env.CURRENT_VERSION }}
+      tag: ${{ env.TARGET_TAG }}
       targetEnv: 'DEV'
       isDaily: 'N'
     secrets:
@@ -76,7 +72,7 @@ jobs:
     needs: [set-tag, release-npm]
     uses: ./.github/workflows/release-timely-executables.yml
     with:
-      tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
+      tag: ${{ env.CURRENT_VERSION }}-${{ env.TARGET_TAG }}
     secrets:
       NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
@@ -91,7 +87,7 @@ jobs:
           body: |
             The PR changes have been deployed. Please run the following command to verify:
             ```
-            docker run -d -p 8888:8080 nocodb/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
+            docker run -d -p 8888:8080 nocodb/nocodb-timely:${{ env.CURRENT_VERSION }}-${{ env.TARGET_TAG }}
             ```
 
   # Add a comment for PR executable build
@@ -108,24 +104,24 @@ jobs:
             #### MacOS
 
             ```bash
-            mkdir -p ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} && cd "$_" \
-                && curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-macos-arm64 -o noco -L \
+            mkdir -p ./${{ env.CURRENT_VERSION }}/${{ env.TARGET_TAG }} && cd "$_" \
+                && curl http://dl.nocodb.com/${{ env.CURRENT_VERSION }}-${{ env.TARGET_TAG }}/Noco-macos-arm64 -o noco -L \
                 && chmod +x noco \
                 && ./noco
             ```
             #### Linux
 
             ```bash
-            mkdir -p ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} && cd "$_" \
-               && curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-linux-x64 -o noco -L \
+            mkdir -p ./${{ env.CURRENT_VERSION }}/${{ env.TARGET_TAG }} && cd "$_" \
+               && curl http://dl.nocodb.com/${{ env.CURRENT_VERSION }}-${{ env.TARGET_TAG }}/Noco-linux-x64 -o noco -L \
                && chmod +x noco \
                && ./noco
             ```
             #### Windows
 
             ```bash
-            iwr http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-win-arm64.exe
+            iwr http://dl.nocodb.com/${{ env.CURRENT_VERSION }}-${{ env.TARGET_TAG }}/Noco-win-arm64.exe
             .\Noco-win-arm64.exe
             ```
 
-            For executables visit [here](https://github.com/nocodb/nocodb-timely/releases/tag/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }})
+            For executables visit [here](https://github.com/nocodb/nocodb-timely/releases/tag/${{ env.CURRENT_VERSION }}-${{ env.TARGET_TAG }})

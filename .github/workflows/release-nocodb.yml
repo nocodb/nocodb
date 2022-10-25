@@ -25,9 +25,6 @@ jobs:
   process-input:
     runs-on: ubuntu-latest
     needs: validate-branch
-    outputs:
-      target_tag: ${{ steps.process-input.outputs.target_tag }}
-      prev_tag: ${{ steps.process-input.outputs.prev_tag }}
     steps:
       - id: process-input
         name: process-input
@@ -47,18 +44,15 @@ jobs:
 
           echo target version: ${TARGET_TAG}
           echo previous version: ${PREV_TAG}
-          echo "::set-output name=target_tag::${TARGET_TAG}"
-          echo "::set-output name=prev_tag::${PREV_TAG}"
-      - name: Verify
-        run : |
-          echo ${{ steps.process-input.outputs.target_tag }}
+          echo "TARGET_TAG=${TARGET_TAG}" >> $GITHUB_OUTPUT
+          echo "PREV_TAG=${PREV_TAG}" >> $GITHUB_OUTPUT
 
   # Merge develop to master
   pr-to-master:
     needs: process-input
     uses: ./.github/workflows/pr-to-master.yml
     with:
-      tag: ${{ needs.process-input.outputs.target_tag }}
+      tag: ${{ env.TARGET_TAG }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
 
   # Build, install, publish frontend and backend to npm
@@ -66,7 +60,7 @@ jobs:
     needs: [pr-to-master, process-input]
     uses: ./.github/workflows/release-npm.yml
     with:
-      tag: ${{ needs.process-input.outputs.target_tag }}
+      tag: ${{ env.TARGET_TAG }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
     secrets:
       NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
@@ -76,8 +70,8 @@ jobs:
     needs: [release-npm, process-input]
     uses: ./.github/workflows/release-draft.yml
     with:
-      tag: ${{ needs.process-input.outputs.target_tag }}
-      prev_tag: ${{ needs.process-input.outputs.prev_tag }}
+      tag: ${{ env.TARGET_TAG }}
+      prev_tag: ${{ env.PREV_TAG }}
       tagHeadSHA: 'N'
     secrets:
       NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
@@ -88,7 +82,7 @@ jobs:
     uses: ./.github/workflows/release-docker.yml
     with:
       currentVersion: 'N/A'
-      tag: ${{ needs.process-input.outputs.target_tag }}
+      tag: ${{ env.TARGET_TAG }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
     secrets:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
@@ -99,7 +93,7 @@ jobs:
     needs: [release-draft-note, process-input]
     uses: ./.github/workflows/release-executables.yml
     with:
-      tag: ${{ needs.process-input.outputs.target_tag }}
+      tag: ${{ env.TARGET_TAG }}
     secrets:
       NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
@@ -109,7 +103,7 @@ jobs:
     uses: ./.github/workflows/release-close-issue.yml
     with:
       issue_label: '🚀 Status: Ready for Next Release'
-      version: ${{ needs.process-input.outputs.target_tag }}
+      version: ${{ env.TARGET_TAG }}
 
   # Publish Docs
   publish-docs:

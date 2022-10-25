@@ -26,24 +26,19 @@ jobs:
           if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
             IS_DAILY='N'
           fi
-          echo "::set-output name=NIGHTLY_BUILD_TAG::${TAG_NAME}"
-          echo "::set-output name=IS_DAILY::${IS_DAILY}"
-          echo "::set-output name=CURRENT_VERSION::${CURRENT_VERSION}"
-      - name: verify-tag
-        run: |
-          echo ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
-          echo ${{ steps.tag-step.outputs.IS_DAILY }}
-          echo ${{ steps.tag-step.outputs.CURRENT_VERSION }}
-    outputs:
-      nightly_build_tag: ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
-      is_daily: ${{ steps.tag-step.outputs.IS_DAILY }}
-      current_version: ${{ steps.tag-step.outputs.CURRENT_VERSION }}
+          echo "NIGHTLY_BUILD_TAG=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "IS_DAILY=${IS_DAILY}" >> $GITHUB_OUTPUT
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+          # verify
+          echo NIGHTLY_BUILD_TAG: ${{ env.NIGHTLY_BUILD_TAG }}
+          echo IS_DAILY: ${{ env.IS_DAILY }}
+          echo CURRENT_VERSION: ${{ env.CURRENT_VERSION }}
   # Build frontend and backend and publish to npm
   release-npm:
     needs: set-tag
     uses: ./.github/workflows/release-npm.yml
     with:
-      tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
+      tag: ${{ env.NIGHTLY_BUILD_TAG }}
       targetEnv: 'DEV'
     secrets:
       NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
@@ -53,7 +48,7 @@ jobs:
     needs: [set-tag, release-npm]
     uses: ./.github/workflows/release-timely-executables.yml
     with:
-      tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.nightly_build_tag }}
+      tag: ${{ env.CURRENT_VERSION }}-${{ env.NIGHTLY_BUILD_TAG }}
     secrets:
       NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
@@ -62,10 +57,10 @@ jobs:
     needs: [set-tag, release-npm]
     uses: ./.github/workflows/release-docker.yml
     with:
-      currentVersion: ${{ needs.set-tag.outputs.current_version }}
-      tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
+      currentVersion: ${{ env.CURRENT_VERSION }}
+      tag: ${{ env.NIGHTLY_BUILD_TAG }}
       targetEnv: 'DEV'
-      isDaily: ${{ needs.set-tag.outputs.is_daily }}
+      isDaily: ${{ env.IS_DAILY }}
     secrets:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
       DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"

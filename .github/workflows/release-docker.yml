@@ -60,10 +60,10 @@ jobs:
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
             fi
           fi
-          echo "::set-output name=DOCKER_REPOSITORY::${DOCKER_REPOSITORY}"
-          echo "::set-output name=DOCKER_BUILD_TAG::${DOCKER_BUILD_TAG}"
-          echo ${DOCKER_REPOSITORY}
-          echo ${DOCKER_BUILD_TAG}
+          echo "DOCKER_REPOSITORY=${DOCKER_REPOSITORY}" >> $GITHUB_OUTPUT
+          echo "DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG}" >> $GITHUB_OUTPUT
+          echo DOCKER_REPOSITORY: ${DOCKER_REPOSITORY}
+          echo DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -127,14 +127,14 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ${{ env.working-directory }}
-          build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
+          build-args: NC_VERSION=${{ env.DOCKER_BUILD_TAG }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: true
           tags: |
-            nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
-            nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:latest
+            nocodb/${{ env.DOCKER_REPOSITORY }}:${{ env.DOCKER_BUILD_TAG }}
+            nocodb/${{ env.DOCKER_REPOSITORY }}:latest
 
         # Temp fix
         # https://github.com/docker/build-push-action/issues/252

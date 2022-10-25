@@ -53,7 +53,7 @@ jobs:
           if [[ ${{ github.event.inputs.tagHeadSHA || inputs.tagHeadSHA }} == "Y" ]]; then
             TARGET_SHA=$(git rev-list -n 1 HEAD | tail -1)
           fi
-          echo "::set-output name=TARGET_SHA::${TARGET_SHA}"
+          echo "TARGET_SHA=${TARGET_SHA}" >> $GITHUB_OUTPUT
           echo "Setting TARGET_SHA: ${TARGET_SHA}"
       - name: Create tag
         uses: actions/github-script@v3
@@ -66,7 +66,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: "refs/tags/${{ github.event.inputs.tag || inputs.tag }}",
-              sha: "${{steps.get-sha.outputs.TARGET_SHA}}"
+              sha: "${{ env.TARGET_SHA }}"
             })
       - uses: actions/setup-node@v3
         with:

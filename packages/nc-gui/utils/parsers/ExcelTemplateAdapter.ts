@@ -179,8 +179,14 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                     column.uidt = UITypes.Currency
                   }
                   if (
-                    rows.slice(1, this.config.maxRowsToParse).some((v: any) => {
-                      return !(!isNaN(Number(v)) && !isNaN(parseFloat(v)))
+                    rows.slice(1, this.config.maxRowsToParse).some((v: any, i: any) => {
+                      const cellId = this.xlsx.utils.encode_cell({
+                        c: range.s.c + col,
+                        r: i + +this.config.firstRowAsHeaders,
+                      })
+
+                      const cellObj = ws[cellId]
+                      return !cellObj || (cellObj.w && !(!isNaN(Number(cellObj.w)) && !isNaN(parseFloat(cellObj.w))))
                     })
                   ) {
                     // fallback to SingleLineText

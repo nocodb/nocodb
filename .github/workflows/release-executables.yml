@@ -240,7 +240,7 @@ jobs:
             desc "NocoDB : Opensource smart spreadsheet"
             homepage "https://github.com/nocodb/nocodb"
             url "https://github.com/nocodb/nocodb/releases/download/${{ github.event.inputs.tag || inputs.tag }}/nocodb.tar.gz"
-            sha256 "${{ env.CHECKSUM }}"
+            sha256 "${{ steps.compress.outputs.CHECKSUM }}"
             license "MIT"
             version "${{ github.event.inputs.tag || inputs.tag }}"
 

@@ -176,7 +176,6 @@ export class DashboardPage extends BasePage {
     let menu = await this.rootPage
       .locator(`.nc-new-project-menu`)
       .textContent();
-    console.log(title, menu);
     expect(title).toContain(param.json.title.myProject);
     expect(menu).toContain(param.json.title.newProj);
     await this.rootPage

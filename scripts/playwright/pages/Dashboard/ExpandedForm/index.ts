@@ -101,7 +101,6 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async validateRoleAccess(param: { role: string }) {
-    console.log(param.role);
     if (param.role === "commenter" || param.role === "viewer") {
       expect(
         await this.get().locator('button:has-text("Save Row")')

@@ -175,8 +175,6 @@ export class CellPageObject extends BasePage {
   }
 
   async verifyRoleAccess(param: { role: string }) {
-    console.log("verifyRoleAccess", param);
-
     // normal text cell
     const cell = await this.get({ index: 0, columnHeader: "Country" });
     // editable cell

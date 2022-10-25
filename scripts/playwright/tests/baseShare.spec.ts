@@ -11,7 +11,6 @@ test.describe("Shared base", () => {
   let loginPage: LoginPage;
 
   async function roleTest(role: string) {
-    console.log("project menu");
     await dashboard.validateProjectMenu({
       role: role.toLowerCase(),
       mode: "shareBase",
@@ -19,29 +18,24 @@ test.describe("Shared base", () => {
 
     await dashboard.treeView.openTable({ title: "Country", mode: "shareBase" });
 
-    console.log("shareBase: view sidebar");
     await dashboard.viewSidebar.validateRoleAccess({
       role: role.toLowerCase(),
     });
 
-    console.log("shareBase: toolbar");
     await toolbar.validateRoleAccess({
       role: role.toLowerCase(),
       mode: "shareBase",
     });
 
-    console.log("shareBase: tree view");
     await dashboard.treeView.validateRoleAccess({
       role: role.toLowerCase(),
     });
 
-    console.log("shareBase: grid");
     await dashboard.grid.validateRoleAccess({
       role: role.toLowerCase(),
     });
 
     await dashboard.grid.openExpandedRow({ index: 0 });
-    console.log("shareBase: expanded row");
     await dashboard.expandedForm.validateRoleAccess({
       role: role.toLowerCase(),
     });

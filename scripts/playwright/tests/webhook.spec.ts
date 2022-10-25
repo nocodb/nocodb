@@ -23,12 +23,11 @@ async function verifyHookTrigger(count: number, value: string, request) {
 
   if (count) {
     response = await request.get(hookPath + "/last");
-    console.log(await response.json());
     expect((await response.json()).Title).toBe(value);
   }
 }
 
-test.describe("Webhook", () => {
+test.describe.skip("Webhook", () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage, webhook: WebhookFormPage;
   let context: any;
 

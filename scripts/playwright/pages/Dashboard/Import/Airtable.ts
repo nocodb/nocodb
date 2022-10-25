@@ -18,7 +18,6 @@ export class ImportAirtablePage extends BasePage {
   }
 
   async import({ key, baseId }: { key: string; baseId: string }) {
-    console.log(key, baseId);
     await this.get().locator(`.nc-input-api-key >> input`).fill(key);
     await this.get().locator(`.nc-input-shared-base`).fill(baseId);
     await this.importButton.click();

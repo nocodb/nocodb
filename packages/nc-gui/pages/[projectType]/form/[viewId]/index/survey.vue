@@ -159,6 +159,12 @@ function resetForm() {
   goTo(steps.value[0])
 }
 
+function submit() {
+  if (submitted.value) return
+
+  submitForm()
+}
+
 onReset(resetForm)
 
 onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {
@@ -289,7 +295,7 @@ onMounted(() => {
                   type="submit"
                   class="uppercase scaling-btn prose-sm"
                   data-cy="nc-survey-form__btn-submit"
-                  @click="submitForm"
+                  @click="submit"
                 >
                   {{ $t('general.submit') }}
                 </button>

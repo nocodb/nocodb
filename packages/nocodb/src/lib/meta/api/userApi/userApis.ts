@@ -99,12 +99,12 @@ export async function signup(req: Request, res: Response<TableType>) {
         count: 1,
       });
     } else {
-      let settings: { disable_user_signup?: boolean } = {};
+      let settings: { enable_user_signup?: boolean } = {};
       try {
         settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
       } catch {}
 
-      if (process.env.NC_INVITE_ONLY_SIGNUP || settings?.disable_user_signup) {
+      if (!settings?.enable_user_signup) {
         NcError.badRequest('Not allowed to signup, contact super admin.');
       } else {
         roles = OrgUserRoles.VIEWER;

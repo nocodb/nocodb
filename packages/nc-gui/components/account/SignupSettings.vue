@@ -4,7 +4,7 @@ import { extractSdkResponseErrorMsg, useApi } from '#imports'
 
 const { api } = useApi()
 
-let settings = $ref<{ disable_user_signup?: boolean }>({ disable_user_signup: false })
+let settings = $ref<{ enable_user_signup?: boolean }>({ enable_user_signup: false })
 
 const loadSettings = async () => {
   try {
@@ -32,15 +32,16 @@ loadSettings()
     <div class="text-xl">Settings</div>
     <a-divider class="!my-3" />
     <a-form-item>
-      <a-checkbox class="nc-checkbox" v-model:checked="settings.disable_user_signup" name="virtual"
+      <a-checkbox class="nc-checkbox" v-model:checked="settings.enable_user_signup" name="virtual"
                   @change="saveSettings">
-        Disable user signup
+        Enable user signup
       </a-checkbox>
     </a-form-item>
   </div>
 </template>
 <style scoped>
-:deep(.nc-checkbox label) {
-  @apply flex-row-reverse !flex;
+:deep(.ant-checkbox-wrapper) {
+  @apply !flex-row-reverse !flex !justify-start gap-4;
+  justify-content: start;
 }
 </style>

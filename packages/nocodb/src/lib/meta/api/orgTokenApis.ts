@@ -41,7 +41,7 @@ export async function apiTokenCreate(req: Request, res: Response) {
 
 export async function apiTokenDelete(req: Request, res: Response) {
   const fk_user_id = req['user'].id;
-  const apiToken = await ApiToken.getByToken(req.params.apiTokenId);
+  const apiToken = await ApiToken.getByToken(req.params.token);
   if (
     !req['user'].roles.includes(OrgUserRoles.SUPER) &&
     apiToken.fk_user_id !== fk_user_id

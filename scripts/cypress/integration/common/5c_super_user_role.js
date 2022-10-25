@@ -83,6 +83,7 @@ export const genTest = (apiType, dbType) => {
     });
 
     it(`Open super user management page and add/delete user`, () => {
+      // delay for avoiding error related to vue router change
       cy.wait(500);
 
       cy.visit('/#/account/users').then((win) => {
@@ -134,19 +135,27 @@ export const genTest = (apiType, dbType) => {
     });
 
     it(`Token management`, () => {
-
-        cy.wait(500);
+      // delay for avoiding error related to vue router change
+      cy.wait(500);
       cy.visit('/#/account/tokens').then((win) => {
 
         cy.get('[data-cy="nc-token-list"]').should('exist').find(':contains("No Data")').should('exist');
         cy.get('[data-cy="nc-token-create"]').click();
         cy.get('[data-cy="nc-token-modal-description"]').type('Descriptqion');
         cy.get('[data-cy="nc-token-modal-save"]').click();
-        cy.toastWait('Token created successfully');
+        cy.toastWait('Token generated successfully');
 
         cy.get('[data-cy="nc-token-list"]').should('exist')
           .find('tbody tr').should('have.length', 1);
 
+        cy.get('.nc-token-menu').click();
+
+        cy.getActiveMenu('.nc-dropdown-api-token-mgmt').find('.ant-dropdown-menu-item:contains("Remove")').click();
+
+
+        cy.getActiveModal().find('.ant-modal-confirm-btns .ant-btn-primary').click();
+
+        cy.toastWait('Token deleted successfully');
 
       });
     });

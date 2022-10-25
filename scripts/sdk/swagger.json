@@ -584,7 +584,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "disable_user_signup": {
+                    "enable_user_signup": {
                       "type": "boolean"
                     }
                   }
@@ -613,7 +613,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "disable_user_signup": {
+                  "enable_user_signup": {
                     "type": "boolean"
                   }
                 }

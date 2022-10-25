@@ -188,7 +188,7 @@ const descriptionInput = ref((el) => {
                 <div class="flex flex-row items-center">
                   <a-button type="text" class="!px-0">
                     <div class="flex flex-row items-center h-[1.2rem]">
-                      <IcBaselineMoreVert />
+                      <IcBaselineMoreVert class="nc-token-menu"/>
                     </div>
                   </a-button>
                 </div>

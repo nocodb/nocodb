@@ -181,6 +181,7 @@ export const genTest = (apiType, dbType) => {
     let RESULT_MATH_0 = [];
     let RESULT_MATH_1 = [];
     let RESULT_MATH_2 = [];
+    let RESULT_MATH_3 = [];
     let RESULT_WEEKDAY_0 = [];
     let RESULT_WEEKDAY_1 = [];
     let RESULT_CIRC_REF_0 = [];
@@ -211,9 +212,12 @@ export const genTest = (apiType, dbType) => {
         Math.min(cityId[i], countryId[i]) +
         Math.max(cityId[i], countryId[i]);
 
+      RESULT_MATH_2[i] =
+        1.23 + Math.min(2.34, 3.45) + Math.max(2.34, 3.45);
+
       // LOG, EXP, POWER, SQRT
       // only integer verification being computed, hence trunc
-      RESULT_MATH_2[i] = Math.trunc(
+      RESULT_MATH_3[i] = Math.trunc(
         Math.log(cityId[i]) +
         Math.exp(cityId[i]) +
         Math.pow(cityId[i], 3) +
@@ -273,23 +277,32 @@ export const genTest = (apiType, dbType) => {
       rowValidation("NC_MATH_1", RESULT_MATH_1);
     });
 
+    it("Formula: ROUND with decimals, MIN, MAX", () => {
+      editColumnByName(
+        "NC_MATH_1",
+        "NC_MATH_2",
+        `ROUND(1.2345, 2) + MIN(2.34, 3.45) + MAX(2.34, 3.45)`
+      );
+      rowValidation("NC_MATH_2", RESULT_MATH_2)
+    })
+
     it("Formula: LOG, EXP, POWER, SQRT", () => {
       // if (!isXcdb()) {
       if (dbType === "mysql") {
         // SQLITE doesnt support LOG, EXP, POWER SQRT construct
         editColumnByName(
-          "NC_MATH_1",
           "NC_MATH_2",
+          "NC_MATH_3",
           `LOG({CityId}) + EXP({CityId}) + POWER({CityId}, 3) + SQRT({CountryId})`
         );
-        rowValidation("NC_MATH_2", RESULT_MATH_2);
+        rowValidation("NC_MATH_3", RESULT_MATH_3);
       }
     });
 
     it("Formula: NOW, EDIT & Delete column", () => {
       // if (!isXcdb()) editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
-      if (dbType === "mysql") editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
-      else editColumnByName("NC_MATH_1", "NC_NOW", `NOW()`);
+      if (dbType === "mysql") editColumnByName("NC_MATH_3", "NC_NOW", `NOW()`);
+      else editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
       deleteColumnByName("NC_NOW");
 
       cy.closeTableTab("City");

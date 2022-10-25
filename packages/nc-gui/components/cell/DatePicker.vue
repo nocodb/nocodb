@@ -12,7 +12,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const columnMeta = inject(ColumnInj, null)!
 
-const readOnly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, ref(false))
 
 let isDateInvalid = $ref(false)
 

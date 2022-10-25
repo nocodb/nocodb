@@ -85,8 +85,6 @@ provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
 
-provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
-
 const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))

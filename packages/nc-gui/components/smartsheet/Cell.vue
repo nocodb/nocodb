@@ -85,10 +85,12 @@ const { sqlUi } = useProject()
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
-const syncValue = useDebounceFn(() => {
-  currentRow.value.rowMeta.changed = false
-  emit('save')
-}, 500,
+const syncValue = useDebounceFn(
+  () => {
+    currentRow.value.rowMeta.changed = false
+    emit('save')
+  },
+  500,
   { maxWait: 2000 },
 )
 

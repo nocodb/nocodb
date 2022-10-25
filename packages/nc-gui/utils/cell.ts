@@ -42,9 +42,10 @@ export const isAutoSaved = (column: ColumnType) =>
     UITypes.AutoNumber,
     UITypes.SpecificDBType,
     UITypes.Geometry,
+    UITypes.Duration,
   ].includes(column.uidt as UITypes)
 
 export const isManualSaved = (column: ColumnType) =>
-  [UITypes.Currency, UITypes.Year, UITypes.Time, UITypes.Duration].includes(column.uidt as UITypes)
+  [UITypes.Currency, UITypes.Year, UITypes.Time].includes(column.uidt as UITypes)
 
 export const isPrimary = (column: ColumnType) => column.pv

@@ -13,6 +13,7 @@ import { GalleryPage } from "./Gallery";
 import { KanbanPage } from "./Kanban";
 import { ToolbarPage } from "./common/Toolbar";
 import { ImportAirtablePage } from "./Import/Airtable";
+import { ImportTemplatePage } from "./Import/ImportTemplate";
 import { WebhookFormPage } from "./WebhookForm";
 
 export class DashboardPage extends BasePage {
@@ -31,6 +32,7 @@ export class DashboardPage extends BasePage {
   readonly settings: SettingsPage;
   readonly viewSidebar: ViewSidebarPage;
   readonly importAirtable: ImportAirtablePage;
+  readonly importTemplate = new ImportTemplatePage(this);
 
   constructor(rootPage: Page, project: any) {
     super(rootPage);

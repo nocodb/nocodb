@@ -460,8 +460,8 @@ watch(
 </script>
 
 <template>
-  <div class="relative flex flex-col h-full min-h-0 w-full" pw-data="grid-load-spinner">
-    <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
+  <div class="relative flex flex-col h-full min-h-0 w-full" pw-data="nc-grid-wrapper">
+    <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15" pw-data="grid-load-spinner">
       <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
         <a-spin size="large" />
       </div>
@@ -547,7 +547,7 @@ watch(
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">
-                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
+                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-pw="`cell-Id-${rowIndex}`">
                     <div class="items-center flex gap-1 min-w-[55px]">
                       <div
                         v-if="!readOnly || !isLocked"
@@ -605,6 +605,7 @@ watch(
                         (hasEditPermission && selectedRange(rowIndex, colIndex)),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                     }"
+                    :data-pw="`cell-${columnObj.title}-${rowIndex}`"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"

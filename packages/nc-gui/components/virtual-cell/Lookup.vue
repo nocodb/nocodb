@@ -17,7 +17,7 @@ import {
 
 const { metas, getMeta } = useMetas()
 
-provide(ReadonlyInj, true)
+provide(ReadonlyInj, ref(true))
 
 const column = inject(ColumnInj)! as Ref<ColumnType & { colOptions: LookupType }>
 

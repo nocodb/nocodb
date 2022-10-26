@@ -36,11 +36,6 @@ export const genTest = (apiType, dbType) => {
     const randVal = "Test@1234.com";
     const updatedRandVal = "Updated@1234.com";
 
-    // before(() => {
-    //     cy.restoreLocalStorage();
-    //     cy.createTable(name);
-    // })
-
     beforeEach(() => {
       cy.restoreLocalStorage();
     });
@@ -48,11 +43,6 @@ export const genTest = (apiType, dbType) => {
     afterEach(() => {
       cy.saveLocalStorage();
     });
-
-    // // delete table
-    // after(() => {
-    //     cy.deleteTable(name, dbType);
-    // });
 
     it("Create Table Column", () => {
       cy.createTable(name);
@@ -138,8 +128,9 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-row-no")
         .should("exist")
         .eq(0)
-        .trigger("mouseover", { force: true });
-      cy.get(".nc-row-expand").click({ force: true });
+        .trigger("mouseover", { force: true })
+        .get(".nc-row-expand")
+        .click({ force: true });
 
       // wait for page render to complete
       cy.get('button:contains("Save row"):visible').should("exist");

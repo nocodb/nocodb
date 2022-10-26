@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,

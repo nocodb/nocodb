@@ -12,7 +12,6 @@ import {
   IsPublicInj,
   MetaInj,
   OpenNewRecordFormHookInj,
-  ReadonlyInj,
   inject,
   onBeforeMount,
   onBeforeUnmount,

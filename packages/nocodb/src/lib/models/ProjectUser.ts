@@ -224,4 +224,8 @@ export default class ProjectUser {
       project_id: projectId,
     });
   }
+
+  static async getAllProjectsUsers(ncMeta = Noco.ncMeta) {
+    return await ncMeta.metaList2(null, null, MetaTable.PROJECT_USERS, {});
+  }
 }

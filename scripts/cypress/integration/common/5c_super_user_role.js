@@ -1,6 +1,3 @@
-import { loginPage } from '../../support/page_objects/navigation';
-import { roles } from '../../support/page_objects/projectConstants';
-
 export const genTest = (apiType, dbType) => {
   describe(`${apiType.toUpperCase()} api - Super user test`, () => {
     before(() => {
@@ -88,45 +85,47 @@ export const genTest = (apiType, dbType) => {
 
       cy.visit('/#/account/users').then((win) => {
         cy.get('[data-cy="nc-super-user-list"]').should('exist')
-          .find('tbody tr').should('have.length', 5);
+          .find('tbody tr').then((rows) => {
+          const initialUserCount = rows.length;
 
-        cy.get('[data-cy=\'nc-super-user-invite\'')
-          .click();
+          cy.get('[data-cy=\'nc-super-user-invite\'')
+            .click();
 
-        // additional wait to ensure the modal is fully loaded
-        cy.getActiveModal('.nc-modal-invite-user').should('exist');
-        cy.getActiveModal('.nc-modal-invite-user')
-          .find('input[placeholder="E-mail"]')
-          .should('exist');
+          // additional wait to ensure the modal is fully loaded
+          cy.getActiveModal('.nc-modal-invite-user').should('exist');
+          cy.getActiveModal('.nc-modal-invite-user')
+            .find('input[placeholder="E-mail"]')
+            .should('exist');
 
-        cy.getActiveModal('.nc-modal-invite-user')
-          .find('input[placeholder="E-mail"]')
-          .type('test@nocodb.com');
-        cy.getActiveModal('.nc-modal-invite-user')
-          .find('.ant-select.nc-user-roles')
-          .click();
+          cy.getActiveModal('.nc-modal-invite-user')
+            .find('input[placeholder="E-mail"]')
+            .type('test@nocodb.com');
+          cy.getActiveModal('.nc-modal-invite-user')
+            .find('.ant-select.nc-user-roles')
+            .click();
 
-        cy.getActiveModal('.nc-modal-invite-user')
-          .find('button.ant-btn-primary')
-          .click();
+          cy.getActiveModal('.nc-modal-invite-user')
+            .find('button.ant-btn-primary')
+            .click();
 
-        cy.toastWait('Successfully added user');
-
-
-        cy.getActiveModal().find('[data-cy="nc-root-user-invite-modal-close"]').click();
+          cy.toastWait('Successfully added user');
 
 
-        cy.get('[data-cy="nc-super-user-list"]').should('exist')
-          .find('tbody tr').should('have.length', 6)
-          .last().find('[data-cy="nc-super-user-delete"]').click();
-
-        cy.getActiveModal().find('.ant-modal-confirm-btns .ant-btn-primary').click();
-
-        cy.toastWait('User deleted successfully');
+          cy.getActiveModal().find('[data-cy="nc-root-user-invite-modal-close"]').click();
 
 
-        cy.get('[data-cy="nc-super-user-list"]').should('exist')
-          .find('tbody tr').should('have.length', 5);
+          cy.get('[data-cy="nc-super-user-list"]').should('exist')
+            .find('tbody tr').should('have.length', initialUserCount +1)
+            .last().find('[data-cy="nc-super-user-delete"]').click();
+
+          cy.getActiveModal().find('.ant-modal-confirm-btns .ant-btn-primary').click();
+
+          cy.toastWait('User deleted successfully');
+
+
+          cy.get('[data-cy="nc-super-user-list"]').should('exist')
+            .find('tbody tr').should('have.length', initialUserCount);
+        });
       });
     });
 

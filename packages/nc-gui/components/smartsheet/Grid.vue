@@ -36,8 +36,8 @@ import {
   useSmartsheetStoreOrThrow,
   useUIPermission,
   useViewData,
-  watch,
-} from '#imports'
+  watch, useCopy
+} from "#imports";
 import type { Row } from '~/lib'
 import { NavigateDir } from '~/lib'
 
@@ -46,6 +46,7 @@ const { t } = useI18n()
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
+const { copy } = useCopy()
 
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
@@ -231,6 +232,7 @@ function makeEditable(row: Row, col: ColumnType) {
 }
 
 const copyValue = async (ctx: { row: number; col: number }) => {
+  console.log('in copyValue')
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 

@@ -240,8 +240,6 @@ watch(
 
 <style lang="scss">
 .nc-cell {
-  position: relative;
-
   .nc-attachment-cell {
     .nc-attachment {
       @apply w-[50px] h-[50px] min-h-[50px] min-w-[50px] ring-1 ring-gray-300 rounded;

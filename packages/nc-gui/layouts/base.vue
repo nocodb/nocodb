@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar, useUIPermission } from '#imports'
+import NocoHeaderLogo from '~/components/general/NocoHeaderLogo'
 
 const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
 
@@ -48,12 +49,7 @@ hooks.hook('page:finish', () => {
           class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
           @click="navigateTo('/')"
         >
-          <a-tooltip placement="bottom">
-            <template #title>
-              {{ currentVersion }}
-            </template>
-            <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-          </a-tooltip>
+          <NocoHeaderLogo />
         </div>
 
         <div class="!text-white flex justify-center">

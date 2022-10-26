@@ -15,17 +15,19 @@ import {
   useUIPermission,
   useViews,
   watch,
-} from '#imports'
+  useTabs
+} from "#imports";
 
 const meta = inject(MetaInj, ref())
+const { activeTab } = useTabs();
 
 const activeView = inject(ActiveViewInj, ref())
 
 const { lastOpenedViewMap } = useProject()
 
-const setLastOpenedView = (view?: ViewType) => {
-  if (view && meta.value?.table_name) {
-    lastOpenedViewMap.value[meta.value?.table_name] = view
+const setLastOpenedViewId = (viewId?: string) => {
+  if (viewId && activeTab.value?.id) {
+    lastOpenedViewMap.value[activeTab.value?.id] = viewId
   }
 }
 
@@ -51,10 +53,14 @@ const sidebar = ref()
 watch(
   [views, () => route.params.viewTitle],
   ([nextViews, viewTitle]) => {
+    const lastOpenedViewId = activeTab.value?.id && lastOpenedViewMap.value[activeTab.value?.id ]
+    const lastOpenedView = nextViews.find((v) => v.id === lastOpenedViewId)
+
     if (viewTitle) {
       let view = nextViews.find((v) => v.title === viewTitle)
       if (view) {
         activeView.value = view
+        setLastOpenedViewId(activeView.value?.id)
       } else {
         /** search with view id and if found replace with title */
         view = nextViews.find((v) => v.id === viewTitle)
@@ -66,8 +72,15 @@ watch(
           })
         }
       }
+    } else if (lastOpenedView) {
+      /** if active view is not found, set it to last opened view */
+      router.replace({
+          params: {
+            viewTitle: lastOpenedView.title,
+          },
+        })
     } else {
-      if (nextViews?.length && activeView.value !== nextViews[0]) {
+      if (nextViews?.length && activeView.value !== nextViews[0] || (!activeView.value || !nextViews.includes(activeView.value))) {
         activeView.value = nextViews[0]
       }
     }
@@ -76,8 +89,6 @@ watch(
     if (nextViews?.length && (!activeView.value || !nextViews.includes(activeView.value))) {
       activeView.value = nextViews[0]
     }
-
-    setLastOpenedView(activeView.value)
   },
   { immediate: true },
 )

@@ -39,7 +39,7 @@ const [setup, use] = useInjectionState(() => {
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
 
-  const lastOpenedViewMap = ref<Record<string, ViewType>>({})
+  const lastOpenedViewMap = ref<Record<string, string>>({})
 
   const projectId = computed(() => route.params.projectId as string)
 

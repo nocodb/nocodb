@@ -169,6 +169,12 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     <LazyCellText v-else-if="isString" v-model="vModel" />
     <LazyCellJson v-else-if="isJSON" v-model="vModel" />
     <LazyCellText v-else v-model="vModel" />
-    <div v-if="(isLocked || (isPublic && readOnly && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
+    <div v-if="(isLocked || isSystemColumn(column) || (isPublic && readOnly && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
   </div>
 </template>
+
+<style lang="scss">
+.nc-cell {
+  position: relative;
+}
+</style>

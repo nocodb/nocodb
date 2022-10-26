@@ -16,13 +16,15 @@ test.describe("Project operations", () => {
 
   test("rename, delete", async () => {
     await dashboard.clickHome();
+    await dashboard.createProject({ name: "project-1", type: "xcdb" });
+    await dashboard.clickHome();
     await dashboard.renameProject({
-      title: "externalREST0",
-      newTitle: "externalREST0x",
+      title: "project-1",
+      newTitle: "project-new",
     });
     await dashboard.clickHome();
-    await dashboard.openProject({ title: "externalREST0x" });
+    await dashboard.openProject({ title: "project-new" });
     await dashboard.clickHome();
-    await dashboard.deleteProject({ title: "externalREST0x" });
+    await dashboard.deleteProject({ title: "project-new" });
   });
 });

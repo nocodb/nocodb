@@ -33,16 +33,16 @@ const formulaData = [
   {
     formula: `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`,
     result: [
-      '"A CORUA (LA CORUA)a corua (la corua)trimmed"',
-      '"ABHAabhatrimmed"',
-      '"ABU DHABIabu dhabitrimmed"',
-      '"ACUAacuatrimmed"',
-      '"ADANAadanatrimmed"',
+      "A CORUA (LA CORUA)a corua (la corua)trimmed",
+      "ABHAabhatrimmed",
+      "ABU DHABIabu dhabitrimmed",
+      "ACUAacuatrimmed",
+      "ADANAadanatrimmed",
     ],
   },
   {
     formula: `CEILING(1.4) + FLOOR(1.6) + ROUND(2.5) + MOD({CityId}, 3) + MIN({CityId}, {CountryId}) + MAX({CityId}, {CountryId})`,
-    result: ['"95"', '"92"', '"110"', '"71"', '"110"'],
+    result: ["95", "92", "110", "71", "110"],
   },
   {
     formula: `LOG({CityId}) + EXP({CityId}) + POWER({CityId}, 3) + SQRT({CountryId})`,

@@ -38,7 +38,7 @@ const checkboxMeta = $computed(() => {
 })
 
 function onClick() {
-  if (!readOnly) {
+  if (!readOnly?.value) {
     vModel = !vModel
   }
 }

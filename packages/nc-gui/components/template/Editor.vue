@@ -221,7 +221,7 @@ function deleteTable(tableIdx: number) {
 
 function deleteTableColumn(tableIdx: number, columnKey: number) {
   const columnIdx = data.tables[tableIdx].columns.findIndex((c: ColumnType & { key: number }) => c.key === columnKey)
-  data.tables[tableIdx].columns?.splice(columnIdx, 1)
+  data.tables[tableIdx].columns.splice(columnIdx, 1)
 }
 
 function addNewColumnRow(tableIdx: number, uidt: string) {

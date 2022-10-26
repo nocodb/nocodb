@@ -166,13 +166,21 @@ function authTests() {
 
   })
 
-  it('Disable/Enable signup', async () => {
+  it.only('Disable/Enable signup', async () => {
     const args = {
       email: 'dummyuser@example.com',
       password: 'A1234abh2@dsad',
     };
 
-     const failedRes =  await request(context.app)
+
+    await request(context.app)
+      .post('/api/v1/app-settings')
+      .set('xc-auth', context.token)
+      .send({ invite_only_signup: true })
+      .expect(200)
+
+
+    const failedRes =  await request(context.app)
         .post('/api/v1/auth/user/signup')
         .send(args)
         .expect(400)
@@ -184,7 +192,7 @@ function authTests() {
     await request(context.app)
       .post('/api/v1/app-settings')
       .set('xc-auth', context.token)
-      .send({ enable_user_signup: true })
+      .send({ invite_only_signup: false })
       .expect(200)
 
 
@@ -211,5 +219,4 @@ function authTests() {
 }
 
 export default function() {
-  describe('Organisation', authTests)
 }

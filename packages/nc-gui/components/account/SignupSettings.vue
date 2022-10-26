@@ -6,7 +6,7 @@ const { api } = useApi()
 
 const { t } = useI18n()
 
-let settings = $ref<{ enable_user_signup?: boolean }>({ enable_user_signup: false })
+let settings = $ref<{ invite_only_signup?: boolean }>({ invite_only_signup: false })
 
 const loadSettings = async () => {
   try {
@@ -36,13 +36,13 @@ loadSettings()
     <div class="-ml-6">
       <a-form-item>
         <a-checkbox
-          v-model:checked="settings.enable_user_signup"
+          v-model:checked="settings.invite_only_signup"
           v-e="['c:account:enable-signup']"
           class="nc-checkbox"
           name="virtual"
           @change="saveSettings"
         >
-          {{ $t('labels.enableSignup') }}
+          {{ $t('labels.inviteOnlySignup') }}
         </a-checkbox>
       </a-form-item>
     </div>

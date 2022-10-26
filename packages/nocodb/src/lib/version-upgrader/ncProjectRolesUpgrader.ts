@@ -1,4 +1,6 @@
 import { OrgUserRoles } from '../../enums/OrgUserRoles';
+import { NC_APP_SETTINGS } from '../constants';
+import Store from '../models/Store';
 import { MetaTable } from '../utils/globals';
 import { NcUpgraderCtx } from './NcUpgrader';
 
@@ -25,6 +27,17 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       MetaTable.USERS,
       { roles: user.roles },
       user.id
+    );
+  }
+
+  // set invite only signup if user have environment variable set
+  if (process.env.NC_INVITE_ONLY_SIGNUP) {
+    await Store.saveOrUpdate(
+      {
+        value: '{ "invite_only_signup": true }',
+        key: NC_APP_SETTINGS,
+      },
+      ncMeta
     );
   }
 }

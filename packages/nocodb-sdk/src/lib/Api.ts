@@ -1207,10 +1207,10 @@ export class Api<
      * @name Get
      * @summary App settings get
      * @request GET:/api/v1/app-settings
-     * @response `200` `{ enable_user_signup?: boolean }` OK
+     * @response `200` `{ invite_only_signup?: boolean }` OK
      */
     get: (params: RequestParams = {}) =>
-      this.request<{ enable_user_signup?: boolean }, any>({
+      this.request<{ invite_only_signup?: boolean }, any>({
         path: `/api/v1/app-settings`,
         method: 'GET',
         format: 'json',
@@ -1226,7 +1226,7 @@ export class Api<
      * @request POST:/api/v1/app-settings
      * @response `200` `void` OK
      */
-    set: (data: { enable_user_signup?: boolean }, params: RequestParams = {}) =>
+    set: (data: { invite_only_signup?: boolean }, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/api/v1/app-settings`,
         method: 'POST',

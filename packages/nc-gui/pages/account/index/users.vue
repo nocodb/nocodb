@@ -30,7 +30,7 @@ const selectedTabKey = computed({
     <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs">
       <a-tab-pane v-for="tab of tabs" :key="tab.key" class="select-none">
         <template #tab>
-          <span>
+          <span class="user-management-tab-label">
             {{ tab.label }}
           </span>
         </template>

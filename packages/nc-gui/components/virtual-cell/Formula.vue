@@ -6,7 +6,7 @@ import { CellValueInj, ColumnInj, computed, handleTZ, inject, ref, replaceUrlsWi
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
 
-const value = inject(CellValueInj)
+const cellValue = inject(CellValueInj)
 
 const { isPg } = useProject()
 
@@ -20,7 +20,7 @@ const showEditFormulaWarningMessage = () => {
   }, 3000)
 }
 
-const result = computed(() => (isPg.value ? handleTZ(value) : value))
+const result = computed(() => (isPg.value ? handleTZ(cellValue?.value) : cellValue?.value))
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 </script>

@@ -31,7 +31,7 @@ const row = inject(RowInj)!
 
 const active = inject(ActiveCellInj)!
 
-const readOnly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 

@@ -127,7 +127,7 @@ hooks.hook('page:finish', () => {
       <a-tooltip placement="bottom">
         <template #title> Switch language</template>
 
-        <LazyGeneralLanguage v-if="!signedIn" class="nc-lang-btn" />
+        <LazyGeneralLanguage v-if="!signedIn && !route.params.projectId" class="nc-lang-btn" />
       </a-tooltip>
 
       <div class="w-full h-full overflow-hidden">

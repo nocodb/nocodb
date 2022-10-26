@@ -219,7 +219,8 @@ function deleteTable(tableIdx: number) {
   data.tables.splice(tableIdx, 1)
 }
 
-function deleteTableColumn(tableIdx: number, columnIdx: number) {
+function deleteTableColumn(tableIdx: number, columnKey: number) {
+  const columnIdx = data.tables[tableIdx].columns.findIndex((c: ColumnType & { key: number }) => c.key === columnKey)
   data.tables[tableIdx].columns?.splice(columnIdx, 1)
 }
 

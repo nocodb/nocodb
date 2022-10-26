@@ -175,7 +175,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp'], () => {
 })
 onKeyStroke(['Enter', 'Space'], () => {
   if (isLast.value) {
-    submitForm()
+    submit()
   } else {
     goNext(AnimationTarget.OkButton)
   }

@@ -580,9 +580,7 @@
               "type": "number",
               "minimum": 1,
               "multipleOf": 1
-            },
-            "in": "query",
-            "name": "TODO"
+            }
           }
         ]
       }

@@ -546,8 +546,8 @@ watch(
           <tbody ref="tbodyEl" @selectstart.prevent>
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
-                <tr class="nc-grid-row">
-                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-pw="`cell-Id-${rowIndex}`">
+                <tr class="nc-grid-row" :data-pw="`grid-row-${rowIndex}`">
+                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :pw-data="`cell-Id-${rowIndex}`">
                     <div class="items-center flex gap-1 min-w-[55px]">
                       <div
                         v-if="!readOnly || !isLocked"

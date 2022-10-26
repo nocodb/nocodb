@@ -49,6 +49,8 @@ test.describe("Shared base", () => {
   });
 
   test("#1", async () => {
+    let projId = process.env.TEST_PARALLEL_INDEX;
+
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: "Team & Auth" });
 
@@ -68,7 +70,7 @@ test.describe("Shared base", () => {
       email: "user@nocodb.com",
       password: "Password123.",
     });
-    await dashboard.openProject({ title: "externalREST0" });
+    await dashboard.openProject({ title: `externalREST${projId}` });
     await dashboard.closeTab({ title: "Team & Auth" });
 
     await dashboard.treeView.inviteTeamButton.click();

@@ -169,6 +169,10 @@ export class DashboardPage extends BasePage {
   async selectLanguage({ index }: { index: number }) {
     let modal = await this.rootPage.locator(".nc-dropdown-menu-translate");
     await modal.locator(`.ant-dropdown-menu-item`).nth(index).click();
+
+    // fix me!
+    // allow time for language to change
+    await this.rootPage.waitForTimeout(1000);
   }
 
   async verifyLanguage(param: { json: any }) {

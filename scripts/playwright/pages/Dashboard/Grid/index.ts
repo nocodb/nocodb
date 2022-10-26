@@ -155,7 +155,7 @@ export class GridPage extends BasePage {
   }
 
   async openExpandedRow({ index }: { index: number }) {
-    await this.row(index).locator(`td[pw-data="cell-id-${index}"]`).hover();
+    await this.row(index).locator(`td[pw-data="cell-Id-${index}"]`).hover();
     await this.row(index).locator(`div[pw-data="nc-expand-${index}"]`).click();
     await (
       await this.rootPage.locator(".ant-drawer-body").elementHandle()
@@ -178,7 +178,7 @@ export class GridPage extends BasePage {
         .poll(
           async () =>
             await this.row(i)
-              .locator(`[pw-data="cell-id-${i}"]`)
+              .locator(`[pw-data="cell-Id-${i}"]`)
               .locator("span.ant-checkbox-checked")
               .count()
         )

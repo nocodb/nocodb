@@ -16,7 +16,7 @@ let roleDb = [
 ];
 
 async function roleSignup(roleIdx: number, db: any) {
-  console.log(roleDb[roleIdx].url);
+  let projIdx = process.env.TEST_PARALLEL_INDEX;
   await db.signOut();
 
   await db.rootPage.goto(roleDb[roleIdx].url);
@@ -25,7 +25,7 @@ async function roleSignup(roleIdx: number, db: any) {
     password: "Password123.",
   });
 
-  await db.openProject({ title: "externalREST0" });
+  await db.openProject({ title: `externalREST${projIdx}` });
 
   // close 'Team & Auth' tab
   if (roleDb[roleIdx].role === "creator") {
@@ -74,6 +74,12 @@ test.describe("User roles", () => {
     await settings.acl.toggle({ table: "CustomerList", role: "viewer" });
     await settings.acl.save();
     await settings.close();
+
+    // Role test
+    for (let i = 0; i < roleDb.length; i++) {
+      console.log("Role: ", roleDb[i].role);
+      await roleTest(i, dashboard);
+    }
   });
 
   async function roleTest(roleIdx: number, db: any) {
@@ -115,10 +121,4 @@ test.describe("User roles", () => {
       exists: roleDb[roleIdx].role === "creator" ? true : false,
     });
   }
-
-  test("Role Test", async () => {
-    for (let i = 0; i < roleDb.length; i++) {
-      await roleTest(i, dashboard);
-    }
-  });
 });

@@ -77,7 +77,7 @@ export default class Backblaze implements IStorageAdapterV2 {
     // in v0.0.1, we constructed the endpoint with `region = s3.us-west-001`
     // in v0.0.2, `region` would be `us-west-001`
     // as backblaze states Region is the 2nd part of your S3 Endpoint in documentation
-    if (region.slice(0, 3) === 's3.') {
+    if (region.startsWith('s3.')) {
       region = region.slice(3);
     }
     return region;

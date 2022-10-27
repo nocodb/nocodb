@@ -35,8 +35,8 @@ jobs:
           CURRENT_VERSION=$(basename $(curl -fs -o/dev/null -w %{redirect_url} https://github.com/nocodb/nocodb/releases/latest))
           # Construct tag name
           TAG_NAME=pr-${PR_NUMBER}-${CURRENT_DATE}-${CURRENT_TIME}
-          echo "::set-output name=TARGET_TAG::${TAG_NAME}"
-          echo "::set-output name=CURRENT_VERSION::${CURRENT_VERSION}"
+          echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
       - name: verify-tag
         run: |
           echo ${{ steps.tag-step.outputs.TARGET_TAG }}

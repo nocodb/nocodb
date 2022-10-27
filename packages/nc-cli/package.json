@@ -1,6 +1,6 @@
 {
   "name": "create-nocodb-app",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "description": "nc-cli",
   "main": "dist/bundle.js",
   "module": "dist/bundle.js",
@@ -14,11 +14,8 @@
   },
   "scripts": {
     "describe": "npm-scripts-info",
-    "build": "run-s clean && run-p build:*",
-    "build:main": "tsc -p tsconfig.json",
-    "build:module": "tsc -p tsconfig.module.json",
-    "build:obfuscate": "webpack  --config webpack.config.js",
-    "build:obfuscate:publish": "export NODE_OPTIONS=--openssl-legacy-provider && rm -rf dist && npm run build:obfuscate && npm publish .",
+    "build": "webpack --config webpack.config.js",
+    "build:publish": "export NODE_OPTIONS=--openssl-legacy-provider && rm -rf dist && npm run build && npm publish .",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:tslint": "tslint --fix --project .",

@@ -573,15 +573,6 @@
         },
         "tags": [
           "Project"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "number",
-              "minimum": 1,
-              "multipleOf": 1
-            }
-          }
         ]
       }
     },

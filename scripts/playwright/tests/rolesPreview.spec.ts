@@ -10,14 +10,14 @@ import {
 
 let roles = ["Editor", "Commenter", "Viewer"];
 
-test.describe.skip("Preview Mode", () => {
+test.describe.only("Preview Mode", () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let settings: SettingsPage;
 
   let context: any;
 
-  test.beforeAll(async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
@@ -44,14 +44,11 @@ test.describe.skip("Preview Mode", () => {
     await settings.acl.save();
     await settings.close();
 
-    // await dashboard.grid.projectMenu.toggle();
-    // await dashboard.grid.projectMenu.click({
-    //   menu: "Preview as",
-    //   subMenu: "Editor",
-    // });
-    //
-    // // wait for preview mode to be enabled
-    // await dashboard.rootPage.locator(".nc-preview-btn-exit-to-app").waitFor();
+    // Role test
+    for (let i = 0; i < roles.length; i++) {
+      console.log("Role: ", roles[i]);
+      await roleTest(roles[i]);
+    }
   });
 
   async function roleTest(role: string) {
@@ -111,11 +108,4 @@ test.describe.skip("Preview Mode", () => {
     // close preview mode
     await dashboard.rootPage.locator(".nc-preview-btn-exit-to-app").click();
   }
-
-  test("Role Test", async () => {
-    for (let i = 0; i < roles.length; i++) {
-      console.log("Role: ", roles[i]);
-      await roleTest(roles[i]);
-    }
-  });
 });

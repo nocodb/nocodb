@@ -73,6 +73,16 @@ export default class Backblaze implements IStorageAdapterV2 {
     });
   }
 
+  patchRegion(region: string): string {
+    // in v0.0.1, we constructed the endpoint with `region = s3.us-west-001`
+    // in v0.0.2, `region` would be `us-west-001`
+    // as backblaze states Region is the 2nd part of your S3 Endpoint in documentation
+    if (region.slice(0, 3) === 's3.') {
+      region = region.slice(3);
+    }
+    return region;
+  }
+
   public async fileDelete(_path: string): Promise<any> {
     return Promise.resolve(undefined);
   }
@@ -94,14 +104,14 @@ export default class Backblaze implements IStorageAdapterV2 {
   public async init(): Promise<any> {
     const s3Options: any = {
       params: { Bucket: this.input.bucket },
-      region: this.input.region,
+      region: this.patchRegion(this.input.region),
     };
 
     s3Options.accessKeyId = this.input.access_key;
     s3Options.secretAccessKey = this.input.access_secret;
 
     s3Options.endpoint = new AWS.Endpoint(
-      `${this.input.region}.backblazeb2.com`
+      `s3.${s3Options.region}.backblazeb2.com`
     );
 
     this.s3Client = new AWS.S3(s3Options);

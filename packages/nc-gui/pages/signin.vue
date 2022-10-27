@@ -138,7 +138,7 @@ const isSignupAllowed = () => {
               </span>
             </a>
 
-            <div class="text-end prose-sm"  v-if="isSignupAllowed()">
+            <div v-if="isSignupAllowed()" class="text-end prose-sm">
               {{ $t('msg.info.signUp.dontHaveAccount') }}
               <nuxt-link to="/signup">{{ $t('general.signUp') }}</nuxt-link>
             </div>
@@ -150,19 +150,6 @@ const isSignupAllowed = () => {
             </div>
           </div>
         </a-form>
-        <div>
-          <a-button
-            v-if="appInfo.googleAuthEnabled"
-            :href="`${appInfo.ncSiteUrl}/auth/google`"
-            outlined
-            large
-            elevation-10
-            block
-            color="blue"
-          >
-            <b>&nbsp; &nbsp;Sign In with Google</b>
-          </a-button>
-        </div>
       </div>
     </div>
   </NuxtLayout>

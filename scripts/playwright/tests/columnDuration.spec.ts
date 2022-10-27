@@ -122,6 +122,7 @@ test.describe.skip("Duration column", () => {
         index: i,
         columnHeader: "NC_DURATION_0",
         value: i.toString(),
+        networkValidation: false,
       });
     }
 
@@ -133,18 +134,19 @@ test.describe.skip("Duration column", () => {
         format: durationData[i].format,
       });
       await dashboard.grid.column.save({ isUpdated: true });
-      for (let i = 0; i < durationData[i].input.length; i++) {
+      for (let j = 0; j < durationData[i].input.length; j++) {
         await dashboard.grid.editRow({
-          index: i,
+          index: j,
           columnHeader: "NC_DURATION_0",
-          value: durationData[i].input[i],
+          value: durationData[i].input[j],
+          networkValidation: false,
         });
       }
-      for (let i = 0; i < durationData[i].output.length; i++) {
+      for (let j = 0; j < durationData[i].output.length; j++) {
         await dashboard.grid.cell.verify({
-          index: i,
+          index: j,
           columnHeader: "NC_DURATION_0",
-          value: durationData[i].output[i],
+          value: durationData[i].output[j],
         });
       }
     }

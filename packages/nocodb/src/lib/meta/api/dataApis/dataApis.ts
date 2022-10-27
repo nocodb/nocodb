@@ -11,7 +11,6 @@ import apiMetrics from '../../helpers/apiMetrics';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 
 export async function dataList(req: Request, res: Response, next) {
-  // BOOKMARK
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({

@@ -221,7 +221,6 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
       case UITypes.QrCode: {
-        // BOOKMARK
         await QrCodeColumn.insert(
           {
             fk_column_id: colId,
@@ -523,7 +522,6 @@ export default class Column<T = any> implements ColumnType {
     return columns.map(c => new Column(c));*/
   }
 
-  // BOOKMARK
   public static async get(
     {
       base_id,

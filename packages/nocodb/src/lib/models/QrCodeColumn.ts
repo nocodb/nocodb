@@ -15,7 +15,6 @@ export default class QrCodeColumn {
     data: Partial<QrCodeColumn>,
     ncMeta = Noco.ncMeta
   ) {
-    // BOOKMARK
     await ncMeta.metaInsert2(null, null, MetaTable.COL_QRCODE, {
       fk_column_id: data.fk_column_id,
       fk_qr_value_column_id: data.fk_qr_value_column_id,

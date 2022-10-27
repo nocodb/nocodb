@@ -70,7 +70,6 @@ export async function dataList(req: Request, res: Response) {
         {},
         listArgs
       );
-      // BOOKMARK
       count = await baseModel.count(listArgs);
     } catch (e) {
       // show empty result instead of throwing error here

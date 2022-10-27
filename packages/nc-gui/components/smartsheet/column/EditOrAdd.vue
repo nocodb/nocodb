@@ -104,11 +104,6 @@ watchEffect(() => {
 onMounted(() => {
   if (!isEdit.value) {
     generateNewColumnMeta()
-  } else {
-    if (formState.value.pk) {
-      message.info(t('msg.info.editingPKnotSupported'))
-      emit('cancel')
-    }
   }
   formState.value.public = !!formState.value.public
 

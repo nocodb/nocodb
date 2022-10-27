@@ -189,11 +189,11 @@ function processResponseRow(res: any) {
 }
 
 function processKey(key) {
-  return key.replace(/'/gi, "''").replace(/[A-Z]/g, (match) => `_${match}`);
+  return key.replace(/'/g, "''").replace(/[A-Z]/g, (match) => `_${match}`);
 }
 
 function revertKey(key) {
-  return key.replace(/''/gi, "'").replace(/_[A-Z]/g, (match) => match[1]);
+  return key.replace(/''/g, "'").replace(/_[A-Z]/g, (match) => match[1]);
 }
 
 export default EntityMap;

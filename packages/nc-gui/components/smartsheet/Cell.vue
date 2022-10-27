@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -8,6 +7,7 @@ import {
   IsFormInj,
   IsLockedInj,
   IsPublicInj,
+  ReadonlyInj,
   computed,
   inject,
   provide,
@@ -47,7 +47,7 @@ provide(EditModeInj, useVModel(props, 'editEnabled', emit))
 provide(ActiveCellInj, active)
 
 if (readOnly?.value) {
-  provide(ReadonlyInj, readOnly.value)
+  provide(ReadonlyInj, readOnly)
 }
 
 const isForm = inject(IsFormInj, ref(false))

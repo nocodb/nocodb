@@ -10,7 +10,6 @@ import {
   MetaInj,
   OpenNewRecordFormHookInj,
   PaginationDataInj,
-  ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
@@ -51,14 +50,11 @@ const {
   addEmptyRow,
 } = useViewData(meta, view)
 
-const { isUIAllowed } = useUIPermission()
-
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
-provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 

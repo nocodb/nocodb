@@ -27,7 +27,7 @@ const reloadRowTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const isForm = inject(IsFormInj)
 
-const readOnly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const isLocked = inject(IsLockedInj)
 

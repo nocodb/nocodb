@@ -1,6 +1,7 @@
 import type { FilterType, ViewTypes } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
+import type { UploadFile } from 'ant-design-vue'
 import type { ProjectRole, Role, TabType } from './enums'
 import type { rolePermissions } from './constants'
 
@@ -94,3 +95,7 @@ export interface SharedView {
   type?: ViewTypes
   meta: SharedViewMeta
 }
+
+export type importFileList = (UploadFile & { data: string | ArrayBuffer })[]
+
+export type streamImportFileList = UploadFile[]

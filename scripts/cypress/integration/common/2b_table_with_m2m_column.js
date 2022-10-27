@@ -49,8 +49,7 @@ export const genTest = (apiType, dbType) => {
         .getCell("Film List", 1)
         .should("exist")
         .trigger("mouseover")
-        .click();
-      cy.get(".nc-action-icon").eq(0).should("exist").click({ force: true });
+        .get(".nc-action-icon").eq(0).should("exist").click({ force: true });
 
       // GUI-v2 Kludge:
       // validations
@@ -73,22 +72,22 @@ export const genTest = (apiType, dbType) => {
         .then(() => {
           // Link record form validation
           cy.getActiveModal(".nc-modal-link-record")
-            .contains("Link record")
-            .should("exist");
+              .contains("Link record")
+              .should("exist");
           cy.getActiveModal(".nc-modal-link-record")
-            .find(".nc-reload")
-            .should("exist");
+              .find(".nc-reload")
+              .should("exist");
           cy.getActiveModal(".nc-modal-link-record")
-            .find('button:contains("Add new record")')
-            .should("exist");
+              .find('button:contains("Add new record")')
+              .should("exist");
           cy.getActiveModal(".nc-modal-link-record")
-            .find(".ant-card")
-            .eq(0)
-            .contains("ACE GOLDFINGER")
-            .should("exist");
+              .find(".ant-card")
+              .eq(0)
+              .contains("ACE GOLDFINGER")
+              .should("exist");
           cy.getActiveModal(".nc-modal-link-record")
-            .find("button.ant-modal-close")
-            .click();
+              .find("button.ant-modal-close")
+              .click();
         });
     });
 
@@ -98,8 +97,7 @@ export const genTest = (apiType, dbType) => {
         .getCell("Film List", 1)
         .should("exist")
         .trigger("mouseover")
-        .click();
-      cy.get(".nc-action-icon").eq(0).should("exist").click({ force: true });
+        .get(".nc-action-icon").eq(0).should("exist").click({ force: true });
 
       cy.getActiveModal(".nc-modal-child-list")
         .find(".ant-card")

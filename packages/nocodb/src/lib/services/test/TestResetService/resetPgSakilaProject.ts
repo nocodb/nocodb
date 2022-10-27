@@ -143,6 +143,7 @@ const resetPgSakilaProject = async ({
   );
   if (response.status !== 200) {
     console.error('Error creating project', response.data);
+    throw new Error('Error creating project', response.data);
   }
 
   await pgknex.destroy();

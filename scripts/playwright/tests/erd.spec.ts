@@ -7,7 +7,7 @@ import { isMysql, isPg, isSqlite } from "../setup/db";
 import { GridPage } from "../pages/Dashboard/Grid";
 import { SettingsErdPage } from "../pages/Dashboard/Settings/Erd";
 
-test.describe("Erd", () => {
+test.describe.only("Erd", () => {
   let dashboard: DashboardPage;
   let context: any;
   let project: any;
@@ -34,44 +34,21 @@ test.describe("Erd", () => {
   });
 
   // todo: Hack, edges are not getting rendered properly
-  const openSettingsErdWithEdgesRendered = async () => {
+  const openSettingsErd = async () => {
     await dashboard.gotoSettings();
     await dashboard.settings.selectTab({tab: SettingTab.ProjectMetadata, subTab: SettingsSubTab.Miscellaneous});
-    await dashboard.settings.miscellaneous.clickShowM2MTables();
-
     await dashboard.settings.selectSubTab({subTab: SettingsSubTab.ERD});
-    // Todo: Otherwise edges wont be rendered
-    await dashboard.rootPage.waitForTimeout(800);
-    await dashboard.settings.selectSubTab({subTab: SettingsSubTab.Miscellaneous});
-    await dashboard.rootPage.waitForTimeout(800);
-    await dashboard.settings.selectSubTab({subTab: SettingsSubTab.ERD});
-
-    // Todo: Otherwise edges wont be rendered
-    await dashboard.rootPage.waitForTimeout(200);
   }
 
   // todo: remove this. Need for edges to be rendered
   const openErdOfATableWithEdgesRendered = async (tableName: string) => {
     await dashboard.treeView.openTable({title: tableName});
     await dashboard.grid.toolbar.clickActions();
-    await dashboard.rootPage.waitForTimeout(1000);
-    await dashboard.grid.toolbar.actions.click("ERD View");
-    await dashboard.grid.toolbar.actions.erd.close();
-
-    await dashboard.treeView.openTable({title: 'Actor'});
-    await dashboard.grid.toolbar.clickActions();
-    await dashboard.rootPage.waitForTimeout(1000);
-    await dashboard.grid.toolbar.actions.click("ERD View");
-    await dashboard.grid.toolbar.actions.erd.close();
-
-    await dashboard.treeView.openTable({title: tableName});
-    await dashboard.grid.toolbar.clickActions();
-    await dashboard.rootPage.waitForTimeout(1000);
     await dashboard.grid.toolbar.actions.click("ERD View");
   }
 
-  test("Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names", async () => {
-    await openSettingsErdWithEdgesRendered();
+  test.skip("Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names", async () => {
+    await openSettingsErd();
 
     const erd: SettingsErdPage = dashboard.settings.erd;
 
@@ -222,13 +199,12 @@ test.describe("Erd", () => {
     // Add column
     await dashboard.grid.column.create({title: "test_column"});
     // Verify in Settings ERD and table ERD
-    await openSettingsErdWithEdgesRendered();
+    await openSettingsErd();
     await dashboard.settings.erd.verifyNode({tableName: `${isSqlite(context) ? project.prefix: ''}country`, columnName: 'test_column'});
     await dashboard.settings.close();
 
     await dashboard.treeView.openTable({title: "Country"});
     await dashboard.grid.toolbar.clickActions();
-    await dashboard.rootPage.waitForTimeout(1000);
     await dashboard.grid.toolbar.actions.click("ERD View");
     await dashboard.grid.toolbar.actions.erd.verifyNode({tableName: `${isSqlite(context) ? project.prefix: ''}country`, columnName: 'test_column'});
     await dashboard.grid.toolbar.actions.erd.close();
@@ -240,13 +216,12 @@ test.describe("Erd", () => {
       isUpdated: true,
     });
     // Verify in Settings ERD and table ERD
-    await openSettingsErdWithEdgesRendered();
+    await openSettingsErd();
     await dashboard.settings.erd.verifyNode({tableName: `${isSqlite(context) ? project.prefix: ''}country`, columnName: 'new_test_column'});
     await dashboard.settings.close();
 
     await dashboard.treeView.openTable({title: "Country"});
     await dashboard.grid.toolbar.clickActions();
-    await dashboard.rootPage.waitForTimeout(1000);
     await dashboard.grid.toolbar.actions.click("ERD View");
     await dashboard.grid.toolbar.actions.erd.verifyNode({tableName: `${isSqlite(context) ? project.prefix: ''}country`, columnName: 'new_test_column'});
     await dashboard.grid.toolbar.actions.erd.close();
@@ -254,7 +229,7 @@ test.describe("Erd", () => {
     // Delete column
     await dashboard.grid.column.delete({title: "new_test_column"});
     // Verify in Settings ERD and table ERD
-    await openSettingsErdWithEdgesRendered();
+    await openSettingsErd();
     await dashboard.settings.erd.verifyNode({
       tableName: `${isSqlite(context) ? project.prefix: ''}country`, 
       columnNameShouldNotExist: 'new_test_column'
@@ -263,12 +238,11 @@ test.describe("Erd", () => {
   })
 
   test("Verify table operations sync with ERD", async () => {
-    await openSettingsErdWithEdgesRendered();
+    await openSettingsErd();
     await dashboard.settings.close()
 
     await dashboard.treeView.openTable({title: "Country"});
     await dashboard.grid.toolbar.clickActions();
-    await dashboard.rootPage.waitForTimeout(1000);
     await dashboard.grid.toolbar.actions.click("ERD View");
     await dashboard.grid.toolbar.actions.erd.verifyNode({
       tableName: `${isSqlite(context) ? project.prefix: ''}country`, 
@@ -279,7 +253,7 @@ test.describe("Erd", () => {
     // Create table and verify ERD
     await dashboard.treeView.createTable({title: "Test"});
     // Verify in Settings ERD and table ERD
-    await openSettingsErdWithEdgesRendered();
+    await openSettingsErd();
     await dashboard.settings.erd.verifyNode({
       tableName: `${isSqlite(context) ? project.prefix: ''}Test`, 
     });
@@ -287,7 +261,7 @@ test.describe("Erd", () => {
 
     // Delete table and verify ERD
     await dashboard.treeView.deleteTable({title: "Test"});
-    await openSettingsErdWithEdgesRendered();
+    await openSettingsErd();
     await dashboard.settings.erd.verifyNodeDoesNotExist({
       tableName: `${isSqlite(context) ? project.prefix: ''}Test`, 
     });
@@ -296,8 +270,6 @@ test.describe("Erd", () => {
     await dashboard.settings.selectSubTab({subTab: SettingsSubTab.Miscellaneous});
     await dashboard.settings.miscellaneous.clickShowM2MTables(); // disable
     await dashboard.settings.selectSubTab({subTab: SettingsSubTab.ERD});
-    await dashboard.settings.erd.dbClickShowColumnNames();
-    await dashboard.settings.erd.verifyEasterEggNotShown();
     await dashboard.settings.close();
   })
 

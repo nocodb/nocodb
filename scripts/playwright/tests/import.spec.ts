@@ -1,10 +1,8 @@
 import { test } from "@playwright/test";
+import { airtableApiBase, airtableApiKey } from "../constants";
 import { DashboardPage } from "../pages/Dashboard";
 import { quickVerify } from "../quickTests/commonTest";
 import setup from "../setup";
-
-const apiKey = process.env.E2E_AIRTABLE_API_KEY;
-const apiBase = process.env.E2E_AIRTABLE_BASE_ID;
 
 test.describe("Import", () => {
   let dashboard: DashboardPage;
@@ -21,8 +19,8 @@ test.describe("Import", () => {
   test("Airtable", async () => {
     await dashboard.treeView.quickImport({ title: "Airtable" });
     await dashboard.importAirtable.import({
-      key: apiKey!,
-      baseId: apiBase!,
+      key: airtableApiKey,
+      baseId: airtableApiBase,
     });
     await dashboard.rootPage.waitForTimeout(1000);
     await quickVerify({ dashboard, airtableImport: true, context });

@@ -142,7 +142,10 @@ const copyProjectMeta = async () => {
 </script>
 
 <template>
-  <div class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)">
+  <div
+    class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white rounded-lg border-1 border-gray-200 shadow)"
+    pw-data="projects-container"
+  >
     <h1 class="flex items-center justify-center gap-2 leading-8 mb-8 mt-4">
       <span class="text-4xl nc-project-page-title" @dblclick="copyProjectMeta">{{ $t('title.myProject') }}</span>
     </h1>
@@ -163,6 +166,7 @@ const copyProjectMeta = async () => {
             v-e="['a:project:refresh']"
             class="text-xl text-gray-500 group-hover:text-accent cursor-pointer"
             :class="isLoading ? '!text-primary' : ''"
+            pw-data="projects-reload-button"
             @click="loadProjects"
           />
         </div>

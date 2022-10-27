@@ -242,7 +242,7 @@ const quickVerify = async (
     // Delete project
     await dashboard.clickHome();
     const projectsPage = new ProjectsPage(dashboard.rootPage);
-    await projectsPage.delete({ title: context.project.title });
+    await projectsPage.deleteProject({ title: context.project.title, withoutPrefix: true });
   }
 }
 

@@ -1,9 +1,6 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
 import { devices } from '@playwright/test';
 
-process.env.E2E_AIRTABLE_API_KEY = "keyn1MR87qgyUsYg4";
-process.env.E2E_AIRTABLE_BASE_ID = "https://airtable.com/shr4z0qmh6dg5s3eB";
-
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv

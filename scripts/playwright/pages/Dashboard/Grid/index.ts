@@ -64,10 +64,12 @@ export class GridPage extends BasePage {
     index = 0,
     columnHeader = "Title",
     value,
+    networkValidation = true,
   }: {
     index?: number;
     columnHeader?: string;
     value?: string;
+    networkValidation?: boolean;
   } = {}) {
     const rowValue = value ?? `Row ${index}`;
     const rowCount = await this.get().locator(".nc-grid-row").count();
@@ -84,22 +86,28 @@ export class GridPage extends BasePage {
       .locator(`span[title="${columnHeader}"]`)
       .click();
 
-    await this.waitForResponse({
-      uiAction: clickOnColumnHeaderToSave,
-      requestUrlPathToMatch: "api/v1/db/data/noco",
-      httpMethodsToMatch: ["POST"],
-      responseJsonMatcher: (resJson) => resJson?.[columnHeader] === value,
-    });
+    if (networkValidation) {
+      await this.waitForResponse({
+        uiAction: clickOnColumnHeaderToSave,
+        requestUrlPathToMatch: "api/v1/db/data/noco",
+        httpMethodsToMatch: ["POST"],
+        responseJsonMatcher: (resJson) => resJson?.[columnHeader] === value,
+      });
+    } else {
+      await this.rootPage.waitForTimeout(300);
+    }
   }
 
   async editRow({
     index = 0,
     columnHeader = "Title",
     value,
+    networkValidation = true,
   }: {
     index?: number;
     columnHeader?: string;
     value: string;
+    networkValidation?: boolean;
   }) {
     await this._fillRow({ index, columnHeader, value });
 
@@ -108,12 +116,16 @@ export class GridPage extends BasePage {
       .locator(`span[title="${columnHeader}"]`)
       .click();
 
-    await this.waitForResponse({
-      uiAction: clickOnColumnHeaderToSave,
-      requestUrlPathToMatch: "api/v1/db/data/noco",
-      httpMethodsToMatch: ["PATCH"],
-      responseJsonMatcher: (resJson) => resJson?.[columnHeader] === value,
-    });
+    if (networkValidation) {
+      await this.waitForResponse({
+        uiAction: clickOnColumnHeaderToSave,
+        requestUrlPathToMatch: "api/v1/db/data/noco",
+        httpMethodsToMatch: ["PATCH"],
+        responseJsonMatcher: (resJson) => resJson?.[columnHeader] === value,
+      });
+    } else {
+      await this.rootPage.waitForTimeout(300);
+    }
   }
 
   async verifyRow({ index }: { index: number }) {

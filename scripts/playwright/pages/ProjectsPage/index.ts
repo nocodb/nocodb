@@ -13,7 +13,7 @@ export class ProjectsPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator("html");
+    return this.rootPage.locator('[pw-data="projects-container"]');
   }
 
   // create project
@@ -27,8 +27,7 @@ export class ProjectsPage extends BasePage {
     withoutPrefix?: boolean;
   }) {
     if(!withoutPrefix) name = this.prefixTitle(name);
-    // fix me! wait for page to be rendered completely
-    await this.rootPage.waitForTimeout(1000);
+
     await this.rootPage.locator(".nc-new-project-menu").click();
 
     const createProjectMenu = await this.rootPage.locator(
@@ -52,6 +51,26 @@ export class ProjectsPage extends BasePage {
 
     // fix me! wait for page to be rendered completely
     await this.rootPage.waitForTimeout(2000);
+  }
+
+  async reloadProjects() {
+    const reloadUiAction = this.get().locator('[pw-data="projects-reload-button"]').click();
+    await this.waitForResponse(
+      {
+        uiAction: reloadUiAction,
+        requestUrlPathToMatch: "/api/v1/db/meta/projects",
+        httpMethodsToMatch: ["GET"],
+      }
+    )
+  }
+
+  async waitToBeRendered() {
+    await this.get().waitFor({
+      state: "visible",
+    });
+    (await this.get().elementHandle())?.waitForElementState("stable");
+    await this.reloadProjects();
+    (await this.get().elementHandle())?.waitForElementState("stable");
   }
 
   async openProject({title, withoutPrefix}: {title: string, withoutPrefix?: boolean}) {
@@ -92,9 +111,7 @@ export class ProjectsPage extends BasePage {
     await this.get().locator(`[pw-data="delete-project-${title}"]`).click();
     await this.rootPage.locator(`button:has-text("Yes")`).click();
 
-    await expect.poll(
-      async () => await this.get().locator(`[pw-data="delete-project-${title}"]`).count()
-    ).toBe(0);
+    await this.get().locator('.ant-table-row', {hasText: title}).waitFor({state: 'hidden'});
   }
 
 

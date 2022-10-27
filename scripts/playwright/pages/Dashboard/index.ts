@@ -15,6 +15,7 @@ import { ToolbarPage } from "./common/Toolbar";
 import { ImportAirtablePage } from "./Import/Airtable";
 import { ImportTemplatePage } from "./Import/ImportTemplate";
 import { WebhookFormPage } from "./WebhookForm";
+import { ProjectsPage } from "../ProjectsPage";
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -85,6 +86,8 @@ export class DashboardPage extends BasePage {
 
   async clickHome() {
     await this.rootPage.locator('[data-cy="nc-noco-brand-icon"]').click();
+    const projectsPage = new ProjectsPage(this.rootPage);
+    await projectsPage.waitToBeRendered();
   }
 
   async waitForTabRender({

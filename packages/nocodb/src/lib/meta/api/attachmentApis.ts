@@ -12,46 +12,58 @@ import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import Model from '../../../lib/models/Model';
 import Project from '../../../lib/models/Project';
 import S3 from '../../plugins/s3/S3';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 
 // const storageAdapter = new Local();
 export async function upload(req: Request, res: Response) {
   const filePath = sanitizeUrlPath(
     req.query?.path?.toString()?.split('/') || ['']
   );
-  const destPath = path.join('nc', 'uploads', ...filePath);
-
-  const storageAdapter = await NcPluginMgrv2.storageAdapter();
-  const column = await getColumnFromFilePath(filePath);
-  const attachments = await Promise.all(
-    (req as any).files?.map(async (file) => {
-      const fileName = `${nanoid(6)}${path.extname(file.originalname)}`;
-      const relativePath = slash(path.join(destPath, fileName));
-      let url = await storageAdapter.fileCreate(
-        relativePath,
-        file,
-        column.public
-      );
-
-      if (!url) {
-        url = `${(req as any).ncSiteUrl}/download/${filePath.join(
-          '/'
-        )}/${fileName}`;
-      }
-
-      return {
-        url,
-        title: file.originalname,
-        mimetype: file.mimetype,
-        size: file.size,
-        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
-        ...(!column.public ? s3KeyObject(storageAdapter, relativePath) : {})
-      };
-    })
+  const { column } = await getInfoFromFilePath(filePath);
+  const attachments = uploadAttachment(
+    filePath,
+    column,
+    req['files'],
+    req['ncSiteUrl']
   );
 
   Tele.emit('evt', { evt_type: 'image:uploaded' });
 
   res.json(attachments);
+}
+
+export async function uploadWithUpdate(req: Request, res: Response) {
+  const filePath = sanitizeUrlPath(
+    req.query?.path?.toString()?.split('/') || ['']
+  );
+  const { model, base, column } = await getInfoFromFilePath(filePath);
+  const attachments = await uploadAttachment(
+    filePath,
+    column,
+    req['files'],
+    req['ncSiteUrl']
+  );
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    dbDriver: NcConnectionMgrv2.get(base),
+  });
+  const oldRowData = await baseModel.readByPk(req.params.rowId);
+  let oldAttachmentColumnData = JSON.parse(oldRowData[column['title']] || '[]');
+  if (!Array.isArray(oldAttachmentColumnData)) oldAttachmentColumnData = [];
+
+  res.json(
+    await baseModel.updateByPk(
+      req.params.rowId,
+      {
+        [column['title']]: JSON.stringify(
+          oldAttachmentColumnData.concat(attachments)
+        ),
+      },
+      null,
+      req
+    )
+  );
 }
 
 export async function uploadViaURL(req: Request, res: Response) {
@@ -120,17 +132,51 @@ export async function fileRead(req, res) {
   }
 }
 
-async function getColumnFromFilePath(filePath: Array<string>) {
+async function uploadAttachment(filePath, column, files, ncSiteUrl) {
+  const destPath = path.join('nc', 'uploads', ...filePath);
+
+  const storageAdapter = await NcPluginMgrv2.storageAdapter();
+  return Promise.all(
+    files?.map(async (file) => {
+      const fileName = `${nanoid(6)}${path.extname(file.originalname)}`;
+      const relativePath = slash(path.join(destPath, fileName));
+      let url = await storageAdapter.fileCreate(
+        relativePath,
+        file,
+        column.public
+      );
+
+      if (!url) {
+        url = `${ncSiteUrl}/download/${filePath.join('/')}/${fileName}`;
+      }
+
+      return {
+        url,
+        title: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
+        ...(!column.public ? s3KeyObject(storageAdapter, relativePath) : {})
+      };
+    })
+  );
+}
+
+async function getInfoFromFilePath(filePath: Array<string>) {
   const [_, projectName, tableName, columnName] = filePath;
   const project = await Project.getWithInfoByTitle(projectName);
   const base = project.bases[0];
-  const table = await Model.getByAliasOrId({
+  const model = await Model.getByAliasOrId({
     project_id: project.id,
     base_id: base.id,
-    aliasOrId: tableName
+    aliasOrId: tableName,
   });
-  const columns = await table.getColumns();
-  return columns.filter(column => column.column_name === columnName)[0];
+  const columns = await model.getColumns();
+  return {
+    model,
+    base,
+    column: columns.filter((column) => column.column_name === columnName)[0],
+  };
 }
 
 function s3KeyObject(storageAdapter, key: string) {
@@ -184,6 +230,13 @@ router.post(
 router.post(
   '/api/v1/db/storage/upload-by-url',
   ncMetaAclMw(uploadViaURL, 'uploadViaURL')
+);
+router.post(
+  '/api/v1/db/storage/upload-with-update/:rowId',
+  multer({
+    storage: multer.diskStorage({}),
+  }).any(),
+  ncMetaAclMw(uploadWithUpdate, 'upload')
 );
 router.get(/^\/download\/(.+)$/, catchError(fileRead));
 

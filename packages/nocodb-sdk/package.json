@@ -37,8 +37,8 @@
     "version": "standard-version",
     "reset-hard": "git clean -dfx && git reset --hard && npm i",
     "prepare-release": "run-s reset-hard test cov:check doc:html version doc:publish",
-    "generate:sdk": "npx --yes swagger-typescript-api -r -p ../../scripts/sdk/swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates",
-    "generate:sdk:default": "npx --yes swagger-typescript-api -r -p ../../scripts/sdk/swagger.json -o ./src/lib/ --name Api2.ts --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates"
+    "generate:sdk": "npx --yes swagger-typescript-api@10.0.3 -r -p ../../scripts/sdk/swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates",
+    "generate:sdk:default": "npx --yes swagger-typescript-api@10.0.3 -r -p ../../scripts/sdk/swagger.json -o ./src/lib/ --name Api2.ts --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates"
   },
   "engines": {
     "node": ">=10"

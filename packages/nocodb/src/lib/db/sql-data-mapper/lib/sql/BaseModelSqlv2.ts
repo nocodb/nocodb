@@ -1366,12 +1366,9 @@ class BaseModelSqlv2 {
           const qrValueColumn = await Column.get({
             colId: qrCodeColumn.fk_qr_value_column_id,
           });
-          console.log('qrCodeColumn', qrCodeColumn);
-          console.log('qrValueColumn', qrValueColumn);
 
-          // If the referenced
+          // If the referenced value cannot be found: cancel current iteration
           if (qrValueColumn == null) {
-            // res[sanitize(column.title || column.column_name)] = null;
             break;
           }
 

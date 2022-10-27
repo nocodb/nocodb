@@ -13,10 +13,7 @@ const qrCodeLarge = useQRCode(qrValue, {
 
 const visible = ref<boolean>(false)
 const showQrModal = () => (visible.value = true)
-const handleOk = (e: MouseEvent) => {
-  console.log(e)
-  visible.value = false
-}
+const handleOk = (e: MouseEvent) => (visible.value = false)
 </script>
 
 <template>

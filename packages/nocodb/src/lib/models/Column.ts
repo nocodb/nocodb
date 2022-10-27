@@ -225,9 +225,6 @@ export default class Column<T = any> implements ColumnType {
         await QrCodeColumn.insert(
           {
             fk_column_id: colId,
-            // TODO: probably do here (or maybe before - in columnApis)
-            // substitutions / special handling of virtual columns 
-            // (similar to how e.g. Formular is doing it)
             fk_qr_value_column_id: column.fk_qr_value_column_id,
           },
           ncMeta

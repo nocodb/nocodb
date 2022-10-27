@@ -721,9 +721,6 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
   ) {
     if (column.uidt === colBody.uidt) {
       if (column.uidt === UITypes.QrCode) {
-        console.debug('DEBUG - QR CODE UPDATE - req.body', req.body);
-        // TODO: probably have to continue here
-        // 
         await Column.update(column.id, {
           ...column,
           ...colBody,

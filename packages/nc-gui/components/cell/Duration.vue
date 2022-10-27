@@ -29,7 +29,7 @@ const durationInMS = ref(0)
 
 const isEdited = ref(false)
 
-const durationType = ref(column?.value?.meta?.duration || 0)
+const durationType = computed(() => column?.value?.meta?.duration || 0)
 
 const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
 

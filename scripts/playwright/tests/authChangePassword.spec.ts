@@ -3,20 +3,40 @@ import { DashboardPage } from "../pages/Dashboard";
 import setup from "../setup";
 import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
 import { LoginPage } from "../pages/LoginPage";
+import { SettingsPage, SettingTab } from "../pages/Dashboard/Settings";
 
 test.describe("Auth", () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
+  let settings: SettingsPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     toolbar = dashboard.grid.toolbar;
+    settings = dashboard.settings;
   });
 
-  test.skip("Change password", async ({ page }) => {
-    await dashboard.clickHome();
+  test("Change password", async ({ page }) => {
+    await dashboard.closeTab({ title: "Team & Auth" });
+    await dashboard.gotoSettings();
+    await settings.selectTab({ tab: SettingTab.TeamAuth });
+    let url = await settings.teams.invite({
+      email: "user-1@nocodb.com",
+      role: "creator",
+    });
+    await settings.teams.closeInvite();
+    await settings.close();
+
+    await dashboard.signOut();
+
+    await dashboard.rootPage.goto(url);
+    await dashboard.signUp({
+      email: "user-1@nocodb.com",
+      password: "Password123.",
+    });
+
     await dashboard.openPasswordChangeModal();
 
     // Existing active pass incorrect
@@ -51,7 +71,7 @@ test.describe("Auth", () => {
     });
 
     const loginPage = new LoginPage(page);
-    await loginPage.fillEmail("user@nocodb.com");
+    await loginPage.fillEmail("user-1@nocodb.com");
     await loginPage.fillPassword("NewPasswordConfigured");
     await loginPage.submit();
 

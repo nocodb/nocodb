@@ -10,7 +10,7 @@ import {
 
 let roles = ["Editor", "Commenter", "Viewer"];
 
-test.describe.only("Preview Mode", () => {
+test.describe("Preview Mode", () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let settings: SettingsPage;

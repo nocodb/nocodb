@@ -219,6 +219,9 @@ export class DashboardPage extends BasePage {
     await this.rootPage.locator(`.nc-metadb-project-name`).waitFor();
     await this.rootPage.locator(`input.nc-metadb-project-name`).fill(name);
     await this.rootPage.locator(`input.nc-metadb-project-name`).press("Enter");
+
+    // fix me! wait for page to be rendered completely
+    await this.rootPage.waitForTimeout(2000);
   }
 
   async signOut() {

@@ -159,6 +159,12 @@ function resetForm() {
   goTo(steps.value[0])
 }
 
+function submit() {
+  if (submitted.value) return
+
+  submitForm()
+}
+
 onReset(resetForm)
 
 onKeyStroke(['ArrowLeft', 'ArrowDown'], () => {
@@ -169,7 +175,7 @@ onKeyStroke(['ArrowRight', 'ArrowUp'], () => {
 })
 onKeyStroke(['Enter', 'Space'], () => {
   if (isLast.value) {
-    submitForm()
+    submit()
   } else {
     goNext(AnimationTarget.OkButton)
   }
@@ -218,7 +224,7 @@ onMounted(() => {
       <Transition :name="`slide-${transitionName}`" :duration="transitionDuration" mode="out-in">
         <div
           ref="el"
-          :key="field.title"
+          :key="field?.title"
           class="color-transition h-full flex flex-col mt-6 gap-4 w-full max-w-[max(33%,600px)] m-auto"
         >
           <div v-if="field && !submitted" class="flex flex-col gap-2">
@@ -233,16 +239,18 @@ onMounted(() => {
               <LazySmartsheetHeaderCell
                 v-else
                 :class="field.uidt === UITypes.Checkbox ? 'nc-form-column-label__checkbox' : ''"
-                :column="{ ...field, title: field.label || field.title }"
+                :column="{ meta: {}, ...field, title: field.label || field.title }"
                 :required="isRequired(field, field.required)"
                 :hide-menu="true"
               />
             </div>
 
-            <div>
+            <div v-if="field.title">
               <LazySmartsheetVirtualCell
                 v-if="isVirtualCol(field)"
+                v-model="formState[field.title]"
                 class="mt-0 nc-input"
+                :row="{ row: {}, oldRow: {}, rowMeta: {} }"
                 :data-cy="`nc-survey-form__input-${field.title.replaceAll(' ', '')}`"
                 :column="field"
               />
@@ -289,7 +297,7 @@ onMounted(() => {
                   type="submit"
                   class="uppercase scaling-btn prose-sm"
                   data-cy="nc-survey-form__btn-submit"
-                  @click="submitForm"
+                  @click="submit"
                 >
                   {{ $t('general.submit') }}
                 </button>
@@ -310,7 +318,7 @@ onMounted(() => {
                         ? 'transform translate-y-[2px] translate-x-[2px] after:(!ring !ring-accent !ring-opacity-100)'
                         : '',
                     ]"
-                    @click="goNext"
+                    @click="goNext()"
                   >
                     <Transition name="fade">
                       <span v-if="!v$.localState[field.title]?.$error" class="uppercase text-white">Ok</span>
@@ -390,7 +398,7 @@ onMounted(() => {
               "
               class="p-0.5 flex items-center group color-transition"
               data-cy="nc-survey-form__icon-prev"
-              @click="goPrevious"
+              @click="goPrevious()"
             >
               <MdiChevronLeft :class="isFirst ? 'text-gray-300' : 'group-hover:text-accent'" class="text-2xl md:text-md" />
             </button>
@@ -409,7 +417,7 @@ onMounted(() => {
               "
               class="p-0.5 flex items-center group color-transition"
               data-cy="nc-survey-form__icon-next"
-              @click="goNext"
+              @click="goNext()"
             >
               <MdiChevronRight
                 :class="[isLast || v$.localState[field.title]?.$error ? 'text-gray-300' : 'group-hover:text-accent']"

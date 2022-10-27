@@ -3,6 +3,7 @@ import type { KanbanType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import {
   IsLockedInj,
+  computed,
   inject,
   message,
   onKeyStroke,
@@ -46,6 +47,8 @@ let isStopped = $ref(false)
 
 /** Original view title when editing the view name */
 let originalTitle = $ref<string | undefined>()
+
+const viewType = computed(() => vModel.value.type as number)
 
 /** Debounce click handler, so we can potentially enable editing view name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
@@ -175,9 +178,9 @@ function onStopEdit() {
         />
 
         <component
-          :is="viewIcons[vModel.type].icon"
+          :is="viewIcons[viewType].icon"
           class="nc-view-icon group-hover:hidden"
-          :style="{ color: viewIcons[vModel.type].color }"
+          :style="{ color: viewIcons[viewType].color }"
         />
       </div>
 

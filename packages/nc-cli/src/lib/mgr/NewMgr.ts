@@ -251,7 +251,7 @@ class NewMgr {
     } else if (answers.projectType) {
       let env = '';
       if (answers.type !== 'sqlite3') {
-        env = `--env NC_DB="${answers.type}://${answers.host}:${answers.port}?u=${answers.username}&p=${answers.password}&d=${answers.database}&t=${args._[1]}"`
+        env = `--env NC_DB="${answers.type}://${answers.host}:${answers.port}?u=${answers.username}&p=${answers.password}&d=${answers.database}"`
       }
       const linuxHost = os.type() === 'Linux' ? '--net=host' : '';
       if (os.type() === 'Windows_NT') {
@@ -641,7 +641,7 @@ ${`Note: ${'app'.bold} - refers to your express server instance`}
 `)
 
     } else if (answers.projectType === 'docker') {
-      const dbUrl = `${answers.type}://${answers.host}:${answers.port}?u=${answers.username}&p=${answers.password}&d=${answers.database}&t=${args._[1]}`;
+      const dbUrl = `${answers.type}://${answers.host}:${answers.port}?u=${answers.username}&p=${answers.password}&d=${answers.database}`;
 //       console.log(`
 // You can create docker container using following command
 //

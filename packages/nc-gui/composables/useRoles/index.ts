@@ -12,7 +12,7 @@ import type { ProjectRole, Role, Roles } from '~/lib'
  * * `loadProjectRoles` - a function to load the project roles for a specific project (by id)
  */
 export const useRoles = createSharedComposable(() => {
-  const { user } = useGlobal()
+  const { user, previewAs } = useGlobal()
 
   const { api } = useApi()
 
@@ -57,7 +57,11 @@ export const useRoles = createSharedComposable(() => {
     }
   }
 
-  function hasRole(role: Role | ProjectRole | string) {
+  function hasRole(role: Role | ProjectRole | string, includePreviewRoles = false) {
+    if (previewAs.value && includePreviewRoles) {
+      return previewAs.value === role
+    }
+
     return allRoles.value[role]
   }
 

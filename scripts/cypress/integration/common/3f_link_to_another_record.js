@@ -285,6 +285,14 @@ export const genTest = (apiType, dbType) => {
       cy.intercept("GET", `/api/v1/db/data/noco/**`).as("waitForCardLoad");
 
       addRow(3, "2c");
+      // kludge; remove empty record in the end
+      mainPage.getCell("Title", 3).click();
+      mainPage.getCell("Title", 4).rightclick();
+      // delete row
+      cy.getActiveMenu(".nc-dropdown-grid-context-menu")
+        .find('.ant-dropdown-menu-item:contains("Delete Row")')
+        .first()
+        .click();
 
       cy.get(".nc-row-expand").eq(2).click({ force: true });
 

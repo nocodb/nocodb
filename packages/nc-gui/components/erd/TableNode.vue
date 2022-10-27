@@ -6,7 +6,7 @@ import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { NodeData } from './utils'
 import { MetaInj, computed, provide, refAutoReset, toRef, useNuxtApp, watch } from '#imports'
 
-interface Props extends NodeProps<NodeData> {
+interface Props extends Pick<NodeProps<NodeData>, 'data' | 'dragging'> {
   data: NodeData
   showSkeleton: boolean
   dragging: boolean

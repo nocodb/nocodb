@@ -28,7 +28,7 @@ useProvideSmartsheetStore(sharedView, meta, true, sorts, nestedFilters)
 const reloadEventHook = createEventHook()
 
 provide(ReloadViewDataHookInj, reloadEventHook)
-provide(ReadonlyInj, true)
+provide(ReadonlyInj, ref(true))
 provide(MetaInj, meta)
 provide(ActiveViewInj, sharedView)
 provide(FieldsInj, ref(meta.value?.columns || []))

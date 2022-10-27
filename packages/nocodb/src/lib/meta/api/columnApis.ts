@@ -980,7 +980,6 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
                   ]
                 );
               }
-              
             } else if (driverType === 'pg') {
               await dbDriver.raw(
                 `UPDATE ?? SET ??  = array_to_string(array_remove(string_to_array(??, ','), ?), ',')`,
@@ -1160,7 +1159,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
                     newOp.title,
                   ]
                 );
-              } 
+              }
             } else if (driverType === 'pg') {
               await dbDriver.raw(
                 `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,

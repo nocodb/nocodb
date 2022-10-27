@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.98.1",
+  "version": "0.98.2",
   "description": "NocoDB",
   "main": "dist/bundle.js",
   "repository": "https://github.com/nocodb/nocodb",
@@ -156,7 +156,7 @@
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
     "nc-help": "0.2.76",
-    "nc-lib-gui": "0.98.1",
+    "nc-lib-gui": "0.98.2",
     "nc-plugin": "0.1.2",
     "ncp": "^2.0.0",
     "nocodb-sdk": "file:../nocodb-sdk",

@@ -9,7 +9,7 @@ const { lang: currentLang } = useGlobal()
 
 const { locale } = useI18n()
 
-const languages = $computed(() => Object.entries(Language).sort())
+const languages = $computed(() => Object.entries(Language).sort() as [keyof typeof Language, Language][])
 
 const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
 

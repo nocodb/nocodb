@@ -444,7 +444,12 @@ export default async (
           // TODO fix record mapping (this causes every record to map first option, we can't handle them using data api as they don't provide option id within data we might instead get the correct mapping from schema file )
           let dupNo = 1;
           const defaultName = (value as any).name;
-          while (options.find((el) => el.title.toLowerCase() === (value as any).name.toLowerCase())) {
+          while (
+            options.find(
+              (el) =>
+                el.title.toLowerCase() === (value as any).name.toLowerCase()
+            )
+          ) {
             (value as any).name = `${defaultName}_${dupNo++}`;
           }
           options.push({
@@ -583,7 +588,7 @@ export default async (
                   .map((el) => `'${el.title.replace(/'/gi, "''")}'`)
                   .join(',') || "''";
             }
-            
+
             break;
           case undefined:
             break;

@@ -10,7 +10,6 @@ import {
   MetaInj,
   OpenNewRecordFormHookInj,
   PaginationDataInj,
-  ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
@@ -50,8 +49,6 @@ const {
   changePage,
   addEmptyRow,
 } = useViewData(meta, view)
-
-const { isUIAllowed } = useUIPermission()
 
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))

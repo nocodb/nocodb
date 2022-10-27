@@ -1436,7 +1436,6 @@ class BaseModelSqlv2 {
           break;
       }
     }
-    console.debug('qb.toQuery(): ', qb.toQuery());
     qb.select(res);
   }
 

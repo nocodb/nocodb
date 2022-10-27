@@ -490,6 +490,12 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
       Tele.emit('evt', { evt_type: 'relation:created' });
       break;
 
+    case UITypes.QrCode:
+      await Column.insert({
+        ...colBody,
+        fk_model_id: table.id,
+      });
+      break;
     case UITypes.Formula:
       colBody.formula = await substituteColumnAliasWithIdInFormula(
         colBody.formula_raw || colBody.formula,

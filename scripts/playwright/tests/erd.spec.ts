@@ -7,7 +7,7 @@ import { isMysql, isPg, isSqlite } from "../setup/db";
 import { GridPage } from "../pages/Dashboard/Grid";
 import { SettingsErdPage } from "../pages/Dashboard/Settings/Erd";
 
-test.describe.only("Erd", () => {
+test.describe("Erd", () => {
   let dashboard: DashboardPage;
   let context: any;
   let project: any;

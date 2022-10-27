@@ -137,6 +137,7 @@ export class DashboardPage extends BasePage {
       .click();
   }
 
+  // todo: Move this to a seperate page
   async changePassword({
     oldPass,
     newPass,
@@ -189,41 +190,6 @@ export class DashboardPage extends BasePage {
       .waitFor();
   }
 
-  // create project
-  async createProject({
-    name = "sample",
-    type = "xcdb",
-  }: {
-    name?: string;
-    type?: string;
-  }) {
-    // fix me! wait for page to be rendered completely
-    await this.rootPage.waitForTimeout(1000);
-    await this.rootPage.locator(".nc-new-project-menu").click();
-
-    const createProjectMenu = await this.rootPage.locator(
-      ".nc-dropdown-create-project"
-    );
-    if (type === "xcdb") {
-      await createProjectMenu
-        .locator(`.ant-dropdown-menu-title-content`)
-        .nth(0)
-        .click();
-    } else {
-      await createProjectMenu
-        .locator(`.ant-dropdown-menu-title-content`)
-        .nth(1)
-        .click();
-    }
-
-    await this.rootPage.locator(`.nc-metadb-project-name`).waitFor();
-    await this.rootPage.locator(`input.nc-metadb-project-name`).fill(name);
-    await this.rootPage.locator(`input.nc-metadb-project-name`).press("Enter");
-
-    // fix me! wait for page to be rendered completely
-    await this.rootPage.waitForTimeout(2000);
-  }
-
   async signOut() {
     await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
     let projMenu = await this.rootPage.locator(".nc-dropdown-project-menu");
@@ -232,57 +198,6 @@ export class DashboardPage extends BasePage {
       .locator('div.nc-project-menu-item:has-text("Sign Out"):visible')
       .click();
     await this.rootPage.locator('[data-cy="nc-form-signin"]:visible').waitFor();
-  }
-
-  async signUp({ email, password }: { email: string; password: string }) {
-    const signUp = this.rootPage;
-    await signUp.locator('button:has-text("SIGN UP")').waitFor();
-
-    await signUp
-      .locator(`input[placeholder="Enter your work email"]`)
-      .fill(email);
-    await signUp
-      .locator(`input[placeholder="Enter your password"]`)
-      .fill(password);
-    await signUp.locator(`button:has-text("SIGN UP")`).click();
-  }
-
-  async openProject({ title }: { title?: string }) {
-    const project = this.rootPage;
-    await project.locator(`td.ant-table-cell:has-text("${title}")`).click();
-  }
-
-  async renameProject({
-    title,
-    newTitle,
-  }: {
-    title?: string;
-    newTitle?: string;
-  }) {
-    const project = this.rootPage;
-    const projRow = await project.locator(`tr`, {
-      has: project.locator(`td.ant-table-cell:has-text("${title}")`),
-    });
-    await projRow.locator(".nc-action-btn").nth(0).click();
-    await project.locator("input.nc-metadb-project-name").fill(newTitle);
-    // press enter to save
-    await project.locator("input.nc-metadb-project-name").press("Enter");
-  }
-
-  async deleteProject({ title }: { title?: string }) {
-    const project = this.rootPage;
-    const projRow = await project.locator(`tr`, {
-      has: project.locator(`td.ant-table-cell:has-text("${title}")`),
-    });
-    await projRow.locator(".nc-action-btn").nth(1).click();
-    const deleteModal = await project.locator(".nc-modal-project-delete");
-    await deleteModal.locator('button:has-text("Yes")').click();
-
-    await this.rootPage.waitForTimeout(1000);
-
-    expect(
-      await project.locator(`td.ant-table-cell:has-text("${title}")`).count()
-    ).toBe(0);
   }
 
   async validateProjectMenu(param: { role: string; mode?: string }) {

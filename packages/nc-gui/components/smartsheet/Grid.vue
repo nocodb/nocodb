@@ -547,7 +547,12 @@ watch(
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row" :data-pw="`grid-row-${rowIndex}`">
-                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :pw-data="`cell-Id-${rowIndex}`">
+                  <td
+                    key="row-index"
+                    class="caption nc-grid-cell pl-5 pr-1"
+                    :data-pw="`cell-Id-${rowIndex}`"
+                    :pw-data="`cell-Id-${rowIndex}`"
+                  >
                     <div class="items-center flex gap-1 min-w-[55px]">
                       <div
                         v-if="!readOnly || !isLocked"
@@ -606,6 +611,7 @@ watch(
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                     }"
                     :data-pw="`cell-${columnObj.title}-${rowIndex}`"
+                    :pw-data="`cell-${columnObj.title}-${rowIndex}`"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"

@@ -1,12 +1,13 @@
 import { test } from "@playwright/test";
 import { DashboardPage } from "../pages/Dashboard";
 import setup from "../setup";
-import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
 import {
   SettingsPage,
   SettingsSubTab,
   SettingTab,
 } from "../pages/Dashboard/Settings";
+import { SignupPage } from "../pages/SignupPage";
+import { ProjectsPage } from "../pages/ProjectsPage";
 
 let roleDb = [
   { email: "creator@nocodb.com", role: "creator", url: "" },
@@ -15,35 +16,19 @@ let roleDb = [
   { email: "viewer@nocodb.com", role: "viewer", url: "" },
 ];
 
-async function roleSignup(roleIdx: number, db: any) {
-  let projIdx = process.env.TEST_PARALLEL_INDEX;
-  await db.signOut();
-
-  await db.rootPage.goto(roleDb[roleIdx].url);
-  await db.signUp({
-    email: roleDb[roleIdx].email,
-    password: "Password123.",
-  });
-
-  await db.openProject({ title: `externalREST${projIdx}` });
-
-  // close 'Team & Auth' tab
-  if (roleDb[roleIdx].role === "creator") {
-    await db.closeTab({ title: "Team & Auth" });
-  }
-}
-
 test.describe("User roles", () => {
   let dashboard: DashboardPage;
-  let toolbar: ToolbarPage;
   let settings: SettingsPage;
+  let signupPage: SignupPage;
+  let projectsPage: ProjectsPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
-    toolbar = dashboard.grid.toolbar;
     settings = dashboard.settings;
+    signupPage = new SignupPage(page);
+    projectsPage = new ProjectsPage(page);
   });
 
   test("Create role", async () => {
@@ -78,12 +63,12 @@ test.describe("User roles", () => {
     // Role test
     for (let i = 0; i < roleDb.length; i++) {
       console.log("Role: ", roleDb[i].role);
-      await roleTest(i, dashboard);
+      await roleTest(i);
     }
   });
 
-  async function roleTest(roleIdx: number, db: any) {
-    await roleSignup(roleIdx, dashboard);
+  async function roleTest(roleIdx: number) {
+    await roleSignup(roleIdx);
     await dashboard.validateProjectMenu({
       role: roleDb[roleIdx].role,
     });
@@ -94,7 +79,7 @@ test.describe("User roles", () => {
       role: roleDb[roleIdx].role,
     });
 
-    await toolbar.validateRoleAccess({
+    await dashboard.grid.toolbar.validateRoleAccess({
       role: roleDb[roleIdx].role,
     });
 
@@ -120,5 +105,22 @@ test.describe("User roles", () => {
       title: "CustomerList",
       exists: roleDb[roleIdx].role === "creator" ? true : false,
     });
+  }
+
+  async function roleSignup(roleIdx: number) {
+    await dashboard.signOut();
+  
+    await dashboard.rootPage.goto(roleDb[roleIdx].url);
+    await signupPage.signUp({
+      email: roleDb[roleIdx].email,
+      password: "Password123.",
+    });
+  
+    await projectsPage.openProject({ title: 'externalREST' });
+  
+    // close 'Team & Auth' tab
+    if (roleDb[roleIdx].role === "creator") {
+      await dashboard.closeTab({ title: "Team & Auth" });
+    }
   }
 });

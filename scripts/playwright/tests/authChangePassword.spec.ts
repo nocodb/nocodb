@@ -4,16 +4,19 @@ import setup from "../setup";
 import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
 import { LoginPage } from "../pages/LoginPage";
 import { SettingsPage, SettingTab } from "../pages/Dashboard/Settings";
+import { SignupPage } from "../pages/SignupPage";
 
 test.describe("Auth", () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let settings: SettingsPage;
   let context: any;
+  let signupPage: SignupPage;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
+    signupPage = new SignupPage(page);
     toolbar = dashboard.grid.toolbar;
     settings = dashboard.settings;
   });
@@ -32,7 +35,7 @@ test.describe("Auth", () => {
     await dashboard.signOut();
 
     await dashboard.rootPage.goto(url);
-    await dashboard.signUp({
+    await signupPage.signUp({
       email: "user-1@nocodb.com",
       password: "Password123.",
     });
@@ -71,7 +74,7 @@ test.describe("Auth", () => {
     });
 
     const loginPage = new LoginPage(page);
-    await loginPage.fillEmail("user-1@nocodb.com");
+    await loginPage.fillEmail({email: "user-1@nocodb.com"});
     await loginPage.fillPassword("NewPasswordConfigured");
     await loginPage.submit();
 

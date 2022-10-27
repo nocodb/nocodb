@@ -8,6 +8,10 @@ import resetMetaSakilaSqliteProject from './resetMetaSakilaSqliteProject';
 import resetMysqlSakilaProject from './resetMysqlSakilaProject';
 import Model from '../../../models/Model';
 import resetPgSakilaProject from './resetPgSakilaProject';
+import User from '../../../models/User';
+import NocoCache from '../../../cache/NocoCache';
+import { CacheScope } from '../../../utils/globals';
+import ProjectUser from '../../../models/ProjectUser';
 
 const loginRootUser = async () => {
   const response = await axios.post(
@@ -56,6 +60,8 @@ export class TestResetService {
         parallelId: this.parallelId,
       });
 
+      await removeAllPrefixedUsersExceptSuper(this.parallelId);
+
       return { token, project };
     } catch (e) {
       console.error('TestResetService:process', e);
@@ -78,6 +84,8 @@ export class TestResetService {
     const project: Project | undefined = await Project.getByTitle(title);
 
     if (project) {
+      await removeProjectUsersFromCache(project);
+
       const bases = await project.getBases();
       if (dbType == 'sqlite') await dropTablesOfProject(metaKnex, project);
       await Project.delete(project.id);
@@ -128,6 +136,39 @@ const dropTablesOfProject = async (knex: Knex, project: Project) => {
       await knex.raw(`DROP TABLE IF EXISTS ${table.table_name}`);
     } else {
       await knex.raw(`DROP VIEW IF EXISTS ${table.table_name}`);
+    }
+  }
+};
+
+const removeAllPrefixedUsersExceptSuper = async (parallelId: string) => {
+  const users = (await User.list()).filter(
+    (user) => !user.roles.includes('super')
+  );
+
+  for (const user of users) {
+    if(user.email.startsWith(`nc_test_${parallelId}_`)) {
+      await NocoCache.del(`${CacheScope.USER}:${user.email}`);
+      await User.delete(user.id);
+    }
+  }
+};
+
+// todo: Remove this once user deletion improvement PR is merged
+const removeProjectUsersFromCache = async (project: Project) => {
+  const projectUsers: ProjectUser[] = await ProjectUser.getUsersList({
+    project_id: project.id,
+    limit: 1000,
+    offset: 0,
+  });
+
+  for (const projectUser of projectUsers) {
+    try {
+      const user: User = await User.get(projectUser.fk_user_id);
+      await NocoCache.del(
+        `${CacheScope.PROJECT_USER}:${project.id}:${user.id}`
+      );
+    } catch (e) {
+      console.error('removeProjectUsersFromCache', e);
     }
   }
 };

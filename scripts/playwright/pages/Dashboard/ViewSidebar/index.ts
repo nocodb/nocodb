@@ -73,6 +73,7 @@ export class ViewSidebarPage extends BasePage {
     await this.createView({ title, locator: this.createKanbanButton });
   }
 
+  // Todo: Make selection better
   async verifyView({ title, index }: { title: string; index: number }) {
     expect(
       await this.get()

@@ -3,6 +3,7 @@ import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import Noco from '../Noco';
 import { extractProps } from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
+import { NcError } from '../meta/helpers/catchError';
 export default class User implements UserType {
   id: string;
 
@@ -158,5 +159,67 @@ export default class User implements UserType {
       refresh_token,
     });
     return user;
+  }
+
+  public static async list(
+    {
+      limit,
+      offset,
+      query,
+    }: {
+      limit?: number | undefined;
+      offset?: number | undefined;
+      query?: string;
+    } = {},
+    ncMeta = Noco.ncMeta
+  ) {
+    let queryBuilder = ncMeta.knex(MetaTable.USERS);
+
+    if (offset) queryBuilder = queryBuilder.offset(offset);
+
+    if (limit) queryBuilder = queryBuilder.limit(limit);
+
+    queryBuilder = queryBuilder
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.firstname`,
+        `${MetaTable.USERS}.lastname`,
+        `${MetaTable.USERS}.username`,
+        `${MetaTable.USERS}.email_verified`,
+        `${MetaTable.USERS}.created_at`,
+        `${MetaTable.USERS}.updated_at`,
+        `${MetaTable.USERS}.invite_token`,
+        `${MetaTable.USERS}.roles`
+      )
+      .select(
+        ncMeta
+          .knex(MetaTable.PROJECT_USERS)
+          .count()
+          .whereRaw(
+            `${MetaTable.USERS}.id = ${MetaTable.PROJECT_USERS}.fk_user_id`
+          )
+          .as('projectsCount')
+      );
+    // .count(`${MetaTable.PROJECT_USERS}.fk_user_id`, { as: 'projectsCount' })
+    // .leftJoin(MetaTable.PROJECT_USERS, function () {
+    //   this.on(
+    //     `${MetaTable.PROJECT_USERS}.fk_user_id`,
+    //     '=',
+    //     `${MetaTable.USERS}.id`
+    //   );
+    // });
+    if (query) {
+      queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
+    }
+
+    return queryBuilder;
+  }
+
+  static async delete(userId: string, ncMeta = Noco.ncMeta) {
+    if (!userId) NcError.badRequest('userId is required');
+    await NocoCache.delAll(CacheScope.USER, `${userId}___*`);
+    await NocoCache.del(`${CacheScope.USER}:${userId}`);
+    await ncMeta.metaDelete(null, null, MetaTable.USERS, userId);
   }
 }

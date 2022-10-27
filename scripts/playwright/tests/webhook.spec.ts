@@ -18,7 +18,15 @@ async function clearServerData({ request }) {
 }
 
 async function verifyHookTrigger(count: number, value: string, request) {
-  let response = await request.get(hookPath + "/count");
+  // Retry since there can be lag between the time the hook is triggered and the time the server receives the request
+  let response;
+  for(let i = 0; i < 6; i++) {
+    response = await request.get(hookPath + "/count");
+    if(await response.json() === count) {
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
   expect(await response.json()).toBe(count);
 
   if (count) {
@@ -27,14 +35,15 @@ async function verifyHookTrigger(count: number, value: string, request) {
   }
 }
 
-test.describe("Webhook", () => {
+test.describe.serial("Webhook", async () => {
+  // start a server locally for webhook tests
+  
   let dashboard: DashboardPage, toolbar: ToolbarPage, webhook: WebhookFormPage;
   let context: any;
 
-  test.beforeEach(async () => {
-    // start a server locally for webhook tests
+  test.beforeAll(async () => {
     await makeServer();
-  });
+  })
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });

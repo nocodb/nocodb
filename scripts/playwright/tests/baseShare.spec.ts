@@ -3,12 +3,14 @@ import { DashboardPage } from "../pages/Dashboard";
 import setup from "../setup";
 import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
 import { LoginPage } from "../pages/LoginPage";
+import { ProjectsPage } from "../pages/ProjectsPage";
 
 test.describe("Shared base", () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let context: any;
   let loginPage: LoginPage;
+  let projectPage: ProjectsPage;
 
   async function roleTest(role: string) {
     await dashboard.validateProjectMenu({
@@ -44,13 +46,12 @@ test.describe("Shared base", () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
+    projectPage = new ProjectsPage(page);
     toolbar = dashboard.grid.toolbar;
     loginPage = new LoginPage(page);
   });
 
   test("#1", async () => {
-    let projId = process.env.TEST_PARALLEL_INDEX;
-
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: "Team & Auth" });
 
@@ -69,8 +70,9 @@ test.describe("Shared base", () => {
     await loginPage.signIn({
       email: "user@nocodb.com",
       password: "Password123.",
+      withoutPrefix: true,
     });
-    await dashboard.openProject({ title: `externalREST${projId}` });
+    await projectPage.openProject({ title: 'externalREST' });
     await dashboard.closeTab({ title: "Team & Auth" });
 
     await dashboard.treeView.inviteTeamButton.click();

@@ -24,11 +24,18 @@ export class TeamsPage extends BasePage {
       .locator(`[pw-data="nc-settings-subtab-Users Management"]`);
   }
 
+  prefixEmail(email: string) {
+    const parallelId = process.env.TEST_PARALLEL_INDEX ?? '0'
+    return `nc_test_${parallelId}_${email}`;
+  }
+
   getSharedBaseSubModal() {
     return this.rootPage.locator(`[data-pw="nc-share-base-sub-modal"]`);
   }
 
   async invite({ email, role }: { email: string; role: string }) {
+    email = this.prefixEmail(email);
+    
     await this.inviteTeamBtn.click();
     await this.inviteTeamModal
       .locator(`input[placeholder="E-mail"]`)

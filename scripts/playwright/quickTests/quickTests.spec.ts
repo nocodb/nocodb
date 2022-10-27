@@ -12,12 +12,12 @@ test.describe("Quick tests", () => {
   test("Quick tests test", async ({page}) => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.fillEmail("user@nocodb.com");
+    await loginPage.fillEmail({email: "user@nocodb.com", withoutPrefix: true});
     await loginPage.fillPassword("Password123.");
     await loginPage.submit();
 
     const projectsPage = new ProjectsPage(page);
-    const project = await projectsPage.selectAndGetProject("sample");
+    const project = await projectsPage.openProject({title: "sample", withoutPrefix: true});
     dashboard = new DashboardPage(page, project);
     
     const context: NcContext = {

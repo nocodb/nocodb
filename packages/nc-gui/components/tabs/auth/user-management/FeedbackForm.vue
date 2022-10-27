@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { ref, useGlobal } from '#imports'
+
 const { feedbackForm } = useGlobal()
 
 const showForm = ref(false)
 
+// todo: why this timeout?
 setTimeout(() => (showForm.value = true), 60000)
 </script>
 

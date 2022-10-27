@@ -29,6 +29,36 @@ import { isXcdb, isPostgres } from "./page_objects/projectConstants";
 
 require("@4tw/cypress-drag-drop");
 
+// recursively gets an element, returning only after it's determined to be attached to the DOM for good
+Cypress.Commands.add("getSettled", (selector, opts = {}) => {
+  const retries = opts.retries || 3;
+  const delay = opts.delay || 400;
+
+  const isAttached = (resolve, count = 0) => {
+    const el = Cypress.$(selector);
+
+    // is element attached to the DOM?
+    count = Cypress.dom.isAttached(el) ? count + 1 : 0;
+
+    // hit our base case, return the element
+    if (count >= retries) {
+      return resolve(el);
+    }
+
+    // retry after a bit of a delay
+    setTimeout(() => isAttached(resolve, count), delay);
+  };
+
+  // wrap, so we can chain cypress commands off the result
+  return cy.wrap(null).then(() => {
+    return new Cypress.Promise((resolve) => {
+      return isAttached(resolve, 0);
+    }).then((el) => {
+      return cy.wrap(el);
+    });
+  });
+});
+
 // for waiting until page load
 Cypress.Commands.add("waitForSpinners", () => {
   cy.visit("http://localhost:3000/signup", {
@@ -47,16 +77,12 @@ Cypress.Commands.add("signinOrSignup", (_args) => {
     _args
   );
 
-  cy.wait(1000);
-
   // signin/signup
   cy.get("body").then(($body) => {
-    // cy.wait(1000)
     cy.url().then((url) => {
       if (!url.includes("/projects")) {
         // handle initial load
         if ($body.find(".welcome-page").length > 0) {
-          cy.wait(8000);
           cy.get("body").trigger("mousemove");
           cy.snip("LetsBegin");
           cy.contains("Let's Begin").click();
@@ -137,21 +163,12 @@ Cypress.Commands.add("refreshTableTab", () => {
   cy.toastWait("Tables refreshed");
 });
 
-// tn: table name
-// rc: row count. validate row count if rc!=0
-Cypress.Commands.add("openTableTab", (tn, rc) => {
-  cy.task("log", `[openTableTab] ${tn} ${rc}`);
+// Wait for grid view render
+Cypress.Commands.add("gridWait", (rc) => {
+  // for some tables, linked records are not available immediately
+  cy.wait(1000);
 
-  cy.get(`.nc-project-tree-tbl-${tn}`).should("exist").first().click();
-
-  // kludge to make new tab active
-  // cy.get('.ant-tabs-tab-btn')
-  //   .contains(tn)
-  //   .should('exist')
-  //   .click();
-  cy.wait(3000);
-
-  cy.get(".xc-row-table.nc-grid").should("exist");
+  cy.get(".xc-row-table.nc-grid", { timeout: 30000 }).should("exist");
 
   // wait for page rendering to complete
   if (rc != 0) {
@@ -159,19 +176,34 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
   }
 });
 
+// tn: table name
+// rc: row count. validate row count if rc!=0
+Cypress.Commands.add("openTableTab", (tn, rc) => {
+  cy.task("log", `[openTableTab] ${tn} ${rc}`);
+  cy.get(`.nc-project-tree-tbl-${tn}`).should("exist").first().click();
+  cy.gridWait(rc);
+});
+
 Cypress.Commands.add("closeTableTab", (tn) => {
   cy.task("log", `[closeTableTab] ${tn}`);
-  cy.get(".ant-tabs-tab-btn")
-    .contains(tn)
-    .should("exist")
-    .parent()
-    .parent()
-    .parent()
-    .find("button")
-    .click();
 
+  if (tn) {
+    // request to close specific tab
+    cy.get(".ant-tabs-tab-btn")
+      .contains(tn)
+      .should("exist")
+      .parent()
+      .parent()
+      .parent()
+      .find("button")
+      .click();
+  } else {
+    // lone tab active; close it
+    cy.getSettled("button.ant-tabs-tab-remove").should("be.visible").click();
+    cy.get("button.ant-tabs-tab-remove").should("not.exist");
+  }
   // subsequent tab open commands will fail if tab is not closed completely
-  cy.wait(1000);
+  cy.wait(2000);
 });
 
 Cypress.Commands.add("openOrCreateGqlProject", (_args) => {
@@ -252,11 +284,15 @@ Cypress.Commands.add("getActiveModal", (wrapperSelector) => {
   return cy.get(".ant-modal-content:visible").last();
 });
 
+Cypress.Commands.add("closeActiveModal", (wrapperSelector) => {
+  cy.getActiveModal(wrapperSelector).find(".ant-modal-close-x").click();
+});
+
 Cypress.Commands.add("getActiveMenu", (overlaySelector) => {
   if (overlaySelector) {
-    return cy.get(`${overlaySelector} .ant-dropdown-content:visible`);
+    return cy.getSettled(`${overlaySelector} .ant-dropdown-content:visible`);
   }
-  return cy.get(".ant-dropdown-content:visible").last();
+  return cy.getSettled(".ant-dropdown-content:visible").last();
 });
 
 Cypress.Commands.add("getActivePopUp", () => {
@@ -279,16 +315,14 @@ Cypress.Commands.add("getActiveDrawer", (selector) => {
 
 Cypress.Commands.add("getActivePicker", (dropdownSelector) => {
   if (dropdownSelector) {
-    return cy.get(`${dropdownSelector}.ant-drawer-content:visible`).last();
+    return cy.get(`${dropdownSelector}.ant-picker-dropdown:visible`).last();
   }
   return cy.get(".ant-picker-dropdown :visible").last();
 });
 
 Cypress.Commands.add("createTable", (name) => {
   cy.task("log", `[createTableTab] ${name}`);
-  cy.wait(1000);
   cy.get(".nc-add-new-table").should("exist").click();
-  cy.wait(1000);
   cy.getActiveModal(".nc-modal-table-create")
     .find(`input[type="text"]:visible`)
     .click()
@@ -298,12 +332,11 @@ Cypress.Commands.add("createTable", (name) => {
   cy.getActiveModal(".nc-modal-table-create")
     .find("button.ant-btn-primary:visible")
     .click();
-  cy.wait(1000);
-  cy.get(".xc-row-table.nc-grid").should("exist");
-  // cy.get('.ant-tabs-tab-active > .ant-tabs-tab-btn').contains(name).should("exist");
+
+  cy.gridWait(0);
+
   cy.url().should("contain", `table/${name}`);
   cy.get(`.nc-project-tree-tbl-${name}`).should("exist");
-  cy.wait(1000);
 });
 
 Cypress.Commands.add("deleteTable", (name, dbType) => {
@@ -376,6 +409,12 @@ Cypress.Commands.add("toastWait", (msg) => {
   );
 });
 
+Cypress.Commands.add("inputHighlightRenderWait", (selector) => {
+  // fix me! wait till the modal rendering (input highlight) is completed
+  // focus shifts back to the input field to select text after the dropdown is rendered
+  cy.wait(500);
+});
+
 // vn: view name
 // rc: expected row count. validate row count if rc!=0
 Cypress.Commands.add("openViewsTab", (vn, rc) => {
@@ -424,7 +463,6 @@ Cypress.Commands.add("snip", (filename) => {
   ) {
     let storeName = `${screenShotDb.length}_${filename}`;
     screenShotDb.push(filename);
-    cy.wait(1000);
     cy.screenshot(storeName, { overwrite: true });
   }
 });
@@ -437,7 +475,6 @@ Cypress.Commands.add("snipActiveModal", (filename) => {
   ) {
     let storeName = `${screenShotDb.length}_${filename}`;
     screenShotDb.push(filename);
-    cy.wait(1000);
     // cy.getActiveModal().screenshot(filename, {
     //     padding: 0,
     //     overwrite: true,
@@ -454,7 +491,6 @@ Cypress.Commands.add("snipActiveMenu", (filename) => {
   ) {
     let storeName = `${screenShotDb.length}_${filename}`;
     screenShotDb.push(filename);
-    cy.wait(1000);
     // cy.getActiveMenu().screenshot(filename, {
     //     padding: 0,
     //     overwrite: true,
@@ -477,11 +513,98 @@ Cypress.Commands.add("signOut", () => {
   cy.get(".nc-menu-accounts", { timeout: 30000 }).should("exist").click();
   cy.getActiveMenu(".nc-dropdown-user-accounts-menu")
     .find(".ant-dropdown-menu-item")
-    .eq(1)
+    .last()
     .click();
 
-  cy.wait(5000);
-  cy.get('button:contains("SIGN")').should("exist");
+  cy.get('button:contains("SIGN IN")').should("exist");
+});
+
+// Navigation
+//
+Cypress.Commands.add("gotoProjectsPage", () => {
+  cy.get(".nc-noco-brand-icon").should("exist").click();
+  cy.get(`.nc-project-page-title:contains("My Projects")`).should("exist");
+});
+
+// View basic routines
+//
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// viewCreate
+//  : viewType: grid, gallery, kanban, form
+//  : creates view with default name
+//  : [fix-me] with name validation, works only first view creation of that category.
+//
+Cypress.Commands.add("viewCreate", (viewType) => {
+  // click on 'Grid/Gallery/Form/Kanban' button on Views bar
+  cy.get(`.nc-create-${viewType}-view`).click();
+
+  // Pop up window, click Submit (accepting default name for view)
+  cy.getActiveModal(".nc-modal-view-create").find(".ant-btn-primary").click();
+  cy.toastWait("View created successfully");
+
+  // validate if view was created && contains default name 'Country1'
+  cy.get(`.nc-${viewType}-view-item`)
+    .contains(`${capitalizeFirstLetter(viewType)}-1`)
+    .should("exist");
+});
+
+// viewDelete
+//  : delete view by index (0-based, exclude default view)
+//
+Cypress.Commands.add("viewDelete", (viewIndex) => {
+  // click on delete icon (becomes visible on hovering mouse)
+  cy.get(".nc-view-delete-icon").eq(viewIndex).click({ force: true });
+  cy.wait(300);
+
+  // click on 'Delete' button on confirmation modal
+  cy.getActiveModal(".nc-modal-view-delete").find(".ant-btn-dangerous").click();
+  cy.toastWait("View deleted successfully");
+});
+
+// viewDuplicate
+//  : duplicate view by index (0-based, *include* default view)
+//
+Cypress.Commands.add("viewCopy", (viewIndex) => {
+  // click on delete icon (becomes visible on hovering mouse)
+  cy.get(".nc-view-copy-icon").eq(viewIndex).click({ force: true });
+  cy.wait(300);
+
+  // click on 'Delete' button on confirmation modal
+  cy.getActiveModal(".nc-modal-view-create").find(".ant-btn-primary").click();
+  cy.toastWait("View created successfully");
+});
+
+// viewRename
+//  : rename view by index (0-based, exclude default view)
+//
+Cypress.Commands.add("viewRename", (viewType, viewIndex, newName) => {
+  // click on edit-icon (becomes visible on hovering mouse)
+  cy.get(`.nc-${viewType}-view-item`).eq(viewIndex).dblclick();
+
+  // feed new name
+  cy.get(`.nc-${viewType}-view-item input`).clear().type(`${newName}{enter}`);
+  cy.toastWait("View renamed successfully");
+
+  // validate
+  cy.get(`.nc-${viewType}-view-item`).contains(`${newName}`).should("exist");
+});
+
+// viewOpen
+//  : open view by index (0-based, exclude default view)
+//
+Cypress.Commands.add("viewOpen", (viewType, viewIndex) => {
+  // click on view
+  cy.get(`.nc-${viewType}-view-item`).eq(viewIndex).click();
+});
+
+// openTableView
+//  : open view by type & name
+//
+Cypress.Commands.add("openTableView", (viewType, viewName) => {
+  cy.get(`.nc-${viewType}-view-item`).contains(`${viewName}`).click();
 });
 
 // Drag n Drop

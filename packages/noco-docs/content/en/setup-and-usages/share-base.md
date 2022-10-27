@@ -6,22 +6,22 @@ category: "Product"
 menuTitle: "Share Base"
 ---
 
-## Generate `Share base`
+## Generate Share base
 
 - Open Project 
-- Click on `Share` button on top right tool bar
+- Click on `Invite Team` button on bottom left tool bar
 
-![image](https://user-images.githubusercontent.com/35857179/161957411-ee9ec53d-4745-43c3-99f2-600cb20923e7.png)
+![image](https://user-images.githubusercontent.com/35857179/192435607-ee00326e-3890-4478-8260-e5c7c286f03a.png)
 
 - Under `Shared base link` tab and toggle from `Disabled Share base` to `Anyone with the link`
 
-![Screenshot 2022-02-19 at 11 16 02 AM](https://user-images.githubusercontent.com/86527202/154789352-87e65fcc-fbe5-48f0-a1e1-e54dce91a1f3.png)
+![image](https://user-images.githubusercontent.com/35857179/192435735-71fc161b-48fc-49e2-94ad-55713932f10a.png)
 
 - Share base link generated is displayed over & can be used to share this project to others in the team [Selection (2) in the image below]
 
 ![Screenshot 2022-02-19 at 12 01 58 PM](https://user-images.githubusercontent.com/86527202/154789725-a1194e30-3101-423a-bd5c-25009c361b96.png)
 
-## Modify `Share base`
+## Modify Share base
 
 Modifying `Share base` will invalidate the `Share base` link generated previously and will generate a new link.
 
@@ -29,7 +29,7 @@ Modifying `Share base` will invalidate the `Share base` link generated previousl
 -   Click on 'Share' button on top right tool bar
 -   Click on 'Reload' button on Quick menu (next to Shared base link)
 
-## Disable `Share base`
+## Disable Share base
 
 Disabling `Share base` will invalidate the generated `Share base` link
 
@@ -37,7 +37,7 @@ Disabling `Share base` will invalidate the generated `Share base` link
 -   Click on 'Share' button on top right tool bar
 -   Under `Shared base link` and toggle from `Anyone with the link` to `Disable Share base`
 
-## `Share base` Access Permissions
+## Share base Access Permissions
 
 Shared base can be configured as
 

@@ -49,6 +49,7 @@ jobs:
           node-version: 16.15.0
           registry-url: 'https://registry.npmjs.org'
       - run: |
+          export NODE_OPTIONS="--max_old_space_size=16384"
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
           cd packages/nocodb-sdk &&
           npm ci && npm run build && npm publish &&

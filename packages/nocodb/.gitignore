@@ -20,3 +20,4 @@ noco.db*
 .vscode/
 test_meta.db
 test_sakila.db
+.env

@@ -40,7 +40,8 @@ export function _advSettings(roleType, mode) {
       .click();
 
     cy.get(`[data-menu-id="teamAndAuth"]`).should("exist");
-    cy.get(`[data-menu-id="appStore"]`).should("exist");
+    if (roleType === "owner")
+      cy.get(`[data-menu-id="appStore"]`).should("exist");
     cy.get(`[data-menu-id="projMetaData"]`).should("exist");
     cy.get(`[data-menu-id="audit"]`).should("exist");
 
@@ -161,6 +162,10 @@ export function _editData(roleType, mode) {
       .eq(0)
       .trigger("mouseover", { force: true });
     cy.get(".nc-row-expand").should("exist").eq(10).click({ force: true });
+
+    // wait for page render to complete
+    cy.get('button:contains("Save row"):visible').should("exist");
+
     cy.getActiveDrawer(".nc-drawer-expanded-form")
       .find("button")
       .contains("Save row")
@@ -174,6 +179,10 @@ export function _editData(roleType, mode) {
     // update cell contents option using row expander should be disabled
     //
     cy.get(".nc-row-expand").should("exist").eq(10).click({ force: true });
+
+    // wait for page render to complete
+    cy.get('button:contains("Save row"):visible').should("exist");
+
     cy.getActiveDrawer(".nc-drawer-expanded-form")
       .find("button:disabled")
       .contains("Save row")
@@ -203,8 +212,6 @@ export function _editComment(roleType, mode) {
 
   cy.openTableTab(columnName, 25);
 
-  cy.wait(1000);
-
   // click on comment icon & type comment
   //
   cy.get(".nc-row-expand").should("exist").eq(10).click({ force: true });
@@ -213,8 +220,6 @@ export function _editComment(roleType, mode) {
   //      Viewer: Not able to see comment option
   //      Everyone else: Comment added/read successfully
   //
-
-  cy.wait(3000);
 
   if ("viewer" === roleType) {
     cy.getActiveDrawer(".nc-drawer-expanded-form")

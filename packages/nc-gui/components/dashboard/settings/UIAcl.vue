@@ -1,8 +1,17 @@
 <script setup lang="ts">
-import { Empty, message } from 'ant-design-vue'
-import { useI18n } from 'vue-i18n'
-import { extractSdkResponseErrorMsg, viewIcons } from '~/utils'
-import { computed, h, useNuxtApp, useProject } from '#imports'
+import {
+  Empty,
+  computed,
+  extractSdkResponseErrorMsg,
+  h,
+  message,
+  onMounted,
+  useGlobal,
+  useI18n,
+  useNuxtApp,
+  useProject,
+  viewIcons,
+} from '#imports'
 
 const { t } = useI18n()
 
@@ -109,12 +118,14 @@ const columns = [
             <MdiMagnify />
           </template>
         </a-input>
+
         <a-button class="self-start nc-acl-reload" @click="loadTableList">
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             Reload
           </div>
         </a-button>
+
         <a-button class="self-start nc-acl-save" @click="saveUIAcl">
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <MdiContentSave />
@@ -122,6 +133,7 @@ const columns = [
           </div>
         </a-button>
       </div>
+
       <div class="max-h-600px overflow-y-auto">
         <a-table
           class="w-full"
@@ -140,14 +152,17 @@ const columns = [
           <template #emptyText>
             <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
           </template>
+
           <template #bodyCell="{ record, column }">
             <div v-if="column.name === 'table_name'">{{ record._ptn }}</div>
+
             <div v-if="column.name === 'view_name'">
               <div class="flex items-center">
                 <component :is="viewIcons[record.type].icon" :class="`text-${viewIcons[record.type].color} mr-1`" />
                 {{ record.title }}
               </div>
             </div>
+
             <div v-for="role in roles" :key="role">
               <div v-if="column.name === role">
                 <a-tooltip>
@@ -157,11 +172,12 @@ const columns = [
                     >
                     <span v-else>Click to hide '{{ record.title }}' for role:{{ role }} in UI dashboard</span>
                   </template>
+
                   <a-checkbox
                     :checked="!record.disabled[role]"
                     :class="`nc-acl-${record.title}-${role}-chkbox`"
                     @change="onRoleCheck(record, role)"
-                  ></a-checkbox>
+                  />
                 </a-tooltip>
               </div>
             </div>

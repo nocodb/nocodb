@@ -1,33 +1,17 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { ActiveCellInj, CellValueInj, ColumnInj, RowInj, provide, toRef, useVirtualCell } from '#imports'
-import type { Row } from '~/composables'
+import { ActiveCellInj, CellValueInj, ColumnInj, IsFormInj, RowInj, inject, provide, ref, toRef, useVirtualCell } from '#imports'
+import type { Row } from '~/lib'
 import { NavigateDir } from '~/lib'
 
-const props = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue', 'navigate'])
-
-const HasMany = defineAsyncComponent(() => import('../virtual-cell/HasMany.vue'))
-
-const ManyToMany = defineAsyncComponent(() => import('../virtual-cell/ManyToMany.vue'))
-
-const BelongsTo = defineAsyncComponent(() => import('../virtual-cell/BelongsTo.vue'))
-
-const Rollup = defineAsyncComponent(() => import('../virtual-cell/Rollup.vue') as any)
-
-const Formula = defineAsyncComponent(() => import('../virtual-cell/Formula.vue'))
-
-const Count = defineAsyncComponent(() => import('../virtual-cell/Count.vue'))
-
-const Lookup = defineAsyncComponent(() => import('../virtual-cell/Lookup.vue') as any)
-
-interface Props {
+const props = defineProps<{
   column: ColumnType
   modelValue: any
   row: Row
   active?: boolean
-}
+}>()
+
+const emit = defineEmits(['update:modelValue', 'navigate'])
 
 const column = toRef(props, 'column')
 const active = toRef(props, 'active', false)
@@ -38,21 +22,29 @@ provide(ActiveCellInj, active)
 provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
+
+function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
+  emit('navigate', dir)
+
+  if (!isForm.value) e.stopImmediatePropagation()
+}
 </script>
 
 <template>
   <div
     class="nc-virtual-cell w-full"
-    @keydown.stop.enter.exact="emit('navigate', NavigateDir.NEXT)"
-    @keydown.stop.shift.enter.exact="emit('navigate', NavigateDir.PREV)"
+    @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
+    @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
-    <HasMany v-if="isHm" />
-    <ManyToMany v-else-if="isMm" />
-    <BelongsTo v-else-if="isBt" />
-    <Rollup v-else-if="isRollup" />
-    <Formula v-else-if="isFormula" />
-    <Count v-else-if="isCount" />
-    <Lookup v-else-if="isLookup" />
+    <LazyVirtualCellHasMany v-if="isHm" />
+    <LazyVirtualCellManyToMany v-else-if="isMm" />
+    <LazyVirtualCellBelongsTo v-else-if="isBt" />
+    <LazyVirtualCellRollup v-else-if="isRollup" />
+    <LazyVirtualCellFormula v-else-if="isFormula" />
+    <LazyVirtualCellCount v-else-if="isCount" />
+    <LazyVirtualCellLookup v-else-if="isLookup" />
   </div>
 </template>

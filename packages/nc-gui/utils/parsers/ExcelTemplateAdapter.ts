@@ -1,9 +1,9 @@
-import XLSX from 'xlsx'
 import { UITypes } from 'nocodb-sdk'
 import TemplateGenerator from './TemplateGenerator'
 import { getCheckboxValue, isCheckboxType } from './parserHelpers'
+import { getDateFormat } from '~/utils'
 
-const excelTypeToUidt: Record<any, any> = {
+const excelTypeToUidt: Record<string, UITypes> = {
   d: UITypes.DateTime,
   b: UITypes.Checkbox,
   n: UITypes.Number,
@@ -11,39 +11,59 @@ const excelTypeToUidt: Record<any, any> = {
 }
 
 export default class ExcelTemplateAdapter extends TemplateGenerator {
-  config: Record<string, any>
+  config: {
+    maxRowsToParse: number
+  } & Record<string, any>
+
   name: string
+
   excelData: any
-  project: Record<string, any>
-  data: Record<string, any>
+
+  project: {
+    title: string
+    tables: any[]
+  }
+
+  data: Record<string, any> = {}
+
   wb: any
+
+  xlsx: typeof import('xlsx')
+
   constructor(name = '', data = {}, parserConfig = {}) {
     super()
     this.config = {
       maxRowsToParse: 500,
       ...parserConfig,
     }
+
     this.name = name
+
     this.excelData = data
+
     this.project = {
       title: this.name,
       tables: [],
     }
-    this.data = {}
+
+    this.xlsx = {} as any
   }
 
   async init() {
-    const options: Record<any, boolean> = {
+    this.xlsx = await import('xlsx')
+
+    const options = {
       cellText: true,
       cellDates: true,
     }
+
     if (this.name.slice(-3) === 'csv') {
-      this.wb = XLSX.read(new TextDecoder().decode(new Uint8Array(this.excelData)), {
+      this.wb = this.xlsx.read(new TextDecoder().decode(new Uint8Array(this.excelData)), {
         type: 'string',
         ...options,
       })
     } else {
-      this.wb = XLSX.read(new Uint8Array(this.excelData), {
+      this.wb = this.xlsx.read(new Uint8Array(this.excelData), {
         type: 'array',
         ...options,
       })
@@ -51,9 +71,13 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   parse() {
-    const tableNamePrefixRef: any = {}
+    const tableNamePrefixRef: Record<string, any> = {}
+
+    // TODO: find the upper bound / make it configurable
+    const maxSelectOptionsAllowed = 64
+
     for (let i = 0; i < this.wb.SheetNames.length; i++) {
-      const columnNamePrefixRef: Record<any, any> = { id: 0 }
+      const columnNamePrefixRef: Record<string, any> = { id: 0 }
       const sheet: any = this.wb.SheetNames[i]
       let tn: string = (sheet || 'table').replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_').trim()
 
@@ -62,11 +86,11 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       }
       tableNamePrefixRef[tn] = 0
 
-      const table: Record<string, any> = { table_name: tn, ref_table_name: tn, columns: [] }
+      const table = { table_name: tn, ref_table_name: tn, columns: [] as any[] }
       this.data[tn] = []
       const ws: any = this.wb.Sheets[sheet]
-      const range = XLSX.utils.decode_range(ws['!ref'])
-      let rows: any = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, defval: null })
+      const range = this.xlsx.utils.decode_range(ws['!ref'])
+      let rows: any = this.xlsx.utils.sheet_to_json(ws, { header: 1, blankrows: false, defval: null })
 
       if (this.name.slice(-3) !== 'csv') {
         // fix precision bug & timezone offset issues introduced by xlsx
@@ -77,7 +101,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         const day_ms = 24 * 60 * 60 * 1000
         // handle date1904 property
         const fixImportedDate = (date: Date) => {
-          const parsed = XLSX.SSF.parse_date_code((date.getTime() - dnthresh) / day_ms, {
+          const parsed = this.xlsx.SSF.parse_date_code((date.getTime() - dnthresh) / day_ms, {
             date1904: this.wb.Workbook.WBProps.date1904,
           })
           return new Date(parsed.y, parsed.m, parsed.d, parsed.H, parsed.M, parsed.S)
@@ -106,12 +130,11 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         const column: Record<string, any> = {
           column_name: cn,
           ref_column_name: cn,
+          meta: {},
         }
 
-        table.columns.push(column)
-
         // const cellId = `${col.toString(26).split('').map(s => (parseInt(s, 26) + 10).toString(36).toUpperCase())}2`;
-        const cellId = XLSX.utils.encode_cell({
+        const cellId = this.xlsx.utils.encode_cell({
           c: range.s.c + col,
           r: columnNameRowExist,
         })
@@ -133,11 +156,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             if (checkboxType.length === 1) {
               column.uidt = UITypes.Checkbox
             } else {
-              // todo: optimize
-              // check column is multi or single select by comparing unique values
-              // todo:
               if (vals.some((v: any) => v && v.toString().includes(','))) {
-                let flattenedVals = vals.flatMap((v: any) =>
+                const flattenedVals = vals.flatMap((v: any) =>
                   v
                     ? v
                         .toString()
@@ -145,19 +165,41 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                         .split(/\s*,\s*/)
                     : [],
                 )
-                const uniqueVals = (flattenedVals = flattenedVals.filter(
-                  (v: any, i: any, arr: any) => i === arr.findIndex((v1: any) => v.toLowerCase() === v1.toLowerCase()),
-                ))
-                if (flattenedVals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(flattenedVals.length / 2)) {
-                  column.uidt = UITypes.MultiSelect
+
+                // TODO: handle case sensitive case
+                const uniqueVals = [...new Set(flattenedVals.map((v: any) => v.toString().trim().toLowerCase()))]
+
+                if (uniqueVals.length > maxSelectOptionsAllowed) {
+                  // too many options are detected, convert the column to SingleLineText instead
+                  column.uidt = UITypes.SingleLineText
+                  // _disableSelect is used to disable the <a-select-option/> in TemplateEditor
+                  column._disableSelect = true
+                } else {
+                  // assume the column type is multiple select if there are repeated values
+                  if (flattenedVals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(flattenedVals.length / 2)) {
+                    column.uidt = UITypes.MultiSelect
+                  }
+                  // set dtxp here so that users can have the options even they switch the type from other types to MultiSelect
+                  // once it's set, dtxp needs to be reset if the final column type is not MultiSelect
                   column.dtxp = `'${uniqueVals.join("','")}'`
                 }
               } else {
-                const uniqueVals = vals
-                  .map((v: any) => v.toString().trim())
-                  .filter((v: any, i: any, arr: any) => i === arr.findIndex((v1: any) => v.toLowerCase() === v1.toLowerCase()))
-                if (vals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(vals.length / 2)) {
-                  column.uidt = UITypes.SingleSelect
+                // TODO: handle case sensitive case
+                const uniqueVals = [...new Set(vals.map((v: any) => v.toString().trim().toLowerCase()))]
+
+                if (uniqueVals.length > maxSelectOptionsAllowed) {
+                  // too many options are detected, convert the column to SingleLineText instead
+                  column.uidt = UITypes.SingleLineText
+                  // _disableSelect is used to disable the <a-select-option/> in TemplateEditor
+                  column._disableSelect = true
+                } else {
+                  // assume the column type is single select if there are repeated values
+                  // once it's set, dtxp needs to be reset if the final column type is not Single Select
+                  if (vals.length > uniqueVals.length && uniqueVals.length <= Math.ceil(vals.length / 2)) {
+                    column.uidt = UITypes.SingleSelect
+                  }
+                  // set dtxp here so that users can have the options even they switch the type from other types to SingleSelect
+                  // once it's set, dtxp needs to be reset if the final column type is not SingleSelect
                   column.dtxp = `'${uniqueVals.join("','")}'`
                 }
               }
@@ -173,7 +215,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           }
           if (
             rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
-              const cellId = XLSX.utils.encode_cell({
+              const cellId = this.xlsx.utils.encode_cell({
                 c: range.s.c + col,
                 r: i + columnNameRowExist,
               })
@@ -186,20 +228,30 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             column.uidt = UITypes.Currency
           }
         } else if (column.uidt === UITypes.DateTime) {
+          // hold the possible date format found in the date
+          const dateFormat: Record<string, number> = {}
           if (
             rows.slice(1, this.config.maxRowsToParse).every((v: any, i: any) => {
-              const cellId = XLSX.utils.encode_cell({
+              const cellId = this.xlsx.utils.encode_cell({
                 c: range.s.c + col,
                 r: i + columnNameRowExist,
               })
 
               const cellObj = ws[cellId]
-              return !cellObj || (cellObj.w && cellObj.w.split(' ').length === 1)
+              const isDate = !cellObj || (cellObj.w && cellObj.w.split(' ').length === 1)
+              if (isDate && cellObj) {
+                dateFormat[getDateFormat(cellObj.w)] = (dateFormat[getDateFormat(cellObj.w)] || 0) + 1
+              }
+              return isDate
             })
           ) {
             column.uidt = UITypes.Date
+            // take the date format with the max occurrence
+            column.meta.date_format =
+              Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
           }
         }
+        table.columns.push(column)
       }
 
       let rowIndex = 0
@@ -209,7 +261,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
           if (table.columns[i].uidt === UITypes.Checkbox) {
             rowData[table.columns[i].column_name] = getCheckboxValue(row[i])
           } else if (table.columns[i].uidt === UITypes.Currency) {
-            const cellId = XLSX.utils.encode_cell({
+            const cellId = this.xlsx.utils.encode_cell({
               c: range.s.c + i,
               r: rowIndex + columnNameRowExist,
             })
@@ -218,6 +270,13 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             rowData[table.columns[i].column_name] = (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
           } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
             rowData[table.columns[i].column_name] = (row[i] || '').toString().trim() || null
+          } else if (table.columns[i].uidt === UITypes.Date) {
+            const cellId = this.xlsx.utils.encode_cell({
+              c: range.s.c + i,
+              r: rowIndex + columnNameRowExist,
+            })
+            const cellObj = ws[cellId]
+            rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
           } else {
             // toto: do parsing if necessary based on type
             rowData[table.columns[i].column_name] = row[i]

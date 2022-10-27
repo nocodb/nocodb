@@ -137,7 +137,7 @@ export interface ViewType {
   show_system_fields?: boolean;
   lock_type?: 'collaborative' | 'locked' | 'personal';
   type?: number;
-  view?: FormType | GridType | GalleryType;
+  view?: FormType | GridType | GalleryType | KanbanType;
 }
 
 export interface TableInfoType {
@@ -319,7 +319,7 @@ export interface FormulaType {
 }
 
 export interface SelectOptionsType {
-  options: SelectOptionType;
+  options: SelectOptionType[];
 }
 
 export interface SelectOptionType {
@@ -387,10 +387,11 @@ export interface KanbanType {
   id?: string;
   title?: string;
   alias?: string;
-  public?: boolean;
-  password?: string;
   columns?: KanbanColumnType[];
   fk_model_id?: string;
+  fk_grp_col_id?: string | null;
+  fk_cover_image_col_id?: string;
+  meta?: string | object;
 }
 
 export interface FormType {
@@ -2065,6 +2066,65 @@ export class Api<
         format: 'json',
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name KanbanCreate
+     * @request POST:/api/v1/db/meta/tables/{tableId}/kanbans
+     * @response `200` `object` OK
+     */
+    kanbanCreate: (
+      tableId: string,
+      data: KanbanType,
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/tables/${tableId}/kanbans`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name KanbanUpdate
+     * @request PATCH:/api/v1/db/meta/kanbans/{kanbanId}
+     * @response `200` `void` OK
+     */
+    kanbanUpdate: (
+      kanbanId: string,
+      data: KanbanType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/kanbans/${kanbanId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view
+     * @name KanbanRead
+     * @request GET:/api/v1/db/meta/kanbans/{kanbanId}
+     * @response `200` `KanbanType` OK
+     */
+    kanbanRead: (kanbanId: string, params: RequestParams = {}) =>
+      this.request<KanbanType, any>({
+        path: `/api/v1/db/meta/kanbans/${kanbanId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
   };
   dbViewShare = {
     /**
@@ -2447,6 +2507,8 @@ export class Api<
         fields?: any[];
         sort?: any[];
         where?: string;
+        offset?: string;
+        limit?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -2536,6 +2598,31 @@ export class Api<
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/groupby`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
+     * @name GroupedDataList
+     * @summary Table Group by Column
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/group/{columnId}
+     * @response `200` `any` OK
+     */
+    groupedDataList: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      columnId: string,
+      query?: { fields?: any[]; sort?: any[]; where?: string; nested?: any },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/group/${columnId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2726,11 +2813,13 @@ export class Api<
       projectName: string,
       tableName: string,
       data: any,
+      query?: { where?: string },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
         method: 'PATCH',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -2751,11 +2840,13 @@ export class Api<
       projectName: string,
       tableName: string,
       data: any,
+      query?: { where?: string },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/data/bulk/${orgs}/${projectName}/${tableName}/all`,
         method: 'DELETE',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -2799,7 +2890,7 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: string,
-      relationType: 'mm' | 'hm',
+      relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: {
         limit?: string | number;
@@ -2830,7 +2921,7 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: string,
-      relationType: 'mm' | 'hm',
+      relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       refRowId: string,
       query?: {
@@ -2861,7 +2952,7 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: string,
-      relationType: 'mm' | 'hm',
+      relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       refRowId: string,
       params: RequestParams = {}
@@ -2887,7 +2978,7 @@ export class Api<
       projectName: string,
       tableName: string,
       rowId: string,
-      relationType: 'mm' | 'hm',
+      relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: {
         limit?: string | number;
@@ -2905,6 +2996,32 @@ export class Api<
       }),
   };
   dbViewRow = {
+    /**
+     * No description
+     *
+     * @tags DB view row
+     * @name GroupedDataList
+     * @summary Table Group by Column
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/group/{columnId}
+     * @response `200` `any` OK
+     */
+    groupedDataList: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      viewName: string,
+      columnId: string,
+      query?: { fields?: any[]; sort?: any[]; where?: string; nested?: any },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/group/${columnId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -3181,6 +3298,28 @@ export class Api<
      * No description
      *
      * @tags Public
+     * @name GroupedDataList
+     * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}
+     * @response `200` `any` OK
+     */
+    groupedDataList: (
+      sharedViewUuid: string,
+      columnId: string,
+      query?: { limit?: string; offset?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/group/${columnId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Public
      * @name DataList
      * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows
      * @response `200` `any` OK
@@ -3234,7 +3373,7 @@ export class Api<
     dataNestedList: (
       sharedViewUuid: string,
       rowId: string,
-      relationType: 'mm' | 'hm',
+      relationType: 'mm' | 'hm' | 'bt',
       columnName: string,
       query?: {
         limit?: string;
@@ -3559,6 +3698,51 @@ export class Api<
     appHealth: (params: RequestParams = {}) =>
       this.request<any, any>({
         path: `/api/v1/health`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Utils
+     * @name AggregatedMetaInfo
+     * @request GET:/api/v1/aggregated-meta-info
+     * @response `200` `{ projectCount?: number, projects?: ({ tableCount?: { table?: number, view?: number }, external?: boolean, viewCount?: { formCount?: number, gridCount?: number, galleryCount?: number, kanbanCount?: number, total?: number, sharedFormCount?: number, sharedGridCount?: number, sharedGalleryCount?: number, sharedKanbanCount?: number, sharedTotal?: number, sharedLockedCount?: number }, webhookCount?: number, filterCount?: number, sortCount?: number, rowCount?: ({ TotalRecords?: string })[], userCount?: number })[], userCount?: number, sharedBaseCount?: number }` OK
+     */
+    aggregatedMetaInfo: (params: RequestParams = {}) =>
+      this.request<
+        {
+          projectCount?: number;
+          projects?: {
+            tableCount?: { table?: number; view?: number };
+            external?: boolean;
+            viewCount?: {
+              formCount?: number;
+              gridCount?: number;
+              galleryCount?: number;
+              kanbanCount?: number;
+              total?: number;
+              sharedFormCount?: number;
+              sharedGridCount?: number;
+              sharedGalleryCount?: number;
+              sharedKanbanCount?: number;
+              sharedTotal?: number;
+              sharedLockedCount?: number;
+            };
+            webhookCount?: number;
+            filterCount?: number;
+            sortCount?: number;
+            rowCount?: { TotalRecords?: string }[];
+            userCount?: number;
+          }[];
+          userCount?: number;
+          sharedBaseCount?: number;
+        },
+        any
+      >({
+        path: `/api/v1/aggregated-meta-info`,
         method: 'GET',
         format: 'json',
         ...params,

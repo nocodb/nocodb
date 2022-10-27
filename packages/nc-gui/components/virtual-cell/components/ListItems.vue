@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { Empty } from 'ant-design-vue'
 import {
   ColumnInj,
+  Empty,
   computed,
-  defineAsyncComponent,
   inject,
   ref,
   useLTARStoreOrThrow,
@@ -18,8 +17,6 @@ import { IsPublicInj } from '~/context'
 const props = defineProps<{ modelValue: boolean }>()
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord'])
-
-const ExpandedForm: any = defineAsyncComponent(() => import('../../smartsheet/expanded-form/index.vue'))
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -118,14 +115,18 @@ watch(expandedFormDlg, (nexVal) => {
           :placeholder="$t('placeholder.filterQuery')"
           class="max-w-[200px]"
           size="small"
-        ></a-input>
+        />
+
         <div class="flex-1" />
+
         <MdiReload class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
+
         <!--        Add new record -->
         <a-button v-if="!isPublic" type="primary" size="small" @click="expandedFormDlg = true">
           {{ $t('activity.addNewRecord') }}
         </a-button>
       </div>
+
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12">
           <a-card
@@ -140,6 +141,7 @@ watch(expandedFormDlg, (nexVal) => {
             </span>
           </a-card>
         </div>
+
         <div class="flex justify-center mt-6">
           <a-pagination
             v-if="childrenExcludedList?.pageInfo"
@@ -152,10 +154,11 @@ watch(expandedFormDlg, (nexVal) => {
           />
         </div>
       </template>
+
       <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
       <Suspense>
-        <ExpandedForm
+        <LazySmartsheetExpandedForm
           v-if="expandedFormDlg"
           v-model="expandedFormDlg"
           :meta="relatedTableMeta"

@@ -5,156 +5,170 @@
 import { loginPage, projectsPage } from "../../support/page_objects/navigation";
 import { mainPage, settingsPage } from "../../support/page_objects/mainPage";
 import {
-    isPostgres,
-    isTestSuiteActive,
-    isXcdb, roles
+  isPostgres,
+  isTestSuiteActive,
+  isXcdb,
+  roles,
 } from "../../support/page_objects/projectConstants";
 import {
-    _advSettings,
-    _editSchema,
-    _editData,
-    _editComment,
-    _viewMenu,
-    _topRightMenu,
-    enableTableAccess,
-    _accessControl,
+  _advSettings,
+  _editSchema,
+  _editData,
+  _editComment,
+  _viewMenu,
+  _topRightMenu,
+  enableTableAccess,
+  _accessControl,
+  disableTableAccess,
 } from "../spec/roleValidation.spec";
 
 export const genTest = (apiType, dbType, roleType) => {
-    if (!isTestSuiteActive(apiType, dbType)) return;
+  if (!isTestSuiteActive(apiType, dbType)) return;
 
-    ///////////////////////////////////////////////////////////
-    //// Test Suite
+  ///////////////////////////////////////////////////////////
+  //// Test Suite
 
-    describe("Role preview validations", () => {
-        // Sign in/ open project
-        before(() => {
-            loginPage.loginAndOpenProject(apiType, dbType);
-            cy.openTableTab("City", 25);
+  let clear;
 
-            cy.wait(3000);
+  function configureAcl() {
+    // open Project metadata tab
+    //
+    settingsPage.openMenu(settingsPage.PROJ_METADATA);
+    settingsPage.openTab(settingsPage.UI_ACCESS_CONTROL);
 
-            settingsPage.openProjectMenu();
-            cy.getActiveMenu(".nc-dropdown-project-menu").find(`[data-submenu-id="preview-as"]`).should('exist').click()
-            cy.wait(1000)
-            cy.get('.ant-dropdown-menu-submenu').eq(4).find(`[data-menu-id="editor"]`).should('exist').click()
+    // validate if it has 19 entries representing tables & views
+    if (isPostgres()) cy.get(".nc-acl-table-row").should("have.length", 24);
+    else if (isXcdb()) cy.get(".nc-acl-table-row").should("have.length", 19);
+    else cy.get(".nc-acl-table-row").should("have.length", 19);
 
-            cy.wait(10000)
+    // disable table & view access
+    //
+    disableTableAccess("Language", "editor");
+    disableTableAccess("Language", "commenter");
+    disableTableAccess("Language", "viewer");
 
-            cy.saveLocalStorage();
-        });
+    disableTableAccess("CustomerList", "editor");
+    disableTableAccess("CustomerList", "commenter");
+    disableTableAccess("CustomerList", "viewer");
 
-        beforeEach(() => {
-            cy.restoreLocalStorage();
-        });
+    cy.get("button.nc-acl-save").click();
+    cy.toastWait("Updated UI ACL for tables successfully");
 
-        after(() => {
-            // cy.get(".nc-preview-reset").click({ force: true });
-            cy.get(".mdi-exit-to-app").click();
-            // cy.wait(20000)
+    mainPage.closeMetaTab();
+  }
 
-            // wait for page rendering to complete
-            cy.get(".nc-grid-row", { timeout: 25000 }).should(
-                "have.length",
-                25
-            );
+  describe("Role preview validations", () => {
+    // Sign in/ open project
+    before(() => {
+      // cy.restoreLocalStorage();
+      loginPage.loginAndOpenProject(apiType, dbType);
 
-            // cy.get('.nc-preview-reset:visible').should('not-exist')
+      clear = Cypress.LocalStorage.clear;
+      Cypress.LocalStorage.clear = () => {};
 
-            // mainPage.navigationDraw(mainPage.ROLE_VIEW).contains('Reset Preview').should('not.exist')
-            // cy.get('.nc-preview-reset').should('not-exist')
-            cy.closeTableTab("City");
+      // configureAcl();
 
-            // open Project metadata tab
-            //
-            mainPage.navigationDraw(mainPage.PROJ_METADATA).click();
-            // cy.get(".nc-exp-imp-metadata").dblclick({ force: true });
-            cy.get(".nc-ui-acl-tab").click({ force: true });
+      cy.openTableTab("City", 25);
 
-            // validate if it has 19 entries representing tables & views
-            if (isPostgres())
-                cy.get(".nc-acl-table-row").should("have.length", 24);
-            else if (isXcdb())
-                cy.get(".nc-acl-table-row").should("have.length", 19);
-            else cy.get(".nc-acl-table-row").should("have.length", 19);
+      settingsPage.openProjectMenu();
+      cy.getActiveMenu(".nc-dropdown-project-menu")
+        .find(`[data-submenu-id="preview-as"]`)
+        .should("exist")
+        .click();
 
-            // restore access
-            //
-            enableTableAccess("language", "editor");
-            enableTableAccess("language", "commenter");
-            enableTableAccess("language", "viewer");
-
-            enableTableAccess("customerlist", "editor");
-            enableTableAccess("customerlist", "commenter");
-            enableTableAccess("customerlist", "viewer");
-        });
-
-        const genTestSub = (roleType) => {
-            it(`Role preview: ${roleType}: Enable preview`, () => {
-                cy.get(".nc-floating-preview-btn", {timeout: 30000}).should("exist");
-                cy.get('.nc-floating-preview-btn')
-                  .find(`[type="radio"][value="${roleType}"]`)
-                  .should('exist')
-                  .click();
-
-                cy.wait(5000)
-                cy.saveLocalStorage();
-            });
-
-            it(`Role preview: ${roleType}: Advance settings`, () => {
-                // project configuration settings
-                //
-                _advSettings(roleType, "preview");
-            });
-
-            it(`Role preview: ${roleType}: Access control`, () => {
-                // Access control validation
-                //
-                _accessControl(roleType, "preview");
-            });
-
-            it(`Role preview: ${roleType}: Edit data`, () => {
-                // Table data related validations
-                //  - Add/delete/modify row
-                //
-                _editData(roleType, "preview");
-            });
-
-            it(`Role preview: ${roleType}: Edit comment`, () => {
-                // read &/ update comment
-                //      Viewer: not allowed to read
-                //      Everyone else: read &/ update
-                //
-                _editComment(roleType, "preview");
-            });
-
-            it(`Role preview: ${roleType}: Preview menu`, () => {
-                // right navigation menu bar
-                //      Editor/Viewer/Commenter : can only view 'existing' views
-                //      Rest: can create/edit
-                _viewMenu(roleType, "preview");
-            });
-
-            it(`Role preview: ${roleType}: Top Right Menu bar`, () => {
-                // Share button is conditional
-                // Rest are static/ mandatory
-                //
-                _topRightMenu(roleType, "preview");
-            });
-
-            it(`Role preview: ${roleType}: Edit Schema`, () => {
-                // Schema related validations
-                //  - Add/delete table
-                //  - Add/Update/delete column
-                //
-                _editSchema(roleType, "preview");
-            });
-        };
-
-        genTestSub("editor");
-        genTestSub("commenter");
-        genTestSub("viewer");
+      cy.get(".nc-role-preview-menu").should("have.length", 3);
+      cy.get(`.nc-role-preview-menu:contains("Editor")`)
+        .should("exist")
+        .click();
     });
+
+    after(() => {
+      cy.get(".nc-preview-btn-exit-to-app").click();
+
+      // wait for page rendering to complete
+      cy.get(".nc-grid-row", { timeout: 25000 }).should("have.length", 25);
+
+      cy.closeTableTab("City");
+
+      // open Project metadata tab
+      //
+      settingsPage.openMenu(settingsPage.PROJ_METADATA);
+      settingsPage.openTab(settingsPage.UI_ACCESS_CONTROL);
+
+      // validate if it has 19 entries representing tables & views
+      if (isPostgres()) cy.get(".nc-acl-table-row").should("have.length", 24);
+      else if (isXcdb()) cy.get(".nc-acl-table-row").should("have.length", 19);
+      else cy.get(".nc-acl-table-row").should("have.length", 19);
+
+      // restore access
+      //
+      enableTableAccess("Language", "editor");
+      enableTableAccess("Language", "commenter");
+      enableTableAccess("Language", "viewer");
+
+      enableTableAccess("CustomerList", "editor");
+      enableTableAccess("CustomerList", "commenter");
+      enableTableAccess("CustomerList", "viewer");
+      cy.saveLocalStorage();
+      Cypress.LocalStorage.clear = clear;
+    });
+
+    const genTestSub = (roleType) => {
+      it(`Role preview: ${roleType}: Enable preview`, () => {
+        cy.get(".nc-floating-preview-btn", { timeout: 30000 }).should("exist");
+        cy.get(".nc-floating-preview-btn")
+          .find(`[type="radio"][value="${roleType}"]`)
+          .should("exist")
+          .click();
+      });
+
+      it(`Role preview: ${roleType}: Advance settings`, () => {
+        // project configuration settings
+        //
+        _advSettings(roleType, "preview");
+      });
+
+      it(`Role preview: ${roleType}: Access control`, () => {
+        // Access control validation
+        //
+        _accessControl(roleType, "preview");
+      });
+
+      it(`Role preview: ${roleType}: Edit data`, () => {
+        // Table data related validations
+        //  - Add/delete/modify row
+        //
+        _editData(roleType, "preview");
+      });
+
+      it(`Role preview: ${roleType}: Edit comment`, () => {
+        // read &/ update comment
+        //      Viewer: not allowed to read
+        //      Everyone else: read &/ update
+        //
+        _editComment(roleType, "preview");
+      });
+
+      it(`Role preview: ${roleType}: Preview menu`, () => {
+        // right navigation menu bar
+        //      Editor/Viewer/Commenter : can only view 'existing' views
+        //      Rest: can create/edit
+        _viewMenu(roleType, "preview");
+      });
+
+      it(`Role preview: ${roleType}: Edit Schema`, () => {
+        // Schema related validations
+        //  - Add/delete table
+        //  - Add/Update/delete column
+        //
+        _editSchema(roleType, "preview");
+      });
+    };
+
+    genTestSub("editor");
+    genTestSub("commenter");
+    genTestSub("viewer");
+  });
 };
 
 /**

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useGlobal } from '~/composables'
+import { useGlobal } from '#imports'
 
 const { appInfo, currentVersion } = useGlobal()
 </script>

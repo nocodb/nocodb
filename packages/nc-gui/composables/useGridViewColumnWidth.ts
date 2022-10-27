@@ -1,14 +1,14 @@
-import { useStyleTag } from '@vueuse/core'
 import type { ColumnType, GridColumnType, GridType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { useMetas } from './useMetas'
-import { useUIPermission } from './useUIPermission'
-import { IsPublicInj } from '~/context'
+import { IsPublicInj, computed, inject, ref, useMetas, useNuxtApp, useStyleTag, useUIPermission, watch } from '#imports'
 
 export function useGridViewColumnWidth(view: Ref<GridType | undefined>) {
   const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
+
   const { isUIAllowed } = useUIPermission()
+
   const { $api } = useNuxtApp()
+
   const { metas } = useMetas()
 
   const gridViewCols = ref<Record<string, GridColumnType>>({})
@@ -50,17 +50,18 @@ export function useGridViewColumnWidth(view: Ref<GridType | undefined>) {
     loadCss()
   }
 
-  /** when columns changes(create/delete) reload grid columns */
-  watch(columns, loadGridViewColumns)
+  /** when columns changes(create/delete) reload grid columns
+   * or when view changes reload columns width  */
+  watch([() => columns.value?.length, () => view?.value?.id], loadGridViewColumns)
 
-  const updateWidth = (id: string, width: string) => {
+  const updateWidth = async (id: string, width: string) => {
     if (gridViewCols?.value?.[id]) {
       gridViewCols.value[id].width = width
     }
 
     // sync with server if allowed
     if (!isPublic.value && isUIAllowed('gridColUpdate') && gridViewCols.value[id]?.id) {
-      $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
+      await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
         width,
       })
     }

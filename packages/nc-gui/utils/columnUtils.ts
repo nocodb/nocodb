@@ -1,4 +1,5 @@
-import { UITypes } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import LinkVariant from '~icons/mdi/link-variant'
 import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
 import FormatColorText from '~icons/mdi/format-color-text'
@@ -167,7 +168,22 @@ const getUIDTIcon = (uidt: UITypes | string) => {
   ).icon
 }
 
-export { uiTypes, getUIDTIcon }
+// treat column as required if `non_null` is true and one of the following is true
+// 1. column not having default value
+// 2. column is not auto increment
+// 3. column is not auto generated
+const isColumnRequired = (col?: ColumnType) => col && col.rqd && !col.cdf && !col.ai && !col.meta?.ag
+
+const isVirtualColRequired = (col: ColumnType, columns: ColumnType[]) =>
+  col.uidt === UITypes.LinkToAnotherRecord &&
+  (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO &&
+  isColumnRequired(columns.find((c) => c.id === (<LinkToAnotherRecordType>col.colOptions).fk_child_column_id))
+
+const isColumnRequiredAndNull = (col: ColumnType, row: Record<string, any>) => {
+  return isColumnRequired(col) && (row[col.title!] === undefined || row[col.title!] === null)
+}
+
+export { uiTypes, getUIDTIcon, isColumnRequiredAndNull, isColumnRequired, isVirtualColRequired }
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

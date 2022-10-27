@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { inject, useVModel } from '#imports'
-import { EditModeInj } from '~/context'
+import { EditModeInj, inject, useVModel } from '#imports'
 
 interface Props {
-  modelValue: number | null | undefined
+  modelValue?: number | null
 }
 
 interface Emits {
@@ -31,12 +30,12 @@ function onKeyDown(evt: KeyboardEvent) {
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="outline-none p-0 border-none w-full h-full prose-sm"
+    class="outline-none p-0 border-none w-full h-full text-sm"
     type="number"
     @blur="editEnabled = false"
     @keydown="onKeyDown"
   />
-  <span v-else class="prose-sm">{{ vModel }}</span>
+  <span v-else class="text-sm">{{ vModel }}</span>
 </template>
 
 <style scoped lang="scss">

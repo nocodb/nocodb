@@ -63,7 +63,7 @@ const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
   <a-date-picker
     v-model:value="localState"
     :bordered="false"
-    class="!w-full px-1"
+    class="!w-full !px-0 !border-none"
     :format="dateFormat"
     :placeholder="placeholder"
     :allow-clear="!readOnly && $props.editEnabled"

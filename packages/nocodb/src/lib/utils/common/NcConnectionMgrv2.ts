@@ -7,7 +7,7 @@ import { XKnex } from '../../db/sql-data-mapper';
 // import NcMetaIO from '../meta/NcMetaIO';
 import {
   defaultConnectionConfig,
-  defaultConnectionOptions
+  defaultConnectionOptions,
 } from '../NcConfigFactory';
 import Base from '../../models/Base';
 import Noco from '../../Noco';

@@ -1,21 +1,25 @@
 import useVuelidate from '@vuelidate/core'
-import { minLength, required } from '@vuelidate/validators'
+import { helpers, minLength, required } from '@vuelidate/validators'
 import type { Ref } from 'vue'
-import { message } from 'ant-design-vue'
 import type { ColumnType, FormType, LinkToAnotherRecordType, TableType, ViewType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { isString } from '@vueuse/core'
 import {
   SharedViewPasswordInj,
   computed,
+  createEventHook,
   extractSdkResponseErrorMsg,
+  message,
   provide,
   ref,
   useApi,
+  useI18n,
   useInjectionState,
   useMetas,
   useProvideSmartsheetRowStore,
   watch,
 } from '#imports'
+import type { SharedViewMeta } from '~/lib'
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)
@@ -23,6 +27,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const submitted = ref(false)
   const passwordDlg = ref(false)
   const password = ref<string | null>(null)
+  const passwordError = ref<string | null>(null)
   const secondsRemain = ref(0)
 
   provide(SharedViewPasswordInj, password)
@@ -31,10 +36,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedFormView = ref<FormType>()
   const meta = ref<TableType>()
   const columns = ref<(ColumnType & { required?: boolean; show?: boolean; label?: string })[]>()
+  const sharedViewMeta = ref<SharedViewMeta>({})
+  const formResetHook = createEventHook<void>()
 
   const { api, isLoading } = useApi()
 
   const { metas, setMeta } = useMetas()
+
+  const { t } = useI18n()
 
   const formState = ref({})
 
@@ -47,10 +56,15 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
+  const fieldRequired = (fieldName = 'Value') => helpers.withMessage(t('msg.error.fieldRequired', { value: fieldName }), required)
+
   const formColumns = computed(() =>
     columns.value?.filter((c) => c.show).filter((col) => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord),
   )
+
   const loadSharedView = async () => {
+    passwordError.value = null
+
     try {
       const viewMeta = await api.public.sharedViewMetaGet(sharedViewId, {
         headers: {
@@ -65,6 +79,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       meta.value = viewMeta.model
       columns.value = viewMeta.model?.columns
 
+      const _sharedViewMeta = (viewMeta as any).meta
+      sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
+
       await setMeta(viewMeta.model)
 
       const relatedMetas = { ...viewMeta.relatedMetas }
@@ -75,6 +92,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         notFound.value = true
       } else if ((await extractSdkResponseErrorMsg(e)) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
         passwordDlg.value = true
+
+        if (password.value && password.value !== '') passwordError.value = 'Something went wrong. Please check your credentials.'
       }
     }
   }
@@ -92,7 +111,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         !isVirtualCol(column) &&
         ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)
       ) {
-        obj.localState[column.title!] = { required }
+        obj.localState[column.title!] = { required: fieldRequired(column.label || column.title) }
       } else if (
         column.uidt === UITypes.LinkToAnotherRecord &&
         column.colOptions &&
@@ -102,13 +121,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
         if ((col && col.rqd && !col.cdf) || column.required) {
           if (col) {
-            obj.virtual[column.title!] = { required }
+            obj.virtual[column.title!] = { required: fieldRequired(column.label || column.title) }
           }
         }
       } else if (isVirtualCol(column) && column.required) {
         obj.virtual[column.title!] = {
           minLength: minLength(1),
-          required,
+          required: fieldRequired(column.label || column.title),
         }
       }
     }
@@ -174,6 +193,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         if (secondsRemain.value < 0) {
           submitted.value = false
 
+          formResetHook.trigger()
+
           clearInterval(intvl)
         }
       }, 1000)
@@ -185,6 +206,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       formState.value = {}
       v$.value?.$reset()
     }
+  })
+
+  watch(password, (next, prev) => {
+    if (next !== prev && passwordError.value) passwordError.value = null
   })
 
   return {
@@ -201,10 +226,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     formState,
     notFound,
     password,
+    passwordError,
     submitted,
     secondsRemain,
     passwordDlg,
     isLoading,
+    sharedViewMeta,
+    onReset: formResetHook.on,
   }
 }, 'expanded-form-store')
 

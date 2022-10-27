@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onClickOutside } from '@vueuse/core'
 import dayjs from 'dayjs'
+import { ReadonlyInj, inject, onClickOutside, useProject, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null | undefined
@@ -16,7 +16,7 @@ const readOnly = inject(ReadonlyInj, false)
 
 let isTimeInvalid = $ref(false)
 
-const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+const dateFormat = isMysql.value ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
 const localState = $computed({
   get() {
@@ -74,7 +74,7 @@ watch(
     :bordered="false"
     use12-hours
     format="HH:mm"
-    class="!w-full px-1"
+    class="!w-full !px-0 !border-none"
     :placeholder="isTimeInvalid ? 'Invalid time' : ''"
     :allow-clear="!readOnly"
     :input-read-only="true"

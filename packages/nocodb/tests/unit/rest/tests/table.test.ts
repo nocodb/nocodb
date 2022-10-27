@@ -45,7 +45,7 @@ function tableTest() {
       return new Error('Tables is not be created');
     }
 
-    if (response.body.columns.length !== (defaultColumns(context))) {
+    if (response.body.columns.length !== defaultColumns(context)) {
       return new Error('Columns not saved properly');
     }
 
@@ -121,15 +121,15 @@ function tableTest() {
       })
       .expect(400);
 
-      if (!response.text.includes('Duplicate table alias')) {
-        console.error(response.text);
-        return new Error('Wrong api response');
-      }
+    if (!response.text.includes('Duplicate table alias')) {
+      console.error(response.text);
+      return new Error('Wrong api response');
+    }
 
-      const tables = await getAllTables({ project });
-      if (tables.length !== 1) {
-        return new Error('Tables should not be created');
-      }
+    const tables = await getAllTables({ project });
+    if (tables.length !== 1) {
+      return new Error('Tables should not be created');
+    }
   });
 
   it('Create table with title length more than the limit', async function () {
@@ -152,7 +152,6 @@ function tableTest() {
     if (tables.length !== 1) {
       return new Error('Tables should not be created');
     }
-
   });
 
   it('Create table with title having leading white space', async function () {
@@ -221,7 +220,7 @@ function tableTest() {
       .send({})
       .expect(200);
 
-      if (response.body.id !== table.id) new Error('Wrong table');
+    if (response.body.id !== table.id) new Error('Wrong table');
   });
 
   // todo: flaky test, order condition is sometimes not met

@@ -10,7 +10,7 @@ import apiMetrics from '../../helpers/apiMetrics';
 import View from '../../../models/View';
 
 async function excelDataExport(req: Request, res: Response) {
-  const {model, view} = await getViewAndModelFromRequestByAliasOrId(req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   let targetView = view;
   if (!targetView) {
     targetView = await View.getDefaultView(model.id);
@@ -18,7 +18,7 @@ async function excelDataExport(req: Request, res: Response) {
   const { offset, elapsed, data } = await extractXlsxData(targetView, req);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, data, targetView.title);
-  const buf = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
+  const buf = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
   res.set({
     'Access-Control-Expose-Headers': 'nc-export-offset',
     'nc-export-offset': offset,

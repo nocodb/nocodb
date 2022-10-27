@@ -12,6 +12,7 @@ import * as nc_020_add_user_id_in_nc_api_tokens from './v2/nc_020_add_user_id_in
 import * as nc_018_add_meta_in_view from './v2/nc_018_add_meta_in_view';
 import * as nc_117_readd_user_token_version_column_finnoco from './v2/nc_117_readd_user_token_version_column_finnoco';
 import * as nc_019_add_meta_in_meta_tables from './v2/nc_019_add_meta_in_meta_tables';
+import * as nc_020_kanban_view from './v2/nc_020_kanban_view';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -35,6 +36,7 @@ export default class XcMigrationSourcev2 {
       'nc_018_add_meta_in_view',
       'nc_117_readd_user_token_version_column_finnoco',
       'nc_019_add_meta_in_meta_tables',
+      'nc_020_kanban_view',
     ]);
   }
 
@@ -72,6 +74,8 @@ export default class XcMigrationSourcev2 {
         return nc_117_readd_user_token_version_column_finnoco;
       case 'nc_019_add_meta_in_meta_tables':
         return nc_019_add_meta_in_meta_tables;
+      case 'nc_020_kanban_view':
+        return nc_020_kanban_view;
     }
   }
 }

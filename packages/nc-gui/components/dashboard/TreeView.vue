@@ -1,31 +1,26 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
-import { Empty } from 'ant-design-vue'
 import GithubButton from 'vue-github-button'
 import {
+  Empty,
   computed,
-  inject,
   reactive,
   ref,
+  resolveComponent,
   useDialog,
   useGlobal,
   useNuxtApp,
   useProject,
   useTable,
   useTabs,
+  useToggle,
   useUIPermission,
   watchEffect,
 } from '#imports'
-import DlgAirtableImport from '~/components/dlg/AirtableImport.vue'
-import DlgQuickImport from '~/components/dlg/QuickImport.vue'
-import DlgTableCreate from '~/components/dlg/TableCreate.vue'
-import DlgTableRename from '~/components/dlg/TableRename.vue'
-import { TabType } from '~/composables'
+import { TabType } from '~/lib'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
-import MdiMenuIcon from '~icons/mdi/dots-vertical'
-import MdiDrag from '~icons/mdi/drag-vertical'
 
 const { addTab } = useTabs()
 
@@ -39,7 +34,7 @@ const { deleteTable } = useTable()
 
 const { isUIAllowed } = useUIPermission()
 
-const isLocked = inject('TreeViewIsLockedInj')
+const [searchActive, toggleSearchActive] = useToggle()
 
 let key = $ref(0)
 
@@ -50,7 +45,7 @@ const filterQuery = $ref('')
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null))
 
 const tablesById = $computed(() =>
-  tables.value?.reduce((acc: Record<string, TableType>, table) => {
+  tables.value?.reduce<Record<string, TableType>>((acc, table) => {
     acc[table.id!] = table
 
     return acc
@@ -134,8 +129,6 @@ const contextMenuTarget = reactive<{ type?: 'table' | 'main'; value?: any }>({})
 const setMenuContext = (type: 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
-
-  // $e('c:table:create:navdraw:right-click')
 }
 
 const reloadTables = async () => {
@@ -153,7 +146,7 @@ function openRenameTableDialog(table: TableType, rightClick = false) {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(DlgTableRename, {
+  const { close } = useDialog(resolveComponent('DlgTableRename'), {
     'modelValue': isOpen,
     'tableMeta': table,
     'onUpdate:modelValue': closeDialog,
@@ -171,7 +164,7 @@ function openQuickImportDialog(type: string) {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(DlgQuickImport, {
+  const { close } = useDialog(resolveComponent('DlgQuickImport'), {
     'modelValue': isOpen,
     'importType': type,
     'onUpdate:modelValue': closeDialog,
@@ -189,7 +182,7 @@ function openAirtableImportDialog() {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(DlgAirtableImport, {
+  const { close } = useDialog(resolveComponent('DlgAirtableImport'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
   })
@@ -206,7 +199,7 @@ function openTableCreateDialog() {
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(DlgTableCreate, {
+  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
     'onUpdate:modelValue': closeDialog,
   })
@@ -223,12 +216,26 @@ function openTableCreateDialog() {
   <div class="nc-treeview-container flex flex-col">
     <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
       <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col scrollbar-thin-dull" :class="{ 'mb-[20px]': isSharedBase }">
-        <div class="py-1 px-3 flex w-full items-center gap-1 cursor-pointer" @contextmenu="setMenuContext('main')">
-          <span class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
-            {{ $t('objects.tables') }}
+        <div class="min-h-[36px] py-1 px-3 flex w-full items-center gap-1 cursor-pointer" @contextmenu="setMenuContext('main')">
+          <Transition name="slide-left" mode="out-in">
+            <a-input
+              v-if="searchActive"
+              v-model:value="filterQuery"
+              class="flex-1 rounded"
+              :placeholder="$t('placeholder.searchProjectTree')"
+            />
 
-            <template v-if="tables?.length"> ({{ tables.length }}) </template>
-          </span>
+            <span v-else class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
+              {{ $t('objects.tables') }}
+
+              <template v-if="tables?.length"> ({{ tables.length }}) </template>
+            </span>
+          </Transition>
+
+          <Transition name="layout" mode="out-in">
+            <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="toggleSearchActive(false)" />
+            <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+          </Transition>
         </div>
 
         <div class="flex-1">
@@ -323,7 +330,7 @@ function openTableCreateDialog() {
                   <template #title>{{ table.table_name }}</template>
                   <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                     <div class="flex w-auto">
-                      <MdiDrag
+                      <MdiDragVertical
                         v-if="isUIAllowed('treeview-drag-n-drop')"
                         :class="`nc-child-draggable-icon-${table.title}`"
                         class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
@@ -342,11 +349,11 @@ function openTableCreateDialog() {
                     </div>
 
                     <a-dropdown
-                      v-if="!isSharedBase && !isLocked && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
+                      v-if="!isSharedBase && (isUIAllowed('table-rename') || isUIAllowed('table-delete'))"
                       :trigger="['click']"
                       @click.stop
                     >
-                      <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
+                      <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100" />
 
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
@@ -376,7 +383,7 @@ function openTableCreateDialog() {
         </div>
       </div>
 
-      <template v-if="!isLocked && !isSharedBase" #overlay>
+      <template v-if="!isSharedBase" #overlay>
         <a-menu class="!py-0 rounded text-sm">
           <template v-if="contextMenuTarget.type === 'table'">
             <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(contextMenuTarget.value, true)">
@@ -406,11 +413,11 @@ function openTableCreateDialog() {
     <a-divider class="!my-0" />
 
     <div class="flex items-start flex-col justify-start px-2 py-3 gap-2">
-      <GeneralShareBaseButton
+      <LazyGeneralShareBaseButton
         class="color-transition py-1.5 px-2 text-primary font-bold cursor-pointer select-none hover:text-accent"
       />
 
-      <GeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+      <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
       <GithubButton
         v-if="!appInfo.useFinnTheme"
@@ -516,7 +523,7 @@ function openTableCreateDialog() {
 }
 
 :deep(.ant-dropdown-menu-item) {
-  @apply !py-0 active:(ring ring-accent);
+  @apply !py-0 active:(ring ring-accent ring-opacity-100);
 }
 
 :deep(.ant-dropdown-menu-title-content) {

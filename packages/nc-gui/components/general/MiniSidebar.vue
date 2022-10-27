@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import { navigateTo } from '#app'
-import { computed, useGlobal, useProject, useRoute, useSidebar } from '#imports'
+import { computed, navigateTo, useGlobal, useProject, useRoute, useSidebar } from '#imports'
 
-const { signOut, signedIn, user } = useGlobal()
+const { signOut, signedIn, user, currentVersion } = useGlobal()
 
 const { isOpen } = useSidebar('nc-mini-sidebar', { isOpen: true })
 
@@ -74,7 +73,7 @@ const logout = () => {
                 </span>
               </template>
 
-              <a-menu-item class="active:(ring ring-accent)">
+              <a-menu-item class="active:(ring ring-accent ring-opacity-100)">
                 <div
                   v-e="['c:project:create:xcdb']"
                   class="group flex items-center gap-2 py-2 hover:text-primary"

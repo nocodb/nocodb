@@ -40,11 +40,12 @@
     "sortablejs": "^1.15.0",
     "tinycolor2": "^1.4.2",
     "unique-names-generator": "^4.7.1",
+    "vue": "^3.2.41",
     "vue-dompurify-html": "^3.0.0",
     "vue-github-button": "^3.0.3",
     "vue-i18n": "^9.2.2",
     "vuedraggable": "^4.1.0",
-    "xlsx": "^0.17.3"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.26.0",
@@ -82,7 +83,7 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "happy-dom": "^6.0.3",
-    "nuxt": "3.0.0-rc.4",
+    "nuxt": "^3.0.0-rc.11",
     "nuxt-windicss": "^2.5.0",
     "prettier": "^2.7.1",
     "sass": "^1.53.0",

@@ -1,23 +1,25 @@
 <script lang="ts" setup>
-import { Empty, Modal } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
 import {
   ColumnInj,
+  Empty,
   IsFormInj,
+  IsPublicInj,
+  Modal,
   ReadonlyInj,
   computed,
+  h,
+  inject,
+  ref,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
   useVModel,
   watch,
 } from '#imports'
-import { IsPublicInj } from '~/context'
 
 const props = defineProps<{ modelValue?: boolean; cellValue: any }>()
 
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
-
-const ExpandedForm: any = defineAsyncComponent(() => import('../../smartsheet/expanded-form/index.vue'))
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -54,7 +56,7 @@ watch(
 
 const unlinkRow = async (row: Record<string, any>) => {
   if (isNew.value) {
-    removeLTARRef(row, column?.value as ColumnType)
+    await removeLTARRef(row, column?.value as ColumnType)
   } else {
     await unlink(row)
     await loadChildrenList()
@@ -63,12 +65,12 @@ const unlinkRow = async (row: Record<string, any>) => {
 
 const unlinkIfNewRow = async (row: Record<string, any>) => {
   if (isNew.value) {
-    removeLTARRef(row, column?.value as ColumnType)
+    await removeLTARRef(row, column?.value as ColumnType)
   }
 }
 
 const container = computed(() =>
-  isForm?.value
+  isForm.value
     ? h('div', {
         class: 'w-full p-2',
       })
@@ -76,6 +78,7 @@ const container = computed(() =>
 )
 
 const expandedFormDlg = ref(false)
+
 const expandedFormRow = ref()
 
 /** reload children list whenever cell value changes and list is visible */
@@ -99,15 +102,24 @@ watch(
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col py-6">
       <div class="flex mb-4 items-center gap-2 px-12">
         <div class="flex-1" />
-        <MdiReload v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
+        <MdiReload v-if="!isForm" class="cursor-pointer text-gray-500" data-cy="nc-child-list-reload" @click="loadChildrenList" />
 
-        <a-button v-if="!readonly" type="primary" ghost class="!text-xs" size="small" @click="emit('attachRecord')">
+        <a-button
+          v-if="!readonly"
+          type="primary"
+          ghost
+          class="!text-xs"
+          data-cy="nc-child-list-button-link-to"
+          size="small"
+          @click="emit('attachRecord')"
+        >
           <div class="flex items-center gap-1">
             <MdiLinkVariantRemove class="text-xs" type="primary" @click="unlinkRow(row)" />
             Link to '{{ relatedTableMeta.title }}'
           </div>
         </a-button>
       </div>
+
       <template v-if="(isNew && state?.[column?.title]?.length) || childrenList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12 cursor-pointer">
           <a-card
@@ -127,14 +139,17 @@ watch(
                 {{ row[relatedTablePrimaryValueProp] }}
                 <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
               </div>
+
               <div v-if="!readonly" class="flex gap-2">
                 <MdiLinkVariantRemove
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
+                  data-cy="nc-child-list-icon-unlink"
                   @click.stop="unlinkRow(row)"
                 />
                 <MdiDeleteOutline
                   v-if="!readonly && !isPublic"
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
+                  data-cy="nc-child-list-icon-delete"
                   @click.stop="deleteRelatedRow(row, unlinkIfNewRow)"
                 />
               </div>
@@ -163,7 +178,7 @@ watch(
     </div>
 
     <Suspense>
-      <ExpandedForm
+      <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
         :row="{ row: expandedFormRow }"

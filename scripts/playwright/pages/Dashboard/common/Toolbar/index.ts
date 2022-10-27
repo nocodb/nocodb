@@ -122,7 +122,7 @@ export class ToolbarPage extends BasePage {
     await this.get()
       .locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn`)
       .waitFor({ state: "visible" });
-    expect(
+    await expect(
       await this.get().locator(
         `.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn:has-text("${title}")`
       )
@@ -188,10 +188,10 @@ export class ToolbarPage extends BasePage {
 
     let text = await this.get().innerText();
     for (let item of menuItems[param.role]) {
-      expect(text).toContain(item);
+      await expect(text).toContain(item);
     }
 
-    expect(await this.get().locator(".nc-add-new-row-btn").count()).toBe(
+    await expect(await this.get().locator(".nc-add-new-row-btn").count()).toBe(
       param.role === "creator" || param.role === "editor" ? 1 : 0
     );
   }

@@ -41,17 +41,17 @@ export abstract class ErdBasePage extends BasePage {
   }
 
   async verifyNode({tableName, columnName, columnNameShouldNotExist}: {tableName: string; columnName?: string, columnNameShouldNotExist?: string}) {
-    expect(await this.get().locator(`.nc-erd-table-node-${tableName}`)).toBeVisible();
+    await this.get().locator(`.nc-erd-table-node-${tableName}`).waitFor({state: 'visible'});
     if (columnName) {
-      expect(await this.get().locator(`.nc-erd-table-node-${tableName}-column-${columnName}`)).toBeVisible();
+      await this.get().locator(`.nc-erd-table-node-${tableName}-column-${columnName}`).waitFor({state: 'visible'});
     }
     if(columnNameShouldNotExist) {
-      expect(await this.get().locator(`.nc-erd-table-node-${tableName}-column-${columnNameShouldNotExist}`)).not.toBeVisible();
+      await this.get().locator(`.nc-erd-table-node-${tableName}-column-${columnNameShouldNotExist}`).waitFor({state: 'hidden'});
     }
   }
 
   async verifyNodeDoesNotExist({tableName}: {tableName: string}) {
-    expect(await this.get().locator(`.nc-erd-table-node-${tableName}`)).not.toBeVisible();
+    await this.get().locator(`.nc-erd-table-node-${tableName}`).waitFor({state: 'hidden'});
   }
 
   async verifyColumns({tableName, columns}: {tableName: string; columns: string[]}) {
@@ -61,7 +61,9 @@ export abstract class ErdBasePage extends BasePage {
   }
 
   async verifyNodesCount(count: number) {
-    expect(await this.get().locator('.nc-erd-table-node').count()).toBe(count);
+    await expect.poll(
+      async () => await this.get().locator('.nc-erd-table-node').count()
+    ).toBe(count);
   }
 
   async verifyEdgesCount({
@@ -73,12 +75,20 @@ export abstract class ErdBasePage extends BasePage {
     circleCount: number;
     rectangleCount: number;
   }) {
-    expect(await this.get().locator('.vue-flow__edge').count()).toBe(count);
-    expect(await this.get().locator('.nc-erd-edge-circle').count()).toBe(circleCount);
-    expect(await this.get().locator('.nc-erd-edge-rect').count()).toBe(rectangleCount);
+    await expect.poll(
+      async () => await this.get().locator('.vue-flow__edge').count()
+    ).toBe(count);
+    await expect.poll(
+      async () => await this.get().locator('.nc-erd-edge-circle').count()
+    ).toBe(circleCount);
+    await expect.poll(
+      async () => await this.get().locator('.nc-erd-edge-rect').count()
+    ).toBe(rectangleCount);
   }
 
   async verifyJunctionTableLabel({tableTitle, tableName}: {tableName: string; tableTitle: string}) {
-    expect(await this.vueFlow().locator(`.nc-erd-table-label-${tableTitle}-${tableName}`).locator('text')).toBeVisible();
+    await await this.vueFlow().locator(`.nc-erd-table-label-${tableTitle}-${tableName}`).locator('text').waitFor({
+      state: 'visible',
+    })
   }
 }

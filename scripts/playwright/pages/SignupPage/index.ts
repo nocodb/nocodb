@@ -1,10 +1,14 @@
 // playwright-dev-page.ts
 import { expect, Page } from "@playwright/test";
 import BasePage from "../Base";
+import { ProjectsPage } from "../ProjectsPage";
 
 export class SignupPage extends BasePage {
+  readonly projectsPage: ProjectsPage;
+
   constructor(rootPage: Page) {
     super(rootPage);
+    this.projectsPage = new ProjectsPage(rootPage);
   }
 
   prefixEmail(email: string) {
@@ -33,5 +37,6 @@ export class SignupPage extends BasePage {
       .locator(`input[placeholder="Enter your password"]`)
       .fill(password);
     await signUp.locator(`button:has-text("SIGN UP")`).click();
+    await this.projectsPage.waitToBeRendered();
   }
 }

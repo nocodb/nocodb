@@ -75,7 +75,7 @@ export class ViewSidebarPage extends BasePage {
 
   // Todo: Make selection better
   async verifyView({ title, index }: { title: string; index: number }) {
-    expect(
+    await expect(
       await this.get()
         .locator(".ant-menu-title-content")
         .nth(index)
@@ -170,9 +170,9 @@ export class ViewSidebarPage extends BasePage {
 
   async validateRoleAccess(param: { role: string }) {
     let count = param.role === "creator" ? 1 : 0;
-    expect(await this.createGridButton.count()).toBe(count);
-    expect(await this.createGalleryButton.count()).toBe(count);
-    expect(await this.createFormButton.count()).toBe(count);
-    expect(await this.createKanbanButton.count()).toBe(count);
+    await expect(await this.createGridButton.count()).toBe(count);
+    await expect(await this.createGalleryButton.count()).toBe(count);
+    await expect(await this.createFormButton.count()).toBe(count);
+    await expect(await this.createKanbanButton.count()).toBe(count);
   }
 }

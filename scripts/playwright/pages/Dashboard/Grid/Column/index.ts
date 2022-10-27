@@ -220,20 +220,20 @@ export class ColumnPageObject extends BasePage {
     isVisible?: boolean;
   }) {
     if (!isVisible) {
-      return expect(
+      return await expect(
         await this.rootPage.locator(`th[data-title="${title}"]`)
       ).not.toBeVisible();
     }
-    await expect(
+    await await expect(
       this.rootPage.locator(`th[data-title="${title}"]`)
     ).toContainText(title);
   }
 
   async verifyRoleAccess(param: { role: string }) {
-    expect(
+    await expect(
       await this.grid.get().locator(".nc-column-add:visible").count()
     ).toBe(param.role === "creator" ? 1 : 0);
-    expect(
+    await expect(
       await this.grid.get().locator(".nc-ui-dt-dropdown:visible").count()
     ).toBe(param.role === "creator" ? 3 : 0);
 
@@ -243,7 +243,7 @@ export class ColumnPageObject extends BasePage {
         .locator(".nc-ui-dt-dropdown:visible")
         .first()
         .click();
-      expect(
+      await expect(
         await this.rootPage.locator(".nc-dropdown-column-operations").count()
       ).toBe(1);
       await this.grid

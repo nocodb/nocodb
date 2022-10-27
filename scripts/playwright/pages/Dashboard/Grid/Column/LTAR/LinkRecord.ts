@@ -18,15 +18,15 @@ export class LinkRecord extends BasePage {
     //    title: Link Record
     //    button: Add new record
     //    icon: reload
-    expect(await this.get().locator(`.ant-modal-title`).innerText()).toBe(
+    await expect(await this.get().locator(`.ant-modal-title`).innerText()).toBe(
       `Link record`
     );
-    expect(
+    await expect(
       await linkRecord.locator(`button:has-text("Add new record")`).isVisible()
     ).toBeTruthy();
-    expect(await linkRecord.locator(`.nc-reload`).isVisible()).toBeTruthy();
+    await expect(await linkRecord.locator(`.nc-reload`).isVisible()).toBeTruthy();
     // placeholder: Filter query
-    expect(
+    await expect(
       await linkRecord.locator(`[placeholder="Filter query"]`).isVisible()
     ).toBeTruthy();
 
@@ -35,7 +35,7 @@ export class LinkRecord extends BasePage {
       const childCards = await childList.count();
       await expect(childCards).toEqual(cardTitle.length);
       for (let i = 0; i < cardTitle.length; i++) {
-        expect(await childList.nth(i).textContent()).toContain(cardTitle[i]);
+        await expect(await childList.nth(i).textContent()).toContain(cardTitle[i]);
       }
     }
   }

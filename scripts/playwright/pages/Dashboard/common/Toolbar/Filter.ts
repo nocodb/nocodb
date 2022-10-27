@@ -92,6 +92,8 @@ export class ToolbarFilterPage extends BasePage {
       });
     }
     await this.toolbar.clickFilter();
+
+    await this.toolbar.parent.waitLoading()
   }
 
   click({ title }: { title: string }) {

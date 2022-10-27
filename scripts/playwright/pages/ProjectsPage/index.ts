@@ -1,6 +1,7 @@
 // playwright-dev-page.ts
 import { expect, Page } from "@playwright/test";
 import BasePage from "../Base";
+import { DashboardPage } from "../Dashboard";
 
 export class ProjectsPage extends BasePage {
   constructor(rootPage: Page) {
@@ -69,11 +70,23 @@ export class ProjectsPage extends BasePage {
       state: "visible",
     });
     (await this.get().elementHandle())?.waitForElementState("stable");
-    await this.reloadProjects();
-    (await this.get().elementHandle())?.waitForElementState("stable");
+
+    // Wait till the ant table is rendered
+    await this.get().locator('thead.ant-table-thead >> th').nth(0).waitFor({state: 'visible'});
+    await expect(this.get().locator('thead.ant-table-thead >> th').nth(0)).toHaveText('Title');
   }
 
-  async openProject({title, withoutPrefix}: {title: string, withoutPrefix?: boolean}) {
+  async openProject(
+    {
+      title, 
+      withoutPrefix, 
+      waitForAuthTab = true
+    }: 
+    {
+      title: string,
+      withoutPrefix?: boolean
+      waitForAuthTab?: boolean
+    }) {
     if(!withoutPrefix) title = this.prefixTitle(title);
 
     let project: any;
@@ -101,6 +114,10 @@ export class ProjectsPage extends BasePage {
         hasText: title
       }).click()
     ]);
+
+    const dashboard = new DashboardPage(this.rootPage, project);
+
+    if(waitForAuthTab) await dashboard.waitForTabRender({title: 'Team & Auth'});
 
     return project;
   }

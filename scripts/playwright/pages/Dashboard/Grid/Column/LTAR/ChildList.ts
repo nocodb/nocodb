@@ -21,15 +21,15 @@ export class ChildList extends BasePage {
     //    title: Child list
     //    button: Link to 'City'
     //    icon: reload
-    expect(await this.get().locator(`.ant-modal-title`).innerText()).toBe(
+    await expect(await this.get().locator(`.ant-modal-title`).innerText()).toBe(
       `Child list`
     );
-    expect(
+    await expect(
       await this.get()
         .locator(`button:has-text("Link to '${linkField}'")`)
         .isVisible()
     ).toBeTruthy();
-    expect(
+    await expect(
       await this.get().locator(`[data-cy="nc-child-list-reload"]`).isVisible()
     ).toBeTruthy();
 
@@ -41,16 +41,16 @@ export class ChildList extends BasePage {
       const childCards = await childList.count();
       await expect(childCards).toEqual(cardCount);
       for (let i = 0; i < cardCount; i++) {
-        expect(await childList.nth(i).textContent()).toContain(cardTitle[i]);
+        await expect(await childList.nth(i).textContent()).toContain(cardTitle[i]);
         // icon: unlink
         // icon: delete
-        expect(
+        await expect(
           await childList
             .nth(i)
             .locator(`[data-cy="nc-child-list-icon-unlink"]`)
             .isVisible()
         ).toBeTruthy();
-        expect(
+        await expect(
           await childList
             .nth(i)
             .locator(`[data-cy="nc-child-list-icon-delete"]`)

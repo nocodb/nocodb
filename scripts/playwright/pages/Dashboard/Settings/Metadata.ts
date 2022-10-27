@@ -37,6 +37,6 @@ export class MetaDataPage extends BasePage {
     await expect.poll(async () => {
       return await this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(0).textContent();
     }).toContain(model);
-    expect(await this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(1).textContent()).toContain(state);
+    await expect(await this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(1).textContent()).toContain(state);
   }
 }

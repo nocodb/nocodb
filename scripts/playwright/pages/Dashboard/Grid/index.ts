@@ -39,7 +39,7 @@ export class GridPage extends BasePage {
   }
 
   async verifyRowCount({ count }: { count: number }) {
-    return expect(await this.get().locator(".nc-grid-row").count()).toBe(count);
+    return await expect(await this.get().locator(".nc-grid-row").count()).toBe(count);
   }
 
   private async _fillRow({
@@ -132,7 +132,7 @@ export class GridPage extends BasePage {
     await this.get()
       .locator(`td[data-pw="cell-Title-${index}"]`)
       .waitFor({ state: "visible" });
-    expect(
+    await expect(
       await this.get().locator(`td[data-pw="cell-Title-${index}"]`).count()
     ).toBe(1);
   }
@@ -141,7 +141,7 @@ export class GridPage extends BasePage {
     await this.get()
       .locator(`td[data-pw="cell-Title-${index}"]`)
       .waitFor({ state: "hidden" });
-    return expect(
+    return await expect(
       await this.get().locator(`td[data-pw="cell-Title-${index}"]`).count()
     ).toBe(0);
   }
@@ -167,7 +167,7 @@ export class GridPage extends BasePage {
     });
     // Click text=Insert New Row
     await this.rootPage.locator("text=Insert New Row").click();
-    expect(await this.get().locator(".nc-grid-row").count()).toBe(rowCount + 1);
+    await expect(await this.get().locator(".nc-grid-row").count()).toBe(rowCount + 1);
   }
 
   async openExpandedRow({ index }: { index: number }) {
@@ -237,7 +237,7 @@ export class GridPage extends BasePage {
   }
 
   async verifyActivePage({ page }: { page: string }) {
-    expect(await this.pagination({ page })).toHaveClass(
+    await expect(await this.pagination({ page })).toHaveClass(
       /ant-pagination-item-active/
     );
   }
@@ -258,19 +258,19 @@ export class GridPage extends BasePage {
       index: 0,
       columnHeader: columnHeader,
     });
-    expect(await cell.locator("input")).not.toBeVisible();
+    await expect(await cell.locator("input")).not.toBeVisible();
 
     // right click menu
     await this.get().locator(`td[data-pw="cell-${columnHeader}-0"]`).click({
       button: "right",
     });
-    expect(
+    await expect(
       await this.rootPage.locator("text=Insert New Row")
     ).not.toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: "City List" }).hover();
-    expect(
+    await expect(
       await this.cell
         .get({ index: 0, columnHeader: "City List" })
         .locator(".nc-action-icon.nc-plus")
@@ -278,7 +278,7 @@ export class GridPage extends BasePage {
 
     // expand row
     await this.cell.get({ index: 0, columnHeader: "City List" }).hover();
-    expect(
+    await expect(
       await this.cell
         .get({ index: 0, columnHeader: "City List" })
         .locator(".nc-action-icon >> nth=0")
@@ -294,17 +294,17 @@ export class GridPage extends BasePage {
       index: 0,
       columnHeader: columnHeader,
     });
-    expect(await cell.locator("input")).toBeVisible();
+    await expect(await cell.locator("input")).toBeVisible();
 
     // right click menu
     await this.get().locator(`td[data-pw="cell-${columnHeader}-0"]`).click({
       button: "right",
     });
-    expect(await this.rootPage.locator("text=Insert New Row")).toBeVisible();
+    await expect(await this.rootPage.locator("text=Insert New Row")).toBeVisible();
 
     // in cell-add
     await this.cell.get({ index: 0, columnHeader: "City List" }).hover();
-    expect(
+    await expect(
       await this.cell
         .get({ index: 0, columnHeader: "City List" })
         .locator(".nc-action-icon.nc-plus")
@@ -312,7 +312,7 @@ export class GridPage extends BasePage {
 
     // expand row
     await this.cell.get({ index: 0, columnHeader: "City List" }).hover();
-    expect(
+    await expect(
       await this.cell
         .get({ index: 0, columnHeader: "City List" })
         .locator(".nc-action-icon.nc-arrow-expand")
@@ -322,7 +322,7 @@ export class GridPage extends BasePage {
   async validateRoleAccess(param: { role: string }) {
     await this.column.verifyRoleAccess(param);
     await this.cell.verifyRoleAccess(param);
-    expect(await this.get().locator(".nc-grid-add-new-cell").count()).toBe(
+    await expect(await this.get().locator(".nc-grid-add-new-cell").count()).toBe(
       param.role === "creator" || param.role === "editor" ? 1 : 0
     );
   }

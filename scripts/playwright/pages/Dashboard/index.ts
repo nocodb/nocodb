@@ -97,7 +97,17 @@ export class DashboardPage extends BasePage {
     title: string;
     mode?: string;
   }) {
-    await this.get().locator('[pw-data="grid-id-column"]').waitFor();
+    if(title === 'Team & Auth') {
+      await this.get().locator('div[role="tab"]', {
+        hasText: 'Users Management'
+      }).waitFor({
+        state: 'visible'
+      });
+    }else {
+      await this.get().locator('[pw-data="grid-id-column"]').waitFor({
+        state: "visible",
+      });
+    }
 
     await this.tabBar
       .locator(`.ant-tabs-tab-active:has-text("${title}")`)
@@ -120,7 +130,7 @@ export class DashboardPage extends BasePage {
 
     if (mode === "standard") {
       await expect(this.rootPage).toHaveURL(
-        `/#/nc/${this.project.id}/table/${title}`
+        `/#/nc/${this.project.id}/${title === 'Team & Auth' ? 'auth' : `table/${title}`}`
       );
     }
   }
@@ -186,8 +196,8 @@ export class DashboardPage extends BasePage {
     let menu = await this.rootPage
       .locator(`.nc-new-project-menu`)
       .textContent();
-    expect(title).toContain(param.json.title.myProject);
-    expect(menu).toContain(param.json.title.newProj);
+    await expect(title).toContain(param.json.title.myProject);
+    await expect(menu).toContain(param.json.title.newProj);
     await this.rootPage
       .locator(`[placeholder="${param.json.activity.searchProject}"]`)
       .waitFor();

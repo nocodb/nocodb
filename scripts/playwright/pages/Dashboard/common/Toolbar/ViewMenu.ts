@@ -101,16 +101,16 @@ export class ToolbarViewMenuPage extends BasePage {
   }
 
   async verifyLockMode() {
-    expect(
+    await expect(
       await this.toolbar.get().locator(`.nc-fields-menu-btn.nc-toolbar-btn`)
     ).toBeDisabled();
-    expect(
+    await expect(
       await this.toolbar.get().locator(`.nc-filter-menu-btn.nc-toolbar-btn`)
     ).toBeDisabled();
-    expect(
+    await expect(
       await this.toolbar.get().locator(`.nc-sort-menu-btn.nc-toolbar-btn`)
     ).toBeDisabled();
-    expect(
+    await expect(
       await this.toolbar
         .get()
         .locator(`.nc-add-new-row-btn.nc-toolbar-btn > .nc-icon.disabled`)
@@ -122,16 +122,16 @@ export class ToolbarViewMenuPage extends BasePage {
   }
 
   async verifyCollaborativeMode() {
-    expect(
+    await expect(
       await this.toolbar.get().locator(`.nc-fields-menu-btn.nc-toolbar-btn`)
     ).toBeEnabled();
-    expect(
+    await expect(
       await this.toolbar.get().locator(`.nc-filter-menu-btn.nc-toolbar-btn`)
     ).toBeEnabled();
-    expect(
+    await expect(
       await this.toolbar.get().locator(`.nc-sort-menu-btn.nc-toolbar-btn`)
     ).toBeEnabled();
-    expect(
+    await expect(
       await this.toolbar
         .get()
         .locator(`.nc-add-new-row-btn.nc-toolbar-btn > .nc-icon`)

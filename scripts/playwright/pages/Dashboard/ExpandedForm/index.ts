@@ -66,10 +66,10 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async verify({ header, url }: { header: string; url: string }) {
-    expect(
+    await expect(
       await this.get().locator(`.nc-expanded-form-header`).last().innerText()
     ).toContain(header);
-    expect(await this.rootPage.url()).toContain(url);
+    await expect(await this.rootPage.url()).toContain(url);
   }
 
   async close() {
@@ -102,18 +102,18 @@ export class ExpandedFormPage extends BasePage {
 
   async validateRoleAccess(param: { role: string }) {
     if (param.role === "commenter" || param.role === "viewer") {
-      expect(
+      await expect(
         await this.get().locator('button:has-text("Save Row")')
       ).toBeDisabled();
     } else {
-      expect(
+      await expect(
         await this.get().locator('button:has-text("Save Row")')
       ).toBeEnabled();
     }
     if (param.role === "viewer") {
-      expect(await this.toggleCommentsButton.count()).toBe(0);
+      await expect(await this.toggleCommentsButton.count()).toBe(0);
     } else {
-      expect(await this.toggleCommentsButton.count()).toBe(1);
+      await expect(await this.toggleCommentsButton.count()).toBe(1);
     }
     // press escape to close the expanded form
     await this.rootPage.keyboard.press("Escape");

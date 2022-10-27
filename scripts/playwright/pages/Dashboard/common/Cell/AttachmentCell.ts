@@ -24,6 +24,6 @@ export class AttachmentCellPageObject extends BasePage {
   }
 
   async verifyFile({ index, columnHeader }: { index: number, columnHeader: string }) {
-    expect(await this.get({index, columnHeader}).locator('.nc-attachment')).toBeVisible();
+    await expect(await this.get({index, columnHeader}).locator('.nc-attachment')).toBeVisible();
   }
 }

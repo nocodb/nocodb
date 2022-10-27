@@ -56,9 +56,9 @@ export class ImportTemplatePage extends BasePage {
 
     let tblList = await this.getImportTableList();
     for (let i = 0; i < result.length; i++) {
-      expect(tblList[i]).toBe(result[i].name);
+      await expect(tblList[i]).toBe(result[i].name);
       let columnList = await this.getImportColumnList();
-      expect(columnList).toEqual(result[i].columns);
+      await expect(columnList).toEqual(result[i].columns);
       if (i < result.length - 1) {
         await this.expandTableList({ index: i + 1 });
       }

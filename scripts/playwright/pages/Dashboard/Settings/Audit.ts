@@ -23,27 +23,27 @@ export class AuditSettingsPage extends BasePage {
     
     if(opType) {
       await row.locator(`td.ant-table-cell`).nth(0).textContent()
-        .then((text) => expect(text).toContain(opType));
+        .then(async (text) =>await expect(text).toContain(opType));
     }
 
     if(opSubtype) {
       await row.locator(`td.ant-table-cell`).nth(1).textContent()
-        .then((text) => expect(text).toContain(opSubtype));
+        .then(async (text) => await expect(text).toContain(opSubtype));
     }
 
     if(description) {
       await row.locator(`td.ant-table-cell`).nth(2).textContent()
-        .then((text) => expect(text).toContain(description));
+        .then(async (text) => await expect(text).toContain(description));
     }
 
     if(user) {
       await row.locator(`td.ant-table-cell`).nth(3).textContent()
-        .then((text) => expect(text).toContain(user));
+        .then(async (text) => await expect(text).toContain(user));
     }
 
     if(created) {
       await row.locator(`td.ant-table-cell`).nth(4).textContent()
-        .then((text) => expect(text).toContain(created));
+        .then(async (text) => await expect(text).toContain(created));
     }
     
   }

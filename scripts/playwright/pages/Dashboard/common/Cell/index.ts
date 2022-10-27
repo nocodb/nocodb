@@ -158,7 +158,7 @@ export class CellPageObject extends BasePage {
 
     // verify only the elements that are passed in
     for (let i = 0; i < value.length; ++i) {
-      expect(await chips.nth(i).textContent()).toBe(value[i]);
+      await expect(await chips.nth(i).textContent()).toBe(value[i]);
     }
   }
 
@@ -179,12 +179,12 @@ export class CellPageObject extends BasePage {
     const cell = await this.get({ index: 0, columnHeader: "Country" });
     // editable cell
     await cell.dblclick();
-    expect(await cell.locator(`input`).count()).toBe(
+    await expect(await cell.locator(`input`).count()).toBe(
       param.role === "creator" || param.role === "editor" ? 1 : 0
     );
     // right click context menu
     await cell.click({ button: "right" });
-    expect(
+    await expect(
       await this.rootPage
         .locator(`.nc-dropdown-grid-context-menu:visible`)
         .count()
@@ -194,16 +194,16 @@ export class CellPageObject extends BasePage {
     const vCell = await this.get({ index: 0, columnHeader: "City List" });
     await vCell.hover();
     // in-cell add
-    expect(await vCell.locator(".nc-action-icon.nc-plus:visible").count()).toBe(
+    await expect(await vCell.locator(".nc-action-icon.nc-plus:visible").count()).toBe(
       param.role === "creator" || param.role === "editor" ? 1 : 0
     );
     // in-cell expand (all have access)
-    expect(
+    await expect(
       await vCell.locator(".nc-action-icon.nc-arrow-expand:visible").count()
     ).toBe(1);
     await vCell.click();
     // unlink
-    expect(await vCell.locator(".nc-icon.unlink-icon:visible").count()).toBe(
+    await expect(await vCell.locator(".nc-icon.unlink-icon:visible").count()).toBe(
       param.role === "creator" || param.role === "editor" ? 1 : 0
     );
   }

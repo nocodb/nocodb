@@ -85,7 +85,7 @@ test.describe("Expanded form URL", () => {
       url: "rowId=1",
     });
     let expandFormCount = await dashboard.expandedForm.count();
-    expect(expandFormCount).toBe(2);
+    await expect(expandFormCount).toBe(2);
 
     // close child card
     await dashboard.expandedForm.cancel();

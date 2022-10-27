@@ -206,6 +206,7 @@ test.describe("Shared view", () => {
 
     await page.goto(sharedLink);
 
+    // todo: Create shared view page
     // verify if password request modal exists
     const sharedPage2 = new DashboardPage(page, context.project);
     await sharedPage2.rootPage

@@ -160,7 +160,7 @@ export class FormPage extends BasePage {
     let fieldLabels = await this.get().locator(
       '[data-pw="nc-form-input-label"]'
     );
-    expect(await fieldLabels.count()).toBe(fields.length);
+    await expect(await fieldLabels.count()).toBe(fields.length);
     for (let i = 0; i < fields.length; i++) {
       // using toContainText instead of toBe because of the extra
       // text (*) in the label for required fields
@@ -175,10 +175,10 @@ export class FormPage extends BasePage {
     sourceField: string;
     destinationField: string;
   }) {
-    expect(
+    await expect(
       await this.get().locator(`.nc-form-drag-${sourceField}`)
     ).toBeVisible();
-    expect(
+    await expect(
       await this.get().locator(`.nc-form-drag-${destinationField}`)
     ).toBeVisible();
     let src = await this.get().locator(
@@ -234,8 +234,8 @@ export class FormPage extends BasePage {
   }
 
   async verifyHeader(param: { subtitle: string; title: string }) {
-    expect(await this.formHeading.inputValue()).toBe(param.title);
-    expect(await this.formSubHeading.inputValue()).toBe(param.subtitle);
+    await expect(await this.formHeading.inputValue()).toBe(param.title);
+    await expect(await this.formSubHeading.inputValue()).toBe(param.subtitle);
   }
 
   async fillForm(param: { field: string; value: string }[]) {
@@ -297,13 +297,13 @@ export class FormPage extends BasePage {
       .locator(`.nc-form-drag-${field.replace(" ", "")}`)
       .locator('div[data-pw="nc-form-input-label"]')
       .innerText();
-    expect(fieldLabel).toBe(expectText);
+    await expect(fieldLabel).toBe(expectText);
 
     let fieldHelpText = await this.get()
       .locator(`.nc-form-drag-${field.replace(" ", "")}`)
       .locator('div[data-pw="nc-form-input-help-text-label"]')
       .innerText();
-    expect(fieldHelpText).toBe(helpText);
+    await expect(fieldHelpText).toBe(helpText);
   }
 
   async submitForm() {
@@ -316,10 +316,10 @@ export class FormPage extends BasePage {
     showBlankForm?: boolean;
   }) {
     if (undefined !== param.message) {
-      expect(await this.getFormAfterSubmit()).toContainText(param.message);
+      await expect(await this.getFormAfterSubmit()).toContainText(param.message);
     }
     if (true === param.submitAnotherForm) {
-      expect(
+      await expect(
         await this.getFormAfterSubmit().locator(
           'button:has-text("Submit Another Form")'
         )
@@ -345,27 +345,27 @@ export class FormPage extends BasePage {
     await this.rootPage.waitForTimeout(1000);
   }
 
-  verifyAfterSubmitMenuState(param: {
+  async verifyAfterSubmitMenuState(param: {
     showBlankForm?: boolean;
     submitAnotherForm?: boolean;
     emailMe?: boolean;
   }) {
     if (true === param.showBlankForm) {
-      expect(
+      await expect(
         this.get().locator(
           '[data-pw="nc-form-checkbox-show-blank-form"][aria-checked="true"]'
         )
       ).toBeVisible();
     }
     if (true === param.submitAnotherForm) {
-      expect(
+      await expect(
         this.get().locator(
           '[data-pw="nc-form-checkbox-submit-another-form"][aria-checked="true"]'
         )
       ).toBeVisible();
     }
     if (true === param.emailMe) {
-      expect(
+      await expect(
         this.get().locator(
           '[data-pw="nc-form-checkbox-send-email"][aria-checked="true"]'
         )

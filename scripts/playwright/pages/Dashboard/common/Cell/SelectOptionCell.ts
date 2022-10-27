@@ -47,14 +47,14 @@ export class SelectOptionCellPageObject extends BasePage {
 
   async verify({index, columnHeader, option, multiSelect}: {index: number, columnHeader: string, option: string, multiSelect?: boolean}) {
     if(multiSelect) {
-      return expect(
+      return await expect(
         this.cell.get({index, columnHeader})).toContainText(option, {useInnerText: true});
     }
-    return expect(this.cell.get({index, columnHeader}).locator('.ant-select-selection-item > .ant-tag')).toHaveText(option, {useInnerText: true});
+    return await expect(this.cell.get({index, columnHeader}).locator('.ant-select-selection-item > .ant-tag')).toHaveText(option, {useInnerText: true});
   }
 
   async verifyNoOptionsSelected({index, columnHeader}: {index: number, columnHeader: string}) {
-    return expect(this.cell.get({index, columnHeader}).locator('.ant-select-selection-item > .ant-tag')).toBeHidden();
+    return await expect(this.cell.get({index, columnHeader}).locator('.ant-select-selection-item > .ant-tag')).toBeHidden();
   }
 
   async verifyOptions({index, columnHeader, options}: {index: number, columnHeader: string, options: string[]}) {
@@ -64,7 +64,7 @@ export class SelectOptionCellPageObject extends BasePage {
     for (const option of options) {
       const optionInDom = await this.rootPage.locator(`div.ant-select-item-option`).nth(counter)
         .evaluate((node) =>  (node as HTMLElement).innerText)
-      expect(optionInDom).toBe(option);
+      await expect(optionInDom).toBe(option);
       counter++;
     }
     await this.get({index, columnHeader}).click();

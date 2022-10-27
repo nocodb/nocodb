@@ -56,9 +56,9 @@ test.describe("Attachment column", () => {
     const rows = csvArray.slice(1);
     const cells = rows[4].split(',');
 
-    expect(columns).toBe('Country,City List,testAttach');
-    expect(cells[0]).toBe('Anguilla');
-    expect(cells[1]).toBe('South Hill');
-    expect(cells[2].includes('4.json(http://localhost:8080/download/')).toBe(true);
+    await expect(columns).toBe('Country,City List,testAttach');
+    await expect(cells[0]).toBe('Anguilla');
+    await expect(cells[1]).toBe('South Hill');
+    await expect(cells[2].includes('4.json(http://localhost:8080/download/')).toBe(true);
   });
 });

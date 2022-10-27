@@ -84,9 +84,13 @@ export class CellPageObject extends BasePage {
     columnHeader: string;
   }) {
     await this.get({ index, columnHeader }).hover();
-    await this.get({ index, columnHeader })
-      .locator(".nc-action-icon >> nth=0")
-      .click();
+    await this.waitForResponse({
+      uiAction: this.get({ index, columnHeader })
+        .locator(".nc-action-icon >> nth=0")
+        .click(),
+      requestUrlPathToMatch: '/api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+    })
   }
 
   async inCellAdd({

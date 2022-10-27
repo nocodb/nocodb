@@ -11,6 +11,8 @@ import {
 let roles = ["Editor", "Commenter", "Viewer"];
 
 test.describe("Preview Mode", () => {
+  test.setTimeout(150000);
+
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let settings: SettingsPage;
@@ -24,7 +26,7 @@ test.describe("Preview Mode", () => {
     settings = dashboard.settings;
   });
 
-  test("Test case name", async () => {
+  test("Preview Mode", async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: "Team & Auth" });
 

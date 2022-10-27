@@ -225,7 +225,6 @@ export class GridPage extends BasePage {
   }
 
   async clickPagination({ page }: { page: string }) {
-    (await this.pagination({ page })).click();
     await this.waitForResponse({
       uiAction: (await this.pagination({ page })).click(),
       httpMethodsToMatch: ["GET"],

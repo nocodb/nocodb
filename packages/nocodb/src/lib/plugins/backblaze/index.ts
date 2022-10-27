@@ -6,7 +6,7 @@ import BackblazePlugin from './BackblazePlugin';
 const config: XcPluginConfig = {
   builder: BackblazePlugin,
   title: 'Backblaze B2',
-  version: '0.0.1',
+  version: '0.0.2',
   logo: 'plugins/backblaze.jpeg',
   tags: 'Storage',
   description:
@@ -24,21 +24,21 @@ const config: XcPluginConfig = {
       {
         key: 'region',
         label: 'Region',
-        placeholder: 'Region',
+        placeholder: 'e.g. us-west-001',
         type: XcType.SingleLineText,
         required: true,
       },
       {
         key: 'access_key',
         label: 'Access Key',
-        placeholder: 'Access Key',
+        placeholder: 'i.e. keyID in App Keys',
         type: XcType.SingleLineText,
         required: true,
       },
       {
         key: 'access_secret',
         label: 'Access Secret',
-        placeholder: 'Access Secret',
+        placeholder: 'i.e. applicationKey in App Keys',
         type: XcType.Password,
         required: true,
       },

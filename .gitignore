@@ -89,3 +89,7 @@ mongod
 shared.json
 /scripts/Cypress/screenshots
 /scripts/exp/
+
+# NC_DBs
+#=========
+nc_minimal_dbs/

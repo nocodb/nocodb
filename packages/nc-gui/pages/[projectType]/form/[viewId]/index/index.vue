@@ -20,9 +20,9 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 </script>
 
 <template>
-  <div>
+  <div class="h-full flex flex-col items-center">
     <div
-      class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl) mt-12"
+      class="color-transition relative flex flex-col justify-center gap-2 w-full max-w-[max(33%,600px)] m-auto py-4 pb-8 px-16 md:(bg-white dark:bg-slate-700 rounded-lg border-1 border-gray-200 shadow-xl)"
     >
       <template v-if="sharedFormView">
         <h1 class="prose-2xl font-bold self-center my-4">{{ sharedFormView.heading }}</h1>
@@ -120,6 +120,8 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
       </template>
     </div>
 
-    <GeneralPoweredBy />
+    <div class="flex items-end">
+      <GeneralPoweredBy />
+    </div>
   </div>
 </template>

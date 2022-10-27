@@ -14,6 +14,8 @@ import utc from 'dayjs/plugin/utc';
 import tinycolor from 'tinycolor2';
 import { importData, importLTARData } from './readAndProcessData';
 
+import EntityMap from './EntityMap';
+
 dayjs.extend(utc);
 
 const selectColors = {
@@ -67,32 +69,28 @@ export default async (
   syncDB: AirtableSyncConfig,
   progress: (data: { msg?: string; level?: any }) => void
 ) => {
-  const sMap = {
-    mapTbl: {},
+  const sMapEM = new EntityMap('aTblId', 'ncId', 'ncName', 'ncParent');
+  await sMapEM.init();
 
+  const sMap = {
     // static mapping records between aTblId && ncId
-    addToMappingTbl(aTblId, ncId, ncName, parent?) {
-      this.mapTbl[aTblId] = {
-        ncId: ncId,
-        ncParent: parent,
-        // name added to assist in quick debug
-        ncName: ncName,
-      };
+    async addToMappingTbl(aTblId, ncId, ncName, ncParent?) {
+      await sMapEM.addRow({ aTblId, ncId, ncName, ncParent });
     },
 
     // get NcID from airtable ID
-    getNcIdFromAtId(aId) {
-      return this.mapTbl[aId]?.ncId;
+    async getNcIdFromAtId(aId) {
+      return (await sMapEM.getRow('aTblId', aId, ['ncId']))?.ncId;
     },
 
     // get nc Parent from airtable ID
-    getNcParentFromAtId(aId) {
-      return this.mapTbl[aId]?.ncParent;
+    async getNcParentFromAtId(aId) {
+      return (await sMapEM.getRow('aTblId', aId, ['ncParent']))?.ncParent;
     },
 
     // get nc-title from airtable ID
-    getNcNameFromAtId(aId) {
-      return this.mapTbl[aId]?.ncName;
+    async getNcNameFromAtId(aId) {
+      return (await sMapEM.getRow('aTblId', aId, ['ncName']))?.ncName;
     },
   };
 
@@ -333,8 +331,8 @@ export default async (
     // let ncCol = ncTbl.columns.find(x => x.title === aTblField.cn);
     // return ncCol;
 
-    const ncTblId = sMap.getNcParentFromAtId(aTblFieldId);
-    const ncColId = sMap.getNcIdFromAtId(aTblFieldId);
+    const ncTblId = await sMap.getNcParentFromAtId(aTblFieldId);
+    const ncColId = await sMap.getNcIdFromAtId(aTblFieldId);
 
     // not migrated column, skip
     if (ncColId === undefined || ncTblId === undefined) return 0;
@@ -424,7 +422,7 @@ export default async (
 
   // retrieve additional options associated with selected data types
   //
-  function getNocoTypeOptions(col: any): any {
+  async function getNocoTypeOptions(col: any): Promise<any> {
     switch (col.type) {
       case 'select':
       case 'multiSelect': {
@@ -446,7 +444,12 @@ export default async (
           // TODO fix record mapping (this causes every record to map first option, we can't handle them using data api as they don't provide option id within data we might instead get the correct mapping from schema file )
           let dupNo = 1;
           const defaultName = (value as any).name;
-          while (options.find((el) => el.title === (value as any).name)) {
+          while (
+            options.find(
+              (el) =>
+                el.title.toLowerCase() === (value as any).name.toLowerCase()
+            )
+          ) {
             (value as any).name = `${defaultName}_${dupNo++}`;
           }
           options.push({
@@ -457,7 +460,7 @@ export default async (
               : tinycolor.random().toHexString(),
           });
 
-          sMap.addToMappingTbl(
+          await sMap.addToMappingTbl(
             (value as any).id,
             undefined,
             (value as any).name
@@ -472,7 +475,7 @@ export default async (
 
   // convert to Nc schema (basic, excluding relations)
   //
-  function tablesPrepare(tblSchema: any[]) {
+  async function tablesPrepare(tblSchema: any[]) {
     const tables: any[] = [];
 
     for (let i = 0; i < tblSchema.length; ++i) {
@@ -569,7 +572,7 @@ export default async (
         }
 
         // additional column parameters when applicable
-        const colOptions = getNocoTypeOptions(col);
+        const colOptions = await getNocoTypeOptions(col);
 
         switch (colOptions.type) {
           case 'select':
@@ -577,11 +580,15 @@ export default async (
             ncCol.colOptions = {
               options: [...colOptions.data],
             };
-            // if options are empty, configure '' as default option
-            ncCol.dtxp =
-              colOptions.data
-                .map((el) => `'${el.title.replace(/'/gi, "''")}'`)
-                .join(',') || "''";
+
+            if (['mysql', 'mysql2'].includes(getRootDbType())) {
+              // if options are empty, configure '' as an option
+              ncCol.dtxp =
+                colOptions.data
+                  .map((el) => `'${el.title.replace(/'/gi, "''")}'`)
+                  .join(',') || "''";
+            }
+
             break;
           case undefined:
             break;
@@ -598,7 +605,7 @@ export default async (
 
   async function nocoCreateBaseSchema(aTblSchema) {
     // base schema preparation: exclude
-    const tables: any[] = tablesPrepare(aTblSchema);
+    const tables: any[] = await tablesPrepare(aTblSchema);
 
     // for each table schema, create nc table
     for (let idx = 0; idx < tables.length; idx++) {
@@ -692,7 +699,7 @@ export default async (
           if (!nc_isLinkExists(aTblLinkColumns[i].id)) {
             // parent table ID
             // let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
-            const srcTableId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
+            const srcTableId = await sMap.getNcIdFromAtId(aTblSchema[idx].id);
 
             // find child table name from symmetric column ID specified
             // self link, symmetricColumnId field will be undefined
@@ -907,7 +914,7 @@ export default async (
 
       // parent table ID
       // let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
-      const srcTableId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
+      const srcTableId = await sMap.getNcIdFromAtId(aTblSchema[idx].id);
       const srcTableSchema = ncSchema.tablesById[srcTableId];
 
       if (aTblColumns.length) {
@@ -935,10 +942,10 @@ export default async (
             continue;
           }
 
-          const ncRelationColumnId = sMap.getNcIdFromAtId(
+          const ncRelationColumnId = await sMap.getNcIdFromAtId(
             aTblColumns[i].typeOptions.relationColumnId
           );
-          const ncLookupColumnId = sMap.getNcIdFromAtId(
+          const ncLookupColumnId = await sMap.getNcIdFromAtId(
             aTblColumns[i].typeOptions.foreignTableRollupColumnId
           );
 
@@ -1011,10 +1018,10 @@ export default async (
         const srcTableId = nestedLookupTbl[0].srcTableId;
         const srcTableSchema = ncSchema.tablesById[srcTableId];
 
-        const ncRelationColumnId = sMap.getNcIdFromAtId(
+        const ncRelationColumnId = await sMap.getNcIdFromAtId(
           nestedLookupTbl[0].typeOptions.relationColumnId
         );
-        const ncLookupColumnId = sMap.getNcIdFromAtId(
+        const ncLookupColumnId = await sMap.getNcIdFromAtId(
           nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId
         );
 
@@ -1097,7 +1104,7 @@ export default async (
 
       // parent table ID
       // let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
-      const srcTableId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
+      const srcTableId = await sMap.getNcIdFromAtId(aTblSchema[idx].id);
       const srcTableSchema = ncSchema.tablesById[srcTableId];
 
       if (aTblColumns.length) {
@@ -1142,10 +1149,10 @@ export default async (
             continue;
           }
 
-          const ncRelationColumnId = sMap.getNcIdFromAtId(
+          const ncRelationColumnId = await sMap.getNcIdFromAtId(
             aTblColumns[i].typeOptions.relationColumnId
           );
-          const ncRollupColumnId = sMap.getNcIdFromAtId(
+          const ncRollupColumnId = await sMap.getNcIdFromAtId(
             aTblColumns[i].typeOptions.foreignTableRollupColumnId
           );
 
@@ -1215,10 +1222,10 @@ export default async (
       const srcTableId = nestedLookupTbl[0].srcTableId;
       const srcTableSchema = ncSchema.tablesById[srcTableId];
 
-      const ncRelationColumnId = sMap.getNcIdFromAtId(
+      const ncRelationColumnId = await sMap.getNcIdFromAtId(
         nestedLookupTbl[0].typeOptions.relationColumnId
       );
-      const ncLookupColumnId = sMap.getNcIdFromAtId(
+      const ncLookupColumnId = await sMap.getNcIdFromAtId(
         nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId
       );
 
@@ -1274,7 +1281,7 @@ export default async (
       );
 
       const pColId = aTblSchema[idx].primaryColumnId;
-      const ncColId = sMap.getNcIdFromAtId(pColId);
+      const ncColId = await sMap.getNcIdFromAtId(pColId);
 
       // skip primary column configuration if we field not migrated
       if (ncColId) {
@@ -1284,7 +1291,7 @@ export default async (
         recordPerfStats(_perfStart, 'dbTableColumn.primaryColumnSet');
 
         // update schema
-        const ncTblId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
+        const ncTblId = await sMap.getNcIdFromAtId(aTblSchema[idx].id);
         await updateNcTblSchemaById(ncTblId);
       }
     }
@@ -1331,6 +1338,12 @@ export default async (
     for (const [key, value] of Object.entries(rec as { [key: string]: any })) {
       // retrieve datatype
       const dt = table.columns.find((x) => x.title === key)?.uidt;
+      
+      // always process LTAR, Lookup, and Rollup columns as we delete the key after processing
+      if (!value && dt !== UITypes.LinkToAnotherRecord && dt !== UITypes.Lookup && dt !== UITypes.Rollup) {
+        rec[key] = null;
+        continue;
+      }
 
       switch (dt) {
         // https://www.npmjs.com/package/validator
@@ -1404,7 +1417,7 @@ export default async (
 
         case UITypes.MultiSelect:
           rec[key] = value
-            .map((v) => {
+            ?.map((v) => {
               if (v === '') {
                 return 'nc_empty';
               }
@@ -1563,7 +1576,7 @@ export default async (
   async function nocoConfigureFormView(sDB, aTblSchema) {
     if (!sDB.options.syncViews) return;
     for (let idx = 0; idx < aTblSchema.length; idx++) {
-      const tblId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
+      const tblId = await sMap.getNcIdFromAtId(aTblSchema[idx].id);
       const formViews = aTblSchema[idx].views.filter((x) => x.type === 'form');
 
       const configuredViews = rtc.view.grid + rtc.view.gallery + rtc.view.form;
@@ -1635,7 +1648,7 @@ export default async (
 
   async function nocoConfigureGridView(sDB, aTblSchema) {
     for (let idx = 0; idx < aTblSchema.length; idx++) {
-      const tblId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
+      const tblId = await sMap.getNcIdFromAtId(aTblSchema[idx].id);
       const gridViews = aTblSchema[idx].views.filter((x) => x.type === 'grid');
 
       let viewCnt = idx;
@@ -1951,7 +1964,7 @@ export default async (
       // one of not migrated column;
       if (!colSchema) {
         updateMigrationSkipLog(
-          sMap.getNcNameFromAtId(viewId),
+          await sMap.getNcNameFromAtId(viewId),
           colSchema.title,
           colSchema.uidt,
           `filter config skipped; column not migrated`
@@ -1966,7 +1979,7 @@ export default async (
       if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
         // skip filters over data datatype
         updateMigrationSkipLog(
-          sMap.getNcNameFromAtId(viewId),
+          await sMap.getNcNameFromAtId(viewId),
           colSchema.title,
           colSchema.uidt,
           `filter config skipped; filter over date datatype not supported`
@@ -1986,7 +1999,7 @@ export default async (
               fk_column_id: columnId,
               logical_op: f.conjunction,
               comparison_op: filterMap[filter.operator],
-              value: sMap.getNcNameFromAtId(filter.value[i]),
+              value: await sMap.getNcNameFromAtId(filter.value[i]),
             };
             ncFilters.push(fx);
           }
@@ -1997,7 +2010,7 @@ export default async (
             fk_column_id: columnId,
             logical_op: f.conjunction,
             comparison_op: filterMap[filter.operator],
-            value: sMap.getNcNameFromAtId(filter.value),
+            value: await sMap.getNcNameFromAtId(filter.value),
           };
           ncFilters.push(fx);
         }
@@ -2093,7 +2106,7 @@ export default async (
 
     // rest of the columns from airtable- retain order & visibility property
     for (let j = 0; j < c.length; j++) {
-      const ncColumnId = sMap.getNcIdFromAtId(c[j].columnId);
+      const ncColumnId = await sMap.getNcIdFromAtId(c[j].columnId);
       const ncViewColumnId = await nc_getViewColumnId(
         viewId,
         viewType,
@@ -2239,7 +2252,7 @@ export default async (
             sDB: syncDB,
             logDetailed,
           });
-          rtc.data.records += recordsMap[ncTbl.id].length;
+          rtc.data.records += await recordsMap[ncTbl.id].getCount();
 
           logDetailed(`Data inserted from ${ncTbl.title}`);
         }

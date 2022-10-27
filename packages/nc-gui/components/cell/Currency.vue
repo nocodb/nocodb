@@ -8,13 +8,15 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'save'])
 
 const column = inject(ColumnInj)!
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj)!
 
 const vModel = useVModel(props, 'modelValue', emit)
+
+const lastSaved = ref()
 
 const currencyMeta = computed(() => {
   return {
@@ -38,6 +40,18 @@ const currency = computed(() => {
 })
 
 const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+
+const submitCurrency = () => {
+  if (lastSaved.value !== vModel.value) {
+    lastSaved.value = vModel.value
+    emit('save')
+  }
+  editEnabled.value = false
+}
+
+onMounted(() => {
+  lastSaved.value = vModel.value
+})
 </script>
 
 <template>
@@ -46,7 +60,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     :ref="focus"
     v-model="vModel"
     class="w-full h-full border-none outline-none px-2"
-    @blur="editEnabled = false"
+    @blur="submitCurrency"
   />
 
   <span v-else-if="vModel">{{ currency }}</span>

@@ -1,6 +1,6 @@
 @import 'ant-design-vue/dist/antd.variable.min.css';
-@import '@braks/vue-flow/dist/style.css';
-@import '@braks/vue-flow/dist/theme-default.css';
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/core/dist/theme-default.css';
 
 :root {
   --header-height: 42px;
@@ -280,4 +280,8 @@ a {
 
 .nc-toolbar-btn {
   @apply !shadow-none rounded hover:(ring-1 ring-primary ring-opacity-100) focus:(ring-1 ring-accent ring-opacity-100);
+}
+
+.ant-modal {
+  @apply !top-[50px];
 }

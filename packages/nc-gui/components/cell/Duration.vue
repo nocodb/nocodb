@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VNodeRef } from '@vue/runtime-core'
 import {
   ColumnInj,
   EditModeInj,
@@ -28,7 +29,7 @@ const durationInMS = ref(0)
 
 const isEdited = ref(false)
 
-const durationType = ref(column?.value?.meta?.duration || 0)
+const durationType = computed(() => column?.value?.meta?.duration || 0)
 
 const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
 
@@ -67,13 +68,15 @@ const submitDuration = () => {
   }
   isEdited.value = false
 }
+
+const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
   <div class="duration-cell-wrapper">
     <input
       v-if="editEnabled"
-      ref="durationInput"
+      :ref="focus"
       v-model="localState"
       class="w-full !border-none p-0"
       :class="{ '!px-2': editEnabled }"

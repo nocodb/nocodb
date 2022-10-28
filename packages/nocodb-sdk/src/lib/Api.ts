@@ -67,7 +67,6 @@ export interface ProjectType {
   created_at?: any;
   updated_at?: any;
   slug?: string;
-  roles?: string;
 }
 
 export interface ProjectListType {
@@ -253,12 +252,12 @@ export interface ColumnType {
   system?: number | boolean;
   meta?: any;
   colOptions?:
-  | LinkToAnotherRecordType
-  | FormulaType
-  | RollupType
-  | LookupType
-  | SelectOptionsType
-  | object;
+    | LinkToAnotherRecordType
+    | FormulaType
+    | RollupType
+    | LookupType
+    | SelectOptionsType
+    | object;
 }
 
 export interface ColumnListType {
@@ -572,89 +571,89 @@ export interface HookLogType {
 
 export type ColumnReqType =
   | {
-    uidt?:
-    | 'ID'
-    | 'SingleLineText'
-    | 'LongText'
-    | 'Attachment'
-    | 'Checkbox'
-    | 'MultiSelect'
-    | 'SingleSelect'
-    | 'Collaborator'
-    | 'Date'
-    | 'Year'
-    | 'Time'
-    | 'PhoneNumber'
-    | 'Email'
-    | 'URL'
-    | 'Number'
-    | 'Decimal'
-    | 'Currency'
-    | 'Percent'
-    | 'Duration'
-    | 'Rating'
-    | 'Count'
-    | 'DateTime'
-    | 'CreateTime'
-    | 'LastModifiedTime'
-    | 'AutoNumber'
-    | 'Geometry'
-    | 'JSON'
-    | 'SpecificDBType'
-    | 'Barcode'
-    | 'Button';
-    id?: string;
-    base_id?: string;
-    fk_model_id?: string;
-    title?: string;
-    dt?: string;
-    np?: string;
-    ns?: string;
-    clen?: string | number;
-    cop?: string;
-    pk?: boolean;
-    pv?: boolean;
-    rqd?: boolean;
-    column_name?: string;
-    un?: boolean;
-    ct?: string;
-    ai?: boolean;
-    unique?: boolean;
-    cdf?: string;
-    cc?: string;
-    csn?: string;
-    dtx?: string;
-    dtxp?: string;
-    dtxs?: string;
-    au?: boolean;
-    ''?: string;
-  }
+      uidt?:
+        | 'ID'
+        | 'SingleLineText'
+        | 'LongText'
+        | 'Attachment'
+        | 'Checkbox'
+        | 'MultiSelect'
+        | 'SingleSelect'
+        | 'Collaborator'
+        | 'Date'
+        | 'Year'
+        | 'Time'
+        | 'PhoneNumber'
+        | 'Email'
+        | 'URL'
+        | 'Number'
+        | 'Decimal'
+        | 'Currency'
+        | 'Percent'
+        | 'Duration'
+        | 'Rating'
+        | 'Count'
+        | 'DateTime'
+        | 'CreateTime'
+        | 'LastModifiedTime'
+        | 'AutoNumber'
+        | 'Geometry'
+        | 'JSON'
+        | 'SpecificDBType'
+        | 'Barcode'
+        | 'Button';
+      id?: string;
+      base_id?: string;
+      fk_model_id?: string;
+      title?: string;
+      dt?: string;
+      np?: string;
+      ns?: string;
+      clen?: string | number;
+      cop?: string;
+      pk?: boolean;
+      pv?: boolean;
+      rqd?: boolean;
+      column_name?: string;
+      un?: boolean;
+      ct?: string;
+      ai?: boolean;
+      unique?: boolean;
+      cdf?: string;
+      cc?: string;
+      csn?: string;
+      dtx?: string;
+      dtxp?: string;
+      dtxs?: string;
+      au?: boolean;
+      ''?: string;
+    }
   | {
-    uidt: 'LinkToAnotherRecord';
-    title: string;
-    parentId: string;
-    childId: string;
-    type: 'hm' | 'bt' | 'mm';
-  }
+      uidt: 'LinkToAnotherRecord';
+      title: string;
+      parentId: string;
+      childId: string;
+      type: 'hm' | 'bt' | 'mm';
+    }
   | {
-    uidt?: 'Rollup';
-    title?: string;
-    fk_relation_column_id?: string;
-    fk_rollup_column_id?: string;
-    rollup_function?: string;
-  }
+      uidt?: 'Rollup';
+      title?: string;
+      fk_relation_column_id?: string;
+      fk_rollup_column_id?: string;
+      rollup_function?: string;
+    }
   | {
-    uidt?: 'Lookup';
-    title?: string;
-    fk_relation_column_id?: string;
-    fk_lookup_column_id?: string;
-  }
+      uidt?: 'Lookup';
+      title?: string;
+      fk_relation_column_id?: string;
+      fk_lookup_column_id?: string;
+    }
   | {
-    uidt?: string;
-    formula_raw?: string;
-    formula?: string;
-    title?: string;
-  };
+      uidt?: string;
+      formula_raw?: string;
+      formula?: string;
+      title?: string;
+    };
 
 export interface UserInfoType {
   id?: string;
@@ -2619,7 +2618,13 @@ export class Api<
       projectName: string,
       tableName: string,
       columnId: string,
-      query?: { fields?: any[]; sort?: any[]; where?: string; nested?: any },
+      query?: {
+        fields?: any[];
+        sort?: any[];
+        where?: string;
+        /** Query params for nested data */
+        nested?: any;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -2814,7 +2819,9 @@ export class Api<
       projectName: string,
       tableName: string,
       data: any,
-      query?: { where?: string },
+      query?: {
+        where?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -2841,7 +2848,9 @@ export class Api<
       projectName: string,
       tableName: string,
       data: any,
-      query?: { where?: string },
+      query?: {
+        where?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -3012,7 +3021,13 @@ export class Api<
       tableName: string,
       viewName: string,
       columnId: string,
-      query?: { fields?: any[]; sort?: any[]; where?: string; nested?: any },
+      query?: {
+        fields?: any[];
+        sort?: any[];
+        where?: string;
+        /** Query params for nested data */
+        nested?: any;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -3306,7 +3321,10 @@ export class Api<
     groupedDataList: (
       sharedViewUuid: string,
       columnId: string,
-      query?: { limit?: string; offset?: string },
+      query?: {
+        limit?: string;
+        offset?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -3482,7 +3500,7 @@ export class Api<
           relatedMetas?: any;
           client?: string;
           columns?: (GridColumnType | FormColumnType | GalleryColumnType) &
-          ColumnType;
+            ColumnType;
           model?: TableType;
         } & {
           view?: FormType | GridType | GalleryType;
@@ -3705,19 +3723,58 @@ export class Api<
       }),
 
     /**
-     * No description
-     *
-     * @tags Utils
-     * @name AggregatedMetaInfo
-     * @request GET:/api/v1/aggregated-meta-info
-     * @response `200` `{ projectCount?: number, projects?: ({ tableCount?: { table?: number, view?: number }, external?: boolean, viewCount?: { formCount?: number, gridCount?: number, galleryCount?: number, kanbanCount?: number, total?: number, sharedFormCount?: number, sharedGridCount?: number, sharedGalleryCount?: number, sharedKanbanCount?: number, sharedTotal?: number, sharedLockedCount?: number }, webhookCount?: number, filterCount?: number, sortCount?: number, rowCount?: ({ TotalRecords?: string })[], userCount?: number })[], userCount?: number, sharedBaseCount?: number }` OK
-     */
+ * No description
+ * 
+ * @tags Utils
+ * @name AggregatedMetaInfo
+ * @request GET:/api/v1/aggregated-meta-info
+ * @response `200` `{
+  projectCount?: number,
+  projects?: ({
+  tableCount?: {
+  table?: number,
+  view?: number,
+
+},
+  external?: boolean,
+  viewCount?: {
+  formCount?: number,
+  gridCount?: number,
+  galleryCount?: number,
+  kanbanCount?: number,
+  total?: number,
+  sharedFormCount?: number,
+  sharedGridCount?: number,
+  sharedGalleryCount?: number,
+  sharedKanbanCount?: number,
+  sharedTotal?: number,
+  sharedLockedCount?: number,
+
+},
+  webhookCount?: number,
+  filterCount?: number,
+  sortCount?: number,
+  rowCount?: ({
+  TotalRecords?: string,
+
+})[],
+  userCount?: number,
+
+})[],
+  userCount?: number,
+  sharedBaseCount?: number,
+
+}` OK
+ */
     aggregatedMetaInfo: (params: RequestParams = {}) =>
       this.request<
         {
           projectCount?: number;
           projects?: {
-            tableCount?: { table?: number; view?: number };
+            tableCount?: {
+              table?: number;
+              view?: number;
+            };
             external?: boolean;
             viewCount?: {
               formCount?: number;
@@ -3735,7 +3792,9 @@ export class Api<
             webhookCount?: number;
             filterCount?: number;
             sortCount?: number;
-            rowCount?: { TotalRecords?: string }[];
+            rowCount?: {
+              TotalRecords?: string;
+            }[];
             userCount?: number;
           }[];
           userCount?: number;

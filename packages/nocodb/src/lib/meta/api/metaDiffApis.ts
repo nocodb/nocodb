@@ -261,10 +261,6 @@ async function getMetaDiff(
   for (const relationCol of virtualRelationColumns) {
     const colOpt = await relationCol.getColOptions<LinkToAnotherRecordColumn>();
 
-    if (!colOpt) {
-      continue;
-    }
-
     const parentCol = await colOpt.getParentColumn();
     const childCol = await colOpt.getChildColumn();
     const parentModel = await parentCol.getModel();

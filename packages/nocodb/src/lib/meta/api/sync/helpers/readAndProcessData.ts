@@ -2,7 +2,6 @@ import { AirtableBase } from 'airtable/lib/airtable_base';
 import { Api, RelationTypes, TableType, UITypes } from 'nocodb-sdk';
 import EntityMap from './EntityMap';
 
-
 const BULK_DATA_BATCH_SIZE = 500;
 const ASSOC_BULK_DATA_BATCH_SIZE = 1000;
 const BULK_PARALLEL_PROCESS = 100;
@@ -94,7 +93,7 @@ export async function importData({
       logDetailed,
       logBasic,
     });
-    
+
     await new Promise(async (resolve) => {
       const readable = records.getStream();
       const allRecordsCount = await records.getCount();
@@ -103,33 +102,58 @@ export async function importData({
       let importedCount = 0;
       let activeProcess = 0;
       readable.on('data', async (record) => {
-        promises.push(new Promise(async (resolve) => {
-          activeProcess++;
-          if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
-          const { id: rid, ...fields } = record;
-          const r = await nocoBaseDataProcessing_v2(sDB, table, { id: rid, fields });
-          tempData.push(r);
+        promises.push(
+          new Promise(async (resolve) => {
+            activeProcess++;
+            if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
+            const { id: rid, ...fields } = record;
+            const r = await nocoBaseDataProcessing_v2(sDB, table, {
+              id: rid,
+              fields,
+            });
+            tempData.push(r);
 
-          if (tempData.length >= BULK_DATA_BATCH_SIZE) {
-            let insertArray = tempData.splice(0, tempData.length);
-            await api.dbTableRow.bulkCreate('nc', projectName, table.id, insertArray);
-            logBasic(
-              `:: Importing '${table.title}' data :: ${importedCount} - ${Math.min(importedCount + BULK_DATA_BATCH_SIZE, allRecordsCount)}`
-            );
-            importedCount += insertArray.length;
-            insertArray = [];
-          }
-          activeProcess--;
-          if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
-          resolve(true);
-        }));
+            if (tempData.length >= BULK_DATA_BATCH_SIZE) {
+              let insertArray = tempData.splice(0, tempData.length);
+              await api.dbTableRow.bulkCreate(
+                'nc',
+                projectName,
+                table.id,
+                insertArray
+              );
+              logBasic(
+                `:: Importing '${
+                  table.title
+                }' data :: ${importedCount} - ${Math.min(
+                  importedCount + BULK_DATA_BATCH_SIZE,
+                  allRecordsCount
+                )}`
+              );
+              importedCount += insertArray.length;
+              insertArray = [];
+            }
+            activeProcess--;
+            if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
+            resolve(true);
+          })
+        );
       });
       readable.on('end', async () => {
         await Promise.all(promises);
         if (tempData.length > 0) {
-          await api.dbTableRow.bulkCreate('nc', projectName, table.id, tempData);
+          await api.dbTableRow.bulkCreate(
+            'nc',
+            projectName,
+            table.id,
+            tempData
+          );
           logBasic(
-            `:: Importing '${table.title}' data :: ${importedCount} - ${Math.min(importedCount + BULK_DATA_BATCH_SIZE, allRecordsCount)}`
+            `:: Importing '${
+              table.title
+            }' data :: ${importedCount} - ${Math.min(
+              importedCount + BULK_DATA_BATCH_SIZE,
+              allRecordsCount
+            )}`
           );
           importedCount += tempData.length;
           tempData = [];
@@ -239,55 +263,61 @@ export async function importLTARData({
       const readable = allData.getStream();
       let activeProcess = 0;
       readable.on('data', async (record) => {
-        promises.push(new Promise(async (resolve) => {
-          activeProcess++;
-          if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
-          const { id: _atId, ...rec } = record;
+        promises.push(
+          new Promise(async (resolve) => {
+            activeProcess++;
+            if (activeProcess >= BULK_PARALLEL_PROCESS) readable.pause();
+            const { id: _atId, ...rec } = record;
 
-          // todo: use actual alias instead of sanitized
-          assocTableData.push(
-            ...(rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []).map(
-              (id) => ({
+            // todo: use actual alias instead of sanitized
+            assocTableData.push(
+              ...(
+                rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []
+              ).map((id) => ({
                 [assocMeta.curCol.title]: record.id,
                 [assocMeta.refCol.title]: id,
-              })
-            )
-          );
-
-          if (assocTableData.length >= ASSOC_BULK_DATA_BATCH_SIZE) {
-            let insertArray = assocTableData.splice(0, assocTableData.length);
-            logBasic(
-              `:: Importing '${table.title}' LTAR data :: ${importedCount} - ${Math.min(
-                importedCount + ASSOC_BULK_DATA_BATCH_SIZE,
-                insertArray.length
-              )}`
-            );
-      
-            await api.dbTableRow.bulkCreate(
-              'nc',
-              projectName,
-              assocMeta.modelMeta.id,
-              insertArray
+              }))
             );
 
-            importedCount += insertArray.length;
-            insertArray = [];
-          }
-          activeProcess--;
-          if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
-          resolve(true);
-        }));
+            if (assocTableData.length >= ASSOC_BULK_DATA_BATCH_SIZE) {
+              let insertArray = assocTableData.splice(0, assocTableData.length);
+              logBasic(
+                `:: Importing '${
+                  table.title
+                }' LTAR data :: ${importedCount} - ${Math.min(
+                  importedCount + ASSOC_BULK_DATA_BATCH_SIZE,
+                  insertArray.length
+                )}`
+              );
+
+              await api.dbTableRow.bulkCreate(
+                'nc',
+                projectName,
+                assocMeta.modelMeta.id,
+                insertArray
+              );
+
+              importedCount += insertArray.length;
+              insertArray = [];
+            }
+            activeProcess--;
+            if (activeProcess < BULK_PARALLEL_PROCESS) readable.resume();
+            resolve(true);
+          })
+        );
       });
       readable.on('end', async () => {
         await Promise.all(promises);
         if (assocTableData.length >= 0) {
           logBasic(
-            `:: Importing '${table.title}' LTAR data :: ${importedCount} - ${Math.min(
+            `:: Importing '${
+              table.title
+            }' LTAR data :: ${importedCount} - ${Math.min(
               importedCount + ASSOC_BULK_DATA_BATCH_SIZE,
               assocTableData.length
             )}`
           );
-    
+
           await api.dbTableRow.bulkCreate(
             'nc',
             projectName,

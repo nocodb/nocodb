@@ -65,5 +65,6 @@ export class SettingsPage extends BasePage {
 
   async close() {
     await this.get().locator('[pw-data="settings-modal-close-button"]').click();
+    await this.get().waitFor({ state: "hidden" });
   }
 }

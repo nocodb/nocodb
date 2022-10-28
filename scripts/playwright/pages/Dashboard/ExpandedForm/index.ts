@@ -59,17 +59,24 @@ export class ExpandedFormPage extends BasePage {
     waitForRowsData = true,
   }: {
     waitForRowsData?: boolean;
-  }) {
-    await this.get().locator('button:has-text("Save Row")').click();
+  } = {}) {
+    const saveRowAction = this.get().locator('button:has-text("Save Row")').click();
     if(waitForRowsData) {
       await this.waitForResponse({
-        uiAction: this.get().press("Escape"),
+        uiAction: saveRowAction,
         requestUrlPathToMatch: 'api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
         responseJsonMatcher: (json) => json['pageInfo'],
       });
+    } else {
+      await this.waitForResponse({
+        uiAction: saveRowAction,
+        requestUrlPathToMatch: 'api/v1/db/data/noco/',
+        httpMethodsToMatch: ['POST'],
+      });
     }
 
+    await this.get().press("Escape");
     await this.get().waitFor({ state: "hidden" });
     await this.toastWait({ message: `updated successfully.` });
     await this.rootPage

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ColumnInj, IsFormInj, ReadonlyInj, getMdiIcon, inject } from '#imports'
+import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
+import { ActiveCellInj } from '~/context'
 
 interface Props {
   // If the previous cell value was a text, the initial checkbox value is a string type
@@ -42,6 +44,16 @@ function onClick() {
     vModel = !vModel
   }
 }
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
+  console.log(e.key)
+  switch (e.key) {
+    case 'Enter':
+      onClick()
+      e.stopPropagation()
+      break
+  }
+})
 </script>
 
 <template>
@@ -72,6 +84,7 @@ function onClick() {
 .nc-cell-hover-show {
   opacity: 0;
   transition: 0.3s opacity;
+
   &:hover {
     opacity: 0.7;
   }

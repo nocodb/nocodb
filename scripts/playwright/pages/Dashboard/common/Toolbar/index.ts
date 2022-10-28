@@ -186,12 +186,11 @@ export class ToolbarPage extends BasePage {
       viewer: ["Fields", "Filter", "Sort", "Download"],
     };
 
-    let text = await this.get().innerText();
     for (let item of menuItems[param.role]) {
-      await expect(text).toContain(item);
+      await expect(this.get()).toContainText(item);
     }
 
-    await expect(await this.get().locator(".nc-add-new-row-btn").count()).toBe(
+    await expect(this.get().locator(".nc-add-new-row-btn")).toHaveCount(
       param.role === "creator" || param.role === "editor" ? 1 : 0
     );
   }

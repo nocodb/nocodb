@@ -190,14 +190,12 @@ export class DashboardPage extends BasePage {
   }
 
   async verifyLanguage(param: { json: any }) {
-    let title = await this.rootPage
-      .locator(`.nc-project-page-title`)
-      .textContent();
-    let menu = await this.rootPage
-      .locator(`.nc-new-project-menu`)
-      .textContent();
-    await expect(title).toContain(param.json.title.myProject);
-    await expect(menu).toContain(param.json.title.newProj);
+    const title = await this.rootPage
+      .locator(`.nc-project-page-title`);
+    const menu = this.rootPage
+      .locator(`.nc-new-project-menu`);
+    await expect(title).toHaveText(param.json.title.myProject);
+    await expect(menu).toHaveText(param.json.title.newProj);
     await this.rootPage
       .locator(`[placeholder="${param.json.activity.searchProject}"]`)
       .waitFor();

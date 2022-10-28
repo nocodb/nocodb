@@ -61,9 +61,7 @@ export abstract class ErdBasePage extends BasePage {
   }
 
   async verifyNodesCount(count: number) {
-    await expect.poll(
-      async () => await this.get().locator('.nc-erd-table-node').count()
-    ).toBe(count);
+    await expect(this.get().locator('.nc-erd-table-node')).toHaveCount(count);
   }
 
   async verifyEdgesCount({
@@ -75,15 +73,9 @@ export abstract class ErdBasePage extends BasePage {
     circleCount: number;
     rectangleCount: number;
   }) {
-    await expect.poll(
-      async () => await this.get().locator('.vue-flow__edge').count()
-    ).toBe(count);
-    await expect.poll(
-      async () => await this.get().locator('.nc-erd-edge-circle').count()
-    ).toBe(circleCount);
-    await expect.poll(
-      async () => await this.get().locator('.nc-erd-edge-rect').count()
-    ).toBe(rectangleCount);
+    await expect(this.get().locator('.vue-flow__edge')).toHaveCount(count);
+    await expect(this.get().locator('.nc-erd-edge-circle')).toHaveCount(circleCount);
+    await expect(this.get().locator('.nc-erd-edge-rect')).toHaveCount(rectangleCount);
   }
 
   async verifyJunctionTableLabel({tableTitle, tableName}: {tableName: string; tableTitle: string}) {

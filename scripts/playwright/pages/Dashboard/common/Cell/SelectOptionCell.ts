@@ -62,9 +62,7 @@ export class SelectOptionCellPageObject extends BasePage {
 
     let counter = 0;
     for (const option of options) {
-      const optionInDom = await this.rootPage.locator(`div.ant-select-item-option`).nth(counter)
-        .evaluate((node) =>  (node as HTMLElement).innerText)
-      await expect(optionInDom).toBe(option);
+      await expect(this.rootPage.locator(`div.ant-select-item-option`).nth(counter)).toHaveText(option);
       counter++;
     }
     await this.get({index, columnHeader}).click();

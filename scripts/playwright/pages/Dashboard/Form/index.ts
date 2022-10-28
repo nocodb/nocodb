@@ -160,10 +160,8 @@ export class FormPage extends BasePage {
     let fieldLabels = await this.get().locator(
       '[data-pw="nc-form-input-label"]'
     );
-    await expect(await fieldLabels.count()).toBe(fields.length);
+    await expect(await fieldLabels).toHaveCount(fields.length);
     for (let i = 0; i < fields.length; i++) {
-      // using toContainText instead of toBe because of the extra
-      // text (*) in the label for required fields
       await expect(await fieldLabels.nth(i)).toContainText(fields[i]);
     }
   }
@@ -234,8 +232,8 @@ export class FormPage extends BasePage {
   }
 
   async verifyHeader(param: { subtitle: string; title: string }) {
-    await expect(await this.formHeading.inputValue()).toBe(param.title);
-    await expect(await this.formSubHeading.inputValue()).toBe(param.subtitle);
+    await expect.poll(async() => await this.formHeading.inputValue()).toBe(param.title);
+    await expect.poll(async() => await this.formSubHeading.inputValue()).toBe(param.subtitle);
   }
 
   async fillForm(param: { field: string; value: string }[]) {
@@ -295,15 +293,13 @@ export class FormPage extends BasePage {
     // data-pw="nc-form-input-help-text-label"
     let fieldLabel = await this.get()
       .locator(`.nc-form-drag-${field.replace(" ", "")}`)
-      .locator('div[data-pw="nc-form-input-label"]')
-      .innerText();
-    await expect(fieldLabel).toBe(expectText);
+      .locator('div[data-pw="nc-form-input-label"]');
+    await expect(fieldLabel).toHaveText(expectText);
 
     let fieldHelpText = await this.get()
       .locator(`.nc-form-drag-${field.replace(" ", "")}`)
-      .locator('div[data-pw="nc-form-input-help-text-label"]')
-      .innerText();
-    await expect(fieldHelpText).toBe(helpText);
+      .locator('div[data-pw="nc-form-input-help-text-label"]');
+    await expect(fieldHelpText).toHaveText(helpText);
   }
 
   async submitForm() {

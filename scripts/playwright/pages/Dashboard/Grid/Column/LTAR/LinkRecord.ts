@@ -18,7 +18,7 @@ export class LinkRecord extends BasePage {
     //    title: Link Record
     //    button: Add new record
     //    icon: reload
-    await expect(await this.get().locator(`.ant-modal-title`).innerText()).toBe(
+    await expect(this.get().locator(`.ant-modal-title`)).toHaveText(
       `Link record`
     );
     await expect(

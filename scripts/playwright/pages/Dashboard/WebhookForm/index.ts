@@ -188,12 +188,20 @@ export class WebhookFormPage extends BasePage {
     urlMethod: string;
     condition: boolean;
   }) {
-    await expect(await this.get().locator('input.nc-text-field-hook-title').inputValue()).toBe(title);
-    await expect(await this.get().locator('.nc-text-field-hook-event >> .ant-select-selection-item').innerText()).toBe(hookEvent);
-    await expect(await this.get().locator('.nc-select-hook-notification-type >> .ant-select-selection-item').innerText()).toBe(notificationType);
-    await expect(await this.get().locator('.nc-select-hook-url-method >> .ant-select-selection-item').innerText()).toBe(urlMethod);
-    await expect(await this.get().locator('input.nc-text-field-hook-url-path').inputValue()).toBe(url);
-    await expect(await this.get().locator('label.nc-check-box-hook-condition >> input[type="checkbox"]').isChecked()).toBe(condition);
+    await expect.poll(
+      async () => await this.get().locator('input.nc-text-field-hook-title').inputValue()
+    ).toBe(title);
+    await expect(this.get().locator('.nc-text-field-hook-event >> .ant-select-selection-item')).toHaveText(hookEvent);
+    await expect(this.get().locator('.nc-select-hook-notification-type >> .ant-select-selection-item')).toHaveText(notificationType);
+    await expect(this.get().locator('.nc-select-hook-url-method >> .ant-select-selection-item')).toHaveText(urlMethod);
+    await expect.poll(async() => await this.get().locator('input.nc-text-field-hook-url-path').inputValue()).toBe(url);
+
+    const conditionCheckbox = this.get().locator('label.nc-check-box-hook-condition >> input[type="checkbox"]')
+    if(condition) {
+      await expect(conditionCheckbox).toBeChecked();
+    } else {
+      await expect(conditionCheckbox).not.toBeChecked();
+    }
   }
 
   async goBackFromForm() {

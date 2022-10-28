@@ -76,11 +76,8 @@ export class ViewSidebarPage extends BasePage {
   // Todo: Make selection better
   async verifyView({ title, index }: { title: string; index: number }) {
     await expect(
-      await this.get()
-        .locator(".ant-menu-title-content")
-        .nth(index)
-        .textContent()
-    ).toBe(`${title}${title}`);
+      this.get().locator('[nc-data="view-item"]').nth(index).locator('[nc-data="truncate-label"]')
+    ).toHaveText(title, { ignoreCase: true});
   }
 
   async verifyViewNotPresent({
@@ -97,15 +94,10 @@ export class ViewSidebarPage extends BasePage {
       return true;
     }
 
-    return await expect
-      .poll(async () => {
-        await this.get()
-          .locator(`.nc-views-menu`)
-          .locator(".ant-menu-title-content")
-          .nth(index)
-          .textContent();
-      })
-      .not.toBe(title);
+    return await expect(
+      this.get().locator(`.nc-views-menu`).locator(".ant-menu-title-content").nth(index)
+    )
+    .not.toHaveText(title);
   }
 
   async reorderViews({
@@ -175,9 +167,9 @@ export class ViewSidebarPage extends BasePage {
 
   async validateRoleAccess(param: { role: string }) {
     let count = param.role === "creator" ? 1 : 0;
-    await expect(await this.createGridButton.count()).toBe(count);
-    await expect(await this.createGalleryButton.count()).toBe(count);
-    await expect(await this.createFormButton.count()).toBe(count);
-    await expect(await this.createKanbanButton.count()).toBe(count);
+    await expect(this.createGridButton).toHaveCount(count);
+    await expect(this.createGalleryButton).toHaveCount(count);
+    await expect(this.createFormButton).toHaveCount(count);
+    await expect(this.createKanbanButton).toHaveCount(count);
   }
 }

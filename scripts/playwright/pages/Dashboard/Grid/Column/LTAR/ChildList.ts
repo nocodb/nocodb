@@ -25,7 +25,7 @@ export class ChildList extends BasePage {
     //    title: Child list
     //    button: Link to 'City'
     //    icon: reload
-    await expect(await this.get().locator(`.ant-modal-title`).innerText()).toBe(
+    await expect(this.get().locator(`.ant-modal-title`)).toHaveText(
       `Child list`
     );
     await expect(

@@ -24,12 +24,15 @@ export class ToolbarFieldsPage extends BasePage {
   }
 
   async verify({ title, checked }: { title: string, checked: boolean }) {
-    await expect(
-      await this.get()
+    const checkbox = this.get()
         .locator(`[pw-data="nc-fields-menu-${title}"]`)
-        .locator('input[type="checkbox"]')
-        .isChecked()
-    ).toBe(checked);
+        .locator('input[type="checkbox"]');
+
+    if (checked) {
+      await expect(checkbox).toBeChecked();
+    } else {
+      await expect(checkbox).not.toBeChecked();
+    }
   }
 
   async click({ title }: { title: string }) {

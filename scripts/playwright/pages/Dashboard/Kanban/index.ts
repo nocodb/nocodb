@@ -57,7 +57,7 @@ export class KanbanPage extends BasePage {
 
   async verifyStackCount(param: { count: number }) {
     const { count } = param;
-    await expect(await this.get().locator(`.nc-kanban-stack`).count()).toBe(count);
+    await expect(this.get().locator(`.nc-kanban-stack`)).toHaveCount(count);
   }
 
   async verifyStackOrder(param: { order: string[] }) {
@@ -65,10 +65,10 @@ export class KanbanPage extends BasePage {
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
       const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
+      // Since otherwise stack title will be repeated as title is in two divs, with one having hidden class
       const stackTitle = await stack
-        .locator(`.nc-kanban-stack-head`)
-        .innerText();
-      await expect(stackTitle).toBe(order[i]);
+        .locator(`.nc-kanban-stack-head >> [nc-data="truncate-label"]`);
+      await expect(stackTitle).toHaveText(order[i], { ignoreCase: true });
     }
   }
 
@@ -91,8 +91,8 @@ export class KanbanPage extends BasePage {
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
       const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
-      const stackCards = await stack.locator(`.nc-kanban-item`).count();
-      await expect(stackCards).toBe(count[i]);
+      const stackCards = stack.locator(`.nc-kanban-item`);
+      await expect(stackCards).toHaveCount(count[i]);
     }
   }
 
@@ -101,8 +101,8 @@ export class KanbanPage extends BasePage {
     const stack = await this.get().locator(`.nc-kanban-stack`).nth(stackIndex);
     for (let i = 0; i < order.length; i++) {
       const card = await stack.locator(`.nc-kanban-item`).nth(i);
-      const cardTitle = await card.locator(`.nc-cell`).innerText();
-      await expect(cardTitle).toBe(order[i]);
+      const cardTitle = await card.locator(`.nc-cell`);
+      await expect(cardTitle).toHaveText(order[i]);
     }
   }
 
@@ -133,12 +133,8 @@ export class KanbanPage extends BasePage {
       .click();
   }
 
-  async collapseStackCount() {
-    return await this.rootPage.locator(".nc-kanban-collapsed-stack").count();
-  }
-
   async verifyCollapseStackCount(param: { count: number }) {
-    await expect(await this.collapseStackCount()).toBe(param.count);
+    await expect(this.rootPage.locator(".nc-kanban-collapsed-stack")).toHaveCount(param.count);
   }
 
   async addCard(param: { stackIndex: number }) {

@@ -171,7 +171,7 @@ function onStopEdit() {
     @dblclick.stop="onDblClick"
     @click.stop="onClick"
   >
-    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2" nc-data="view-item">
       <div class="flex w-auto" :pw-data="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
         <MdiDrag
           class="nc-drag-icon hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 !cursor-move"

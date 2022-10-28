@@ -23,10 +23,10 @@ export class CheckboxCellPageObject extends BasePage {
   }
 
   async verifyChecked({ index, columnHeader }: { index?: number, columnHeader: string }) {
-    await expect(await this.get({index, columnHeader}).locator('.nc-cell-hover-show').isVisible()).toBe(false);
+    await expect(this.get({index, columnHeader}).locator('.nc-cell-hover-show')).not.toBeVisible();
   }
 
   async verifyUnchecked({ index, columnHeader }: { index?: number, columnHeader: string }) {
-    await expect(await this.get({index, columnHeader}).locator('.nc-cell-hover-show').isVisible()).toBe(true);
+    await expect(this.get({index, columnHeader}).locator('.nc-cell-hover-show')).toBeVisible();
   }
 }

@@ -25,24 +25,15 @@ export class ToolbarFilterPage extends BasePage {
     operator: string;
     value: string;
   }) {
-    await expect(
-      await this.get().locator('.nc-filter-field-select').nth(index).innerText()
-    ).toBe(column);
-    await expect(
-      await this.get().locator('.nc-filter-operation-select').nth(index).innerText()
-    ).toBe(operator);
-    await expect(
-      await this.get().locator('input.nc-filter-value-select').nth(index).inputValue()
-    ).toBe(value);
+    await expect(this.get().locator('.nc-filter-field-select').nth(index)).toHaveText(column);
+    await expect(this.get().locator('.nc-filter-operation-select').nth(index)).toHaveText(operator);
+    await expect.poll(async () => this.get().locator('input.nc-filter-value-select').nth(index).inputValue()).toBe(value);
   }
 
   async verifyFilter({ title }: { title: string }) {
     await expect(
-      await this.get()
-        .locator(`[pw-data="nc-fields-menu-${title}"]`)
-        .locator('input[type="checkbox"]')
-        .isChecked()
-    ).toBe(true);
+      this.get().locator(`[pw-data="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]')
+    ).toBeChecked();
   }
 
   // Todo: Handle the case of operator does not need a value

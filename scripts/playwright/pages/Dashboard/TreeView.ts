@@ -101,9 +101,7 @@ export class TreeViewPage extends BasePage {
         );
       }
     } else {
-      await expect.poll(
-        async () => await this.get().locator(`.nc-project-tree-tbl-${title}`).count()
-      ).toBe(0);
+      await expect(this.get().locator(`.nc-project-tree-tbl-${title}`)).toHaveCount(0);
     }
   }
 
@@ -180,25 +178,22 @@ export class TreeViewPage extends BasePage {
 
   async validateRoleAccess(param: { role: string }) {
     // Add new table button
-    await expect(await this.get().locator(`.nc-add-new-table`).count()).toBe(
+    await expect(this.get().locator(`.nc-add-new-table`)).toHaveCount(
       param.role === "creator" ? 1 : 0
     );
     // Import menu
-    await expect(await this.get().locator(`.nc-import-menu`).count()).toBe(
+    await expect(this.get().locator(`.nc-import-menu`)).toHaveCount(
       param.role === "creator" ? 1 : 0
     );
     // Invite Team button
-    await expect(await this.get().locator(`.nc-share-base`).count()).toBe(
+    await expect(this.get().locator(`.nc-share-base`)).toHaveCount(
       param.role === "creator" ? 1 : 0
     );
     // Right click context menu
     await this.get().locator(`.nc-project-tree-tbl-Country`).click({
       button: "right",
     });
-    await expect(
-      await this.rootPage
-        .locator(`.nc-dropdown-tree-view-context-menu:visible`)
-        .count()
-    ).toBe(param.role === "creator" ? 1 : 0);
+    await expect(this.rootPage.locator(`.nc-dropdown-tree-view-context-menu:visible`)
+    ).toHaveCount(param.role === "creator" ? 1 : 0);
   }
 }

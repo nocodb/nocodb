@@ -55,9 +55,21 @@ export class ExpandedFormPage extends BasePage {
     }
   }
 
-  async save() {
+  async save({
+    waitForRowsData = true,
+  }: {
+    waitForRowsData?: boolean;
+  }) {
     await this.get().locator('button:has-text("Save Row")').click();
-    await this.get().press("Escape");
+    if(waitForRowsData) {
+      await this.waitForResponse({
+        uiAction: this.get().press("Escape"),
+        requestUrlPathToMatch: 'api/v1/db/data/noco/',
+        httpMethodsToMatch: ['GET'],
+        responseJsonMatcher: (json) => json['pageInfo'],
+      });
+    }
+
     await this.get().waitFor({ state: "hidden" });
     await this.toastWait({ message: `updated successfully.` });
     await this.rootPage
@@ -94,10 +106,9 @@ export class ExpandedFormPage extends BasePage {
     await childList.locator(`.ant-card:has-text("${param.title}")`).click();
   }
 
-  async count() {
-    return await this.rootPage
-      .locator(`.nc-drawer-expanded-form .ant-drawer-content`)
-      .count();
+  async verifyCount({ count }: { count: number }) {
+    return await expect(this.rootPage
+      .locator(`.nc-drawer-expanded-form .ant-drawer-content`)).toHaveCount(count);
   }
 
   async validateRoleAccess(param: { role: string }) {
@@ -111,9 +122,9 @@ export class ExpandedFormPage extends BasePage {
       ).toBeEnabled();
     }
     if (param.role === "viewer") {
-      await expect(await this.toggleCommentsButton.count()).toBe(0);
+      await expect(await this.toggleCommentsButton).toHaveCount(0);
     } else {
-      await expect(await this.toggleCommentsButton.count()).toBe(1);
+      await expect(await this.toggleCommentsButton).toHaveCount(1);
     }
     // press escape to close the expanded form
     await this.rootPage.keyboard.press("Escape");

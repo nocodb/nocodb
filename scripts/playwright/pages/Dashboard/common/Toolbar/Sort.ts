@@ -23,12 +23,8 @@ export class ToolbarSortPage extends BasePage {
     column: string;
     direction: string;
   }) {
-    await expect(
-      await this.get().locator('.nc-sort-field-select').nth(index).innerText()
-    ).toBe(column);
-    await expect(
-      await this.get().locator('.nc-sort-dir-select >> span.ant-select-selection-item').nth(index).innerText()
-    ).toBe(direction);
+    await expect(this.get().locator('.nc-sort-field-select').nth(index)).toHaveText(column);
+    await expect(await this.get().locator('.nc-sort-dir-select >> span.ant-select-selection-item').nth(index)).toHaveText(direction);
   }
 
   async addSort({

@@ -21,7 +21,7 @@ export class ImportTemplatePage extends BasePage {
     await this.get().locator(`.ant-collapse-header`).nth(0).waitFor();
     let tr = await this.get().locator(`.ant-collapse-header`);
     let rowCount = await tr.count();
-    let tableList = [];
+    let tableList: string[] = [];
     for (let i = 0; i < rowCount; i++) {
       let tableName = await tr.nth(i).innerText();
       tableList.push(tableName);
@@ -31,7 +31,7 @@ export class ImportTemplatePage extends BasePage {
 
   async getImportColumnList() {
     // return an array
-    let columnList = [];
+    let columnList: {type: string; name: string}[] = [];
     let tr = await this.get().locator(`tr.ant-table-row-level-0:visible`);
     let rowCount = await tr.count();
     for (let i = 0; i < rowCount; i++) {
@@ -49,6 +49,7 @@ export class ImportTemplatePage extends BasePage {
     return columnList;
   }
 
+  // todo: Add polling logic to assertions
   async import({ file, result }: { file: string; result: any }) {
     let importFile = this.get().locator(`input[type="file"]`);
     await importFile.setInputFiles(file);

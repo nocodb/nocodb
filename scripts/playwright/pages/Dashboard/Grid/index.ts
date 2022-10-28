@@ -39,7 +39,7 @@ export class GridPage extends BasePage {
   }
 
   async verifyRowCount({ count }: { count: number }) {
-    return await expect(await this.get().locator(".nc-grid-row").count()).toBe(count);
+    return await expect(this.get().locator(".nc-grid-row")).toHaveCount(count);
   }
 
   private async _fillRow({
@@ -75,9 +75,7 @@ export class GridPage extends BasePage {
     const rowCount = await this.get().locator(".nc-grid-row").count();
     await this.get().locator(".nc-grid-add-new-cell").click();
 
-    await expect
-      .poll(async () => await this.get().locator(".nc-grid-row").count())
-      .toBe(rowCount + 1);
+    await expect(this.get().locator(".nc-grid-row")).toHaveCount(rowCount + 1);
 
     await this._fillRow({ index, columnHeader, value: rowValue });
 
@@ -132,18 +130,14 @@ export class GridPage extends BasePage {
     await this.get()
       .locator(`td[data-pw="cell-Title-${index}"]`)
       .waitFor({ state: "visible" });
-    await expect(
-      await this.get().locator(`td[data-pw="cell-Title-${index}"]`).count()
-    ).toBe(1);
+    await expect(this.get().locator(`td[data-pw="cell-Title-${index}"]`)).toHaveCount(1);
   }
 
   async verifyRowDoesNotExist({ index }: { index: number }) {
     await this.get()
       .locator(`td[data-pw="cell-Title-${index}"]`)
       .waitFor({ state: "hidden" });
-    return await expect(
-      await this.get().locator(`td[data-pw="cell-Title-${index}"]`).count()
-    ).toBe(0);
+    return await expect(this.get().locator(`td[data-pw="cell-Title-${index}"]`)).toHaveCount(0);
   }
 
   async deleteRow(index: number) {
@@ -167,7 +161,7 @@ export class GridPage extends BasePage {
     });
     // Click text=Insert New Row
     await this.rootPage.locator("text=Insert New Row").click();
-    await expect(await this.get().locator(".nc-grid-row").count()).toBe(rowCount + 1);
+    await expect(await this.get().locator(".nc-grid-row")).toHaveCount(rowCount + 1);
   }
 
   async openExpandedRow({ index }: { index: number }) {
@@ -190,15 +184,9 @@ export class GridPage extends BasePage {
 
     const rowCount = await this.rowCount();
     for (let i = 0; i < rowCount; i++) {
-      await expect
-        .poll(
-          async () =>
-            await this.row(i)
-              .locator(`[pw-data="cell-Id-${i}"]`)
-              .locator("span.ant-checkbox-checked")
-              .count()
-        )
-        .toBe(1);
+      await expect(
+        this.row(i).locator(`[pw-data="cell-Id-${i}"]`).locator("span.ant-checkbox-checked")
+      ).toHaveCount(1);
     }
     await this.rootPage.waitForTimeout(300);
   }
@@ -321,7 +309,7 @@ export class GridPage extends BasePage {
   async validateRoleAccess(param: { role: string }) {
     await this.column.verifyRoleAccess(param);
     await this.cell.verifyRoleAccess(param);
-    await expect(await this.get().locator(".nc-grid-add-new-cell").count()).toBe(
+    await expect(this.get().locator(".nc-grid-add-new-cell")).toHaveCount(
       param.role === "creator" || param.role === "editor" ? 1 : 0
     );
   }

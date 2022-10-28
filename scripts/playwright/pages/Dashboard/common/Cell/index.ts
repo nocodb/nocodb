@@ -155,14 +155,13 @@ export class CellPageObject extends BasePage {
     // const count = value.length;
     const cell = this.get({ index, columnHeader });
     const chips = cell.locator(".chips > .chip");
-    const chipCount = await chips.count();
 
     // verify chip count & contents
-    if(count) expect(chipCount).toEqual(count);
+    if(count) expect(chips).toHaveCount(count);
 
     // verify only the elements that are passed in
     for (let i = 0; i < value.length; ++i) {
-      await expect(await chips.nth(i).textContent()).toBe(value[i]);
+      await expect(await chips.nth(i)).toHaveText(value[i]);
     }
   }
 
@@ -183,7 +182,7 @@ export class CellPageObject extends BasePage {
     const cell = await this.get({ index: 0, columnHeader: "Country" });
     // editable cell
     await cell.dblclick();
-    await expect(await cell.locator(`input`).count()).toBe(
+    await expect(await cell.locator(`input`)).toHaveCount(
       param.role === "creator" || param.role === "editor" ? 1 : 0
     );
     // right click context menu
@@ -191,23 +190,22 @@ export class CellPageObject extends BasePage {
     await expect(
       await this.rootPage
         .locator(`.nc-dropdown-grid-context-menu:visible`)
-        .count()
-    ).toBe(param.role === "creator" || param.role === "editor" ? 1 : 0);
+    ).toHaveCount(param.role === "creator" || param.role === "editor" ? 1 : 0);
 
     // virtual cell
     const vCell = await this.get({ index: 0, columnHeader: "City List" });
     await vCell.hover();
     // in-cell add
-    await expect(await vCell.locator(".nc-action-icon.nc-plus:visible").count()).toBe(
+    await expect(await vCell.locator(".nc-action-icon.nc-plus:visible")).toHaveCount(
       param.role === "creator" || param.role === "editor" ? 1 : 0
     );
     // in-cell expand (all have access)
     await expect(
-      await vCell.locator(".nc-action-icon.nc-arrow-expand:visible").count()
-    ).toBe(1);
+      await vCell.locator(".nc-action-icon.nc-arrow-expand:visible")
+    ).toHaveCount(1);
     await vCell.click();
     // unlink
-    await expect(await vCell.locator(".nc-icon.unlink-icon:visible").count()).toBe(
+    await expect(await vCell.locator(".nc-icon.unlink-icon:visible")).toHaveCount(
       param.role === "creator" || param.role === "editor" ? 1 : 0
     );
   }

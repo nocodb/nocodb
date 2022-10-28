@@ -239,7 +239,8 @@ test.describe("View", () => {
       columnTitle: "LanguageId",
       value: "1",
     });
-    await dashboard.expandedForm.save();
+    // todo: Check why kanban doesnt reload the rows data
+    await dashboard.expandedForm.save({ waitForRowsData: false });
 
     await kanban.verifyStackCount({ count: 7 });
     await kanban.verifyStackOrder({

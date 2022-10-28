@@ -231,11 +231,11 @@ export class ColumnPageObject extends BasePage {
 
   async verifyRoleAccess(param: { role: string }) {
     await expect(
-      await this.grid.get().locator(".nc-column-add:visible").count()
-    ).toBe(param.role === "creator" ? 1 : 0);
+      this.grid.get().locator(".nc-column-add:visible")
+    ).toHaveCount(param.role === "creator" ? 1 : 0);
     await expect(
-      await this.grid.get().locator(".nc-ui-dt-dropdown:visible").count()
-    ).toBe(param.role === "creator" ? 3 : 0);
+      this.grid.get().locator(".nc-ui-dt-dropdown:visible")
+    ).toHaveCount(param.role === "creator" ? 3 : 0);
 
     if (param.role === "creator") {
       await this.grid
@@ -244,8 +244,8 @@ export class ColumnPageObject extends BasePage {
         .first()
         .click();
       await expect(
-        await this.rootPage.locator(".nc-dropdown-column-operations").count()
-      ).toBe(1);
+        this.rootPage.locator(".nc-dropdown-column-operations")
+      ).toHaveCount(1);
       await this.grid
         .get()
         .locator(".nc-ui-dt-dropdown:visible")

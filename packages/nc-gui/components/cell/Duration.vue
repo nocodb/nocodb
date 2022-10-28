@@ -84,6 +84,10 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
       @blur="submitDuration"
       @keypress="checkDurationFormat($event)"
       @keydown.enter="submitDuration"
+      @keydown.down.stop
+      @keydown.left.stop
+      @keydown.right.stop
+      @keydown.up.stop
     />
 
     <span v-else> {{ localState }}</span>

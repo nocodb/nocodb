@@ -95,7 +95,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         const superUser = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
           roles: 'user,super',
         });
-        
+
         if (!superUser?.id) {
           const existingUserWithNewEmail = await User.getByEmail(email, ncMeta);
           if (existingUserWithNewEmail?.id) {
@@ -130,7 +130,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
               evt_type: 'project:invite',
               count: 1,
             });
-    
+
             await User.insert(
               {
                 firstname: '',

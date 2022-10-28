@@ -41,10 +41,7 @@ test.describe("Relational Columns", () => {
 
     // open link record modal
     //
-    await dashboard.childList
-      .get()
-      .locator(`button:has-text("Link to 'City'")`)
-      .click();
+    await dashboard.childList.openLinkRecord({linkTableTitle: 'City'})
     await dashboard.linkRecord.verify([
       "A Corua (La Corua)",
       "Abha",
@@ -111,10 +108,7 @@ test.describe("Relational Columns", () => {
 
     // open link record modal
     //
-    await dashboard.childList
-      .get()
-      .locator(`button:has-text("Link to 'Film'")`)
-      .click();
+    await dashboard.childList.openLinkRecord({linkTableTitle: 'Film'})
     await dashboard.linkRecord.verify([
       "ACE GOLDFINGER",
       "ADAPTATION HOLES",

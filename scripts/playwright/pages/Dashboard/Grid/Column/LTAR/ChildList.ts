@@ -10,6 +10,10 @@ export class ChildList extends BasePage {
     this.dashboard = dashboard;
   }
 
+  get() {
+    return this.dashboard.get().locator(`.nc-modal-child-list`);
+  }
+
   async verify({
     cardTitle,
     linkField,
@@ -65,7 +69,14 @@ export class ChildList extends BasePage {
     await this.get().waitFor({ state: "hidden" });
   }
 
-  get() {
-    return this.dashboard.get().locator(`.nc-modal-child-list`);
+  async openLinkRecord({ linkTableTitle }: { linkTableTitle: string }) {
+    const openActions =  this.get()
+    .locator(`button:has-text("Link to '${linkTableTitle}'")`)
+    .click();
+    await this.waitForResponse({
+      requestUrlPathToMatch: '/exclude',
+      httpMethodsToMatch: ['GET'],
+      uiAction: openActions
+    });
   }
 }

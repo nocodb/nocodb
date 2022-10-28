@@ -20,7 +20,7 @@ export async function upload(req: Request, res: Response) {
     req.query?.path?.toString()?.split('/') || ['']
   );
   const { column } = await getInfoFromFilePath(filePath);
-  const attachments = uploadAttachment(
+  const attachments = await uploadAttachment(
     filePath,
     column,
     req['files'],

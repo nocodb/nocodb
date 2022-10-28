@@ -187,7 +187,7 @@ export default {
       dataGroupBy: true,
       commentsCount: true,
 
-      alleryViewGet: true,
+      galleryViewGet: true,
       kanbanViewGet: true,
       groupedDataList: true,
 

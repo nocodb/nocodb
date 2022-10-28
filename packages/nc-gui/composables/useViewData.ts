@@ -1,4 +1,4 @@
-import { ViewTypes, isVirtualCol, UITypes } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
@@ -180,12 +180,12 @@ export function useViewData(
     if ((!project?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
     const response = !isPublic.value
       ? await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!, {
-        ...queryParams.value,
-        ...params,
-        ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-        ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-        where: where?.value,
-      })
+          ...queryParams.value,
+          ...params,
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          where: where?.value,
+        })
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
@@ -203,10 +203,7 @@ export function useViewData(
   async function insertRow(
     currentRow: Row,
     ltarState: Record<string, any> = {},
-    {
-      metaValue = meta.value,
-      viewMetaValue = viewMeta.value,
-    }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
     const row = currentRow.row
     if (currentRow.rowMeta) currentRow.rowMeta.saving = true
@@ -246,10 +243,7 @@ export function useViewData(
   async function updateRowProperty(
     toUpdate: Row,
     property: string,
-    {
-      metaValue = meta.value,
-      viewMetaValue = viewMeta.value,
-    }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
     if (toUpdate.rowMeta) toUpdate.rowMeta.saving = true
     try {
@@ -279,12 +273,13 @@ export function useViewData(
       })
 
       /** update row data(to sync formula and other related columns)
-       * update only virtual columns data to avoid overwriting any changes made by user
+       * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
        */
       Object.assign(
         toUpdate.row,
         metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
-          if (col.uidt === UITypes.Formula || col.uidt === UITypes.Rollup) acc[col.title!] = updatedRowData[col.title!]
+          if (col.uidt === UITypes.Formula || col.uidt === UITypes.Rollup || col.au || col.cdf?.includes(' on update '))
+            acc[col.title!] = updatedRowData[col.title!]
           return acc
         }, {} as Record<string, any>),
       )
@@ -323,7 +318,7 @@ export function useViewData(
 
   async function deleteRowById(id: string) {
     if (!id) {
-      throw new Error('Delete not allowed for table which doesn\'t have primary Key')
+      throw new Error("Delete not allowed for table which doesn't have primary Key")
     }
 
     const res: any = await $api.dbViewRow.delete(

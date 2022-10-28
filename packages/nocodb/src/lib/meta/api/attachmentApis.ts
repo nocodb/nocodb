@@ -175,7 +175,7 @@ async function getInfoFromFilePath(filePath: Array<string>) {
   return {
     model,
     base,
-    column: columns.filter((column) => column.column_name === columnName)[0],
+    column: columns.find((column) => column.column_name === columnName),
   };
 }
 

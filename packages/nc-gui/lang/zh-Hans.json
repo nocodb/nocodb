@@ -69,7 +69,7 @@
     "betaNote": "此功能仍在测试中。",
     "moreInfo": "点击此处了解更多信息。",
     "logs": "日志",
-    "groupingField": "Grouping Field"
+    "groupingField": "分组字段"
   },
   "objects": {
     "project": "项目",
@@ -102,9 +102,9 @@
     "roleType": {
       "owner": "所有者",
       "creator": "创造者",
-      "editor": "编辑",
+      "editor": "编辑者",
       "commenter": "评论者",
-      "viewer": "观众"
+      "viewer": "浏览者"
     },
     "sqlVIew": "SQL View"
   },
@@ -166,7 +166,7 @@
     "formTitle": "表格标题",
     "collabView": "合作视图",
     "lockedView": "锁定视图",
-    "personalView": "个人观",
+    "personalView": "个人视图",
     "appStore": "软件商店",
     "teamAndAuth": "团队和认证",
     "rolesUserMgmt": "角色和用户管理",
@@ -220,7 +220,7 @@
     "schemaName": "架构名称",
     "database": "数据库",
     "action": "行动",
-    "actions": "行动",
+    "actions": "操作",
     "operation": "操作",
     "operationType": "操作类型",
     "operationSubType": "操作子类型",
@@ -407,18 +407,18 @@
     "sendEmail": "发送邮件",
     "addUserToProject": "Add user to project",
     "getApiSnippet": "生成代码",
-    "clearCell": "Clear cell",
+    "clearCell": "清除单元格内容",
     "addFilterGroup": "Add Filter Group",
-    "linkRecord": "Link record",
-    "addNewRecord": "Add new record",
+    "linkRecord": "链接记录",
+    "addNewRecord": "新增记录",
     "useConnectionUrl": "Use Connection URL",
     "toggleCommentsDraw": "Toggle comments draw",
     "expandRecord": "Expand Record",
     "deleteRecord": "Delete Record",
     "erd": {
-      "showColumns": "Show Columns",
-      "showPkAndFk": "Show Primary and Foreign Keys",
-      "showSqlViews": "Show SQL Views",
+      "showColumns": "显示列",
+      "showPkAndFk": "显示主键和外键",
+      "showSqlViews": "显示 SQL 视图",
       "showMMTables": "Show Many to Many tables",
       "showJunctionTableNames": "Show Junction Table Names"
     },
@@ -426,7 +426,7 @@
       "collapseStack": "Collapse Stack",
       "deleteStack": "Delete Stack",
       "stackedBy": "Stacked By",
-      "chooseGroupingField": "Choose a Grouping Field",
+      "chooseGroupingField": "选择分组字段",
       "addOrEditStack": "Add / Edit Stack"
     }
   },
@@ -635,7 +635,7 @@
       "failedToLoadList": "Failed to load list",
       "failedToLoadChildrenList": "Failed to load children list",
       "deleteFailed": "Delete failed",
-      "unlinkFailed": "Unlink failed",
+      "unlinkFailed": "撤消链接失败",
       "rowUpdateFailed": "Row update failed",
       "deleteRowFailed": "Failed to delete row",
       "setFormDataFailed": "Failed to set form data",
@@ -673,15 +673,15 @@
       "futureRelease": "即将推出！"
     },
     "success": {
-      "updatedUIACL": "Updated UI ACL for tables successfully",
+      "updatedUIACL": "已成功更新表的 UI ACL",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",
       "pluginTested": "Successfully tested plugin settings",
       "tableRenamed": "Table renamed successfully",
       "viewDeleted": "View deleted successfully",
-      "primaryColumnUpdated": "Successfully updated as primary column",
+      "primaryColumnUpdated": "成功更新为主列",
       "tableDataExported": "Successfully exported all table data",
-      "updated": "Successfully updated",
+      "updated": "更新成功",
       "sharedViewDeleted": "Deleted shared view successfully",
       "viewRenamed": "View renamed successfully",
       "tokenGenerated": "Token generated successfully",
@@ -692,12 +692,12 @@
       "inviteURLCopied": "Invite URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
-      "userDetailsUpdated": "Successfully updated the user details",
+      "userDetailsUpdated": "成功更新用户详细信息",
       "tableDataImported": "Successfully imported table data",
-      "webhookUpdated": "Webhook details updated successfully",
+      "webhookUpdated": "Webhook 详细信息更新成功",
       "webhookDeleted": "Hook deleted successfully",
       "webhookTested": "Webhook tested successfully",
-      "columnUpdated": "Column updated",
+      "columnUpdated": "列已更新",
       "columnCreated": "Column created",
       "passwordChanged": "Password changed successfully. Please login again."
     }

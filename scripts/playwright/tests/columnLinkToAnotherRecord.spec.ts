@@ -178,4 +178,130 @@ test.describe("LTAR create & update", () => {
     await dashboard.treeView.deleteTable({ title: "Sheet1" });
     await dashboard.treeView.deleteTable({ title: "Sheet2" });
   });
+
+  async function verifyRow(param: {
+    index: number;
+    value: {
+      Country: string;
+      formula?: string;
+      SLT?: string;
+      "City List": string[];
+    };
+  }) {
+    await dashboard.grid.cell.verify({
+      index: param.index,
+      columnHeader: "Country",
+      value: param.value.Country,
+    });
+    if (param.value.formula) {
+      await dashboard.grid.cell.verify({
+        index: param.index,
+        columnHeader: "formula",
+        value: param.value.formula,
+      });
+    }
+    await dashboard.grid.cell.verifyVirtualCell({
+      index: param.index,
+      columnHeader: "City List",
+      count: param.value["City List"].length,
+      value: param.value["City List"],
+    });
+    if (param.value.SLT) {
+      await dashboard.grid.cell.verify({
+        index: param.index,
+        columnHeader: "SLT",
+        value: param.value.SLT,
+      });
+    }
+  }
+
+  /**
+   * Scope:
+   *  - Verify LTAR and lookup cell after updating any non-virtual column
+   *  - Verify the formula cell in which the updated cell is referring
+   *  - Verify other non-virtual cells
+   *
+   *  https://github.com/nocodb/nocodb/issues/4220
+   *
+   */
+  test.skip("Existing LTAR table verification", async () => {
+    // close 'Team & Auth' tab
+    await dashboard.closeTab({ title: "Team & Auth" });
+
+    // open table
+    await dashboard.treeView.openTable({ title: "Country" });
+    await verifyRow({
+      index: 0,
+      value: {
+        Country: "Afghanistan",
+        "City List": ["Kabul"],
+      },
+    });
+    await verifyRow({
+      index: 1,
+      value: {
+        Country: "Algeria",
+        "City List": ["Batna", "Bchar", "Skikda"],
+      },
+    });
+
+    // create new columns
+    await dashboard.grid.column.create({
+      title: "SLT",
+      type: "SingleLineText",
+    });
+    await dashboard.grid.column.create({
+      title: "formula",
+      type: "Formula",
+      formula: "CONCAT({Country}, ' ', {SLT})",
+    });
+
+    // insert new content into a cell
+    await dashboard.grid.editRow({
+      index: 0,
+      columnHeader: "SLT",
+      value: "test",
+    });
+
+    await verifyRow({
+      index: 0,
+      value: {
+        Country: "Afghanistan",
+        "City List": ["Kabul"],
+        SLT: "test",
+        formula: "Afghanistan test",
+      },
+    });
+
+    // edit record
+    await dashboard.grid.editRow({
+      index: 0,
+      columnHeader: "Country",
+      value: "Afghanistan2",
+    });
+    await verifyRow({
+      index: 0,
+      value: {
+        Country: "Afghanistan2",
+        "City List": ["Kabul"],
+        SLT: "test",
+        formula: "Afghanistan2 test",
+      },
+    });
+
+    // Delete cell contents and verify
+    await dashboard.grid.cell.click({ index: 0, columnHeader: "SLT" });
+    // trigger delete button key
+    await dashboard.rootPage.keyboard.press("Delete");
+    // Verify other non-virtual cells
+    await verifyRow({
+      index: 0,
+      value: {
+        Country: "Afghanistan2",
+        "City List": ["Kabul"],
+        SLT: "",
+        formula: "Afghanistan2",
+      },
+    });
+  });
 });

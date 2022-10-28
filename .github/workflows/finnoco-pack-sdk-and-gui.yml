@@ -64,6 +64,7 @@ jobs:
       - name: Build and copy nc-lib-gui package
         working-directory: ./packages/nc-gui
         run: |
+          export NODE_OPTIONS="--max_old_space_size=4096"
           npm ci
           npm run build:copy
 

@@ -74,7 +74,7 @@ export async function projectList(
   next
 ) {
   try {
-    const projects = await Project.list(req.query);
+    const projects = await Project.list(req);
 
     res // todo: pagination
       .json(

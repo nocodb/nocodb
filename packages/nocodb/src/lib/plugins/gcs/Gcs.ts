@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-
 import { Storage, StorageOptions } from '@google-cloud/storage';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
+import { waitForStreamClose } from '../../utils/pluginUtils';
 
 export default class Gcs implements IStorageAdapterV2 {
   private storageClient: Storage;
@@ -87,7 +87,7 @@ export default class Gcs implements IStorageAdapterV2 {
     try {
       const tempFile = path.join(process.cwd(), 'temp.txt');
       const createStream = fs.createWriteStream(tempFile);
-      createStream.end();
+      await waitForStreamClose(createStream);
       await this.fileCreate('nc-test-file.txt', {
         path: tempFile,
         mimetype: '',

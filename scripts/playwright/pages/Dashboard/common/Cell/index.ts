@@ -47,7 +47,7 @@ export class CellPageObject extends BasePage {
     index: number;
     columnHeader: string;
   }) {
-    return this.get({ index, columnHeader }).click();
+    return await this.get({ index, columnHeader }).click();
   }
 
   async dblclick({
@@ -57,7 +57,7 @@ export class CellPageObject extends BasePage {
     index?: number;
     columnHeader: string;
   }) {
-    return this.get({ index, columnHeader }).dblclick();
+    return await this.get({ index, columnHeader }).dblclick();
   }
 
   async fillText({

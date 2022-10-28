@@ -91,6 +91,8 @@ const handleKeys = (e: KeyboardEvent) => {
       e.preventDefault()
       isOpen.value = false
       break
+    case 'ArrowDown':
+    case 'ArrowUp':
     case 'Enter':
       e.stopPropagation()
       break

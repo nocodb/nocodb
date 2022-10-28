@@ -35,7 +35,7 @@ async function verifyHookTrigger(count: number, value: string, request) {
   }
 }
 
-test.describe.skip("Webhook", async () => {
+test.describe.serial("Webhook", async () => {
   // start a server locally for webhook tests
   
   let dashboard: DashboardPage, toolbar: ToolbarPage, webhook: WebhookFormPage;
@@ -54,6 +54,7 @@ test.describe.skip("Webhook", async () => {
 
   test("CRUD", async ({ request }) => {
     // close 'Team & Auth' tab
+    await clearServerData({ request });
     await dashboard.closeTab({ title: "Team & Auth" });
     await dashboard.treeView.createTable({ title: "Test" });
 
@@ -155,7 +156,8 @@ test.describe.skip("Webhook", async () => {
     await verifyHookTrigger(0, "", request);
   });
 
-  test("Conditional webhooks", async ({ request }) => {
+  test("webhook Conditional webhooks", async ({ request }) => {
+    await clearServerData({ request });
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: "Team & Auth" });
     await dashboard.treeView.createTable({ title: "Test" });

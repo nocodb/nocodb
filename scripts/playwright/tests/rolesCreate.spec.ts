@@ -62,7 +62,6 @@ test.describe("User roles", () => {
 
     // Role test
     for (let i = 0; i < roleDb.length; i++) {
-      console.log("Role: ", roleDb[i].role);
       await roleTest(i);
     }
   });

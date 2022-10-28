@@ -46,12 +46,12 @@ async function makeServer() {
   return new Promise((resolve) => {
     const server = app.listen(port, function () {
       const port = server.address().port;
-      console.log("Example app listening at port %d", port);
+      // console.log("Example app listening at port %d", port);
 
       // close the server
       const close = () => {
         return new Promise((resolve) => {
-          console.log("closing server");
+          // console.log("closing server");
           server.close(resolve);
         });
       };

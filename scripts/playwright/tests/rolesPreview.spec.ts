@@ -48,7 +48,6 @@ test.describe("Preview Mode", () => {
 
     // Role test
     for (let i = 0; i < roles.length; i++) {
-      console.log("Role: ", roles[i]);
       await roleTest(roles[i]);
     }
   });
@@ -63,41 +62,34 @@ test.describe("Preview Mode", () => {
     // wait for preview mode to be enabled
     await dashboard.rootPage.locator(".nc-preview-btn-exit-to-app").waitFor();
 
-    console.log("project menu");
     await dashboard.validateProjectMenu({
       role: role.toLowerCase(),
     });
 
     await dashboard.treeView.openTable({ title: "Country" });
 
-    console.log("view sidebar");
     await dashboard.viewSidebar.validateRoleAccess({
       role: role.toLowerCase(),
     });
 
-    console.log("toolbar");
     await toolbar.validateRoleAccess({
       role: role.toLowerCase(),
     });
 
-    console.log("tree view");
     await dashboard.treeView.validateRoleAccess({
       role: role.toLowerCase(),
     });
 
-    console.log("grid");
     await dashboard.grid.validateRoleAccess({
       role: role.toLowerCase(),
     });
 
     await dashboard.grid.openExpandedRow({ index: 0 });
-    console.log("expanded row");
     await dashboard.expandedForm.validateRoleAccess({
       role: role.toLowerCase(),
     });
 
     // Access control validation
-    console.log("access control");
     await dashboard.treeView.verifyTable({
       title: "Language",
       exists: role.toLowerCase() === "creator" ? true : false,

@@ -62,7 +62,10 @@ const handleKeys = (e: KeyboardEvent) => {
       break
     case 'ArrowDown':
     case 'ArrowUp':
+      e.stopPropagation()
+      break
     case 'Enter':
+      isOpen.value = true
       e.stopPropagation()
       break
   }

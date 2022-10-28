@@ -16,6 +16,7 @@ import {
   useProject,
   watch,
 } from '#imports'
+import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
@@ -73,13 +74,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-            const opa = options.value.find((el) => el.title === a)
-            const opb = options.value.find((el) => el.title === b)
-            if (opa && opb) {
-              return opa.order! - opb.order!
-            }
-            return 0
-          })
+          const opa = options.value.find((el) => el.title === a)
+          const opb = options.value.find((el) => el.title === b)
+          if (opa && opb) {
+            return opa.order! - opb.order!
+          }
+          return 0
+        })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -93,9 +94,13 @@ const handleKeys = (e: KeyboardEvent) => {
       break
     case 'ArrowDown':
     case 'ArrowUp':
-    case 'Enter':
       e.stopPropagation()
       break
+    case 'Enter':
+      isOpen.value = true
+      e.stopPropagation()
+      break
+
   }
 }
 
@@ -135,11 +140,17 @@ watch(
 watch(isOpen, (n, _o) => {
   if (!n) aselect.value?.$el.blur()
 })
+
+useEventListener(document, 'keydown', (e) => {
+  if (active.value && e.key === 'Enter') {
+    isOpen.value = true
+  }
+})
 </script>
 
 <template>
   <a-select
-    ref="aselect"
+    ref="select"
     v-model:value="vModel"
     mode="multiple"
     class="w-full"
@@ -223,18 +234,23 @@ watch(isOpen, (n, _o) => {
   margin-right: -6px;
   margin-left: 3px;
 }
+
 .ms-close-icon:before {
   display: block;
 }
+
 .ms-close-icon:hover {
   color: rgba(0, 0, 0, 0.45);
 }
+
 .rounded-tag {
   @apply py-0 px-[12px] rounded-[12px];
 }
+
 :deep(.ant-tag) {
   @apply "rounded-tag" my-[2px];
 }
+
 :deep(.ant-tag-close-icon) {
   @apply "text-slate-500";
 }

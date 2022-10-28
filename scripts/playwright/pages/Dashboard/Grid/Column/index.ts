@@ -203,7 +203,12 @@ export class ColumnPageObject extends BasePage {
   }
 
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {
-    await this.get().locator('button:has-text("Save")').click();
+    await this.waitForResponse({
+      uiAction: this.get().locator('button:has-text("Save")').click(),
+      requestUrlPathToMatch: 'api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+      responseJsonMatcher: (json) => json['pageInfo'],
+    });
 
     await this.toastWait({
       message: isUpdated ? "Column updated" : "Column created",

@@ -157,6 +157,11 @@ export class ProjectsPage extends BasePage {
     await projRow.locator(".nc-action-btn").nth(0).click();
     await project.locator("input.nc-metadb-project-name").fill(newTitle);
     // press enter to save
-    await project.locator("input.nc-metadb-project-name").press("Enter");
+    const submitAction = project.locator("input.nc-metadb-project-name").press("Enter");
+    await this.waitForResponse({
+      uiAction: submitAction,
+      requestUrlPathToMatch: 'api/v1/db/meta/projects/',
+      httpMethodsToMatch: ['PATCH'],
+    });
   }
 }

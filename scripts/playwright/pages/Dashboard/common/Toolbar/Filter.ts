@@ -105,12 +105,11 @@ export class ToolbarFilterPage extends BasePage {
 
   async resetFilter() {
     await this.toolbar.clickFilter();
-    await this.get().locator(".nc-filter-item-remove-btn").click();
-    // await this.waitForResponse({
-    //   uiAction: this.get().locator(".nc-filter-item-remove-btn").click(),
-    //   httpMethodsToMatch: ["DELETE"],
-    //   requestUrlPathToMatch: "/api/v1/db/meta/filters/",
-    // });
+    await this.waitForResponse({
+      uiAction: this.get().locator(".nc-filter-item-remove-btn").click(),
+      httpMethodsToMatch: ["DELETE"],
+      requestUrlPathToMatch: "/api/v1/db/meta/filters/",
+    });
     await this.toolbar.clickFilter();
   }
 }

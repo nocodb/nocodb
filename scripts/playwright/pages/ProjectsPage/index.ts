@@ -74,6 +74,10 @@ export class ProjectsPage extends BasePage {
     // Wait till the ant table is rendered
     await this.get().locator('thead.ant-table-thead >> th').nth(0).waitFor({state: 'visible'});
     await expect(this.get().locator('thead.ant-table-thead >> th').nth(0)).toHaveText('Title');
+
+    // todo: remove this, all the above asserts are useless. 
+    // The elements are actually invisible from screenshot but in dom level its visible. Lazy loading issue
+    await this.rootPage.waitForTimeout(1200);
   }
 
   async openProject(
@@ -90,6 +94,10 @@ export class ProjectsPage extends BasePage {
     if(!withoutPrefix) title = this.prefixTitle(title);
 
     let project: any;
+
+    const openProjectUiAction = this.get().locator(`.ant-table-cell`,{
+      hasText: title
+    }).click();
 
     await Promise.all([
       this.rootPage.waitForResponse(async (res) => {
@@ -110,9 +118,7 @@ export class ProjectsPage extends BasePage {
 
         return isRequiredResponse;
       }),
-      this.get().locator(`.ant-table-cell`,{
-        hasText: title
-      }).click()
+      openProjectUiAction
     ]);
 
     const dashboard = new DashboardPage(this.rootPage, project);

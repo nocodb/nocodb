@@ -101,8 +101,8 @@ export class TreeViewPage extends BasePage {
         );
       }
     } else {
-      await expect(
-        await this.get().locator(`.nc-project-tree-tbl-${title}`).count()
+      await expect.poll(
+        async () => await this.get().locator(`.nc-project-tree-tbl-${title}`).count()
       ).toBe(0);
     }
   }

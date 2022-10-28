@@ -165,6 +165,11 @@ export class ViewSidebarPage extends BasePage {
       .locator(".ant-modal-content")
       .locator('button:has-text("Submit"):visible')
       .click();
+    await this.waitForResponse({
+      httpMethodsToMatch: ["POST"],
+      requestUrlPathToMatch: "/api/v1/db/meta/tables/",
+      uiAction: submitAction,
+    });
     await this.toastWait({ message: "View created successfully" });
   }
 

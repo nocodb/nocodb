@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ReadonlyInj, inject, onClickOutside, useProject, watch } from '#imports'
+import { ActiveCellInj, ReadonlyInj, inject, onClickOutside, useProject, useSelectedCellKeyupListener, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null | undefined
@@ -65,6 +65,19 @@ watch(
   },
   { flush: 'post' },
 )
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      open.value = true
+      break
+    case 'Escape':
+      e.stopPropagation()
+      open.value = false
+      break
+  }
+})
 </script>
 
 <template>

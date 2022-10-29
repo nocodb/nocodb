@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ReadonlyInj, computed, inject, onClickOutside, ref, watch } from '#imports'
+import { ActiveCellInj, ReadonlyInj, computed, inject, onClickOutside, ref, useSelectedCellKeyupListener, watch } from '#imports'
 
 interface Props {
   modelValue?: number | string | null
@@ -55,6 +55,19 @@ watch(
 )
 
 const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      open.value = true
+      break
+    case 'Escape':
+      e.stopPropagation()
+      open.value = false
+      break
+  }
+})
 </script>
 
 <template>

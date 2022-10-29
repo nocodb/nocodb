@@ -14,6 +14,7 @@ import {
   ref,
   useEventListener,
   useProject,
+  useSelectedCellKeyupListener,
   watch,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
@@ -139,8 +140,9 @@ watch(isOpen, (n, _o) => {
   if (!n) aselect.value?.$el.blur()
 })
 
-useEventListener(document, 'keydown', (e) => {
-  if (active.value && e.key === 'Enter') {
+useSelectedCellKeyupListener(active, (e) => {
+  if (e.key === 'Enter') {
+    e.stopPropagation()
     isOpen.value = true
   }
 })

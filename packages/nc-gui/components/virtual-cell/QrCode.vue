@@ -11,13 +11,17 @@ const qrCodeLarge = useQRCode(qrValue, {
   width: 600,
 })
 
-const visible = ref<boolean>(false)
-const showQrModal = () => (visible.value = true)
-const handleOk = (e: MouseEvent) => (visible.value = false)
+const modalVisible = ref<boolean>(false)
+const showQrModal = (ev: Event) => {
+  ev.stopPropagation()
+  modalVisible.value = true
+}
+
+const handleModalOkClick = () => (modalVisible.value = false)
 </script>
 
 <template>
-  <a-modal v-model:visible="visible" :title="qrValue" footer @ok="handleOk" :bodyStyle="{ padding: '0px' }">
+  <a-modal v-model:visible="modalVisible" :title="qrValue" footer @ok="handleModalOkClick" :bodyStyle="{ padding: '0px' }">
     <img v-if="qrValue" :src="qrCodeLarge" alt="QR Code" class="qr-code" />
   </a-modal>
   <img v-if="qrValue" :src="qrCode" alt="QR Code" class="qr-code" @click="showQrModal" />

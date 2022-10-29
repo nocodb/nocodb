@@ -4,7 +4,7 @@
 // import path from 'path';
 // import URL from 'url';
 import express from 'express';
-import {XcApis, XcConfigFactory,} from "xc-instant";
+import { XcApis, XcConfigFactory } from 'xc-instant';
 
 import('colors');
 
@@ -42,27 +42,27 @@ import('colors');
 // };
 
 class InstantMgr {
-
   public static async getNewProjectInput(args): Promise<any> {
-
     if (args._.length < 2) {
-      const usage = '\n$ xc instant "mysql://localhost:3306?u=root&p=password&d=database&a=rest"'.green.bold
-      console.log(`\n\nWarning! missing connection URL\n\nExample Usage:\n${usage}\n`.red.bold);
+      const usage = '\n$ xc instant "mysql://localhost:3306?u=root&p=password&d=database&a=rest"'
+        .green.bold;
+      console.log(
+        `\n\nWarning! missing connection URL\n\nExample Usage:\n${usage}\n`.red
+          .bold
+      );
       return false;
     }
 
-
-    const config = XcConfigFactory.makeFromUrls(args._.slice(1))
+    const config = XcConfigFactory.makeFromUrls(args._.slice(1));
 
     const server = express();
 
     server.set('view engine', 'ejs');
-    const app = new XcApis(config)
+    const app = new XcApis(config);
 
     server.use(await app.init());
 
     server.listen('8080', () => console.log('App started'));
-
 
     // /* Construct database URL from prompt */
     // const dbTypes = Object.keys(dbDefaults);
@@ -210,9 +210,7 @@ class InstantMgr {
     // args._[0] = answers.projectType === 'REST APIs' ? 'gar' : 'gag';
     // args.url.push(url);
     // return NewMgr.testConnection(args)
-
   }
-
 
   // public static async testConnection({url}) {
   //
@@ -243,7 +241,6 @@ class InstantMgr {
   //   return true;
   // }
 
-
   // public static async isPortOpen(host, port) {
   //   try {
   //     return await tcpPortUsed.check(+port, host)
@@ -253,8 +250,6 @@ class InstantMgr {
   //     return true;
   //   }
   // }
-
 }
 
 export default InstantMgr;
-

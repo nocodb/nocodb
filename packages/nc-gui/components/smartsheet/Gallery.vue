@@ -169,6 +169,7 @@ watch(view, async (nextView) => {
 
 <template>
   <div class="flex flex-col h-full w-full overflow-auto nc-gallery">
+    {{ JSON.stringify(data) }}
     <div class="nc-gallery-container grid gap-2 my-4 px-3">
       <div v-for="record in data" :key="`record-${record.row.id}`">
         <LazySmartsheetRow :row="record">

@@ -1,14 +1,29 @@
 <script lang="ts" setup>
 import 'leaflet/dist/leaflet.css'
 import * as L from 'leaflet'
-import { IsFormInj, IsGalleryInj, IsGridInj, ReadonlyInj, onMounted, provide, ref, useUIPermission } from '#imports'
+// import { ViewTypes } from '~~/../nocodb-sdk/build/main'
+import { ViewTypes } from 'nocodb-sdk'
+import { IsFormInj, IsGalleryInj, IsGridInj, IsMapInj, ReadonlyInj, onMounted, provide, ref, useUIPermission } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
 provide(IsFormInj, ref(false))
-provide(IsGalleryInj, ref(true))
+provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
+provide(IsMapInj, ref(true))
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
+
+const meta = inject(MetaInj, ref())
+const view = inject(ActiveViewInj, ref())
+
+const { loadData, formattedData: data } = useViewData(meta, view)
+
+// const { isUIAllowed } = useUIPermission()
+
+
+onMounted(async () => {
+  await loadData()
+})
 
 const markerRef = ref()
 const myMapRef = ref()
@@ -42,7 +57,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full nounderline">
+  <div class="flex flex-col h-full w-full">
+    {{ JSON.stringify(data) }}
     <div class="flex m-4 gap-4">
       <label :for="latitude">latitude</label>
       <input v-model="latitude" />
@@ -51,7 +67,7 @@ onMounted(async () => {
       <button class="bg-blue" @click="addMarker">Submit</button>
     </div>
     <client-only placeholder="Loading...">
-      <div id="map"></div>
+      <div class="nounderline" id="map"></div>
     </client-only>
   </div>
 </template>

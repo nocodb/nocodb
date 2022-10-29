@@ -1,5 +1,5 @@
 import { ViewTypes } from 'nocodb-sdk'
-import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, ColumnType, FormType, GalleryType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
@@ -57,6 +57,8 @@ export function useViewData(
   const formColumnData = ref<FormType>()
 
   const formViewData = ref<FormType>()
+
+  const mapData = ref<MapType>()
 
   const formattedData = ref<Row[]>([])
 
@@ -451,6 +453,7 @@ export function useViewData(
     syncCount,
     syncPagination,
     galleryData,
+    mapData,
     loadGalleryData,
     loadFormView,
     formColumnData,

@@ -42,7 +42,7 @@ export class WebhookFormPage extends BasePage {
     await this.get().waitFor({ state: "visible" });
 
     await this.configureHeader({
-      key: "Content-type",
+      key: "Content-Type",
       value: "application/json",
     });
     await this.configureWebhook({ title, event, url });
@@ -161,8 +161,7 @@ export class WebhookFormPage extends BasePage {
     await this.get().locator(`.ant-tabs-tab-btn:has-text("Headers")`).click();
 
     await this.get().locator(".nc-input-hook-header-key >> input").fill(key);
-    const modal = this.rootPage.locator(`.nc-dropdown-webhook-header`);
-    await modal.locator(`.ant-select-item:has-text("${key}")`).click();
+    await this.rootPage.locator(`.ant-select-item:has-text("${key}")`).click();
 
     await this.get().locator(".nc-input-hook-header-value").type(value);
     await this.get().press("Enter");
@@ -188,16 +187,42 @@ export class WebhookFormPage extends BasePage {
     urlMethod: string;
     condition: boolean;
   }) {
-    await expect.poll(
-      async () => await this.get().locator('input.nc-text-field-hook-title').inputValue()
-    ).toBe(title);
-    await expect(this.get().locator('.nc-text-field-hook-event >> .ant-select-selection-item')).toHaveText(hookEvent);
-    await expect(this.get().locator('.nc-select-hook-notification-type >> .ant-select-selection-item')).toHaveText(notificationType);
-    await expect(this.get().locator('.nc-select-hook-url-method >> .ant-select-selection-item')).toHaveText(urlMethod);
-    await expect.poll(async() => await this.get().locator('input.nc-text-field-hook-url-path').inputValue()).toBe(url);
+    await expect
+      .poll(
+        async () =>
+          await this.get()
+            .locator("input.nc-text-field-hook-title")
+            .inputValue()
+      )
+      .toBe(title);
+    await expect(
+      this.get().locator(
+        ".nc-text-field-hook-event >> .ant-select-selection-item"
+      )
+    ).toHaveText(hookEvent);
+    await expect(
+      this.get().locator(
+        ".nc-select-hook-notification-type >> .ant-select-selection-item"
+      )
+    ).toHaveText(notificationType);
+    await expect(
+      this.get().locator(
+        ".nc-select-hook-url-method >> .ant-select-selection-item"
+      )
+    ).toHaveText(urlMethod);
+    await expect
+      .poll(
+        async () =>
+          await this.get()
+            .locator("input.nc-text-field-hook-url-path")
+            .inputValue()
+      )
+      .toBe(url);
 
-    const conditionCheckbox = this.get().locator('label.nc-check-box-hook-condition >> input[type="checkbox"]')
-    if(condition) {
+    const conditionCheckbox = this.get().locator(
+      'label.nc-check-box-hook-condition >> input[type="checkbox"]'
+    );
+    if (condition) {
       await expect(conditionCheckbox).toBeChecked();
     } else {
       await expect(conditionCheckbox).not.toBeChecked();
@@ -205,6 +230,6 @@ export class WebhookFormPage extends BasePage {
   }
 
   async goBackFromForm() {
-    await this.get().locator('svg.nc-icon-hook-navigate-left').click();
+    await this.get().locator("svg.nc-icon-hook-navigate-left").click();
   }
 }

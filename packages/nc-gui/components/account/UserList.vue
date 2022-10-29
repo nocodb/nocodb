@@ -110,10 +110,10 @@ const copyPasswordResetUrl = async (user: User) => {
   try {
     const { reset_password_url } = await api.orgUsers.generatePasswordResetToken(user.id)
 
-    copy(`${dashboardUrl}/auth/password/reset/${reset_password_url}`)
+    copy(reset_password_url)
 
     // Invite URL copied to clipboard
-    message.success(t('msg.success.inviteURLCopied'))
+    message.success(t('msg.success.passwordResetURLCopied'))
     $e('c:user:copy-url')
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))

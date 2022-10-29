@@ -13,6 +13,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const active = inject(ActiveCellInj, ref(false))
+
 let isYearInvalid = $ref(false)
 
 const localState = $computed({
@@ -56,7 +58,7 @@ watch(
 
 const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
 
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
       e.stopPropagation()
@@ -79,10 +81,10 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :open="readOnly || (localState && isPk) ? false : open"
+    :open="(readOnly || (localState && isPk)) && !active ? false : open"
     :dropdown-class-name="`${randomClass} nc-picker-year ${open ? 'active' : ''}`"
-    @click="open = !open"
-    @change="open = !open"
+    @click="open = active && !open"
+    @change="open = active && !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

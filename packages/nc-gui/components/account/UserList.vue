@@ -22,6 +22,8 @@ const currentLimit = $ref(10)
 
 const showUserModal = ref(false)
 
+const userMadalKey = ref(0)
+
 const searchText = ref<string>('')
 
 const pagination = reactive({
@@ -67,8 +69,7 @@ const deleteUser = async (userId: string) => {
   Modal.confirm({
     title: 'Are you sure you want to delete this user?',
     type: 'warn',
-    content:
-      'On deleting, user will remove from from organization and any sync source(Airtable) created by user will get removed',
+    content: 'On deleting, user will remove from organization and any sync source(Airtable) created by user will get removed',
     onOk: async () => {
       try {
         await api.orgUsers.delete(userId)
@@ -138,7 +139,17 @@ const copyPasswordResetUrl = async (user: User) => {
         </a-input-search>
         <div class="flex-grow"></div>
         <MdiReload class="cursor-pointer" @click="loadUsers" />
-        <a-button data-cy="nc-super-user-invite" size="small" type="primary" @click="showUserModal = true">
+        <a-button
+          data-cy="nc-super-user-invite"
+          size="small"
+          type="primary"
+          @click="
+            () => {
+              showUserModal = true
+              userMadalKey++
+            }
+          "
+        >
           <div class="flex items-center gap-1">
             <MdiAdd />
             Invite new user
@@ -253,7 +264,7 @@ const copyPasswordResetUrl = async (user: User) => {
         </a-table-column>
       </a-table>
 
-      <LazyAccountUsersModal :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
+      <LazyAccountUsersModal :key="userMadalKey" :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
     </div>
   </div>
 </template>

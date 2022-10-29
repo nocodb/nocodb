@@ -17,6 +17,7 @@ import {
   useProvideLTARStore,
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
+  useSelectedCellKeyupListener
 } from '#imports'
 import MdiArrowExpand from '~icons/mdi/arrow-expand'
 import MdiPlus from '~icons/mdi/plus'
@@ -70,6 +71,15 @@ const unlinkRef = async (rec: Record<string, any>) => {
     await unlink(rec)
   }
 }
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      listItemsDlg.value = true
+      e.preventDefault()
+      break
+  }
+})
 </script>
 
 <template>

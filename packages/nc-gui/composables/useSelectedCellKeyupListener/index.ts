@@ -6,7 +6,7 @@ export function useSelectedCellKeyupListener(selected: Ref<boolean>, handler: (e
 
   watch(selected, (value) => {
     if (value) {
-      cleanup.value = useEventListener('keydown', handler)
+      cleanup.value = useEventListener('keydown', handler, true)
     } else {
       cleanup.value?.()
     }

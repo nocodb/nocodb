@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useEventListener } from '@vueuse/core'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
@@ -98,6 +99,14 @@ const newRowState = computed(() => {
 watch(expandedFormDlg, (nexVal) => {
   if (!nexVal && !isNew.value) vModel.value = false
 })
+
+// useEventListener((e: KeyboardEvent) => {
+//   switch (e.key) {
+//     case 'Enter':
+//       e.preventDefault()
+//       break
+//   }
+// })
 </script>
 
 <template>

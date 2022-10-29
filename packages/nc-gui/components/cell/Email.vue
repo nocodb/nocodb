@@ -24,11 +24,17 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
-  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm px-2" @blur="editEnabled = false"
-         @keydown.down.stop
-         @keydown.left.stop
-         @keydown.right.stop
-         @keydown.up.stop/>
+  <input
+    v-if="editEnabled"
+    :ref="focus"
+    v-model="vModel"
+    class="outline-none text-sm px-2"
+    @blur="editEnabled = false"
+    @keydown.down.stop
+    @keydown.left.stop
+    @keydown.right.stop
+    @keydown.up.stop
+  />
 
   <a v-else-if="validEmail" class="text-sm underline hover:opacity-75" :href="`mailto:${vModel}`" target="_blank">
     {{ vModel }}

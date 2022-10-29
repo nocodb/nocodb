@@ -2,17 +2,7 @@
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import {
-  ActiveCellInj,
-  ColumnInj,
-  IsKanbanInj,
-  ReadonlyInj,
-  computed,
-  inject,
-  ref,
-  useEventListener,
-  watch,
-} from '#imports'
+import { ActiveCellInj, ColumnInj, IsKanbanInj, ReadonlyInj, computed, inject, ref, useEventListener, watch } from '#imports'
 
 interface Props {
   modelValue?: string | undefined
@@ -44,7 +34,7 @@ const options = computed<SelectOptionType[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
-      (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
+        (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
     for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')

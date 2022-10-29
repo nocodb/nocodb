@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnInj, EditModeInj, computed, inject } from '#imports'
+import { ActiveCellInj, ColumnInj, EditModeInj, computed, inject, useSelectedCellKeyupListener } from '#imports'
 
 interface Props {
   modelValue?: number | null | undefined
@@ -28,6 +28,12 @@ const ratingMeta = computed(() => {
 const vModel = computed({
   get: () => modelValue ?? NaN,
   set: (val) => emits('update:modelValue', val),
+})
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
+  if (/^\d$/.test(e.key)) {
+    vModel.value = +e.key === +vModel.value ? 0 : +e.key
+  }
 })
 </script>
 

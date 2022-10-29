@@ -17,6 +17,5 @@ const vModel = useVModel(props, 'modelValue', emits)
 </script>
 
 <template>
-  <LazyCellText
-    v-model="vModel" />
+  <LazyCellText v-model="vModel" />
 </template>

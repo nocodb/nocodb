@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ColumnInj, IsFormInj, ReadonlyInj, getMdiIcon, inject } from '#imports'
-import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
-import { ActiveCellInj } from '~/context'
+import { ActiveCellInj, ColumnInj, IsFormInj, ReadonlyInj, getMdiIcon, inject, useSelectedCellKeyupListener } from '#imports'
 
 interface Props {
   // If the previous cell value was a text, the initial checkbox value is a string type
@@ -46,7 +44,6 @@ function onClick() {
 }
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
-  console.log(e.key)
   switch (e.key) {
     case 'Enter':
       onClick()

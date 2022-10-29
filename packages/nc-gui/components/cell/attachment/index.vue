@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { onKeyDown } from '@vueuse/core'
+import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
+import { ActiveCellInj } from '~/context'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import {
@@ -136,6 +138,13 @@ watch(
     rowState.value[column.value!.title!] = storedFiles.value
   },
 )
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
+  if (e.key === 'Enter' && !isReadonly.value) {
+    e.stopPropagation()
+    modalVisible.value = true
+  }
+})
 </script>
 
 <template>

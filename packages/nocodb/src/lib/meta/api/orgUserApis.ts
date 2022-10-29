@@ -72,7 +72,6 @@ async function userDelete(req, res) {
 
     // delete user
     await User.delete(req.params.userId, ncMeta);
-    await User.delete(req.params.userId, ncMeta);
     await ncMeta.commit();
   } catch (e) {
     await ncMeta.rollback(e);

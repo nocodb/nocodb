@@ -249,7 +249,7 @@ const copyPasswordResetUrl = async (user: User) => {
                         </div>
                       </a-menu-item>
                     </template>
-                    <a-menu-item v-else>
+                    <a-menu-item>
                       <div class="flex flex-row items-center py-3" @click="copyPasswordResetUrl(record)">
                         <MdiContentCopy class="flex h-[1rem] text-gray-500" />
                         <div class="text-xs pl-2">{{ $t('activity.copyPasswordResetURL') }}</div>

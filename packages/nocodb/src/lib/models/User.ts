@@ -225,8 +225,17 @@ export default class User implements UserType {
 
   static async delete(userId: string, ncMeta = Noco.ncMeta) {
     if (!userId) NcError.badRequest('userId is required');
+
+    const user = await this.get(userId, ncMeta);
+
+    if (!user) NcError.badRequest('User not found');
+
+    // clear all user related cache
     await NocoCache.delAll(CacheScope.USER, `${userId}___*`);
+    await NocoCache.delAll(CacheScope.USER, `${user.email}___*`);
     await NocoCache.del(`${CacheScope.USER}:${userId}`);
+    await NocoCache.del(`${CacheScope.USER}:${user.email}`);
+
     await ncMeta.metaDelete(null, null, MetaTable.USERS, userId);
   }
 }

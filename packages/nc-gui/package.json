@@ -1,5 +1,20 @@
 {
+  "name": "nc-gui",
+  "description": "NocoDB Frontend",
   "private": true,
+  "author": {
+    "name": "NocoDB",
+    "url": "https://nocodb.com/"
+  },
+  "homepage": "https://github.com/nocodb/nocodb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nocodb/nocodb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nocodb/nocodb/issues"
+  },
+  "license": "AGPL-3.0-or-later",
   "web-types": "web-types.json",
   "scripts": {
     "build": "nuxi build",

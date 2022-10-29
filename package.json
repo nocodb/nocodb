@@ -1,5 +1,20 @@
 {
-  "name": "root",
+  "name": "nocodb-root",
+  "description": "NocoDB Root",
+  "private": true,
+  "author": {
+    "name": "NocoDB Inc",
+    "url": "https://nocodb.com/"
+  },
+  "homepage": "https://github.com/nocodb/nocodb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nocodb/nocodb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nocodb/nocodb/issues"
+  },
+  "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@4tw/cypress-drag-drop": "^2.0.0",
     "cross-env": "^7.0.3",

@@ -15,6 +15,8 @@ const { isMysql } = useProject()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const active = inject(ActiveCellInj, ref(false))
+
 let isDateInvalid = $ref(false)
 
 const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
@@ -57,7 +59,7 @@ watch(
   { flush: 'post' },
 )
 
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
       e.stopPropagation()
@@ -81,10 +83,10 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
     :placeholder="isDateInvalid ? 'Invalid date' : ''"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :dropdown-class-name="`${randomClass} nc-picker-datetime`"
-    :open="readOnly || (localState && isPk) ? false : open"
+    :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"
+    :open="readOnly || (localState && isPk) ? false : open && active"
     :disabled="readOnly || (localState && isPk)"
-    @click="open = !open"
+    @click="open = active && !open"
     @ok="open = !open"
   >
     <template #suffixIcon></template>

@@ -13,9 +13,9 @@ import {
   inject,
   ref,
   useProvideLTARStore,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
-  useSelectedCellKeyupListener
 } from '#imports'
 
 const column = inject(ColumnInj)!

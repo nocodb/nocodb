@@ -15,9 +15,9 @@ import {
   inject,
   ref,
   useProvideLTARStore,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
-  useSelectedCellKeyupListener
 } from '#imports'
 import MdiArrowExpand from '~icons/mdi/arrow-expand'
 import MdiPlus from '~icons/mdi/plus'

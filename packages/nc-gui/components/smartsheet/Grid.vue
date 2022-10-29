@@ -325,13 +325,19 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
-onClickOutside(smartTable, () => {
+onClickOutside(smartTable, (e: PointerEvent) => {
   clearRangeRows()
   if (selected.col === null) return
 
   const activeCol = fields.value[selected.col]
 
   if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
+
+  // ignore unselecting if clicked inside or on the picker(Date, Time, DateTime, Year)
+  const activePickerEl = document.querySelector(
+    '.nc-picker-datetime.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+  )
+  if (e.target && activePickerEl && (activePickerEl === e.target || activePickerEl?.contains(e.target as Element))) return
 
   selected.row = null
   selected.col = null

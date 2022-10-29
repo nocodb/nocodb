@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { useEventListener } from '@vueuse/core'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {

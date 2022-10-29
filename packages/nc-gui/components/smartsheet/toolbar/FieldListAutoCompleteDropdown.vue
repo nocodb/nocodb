@@ -28,7 +28,7 @@ const options = computed<SelectProps['options']>(() =>
         )
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       } else {
-        const isQrCode = c.uidt === 'QrCode'
+        const isQrCode = c.uidt === UITypes.QrCode
         const isVirtualSystemField = c.colOptions && c.system
         return !isVirtualSystemField && !isQrCode
       }

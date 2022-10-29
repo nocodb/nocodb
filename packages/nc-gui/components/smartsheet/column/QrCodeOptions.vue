@@ -20,7 +20,14 @@ const vModel = useVModel(props, 'value', emit)
 
 const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
-const allowedColumnTypesForQrValue = [UITypes.Formula, UITypes.SingleLineText, UITypes.LongText] as string[]
+const allowedColumnTypesForQrValue = [
+  UITypes.Formula,
+  UITypes.SingleLineText,
+  UITypes.LongText,
+  UITypes.PhoneNumber,
+  UITypes.URL,
+  UITypes.Email,
+] as string[]
 
 const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
   return fields.value

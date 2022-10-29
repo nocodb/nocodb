@@ -73,7 +73,7 @@ const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   }),
 )
 
-const columns = computed(() => meta?.value?.columns || [])
+const columns = computed(() => meta?.value?.columns?.filter((col) => col.uidt !== UITypes.QrCode) || [])
 
 const localColumns = ref<Record<string, any>[]>([])
 
@@ -228,7 +228,7 @@ async function addAllColumns() {
 }
 
 function shouldSkipColumn(col: Record<string, any>) {
-  return isDbRequired(col) || !!col.required || (!!col.rqd && !col.cdf)
+  return isDbRequired(col) || !!col.required || (!!col.rqd && !col.cdf) || col.uidt === UITypes.QrCode
 }
 
 async function removeAllColumns() {
@@ -257,7 +257,7 @@ async function checkSMTPStatus() {
 }
 
 function setFormData() {
-  const col = (formColumnData as Record<string, any>)?.value
+  const col = (formColumnData as Record<string, any>)?.value.filter((c: Record<string, any>) => c.uidt !== UITypes.QrCode)
 
   formViewData.value = {
     ...formViewData.value,

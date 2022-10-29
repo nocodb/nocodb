@@ -26,9 +26,11 @@ const options = computed<SelectProps['options']>(() =>
         return !(
           c.uidt === UITypes.LinkToAnotherRecord && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO
         )
-        /** ignore virtual fields which are system fields ( mm relation ) */
+        /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       } else {
-        return !c.colOptions || !c.system
+        const isQrCode = c.uidt === 'QrCode'
+        const isVirtualSystemField = c.colOptions && c.system
+        return !isVirtualSystemField && !isQrCode
       }
     })
     .map((c: ColumnType) => ({

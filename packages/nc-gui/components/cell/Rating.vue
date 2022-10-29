@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ActiveCellInj, ColumnInj, EditModeInj, computed, inject, useSelectedCellKeyupListener } from '#imports'
+import { ActiveCellInj, ColumnInj, computed, inject, useSelectedCellKeyupListener } from '#imports'
 
 interface Props {
   modelValue?: number | null | undefined
@@ -10,8 +10,6 @@ const { modelValue } = defineProps<Props>()
 const emits = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
-
-const editEnabled = inject(EditModeInj)
 
 const ratingMeta = computed(() => {
   return {
@@ -43,8 +41,6 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
     v-model:value="vModel"
     :count="ratingMeta.max"
     :style="`color: ${ratingMeta.color}; padding: 0px 5px`"
-    :class="{ '!ml-[-8px]': !editEnabled }"
-    :disabled="!editEnabled"
   >
     <template #character>
       <MdiStar v-if="ratingMeta.icon.full === 'mdi-star'" class="text-sm" />

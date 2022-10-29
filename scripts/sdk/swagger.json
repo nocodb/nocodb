@@ -8071,11 +8071,39 @@
               "null"
             ]
           },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MapColumn"
+            }
+          },
           "meta": {
             "type": [
               "string",
               "object"
             ]
+          }
+        }
+      },
+      "MapColumn": {
+        "title": "MapColumn",
+        "type": "object",
+        "description": "",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "help": {
+            "type": "string"
+          },
+          "fk_col_id": {
+            "type": "string"
+          },
+          "fk_gallery_id": {
+            "type": "string"
           }
         }
       },

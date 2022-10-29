@@ -402,7 +402,16 @@ export interface MapType {
   initial_geo_position?: GeoLocationType;
   fk_model_id?: string;
   fk_geo_data_col_id?: string | null;
+  columns?: MapColumnType[];
   meta?: string | object;
+}
+
+export interface MapColumnType {
+  id?: string;
+  label?: string;
+  help?: string;
+  fk_col_id?: string;
+  fk_gallery_id?: string;
 }
 
 export interface FormType {

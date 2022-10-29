@@ -8,6 +8,7 @@
     "url": "https://nocodb.com/"
   },
   "homepage": "https://github.com/nocodb/nocodb",
+  "license": "AGPL-3.0-or-later",
   "repository": {
     "type": "git",
     "url": "https://github.com/nocodb/nocodb.git"

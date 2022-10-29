@@ -12,18 +12,21 @@ class EntityMap {
     this.db = new Promise((resolve, reject) => {
       const db = new sqlite3.Database(':memory:');
 
-      const colStatement = this.cols.length > 0 ? this.cols.join(' TEXT, ') + ' TEXT' : 'mappingPlaceholder TEXT';
+      const colStatement =
+        this.cols.length > 0
+          ? this.cols.join(' TEXT, ') + ' TEXT'
+          : 'mappingPlaceholder TEXT';
       db.run(`CREATE TABLE mapping (${colStatement})`, (err) => {
         if (err) {
           console.log(err);
           reject(err);
         }
-        resolve(db)
+        resolve(db);
       });
     });
   }
 
-  async init () {
+  async init() {
     if (!this.initialized) {
       this.db = await this.db;
       this.initialized = true;
@@ -40,29 +43,31 @@ class EntityMap {
     if (!this.initialized) {
       throw 'Please initialize first!';
     }
-    
+
     const cols = Object.keys(row).map((key) => processKey(key));
     const colStatement = cols.map((key) => `'${key}'`).join(', ');
     const questionMarks = cols.map(() => '?').join(', ');
-    
+
     const promises = [];
 
     for (const col of cols.filter((col) => !this.cols.includes(col))) {
-      promises.push(new Promise((resolve, reject) => {
-        this.db.run(`ALTER TABLE mapping ADD '${col}' TEXT;`, (err) => {
-          if (err) {
-            console.log(err);
-            reject(err);
-          }
-          this.cols.push(col);
-          resolve(true);
-        });
-      }));
+      promises.push(
+        new Promise((resolve, reject) => {
+          this.db.run(`ALTER TABLE mapping ADD '${col}' TEXT;`, (err) => {
+            if (err) {
+              console.log(err);
+              reject(err);
+            }
+            this.cols.push(col);
+            resolve(true);
+          });
+        })
+      );
     }
 
     await Promise.all(promises);
 
-    const values =  Object.values(row).map((val) => {
+    const values = Object.values(row).map((val) => {
       if (typeof val === 'object') {
         return `JSON::${JSON.stringify(val)}`;
       }
@@ -70,13 +75,17 @@ class EntityMap {
     });
 
     return new Promise((resolve, reject) => {
-      this.db.run(`INSERT INTO mapping (${colStatement}) VALUES (${questionMarks})`, values, (err) => {
-        if (err) {
-          console.log(err);
-          reject(err);
+      this.db.run(
+        `INSERT INTO mapping (${colStatement}) VALUES (${questionMarks})`,
+        values,
+        (err) => {
+          if (err) {
+            console.log(err);
+            reject(err);
+          }
+          resolve(true);
         }
-        resolve(true);
-      });
+      );
     });
   }
 
@@ -87,16 +96,22 @@ class EntityMap {
     return new Promise((resolve, reject) => {
       col = processKey(col);
       res = res.map((r) => processKey(r));
-      this.db.get(`SELECT ${res.length ? res.join(', ') : '*'} FROM mapping WHERE ${col} = ?`, [val], (err, rs) => {
-        if (err) {
-          console.log(err);
-          reject(err);
+      this.db.get(
+        `SELECT ${
+          res.length ? res.join(', ') : '*'
+        } FROM mapping WHERE ${col} = ?`,
+        [val],
+        (err, rs) => {
+          if (err) {
+            console.log(err);
+            reject(err);
+          }
+          if (rs) {
+            rs = processResponseRow(rs);
+          }
+          resolve(rs);
         }
-        if (rs) {
-          rs = processResponseRow(rs);
-        }
-        resolve(rs)
-      });
+      );
     });
   }
 
@@ -110,7 +125,7 @@ class EntityMap {
           console.log(err);
           reject(err);
         }
-        resolve(rs.count)
+        resolve(rs.count);
       });
     });
   }
@@ -120,7 +135,10 @@ class EntityMap {
       throw 'Please initialize first!';
     }
     res = res.map((r) => processKey(r));
-    return new DBStream(this.db, `SELECT ${res.length ? res.join(', ') : '*'} FROM mapping`);
+    return new DBStream(
+      this.db,
+      `SELECT ${res.length ? res.join(', ') : '*'} FROM mapping`
+    );
   }
 
   getLimit(limit, offset, res = []): Promise<Record<string, any>[]> {
@@ -129,16 +147,21 @@ class EntityMap {
     }
     return new Promise((resolve, reject) => {
       res = res.map((r) => processKey(r));
-      this.db.all(`SELECT ${res.length ? res.join(', ') : '*'} FROM mapping LIMIT ${limit} OFFSET ${offset}`, (err, rs) => {
-        if (err) {
-          console.log(err);
-          reject(err);
+      this.db.all(
+        `SELECT ${
+          res.length ? res.join(', ') : '*'
+        } FROM mapping LIMIT ${limit} OFFSET ${offset}`,
+        (err, rs) => {
+          if (err) {
+            console.log(err);
+            reject(err);
+          }
+          for (let row of rs) {
+            row = processResponseRow(row);
+          }
+          resolve(rs);
         }
-        for (let row of rs) {
-          row = processResponseRow(row);
-        }
-        resolve(rs)
-      });
+      );
     });
   }
 }
@@ -149,7 +172,7 @@ class DBStream extends Readable {
   sql: any;
 
   constructor(db, sql) {
-    super({ objectMode: true});
+    super({ objectMode: true });
     this.db = db;
     this.sql = sql;
     this.stmt = this.db.prepare(this.sql);
@@ -165,7 +188,7 @@ class DBStream extends Readable {
         if (result) {
           result = processResponseRow(result);
         }
-        stream.push(result || null)
+        stream.push(result || null);
       }
     });
   }

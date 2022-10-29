@@ -1,4 +1,4 @@
-import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, ViewTypes } from 'nocodb-sdk'
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
@@ -273,12 +273,13 @@ export function useViewData(
       })
 
       /** update row data(to sync formula and other related columns)
-       * update only virtual columns data to avoid overwriting any changes made by user
+       * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
        */
       Object.assign(
         toUpdate.row,
         metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
-          if (isVirtualCol(col)) acc[col.title!] = updatedRowData[col.title!]
+          if (col.uidt === UITypes.Formula || col.uidt === UITypes.Rollup || col.au || col.cdf?.includes(' on update '))
+            acc[col.title!] = updatedRowData[col.title!]
           return acc
         }, {} as Record<string, any>),
       )

@@ -21,7 +21,6 @@ import {
   onMounted,
   provide,
   ref,
-  useUIPermission,
   useViewData,
 } from '#imports'
 import type { Row as RowType } from '~/lib'

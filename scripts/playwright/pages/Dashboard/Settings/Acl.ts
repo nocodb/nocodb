@@ -21,7 +21,11 @@ export class AclPage extends BasePage {
   }
 
   async save() {
-    this.get().locator(`button:has-text("Save")`).click();
+    await this.waitForResponse({
+      uiAction: this.get().locator(`button:has-text("Save")`).click(),
+      httpMethodsToMatch: ["POST"],
+      requestUrlPathToMatch: '/visibility-rules'
+    })
     await this.toastWait({ message: "Updated UI ACL for tables successfully" });
   }
 }

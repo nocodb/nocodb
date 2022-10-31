@@ -16,8 +16,7 @@ export default abstract class BasePage {
     await this.rootPage
       .locator(".ant-message .ant-message-notice-content", { hasText: message })
       .last()
-      .textContent()
-      .then((text) => expect(text).toContain(message));
+      .isVisible();
 
     // await this.rootPage
     //   .locator(".ant-message .ant-message-notice-content", { hasText: message })

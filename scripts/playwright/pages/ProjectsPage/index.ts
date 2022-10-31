@@ -163,5 +163,8 @@ export class ProjectsPage extends BasePage {
       requestUrlPathToMatch: 'api/v1/db/meta/projects/',
       httpMethodsToMatch: ['PATCH'],
     });
+    
+    // todo: vue navigation breaks if page changes very quickly
+    await this.rootPage.waitForTimeout(1000);
   }
 }

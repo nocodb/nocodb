@@ -38,11 +38,11 @@ export class ToolbarViewMenuPage extends BasePage {
     ]);
 
     // Save downloaded file somewhere
-    await download.saveAs("./at.txt");
+    await download.saveAs("./output/at.txt");
 
     // verify downloaded content against expected content
     const expectedData = fs.readFileSync(expectedDataFile, "utf8");
-    const file = fs.readFileSync("./at.txt", "utf8");
+    const file = fs.readFileSync("./output/at.txt", "utf8");
     await expect(file).toEqual(expectedData);
   }
 

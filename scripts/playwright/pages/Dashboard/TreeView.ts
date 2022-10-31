@@ -47,8 +47,8 @@ export class TreeViewPage extends BasePage {
     await this.waitForResponse({
       uiAction: this.get().locator(`.nc-project-tree-tbl-${title}`).click(),
       httpMethodsToMatch: ["GET"],
-      requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
-      responseJsonMatcher: (json) => json.title === title,
+      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+      responseJsonMatcher: (json) => json.pageInfo,
     });
     await this.dashboard.waitForTabRender({ title, mode });
   }

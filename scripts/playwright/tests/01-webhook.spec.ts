@@ -20,17 +20,24 @@ async function clearServerData({ request }) {
 async function verifyHookTrigger(count: number, value: string, request) {
   // Retry since there can be lag between the time the hook is triggered and the time the server receives the request
   let response;
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 20; i++) {
     response = await request.get(hookPath + "/count");
     if ((await response.json()) === count) {
       break;
     }
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 150));
   }
   await expect(await response.json()).toBe(count);
 
   if (count) {
-    response = await request.get(hookPath + "/last");
+    let response;
+    for (let i = 0; i < 20; i++) {
+      response = await request.get(hookPath + "/last");
+      if (((await response.json()).Title) === value) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    }
     await expect((await response.json()).Title).toBe(value);
   }
 }

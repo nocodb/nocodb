@@ -203,38 +203,36 @@ watch(view, async (nextView) => {
               <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
             </template>
 
-            <div
-              v-for="col in fieldsWithoutCover"
-              :key="`record-${record.row.id}-${col.id}`"
-              class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
-            >
-              <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
-                <div class="w-full text-gray-600">
-                  <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+            <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
+              <div v-if="!isRowEmpty(record, col)" class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full">
+                <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
+                  <div class="w-full text-gray-600">
+                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
 
-                  <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                  </div>
                 </div>
-              </div>
 
-              <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
-                <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
+                <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
+                  <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
 
-                <template v-else>
-                  <LazySmartsheetVirtualCell
-                    v-if="isVirtualCol(col)"
-                    v-model="record.row[col.title]"
-                    :column="col"
-                    :row="record"
-                  />
+                  <template v-else>
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(col)"
+                      v-model="record.row[col.title]"
+                      :column="col"
+                      :row="record"
+                    />
 
-                  <LazySmartsheetCell
-                    v-else
-                    v-model="record.row[col.title]"
-                    :column="col"
-                    :edit-enabled="false"
-                    :read-only="true"
-                  />
-                </template>
+                    <LazySmartsheetCell
+                      v-else
+                      v-model="record.row[col.title]"
+                      :column="col"
+                      :edit-enabled="false"
+                      :read-only="true"
+                    />
+                  </template>
+                </div>
               </div>
             </div>
           </a-card>

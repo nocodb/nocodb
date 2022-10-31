@@ -214,24 +214,20 @@ watch(view, async (nextView) => {
                 </div>
 
                 <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
-                  <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
+                  <LazySmartsheetVirtualCell
+                    v-if="isVirtualCol(col)"
+                    v-model="record.row[col.title]"
+                    :column="col"
+                    :row="record"
+                  />
 
-                  <template v-else>
-                    <LazySmartsheetVirtualCell
-                      v-if="isVirtualCol(col)"
-                      v-model="record.row[col.title]"
-                      :column="col"
-                      :row="record"
-                    />
-
-                    <LazySmartsheetCell
-                      v-else
-                      v-model="record.row[col.title]"
-                      :column="col"
-                      :edit-enabled="false"
-                      :read-only="true"
-                    />
-                  </template>
+                  <LazySmartsheetCell
+                    v-else
+                    v-model="record.row[col.title]"
+                    :column="col"
+                    :edit-enabled="false"
+                    :read-only="true"
+                  />
                 </div>
               </div>
             </div>

@@ -148,9 +148,6 @@ function onOpenModal({
     <LazySmartsheetSidebarToolbar
       class="min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] flex items-center py-3 px-3 justify-between border-b-1"
     />
-    <div v-if="isOpen" class="flex-1 flex flex-col min-h-0">
-      <MenuTop @open-modal="openModal" @deleted="loadViews" />
-    </div>
 
     <div class="flex-1 flex flex-col min-h-0">
       <GeneralOverlay v-if="!views.length" :model-value="isLoading" inline class="bg-gray-300/50">

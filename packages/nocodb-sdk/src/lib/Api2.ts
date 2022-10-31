@@ -809,7 +809,7 @@ export class HttpClient<SecurityDataType = unknown> {
     baseUrl,
     cancelToken,
     ...params
-  }: FullRequestParams & {wrapped?:any}): Promise<T> => {
+  }: FullRequestParams & { wrapped?: any }): Promise<T> => {
     const secureParams =
       ((typeof secure === 'boolean' ? secure : this.baseApiParams.secure) &&
         this.securityWorker &&

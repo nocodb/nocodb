@@ -68,4 +68,3 @@ export type SqlUIColumn = {
   uicn?: string;
   altered?: number;
 };
-

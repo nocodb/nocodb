@@ -4,6 +4,7 @@ import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 import { SortType } from 'nocodb-sdk';
 
+// Store is used for storing key value pairs
 export default class Store {
   key?: string;
   value?: string;

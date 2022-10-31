@@ -34,7 +34,7 @@ export function initStrategies(router): void {
         ApiToken.getByToken(token)
           .then((apiToken) => {
             if (!apiToken) {
-              return done({ msg: 'Invalid tok' });
+              return done({ msg: 'Invalid token' });
             }
 
             if (!apiToken.fk_user_id) return done(null, { roles: 'editor' });
@@ -44,7 +44,7 @@ export function initStrategies(router): void {
                 if (req.ncProjectId) {
                   ProjectUser.get(req.ncProjectId, user.id)
                     .then(async (projectUser) => {
-                      user.roles = projectUser?.roles || 'user';
+                      user.roles = projectUser?.roles || user.roles;
                       user.roles =
                         user.roles === 'owner' ? 'owner,creator' : user.roles;
                       // + (user.roles ? `,${user.roles}` : '');
@@ -169,7 +169,7 @@ export function initStrategies(router): void {
 
               ProjectUser.get(req.ncProjectId, user.id)
                 .then(async (projectUser) => {
-                  user.roles = projectUser?.roles || 'user';
+                  user.roles = projectUser?.roles || user.roles;
                   user.roles =
                     user.roles === 'owner' ? 'owner,creator' : user.roles;
                   // + (user.roles ? `,${user.roles}` : '');
@@ -287,7 +287,7 @@ export function initStrategies(router): void {
               if (req.ncProjectId) {
                 ProjectUser.get(req.ncProjectId, user.id)
                   .then(async (projectUser) => {
-                    user.roles = projectUser?.roles || 'user';
+                    user.roles = projectUser?.roles || user.roles;
                     user.roles =
                       user.roles === 'owner' ? 'owner,creator' : user.roles;
                     // + (user.roles ? `,${user.roles}` : '');

@@ -315,7 +315,7 @@ export default class RestAuthCtrl {
         if (apiToken) {
           done(null, { roles: 'editor' });
         } else {
-          return done({ msg: 'Invalid tok' });
+          return done({ msg: 'Invalid token' });
         }
       })
     );

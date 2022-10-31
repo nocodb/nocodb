@@ -1,68 +1,66 @@
-version: '3.9'
-
-networks:
-    frontend:
-        external: false
-    backend:
-        external: false
-
+version: "3.9"
+networks: 
+  backend: 
+    external: false
+  frontend: 
+    external: false
 # This is an example setup with an Nginx reverse proxy.
 # If you already have an Nginx reverse proxy running,
 # then allow the docker-compose.yml to reference an external network that the reverse proxy container is on
 # (in lieu of the frontend network in this file) and have the NocoDB container connect to it.
-
-services:
-    reverse_proxy:
-        image: nginx:alpine
-        container_name: reverse_proxy
-        volumes:
-            - ./certbot:/etc/letsencrypt:ro         # SSL certs
-            - ./nginx:/etc/nginx                    # Nginx config file
-            - path/to/webroot:/usr/share/nginx/html # Mount directory web site files for webroot certificate validation with Certbot
-        ports:
-            - 80:80
-            - 443:443
-        restart: unless-stopped
-        networks:
-            - frontend
-
-    certbot:
-        image: certbot/certbot
-        container_name: certbot
-        volumes:
-            - ./certbot:/etc/letsencrypt
-            - path/to/webroot:/var/www/html         # For webroot certificate validation
-        depends_on:
-            - reverse_proxy
-        command: certonly --webroot --webroot-path=/var/www/html --email user@example.domain --agree-tos --no-eff-email -d example.domain,www.example.domain,nocodb.example.domain
-
-    nocodb_app:
-        image: nocodb/nocodb:latest
-        container_name: nocodb_app
-        restart: unless-stopped
-        volumes:
-            - ./nocodb/data:/usr/app/data
-        networks:
-            - backend
-            - frontend
-        environment:
-            NC_DB: mysql2://nocodb_database:3306?u=root&p=${MYSQL_ROOT_PASSWORD}&d=${MYSQL_DATABASE}    # While it is not good practice to use the Root user, there were issues with granting privileges to a new user using the Linuxserver MariaDB image.
-            NC_PUBLIC_URL: ${NC_PUBLIC_URL}
-            NC_AUTH_JWT_SECRET: ${NC_AUTH_JWT_SECRET}
-        depends_on:
-            - nocodb_database
-
-    nocodb_database:
-        image: ghcr.io/linuxserver/mariadb:alpine     # Using the non-official MariaDB image because it is an alpine distro and has a considerably smaller footprint.
-        container_name: nocodb_database
-        volumes:
-            - ./mariadb/config:/config
-            - ./mariadb/data:/var/lib/mysql
-        networks:
-            - backend
-        restart: always
-        environment:
-            - MYSQL_ROOT_PASSWORD
-            - MYSQL_DATABASE
-            - MYSQL_USER
-            - MYSQL_PASSWORD
+services: 
+  certbot: 
+    command: "certonly --webroot --webroot-path=/var/www/html --email user@example.domain --agree-tos --no-eff-email -d example.domain,www.example.domain,nocodb.example.domain"
+    container_name: certbot
+    depends_on: 
+      - reverse_proxy
+    image: certbot/certbot
+    volumes: 
+      - "./certbot:/etc/letsencrypt"
+      - "path/to/webroot:/var/www/html" # For webroot certificate validation
+  nocodb_app: 
+    container_name: nocodb_app
+    depends_on: 
+      - nocodb_database
+    environment: 
+      NC_AUTH_JWT_SECRET: "${NC_AUTH_JWT_SECRET}"
+      # while it is not good practice to use the Root user, 
+      # there were issues with granting privileges to a new user using the Linux server MariaDB image.
+      NC_DB: "mysql2://nocodb_database:3306?u=root&p=${MYSQL_ROOT_PASSWORD}&d=${MYSQL_DATABASE}" 
+      NC_PUBLIC_URL: "${NC_PUBLIC_URL}"
+    image: "nocodb/nocodb:latest"
+    networks: 
+      - backend
+      - frontend
+    restart: unless-stopped
+    volumes: 
+      - "./nocodb/data:/usr/app/data"
+  nocodb_database: 
+    container_name: nocodb_database
+    environment: 
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+    # using the non-official MariaDB image 
+    # because it is an alpine distro and has a considerably smaller footprint
+    image: "ghcr.io/linuxserver/mariadb:alpine"
+    networks: 
+      - backend
+    restart: always
+    volumes: 
+      - "./mariadb/config:/config"
+      - "./mariadb/data:/var/lib/mysql"
+  reverse_proxy: 
+    container_name: reverse_proxy
+    image: "nginx:alpine"
+    networks: 
+      - frontend
+    ports: 
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    volumes: 
+      - "./certbot:/etc/letsencrypt:ro"             # SSL certs
+      - "./nginx:/etc/nginx"                        # Nginx config file
+      - "path/to/webroot:/usr/share/nginx/html"     # Mount directory web site files for webroot certificate validation with Certbot

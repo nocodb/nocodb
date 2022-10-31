@@ -113,6 +113,9 @@ const onSSLModeChange = ((mode: SSLUsage) => {
         delete connection.ssl
         break
       case SSLUsage.Allowed:
+        connection.ssl = 'no-verify'
+        break
+      case SSLUsage.Preferred:
         connection.ssl = 'true'
         break
       default:

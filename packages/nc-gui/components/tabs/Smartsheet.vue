@@ -44,6 +44,7 @@ const reloadViewMetaEventHook = createEventHook<void | boolean>()
 const openNewRecordFormHook = createEventHook<void>()
 
 useProvideKanbanViewStore(meta, activeView)
+useProvideMapViewStore()
 
 // todo: move to store
 provide(MetaInj, meta)

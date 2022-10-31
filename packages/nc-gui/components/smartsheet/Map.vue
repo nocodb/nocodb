@@ -37,23 +37,23 @@ onMounted(async () => {
 
 const markerRef = ref()
 const myMapRef = ref()
-const latitude = ref()
-const longitude = ref()
+// const latitude = ref()
+// const longitude = ref()
 const markersRef = ref()
 
-const { loadMapData, mapData } = useMapViewDataStore()
+const { staticData } = useMapViewStoreOrThrow()
 
 reloadViewDataHook?.on(async () => {
   alert('reloadViewDataHook for Map')
 })
 
-function addMarker() {
-  const markerNew = markerRef.value([parseFloat(latitude.value), parseFloat(longitude.value)])
-  console.log(markersRef.value)
-  markersRef.value.addLayer(markerNew)
+// function addMarker() {
+//   const markerNew = markerRef.value([parseFloat(latitude.value), parseFloat(longitude.value)])
+//   console.log(markersRef.value)
+//   markersRef.value.addLayer(markerNew)
 
-  myMapRef.value.addLayer(markersRef.value)
-}
+//   myMapRef.value.addLayer(markersRef.value)
+// }
 
 onMounted(async () => {
   const { map, tileLayer, marker } = await import('leaflet')
@@ -76,7 +76,7 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col h-full w-full">
-    {{ JSON.stringify(view) }}
+    {{ JSON.stringify(staticData) }}
     <!-- <div class="flex m-4 gap-4">
       <label :for="latitude">latitude</label>
       <input v-model="latitude" />

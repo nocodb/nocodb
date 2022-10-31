@@ -41,6 +41,8 @@ export function useApi<Data = any, RequestConfig = any>({
    */
   const { count, inc, dec } = useCounter(0)
 
+  watchEffect(() => console.log('useApi: count', count.value))
+
   /** is request loading */
   const isLoading = ref(false)
 

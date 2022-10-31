@@ -1,13 +1,14 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { MapType, TableType, ViewType } from 'nocodb-sdk'
 import { ref, useApi, useInjectionState } from '#imports'
+import type { Row } from '~/lib'
 
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
     meta: Ref<TableType | MapType | undefined>,
     viewMeta: Ref<ViewType | MapType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
   ) => {
-    const formattedData = ref<string[]>()
+    const formattedData = ref<Row[]>()
 
     const { api } = useApi()
     const { project } = useProject()

@@ -15,18 +15,18 @@ provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 // const meta = inject(MetaInj, ref())
-const view = inject(ActiveViewInj, ref())
+// const view = inject(ActiveViewInj, ref())
 
 // const { loadData, formattedData: data } = useViewData(meta, view)
 const { formattedData, loadMapData } = useMapViewStoreOrThrow()
 
-watch(view, async (nextView) => {
-  if (nextView?.type === ViewTypes.MAP) {
-    // loadData()
-    console.log('change')
-    alert('JO')
-  }
-})
+// watch(view, async (nextView) => {
+//   if (nextView?.type === ViewTypes.MAP) {
+//     // loadData()
+//     console.log('change')
+//     alert('JO')
+//   }
+// })
 
 // const { isUIAllowed } = useUIPermission()
 
@@ -35,9 +35,19 @@ onMounted(async () => {
   // const geodata = data.value[0].row.geo.split(';')
 })
 
+watch(formattedData, () => {
+  formattedData.value?.forEach((row) => {
+    // const [lat, long] =
+    console.log('row', row)
+    const [lat, long] = row?.['geo'].split(';').map(parseFloat)
+    console.log('lat', lat)
+    addMarker(lat, long)
+  })
+})
+
 const markerRef = ref()
 const myMapRef = ref()
-// const latitude = ref()
+// const latitude = formattedData.value
 // const longitude = ref()
 const markersRef = ref()
 
@@ -45,13 +55,13 @@ reloadViewDataHook?.on(async () => {
   loadMapData()
 })
 
-// function addMarker() {
-//   const markerNew = markerRef.value([parseFloat(latitude.value), parseFloat(longitude.value)])
-//   console.log(markersRef.value)
-//   markersRef.value.addLayer(markerNew)
+function addMarker(lat: number, long: number) {
+  const markerNew = markerRef.value([lat, long])
+  console.log(markersRef.value)
+  markersRef.value.addLayer(markerNew)
 
-//   myMapRef.value.addLayer(markersRef.value)
-// }
+  myMapRef.value.addLayer(markersRef.value)
+}
 
 onMounted(async () => {
   const { map, tileLayer, marker } = await import('leaflet')

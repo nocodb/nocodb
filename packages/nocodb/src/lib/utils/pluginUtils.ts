@@ -8,8 +8,8 @@ export async function waitForStreamClose(
       .once('finish', () => {
         resolve();
       })
-      .once('error', () => {
-        reject();
+      .once('error', (err) => {
+        reject(err);
       });
     stream.end();
   });

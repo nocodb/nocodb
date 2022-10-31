@@ -17,14 +17,11 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@4tw/cypress-drag-drop": "^2.0.0",
-    "cross-env": "^7.0.3",
     "cypress": "^9.2.0",
     "cypress-file-upload": "^5.0.8",
     "cypress-iframe": "^1.0.1",
     "fs": "0.0.1-security",
-    "jsdoc-to-markdown": "^5.0.3",
     "lerna": "^3.20.1",
-    "scriptjs": "^2.5.9",
     "xlsx": "^0.17.4"
   },
   "scripts": {

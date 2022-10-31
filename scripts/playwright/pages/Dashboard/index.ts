@@ -11,7 +11,6 @@ import { SettingsPage } from "./Settings";
 import { ViewSidebarPage } from "./ViewSidebar";
 import { GalleryPage } from "./Gallery";
 import { KanbanPage } from "./Kanban";
-import { ToolbarPage } from "./common/Toolbar";
 import { ImportAirtablePage } from "./Import/Airtable";
 import { ImportTemplatePage } from "./Import/ImportTemplate";
 import { WebhookFormPage } from "./WebhookForm";
@@ -90,6 +89,8 @@ export class DashboardPage extends BasePage {
     await projectsPage.waitToBeRendered();
   }
 
+  // When a tab is opened, it is not always immediately visible. 
+  // Hence will wait till contents are visible
   async waitForTabRender({
     title,
     mode = "standard",
@@ -135,11 +136,6 @@ export class DashboardPage extends BasePage {
     }
   }
 
-  // Project page language menu
-  async openLanguageMenu() {
-    await this.rootPage.locator(".nc-menu-translate").click();
-  }
-
   async openPasswordChangeModal() {
     // open change password portal
     await this.rootPage.locator(".nc-menu-accounts").click();
@@ -178,27 +174,6 @@ export class DashboardPage extends BasePage {
     await this.rootPage
       .locator('button[data-cy="nc-user-settings-form__submit"]')
       .click();
-  }
-
-  async selectLanguage({ index }: { index: number }) {
-    let modal = await this.rootPage.locator(".nc-dropdown-menu-translate");
-    await modal.locator(`.ant-dropdown-menu-item`).nth(index).click();
-
-    // fix me!
-    // allow time for language to change
-    await this.rootPage.waitForTimeout(1000);
-  }
-
-  async verifyLanguage(param: { json: any }) {
-    const title = await this.rootPage
-      .locator(`.nc-project-page-title`);
-    const menu = this.rootPage
-      .locator(`.nc-new-project-menu`);
-    await expect(title).toHaveText(param.json.title.myProject);
-    await expect(menu).toHaveText(param.json.title.newProj);
-    await this.rootPage
-      .locator(`[placeholder="${param.json.activity.searchProject}"]`)
-      .waitFor();
   }
 
   async signOut() {

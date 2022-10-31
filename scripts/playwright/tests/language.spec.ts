@@ -1,5 +1,6 @@
 import { test } from "@playwright/test";
 import { DashboardPage } from "../pages/Dashboard";
+import { ProjectsPage } from "../pages/ProjectsPage";
 import setup from "../setup";
 
 const langMenu = [
@@ -38,12 +39,14 @@ const langMenu = [
 ];
 
 test.describe("Common", () => {
-  let dashboard: DashboardPage;
   let context: any;
+  let dashboard: DashboardPage;
+  let projectsPage: ProjectsPage;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
+    projectsPage = new ProjectsPage(page);
   });
 
   test("Language", async () => {
@@ -53,9 +56,9 @@ test.describe("Common", () => {
     for (let i = 1; i < langMenu.length; i++) {
       // scripts/playwright/tests/language.spec.ts
       let json = require(`../../../packages/nc-gui/lang/${langMenu[i]}`);
-      await dashboard.openLanguageMenu();
-      await dashboard.selectLanguage({ index: i });
-      await dashboard.verifyLanguage({ json });
+      await projectsPage.openLanguageMenu();
+      await projectsPage.selectLanguage({ index: i });
+      await projectsPage.verifyLanguage({ json });
     }
   });
 });

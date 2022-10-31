@@ -167,4 +167,25 @@ export class ProjectsPage extends BasePage {
     // todo: vue navigation breaks if page changes very quickly
     await this.rootPage.waitForTimeout(1000);
   }
+
+  async openLanguageMenu() {
+    await this.rootPage.locator(".nc-menu-translate").click();
+  }
+
+  async selectLanguage({ index }: { index: number }) {
+    let modal = await this.rootPage.locator(".nc-dropdown-menu-translate");
+    await modal.locator(`.ant-dropdown-menu-item`).nth(index).click();
+  }
+
+  async verifyLanguage(param: { json: any }) {
+    const title = await this.rootPage
+      .locator(`.nc-project-page-title`);
+    const menu = this.rootPage
+      .locator(`.nc-new-project-menu`);
+    await expect(title).toHaveText(param.json.title.myProject);
+    await expect(menu).toHaveText(param.json.title.newProj);
+    await this.rootPage
+      .locator(`[placeholder="${param.json.activity.searchProject}"]`)
+      .waitFor();
+  }
 }

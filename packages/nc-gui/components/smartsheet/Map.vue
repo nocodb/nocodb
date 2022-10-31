@@ -14,11 +14,11 @@ provide(IsMapInj, ref(true))
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
-
-const meta = inject(MetaInj, ref())
+// const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 
-const { loadData, formattedData: data } = useViewData(meta, view)
+// const { loadData, formattedData: data } = useViewData(meta, view)
+const { formattedData, loadMapData } = useMapViewStoreOrThrow()
 
 watch(view, async (nextView) => {
   if (nextView?.type === ViewTypes.MAP) {
@@ -31,7 +31,7 @@ watch(view, async (nextView) => {
 // const { isUIAllowed } = useUIPermission()
 
 onMounted(async () => {
-  await loadData()
+  await loadMapData()
   // const geodata = data.value[0].row.geo.split(';')
 })
 
@@ -41,10 +41,8 @@ const myMapRef = ref()
 // const longitude = ref()
 const markersRef = ref()
 
-const { staticData } = useMapViewStoreOrThrow()
-
 reloadViewDataHook?.on(async () => {
-  alert('reloadViewDataHook for Map')
+  loadMapData()
 })
 
 // function addMarker() {
@@ -76,7 +74,7 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col h-full w-full">
-    {{ JSON.stringify(staticData) }}
+    {{ JSON.stringify(formattedData) }}
     <!-- <div class="flex m-4 gap-4">
       <label :for="latitude">latitude</label>
       <input v-model="latitude" />

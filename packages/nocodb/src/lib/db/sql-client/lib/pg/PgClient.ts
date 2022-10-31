@@ -841,9 +841,9 @@ class PGClient extends KnexClient {
         // todo : need to find if column is unique or not
         // column['unique'] = response.rows[i]['cst'].indexOf('UNIQUE') === -1 ? false : true;
 
-        column.cdf = response.rows[i].cdf;
-        // ? response.rows[i].cdf.split("::")[0].replace(/'/g, "")
-        // : response.rows[i].cdf;
+        column.cdf = response.rows[i].cdf?.match('::')
+          ? response.rows[i].cdf.split('::')[0].replace(/'/g, '')
+          : response.rows[i].cdf;
 
         // todo : need to find column comment
         column.cc = response.rows[i].cc;
@@ -2698,7 +2698,7 @@ class PGClient extends KnexClient {
     } else if (change === 1) {
       query += this.genQuery(` ADD ?? ${n.dt}`, [n.cn], shouldSanitize);
       query += n.rqd ? ' NOT NULL' : ' NULL';
-      query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
+      query += defaultValue ? ` DEFAULT '${defaultValue}'` : '';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {
       if (n.cn !== o.cn) {
@@ -2732,7 +2732,7 @@ class PGClient extends KnexClient {
           [t, n.cn],
           shouldSanitize
         );
-        query += n.cdf ? ` SET DEFAULT ${n.cdf};\n` : ` DROP DEFAULT;\n`;
+        query += n.cdf ? ` SET DEFAULT '${n.cdf}';\n` : ` DROP DEFAULT;\n`;
       }
     }
     return query;

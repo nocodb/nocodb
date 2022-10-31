@@ -163,7 +163,7 @@ test.describe("Form view", () => {
     // enable 'email-me' option
     await form.showAnotherFormAfter5SecRadioButton.click();
     await form.emailMeRadioButton.click();
-    await dashboard.toastWait({
+    await dashboard.verifyToast({
       message:
         "Please activate SMTP plugin in App store for enabling email notification",
     });
@@ -177,7 +177,7 @@ test.describe("Form view", () => {
       host: "smtp.gmail.com",
       port: "587",
     });
-    await dashboard.toastWait({
+    await dashboard.verifyToast({
       message:
         "Successfully installed and email notification will use SMTP configuration",
     });
@@ -197,7 +197,7 @@ test.describe("Form view", () => {
     await dashboard.settings.selectTab({ tab: SettingTab.AppStore });
     await dashboard.settings.appStore.uninstall({ name: "SMTP" });
 
-    await dashboard.toastWait({
+    await dashboard.verifyToast({
       message: "Plugin uninstalled successfully",
     });
     await dashboard.settings.close();

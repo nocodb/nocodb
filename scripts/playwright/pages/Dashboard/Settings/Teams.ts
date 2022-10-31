@@ -44,7 +44,7 @@ export class TeamsPage extends BasePage {
     const userRoleModal = this.rootPage.locator(`.nc-dropdown-user-role`);
     await userRoleModal.locator(`.nc-role-option:has-text("${role}")`).click();
     await this.inviteTeamModal.locator(`button:has-text("Invite")`).click();
-    await this.toastWait({ message: "Successfully updated the user details" });
+    await this.verifyToast({ message: "Successfully updated the user details" });
 
     return await this.inviteTeamModal.locator(`.ant-alert-message`).innerText();
   }

@@ -210,7 +210,7 @@ export class ColumnPageObject extends BasePage {
       responseJsonMatcher: (json) => json['pageInfo'],
     });
 
-    await this.toastWait({
+    await this.verifyToast({
       message: isUpdated ? "Column updated" : "Column created",
     });
     await this.get().waitFor({ state: "hidden" });

@@ -63,7 +63,7 @@ test.describe("Expanded form URL", () => {
     await dashboard.rootPage.goto(
       "/" + url.split("/").slice(3).join("/").split("?")[0] + "?rowId=999"
     );
-    await dashboard.toastWait({ message: "Record not found" });
+    await dashboard.verifyToast({ message: "Record not found" });
     // ensure grid is displayed after invalid URL access
     await viewObj.verifyRowCount({ count: 25 });
 

@@ -48,7 +48,7 @@ export class ViewSidebarPage extends BasePage {
       uiAction: submitAction,
       responseJsonMatcher: (json) => json.title === title,
     });
-    await this.toastWait({ message: "View created successfully" });
+    await this.verifyToast({ message: "View created successfully" });
     // Todo: Wait for view to be rendered
     await this.rootPage.waitForTimeout(1000);
   }
@@ -132,7 +132,7 @@ export class ViewSidebarPage extends BasePage {
     //   .locator(".nc-modal-view-delete")
     //   .locator('button:has-text("Submit")')
     //   .waitFor({ state: "detached" });
-    await this.toastWait({ message: "View deleted successfully" });
+    await this.verifyToast({ message: "View deleted successfully" });
   }
 
   async renameView({ title, newTitle }: { title: string; newTitle: string }) {
@@ -144,7 +144,7 @@ export class ViewSidebarPage extends BasePage {
       .locator("input")
       .fill(newTitle);
     await this.get().press("Enter");
-    await this.toastWait({ message: "View renamed successfully" });
+    await this.verifyToast({ message: "View renamed successfully" });
   }
 
   async copyView({ title }: { title: string }) {
@@ -162,7 +162,7 @@ export class ViewSidebarPage extends BasePage {
       requestUrlPathToMatch: "/api/v1/db/meta/tables/",
       uiAction: submitAction,
     });
-    await this.toastWait({ message: "View created successfully" });
+    await this.verifyToast({ message: "View created successfully" });
   }
 
   async validateRoleAccess(param: { role: string }) {

@@ -32,7 +32,7 @@ test.describe("Super user", () => {
       .locator('[placeholder="Webhook URL"]')
       .fill("http://test.com");
     await slackModal.locator('button:has-text("Save")').click();
-    await dashboard.toastWait({ message: "Successfully installed" });
+    await dashboard.verifyToast({ message: "Successfully installed" });
 
     // Modify configuration
     await card.click();
@@ -45,13 +45,13 @@ test.describe("Super user", () => {
       .locator('[placeholder="Webhook URL"]')
       .fill("http://test2.com");
     await slackModal.locator('button:has-text("Save")').click();
-    await dashboard.toastWait({ message: "Successfully installed" });
+    await dashboard.verifyToast({ message: "Successfully installed" });
 
     // Uninstall
     await card.click();
     await card.locator(".nc-app-store-card-reset").click();
     slackModal = await appPage.locator(".nc-modal-plugin-uninstall");
     await slackModal.locator('button:has-text("Confirm")').click();
-    await dashboard.toastWait({ message: "Plugin uninstalled successfully" });
+    await dashboard.verifyToast({ message: "Plugin uninstalled successfully" });
   });
 });

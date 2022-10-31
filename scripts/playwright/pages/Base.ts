@@ -1,4 +1,4 @@
-import { Page, expect, Locator } from "@playwright/test";
+import { Page, Locator } from "@playwright/test";
 
 type ResponseSelector = (json: any) => boolean;
 
@@ -11,17 +11,11 @@ export default abstract class BasePage {
     this.rootPage = rootPage;
   }
 
-  async toastWait({ message }: { message: string }) {
-    // todo: text of toaster shows old one in the test assertion
+  async verifyToast({ message }: { message: string }) {
     await this.rootPage
       .locator(".ant-message .ant-message-notice-content", { hasText: message })
       .last()
       .isVisible();
-
-    // await this.rootPage
-    //   .locator(".ant-message .ant-message-notice-content", { hasText: message })
-    //   .last()
-    //   .waitFor({ state: "detached" });
   }
 
   async waitForResponse({

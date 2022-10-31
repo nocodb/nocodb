@@ -26,6 +26,6 @@ export class AclPage extends BasePage {
       httpMethodsToMatch: ["POST"],
       requestUrlPathToMatch: '/visibility-rules'
     })
-    await this.toastWait({ message: "Updated UI ACL for tables successfully" });
+    await this.verifyToast({ message: "Updated UI ACL for tables successfully" });
   }
 }

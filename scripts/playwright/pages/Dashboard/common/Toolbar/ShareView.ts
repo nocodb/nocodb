@@ -23,7 +23,7 @@ export class ToolbarShareViewPage extends BasePage {
     await this.get()
       .locator(`[data-pw="nc-modal-share-view__save-password"]`)
       .click();
-    await this.toastWait({ message: "Successfully updated" });
+    await this.verifyToast({ message: "Successfully updated" });
   }
 
   async disablePassword() {

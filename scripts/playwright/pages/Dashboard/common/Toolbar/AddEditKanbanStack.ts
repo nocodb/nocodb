@@ -20,6 +20,6 @@ export class ToolbarAddEditStackPage extends BasePage {
       .locator(`.nc-select-option >> input`)
       .last()
       .press("Enter");
-    await this.toastWait({ message: "Column updated" });
+    await this.verifyToast({ message: "Column updated" });
   }
 }

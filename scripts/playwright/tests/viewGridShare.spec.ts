@@ -213,7 +213,7 @@ test.describe("Shared view", () => {
       .locator('input[placeholder="Enter password"]')
       .fill("incorrect p@ssword");
     await sharedPage2.rootPage.click('button:has-text("Unlock")');
-    await sharedPage2.toastWait({ message: "INVALID_SHARED_VIEW_PASSWORD" });
+    await sharedPage2.verifyToast({ message: "INVALID_SHARED_VIEW_PASSWORD" });
 
     // correct password
     await sharedPage2.rootPage

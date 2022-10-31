@@ -149,7 +149,7 @@ export class TreeViewPage extends BasePage {
       .locator('[placeholder="Enter table name"]')
       .fill(newTitle);
     await this.dashboard.get().locator('button:has-text("Submit")').click();
-    await this.toastWait({ message: "Table renamed successfully" });
+    await this.verifyToast({ message: "Table renamed successfully" });
   }
 
   async reorderTables({

@@ -25,7 +25,7 @@ export class MetaDataPage extends BasePage {
 
   async sync(){
     await this.get().locator(`button:has-text("Sync Now")`).click();
-    await this.toastWait({message: 'Table metadata recreated successfully'});
+    await this.verifyToast({message: 'Table metadata recreated successfully'});
     await this.get().locator(`.animate-spin`).waitFor({state: 'visible'});
     await this.get().locator(`.animate-spin`).waitFor({state: 'detached'});
   }

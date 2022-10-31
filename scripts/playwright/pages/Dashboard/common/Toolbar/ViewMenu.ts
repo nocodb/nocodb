@@ -79,17 +79,17 @@ export class ToolbarViewMenuPage extends BasePage {
 
       switch (subMenu) {
         case "Download as CSV":
-          await this.toastWait({
+          await this.verifyToast({
             message: "Successfully exported all table data",
           });
           break;
         case "Locked View":
-          await this.toastWait({
+          await this.verifyToast({
             message: "Successfully Switched to locked view",
           });
           break;
         case "Collaborative View":
-          await this.toastWait({
+          await this.verifyToast({
             message: "Successfully Switched to collaborative view",
           });
           break;

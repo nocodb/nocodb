@@ -123,7 +123,7 @@ export class WebhookFormPage extends BasePage {
 
   async test() {
     await this.testButton.click();
-    await this.toastWait({ message: "Webhook tested successfully" });
+    await this.verifyToast({ message: "Webhook tested successfully" });
   }
 
   async delete({ index }: { index: number }) {
@@ -131,7 +131,7 @@ export class WebhookFormPage extends BasePage {
     await this.toolbar.actions.click("Webhooks");
 
     await this.get().locator(`.nc-hook-delete-icon`).nth(index).click();
-    await this.toastWait({ message: "Hook deleted successfully" });
+    await this.verifyToast({ message: "Hook deleted successfully" });
 
     // click escape to close the drawer
     await this.get().press("Escape");

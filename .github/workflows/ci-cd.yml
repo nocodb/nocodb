@@ -59,7 +59,7 @@ jobs:
             start: |
               npm run start:api:cache
               npm run start:web
-              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
+              docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress/integration/test/restTableOps.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
@@ -105,7 +105,7 @@ jobs:
             start: |
               npm run start:api:cache
               npm run start:web
-              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
+              docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress/integration/test/restViews.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
@@ -151,7 +151,7 @@ jobs:
             start: |
               npm run start:api:cache
               npm run start:web
-              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
+              docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress/integration/test/restRoles.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
@@ -197,7 +197,7 @@ jobs:
             start: |
               npm run start:api:cache
               npm run start:web
-              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
+              docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress/integration/test/restMisc.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
@@ -243,7 +243,7 @@ jobs:
             start: |
               npm run start:xcdb-api:cache
               npm run start:web
-              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
+              docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress/integration/test/xcdb-restTableOps.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
@@ -289,7 +289,7 @@ jobs:
             start: |
               npm run start:xcdb-api:cache
               npm run start:web
-              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
+              docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress/integration/test/xcdb-restViews.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
@@ -335,7 +335,7 @@ jobs:
             start: |
               npm run start:xcdb-api:cache
               npm run start:web
-              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
+              docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress/integration/test/xcdb-restRoles.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
@@ -381,7 +381,7 @@ jobs:
             start: |
               npm run start:xcdb-api:cache
               npm run start:web
-              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
+              docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress/integration/test/xcdb-restMisc.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
@@ -612,7 +612,7 @@ jobs:
               cp ./scripts/cypress/fixtures/quickTest/noco_0_91_7.db ./packages/nocodb/noco.db
               npm run start:api:cache
               npm run start:web
-              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
+              docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress/integration/test/quickTest.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200
@@ -707,7 +707,7 @@ jobs:
           run: npm install
         - name: setup mysql
           working-directory: ./
-          run: docker-compose -f ./scripts/docker-compose-cypress.yml up -d
+          run: docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
         - name: run unit tests
           working-directory: ./packages/nocodb
           run: npm run test:unit
@@ -745,7 +745,7 @@ jobs:
             start: |
               npm run start:api:cache
               npm run start:web
-              docker-compose -f ./scripts/docker-compose-cypress.yml up -d
+              docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
             spec: "./scripts/cypress/integration/test/db-independent.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png"
             wait-on-timeout: 1200

@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { ActiveCellInj, ColumnInj, IsFormInj, ReadonlyInj, getMdiIcon, inject, useSelectedCellKeyupListener } from '#imports'
+import {
+  ActiveCellInj,
+  ColumnInj,
+  IsFormInj,
+  ReadonlyInj,
+  getMdiIcon,
+  inject,
+  useSelectedCellKeyupListener,
+} from '#imports'
 
 interface Props {
   // If the previous cell value was a text, the initial checkbox value is a string type
@@ -14,6 +22,8 @@ interface Emits {
 const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
+
+const active = inject(ActiveCellInj, ref(false))
 
 let vModel = $computed({
   get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0,
@@ -37,13 +47,13 @@ const checkboxMeta = $computed(() => {
   }
 })
 
-function onClick() {
-  if (!readOnly?.value) {
+function onClick(force?: boolean) {
+  if (!readOnly?.value && (force || active.value)) {
     vModel = !vModel
   }
 }
 
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
+useSelectedCellKeyupListener(active, (e) => {
   switch (e.key) {
     case 'Enter':
       onClick()
@@ -62,7 +72,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
       'nc-cell-hover-show': !vModel && !readOnly,
       'opacity-0': readOnly && !vModel,
     }"
-    @click="onClick"
+    @click="onClick(false)"
   >
     <div class="px-1 pt-1 rounded-full items-center" :class="{ 'bg-gray-100': !vModel, '!ml-[-8px]': readOnly }">
       <Transition name="layout" mode="out-in" :duration="100">
@@ -71,6 +81,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
           :style="{
             color: checkboxMeta.color,
           }"
+          @click.stop="onClick(true)"
         />
       </Transition>
     </div>

@@ -94,7 +94,7 @@ const handleKeys = (e: KeyboardEvent) => {
       break
     case 'ArrowDown':
     case 'ArrowUp':
-      e.stopPropagation()
+      if (isOpen.value) e.stopPropagation()
       break
     case 'Enter':
       isOpen.value = true
@@ -141,9 +141,9 @@ watch(isOpen, (n, _o) => {
 })
 
 useSelectedCellKeyupListener(active, (e) => {
-  if (e.key === 'Enter') {
-    e.stopPropagation()
-    isOpen.value = true
+  if (e.key === 'Escape') {
+    // e.stopPropagation()
+    isOpen.value = false
   }
 })
 </script>
@@ -160,9 +160,9 @@ useSelectedCellKeyupListener(active, (e) => {
     :open="isOpen"
     :disabled="readOnly"
     :class="{ '!ml-[-8px]': readOnly }"
-    dropdown-class-name="nc-dropdown-multi-select-cell"
+    :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
     @keydown="handleKeys"
-    @click="isOpen = !isOpen"
+    @click="isOpen = active && !isOpen"
   >
     <a-select-option
       v-for="op of options"

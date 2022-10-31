@@ -18,6 +18,7 @@ export function useMultiSelect(
   clearCell: Function,
   makeEditable: Function,
   scrollToActiveCell?: (row?: number | null, col?: number | null) => void,
+  keyEventHandler?: Function,
 ) {
   const { t } = useI18n()
 
@@ -126,6 +127,11 @@ export function useMultiSelect(
   })
 
   const onKeyDown = async (e: KeyboardEvent) => {
+    // invoke the keyEventHandler if provided and return if it returns true
+    if (await keyEventHandler?.(e)) {
+      return
+    }
+
     if (
       !isNaN(selectedRows.startRow) &&
       !isNaN(selectedRows.startCol) &&

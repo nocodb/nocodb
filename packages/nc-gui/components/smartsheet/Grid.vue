@@ -213,6 +213,16 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
       })
     }
   },
+  (e: KeyboardEvent) => {
+    console.log(e)
+    if (e.code === 'Space') {
+      if (selected.row !== null && !editEnabled) {
+        const row = data.value[selected.row]
+        expandForm(row)
+        return true
+      }
+    }
+  },
 )
 
 onMounted(loadGridViewColumns)
@@ -234,7 +244,7 @@ const showLoading = ref(true)
 
 const skipRowRemovalOnCancel = ref(false)
 
-const expandForm = (row: Row, state?: Record<string, any>, fromToolbar = false) => {
+function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (rowId) {
@@ -334,8 +344,9 @@ onClickOutside(smartTable, (e: PointerEvent) => {
   if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
 
   // ignore unselecting if clicked inside or on the picker(Date, Time, DateTime, Year)
+  // or single/multi select options
   const activePickerEl = document.querySelector(
-    '.nc-picker-datetime.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
   )
   if (e.target && activePickerEl && (activePickerEl === e.target || activePickerEl?.contains(e.target as Element))) return
 

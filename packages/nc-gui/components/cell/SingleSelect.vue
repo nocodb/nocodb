@@ -52,7 +52,7 @@ const handleKeys = (e: KeyboardEvent) => {
       break
     case 'ArrowDown':
     case 'ArrowUp':
-      e.stopPropagation()
+      if (isOpen.value) e.stopPropagation()
       break
     case 'Enter':
       isOpen.value = true
@@ -85,10 +85,10 @@ watch(isOpen, (n, _o) => {
     :open="isOpen"
     :disabled="readOnly"
     :show-arrow="!readOnly && (active || vModel === null)"
-    dropdown-class-name="nc-dropdown-single-select-cell"
+    :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
     @select="isOpen = false"
     @keydown="handleKeys"
-    @click="isOpen = !isOpen"
+    @click="isOpen = active && !isOpen"
   >
     <a-select-option
       v-for="op of options"

@@ -20,6 +20,12 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj)
 // const { loadData, formattedData: data } = useViewData(meta, view)
 const { formattedData, loadMapData } = useMapViewStoreOrThrow()
 
+const markerRef = ref()
+const myMapRef = ref()
+// const latitude = formattedData.value
+// const longitude = ref()
+const markersRef = ref<L.MarkerClusterGroup | undefined>()
+
 // watch(view, async (nextView) => {
 //   if (nextView?.type === ViewTypes.MAP) {
 //     // loadData()
@@ -36,26 +42,26 @@ onMounted(async () => {
 })
 
 watch(formattedData, () => {
+  markersRef.value?.clearLayers()
   formattedData.value?.forEach((row) => {
     // const [lat, long] =
     console.log('row', row)
-    const [lat, long] = row?.['geo'].split(';').map(parseFloat)
+    if (row?.geo == null) return
+    const [lat, long] = row?.geo.split(';').map(parseFloat)
+    // if (lat == null || long == null) {
+    //   return
+    // }
     console.log('lat', lat)
     addMarker(lat, long)
   })
 })
-
-const markerRef = ref()
-const myMapRef = ref()
-// const latitude = formattedData.value
-// const longitude = ref()
-const markersRef = ref()
 
 reloadViewDataHook?.on(async () => {
   loadMapData()
 })
 
 function addMarker(lat: number, long: number) {
+  // markersRef.value?.clearLayers()
   const markerNew = markerRef.value([lat, long])
   console.log(markersRef.value)
   markersRef.value.addLayer(markerNew)

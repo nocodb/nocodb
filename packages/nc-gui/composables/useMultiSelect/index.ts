@@ -176,11 +176,9 @@ export function useMultiSelect(
         break
       /** on delete key press clear cell */
       case 'Delete':
-        if (!unref(editEnabled)) {
-          e.preventDefault()
-          clearRangeRows()
-          await clearCell(selected as { row: number; col: number })
-        }
+        e.preventDefault()
+        clearRangeRows()
+        await clearCell(selected as { row: number; col: number })
         break
       /** on arrow key press navigate through cells */
       case 'ArrowRight':

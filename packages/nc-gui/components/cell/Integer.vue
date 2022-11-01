@@ -38,6 +38,7 @@ function onKeyDown(evt: KeyboardEvent) {
     @keydown.left.stop
     @keydown.right.stop
     @keydown.up.stop
+    @keydown.delete.stop
   />
   <span v-else class="text-sm">{{ vModel }}</span>
 </template>

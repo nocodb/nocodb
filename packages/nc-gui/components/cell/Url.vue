@@ -83,6 +83,7 @@ watch(
       @keydown.left.stop
       @keydown.right.stop
       @keydown.up.stop
+      @keydown.delete.stop
     />
 
     <nuxt-link

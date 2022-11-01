@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onUnmounted } from '@vue/runtime-core'
-import { Card } from 'ant-design-vue'
+import type { Card } from 'ant-design-vue'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {

@@ -25,6 +25,7 @@ const vModel = useVModel(props, 'modelValue', emits)
     @keydown.left.stop
     @keydown.right.stop
     @keydown.up.stop
+    @keydown.delete.stop
   />
   <span v-else>{{ vModel }}</span>
 </template>

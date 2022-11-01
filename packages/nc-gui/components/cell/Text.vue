@@ -31,6 +31,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     @keydown.left.stop
     @keydown.right.stop
     @keydown.up.stop
+    @keydown.delete.stop
   />
 
   <span v-else>{{ vModel }}</span>

@@ -30,6 +30,7 @@ const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
     @keydown.left.stop
     @keydown.right.stop
     @keydown.up.stop
+    @keydown.delete.stop
   />
 
   <span v-else>{{ vModel }}</span>

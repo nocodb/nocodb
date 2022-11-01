@@ -541,9 +541,13 @@ export async function metaDiff(req, res) {
   const project = await Project.getWithInfo(req.params.projectId);
   let changes = []
   for (const base of project.bases) {
-    // @ts-ignore
-    const sqlClient = NcConnectionMgrv2.getSqlClient(base);
-    changes = changes.concat(await getMetaDiff(sqlClient, project, base));
+    try {
+      // @ts-ignore
+      const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+      changes = changes.concat(await getMetaDiff(sqlClient, project, base));
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   res.json(changes);

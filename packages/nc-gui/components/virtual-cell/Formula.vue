@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { message } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { CellValueInj, ColumnInj, computed, handleTZ, inject, ref, replaceUrlsWithLink, useProject } from '#imports'
@@ -13,11 +12,20 @@ const { isPg } = useProject()
 
 const showEditFormulaWarning = ref(false)
 
+const showClearFormulaWarning = ref(false)
+
 const showEditFormulaWarningMessage = () => {
   showEditFormulaWarning.value = true
 
   setTimeout(() => {
     showEditFormulaWarning.value = false
+  }, 3000)
+}
+const showClearFormulaWarningMessage = () => {
+  showClearFormulaWarning.value = true
+
+  setTimeout(() => {
+    showClearFormulaWarning.value = false
   }, 3000)
 }
 
@@ -28,10 +36,10 @@ const urls = computed(() => replaceUrlsWithLink(result.value))
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
-      message.warning('Formula fields should be configured in the field menu dropdown')
+      showEditFormulaWarningMessage()
       break
     case 'Delete':
-      message.warning('Computed field: unable to clear text')
+      showClearFormulaWarningMessage()
       break
   }
 })
@@ -52,9 +60,13 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
 
       <div v-else>{{ result }}</div>
 
-      <div v-if="showEditFormulaWarning" class="text-left text-wrap mt-2 text-[#e65100]">
+      <div v-if="showEditFormulaWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         <!-- TODO: i18n -->
         Warning: Formula fields should be configured in the field menu dropdown.
+      </div>
+      <div v-if="showClearFormulaWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+        <!-- TODO: i18n -->
+        Warning: Computed field - unable to clear text.
       </div>
     </div>
   </div>

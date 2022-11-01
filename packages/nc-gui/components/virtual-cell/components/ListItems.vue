@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { onUnmounted } from '@vue/runtime-core'
 import type { Card } from 'ant-design-vue'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
@@ -105,34 +104,25 @@ watch(expandedFormDlg, (nexVal) => {
   if (!nexVal && !isNew.value) vModel.value = false
 })
 
-const { cleanup } = useSelectedCellKeyupListener(
-  vModel,
-  (e: KeyboardEvent) => {
-    switch (e.key) {
-      case 'ArrowUp':
-        selectedRowIndex.value = Math.max(0, selectedRowIndex.value - 1)
+useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'ArrowUp':
+      selectedRowIndex.value = Math.max(0, selectedRowIndex.value - 1)
+      e.stopPropagation()
+      break
+    case 'ArrowDown':
+      selectedRowIndex.value = Math.min(childrenExcludedList.value?.list?.length - 1, selectedRowIndex.value + 1)
+      e.stopPropagation()
+      break
+    case 'Enter':
+      const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
+      if (selectedRow) {
+        linkRow(selectedRow)
         e.stopPropagation()
-        break
-      case 'ArrowDown':
-        selectedRowIndex.value = Math.min(childrenExcludedList.value?.list?.length - 1, selectedRowIndex.value + 1)
-        e.stopPropagation()
-        break
-      case 'Enter':
-        const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
-        if (selectedRow) {
-          linkRow(selectedRow)
-          e.stopPropagation()
-        }
-        break
-    }
-  },
-  true,
-)
-
-onUnmounted(() => {
-  cleanup.value?.()
+      }
+      break
+  }
 })
-
 const activeRow = (el: InstanceType<typeof Card>) => {
   el?.$el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 }

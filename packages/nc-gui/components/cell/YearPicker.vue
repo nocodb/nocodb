@@ -4,9 +4,10 @@ import { ReadonlyInj, computed, inject, onClickOutside, ref, watch } from '#impo
 
 interface Props {
   modelValue?: number | string | null
+  isPk?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, isPk = false } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -63,9 +64,9 @@ const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
     :bordered="false"
     class="!w-full !px-0 !border-none"
     :placeholder="placeholder"
-    :allow-clear="!readOnly"
+    :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :open="readOnly ? false : open"
+    :open="readOnly || (localState && isPk) ? false : open"
     :dropdown-class-name="`${randomClass} nc-picker-year`"
     @click="open = !open"
     @change="open = !open"

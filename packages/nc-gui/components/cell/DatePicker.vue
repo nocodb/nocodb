@@ -4,9 +4,10 @@ import { ColumnInj, ReadonlyInj, computed, inject, ref, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null
+  isPk?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -65,10 +66,10 @@ const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
     class="!w-full !px-0 !border-none"
     :format="dateFormat"
     :placeholder="placeholder"
-    :allow-clear="!readOnly"
+    :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-date`"
-    :open="readOnly ? false : open"
+    :open="readOnly || (localState && isPk) ? false : open"
     @click="open = !open"
   >
     <template #suffixIcon></template>

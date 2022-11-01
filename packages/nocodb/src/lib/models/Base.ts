@@ -195,65 +195,42 @@ export default class Base implements BaseType {
 
   static async reorderBases(projectId: string, keepBase?: string, ncMeta = Noco.ncMeta) {
     const bases = await this.list({ projectId: projectId }, ncMeta);
-
-    // order list for bases
-    const orders = [];
-    const takenOrders = bases.map((base) => base.order);
     
     if (keepBase) {
-      bases.find((base) => {
-        if (base.id === keepBase) {
-          orders.push({ id: base.id, order: base.order });
-        }
-      });
-    }
-
-    for (const b of bases) {
-      if (b.id === keepBase) continue;
-      let tempIndex = b.order;
-      if (!b.order || orders.find((o) => o.order === tempIndex)) {
-        tempIndex = 1;
-        while (takenOrders.includes(tempIndex)) {
-          tempIndex++;
-        }
+      const kpBase = bases.splice(bases.indexOf(bases.find((base) => base.id === keepBase)), 1);
+      if (kpBase.length) {
+        bases.splice(kpBase[0].order - 1, 0, kpBase[0]);
       }
-      // use index as order if order is not set
-      orders.push({ id: b.id, order: tempIndex });
     }
 
-    orders.sort((a, b) => a.order - b.order);
-    
     // update order for bases
-    for (const [i, o] of Object.entries(orders)) {
-      const fnd = bases.find((b) => b.id === o.id);
-      if (fnd && (!fnd.order || fnd.order != parseInt(i) + 1)) {
-        await ncMeta.metaDelete(null, null, MetaTable.BASES, {
-          id: fnd.id,
-        });
-    
-        await NocoCache.deepDel(
-          CacheScope.BASE,
-          `${CacheScope.BASE}:${fnd.id}`,
-          CacheDelDirection.CHILD_TO_PARENT
-        );
-          
-        fnd.order = parseInt(i) + 1;
-    
-        const { id } = await ncMeta.metaInsert2(
-          fnd.project_id,
-          null,
-          MetaTable.BASES,
-          fnd
-        );
+    for (const [i, b] of Object.entries(bases)) {
+      await ncMeta.metaDelete(null, null, MetaTable.BASES, {
+        id: b.id,
+      });
+  
+      await NocoCache.deepDel(
+        CacheScope.BASE,
+        `${CacheScope.BASE}:${b.id}`,
+        CacheDelDirection.CHILD_TO_PARENT
+      );
+        
+      b.order = parseInt(i) + 1;
+  
+      const { id } = await ncMeta.metaInsert2(
+        b.project_id,
+        null,
+        MetaTable.BASES,
+        b
+      );
 
-        await NocoCache.appendToList(
-          CacheScope.BASE,
-          [fnd.project_id],
-          `${CacheScope.BASE}:${id}`
-        );
+      await NocoCache.appendToList(
+        CacheScope.BASE,
+        [b.project_id],
+        `${CacheScope.BASE}:${id}`
+      );
 
-        await NocoCache.set(`${CacheScope.BASE}:${id}`, fnd);
-      }
+      await NocoCache.set(`${CacheScope.BASE}:${id}`, b);
     }
   }
 

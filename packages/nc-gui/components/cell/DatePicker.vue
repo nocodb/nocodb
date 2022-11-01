@@ -7,7 +7,7 @@ interface Props {
   editEnabled?: boolean | undefined
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, editEnabled } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -66,10 +66,10 @@ const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
     class="!w-full !px-0 !border-none"
     :format="dateFormat"
     :placeholder="placeholder"
-    :allow-clear="!readOnly && $props.editEnabled"
+    :allow-clear="!readOnly && editEnabled"
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-date`"
-    :open="readOnly || !$props.editEnabled ? false : open"
+    :open="readOnly || !editEnabled ? false : open"
     @click="open = !open"
   >
     <template #suffixIcon></template>

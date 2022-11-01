@@ -16,7 +16,7 @@ watch(
     // todo: replace setTimeout
     setTimeout(() => {
       if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
-    }, 200)
+    }, 200
   },
   { immediate: true },
 )

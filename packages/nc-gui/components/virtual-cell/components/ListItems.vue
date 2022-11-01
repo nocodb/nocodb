@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { onUnmounted } from '@vue/runtime-core'
+import { Card } from 'ant-design-vue'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
@@ -104,29 +105,37 @@ watch(expandedFormDlg, (nexVal) => {
   if (!nexVal && !isNew.value) vModel.value = false
 })
 
-const removeListeners = useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'ArrowUp':
-      selectedRowIndex.value = Math.max(0, selectedRowIndex.value - 1)
-      e.stopPropagation()
-      break
-    case 'ArrowDown':
-      selectedRowIndex.value = Math.min(childrenExcludedList.value?.list?.length - 1, selectedRowIndex.value + 1)
-      e.stopPropagation()
-      break
-    case 'Enter':
-      const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
-      if (selectedRow) {
-        linkRow(selectedRow)
+const { cleanup } = useSelectedCellKeyupListener(
+  vModel,
+  (e: KeyboardEvent) => {
+    switch (e.key) {
+      case 'ArrowUp':
+        selectedRowIndex.value = Math.max(0, selectedRowIndex.value - 1)
         e.stopPropagation()
-      }
-      break
-  }
-}, true)
+        break
+      case 'ArrowDown':
+        selectedRowIndex.value = Math.min(childrenExcludedList.value?.list?.length - 1, selectedRowIndex.value + 1)
+        e.stopPropagation()
+        break
+      case 'Enter':
+        const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
+        if (selectedRow) {
+          linkRow(selectedRow)
+          e.stopPropagation()
+        }
+        break
+    }
+  },
+  true,
+)
 
 onUnmounted(() => {
-  removeListeners()
+  cleanup.value?.()
 })
+
+const activeRow = (el: InstanceType<typeof Card>) => {
+  el?.$el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+}
 </script>
 
 <template>
@@ -162,9 +171,10 @@ onUnmounted(() => {
           <a-card
             v-for="(refRow, i) in childrenExcludedList?.list ?? []"
             :key="i"
+            :ref="selectedRowIndex === i ? activeRow : null"
             class="!my-4 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
+            :class="{ 'nc-selected-row': selectedRowIndex === i }"
             @click="linkRow(refRow)"
-            :class="{'nc-selected-row':selectedRowIndex === i}"
           >
             {{ refRow[relatedTablePrimaryValueProp] }}
             <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">

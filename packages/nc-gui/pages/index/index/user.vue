@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { RuleObject } from 'ant-design-vue/es/form'
 import { message, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useRouter } from '#imports'
 
 const router = useRouter()
@@ -17,7 +18,7 @@ const form = reactive({
   passwordRepeat: '',
 })
 
-const formRules = {
+const formRules: Record<string, RuleObject[]> = {
   currentPassword: [
     // Current password is required
     { required: true, message: t('msg.error.signUpRules.passwdRequired') },
@@ -34,7 +35,7 @@ const formRules = {
     {
       validator: (_: unknown, _v: string) => {
         return new Promise((resolve, reject) => {
-          if (form.password === form.passwordRepeat) return resolve(true)
+          if (form.password === form.passwordRepeat) return resolve()
           reject(new Error(t('msg.error.signUpRules.passwdMismatch')))
         })
       },

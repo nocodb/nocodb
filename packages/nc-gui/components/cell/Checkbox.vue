@@ -4,7 +4,7 @@ import { ColumnInj, IsFormInj, ReadonlyInj, getMdiIcon, inject } from '#imports'
 interface Props {
   // If the previous cell value was a text, the initial checkbox value is a string type
   // otherwise it can be either a boolean, or a string representing a boolean, i.e '0' or '1'
-  modelValue?: boolean | string | '0' | '1'
+  modelValue?: boolean | string | number | '0' | '1'
 }
 
 interface Emits {
@@ -16,7 +16,7 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 let vModel = $computed({
-  get: () => !!props.modelValue && props.modelValue !== '0',
+  get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0,
   set: (val) => emits('update:modelValue', val),
 })
 
@@ -38,7 +38,7 @@ const checkboxMeta = $computed(() => {
 })
 
 function onClick() {
-  if (!readOnly) {
+  if (!readOnly?.value) {
     vModel = !vModel
   }
 }
@@ -46,7 +46,7 @@ function onClick() {
 
 <template>
   <div
-    class="flex"
+    class="flex cursor-pointer"
     :class="{
       'justify-center': !isForm && !readOnly,
       'w-full': isForm,
@@ -56,12 +56,14 @@ function onClick() {
     @click="onClick"
   >
     <div class="px-1 pt-1 rounded-full items-center" :class="{ 'bg-gray-100': !vModel, '!ml-[-8px]': readOnly }">
-      <component
-        :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
-        :style="{
-          color: checkboxMeta.color,
-        }"
-      />
+      <Transition name="layout" mode="out-in" :duration="100">
+        <component
+          :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
+          :style="{
+            color: checkboxMeta.color,
+          }"
+        />
+      </Transition>
     </div>
   </div>
 </template>

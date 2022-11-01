@@ -33,7 +33,7 @@ interface AttachmentProps extends File {
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
-    const isReadonly = inject(ReadonlyInj, false)
+    const isReadonly = inject(ReadonlyInj, ref(false))
 
     const isPublic = inject(IsPublicInj, ref(false))
 

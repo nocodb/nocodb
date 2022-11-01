@@ -605,6 +605,12 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             ) {
               colBody.dtxp = "''";
             }
+
+            if (colBody.dt === 'set') {
+              if (colBody.colOptions?.options.length > 64) {
+                colBody.dt = 'text';
+              }
+            }
           }
         }
 
@@ -901,6 +907,12 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         ) {
           colBody.dtxp = "''";
         }
+
+        if (colBody.dt === 'set') {
+          if (colBody.colOptions?.options.length > 64) {
+            colBody.dt = 'text';
+          }
+        }
       }
 
       // Handle option delete
@@ -935,17 +947,29 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
             }
           } else if (column.uidt === UITypes.MultiSelect) {
             if (driverType === 'mysql' || driverType === 'mysql2') {
-              await dbDriver.raw(
-                `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`,
-                [
-                  table.table_name,
-                  column.column_name,
-                  column.column_name,
-                  option.title,
-                  option.title,
-                  column.column_name,
-                ]
-              );
+              if (colBody.dt === 'set') {
+                await dbDriver.raw(
+                  `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`,
+                  [
+                    table.table_name,
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                    option.title,
+                    column.column_name,
+                  ]
+                );
+              } else {
+                await dbDriver.raw(
+                  `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ','))`,
+                  [
+                    table.table_name,
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                  ]
+                );
+              }
             } else if (driverType === 'pg') {
               await dbDriver.raw(
                 `UPDATE ?? SET ??  = array_to_string(array_remove(string_to_array(??, ','), ?), ',')`,
@@ -1101,18 +1125,31 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
             }
           } else if (column.uidt === UITypes.MultiSelect) {
             if (driverType === 'mysql' || driverType === 'mysql2') {
-              await dbDriver.raw(
-                `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
-                [
-                  table.table_name,
-                  column.column_name,
-                  column.column_name,
-                  option.title,
-                  newOp.title,
-                  option.title,
-                  column.column_name,
-                ]
-              );
+              if (colBody.dt === 'set') {
+                await dbDriver.raw(
+                  `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
+                  [
+                    table.table_name,
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                    newOp.title,
+                    option.title,
+                    column.column_name,
+                  ]
+                );
+              } else {
+                await dbDriver.raw(
+                  `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ',')))`,
+                  [
+                    table.table_name,
+                    column.column_name,
+                    column.column_name,
+                    option.title,
+                    newOp.title,
+                  ]
+                );
+              }
             } else if (driverType === 'pg') {
               await dbDriver.raw(
                 `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,
@@ -1174,18 +1211,33 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           }
         } else if (column.uidt === UITypes.MultiSelect) {
           if (driverType === 'mysql' || driverType === 'mysql2') {
-            await dbDriver.raw(
-              `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
-              [
-                table.table_name,
-                column.column_name,
-                column.column_name,
-                ch.temp_title,
-                newOp.title,
-                ch.temp_title,
-                column.column_name,
-              ]
-            );
+            if (colBody.dt === 'set') {
+              await dbDriver.raw(
+                `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`,
+                [
+                  table.table_name,
+                  column.column_name,
+                  column.column_name,
+                  ch.temp_title,
+                  newOp.title,
+                  ch.temp_title,
+                  column.column_name,
+                ]
+              );
+            } else {
+              await dbDriver.raw(
+                `UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ',')))`,
+                [
+                  table.table_name,
+                  column.column_name,
+                  column.column_name,
+                  ch.temp_title,
+                  newOp.title,
+                  ch.temp_title,
+                  column.column_name,
+                ]
+              );
+            }
           } else if (driverType === 'pg') {
             await dbDriver.raw(
               `UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`,

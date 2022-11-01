@@ -26,9 +26,9 @@ jobs:
           if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
             IS_DAILY='N'
           fi
-          echo "::set-output name=NIGHTLY_BUILD_TAG::${TAG_NAME}"
-          echo "::set-output name=IS_DAILY::${IS_DAILY}"
-          echo "::set-output name=CURRENT_VERSION::${CURRENT_VERSION}"
+          echo "NIGHTLY_BUILD_TAG=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "IS_DAILY=${IS_DAILY}" >> $GITHUB_OUTPUT
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
       - name: verify-tag
         run: |
           echo ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}

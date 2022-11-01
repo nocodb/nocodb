@@ -43,33 +43,37 @@ export const genTest = (apiType, dbType) => {
       return cy.get("tbody > tr").eq(row).find("td.ant-table-cell").eq(col);
     };
 
-    it("Open Audit tab", () => {
-      // http://localhost:8080/api/v1/db/meta/projects/p_bxp57hmks0n5o2/audits?offset=0&limit=25
-      cy.intercept("/**/audits?offset=*&limit=*").as("waitForPageLoad");
+    describe("Check Audit Tab Cells", () => {
+      it("Open Audit tab", () => {
+        // http://localhost:8080/api/v1/db/meta/projects/p_bxp57hmks0n5o2/audits?offset=0&limit=25
+        cy.intercept("/**/audits?offset=*&limit=*").as("waitForPageLoad");
 
-      // mainPage.navigationDraw(mainPage.AUDIT).click();
-      settingsPage.openMenu(settingsPage.AUDIT);
-      // wait for column headers to appear
-      //
-      cy.get("thead > tr > th.ant-table-cell").should("have.length", 5);
+        // mainPage.navigationDraw(mainPage.AUDIT).click();
+        settingsPage.openMenu(settingsPage.AUDIT);
+        // wait for column headers to appear
+        //
+        cy.get("thead > tr > th.ant-table-cell").should("have.length", 5);
 
-      cy.wait("@waitForPageLoad");
+        cy.wait("@waitForPageLoad");
 
-      // Audit table entries
-      //  [Header] Operation Type, Operation Sub Type, Description, User, Created
-      //  [0] TABLE, DELETED, delete table table-x, user@nocodb.com, ...
-      //  [1] TABLE, Created, created table table-x, user@nocodb.com, ...
+        // Audit table entries
+        //  [Header] Operation Type, Operation Sub Type, Description, User, Created
+        //  [0] TABLE, DELETED, delete table table-x, user@nocodb.com, ...
+        //  [1] TABLE, Created, created table table-x, user@nocodb.com, ...
 
-      getAuditCell(0, 0).contains("TABLE").should("exist");
-      getAuditCell(0, 1).contains("DELETED").should("exist");
-      getAuditCell(0, 3).contains("user@nocodb.com").should("exist");
+        getAuditCell(0, 0).contains("TABLE").should("exist");
+        getAuditCell(0, 1).contains("DELETED").should("exist");
+        getAuditCell(0, 3).contains("user@nocodb.com").should("exist");
 
-      getAuditCell(1, 0).contains("TABLE").should("exist");
-      getAuditCell(1, 1).contains("CREATED").should("exist");
-      getAuditCell(1, 3).contains("user@nocodb.com").should("exist");
+        getAuditCell(1, 0).contains("TABLE").should("exist");
+        getAuditCell(1, 1).contains("CREATED").should("exist");
+        getAuditCell(1, 3).contains("user@nocodb.com").should("exist");
+      });
 
-      settingsPage.closeMenu();
-    });
+      after(() => {
+        settingsPage.closeMenu();
+      })
+    })
 
     it("Table Rename operation", () => {
       cy.get(".nc-project-tree-tbl-City").should("exist").click();

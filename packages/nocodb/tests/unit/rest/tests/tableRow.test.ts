@@ -730,7 +730,7 @@ function tableTest() {
     );
 
     const nestedFields = {
-      'Rental List': ['RentalDate', 'ReturnDate'],
+      'Rental List': { fields : ['RentalDate', 'ReturnDate'] },
     };
 
     const nestedFilter = [
@@ -805,7 +805,7 @@ function tableTest() {
       ascResponse.body.list[0]['Rental List']
     );
     if (
-      nestedRentalResponse.includes('RentalId') &&
+      nestedRentalResponse.includes('ReturnDate') &&
       nestedRentalResponse.includes('RentalDate') &&
       nestedRentalResponse.length === 2
     ) {

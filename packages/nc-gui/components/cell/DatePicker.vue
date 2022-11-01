@@ -13,11 +13,11 @@ const emit = defineEmits(['update:modelValue'])
 
 const columnMeta = inject(ColumnInj, null)!
 
-const readOnly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, ref(false))
 
 let isDateInvalid = $ref(false)
 
-const dateFormat = columnMeta?.value?.meta?.date_format ?? 'YYYY-MM-DD'
+const dateFormat = $computed(() => columnMeta?.value?.meta?.date_format ?? 'YYYY-MM-DD')
 
 const localState = $computed({
   get() {

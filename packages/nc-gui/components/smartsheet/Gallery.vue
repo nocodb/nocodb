@@ -10,7 +10,6 @@ import {
   MetaInj,
   OpenNewRecordFormHookInj,
   PaginationDataInj,
-  ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
@@ -22,7 +21,6 @@ import {
   onMounted,
   provide,
   ref,
-  useUIPermission,
   useViewData,
 } from '#imports'
 import type { Row as RowType } from '~/lib'
@@ -51,14 +49,11 @@ const {
   addEmptyRow,
 } = useViewData(meta, view)
 
-const { isUIAllowed } = useUIPermission()
-
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
-provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
@@ -200,7 +195,7 @@ watch(view, async (nextView) => {
                   :key="`carousel-${record.row.id}-${index}`"
                   quality="90"
                   placeholder
-                  class="h-52 object-cover"
+                  class="h-52 object-contain"
                   :src="attachment.url"
                 />
               </a-carousel>
@@ -289,7 +284,7 @@ watch(view, async (nextView) => {
 .ant-carousel.gallery-carousel :deep(.slick-dots) {
   position: relative;
   height: auto;
-  bottom: 0px;
+  bottom: 0;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {

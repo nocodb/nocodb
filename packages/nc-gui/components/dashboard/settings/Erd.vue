@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full !py-0 !px-2" style="height: 70vh">
+  <div class="w-full h-full !p-0 h-70vh">
     <ErdView />
   </div>
 </template>

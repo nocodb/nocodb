@@ -152,7 +152,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     <LazyCellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />
     <LazyCellSingleSelect v-else-if="isSingleSelect" v-model="vModel" />
     <LazyCellMultiSelect v-else-if="isMultiSelect" v-model="vModel" />
-    <LazyCellDatePicker v-else-if="isDate" v-model="vModel" />
+    <LazyCellDatePicker v-else-if="isDate" v-model="vModel" :edit-enabled="props.editEnabled" />
     <LazyCellYearPicker v-else-if="isYear" v-model="vModel" />
     <LazyCellDateTimePicker v-else-if="isDateTime" v-model="vModel" />
     <LazyCellTimePicker v-else-if="isTime" v-model="vModel" />
@@ -169,7 +169,11 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     <LazyCellText v-else-if="isString" v-model="vModel" />
     <LazyCellJson v-else-if="isJSON" v-model="vModel" />
     <LazyCellText v-else v-model="vModel" />
-    <div v-if="(isLocked || isSystemColumn(column) || (isPublic && readOnly && !isForm)) && !isAttachment" class="nc-locked-overlay" @click.stop.prevent />
+    <div
+      v-if="(isLocked || isSystemColumn(column) || (isPublic && readOnly && !isForm)) && !isAttachment"
+      class="nc-locked-overlay"
+      @click.stop.prevent
+    />
   </div>
 </template>
 

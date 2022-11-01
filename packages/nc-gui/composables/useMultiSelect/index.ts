@@ -14,10 +14,10 @@ export function useMultiSelect(
   fields: MaybeRef<any[]>,
   data: MaybeRef<any[]>,
   editEnabled: MaybeRef<boolean>,
-  isPkAvail: MaybeRef<boolean>,
+  isPkAvail: MaybeRef<boolean | undefined>,
   clearCell: Function,
   makeEditable: Function,
-  scrollToActiveCell?: () => void,
+  scrollToActiveCell?: (row?: number | null, col?: number | null) => void,
 ) {
   const { t } = useI18n()
 

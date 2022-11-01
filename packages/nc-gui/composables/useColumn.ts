@@ -56,11 +56,10 @@ export function useColumn(column: Ref<ColumnType | undefined>) {
       UITypes.AutoNumber,
       UITypes.SpecificDBType,
       UITypes.Geometry,
+      UITypes.Duration,
     ].includes(uiDatatype.value),
   )
-  const isManualSaved = computed(() =>
-    [UITypes.Currency, UITypes.Year, UITypes.Time, UITypes.Duration].includes(uiDatatype.value),
-  )
+  const isManualSaved = computed(() => [UITypes.Currency].includes(uiDatatype.value))
   const isPrimary = computed(() => column.value?.pv)
 
   return {

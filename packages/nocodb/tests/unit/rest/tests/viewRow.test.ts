@@ -562,7 +562,7 @@ function viewRowTests() {
     );
 
     const nestedFields = {
-      'Rental List': ['RentalDate', 'ReturnDate'],
+      'Rental List': { fields : ['RentalDate', 'ReturnDate'] },
     };
 
     const nestedFilter = [
@@ -638,7 +638,7 @@ function viewRowTests() {
 
     if (
       !(
-        nestedRentalResponse.includes('RentalId') &&
+        nestedRentalResponse.includes('ReturnDate') &&
         nestedRentalResponse.includes('RentalDate') &&
         nestedRentalResponse.length === 2
       )

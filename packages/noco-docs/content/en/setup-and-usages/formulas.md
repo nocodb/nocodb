@@ -49,7 +49,7 @@ Unlike other column types, formula cells cannot be modified by double-clicking s
 | **MIN**     | `MIN(value1,[value2,...])` | `MIN({Column1}, {Column2}, {Column3})` | Minimum value amongst input parameters                           |
 | **MOD**     | `MOD(value1, value2)`      | `MOD({Column}, 2)`                 | Remainder after integer division of input parameters             |
 | **POWER**   | `POWER(base, exponent)`    | `POWER({Column}, 3)`               | `base` to the `exponent` power, as in `base ^ exponent`            |
-| **ROUND**   | `ROUND(value)`             | `ROUND({Column})`                  | Nearest integer to the input parameter                           |
+| **ROUND**   | `ROUND(value, precision)`  | `ROUND({Column}, 3)`                  | Round input `value` to decimal place specified by `precision` (Nearest integer if `precision` not provided) |
 | **SQRT**    | `SQRT(value)`              | `SQRT({Column})`                   | Square root of the input parameter                               |
 
 

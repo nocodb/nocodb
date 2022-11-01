@@ -7,8 +7,7 @@ export default class JSONUrlTemplateAdapter extends JSONTemplateAdapter {
 
   constructor(url: string, parserConfig: Record<string, any>) {
     const { $api } = useNuxtApp()
-    const name = url.split('/').pop()
-    super(name, parserConfig)
+    super({}, parserConfig)
     this.url = url
     this.$api = $api
   }

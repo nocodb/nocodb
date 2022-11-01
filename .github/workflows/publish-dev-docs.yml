@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: 16
       - name: Build docs
@@ -35,7 +35,7 @@ jobs:
         with:
           source_file: 'packages/noco-docs/dist/'
           clear_folder: 'docs/dist'
-          destination_repo: 'nocodb/noco-docs'
+          destination_repo: 'nocodb/noco-docs-dev'
           destination_folder: 'docs'
           user_email: 'oof1lab@gmail.com'
           user_name: 'o1lab'

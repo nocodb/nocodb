@@ -16,6 +16,7 @@
     "cancel": "Annuler",
     "submit": "Soumettre",
     "create": "Créer",
+    "duplicate": "Duplicate",
     "insert": "Insérer",
     "delete": "Supprimer",
     "update": "Mettre à jour",
@@ -105,7 +106,7 @@
       "commenter": "Commentateur",
       "viewer": "Lecture seule"
     },
-    "sqlVIew": "SQL View"
+    "sqlVIew": "Vue SQL"
   },
   "datatype": {
     "ID": "Identifiant",
@@ -159,7 +160,7 @@
     "isNotNull": "est non null"
   },
   "title": {
-    "erdView": "ERD View",
+    "erdView": "Vue ERD",
     "newProj": "Nouveau projet",
     "myProject": "Mes projets",
     "formTitle": "Intitulé du formulaire",
@@ -187,10 +188,10 @@
     "headLogin": "Connexion | Nocodb",
     "resetPassword": "Réinitialiser le mot de passe",
     "teamAndSettings": "Équipe & paramètres",
-    "apiDocs": "API Docs",
+    "apiDocs": "Docs API",
     "importFromAirtable": "Importer depuis Airtable",
     "generateToken": "Generate Token",
-    "APIsAndSupport": "APIs & Support",
+    "APIsAndSupport": "Les API et la prise en charge",
     "helpCenter": "Help center",
     "swaggerDocumentation": "Swagger Documentation",
     "quickImportFrom": "Quick Import From",
@@ -270,10 +271,10 @@
     "accentColor": "Accent Color",
     "customTheme": "Custom Theme",
     "requestDataSource": "Request a data source you need?",
-    "apiKey": "API Key",
+    "apiKey": "Clé d'API",
     "sharedBase": "Shared Base",
     "importData": "Import Data",
-    "importSecondaryViews": "Import Secondary Views",
+    "importSecondaryViews": "Importer des vues secondaires",
     "importRollupColumns": "Import Rollup Columns",
     "importLookupColumns": "Import Lookup Columns",
     "importAttachmentColumns": "Import Attachment Columns",
@@ -323,7 +324,7 @@
     "translate": "Aider à la traduction",
     "account": {
       "authToken": "Copier le jeton d'authentification",
-      "swagger": "Swagger: REST APIs",
+      "swagger": "Swagger : les API REST",
       "projInfo": "Copier les informations du projet",
       "themes": "Thèmes"
     },
@@ -405,7 +406,7 @@
     "sponsorUs": "Nous Parrainer",
     "sendEmail": "ENVOYER UN EMAIL",
     "addUserToProject": "Add user to project",
-    "getApiSnippet": "Get API Snippet",
+    "getApiSnippet": "Récupérer le Snippet API",
     "clearCell": "Clear cell",
     "addFilterGroup": "Add Filter Group",
     "linkRecord": "Link record",
@@ -417,7 +418,7 @@
     "erd": {
       "showColumns": "Show Columns",
       "showPkAndFk": "Show Primary and Foreign Keys",
-      "showSqlViews": "Show SQL Views",
+      "showSqlViews": "Afficher les vues SQL",
       "showMMTables": "Show Many to Many tables",
       "showJunctionTableNames": "Show Junction Table Names"
     },
@@ -433,8 +434,8 @@
     "saveChanges": "Sauvegarder les modifications",
     "xcDB": "Créer un nouveau projet",
     "extDB": "Base de données supportées MySQL, PostgreSQL, SQL Server & SQLite",
-    "apiRest": "Accessible via l'API REST",
-    "apiGQL": "Accessible via l'API GraphQL",
+    "apiRest": "Accessible via les API REST",
+    "apiGQL": "Accessible via les API GraphQL",
     "theme": {
       "dark": "Nuit (^⇧B)",
       "light": "Jour (^⇧B)"
@@ -581,7 +582,7 @@
       "requriedFieldsCantBeMoved": "Required field can't be moved",
       "updateNotAllowedWithoutPK": "Update not allowed for table which doesn't have primary key",
       "autoIncFieldNotEditable": "Auto increment field is not editable",
-      "editingPKnotSupported": "Editing primary key not supported",
+      "editingPKnotSupported": "Modification de la clé primaire non prise en charge",
       "deletedCache": "Deleted cache successfully",
       "cacheEmpty": "Cache is empty",
       "exportedCache": "Exported Cache Successfully",
@@ -589,7 +590,7 @@
       "noColumnsToUpdate": "No columns to update",
       "tableDeleted": "Deleted table successfully",
       "generatePublicShareableReadonlyBase": "Generate publicly shareable readonly base",
-      "deleteViewConfirmation": "Are you sure you want to delete this view?",
+      "deleteViewConfirmation": "Êtes-vous sûr de vouloir effacer cette vue ?",
       "deleteTableConfirmation": "Do you want to delete the table",
       "showM2mTables": "Show M2M Tables",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack."
@@ -638,7 +639,7 @@
       "rowUpdateFailed": "Row update failed",
       "deleteRowFailed": "Failed to delete row",
       "setFormDataFailed": "Failed to set form data",
-      "formViewUpdateFailed": "Failed to update form view",
+      "formViewUpdateFailed": "Échec de la mise à jour de la vue du formulaire",
       "tableNameRequired": "Table name is required",
       "nameShouldStartWithAnAlphabetOr_": "Name should start with an alphabet or _",
       "followingCharactersAreNotAllowed": "Following characters are not allowed",
@@ -677,12 +678,12 @@
       "pluginSettingsSaved": "Plugin settings saved successfully",
       "pluginTested": "Successfully tested plugin settings",
       "tableRenamed": "Table renamed successfully",
-      "viewDeleted": "View deleted successfully",
+      "viewDeleted": "Vue effacée avec succès",
       "primaryColumnUpdated": "Successfully updated as primary column",
       "tableDataExported": "Successfully exported all table data",
       "updated": "Successfully updated",
-      "sharedViewDeleted": "Deleted shared view successfully",
-      "viewRenamed": "View renamed successfully",
+      "sharedViewDeleted": "Vue partagée effacée avec succès",
+      "viewRenamed": "Vue renommée avec succès",
       "tokenGenerated": "Token generated successfully",
       "tokenDeleted": "Token deleted successfully",
       "userAddedToProject": "Successfully added user to project",

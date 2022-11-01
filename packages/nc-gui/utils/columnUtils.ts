@@ -123,16 +123,8 @@ const uiTypes = [
     virtual: 1,
   },
   {
-    name: UITypes.Count,
-    icon: Counter,
-  },
-  {
     name: UITypes.DateTime,
     icon: CalendarClock,
-  },
-  {
-    name: UITypes.AutoNumber,
-    icon: Numeric,
   },
   {
     name: UITypes.Geometry,

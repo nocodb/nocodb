@@ -39,7 +39,9 @@ import {
   useUIPermission,
   useViewData,
   watch,
+  isMac,
 } from '#imports'
+import { switchAll } from 'rxjs'
 import type { Row } from '~/lib'
 import { NavigateDir } from '~/lib'
 
@@ -168,7 +170,44 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
   isPkAvail,
   clearCell,
   makeEditable,
-  (row?: number | null, col?: number | null) => {
+  scrollToCell,
+  (e: KeyboardEvent) => {
+    const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+    if (e.key === 'Space') {
+      if (selected.row !== null && !editEnabled) {
+        const row = data.value[selected.row]
+        expandForm(row)
+        return true
+      }
+    }
+    if (cmdOrCtrl) {
+      switch (e.key) {
+        case 'ArrowUp':
+          selected.row = 0
+          selected.col = selected.col ?? 0
+          scrollToCell?.()
+          return true
+        case 'ArrowDown':
+          selected.row = data.value.length - 1
+          selected.col = selected.col ?? 0
+          scrollToCell?.()
+          return true
+        case 'ArrowRight':
+          selected.row = selected.row ?? 0
+          selected.col = fields.value?.length - 1
+          scrollToCell?.()
+          return true
+        case 'ArrowLeft':
+          selected.row = selected.row ?? 0
+          selected.col = 0
+          scrollToCell?.()
+          return true
+      }
+    }
+  },
+)
+
+function scrollToCell(row?: number | null, col?: number | null) {
     row = row ?? selected.row
     col = col ?? selected.col
     if (row !== undefined && col !== undefined && row !== null && col !== null) {
@@ -212,18 +251,7 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
         behavior: 'smooth',
       })
     }
-  },
-  (e: KeyboardEvent) => {
-    console.log(e)
-    if (e.code === 'Space') {
-      if (selected.row !== null && !editEnabled) {
-        const row = data.value[selected.row]
-        expandForm(row)
-        return true
-      }
-    }
-  },
-)
+  }
 
 onMounted(loadGridViewColumns)
 

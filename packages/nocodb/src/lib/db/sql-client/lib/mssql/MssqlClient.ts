@@ -1595,9 +1595,10 @@ class MssqlClient extends KnexClient {
     const result = new Result();
     log.api(`${func}:args:`, args);
     try {
-      const query = `CREATE TRIGGER [${args.trigger_name}] on [${this.getTnPath(
-        args.tn
-      )}] \n${args.timing} ${args.event}\n as\n${args.statement}`;
+      const query = this.genQuery(
+        `CREATE TRIGGER ?? on ?? \n${args.timing} ${args.event}\n as\n${args.statement}`,
+        [args.trigger_name, this.getTnPath(args.tn)]
+      );
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],
@@ -1846,15 +1847,17 @@ class MssqlClient extends KnexClient {
     for (let i = 0; i < args.columns.length; i++) {
       const column = args.columns[i];
       if (column.au) {
-        const triggerName = `xc_trigger_${args.table_name}_${column.column_name}`;
+        const triggerName = `[${this.schema}].[xc_trigger_${args.table_name}_${column.column_name}]`;
         const triggerCreateQuery =
           this.querySeparator() +
-          `CREATE TRIGGER [${this.schema}].[${triggerName}] ON [${this.schema}].[${args.table_name}] AFTER UPDATE
+          this.genQuery(
+            `CREATE TRIGGER ?? ON ?? AFTER UPDATE
                   AS
                   BEGIN
                       SET NOCOUNT ON;
-                      UPDATE [${this.schema}].[${args.table_name}] Set [${column.column_name}] = GetDate() where [${pk.column_name}] in (SELECT [${pk.column_name}] FROM Inserted)
-                  END;`;
+                      UPDATE ?? Set ?? = GetDate() where ?? in (SELECT ?? FROM Inserted)
+                  END;`, [triggerName, this.getTnPath(args.table_name), this.getTnPath(args.table_name), column.column_name, pk.column_name, pk.column_name]
+          );
 
         upQuery += triggerCreateQuery;
 

@@ -61,6 +61,7 @@ export function useColumn(column: Ref<ColumnType | undefined>) {
   )
   const isManualSaved = computed(() => [UITypes.Currency].includes(uiDatatype.value))
   const isPrimary = computed(() => column.value?.pv)
+  const isPrimaryKey = computed(() => !!column.value?.pk)
 
   return {
     abstractType,
@@ -92,5 +93,6 @@ export function useColumn(column: Ref<ColumnType | undefined>) {
     isPercent,
     isPhoneNumber,
     isSpecificDBType,
+    isPrimaryKey,
   }
 }

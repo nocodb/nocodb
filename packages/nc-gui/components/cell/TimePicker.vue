@@ -4,9 +4,10 @@ import { ReadonlyInj, inject, onClickOutside, useProject, watch } from '#imports
 
 interface Props {
   modelValue?: string | null | undefined
+  isPk?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -76,9 +77,9 @@ watch(
     format="HH:mm"
     class="!w-full !px-0 !border-none"
     :placeholder="isTimeInvalid ? 'Invalid time' : ''"
-    :allow-clear="!readOnly"
+    :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :open="readOnly ? false : open"
+    :open="readOnly || (localState && isPk) ? false : open"
     :popup-class-name="`${randomClass} nc-picker-time`"
     @click="open = !open"
     @ok="open = !open"

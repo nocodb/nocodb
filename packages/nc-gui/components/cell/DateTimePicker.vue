@@ -4,9 +4,10 @@ import { ReadonlyInj, inject, ref, useProject, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null
+  isPk?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, isPk } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -65,11 +66,11 @@ watch(
     class="!w-full !px-0 !border-none"
     format="YYYY-MM-DD HH:mm"
     :placeholder="isDateInvalid ? 'Invalid date' : ''"
-    :allow-clear="!readOnly"
+    :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-datetime`"
-    :open="readOnly ? false : open"
-    :disabled="readOnly"
+    :open="readOnly || (localState && isPk) ? false : open"
+    :disabled="readOnly || (localState && isPk)"
     @click="open = !open"
     @ok="open = !open"
   >

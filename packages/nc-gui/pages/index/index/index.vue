@@ -121,6 +121,10 @@ const getProjectPrimary = (project: ProjectType) => {
   return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
 }
 
+const hasAccessToProjectActions = (project: ProjectType) => {
+  return project.roles && (project.roles.match('owner') || project.roles.match('creator'))
+}
+
 const customRow = (record: ProjectType) => ({
   onClick: async () => {
     await navigateTo(`/nc/${record.id}`)
@@ -281,7 +285,7 @@ const copyProjectMeta = async () => {
 
         <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
           <template #default="{ text, record }">
-            <div class="flex items-center gap-2">
+            <div v-if="hasAccessToProjectActions(record)" class="flex items-center gap-2">
               <MdiEditOutline v-e="['c:project:edit:rename']" class="nc-action-btn" @click.stop="navigateTo(`/${text}`)" />
 
               <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />

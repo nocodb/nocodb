@@ -183,4 +183,21 @@ export default class ProjectUser {
       project_id: projectId,
     });
   }
+
+  /**
+   * Lists all projects users
+   */
+  static async list(ncMeta = Noco.ncMeta) {
+    let projectUsersList = await NocoCache.getList(CacheScope.PROJECT_USER, []);
+    if (!projectUsersList.length) {
+      projectUsersList = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.PROJECT_USERS,
+        {}
+      );
+      await NocoCache.setList(CacheScope.PROJECT_USER, [], projectUsersList);
+    }
+    return projectUsersList;
+  }
 }

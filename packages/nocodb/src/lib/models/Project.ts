@@ -9,6 +9,7 @@ import {
 } from '../utils/globals';
 import { extractProps } from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
+import ProjectUser from './ProjectUser';
 
 export default class Project implements ProjectType {
   public id: string;
@@ -81,6 +82,7 @@ export default class Project implements ProjectType {
   static async list(
     // @ts-ignore
     param,
+    userId = null,
     ncMeta = Noco.ncMeta
   ): Promise<Project[]> {
     // todo: pagination
@@ -107,7 +109,9 @@ export default class Project implements ProjectType {
     projectList = projectList.filter(
       (p) => p.deleted === 0 || p.deleted === false || p.deleted === null
     );
-    return projectList.map((m) => new Project(m));
+    return (await this.addUserRolesInProjectList(projectList, userId)).map(
+      (m) => new Project(m)
+    );
   }
 
   // @ts-ignore
@@ -393,5 +397,17 @@ export default class Project implements ProjectType {
     if (project) await project.getBases(ncMeta);
 
     return project;
+  }
+
+  static async addUserRolesInProjectList(projectList, userId) {
+    const projectsUsers = await ProjectUser.list();
+    return projectList.map((project) => ({
+      ...project,
+      roles: projectsUsers.find(
+        (projectUser) =>
+          projectUser.project_id === project.id &&
+          projectUser.fk_user_id === userId
+      )?.roles,
+    }));
   }
 }

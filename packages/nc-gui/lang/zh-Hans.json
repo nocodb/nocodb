@@ -106,10 +106,10 @@
       "commenter": "评论者",
       "viewer": "浏览者"
     },
-    "sqlVIew": "SQL View"
+    "sqlVIew": "SQL 视图"
   },
   "datatype": {
-    "ID": "ID",
+    "ID": "编号",
     "ForeignKey": "外键",
     "SingleLineText": "单行文本",
     "LongText": "长文本",
@@ -189,7 +189,7 @@
     "resetPassword": "重置密码",
     "teamAndSettings": "团队和设置",
     "apiDocs": "API 文档",
-    "importFromAirtable": "Import From Airtable",
+    "importFromAirtable": "从 Airtable 导入",
     "generateToken": "Generate Token",
     "APIsAndSupport": "APIs & Support",
     "helpCenter": "Help center",

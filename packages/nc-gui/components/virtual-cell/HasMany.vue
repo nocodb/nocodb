@@ -87,7 +87,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
   switch (e.key) {
     case 'Enter':
       listItemsDlg.value = true
-      e.preventDefault()
+      e.stopPropagation()
       break
   }
 })

@@ -76,7 +76,7 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
       listItemsDlg.value = true
-      e.preventDefault()
+      e.stopPropagation()
       break
   }
 })

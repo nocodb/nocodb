@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { onUnmounted } from '@vue/runtime-core'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
@@ -12,6 +13,7 @@ import {
   useVModel,
   watch,
 } from '#imports'
+import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
 import { IsPublicInj } from '~/context'
 
 const props = defineProps<{ modelValue: boolean }>()
@@ -38,6 +40,8 @@ const { addLTARRef, isNew } = useSmartsheetRowStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const selectedRowIndex = ref(0)
+
 const linkRow = async (row: Record<string, any>) => {
   if (isNew.value) {
     addLTARRef(row, column?.value as ColumnType)
@@ -54,6 +58,7 @@ watch(vModel, (nextVal, prevVal) => {
     childrenExcludedListPagination.query = ''
     childrenExcludedListPagination.page = 1
     loadChildrenExcludedList()
+    selectedRowIndex.value = 0
   }
 })
 
@@ -99,13 +104,29 @@ watch(expandedFormDlg, (nexVal) => {
   if (!nexVal && !isNew.value) vModel.value = false
 })
 
-// useEventListener((e: KeyboardEvent) => {
-//   switch (e.key) {
-//     case 'Enter':
-//       e.preventDefault()
-//       break
-//   }
-// })
+const removeListeners = useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'ArrowUp':
+      selectedRowIndex.value = Math.max(0, selectedRowIndex.value - 1)
+      e.stopPropagation()
+      break
+    case 'ArrowDown':
+      selectedRowIndex.value = Math.min(childrenExcludedList.value?.list?.length - 1, selectedRowIndex.value + 1)
+      e.stopPropagation()
+      break
+    case 'Enter':
+      const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
+      if (selectedRow) {
+        linkRow(selectedRow)
+        e.stopPropagation()
+      }
+      break
+  }
+}, true)
+
+onUnmounted(() => {
+  removeListeners()
+})
 </script>
 
 <template>
@@ -123,6 +144,7 @@ watch(expandedFormDlg, (nexVal) => {
           :placeholder="$t('placeholder.filterQuery')"
           class="max-w-[200px]"
           size="small"
+          @keydown.capture.stop
         />
 
         <div class="flex-1" />
@@ -142,6 +164,7 @@ watch(expandedFormDlg, (nexVal) => {
             :key="i"
             class="!my-4 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
             @click="linkRow(refRow)"
+            :class="{'nc-selected-row':selectedRowIndex === i}"
           >
             {{ refRow[relatedTablePrimaryValueProp] }}
             <span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1">
@@ -182,5 +205,9 @@ watch(expandedFormDlg, (nexVal) => {
 <style scoped>
 :deep(.ant-pagination-item a) {
   line-height: 21px !important;
+}
+
+:deep(.nc-selected-row) {
+  @apply !ring;
 }
 </style>

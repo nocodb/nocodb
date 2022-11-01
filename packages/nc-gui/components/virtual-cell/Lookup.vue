@@ -48,7 +48,7 @@ const lookupTableMeta = computed(() => metas.value[relationColumn.value.colOptio
 
 const lookupColumn = computed<any>(
   () =>
-    lookupTableMeta.value.columns?.find(
+    lookupTableMeta.value?.columns?.find(
       (c: Record<string, any>) => c.id === (column?.value.colOptions as LookupType)?.fk_lookup_column_id,
     ) as ColumnType,
 )

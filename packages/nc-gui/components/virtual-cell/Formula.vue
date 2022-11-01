@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { message } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { CellValueInj, ColumnInj, computed, handleTZ, inject, ref, replaceUrlsWithLink, useProject } from '#imports'
@@ -23,6 +24,17 @@ const showEditFormulaWarningMessage = () => {
 const result = computed(() => (isPg.value ? handleTZ(cellValue?.value) : cellValue?.value))
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      message.warning('Formula fields should be configured in the field menu dropdown')
+      break
+    case 'Delete':
+      message.warning('Computed field: unable to clear text')
+      break
+  }
+})
 </script>
 
 <template>

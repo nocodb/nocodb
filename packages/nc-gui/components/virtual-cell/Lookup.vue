@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { message } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -46,6 +47,17 @@ provide(MetaInj, lookupTableMeta)
 provide(CellUrlDisableOverlayInj, ref(true))
 
 const lookupColumnMetaProps = useColumn(lookupColumn)
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      message.warning('Computed field: unable to edit')
+      break
+    case 'Delete':
+      message.warning('Computed field: unable to clear text')
+      break
+  }
+})
 </script>
 
 <template>

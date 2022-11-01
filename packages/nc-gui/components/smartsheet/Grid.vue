@@ -22,6 +22,7 @@ import {
   extractPkFromRow,
   inject,
   isColumnRequiredAndNull,
+  isMac,
   message,
   onBeforeUnmount,
   onClickOutside,
@@ -39,9 +40,7 @@ import {
   useUIPermission,
   useViewData,
   watch,
-  isMac,
 } from '#imports'
-import { switchAll } from 'rxjs'
 import type { Row } from '~/lib'
 import { NavigateDir } from '~/lib'
 
@@ -146,8 +145,8 @@ const getContainerScrollForElement = (
     relativePos.right + (offset?.right || 0) > 0
       ? container.scrollLeft + relativePos.right + (offset?.right || 0)
       : relativePos.left - (offset?.left || 0) < 0
-      ? container.scrollLeft + relativePos.left - (offset?.left || 0)
-      : container.scrollLeft
+        ? container.scrollLeft + relativePos.left - (offset?.left || 0)
+        : container.scrollLeft
 
   /*
    * If the element is below the container, scroll down (positive)
@@ -162,6 +161,7 @@ const getContainerScrollForElement = (
 
   return scroll
 }
+
 
 const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange, selected } = useMultiSelect(
   fields,
@@ -208,50 +208,50 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
 )
 
 function scrollToCell(row?: number | null, col?: number | null) {
-    row = row ?? selected.row
-    col = col ?? selected.col
-    if (row !== undefined && col !== undefined && row !== null && col !== null) {
-      // get active cell
-      const rows = tbodyEl.value?.querySelectorAll('tr')
-      const cols = rows?.[row].querySelectorAll('td')
-      const td = cols?.[col === 0 ? 0 : col + 1]
+  row = row ?? selected.row
+  col = col ?? selected.col
+  if (row !== undefined && col !== undefined && row !== null && col !== null) {
+    // get active cell
+    const rows = tbodyEl.value?.querySelectorAll('tr')
+    const cols = rows?.[row].querySelectorAll('td')
+    const td = cols?.[col === 0 ? 0 : col + 1]
 
-      if (!td || !gridWrapper.value) return
+    if (!td || !gridWrapper.value) return
 
-      const { height: headerHeight } = tableHead.value!.getBoundingClientRect()
-      const tdScroll = getContainerScrollForElement(td, gridWrapper.value, { top: headerHeight, bottom: 9, right: 9 })
+    const { height: headerHeight } = tableHead.value!.getBoundingClientRect()
+    const tdScroll = getContainerScrollForElement(td, gridWrapper.value, { top: headerHeight, bottom: 9, right: 9 })
 
-      if (rows && row === rows.length - 2) {
-        // if last row make 'Add New Row' visible
-        gridWrapper.value.scrollTo({
-          top: gridWrapper.value.scrollHeight,
-          left:
-            cols && col === cols.length - 2 // if corner cell
-              ? gridWrapper.value.scrollWidth
-              : tdScroll.left,
-          behavior: 'smooth',
-        })
-        return
-      }
-
-      if (cols && col === cols.length - 2) {
-        // if last column make 'Add New Column' visible
-        gridWrapper.value.scrollTo({
-          top: tdScroll.top,
-          left: gridWrapper.value.scrollWidth,
-          behavior: 'smooth',
-        })
-        return
-      }
-
-      // scroll into the active cell
+    if (rows && row === rows.length - 2) {
+      // if last row make 'Add New Row' visible
       gridWrapper.value.scrollTo({
-        top: tdScroll.top,
-        left: tdScroll.left,
+        top: gridWrapper.value.scrollHeight,
+        left:
+          cols && col === cols.length - 2 // if corner cell
+            ? gridWrapper.value.scrollWidth
+            : tdScroll.left,
         behavior: 'smooth',
       })
+      return
     }
+
+    if (cols && col === cols.length - 2) {
+      // if last column make 'Add New Column' visible
+      gridWrapper.value.scrollTo({
+        top: tdScroll.top,
+        left: gridWrapper.value.scrollWidth,
+        behavior: 'smooth',
+      })
+      return
+    }
+
+    // scroll into the active cell
+    gridWrapper.value.scrollTo({
+      top: tdScroll.top,
+      left: tdScroll.left,
+      behavior: 'smooth',
+    })
   }
+}
 
 onMounted(loadGridViewColumns)
 

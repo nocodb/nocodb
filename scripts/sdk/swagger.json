@@ -4524,7 +4524,7 @@
               "type": "string"
             },
             "in": "header",
-            "name": "TODO"
+            "name": "xc-password"
           }
         ]
       }

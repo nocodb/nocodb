@@ -17,7 +17,7 @@ const [setup, use] = useInjectionState(() => {
 
   const router = useRouter()
 
-  const { tables } = useProject()
+  const { bases, tables } = useProject()
 
   const projectType = $computed(() => route.params.projectType as string)
 
@@ -33,11 +33,17 @@ const [setup, use] = useInjectionState(() => {
 
         if (!currentTable) return -1
 
+        const currentBase = bases.value.find((b) => b.id === currentTable.base_id)
+
         tab.id = currentTable.id
 
         let index = tabs.value.findIndex((t) => t.id === tab.id)
 
         tab.title = currentTable.title
+
+        // append base alias to tab title if duplicate titles exist on other bases
+        if (tables.value.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
+          tab.title = `${tab.title}${currentBase?.alias ? ` (${currentBase.alias})` : ``}`
 
         if (index === -1) {
           tab.sortsState = tab.sortsState || new Map()
@@ -83,6 +89,13 @@ const [setup, use] = useInjectionState(() => {
     }
     // if tab not found add it
     else {
+      const currentTable = tables.value.find((t) => t.id === tabMeta.id || t.title === tabMeta.id)
+      const currentBase = bases.value.find((b) => b.id === currentTable?.base_id)
+
+      // append base alias to tab title if duplicate titles exist on other bases
+      if (tables.value.find((t) => t.title === currentTable?.title && t.base_id !== currentTable?.base_id))
+        tabMeta.title = `${tabMeta.title}${currentBase?.alias ? ` (${currentBase.alias})` : ``}`
+
       tabs.value = [...(tabs.value || []), tabMeta]
       activeTabIndex.value = tabs.value.length - 1
     }

@@ -251,7 +251,7 @@ class NewMgr {
     } else if (answers.projectType) {
       let env = '';
       if (answers.type !== 'sqlite3') {
-        env = `--env NC_DB="${answers.type}://${answers.host}:${answers.port}?u=${answers.username}&p=${answers.password}&d=${answers.database}&t=${args._[1]}"`
+        env = `--env NC_DB="${answers.type}://${answers.host}:${answers.port}?u=${answers.username}&p=${answers.password}&d=${answers.database}"`
       }
       const linuxHost = os.type() === 'Linux' ? '--net=host' : '';
       if (os.type() === 'Windows_NT') {
@@ -641,7 +641,7 @@ ${`Note: ${'app'.bold} - refers to your express server instance`}
 `)
 
     } else if (answers.projectType === 'docker') {
-      const dbUrl = `${answers.type}://${answers.host}:${answers.port}?u=${answers.username}&p=${answers.password}&d=${answers.database}&t=${args._[1]}`;
+      const dbUrl = `${answers.type}://${answers.host}:${answers.port}?u=${answers.username}&p=${answers.password}&d=${answers.database}`;
 //       console.log(`
 // You can create docker container using following command
 //
@@ -715,25 +715,4 @@ ${`Note: ${'app'.bold} - refers to your express server instance`}
 }
 
 export default NewMgr;
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
+

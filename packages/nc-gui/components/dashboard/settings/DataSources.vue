@@ -182,17 +182,15 @@ watch(
       <div v-if="vState === ''" class="max-h-600px min-w-1200px overflow-y-auto">
         <div class="ds-table-head">
           <div class="ds-table-row">
-            <div class="ds-table-col ds-table-enabled"></div>
             <div class="ds-table-col ds-table-name">Name</div>
             <div class="ds-table-col ds-table-actions">Actions</div>
+            <div class="ds-table-col ds-table-enabled">Show / Hide</div>
           </div>
         </div>
         <div class="ds-table-body">
           <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
             <template #header>
               <div v-if="sources[0]" class="ds-table-row border-gray-200">
-                <div class="ds-table-col ds-table-enabled"></div>
-
                 <div class="ds-table-col ds-table-name">
                   <div class="flex items-center gap-1">
                     <GeneralBaseLogo :base-type="sources[0].type" />
@@ -246,33 +244,33 @@ watch(
                     </a-button>
                   </div>
                 </div>
-              </div>
-            </template>
-            <template #item="{ element: base, index }">
-              <div v-if="index !== 0" class="ds-table-row border-gray-200">
+
                 <div class="ds-table-col ds-table-enabled">
-                  <MdiDragVertical small class="ds-table-handle" />
-                  <div v-if="!base.is_meta" class="flex items-center gap-1">
+                  <div class="flex items-center gap-1 cursor-pointer">
                     <a-tooltip>
                       <template #title>
-                        <template v-if="base.enabled">Hide in UI</template>
+                        <template v-if="sources[0].enabled">Hide in UI</template>
                         <template v-else>Show in UI</template>
                       </template>
                       <MdiEyeSettings
-                        v-if="base.enabled"
+                        v-if="sources[0].enabled"
                         class="text-lg text-primary outline-0"
-                        @click="toggleBase(base, false)"
+                        @click="toggleBase(sources[0], false)"
                       ></MdiEyeSettings>
                       <MdiEyeSettingsOutline
                         v-else
                         class="text-lg text-red-500 outline-0"
-                        @click="toggleBase(base, true)"
+                        @click="toggleBase(sources[0], true)"
                       ></MdiEyeSettingsOutline>
                     </a-tooltip>
                   </div>
                 </div>
-
+              </div>
+            </template>
+            <template #item="{ element: base, index }">
+              <div v-if="index !== 0" class="ds-table-row border-gray-200">
                 <div class="ds-table-col ds-table-name">
+                  <MdiDragVertical small class="ds-table-handle" />
                   <div class="flex items-center gap-1">
                     <GeneralBaseLogo :base-type="base.type" />
                     {{ base.is_meta ? 'BASE' : base.alias }} <span class="text-gray-400 text-xs">({{ base.type }})</span>
@@ -327,6 +325,27 @@ watch(
                     </a-button>
                   </div>
                 </div>
+
+                <div class="ds-table-col ds-table-enabled">
+                  <div class="flex items-center gap-1 cursor-pointer">
+                    <a-tooltip>
+                      <template #title>
+                        <template v-if="base.enabled">Hide in UI</template>
+                        <template v-else>Show in UI</template>
+                      </template>
+                      <MdiEyeSettings
+                        v-if="base.enabled"
+                        class="text-lg text-primary outline-0"
+                        @click="toggleBase(base, false)"
+                      ></MdiEyeSettings>
+                      <MdiEyeSettingsOutline
+                        v-else
+                        class="text-lg text-red-500 outline-0"
+                        @click="toggleBase(base, true)"
+                      ></MdiEyeSettingsOutline>
+                    </a-tooltip>
+                  </div>
+                </div>
               </div>
             </template>
           </Draggable>
@@ -369,7 +388,7 @@ watch(
 }
 
 .ds-table-enabled {
-  @apply col-span-1 w-full flex gap-2;
+  @apply col-span-2 flex justify-center;
 }
 
 .ds-table-name {
@@ -377,7 +396,7 @@ watch(
 }
 
 .ds-table-actions {
-  @apply col-span-10;
+  @apply col-span-9;
 }
 
 .ds-table-col:last-child {
@@ -385,6 +404,6 @@ watch(
 }
 
 .ds-table-handle {
-  @apply cursor-pointer justify-self-start;
+  @apply cursor-pointer justify-self-start mr-2;
 }
 </style>

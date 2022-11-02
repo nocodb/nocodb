@@ -21,39 +21,53 @@ const { metas, getMeta } = useMetas()
 
 provide(ReadonlyInj, ref(true))
 
-const column = inject(ColumnInj)
+const column = inject(ColumnInj, ref())
 
 const meta = inject(MetaInj, ref())
 
-const value = inject(CellValueInj)
+const cellValue = inject(CellValueInj, ref())
 
-const arrValue = computed(() => (Array.isArray(value?.value) ? value?.value : [value?.value]) ?? [])
+const arrValue = computed(() => {
+  if (!cellValue.value) return []
+
+  if (Array.isArray(cellValue.value)) return cellValue.value
+
+  return [cellValue.value]
+})
 
 const relationColumn = computed(
   () =>
-    meta.value?.columns?.find((c) => c.id === (column?.value.colOptions as LookupType)?.fk_relation_column_id) as ColumnType & {
-      colOptions: LinkToAnotherRecordType
-    },
+    meta.value?.columns?.find((c) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
+      | (ColumnType & {
+          colOptions: LinkToAnotherRecordType | undefined
+        })
+      | undefined,
 )
 
 watch(
   relationColumn,
-  async () => {
-    await getMeta(relationColumn.value.colOptions.fk_related_model_id!)
+  async (relationCol) => {
+    if (relationCol && relationCol.colOptions) await getMeta(relationCol.colOptions.fk_related_model_id!)
   },
   { immediate: true },
 )
 
-const lookupTableMeta = computed(() => metas.value[relationColumn.value.colOptions.fk_related_model_id!])
+const lookupTableMeta = computed<Record<string, any> | undefined>(() => {
+  if (relationColumn.value && relationColumn.value?.colOptions)
+    return metas.value[relationColumn.value.colOptions.fk_related_model_id!]
 
-const lookupColumn = computed<any>(
+  return undefined
+})
+
+const lookupColumn = computed(
   () =>
-    lookupTableMeta.value?.columns?.find(
-      (c: Record<string, any>) => c.id === (column?.value.colOptions as LookupType)?.fk_lookup_column_id,
-    ) as ColumnType,
+    lookupTableMeta.value?.columns?.find((c: any) => c.id === (column.value?.colOptions as LookupType)?.fk_lookup_column_id) as
+      | ColumnType
+      | undefined,
 )
 
 provide(MetaInj, lookupTableMeta)
+
 provide(CellUrlDisableOverlayInj, ref(true))
 
 const timeout = 3000 // in ms

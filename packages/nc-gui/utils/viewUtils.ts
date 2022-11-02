@@ -19,7 +19,7 @@ export const viewIcons: Record<number | string, { icon: any; color: string }> = 
   view: { icon: MdiEyeIcon, color: 'blue' },
 }
 
-export const viewTypeAlias = {
+export const viewTypeAlias: Record<number, string> = {
   [ViewTypes.GRID]: 'grid',
   [ViewTypes.FORM]: 'form',
   [ViewTypes.GALLERY]: 'gallery',

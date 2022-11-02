@@ -181,6 +181,7 @@ export const genTest = (apiType, dbType) => {
     let RESULT_MATH_0 = [];
     let RESULT_MATH_1 = [];
     let RESULT_MATH_2 = [];
+    let RESULT_MATH_3 = [];
     let RESULT_WEEKDAY_0 = [];
     let RESULT_WEEKDAY_1 = [];
     let RESULT_CIRC_REF_0 = [];
@@ -211,9 +212,12 @@ export const genTest = (apiType, dbType) => {
         Math.min(cityId[i], countryId[i]) +
         Math.max(cityId[i], countryId[i]);
 
+      RESULT_MATH_2[i] =
+        1.23 + Math.min(2.34, 3.45) + Math.max(2.34, 3.45);
+
       // LOG, EXP, POWER, SQRT
       // only integer verification being computed, hence trunc
-      RESULT_MATH_2[i] = Math.trunc(
+      RESULT_MATH_3[i] = Math.trunc(
         Math.log(cityId[i]) +
         Math.exp(cityId[i]) +
         Math.pow(cityId[i], 3) +
@@ -273,23 +277,32 @@ export const genTest = (apiType, dbType) => {
       rowValidation("NC_MATH_1", RESULT_MATH_1);
     });
 
+    it("Formula: ROUND with decimals, MIN, MAX", () => {
+      editColumnByName(
+        "NC_MATH_1",
+        "NC_MATH_2",
+        `ROUND(1.2345, 2) + MIN(2.34, 3.45) + MAX(2.34, 3.45)`
+      );
+      rowValidation("NC_MATH_2", RESULT_MATH_2)
+    })
+
     it("Formula: LOG, EXP, POWER, SQRT", () => {
       // if (!isXcdb()) {
       if (dbType === "mysql") {
         // SQLITE doesnt support LOG, EXP, POWER SQRT construct
         editColumnByName(
-          "NC_MATH_1",
           "NC_MATH_2",
+          "NC_MATH_3",
           `LOG({CityId}) + EXP({CityId}) + POWER({CityId}, 3) + SQRT({CountryId})`
         );
-        rowValidation("NC_MATH_2", RESULT_MATH_2);
+        rowValidation("NC_MATH_3", RESULT_MATH_3);
       }
     });
 
     it("Formula: NOW, EDIT & Delete column", () => {
       // if (!isXcdb()) editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
-      if (dbType === "mysql") editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
-      else editColumnByName("NC_MATH_1", "NC_NOW", `NOW()`);
+      if (dbType === "mysql") editColumnByName("NC_MATH_3", "NC_NOW", `NOW()`);
+      else editColumnByName("NC_MATH_2", "NC_NOW", `NOW()`);
       deleteColumnByName("NC_NOW");
 
       cy.closeTableTab("City");
@@ -354,27 +367,3 @@ export const genTest = (apiType, dbType) => {
     });
   });
 };
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Pranav C Balan <pranavxc@gmail.com>
- * @author Raju Udava <sivadstala@gmail.com>
- * @author Wing-Kam Wong <wingkwong.code@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

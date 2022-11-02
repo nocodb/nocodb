@@ -49,8 +49,7 @@ export const genTest = (apiType, dbType) => {
         .getCell("Film List", 1)
         .should("exist")
         .trigger("mouseover")
-        .click();
-      cy.get(".nc-action-icon").eq(0).should("exist").click({ force: true });
+        .get(".nc-action-icon").eq(0).should("exist").click({ force: true });
 
       // GUI-v2 Kludge:
       // validations
@@ -73,22 +72,22 @@ export const genTest = (apiType, dbType) => {
         .then(() => {
           // Link record form validation
           cy.getActiveModal(".nc-modal-link-record")
-            .contains("Link record")
-            .should("exist");
+              .contains("Link record")
+              .should("exist");
           cy.getActiveModal(".nc-modal-link-record")
-            .find(".nc-reload")
-            .should("exist");
+              .find(".nc-reload")
+              .should("exist");
           cy.getActiveModal(".nc-modal-link-record")
-            .find('button:contains("Add new record")')
-            .should("exist");
+              .find('button:contains("Add new record")')
+              .should("exist");
           cy.getActiveModal(".nc-modal-link-record")
-            .find(".ant-card")
-            .eq(0)
-            .contains("ACE GOLDFINGER")
-            .should("exist");
+              .find(".ant-card")
+              .eq(0)
+              .contains("ACE GOLDFINGER")
+              .should("exist");
           cy.getActiveModal(".nc-modal-link-record")
-            .find("button.ant-modal-close")
-            .click();
+              .find("button.ant-modal-close")
+              .click();
         });
     });
 
@@ -98,8 +97,7 @@ export const genTest = (apiType, dbType) => {
         .getCell("Film List", 1)
         .should("exist")
         .trigger("mouseover")
-        .click();
-      cy.get(".nc-action-icon").eq(0).should("exist").click({ force: true });
+        .get(".nc-action-icon").eq(0).should("exist").click({ force: true });
 
       cy.getActiveModal(".nc-modal-child-list")
         .find(".ant-card")
@@ -130,26 +128,3 @@ export const genTest = (apiType, dbType) => {
     });
   });
 };
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Pranav C Balan <pranavxc@gmail.com>
- * @author Raju Udava <sivadstala@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

@@ -76,7 +76,8 @@ export const genTest = (apiType, dbType) => {
         mainPage.getCell("Country", 1).dblclick();
         mainPage.getCell("Country", 1).find("input").should(`${vString}exist`);
 
-        cy.get(".nc-row-expand").should(`${vString}exist`);
+        // the expand button should be always enabled
+        cy.get(".nc-row-expand").should("exist");
 
         // check if add/ expand options available for 'has many' column type
         // GUI-v2: TBD
@@ -104,26 +105,3 @@ export const genTest = (apiType, dbType) => {
     lockViewTest(false);
   });
 };
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Pranav C Balan <pranavxc@gmail.com>
- * @author Raju Udava <sivadstala@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

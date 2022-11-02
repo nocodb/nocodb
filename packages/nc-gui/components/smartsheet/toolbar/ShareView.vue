@@ -43,7 +43,7 @@ const shared = ref<SharedView>({ id: '', meta: {}, password: undefined })
 const transitionDuration = computed({
   get: () => shared.value.meta.transitionDuration || 250,
   set: (duration) => {
-    shared.value.meta = { ...shared.value.meta, transitionDuration: duration }
+    shared.value.meta = { ...shared.value.meta, transitionDuration: duration > 5000 ? 5000 : duration }
   },
 })
 

@@ -36,7 +36,7 @@ const edgePath = computed(() => {
     const { sourceX, sourceY, targetX, targetY } = props
     const radiusX = (sourceX - targetX) * 0.6
     const radiusY = 50
-    return [`M ${sourceX} ${sourceY} A ${radiusX} ${radiusY} 0 1 0 ${targetX} ${targetY}`]
+    return [`M ${sourceX} ${sourceY} A ${radiusX} ${radiusY} 0 1 0 ${targetX} ${targetY}`, NaN, NaN] as const
   }
 
   return getBezierPath({ ...props })
@@ -94,7 +94,7 @@ export default {
 
   <Transition name="layout">
     <EdgeText
-      v-if="data.label?.length > 0"
+      v-if="data.label?.length && data.label.length > 0"
       :key="`edge-text-${id}.${showSkeleton}`"
       class="color-transition"
       :class="[

@@ -224,11 +224,11 @@ function openDeleteDialog(view: ViewType) {
       :key="view.id"
       :view="view"
       :on-validate="validate"
-      class="transition-all ease-in duration-300"
+      class="nc-view-item transition-all ease-in duration-300"
       :class="{
         'bg-gray-100': isMarked === view.id,
-        'active': activeView.id === view.id,
-        [`nc-view-item nc-${viewTypeAlias[view.type] || view.type}-view-item`]: true,
+        'active': activeView?.id === view.id,
+        [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
       }"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"

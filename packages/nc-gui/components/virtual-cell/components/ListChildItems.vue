@@ -29,7 +29,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const column = inject(ColumnInj)
 
-const readonly = inject(ReadonlyInj, false)
+const readonly = inject(ReadonlyInj, ref(false))
 
 const {
   childrenList,
@@ -181,7 +181,7 @@ watch(
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
-        :row="{ row: expandedFormRow }"
+        :row="{ row: expandedFormRow, oldRow: expandedFormRow, rowMeta: {} }"
         :meta="relatedTableMeta"
         load-row
         use-meta-fields

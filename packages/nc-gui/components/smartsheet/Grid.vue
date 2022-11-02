@@ -18,6 +18,7 @@ import {
   ReloadViewDataHookInj,
   computed,
   createEventHook,
+  enumColor,
   extractPkFromRow,
   inject,
   isColumnRequiredAndNull,
@@ -32,6 +33,7 @@ import {
   useI18n,
   useMetas,
   useMultiSelect,
+  useRoles,
   useRoute,
   useSmartsheetStoreOrThrow,
   useUIPermission,
@@ -50,12 +52,13 @@ const view = inject(ActiveViewInj, ref())
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
 const fields = inject(FieldsInj, ref([]))
-const readOnly = inject(ReadonlyInj, false)
+const readOnly = inject(ReadonlyInj, ref(false))
 const isLocked = inject(IsLockedInj, ref(false))
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
+const { hasRole } = useRoles()
 const { isUIAllowed } = useUIPermission()
 const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 
@@ -67,7 +70,7 @@ const isView = false
 
 let editEnabled = $ref(false)
 
-const { xWhere, isPkAvail, cellRefs, isSqlView } = useSmartsheetStoreOrThrow()
+const { xWhere, isPkAvail, isSqlView } = useSmartsheetStoreOrThrow()
 
 const visibleColLength = $computed(() => fields.value?.length)
 
@@ -224,8 +227,6 @@ provide(PaginationDataInj, paginationData)
 
 provide(ChangePageInj, changePage)
 
-provide(ReadonlyInj, !hasEditPermission)
-
 const disableUrlOverlay = ref(false)
 provide(CellUrlDisableOverlayInj, disableUrlOverlay)
 
@@ -273,7 +274,9 @@ watch(contextMenu, () => {
 
 const rowRefs = $ref<any[]>()
 
-async function clearCell(ctx: { row: number; col: number }) {
+async function clearCell(ctx: { row: number; col: number } | null) {
+  if (!ctx) return
+
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
@@ -561,7 +564,12 @@ watch(
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
                       </div>
                       <span class="flex-1" />
-                      <div v-if="!readOnly && !isLocked" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
+
+                      <div
+                        v-if="!readOnly || hasRole('commenter', true) || hasRole('viewer', true)"
+                        class="nc-expand"
+                        :class="{ 'nc-comment': row.rowMeta?.commentCount }"
+                      >
                         <a-spin v-if="row.rowMeta.saving" class="!flex items-center" />
                         <template v-else>
                           <span
@@ -586,9 +594,8 @@ watch(
                       </div>
                     </div>
                   </td>
-                  <td
+                  <SmartsheetTableDataCell
                     v-for="(columnObj, colIndex) of fields"
-                    :ref="cellRefs.set"
                     :key="columnObj.id"
                     class="cell relative cursor-pointer nc-grid-cell"
                     :class="{
@@ -625,13 +632,13 @@ watch(
                         "
                         :row-index="rowIndex"
                         :active="selected.col === colIndex && selected.row === rowIndex"
-                        @update:edit-enabled="editEnabled = false"
+                        @update:edit-enabled="editEnabled = $event"
                         @save="updateOrSaveRow(row, columnObj.title, state)"
                         @navigate="onNavigate"
                         @cancel="editEnabled = false"
                       />
                     </div>
-                  </td>
+                  </SmartsheetTableDataCell>
                 </tr>
               </template>
             </LazySmartsheetRow>

@@ -45,7 +45,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { t } = useI18n()
 
-  const formState = ref({})
+  const formState = ref<Record<string, any>>({})
 
   const { state: additionalState } = useProvideSmartsheetRowStore(
     meta as Ref<TableType>,

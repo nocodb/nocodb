@@ -60,10 +60,10 @@ jobs:
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
             fi
           fi
-          echo "::set-output name=DOCKER_REPOSITORY::${DOCKER_REPOSITORY}"
-          echo "::set-output name=DOCKER_BUILD_TAG::${DOCKER_BUILD_TAG}"
-          echo ${DOCKER_REPOSITORY}
-          echo ${DOCKER_BUILD_TAG}
+          echo "DOCKER_REPOSITORY=${DOCKER_REPOSITORY}" >> $GITHUB_OUTPUT
+          echo "DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG}" >> $GITHUB_OUTPUT
+          echo DOCKER_REPOSITORY: ${DOCKER_REPOSITORY}
+          echo DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
 
       - name: Checkout
         uses: actions/checkout@v3

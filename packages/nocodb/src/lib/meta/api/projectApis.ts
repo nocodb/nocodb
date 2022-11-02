@@ -113,20 +113,23 @@ async function projectCreate(req: Request<any, any>, res) {
       // each file will be named as nc_<random_id>.db
       const fs = require('fs');
       const toolDir = NcConfigFactory.getToolDir();
-      const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
+      const nanoidv2 = customAlphabet(
+        '1234567890abcdefghijklmnopqrstuvwxyz',
+        14
+      );
       if (!fs.existsSync(`${toolDir}/nc_minimal_dbs`)) {
-          fs.mkdirSync(`${toolDir}/nc_minimal_dbs`);
+        fs.mkdirSync(`${toolDir}/nc_minimal_dbs`);
       }
       const dbId = nanoidv2();
       const projectTitle = DOMPurify.sanitize(projectBody.title);
       projectBody.prefix = '';
       projectBody.bases = [
         {
-          type: "sqlite3",
+          type: 'sqlite3',
           config: {
-            client: "sqlite3",
+            client: 'sqlite3',
             connection: {
-              client: "sqlite3",
+              client: 'sqlite3',
               database: projectTitle,
               connection: {
                 filename: `${toolDir}/nc_minimal_dbs/${projectTitle}_${dbId}.db`,
@@ -134,8 +137,8 @@ async function projectCreate(req: Request<any, any>, res) {
               useNullAsDefault: true,
             },
           },
-          inflection_column: "camelize",
-          inflection_table: "camelize",
+          inflection_column: 'camelize',
+          inflection_table: 'camelize',
         },
       ];
     } else {

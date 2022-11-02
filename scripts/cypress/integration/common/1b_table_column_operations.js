@@ -36,11 +36,6 @@ export const genTest = (apiType, dbType) => {
     const randVal = "Test@1234.com";
     const updatedRandVal = "Updated@1234.com";
 
-    // before(() => {
-    //     cy.restoreLocalStorage();
-    //     cy.createTable(name);
-    // })
-
     beforeEach(() => {
       cy.restoreLocalStorage();
     });
@@ -48,11 +43,6 @@ export const genTest = (apiType, dbType) => {
     afterEach(() => {
       cy.saveLocalStorage();
     });
-
-    // // delete table
-    // after(() => {
-    //     cy.deleteTable(name, dbType);
-    // });
 
     it("Create Table Column", () => {
       cy.createTable(name);
@@ -138,8 +128,9 @@ export const genTest = (apiType, dbType) => {
         .find(".nc-row-no")
         .should("exist")
         .eq(0)
-        .trigger("mouseover", { force: true });
-      cy.get(".nc-row-expand").click({ force: true });
+        .trigger("mouseover", { force: true })
+        .get(".nc-row-expand")
+        .click({ force: true });
 
       // wait for page render to complete
       cy.get('button:contains("Save row"):visible').should("exist");
@@ -207,26 +198,3 @@ export const genTest = (apiType, dbType) => {
     });
   });
 };
-
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Pranav C Balan <pranavxc@gmail.com>
- * @author Raju Udava <sivadstala@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

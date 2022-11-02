@@ -10,7 +10,6 @@ import {
   MetaInj,
   OpenNewRecordFormHookInj,
   PaginationDataInj,
-  ReadonlyInj,
   ReloadRowDataHookInj,
   ReloadViewDataHookInj,
   ReloadViewMetaHookInj,
@@ -22,7 +21,6 @@ import {
   onMounted,
   provide,
   ref,
-  useUIPermission,
   useViewData,
 } from '#imports'
 import type { Row as RowType } from '~/lib'
@@ -51,14 +49,11 @@ const {
   addEmptyRow,
 } = useViewData(meta, view)
 
-const { isUIAllowed } = useUIPermission()
-
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
-provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const fields = inject(FieldsInj, ref([]))
 
@@ -201,7 +196,7 @@ watch(view, async (nextView) => {
                   :key="`carousel-${record.row.id}-${index}`"
                   quality="90"
                   placeholder
-                  class="h-52 object-cover"
+                  class="h-52 object-contain"
                   :src="attachment.url"
                 />
               </a-carousel>
@@ -209,23 +204,17 @@ watch(view, async (nextView) => {
               <MdiFileImageBox v-else class="w-full h-48 my-4 text-cool-gray-200" />
             </template>
 
-            <div
-              v-for="col in fieldsWithoutCover"
-              :key="`record-${record.row.id}-${col.id}`"
-              class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
-            >
-              <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
-                <div class="w-full text-gray-600">
-                  <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+            <div v-for="col in fieldsWithoutCover" :key="`record-${record.row.id}-${col.id}`">
+              <div v-if="!isRowEmpty(record, col)" class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full">
+                <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
+                  <div class="w-full text-gray-600">
+                    <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
 
-                  <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                    <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                  </div>
                 </div>
-              </div>
 
-              <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
-                <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
-
-                <template v-else>
+                <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
                   <LazySmartsheetVirtualCell
                     v-if="isVirtualCol(col)"
                     v-model="record.row[col.title]"
@@ -240,7 +229,7 @@ watch(view, async (nextView) => {
                     :edit-enabled="false"
                     :read-only="true"
                   />
-                </template>
+                </div>
               </div>
             </div>
           </a-card>
@@ -290,7 +279,7 @@ watch(view, async (nextView) => {
 .ant-carousel.gallery-carousel :deep(.slick-dots) {
   position: relative;
   height: auto;
-  bottom: 0px;
+  bottom: 0;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {

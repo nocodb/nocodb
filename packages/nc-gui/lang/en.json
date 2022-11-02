@@ -69,7 +69,8 @@
     "betaNote": "This feature is currently in beta.",
     "moreInfo": "More information can be found here",
     "logs": "Logs",
-    "groupingField": "Grouping Field"
+    "groupingField": "Grouping Field",
+    "geoDataField": "GeoData Field"
   },
   "objects": {
     "project": "Project",

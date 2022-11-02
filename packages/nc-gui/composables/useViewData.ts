@@ -58,8 +58,6 @@ export function useViewData(
 
   const formViewData = ref<FormType>()
 
-  const mapData = ref<MapType>()
-
   const formattedData = ref<Row[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
@@ -453,7 +451,6 @@ export function useViewData(
     syncCount,
     syncPagination,
     galleryData,
-    mapData,
     loadGalleryData,
     loadFormView,
     formColumnData,

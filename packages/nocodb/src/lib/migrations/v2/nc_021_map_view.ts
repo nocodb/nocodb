@@ -1,6 +1,7 @@
 import { MetaTable } from '../../utils/globals';
+import Knex from 'knex';
 
-const up = async (knex) => {
+const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.MAP_VIEW, (table) => {
     table.string('fk_view_id', 20).primary();
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
@@ -14,10 +15,13 @@ const up = async (knex) => {
     table.string('uuid');
     table.string('title');
 
-    table.string('fk_geodata_col_id', 20);
-    table.foreign('fk_geodata_col_id').references(`${MetaTable.COLUMNS}.id`);
+    table.string('fk_geo_data_col_id', 20);
+    table.foreign('fk_geo_data_col_id').references(`${MetaTable.COLUMNS}.id`);
 
     table.text('meta');
+
+    table.dateTime('created_at');
+    table.dateTime('updated_at');
   });
 };
 

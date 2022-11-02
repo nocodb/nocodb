@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { MapType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import { ref, useApi, useInjectionState } from '#imports'
 import type { Row } from '~/lib'
 
@@ -13,15 +13,43 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     const { api } = useApi()
     const { project } = useProject()
 
+    const mapMetaData = ref<MapType>({})
+
+    const geoDataField = ref<string>('')
+
+    const geoDataFieldColumn = ref<ColumnType | undefined>()
+
     async function loadMapData() {
+      if (!viewMeta?.value?.id || !meta?.value?.columns) return
+
+      formattedData.value = []
+
+      const res = await api.dbViewRow.list(
+        'noco',
+        project.value.id!,
+        meta.value!.id!,
+        viewMeta.value!.id!,
+        geoDataFieldColumn!.value!.id,
+      )
+
+      geoDataFieldColumn.value =
+        (meta.value.columns as ColumnType[]).filter((f) => f.id === mapMetaData.value.fk_geo_data_col_id)[0] || {}
+
+      geoDataField.value = geoDataFieldColumn.value.title!
+
+      const { fk_geo_data_col_id, meta: stack_meta } = mapMetaData.value
+
+      const stackMetaObj: any.value = stack_meta ? JSON.parse(stack_meta as string) : {}
+
+      console.log('column geodata', stackMetaObj.value[fk_geo_data_col_id])
       // if ((!project?.value?.id || !meta.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
 
       // reset formattedData & countByStack to avoid storing previous data after changing grouping field
-      formattedData.value = []
+      
 
       //   alert('in loadMapData')
       //   debugger
-      const res = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!)
+      
 
       console.log('res in mapviewdatastore', res)
 
@@ -34,6 +62,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     return {
       formattedData,
       loadMapData,
+      mapMetaData,
     }
   },
 )

@@ -1,0 +1,3 @@
+{
+  "./setup/index.ts": "npx eslint --fix"
+}

@@ -15,9 +15,20 @@
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "1.27.1",
+    "@typescript-eslint/eslint-plugin": "^4.0.1",
+    "@typescript-eslint/parser": "^4.0.1",
     "axios": "^0.24.0",
     "dotenv": "^16.0.3",
+    "eslint": "^7.8.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-functional": "^3.0.2",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
     "mysql2": "^2.3.3",
+    "prettier": "^2.7.1",
     "promised-sqlite3": "^1.2.0"
   },
   "dependencies": {

@@ -17,6 +17,7 @@ const setup = async ({page, isEmptyProject}: {page: Page, isEmptyProject?: boole
     isEmptyProject
   });
 
+  
   if(response.status !== 200) {
     console.error('Failed to reset test data', response.data);
     throw new Error('Failed to reset test data');

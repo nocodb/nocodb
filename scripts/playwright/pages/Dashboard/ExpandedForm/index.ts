@@ -85,10 +85,8 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async verify({ header, url }: { header: string; url: string }) {
-    await expect(
-      await this.get().locator(`.nc-expanded-form-header`).last().innerText()
-    ).toContain(header);
-    await expect(await this.rootPage.url()).toContain(url);
+    await expect(this.get().locator(`.nc-expanded-form-header`).last()).toContainText(header);
+    await expect.poll(() => this.rootPage.url()).toContain(url);
   }
 
   async close() {

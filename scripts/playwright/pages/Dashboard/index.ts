@@ -234,4 +234,10 @@ export class DashboardPage extends BasePage {
     }
     await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
   }
+
+  async waitForLoaderToDisappear() {
+    await this.rootPage
+      .locator('[pw-data="nc-loading"]')
+      .waitFor({ state: "hidden" });
+  }
 }

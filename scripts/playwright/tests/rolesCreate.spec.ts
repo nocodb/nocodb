@@ -32,6 +32,8 @@ test.describe("User roles", () => {
   });
 
   test("Create role", async () => {
+    test.setTimeout(150000);
+    
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: "Team & Auth" });
     await dashboard.gotoSettings();

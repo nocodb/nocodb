@@ -55,20 +55,11 @@ export class ToolbarSortPage extends BasePage {
       .nth(isAscending ? 0 : 1)
       .click();
     
-    if(isLocallySaved) {
-      await this.waitForResponse({
-        uiAction: selectSortDirection,
-        httpMethodsToMatch: ["GET"],
-        requestUrlPathToMatch:  `${isAscending ? "asc" : "desc"}`,
-      })
-    } else {
-      await this.waitForResponse({
-        uiAction: selectSortDirection,
-        httpMethodsToMatch: ["POST", "PATCH"],
-        requestUrlPathToMatch: "/sorts",
-      })
-    }
-
+    await this.waitForResponse({
+      uiAction: selectSortDirection,
+      httpMethodsToMatch: ["GET"],
+      requestUrlPathToMatch:  isLocallySaved ? `/api/v1/db/public/`: `/api/v1/db/data/noco/`,
+    });
 
     // close sort menu
     await this.toolbar.clickSort();

@@ -14,12 +14,17 @@ export class ToolbarFieldsPage extends BasePage {
     return this.rootPage.locator(`[pw-data="nc-fields-menu"]`);
   }
 
-  async toggle({ title }: { title: string }) {
+  // todo: Click and toggle are similar method. Remove one of them
+  async toggle({ title, isLocallySaved }: { title: string; isLocallySaved?: boolean }) {
     await this.toolbar.clickFields();
-    await this.get()
-      .locator(`[pw-data="nc-fields-menu-${title}"]`)
-      .locator('input[type="checkbox"]')
-      .click();
+    await this.waitForResponse({
+      uiAction: this.get()
+        .locator(`[pw-data="nc-fields-menu-${title}"]`)
+        .locator('input[type="checkbox"]')
+        .click(),
+      requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+    });
     await this.toolbar.clickFields();
   }
 
@@ -35,29 +40,45 @@ export class ToolbarFieldsPage extends BasePage {
     }
   }
 
-  async click({ title }: { title: string }) {
-    await this.get()
-      .locator(`[pw-data="nc-fields-menu-${title}"]`)
-      .locator('input[type="checkbox"]')
-      .click();
+  async click({ title, isLocallySaved }: { title: string; isLocallySaved?: boolean }) {
+    await this.waitForResponse({
+      uiAction: this.get()
+        .locator(`[pw-data="nc-fields-menu-${title}"]`)
+        .locator('input[type="checkbox"]')
+        .click(),
+      requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+    });
     await this.toolbar.parent.waitLoading();
   }
 
-  async hideAll() {
+  async hideAll({ isLocallySaved }: { isLocallySaved?: boolean } = {}) {
     await this.toolbar.clickFields();
-    await this.get().locator(`button:has-text("Hide all")`).click();
-    await this.toolbar.clickFields();
-  }
-
-  async showAll() {
-    await this.toolbar.clickFields();
-    await this.get().locator(`button:has-text("Show all")`).click();
+    await this.waitForResponse({
+      uiAction: this.get().locator(`button:has-text("Hide all")`).click(),
+      requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' :  '/api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+    });
     await this.toolbar.clickFields();
   }
 
-  async toggleShowSystemFields() {
+  async showAll({ isLocallySaved }: { isLocallySaved? : boolean } = {}) {
     await this.toolbar.clickFields();
-    await this.get().locator(`.nc-fields-show-system-fields`).click();
+    await this.waitForResponse({
+      uiAction: this.get().locator(`button:has-text("Show all")`).click(),
+      requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' :  '/api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+    });
+    await this.toolbar.clickFields();
+  }
+
+  async toggleShowSystemFields({ isLocallySaved }: { isLocallySaved?: boolean } = {}) {
+    await this.toolbar.clickFields();
+    await this.waitForResponse({
+      uiAction: this.get().locator(`.nc-fields-show-system-fields`).click(),
+      requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' :  '/api/v1/db/data/noco/',
+      httpMethodsToMatch: ['GET'],
+    });
     await this.toolbar.clickFields();
   }
 }

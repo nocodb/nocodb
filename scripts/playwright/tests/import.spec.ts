@@ -11,7 +11,7 @@ test.describe("Import", () => {
   test.setTimeout(150000);
 
   test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(50000);
+    page.setDefaultTimeout(70000);
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.project);
   });

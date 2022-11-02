@@ -30,7 +30,7 @@ export class ProjectMenuObject extends BasePage {
       await this.rootPage
         .locator(`div.nc-project-menu-item:has-text("${subMenu}"):visible`)
         .click();
-      await this.rootPage.waitForTimeout(10000);
+      await this.rootPage.waitForTimeout(1000);
     }
   }
 }

@@ -52,46 +52,48 @@ export class ToolbarFilterPage extends BasePage {
 
     await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
+    const selectedColumnTitle = await this.rootPage.locator('.nc-filter-field-select').textContent();
     await this.rootPage.locator(".nc-filter-field-select").last().click();
-    await this.rootPage
+    if(selectedColumnTitle !== columnTitle) {
+      const selectColumn = this.rootPage
       .locator("div.ant-select-dropdown.nc-dropdown-toolbar-field-list")
       .locator(`div[label="${columnTitle}"][aria-selected="false"]:visible`)
       .click();
+      await this.waitForResponse({
+        uiAction: selectColumn,
+        httpMethodsToMatch: isLocallySaved ? [ "GET" ] : ["POST", "PATCH" ],
+        requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/filters`,
+      });
+    }
 
-    await this.rootPage.locator(".nc-filter-operation-select").last().click();
-    await this.rootPage
+    const selectedOpType = await this.rootPage.locator('.nc-filter-operation-select').textContent();
+    if(selectedOpType !== opType) {
+      await this.rootPage.locator(".nc-filter-operation-select").last().click();
+      const selectOpType = this.rootPage
       .locator(".nc-dropdown-filter-comp-op")
       .locator(`.ant-select-item:has-text("${opType}")`)
       .click();
+      
+      await this.waitForResponse({
+        uiAction: selectOpType,
+        httpMethodsToMatch: isLocallySaved ? [ "GET" ] :  ["POST", "PATCH"],
+        requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/filters`,
+      });
+    }
 
     const fillFilter = this.rootPage
       .locator(".nc-filter-value-select")
       .last()
       .fill(value);
+    await this.waitForResponse({
+      uiAction: fillFilter,
+      httpMethodsToMatch: ["GET"],
+      requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
+    });
 
-    if (isLocallySaved) {
-      await this.waitForResponse({
-        uiAction: fillFilter,
-        httpMethodsToMatch: ["GET"],
-        requestUrlPathToMatch: `${value.replace(" ", "+")}`,
-      });
-    } else {
-      await this.waitForResponse({
-        uiAction: fillFilter,
-        httpMethodsToMatch: ["POST", "PATCH"],
-        requestUrlPathToMatch: "/filters",
-      });
-    }
     await this.toolbar.clickFilter();
 
     await this.toolbar.parent.waitLoading()
-  }
-
-  click({ title }: { title: string }) {
-    return this.get()
-      .locator(`[pw-data="nc-fields-menu-${title}"]`)
-      .locator('input[type="checkbox"]')
-      .click();
   }
 
   async resetFilter() {

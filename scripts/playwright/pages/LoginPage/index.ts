@@ -35,11 +35,15 @@ export class LoginPage extends BasePage {
 
   async submit() {
     await this.get().locator(`[pw-data="nc-form-signin__submit"]`).click();
+    
     await expect(this.rootPage).toHaveURL("http://localhost:3000/#/");
   }
 
   async signIn({ email, password, withoutPrefix }: { email: string; password: string, withoutPrefix?: boolean }) {
     await this.goto();
+
+    // todo: Login page is sometimes not loaded. Probably because of lazy loading
+    await this.rootPage.waitForTimeout(1500);
     await this.fillEmail({email, withoutPrefix});
     await this.fillPassword(password);
     await this.submit();

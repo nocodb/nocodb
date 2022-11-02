@@ -94,6 +94,8 @@ export class GridPage extends BasePage {
     } else {
       await this.rootPage.waitForTimeout(300);
     }
+
+    await this.dashboard.waitForLoaderToDisappear();
   }
 
   async editRow({
@@ -124,6 +126,8 @@ export class GridPage extends BasePage {
     } else {
       await this.rootPage.waitForTimeout(300);
     }
+
+    await this.dashboard.waitForLoaderToDisappear();
   }
 
   async verifyRow({ index }: { index: number }) {
@@ -151,7 +155,9 @@ export class GridPage extends BasePage {
     await this.rootPage
       .locator("span.ant-dropdown-menu-title-content > nc-project-menu-item")
       .waitFor({ state: "hidden" });
+
     await this.rootPage.waitForTimeout(300);
+    await this.dashboard.waitForLoaderToDisappear();
   }
 
   async addRowRightClickMenu(index: number) {
@@ -197,6 +203,7 @@ export class GridPage extends BasePage {
       button: "right",
     });
     await this.rootPage.locator("text=Delete Selected Rows").click();
+    await this.dashboard.waitForLoaderToDisappear();
   }
 
   private async pagination({ page }: { page: string }) {

@@ -133,7 +133,7 @@ test.describe("Shared view", () => {
       opType: "is like",
       isLocallySaved: true,
     });
-    await sharedPage.grid.toolbar.fields.toggle({ title: "LastUpdate" });
+    await sharedPage.grid.toolbar.fields.toggle({ title: "LastUpdate", isLocallySaved: true });
     expectedColumns[6].isVisible = false;
 
     // verify new sort & filter criteria

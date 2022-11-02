@@ -52,6 +52,7 @@ export const rolePermissions = {
       fieldsSync: true,
       gridColUpdate: true,
       filterSync: true,
+      filterChildrenRead: true,
       csvImport: true,
       apiDocs: true,
       projectSettings: true,
@@ -68,6 +69,8 @@ export const rolePermissions = {
   },
   [ProjectRole.Viewer]: {
     include: {
+      filterSync: true,
+      filterChildrenRead: true,
       smartSheet: true,
       column: true,
       projectSettings: true,

@@ -33,4 +33,12 @@ export class ProjectMenuObject extends BasePage {
       await this.rootPage.waitForTimeout(1000);
     }
   }
+
+  async clickPreview(role: string) {
+    await this.click({
+      menu: "Preview as",
+      subMenu: role,
+    });
+    await this.rootPage.waitForTimeout(2500);
+  }
 }

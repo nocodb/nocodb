@@ -167,6 +167,8 @@ test.describe.serial("Webhook", async () => {
   });
 
   test("webhook Conditional webhooks", async ({ request }) => {
+    test.slow(); 
+
     await clearServerData({ request });
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: "Team & Auth" });

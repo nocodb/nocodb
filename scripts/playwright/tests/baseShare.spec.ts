@@ -13,6 +13,9 @@ test.describe("Shared base", () => {
   let projectPage: ProjectsPage;
 
   async function roleTest(role: string) {
+    // todo: Wait till the page is loaded
+    await dashboard.rootPage.waitForTimeout(2000);
+
     await dashboard.validateProjectMenu({
       role: role.toLowerCase(),
       mode: "shareBase",
@@ -63,6 +66,7 @@ test.describe("Shared base", () => {
 
     // access shared base link
     await dashboard.signOut();
+    // todo: Move this to a page object
     await dashboard.rootPage.goto(url);
 
     await roleTest("editor");
@@ -83,6 +87,7 @@ test.describe("Shared base", () => {
 
     // access shared base link
     await dashboard.signOut();
+    // todo: Move this to a page object
     await dashboard.rootPage.goto(url);
 
     await roleTest("viewer");

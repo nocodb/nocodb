@@ -50,13 +50,16 @@ export class ToolbarFilterPage extends BasePage {
   }) {
     await this.toolbar.clickFilter();
 
+    // todo: If the filter menu is open for the first time for the table, there can will be a api call which will re render the filter menu
+    await this.rootPage.waitForTimeout(1000);
+
     await this.get().locator(`button:has-text("Add Filter")`).first().click();
 
     await this.rootPage.locator(".nc-filter-field-select").last().click();
     const selectColumn = this.rootPage
-    .locator("div.ant-select-dropdown.nc-dropdown-toolbar-field-list")
-    .locator(`div[label="${columnTitle}"][aria-selected="false"]:visible`)
-    .click();
+      .locator("div.ant-select-dropdown.nc-dropdown-toolbar-field-list")
+      .locator(`div[label="${columnTitle}"][aria-selected="false"]:visible`)
+      .click();
     await this.waitForResponse({
       uiAction: selectColumn,
       httpMethodsToMatch: isLocallySaved ? [ "GET" ] : ["POST", "PATCH" ],

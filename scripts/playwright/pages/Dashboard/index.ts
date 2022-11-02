@@ -235,6 +235,7 @@ export class DashboardPage extends BasePage {
     await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
   }
 
+  // Wait for the loader i.e the loader than appears when rows are being fetched, saved etc on the top right of dashboard
   async waitForLoaderToDisappear() {
     await this.rootPage
       .locator('[pw-data="nc-loading"]')

@@ -59,7 +59,10 @@ test.describe.serial("Webhook", async () => {
     webhook = dashboard.webhookForm;
   });
 
-  test("CRUD", async ({ request }) => {
+  test("CRUD", async ({ request, page }) => {
+    // todo: Waiting for the server to start
+    await page.waitForTimeout(1000);
+
     // close 'Team & Auth' tab
     await clearServerData({ request });
     await dashboard.closeTab({ title: "Team & Auth" });

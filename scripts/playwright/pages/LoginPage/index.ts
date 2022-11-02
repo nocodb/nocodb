@@ -36,7 +36,10 @@ export class LoginPage extends BasePage {
   async submit() {
     await this.get().locator(`[pw-data="nc-form-signin__submit"]`).click();
     
-    await expect(this.rootPage).toHaveURL("http://localhost:3000/#/");
+    // todo: Login api can take some time to respond if server is under load
+    await expect(this.rootPage).toHaveURL("http://localhost:3000/#/", {
+      timeout: 15000,
+    });
   }
 
   async signIn({ email, password, withoutPrefix }: { email: string; password: string, withoutPrefix?: boolean }) {

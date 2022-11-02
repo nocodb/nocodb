@@ -41,12 +41,20 @@ export class ToolbarSortPage extends BasePage {
 
     await this.get().locator(`button:has-text("Add Sort Option")`).click();
 
+
     await this.rootPage.locator(".nc-sort-field-select").last().click();
-    await this.rootPage
+    const selectColumn = this.rootPage
       .locator("div.ant-select-dropdown.nc-dropdown-toolbar-field-list")
       .locator(`div[label="${columnTitle}"]`)
       .last()
       .click();
+    await this.waitForResponse({
+      uiAction: selectColumn,
+      httpMethodsToMatch: isLocallySaved ? [ "GET" ] : ["POST", "PATCH" ],
+      requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/sorts`,
+    });
+    await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
+
 
     await this.rootPage.locator(".nc-sort-dir-select").last().click();
     const selectSortDirection =  this.rootPage
@@ -60,7 +68,7 @@ export class ToolbarSortPage extends BasePage {
       httpMethodsToMatch: ["GET"],
       requestUrlPathToMatch:  isLocallySaved ? `/api/v1/db/public/`: `/api/v1/db/data/noco/`,
     });
-
+    await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
     // close sort menu
     await this.toolbar.clickSort();
     await this.toolbar.parent.waitLoading();

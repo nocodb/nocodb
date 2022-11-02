@@ -26,6 +26,15 @@ export class ExpandedFormPage extends BasePage {
     return this.dashboard.get().locator(`.nc-drawer-expanded-form`);
   }
 
+  async gotoUsingUrlAndRowId({ rowId }: { rowId: string }) {
+    const url = await this.dashboard.rootPage.url();
+    const expandedFormUrl = "/" + url.split("/").slice(3).join("/").split("?")[0] + `?rowId=${rowId}`
+    await this.rootPage.goto(
+      expandedFormUrl
+    );
+    await this.dashboard.waitForLoaderToDisappear();
+  }
+
   async fillField({
     columnTitle,
     value,

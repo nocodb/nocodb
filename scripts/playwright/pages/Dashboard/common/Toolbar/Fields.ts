@@ -17,14 +17,17 @@ export class ToolbarFieldsPage extends BasePage {
   // todo: Click and toggle are similar method. Remove one of them
   async toggle({ title, isLocallySaved }: { title: string; isLocallySaved?: boolean }) {
     await this.toolbar.clickFields();
-    await this.waitForResponse({
-      uiAction: this.get()
+    const toggleColumn = this.get()
         .locator(`[pw-data="nc-fields-menu-${title}"]`)
         .locator('input[type="checkbox"]')
-        .click(),
+        .click();
+
+    await this.waitForResponse({
+      uiAction: toggleColumn,
       requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
+    await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
     await this.toolbar.clickFields();
   }
 

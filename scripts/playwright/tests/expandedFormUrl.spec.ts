@@ -48,11 +48,8 @@ test.describe("Expanded form URL", () => {
     // expect(expandedFormUrl).toContain("rowId=1");
 
     // access a new rowID using URL
-    let url = await dashboard.rootPage.url();
     await dashboard.expandedForm.close();
-    await dashboard.rootPage.goto(
-      "/" + url.split("/").slice(3).join("/").split("?")[0] + "?rowId=2"
-    );
+    await dashboard.expandedForm.gotoUsingUrlAndRowId({ rowId: "2" });
     await dashboard.expandedForm.verify({
       header: "Algeria",
       url: "rowId=2",
@@ -60,17 +57,13 @@ test.describe("Expanded form URL", () => {
     await dashboard.expandedForm.close();
 
     // visit invalid rowID
-    await dashboard.rootPage.goto(
-      "/" + url.split("/").slice(3).join("/").split("?")[0] + "?rowId=999"
-    );
+    await dashboard.expandedForm.gotoUsingUrlAndRowId({ rowId: "999" });
     await dashboard.verifyToast({ message: "Record not found" });
     // ensure grid is displayed after invalid URL access
     await viewObj.verifyRowCount({ count: 25 });
 
     // Nested URL
-    await dashboard.rootPage.goto(
-      "/" + url.split("/").slice(3).join("/").split("?")[0] + "?rowId=1"
-    );
+    await dashboard.expandedForm.gotoUsingUrlAndRowId({ rowId: "1" });
     await dashboard.expandedForm.verify({
       header: "Afghanistan",
       url: "rowId=1",

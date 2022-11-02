@@ -1,7 +1,7 @@
 // playwright-dev-page.ts
-import { expect, Locator } from "@playwright/test";
-import BasePage from "../../Base";
-import { DashboardPage } from "..";
+import { expect, Locator } from '@playwright/test';
+import BasePage from '../../Base';
+import { DashboardPage } from '..';
 
 export class ImportAirtablePage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -10,7 +10,7 @@ export class ImportAirtablePage extends BasePage {
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
-    this.importButton = dashboard.get().locator(".nc-btn-airtable-import");
+    this.importButton = dashboard.get().locator('.nc-btn-airtable-import');
   }
 
   get() {

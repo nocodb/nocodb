@@ -1,4 +1,4 @@
-import {  expect } from '@playwright/test';
+import { expect } from '@playwright/test';
 import BasePage from '../../Base';
 
 export abstract class ErdBasePage extends BasePage {
@@ -37,26 +37,36 @@ export abstract class ErdBasePage extends BasePage {
   }
 
   async verifyEasterEggNotShown() {
-    await expect(await this.get().locator('.nc-erd-showMMTables-checkbox')).not.toBeVisible()
+    await expect(await this.get().locator('.nc-erd-showMMTables-checkbox')).not.toBeVisible();
   }
 
-  async verifyNode({tableName, columnName, columnNameShouldNotExist}: {tableName: string; columnName?: string, columnNameShouldNotExist?: string}) {
-    await this.get().locator(`.nc-erd-table-node-${tableName}`).waitFor({state: 'visible'});
+  async verifyNode({
+    tableName,
+    columnName,
+    columnNameShouldNotExist,
+  }: {
+    tableName: string;
+    columnName?: string;
+    columnNameShouldNotExist?: string;
+  }) {
+    await this.get().locator(`.nc-erd-table-node-${tableName}`).waitFor({ state: 'visible' });
     if (columnName) {
-      await this.get().locator(`.nc-erd-table-node-${tableName}-column-${columnName}`).waitFor({state: 'visible'});
+      await this.get().locator(`.nc-erd-table-node-${tableName}-column-${columnName}`).waitFor({ state: 'visible' });
     }
-    if(columnNameShouldNotExist) {
-      await this.get().locator(`.nc-erd-table-node-${tableName}-column-${columnNameShouldNotExist}`).waitFor({state: 'hidden'});
+    if (columnNameShouldNotExist) {
+      await this.get()
+        .locator(`.nc-erd-table-node-${tableName}-column-${columnNameShouldNotExist}`)
+        .waitFor({ state: 'hidden' });
     }
   }
 
-  async verifyNodeDoesNotExist({tableName}: {tableName: string}) {
-    await this.get().locator(`.nc-erd-table-node-${tableName}`).waitFor({state: 'hidden'});
+  async verifyNodeDoesNotExist({ tableName }: { tableName: string }) {
+    await this.get().locator(`.nc-erd-table-node-${tableName}`).waitFor({ state: 'hidden' });
   }
 
-  async verifyColumns({tableName, columns}: {tableName: string; columns: string[]}) {
+  async verifyColumns({ tableName, columns }: { tableName: string; columns: string[] }) {
     for (const column of columns) {
-      await this.verifyNode({tableName, columnName: column});
+      await this.verifyNode({ tableName, columnName: column });
     }
   }
 
@@ -78,9 +88,9 @@ export abstract class ErdBasePage extends BasePage {
     await expect(this.get().locator('.nc-erd-edge-rect')).toHaveCount(rectangleCount);
   }
 
-  async verifyJunctionTableLabel({tableTitle, tableName}: {tableName: string; tableTitle: string}) {
+  async verifyJunctionTableLabel({ tableTitle, tableName }: { tableName: string; tableTitle: string }) {
     await await this.vueFlow().locator(`.nc-erd-table-label-${tableTitle}-${tableName}`).locator('text').waitFor({
       state: 'visible',
-    })
+    });
   }
 }

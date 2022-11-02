@@ -1,10 +1,10 @@
-import { test } from "@playwright/test";
-import { DashboardPage } from "../pages/Dashboard";
-import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 
-import setup from "../setup";
+import setup from '../setup';
 
-test.describe("View", () => {
+test.describe('View', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage;
   let context: any;
 
@@ -14,29 +14,29 @@ test.describe("View", () => {
     toolbar = toolbar = dashboard.kanban.toolbar;
   });
 
-  test("Kanban", async () => {
+  test('Kanban', async () => {
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: "Team & Auth" });
-    await dashboard.treeView.openTable({ title: "Film" });
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Film' });
 
     await dashboard.viewSidebar.createKanbanView({
-      title: "Film Kanban",
+      title: 'Film Kanban',
     });
     await dashboard.viewSidebar.verifyView({
-      title: "Film Kanban",
+      title: 'Film Kanban',
       index: 1,
     });
 
     // configure stack-by field
     await toolbar.clickStackByField();
-    await toolbar.stackBy.click({ title: "Rating" });
+    await toolbar.stackBy.click({ title: 'Rating' });
     // click again to close menu
     await toolbar.clickStackByField();
 
     const kanban = dashboard.kanban;
     await kanban.verifyStackCount({ count: 6 });
     await kanban.verifyStackOrder({
-      order: ["Uncategorized", "G", "PG", "PG-13", "R", "NC-17"],
+      order: ['Uncategorized', 'G', 'PG', 'PG-13', 'R', 'NC-17'],
     });
     await kanban.verifyStackFooter({
       count: [0, 178, 194, 223, 195, 210],
@@ -47,18 +47,18 @@ test.describe("View", () => {
 
     // hide fields
     await toolbar.fields.hideAll();
-    await toolbar.fields.toggle({ title: "Title" });
+    await toolbar.fields.toggle({ title: 'Title' });
     await kanban.verifyCardCount({
       count: [0, 25, 25, 25, 25, 25],
     });
 
     // verify card order
     const order = [
-      ["ACE GOLDFINGER", "AFFAIR PREJUDICE", "AFRICAN EGG"],
-      ["ACADEMY DINOSAUR", "AGENT TRUMAN", "ALASKA PHANTOM"],
-      ["AIRPLANE SIERRA", "ALABAMA DEVIL", "ALTER VICTORY"],
-      ["AIRPORT POLLOCK", "ALONE TRIP", "AMELIE HELLFIGHTERS"],
-      ["ADAPTATION HOLES", "ALADDIN CALENDAR", "ALICE FANTASIA"],
+      ['ACE GOLDFINGER', 'AFFAIR PREJUDICE', 'AFRICAN EGG'],
+      ['ACADEMY DINOSAUR', 'AGENT TRUMAN', 'ALASKA PHANTOM'],
+      ['AIRPLANE SIERRA', 'ALABAMA DEVIL', 'ALTER VICTORY'],
+      ['AIRPORT POLLOCK', 'ALONE TRIP', 'AMELIE HELLFIGHTERS'],
+      ['ADAPTATION HOLES', 'ALADDIN CALENDAR', 'ALICE FANTASIA'],
     ];
     for (let i = 1; i <= order.length; i++)
       await kanban.verifyCardOrder({
@@ -78,7 +78,7 @@ test.describe("View", () => {
       to: 2, // PG
     });
     await kanban.verifyStackOrder({
-      order: ["Uncategorized", "PG", "G", "PG-13", "R", "NC-17"],
+      order: ['Uncategorized', 'PG', 'G', 'PG-13', 'R', 'NC-17'],
     });
     // verify drag drop stack
     await kanban.dragDropStack({
@@ -86,19 +86,19 @@ test.describe("View", () => {
       to: 1, // PG
     });
     await kanban.verifyStackOrder({
-      order: ["Uncategorized", "G", "PG", "PG-13", "R", "NC-17"],
+      order: ['Uncategorized', 'G', 'PG', 'PG-13', 'R', 'NC-17'],
     });
 
     // verify sort
     await toolbar.sort.addSort({
-      columnTitle: "Title",
+      columnTitle: 'Title',
       isAscending: false,
       isLocallySaved: false,
     });
     // verify card order
     const order2 = [
-      ["YOUNG LANGUAGE", "WEST LION"],
-      ["WORST BANGER", "WORDS HUNTER"],
+      ['YOUNG LANGUAGE', 'WEST LION'],
+      ['WORST BANGER', 'WORDS HUNTER'],
     ];
     for (let i = 1; i <= order2.length; i++)
       await kanban.verifyCardOrder({
@@ -108,8 +108,8 @@ test.describe("View", () => {
     await toolbar.sort.resetSort();
     // verify card order
     const order3 = [
-      ["ACE GOLDFINGER", "AFFAIR PREJUDICE", "AFRICAN EGG"],
-      ["ACADEMY DINOSAUR", "AGENT TRUMAN", "ALASKA PHANTOM"],
+      ['ACE GOLDFINGER', 'AFFAIR PREJUDICE', 'AFRICAN EGG'],
+      ['ACADEMY DINOSAUR', 'AGENT TRUMAN', 'ALASKA PHANTOM'],
     ];
     for (let i = 1; i <= order3.length; i++)
       await kanban.verifyCardOrder({
@@ -119,15 +119,15 @@ test.describe("View", () => {
 
     // verify filter
     await toolbar.filter.addNew({
-      columnTitle: "Title",
-      opType: "is like",
-      value: "BA",
+      columnTitle: 'Title',
+      opType: 'is like',
+      value: 'BA',
       isLocallySaved: false,
     });
     // verify card order
     const order4 = [
-      ["BAKED CLEOPATRA", "BALLROOM MOCKINGBIRD"],
-      ["ARIZONA BANG", "EGYPT TENENBAUMS"],
+      ['BAKED CLEOPATRA', 'BALLROOM MOCKINGBIRD'],
+      ['ARIZONA BANG', 'EGYPT TENENBAUMS'],
     ];
     for (let i = 1; i <= order4.length; i++)
       await kanban.verifyCardOrder({
@@ -136,8 +136,8 @@ test.describe("View", () => {
       });
     await toolbar.filter.resetFilter();
     const order5 = [
-      ["ACE GOLDFINGER", "AFFAIR PREJUDICE", "AFRICAN EGG"],
-      ["ACADEMY DINOSAUR", "AGENT TRUMAN", "ALASKA PHANTOM"],
+      ['ACE GOLDFINGER', 'AFFAIR PREJUDICE', 'AFRICAN EGG'],
+      ['ACADEMY DINOSAUR', 'AGENT TRUMAN', 'ALASKA PHANTOM'],
     ];
     for (let i = 1; i <= order5.length; i++)
       await kanban.verifyCardOrder({
@@ -148,43 +148,43 @@ test.describe("View", () => {
     await dashboard.rootPage.waitForTimeout(1000);
   });
 
-  test("Kanban view operations", async () => {
+  test('Kanban view operations', async () => {
     test.slow();
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: "Team & Auth" });
-    await dashboard.treeView.openTable({ title: "Film" });
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Film' });
 
     await dashboard.viewSidebar.createKanbanView({
-      title: "Film Kanban",
+      title: 'Film Kanban',
     });
     await dashboard.viewSidebar.verifyView({
-      title: "Film Kanban",
+      title: 'Film Kanban',
       index: 1,
     });
 
     await toolbar.sort.addSort({
-      columnTitle: "Title",
+      columnTitle: 'Title',
       isAscending: false,
       isLocallySaved: false,
     });
     await toolbar.filter.addNew({
-      columnTitle: "Title",
-      opType: "is like",
-      value: "BA",
+      columnTitle: 'Title',
+      opType: 'is like',
+      value: 'BA',
       isLocallySaved: false,
     });
     await toolbar.fields.hideAll();
-    await toolbar.fields.toggle({ title: "Title" });
+    await toolbar.fields.toggle({ title: 'Title' });
 
-    await dashboard.viewSidebar.copyView({ title: "Film Kanban" });
+    await dashboard.viewSidebar.copyView({ title: 'Film Kanban' });
     await dashboard.viewSidebar.verifyView({
-      title: "Kanban-1",
+      title: 'Kanban-1',
       index: 2,
     });
     const kanban = dashboard.kanban;
     await kanban.verifyStackCount({ count: 6 });
     await kanban.verifyStackOrder({
-      order: ["Uncategorized", "G", "PG", "PG-13", "R", "NC-17"],
+      order: ['Uncategorized', 'G', 'PG', 'PG-13', 'R', 'NC-17'],
     });
     await kanban.verifyStackFooter({
       count: [0, 4, 5, 8, 6, 6],
@@ -194,8 +194,8 @@ test.describe("View", () => {
     });
     // verify card order
     const order2 = [
-      ["BAREFOOT MANCHURIAN", "BARBARELLA STREETCAR"],
-      ["WORST BANGER", "PRESIDENT BANG"],
+      ['BAREFOOT MANCHURIAN', 'BARBARELLA STREETCAR'],
+      ['WORST BANGER', 'PRESIDENT BANG'],
     ];
     for (let i = 1; i <= order2.length; i++)
       await kanban.verifyCardOrder({
@@ -203,17 +203,17 @@ test.describe("View", () => {
         order: order2[i - 1],
       });
 
-    await dashboard.viewSidebar.deleteView({ title: "Kanban-1" });
+    await dashboard.viewSidebar.deleteView({ title: 'Kanban-1' });
     ///////////////////////////////////////////////
 
-    await dashboard.viewSidebar.openView({ title: "Film Kanban" });
+    await dashboard.viewSidebar.openView({ title: 'Film Kanban' });
 
     // add new stack
-    await kanban.addNewStack({ title: "Test" });
+    await kanban.addNewStack({ title: 'Test' });
     await dashboard.rootPage.waitForTimeout(1000);
     await kanban.verifyStackCount({ count: 7 });
     await kanban.verifyStackOrder({
-      order: ["Uncategorized", "G", "PG", "PG-13", "R", "NC-17", "Test"],
+      order: ['Uncategorized', 'G', 'PG', 'PG-13', 'R', 'NC-17', 'Test'],
     });
 
     // collapse stack
@@ -226,26 +226,26 @@ test.describe("View", () => {
     // add record to stack & verify
     await toolbar.fields.hideAll();
     await toolbar.fields.toggleShowSystemFields();
-    await toolbar.fields.toggle({ title: "LanguageId" });
-    await toolbar.fields.toggle({ title: "Title" });
+    await toolbar.fields.toggle({ title: 'LanguageId' });
+    await toolbar.fields.toggle({ title: 'Title' });
     await toolbar.sort.resetSort();
     await toolbar.filter.resetFilter();
 
     await kanban.addCard({ stackIndex: 6 });
     await dashboard.expandedForm.fillField({
-      columnTitle: "Title",
-      value: "New record",
+      columnTitle: 'Title',
+      value: 'New record',
     });
     await dashboard.expandedForm.fillField({
-      columnTitle: "LanguageId",
-      value: "1",
+      columnTitle: 'LanguageId',
+      value: '1',
     });
     // todo: Check why kanban doesnt reload the rows data
     await dashboard.expandedForm.save({ waitForRowsData: false });
 
     await kanban.verifyStackCount({ count: 7 });
     await kanban.verifyStackOrder({
-      order: ["Uncategorized", "G", "PG", "PG-13", "R", "NC-17", "Test"],
+      order: ['Uncategorized', 'G', 'PG', 'PG-13', 'R', 'NC-17', 'Test'],
     });
     await kanban.verifyCardCount({
       count: [0, 25, 25, 25, 25, 25, 1],
@@ -256,7 +256,7 @@ test.describe("View", () => {
     await dashboard.rootPage.waitForTimeout(1000);
     await kanban.verifyStackCount({ count: 6 });
     await kanban.verifyStackOrder({
-      order: ["Uncategorized", "G", "PG", "PG-13", "R", "NC-17"],
+      order: ['Uncategorized', 'G', 'PG', 'PG-13', 'R', 'NC-17'],
     });
     await kanban.verifyCardCount({
       count: [1, 25, 25, 25, 25, 25],

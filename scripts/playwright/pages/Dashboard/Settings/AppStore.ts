@@ -1,6 +1,6 @@
-import { expect } from "@playwright/test";
-import { SettingsPage } from ".";
-import BasePage from "../../Base";
+import { expect } from '@playwright/test';
+import { SettingsPage } from '.';
+import BasePage from '../../Base';
 
 export class AppStoreSettingsPage extends BasePage {
   private readonly settings: SettingsPage;
@@ -11,29 +11,19 @@ export class AppStoreSettingsPage extends BasePage {
   }
 
   get() {
-    return this.settings
-      .get()
-      .locator(`[pw-data="nc-settings-subtab-appStore"]`);
+    return this.settings.get().locator(`[pw-data="nc-settings-subtab-appStore"]`);
   }
 
   async install({ name }: { name: string }) {
-    let card = await this.settings.get().locator(`.nc-app-store-card-${name}`);
+    const card = await this.settings.get().locator(`.nc-app-store-card-${name}`);
     await card.click();
-    await card.locator(".nc-app-store-card-install").click();
+    await card.locator('.nc-app-store-card-install').click();
   }
 
   async configureSlack() {}
 
-  async configureSMTP({
-    email,
-    host,
-    port,
-  }: {
-    email: string;
-    host: string;
-    port: string;
-  }) {
-    let appStoreCard = this.rootPage.locator(".nc-modal-plugin-install");
+  async configureSMTP({ email, host, port }: { email: string; host: string; port: string }) {
+    const appStoreCard = this.rootPage.locator('.nc-modal-plugin-install');
 
     await appStoreCard.locator('[id="form_item_from"]').fill(email);
     await appStoreCard.locator('[id="form_item_host"]').fill(host);
@@ -43,11 +33,11 @@ export class AppStoreSettingsPage extends BasePage {
   }
 
   async uninstall(param: { name: string }) {
-    let card = this.settings.get().locator(`.nc-app-store-card-${param.name}`);
+    const card = this.settings.get().locator(`.nc-app-store-card-${param.name}`);
 
     // await card.scrollIntoViewIfNeeded();
     await card.click();
-    await card.locator(".nc-app-store-card-reset").click();
-    await this.rootPage.locator("button.ant-btn-dangerous").click();
+    await card.locator('.nc-app-store-card-reset').click();
+    await this.rootPage.locator('button.ant-btn-dangerous').click();
   }
 }

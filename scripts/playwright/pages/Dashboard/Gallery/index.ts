@@ -1,8 +1,8 @@
 // playwright-dev-page.ts
-import { Locator, expect } from "@playwright/test";
-import { DashboardPage } from "..";
-import BasePage from "../../Base";
-import { ToolbarPage } from "../common/Toolbar";
+import { expect, Locator } from '@playwright/test';
+import { DashboardPage } from '..';
+import BasePage from '../../Base';
+import { ToolbarPage } from '../common/Toolbar';
 
 export class GalleryPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -24,13 +24,7 @@ export class GalleryPage extends BasePage {
 
   async openExpandedRow({ index }: { index: number }) {
     await this.card(index).click();
-    await (
-      await this.rootPage.locator(".ant-drawer-body").elementHandle()
-    )?.waitForElementState("stable");
-  }
-
-  async verifyRowCount(param: { count: number }) {
-    return;
+    await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
   }
 
   // todo: Wait for render to complete

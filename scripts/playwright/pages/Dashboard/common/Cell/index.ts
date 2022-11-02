@@ -1,11 +1,11 @@
-import { expect, Locator } from "@playwright/test";
-import { GridPage } from "../../Grid";
-import BasePage from "../../../Base";
-import { AttachmentCellPageObject } from "./AttachmentCell";
-import { SelectOptionCellPageObject } from "./SelectOptionCell";
-import { SharedFormPage } from "../../../SharedForm";
-import { CheckboxCellPageObject } from "./CheckboxCell";
-import { RatingCellPageObject } from "./RatingCell";
+import { expect, Locator } from '@playwright/test';
+import { GridPage } from '../../Grid';
+import BasePage from '../../../Base';
+import { AttachmentCellPageObject } from './AttachmentCell';
+import { SelectOptionCellPageObject } from './SelectOptionCell';
+import { SharedFormPage } from '../../../SharedForm';
+import { CheckboxCellPageObject } from './CheckboxCell';
+import { RatingCellPageObject } from './RatingCell';
 
 export class CellPageObject extends BasePage {
   readonly parent: GridPage | SharedFormPage;
@@ -22,107 +22,53 @@ export class CellPageObject extends BasePage {
     this.rating = new RatingCellPageObject(this);
   }
 
-  get({
-    index,
-    columnHeader,
-  }: {
-    index?: number;
-    columnHeader: string;
-  }): Locator {
+  get({ index, columnHeader }: { index?: number; columnHeader: string }): Locator {
     if (this.parent instanceof SharedFormPage) {
-      return this.parent
-        .get()
-        .locator(`[pw-data="nc-form-input-cell-${columnHeader}"]`);
+      return this.parent.get().locator(`[pw-data="nc-form-input-cell-${columnHeader}"]`);
     } else {
-      return this.parent
-        .get()
-        .locator(`td[data-pw="cell-${columnHeader}-${index}"]`);
+      return this.parent.get().locator(`td[data-pw="cell-${columnHeader}-${index}"]`);
     }
   }
 
-  async click({
-    index,
-    columnHeader,
-  }: {
-    index: number;
-    columnHeader: string;
-  }) {
+  async click({ index, columnHeader }: { index: number; columnHeader: string }) {
     return await this.get({ index, columnHeader }).click();
   }
 
-  async dblclick({
-    index,
-    columnHeader,
-  }: {
-    index?: number;
-    columnHeader: string;
-  }) {
+  async dblclick({ index, columnHeader }: { index?: number; columnHeader: string }) {
     return await this.get({ index, columnHeader }).dblclick();
   }
 
-  async fillText({
-    index,
-    columnHeader,
-    text
-  }: {
-    index?: number;
-    columnHeader: string;
-    text: string;
-  }) {
+  async fillText({ index, columnHeader, text }: { index?: number; columnHeader: string; text: string }) {
     await this.dblclick({
       index,
       columnHeader,
     });
-    await this.get({ index, columnHeader }).locator("input").fill(text);
+    await this.get({ index, columnHeader }).locator('input').fill(text);
   }
 
-  async inCellExpand({
-    index,
-    columnHeader,
-  }: {
-    index: number;
-    columnHeader: string;
-  }) {
+  async inCellExpand({ index, columnHeader }: { index: number; columnHeader: string }) {
     await this.get({ index, columnHeader }).hover();
     await this.waitForResponse({
-      uiAction: this.get({ index, columnHeader })
-        .locator(".nc-action-icon >> nth=0")
-        .click(),
+      uiAction: this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
       requestUrlPathToMatch: '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
-    })
+    });
   }
 
-  async inCellAdd({
-    index,
-    columnHeader,
-  }: {
-    index: number;
-    columnHeader: string;
-  }) {
+  async inCellAdd({ index, columnHeader }: { index: number; columnHeader: string }) {
     await this.get({ index, columnHeader }).hover();
-    await this.get({ index, columnHeader })
-      .locator(".nc-action-icon.nc-plus")
-      .click();
+    await this.get({ index, columnHeader }).locator('.nc-action-icon.nc-plus').click();
   }
 
-  async verify({
-    index,
-    columnHeader,
-    value,
-  }: {
-    index: number;
-    columnHeader: string;
-    value: string | string[];
-  }) {
-    const _verify = async (text) => {
+  async verify({ index, columnHeader, value }: { index: number; columnHeader: string; value: string | string[] }) {
+    const _verify = async text => {
       await expect
         .poll(async () => {
           const innerTexts = await this.get({
             index,
             columnHeader,
           }).allInnerTexts();
-          return typeof innerTexts === "string" ? [innerTexts] : innerTexts;
+          return typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
         })
         .toContain(text);
     };
@@ -154,10 +100,10 @@ export class CellPageObject extends BasePage {
   }) {
     // const count = value.length;
     const cell = this.get({ index, columnHeader });
-    const chips = cell.locator(".chips > .chip");
+    const chips = cell.locator('.chips > .chip');
 
     // verify chip count & contents
-    if(count) expect(chips).toHaveCount(count);
+    if (count) expect(chips).toHaveCount(count);
 
     // verify only the elements that are passed in
     for (let i = 0; i < value.length; ++i) {
@@ -165,48 +111,37 @@ export class CellPageObject extends BasePage {
     }
   }
 
-  async unlinkVirtualCell({
-    index,
-    columnHeader,
-  }: {
-    index: number;
-    columnHeader: string;
-  }) {
+  async unlinkVirtualCell({ index, columnHeader }: { index: number; columnHeader: string }) {
     const cell = this.get({ index, columnHeader });
     await cell.click();
-    await cell.locator(".nc-icon.unlink-icon").click();
+    await cell.locator('.nc-icon.unlink-icon').click();
   }
 
   async verifyRoleAccess(param: { role: string }) {
     // normal text cell
-    const cell = await this.get({ index: 0, columnHeader: "Country" });
+    const cell = await this.get({ index: 0, columnHeader: 'Country' });
     // editable cell
     await cell.dblclick();
-    await expect(await cell.locator(`input`)).toHaveCount(
-      param.role === "creator" || param.role === "editor" ? 1 : 0
-    );
+    await expect(await cell.locator(`input`)).toHaveCount(param.role === 'creator' || param.role === 'editor' ? 1 : 0);
     // right click context menu
-    await cell.click({ button: "right" });
-    await expect(
-      await this.rootPage
-        .locator(`.nc-dropdown-grid-context-menu:visible`)
-    ).toHaveCount(param.role === "creator" || param.role === "editor" ? 1 : 0);
+    await cell.click({ button: 'right' });
+    await expect(await this.rootPage.locator(`.nc-dropdown-grid-context-menu:visible`)).toHaveCount(
+      param.role === 'creator' || param.role === 'editor' ? 1 : 0
+    );
 
     // virtual cell
-    const vCell = await this.get({ index: 0, columnHeader: "City List" });
+    const vCell = await this.get({ index: 0, columnHeader: 'City List' });
     await vCell.hover();
     // in-cell add
-    await expect(await vCell.locator(".nc-action-icon.nc-plus:visible")).toHaveCount(
-      param.role === "creator" || param.role === "editor" ? 1 : 0
+    await expect(await vCell.locator('.nc-action-icon.nc-plus:visible')).toHaveCount(
+      param.role === 'creator' || param.role === 'editor' ? 1 : 0
     );
     // in-cell expand (all have access)
-    await expect(
-      await vCell.locator(".nc-action-icon.nc-arrow-expand:visible")
-    ).toHaveCount(1);
+    await expect(await vCell.locator('.nc-action-icon.nc-arrow-expand:visible')).toHaveCount(1);
     await vCell.click();
     // unlink
-    await expect(await vCell.locator(".nc-icon.unlink-icon:visible")).toHaveCount(
-      param.role === "creator" || param.role === "editor" ? 1 : 0
+    await expect(await vCell.locator('.nc-icon.unlink-icon:visible')).toHaveCount(
+      param.role === 'creator' || param.role === 'editor' ? 1 : 0
     );
   }
 }

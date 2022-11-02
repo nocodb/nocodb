@@ -1,11 +1,11 @@
-import { test } from "@playwright/test";
-import { DashboardPage } from "../pages/Dashboard";
-import setup from "../setup";
-import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
-import { LoginPage } from "../pages/LoginPage";
-import { ProjectsPage } from "../pages/ProjectsPage";
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import setup from '../setup';
+import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
+import { LoginPage } from '../pages/LoginPage';
+import { ProjectsPage } from '../pages/ProjectsPage';
 
-test.describe("Shared base", () => {
+test.describe('Shared base', () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let context: any;
@@ -18,10 +18,10 @@ test.describe("Shared base", () => {
 
     await dashboard.validateProjectMenu({
       role: role.toLowerCase(),
-      mode: "shareBase",
+      mode: 'shareBase',
     });
 
-    await dashboard.treeView.openTable({ title: "Country", mode: "shareBase" });
+    await dashboard.treeView.openTable({ title: 'Country', mode: 'shareBase' });
 
     await dashboard.viewSidebar.validateRoleAccess({
       role: role.toLowerCase(),
@@ -29,7 +29,7 @@ test.describe("Shared base", () => {
 
     await toolbar.validateRoleAccess({
       role: role.toLowerCase(),
-      mode: "shareBase",
+      mode: 'shareBase',
     });
 
     await dashboard.treeView.validateRoleAccess({
@@ -54,13 +54,13 @@ test.describe("Shared base", () => {
     loginPage = new LoginPage(page);
   });
 
-  test("#1", async () => {
+  test('#1', async () => {
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: "Team & Auth" });
+    await dashboard.closeTab({ title: 'Team & Auth' });
 
     await dashboard.treeView.inviteTeamButton.click();
     await dashboard.settings.teams.toggleSharedBase({ toggle: true });
-    await dashboard.settings.teams.sharedBaseRole({ role: "editor" });
+    await dashboard.settings.teams.sharedBaseRole({ role: 'editor' });
     let url = await dashboard.settings.teams.getSharedBaseUrl();
     await dashboard.settings.teams.closeInvite();
 
@@ -70,19 +70,19 @@ test.describe("Shared base", () => {
     // todo: Move this to a page object
     await dashboard.rootPage.goto(url);
 
-    await roleTest("editor");
+    await roleTest('editor');
 
     await loginPage.signIn({
-      email: "user@nocodb.com",
-      password: "Password123.",
+      email: 'user@nocodb.com',
+      password: 'Password123.',
       withoutPrefix: true,
     });
     await projectPage.openProject({ title: 'externalREST' });
-    await dashboard.closeTab({ title: "Team & Auth" });
+    await dashboard.closeTab({ title: 'Team & Auth' });
 
     await dashboard.treeView.inviteTeamButton.click();
     await dashboard.settings.teams.toggleSharedBase({ toggle: true });
-    await dashboard.settings.teams.sharedBaseRole({ role: "viewer" });
+    await dashboard.settings.teams.sharedBaseRole({ role: 'viewer' });
     url = await dashboard.settings.teams.getSharedBaseUrl();
     await dashboard.settings.teams.closeInvite();
 
@@ -92,6 +92,6 @@ test.describe("Shared base", () => {
     // todo: Move this to a page object
     await dashboard.rootPage.goto(url);
 
-    await roleTest("viewer");
+    await roleTest('viewer');
   });
 });

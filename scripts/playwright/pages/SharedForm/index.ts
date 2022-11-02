@@ -1,7 +1,7 @@
 // playwright-dev-page.ts
-import { Locator, Page, expect } from "@playwright/test";
-import BasePage from "../Base";
-import { CellPageObject } from "../Dashboard/common/Cell";
+import { expect, Locator, Page } from '@playwright/test';
+import BasePage from '../Base';
+import { CellPageObject } from '../Dashboard/common/Cell';
 
 export class SharedFormPage extends BasePage {
   readonly cell: CellPageObject;
@@ -12,20 +12,22 @@ export class SharedFormPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator("html");
+    return this.rootPage.locator('html');
   }
 
   async submit() {
     await this.waitForResponse({
-      uiAction:this.get().locator('[pw-data="shared-form-submit-button"]').click(),
-      httpMethodsToMatch: ["POST"],
-      requestUrlPathToMatch: '/rows'
+      uiAction: this.get().locator('[pw-data="shared-form-submit-button"]').click(),
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: '/rows',
     });
   }
 
   async verifySuccessMessage() {
-    await expect(await this.get().locator('.ant-alert-success', {
-      hasText: 'Successfully submitted form data'
-    })).toBeVisible();
+    await expect(
+      await this.get().locator('.ant-alert-success', {
+        hasText: 'Successfully submitted form data',
+      })
+    ).toBeVisible();
   }
 }

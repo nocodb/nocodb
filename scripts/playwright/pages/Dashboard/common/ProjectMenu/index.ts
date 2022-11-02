@@ -1,8 +1,8 @@
-import BasePage from "../../../Base";
-import { GridPage } from "../../Grid";
-import { GalleryPage } from "../../Gallery";
-import { KanbanPage } from "../../Kanban";
-import { FormPage } from "../../Form";
+import BasePage from '../../../Base';
+import { GridPage } from '../../Grid';
+import { GalleryPage } from '../../Gallery';
+import { KanbanPage } from '../../Kanban';
+import { FormPage } from '../../Form';
 
 export class ProjectMenuObject extends BasePage {
   constructor(parent: GridPage | GalleryPage | KanbanPage | FormPage) {
@@ -18,25 +18,19 @@ export class ProjectMenuObject extends BasePage {
   }
 
   async click({ menu, subMenu }: { menu: string; subMenu: string }) {
-    let pMenu = await this.rootPage.locator(
-      `.nc-dropdown-project-menu:visible`
-    );
-    await pMenu
-      .locator(`div.nc-project-menu-item:has-text("${menu}"):visible`)
-      .click();
+    const pMenu = await this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
+    await pMenu.locator(`div.nc-project-menu-item:has-text("${menu}"):visible`).click();
     await this.rootPage.waitForTimeout(2000);
 
     if (subMenu) {
-      await this.rootPage
-        .locator(`div.nc-project-menu-item:has-text("${subMenu}"):visible`)
-        .click();
+      await this.rootPage.locator(`div.nc-project-menu-item:has-text("${subMenu}"):visible`).click();
       await this.rootPage.waitForTimeout(1000);
     }
   }
 
   async clickPreview(role: string) {
     await this.click({
-      menu: "Preview as",
+      menu: 'Preview as',
       subMenu: role,
     });
     await this.rootPage.waitForTimeout(2500);

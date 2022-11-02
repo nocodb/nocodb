@@ -1,9 +1,9 @@
-import { test } from "@playwright/test";
-import { DashboardPage } from "../pages/Dashboard";
-import setup from "../setup";
-import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import setup from '../setup';
+import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 
-test.describe.only("Test block name", () => {
+test.describe.only('Test block name', () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let context: any;
@@ -14,9 +14,9 @@ test.describe.only("Test block name", () => {
     toolbar = dashboard.grid.toolbar;
   });
 
-  test("Test case name", async () => {
+  test('Test case name', async () => {
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: "Team & Auth" });
-    await dashboard.treeView.openTable({ title: "Country" });
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country' });
   });
 });

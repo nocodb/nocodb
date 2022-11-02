@@ -1,6 +1,6 @@
-import { test } from "@playwright/test";
-import { DashboardPage } from "../pages/Dashboard";
-import setup from "../setup";
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import setup from '../setup';
 
 // Add formula to be verified here & store expected results for 5 rows
 // Column data from City table (Sakila DB)
@@ -14,53 +14,46 @@ import setup from "../setup";
  */
 const formulaData = [
   {
-    formula: "1 + 1",
-    result: ["2", "2", "2", "2", "2"],
+    formula: '1 + 1',
+    result: ['2', '2', '2', '2', '2'],
   },
   {
-    formula:
-      "ADD({CityId}, {CountryId}) + AVG({CityId}, {CountryId}) + LEN({City})",
-    result: ["150", "130", "165", "100", "158"],
+    formula: 'ADD({CityId}, {CountryId}) + AVG({CityId}, {CountryId}) + LEN({City})',
+    result: ['150', '130', '165', '100', '158'],
   },
   {
     formula: `WEEKDAY("2022-07-19")`,
-    result: ["1", "1", "1", "1", "1"],
+    result: ['1', '1', '1', '1', '1'],
   },
   {
     formula: `WEEKDAY("2022-07-19", "sunday")`,
-    result: ["2", "2", "2", "2", "2"],
+    result: ['2', '2', '2', '2', '2'],
   },
   {
     formula: `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`,
     result: [
-      "A CORUA (LA CORUA)a corua (la corua)trimmed",
-      "ABHAabhatrimmed",
-      "ABU DHABIabu dhabitrimmed",
-      "ACUAacuatrimmed",
-      "ADANAadanatrimmed",
+      'A CORUA (LA CORUA)a corua (la corua)trimmed',
+      'ABHAabhatrimmed',
+      'ABU DHABIabu dhabitrimmed',
+      'ACUAacuatrimmed',
+      'ADANAadanatrimmed',
     ],
   },
   {
     formula: `CEILING(1.4) + FLOOR(1.6) + ROUND(2.5) + MOD({CityId}, 3) + MIN({CityId}, {CountryId}) + MAX({CityId}, {CountryId})`,
-    result: ["95", "92", "110", "71", "110"],
+    result: ['95', '92', '110', '71', '110'],
   },
   {
     formula: `LOG({CityId}) + EXP({CityId}) + POWER({CityId}, 3) + SQRT({CountryId})`,
-    result: [
-      "13.04566088154786",
-      "25.137588417628013",
-      "58.23402483297667",
-      "127.73041108667896",
-      "284.8714548168068",
-    ],
+    result: ['13.04566088154786', '25.137588417628013', '58.23402483297667', '127.73041108667896', '284.8714548168068'],
   },
   {
     formula: `NOW()`,
-    result: ["1", "1", "1", "1", "1"],
+    result: ['1', '1', '1', '1', '1'],
   },
 ];
 
-test.describe("Virtual Columns", () => {
+test.describe('Virtual Columns', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -69,13 +62,7 @@ test.describe("Virtual Columns", () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  async function formulaResultVerify({
-    title,
-    result,
-  }: {
-    title: string;
-    result: string[];
-  }) {
+  async function formulaResultVerify({ title, result }: { title: string; result: string[] }) {
     for (let i = 0; i < result.length; i++) {
       await dashboard.grid.cell.verify({
         index: i,
@@ -85,35 +72,35 @@ test.describe("Virtual Columns", () => {
     }
   }
 
-  test("Formula", async () => {
+  test('Formula', async () => {
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: "Team & Auth" });
+    await dashboard.closeTab({ title: 'Team & Auth' });
 
-    await dashboard.treeView.openTable({ title: "City" });
+    await dashboard.treeView.openTable({ title: 'City' });
 
     // Create formula column
     await dashboard.grid.column.create({
-      title: "NC_MATH_0",
-      type: "Formula",
+      title: 'NC_MATH_0',
+      type: 'Formula',
       formula: formulaData[1].formula,
     });
 
     // verify different formula's
     for (let i = 1; i < formulaData.length; i++) {
       await dashboard.grid.column.openEdit({
-        title: "NC_MATH_0",
-        type: "Formula",
+        title: 'NC_MATH_0',
+        type: 'Formula',
         formula: formulaData[i].formula,
       });
       await dashboard.grid.column.save({ isUpdated: true });
       if (formulaData[i].formula !== `NOW()`) {
         await formulaResultVerify({
-          title: "NC_MATH_0",
+          title: 'NC_MATH_0',
           result: formulaData[i].result,
         });
       }
     }
 
-    await dashboard.closeTab({ title: "City" });
+    await dashboard.closeTab({ title: 'City' });
   });
 });

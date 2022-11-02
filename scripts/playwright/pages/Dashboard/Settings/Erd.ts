@@ -1,6 +1,5 @@
-import { SettingsPage } from ".";
-import { ErdBasePage } from "../commonBase/Erd";
-
+import { SettingsPage } from '.';
+import { ErdBasePage } from '../commonBase/Erd';
 
 export class SettingsErdPage extends ErdBasePage {
   readonly settings: SettingsPage;

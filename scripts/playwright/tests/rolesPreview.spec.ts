@@ -1,16 +1,12 @@
-import { test } from "@playwright/test";
-import { DashboardPage } from "../pages/Dashboard";
-import setup from "../setup";
-import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
-import {
-  SettingsPage,
-  SettingsSubTab,
-  SettingTab,
-} from "../pages/Dashboard/Settings";
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import setup from '../setup';
+import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
+import { SettingsPage, SettingsSubTab, SettingTab } from '../pages/Dashboard/Settings';
 
-let roles = ["Editor", "Commenter", "Viewer"];
+const roles = ['Editor', 'Commenter', 'Viewer'];
 
-test.describe("Preview Mode", () => {
+test.describe('Preview Mode', () => {
   test.setTimeout(150000);
 
   let dashboard: DashboardPage;
@@ -26,9 +22,9 @@ test.describe("Preview Mode", () => {
     settings = dashboard.settings;
   });
 
-  test("Preview Mode", async () => {
+  test('Preview Mode', async () => {
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: "Team & Auth" });
+    await dashboard.closeTab({ title: 'Team & Auth' });
 
     // configure ACL
     // configure access control
@@ -37,12 +33,12 @@ test.describe("Preview Mode", () => {
       tab: SettingTab.ProjectMetadata,
       subTab: SettingsSubTab.ACL,
     });
-    await settings.acl.toggle({ table: "Language", role: "editor" });
-    await settings.acl.toggle({ table: "Language", role: "commenter" });
-    await settings.acl.toggle({ table: "Language", role: "viewer" });
-    await settings.acl.toggle({ table: "CustomerList", role: "editor" });
-    await settings.acl.toggle({ table: "CustomerList", role: "commenter" });
-    await settings.acl.toggle({ table: "CustomerList", role: "viewer" });
+    await settings.acl.toggle({ table: 'Language', role: 'editor' });
+    await settings.acl.toggle({ table: 'Language', role: 'commenter' });
+    await settings.acl.toggle({ table: 'Language', role: 'viewer' });
+    await settings.acl.toggle({ table: 'CustomerList', role: 'editor' });
+    await settings.acl.toggle({ table: 'CustomerList', role: 'commenter' });
+    await settings.acl.toggle({ table: 'CustomerList', role: 'viewer' });
     await settings.acl.save();
     await settings.close();
 
@@ -55,18 +51,18 @@ test.describe("Preview Mode", () => {
   async function roleTest(role: string) {
     await dashboard.grid.projectMenu.toggle();
     await dashboard.grid.projectMenu.click({
-      menu: "Preview as",
+      menu: 'Preview as',
       subMenu: role,
     });
 
     // wait for preview mode to be enabled
-    await dashboard.rootPage.locator(".nc-preview-btn-exit-to-app").waitFor();
+    await dashboard.rootPage.locator('.nc-preview-btn-exit-to-app').waitFor();
 
     await dashboard.validateProjectMenu({
       role: role.toLowerCase(),
     });
 
-    await dashboard.treeView.openTable({ title: "Country" });
+    await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.viewSidebar.validateRoleAccess({
       role: role.toLowerCase(),
@@ -91,15 +87,15 @@ test.describe("Preview Mode", () => {
 
     // Access control validation
     await dashboard.treeView.verifyTable({
-      title: "Language",
-      exists: role.toLowerCase() === "creator" ? true : false,
+      title: 'Language',
+      exists: role.toLowerCase() === 'creator' ? true : false,
     });
     await dashboard.treeView.verifyTable({
-      title: "CustomerList",
-      exists: role.toLowerCase() === "creator" ? true : false,
+      title: 'CustomerList',
+      exists: role.toLowerCase() === 'creator' ? true : false,
     });
 
     // close preview mode
-    await dashboard.rootPage.locator(".nc-preview-btn-exit-to-app").click();
+    await dashboard.rootPage.locator('.nc-preview-btn-exit-to-app').click();
   }
 });

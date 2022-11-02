@@ -1,7 +1,7 @@
 // playwright-dev-page.ts
-import { expect, Locator } from "@playwright/test";
-import BasePage from "../../Base";
-import { DashboardPage } from "..";
+import { expect, Locator } from '@playwright/test';
+import BasePage from '../../Base';
+import { DashboardPage } from '..';
 // import clipboard from "clipboardy";
 
 export class ExpandedFormPage extends BasePage {
@@ -13,13 +13,9 @@ export class ExpandedFormPage extends BasePage {
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
-    this.addNewTableButton = this.dashboard.get().locator(".nc-add-new-table");
-    this.copyUrlButton = this.dashboard
-      .get()
-      .locator(".nc-copy-row-url:visible");
-    this.toggleCommentsButton = this.dashboard
-      .get()
-      .locator(".nc-toggle-comments:visible");
+    this.addNewTableButton = this.dashboard.get().locator('.nc-add-new-table');
+    this.copyUrlButton = this.dashboard.get().locator('.nc-copy-row-url:visible');
+    this.toggleCommentsButton = this.dashboard.get().locator('.nc-toggle-comments:visible');
   }
 
   get() {
@@ -28,36 +24,24 @@ export class ExpandedFormPage extends BasePage {
 
   async gotoUsingUrlAndRowId({ rowId }: { rowId: string }) {
     const url = await this.dashboard.rootPage.url();
-    const expandedFormUrl = "/" + url.split("/").slice(3).join("/").split("?")[0] + `?rowId=${rowId}`
-    await this.rootPage.goto(
-      expandedFormUrl
-    );
+    const expandedFormUrl = '/' + url.split('/').slice(3).join('/').split('?')[0] + `?rowId=${rowId}`;
+    await this.rootPage.goto(expandedFormUrl);
     await this.dashboard.waitForLoaderToDisappear();
   }
 
-  async fillField({
-    columnTitle,
-    value,
-    type = "text",
-  }: {
-    columnTitle: string;
-    value: string;
-    type?: string;
-  }) {
-    const field = this.get().locator(
-      `[pw-data="nc-expand-col-${columnTitle}"]`
-    );
+  async fillField({ columnTitle, value, type = 'text' }: { columnTitle: string; value: string; type?: string }) {
+    const field = this.get().locator(`[pw-data="nc-expand-col-${columnTitle}"]`);
     await field.hover();
     switch (type) {
-      case "text":
-        await field.locator("input").fill(value);
+      case 'text':
+        await field.locator('input').fill(value);
         break;
-      case "belongsTo":
-        await field.locator(".nc-action-icon").click();
+      case 'belongsTo':
+        await field.locator('.nc-action-icon').click();
         await this.dashboard.linkRecord.select(value);
         break;
-      case "hasMany":
-      case "manyToMany":
+      case 'hasMany':
+      case 'manyToMany':
         await field.locator(`[data-cy="nc-child-list-button-link-to"]`).click();
         await this.dashboard.linkRecord.select(value);
         break;
@@ -70,12 +54,12 @@ export class ExpandedFormPage extends BasePage {
     waitForRowsData?: boolean;
   } = {}) {
     const saveRowAction = this.get().locator('button:has-text("Save Row")').click();
-    if(waitForRowsData) {
+    if (waitForRowsData) {
       await this.waitForResponse({
         uiAction: saveRowAction,
         requestUrlPathToMatch: 'api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
-        responseJsonMatcher: (json) => json['pageInfo'],
+        responseJsonMatcher: json => json['pageInfo'],
       });
     } else {
       await this.waitForResponse({
@@ -85,12 +69,10 @@ export class ExpandedFormPage extends BasePage {
       });
     }
 
-    await this.get().press("Escape");
-    await this.get().waitFor({ state: "hidden" });
+    await this.get().press('Escape');
+    await this.get().waitFor({ state: 'hidden' });
     await this.verifyToast({ message: `updated successfully.` });
-    await this.rootPage
-      .locator('[pw-data="grid-load-spinner"]')
-      .waitFor({ state: "hidden" });
+    await this.rootPage.locator('[pw-data="grid-load-spinner"]').waitFor({ state: 'hidden' });
   }
 
   async verify({ header, url }: { header: string; url: string }) {
@@ -99,7 +81,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async close() {
-    await this.rootPage.keyboard.press("Escape");
+    await this.rootPage.keyboard.press('Escape');
   }
 
   async cancel() {
@@ -114,33 +96,26 @@ export class ExpandedFormPage extends BasePage {
   // }
 
   async openChildCard(param: { column: string; title: string }) {
-    let childList = await this.get().locator(
-      `[pw-data="nc-expand-col-${param.column}"]`
-    );
+    const childList = await this.get().locator(`[pw-data="nc-expand-col-${param.column}"]`);
     await childList.locator(`.ant-card:has-text("${param.title}")`).click();
   }
 
   async verifyCount({ count }: { count: number }) {
-    return await expect(this.rootPage
-      .locator(`.nc-drawer-expanded-form .ant-drawer-content`)).toHaveCount(count);
+    return await expect(this.rootPage.locator(`.nc-drawer-expanded-form .ant-drawer-content`)).toHaveCount(count);
   }
 
   async validateRoleAccess(param: { role: string }) {
-    if (param.role === "commenter" || param.role === "viewer") {
-      await expect(
-        await this.get().locator('button:has-text("Save Row")')
-      ).toBeDisabled();
+    if (param.role === 'commenter' || param.role === 'viewer') {
+      await expect(await this.get().locator('button:has-text("Save Row")')).toBeDisabled();
     } else {
-      await expect(
-        await this.get().locator('button:has-text("Save Row")')
-      ).toBeEnabled();
+      await expect(await this.get().locator('button:has-text("Save Row")')).toBeEnabled();
     }
-    if (param.role === "viewer") {
+    if (param.role === 'viewer') {
       await expect(await this.toggleCommentsButton).toHaveCount(0);
     } else {
       await expect(await this.toggleCommentsButton).toHaveCount(1);
     }
     // press escape to close the expanded form
-    await this.rootPage.keyboard.press("Escape");
+    await this.rootPage.keyboard.press('Escape');
   }
 }

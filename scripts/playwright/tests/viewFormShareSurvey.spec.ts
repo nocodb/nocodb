@@ -1,9 +1,9 @@
-import { test } from "@playwright/test";
-import { DashboardPage } from "../pages/Dashboard";
-import { SurveyFormPage } from "../pages/Dashboard/SurveyForm";
-import setup from "../setup";
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import { SurveyFormPage } from '../pages/Dashboard/SurveyForm';
+import setup from '../setup';
 
-test.describe("Share form", () => {
+test.describe('Share form', () => {
   let dashboard: DashboardPage;
   let surveyForm: SurveyFormPage;
   let context: any;
@@ -13,20 +13,20 @@ test.describe("Share form", () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test("Survey", async () => {
+  test('Survey', async () => {
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: "Team & Auth" });
-    await dashboard.treeView.openTable({ title: "Country" });
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.viewSidebar.createFormView({
-      title: "Country Form",
+      title: 'Country Form',
     });
     await dashboard.form.configureHeader({
-      title: "Country Title",
-      subtitle: "Country Form Subtitle",
+      title: 'Country Title',
+      subtitle: 'Country Form Subtitle',
     });
     await dashboard.form.configureSubmitMessage({
-      message: "Thank you for submitting the form",
+      message: 'Thank you for submitting the form',
     });
     await dashboard.form.showAnotherFormRadioButton.click();
     await dashboard.form.showAnotherFormAfter5SecRadioButton.click();
@@ -40,39 +40,39 @@ test.describe("Share form", () => {
 
     surveyForm = new SurveyFormPage(dashboard.rootPage);
     await surveyForm.validate({
-      heading: "Country Title",
-      subHeading: "Country Form Subtitle",
-      fieldLabel: "Country *",
-      footer: "1 / 3",
+      heading: 'Country Title',
+      subHeading: 'Country Form Subtitle',
+      fieldLabel: 'Country *',
+      footer: '1 / 3',
     });
     await surveyForm.fill({
-      fieldLabel: "Country",
-      value: "New Country",
-      type: "SingleLineText",
+      fieldLabel: 'Country',
+      value: 'New Country',
+      type: 'SingleLineText',
     });
 
     await surveyForm.validate({
-      heading: "Country Title",
-      subHeading: "Country Form Subtitle",
-      fieldLabel: "LastUpdate",
-      footer: "2 / 3",
+      heading: 'Country Title',
+      subHeading: 'Country Form Subtitle',
+      fieldLabel: 'LastUpdate',
+      footer: '2 / 3',
     });
     await surveyForm.fill({
-      fieldLabel: "LastUpdate",
-      type: "DateTime",
+      fieldLabel: 'LastUpdate',
+      type: 'DateTime',
     });
 
     await surveyForm.validate({
-      heading: "Country Title",
-      subHeading: "Country Form Subtitle",
-      fieldLabel: "City List",
-      footer: "3 / 3",
+      heading: 'Country Title',
+      subHeading: 'Country Form Subtitle',
+      fieldLabel: 'City List',
+      footer: '3 / 3',
     });
     await surveyForm.submitButton.click();
 
     // validate post submit data
     await surveyForm.validateSuccessMessage({
-      message: "Thank you for submitting the form",
+      message: 'Thank you for submitting the form',
       showAnotherForm: true,
     });
   });

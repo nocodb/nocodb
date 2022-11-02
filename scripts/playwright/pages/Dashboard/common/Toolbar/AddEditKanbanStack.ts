@@ -1,5 +1,5 @@
-import BasePage from "../../../Base";
-import { ToolbarPage } from "./index";
+import BasePage from '../../../Base';
+import { ToolbarPage } from './index';
 
 export class ToolbarAddEditStackPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -16,10 +16,7 @@ export class ToolbarAddEditStackPage extends BasePage {
   async addOption({ title }: { title: string }) {
     await this.get().locator(`.ant-btn-dashed`).click();
     await this.get().locator(`.nc-select-option >> input`).last().fill(title);
-    await this.get()
-      .locator(`.nc-select-option >> input`)
-      .last()
-      .press("Enter");
-    await this.verifyToast({ message: "Column updated" });
+    await this.get().locator(`.nc-select-option >> input`).last().press('Enter');
+    await this.verifyToast({ message: 'Column updated' });
   }
 }

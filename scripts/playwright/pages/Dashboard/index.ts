@@ -1,20 +1,20 @@
 // playwright-dev-page.ts
-import { Locator, Page, expect } from "@playwright/test";
-import BasePage from "../Base";
-import { GridPage } from "./Grid";
-import { FormPage } from "./Form";
-import { ExpandedFormPage } from "./ExpandedForm";
-import { ChildList } from "./Grid/Column/LTAR/ChildList";
-import { LinkRecord } from "./Grid/Column/LTAR/LinkRecord";
-import { TreeViewPage } from "./TreeView";
-import { SettingsPage } from "./Settings";
-import { ViewSidebarPage } from "./ViewSidebar";
-import { GalleryPage } from "./Gallery";
-import { KanbanPage } from "./Kanban";
-import { ImportAirtablePage } from "./Import/Airtable";
-import { ImportTemplatePage } from "./Import/ImportTemplate";
-import { WebhookFormPage } from "./WebhookForm";
-import { ProjectsPage } from "../ProjectsPage";
+import { expect, Locator, Page } from '@playwright/test';
+import BasePage from '../Base';
+import { GridPage } from './Grid';
+import { FormPage } from './Form';
+import { ExpandedFormPage } from './ExpandedForm';
+import { ChildList } from './Grid/Column/LTAR/ChildList';
+import { LinkRecord } from './Grid/Column/LTAR/LinkRecord';
+import { TreeViewPage } from './TreeView';
+import { SettingsPage } from './Settings';
+import { ViewSidebarPage } from './ViewSidebar';
+import { GalleryPage } from './Gallery';
+import { KanbanPage } from './Kanban';
+import { ImportAirtablePage } from './Import/Airtable';
+import { ImportTemplatePage } from './Import/ImportTemplate';
+import { WebhookFormPage } from './WebhookForm';
+import { ProjectsPage } from '../ProjectsPage';
 
 export class DashboardPage extends BasePage {
   readonly project: any;
@@ -37,8 +37,8 @@ export class DashboardPage extends BasePage {
   constructor(rootPage: Page, project: any) {
     super(rootPage);
     this.project = project;
-    this.tablesSideBar = rootPage.locator(".nc-treeview-container");
-    this.tabBar = rootPage.locator(".nc-tab-bar");
+    this.tablesSideBar = rootPage.locator('.nc-treeview-container');
+    this.tabBar = rootPage.locator('.nc-tab-bar');
     this.treeView = new TreeViewPage(this, project);
     this.grid = new GridPage(this);
     this.gallery = new GalleryPage(this);
@@ -54,7 +54,7 @@ export class DashboardPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator("html");
+    return this.rootPage.locator('html');
   }
 
   async goto() {
@@ -63,20 +63,16 @@ export class DashboardPage extends BasePage {
 
   async gotoSettings() {
     await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
-    await this.rootPage
-      .locator('div.nc-project-menu-item:has-text(" Team & Settings")')
-      .click();
+    await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
   }
 
   async verifyInTabBar({ title }: { title: string }) {
-    await this.tabBar
-      .textContent()
-      .then((text) => expect(text).toContain(title));
+    await this.tabBar.textContent().then(text => expect(text).toContain(title));
   }
 
   async closeTab({ title }: { title: string }) {
-    let tab = await this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`);
-    await tab.locator("button.ant-tabs-tab-remove").click();
+    const tab = await this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`);
+    await tab.locator('button.ant-tabs-tab-remove').click();
 
     // fix me!
     // await tab.waitFor({ state: "detached" });
@@ -89,47 +85,37 @@ export class DashboardPage extends BasePage {
     await projectsPage.waitToBeRendered();
   }
 
-  // When a tab is opened, it is not always immediately visible. 
+  // When a tab is opened, it is not always immediately visible.
   // Hence will wait till contents are visible
-  async waitForTabRender({
-    title,
-    mode = "standard",
-  }: {
-    title: string;
-    mode?: string;
-  }) {
-    if(title === 'Team & Auth') {
-      await this.get().locator('div[role="tab"]', {
-        hasText: 'Users Management'
-      }).waitFor({
-        state: 'visible'
-      });
-    }else {
+  async waitForTabRender({ title, mode = 'standard' }: { title: string; mode?: string }) {
+    if (title === 'Team & Auth') {
+      await this.get()
+        .locator('div[role="tab"]', {
+          hasText: 'Users Management',
+        })
+        .waitFor({
+          state: 'visible',
+        });
+    } else {
       await this.get().locator('[pw-data="grid-id-column"]').waitFor({
-        state: "visible",
+        state: 'visible',
       });
     }
 
-    await this.tabBar
-      .locator(`.ant-tabs-tab-active:has-text("${title}")`)
-      .waitFor();
+    await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).waitFor();
 
     // wait active tab animation to finish
     await expect
       .poll(async () => {
-        return await this.tabBar
-          .locator(`[data-pw="nc-root-tabs-${title}"]`)
-          .evaluate((el) => {
-            return window.getComputedStyle(el).getPropertyValue("color");
-          });
+        return await this.tabBar.locator(`[data-pw="nc-root-tabs-${title}"]`).evaluate(el => {
+          return window.getComputedStyle(el).getPropertyValue('color');
+        });
       })
-      .toBe("rgb(67, 81, 232)"); // active tab text color
+      .toBe('rgb(67, 81, 232)'); // active tab text color
 
-    await this.get()
-      .locator('[pw-data="grid-load-spinner"]')
-      .waitFor({ state: "hidden" });
+    await this.get().locator('[pw-data="grid-load-spinner"]').waitFor({ state: 'hidden' });
 
-    if (mode === "standard") {
+    if (mode === 'standard') {
       await expect(this.rootPage).toHaveURL(
         `/#/nc/${this.project.id}/${title === 'Team & Auth' ? 'auth' : `table/${title}`}`
       );
@@ -138,98 +124,67 @@ export class DashboardPage extends BasePage {
 
   async openPasswordChangeModal() {
     // open change password portal
-    await this.rootPage.locator(".nc-menu-accounts").click();
+    await this.rootPage.locator('.nc-menu-accounts').click();
     await this.rootPage
-      .locator(
-        `.nc-dropdown-user-accounts-menu >> [data-cy="nc-menu-accounts__user-settings"]`
-      )
+      .locator(`.nc-dropdown-user-accounts-menu >> [data-cy="nc-menu-accounts__user-settings"]`)
       .click();
   }
 
   // todo: Move this to a seperate page
-  async changePassword({
-    oldPass,
-    newPass,
-    repeatPass,
-  }: {
-    oldPass: string;
-    newPass: string;
-    repeatPass: string;
-  }) {
+  async changePassword({ oldPass, newPass, repeatPass }: { oldPass: string; newPass: string; repeatPass: string }) {
     // change password
-    const currentPassword = await this.rootPage.locator(
-      'input[data-cy="nc-user-settings-form__current-password"]'
-    );
-    const newPassword = await this.rootPage.locator(
-      'input[data-cy="nc-user-settings-form__new-password"]'
-    );
-    const confirmPassword = await this.rootPage.locator(
-      'input[data-cy="nc-user-settings-form__new-password-repeat"]'
-    );
+    const currentPassword = await this.rootPage.locator('input[data-cy="nc-user-settings-form__current-password"]');
+    const newPassword = await this.rootPage.locator('input[data-cy="nc-user-settings-form__new-password"]');
+    const confirmPassword = await this.rootPage.locator('input[data-cy="nc-user-settings-form__new-password-repeat"]');
 
     await currentPassword.fill(oldPass);
     await newPassword.fill(newPass);
     await confirmPassword.fill(repeatPass);
 
-    await this.rootPage
-      .locator('button[data-cy="nc-user-settings-form__submit"]')
-      .click();
+    await this.rootPage.locator('button[data-cy="nc-user-settings-form__submit"]').click();
   }
 
   async signOut() {
     await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
-    let projMenu = await this.rootPage.locator(".nc-dropdown-project-menu");
+    const projMenu = await this.rootPage.locator('.nc-dropdown-project-menu');
     await projMenu.locator('[data-menu-id="account"]:visible').click();
-    await this.rootPage
-      .locator('div.nc-project-menu-item:has-text("Sign Out"):visible')
-      .click();
+    await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
     await this.rootPage.locator('[data-cy="nc-form-signin"]:visible').waitFor();
   }
 
   async validateProjectMenu(param: { role: string; mode?: string }) {
     await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
-    let pMenu = this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
+    const pMenu = this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
 
     // menu items
     let menuItems = {
       creator: [
-        "Copy Project Info",
-        "Swagger: REST APIs",
-        "Copy Auth Token",
-        "Team & Settings",
-        "Themes",
-        "Preview as",
-        "Language",
-        "Account",
+        'Copy Project Info',
+        'Swagger: REST APIs',
+        'Copy Auth Token',
+        'Team & Settings',
+        'Themes',
+        'Preview as',
+        'Language',
+        'Account',
       ],
-      editor: [
-        "Copy Project Info",
-        "Swagger: REST APIs",
-        "Copy Auth Token",
-        "Language",
-        "Account",
-      ],
-      commenter: [
-        "Copy Project Info",
-        "Copy Auth Token",
-        "Language",
-        "Account",
-      ],
-      viewer: ["Copy Project Info", "Copy Auth Token", "Language", "Account"],
+      editor: ['Copy Project Info', 'Swagger: REST APIs', 'Copy Auth Token', 'Language', 'Account'],
+      commenter: ['Copy Project Info', 'Copy Auth Token', 'Language', 'Account'],
+      viewer: ['Copy Project Info', 'Copy Auth Token', 'Language', 'Account'],
     };
 
-    if (param?.mode === "shareBase") {
+    if (param?.mode === 'shareBase') {
       menuItems = {
         creator: [],
         commenter: [],
-        editor: ["Language"],
-        viewer: ["Language"],
+        editor: ['Language'],
+        viewer: ['Language'],
       };
     }
 
     // common items
 
-    for (let item of menuItems[param.role]) {
+    for (const item of menuItems[param.role]) {
       await expect(pMenu).toContainText(item);
     }
     await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
@@ -237,8 +192,6 @@ export class DashboardPage extends BasePage {
 
   // Wait for the loader i.e the loader than appears when rows are being fetched, saved etc on the top right of dashboard
   async waitForLoaderToDisappear() {
-    await this.rootPage
-      .locator('[pw-data="nc-loading"]')
-      .waitFor({ state: "hidden" });
+    await this.rootPage.locator('[pw-data="nc-loading"]').waitFor({ state: 'hidden' });
   }
 }

@@ -11,6 +11,8 @@
     "node_modules",
     "build",
     "coverage",
+    "playwright-report",
+    "output",
     "dist",
     "nc"
   ],
@@ -29,7 +31,10 @@
   "globals": {
     "BigInt": true,
     "console": true,
-    "WebAssembly": true
+    "WebAssembly": true,
+    "window": true,
+    "document": true,
+    "localStorage": true
   },
   "rules": {
     "require-await": "error",

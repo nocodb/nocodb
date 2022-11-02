@@ -1,8 +1,8 @@
-import { test } from "@playwright/test";
-import { DashboardPage } from "../pages/Dashboard";
-import setup from "../setup";
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import setup from '../setup';
 
-test.describe("Grid view locked", () => {
+test.describe('Grid view locked', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -11,17 +11,17 @@ test.describe("Grid view locked", () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  test("ReadOnly lock & collaboration mode", async () => {
+  test('ReadOnly lock & collaboration mode', async () => {
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: "Team & Auth" });
-    await dashboard.treeView.openTable({ title: "Country" });
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.grid.toolbar.viewsMenu.verifyCollaborativeMode();
 
     // enable view lock
     await dashboard.grid.toolbar.viewsMenu.click({
-      menu: "Collaborative View",
-      subMenu: "Locked View",
+      menu: 'Collaborative View',
+      subMenu: 'Locked View',
     });
 
     // verify view lock
@@ -29,21 +29,21 @@ test.describe("Grid view locked", () => {
 
     // enable collaborative view
     await dashboard.grid.toolbar.viewsMenu.click({
-      menu: "Locked View",
-      subMenu: "Collaborative View",
+      menu: 'Locked View',
+      subMenu: 'Collaborative View',
     });
 
     await dashboard.grid.toolbar.viewsMenu.verifyCollaborativeMode();
   });
 
-  test("Download CSV", async () => {
+  test('Download CSV', async () => {
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: "Team & Auth" });
-    await dashboard.treeView.openTable({ title: "Country" });
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.grid.toolbar.viewsMenu.click({
-      menu: "Download",
-      subMenu: "Download as CSV",
+      menu: 'Download',
+      subMenu: 'Download as CSV',
     });
   });
 });

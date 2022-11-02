@@ -1,10 +1,10 @@
-import { test } from "@playwright/test";
-import { DashboardPage } from "../pages/Dashboard";
-import setup from "../setup";
-import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
-import { ProjectsPage } from "../pages/ProjectsPage";
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import setup from '../setup';
+import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
+import { ProjectsPage } from '../pages/ProjectsPage';
 
-test.describe("Project operations", () => {
+test.describe('Project operations', () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let context: any;
@@ -17,17 +17,17 @@ test.describe("Project operations", () => {
     toolbar = dashboard.grid.toolbar;
   });
 
-  test("rename, delete", async () => {
+  test('rename, delete', async () => {
     await dashboard.clickHome();
-    await projectPage.createProject({ name: "project-1", type: "xcdb" });
+    await projectPage.createProject({ name: 'project-1', type: 'xcdb' });
     await dashboard.clickHome();
     await projectPage.renameProject({
-      title: "project-1",
-      newTitle: "project-new",
+      title: 'project-1',
+      newTitle: 'project-new',
     });
     await dashboard.clickHome();
-    await projectPage.openProject({ title: "project-new" });
+    await projectPage.openProject({ title: 'project-new' });
     await dashboard.clickHome();
-    await projectPage.deleteProject({ title: "project-new" });
+    await projectPage.deleteProject({ title: 'project-new' });
   });
 });

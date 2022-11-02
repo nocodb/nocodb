@@ -1,5 +1,5 @@
-import BasePage from "../../../Base";
-import { ToolbarPage } from "./index";
+import BasePage from '../../../Base';
+import { ToolbarPage } from './index';
 
 export class ToolbarStackbyPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -15,9 +15,6 @@ export class ToolbarStackbyPage extends BasePage {
 
   async click({ title }: { title: string }) {
     await this.get().locator(`.nc-kanban-grouping-field-select`).click();
-    await this.rootPage
-      .locator(".ant-select-dropdown:visible")
-      .locator(`div[title="${title}"]`)
-      .click();
+    await this.rootPage.locator('.ant-select-dropdown:visible').locator(`div[title="${title}"]`).click();
   }
 }

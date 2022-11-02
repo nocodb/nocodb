@@ -1,5 +1,5 @@
-import BasePage from "../../../Base";
-import { ToolbarPage } from "./index";
+import BasePage from '../../../Base';
+import { ToolbarPage } from './index';
 
 export class ToolbarShareViewPage extends BasePage {
   readonly toolbar: ToolbarPage;
@@ -14,34 +14,22 @@ export class ToolbarShareViewPage extends BasePage {
   }
 
   async enablePassword(pwd: string) {
-    await this.get()
-      .locator(`[data-pw="nc-modal-share-view__with-password"]`)
-      .click();
-    await this.get()
-      .locator(`[data-pw="nc-modal-share-view__password"]`)
-      .fill(pwd);
-    await this.get()
-      .locator(`[data-pw="nc-modal-share-view__save-password"]`)
-      .click();
-    await this.verifyToast({ message: "Successfully updated" });
+    await this.get().locator(`[data-pw="nc-modal-share-view__with-password"]`).click();
+    await this.get().locator(`[data-pw="nc-modal-share-view__password"]`).fill(pwd);
+    await this.get().locator(`[data-pw="nc-modal-share-view__save-password"]`).click();
+    await this.verifyToast({ message: 'Successfully updated' });
   }
 
   async disablePassword() {
-    await this.get()
-      .locator(`[data-pw="nc-modal-share-view__with-password"`)
-      .click();
+    await this.get().locator(`[data-pw="nc-modal-share-view__with-password"`).click();
   }
 
   async toggleDownload() {
-    await this.get()
-      .locator(`[data-pw="nc-modal-share-view__with-csv-download"]`)
-      .click();
+    await this.get().locator(`[data-pw="nc-modal-share-view__with-csv-download"]`).click();
   }
 
   async getShareLink() {
-    return this.get()
-      .locator(`[data-pw="nc-modal-share-view__link"]`)
-      .innerText();
+    return await this.get().locator(`[data-pw="nc-modal-share-view__link"]`).innerText();
   }
 
   async close() {
@@ -49,8 +37,6 @@ export class ToolbarShareViewPage extends BasePage {
   }
 
   async toggleSurveyMode() {
-    await this.get()
-      .locator(`[data-pw="nc-modal-share-view__survey-mode"]`)
-      .click();
+    await this.get().locator(`[data-pw="nc-modal-share-view__survey-mode"]`).click();
   }
 }

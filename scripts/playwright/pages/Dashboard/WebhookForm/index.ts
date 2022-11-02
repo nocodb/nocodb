@@ -1,8 +1,8 @@
 // playwright-dev-page.ts
-import { expect, Locator } from "@playwright/test";
-import BasePage from "../../Base";
-import { DashboardPage } from "..";
-import { ToolbarPage } from "../common/Toolbar";
+import { expect, Locator } from '@playwright/test';
+import BasePage from '../../Base';
+import { DashboardPage } from '..';
+import { ToolbarPage } from '../common/Toolbar';
 // import clipboard from "clipboardy";
 
 export class WebhookFormPage extends BasePage {
@@ -16,7 +16,7 @@ export class WebhookFormPage extends BasePage {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.toolbar = dashboard.grid.toolbar;
-    this.addNewButton = this.dashboard.get().locator(".nc-btn-create-webhook");
+    this.addNewButton = this.dashboard.get().locator('.nc-btn-create-webhook');
     this.saveButton = this.get().locator('button:has-text("Save")');
     this.testButton = this.get().locator('button:has-text("Test Webhook")');
   }
@@ -26,39 +26,23 @@ export class WebhookFormPage extends BasePage {
   }
 
   // todo: Removing opening webhook drawer logic as it belongs to `Toolbar` page
-  async create({
-    title,
-    event,
-    url = "http://localhost:9090/hook",
-  }: {
-    title: string;
-    event: string;
-    url?: string;
-  }) {
+  async create({ title, event, url = 'http://localhost:9090/hook' }: { title: string; event: string; url?: string }) {
     await this.toolbar.clickActions();
-    await this.toolbar.actions.click("Webhooks");
+    await this.toolbar.actions.click('Webhooks');
 
     await this.addNewButton.click();
-    await this.get().waitFor({ state: "visible" });
+    await this.get().waitFor({ state: 'visible' });
 
     await this.configureHeader({
-      key: "Content-Type",
-      value: "application/json",
+      key: 'Content-Type',
+      value: 'application/json',
     });
     await this.configureWebhook({ title, event, url });
     await this.save();
     await this.close();
   }
 
-  async configureWebhook({
-    title,
-    event,
-    url,
-  }: {
-    title?: string;
-    event?: string;
-    url?: string;
-  }) {
+  async configureWebhook({ title, event, url }: { title?: string; event?: string; url?: string }) {
     if (title) {
       await this.get().locator(`.nc-text-field-hook-title`).fill(title);
     }
@@ -93,24 +77,20 @@ export class WebhookFormPage extends BasePage {
 
     await this.rootPage.waitForTimeout(1500);
 
-    await modal.locator(".nc-filter-field-select").click();
-    const modalField = await this.dashboard.rootPage.locator(
-      ".nc-dropdown-toolbar-field-list:visible"
-    );
+    await modal.locator('.nc-filter-field-select').click();
+    const modalField = await this.dashboard.rootPage.locator('.nc-dropdown-toolbar-field-list:visible');
     await modalField.locator(`.ant-select-item:has-text("${column}")`).click();
 
     await this.rootPage.waitForTimeout(1500);
 
-    await modal.locator(".nc-filter-operation-select").click();
-    const modalOp = await this.dashboard.rootPage.locator(
-      ".nc-dropdown-filter-comp-op:visible"
-    );
+    await modal.locator('.nc-filter-operation-select').click();
+    const modalOp = await this.dashboard.rootPage.locator('.nc-dropdown-filter-comp-op:visible');
     await modalOp.locator(`.ant-select-item:has-text("${operator}")`).click();
 
     await this.rootPage.waitForTimeout(1500);
 
-    if (operator != "is null" && operator != "is not null") {
-      await modal.locator("input.nc-filter-value-select").fill(value);
+    if (operator != 'is null' && operator != 'is not null') {
+      await modal.locator('input.nc-filter-value-select').fill(value);
     }
 
     if (save) {
@@ -131,36 +111,36 @@ export class WebhookFormPage extends BasePage {
     const saveAction = this.saveButton.click();
     await this.waitForResponse({
       uiAction: saveAction,
-      requestUrlPathToMatch: "/hooks",
-      httpMethodsToMatch: ["POST", "PATCH"],
-    })
-    await this.verifyToast({ message: 'Webhook details updated successfully'});
+      requestUrlPathToMatch: '/hooks',
+      httpMethodsToMatch: ['POST', 'PATCH'],
+    });
+    await this.verifyToast({ message: 'Webhook details updated successfully' });
   }
 
   async test() {
     await this.testButton.click();
-    await this.verifyToast({ message: "Webhook tested successfully" });
+    await this.verifyToast({ message: 'Webhook tested successfully' });
   }
 
   async delete({ index }: { index: number }) {
     await this.toolbar.clickActions();
-    await this.toolbar.actions.click("Webhooks");
+    await this.toolbar.actions.click('Webhooks');
 
     await this.get().locator(`.nc-hook-delete-icon`).nth(index).click();
-    await this.verifyToast({ message: "Hook deleted successfully" });
+    await this.verifyToast({ message: 'Hook deleted successfully' });
 
     // click escape to close the drawer
-    await this.get().press("Escape");
+    await this.get().press('Escape');
   }
 
   async close() {
     // type esc key
-    await this.get().press("Escape");
+    await this.get().press('Escape');
   }
 
   async open({ index }: { index: number }) {
     await this.toolbar.clickActions();
-    await this.toolbar.actions.click("Webhooks");
+    await this.toolbar.actions.click('Webhooks');
     await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
   }
 
@@ -176,16 +156,13 @@ export class WebhookFormPage extends BasePage {
     // hardcode "Content-type: application/json"
     await this.get().locator(`.ant-tabs-tab-btn:has-text("Headers")`).click();
 
-    await this.get().locator(".nc-input-hook-header-key >> input").fill(key);
+    await this.get().locator('.nc-input-hook-header-key >> input').fill(key);
     await this.rootPage.locator(`.ant-select-item:has-text("${key}")`).click();
 
-    await this.get().locator(".nc-input-hook-header-value").type(value);
-    await this.get().press("Enter");
+    await this.get().locator('.nc-input-hook-header-value').type(value);
+    await this.get().press('Enter');
 
-    await this.get()
-      .locator(".nc-hook-header-tab-checkbox")
-      .locator("input.ant-checkbox-input")
-      .click();
+    await this.get().locator('.nc-hook-header-tab-checkbox').locator('input.ant-checkbox-input').click();
   }
 
   async verifyForm({
@@ -203,41 +180,15 @@ export class WebhookFormPage extends BasePage {
     urlMethod: string;
     condition: boolean;
   }) {
-    await expect
-      .poll(
-        async () =>
-          await this.get()
-            .locator("input.nc-text-field-hook-title")
-            .inputValue()
-      )
-      .toBe(title);
-    await expect(
-      this.get().locator(
-        ".nc-text-field-hook-event >> .ant-select-selection-item"
-      )
-    ).toHaveText(hookEvent);
-    await expect(
-      this.get().locator(
-        ".nc-select-hook-notification-type >> .ant-select-selection-item"
-      )
-    ).toHaveText(notificationType);
-    await expect(
-      this.get().locator(
-        ".nc-select-hook-url-method >> .ant-select-selection-item"
-      )
-    ).toHaveText(urlMethod);
-    await expect
-      .poll(
-        async () =>
-          await this.get()
-            .locator("input.nc-text-field-hook-url-path")
-            .inputValue()
-      )
-      .toBe(url);
-
-    const conditionCheckbox = this.get().locator(
-      'label.nc-check-box-hook-condition >> input[type="checkbox"]'
+    await expect.poll(async () => await this.get().locator('input.nc-text-field-hook-title').inputValue()).toBe(title);
+    await expect(this.get().locator('.nc-text-field-hook-event >> .ant-select-selection-item')).toHaveText(hookEvent);
+    await expect(this.get().locator('.nc-select-hook-notification-type >> .ant-select-selection-item')).toHaveText(
+      notificationType
     );
+    await expect(this.get().locator('.nc-select-hook-url-method >> .ant-select-selection-item')).toHaveText(urlMethod);
+    await expect.poll(async () => await this.get().locator('input.nc-text-field-hook-url-path').inputValue()).toBe(url);
+
+    const conditionCheckbox = this.get().locator('label.nc-check-box-hook-condition >> input[type="checkbox"]');
     if (condition) {
       await expect(conditionCheckbox).toBeChecked();
     } else {
@@ -246,6 +197,6 @@ export class WebhookFormPage extends BasePage {
   }
 
   async goBackFromForm() {
-    await this.get().locator("svg.nc-icon-hook-navigate-left").click();
+    await this.get().locator('svg.nc-icon-hook-navigate-left').click();
   }
 }

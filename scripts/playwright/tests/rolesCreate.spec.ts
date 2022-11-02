@@ -1,22 +1,18 @@
-import { test } from "@playwright/test";
-import { DashboardPage } from "../pages/Dashboard";
-import setup from "../setup";
-import {
-  SettingsPage,
-  SettingsSubTab,
-  SettingTab,
-} from "../pages/Dashboard/Settings";
-import { SignupPage } from "../pages/SignupPage";
-import { ProjectsPage } from "../pages/ProjectsPage";
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import setup from '../setup';
+import { SettingsPage, SettingsSubTab, SettingTab } from '../pages/Dashboard/Settings';
+import { SignupPage } from '../pages/SignupPage';
+import { ProjectsPage } from '../pages/ProjectsPage';
 
-let roleDb = [
-  { email: "creator@nocodb.com", role: "creator", url: "" },
-  { email: "editor@nocodb.com", role: "editor", url: "" },
-  { email: "commenter@nocodb.com", role: "commenter", url: "" },
-  { email: "viewer@nocodb.com", role: "viewer", url: "" },
+const roleDb = [
+  { email: 'creator@nocodb.com', role: 'creator', url: '' },
+  { email: 'editor@nocodb.com', role: 'editor', url: '' },
+  { email: 'commenter@nocodb.com', role: 'commenter', url: '' },
+  { email: 'viewer@nocodb.com', role: 'viewer', url: '' },
 ];
 
-test.describe("User roles", () => {
+test.describe('User roles', () => {
   let dashboard: DashboardPage;
   let settings: SettingsPage;
   let signupPage: SignupPage;
@@ -31,11 +27,11 @@ test.describe("User roles", () => {
     projectsPage = new ProjectsPage(page);
   });
 
-  test("Create role", async () => {
-    test.slow(); 
-    
+  test('Create role', async () => {
+    test.slow();
+
     // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: "Team & Auth" });
+    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.gotoSettings();
     await settings.selectTab({ tab: SettingTab.TeamAuth });
     for (let i = 0; i < roleDb.length; i++) {
@@ -53,12 +49,12 @@ test.describe("User roles", () => {
       tab: SettingTab.ProjectMetadata,
       subTab: SettingsSubTab.ACL,
     });
-    await settings.acl.toggle({ table: "Language", role: "editor" });
-    await settings.acl.toggle({ table: "Language", role: "commenter" });
-    await settings.acl.toggle({ table: "Language", role: "viewer" });
-    await settings.acl.toggle({ table: "CustomerList", role: "editor" });
-    await settings.acl.toggle({ table: "CustomerList", role: "commenter" });
-    await settings.acl.toggle({ table: "CustomerList", role: "viewer" });
+    await settings.acl.toggle({ table: 'Language', role: 'editor' });
+    await settings.acl.toggle({ table: 'Language', role: 'commenter' });
+    await settings.acl.toggle({ table: 'Language', role: 'viewer' });
+    await settings.acl.toggle({ table: 'CustomerList', role: 'editor' });
+    await settings.acl.toggle({ table: 'CustomerList', role: 'commenter' });
+    await settings.acl.toggle({ table: 'CustomerList', role: 'viewer' });
     await settings.acl.save();
     await settings.close();
 
@@ -74,7 +70,7 @@ test.describe("User roles", () => {
       role: roleDb[roleIdx].role,
     });
 
-    await dashboard.treeView.openTable({ title: "Country" });
+    await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.viewSidebar.validateRoleAccess({
       role: roleDb[roleIdx].role,
@@ -99,29 +95,29 @@ test.describe("User roles", () => {
 
     // Access control validation
     await dashboard.treeView.verifyTable({
-      title: "Language",
-      exists: roleDb[roleIdx].role === "creator" ? true : false,
+      title: 'Language',
+      exists: roleDb[roleIdx].role === 'creator' ? true : false,
     });
     await dashboard.treeView.verifyTable({
-      title: "CustomerList",
-      exists: roleDb[roleIdx].role === "creator" ? true : false,
+      title: 'CustomerList',
+      exists: roleDb[roleIdx].role === 'creator' ? true : false,
     });
   }
 
   async function roleSignup(roleIdx: number) {
     await dashboard.signOut();
-  
+
     await dashboard.rootPage.goto(roleDb[roleIdx].url);
     await signupPage.signUp({
       email: roleDb[roleIdx].email,
-      password: "Password123.",
+      password: 'Password123.',
     });
-  
-    await projectsPage.openProject({ title: 'externalREST', waitForAuthTab: roleDb[roleIdx].role === "creator" });
-  
+
+    await projectsPage.openProject({ title: 'externalREST', waitForAuthTab: roleDb[roleIdx].role === 'creator' });
+
     // close 'Team & Auth' tab
-    if (roleDb[roleIdx].role === "creator") {
-      await dashboard.closeTab({ title: "Team & Auth" });
+    if (roleDb[roleIdx].role === 'creator') {
+      await dashboard.closeTab({ title: 'Team & Auth' });
     }
   }
 });

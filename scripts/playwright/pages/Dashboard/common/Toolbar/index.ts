@@ -1,18 +1,18 @@
-import { expect } from "@playwright/test";
-import BasePage from "../../../Base";
-import { ToolbarFieldsPage } from "./Fields";
-import { ToolbarSortPage } from "./Sort";
-import { ToolbarFilterPage } from "./Filter";
-import { ToolbarShareViewPage } from "./ShareView";
-import { ToolbarViewMenuPage } from "./ViewMenu";
-import * as fs from "fs";
-import { GridPage } from "../../Grid";
-import { ToolbarActionsPage } from "./Actions";
-import { GalleryPage } from "../../Gallery";
-import { KanbanPage } from "../../Kanban";
-import { FormPage } from "../../Form";
-import { ToolbarStackbyPage } from "./StackBy";
-import { ToolbarAddEditStackPage } from "./AddEditKanbanStack";
+import { expect } from '@playwright/test';
+import BasePage from '../../../Base';
+import { ToolbarFieldsPage } from './Fields';
+import { ToolbarSortPage } from './Sort';
+import { ToolbarFilterPage } from './Filter';
+import { ToolbarShareViewPage } from './ShareView';
+import { ToolbarViewMenuPage } from './ViewMenu';
+import * as fs from 'fs';
+import { GridPage } from '../../Grid';
+import { ToolbarActionsPage } from './Actions';
+import { GalleryPage } from '../../Gallery';
+import { KanbanPage } from '../../Kanban';
+import { FormPage } from '../../Form';
+import { ToolbarStackbyPage } from './StackBy';
+import { ToolbarAddEditStackPage } from './AddEditKanbanStack';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage;
@@ -48,7 +48,7 @@ export class ToolbarPage extends BasePage {
     await this.get().locator(`button.nc-actions-menu-btn`).click();
 
     // Wait for the menu to close
-    if (menuOpen) await this.fields.get().waitFor({ state: "hidden" });
+    if (menuOpen) await this.fields.get().waitFor({ state: 'hidden' });
   }
 
   async clickFields() {
@@ -57,7 +57,7 @@ export class ToolbarPage extends BasePage {
     await this.get().locator(`button.nc-fields-menu-btn`).click();
 
     // Wait for the menu to close
-    if (menuOpen) await this.fields.get().waitFor({ state: "hidden" });
+    if (menuOpen) await this.fields.get().waitFor({ state: 'hidden' });
   }
 
   async clickSort() {
@@ -66,7 +66,7 @@ export class ToolbarPage extends BasePage {
     await this.get().locator(`button.nc-sort-menu-btn`).click();
 
     // Wait for the menu to close
-    if (menuOpen) await this.sort.get().waitFor({ state: "hidden" });
+    if (menuOpen) await this.sort.get().waitFor({ state: 'hidden' });
   }
 
   async clickFilter() {
@@ -75,7 +75,7 @@ export class ToolbarPage extends BasePage {
     await this.get().locator(`button.nc-filter-menu-btn`).click();
 
     // Wait for the menu to close
-    if (menuOpen) await this.filter.get().waitFor({ state: "hidden" });
+    if (menuOpen) await this.filter.get().waitFor({ state: 'hidden' });
   }
 
   async clickShareView() {
@@ -83,13 +83,11 @@ export class ToolbarPage extends BasePage {
     await this.get().locator(`button.nc-btn-share-view `).click();
 
     // Wait for the menu to close
-    if (menuOpen) await this.shareView.get().waitFor({ state: "hidden" });
+    if (menuOpen) await this.shareView.get().waitFor({ state: 'hidden' });
   }
 
   async clickStackByField() {
-    await this.get()
-      .locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn`)
-      .click();
+    await this.get().locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn`).click();
   }
 
   async clickAddNewRow() {
@@ -101,7 +99,7 @@ export class ToolbarPage extends BasePage {
 
     const [download] = await Promise.all([
       // Start waiting for the download
-      this.rootPage.waitForEvent("download"),
+      this.rootPage.waitForEvent('download'),
       // Perform the action that initiates download
       this.rootPage
         .locator(`.nc-dropdown-actions-menu`)
@@ -110,29 +108,23 @@ export class ToolbarPage extends BasePage {
     ]);
 
     // Save downloaded file somewhere
-    await download.saveAs("./output/at.txt");
+    await download.saveAs('./output/at.txt');
 
     // verify downloaded content against expected content
-    const expectedData = fs.readFileSync("./fixtures/expectedData.txt", "utf8");
-    const file = fs.readFileSync("./output/at.txt", "utf8");
+    const expectedData = fs.readFileSync('./fixtures/expectedData.txt', 'utf8');
+    const file = fs.readFileSync('./output/at.txt', 'utf8');
     await expect(file).toEqual(expectedData);
   }
 
   async verifyStackByButton({ title }: { title: string }) {
-    await this.get()
-      .locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn`)
-      .waitFor({ state: "visible" });
+    await this.get().locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn`).waitFor({ state: 'visible' });
     await expect(
-      await this.get().locator(
-        `.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn:has-text("${title}")`
-      )
+      await this.get().locator(`.nc-toolbar-btn.nc-kanban-stacked-by-menu-btn:has-text("${title}")`)
     ).toBeVisible();
   }
 
   async verifyDownloadDisabled() {
-    await this.get()
-      .locator(`.nc-toolbar-btn.nc-actions-menu-btn`)
-      .waitFor({ state: "hidden" });
+    await this.get().locator(`.nc-toolbar-btn.nc-actions-menu-btn`).waitFor({ state: 'hidden' });
   }
 
   async clickAddEditStack() {
@@ -141,33 +133,24 @@ export class ToolbarPage extends BasePage {
 
   async validateViewsMenu(param: { role: string; mode?: string }) {
     let menuItems = {
-      creator: [
-        "Download",
-        "Upload",
-        "Shared View List",
-        "Webhooks",
-        "Get API Snippet",
-        "ERD View",
-      ],
-      editor: ["Download", "Upload", "Get API Snippet", "ERD View"],
-      commenter: ["Download as CSV", "Download as XLSX"],
-      viewer: ["Download as CSV", "Download as XLSX"],
+      creator: ['Download', 'Upload', 'Shared View List', 'Webhooks', 'Get API Snippet', 'ERD View'],
+      editor: ['Download', 'Upload', 'Get API Snippet', 'ERD View'],
+      commenter: ['Download as CSV', 'Download as XLSX'],
+      viewer: ['Download as CSV', 'Download as XLSX'],
     };
 
-    if (param.mode === "shareBase") {
+    if (param.mode === 'shareBase') {
       menuItems = {
         creator: [],
-        editor: ["Download", "Upload", "ERD View"],
+        editor: ['Download', 'Upload', 'ERD View'],
         commenter: [],
-        viewer: ["Download as CSV", "Download as XLSX"],
+        viewer: ['Download as CSV', 'Download as XLSX'],
       };
     }
 
-    let vMenu = await this.rootPage.locator(
-      ".nc-dropdown-actions-menu:visible"
-    );
+    const vMenu = await this.rootPage.locator('.nc-dropdown-actions-menu:visible');
 
-    for (let item of menuItems[param.role]) {
+    for (const item of menuItems[param.role]) {
       await expect(vMenu).toContainText(item);
     }
   }
@@ -179,19 +162,19 @@ export class ToolbarPage extends BasePage {
       mode: param.mode,
     });
 
-    let menuItems = {
-      creator: ["Fields", "Filter", "Sort", "Share View"],
-      editor: ["Fields", "Filter", "Sort"],
-      commenter: ["Fields", "Filter", "Sort", "Download"],
-      viewer: ["Fields", "Filter", "Sort", "Download"],
+    const menuItems = {
+      creator: ['Fields', 'Filter', 'Sort', 'Share View'],
+      editor: ['Fields', 'Filter', 'Sort'],
+      commenter: ['Fields', 'Filter', 'Sort', 'Download'],
+      viewer: ['Fields', 'Filter', 'Sort', 'Download'],
     };
 
-    for (let item of menuItems[param.role]) {
+    for (const item of menuItems[param.role]) {
       await expect(this.get()).toContainText(item);
     }
 
-    await expect(this.get().locator(".nc-add-new-row-btn")).toHaveCount(
-      param.role === "creator" || param.role === "editor" ? 1 : 0
+    await expect(this.get().locator('.nc-add-new-row-btn')).toHaveCount(
+      param.role === 'creator' || param.role === 'editor' ? 1 : 0
     );
   }
 }

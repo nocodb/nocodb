@@ -1,12 +1,12 @@
-import { test } from "@playwright/test";
-import { DashboardPage } from "../pages/Dashboard";
-import setup from "../setup";
-import { ToolbarPage } from "../pages/Dashboard/common/Toolbar";
-import { LoginPage } from "../pages/LoginPage";
-import { SettingsPage, SettingTab } from "../pages/Dashboard/Settings";
-import { SignupPage } from "../pages/SignupPage";
+import { test } from '@playwright/test';
+import { DashboardPage } from '../pages/Dashboard';
+import setup from '../setup';
+import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
+import { LoginPage } from '../pages/LoginPage';
+import { SettingsPage, SettingTab } from '../pages/Dashboard/Settings';
+import { SignupPage } from '../pages/SignupPage';
 
-test.describe("Auth", () => {
+test.describe('Auth', () => {
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
   let settings: SettingsPage;
@@ -21,13 +21,13 @@ test.describe("Auth", () => {
     settings = dashboard.settings;
   });
 
-  test("Change password", async ({ page }) => {
-    await dashboard.closeTab({ title: "Team & Auth" });
+  test('Change password', async ({ page }) => {
+    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.gotoSettings();
     await settings.selectTab({ tab: SettingTab.TeamAuth });
-    let url = await settings.teams.invite({
-      email: "user-1@nocodb.com",
-      role: "creator",
+    const url = await settings.teams.invite({
+      email: 'user-1@nocodb.com',
+      role: 'creator',
     });
     await settings.teams.closeInvite();
     await settings.close();
@@ -36,50 +36,42 @@ test.describe("Auth", () => {
 
     await dashboard.rootPage.goto(url);
     await signupPage.signUp({
-      email: "user-1@nocodb.com",
-      password: "Password123.",
+      email: 'user-1@nocodb.com',
+      password: 'Password123.',
     });
 
     await dashboard.openPasswordChangeModal();
 
     // Existing active pass incorrect
     await dashboard.changePassword({
-      oldPass: "123456789",
-      newPass: "123456789",
-      repeatPass: "123456789",
+      oldPass: '123456789',
+      newPass: '123456789',
+      repeatPass: '123456789',
     });
     await dashboard.rootPage
-      .locator(
-        '[data-cy="nc-user-settings-form__error"]:has-text("Current password is wrong")'
-      )
+      .locator('[data-cy="nc-user-settings-form__error"]:has-text("Current password is wrong")')
       .waitFor();
 
     // New pass and repeat pass mismatch
     await dashboard.changePassword({
-      oldPass: "Password123.",
-      newPass: "123456789",
-      repeatPass: "987654321",
+      oldPass: 'Password123.',
+      newPass: '123456789',
+      repeatPass: '987654321',
     });
-    await dashboard.rootPage
-      .locator(
-        '.ant-form-item-explain-error:has-text("Passwords do not match")'
-      )
-      .waitFor();
+    await dashboard.rootPage.locator('.ant-form-item-explain-error:has-text("Passwords do not match")').waitFor();
 
     // All good
     await dashboard.changePassword({
-      oldPass: "Password123.",
-      newPass: "NewPasswordConfigured",
-      repeatPass: "NewPasswordConfigured",
+      oldPass: 'Password123.',
+      newPass: 'NewPasswordConfigured',
+      repeatPass: 'NewPasswordConfigured',
     });
 
     const loginPage = new LoginPage(page);
-    await loginPage.fillEmail({email: "user-1@nocodb.com"});
-    await loginPage.fillPassword("NewPasswordConfigured");
+    await loginPage.fillEmail({ email: 'user-1@nocodb.com' });
+    await loginPage.fillPassword('NewPasswordConfigured');
     await loginPage.submit();
 
-    await page
-      .locator('.nc-project-page-title:has-text("My Projects")')
-      .waitFor();
+    await page.locator('.nc-project-page-title:has-text("My Projects")').waitFor();
   });
 });

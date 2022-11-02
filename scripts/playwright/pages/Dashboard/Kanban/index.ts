@@ -1,8 +1,8 @@
 // playwright-dev-page.ts
-import { Locator, expect } from "@playwright/test";
-import { DashboardPage } from "..";
-import BasePage from "../../Base";
-import { ToolbarPage } from "../common/Toolbar";
+import { expect, Locator } from '@playwright/test';
+import { DashboardPage } from '..';
+import BasePage from '../../Base';
+import { ToolbarPage } from '../common/Toolbar';
 
 export class KanbanPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -24,9 +24,7 @@ export class KanbanPage extends BasePage {
 
   async openExpandedRow({ index }: { index: number }) {
     await this.card(index).click();
-    await (
-      await this.rootPage.locator(".ant-drawer-body").elementHandle()
-    )?.waitForElementState("stable");
+    await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
   }
 
   async addOption() {}
@@ -66,8 +64,7 @@ export class KanbanPage extends BasePage {
     for (let i = 0; i < stacks; i++) {
       const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
       // Since otherwise stack title will be repeated as title is in two divs, with one having hidden class
-      const stackTitle = await stack
-        .locator(`.nc-kanban-stack-head >> [nc-data="truncate-label"]`);
+      const stackTitle = await stack.locator(`.nc-kanban-stack-head >> [nc-data="truncate-label"]`);
       await expect(stackTitle).toHaveText(order[i], { ignoreCase: true });
     }
   }
@@ -77,12 +74,8 @@ export class KanbanPage extends BasePage {
     const stacks = await this.get().locator(`.nc-kanban-stack`).count();
     for (let i = 0; i < stacks; i++) {
       const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
-      const stackFooter = await stack
-        .locator(`.nc-kanban-data-count`)
-        .innerText();
-      await expect(stackFooter).toContain(
-        `${count[i]} record${count[i] !== 1 ? "s" : ""}`
-      );
+      const stackFooter = await stack.locator(`.nc-kanban-data-count`).innerText();
+      await expect(stackFooter).toContain(`${count[i]} record${count[i] !== 1 ? 's' : ''}`);
     }
   }
 
@@ -118,49 +111,29 @@ export class KanbanPage extends BasePage {
 
   async collapseStack(param: { index: number }) {
     await this.get().locator(`.nc-kanban-stack-head`).nth(param.index).click();
-    const modal = await this.rootPage.locator(
-      `.nc-dropdown-kanban-stack-context-menu`
-    );
-    await modal
-      .locator('.ant-dropdown-menu-item:has-text("Collapse Stack")')
-      .click();
+    const modal = await this.rootPage.locator(`.nc-dropdown-kanban-stack-context-menu`);
+    await modal.locator('.ant-dropdown-menu-item:has-text("Collapse Stack")').click();
   }
 
   async expandStack(param: { index: number }) {
-    await this.rootPage
-      .locator(`.nc-kanban-collapsed-stack`)
-      .nth(param.index)
-      .click();
+    await this.rootPage.locator(`.nc-kanban-collapsed-stack`).nth(param.index).click();
   }
 
   async verifyCollapseStackCount(param: { count: number }) {
-    await expect(this.rootPage.locator(".nc-kanban-collapsed-stack")).toHaveCount(param.count);
+    await expect(this.rootPage.locator('.nc-kanban-collapsed-stack')).toHaveCount(param.count);
   }
 
   async addCard(param: { stackIndex: number }) {
-    await this.get()
-      .locator(`.nc-kanban-stack-head`)
-      .nth(param.stackIndex)
-      .click();
-    const modal = await this.rootPage.locator(
-      `.nc-dropdown-kanban-stack-context-menu`
-    );
-    await modal
-      .locator('.ant-dropdown-menu-item:has-text("Add new record")')
-      .click();
+    await this.get().locator(`.nc-kanban-stack-head`).nth(param.stackIndex).click();
+    const modal = await this.rootPage.locator(`.nc-dropdown-kanban-stack-context-menu`);
+    await modal.locator('.ant-dropdown-menu-item:has-text("Add new record")').click();
   }
 
   async deleteStack(param: { index: number }) {
     await this.get().locator(`.nc-kanban-stack-head`).nth(param.index).click();
-    const modal = await this.rootPage.locator(
-      `.nc-dropdown-kanban-stack-context-menu`
-    );
-    await modal
-      .locator('.ant-dropdown-menu-item:has-text("Delete Stack")')
-      .click();
-    const confirmationModal = await this.rootPage.locator(
-      `.nc-modal-kanban-delete-stack`
-    );
+    const modal = await this.rootPage.locator(`.nc-dropdown-kanban-stack-context-menu`);
+    await modal.locator('.ant-dropdown-menu-item:has-text("Delete Stack")').click();
+    const confirmationModal = await this.rootPage.locator(`.nc-modal-kanban-delete-stack`);
     await confirmationModal.locator(`button:has-text("Delete")`).click();
   }
 }

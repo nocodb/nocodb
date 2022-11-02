@@ -4,6 +4,7 @@ import { SettingTab } from "../pages/Dashboard/Settings";
 import setup from "../setup";
 import { FormPage } from "../pages/Dashboard/Form";
 
+// todo: Move most of the ui actions to page object and await on the api response
 test.describe("Form view", () => {
   let dashboard: DashboardPage;
   let form: FormPage;

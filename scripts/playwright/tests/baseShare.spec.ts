@@ -64,6 +64,7 @@ test.describe("Shared base", () => {
     let url = await dashboard.settings.teams.getSharedBaseUrl();
     await dashboard.settings.teams.closeInvite();
 
+    await dashboard.rootPage.waitForTimeout(2000);
     // access shared base link
     await dashboard.signOut();
     // todo: Move this to a page object
@@ -85,6 +86,7 @@ test.describe("Shared base", () => {
     url = await dashboard.settings.teams.getSharedBaseUrl();
     await dashboard.settings.teams.closeInvite();
 
+    await dashboard.rootPage.waitForTimeout(2000);
     // access shared base link
     await dashboard.signOut();
     // todo: Move this to a page object

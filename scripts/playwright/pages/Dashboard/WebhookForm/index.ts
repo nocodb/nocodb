@@ -87,6 +87,7 @@ export class WebhookFormPage extends BasePage {
     const modal = await this.get().locator(`.menu-filter-dropdown`).last();
     await modal.locator(`button:has-text("Add Filter")`).click();
 
+    // todo: Integrate this with Filter page object or atleast wait for the api response(this part is flaky but barely)
     await modal.locator(".nc-filter-field-select").click();
     const modalField = await this.dashboard.rootPage.locator(
       ".nc-dropdown-toolbar-field-list:visible"

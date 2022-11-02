@@ -40,7 +40,8 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const tabsInfo: TabGroup = {
+const tabsInfo = $computed<TabGroup>(() =>
+  ({
   teamAndAuth: {
     title: t('title.teamAndAuth'),
     icon: TeamFillIcon,
@@ -135,14 +136,15 @@ const tabsInfo: TabGroup = {
       $e('c:settings:audit')
     },
   },
-}
+}));
+
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
 // Array of keys of tabs which are selected. In our case will be only one.
-let selectedTabKeys = $ref<string[]>([firstKeyOfObject(tabsInfo)])
+let selectedTabKeys = $computed<string[]>(() => [firstKeyOfObject(tabsInfo)])
 const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
 
-let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab.subTabs)])
+let selectedSubTabKeys = $computed<string[]>(() => [firstKeyOfObject(selectedTab.subTabs)])
 const selectedSubTab = $computed(() => selectedTab.subTabs[selectedSubTabKeys[0]])
 
 watch(
@@ -158,6 +160,7 @@ watch(
     selectedTabKeys = [Object.keys(tabsInfo).find((key) => key === nextOpenKey) || firstKeyOfObject(tabsInfo)]
   },
 )
+
 </script>
 
 <template>

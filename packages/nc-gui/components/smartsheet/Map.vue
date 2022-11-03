@@ -7,22 +7,27 @@ import { IsFormInj, IsGalleryInj, IsGridInj, IsMapInj, ReadonlyInj, onMounted, p
 
 const { isUIAllowed } = useUIPermission()
 
-provide(IsFormInj, ref(false))
+// provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
 provide(IsMapInj, ref(true))
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
-const reloadViewDataHook = inject(ReloadViewDataHookInj)
+
+
 
 // const meta = inject(MetaInj, ref())
 // const view = inject(ActiveViewInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 const meta = inject(MetaInj, ref())
-const { formattedData, loadMapData, mapData } = useMapViewStoreOrThrow()
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
+
+// const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
+const { formattedData, loadMapData, loadMapMeta, mapMetaData } = useMapViewStoreOrThrow()
 
 // const { loadData, formattedData: data } = useViewData(meta, view)
 // const { sharedView, sorts, nestedFilters } = useSharedView()
+
 
 const {
   showSystemFields,
@@ -58,8 +63,10 @@ const markersRef = ref<L.MarkerClusterGroup | undefined>()
 
 // const { isUIAllowed } = useUIPermission()
 
-onMounted(async () => {
+onBeforeMount(async () => {
   await loadMapData()
+  await loadMapMeta()
+  console.log('on mapview mapMetaData', mapMetaData)
   // const geodata = data.value[0].row.geo.split(';')
 })
 
@@ -71,10 +78,15 @@ onMounted(async () => {
 //   ),
 // )
 
+const { fk_geo_data_col_id } = mapMetaData.value
+
+console.log('fk_geo_data_col_id', fk_geo_data_col_id)
+
 watch(formattedData, () => {
   markersRef.value?.clearLayers()
-  console.log('mapData', mapData?.value?.fk_geo_data_col_id)
+  console.log('mapMetaData', mapMetaData?.value?.fk_geo_data_col_id)
   formattedData.value?.forEach((row) => {
+    console.log('fk_geo_data_col_id', fk_geo_data_col_id)
     // const [lat, long] =
     console.log('meta', meta?.value?.columns)
     console.log('row', row)
@@ -125,7 +137,7 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col h-full w-full">
-    {{ JSON.stringify(mapData1) }}
+    {{ JSON.stringify(mapMetaData) }}
     <!-- {{ JSON.stringify(selected) }} -->
     <!-- {{ JSON.stringify(meta?.columns) }} -->
     <!-- <div class="flex m-4 gap-4">

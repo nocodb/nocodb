@@ -1,5 +1,5 @@
 import { ViewTypes } from 'nocodb-sdk'
-import type { Api, ColumnType, FormType, GalleryType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import {
   IsPublicInj,
@@ -202,6 +202,7 @@ export function useViewData(
 
   async function insertRow(
     currentRow: Row,
+    _rowIndex = formattedData.value?.length,
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
@@ -265,24 +266,15 @@ export function useViewData(
       )
       // audit
       $api.utils.auditRowUpdate(id, {
-        fk_model_id: metaValue?.id as string,
+        fk_model_id: meta.value?.id as string,
         column_name: property,
         row_id: id,
         value: getHTMLEncodedText(toUpdate.row[property]),
         prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
       })
 
-      /** update row data(to sync formula and other related columns)
-       * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
-       */
-      Object.assign(
-        toUpdate.row,
-        metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
-          if (col.uidt === UITypes.Formula || col.uidt === UITypes.Rollup || col.au || col.cdf?.includes(' on update '))
-            acc[col.title!] = updatedRowData[col.title!]
-          return acc
-        }, {} as Record<string, any>),
-      )
+      /** update row data(to sync formula and other related columns) */
+      Object.assign(toUpdate.row, updatedRowData)
       Object.assign(toUpdate.oldRow, updatedRowData)
     } catch (e: any) {
       message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
@@ -301,7 +293,7 @@ export function useViewData(
     await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
 
     if (row.rowMeta.new) {
-      return await insertRow(row, ltarState, args)
+      return await insertRow(row, formattedData.value.indexOf(row), ltarState, args)
     } else {
       await updateRowProperty(row, property!, args)
     }

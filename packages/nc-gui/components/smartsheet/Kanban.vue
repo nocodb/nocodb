@@ -12,6 +12,7 @@ import {
   IsPublicInj,
   MetaInj,
   OpenNewRecordFormHookInj,
+  ReadonlyInj,
   inject,
   onBeforeMount,
   onBeforeUnmount,
@@ -83,6 +84,8 @@ provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
+
+provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 const hasEditPermission = $computed(() => isUIAllowed('xcDatatableEditable'))
 

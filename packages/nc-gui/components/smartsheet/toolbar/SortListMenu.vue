@@ -58,7 +58,7 @@ watch(
         data-testid="nc-sorts-menu"
       >
         <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
-          <template v-for="(sort, i) in sorts || []" :key="i">
+          <template v-for="(sort, i) of sorts" :key="i">
             <MdiCloseBox class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
 
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
@@ -79,7 +79,7 @@ watch(
               @select="saveOrUpdate(sort, i)"
             >
               <a-select-option
-                v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"
+                v-for="(option, j) of getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"
                 :key="j"
                 :value="option.value"
               >

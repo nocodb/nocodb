@@ -31,15 +31,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -54,7 +54,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:api:cache
@@ -66,7 +66,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-restTableOps-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -77,15 +77,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -100,7 +100,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:api:cache
@@ -112,7 +112,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-restViews-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -123,15 +123,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -146,7 +146,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:api:cache
@@ -158,7 +158,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-restRoles-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -169,15 +169,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -192,7 +192,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:api:cache
@@ -204,7 +204,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-restMisc-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -215,15 +215,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -238,7 +238,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:xcdb-api:cache
@@ -250,7 +250,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-xcdb-restTableOps-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -261,15 +261,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -284,7 +284,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:xcdb-api:cache
@@ -296,7 +296,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-xcdb-restViews-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -307,15 +307,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -330,7 +330,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:xcdb-api:cache
@@ -342,7 +342,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-xcdb-restRoles-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -353,15 +353,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -376,7 +376,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:xcdb-api:cache
@@ -388,7 +388,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-xcdb-restMisc-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -399,15 +399,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -422,7 +422,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:api:cache
@@ -434,7 +434,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-pg-restTableOps-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -445,15 +445,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -468,7 +468,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:api:cache
@@ -480,7 +480,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-pg-restViews-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -491,15 +491,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -514,7 +514,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:api:cache
@@ -526,7 +526,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-pg-restRoles-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -537,15 +537,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -560,7 +560,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               npm run start:api:cache
@@ -572,7 +572,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cypress-pg-restMisc-run-cache-snapshots
             path: scripts/cypress/screenshots
@@ -583,15 +583,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -606,7 +606,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               cp ./scripts/cypress/fixtures/quickTest/noco_0_91_7.db ./packages/nocodb/noco.db
@@ -619,7 +619,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cy-quick-sqlite-snapshots
             path: scripts/cypress/screenshots
@@ -630,15 +630,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 
@@ -653,7 +653,7 @@ jobs:
         - name: Set env
           run: echo "NODE_ENV=test" >> $GITHUB_ENV
         - name: Cypress run
-          uses: cypress-io/github-action@v2
+          uses: cypress-io/github-action@v4
           with:
             start: |
               docker-compose -f ./scripts/cypress/docker-compose-pg-cy-quick.yml up -d
@@ -665,7 +665,7 @@ jobs:
             config-file: scripts/cypress/cypress.json
         - name: Upload screenshots
           if: always()
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: cy-quick-pg-snapshots
             path: scripts/cypress/screenshots
@@ -676,15 +676,15 @@ jobs:
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
         - name: Setup Node
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v3
           with:
             node-version: 16.15.0
         - name: Checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
         - name: Cache node modules
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           env:
             cache-name: cache-node-modules
 

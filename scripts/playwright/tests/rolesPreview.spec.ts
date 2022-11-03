@@ -7,7 +7,7 @@ import { SettingsPage, SettingsSubTab, SettingTab } from '../pages/Dashboard/Set
 const roles = ['Editor', 'Commenter', 'Viewer'];
 
 test.describe('Preview Mode', () => {
-  test.setTimeout(150000);
+  test.slow();
 
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
@@ -57,10 +57,14 @@ test.describe('Preview Mode', () => {
 
     // wait for preview mode to be enabled
     await dashboard.rootPage.locator('.nc-preview-btn-exit-to-app').waitFor();
+    // todo: Otherwise grid will be stuck at loading even tho the data is loaded
+    await dashboard.rootPage.waitForTimeout(2500);
 
     await dashboard.validateProjectMenu({
       role: role.toLowerCase(),
     });
+
+    await dashboard.rootPage.waitForTimeout(1500);
 
     await dashboard.treeView.openTable({ title: 'Country' });
 

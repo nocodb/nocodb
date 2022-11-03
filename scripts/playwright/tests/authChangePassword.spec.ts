@@ -1,14 +1,12 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
-import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import { LoginPage } from '../pages/LoginPage';
 import { SettingsPage, SettingTab } from '../pages/Dashboard/Settings';
 import { SignupPage } from '../pages/SignupPage';
 
 test.describe('Auth', () => {
   let dashboard: DashboardPage;
-  let toolbar: ToolbarPage;
   let settings: SettingsPage;
   let context: any;
   let signupPage: SignupPage;
@@ -17,7 +15,6 @@ test.describe('Auth', () => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     signupPage = new SignupPage(page);
-    toolbar = dashboard.grid.toolbar;
     settings = dashboard.settings;
   });
 

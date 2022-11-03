@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import {
   mysqlSakilaSqlViews,
   mysqlSakilaTables,
@@ -10,7 +10,6 @@ import { DashboardPage } from '../pages/Dashboard';
 import { SettingsSubTab, SettingTab } from '../pages/Dashboard/Settings';
 import setup from '../setup';
 import { isMysql, isPg, isSqlite } from '../setup/db';
-import { GridPage } from '../pages/Dashboard/Grid';
 import { SettingsErdPage } from '../pages/Dashboard/Settings/Erd';
 
 test.describe('Erd', () => {
@@ -19,8 +18,7 @@ test.describe('Erd', () => {
   let project: any;
   let sakilaTables, sakilaSqlViews;
 
-  // todo: Break the test into smaller tests
-  test.setTimeout(150000);
+  test.slow();
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
@@ -39,22 +37,26 @@ test.describe('Erd', () => {
     }
   });
 
-  // todo: Hack, edges are not getting rendered properly
-  const openSettingsErd = async () => {
-    await dashboard.gotoSettings();
+  const enableMM = async () => {
     await dashboard.settings.selectTab({ tab: SettingTab.ProjectMetadata, subTab: SettingsSubTab.Miscellaneous });
+    await dashboard.settings.miscellaneous.clickShowM2MTables();
     await dashboard.settings.selectSubTab({ subTab: SettingsSubTab.ERD });
   };
 
-  // todo: remove this. Need for edges to be rendered
-  const openErdOfATableWithEdgesRendered = async (tableName: string) => {
+  const openSettingsErd = async () => {
+    await dashboard.gotoSettings();
+    await dashboard.settings.selectTab({ tab: SettingTab.ProjectMetadata, subTab: SettingsSubTab.ERD });
+  };
+
+  const openErdOfATable = async (tableName: string) => {
     await dashboard.treeView.openTable({ title: tableName });
     await dashboard.grid.toolbar.clickActions();
     await dashboard.grid.toolbar.actions.click('ERD View');
   };
 
-  test.skip('Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names', async () => {
+  test('Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names', async () => {
     await openSettingsErd();
+    await enableMM();
 
     const erd: SettingsErdPage = dashboard.settings.erd;
 
@@ -175,7 +177,7 @@ test.describe('Erd', () => {
   });
 
   test('Verify ERD Table view, and verify column operations are reflected to the ERD view', async () => {
-    await openErdOfATableWithEdgesRendered('Country');
+    await openErdOfATable('Country');
     const erd = dashboard.grid.toolbar.actions.erd;
 
     // Verify tables with default config

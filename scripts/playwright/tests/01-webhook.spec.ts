@@ -1,7 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
-import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 import makeServer from '../setup/server';
 import { WebhookFormPage } from '../pages/Dashboard/WebhookForm';
 
@@ -45,7 +44,7 @@ async function verifyHookTrigger(count: number, value: string, request) {
 test.describe.serial('Webhook', () => {
   // start a server locally for webhook tests
 
-  let dashboard: DashboardPage, toolbar: ToolbarPage, webhook: WebhookFormPage;
+  let dashboard: DashboardPage, webhook: WebhookFormPage;
   let context: any;
 
   test.beforeAll(async () => {
@@ -55,7 +54,6 @@ test.describe.serial('Webhook', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
-    toolbar = dashboard.grid.toolbar;
     webhook = dashboard.webhookForm;
   });
 

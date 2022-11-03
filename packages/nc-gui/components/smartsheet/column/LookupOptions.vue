@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { getRelationName } from './utils'
 import { MetaInj, inject, ref, useColumnCreateStoreOrThrow, useMetas, useProject, useVModel } from '#imports'
 
 const props = defineProps<{
@@ -26,12 +27,6 @@ setAdditionalValidations({
 
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null
 if (!vModel.value.fk_lookup_column_id) vModel.value.fk_lookup_column_id = null
-
-const relationNames = {
-  mm: 'Many To Many',
-  hm: 'Has Many',
-  bt: 'Belongs To',
-} as const
 
 const refTables = $computed(() => {
   if (!tables || !tables.length || !meta || !meta.columns) {
@@ -59,10 +54,6 @@ const columns = $computed<ColumnType[]>(() => {
 
   return metas[selectedTable.id].columns.filter((c: ColumnType) => !isSystemColumn(c))
 })
-
-function getRelationName(type: string) {
-  return relationNames[type as keyof typeof relationNames]
-}
 </script>
 
 <template>

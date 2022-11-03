@@ -1,4 +1,3 @@
-// playwright-dev-page.ts
 import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';

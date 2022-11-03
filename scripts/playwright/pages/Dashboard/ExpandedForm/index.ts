@@ -1,8 +1,6 @@
-// playwright-dev-page.ts
 import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
-// import clipboard from "clipboardy";
 
 export class ExpandedFormPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -87,13 +85,6 @@ export class ExpandedFormPage extends BasePage {
   async cancel() {
     await this.get().locator('button:has-text("Cancel")').last().click();
   }
-
-  // async getClipboardText() {
-  //   const clipboard = (await import("clipboardy")).default;
-  //   let clipText = await clipboard.read();
-  //   console.log(clipText);
-  //   return clipText;
-  // }
 
   async openChildCard(param: { column: string; title: string }) {
     const childList = await this.get().locator(`[pw-data="nc-expand-col-${param.column}"]`);

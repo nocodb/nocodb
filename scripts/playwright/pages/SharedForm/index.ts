@@ -1,5 +1,4 @@
-// playwright-dev-page.ts
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import BasePage from '../Base';
 import { CellPageObject } from '../Dashboard/common/Cell';
 

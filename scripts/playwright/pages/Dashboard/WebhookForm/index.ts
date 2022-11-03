@@ -1,9 +1,7 @@
-// playwright-dev-page.ts
 import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
 import { ToolbarPage } from '../common/Toolbar';
-// import clipboard from "clipboardy";
 
 export class WebhookFormPage extends BasePage {
   readonly dashboard: DashboardPage;

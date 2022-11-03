@@ -701,7 +701,7 @@ jobs:
           run: npm install
         - name: build nocodb-sdk
           working-directory: ./packages/nocodb-sdk
-          run: npm run build:main
+          run: npm run build
         - name: Install dependencies
           working-directory: ./packages/nocodb
           run: npm install
@@ -1447,8 +1447,10 @@ jobs:
       timeout-minutes: 30
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
       steps:
-        - name: Set Swap
+        # Reference: https://github.com/pierotofy/set-swap-space/blob/master/action.yml
+        - name: Set 5gb swap
           shell: bash
+          # Delete the swap file, allocate a new one, and activate it
           run: |
               export SWAP_FILE=$(swapon --show=NAME | tail -n 1)
               sudo swapoff $SWAP_FILE

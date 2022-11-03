@@ -16,6 +16,7 @@ import {
   useVModel,
   watch,
 } from '#imports'
+import type { Row } from '~/lib'
 
 const props = defineProps<{ modelValue?: boolean; cellValue: any }>()
 
@@ -88,6 +89,12 @@ watch(
     if (!isNew.value && vModel.value) loadChildrenList()
   },
 )
+
+const onClick = (row: Row) => {
+  if (readonly.value) return
+  expandedFormRow.value = row
+  expandedFormDlg.value = true
+}
 </script>
 
 <template>
@@ -114,6 +121,7 @@ watch(
           @click="emit('attachRecord')"
         >
           <div class="flex items-center gap-1">
+            <!-- todo: where is row supposed to come from? this is a bug! -->
             <MdiLinkVariantRemove class="text-xs" type="primary" @click="unlinkRow(row)" />
             Link to '{{ relatedTableMeta.title }}'
           </div>
@@ -126,13 +134,7 @@ watch(
             v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
             :key="i"
             class="!my-4 hover:(!bg-gray-200/50 shadow-md)"
-            @click="
-              () => {
-                if (readonly) return
-                expandedFormRow = row
-                expandedFormDlg = true
-              }
-            "
+            @click="onClick(row)"
           >
             <div class="flex items-center">
               <div class="flex-1 overflow-hidden min-w-0">

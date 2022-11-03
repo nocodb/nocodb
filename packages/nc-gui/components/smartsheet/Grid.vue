@@ -177,11 +177,15 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
     const activePickerOrDropdownEl = document.querySelector(
       '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
     )
-    if (activePickerOrDropdownEl) return true
+    if (activePickerOrDropdownEl) {
+      e.preventDefault()
+      return true
+    }
 
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
-    if (e.key === 'Space') {
+    if (e.code === 'Space') {
       if (selected.row !== null && !editEnabled) {
+        e.preventDefault()
         const row = data.value[selected.row]
         expandForm(row)
         return true

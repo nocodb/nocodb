@@ -108,10 +108,12 @@ useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'ArrowLeft':
       e.stopPropagation()
+      e.preventDefault()
       if (childrenExcludedListPagination.page > 1) childrenExcludedListPagination.page--
       break
     case 'ArrowRight':
       e.stopPropagation()
+      e.preventDefault()
       if (
         childrenExcludedList.value?.pageInfo &&
         childrenExcludedListPagination.page <
@@ -122,10 +124,12 @@ useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
     case 'ArrowUp':
       selectedRowIndex.value = Math.max(0, selectedRowIndex.value - 1)
       e.stopPropagation()
+      e.preventDefault()
       break
     case 'ArrowDown':
       selectedRowIndex.value = Math.min(childrenExcludedList.value?.list?.length - 1, selectedRowIndex.value + 1)
       e.stopPropagation()
+      e.preventDefault()
       break
     case 'Enter':
       {
@@ -133,6 +137,7 @@ useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
         if (selectedRow) {
           linkRow(selectedRow)
           e.stopPropagation()
+          e.preventDefault()
         }
       }
       break

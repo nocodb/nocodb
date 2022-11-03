@@ -107,8 +107,17 @@ watch(expandedFormDlg, (nexVal) => {
 useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
   switch (e.key) {
     case 'ArrowLeft':
+      e.stopPropagation()
+      if (childrenExcludedListPagination.page > 1) childrenExcludedListPagination.page--
+      break
     case 'ArrowRight':
       e.stopPropagation()
+      if (
+        childrenExcludedList.value?.pageInfo &&
+        childrenExcludedListPagination.page <
+          (childrenExcludedList.value.pageInfo.totalRows || 1) / childrenExcludedListPagination.size
+      )
+        childrenExcludedListPagination.page++
       break
     case 'ArrowUp':
       selectedRowIndex.value = Math.max(0, selectedRowIndex.value - 1)

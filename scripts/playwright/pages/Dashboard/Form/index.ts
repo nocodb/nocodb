@@ -36,32 +36,6 @@ export class FormPage extends BasePage {
     this.afterSubmitMsg = dashboard.get().locator('[data-pw="nc-form-after-submit-msg"]');
   }
 
-  /*
-  data-pw="nc-form-wrapper-submit"
-  data-pw="nc-form-wrapper"
-
-  data-pw="nc-form-heading"
-  data-pw="nc-form-sub-heading"
-  data-pw="nc-form-field"
-  data-pw="nc-form-input-label"
-  data-pw="nc-field-remove-icon"
-  data-pw="nc-form-input-required"
-  data-pw="nc-form-input-label"
-  data-pw="nc-form-input-help-text"
-  :data-pw="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-  data-pw="nc-form-submit"
-
-  data-pw="nc-form-after-submit-msg"
-  data-pw="nc-form-checkbox-submit-another-form"
-  data-pw="nc-form-checkbox-show-blank-form"
-  data-pw="nc-form-checkbox-send-email"
-
-  data-pw="nc-form-add-all"
-  data-pw="nc-form-remove-all"
-  :data-pw="`nc-form-hidden-column-${element.label}`"
-  data-pw="nc-drag-n-drop-to-hide"
-  */
-
   get() {
     return this.dashboard.get().locator('[data-pw="nc-form-wrapper"]');
   }
@@ -97,9 +71,6 @@ export class FormPage extends BasePage {
   getFormFieldsInputHelpText() {
     return this.get().locator('input[data-pw="nc-form-input-help-text"]:visible');
   }
-
-  ///////////////////////////
-  // Form Actions
 
   async verifyFormFieldLabel({ index, label }: { index: number; label: string }) {
     await expect(await this.getFormFields().nth(index).locator('[data-pw="nc-form-input-label"]')).toContainText(label);
@@ -223,8 +194,6 @@ export class FormPage extends BasePage {
     if (required) expectText = label + ' *';
     else expectText = label;
 
-    // data-pw="nc-form-input-label"
-    // data-pw="nc-form-input-help-text-label"
     const fieldLabel = await this.get()
       .locator(`.nc-form-drag-${field.replace(' ', '')}`)
       .locator('div[data-pw="nc-form-input-label"]');

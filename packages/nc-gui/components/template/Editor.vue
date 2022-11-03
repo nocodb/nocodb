@@ -693,7 +693,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
                   size="large"
                   hide-details
                   :bordered="false"
-                  @click="$event.stopPropagation()"
+                  @click.stop
                   @blur="handleEditableTnChange(tableIdx)"
                   @keydown.enter="handleEditableTnChange(tableIdx)"
                 />
@@ -749,14 +749,7 @@ function isSelectDisabled(uidt: string, disableSelect = false) {
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'column_name'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-input
-                      :ref="
-                        (el) => {
-                          inputRefs[record.key] = el
-                        }
-                      "
-                      v-model:value="record.column_name"
-                    />
+                    <a-input :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)" v-model:value="record.column_name" />
                   </a-form-item>
                 </template>
 

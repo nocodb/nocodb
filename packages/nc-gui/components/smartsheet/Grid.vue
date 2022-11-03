@@ -87,6 +87,8 @@ const contextMenu = computed({
   },
 })
 
+const routeQuery = $computed(() => route.query as Record<string, string>)
+
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
@@ -239,7 +241,7 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
 function scrollToCell(row?: number | null, col?: number | null) {
   row = row ?? selected.row
   col = col ?? selected.col
-  if (row !== undefined && col !== undefined && row !== null && col !== null) {
+  if (row && col) {
     // get active cell
     const rows = tbodyEl.value?.querySelectorAll('tr')
     const cols = rows?.[row].querySelectorAll('td')
@@ -307,7 +309,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
   if (rowId) {
     router.push({
       query: {
-        ...route.query,
+        ...routeQuery,
         rowId,
       },
     })
@@ -502,13 +504,13 @@ onBeforeUnmount(() => {
 
 const expandedFormOnRowIdDlg = computed({
   get() {
-    return !!route.query.rowId
+    return !!routeQuery.rowId
   },
   set(val) {
     if (!val)
       router.push({
         query: {
-          ...route.query,
+          ...routeQuery,
           rowId: undefined,
         },
       })
@@ -808,11 +810,11 @@ watch(
     <Suspense>
       <LazySmartsheetExpandedForm
         v-if="expandedFormOnRowIdDlg"
-        :key="route.query.rowId"
+        :key="routeQuery.rowId"
         v-model="expandedFormOnRowIdDlg"
         :row="{ row: {}, oldRow: {}, rowMeta: {} }"
         :meta="meta"
-        :row-id="route.query.rowId"
+        :row-id="routeQuery.rowId"
         :view="view"
       />
     </Suspense>

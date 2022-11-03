@@ -32,7 +32,7 @@ interface AttachmentProps extends File {
 }
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
-  (updateModelValue: (data: string | Record<string, any>[]) => void) => {
+  (updateModelValue: (data: string | Record<string, any>[]) => void, rowId: string) => {
     const isReadonly = inject(ReadonlyInj, ref(false))
 
     const isPublic = inject(IsPublicInj, ref(false))
@@ -116,7 +116,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       for (const file of selectedFiles) {
         try {
-          const data = await api.storage.upload(
+          const data = await api.storage.uploadWithUpdate(
             {
               path: [NOCO, project.value.title, meta.value?.title, column.value?.title].join('/'),
             },
@@ -124,6 +124,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               files: file,
               json: '{}',
             },
+            rowId,
           )
 
           newAttachments.push(...data)

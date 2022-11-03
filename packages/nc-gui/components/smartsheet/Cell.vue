@@ -29,6 +29,7 @@ interface Props {
   rowIndex?: number
   active?: boolean
   virtual?: boolean
+  rowId?: string
 }
 
 const props = defineProps<Props>()
@@ -132,7 +133,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   >
     <LazyCellTextArea v-if="isTextArea" v-model="vModel" />
     <LazyCellCheckbox v-else-if="isBoolean" v-model="vModel" />
-    <LazyCellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />
+    <LazyCellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" :row-id="props.rowId" />
     <LazyCellSingleSelect v-else-if="isSingleSelect" v-model="vModel" />
     <LazyCellMultiSelect v-else-if="isMultiSelect" v-model="vModel" />
     <LazyCellDatePicker v-else-if="isDate" v-model="vModel" :edit-enabled="props.editEnabled" />

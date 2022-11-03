@@ -318,7 +318,6 @@ function makeEditable(row: Row, col: ColumnType) {
 }
 
 const copyValue = async (ctx: { row: number; col: number }) => {
-  console.log('in copyValue')
   const rowObj = data.value[ctx.row]
   const columnObj = fields.value[ctx.col]
 
@@ -642,6 +641,7 @@ watch(
                           !!hasEditPermission && !!editEnabled && selected.col === colIndex && selected.row === rowIndex
                         "
                         :row-index="rowIndex"
+                        :row-id="extractPkFromRow(row.row, fields)"
                         :active="selected.col === colIndex && selected.row === rowIndex"
                         @update:edit-enabled="editEnabled = $event"
                         @save="updateOrSaveRow(row, columnObj.title, state)"

@@ -4213,7 +4213,7 @@ export class Api<
         files?: any;
         json?: string;
       },
-      rowId: number,
+      rowId: string,
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

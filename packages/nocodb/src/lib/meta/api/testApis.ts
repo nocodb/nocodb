@@ -28,7 +28,7 @@ export async function sqliteExec(req: Request<any, any>, res) {
   }
 }
 
-const router = Router({ mergeParams: true });
+const router = Router();
 
 router.post('/api/v1/meta/test/reset', reset);
 router.post('/api/v1/meta/test/sqlite_exec', sqliteExec);

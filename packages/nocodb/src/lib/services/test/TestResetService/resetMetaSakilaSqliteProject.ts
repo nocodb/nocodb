@@ -109,7 +109,7 @@ const resetMetaSakilaSqlite = async (
         await metaKnex.raw(
           sqlQuery
             .trim()
-            .replace(/WHERE rowid = new.rowid/g, 'WHERE rowid = new.rowid;')
+            .replace(/WHERE rowid = new.rowid/g, '$&;')
         );
       }
     }

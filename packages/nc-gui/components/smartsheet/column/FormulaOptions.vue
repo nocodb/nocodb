@@ -26,6 +26,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
+const uiTypesNotSupportedInFormulas = [UITypes.QrCode]
+
 const vModel = useVModel(props, 'value', emit)
 
 const { setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
@@ -44,7 +46,9 @@ enum JSEPNode {
 
 const meta = inject(MetaInj, ref())
 
-const columns = computed(() => meta?.value?.columns || [])
+const supportedColumns = computed(
+  () => meta?.value?.columns?.filter((col) => !uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) || [],
+)
 
 const validators = {
   formula_raw: [
@@ -97,7 +101,7 @@ const suggestionsList = computed(() => {
         syntax: formulas[fn].syntax,
         examples: formulas[fn].examples,
       })),
-    ...columns.value
+    ...supportedColumns.value
       .filter((c: Record<string, any>) => {
         // skip system LTAR columns
         if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
@@ -238,7 +242,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
     errors = new Set([...errors, ...typeErrors])
   } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
     if (
-      columns.value
+      supportedColumns.value
         .filter((c: Record<string, any>) => !column || column.value?.id !== c.id)
         .every((c: Record<string, any>) => c.title !== parsedTree.name)
     ) {
@@ -249,7 +253,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
     // e.g. formula1 -> formula2 -> formula1 should return circular reference error
 
     // get all formula columns excluding itself
-    const formulaPaths = columns.value
+    const formulaPaths = supportedColumns.value
       .filter((c: Record<string, any>) => c.id !== column.value?.id && c.uidt === UITypes.Formula)
       .reduce((res: Record<string, any>[], c: Record<string, any>) => {
         // in `formula`, get all the (unique) target neighbours
@@ -258,7 +262,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
           ...new Set(
             (c.colOptions.formula.match(/cl_\w{14}/g) || []).filter(
               (colId: string) =>
-                columns.value.filter((col: ColumnType) => col.id === colId && col.uidt === UITypes.Formula).length,
+                supportedColumns.value.filter((col: ColumnType) => col.id === colId && col.uidt === UITypes.Formula).length,
             ),
           ),
         ]
@@ -269,7 +273,9 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
         return res
       }, [])
     // include target formula column (i.e. the one to be saved if applicable)
-    const targetFormulaCol = columns.value.find((c: ColumnType) => c.title === parsedTree.name && c.uidt === UITypes.Formula)
+    const targetFormulaCol = supportedColumns.value.find(
+      (c: ColumnType) => c.title === parsedTree.name && c.uidt === UITypes.Formula,
+    )
 
     if (targetFormulaCol && column.value?.id) {
       formulaPaths.push({
@@ -362,7 +368,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
       }
     }
   } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
-    const col = columns.value.find((c) => c.title === parsedTree.name)
+    const col = supportedColumns.value.find((c) => c.title === parsedTree.name)
 
     if (col === undefined) {
       return
@@ -432,6 +438,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
         case UITypes.Button:
         case UITypes.Checkbox:
         case UITypes.Collaborator:
+        case UITypes.QrCode:
         default:
           typeErrors.add(`Not supported to reference column '${parsedTree.name}'`)
           break
@@ -455,7 +462,7 @@ function getRootDataType(parsedTree: any): any {
   if (parsedTree.type === JSEPNode.CALL_EXP) {
     return formulas[parsedTree.callee.name].type
   } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
-    const col = columns.value.find((c) => c.title === parsedTree.name) as Record<string, any>
+    const col = supportedColumns.value.find((c) => c.title === parsedTree.name) as Record<string, any>
     if (col?.uidt === UITypes.Formula) {
       return getRootDataType(jsep(col?.formula_raw))
     } else {
@@ -500,6 +507,7 @@ function getRootDataType(parsedTree: any): any {
         case UITypes.Button:
         case UITypes.Checkbox:
         case UITypes.Collaborator:
+        case UITypes.QrCode:
         default:
           return 'N/A'
       }

@@ -14,6 +14,7 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
+  useSharedView,
   useSmartsheetStoreOrThrow,
   useUIPermission,
 } from '#imports'
@@ -38,6 +39,8 @@ const selectedView = inject(ActiveViewInj, ref())
 
 const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
+const { exportFile: sharedViewExportFile } = useSharedView()
+
 const isLocked = inject(IsLockedInj)
 
 const showWebhookDrawer = ref(false)
@@ -58,7 +61,6 @@ const exportFile = async (exportType: ExportTypes) => {
     while (!isNaN(offset) && offset > -1) {
       let res
       if (isPublicView.value) {
-        const { exportFile: sharedViewExportFile } = useSharedView()
         res = await sharedViewExportFile(fields.value, offset, exportType, responseType)
       } else {
         res = await $api.dbViewRow.export(

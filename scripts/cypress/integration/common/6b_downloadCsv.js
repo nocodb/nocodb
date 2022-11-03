@@ -9,9 +9,10 @@ export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
   describe(`${apiType.toUpperCase()} Upload/ Download CSV`, () => {
-    before(() => {
-      cy.setup({ dbType })
-    });
+    // before(() => {
+    //     // standalone test
+    //     // loginPage.loginAndOpenProject(apiType, dbType);
+    // });
 
     beforeEach(() => {
       cy.restoreLocalStorage();

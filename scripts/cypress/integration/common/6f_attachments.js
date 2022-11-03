@@ -6,9 +6,9 @@ export const genTest = (apiType, dbType) => {
   if (!isTestSuiteActive(apiType, dbType)) return;
 
   describe(`${apiType.toUpperCase()} Columns of type attachment`, () => {
-    before(() => {
-      cy.setup({ dbType })
-    });
+    // before(() => {
+    //   // loginPage.loginAndOpenProject(apiType, dbType);
+    // });
 
     beforeEach(() => {
       cy.restoreLocalStorage();

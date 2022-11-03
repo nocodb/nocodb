@@ -15,23 +15,22 @@ export const genTest = (apiType, dbType) => {
     before(() => {
       cy.restoreLocalStorage();
       
-      cy.setup({ dbType }).then(({project}) => {
-        cy.openTableTab("Country", 25);
-
-        projectId = project.id
-        if (dbType === "postgres") {
-          sakilaTables = pgSakilaTables;
-          sakilaSqlViews = pgSakilaSqlViews;
-        } else if(dbType === "mysql") {
-          sakilaTables = mysqlSakilaTables;
-          sakilaSqlViews = mysqlSakilaSqlViews;
-        } else if(dbType === "xcdb") {
-          sakilaTables = mysqlSakilaTables.map((tableName) => `${projectId}${tableName}`);
-          sakilaSqlViews = sqliteSakilaSqlViews.map((viewName) => `${projectId}${viewName}`);
-        }
-        cy.saveLocalStorage();
-      })
+      // loginPage.loginAndOpenProject(apiType, dbType);
       
+      cy.openTableTab("Country", 25);
+      projectId = getProjectString()
+      cy.log('erd:getProjectString' + projectId)
+      if (dbType === "postgres") {
+        sakilaTables = pgSakilaTables;
+        sakilaSqlViews = pgSakilaSqlViews;
+      } else if(dbType === "mysql") {
+        sakilaTables = mysqlSakilaTables;
+        sakilaSqlViews = mysqlSakilaSqlViews;
+      } else if(dbType === "xcdb") {
+        sakilaTables = mysqlSakilaTables.map((tableName) => `${projectId}${tableName}`);
+        sakilaSqlViews = sqliteSakilaSqlViews.map((viewName) => `${projectId}${viewName}`);
+      }
+      cy.saveLocalStorage();
     });
 
     beforeEach(() => {
@@ -42,10 +41,16 @@ export const genTest = (apiType, dbType) => {
       cy.saveLocalStorage();
     })
 
+    after(() => {
+      cy.restoreLocalStorage();
+      cy.closeTableTab("Country");
+      cy.saveLocalStorage();
+    });
+
     // Test cases
 
     it(`Enable MM setting Open Table ERD`, () => {
-      cy.openTableTab("Country", 25);
+      // cy.openTableTab("Country", 25);
       mainPage.toggleShowMMSetting();
       
       mainPage.openErdTab();

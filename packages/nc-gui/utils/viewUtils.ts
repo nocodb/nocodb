@@ -23,3 +23,9 @@ export const viewTypeAlias: Record<number, string> = {
   [ViewTypes.GALLERY]: 'gallery',
   [ViewTypes.KANBAN]: 'kanban',
 }
+
+export const getViewIcon = (key?: string | number) => {
+  if (!key) return
+  
+  return viewIcons[key]
+}

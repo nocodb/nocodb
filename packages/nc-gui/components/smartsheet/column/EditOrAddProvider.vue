@@ -4,7 +4,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { MetaInj, inject, ref, toRef, useProvideColumnCreateStore } from '#imports'
 
 interface Props {
-  column?: ColumnType & { meta: any }
+  column: ColumnType
 }
 
 const props = defineProps<Props>()

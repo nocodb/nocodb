@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IsLockedInj, IsPublicInj, useKanbanViewStoreOrThrow } from '#imports'
+import { IsKanbanInj, IsLockedInj, IsPublicInj, inject, provide, ref, useKanbanViewStoreOrThrow, useUIPermission } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 

@@ -1,20 +1,21 @@
+import { isClient } from '@vueuse/core'
 import type { Ref } from 'vue'
-import { onUnmounted, useEventListener } from '#imports'
 
 export function useSelectedCellKeyupListener(selected: Ref<boolean>, handler: (e: KeyboardEvent) => void) {
-  const cleanup: Ref<ReturnType<typeof useEventListener> | null> = ref(null)
+  if (isClient) {
+    watch(selected, (nextVal, _, cleanup) => {
+      // bind listener when `selected` is truthy
+      if (nextVal) {
+        document.addEventListener('keyup', handler)
+        // if `selected` is falsy then remove the event handler
+      } else {
+        document.removeEventListener('keyup', handler)
+      }
 
-  watch(selected, (value) => {
-    if (value) {
-      cleanup.value = useEventListener('keydown', handler, true)
-    } else {
-      cleanup.value?.()
-    }
-  })
-
-  onUnmounted(() => cleanup.value?.())
-
-  return {
-    cleanup,
+      // cleanup is called whenever the watcher is re-evaluated or stopped
+      cleanup(() => {
+        document.removeEventListener('keyup', handler)
+      })
+    })
   }
 }

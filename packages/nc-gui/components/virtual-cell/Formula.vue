@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { CellValueInj, ColumnInj, computed, handleTZ, inject, ref, replaceUrlsWithLink, useProject } from '#imports'
+import { CellValueInj, ColumnInj, computed, handleTZ, inject, ref, refAutoReset, replaceUrlsWithLink, useProject } from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
@@ -10,36 +10,22 @@ const cellValue = inject(CellValueInj)
 
 const { isPg } = useProject()
 
-const showEditFormulaWarning = ref(false)
-
-const showClearFormulaWarning = ref(false)
-
-const showEditFormulaWarningMessage = () => {
-  showEditFormulaWarning.value = true
-
-  setTimeout(() => {
-    showEditFormulaWarning.value = false
-  }, 3000)
-}
-const showClearFormulaWarningMessage = () => {
-  showClearFormulaWarning.value = true
-
-  setTimeout(() => {
-    showClearFormulaWarning.value = false
-  }, 3000)
-}
-
 const result = computed(() => (isPg.value ? handleTZ(cellValue?.value) : cellValue?.value))
 
 const urls = computed(() => replaceUrlsWithLink(result.value))
 
+const timeout = 3000 // in ms
+
+const showEditFormulaWarning = refAutoReset(false, timeout)
+const showClearFormulaWarning = refAutoReset(false, timeout)
+
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
-      showEditFormulaWarningMessage()
+      showEditFormulaWarning.value = true
       break
     case 'Delete':
-      showClearFormulaWarningMessage()
+      showClearFormulaWarning.value = true
       break
   }
 })
@@ -55,7 +41,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
       <span>ERR!</span>
     </a-tooltip>
 
-    <div class="p-2" @dblclick="showEditFormulaWarningMessage">
+    <div class="p-2" @dblclick="showEditFormulaWarning = true">
       <div v-if="urls" v-html="urls" />
 
       <div v-else>{{ result }}</div>

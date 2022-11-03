@@ -5,16 +5,16 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
   ColumnInj,
   Empty,
+  IsPublicInj,
   computed,
   inject,
   ref,
   useLTARStoreOrThrow,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useVModel,
   watch,
 } from '#imports'
-import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
-import { IsPublicInj } from '~/context'
 
 const props = defineProps<{ modelValue: boolean }>()
 
@@ -115,15 +115,17 @@ useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
       e.stopPropagation()
       break
     case 'Enter':
-      const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
-      if (selectedRow) {
-        linkRow(selectedRow)
-        e.stopPropagation()
+      {
+        const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
+        if (selectedRow) {
+          linkRow(selectedRow)
+          e.stopPropagation()
+        }
       }
       break
   }
 })
-const activeRow = (el: InstanceType<typeof Card>) => {
+const activeRow = (el?: InstanceType<typeof Card>) => {
   el?.$el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 }
 </script>

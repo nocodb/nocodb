@@ -2,9 +2,8 @@
 import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
-import { ActiveCellInj } from '~/context'
 import {
+  ActiveCellInj,
   DropZoneRef,
   IsGalleryInj,
   IsKanbanInj,
@@ -14,6 +13,7 @@ import {
   openLink,
   ref,
   useDropZone,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
   watch,

@@ -11,6 +11,7 @@ import {
   computed,
   inject,
   provide,
+  refAutoReset,
   useColumn,
   useMetas,
 } from '#imports'
@@ -47,32 +48,18 @@ provide(CellUrlDisableOverlayInj, ref(true))
 
 const lookupColumnMetaProps = useColumn(lookupColumn)
 
-const showEditWarning = ref(false)
+const timeout = 3000 // in ms
 
-const showClearWarning = ref(false)
-
-const showEditWarningMessage = () => {
-  showEditWarning.value = true
-
-  setTimeout(() => {
-    showEditWarning.value = false
-  }, 3000)
-}
-const showClearWarningMessage = () => {
-  showClearWarning.value = true
-
-  setTimeout(() => {
-    showClearWarning.value = false
-  }, 3000)
-}
+const showEditWarning = refAutoReset(false, timeout)
+const showClearWarning = refAutoReset(false, timeout)
 
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Enter':
-      showEditWarningMessage()
+      showEditWarning.value = true
       break
     case 'Delete':
-      showClearWarningMessage()
+      showClearWarning.value = true
       break
   }
 })

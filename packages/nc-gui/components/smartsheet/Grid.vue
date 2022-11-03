@@ -363,7 +363,7 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
-onClickOutside(smartTable, (e: PointerEvent) => {
+onClickOutside(smartTable, (e) => {
   clearRangeRows()
   if (selected.col === null) return
 

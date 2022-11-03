@@ -566,7 +566,7 @@ watch(
                       <span class="flex-1" />
 
                       <div
-                        v-if="(!readOnly || hasRole('commenter', true) || hasRole('viewer', true)) && !isLocked"
+                        v-if="!readOnly || hasRole('commenter', true) || hasRole('viewer', true)"
                         class="nc-expand"
                         :class="{ 'nc-comment': row.rowMeta?.commentCount }"
                       >

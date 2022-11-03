@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Form } from 'ant-design-vue'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import {
   extractSdkResponseErrorMsg,
   message,
@@ -26,7 +27,7 @@ const nameValidationRules = [
     message: 'Project name is required',
   },
   projectTitleValidator,
-]
+] as RuleObject[]
 
 const form = ref<typeof Form>()
 

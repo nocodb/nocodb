@@ -6,15 +6,15 @@ export function useSelectedCellKeyupListener(selected: Ref<boolean>, handler: (e
     watch(selected, (nextVal, _, cleanup) => {
       // bind listener when `selected` is truthy
       if (nextVal) {
-        document.addEventListener('keyup', handler)
+        document.addEventListener('keydown', handler, true)
         // if `selected` is falsy then remove the event handler
       } else {
-        document.removeEventListener('keyup', handler)
+        document.removeEventListener('keydown', handler, true)
       }
 
       // cleanup is called whenever the watcher is re-evaluated or stopped
       cleanup(() => {
-        document.removeEventListener('keyup', handler)
+        document.removeEventListener('keydown', handler, true)
       })
     })
   }

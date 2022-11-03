@@ -172,6 +172,13 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
   makeEditable,
   scrollToCell,
   (e: KeyboardEvent) => {
+    // ignore navigating if picker(Date, Time, DateTime, Year)
+    // or single/multi select options is open
+    const activePickerOrDropdownEl = document.querySelector(
+      '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
+    )
+    if (activePickerOrDropdownEl) return true
+
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     if (e.key === 'Space') {
       if (selected.row !== null && !editEnabled) {
@@ -373,10 +380,15 @@ onClickOutside(smartTable, (e) => {
 
   // ignore unselecting if clicked inside or on the picker(Date, Time, DateTime, Year)
   // or single/multi select options
-  const activePickerEl = document.querySelector(
+  const activePickerOrDropdownEl = document.querySelector(
     '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
   )
-  if (e.target && activePickerEl && (activePickerEl === e.target || activePickerEl?.contains(e.target as Element))) return
+  if (
+    e.target &&
+    activePickerOrDropdownEl &&
+    (activePickerOrDropdownEl === e.target || activePickerOrDropdownEl?.contains(e.target as Element))
+  )
+    return
 
   selected.row = null
   selected.col = null

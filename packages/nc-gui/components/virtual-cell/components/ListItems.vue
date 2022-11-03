@@ -106,6 +106,10 @@ watch(expandedFormDlg, (nexVal) => {
 
 useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
   switch (e.key) {
+    case 'ArrowLeft':
+    case 'ArrowRight':
+      e.stopPropagation()
+      break
     case 'ArrowUp':
       selectedRowIndex.value = Math.max(0, selectedRowIndex.value - 1)
       e.stopPropagation()
@@ -114,19 +118,18 @@ useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
       selectedRowIndex.value = Math.min(childrenExcludedList.value?.list?.length - 1, selectedRowIndex.value + 1)
       e.stopPropagation()
       break
-    case 'Enter':
-      {
-        const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
-        if (selectedRow) {
-          linkRow(selectedRow)
-          e.stopPropagation()
-        }
+    case 'Enter': {
+      const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
+      if (selectedRow) {
+        linkRow(selectedRow)
+        e.stopPropagation()
       }
+    }
       break
   }
 })
-const activeRow = (el?: InstanceType<typeof Card>) => {
-  el?.$el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+const activeRow = (vNode?: InstanceType<typeof Card>) => {
+  vNode?.$el?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 }
 </script>
 

@@ -44,6 +44,8 @@ export async function uploadWithUpdate(req: Request, res: Response) {
     req['ncSiteUrl']
   );
 
+  Tele.emit('evt', { evt_type: 'image:uploaded' });
+
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     dbDriver: NcConnectionMgrv2.get(base),
@@ -52,18 +54,17 @@ export async function uploadWithUpdate(req: Request, res: Response) {
   let oldAttachmentColumnData = JSON.parse(oldRowData[column['title']] || '[]');
   if (!Array.isArray(oldAttachmentColumnData)) oldAttachmentColumnData = [];
 
-  res.json(
-    await baseModel.updateByPk(
-      req.params.rowId,
-      {
-        [column['title']]: JSON.stringify(
-          oldAttachmentColumnData.concat(attachments)
-        ),
-      },
-      null,
-      req
-    )
+  await baseModel.updateByPk(
+    req.params.rowId,
+    {
+      [column['title']]: JSON.stringify(
+        oldAttachmentColumnData.concat(attachments)
+      ),
+    },
+    null,
+    req
   );
+  res.json(attachments);
 }
 
 export async function uploadViaURL(req: Request, res: Response) {

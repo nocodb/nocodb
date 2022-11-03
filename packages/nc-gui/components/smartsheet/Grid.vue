@@ -156,12 +156,11 @@ const getContainerScrollForElement = (
     relativePos.bottom + (offset?.bottom || 0) > 0
       ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0)
       : relativePos.top - (offset?.top || 0) < 0
-      ? container.scrollTop + relativePos.top - (offset?.top || 0)
-      : container.scrollTop
+        ? container.scrollTop + relativePos.top - (offset?.top || 0)
+        : container.scrollTop
 
   return scroll
 }
-
 
 const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange, selected } = useMultiSelect(
   fields,
@@ -183,11 +182,16 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
     }
 
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
-    if (e.code === 'Space') {
+    if (e.key === ' ') {
       if (selected.row !== null && !editEnabled) {
         e.preventDefault()
         const row = data.value[selected.row]
         expandForm(row)
+        return true
+      }
+    } else if (e.key === 'Escape') {
+      if (editEnabled) {
+        editEnabled = false
         return true
       }
     }

@@ -118,13 +118,14 @@ useSelectedCellKeyupListener(vModel, (e: KeyboardEvent) => {
       selectedRowIndex.value = Math.min(childrenExcludedList.value?.list?.length - 1, selectedRowIndex.value + 1)
       e.stopPropagation()
       break
-    case 'Enter': {
-      const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
-      if (selectedRow) {
-        linkRow(selectedRow)
-        e.stopPropagation()
+    case 'Enter':
+      {
+        const selectedRow = childrenExcludedList.value?.list?.[selectedRowIndex.value]
+        if (selectedRow) {
+          linkRow(selectedRow)
+          e.stopPropagation()
+        }
       }
-    }
       break
   }
 })

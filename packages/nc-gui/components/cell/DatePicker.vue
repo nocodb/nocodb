@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject, ref, useSelectedCellKeyupListener, watch } from '#imports'
+import {
+  ActiveCellInj,
+  ColumnInj,
+  EditModeInj,
+  ReadonlyInj,
+  computed,
+  inject,
+  ref,
+  useSelectedCellKeyupListener,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -16,6 +26,8 @@ const columnMeta = inject(ColumnInj, null)!
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 let isDateInvalid = $ref(false)
 
@@ -84,8 +96,8 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
     :dropdown-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''}`"
-    :open="(readOnly || (localState && isPk)) && !active ? false : open"
-    @click="open = !open"
+    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
+    @click="open = (active || editable) && !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

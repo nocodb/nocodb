@@ -26,8 +26,10 @@ export class KanbanPage extends BasePage {
     await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
   }
 
+  // todo: Implement
   async addOption() {}
 
+  // todo: Implement
   async dragDropCard(param: { from: string; to: string }) {
     // const { from, to } = param;
     // const srcStack = await this.get().locator(`.nc-kanban-stack`).nth(1);

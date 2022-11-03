@@ -29,9 +29,11 @@ const isView = false
 
 const { $api, $e } = useNuxtApp()
 
-const selectedView = inject(ActiveViewInj)
+const { isSqlView } = useSmartsheetStoreOrThrow()
 
-const isLocked = inject(IsLockedInj)
+const selectedView = inject(ActiveViewInj, ref())
+
+const isLocked = inject(IsLockedInj, ref(false))
 
 const showWebhookDrawer = ref(false)
 
@@ -45,8 +47,8 @@ const { isUIAllowed } = useUIPermission()
 
 const { isSharedBase } = useProject()
 
-const Icon = computed(() => {
-  switch (selectedView?.value.lock_type) {
+const Icon = $computed(() => {
+  switch (selectedView.value?.lock_type) {
     case LockType.Personal:
       return MdiAccountIcon
     case LockType.Locked:
@@ -60,7 +62,7 @@ const Icon = computed(() => {
 async function changeLockType(type: LockType) {
   $e('a:grid:lockmenu', { lockType: type })
 
-  if (!selectedView?.value) return
+  if (!selectedView.value) return
 
   if (type === 'personal') {
     // Coming soon
@@ -77,8 +79,6 @@ async function changeLockType(type: LockType) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
-
-const { isSqlView } = useSmartsheetStoreOrThrow()
 </script>
 
 <template>
@@ -87,9 +87,9 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
       <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-2 items-center">
           <component
-            :is="viewIcons[selectedView?.type].icon"
+            :is="viewIcons[selectedView.type].icon"
             class="nc-view-icon group-hover:hidden"
-            :style="{ color: viewIcons[selectedView?.type].color }"
+            :style="{ color: viewIcons[selectedView.type].color }"
           />
 
           <span class="!text-sm font-weight-normal">

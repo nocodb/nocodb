@@ -22,7 +22,7 @@ test.describe('Preview Mode', () => {
     settings = dashboard.settings;
   });
 
-  test('Preview Mode', async () => {
+  test.skip('Preview Mode', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
 

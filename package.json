@@ -1,32 +1,39 @@
 {
-  "name": "root",
+  "name": "nocodb-root",
+  "description": "NocoDB Root",
+  "private": true,
+  "author": {
+    "name": "NocoDB Inc",
+    "url": "https://nocodb.com/"
+  },
+  "homepage": "https://github.com/nocodb/nocodb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nocodb/nocodb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nocodb/nocodb/issues"
+  },
+  "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@4tw/cypress-drag-drop": "^2.0.0",
-    "cross-env": "^7.0.3",
     "cypress": "^9.2.0",
     "cypress-file-upload": "^5.0.8",
     "cypress-iframe": "^1.0.1",
     "fs": "0.0.1-security",
-    "jsdoc-to-markdown": "^5.0.3",
     "lerna": "^3.20.1",
-    "scriptjs": "^2.5.9",
     "xlsx": "^0.17.4"
   },
   "scripts": {
     "build:common": "cd ./packages/nocodb-sdk; npm install; npm run build",
     "install:common": "cd ./packages/nocodb; npm install ../nocodb-sdk; cd ../nc-gui; npm install ../nocodb-sdk",
     "start:api": "npm run build:common ; cd ./packages/nocodb; npm install ../nocodb-sdk; npm install; NC_DISABLE_CACHE=true NC_DISABLE_TELE=true npm run watch:run:cypress",
-    "start:xcdb-api-v1-backup": "npm run build:common ; cd ./packages/nocodb; npm install ../nocodb-sdk;npm install; NC_DISABLE_CACHE=true NC_DISABLE_TELE=true NC_INFLECTION=camelize DATABASE_URL=sqlite:../../../scripts/cypress/fixtures/sqlite-sakila/sakila.db npm run watch:run:cypress",
     "start:xcdb-api": "npm run build:common ; cd ./packages/nocodb; npm install ../nocodb-sdk;npm install; NC_EXPORT_MAX_TIMEOUT=60000 NC_DISABLE_CACHE=true NC_DISABLE_TELE=true NC_INFLECTION=camelize DATABASE_URL=sqlite:../../../scripts/cypress/fixtures/sqlite-sakila/sakila.db npm run watch:run:cypress",
     "start:api:cache": "npm run build:common ; cd ./packages/nocodb; npm install ../nocodb-sdk;npm install; NC_EXPORT_MAX_TIMEOUT=60000 NC_DISABLE_TELE=true npm run watch:run:cypress",
     "start:api:cache:pg": "npm run build:common ; cd ./packages/nocodb; npm install ../nocodb-sdk; npm install; NC_DISABLE_TELE=true npm run watch:run:cypress:pg",
     "start:api:cache:pg:cyquick": "npm run build:common ; cd ./packages/nocodb; npm install ../nocodb-sdk; npm install; NC_DISABLE_TELE=true npm run watch:run:cypress:pg:cyquick",
-    "start:xcdb-api:cache-v1-backup": "npm run build:common ; cd ./packages/nocodb; npm install ../nocodb-sdk; npm install; NC_DISABLE_TELE=true NC_INFLECTION=camelize DATABASE_URL=sqlite:../../../scripts/cypress/fixtures/sqlite-sakila/sakila.db npm run watch:run:cypress",
     "start:xcdb-api:cache": "npm run build:common ; cd ./packages/nocodb; npm install ../nocodb-sdk; npm install; NC_EXPORT_MAX_TIMEOUT=60000 NC_DISABLE_TELE=true NC_INFLECTION=camelize DATABASE_URL=sqlite:../../../scripts/cypress/fixtures/sqlite-sakila/sakila.db npm run watch:run:cypress",
-    "start:web-v1-backup": "npm run build:common ; cd ./packages/nc-gui; npm install ../nocodb-sdk; npm install; npm run dev",
     "start:web": "npm run build:common ; cd ./packages/nc-gui; npm install ../nocodb-sdk; npm install; ANT_MESSAGE_DURATION=0.5 npm run dev",
-    "cypress-v1-backup:run": "cypress run --config-file ./scripts/cypress/cypress.json",
-    "cypress-v1-backup:open": "cypress open --config-file ./scripts/cypress/cypress.json",
     "cypress:run": "cypress run --config-file ./scripts/cypress/cypress.json",
     "cypress:open": "cypress open --config-file ./scripts/cypress/cypress.json",
     "cypress:clear": "cypress cache clear",

@@ -262,7 +262,7 @@ npm run dev
 npm install
 
 # 使用 docker compose 运行带有所需数据库的 mysql 数据库
-docker-compose -f ./scripts/docker-compose-cypress.yml up
+docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up
 
 # 使用以下命令运行后端 api
 npm run start:api

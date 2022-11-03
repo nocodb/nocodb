@@ -244,7 +244,7 @@ npm run dev
 npm install
 
 # MySQL-Datenbank mit der benötigten Datenbank mit Docker Compose ausführen
-docker-compose -f ./scripts/docker-compose-cypress.yml up
+docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up
 
 # Backend API mit folgendem Befehl ausführen
 npm run start:api

@@ -60,11 +60,13 @@
     "**/*.json",
     "**/*.d.ts",
     "**/*.js",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    ".*.json",
+    "*.json",
   ],
   "exclude": [
     "node_modules/**",
     "node_modules",
   ],
-  "compileOnSave": false
+  "compileOnSave": false,
 }

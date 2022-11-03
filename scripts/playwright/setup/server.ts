@@ -8,7 +8,6 @@ import bodyParser from 'body-parser';
 
 let request = [];
 
-// eslint-disable-next-line require-await
 async function makeServer() {
   const app = express();
   app.use(bodyParser.json());

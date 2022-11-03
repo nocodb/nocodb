@@ -103,7 +103,7 @@ export class CellPageObject extends BasePage {
     const chips = cell.locator('.chips > .chip');
 
     // verify chip count & contents
-    if (count) expect(chips).toHaveCount(count);
+    if (count) await expect(chips).toHaveCount(count);
 
     // verify only the elements that are passed in
     for (let i = 0; i < value.length; ++i) {

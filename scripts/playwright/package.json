@@ -26,6 +26,7 @@
     "eslint-plugin-functional": "^3.0.2",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-json": "^3.1.0",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
     "mysql2": "^2.3.3",

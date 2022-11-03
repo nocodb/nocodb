@@ -24,7 +24,6 @@ const setup = async ({ page, isEmptyProject }: { page: Page; isEmptyProject?: bo
   const token = response.data.token;
 
   await page.addInitScript(
-    // eslint-disable-next-line require-await
     async ({ token }) => {
       try {
         let initialLocalStorage = {};

@@ -9,7 +9,7 @@ const isSqlite = (context: NcContext) => context.dbType === 'sqlite';
 const isPg = (context: NcContext) => context.dbType === 'pg';
 
 const mysql = require('mysql2');
-// eslint-disable-next-line require-await
+
 const mysqlExec = async query => {
   // creates a new mysql connection using credentials from cypress.json env's
   const connection = mysql.createConnection({

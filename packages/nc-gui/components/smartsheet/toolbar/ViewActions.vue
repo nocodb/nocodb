@@ -4,6 +4,7 @@ import {
   IsLockedInj,
   IsPublicInj,
   extractSdkResponseErrorMsg,
+  getViewIcon,
   inject,
   message,
   ref,
@@ -12,7 +13,6 @@ import {
   useProject,
   useSmartsheetStoreOrThrow,
   useUIPermission,
-  viewIcons,
 } from '#imports'
 import { LockType } from '~/lib'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
@@ -87,9 +87,9 @@ async function changeLockType(type: LockType) {
       <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-2 items-center">
           <component
-            :is="viewIcons[selectedView.type].icon"
+            :is="getViewIcon(selectedView.type)?.icon"
             class="nc-view-icon group-hover:hidden"
-            :style="{ color: viewIcons[selectedView.type].color }"
+            :style="{ color: getViewIcon(selectedView.type)?.color }"
           />
 
           <span class="!text-sm font-weight-normal">

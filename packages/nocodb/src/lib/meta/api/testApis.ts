@@ -4,7 +4,6 @@ import { Request, Router } from 'express';
 import { TestResetService } from '../../services/test/TestResetService';
 
 export async function reset(req: Request<any, any>, res) {
-  console.log('resetting id', req.body);
   const service = new TestResetService({
     parallelId: req.body.parallelId,
     dbType: req.body.dbType,

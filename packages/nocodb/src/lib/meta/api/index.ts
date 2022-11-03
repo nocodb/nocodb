@@ -58,7 +58,7 @@ export default function (router: Router, server) {
   projectApis(router);
   utilApis(router);
 
-  if(process.env['TEST'] === 'true') {
+  if(process.env['PLAYWRIGHT_TEST'] === 'true') {
     router.use(testApis);
   }
   router.use(columnApis);

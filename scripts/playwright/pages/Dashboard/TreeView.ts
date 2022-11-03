@@ -107,8 +107,8 @@ export class TreeViewPage extends BasePage {
   async reorderTables({ sourceTable, destinationTable }: { sourceTable: string; destinationTable: string }) {
     await this.dashboard
       .get()
-      .locator(`[pw-data="tree-view-table-draggable-handle-${sourceTable}"]`)
-      .dragTo(this.get().locator(`[pw-data="tree-view-table-${destinationTable}"]`));
+      .locator(`[data-nc="tree-view-table-draggable-handle-${sourceTable}"]`)
+      .dragTo(this.get().locator(`[data-nc="tree-view-table-${destinationTable}"]`));
   }
 
   async quickImport({ title }: { title: string }) {

@@ -11,7 +11,7 @@ export class AppStoreSettingsPage extends BasePage {
   }
 
   get() {
-    return this.settings.get().locator(`[pw-data="nc-settings-subtab-appStore"]`);
+    return this.settings.get().locator(`[data-nc="nc-settings-subtab-appStore"]`);
   }
 
   async install({ name }: { name: string }) {

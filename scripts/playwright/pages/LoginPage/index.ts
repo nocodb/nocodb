@@ -22,16 +22,16 @@ export class LoginPage extends BasePage {
   async fillEmail({ email, withoutPrefix }: { email: string; withoutPrefix?: boolean }) {
     if (!withoutPrefix) email = this.prefixEmail(email);
 
-    await this.get().locator(`[pw-data="nc-form-signin__email"]`).waitFor();
-    await this.get().locator(`[pw-data="nc-form-signin__email"]`).fill(email);
+    await this.get().locator(`[data-nc="nc-form-signin__email"]`).waitFor();
+    await this.get().locator(`[data-nc="nc-form-signin__email"]`).fill(email);
   }
 
   async fillPassword(password: string) {
-    await this.get().locator(`[pw-data="nc-form-signin__password"]`).fill(password);
+    await this.get().locator(`[data-nc="nc-form-signin__password"]`).fill(password);
   }
 
   async submit() {
-    await this.get().locator(`[pw-data="nc-form-signin__submit"]`).click();
+    await this.get().locator(`[data-nc="nc-form-signin__submit"]`).click();
 
     // todo: Login api can take some time to respond if server is under load
     await expect(this.rootPage).toHaveURL('http://localhost:3000/#/', {

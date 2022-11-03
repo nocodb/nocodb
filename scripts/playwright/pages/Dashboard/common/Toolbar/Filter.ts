@@ -11,7 +11,7 @@ export class ToolbarFilterPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator(`[pw-data="nc-filter-menu"]`);
+    return this.rootPage.locator(`[data-nc="nc-filter-menu"]`);
   }
 
   async verify({ index, column, operator, value }: { index: number; column: string; operator: string; value: string }) {
@@ -24,7 +24,7 @@ export class ToolbarFilterPage extends BasePage {
 
   async verifyFilter({ title }: { title: string }) {
     await expect(
-      this.get().locator(`[pw-data="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]')
+      this.get().locator(`[data-nc="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]')
     ).toBeChecked();
   }
 

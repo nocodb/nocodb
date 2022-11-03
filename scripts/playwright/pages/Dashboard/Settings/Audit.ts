@@ -11,7 +11,7 @@ export class AuditSettingsPage extends BasePage {
   }
 
   get() {
-    return this.settings.get().locator(`[pw-data="nc-settings-subtab-Audit"]`);
+    return this.settings.get().locator(`[data-nc="nc-settings-subtab-Audit"]`);
   }
 
   async verifyRow({

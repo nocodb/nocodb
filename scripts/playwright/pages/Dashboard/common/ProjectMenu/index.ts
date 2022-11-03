@@ -10,11 +10,11 @@ export class ProjectMenuObject extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator(`[pw-data="nc-fields-menu"]`);
+    return this.rootPage.locator(`[data-nc="nc-fields-menu"]`);
   }
 
   async toggle() {
-    await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
+    await this.rootPage.locator('[data-nc="nc-project-menu"]').click();
   }
 
   async click({ menu, subMenu }: { menu: string; subMenu: string }) {

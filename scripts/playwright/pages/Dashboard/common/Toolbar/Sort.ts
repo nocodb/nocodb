@@ -11,7 +11,7 @@ export class ToolbarSortPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator(`[pw-data="nc-sorts-menu"]`);
+    return this.rootPage.locator(`[data-nc="nc-sorts-menu"]`);
   }
 
   async verify({ index, column, direction }: { index: number; column: string; direction: string }) {
@@ -78,6 +78,6 @@ export class ToolbarSortPage extends BasePage {
   }
 
   click({ title }: { title: string }) {
-    return this.get().locator(`[pw-data="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]').click();
+    return this.get().locator(`[data-nc="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]').click();
   }
 }

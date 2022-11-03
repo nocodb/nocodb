@@ -11,14 +11,14 @@ export class ToolbarFieldsPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator(`[pw-data="nc-fields-menu"]`);
+    return this.rootPage.locator(`[data-nc="nc-fields-menu"]`);
   }
 
   // todo: Click and toggle are similar method. Remove one of them
   async toggle({ title, isLocallySaved }: { title: string; isLocallySaved?: boolean }) {
     await this.toolbar.clickFields();
     const toggleColumn = this.get()
-      .locator(`[pw-data="nc-fields-menu-${title}"]`)
+      .locator(`[data-nc="nc-fields-menu-${title}"]`)
       .locator('input[type="checkbox"]')
       .click();
 
@@ -32,7 +32,7 @@ export class ToolbarFieldsPage extends BasePage {
   }
 
   async verify({ title, checked }: { title: string; checked: boolean }) {
-    const checkbox = this.get().locator(`[pw-data="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]');
+    const checkbox = this.get().locator(`[data-nc="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]');
 
     if (checked) {
       await expect(checkbox).toBeChecked();
@@ -43,7 +43,7 @@ export class ToolbarFieldsPage extends BasePage {
 
   async click({ title, isLocallySaved }: { title: string; isLocallySaved?: boolean }) {
     await this.waitForResponse({
-      uiAction: this.get().locator(`[pw-data="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]').click(),
+      uiAction: this.get().locator(`[data-nc="nc-fields-menu-${title}"]`).locator('input[type="checkbox"]').click(),
       requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });

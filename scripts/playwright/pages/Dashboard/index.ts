@@ -61,7 +61,7 @@ export class DashboardPage extends BasePage {
   }
 
   async gotoSettings() {
-    await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
+    await this.rootPage.locator('[data-nc="nc-project-menu"]').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
   }
 
@@ -96,7 +96,7 @@ export class DashboardPage extends BasePage {
           state: 'visible',
         });
     } else {
-      await this.get().locator('[pw-data="grid-id-column"]').waitFor({
+      await this.get().locator('[data-nc="grid-id-column"]').waitFor({
         state: 'visible',
       });
     }
@@ -106,13 +106,13 @@ export class DashboardPage extends BasePage {
     // wait active tab animation to finish
     await expect
       .poll(async () => {
-        return await this.tabBar.locator(`[data-pw="nc-root-tabs-${title}"]`).evaluate(el => {
+        return await this.tabBar.locator(`[data-nc="nc-root-tabs-${title}"]`).evaluate(el => {
           return window.getComputedStyle(el).getPropertyValue('color');
         });
       })
       .toBe('rgb(67, 81, 232)'); // active tab text color
 
-    await this.get().locator('[pw-data="grid-load-spinner"]').waitFor({ state: 'hidden' });
+    await this.get().locator('[data-nc="grid-load-spinner"]').waitFor({ state: 'hidden' });
 
     if (mode === 'standard') {
       await expect(this.rootPage).toHaveURL(
@@ -144,7 +144,7 @@ export class DashboardPage extends BasePage {
   }
 
   async signOut() {
-    await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
+    await this.rootPage.locator('[data-nc="nc-project-menu"]').click();
     const projMenu = await this.rootPage.locator('.nc-dropdown-project-menu');
     await projMenu.locator('[data-menu-id="account"]:visible').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
@@ -152,7 +152,7 @@ export class DashboardPage extends BasePage {
   }
 
   async validateProjectMenu(param: { role: string; mode?: string }) {
-    await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
+    await this.rootPage.locator('[data-nc="nc-project-menu"]').click();
     const pMenu = this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
 
     // menu items
@@ -186,11 +186,11 @@ export class DashboardPage extends BasePage {
     for (const item of menuItems[param.role]) {
       await expect(pMenu).toContainText(item);
     }
-    await this.rootPage.locator('[pw-data="nc-project-menu"]').click();
+    await this.rootPage.locator('[data-nc="nc-project-menu"]').click();
   }
 
   // Wait for the loader i.e the loader than appears when rows are being fetched, saved etc on the top right of dashboard
   async waitForLoaderToDisappear() {
-    await this.rootPage.locator('[pw-data="nc-loading"]').waitFor({ state: 'hidden' });
+    await this.rootPage.locator('[data-nc="nc-loading"]').waitFor({ state: 'hidden' });
   }
 }

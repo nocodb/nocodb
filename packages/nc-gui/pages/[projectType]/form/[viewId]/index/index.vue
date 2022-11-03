@@ -85,7 +85,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                     <LazySmartsheetVirtualCell
                       v-if="isVirtualCol(field)"
                       class="mt-0 nc-input"
-                      :pw-data="`nc-form-input-cell-${field.label || field.title}`"
+                      :data-nc="`nc-form-input-cell-${field.label || field.title}`"
                       :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
                       :column="field"
                     />
@@ -94,7 +94,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                       v-else
                       v-model="formState[field.title]"
                       class="nc-input"
-                      :pw-data="`nc-form-input-cell-${field.label || field.title}`"
+                      :data-nc="`nc-form-input-cell-${field.label || field.title}`"
                       :class="`nc-form-input-${field.title.replaceAll(' ', '')}`"
                       :column="field"
                       :edit-enabled="true"
@@ -115,7 +115,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                 <button
                   type="submit"
                   class="uppercase scaling-btn prose-sm"
-                  pw-data="shared-form-submit-button"
+                  data-nc="shared-form-submit-button"
                   @click="submitForm"
                 >
                   {{ $t('general.submit') }}

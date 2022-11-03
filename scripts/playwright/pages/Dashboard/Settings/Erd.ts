@@ -10,6 +10,6 @@ export class SettingsErdPage extends ErdBasePage {
   }
 
   get() {
-    return this.rootPage.locator(`[pw-data="nc-settings-subtab-ERD View"]`);
+    return this.rootPage.locator(`[data-nc="nc-settings-subtab-ERD View"]`);
   }
 }

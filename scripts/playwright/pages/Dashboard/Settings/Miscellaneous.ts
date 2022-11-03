@@ -11,7 +11,7 @@ export class MiscSettingsPage extends BasePage {
   }
 
   get() {
-    return this.settings.get().locator(`[pw-data="nc-settings-subtab-Miscellaneous"]`);
+    return this.settings.get().locator(`[data-nc="nc-settings-subtab-Miscellaneous"]`);
   }
 
   async clickShowM2MTables() {

@@ -15,12 +15,12 @@ export class AttachmentCellPageObject extends BasePage {
   }
 
   clickFilePicker({ index, columnHeader }: { index?: number; columnHeader: string }) {
-    return this.get({ index, columnHeader }).locator('[pw-data="attachment-cell-file-picker-button"]').click();
+    return this.get({ index, columnHeader }).locator('[data-nc="attachment-cell-file-picker-button"]').click();
   }
 
   async addFile({ index, columnHeader, filePath }: { index?: number; columnHeader: string; filePath: string }) {
     const attachFileAction = this.get({ index, columnHeader })
-      .locator('[pw-data="attachment-cell-file-picker-button"]')
+      .locator('[data-nc="attachment-cell-file-picker-button"]')
       .click();
     return await this.attachFile({ filePickUIAction: attachFileAction, filePath });
   }

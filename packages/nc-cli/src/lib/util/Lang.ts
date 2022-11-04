@@ -3,14 +3,15 @@ import english from './english.json';
 import translated from './translated.json';
 
 /* Converted from : https://smodin.me/translate-one-text-into-multiple-languages
-* Enter database host name || Choose SQL Database type || Enter database username || Enter database password || Enter database port number || Enter database/schema name || Enter API type to generate || How do you want to run it
-* */
+ * Enter database host name || Choose SQL Database type || Enter database username || Enter database password || Enter database port number || Enter database/schema name || Enter API type to generate || How do you want to run it
+ * */
 
 const formattedTranslate: any = {};
-for (const {symbol, text} of [english, ...translated].sort((a, b) => a.symbol.localeCompare(b.symbol))) {
-  formattedTranslate [symbol] = text.split(/\s*\|\|\s*/);
+for (const { symbol, text } of [english, ...translated].sort((a, b) =>
+  a.symbol.localeCompare(b.symbol)
+)) {
+  formattedTranslate[symbol] = text.split(/\s*\|\|\s*/);
 }
-
 
 const dummy: any = new Date();
 const offset: any = -dummy.getTimezoneOffset();
@@ -29,14 +30,10 @@ enum STR {
   PROJECT_TYPE
 }
 
-
 class Lang {
-
   // @ts-ignore
   public static getString(str: STR) {
-
     switch (locale) {
-
       case 'en':
       case 'en-GB':
       case 'en-AU':
@@ -45,7 +42,7 @@ class Lang {
       case 'en-US':
       default:
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.en?.[str]}\t:`;
-        
+
       case 'zh':
       case 'zh-Hans':
       case 'zh-CN':
@@ -78,7 +75,7 @@ class Lang {
       case 'es-US':
       case 'es-VE':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.es?.[str]}\t:`;
-        
+
       case 'fi':
       case 'fi-FI':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.fi?.[str]}\t:`;
@@ -89,7 +86,7 @@ class Lang {
       case 'fr-BE':
       case 'fr-CH':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.fr?.[str]}\t:`;
-        
+
       case 'it':
       case 'it-IT':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.it?.[str]}\t:`;
@@ -97,7 +94,7 @@ class Lang {
       case 'ja':
       case 'ja-JP':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.ja?.[str]}\t:`;
-        
+
       case 'ko':
       case 'ko-KR':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.ko?.[str]}\t:`;
@@ -121,7 +118,6 @@ class Lang {
       case 'sv-SE':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.sv?.[str]}\t:`;
 
-
       case 'th':
       case 'th-TH':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.th?.[str]}\t:`;
@@ -142,13 +138,8 @@ class Lang {
       case 'vi-VN':
         return `${SMILEY_PREFIX[str]} ${formattedTranslate?.vi?.[str]}\t:`;
     }
-
   }
-
-
 }
 
 export default Lang;
-export {
-  STR
-};
+export { STR };

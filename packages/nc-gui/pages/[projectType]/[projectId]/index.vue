@@ -229,6 +229,7 @@ onBeforeUnmount(reset)
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
+              data-nc="nc-project-menu"
               class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
             >
               <template v-if="isOpen">

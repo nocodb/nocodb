@@ -452,6 +452,10 @@ npm start
 
 </details>
 
+### FreeBSD / FreeNAS / TrueNAS Jail
+
+See [here](https://gist.github.com/Zamana/e9281d736f9e9ce5882c6f4b140a590e) provided by [C. R. Zamana](https://github.com/Zamana).
+
 ## Production Setup
 It is mandatory to configure `NC_DB` environment variables for production usecases.  
 

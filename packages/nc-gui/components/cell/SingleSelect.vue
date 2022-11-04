@@ -3,6 +3,7 @@ import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
 import { ActiveCellInj, ColumnInj, IsKanbanInj, ReadonlyInj, computed, inject, ref, useEventListener, watch } from '#imports'
+import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
 
 interface Props {
   modelValue?: string | undefined
@@ -61,6 +62,7 @@ const handleKeys = (e: KeyboardEvent) => {
   }
 }
 
+
 const handleClose = (e: MouseEvent) => {
   if (aselect.value && !aselect.value.$el.contains(e.target)) {
     isOpen.value = false
@@ -70,8 +72,13 @@ const handleClose = (e: MouseEvent) => {
 
 useEventListener(document, 'click', handleClose)
 
+
 watch(isOpen, (n, _o) => {
-  if (!n) aselect.value?.$el.blur()
+  if (!n) {
+    aselect.value?.$el?.querySelector('input')?.blur()
+  } else {
+    aselect.value?.$el?.querySelector('input')?.focus()
+  }
 })
 </script>
 
@@ -87,7 +94,7 @@ watch(isOpen, (n, _o) => {
     :show-arrow="!readOnly && (active || vModel === null)"
     :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
     @select="isOpen = false"
-    @keydown="handleKeys"
+    @keydown="isOpen ? handleKeys : null"
     @click="isOpen = active && !isOpen"
   >
     <a-select-option

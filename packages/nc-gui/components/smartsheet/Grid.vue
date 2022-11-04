@@ -180,6 +180,7 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
       e.preventDefault()
       return true
     }
+    console.log('=========', e.key, e.code)
 
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     if (e.key === ' ') {
@@ -190,6 +191,11 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
         return true
       }
     } else if (e.key === 'Escape') {
+      if (editEnabled) {
+        editEnabled = false
+        return true
+      }
+    } else if (e.key === 'Enter') {
       if (editEnabled) {
         editEnabled = false
         return true

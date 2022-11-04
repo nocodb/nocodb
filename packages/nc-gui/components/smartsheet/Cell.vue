@@ -111,6 +111,7 @@ const vModel = computed({
 })
 
 const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
+  console.log('syncAndNavigate', e.target)
   if (isJSON.value) return
 
   if (currentRow.value.rowMeta.changed || currentRow.value.rowMeta.new) {
@@ -127,9 +128,9 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
   <div
     class="nc-cell w-full"
     :class="[`nc-cell-${(column?.uidt || 'default').toLowerCase()}`, { 'text-blue-600': isPrimary && !virtual && !isForm }]"
-    @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
+><!--    @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
-  >
+  >-->
     <LazyCellTextArea v-if="isTextArea" v-model="vModel" />
     <LazyCellCheckbox v-else-if="isBoolean" v-model="vModel" />
     <LazyCellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />

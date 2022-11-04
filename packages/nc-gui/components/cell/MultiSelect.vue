@@ -74,30 +74,32 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-            const opa = options.value.find((el) => el.title === a)
-            const opb = options.value.find((el) => el.title === b)
-            if (opa && opb) {
-              return opa.order! - opb.order!
-            }
-            return 0
-          })
+          const opa = options.value.find((el) => el.title === a)
+          const opb = options.value.find((el) => el.title === b)
+          if (opa && opb) {
+            return opa.order! - opb.order!
+          }
+          return 0
+        })
         : modelValue.split(',')
       : modelValue
     : [],
 )
 
+
+const v = Math.floor(Math.random() *1000)
+
 const handleKeys = (e: KeyboardEvent) => {
+  console.log(`handleKeys ${v}`, e.key)
+  if (!active.value) return true
   switch (e.key) {
-    case 'Escape':
-      e.preventDefault()
-      isOpen.value = false
-      break
     case 'ArrowDown':
     case 'ArrowUp':
-      if (isOpen.value) e.stopPropagation()
+      if (isOpen.value) {
+        e.stopPropagation()
+      }
       break
     case 'Enter':
-      isOpen.value = true
       e.stopPropagation()
       break
   }
@@ -137,31 +139,43 @@ watch(
 )
 
 watch(isOpen, (n, _o) => {
-  if (!n) aselect.value?.$el.blur()
+  if (!n) {
+    aselect.value?.$el?.querySelector('input')?.blur()
+  } else {
+    aselect.value?.$el?.querySelector('input')?.focus()
+  }
 })
 
+
 useSelectedCellKeyupListener(active, (e) => {
-  if (e.key === 'Escape') {
-    // e.stopPropagation()
-    isOpen.value = false
+  switch (e.key) {
+    case 'Escape':
+      isOpen.value = false
+      select?.value?.blur()
+      break
+    case 'Enter':
+      if (active.value && !isOpen.value) {
+        isOpen.value = true
+        e.stopPropagation()
+      }
+      break
   }
 })
 </script>
 
 <template>
   <a-select
-    ref="select"
+    ref="aselect"
     v-model:value="vModel"
     mode="multiple"
     class="w-full"
     :bordered="false"
     :show-arrow="!readOnly"
     :show-search="false"
-    :open="isOpen"
+    v-model:open="isOpen"
     :disabled="readOnly"
     :class="{ '!ml-[-8px]': readOnly }"
     :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
-    @keydown="handleKeys"
     @click="isOpen = active && !isOpen"
   >
     <a-select-option

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import { useVModel, onMounted } from '#imports'
+import { useVModel } from '#imports'
 
 const props = defineProps<{
-  value: any
+  modelValue: any
 }>()
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:modelValue'])
 
 const meta = inject(MetaInj, ref())
 
@@ -16,7 +16,7 @@ const reloadDataHook = inject(ReloadViewDataHookInj)!
 
 const { fields, metaColumnById } = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
-const vModel = useVModel(props, 'value', emit)
+const vModel = useVModel(props, 'modelValue', emit)
 
 const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
@@ -40,9 +40,8 @@ const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
     })
 })
 
-// set default value
-
 onMounted(() => {
+  // set default value
   vModel.value.fk_qr_value_column_id = (column?.value?.colOptions as Record<string, any>)?.fk_qr_value_column_id || ''
 })
 

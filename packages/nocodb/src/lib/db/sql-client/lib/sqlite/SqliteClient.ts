@@ -134,13 +134,11 @@ class SqliteClient extends KnexClient {
         const fd = await promisify(fs.open)(args.database, 'w');
         const close = await promisify(fs.close)(fd);
         log.debug('sqlite file is created', fd, close);
-        this.connectionConfig.connection.client = this.connectionConfig.connection.client === 'sqlite3' ? 'better-sqlite3' : this.connectionConfig.connection.client;
         // create new knex client
         this.sqlClient = knex(this.connectionConfig.connection);
         // set encoding to utf8
         await this.sqlClient.raw('PRAGMA encoding = "UTF-8"');
       } else {
-        this.connectionConfig.connection.client = this.connectionConfig.connection.client === 'sqlite3' ? 'better-sqlite3' : this.connectionConfig.connection.client;
         // create new knex client
         this.sqlClient = knex(this.connectionConfig.connection);
       }
@@ -287,7 +285,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - tables[].tn
    */
   async tableList(args: any = {}) {
-    const _func = this.tableList.name;
+    const _func = this.createDatabaseIfNotExists.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
@@ -315,7 +313,7 @@ class SqliteClient extends KnexClient {
   }
 
   async schemaList(args: any = {}) {
-    const _func = this.schemaList.name;
+    const _func = this.createDatabaseIfNotExists.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
@@ -1004,7 +1002,7 @@ class SqliteClient extends KnexClient {
   }
 
   async functionDelete(args: any = {}) {
-    const _func = this.functionDelete.name;
+    const _func = this.createDatabaseIfNotExists.name;
     // const result = new Result();
     log.api(`${_func}:args:`, args);
 

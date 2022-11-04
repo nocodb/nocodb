@@ -82,6 +82,8 @@ const expandedFormDlg = ref(false)
 
 const expandedFormRow = ref()
 
+const colTitle = $computed(() => column.value?.title || '')
+
 /** reload children list whenever cell value changes and list is visible */
 watch(
   () => props.cellValue,
@@ -128,10 +130,10 @@ const onClick = (row: Row) => {
         </a-button>
       </div>
 
-      <template v-if="(isNew && column && state?.[column.title]?.length) || childrenList?.pageInfo?.totalRows">
+      <template v-if="(isNew && state?.[colTitle]?.length) || childrenList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12 cursor-pointer">
           <a-card
-            v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
+            v-for="(row, i) of childrenList?.list ?? state?.[colTitle] ?? []"
             :key="i"
             class="!my-4 hover:(!bg-gray-200/50 shadow-md)"
             @click="onClick(row)"

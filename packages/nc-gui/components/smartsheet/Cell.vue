@@ -132,8 +132,8 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     <LazyCellTextArea v-if="isTextArea" v-model="vModel" />
     <LazyCellCheckbox v-else-if="isBoolean" v-model="vModel" />
     <LazyCellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />
-    <LazyCellSingleSelect v-else-if="isSingleSelect" v-model="vModel" />
-    <LazyCellMultiSelect v-else-if="isMultiSelect" v-model="vModel" />
+    <LazyCellSingleSelect v-else-if="isSingleSelect" v-model="vModel" :row-index="props.rowIndex" />
+    <LazyCellMultiSelect v-else-if="isMultiSelect" v-model="vModel" :row-index="props.rowIndex" />
     <LazyCellDatePicker v-else-if="isDate" v-model="vModel" />
     <LazyCellYearPicker v-else-if="isYear" v-model="vModel" />
     <LazyCellDateTimePicker v-else-if="isDateTime" v-model="vModel" />

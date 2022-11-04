@@ -1,0 +1,110 @@
+Country,LastUpdate,City List
+Afghanistan,2006-02-15 04:44:00,Kabul
+Algeria,2006-02-15 04:44:00,"Batna, Bchar, Skikda"
+American Samoa,2006-02-15 04:44:00,Tafuna
+Angola,2006-02-15 04:44:00,"Benguela, Namibe"
+Anguilla,2006-02-15 04:44:00,South Hill
+Argentina,2006-02-15 04:44:00,"Almirante Brown, Avellaneda, Baha Blanca, Crdoba, Escobar, Ezeiza, La Plata, Merlo, Quilmes, San Miguel de Tucumn, Santa F, Tandil, Vicente Lpez"
+Armenia,2006-02-15 04:44:00,Yerevan
+Australia,2006-02-15 04:44:00,Woodridge
+Austria,2006-02-15 04:44:00,"Graz, Linz, Salzburg"
+Azerbaijan,2006-02-15 04:44:00,"Baku, Sumqayit"
+Bahrain,2006-02-15 04:44:00,al-Manama
+Bangladesh,2006-02-15 04:44:00,"Dhaka, Jamalpur, Tangail"
+Belarus,2006-02-15 04:44:00,"Mogiljov, Molodetno"
+Bolivia,2006-02-15 04:44:00,"El Alto, Sucre"
+Brazil,2006-02-15 04:44:00,"Alvorada, Angra dos Reis, Anpolis, Aparecida de Goinia, Araatuba, Bag, Belm, Blumenau, Boa Vista, Braslia, Goinia, Guaruj, guas Lindas de Gois, Ibirit, Juazeiro do Norte, Juiz de Fora, Luzinia, Maring, Po, Poos de Caldas, Rio Claro, Santa Brbara dOeste, Santo Andr, So Bernardo do Campo, So Leopoldo"
+Brunei,2006-02-15 04:44:00,Bandar Seri Begawan
+Bulgaria,2006-02-15 04:44:00,"Ruse, Stara Zagora"
+Cambodia,2006-02-15 04:44:00,"Battambang, Phnom Penh"
+Cameroon,2006-02-15 04:44:00,"Bamenda, Yaound"
+Canada,2006-02-15 04:44:00,"Gatineau, Halifax, Lethbridge, London, Oshawa, Richmond Hill, Vancouver"
+Chad,2006-02-15 04:44:00,NDjamna
+Chile,2006-02-15 04:44:00,"Antofagasta, Coquimbo, Rancagua"
+China,2006-02-15 04:44:00,"Baicheng, Baiyin, Binzhou, Changzhou, Datong, Daxian, Dongying, Emeishan, Enshi, Ezhou, Fuyu, Fuzhou, Haining, Hami, Hohhot, Huaian, Jinchang, Jining, Jinzhou, Junan, Korla, Laiwu, Laohekou, Lengshuijiang, Leshan"
+Colombia,2006-02-15 04:44:00,"Buenaventura, Dos Quebradas, Florencia, Pereira, Sincelejo, Sogamoso"
+"Congo, The Democratic Republic of the",2006-02-15 04:44:00,"Lubumbashi, Mwene-Ditu"
+Czech Republic,2006-02-15 04:44:00,Olomouc
+Dominican Republic,2006-02-15 04:44:00,"La Romana, San Felipe de Puerto Plata, Santiago de los Caballeros"
+Ecuador,2006-02-15 04:44:00,"Loja, Portoviejo, Robamba"
+Egypt,2006-02-15 04:44:00,"Bilbays, Idfu, Mit Ghamr, Qalyub, Sawhaj, Shubra al-Khayma"
+Estonia,2006-02-15 04:44:00,Tartu
+Ethiopia,2006-02-15 04:44:00,Addis Abeba
+Faroe Islands,2006-02-15 04:44:00,Trshavn
+Finland,2006-02-15 04:44:00,Oulu
+France,2006-02-15 04:44:00,"Brest, Le Mans, Toulon, Toulouse"
+French Guiana,2006-02-15 04:44:00,Cayenne
+French Polynesia,2006-02-15 04:44:00,"Faaa, Papeete"
+Gambia,2006-02-15 04:44:00,Banjul
+Germany,2006-02-15 04:44:00,"Duisburg, Erlangen, Halle/Saale, Mannheim, Saarbrcken, Siegen, Witten"
+Greece,2006-02-15 04:44:00,"Athenai, Patras"
+Greenland,2006-02-15 04:44:00,Nuuk
+Holy See (Vatican City State),2006-02-15 04:44:00,Citt del Vaticano
+Hong Kong,2006-02-15 04:44:00,Kowloon and New Kowloon
+Hungary,2006-02-15 04:44:00,Szkesfehrvr
+India,2006-02-15 04:44:00,"Adoni, Ahmadnagar, Allappuzha (Alleppey), Ambattur, Amroha, Balurghat, Berhampore (Baharampur), Bhavnagar, Bhilwara, Bhimavaram, Bhopal, Bhusawal, Bijapur, Chandrapur, Chapra, Dhule (Dhulia), Etawah, Firozabad, Gandhinagar, Gulbarga, Haldia, Halisahar, Hoshiarpur, Hubli-Dharwad, Jaipur"
+Indonesia,2006-02-15 04:44:00,"Cianjur, Ciomas, Ciparay, Gorontalo, Jakarta, Lhokseumawe, Madiun, Pangkal Pinang, Pemalang, Pontianak, Probolinggo, Purwakarta, Surakarta, Tegal"
+Iran,2006-02-15 04:44:00,"Arak, Esfahan, Kermanshah, Najafabad, Qomsheh, Shahr-e Kord, Sirjan, Tabriz"
+Iraq,2006-02-15 04:44:00,Mosul
+Israel,2006-02-15 04:44:00,"Ashdod, Ashqelon, Bat Yam, Tel Aviv-Jaffa"
+Italy,2006-02-15 04:44:00,"Alessandria, Bergamo, Brescia, Brindisi, Livorno, Syrakusa, Udine"
+Japan,2006-02-15 04:44:00,"Akishima, Fukuyama, Higashiosaka, Hino, Hiroshima, Isesaki, Iwaki, Iwakuni, Iwatsuki, Izumisano, Kakamigahara, Kamakura, Kanazawa, Koriyama, Kurashiki, Kuwana, Matsue, Miyakonojo, Nagareyama, Okayama, Okinawa, Omiya, Onomichi, Otsu, Sagamihara"
+Kazakstan,2006-02-15 04:44:00,"Pavlodar, Zhezqazghan"
+Kenya,2006-02-15 04:44:00,"Kisumu, Nyeri"
+Kuwait,2006-02-15 04:44:00,Jalib al-Shuyukh
+Latvia,2006-02-15 04:44:00,"Daugavpils, Liepaja"
+Liechtenstein,2006-02-15 04:44:00,Vaduz
+Lithuania,2006-02-15 04:44:00,Vilnius
+Madagascar,2006-02-15 04:44:00,Mahajanga
+Malawi,2006-02-15 04:44:00,Lilongwe
+Malaysia,2006-02-15 04:44:00,"Ipoh, Kuching, Sungai Petani"
+Mexico,2006-02-15 04:44:00,"Acua, Allende, Atlixco, Carmen, Celaya, Coacalco de Berriozbal, Coatzacoalcos, Cuauhtmoc, Cuautla, Cuernavaca, El Fuerte, Guadalajara, Hidalgo, Huejutla de Reyes, Huixquilucan, Jos Azueta, Jurez, La Paz, Matamoros, Mexicali, Monclova, Nezahualcyotl, Pachuca de Soto, Salamanca, San Felipe del Progreso"
+Moldova,2006-02-15 04:44:00,Chisinau
+Morocco,2006-02-15 04:44:00,"Beni-Mellal, Nador, Sal"
+Mozambique,2006-02-15 04:44:00,"Beira, Naala-Porto, Tete"
+Myanmar,2006-02-15 04:44:00,"Monywa, Myingyan"
+Nauru,2006-02-15 04:44:00,Yangor
+Nepal,2006-02-15 04:44:00,Birgunj
+Netherlands,2006-02-15 04:44:00,"Amersfoort, Apeldoorn, Ede, Emmen, s-Hertogenbosch"
+New Zealand,2006-02-15 04:44:00,Hamilton
+Nigeria,2006-02-15 04:44:00,"Benin City, Deba Habe, Effon-Alaiye, Ife, Ikerre, Ilorin, Kaduna, Ogbomosho, Ondo, Owo, Oyo, Sokoto, Zaria"
+North Korea,2006-02-15 04:44:00,Pyongyang
+Oman,2006-02-15 04:44:00,"Masqat, Salala"
+Pakistan,2006-02-15 04:44:00,"Dadu, Mandi Bahauddin, Mardan, Okara, Shikarpur"
+Paraguay,2006-02-15 04:44:00,"Asuncin, Ciudad del Este, San Lorenzo"
+Peru,2006-02-15 04:44:00,"Callao, Hunuco, Lima, Sullana"
+Philippines,2006-02-15 04:44:00,"Baybay, Bayugan, Bislig, Cabuyao, Cavite, Davao, Gingoog, Hagonoy, Iligan, Imus, Lapu-Lapu, Mandaluyong, Ozamis, Santa Rosa, Taguig, Talavera, Tanauan, Tanza, Tarlac, Tuguegarao"
+Poland,2006-02-15 04:44:00,"Bydgoszcz, Czestochowa, Jastrzebie-Zdrj, Kalisz, Lublin, Plock, Tychy, Wroclaw"
+Puerto Rico,2006-02-15 04:44:00,"Arecibo, Ponce"
+Romania,2006-02-15 04:44:00,"Botosani, Bucuresti"
+Runion,2006-02-15 04:44:00,Saint-Denis
+Russian Federation,2006-02-15 04:44:00,"Atinsk, Balaiha, Dzerzinsk, Elista, Ivanovo, Jaroslavl, Jelets, Kaliningrad, Kamyin, Kirovo-Tepetsk, Kolpino, Korolev, Kurgan, Kursk, Lipetsk, Ljubertsy, Maikop, Moscow, Nabereznyje Telny, Niznekamsk, Novoterkassk, Pjatigorsk, Serpuhov, Smolensk, Syktyvkar"
+Saint Vincent and the Grenadines,2006-02-15 04:44:00,Kingstown
+Saudi Arabia,2006-02-15 04:44:00,"Abha, al-Hawiya, al-Qatif, Jedda, Tabuk"
+Senegal,2006-02-15 04:44:00,Ziguinchor
+Slovakia,2006-02-15 04:44:00,Bratislava
+South Africa,2006-02-15 04:44:00,"Boksburg, Botshabelo, Chatsworth, Johannesburg, Kimberley, Klerksdorp, Newcastle, Paarl, Rustenburg, Soshanguve, Springs"
+South Korea,2006-02-15 04:44:00,"Cheju, Kimchon, Naju, Tonghae, Uijongbu"
+Spain,2006-02-15 04:44:00,"A Corua (La Corua), Donostia-San Sebastin, Gijn, Ourense (Orense), Santiago de Compostela"
+Sri Lanka,2006-02-15 04:44:00,Jaffna
+Sudan,2006-02-15 04:44:00,"al-Qadarif, Omdurman"
+Sweden,2006-02-15 04:44:00,Malm
+Switzerland,2006-02-15 04:44:00,"Basel, Bern, Lausanne"
+Taiwan,2006-02-15 04:44:00,"Changhwa, Chiayi, Chungho, Fengshan, Hsichuh, Lungtan, Nantou, Tanshui, Touliu, Tsaotun"
+Tanzania,2006-02-15 04:44:00,"Mwanza, Tabora, Zanzibar"
+Thailand,2006-02-15 04:44:00,"Nakhon Sawan, Pak Kret, Songkhla"
+Tonga,2006-02-15 04:44:00,Nukualofa
+Tunisia,2006-02-15 04:44:00,Sousse
+Turkey,2006-02-15 04:44:00,"Adana, Balikesir, Batman, Denizli, Eskisehir, Gaziantep, Inegl, Kilis, Ktahya, Osmaniye, Sivas, Sultanbeyli, Tarsus, Tokat, Usak"
+Turkmenistan,2006-02-15 04:44:00,Ashgabat
+Tuvalu,2006-02-15 04:44:00,Funafuti
+Ukraine,2006-02-15 04:44:00,"Kamjanets-Podilskyi, Konotop, Mukateve, ostka, Simferopol, Sumy"
+United Arab Emirates,2006-02-15 04:44:00,"Abu Dhabi, al-Ayn, Sharja"
+United Kingdom,2006-02-15 04:44:00,"Bradford, Dundee, London, Southampton, Southend-on-Sea, Southport, Stockport, York"
+United States,2006-02-15 04:44:00,"Akron, Arlington, Augusta-Richmond County, Aurora, Bellevue, Brockton, Cape Coral, Citrus Heights, Clarksville, Compton, Dallas, Dayton, El Monte, Fontana, Garden Grove, Garland, Grand Prairie, Greensboro, Joliet, Kansas City, Lancaster, Laredo, Lincoln, Manchester, Memphis"
+Venezuela,2006-02-15 04:44:00,"Barcelona, Caracas, Cuman, Maracabo, Ocumare del Tuy, Valencia, Valle de la Pascua"
+Vietnam,2006-02-15 04:44:00,"Cam Ranh, Haiphong, Hanoi, Nam Dinh, Nha Trang, Vinh"
+"Virgin Islands, U.S.",2006-02-15 04:44:00,Charlotte Amalie
+Yemen,2006-02-15 04:44:00,"Aden, Hodeida, Sanaa, Taizz"
+Yugoslavia,2006-02-15 04:44:00,"Kragujevac, Novi Sad"
+Zambia,2006-02-15 04:44:00,Kitwe

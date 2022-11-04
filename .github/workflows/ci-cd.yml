@@ -25,47 +25,47 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-    unit-tests:
-      runs-on: ubuntu-20.04
-      timeout-minutes: 30
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      steps:
-        - name: Setup Node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 16.15.0
-        - name: Checkout
-          uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-        - name: Cache node modules
-          uses: actions/cache@v3
-          env:
-            cache-name: cache-node-modules
+    # unit-tests:
+    #   runs-on: ubuntu-20.04
+    #   timeout-minutes: 30
+    #   if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    #   steps:
+    #     - name: Setup Node
+    #       uses: actions/setup-node@v3
+    #       with:
+    #         node-version: 16.15.0
+    #     - name: Checkout
+    #       uses: actions/checkout@v3
+    #       with:
+    #         fetch-depth: 0
+    #     - name: Cache node modules
+    #       uses: actions/cache@v3
+    #       env:
+    #         cache-name: cache-node-modules
 
-          with:
-            # npm cache files are stored in `~/.npm` on Linux/macOS
-            path: ~/.npm
-            key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-            restore-keys: |
-              ${{ runner.os }}-build-${{ env.cache-name }}-
-              ${{ runner.os }}-build-
-              ${{ runner.os }}-
-        - name: install dependencies nocodb-sdk
-          working-directory: ./packages/nocodb-sdk
-          run: npm install
-        - name: build nocodb-sdk
-          working-directory: ./packages/nocodb-sdk
-          run: npm run build:main
-        - name: Install dependencies
-          working-directory: ./packages/nocodb
-          run: npm install
-        - name: setup mysql
-          working-directory: ./
-          run: docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
-        - name: run unit tests
-          working-directory: ./packages/nocodb
-          run: npm run test:unit
+    #       with:
+    #         # npm cache files are stored in `~/.npm` on Linux/macOS
+    #         path: ~/.npm
+    #         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+    #         restore-keys: |
+    #           ${{ runner.os }}-build-${{ env.cache-name }}-
+    #           ${{ runner.os }}-build-
+    #           ${{ runner.os }}-
+    #     - name: install dependencies nocodb-sdk
+    #       working-directory: ./packages/nocodb-sdk
+    #       run: npm install
+    #     - name: build nocodb-sdk
+    #       working-directory: ./packages/nocodb-sdk
+    #       run: npm run build:main
+    #     - name: Install dependencies
+    #       working-directory: ./packages/nocodb
+    #       run: npm install
+    #     - name: setup mysql
+    #       working-directory: ./
+    #       run: docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up -d
+    #     - name: run unit tests
+    #       working-directory: ./packages/nocodb
+    #       run: npm run test:unit
     playwright:
       runs-on: ubuntu-20.04
       if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
@@ -116,7 +116,8 @@ jobs:
           working-directory: ./
           run: docker-compose -f ./scripts/playwright/scripts/docker-compose-playwright.yml up -d &
         - name: run frontend
-          run: npm run start:web &
+          working-directory: ./packages/nc-gui
+          run: export NODE_OPTIONS="--max_old_space_size=16384"; npm run build; npm run start &
         - name: Run backend
           working-directory: ./packages/nocodb
           run: npm run watch:run:playwright > mysql_test_backend.log &

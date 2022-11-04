@@ -28,7 +28,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const column = inject(ColumnInj)
+const column = inject(ColumnInj, ref())
 
 const readonly = inject(ReadonlyInj, ref(false))
 
@@ -128,7 +128,7 @@ const onClick = (row: Row) => {
         </a-button>
       </div>
 
-      <template v-if="(isNew && state?.[column?.title]?.length) || childrenList?.pageInfo?.totalRows">
+      <template v-if="(isNew && column && state?.[column.title]?.length) || childrenList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0 scrollbar-thin-dull px-12 cursor-pointer">
           <a-card
             v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
@@ -166,7 +166,7 @@ const onClick = (row: Row) => {
             v-model:page-size="childrenListPagination.size"
             class="mt-2 mx-auto"
             size="small"
-            :total="childrenList.pageInfo.totalRows"
+            :total="childrenList?.pageInfo.totalRows"
             show-less-items
           />
         </div>

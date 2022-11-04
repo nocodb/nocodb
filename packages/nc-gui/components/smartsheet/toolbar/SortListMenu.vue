@@ -30,6 +30,12 @@ const columnByID = computed(() =>
   }, {} as Record<string, ColumnType>),
 )
 
+const getColumnByID = (key?: string) => {
+  if (!key) return ''
+
+  return columnByID.value[key]?.uidt || ''
+}
+
 watch(
   () => view.value?.id,
   (viewId) => {
@@ -79,7 +85,7 @@ watch(
               @select="saveOrUpdate(sort, i)"
             >
               <a-select-option
-                v-for="(option, j) of getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"
+                v-for="(option, j) of getSortDirectionOptions(getColumnByID(sort.fk_column_id))"
                 :key="j"
                 :value="option.value"
               >

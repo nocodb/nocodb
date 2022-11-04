@@ -59,6 +59,8 @@ const Icon = $computed(() => {
   }
 })
 
+const lockType = $computed(() => (selectedView.value?.lock_type as LockType) || LockType.Collaborative)
+
 async function changeLockType(type: LockType) {
   $e('a:grid:lockmenu', { lockType: type })
 
@@ -87,9 +89,9 @@ async function changeLockType(type: LockType) {
       <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-2 items-center">
           <component
-            :is="getViewIcon(selectedView.type)?.icon"
+            :is="getViewIcon(selectedView?.type)?.icon"
             class="nc-view-icon group-hover:hidden"
-            :style="{ color: getViewIcon(selectedView.type)?.color }"
+            :style="{ color: getViewIcon(selectedView?.type)?.color }"
           />
 
           <span class="!text-sm font-weight-normal">
@@ -112,7 +114,7 @@ async function changeLockType(type: LockType) {
             >
               <template #title>
                 <div v-e="['c:navdraw:preview-as']" class="nc-project-menu-item group px-0 !py-0">
-                  <LazySmartsheetToolbarLockType hide-tick :type="selectedView?.lock_type || LockType.Collaborative" />
+                  <LazySmartsheetToolbarLockType hide-tick :type="lockType" />
 
                   <MaterialSymbolsChevronRightRounded
                     class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"

@@ -117,7 +117,7 @@ jobs:
           run: docker-compose -f ./scripts/playwright/scripts/docker-compose-playwright.yml up -d &
         - name: run frontend
           working-directory: ./packages/nc-gui
-          run: export NODE_OPTIONS="--max_old_space_size=16384"; npm install; npm run build; npm run start &
+          run: export NODE_OPTIONS="--max_old_space_size=16384"; npm install; npm run build; NC_BACKEND_URL=http://localhost:8080 npm run start &
         - name: Run backend
           working-directory: ./packages/nocodb
           run: npm run watch:run:playwright > mysql_test_backend.log &

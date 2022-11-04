@@ -60,9 +60,8 @@ setAdditionalValidations({
           >
             <a-select
               v-model:value="vModel.fk_qr_value_column_id"
-              class="w-full nc-kanban-grouping-field-select"
               :options="columnsAllowedAsQrValue"
-              placeholder="Select a Grouping Field"
+              placeholder="Select a column for the QR code value"
               @click.stop
             />
           </a-form-item>

@@ -33,6 +33,8 @@ provide(IsGalleryInj, ref(false))
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
 
+const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
+
 const state = useGlobal()
 
 const formRef = ref()
@@ -73,7 +75,8 @@ const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   }),
 )
 
-const columns = computed(() => meta?.value?.columns?.filter((col) => col.uidt !== UITypes.QrCode) || [])
+// const columns = computed(() => meta?.value?.columns?.filter((col) => col.uidt !== UITypes.QrCode) || [])
+const columns = computed(() => meta?.value?.columns || [])
 
 const localColumns = ref<Record<string, any>[]>([])
 
@@ -257,7 +260,8 @@ async function checkSMTPStatus() {
 }
 
 function setFormData() {
-  const col = formColumnData?.value?.filter((c: Record<string, any>) => c.uidt !== UITypes.QrCode) || []
+  // const col = formColumnData?.value?.filter((c) => c.uidt !== UITypes.QrCode) || []
+  const col = formColumnData?.value || []
 
   formViewData.value = {
     ...formViewData.value,
@@ -274,27 +278,14 @@ function setFormData() {
   emailMe.value = data[state.user.value?.email as string]
 
   localColumns.value = col
-    .filter(
-      (f) =>
-        f.show &&
-        f.uidt !== UITypes.Rollup &&
-        f.uidt !== UITypes.Lookup &&
-        f.uidt !== UITypes.Formula &&
-        f.uidt !== UITypes.SpecificDBType,
-    )
+    .filter((f) => f.show && !hiddenColTypes.includes(f.uidt))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!(c.required || 0) }))
 
   systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   hiddenColumns.value = col.filter(
-    (f) =>
-      !f.show &&
-      !systemFieldsIds.value.includes(f.fk_column_id) &&
-      f.uidt !== UITypes.Rollup &&
-      f.uidt !== UITypes.Lookup &&
-      f.uidt !== UITypes.Formula &&
-      f.uidt !== UITypes.SpecificDBType,
+    (f) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && !hiddenColTypes.includes(f.uidt),
   )
 }
 

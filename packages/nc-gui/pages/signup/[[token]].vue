@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { validatePassword } from 'nocodb-sdk'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import { definePageMeta, isEmail, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useNuxtApp, useRoute } from '#imports'
 
 definePageMeta({
@@ -33,24 +34,24 @@ const formRules = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (!v?.length || isEmail(v)) return resolve(true)
+          if (!v?.length || isEmail(v)) return resolve()
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
       },
       message: t('msg.error.signUpRules.emailInvalid'),
     },
-  ],
+  ] as RuleObject[],
   password: [
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
           const { error, valid } = validatePassword(v)
-          if (valid) return resolve(true)
+          if (valid) return resolve()
           reject(new Error(error))
         })
       },
     },
-  ],
+  ] as RuleObject[],
 }
 
 async function signUp() {

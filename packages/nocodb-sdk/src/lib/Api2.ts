@@ -3640,5 +3640,32 @@ export class Api<
         type: ContentType.Json,
         ...params,
       }),
+    /**
+     * Upload api which updates the value of column as well
+     *
+     * @tags Storage
+     * @name Upload
+     * @summary Attachment
+     * @request POST:/api/v1/db/storage/upload
+     */
+    uploadWithUpdate: (
+      query: {
+        path: string;
+      },
+      data: {
+        files?: any;
+        json?: string;
+      },
+      rowId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/storage/upload-with-update/${rowId}`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.FormData,
+        ...params,
+      }),
   };
 }

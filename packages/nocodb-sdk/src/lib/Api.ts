@@ -252,12 +252,12 @@ export interface ColumnType {
   system?: number | boolean;
   meta?: any;
   colOptions?:
-    | LinkToAnotherRecordType
-    | FormulaType
-    | RollupType
-    | LookupType
-    | SelectOptionsType
-    | object;
+  | LinkToAnotherRecordType
+  | FormulaType
+  | RollupType
+  | LookupType
+  | SelectOptionsType
+  | object;
 }
 
 export interface ColumnListType {
@@ -571,89 +571,89 @@ export interface HookLogType {
 
 export type ColumnReqType =
   | {
-      uidt?:
-        | 'ID'
-        | 'SingleLineText'
-        | 'LongText'
-        | 'Attachment'
-        | 'Checkbox'
-        | 'MultiSelect'
-        | 'SingleSelect'
-        | 'Collaborator'
-        | 'Date'
-        | 'Year'
-        | 'Time'
-        | 'PhoneNumber'
-        | 'Email'
-        | 'URL'
-        | 'Number'
-        | 'Decimal'
-        | 'Currency'
-        | 'Percent'
-        | 'Duration'
-        | 'Rating'
-        | 'Count'
-        | 'DateTime'
-        | 'CreateTime'
-        | 'LastModifiedTime'
-        | 'AutoNumber'
-        | 'Geometry'
-        | 'JSON'
-        | 'SpecificDBType'
-        | 'Barcode'
-        | 'Button';
-      id?: string;
-      base_id?: string;
-      fk_model_id?: string;
-      title?: string;
-      dt?: string;
-      np?: string;
-      ns?: string;
-      clen?: string | number;
-      cop?: string;
-      pk?: boolean;
-      pv?: boolean;
-      rqd?: boolean;
-      column_name?: string;
-      un?: boolean;
-      ct?: string;
-      ai?: boolean;
-      unique?: boolean;
-      cdf?: string;
-      cc?: string;
-      csn?: string;
-      dtx?: string;
-      dtxp?: string;
-      dtxs?: string;
-      au?: boolean;
-      ''?: string;
-    }
+    uidt?:
+    | 'ID'
+    | 'SingleLineText'
+    | 'LongText'
+    | 'Attachment'
+    | 'Checkbox'
+    | 'MultiSelect'
+    | 'SingleSelect'
+    | 'Collaborator'
+    | 'Date'
+    | 'Year'
+    | 'Time'
+    | 'PhoneNumber'
+    | 'Email'
+    | 'URL'
+    | 'Number'
+    | 'Decimal'
+    | 'Currency'
+    | 'Percent'
+    | 'Duration'
+    | 'Rating'
+    | 'Count'
+    | 'DateTime'
+    | 'CreateTime'
+    | 'LastModifiedTime'
+    | 'AutoNumber'
+    | 'Geometry'
+    | 'JSON'
+    | 'SpecificDBType'
+    | 'Barcode'
+    | 'Button';
+    id?: string;
+    base_id?: string;
+    fk_model_id?: string;
+    title?: string;
+    dt?: string;
+    np?: string;
+    ns?: string;
+    clen?: string | number;
+    cop?: string;
+    pk?: boolean;
+    pv?: boolean;
+    rqd?: boolean;
+    column_name?: string;
+    un?: boolean;
+    ct?: string;
+    ai?: boolean;
+    unique?: boolean;
+    cdf?: string;
+    cc?: string;
+    csn?: string;
+    dtx?: string;
+    dtxp?: string;
+    dtxs?: string;
+    au?: boolean;
+    ''?: string;
+  }
   | {
-      uidt: 'LinkToAnotherRecord';
-      title: string;
-      parentId: string;
-      childId: string;
-      type: 'hm' | 'bt' | 'mm';
-    }
+    uidt: 'LinkToAnotherRecord';
+    title: string;
+    parentId: string;
+    childId: string;
+    type: 'hm' | 'bt' | 'mm';
+  }
   | {
-      uidt?: 'Rollup';
-      title?: string;
-      fk_relation_column_id?: string;
-      fk_rollup_column_id?: string;
-      rollup_function?: string;
-    }
+    uidt?: 'Rollup';
+    title?: string;
+    fk_relation_column_id?: string;
+    fk_rollup_column_id?: string;
+    rollup_function?: string;
+  }
   | {
-      uidt?: 'Lookup';
-      title?: string;
-      fk_relation_column_id?: string;
-      fk_lookup_column_id?: string;
-    }
+    uidt?: 'Lookup';
+    title?: string;
+    fk_relation_column_id?: string;
+    fk_lookup_column_id?: string;
+  }
   | {
-      uidt?: string;
-      formula_raw?: string;
-      formula?: string;
-      title?: string;
-    };
+    uidt?: string;
+    formula_raw?: string;
+    formula?: string;
+    title?: string;
+  };
 
 export interface UserInfoType {
   id?: string;
@@ -3500,7 +3500,7 @@ export class Api<
           relatedMetas?: any;
           client?: string;
           columns?: (GridColumnType | FormColumnType | GalleryColumnType) &
-            ColumnType;
+          ColumnType;
           model?: TableType;
         } & {
           view?: FormType | GridType | GalleryType;
@@ -4195,6 +4195,33 @@ export class Api<
         query: query,
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+    /**
+     * Upload api which updates the value of column as well
+     *
+     * @tags Storage
+     * @name Upload
+     * @summary Attachment
+     * @request POST:/api/v1/db/storage/upload
+     */
+    uploadWithUpdate: (
+      query: {
+        path: string;
+      },
+      data: {
+        files?: any;
+        json?: string;
+      },
+      rowId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/storage/upload-with-update/${rowId}`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.FormData,
         ...params,
       }),
   };

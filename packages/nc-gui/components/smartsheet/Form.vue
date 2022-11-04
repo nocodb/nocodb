@@ -257,7 +257,7 @@ async function checkSMTPStatus() {
 }
 
 function setFormData() {
-  const col = (formColumnData as Record<string, any>)?.value.filter((c: Record<string, any>) => c.uidt !== UITypes.QrCode)
+  const col = formColumnData?.value?.filter((c: Record<string, any>) => c.uidt !== UITypes.QrCode) || []
 
   formViewData.value = {
     ...formViewData.value,
@@ -275,20 +275,20 @@ function setFormData() {
 
   localColumns.value = col
     .filter(
-      (f: Record<string, any>) =>
+      (f) =>
         f.show &&
         f.uidt !== UITypes.Rollup &&
         f.uidt !== UITypes.Lookup &&
         f.uidt !== UITypes.Formula &&
         f.uidt !== UITypes.SpecificDBType,
     )
-    .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
-    .map((c: Record<string, any>) => ({ ...c, required: !!(c.required || 0) }))
+    .sort((a, b) => a.order - b.order)
+    .map((c) => ({ ...c, required: !!(c.required || 0) }))
 
-  systemFieldsIds.value = getSystemColumns(col).map((c: Record<string, any>) => c.fk_column_id)
+  systemFieldsIds.value = getSystemColumns(col).map((c) => c.fk_column_id)
 
   hiddenColumns.value = col.filter(
-    (f: Record<string, any>) =>
+    (f) =>
       !f.show &&
       !systemFieldsIds.value.includes(f.fk_column_id) &&
       f.uidt !== UITypes.Rollup &&

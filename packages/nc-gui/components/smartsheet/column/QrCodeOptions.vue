@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import { useVModel } from '#imports'
+import { useVModel, onMounted } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -41,7 +41,10 @@ const columnsAllowedAsQrValue = computed<SelectProps['options']>(() => {
 })
 
 // set default value
-vModel.value.fk_qr_value_column_id = (column?.value?.colOptions as Record<string, any>)?.fk_qr_value_column_id || ''
+
+onMounted(() => {
+  vModel.value.fk_qr_value_column_id = (column?.value?.colOptions as Record<string, any>)?.fk_qr_value_column_id || ''
+})
 
 setAdditionalValidations({
   fk_qr_value_column_id: [{ required: true, message: 'Required' }],

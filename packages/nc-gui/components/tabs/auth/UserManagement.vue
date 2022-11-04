@@ -169,7 +169,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
 
   <div v-else class="flex flex-col w-full px-6">
     <LazyTabsAuthUserManagementUsersModal
-      :key="showUserModal"
+      :key="`${showUserModal}`"
       :show="showUserModal"
       :selected-user="selectedUser"
       @closed="showUserModal = false"

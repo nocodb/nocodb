@@ -201,14 +201,6 @@ export default class User implements UserType {
           )
           .as('projectsCount')
       );
-    // .count(`${MetaTable.PROJECT_USERS}.fk_user_id`, { as: 'projectsCount' })
-    // .leftJoin(MetaTable.PROJECT_USERS, function () {
-    //   this.on(
-    //     `${MetaTable.PROJECT_USERS}.fk_user_id`,
-    //     '=',
-    //     `${MetaTable.USERS}.id`
-    //   );
-    // });
     if (query) {
       queryBuilder.where('email', 'like', `%${query.toLowerCase?.()}%`);
     }

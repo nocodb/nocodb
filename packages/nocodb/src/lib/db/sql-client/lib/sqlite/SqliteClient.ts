@@ -127,6 +127,7 @@ class SqliteClient extends KnexClient {
 
     try {
       const exists = await promisify(fs.exists)(args.database);
+      this.connectionConfig.connection.client = this.connectionConfig.connection.client === 'sqlite3' ? 'better-sqlite3' : this.connectionConfig.connection.client;
 
       this.connectionConfig.connection.client = this.connectionConfig.connection.client === 'sqlite3' ? 'better-sqlite3' : this.connectionConfig.connection.client;
 

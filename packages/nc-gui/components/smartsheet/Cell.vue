@@ -69,7 +69,7 @@ const syncValue = useDebounceFn(
 const {
   isPrimary,
   isURL,
-  isEmail,
+  isEmail: isEmailCell,
   isJSON,
   isDate,
   isYear,
@@ -142,7 +142,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     <LazyCellTimePicker v-else-if="isTime" v-model="vModel" :is-pk="isPrimaryKey" />
     <LazyCellRating v-else-if="isRating" v-model="vModel" />
     <LazyCellDuration v-else-if="isDuration" v-model="vModel" />
-    <LazyCellEmail v-else-if="isEmail" v-model="vModel" />
+    <LazyCellEmail v-else-if="isEmailCell" v-model="vModel" />
     <LazyCellUrl v-else-if="isURL" v-model="vModel" />
     <LazyCellPhoneNumber v-else-if="isPhoneNumber" v-model="vModel" />
     <LazyCellPercent v-else-if="isPercent" v-model="vModel" />

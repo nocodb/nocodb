@@ -54,6 +54,10 @@ jobs:
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./
         run: docker-compose -f ./scripts/playwright/scripts/docker-compose-playwright.yml up -d &
+      - name: setup pg
+        if: ${{ inputs.db == 'pg' }}
+        working-directory: ./
+        run: docker-compose -f ./scripts/playwright/scripts/docker-compose-pg.yml up -d &
       - name: run frontend
         working-directory: ./packages/nc-gui
         run: npm run ci:run
@@ -82,7 +86,7 @@ jobs:
           done
       - name: Run Playwright tests
         working-directory: ./scripts/playwright
-        run: npm run ci:test:mysql
+        run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test
       - uses: actions/upload-artifact@v3
         if: always()
         with:

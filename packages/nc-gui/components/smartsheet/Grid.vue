@@ -145,8 +145,8 @@ const getContainerScrollForElement = (
     relativePos.right + (offset?.right || 0) > 0
       ? container.scrollLeft + relativePos.right + (offset?.right || 0)
       : relativePos.left - (offset?.left || 0) < 0
-        ? container.scrollLeft + relativePos.left - (offset?.left || 0)
-        : container.scrollLeft
+      ? container.scrollLeft + relativePos.left - (offset?.left || 0)
+      : container.scrollLeft
 
   /*
    * If the element is below the container, scroll down (positive)
@@ -156,8 +156,8 @@ const getContainerScrollForElement = (
     relativePos.bottom + (offset?.bottom || 0) > 0
       ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0)
       : relativePos.top - (offset?.top || 0) < 0
-        ? container.scrollTop + relativePos.top - (offset?.top || 0)
-        : container.scrollTop
+      ? container.scrollTop + relativePos.top - (offset?.top || 0)
+      : container.scrollTop
 
   return scroll
 }

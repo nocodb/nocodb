@@ -45,24 +45,6 @@ const options = computed<SelectOptionType[]>(() => {
   return []
 })
 
-const handleKeys = (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Escape':
-      e.preventDefault()
-      isOpen.value = false
-      break
-    case 'ArrowDown':
-    case 'ArrowUp':
-      if (isOpen.value) e.stopPropagation()
-      break
-    case 'Enter':
-      isOpen.value = true
-      e.stopPropagation()
-      break
-  }
-}
-
-
 const handleClose = (e: MouseEvent) => {
   if (aselect.value && !aselect.value.$el.contains(e.target)) {
     isOpen.value = false
@@ -72,12 +54,24 @@ const handleClose = (e: MouseEvent) => {
 
 useEventListener(document, 'click', handleClose)
 
-
 watch(isOpen, (n, _o) => {
   if (!n) {
     aselect.value?.$el?.querySelector('input')?.blur()
   } else {
     aselect.value?.$el?.querySelector('input')?.focus()
+  }
+})
+
+useSelectedCellKeyupListener(active, (e) => {
+  switch (e.key) {
+    case 'Escape':
+      isOpen.value = false
+      break
+    case 'Enter':
+      if (active.value && !isOpen.value) {
+        isOpen.value = true
+      }
+      break
   }
 })
 </script>
@@ -94,7 +88,7 @@ watch(isOpen, (n, _o) => {
     :show-arrow="!readOnly && (active || vModel === null)"
     :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
     @select="isOpen = false"
-    @keydown="isOpen ? handleKeys : null"
+    @keydown.enter.stop
     @click="isOpen = active && !isOpen"
   >
     <a-select-option

@@ -74,36 +74,19 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-          const opa = options.value.find((el) => el.title === a)
-          const opb = options.value.find((el) => el.title === b)
-          if (opa && opb) {
-            return opa.order! - opb.order!
-          }
-          return 0
-        })
+            const opa = options.value.find((el) => el.title === a)
+            const opb = options.value.find((el) => el.title === b)
+            if (opa && opb) {
+              return opa.order! - opb.order!
+            }
+            return 0
+          })
         : modelValue.split(',')
       : modelValue
     : [],
 )
 
-
-const v = Math.floor(Math.random() *1000)
-
-const handleKeys = (e: KeyboardEvent) => {
-  console.log(`handleKeys ${v}`, e.key)
-  if (!active.value) return true
-  switch (e.key) {
-    case 'ArrowDown':
-    case 'ArrowUp':
-      if (isOpen.value) {
-        e.stopPropagation()
-      }
-      break
-    case 'Enter':
-      e.stopPropagation()
-      break
-  }
-}
+const v = Math.floor(Math.random() * 1000)
 
 const handleClose = (e: MouseEvent) => {
   if (aselect.value && !aselect.value.$el.contains(e.target)) {
@@ -146,17 +129,14 @@ watch(isOpen, (n, _o) => {
   }
 })
 
-
 useSelectedCellKeyupListener(active, (e) => {
   switch (e.key) {
     case 'Escape':
       isOpen.value = false
-      select?.value?.blur()
       break
     case 'Enter':
       if (active.value && !isOpen.value) {
         isOpen.value = true
-        e.stopPropagation()
       }
       break
   }
@@ -167,15 +147,16 @@ useSelectedCellKeyupListener(active, (e) => {
   <a-select
     ref="aselect"
     v-model:value="vModel"
+    v-model:open="isOpen"
     mode="multiple"
     class="w-full"
     :bordered="false"
     :show-arrow="!readOnly"
     :show-search="false"
-    v-model:open="isOpen"
     :disabled="readOnly"
     :class="{ '!ml-[-8px]': readOnly }"
     :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
+    @keydown.enter.stop
     @click="isOpen = active && !isOpen"
   >
     <a-select-option

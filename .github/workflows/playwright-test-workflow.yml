@@ -59,7 +59,7 @@ jobs:
         run: npm run ci:run
       - name: Run backend
         working-directory: ./packages/nocodb
-        run: npm run ci:run
+        run: npm run ci:run &
       - name: Cache playwright npm modules
         uses: actions/cache@v3
         id: playwright-cache

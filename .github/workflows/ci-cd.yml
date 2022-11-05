@@ -117,7 +117,7 @@ jobs:
           run: docker-compose -f ./scripts/playwright/scripts/docker-compose-playwright.yml up -d &
         - name: run frontend
           working-directory: ./packages/nc-gui
-          run: npm run ci:run &
+          run: npm run ci:run
         - name: Run backend
           working-directory: ./packages/nocodb
           run: npm run watch:run:playwright > mysql_test_backend.log &

@@ -102,7 +102,7 @@ const suggestionsList = computed(() => {
         examples: formulas[fn].examples,
       })),
     ...supportedColumns.value
-      .filter((c: Record<string, any>) => {
+      .filter((c) => {
         // skip system LTAR columns
         if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
         // v1 logic? skip the current column
@@ -241,11 +241,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
 
     errors = new Set([...errors, ...typeErrors])
   } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
-    if (
-      supportedColumns.value
-        .filter((c: Record<string, any>) => !column || column.value?.id !== c.id)
-        .every((c: Record<string, any>) => c.title !== parsedTree.name)
-    ) {
+    if (supportedColumns.value.filter((c) => !column || column.value?.id !== c.id).every((c) => c.title !== parsedTree.name)) {
       errors.add(`Column '${parsedTree.name}' is not available`)
     }
 
@@ -254,7 +250,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
 
     // get all formula columns excluding itself
     const formulaPaths = supportedColumns.value
-      .filter((c: Record<string, any>) => c.id !== column.value?.id && c.uidt === UITypes.Formula)
+      .filter((c) => c.id !== column.value?.id && c.uidt === UITypes.Formula)
       .reduce((res: Record<string, any>[], c: Record<string, any>) => {
         // in `formula`, get all the (unique) target neighbours
         // i.e. all column id (e.g. cl_xxxxxxxxxxxxxx) with formula type
@@ -569,7 +565,7 @@ function handleInput() {
     .complete(wordToComplete.value)
     ?.sort((x: Record<string, any>, y: Record<string, any>) => sortOrder[x.type] - sortOrder[y.type])
   if (!isCurlyBracketBalanced()) {
-    suggestion.value = suggestion.value.filter((v: Record<string, any>) => v.type === 'column')
+    suggestion.value = suggestion.value.filter((v) => v.type === 'column')
   }
   autocomplete.value = !!suggestion.value.length
 }

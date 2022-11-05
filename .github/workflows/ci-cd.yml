@@ -109,9 +109,6 @@ jobs:
         - name: build nocodb-sdk
           working-directory: ./packages/nocodb-sdk
           run: npm run build
-        - name: Install dependencies
-          working-directory: ./packages/nocodb
-          run: npm install
         - name: setup mysql
           working-directory: ./
           run: docker-compose -f ./scripts/playwright/scripts/docker-compose-playwright.yml up -d &
@@ -120,7 +117,7 @@ jobs:
           run: npm run ci:run
         - name: Run backend
           working-directory: ./packages/nocodb
-          run: npm run watch:run:playwright > mysql_test_backend.log &
+          run: npm run ci:run &
         - name: Cache playwright npm modules
           uses: actions/cache@v3
           id: playwright-cache
@@ -135,12 +132,6 @@ jobs:
         - name: Install Playwright Browsers
           working-directory: ./scripts/playwright
           run: npx playwright install chromium --with-deps
-        - name: Wait for frontend
-          run: |
-            while ! curl --output /dev/null --silent --head --fail http://localhost:3000/_nuxt/assets/img/icons/512x512-trans.png; do
-              printf '.'
-              sleep 2
-            done
         - name: Wait for backend
           run: |
             while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do

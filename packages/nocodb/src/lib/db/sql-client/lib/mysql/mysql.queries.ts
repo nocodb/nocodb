@@ -130,7 +130,7 @@ AND t.table_name=?;`,
   },
   createDatabaseIfNotExists: {
     default: {
-      sql: `create database if not exists ??`,
+      sql: `create database if not exists ??  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
       paramsHints: ['database'],
     },
   },

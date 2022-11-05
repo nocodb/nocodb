@@ -1,5 +1,5 @@
 import axios from 'axios';
-import Knex from 'knex';
+import { Knex, knex } from 'knex';
 
 import { promises as fs } from 'fs';
 import Audit from '../../../models/Audit';
@@ -119,20 +119,20 @@ const resetMysqlSakilaProject = async ({
   oldProject?: Project | undefined;
   isEmptyProject: boolean;
 }) => {
-  const knex = Knex(config);
+  const nc_knex = knex(config);
 
   try {
-    await knex.raw(`USE test_sakila_${parallelId}`);
+    await nc_knex.raw(`USE test_sakila_${parallelId}`);
   } catch (e) {
-    await knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);
-    await knex.raw(`USE test_sakila_${parallelId}`);
+    await nc_knex.raw(`CREATE DATABASE test_sakila_${parallelId}`);
+    await nc_knex.raw(`USE test_sakila_${parallelId}`);
   }
 
   if (
     isEmptyProject ||
-    (await isSakilaMysqlToBeReset(knex, parallelId, oldProject))
+    (await isSakilaMysqlToBeReset(nc_knex, parallelId, oldProject))
   ) {
-    await resetSakilaMysql(knex, parallelId, isEmptyProject);
+    await resetSakilaMysql(nc_knex, parallelId, isEmptyProject);
   }
 
   const response = await axios.post(
@@ -148,7 +148,7 @@ const resetMysqlSakilaProject = async ({
     console.error('Error creating project', response.data);
   }
 
-  await knex.destroy();
+  await nc_knex.destroy();
 };
 
 export default resetMysqlSakilaProject;

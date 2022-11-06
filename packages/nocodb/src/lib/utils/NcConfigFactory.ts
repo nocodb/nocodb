@@ -23,7 +23,7 @@ const driverClientMapping = {
   mariadb: 'mysql2',
   postgres: 'pg',
   postgresql: 'pg',
-  sqlite: 'sqlite3',
+  sqlite: 'better-sqlite3',
   mssql: 'mssql',
 };
 
@@ -132,7 +132,7 @@ export default class NcConfigFactory implements NcConfig {
     if (process.env.NC_TRY) {
       ncConfig.try = true;
       ncConfig.meta.db = {
-        client: 'sqlite3',
+        client: 'better-sqlite3',
         connection: ':memory:',
         pool: {
           min: 1,
@@ -189,11 +189,11 @@ export default class NcConfigFactory implements NcConfig {
 
     let dbConfig: DbConfig;
 
-    if (url.protocol.startsWith('sqlite3')) {
+    if (url.protocol.startsWith('sqlite3') || url.protocol.startsWith('better-sqlite3')) {
       dbConfig = {
-        client: 'sqlite3',
+        client: 'better-sqlite3',
         connection: {
-          client: 'sqlite3',
+          client: 'better-sqlite3',
           connection: {
             filename:
               url.searchParams.get('d') || url.searchParams.get('database'),
@@ -297,10 +297,10 @@ export default class NcConfigFactory implements NcConfig {
 
     let dbConfig;
 
-    if (url.protocol.startsWith('sqlite3')) {
+    if (url.protocol.startsWith('sqlite3') || url.protocol.startsWith('better-sqlite3')) {
       const db = url.searchParams.get('d') || url.searchParams.get('database');
       dbConfig = {
-        client: 'sqlite3',
+        client: 'better-sqlite3',
         connection: {
           filename: db,
         },
@@ -437,7 +437,7 @@ export default class NcConfigFactory implements NcConfig {
     if (process.env.NC_TRY) {
       config.try = true;
       config.meta.db = {
-        client: 'sqlite3',
+        client: 'better-sqlite3',
         connection: ':memory:',
         pool: {
           min: 1,
@@ -490,9 +490,9 @@ export default class NcConfigFactory implements NcConfig {
     const config = new NcConfigFactory();
     let dbConfig = dbConnectionConfig;
 
-    if (dbConfig.client === 'sqlite3') {
+    if (dbConfig.client === 'sqlite3' || dbConfig.client === 'better-sqlite3') {
       dbConfig = {
-        client: 'sqlite3',
+        client: 'better-sqlite3',
         connection: {
           ...dbConnectionConfig,
           database: dbConnectionConfig.connection.filename,
@@ -553,7 +553,7 @@ export default class NcConfigFactory implements NcConfig {
     if (process.env.NC_TRY) {
       config.try = true;
       config.meta.db = {
-        client: 'sqlite3',
+        client: 'better-sqlite3',
         connection: ':memory:',
         pool: {
           min: 1,
@@ -585,7 +585,7 @@ export default class NcConfigFactory implements NcConfig {
   }
 
   public static async metaDbCreateIfNotExist(args: NcConfig) {
-    if (args.meta?.db?.client === 'sqlite3') {
+    if (args.meta?.db?.client === 'sqlite3' || args.meta?.db?.client === 'better-sqlite3') {
       const metaSqlClient = SqlClientFactory.create({
         ...args.meta.db,
         connection: args.meta.db,
@@ -624,7 +624,7 @@ export default class NcConfigFactory implements NcConfig {
   public projectType;
   public meta = {
     db: {
-      client: 'sqlite3',
+      client: 'better-sqlite3',
       connection: {
         filename: 'noco.db',
       },

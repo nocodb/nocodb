@@ -386,7 +386,7 @@ export default class SqlMgr {
       }
     }
 
-    if (connectionConfig.client === 'sqlite3') {
+    if (connectionConfig.client === 'sqlite3' || connectionConfig.client === 'better-sqlite3') {
       schemaKey = connectionConfig.connection.connection.filename;
     } else {
       schemaKey =
@@ -503,7 +503,8 @@ export default class SqlMgr {
         return 'mssql';
         break;
       case 'sqlite3:':
-        return 'sqlite3';
+      case 'better-sqlite3:':
+        return 'better-sqlite3';
         break;
       case 'cockroachdb:':
         return 'pg';
@@ -518,9 +519,9 @@ export default class SqlMgr {
 
     const ORACLE_PORT = 1521;
 
-    if (sqlConfig.typeOfDatabase === 'sqlite3') {
+    if (sqlConfig.typeOfDatabase === 'sqlite3' || sqlConfig.typeOfDatabase === 'better-sqlite3') {
       return {
-        client: 'sqlite3',
+        client: 'better-sqlite3',
         connection: {
           // filename: "./db/sakila-sqlite"
           filename: sqlConfig.database,
@@ -575,6 +576,7 @@ export default class SqlMgr {
         return 1433;
         break;
       case 'sqlite3':
+      case 'better-sqlite3':
         return 0;
         break;
       default:

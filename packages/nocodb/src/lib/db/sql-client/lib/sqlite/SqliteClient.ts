@@ -14,6 +14,7 @@ class SqliteClient extends KnexClient {
   private _version: any;
   constructor(connectionConfig) {
     super(connectionConfig);
+    connectionConfig.connection.client = connectionConfig.connection.client === 'sqlite3' ? 'better-sqlite3' : connectionConfig.connection.client;
     this.sqlClient = knex(connectionConfig.connection);
     this.queries = queries;
     this._version = {};
@@ -132,6 +133,7 @@ class SqliteClient extends KnexClient {
         log.debug('sqlite file is created', fd, close);
       }
 
+      this.connectionConfig.connection.client = this.connectionConfig.connection.client === 'sqlite3' ? 'better-sqlite3' : this.connectionConfig.connection.client;
       // create new knex client
       this.sqlClient = knex(this.connectionConfig.connection);
     } catch (e) {

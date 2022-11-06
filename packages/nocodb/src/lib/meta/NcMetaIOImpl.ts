@@ -77,7 +77,7 @@ export default class NcMetaIOImpl extends NcMetaIO {
   constructor(app: Noco, config: NcConfig, trx = null) {
     super(app, config);
 
-    if (this.config?.meta?.db?.client === 'sqlite3') {
+    if (this.config?.meta?.db?.client === 'sqlite3' || this.config?.meta?.db?.client === 'better-sqlite3') {
       this.config.meta.db.useNullAsDefault = true;
     }
 

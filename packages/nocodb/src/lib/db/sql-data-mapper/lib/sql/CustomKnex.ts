@@ -557,6 +557,7 @@ knex.QueryBuilder.extend('concat', function (cn: any) {
       this.select(this.client.raw(`STRING_AGG(??, ',')`, [cn]));
       break;
     case 'sqlite3':
+    case 'better-sqlite3':
       this.select(this.client.raw(`GROUP_CONCAT(?? , ',')`, [cn]));
       break;
   }
@@ -988,6 +989,9 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
 type CustomKnex = Knex;
 
 function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
+  if (arg?.client === 'sqlite3') {
+    arg.client = 'better-sqlite3';
+  }
   const kn: any = knex(arg);
 
   const knexRaw = kn.raw;

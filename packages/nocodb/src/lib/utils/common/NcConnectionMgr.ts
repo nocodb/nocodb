@@ -95,7 +95,7 @@ export default class NcConnectionMgr {
         }
       }
 
-      const isSqlite = connectionConfig?.client === 'sqlite3';
+      const isSqlite = connectionConfig?.client === 'sqlite3' || connectionConfig?.client === 'better-sqlite3';
 
       if (connectionConfig?.connection?.port) {
         connectionConfig.connection.port = +connectionConfig.connection.port;

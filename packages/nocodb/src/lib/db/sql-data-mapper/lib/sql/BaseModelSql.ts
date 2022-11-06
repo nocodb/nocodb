@@ -2095,7 +2095,7 @@ class BaseModelSql extends BaseModel {
   }
 
   isSqlite() {
-    return this.clientType === 'sqlite3';
+    return this.clientType === 'sqlite3' || this.clientType === 'better-sqlite3';
   }
 
   isMssql() {

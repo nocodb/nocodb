@@ -9,7 +9,7 @@ const up = async (knex: Knex) => {
     await knex.schema.alterTable(MetaTable.HOOK_LOGS, (table) => {
       table.text('payload');
     });
-  } else if (knex.client.config.client !== 'sqlite3') {
+  } else if (knex.client.config.client !== 'sqlite3' && knex.client.config.client !== 'better-sqlite3') {
     await knex.schema.alterTable(MetaTable.HOOK_LOGS, (table) => {
       table.text('payload').alter();
     });
@@ -17,7 +17,7 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex) => {
-  if (knex.client.config.client !== 'sqlite3') {
+  if (knex.client.config.client !== 'sqlite3' && knex.client.config.client !== 'better-sqlite3') {
     await knex.schema.alterTable(MetaTable.HOOK_LOGS, (table) => {
       table.boolean('payload').alter();
     });

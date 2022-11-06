@@ -142,7 +142,7 @@ export default class TestDbMngr {
   static async switchToSqlite() {
     // process.env[`DATABASE_URL`] = `sqlite3:///?database=${__dirname}/${TestDbMngr.dbName}.sqlite`;
     TestDbMngr.dbConfig = {
-      client: 'sqlite3',
+      client: 'better-sqlite3',
       connection: {
         filename: `${__dirname}/${TestDbMngr.dbName}.db`,
         database: TestDbMngr.dbName,
@@ -182,7 +182,7 @@ export default class TestDbMngr {
   }
 
   static isSqlite() {
-    return TestDbMngr.dbConfig.client === 'sqlite3';
+    return TestDbMngr.dbConfig.client === 'sqlite3' || TestDbMngr.dbConfig.client === 'better-sqlite3';
   }
 
   private static async useDatabase(knexClient, dbName) {

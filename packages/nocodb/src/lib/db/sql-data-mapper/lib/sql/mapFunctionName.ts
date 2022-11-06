@@ -35,6 +35,7 @@ const mapFunctionName = (args: MapFnArgs): any => {
       break;
     case 'sqlite':
     case 'sqlite3':
+    case 'better-sqlite3':
       val = sqlite[name] || name;
       break;
   }

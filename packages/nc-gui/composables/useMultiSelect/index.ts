@@ -1,6 +1,6 @@
 import type { MaybeRef } from '@vueuse/core'
 import { UITypes } from 'nocodb-sdk'
-import { message, reactive, unref, useCopy, useEventListener, useI18n } from '#imports'
+import { message, reactive, unref, useCopy, useEventListener, useI18n, ref } from '#imports'
 
 interface SelectedBlock {
   row: number | null
@@ -13,7 +13,7 @@ interface SelectedBlock {
 export function useMultiSelect(
   fields: MaybeRef<any[]>,
   data: MaybeRef<any[]>,
-  editEnabled: MaybeRef<boolean>,
+  _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
   clearCell: Function,
   makeEditable: Function,
@@ -23,6 +23,8 @@ export function useMultiSelect(
   const { t } = useI18n()
 
   const { copy } = useCopy()
+
+  const editEnabled = ref(_editEnabled)
 
   const selected = reactive<SelectedBlock>({ row: null, col: null })
 
@@ -39,6 +41,7 @@ export function useMultiSelect(
 
   function selectCell(row: number, col: number) {
     clearRangeRows()
+    editEnabled.value = false
     selected.row = row
     selected.col = col
   }
@@ -154,16 +157,20 @@ export function useMultiSelect(
         if (e.shiftKey) {
           if (selected.col > 0) {
             selected.col--
+            editEnabled.value = false
           } else if (selected.row > 0) {
             selected.row--
             selected.col = unref(columnLength) - 1
+            editEnabled.value = false
           }
         } else {
           if (selected.col < unref(columnLength) - 1) {
             selected.col++
+            editEnabled.value = false
           } else if (selected.row < unref(data).length - 1) {
             selected.row++
             selected.col = 0
+            editEnabled.value = false
           }
         }
         scrollToActiveCell?.()
@@ -187,6 +194,7 @@ export function useMultiSelect(
         if (selected.col < unref(columnLength) - 1) {
           selected.col++
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
       case 'ArrowLeft':
@@ -196,6 +204,7 @@ export function useMultiSelect(
         if (selected.col > 0) {
           selected.col--
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
       case 'ArrowUp':
@@ -205,6 +214,7 @@ export function useMultiSelect(
         if (selected.row > 0) {
           selected.row--
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
       case 'ArrowDown':
@@ -214,63 +224,63 @@ export function useMultiSelect(
         if (selected.row < unref(data).length - 1) {
           selected.row++
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
-      default:
-        {
-          const rowObj = unref(data)[selected.row]
+      default: {
+        const rowObj = unref(data)[selected.row]
 
-          const columnObj = unref(fields)[selected.col]
+        const columnObj = unref(fields)[selected.col]
 
-          let cptext = '' // variable for save the text to be copy
+        let cptext = '' // variable for save the text to be copy
 
-          if (!isNaN(rangeRows.minRow) && !isNaN(rangeRows.maxRow) && !isNaN(rangeRows.minCol) && !isNaN(rangeRows.maxCol)) {
-            const cprows = unref(data).slice(rangeRows.minRow, rangeRows.maxRow + 1) // slice the selected rows for copy
+        if (!isNaN(rangeRows.minRow) && !isNaN(rangeRows.maxRow) && !isNaN(rangeRows.minCol) && !isNaN(rangeRows.maxCol)) {
+          const cprows = unref(data).slice(rangeRows.minRow, rangeRows.maxRow + 1) // slice the selected rows for copy
 
-            const cpcols = unref(fields).slice(rangeRows.minCol, rangeRows.maxCol + 1) // slice the selected cols for copy
+          const cpcols = unref(fields).slice(rangeRows.minCol, rangeRows.maxCol + 1) // slice the selected cols for copy
 
-            cprows.forEach((row) => {
-              cpcols.forEach((col) => {
-                // todo: JSON stringify the attachment cell and LTAR contents for copy
-                // filter attachment cells and LATR cells from copy
-                if (col.uidt !== UITypes.Attachment && col.uidt !== UITypes.LinkToAnotherRecord) {
-                  cptext = `${cptext} ${row.row[col.title]} \t`
-                }
-              })
-
-              cptext = `${cptext.trim()}\n`
+          cprows.forEach((row) => {
+            cpcols.forEach((col) => {
+              // todo: JSON stringify the attachment cell and LTAR contents for copy
+              // filter attachment cells and LATR cells from copy
+              if (col.uidt !== UITypes.Attachment && col.uidt !== UITypes.LinkToAnotherRecord) {
+                cptext = `${cptext} ${row.row[col.title]} \t`
+              }
             })
 
-            cptext.trim()
-          } else {
-            cptext = rowObj.row[columnObj.title] || ''
-          }
+            cptext = `${cptext.trim()}\n`
+          })
 
-          if ((!unref(editEnabled) && e.metaKey) || e.ctrlKey) {
-            switch (e.keyCode) {
-              // copy - ctrl/cmd +c
-              case 67:
-                await copy(cptext)
-                break
-            }
-          }
+          cptext.trim()
+        } else {
+          cptext = rowObj.row[columnObj.title] || ''
+        }
 
-          if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
-            return
-          }
-
-          /** on letter key press make cell editable and empty */
-          if (e.key.length === 1) {
-            if (!unref(isPkAvail) && !rowObj.rowMeta.new) {
-              // Update not allowed for table which doesn't have primary Key
-              return message.info(t('msg.info.updateNotAllowedWithoutPK'))
-            }
-            if (makeEditable(rowObj, columnObj)) {
-              rowObj.row[columnObj.title] = ''
-            }
-            // editEnabled = true
+        if ((!unref(editEnabled) && e.metaKey) || e.ctrlKey) {
+          switch (e.keyCode) {
+            // copy - ctrl/cmd +c
+            case 67:
+              await copy(cptext)
+              break
           }
         }
+
+        if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
+          return
+        }
+
+        /** on letter key press make cell editable and empty */
+        if (e.key.length === 1) {
+          if (!unref(isPkAvail) && !rowObj.rowMeta.new) {
+            // Update not allowed for table which doesn't have primary Key
+            return message.info(t('msg.info.updateNotAllowedWithoutPK'))
+          }
+          if (makeEditable(rowObj, columnObj)) {
+            rowObj.row[columnObj.title] = ''
+          }
+          // editEnabled = true
+        }
+      }
         break
     }
   }

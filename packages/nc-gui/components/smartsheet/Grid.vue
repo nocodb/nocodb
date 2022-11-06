@@ -206,25 +206,25 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
           selected.row = 0
           selected.col = selected.col ?? 0
           scrollToCell?.()
-          editEnabled = false;
+          editEnabled = false
           return true
         case 'ArrowDown':
           selected.row = data.value.length - 1
           selected.col = selected.col ?? 0
           scrollToCell?.()
-          editEnabled = false;
+          editEnabled = false
           return true
         case 'ArrowRight':
           selected.row = selected.row ?? 0
           selected.col = fields.value?.length - 1
           scrollToCell?.()
-          editEnabled = false;
+          editEnabled = false
           return true
         case 'ArrowLeft':
           selected.row = selected.row ?? 0
           selected.col = 0
           scrollToCell?.()
-          editEnabled = false;
+          editEnabled = false
           return true
       }
     }

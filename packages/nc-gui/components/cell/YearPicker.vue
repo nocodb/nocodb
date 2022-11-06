@@ -67,8 +67,10 @@ useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
       open.value = true
       break
     case 'Escape':
-      e.stopPropagation()
-      open.value = false
+      if (open.value) {
+        e.stopPropagation()
+        open.value = false
+      }
       break
   }
 })

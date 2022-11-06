@@ -421,6 +421,8 @@ function openTableCreateDialog() {
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
+      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+
       <GithubButton
         class="ml-2 py-1"
         href="https://github.com/nocodb/nocodb"

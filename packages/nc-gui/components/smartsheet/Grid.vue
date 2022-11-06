@@ -384,7 +384,7 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
       for (const field of (args.metaValue || meta.value)?.columns ?? []) {
         if (isVirtualCol(field)) continue
         if (currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
-          await updateOrSaveRow(currentRow, field.title!, args)
+          await updateOrSaveRow(currentRow, field.title!, {}, args)
         }
       }
     }

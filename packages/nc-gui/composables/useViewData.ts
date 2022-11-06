@@ -240,14 +240,20 @@ export function useViewData(
     }
   }
 
+  // inside this method use metaValue and viewMetaValue to refer meta
+  // since sometimes we need to pass old metas
   async function updateRowProperty(
     toUpdate: Row,
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
     if (toUpdate.rowMeta) toUpdate.rowMeta.saving = true
+
+    // if the field name is missing return
+    if (!property) return
+
     try {
-      const id = extractPkFromRow(toUpdate.row, meta.value?.columns as ColumnType[])
+      const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
 
       const updatedRowData = await $api.dbViewRow.update(
         NOCO,
@@ -256,7 +262,8 @@ export function useViewData(
         viewMetaValue?.id as string,
         id,
         {
-          [property]: toUpdate.row[property],
+          // if value is undefined treat it as null
+          [property]: toUpdate.row[property] ?? null,
         },
         // todo:
         // {

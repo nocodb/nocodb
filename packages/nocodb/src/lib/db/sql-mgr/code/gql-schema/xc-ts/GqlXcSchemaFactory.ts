@@ -11,7 +11,7 @@ class GqlXcSchemaFactory {
       connectionConfig.client === 'mysql'
     ) {
       return new GqlXcTsSchemaMysql(args);
-    } else if (connectionConfig.client === 'sqlite3') {
+    } else if (connectionConfig.client === 'sqlite3' || connectionConfig.client === 'better-sqlite3') {
       return new GqlXcSchemaSqlite(args);
     } else if (connectionConfig.client === 'mssql') {
       return new GqlXcSchemaMssql(args);

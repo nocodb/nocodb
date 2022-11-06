@@ -16,6 +16,7 @@ class SqliteClient extends KnexClient {
 
   constructor(connectionConfig) {
     super(connectionConfig);
+    connectionConfig.connection.client = connectionConfig.connection.client === 'sqlite3' ? 'better-sqlite3' : connectionConfig.connection.client;
     this.sqlClient = knex(connectionConfig.connection);
     this.queries = queries;
     this._version = {};
@@ -126,6 +127,8 @@ class SqliteClient extends KnexClient {
 
     try {
       const exists = await promisify(fs.exists)(args.database);
+
+      this.connectionConfig.connection.client = this.connectionConfig.connection.client === 'sqlite3' ? 'better-sqlite3' : this.connectionConfig.connection.client;
 
       if (!exists) {
         log.debug('sqlite file do no exists - create one');

@@ -21,7 +21,9 @@ class SqlClientFactory {
       if (connectionConfig.meta.dbtype === 'vitess')
         return new VitessClient(connectionConfig);
       return new MySqlClient(connectionConfig);
-    } else if (connectionConfig.client === 'sqlite3') {
+    } else if (connectionConfig.client === 'sqlite3' || connectionConfig.client === 'better-sqlite3') {
+      connectionConfig.client = 'better-sqlite3';
+      connectionConfig.connection.client = 'better-sqlite3';
       return new SqliteClient(connectionConfig);
     } else if (connectionConfig.client === 'mssql') {
       return new MssqlClient(connectionConfig);

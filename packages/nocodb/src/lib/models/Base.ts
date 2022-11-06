@@ -101,7 +101,7 @@ export default class Base implements BaseType {
     if (this.is_meta) {
       const metaConfig = Noco.getConfig()?.meta?.db;
       const config = { ...metaConfig };
-      if (config.client === 'sqlite3') {
+      if (config.client === 'sqlite3' || config.client === 'better-sqlite3') {
         config.connection = metaConfig;
       }
 
@@ -116,7 +116,7 @@ export default class Base implements BaseType {
     );
 
     // todo: update sql-client args
-    if (config?.client === 'sqlite3') {
+    if (config?.client === 'sqlite3' || config?.client === 'better-sqlite3') {
       config.connection.filename =
         config.connection.filename || config.connection?.connection.filename;
     }

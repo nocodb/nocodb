@@ -33,14 +33,13 @@ async function readAllData({
         async function page(records, fetchNextPage) {
           if (!data) {
             data = new EntityMap();
-            await data.init();
           }
 
-          for await (const record of records) {
-            await data.addRow({ id: record.id, ...record.fields });
+          for (const record of records) {
+            data.addRow({ id: record.id, ...record.fields });
           }
 
-          const tmpLength = await data.getCount();
+          const tmpLength = data.getCount();
 
           logBasic(
             `:: Reading '${table.title}' data :: ${Math.max(

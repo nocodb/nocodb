@@ -1193,7 +1193,7 @@ abstract class BaseModel {
   }
 
   isSqlite(): boolean {
-    return this.clientType === 'sqlite3';
+    return this.clientType === 'sqlite3' || this.clientType === 'better-sqlite3';
   }
 
   /**

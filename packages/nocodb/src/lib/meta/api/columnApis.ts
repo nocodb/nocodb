@@ -762,7 +762,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
     });
 
     if (colBody.colOptions?.options) {
-      const supportedDrivers = ['mysql', 'mysql2', 'pg', 'mssql', 'sqlite3'];
+      const supportedDrivers = ['mysql', 'mysql2', 'pg', 'mssql', 'sqlite3', 'better-sqlite3'];
       const dbDriver = NcConnectionMgrv2.get(base);
       const driverType = dbDriver.clientType();
 
@@ -798,7 +798,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
               column.column_name,
             ]
           );
-        } else if (driverType === 'sqlite3') {
+        } else if (driverType === 'sqlite3' || driverType === 'better-sqlite3') {
           await dbDriver.raw(
             `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
             [
@@ -992,7 +992,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
                   option.title,
                 ]
               );
-            } else if (driverType === 'sqlite3') {
+            } else if (driverType === 'sqlite3' || driverType === 'better-sqlite3') {
               await dbDriver.raw(
                 `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`,
                 [
@@ -1175,7 +1175,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
                   newOp.title,
                 ]
               );
-            } else if (driverType === 'sqlite3') {
+            } else if (driverType === 'sqlite3' || driverType === 'better-sqlite3') {
               await dbDriver.raw(
                 `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
                 [
@@ -1263,7 +1263,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
                 newOp.title,
               ]
             );
-          } else if (driverType === 'sqlite3') {
+          } else if (driverType === 'sqlite3' || driverType === 'better-sqlite3') {
             await dbDriver.raw(
               `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
               [

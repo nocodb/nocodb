@@ -391,7 +391,7 @@ export default class KnexMigratorv2 {
       await sqlClient.createDatabaseIfNotExists({
         database: connectionConfig.connection.user,
       });
-    } else if (connectionConfig.client !== 'sqlite3') {
+    } else if (connectionConfig.client !== 'sqlite3' && connectionConfig.client !== 'better-sqlite3') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`
       );
@@ -439,7 +439,7 @@ export default class KnexMigratorv2 {
       await sqlClient.dropDatabase({
         database: connectionConfig.connection.user,
       });
-    } else if (connectionConfig.client === 'sqlite3') {
+    } else if (connectionConfig.client !== 'sqlite3' && connectionConfig.client === 'better-sqlite3') {
       this.emit(
         `Dropping DB : ${connectionConfig.connection.connection.filename}`
       );

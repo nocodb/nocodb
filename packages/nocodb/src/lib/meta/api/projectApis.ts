@@ -125,11 +125,11 @@ async function projectCreate(req: Request<any, any>, res) {
       projectBody.prefix = '';
       projectBody.bases = [
         {
-          type: 'sqlite3',
+          type: 'better-sqlite3',
           config: {
-            client: 'sqlite3',
+            client: 'better-sqlite3',
             connection: {
-              client: 'sqlite3',
+              client: 'better-sqlite3',
               database: projectTitle,
               connection: {
                 filename: `${toolDir}/nc_minimal_dbs/${projectTitle}_${dbId}.db`,

@@ -7,7 +7,7 @@ export default class MetaAPILogger {
 
   constructor() {
     this.knex = XKnex({
-      client: 'sqlite3',
+      client: 'better-sqlite3',
       connection: {
         filename: 'noco_log.db',
       },

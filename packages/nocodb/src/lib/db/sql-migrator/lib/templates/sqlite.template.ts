@@ -8,9 +8,9 @@ module.exports = {
     _noco: {
       db: [
         {
-          client: 'sqlite3',
+          client: 'better-sqlite3',
           connection: {
-            client: 'sqlite3',
+            client: 'better-sqlite3',
             connection: {
               filename:
                 DOCKER_DB_FILE ||
@@ -29,9 +29,9 @@ module.exports = {
       api: {},
       db: [
         {
-          client: 'sqlite3',
+          client: 'better-sqlite3',
           connection: {
-            client: 'sqlite3',
+            client: 'better-sqlite3',
             connection: {
               filename:
                 DOCKER_DB_FILE ||

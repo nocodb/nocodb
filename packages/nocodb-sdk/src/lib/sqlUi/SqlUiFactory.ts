@@ -26,7 +26,7 @@ export class SqlUiFactory {
       return MysqlUi;
     }
 
-    if (connectionConfig.client === 'sqlite3') {
+    if (connectionConfig.client === 'sqlite3' || connectionConfig.client === 'better-sqlite3') {
       return SqliteUi;
     }
     if (connectionConfig.client === 'mssql') {

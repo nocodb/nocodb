@@ -17,7 +17,7 @@ export enum ClientType {
   MYSQL = 'mysql2',
   MSSQL = 'mssql',
   PG = 'pg',
-  SQLITE = 'sqlite3',
+  SQLITE = 'better-sqlite3',
   VITESS = 'vitess',
 }
 

@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 import { MetaTable } from '../../utils/globals';
 
 const up = async (knex: Knex) => {
-  if (knex.client.config.client !== 'sqlite3') {
+  if (knex.client.config.client !== 'sqlite3' && knex.client.config.client !== 'better-sqlite3') {
     await knex.schema.alterTable(MetaTable.FORM_VIEW, (table) => {
       table.text('success_msg').alter();
     });
@@ -22,7 +22,7 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex) => {
-  if (knex.client.config.client !== 'sqlite3') {
+  if (knex.client.config.client !== 'sqlite3' && knex.client.config.client !== 'better-sqlite3') {
     await knex.schema.alterTable(MetaTable.FORM_VIEW, (table) => {
       table.string('success_msg').alter();
     });

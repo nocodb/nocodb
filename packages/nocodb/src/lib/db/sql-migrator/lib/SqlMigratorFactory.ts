@@ -9,6 +9,7 @@ export default class SqlMigratorFactory {
       case 'oracledb':
       case 'mssql':
       case 'sqlite3':
+      case 'better-sqlite3':
         return new KnexMigrator();
         break;
       default:

@@ -47,7 +47,7 @@ export default function formulaQueryBuilder(
         //   }
         //   break;
         case 'CONCAT':
-          if (knex.clientType() === 'sqlite3') {
+          if (knex.clientType() === 'better-sqlite3') {
             if (pt.arguments.length > 1) {
               return fn(
                 {

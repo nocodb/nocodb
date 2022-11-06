@@ -13,6 +13,7 @@ class SwaggerTypes {
         SwaggerTypes.setSwaggerTypeForMssql(column, field);
         break;
       case 'sqlite3':
+      case 'better-sqlite3':
         SwaggerTypes.setSwaggerTypeForSqlite(column, field);
         break;
     }

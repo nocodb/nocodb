@@ -1,139 +1,90 @@
-import sqlite3 from 'sqlite3';
+import sqlite3 from 'better-sqlite3';
 import { Readable } from 'stream';
 
 class EntityMap {
-  initialized: boolean;
   cols: string[];
   db: any;
 
   constructor(...args) {
-    this.initialized = false;
     this.cols = args.map((arg) => processKey(arg));
-    this.db = new Promise((resolve, reject) => {
-      const db = new sqlite3.Database(':memory:');
+    this.db = new sqlite3(':memory:');
 
-      const colStatement =
-        this.cols.length > 0
-          ? this.cols.join(' TEXT, ') + ' TEXT'
-          : 'mappingPlaceholder TEXT';
-      db.run(`CREATE TABLE mapping (${colStatement})`, (err) => {
-        if (err) {
-          console.log(err);
-          reject(err);
-        }
-        resolve(db);
-      });
-    });
-  }
-
-  async init() {
-    if (!this.initialized) {
-      this.db = await this.db;
-      this.initialized = true;
-    }
+    const colStatement =
+      this.cols.length > 0
+        ? this.cols.join(' TEXT, ') + ' TEXT'
+        : 'mappingPlaceholder TEXT';
+    const stmt = this.db.prepare(`CREATE TABLE mapping (${colStatement})`);
+    stmt.run();
   }
 
   destroy() {
-    if (this.initialized && this.db) {
+    if (this.db) {
       this.db.close();
     }
   }
 
-  async addRow(row) {
-    if (!this.initialized) {
-      throw 'Please initialize first!';
-    }
-
+  addRow(row): void {
     const cols = Object.keys(row).map((key) => processKey(key));
     const colStatement = cols.map((key) => `'${key}'`).join(', ');
     const questionMarks = cols.map(() => '?').join(', ');
 
-    const promises = [];
-
     for (const col of cols.filter((col) => !this.cols.includes(col))) {
-      promises.push(
-        new Promise((resolve, reject) => {
-          this.db.run(`ALTER TABLE mapping ADD '${col}' TEXT;`, (err) => {
-            if (err) {
-              console.log(err);
-              reject(err);
-            }
-            this.cols.push(col);
-            resolve(true);
-          });
-        })
-      );
+      try {
+        const stmt = this.db.prepare(`ALTER TABLE mapping ADD '${col}' TEXT;`);
+        stmt.run();
+        this.cols.push(col);
+      } catch (e) {
+        console.log(e);
+      }
     }
-
-    await Promise.all(promises);
 
     const values = Object.values(row).map((val) => {
-      if (typeof val === 'object') {
+      if (typeof val === 'object' || typeof val === 'boolean') {
         return `JSON::${JSON.stringify(val)}`;
       }
-      return val;
+      return `${val}`;
     });
 
-    return new Promise((resolve, reject) => {
-      this.db.run(
-        `INSERT INTO mapping (${colStatement}) VALUES (${questionMarks})`,
-        values,
-        (err) => {
-          if (err) {
-            console.log(err);
-            reject(err);
-          }
-          resolve(true);
-        }
+    try {
+      const stmt = this.db.prepare(
+        `INSERT INTO mapping (${colStatement}) VALUES (${questionMarks})`
       );
-    });
+      stmt.run(values);
+    } catch (e) {
+      console.log(colStatement);
+      console.log(values);
+      console.log(e);
+    }
   }
 
-  getRow(col, val, res = []): Promise<Record<string, any>> {
-    if (!this.initialized) {
-      throw 'Please initialize first!';
-    }
-    return new Promise((resolve, reject) => {
-      col = processKey(col);
-      res = res.map((r) => processKey(r));
-      this.db.get(
-        `SELECT ${
-          res.length ? res.join(', ') : '*'
-        } FROM mapping WHERE ${col} = ?`,
-        [val],
-        (err, rs) => {
-          if (err) {
-            console.log(err);
-            reject(err);
-          }
-          if (rs) {
-            rs = processResponseRow(rs);
-          }
-          resolve(rs);
-        }
+  getRow(col, val, res = []): Record<string, any> {
+    col = processKey(col);
+    res = res.map((r) => processKey(r));
+
+    try {
+      const stmt = this.db.prepare(
+        `SELECT ${res.length ? res.join(', ') : '*'} FROM mapping WHERE ${col} = ?`
       );
-    });
+      const row = stmt.get(val);
+      return processResponseRow(row);
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
 
-  getCount(): Promise<number> {
-    if (!this.initialized) {
-      throw 'Please initialize first!';
+  getCount(): number {
+    try {
+      const stmt = this.db.prepare(`SELECT COUNT(*) as count FROM mapping`);
+      const row = stmt.get();
+      return row.count;
+    } catch (e) {
+      console.log(e);
+      return 0;
     }
-    return new Promise((resolve, reject) => {
-      this.db.get(`SELECT COUNT(*) as count FROM mapping`, (err, rs) => {
-        if (err) {
-          console.log(err);
-          reject(err);
-        }
-        resolve(rs.count);
-      });
-    });
   }
 
   getStream(res = []): DBStream {
-    if (!this.initialized) {
-      throw 'Please initialize first!';
-    }
     res = res.map((r) => processKey(r));
     return new DBStream(
       this.db,
@@ -141,28 +92,17 @@ class EntityMap {
     );
   }
 
-  getLimit(limit, offset, res = []): Promise<Record<string, any>[]> {
-    if (!this.initialized) {
-      throw 'Please initialize first!';
-    }
-    return new Promise((resolve, reject) => {
-      res = res.map((r) => processKey(r));
-      this.db.all(
-        `SELECT ${
-          res.length ? res.join(', ') : '*'
-        } FROM mapping LIMIT ${limit} OFFSET ${offset}`,
-        (err, rs) => {
-          if (err) {
-            console.log(err);
-            reject(err);
-          }
-          for (let row of rs) {
-            row = processResponseRow(row);
-          }
-          resolve(rs);
-        }
+  getLimit(limit, offset, res = []): Record<string, any>[] {
+    try {
+      const stmt = this.db.prepare(
+        `SELECT ${res.length ? res.join(', ') : '*'} FROM mapping LIMIT ${limit} OFFSET ${offset}`
       );
-    });
+      const rows = stmt.all();
+      return rows.map(processResponseRow);
+    } catch (e) {
+      console.log(e);
+      return [];
+    }
   }
 }
 
@@ -176,25 +116,19 @@ class DBStream extends Readable {
     this.db = db;
     this.sql = sql;
     this.stmt = this.db.prepare(this.sql);
-    this.on('end', () => this.stmt.finalize());
   }
 
   _read() {
     let stream = this;
-    this.stmt.get(function (err, result) {
-      if (err) {
-        stream.emit('error', err);
-      } else {
-        if (result) {
-          result = processResponseRow(result);
-        }
-        stream.push(result || null);
-      }
-    });
+    for (const row of this.stmt.iterate()) {
+      stream.push(processResponseRow(row));
+    }
+    stream.push(null);
   }
 }
 
-function processResponseRow(res: any) {
+function processResponseRow(res?: any) {
+  if (!res) return null;
   for (const key of Object.keys(res)) {
     if (res[key] && res[key].startsWith('JSON::')) {
       try {

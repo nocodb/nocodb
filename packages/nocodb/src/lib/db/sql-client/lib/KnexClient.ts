@@ -608,9 +608,12 @@ class KnexClient extends SqlClient {
         }
       }
       const tmpConnectionConfig =
-        connectionConfig.client === 'sqlite3'
+        connectionConfig.client === 'sqlite3' || connectionConfig.client === 'better-sqlite3'
           ? connectionConfig.connection
           : connectionConfig;
+      
+      tmpConnectionConfig.client = tmpConnectionConfig.client === 'sqlite3' ? 'better-sqlite3' : tmpConnectionConfig.client;
+
       this.sqlClient = knex(tmpConnectionConfig);
     }
     this.knex = this.sqlClient;

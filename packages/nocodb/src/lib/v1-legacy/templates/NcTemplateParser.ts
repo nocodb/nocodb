@@ -171,7 +171,7 @@ export default class NcTemplateParser {
         onUpdate: 'NO ACTION',
         parentColumn: parentPrimaryColumn.cn,
         parentTable: tableTemplate.tn,
-        type: this.client === 'sqlite3' ? 'virtual' : 'real',
+        type: this.client === 'sqlite3' || this.client === 'better-sqlite3' ? 'virtual' : 'real',
         updateRelation: false,
       });
     }
@@ -213,7 +213,7 @@ export default class NcTemplateParser {
         onUpdate: 'NO ACTION',
         parentColumn: parentPrimaryColumn.cn,
         parentTable: parentTable.tn,
-        type: this.client === 'sqlite3' ? 'virtual' : 'real',
+        type: this.client === 'sqlite3' || this.client === 'better-sqlite3' ? 'virtual' : 'real',
         updateRelation: false,
       });
     }

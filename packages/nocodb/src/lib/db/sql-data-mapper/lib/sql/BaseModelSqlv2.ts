@@ -1639,7 +1639,7 @@ class BaseModelSqlv2 {
   }
 
   get isSqlite() {
-    return this.clientType === 'sqlite3';
+    return this.clientType === 'sqlite3' || this.clientType === 'better-sqlite3';
   }
 
   get isMssql() {

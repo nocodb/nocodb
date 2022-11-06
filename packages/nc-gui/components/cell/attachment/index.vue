@@ -115,36 +115,45 @@ watch(
           attachments.value = []
         }
       }
+    } else {
+      if (isPublic.value && isForm.value) {
+        storedFiles.value = []
+      } else {
+        attachments.value = []
+      }
     }
   },
-  { immediate: true },
-)
+    {
+      immediate: true
+    }
+  ,
+  )
 
-/** updates attachments array for autosave */
-function updateModelValue(data: string | Record<string, any>[]) {
-  emits('update:modelValue', data)
-}
+    /** updates attachments array for autosave */
+    function updateModelValue(data: string | Record<string, any>[]) {
+      emits('update:modelValue', data)
+    }
 
-/** Close modal on escape press, disable dropzone as well */
-onKeyDown('Escape', () => {
-  modalVisible.value = false
-  isOverDropZone.value = false
-})
+    /** Close modal on escape press, disable dropzone as well */
+    onKeyDown('Escape', () => {
+      modalVisible.value = false
+      isOverDropZone.value = false
+    })
 
-/** sync storedFiles state with row state */
-watch(
-  () => storedFiles.value.length || 0,
-  () => {
-    rowState.value[column.value!.title!] = storedFiles.value
-  },
-)
+    /** sync storedFiles state with row state */
+    watch(
+      () => storedFiles.value.length || 0,
+      () => {
+        rowState.value[column.value!.title!] = storedFiles.value
+      },
+    )
 
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
-  if (e.key === 'Enter' && !isReadonly.value) {
-    e.stopPropagation()
-    modalVisible.value = true
-  }
-})
+    useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
+      if (e.key === 'Enter' && !isReadonly.value) {
+        e.stopPropagation()
+        modalVisible.value = true
+      }
+    })
 </script>
 
 <template>

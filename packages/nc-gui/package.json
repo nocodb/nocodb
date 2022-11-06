@@ -31,8 +31,8 @@
   },
   "dependencies": {
     "@ckpack/vue-color": "^1.2.0",
-    "@vue-flow/additional-components": "^1.1.0",
-    "@vue-flow/core": "^1.1.3",
+    "@vue-flow/additional-components": "^1.2.0",
+    "@vue-flow/core": "^1.3.0",
     "@vuelidate/core": "^2.0.0-alpha.44",
     "@vuelidate/validators": "^2.0.0-alpha.31",
     "@vueuse/core": "^9.0.2",

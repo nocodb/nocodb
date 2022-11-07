@@ -119,7 +119,7 @@ onBeforeUnmount($destroy)
 
 <style>
 .vue-flow__edges {
-  @apply z-1000;
+  @apply !z-1000;
 }
 
 .vue-flow__controls-zoomin {

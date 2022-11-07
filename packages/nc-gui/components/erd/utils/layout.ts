@@ -29,8 +29,11 @@ export function useLayout(skeleton: Ref<boolean>) {
   const colorScale = scaleLinear<string>().domain([0, 2]).range([theme.value.primaryColor, theme.value.accentColor])
 
   const layout: Function = flextree()
-    .nodeSize((n: TreeNode) => [n.data.dimensions.height + padding, n.data.dimensions.width + padding * (skeleton.value ? 2 : 1)])
-    .spacing(() => 1)
+    .nodeSize((n: TreeNode) => [
+      n.data.dimensions.height + padding / 2,
+      n.data.dimensions.width + padding * (skeleton.value ? 2 : 1),
+    ])
+    .spacing(() => 0)
 
   function layoutNodes(nodes: GraphNode[], edges: GraphEdge[]): GraphNode[] {
     // convert nodes and edges into a hierarchical object for using it with the layout function

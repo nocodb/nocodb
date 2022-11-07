@@ -81,6 +81,11 @@ provide(
               <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
               <LazySmartsheetKanban v-else-if="isKanban" />
+
+              <!--
+              todo: this could be an extension component, enabling custom views
+              <LazySmartsheetExtension v-else-if="isExtension" :name="activeView.meta.extensionId" />
+              -->
             </div>
           </div>
         </template>

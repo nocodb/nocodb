@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
+import type { Input } from 'ant-design-vue'
 import Sortable from 'sortablejs'
 import GithubButton from 'vue-github-button'
+import type { VNodeRef } from '#imports'
 import {
   Empty,
   computed,
@@ -207,6 +209,8 @@ function openTableCreateDialog() {
     close(1000)
   }
 }
+
+const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
 </script>
 
 <template>
@@ -217,6 +221,7 @@ function openTableCreateDialog() {
           <Transition name="slide-left" mode="out-in">
             <a-input
               v-if="searchActive"
+              :ref="searchInputRef"
               v-model:value="filterQuery"
               class="flex-1 rounded"
               :placeholder="$t('placeholder.searchProjectTree')"
@@ -230,7 +235,16 @@ function openTableCreateDialog() {
           </Transition>
 
           <Transition name="layout" mode="out-in">
-            <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="toggleSearchActive(false)" />
+            <MdiClose
+              v-if="searchActive"
+              class="text-lg mx-1 mt-0.5"
+              @click="
+                () => {
+                  filterQuery = ''
+                  toggleSearchActive(false)
+                }
+              "
+            />
             <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>

@@ -32,7 +32,7 @@ onNodesInitialized(() => {
     layout()
 
     fitView({ duration: 250, minZoom: 0.16 })
-  }, 50)
+  }, 100)
 })
 
 onNodeDoubleClick(({ node }) => {
@@ -69,7 +69,7 @@ watch(showSkeleton, (isSkeleton) => {
       minZoom: isSkeleton ? undefined : viewport.value.zoom,
       maxZoom: isSkeleton ? viewport.value.zoom : undefined,
     })
-  }, 0)
+  }, 100)
 })
 
 onScopeDispose($destroy)

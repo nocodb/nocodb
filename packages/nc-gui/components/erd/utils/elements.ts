@@ -158,9 +158,11 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       [
         {
           id: project.value.id!.toString(),
-          class: 'rounded-lg',
+          class: 'hidden w-0 h-0',
           label: project.value.title,
           position: { x: 0, y: 0 },
+          width: 0,
+          height: 0,
         },
       ],
     )

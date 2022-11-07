@@ -53,6 +53,13 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
+    const tableName = computed(() => (meta.value as TableType)?.table_name)
+
+    watch(() => tableName.value, () => {
+      search.field = ''
+      search.query = ''
+    })
+
     return {
       view,
       meta,

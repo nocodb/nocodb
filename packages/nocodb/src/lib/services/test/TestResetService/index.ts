@@ -96,9 +96,8 @@ export class TestResetService {
     if (dbType == 'sqlite') {
       await resetMetaSakilaSqliteProject({
         token,
-        metaKnex,
         title,
-        oldProject: project,
+        parallelId,
         isEmptyProject: this.isEmptyProject,
       });
     } else if (dbType == 'mysql') {
@@ -146,7 +145,7 @@ const removeAllPrefixedUsersExceptSuper = async (parallelId: string) => {
   );
 
   for (const user of users) {
-    if(user.email.startsWith(`nc_test_${parallelId}_`)) {
+    if (user.email.startsWith(`nc_test_${parallelId}_`)) {
       await NocoCache.del(`${CacheScope.USER}:${user.email}`);
       await User.delete(user.id);
     }

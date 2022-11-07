@@ -249,9 +249,6 @@ export function useViewData(
   ) {
     if (toUpdate.rowMeta) toUpdate.rowMeta.saving = true
 
-    // if the field name is missing return
-    if (!property) return
-
     try {
       const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
 
@@ -310,7 +307,10 @@ export function useViewData(
     if (row.rowMeta.new) {
       return await insertRow(row, ltarState, args)
     } else {
-      await updateRowProperty(row, property!, args)
+      // if the field name is missing skip update
+      if (property) {
+        await updateRowProperty(row, property, args)
+      }
     }
   }
 

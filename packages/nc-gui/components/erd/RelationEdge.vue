@@ -92,29 +92,27 @@ export default {
 
   <path class="opacity-0" :stroke-width="showSkeleton ? baseStroke * 12 : baseStroke * 8" fill="none" :d="edgePath[0]" />
 
-  <Transition name="layout">
-    <EdgeLabelRenderer>
-      <div
-        :style="{
-          position: 'absolute',
-          transform: `translate(-50%, -50%) translate(${edgePath[1]}px,${edgePath[2]}px)`,
-          color: 'white',
-          fontSize: `${showSkeleton ? baseStroke * 2 : baseStroke / 2}rem`,
-          backgroundColor: data.color,
-          borderRadius: '0.25rem',
-          padding: '0.25rem 0.5rem',
-        }"
-        class="nodrag nopan"
-        :class="[
-          selected || isHovering ? 'opacity-100 z-1000' : 'opacity-0 !pointer-events-none',
-          showSkeleton ? '!text-6xl' : '!text-xs',
-          `nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`,
-        ]"
-      >
-        {{ showSkeleton ? data.simpleLabel : data.label }}
-      </div>
-    </EdgeLabelRenderer>
-  </Transition>
+  <EdgeLabelRenderer>
+    <div
+      :style="{
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${edgePath[1]}px,${edgePath[2]}px)`,
+        color: 'white',
+        fontSize: `${showSkeleton ? baseStroke * 2 : baseStroke / 2}rem`,
+        backgroundColor: data.color,
+        borderRadius: '0.25rem',
+        padding: '0.25rem 0.5rem',
+      }"
+      class="nodrag nopan color-transition z-1000"
+      :class="[
+        selected || isHovering ? 'opacity-100' : 'opacity-0 !pointer-events-none',
+        showSkeleton ? '!text-6xl' : '!text-xs',
+        `nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`,
+      ]"
+    >
+      {{ showSkeleton ? data.simpleLabel : data.label }}
+    </div>
+  </EdgeLabelRenderer>
 
   <template v-if="!showSkeleton">
     <rect

@@ -1,14 +1,14 @@
 import { NcContext } from '.';
+const mysql = require('mysql2');
 
-import axios from 'axios';
+import { PromisedDatabase } from 'promised-sqlite3';
+const sqliteDb = new PromisedDatabase();
 
 const isMysql = (context: NcContext) => context.dbType === 'mysql';
 
 const isSqlite = (context: NcContext) => context.dbType === 'sqlite';
 
 const isPg = (context: NcContext) => context.dbType === 'pg';
-
-const mysql = require('mysql2');
 
 const mysqlExec = async query => {
   // creates a new mysql connection using credentials from cypress.json env's
@@ -34,14 +34,12 @@ const mysqlExec = async query => {
 };
 
 async function sqliteExec(query) {
-  try {
-    await axios.post('http://localhost:8080/api/v1/meta/test/sqlite_exec', {
-      sql: query,
-    });
-  } catch (e) {
-    console.error(e);
-    throw e;
-  }
+  const parallelIndex = process.env.TEST_PARALLEL_INDEX;
+  const rootProjectDir = __dirname.replace('/scripts/playwright/setup', '');
+  await sqliteDb.open(`${rootProjectDir}/packages/nocodb/test_sakila_${parallelIndex}.db`);
+
+  await sqliteDb.run(query);
+  await sqliteDb.close();
 }
 
 export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg };

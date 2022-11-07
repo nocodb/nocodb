@@ -37,6 +37,9 @@ export class ProjectsPage extends BasePage {
       await createProjectMenu.locator(`.ant-dropdown-menu-title-content`).nth(1).click();
     }
 
+    // todo: Fast page transition breaks the vue router
+    await this.rootPage.waitForTimeout(2000);
+
     await this.rootPage.locator(`.nc-metadb-project-name`).waitFor();
     await this.rootPage.locator(`input.nc-metadb-project-name`).fill(name);
     await this.rootPage.locator(`input.nc-metadb-project-name`).press('Enter');
@@ -78,6 +81,9 @@ export class ProjectsPage extends BasePage {
     withoutPrefix?: boolean;
     waitForAuthTab?: boolean;
   }) {
+    // todo: Fast page transition breaks the vue router
+    await this.rootPage.waitForTimeout(2000);
+
     if (!withoutPrefix) title = this.prefixTitle(title);
 
     let project: any;
@@ -144,6 +150,10 @@ export class ProjectsPage extends BasePage {
       has: project.locator(`td.ant-table-cell:has-text("${title}")`),
     });
     await projRow.locator('.nc-action-btn').nth(0).click();
+
+    // todo: Fast page transition breaks the vue router
+    await this.rootPage.waitForTimeout(2000);
+
     await project.locator('input.nc-metadb-project-name').fill(newTitle);
     // press enter to save
     const submitAction = project.locator('input.nc-metadb-project-name').press('Enter');

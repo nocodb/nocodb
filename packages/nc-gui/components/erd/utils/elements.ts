@@ -4,7 +4,7 @@ import type { MaybeRef } from '@vueuse/core'
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import type { ERDConfig, EdgeData, NodeData, Relation } from './types'
-import { computed, ref, unref, useMetas, useProject, watch } from '#imports'
+import { computed, ref, unref, useMetas, watch } from '#imports'
 
 /**
  * This util is used to generate the ERD graph elements and layout them
@@ -16,8 +16,6 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
   const elements = ref<Elements<NodeData | EdgeData>>([])
 
   const { metasWithIdAsKey } = useMetas()
-
-  const { project } = useProject()
 
   const erdTables = computed(() => unref(tables))
   const config = $computed(() => unref(props))
@@ -158,9 +156,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       },
       [
         {
-          id: project.value.id!.toString(),
+          id: '0',
           class: 'hidden w-0 h-0',
-          label: project.value.title,
           position: { x: 0, y: 0 },
           width: 0,
           height: 0,

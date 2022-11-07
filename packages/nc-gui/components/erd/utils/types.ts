@@ -39,6 +39,7 @@ export interface Relation {
 }
 
 export interface TreeNode {
+  id: string
   data: GraphNode<NodeData>
   x: number
   y: number

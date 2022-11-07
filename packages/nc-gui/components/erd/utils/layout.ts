@@ -7,7 +7,7 @@ import tinycolor from 'tinycolor2'
 // @ts-expect-error no types for flextree
 import { flextree } from 'd3-flextree'
 import type { TreeNode } from './types'
-import { useProject, useTheme } from '#imports'
+import { useTheme } from '#imports'
 
 const padding = 150
 
@@ -18,7 +18,7 @@ const boxShadow = (skeleton: boolean, color: string) => ({
 
 /**
  * Utility to create a layout of current nodes
- * Should be executed after nodes have been passed to Vue Flow, so we can use the *actual* dimensions and not guess them
+ * Should be executed after nodes have been passed to Vue Flow, so we can use the *actual* dimensisons and not guess them
  * @param skeleton
  */
 export function useLayout(skeleton: Ref<boolean>) {
@@ -26,15 +26,13 @@ export function useLayout(skeleton: Ref<boolean>) {
 
   const { theme } = useTheme()
 
-  const { project } = useProject()
-
   const colorScale = scaleLinear<string>().domain([0, 2]).range([theme.value.primaryColor, theme.value.accentColor])
 
   const layout: Function = flextree()
     .nodeSize((n: TreeNode) => [n.data.dimensions.height + padding, n.data.dimensions.width + padding * (skeleton.value ? 3 : 1)])
-    .spacing((nodeA: TreeNode, nodeB: TreeNode) => nodeA.path(nodeB).length)
+    .spacing(() => 1)
 
-  function layoutNodes(nodes: GraphNode[], edges: GraphEdge[], projectId: string): GraphNode[] {
+  function layoutNodes(nodes: GraphNode[], edges: GraphEdge[]): GraphNode[] {
     // convert nodes and edges into a hierarchical object for using it with the layout function
     const hierarchy = stratify<GraphNode>()
       .id((d) => d.id)
@@ -46,7 +44,7 @@ export function useLayout(skeleton: Ref<boolean>) {
         if (sourceNodeId) return sourceNodeId
 
         // if no parent relational table can be found, use the project id as the parent id (this is the root node, otherwise we have multiple root nodes)
-        return d.id !== projectId ? projectId : undefined
+        return d.id !== '0' ? '0' : undefined
       })(nodes)
 
     // run the layout algorithm with the hierarchy data structure
@@ -56,6 +54,8 @@ export function useLayout(skeleton: Ref<boolean>) {
     // we only extract the position and depth from the d3 function
     // we also flip the x and y coords to get the correct orientation (L to R)
     return root.descendants().forEach((d: TreeNode) => {
+      if (d.id === '0') return
+
       const color = colorScale(d.depth)
       d.data.position = { x: d.y, y: d.x }
       d.data.data = { ...d.data.data, depth: d.depth, color }
@@ -70,7 +70,7 @@ export function useLayout(skeleton: Ref<boolean>) {
   }
 
   return () => {
-    layoutNodes(getNodes.value, getEdges.value, project.value.id!)
+    layoutNodes(getNodes.value, getEdges.value)
 
     getEdges.value.forEach((edge) => {
       const node = findNode(edge.source)

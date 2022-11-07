@@ -3,9 +3,8 @@ import { Background, Controls, Panel, PanelPosition } from '@vue-flow/additional
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { TableType } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
-import { useErdElements } from './utils'
+import { useErdElements, useLayout } from './utils'
 import { computed, onScopeDispose, toRefs, watch } from '#imports'
-import useLayout from '~/components/erd/useLayout'
 
 interface Props {
   tables: TableType[]
@@ -16,55 +15,61 @@ const props = defineProps<Props>()
 
 const { tables, config } = toRefs(props)
 
-const { $destroy, fitView, onPaneReady, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
+const { $destroy, fitView, onNodesInitialized, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
 
-const { layout, elements } = useErdElements(tables, config)
-
-const _layout = useLayout()
+const { elements } = useErdElements(tables, config)
 
 const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
-function init() {
-  _layout()
-
-  if (!showSkeleton.value) {
-    setTimeout(zoomIn, 100)
-  }
-}
+const layout = useLayout(showSkeleton)
 
 function zoomIn(nodeId?: string) {
   fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 300, minZoom: 0.2 })
 }
 
-layout(showSkeleton.value)
-
-onPaneReady(() => {
+onNodesInitialized(() => {
   setTimeout(() => {
-    fitView({ duration: 250, minZoom: 0.16 })
+    layout()
 
-    _layout()
-  }, 100)
+    fitView({ duration: 250, minZoom: 0.16 })
+  }, 50)
 })
 
 onNodeDoubleClick(({ node }) => {
   if (showSkeleton.value) zoomIn()
 
-  setTimeout(() => {
-    zoomIn(node.id)
-  }, 250)
+  setTimeout(
+    () => {
+      zoomIn(node.id)
+    },
+    showSkeleton.value ? 250 : 0,
+  )
 })
 
-watch(tables, init)
+watch(
+  tables,
+  () => {
+    setTimeout(() => {
+      layout()
+
+      if (!showSkeleton.value) {
+        setTimeout(zoomIn, 100)
+      }
+    }, 0)
+  },
+  { flush: 'post' },
+)
 
 watch(showSkeleton, (isSkeleton) => {
-  layout(isSkeleton)
   setTimeout(() => {
+    layout()
+
     fitView({
       duration: 300,
       minZoom: isSkeleton ? undefined : viewport.value.zoom,
       maxZoom: isSkeleton ? viewport.value.zoom : undefined,
     })
-  }, 100)
+  }, 0)
 })
 
 onScopeDispose($destroy)

@@ -301,6 +301,9 @@ export function useViewData(
     ltarState?: Record<string, any>,
     args: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
+    // update changed status
+    if (row.rowMeta) row.rowMeta.changed = false
+
     // if new row and save is in progress then wait until the save is complete
     await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
 

@@ -120,7 +120,7 @@ watch(
 
 /** updates attachments array for autosave */
 function updateModelValue(data: string | Record<string, any>[]) {
-  emits('update:modelValue', typeof data === 'string' ? data : JSON.stringify(data))
+  emits('update:modelValue', data)
 }
 
 /** Close modal on escape press, disable dropzone as well */

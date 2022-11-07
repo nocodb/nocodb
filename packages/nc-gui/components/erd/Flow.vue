@@ -4,7 +4,7 @@ import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { TableType } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
 import { useErdElements, useLayout } from './utils'
-import { computed, onScopeDispose, toRefs, watch } from '#imports'
+import { computed, onBeforeUnmount, toRefs, watch } from '#imports'
 
 interface Props {
   tables: TableType[]
@@ -49,9 +49,9 @@ onNodeDoubleClick(({ node }) => {
 watch(
   tables,
   () => {
-    setTimeout(() => {
-      layout()
+    layout()
 
+    setTimeout(() => {
       if (!showSkeleton.value) {
         setTimeout(zoomIn, 100)
       }
@@ -72,7 +72,7 @@ watch(showSkeleton, (isSkeleton) => {
   }, 100)
 })
 
-onScopeDispose($destroy)
+onBeforeUnmount($destroy)
 </script>
 
 <template>

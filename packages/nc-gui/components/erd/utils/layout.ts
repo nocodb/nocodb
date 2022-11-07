@@ -22,7 +22,7 @@ const boxShadow = (skeleton: boolean, color: string) => ({
  * @param skeleton
  */
 export function useLayout(skeleton: Ref<boolean>) {
-  const { getNodes, setNodes, getEdges, findNode } = useVueFlow()
+  const { getNodes, getEdges, findNode } = useVueFlow()
 
   const { theme } = useTheme()
 
@@ -55,36 +55,22 @@ export function useLayout(skeleton: Ref<boolean>) {
     // convert the hierarchy back to vue flow nodes (the original node is stored as d.data)
     // we only extract the position and depth from the d3 function
     // we also flip the x and y coords to get the correct orientation (L to R)
-    return root
-      .descendants()
-      .map((d: TreeNode) => ({ ...d.data, position: { x: d.y, y: d.x }, data: { ...d.data.data, depth: d.depth } }))
+    return root.descendants().forEach((d: TreeNode) => {
+      const color = colorScale(d.depth)
+      d.data.position = { x: d.y, y: d.x }
+      d.data.data = { ...d.data.data, depth: d.depth, color }
+      d.data.style = (n: GraphNode) => {
+        if (n.selected) {
+          return boxShadow(skeleton.value, color)
+        }
+
+        return boxShadow(skeleton.value, skeleton.value ? color : '#64748B')
+      }
+    })
   }
 
   return () => {
-    // run the layout and get back the nodes with their updated positions
-    const targetNodes = layoutNodes(getNodes.value, getEdges.value, project.value.id!)
-
-    // if you do not want to animate the nodes, you can uncomment the following line
-    setNodes(
-      targetNodes.map((node) => {
-        const color = colorScale(node.data.depth)
-
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            color,
-          },
-          style: (n) => {
-            if (n.selected) {
-              return boxShadow(skeleton.value, color)
-            }
-
-            return boxShadow(skeleton.value, skeleton.value ? color : '#64748B')
-          },
-        }
-      }),
-    )
+    layoutNodes(getNodes.value, getEdges.value, project.value.id!)
 
     getEdges.value.forEach((edge) => {
       const node = findNode(edge.source)

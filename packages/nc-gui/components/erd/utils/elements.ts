@@ -148,6 +148,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
             showAllColumns: config.showAllColumns,
             columnLength: columns.length,
             color: '',
+            depth: 0,
           },
           type: 'custom',
           position: { x: 0, y: 0 },

@@ -18,6 +18,7 @@ export interface NodeData {
   showAllColumns: boolean
   color: string
   columnLength: number
+  depth: number
 }
 
 export interface EdgeData {

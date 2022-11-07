@@ -49,15 +49,27 @@ onNodeDoubleClick(({ node }) => {
 watch(
   tables,
   () => {
-    layout()
-
     setTimeout(() => {
+      layout()
+
       if (!showSkeleton.value) {
         setTimeout(zoomIn, 100)
       }
     }, 0)
   },
   { flush: 'post' },
+)
+
+watch(
+  config,
+  () => {
+    setTimeout(() => {
+      layout()
+
+      if (!showSkeleton.value) fitView({ duration: 250, minZoom: 0.16 })
+    }, 100)
+  },
+  { deep: true },
 )
 
 watch(showSkeleton, (isSkeleton) => {
@@ -80,7 +92,7 @@ onBeforeUnmount($destroy)
     <Controls class="rounded" :position="PanelPosition.BottomLeft" :show-fit-view="false" :show-interactive="false" />
 
     <template #node-custom="{ data, dragging }">
-      <ErdTableNode :data="data" :dragging="dragging" :show-skeleton="showSkeleton" />
+      <ErdTableNode :config="config" :data="data" :dragging="dragging" :show-skeleton="showSkeleton" />
     </template>
 
     <template #edge-custom="edgeProps">
@@ -106,6 +118,10 @@ onBeforeUnmount($destroy)
 </template>
 
 <style>
+.vue-flow__edges {
+  @apply z-1000;
+}
+
 .vue-flow__controls-zoomin {
   @apply rounded-t;
 }

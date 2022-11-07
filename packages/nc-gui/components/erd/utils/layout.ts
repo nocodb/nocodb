@@ -18,18 +18,18 @@ const boxShadow = (skeleton: boolean, color: string) => ({
 
 /**
  * Utility to create a layout of current nodes
- * Should be executed after nodes have been passed to Vue Flow, so we can use the *actual* dimensisons and not guess them
+ * Should be executed after nodes have been passed to Vue Flow, so we can use the *actual* dimensions and not guess them
  * @param skeleton
  */
 export function useLayout(skeleton: Ref<boolean>) {
-  const { getNodes, getEdges, findNode } = useVueFlow()
+  const { nodes, edges, findNode } = useVueFlow()
 
   const { theme } = useTheme()
 
   const colorScale = scaleLinear<string>().domain([0, 2]).range([theme.value.primaryColor, theme.value.accentColor])
 
   const layout: Function = flextree()
-    .nodeSize((n: TreeNode) => [n.data.dimensions.height + padding, n.data.dimensions.width + padding * (skeleton.value ? 3 : 1)])
+    .nodeSize((n: TreeNode) => [n.data.dimensions.height + padding, n.data.dimensions.width + padding * (skeleton.value ? 2 : 1)])
     .spacing(() => 1)
 
   function layoutNodes(nodes: GraphNode[], edges: GraphEdge[]): GraphNode[] {
@@ -70,9 +70,9 @@ export function useLayout(skeleton: Ref<boolean>) {
   }
 
   return () => {
-    layoutNodes(getNodes.value, getEdges.value)
+    layoutNodes(nodes.value, edges.value)
 
-    getEdges.value.forEach((edge) => {
+    edges.value.forEach((edge) => {
       const node = findNode(edge.source)
 
       if (node) {

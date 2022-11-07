@@ -67,12 +67,10 @@ const populateTables = async () => {
 }
 
 watch([metas, projectTables], populateTables, {
-  flush: 'post',
   immediate: true,
 })
 
-watch(config, populateTables, {
-  flush: 'post',
+watch([() => config.showMMTables, () => config.singleTableMode, () => config.showViews], populateTables, {
   deep: true,
 })
 

@@ -124,27 +124,13 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       (acc, table) => {
         if (!table.id) return acc
 
-        const columns =
-          metasWithIdAsKey.value[table.id].columns?.filter(
-            (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
-          ) || []
-
-        const pkAndFkColumns = columns.filter(() => config.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
-
-        const nonPkColumns = columns.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
-
         acc.push({
           id: table.id,
           targetPosition: Position.Left,
           sourcePosition: Position.Right,
           class: 'rounded-lg',
           data: {
-            table: metasWithIdAsKey.value[table.id],
-            pkAndFkColumns,
-            nonPkColumns,
-            showPkAndFk: config.showPkAndFk,
-            showAllColumns: config.showAllColumns,
-            columnLength: columns.length,
+            tableId: table.id,
             color: '',
             depth: 0,
           },
@@ -159,6 +145,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           id: '0',
           class: 'hidden w-0 h-0',
           position: { x: 0, y: 0 },
+          hidden: true,
           width: 0,
           height: 0,
         },

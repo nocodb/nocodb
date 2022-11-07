@@ -1,5 +1,4 @@
 import type { GraphNode } from '@vue-flow/core'
-import type { ColumnType, TableType } from 'nocodb-sdk'
 
 export interface ERDConfig {
   showPkAndFk: boolean
@@ -11,13 +10,8 @@ export interface ERDConfig {
 }
 
 export interface NodeData {
-  table: TableType
-  pkAndFkColumns: ColumnType[]
-  nonPkColumns: ColumnType[]
-  showPkAndFk: boolean
-  showAllColumns: boolean
+  tableId: string
   color: string
-  columnLength: number
   depth: number
 }
 

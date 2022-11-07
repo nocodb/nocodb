@@ -255,39 +255,40 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
   const layout = (skeleton = false) => {
     elements.value = [...createNodes(), ...createEdges()] as Elements<NodeData | EdgeData>
 
+    /**
+     * elements.value.forEach((el) => {
+     *       if (isNode(el)) {
+     *         const node = el as Node<NodeData>
+     *         const colLength = node.data!.columnLength
+     *
+     *         const width = skeleton ? nodeWidth * 3 : nodeWidth
+     *         const height = nodeHeight + (skeleton ? 250 : colLength > 0 ? nodeHeight * colLength : nodeHeight)
+     *         dagreGraph.setNode(el.id, {
+     *           width,
+     *           height,
+     *         })
+     *       } else if (isEdge(el)) {
+     *         dagreGraph.setEdge(el.source, el.target)
+     *       }
+     *     })
+     *
+     *     dagre.layout(dagreGraph)
+     */
+
     elements.value.forEach((el) => {
       if (isNode(el)) {
-        const node = el as Node<NodeData>
-        const colLength = node.data!.columnLength
+        // const color = colorScale(dagreGraph.predecessors(el.id)!.length)
 
-        const width = skeleton ? nodeWidth * 3 : nodeWidth
-        const height = nodeHeight + (skeleton ? 250 : colLength > 0 ? nodeHeight * colLength : nodeHeight)
-        dagreGraph.setNode(el.id, {
-          width,
-          height,
-        })
-      } else if (isEdge(el)) {
-        dagreGraph.setEdge(el.source, el.target)
-      }
-    })
-
-    dagre.layout(dagreGraph)
-
-    elements.value.forEach((el) => {
-      if (isNode(el)) {
-        const color = colorScale(dagreGraph.predecessors(el.id)!.length)
-
-        const nodeWithPosition = dagreGraph.node(el.id)
+        // const nodeWithPosition = dagreGraph.node(el.id)
 
         el.targetPosition = Position.Left
         el.sourcePosition = Position.Right
-        el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
         el.class = ['rounded-lg'].join(' ')
-        el.data.color = color
+        el.data.color = '#64748B'
 
         el.style = (n) => {
           if (n.selected) {
-            return boxShadow(skeleton, color)
+            return boxShadow(skeleton, '#64748B')
           }
 
           return boxShadow(skeleton, '#64748B')

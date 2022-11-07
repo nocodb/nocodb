@@ -5,6 +5,7 @@ import type { TableType } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
 import { useErdElements } from './utils'
 import { computed, onScopeDispose, toRefs, watch } from '#imports'
+import useLayout from '~/components/erd/useLayout'
 
 interface Props {
   tables: TableType[]
@@ -19,10 +20,13 @@ const { $destroy, fitView, onPaneReady, viewport, onNodeDoubleClick } = useVueFl
 
 const { layout, elements } = useErdElements(tables, config)
 
+const _layout = useLayout()
+
 const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
 function init() {
-  layout(showSkeleton.value)
+  _layout()
+
   if (!showSkeleton.value) {
     setTimeout(zoomIn, 100)
   }
@@ -32,11 +36,13 @@ function zoomIn(nodeId?: string) {
   fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 300, minZoom: 0.2 })
 }
 
-onPaneReady(() => {
-  layout(showSkeleton.value)
+layout(showSkeleton.value)
 
+onPaneReady(() => {
   setTimeout(() => {
     fitView({ duration: 250, minZoom: 0.16 })
+
+    _layout()
   }, 100)
 })
 
@@ -49,6 +55,7 @@ onNodeDoubleClick(({ node }) => {
 })
 
 watch(tables, init)
+
 watch(showSkeleton, (isSkeleton) => {
   layout(isSkeleton)
   setTimeout(() => {

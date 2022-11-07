@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
+import { isSqlite } from '../setup/db';
 
 // Add formula to be verified here & store expected results for 5 rows
 // Column data from City table (Sakila DB)
@@ -87,6 +88,9 @@ test.describe('Virtual Columns', () => {
 
     // verify different formula's
     for (let i = 1; i < formulaData.length; i++) {
+      // Sqlite does not support log function
+      if (isSqlite(context) && formulaData[i].formula.includes('LOG(')) continue;
+
       await dashboard.grid.column.openEdit({
         title: 'NC_MATH_0',
         type: 'Formula',

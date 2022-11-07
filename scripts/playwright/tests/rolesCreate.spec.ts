@@ -113,7 +113,11 @@ test.describe('User roles', () => {
       password: 'Password123.',
     });
 
-    await projectsPage.openProject({ title: 'externalREST', waitForAuthTab: roleDb[roleIdx].role === 'creator' });
+    await projectsPage.openProject({
+      title: context.project.title,
+      waitForAuthTab: roleDb[roleIdx].role === 'creator',
+      withoutPrefix: true,
+    });
 
     // close 'Team & Auth' tab
     if (roleDb[roleIdx].role === 'creator') {

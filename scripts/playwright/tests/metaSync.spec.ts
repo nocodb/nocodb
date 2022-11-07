@@ -10,7 +10,6 @@ test.describe('Meta sync', () => {
   let settings: SettingsPage;
   let context: NcContext;
   let dbExec;
-  let projectPrefix;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
@@ -25,8 +24,6 @@ test.describe('Meta sync', () => {
         dbExec = mysqlExec;
         break;
     }
-
-    projectPrefix = isSqlite(context) ? context.project.prefix : '';
   });
 
   test('Meta sync', async () => {
@@ -35,18 +32,18 @@ test.describe('Meta sync', () => {
     await dashboard.gotoSettings();
     await settings.selectTab({ tab: SettingTab.ProjectMetadata });
 
-    await dbExec(`CREATE TABLE ${projectPrefix}table1 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
-    await dbExec(`CREATE TABLE ${projectPrefix}table2 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
+    await dbExec(`CREATE TABLE table1 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
+    await dbExec(`CREATE TABLE table2 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
 
     await settings.metaData.clickReload();
     await settings.metaData.verifyRow({
       index: 16,
-      model: `${projectPrefix}table1`,
+      model: `table1`,
       state: 'New table',
     });
     await settings.metaData.verifyRow({
       index: 17,
-      model: `${projectPrefix}table2`,
+      model: `table2`,
       state: 'New table',
     });
 
@@ -64,9 +61,9 @@ test.describe('Meta sync', () => {
 
     if (!isSqlite(context)) {
       // Add relation
-      await dbExec(`ALTER TABLE ${projectPrefix}table1 ADD INDEX fk1_idx (col1 ASC) VISIBLE`);
+      await dbExec(`ALTER TABLE table1 ADD INDEX fk1_idx (col1 ASC) VISIBLE`);
       await dbExec(
-        `ALTER TABLE ${projectPrefix}table1 ADD CONSTRAINT fk1 FOREIGN KEY (col1) REFERENCES ${projectPrefix}table2 (id) ON DELETE NO ACTION ON UPDATE NO ACTION`
+        `ALTER TABLE table1 ADD CONSTRAINT fk1 FOREIGN KEY (col1) REFERENCES table2 (id) ON DELETE NO ACTION ON UPDATE NO ACTION`
       );
       await settings.metaData.clickReload();
       await settings.metaData.verifyRow({
@@ -84,8 +81,8 @@ test.describe('Meta sync', () => {
       });
 
       // Remove relation
-      await dbExec(`ALTER TABLE ${projectPrefix}table1 DROP FOREIGN KEY fk1`);
-      await dbExec(`ALTER TABLE ${projectPrefix}table1 DROP INDEX fk1_idx`);
+      await dbExec(`ALTER TABLE table1 DROP FOREIGN KEY fk1`);
+      await dbExec(`ALTER TABLE table1 DROP INDEX fk1_idx`);
       await settings.metaData.clickReload();
       await settings.metaData.verifyRow({
         index: 16,
@@ -105,8 +102,8 @@ test.describe('Meta sync', () => {
     // Add column
     await dbExec(
       isSqlite(context)
-        ? `ALTER TABLE ${projectPrefix}table1 ADD COLUMN newCol TEXT NULL`
-        : `ALTER TABLE ${projectPrefix}table1 ADD COLUMN newCol VARCHAR(45) NULL AFTER id`
+        ? `ALTER TABLE table1 ADD COLUMN newCol TEXT NULL`
+        : `ALTER TABLE table1 ADD COLUMN newCol VARCHAR(45) NULL AFTER id`
     );
     await settings.metaData.clickReload();
     await settings.metaData.verifyRow({
@@ -126,8 +123,8 @@ test.describe('Meta sync', () => {
     // Edit column
     await dbExec(
       isSqlite(context)
-        ? `ALTER TABLE ${projectPrefix}table1 RENAME COLUMN newCol TO newColName`
-        : `ALTER TABLE ${projectPrefix}table1 CHANGE COLUMN newCol newColName VARCHAR(45) NULL DEFAULT NULL`
+        ? `ALTER TABLE table1 RENAME COLUMN newCol TO newColName`
+        : `ALTER TABLE table1 CHANGE COLUMN newCol newColName VARCHAR(45) NULL DEFAULT NULL`
     );
     await settings.metaData.clickReload();
     await settings.metaData.verifyRow({
@@ -147,7 +144,7 @@ test.describe('Meta sync', () => {
     // Delete column
     // todo: Add for sqlite
     if (!isSqlite(context)) {
-      await dbExec(`ALTER TABLE ${projectPrefix}table1 DROP COLUMN newColName`);
+      await dbExec(`ALTER TABLE table1 DROP COLUMN newColName`);
       await settings.metaData.clickReload();
       await settings.metaData.verifyRow({
         index: 16,
@@ -165,17 +162,17 @@ test.describe('Meta sync', () => {
     }
 
     // Delete table
-    await dbExec(`DROP TABLE ${projectPrefix}table1`);
-    await dbExec(`DROP TABLE ${projectPrefix}table2`);
+    await dbExec(`DROP TABLE table1`);
+    await dbExec(`DROP TABLE table2`);
     await settings.metaData.clickReload();
     await settings.metaData.verifyRow({
       index: 16,
-      model: `${projectPrefix}table1`,
+      model: `table1`,
       state: 'Table removed',
     });
     await settings.metaData.verifyRow({
       index: 17,
-      model: `${projectPrefix}table2`,
+      model: `table2`,
       state: 'Table removed',
     });
 
@@ -209,10 +206,10 @@ test.describe('Meta sync', () => {
 
   test('Hide, filter, sort', async () => {
     await dbExec(
-      `CREATE TABLE ${projectPrefix}table1 (id INT NOT NULL, col1 INT NULL, col2 INT NULL, col3 INT NULL, col4 INT NULL, PRIMARY KEY (id))`
+      `CREATE TABLE table1 (id INT NOT NULL, col1 INT NULL, col2 INT NULL, col3 INT NULL, col4 INT NULL, PRIMARY KEY (id))`
     );
     await dbExec(
-      `INSERT INTO ${projectPrefix}table1 (id, col1, col2, col3, col4) VALUES (1,1,1,1,1), (2,2,2,2,2), (3,3,3,3,3), (4,4,4,4,4), (5,5,5,5,5), (6,6,6,6,6), (7,7,7,7,7), (8,8,8,8,8), (9,9,9,9,9);`
+      `INSERT INTO table1 (id, col1, col2, col3, col4) VALUES (1,1,1,1,1), (2,2,2,2,2), (3,3,3,3,3), (4,4,4,4,4), (5,5,5,5,5), (6,6,6,6,6), (7,7,7,7,7), (8,8,8,8,8), (9,9,9,9,9);`
     );
 
     await dashboard.gotoSettings();

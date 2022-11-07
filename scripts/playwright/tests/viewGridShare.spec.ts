@@ -1,12 +1,12 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
+import { isSqlite } from '../setup/db';
 
 test.describe('Shared view', () => {
   let dashboard: DashboardPage;
   let context: any;
 
-  let mainPageLink: string;
   let sharedLink: string;
 
   test.beforeEach(async ({ page }) => {
@@ -46,8 +46,6 @@ test.describe('Shared view', () => {
       isLocallySaved: false,
     });
 
-    mainPageLink = page.url();
-
     // share with password disabled, download enabled
     await dashboard.grid.toolbar.clickShareView();
     sharedLink = await dashboard.grid.toolbar.shareView.getShareLink();
@@ -79,38 +77,16 @@ test.describe('Shared view', () => {
       await sharedPage.grid.column.verify(column);
     }
 
-    const expectedRecords = [
-      { index: 0, columnHeader: 'Address', value: '1013 Tabuk Boulevard' },
-      {
-        index: 1,
-        columnHeader: 'Address',
-        value: '1892 Nabereznyje Telny Lane',
-      },
-      { index: 2, columnHeader: 'Address', value: '1993 Tabuk Lane' },
-      { index: 0, columnHeader: 'District', value: 'West Bengali' },
-      { index: 1, columnHeader: 'District', value: 'Tutuila' },
-      { index: 2, columnHeader: 'District', value: 'Tamil Nadu' },
-      { index: 0, columnHeader: 'PostalCode', value: '96203' },
-      { index: 1, columnHeader: 'PostalCode', value: '28396' },
-      { index: 2, columnHeader: 'PostalCode', value: '64221' },
-      { index: 0, columnHeader: 'Phone', value: '158399646978' },
-      { index: 1, columnHeader: 'Phone', value: '478229987054' },
-      { index: 2, columnHeader: 'Phone', value: '648482415405' },
-    ];
-
+    const expectedRecordsByDb = isSqlite(context) ? sqliteExpectedRecords : expectedRecords;
     // verify order of records (original sort & filter)
-    for (const record of expectedRecords) {
+    for (const record of expectedRecordsByDb) {
       await sharedPage.grid.cell.verify(record);
     }
-    const expectedVirtualRecords = [
-      { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
-      { index: 1, columnHeader: 'Customer List', count: 1, value: ['2'] },
-      { index: 0, columnHeader: 'City', count: 1, value: ['Kanchrapara'] },
-      { index: 1, columnHeader: 'City', count: 1, value: ['Tafuna'] },
-    ];
+
+    const expectedVirtualRecordsByDb = isSqlite(context) ? sqliteExpectedVirtualRecords : expectedVirtualRecords;
 
     // verify virtual records
-    for (const record of expectedVirtualRecords) {
+    for (const record of expectedVirtualRecordsByDb) {
       await sharedPage.grid.cell.verifyVirtualCell(record);
     }
 
@@ -127,12 +103,15 @@ test.describe('Shared view', () => {
       isAscending: true,
       isLocallySaved: true,
     });
-    await sharedPage.grid.toolbar.filter.addNew({
-      columnTitle: 'District',
-      value: 'Ta',
-      opType: 'is like',
-      isLocallySaved: true,
-    });
+
+    if (!isSqlite(context)) {
+      await sharedPage.grid.toolbar.filter.addNew({
+        columnTitle: 'District',
+        value: 'Ta',
+        opType: 'is like',
+        isLocallySaved: true,
+      });
+    }
     await sharedPage.grid.toolbar.fields.toggle({ title: 'LastUpdate', isLocallySaved: true });
     expectedColumns[6].isVisible = false;
 
@@ -141,23 +120,9 @@ test.describe('Shared view', () => {
       await sharedPage.grid.column.verify(column);
     }
 
-    const expectedRecords2 = [
-      { index: 0, columnHeader: 'Address', value: '1661 Abha Drive' },
-      { index: 1, columnHeader: 'Address', value: '1993 Tabuk Lane' },
-      { index: 2, columnHeader: 'Address', value: '381 Kabul Way' },
-      { index: 0, columnHeader: 'District', value: 'Tamil Nadu' },
-      { index: 1, columnHeader: 'District', value: 'Tamil Nadu' },
-      { index: 2, columnHeader: 'District', value: 'Taipei' },
-      { index: 0, columnHeader: 'PostalCode', value: '14400' },
-      { index: 1, columnHeader: 'PostalCode', value: '64221' },
-      { index: 2, columnHeader: 'PostalCode', value: '87272' },
-      { index: 0, columnHeader: 'Phone', value: '270456873752' },
-      { index: 1, columnHeader: 'Phone', value: '648482415405' },
-      { index: 2, columnHeader: 'Phone', value: '55477302294' },
-    ];
-
+    const expectedRecordsByDb2 = isSqlite(context) ? sqliteExpectedRecords2 : expectedRecords2;
     // verify order of records (original sort & filter)
-    for (const record of expectedRecords2) {
+    for (const record of expectedRecordsByDb2) {
       await sharedPage.grid.cell.verify(record);
     }
 
@@ -167,7 +132,10 @@ test.describe('Shared view', () => {
      **/
 
     // verify download
-    await sharedPage.grid.toolbar.clickDownload('Download as CSV', './expectedData.txt');
+    await sharedPage.grid.toolbar.clickDownload(
+      'Download as CSV',
+      isSqlite(context) ? 'expectedDataSqlite.txt' : 'expectedData.txt'
+    );
   });
 
   test('Shared view: password', async ({ page }) => {
@@ -235,3 +203,69 @@ test.describe('Shared view', () => {
     });
   });
 });
+
+const expectedRecords = [
+  { index: 0, columnHeader: 'Address', value: '1013 Tabuk Boulevard' },
+  {
+    index: 1,
+    columnHeader: 'Address',
+    value: '1892 Nabereznyje Telny Lane',
+  },
+  { index: 2, columnHeader: 'Address', value: '1993 Tabuk Lane' },
+  { index: 0, columnHeader: 'District', value: 'West Bengali' },
+  { index: 1, columnHeader: 'District', value: 'Tutuila' },
+  { index: 2, columnHeader: 'District', value: 'Tamil Nadu' },
+  { index: 0, columnHeader: 'PostalCode', value: '96203' },
+  { index: 1, columnHeader: 'PostalCode', value: '28396' },
+  { index: 2, columnHeader: 'PostalCode', value: '64221' },
+  { index: 0, columnHeader: 'Phone', value: '158399646978' },
+  { index: 1, columnHeader: 'Phone', value: '478229987054' },
+  { index: 2, columnHeader: 'Phone', value: '648482415405' },
+];
+
+const sqliteExpectedRecords = [
+  { index: 0, columnHeader: 'Address', value: '217 Botshabelo Place' },
+  { index: 1, columnHeader: 'Address', value: '17 Kabul Boulevard' },
+  { index: 2, columnHeader: 'Address', value: '1888 Kabul Drive' },
+  { index: 0, columnHeader: 'PostalCode', value: '49521' },
+  { index: 1, columnHeader: 'PostalCode', value: '38594' },
+  { index: 2, columnHeader: 'PostalCode', value: '20936' },
+];
+
+const expectedRecords2 = [
+  { index: 0, columnHeader: 'Address', value: '1661 Abha Drive' },
+  { index: 1, columnHeader: 'Address', value: '1993 Tabuk Lane' },
+  { index: 2, columnHeader: 'Address', value: '381 Kabul Way' },
+  { index: 0, columnHeader: 'District', value: 'Tamil Nadu' },
+  { index: 1, columnHeader: 'District', value: 'Tamil Nadu' },
+  { index: 2, columnHeader: 'District', value: 'Taipei' },
+  { index: 0, columnHeader: 'PostalCode', value: '14400' },
+  { index: 1, columnHeader: 'PostalCode', value: '64221' },
+  { index: 2, columnHeader: 'PostalCode', value: '87272' },
+  { index: 0, columnHeader: 'Phone', value: '270456873752' },
+  { index: 1, columnHeader: 'Phone', value: '648482415405' },
+  { index: 2, columnHeader: 'Phone', value: '55477302294' },
+];
+
+const sqliteExpectedRecords2 = [
+  { index: 0, columnHeader: 'Address', value: '1013 Tabuk Boulevard' },
+  { index: 1, columnHeader: 'Address', value: '1168 Najafabad Parkway' },
+  { index: 2, columnHeader: 'Address', value: '1294 Firozabad Drive' },
+  { index: 0, columnHeader: 'PostalCode', value: '96203' },
+  { index: 1, columnHeader: 'PostalCode', value: '40301' },
+  { index: 2, columnHeader: 'PostalCode', value: '70618' },
+];
+
+const expectedVirtualRecords = [
+  { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
+  { index: 1, columnHeader: 'Customer List', count: 1, value: ['2'] },
+  { index: 0, columnHeader: 'City', count: 1, value: ['Kanchrapara'] },
+  { index: 1, columnHeader: 'City', count: 1, value: ['Tafuna'] },
+];
+
+const sqliteExpectedVirtualRecords = [
+  { index: 0, columnHeader: 'Customer List', count: 1, value: ['2'] },
+  { index: 1, columnHeader: 'Customer List', count: 1, value: ['1'] },
+  { index: 0, columnHeader: 'City', count: 1, value: ['Davao'] },
+  { index: 1, columnHeader: 'City', count: 1, value: ['Nagareyama'] },
+];

@@ -94,7 +94,7 @@ export class ToolbarPage extends BasePage {
     await this.get().locator(`.nc-toolbar-btn.nc-add-new-row-btn`).click();
   }
 
-  async clickDownload(type: string, verificationFile: string) {
+  async clickDownload(type: string, verificationFile = 'expectedData.txt') {
     await this.get().locator(`.nc-toolbar-btn.nc-actions-menu-btn`).click();
 
     const [download] = await Promise.all([
@@ -111,7 +111,7 @@ export class ToolbarPage extends BasePage {
     await download.saveAs('./output/at.txt');
 
     // verify downloaded content against expected content
-    const expectedData = fs.readFileSync('./fixtures/expectedData.txt', 'utf8');
+    const expectedData = fs.readFileSync(`./fixtures/${verificationFile}`, 'utf8');
     const file = fs.readFileSync('./output/at.txt', 'utf8');
     await expect(file).toEqual(expectedData);
   }

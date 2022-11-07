@@ -15,7 +15,6 @@ import { SettingsErdPage } from '../pages/Dashboard/Settings/Erd';
 test.describe('Erd', () => {
   let dashboard: DashboardPage;
   let context: any;
-  let project: any;
   let sakilaTables, sakilaSqlViews;
 
   test.slow();
@@ -24,7 +23,6 @@ test.describe('Erd', () => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
 
-    project = context.project;
     if (isPg(context)) {
       sakilaTables = pgSakilaTables;
       sakilaSqlViews = pgSakilaSqlViews;
@@ -32,8 +30,8 @@ test.describe('Erd', () => {
       sakilaTables = mysqlSakilaTables;
       sakilaSqlViews = mysqlSakilaSqlViews;
     } else if (isSqlite(context)) {
-      sakilaTables = mysqlSakilaTables.map(tableName => `${project.prefix}${tableName}`);
-      sakilaSqlViews = sqliteSakilaSqlViews.map(viewName => `${project.prefix}${viewName}`);
+      sakilaTables = mysqlSakilaTables;
+      sakilaSqlViews = sqliteSakilaSqlViews;
     }
   });
 
@@ -83,13 +81,13 @@ test.describe('Erd', () => {
 
     // Verify Actor table
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}actor`,
+      tableName: `actor`,
       columns: actorTableColumn,
     });
 
     // Verify Payment table
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}payment`,
+      tableName: `payment`,
       columns: isPg(context) ? pgPaymentTableColumns : mysqlPaymentTableColumns,
     });
 
@@ -100,11 +98,11 @@ test.describe('Erd', () => {
     await erd.clickShowJunctionTableNames();
 
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}actor`,
+      tableName: `actor`,
       columns: actorLTARColumns,
     });
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}payment`,
+      tableName: `payment`,
       columns: paymentLTARColumns,
     });
 
@@ -113,11 +111,11 @@ test.describe('Erd', () => {
     await erd.clickShowPkAndFk();
 
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}actor`,
+      tableName: `actor`,
       columns: actorNonPkFkColumns,
     });
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}payment`,
+      tableName: `payment`,
       columns: isPg(context) ? pgPaymentNonPkFkColumns : paymentNonPkFkColumns,
     });
 
@@ -146,13 +144,13 @@ test.describe('Erd', () => {
 
     // Verify ActorInfo SQL View
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}sales_by_store`,
+      tableName: `sales_by_store`,
       columns: salesByStoreColumns,
     });
 
     await erd.clickShowSqlViews(); // disable sql views
 
-    await erd.verifyNodeDoesNotExist({ tableName: `${isSqlite(context) ? project.prefix : ''}store` });
+    await erd.verifyNodeDoesNotExist({ tableName: `store` });
 
     // // Verify MM tables
     await erd.clickShowMMTables();
@@ -166,12 +164,12 @@ test.describe('Erd', () => {
       rectangleCount: isPg(context) ? 48 : 30,
     });
 
-    await erd.verifyNode({ tableName: `${isSqlite(context) ? project.prefix : ''}store` });
+    await erd.verifyNode({ tableName: `store` });
 
     // Verify show junction table names
     await erd.clickShowJunctionTableNames();
     await erd.verifyJunctionTableLabel({
-      tableName: `${isSqlite(context) ? project.prefix : ''}film_actor`,
+      tableName: `film_actor`,
       tableTitle: 'filmactor',
     });
   });
@@ -182,33 +180,33 @@ test.describe('Erd', () => {
 
     // Verify tables with default config
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}country`,
+      tableName: `country`,
       columns: ['country_id', 'country', 'last_update', 'city_list'],
     });
 
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}city`,
+      tableName: `city`,
       columns: ['city_id', 'city', 'country_id', 'last_update', 'country', 'address_list'],
     });
 
     // Verify with PK/FK disabled
     await erd.clickShowPkAndFk();
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}country`,
+      tableName: `country`,
       columns: ['country', 'last_update', 'city_list'],
     });
 
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}city`,
+      tableName: `city`,
       columns: ['city', 'last_update', 'country', 'address_list'],
     });
 
     // Verify with all columns disabled
     await erd.clickShowColumnNames();
-    await erd.verifyColumns({ tableName: `${isSqlite(context) ? project.prefix : ''}country`, columns: ['city_list'] });
+    await erd.verifyColumns({ tableName: `country`, columns: ['city_list'] });
 
     await erd.verifyColumns({
-      tableName: `${isSqlite(context) ? project.prefix : ''}city`,
+      tableName: `city`,
       columns: ['country', 'address_list'],
     });
 
@@ -222,7 +220,7 @@ test.describe('Erd', () => {
     // Verify in Settings ERD and table ERD
     await openSettingsErd();
     await dashboard.settings.erd.verifyNode({
-      tableName: `${isSqlite(context) ? project.prefix : ''}country`,
+      tableName: `country`,
       columnName: 'test_column',
     });
     await dashboard.settings.close();
@@ -231,7 +229,7 @@ test.describe('Erd', () => {
     await dashboard.grid.toolbar.clickActions();
     await dashboard.grid.toolbar.actions.click('ERD View');
     await dashboard.grid.toolbar.actions.erd.verifyNode({
-      tableName: `${isSqlite(context) ? project.prefix : ''}country`,
+      tableName: `country`,
       columnName: 'test_column',
     });
     await dashboard.grid.toolbar.actions.erd.close();
@@ -245,7 +243,7 @@ test.describe('Erd', () => {
     // Verify in Settings ERD and table ERD
     await openSettingsErd();
     await dashboard.settings.erd.verifyNode({
-      tableName: `${isSqlite(context) ? project.prefix : ''}country`,
+      tableName: `country`,
       columnName: 'new_test_column',
     });
     await dashboard.settings.close();
@@ -254,7 +252,7 @@ test.describe('Erd', () => {
     await dashboard.grid.toolbar.clickActions();
     await dashboard.grid.toolbar.actions.click('ERD View');
     await dashboard.grid.toolbar.actions.erd.verifyNode({
-      tableName: `${isSqlite(context) ? project.prefix : ''}country`,
+      tableName: `country`,
       columnName: 'new_test_column',
     });
     await dashboard.grid.toolbar.actions.erd.close();
@@ -264,7 +262,7 @@ test.describe('Erd', () => {
     // Verify in Settings ERD and table ERD
     await openSettingsErd();
     await dashboard.settings.erd.verifyNode({
-      tableName: `${isSqlite(context) ? project.prefix : ''}country`,
+      tableName: `country`,
       columnNameShouldNotExist: 'new_test_column',
     });
     await dashboard.settings.close();
@@ -278,7 +276,7 @@ test.describe('Erd', () => {
     await dashboard.grid.toolbar.clickActions();
     await dashboard.grid.toolbar.actions.click('ERD View');
     await dashboard.grid.toolbar.actions.erd.verifyNode({
-      tableName: `${isSqlite(context) ? project.prefix : ''}country`,
+      tableName: `country`,
       columnNameShouldNotExist: 'new_test_column',
     });
     await dashboard.grid.toolbar.actions.erd.close();
@@ -288,7 +286,7 @@ test.describe('Erd', () => {
     // Verify in Settings ERD and table ERD
     await openSettingsErd();
     await dashboard.settings.erd.verifyNode({
-      tableName: `${isSqlite(context) ? project.prefix : ''}Test`,
+      tableName: `Test`,
     });
     await dashboard.settings.close();
 
@@ -296,7 +294,7 @@ test.describe('Erd', () => {
     await dashboard.treeView.deleteTable({ title: 'Test' });
     await openSettingsErd();
     await dashboard.settings.erd.verifyNodeDoesNotExist({
-      tableName: `${isSqlite(context) ? project.prefix : ''}Test`,
+      tableName: `Test`,
     });
 
     // Verify that `show mm table` option disabled will not trigger easter in ERD options

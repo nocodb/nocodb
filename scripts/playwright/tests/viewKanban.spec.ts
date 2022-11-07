@@ -3,6 +3,9 @@ import { DashboardPage } from '../pages/Dashboard';
 import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 
 import setup from '../setup';
+import { isSqlite } from '../setup/db';
+
+const filmRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
 
 test.describe('View', () => {
   let dashboard: DashboardPage, toolbar: ToolbarPage;
@@ -12,13 +15,28 @@ test.describe('View', () => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     toolbar = toolbar = dashboard.kanban.toolbar;
-  });
 
-  test('Kanban', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Film' });
 
+    if (isSqlite(context)) {
+      await dashboard.grid.column.openEdit({ title: 'Rating' });
+      await dashboard.grid.column.selectType({ type: 'SingleSelect' });
+      let count = 0;
+      for (const rating of filmRatings) {
+        await dashboard.grid.column.selectOption.addOption({
+          index: count,
+          option: rating,
+          skipColumnModal: true,
+        });
+        count = count + 1;
+      }
+      await dashboard.grid.column.save();
+    }
+  });
+
+  test('Kanban', async () => {
     await dashboard.viewSidebar.createKanbanView({
       title: 'Film Kanban',
     });
@@ -150,9 +168,6 @@ test.describe('View', () => {
 
   test('Kanban view operations', async () => {
     test.slow();
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
-    await dashboard.treeView.openTable({ title: 'Film' });
 
     await dashboard.viewSidebar.createKanbanView({
       title: 'Film Kanban',

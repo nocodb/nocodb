@@ -77,7 +77,8 @@ test.describe('Shared base', () => {
       password: 'Password123.',
       withoutPrefix: true,
     });
-    await projectPage.openProject({ title: 'externalREST' });
+
+    await projectPage.openProject({ title: context.project.title, withoutPrefix: true });
     await dashboard.closeTab({ title: 'Team & Auth' });
 
     await dashboard.treeView.inviteTeamButton.click();

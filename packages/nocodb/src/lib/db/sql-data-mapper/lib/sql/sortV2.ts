@@ -1,4 +1,4 @@
-import { QueryBuilder } from 'knex';
+import { Knex } from 'knex';
 import { XKnex } from '../../index';
 import Sort from '../../../../models/Sort';
 import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
@@ -12,7 +12,7 @@ import { sanitize } from './helpers/sanitize';
 
 export default async function sortV2(
   sortList: Sort[],
-  qb: QueryBuilder,
+  qb: Knex.QueryBuilder,
   knex: XKnex
 ) {
   if (!sortList?.length) {

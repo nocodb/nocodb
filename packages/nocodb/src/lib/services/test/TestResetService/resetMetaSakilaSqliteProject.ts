@@ -1,5 +1,5 @@
 import axios from 'axios';
-import Knex from 'knex';
+import { Knex } from 'knex';
 
 import { promises as fs } from 'fs';
 import { sakilaTableNames } from '../../../utils/globals';

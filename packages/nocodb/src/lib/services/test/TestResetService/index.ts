@@ -1,6 +1,6 @@
 import Noco from '../../../Noco';
 
-import Knex from 'knex';
+import { Knex } from 'knex';
 import axios from 'axios';
 import Project from '../../../models/Project';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';

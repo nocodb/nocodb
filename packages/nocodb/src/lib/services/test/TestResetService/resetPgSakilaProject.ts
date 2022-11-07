@@ -1,5 +1,5 @@
 import axios from 'axios';
-import Knex from 'knex';
+import { Knex, knex } from 'knex';
 
 import { promises as fs } from 'fs';
 const util = require('util');
@@ -81,7 +81,7 @@ const resetSakilaPg = async (
 
   if (isEmptyProject) return;
 
-  const sakilaKnex = Knex(sakilaKnexConfig(parallelId));
+  const sakilaKnex = knex(sakilaKnexConfig(parallelId));
 
   const schemaFile = await fs.readFile(
     `${testsDir}/pg-sakila-db/03-postgres-sakila-schema.sql`
@@ -117,13 +117,13 @@ const resetPgSakilaProject = async ({
   oldProject?: Project | undefined;
   isEmptyProject: boolean;
 }) => {
-  const pgknex = Knex(config);
+  const pgknex = knex(config);
 
   try {
     await pgknex.raw(`CREATE DATABASE sakila_${parallelId}`);
   } catch (e) {}
 
-  const sakilaKnex = Knex(sakilaKnexConfig(parallelId));
+  const sakilaKnex = knex(sakilaKnexConfig(parallelId));
 
   if (isEmptyProject || (await isSakilaPgToBeReset(sakilaKnex, oldProject))) {
     await sakilaKnex.destroy();

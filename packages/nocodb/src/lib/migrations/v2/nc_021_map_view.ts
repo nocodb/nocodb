@@ -1,5 +1,5 @@
 import { MetaTable } from '../../utils/globals';
-import Knex from 'knex';
+import { Knex } from 'knex';
 
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.MAP_VIEW, (table) => {

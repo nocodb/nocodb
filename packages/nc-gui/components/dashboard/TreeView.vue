@@ -41,7 +41,7 @@ let key = $ref(0)
 
 const menuRef = $ref<HTMLLIElement>()
 
-const filterQuery = $ref('')
+let filterQuery = $ref('')
 
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null))
 
@@ -211,6 +211,11 @@ function openTableCreateDialog() {
 }
 
 const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
+
+const onSearchCloseIconClick = () => {
+  filterQuery = ''
+  toggleSearchActive(false)
+}
 </script>
 
 <template>
@@ -235,16 +240,7 @@ const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
           </Transition>
 
           <Transition name="layout" mode="out-in">
-            <MdiClose
-              v-if="searchActive"
-              class="text-lg mx-1 mt-0.5"
-              @click="
-                () => {
-                  filterQuery = ''
-                  toggleSearchActive(false)
-                }
-              "
-            />
+            <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
             <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>

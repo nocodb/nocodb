@@ -1,5 +1,7 @@
 export default {
-  mid: ['\n@NocoDB - generates instant REST/GraphQL API on any database.\n+ Has GUI based schema migrations!\n+ Built in API-Client and terminal!\n+ Dark theme and much more!\n'],
+  mid: [
+    '\n@NocoDB - generates instant REST/GraphQL API on any database.\n+ Has GUI based schema migrations!\n+ Built in API-Client and terminal!\n+ Dark theme and much more!\n'
+  ],
   prefix: [
     'Super slick!',
     'Very handy!',
@@ -64,7 +66,6 @@ export default {
     'Woah, Extremely Interesting!',
     'Woah, So useful!',
 
-
     'Super slick API Framework!',
     'Very handy API Framework!',
     'Impressive API Framework!',
@@ -86,17 +87,11 @@ export default {
     'Extremely Interesting API Framework!',
     'So useful API Framework',
 
-
     'Cool Stuff!',
     'Woha!',
 
-    'I\'m amazed by how well this works!',
-    'I\'m impressed by how well this works!',
-
+    "I'm amazed by how well this works!",
+    "I'm impressed by how well this works!"
   ],
-  suffix: [
-    'https://github.com/nocodb/nocodb',
-    'www.nocodb.com'
-  ]
-}
-
+  suffix: ['https://github.com/nocodb/nocodb', 'www.nocodb.com']
+};

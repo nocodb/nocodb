@@ -1,4 +1,3 @@
 export default {
-  port: 23917,
-}
-
+  port: 23917
+};

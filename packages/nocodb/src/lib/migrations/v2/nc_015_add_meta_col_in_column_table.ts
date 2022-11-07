@@ -1,4 +1,4 @@
-import Knex from 'knex';
+import { Knex } from 'knex';
 import { MetaTable } from '../../utils/globals';
 
 const up = async (knex: Knex) => {

@@ -321,12 +321,13 @@ function openTableCreateDialog() {
                 class="nc-tree-item text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
+                :data-nc="`tree-view-table-${table.title}`"
                 @click="addTableTab(table)"
               >
                 <GeneralTooltip class="pl-5 pr-3 py-2" modifier-key="Alt">
                   <template #title>{{ table.table_name }}</template>
                   <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
-                    <div class="flex w-auto">
+                    <div class="flex w-auto" :data-nc="`tree-view-table-draggable-handle-${table.title}`">
                       <MdiDragVertical
                         v-if="isUIAllowed('treeview-drag-n-drop')"
                         :class="`nc-child-draggable-icon-${table.title}`"
@@ -355,12 +356,16 @@ function openTableCreateDialog() {
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
                           <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table)">
-                            <div class="nc-project-menu-item">
+                            <div class="nc-project-menu-item" :data-nc="`sidebar-table-rename-${table.title}`">
                               {{ $t('general.rename') }}
                             </div>
                           </a-menu-item>
 
-                          <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(table)">
+                          <a-menu-item
+                            v-if="isUIAllowed('table-delete')"
+                            :data-nc="`sidebar-table-delete-${table.title}`"
+                            @click="deleteTable(table)"
+                          >
                             <div class="nc-project-menu-item">
                               {{ $t('general.delete') }}
                             </div>
@@ -415,6 +420,8 @@ function openTableCreateDialog() {
       />
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+
+      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
       <GithubButton
         class="ml-2 py-1"

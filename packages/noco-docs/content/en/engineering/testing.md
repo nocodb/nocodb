@@ -210,7 +210,7 @@ First 3 suites, each have 4 test category
 # install dependencies(cypress)
 npm install
 # start MySQL database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
+docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up
 
 # Run backend api using following command
 npm run start:xcdb-api:cache
@@ -234,7 +234,7 @@ npm run cypress:open
 # install dependencies(cypress)
 npm install
 # start MySQL database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
+docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up
 
 # Run backend api using following command
 npm run start:api:cache
@@ -282,7 +282,7 @@ npm run cypress:open
 # install dependencies(cypress)
 npm install
 # start MySQL database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
+docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up
 
 # copy existing xcdb (v0.91.7) database to ./packages/nocodb/
 cp ./scripts/cypress/fixtures/quickTest/noco_0_91_7.db ./packages/nocodb/noco.db

@@ -105,6 +105,7 @@ onMounted(() => {
             v-model:value="table.title"
             size="large"
             hide-details
+            data-nc="create-table-title-input"
             :placeholder="$t('msg.info.enterTableName')"
           />
         </a-form-item>

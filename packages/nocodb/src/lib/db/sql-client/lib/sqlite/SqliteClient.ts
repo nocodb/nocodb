@@ -7,11 +7,13 @@ import Result from '../../../util/Result';
 import queries from './sqlite.queries';
 import lodash from 'lodash';
 import _ from 'lodash';
+
 const log = new Debug('SqliteClient');
 
 class SqliteClient extends KnexClient {
   private queries: any;
   private _version: any;
+
   constructor(connectionConfig) {
     super(connectionConfig);
     this.sqlClient = knex(connectionConfig.connection);
@@ -130,10 +132,14 @@ class SqliteClient extends KnexClient {
         const fd = await promisify(fs.open)(args.database, 'w');
         const close = await promisify(fs.close)(fd);
         log.debug('sqlite file is created', fd, close);
+        // create new knex client
+        this.sqlClient = knex(this.connectionConfig.connection);
+        // set encoding to utf8
+        await this.sqlClient.raw('PRAGMA encoding = "UTF-8"');
+      } else {
+        // create new knex client
+        this.sqlClient = knex(this.connectionConfig.connection);
       }
-
-      // create new knex client
-      this.sqlClient = knex(this.connectionConfig.connection);
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -277,7 +283,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - tables[].tn
    */
   async tableList(args: any = {}) {
-    const _func = this.createDatabaseIfNotExists.name;
+    const _func = this.tableList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
@@ -305,7 +311,7 @@ class SqliteClient extends KnexClient {
   }
 
   async schemaList(args: any = {}) {
-    const _func = this.createDatabaseIfNotExists.name;
+    const _func = this.schemaList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
@@ -994,7 +1000,7 @@ class SqliteClient extends KnexClient {
   }
 
   async functionDelete(args: any = {}) {
-    const _func = this.createDatabaseIfNotExists.name;
+    const _func = this.functionDelete.name;
     // const result = new Result();
     log.api(`${_func}:args:`, args);
 
@@ -1491,7 +1497,7 @@ class SqliteClient extends KnexClient {
 
         if (args.columns[i].altered & 4) {
           // col remove
-          upQuery += await this.alterTableRemoveColumn(
+          upQuery += this.alterTableRemoveColumn(
             args.table,
             args.columns[i],
             oldColumn,
@@ -1546,18 +1552,7 @@ class SqliteClient extends KnexClient {
       );
       //downQuery += alterTablePK(args.originalColumns, args.columns, downQuery);
 
-      if (upQuery) {
-        //upQuery = `ALTER TABLE ${args.columns[0].tn} ${upQuery};`;
-        //downQuery = `ALTER TABLE ${args.columns[0].tn} ${downQuery};`;
-      }
-
-      await Promise.all(
-        upQuery.split(';').map(async (query) => {
-          if (query.trim().length) await this.sqlClient.raw(query);
-        })
-      );
-
-      // await this.sqlClient.raw(upQuery);
+      await this.sqlClient.raw(upQuery);
 
       console.log(upQuery);
 
@@ -1912,16 +1907,15 @@ class SqliteClient extends KnexClient {
     return query;
   }
 
-  async alterTableRemoveColumn(t, n, _o, _existingQuery) {
-    // let query = existingQuery ? "," : "";
-    // query += ` DROP COLUMN ${n.cn}`;
-    // query = existingQuery ? query : `ALTER TABLE "${t}" ${query};`;
-    // return query;
-    await this.sqlClient.schema.alterTable(t, (tb) => {
-      tb.dropColumn(n.cn);
-    });
-
-    return '';
+  alterTableRemoveColumn(t, n, _o, existingQuery) {
+    const shouldSanitize = true;
+    let query = existingQuery ? ';' : '';
+    query += this.genQuery(
+      `ALTER TABLE ?? DROP COLUMN ??`,
+      [t, n.cn],
+      shouldSanitize
+    );
+    return query;
   }
 
   createTableColumn(t, n, o, existingQuery) {

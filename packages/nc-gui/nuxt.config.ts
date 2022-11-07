@@ -35,6 +35,12 @@ export default defineNuxtConfig({
     '~/assets/style.scss',
   ],
 
+  runtimeConfig: {
+    public: {
+      ncBackendUrl: '',
+    },
+  },
+
   meta: {
     title: 'NocoDB',
     link: [

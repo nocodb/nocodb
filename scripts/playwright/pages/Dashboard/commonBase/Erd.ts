@@ -89,7 +89,7 @@ export abstract class ErdBasePage extends BasePage {
   }
 
   async verifyJunctionTableLabel({ tableTitle, tableName }: { tableName: string; tableTitle: string }) {
-    await await this.vueFlow().locator(`.nc-erd-table-label-${tableTitle}-${tableName}`).locator('text').waitFor({
+    await this.vueFlow().locator(`.nc-erd-table-label-${tableTitle}-${tableName}`).waitFor({
       state: 'visible',
     });
   }

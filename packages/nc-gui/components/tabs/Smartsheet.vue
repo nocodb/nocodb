@@ -74,18 +74,16 @@ provide(
         <template v-if="meta">
           <div class="flex flex-1 min-h-0">
             <div v-if="activeView" class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
-              <LazySmartsheetGrid v-if="isGrid" />
+              <!-- todo: this could be an extension component, enabling custom views -->
+              <LazySmartsheetExtension v-if="true" id="hello-world" />
+
+              <LazySmartsheetGrid v-else-if="isGrid" />
 
               <LazySmartsheetGallery v-else-if="isGallery" />
 
               <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
               <LazySmartsheetKanban v-else-if="isKanban" />
-
-              <!--
-              todo: this could be an extension component, enabling custom views
-              <LazySmartsheetExtension v-else-if="isExtension" :name="activeView.meta.extensionId" />
-              -->
             </div>
           </div>
         </template>

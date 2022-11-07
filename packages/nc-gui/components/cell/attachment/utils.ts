@@ -66,6 +66,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     function removeFile(i: number) {
       if (isPublic.value) {
         storedFiles.value.splice(i, 1)
+        attachments.value.splice(i, 1)
 
         updateModelValue(storedFiles.value)
       } else {

@@ -1,13 +1,24 @@
 <script lang="ts" setup>
-import { useProject } from '#imports'
+import { onMounted, ref } from '#imports'
 
-const props = defineProps<{ id: string }>()
+defineProps<{ id: string }>()
 
-const { project } = useProject()
+const demoExtensionConfig = {
+  // should point to some file that exports the extension; When running with vite, don't point to the index.html file but to the actual entry point file
+  url: 'http://127.0.0.1:5173/src/index.ts',
+  // some id to identify the extension
+  id: 'hello-world',
+}
 
-const extension = (await import(`../../extensions/${props.id}/index.ts`)).default
+const el = ref<HTMLDivElement>()
+
+onMounted(async () => {
+  // todo: use fetch instead of import to avoid vite from bundling the extension (?)
+  const extension = (await import(demoExtensionConfig.url)).default
+  extension(el.value, 'Hello World from NocoDB!')
+})
 </script>
 
 <template>
-  <component :is="extension(project.title)" />
+  <div ref="el" class="w-full h-full"></div>
 </template>

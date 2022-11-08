@@ -18,7 +18,7 @@ RUN cp $GOPATH/bin/litestream /usr/src/lt
 ###########
 # Builder
 ###########
-FROM node:16.17.0-alpine3.15 as builder
+FROM node:16.17.1-alpine3.15 as builder
 WORKDIR /usr/src/app
 
 # Copy application dependency manifests to the container image.

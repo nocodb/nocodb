@@ -210,7 +210,7 @@ First 3 suites, each have 4 test category
 # install dependencies(cypress)
 npm install
 # start MySQL database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
+docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up
 
 # Run backend api using following command
 npm run start:xcdb-api:cache
@@ -234,7 +234,7 @@ npm run cypress:open
 # install dependencies(cypress)
 npm install
 # start MySQL database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
+docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up
 
 # Run backend api using following command
 npm run start:api:cache
@@ -282,7 +282,7 @@ npm run cypress:open
 # install dependencies(cypress)
 npm install
 # start MySQL database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
+docker-compose -f ./scripts/cypress/docker-compose-cypress.yml up
 
 # copy existing xcdb (v0.91.7) database to ./packages/nocodb/
 cp ./scripts/cypress/fixtures/quickTest/noco_0_91_7.db ./packages/nocodb/noco.db
@@ -323,3 +323,23 @@ npm run cypress:open
 # run test script
 # - quickTest.js
 ```
+
+## Accessing CI-CD CY Screenshots
+
+1. On Jobs link, click on `Summary`
+  
+  
+![Screenshot 2022-10-31 at 9 25 23 PM](https://user-images.githubusercontent.com/86527202/199052696-af0bf066-d82f-487a-b487-602f55594fd7.png)
+
+  
+2. Click on `Artifacts`
+  
+  
+![Screenshot 2022-10-31 at 9 26 01 PM](https://user-images.githubusercontent.com/86527202/199052712-04508921-32b1-4926-8291-396c804f7c3b.png)
+
+  
+3. Download logs for desired suite
+  
+  
+![Screenshot 2022-10-31 at 9 26 34 PM](https://user-images.githubusercontent.com/86527202/199052727-9aebbdd1-749e-4bda-ab00-3cdd0e3f48fe.png)
+

@@ -47,6 +47,19 @@ export default class NcConnectionMgrv2 {
     }
   }
 
+  public static async deleteAwait(base: Base) {
+    // todo: ignore meta projects
+    if (this.connectionRefs?.[base.project_id]?.[base.id]) {
+      try {
+        const conn = this.connectionRefs?.[base.project_id]?.[base.id];
+        await conn.destroy();
+        delete this.connectionRefs?.[base.project_id][base.id];
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }
+
   public static get(base: Base): XKnex {
     if (base.is_meta) return Noco.ncMeta.knex;
 

@@ -85,7 +85,7 @@ const seedSakilaSqliteFile = async (parallelId: string) => {
   );
 
   await fs.copyFile(
-    `${testsDir}/sqlite-sakila-db/sakila_v2.db`,
+    `${testsDir}/sqlite-sakila-db/sakila.db`,
     sqliteFilePath(parallelId)
   );
 };

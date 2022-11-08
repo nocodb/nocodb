@@ -170,15 +170,14 @@ function onMoveCallback(event: any) {
 function onMove(event: any) {
   const { newIndex, element, oldIndex } = event.added || event.moved || event.removed
 
-  if (shouldSkipColumn(element)) {
-    return
-  }
-
   if (event.added) {
     element.show = true
   }
 
   if (event.removed) {
+    if (shouldSkipColumn(element)) {
+      return
+    }
     element.show = false
     saveOrUpdate(element, oldIndex)
   } else {

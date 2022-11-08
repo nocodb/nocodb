@@ -79,6 +79,9 @@ export class DashboardPage extends BasePage {
   }
 
   async clickHome() {
+    // todo: Fast page transition breaks the vue router
+    await this.rootPage.waitForTimeout(2000);
+
     await this.rootPage.locator('[data-cy="nc-noco-brand-icon"]').click();
     const projectsPage = new ProjectsPage(this.rootPage);
     await projectsPage.waitToBeRendered();

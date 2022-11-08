@@ -9,7 +9,7 @@ export class ProjectsPage extends BasePage {
 
   prefixTitle(title: string) {
     const parallelId = process.env.TEST_PARALLEL_INDEX ?? '0';
-    return `${title}${parallelId}`;
+    return `nc_test_${parallelId}_${title}`;
   }
 
   get() {
@@ -31,6 +31,7 @@ export class ProjectsPage extends BasePage {
     await this.rootPage.locator('.nc-new-project-menu').click();
 
     const createProjectMenu = await this.rootPage.locator('.nc-dropdown-create-project');
+
     if (type === 'xcdb') {
       await createProjectMenu.locator(`.ant-dropdown-menu-title-content`).nth(0).click();
     } else {
@@ -42,7 +43,12 @@ export class ProjectsPage extends BasePage {
 
     await this.rootPage.locator(`.nc-metadb-project-name`).waitFor();
     await this.rootPage.locator(`input.nc-metadb-project-name`).fill(name);
-    await this.rootPage.locator(`input.nc-metadb-project-name`).press('Enter');
+
+    await this.rootPage.waitForTimeout(2000);
+
+    await this.rootPage.locator(`button:has-text("Create")`).click({
+      delay: 2000,
+    });
 
     // fix me! wait for page to be rendered completely
     await this.rootPage.waitForTimeout(2000);

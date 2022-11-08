@@ -40,7 +40,7 @@ export function useViewFilters(
 
   const _filters = ref<Filter[]>([])
 
-  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filte rSync') || !isUIAllowed('filterChildrenRead'))
+  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 
   const tabMeta = inject(TabMetaInj, ref({ filterState: new Map(), sortsState: new Map() } as TabItem))
 

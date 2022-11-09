@@ -105,7 +105,7 @@ jobs:
           kill -9 $(lsof -t -i:8080)
           npm run watch:run:playwright:pg:cyquick &
           cd ../nc-gui/tests/playwright
-          npm run ci:test:quick
+          npm run test:quick
       - name: Run quick server and tests (sqlite)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
         working-directory: ./packages/nocodb
@@ -113,7 +113,7 @@ jobs:
           kill -9 $(lsof -t -i:8080)
           npm run watch:run:playwright:quick &
           cd ../nc-gui/tests/playwright
-          npm run ci:test:quick
+          npm run test:quick
 
       - uses: actions/upload-artifact@v3
         if: always()

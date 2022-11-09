@@ -57,6 +57,7 @@ export const rolePermissions = {
       apiDocs: true,
       projectSettings: true,
       newUser: false,
+      virtualViewsCreateOrEdit: true
     },
   },
   [ProjectRole.Commenter]: {
@@ -74,6 +75,7 @@ export const rolePermissions = {
       smartSheet: true,
       column: true,
       projectSettings: true,
+      virtualViewsCreateOrEdit: true
     },
   },
 } as const

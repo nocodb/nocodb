@@ -158,6 +158,8 @@ export default {
       uploadViaURL: true,
       apiTokenCreate: true,
       apiTokenList: true,
+
+      gridViewCreate: true
     },
   },
   commenter: {
@@ -287,6 +289,8 @@ export default {
       filterDelete: true,
       filterGet: true,
       filterChildrenRead: true,
+
+      gridViewCreate: true
     },
   },
   user_new: {

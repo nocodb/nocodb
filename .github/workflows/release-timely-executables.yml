@@ -105,23 +105,26 @@ jobs:
           # clean up code to optimize size
           npx modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
 
+          mkdir ./dist
+          mkdir ./mac-dist
+
           # build executables
           # npm run build
           npm i --target_arch=arm64 --target_platform=darwin better-sqlite3
           npx pkg . --compress GZip -t node16-macos-arm64 -o Noco-macos-arm64
+          mv ./Noco-macos-arm64 ./mac-dist/
 
           npm i --target_arch=x64 --target_platform=darwin better-sqlite3
           npx pkg . --compress GZip -t node16-macos-x64 -o Noco-macos-x64
+          mv ./Noco-macos-x64 ./mac-dist/
 
           npm i --target_arch=x64 --target_platform=linux better-sqlite3
           npx pkg . --compress GZip -t node16-linux-x64 -o Noco-linux-x64
+          mv ./Noco-linux-x64 ./dist/
 
           npm i --target_arch=arm64 --target_platform=linux better-sqlite3
           npx pkg . --compress GZip -t node16-linux-arm64 -o Noco-linux-arm64
-
-          mkdir ./mac-dist
-          mv ./dist/Noco-macos-arm64 ./mac-dist/
-          mv ./dist/Noco-macos-x64 ./mac-dist/
+          mv ./Noco-linux-arm64 ./dist/
 
       - name: Upload executables(except mac executables) to release
         uses: svenstaro/upload-release-action@v2

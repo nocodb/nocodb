@@ -74,7 +74,7 @@ jobs:
         with:
           path: |
             **/playwright/node_modules
-          key: cache-playwright-${{ hashFiles('**/playwright/package-lock.json') }}
+          key: cache-nc-playwright-${{ hashFiles('**/playwright/package-lock.json') }}
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./packages/nc-gui/tests/playwright

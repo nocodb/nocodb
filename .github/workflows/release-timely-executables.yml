@@ -88,6 +88,7 @@ jobs:
           # Copy sqlite binaries
           # rsync -rvzhP ./binaries/binding/ ./node_modules/sqlite3/lib/binding/
 
+
           # Build sqlite binaries for all platforms
           #          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=win32 --fallback-to-build --target_arch=x64 --target_libc=unknown
           #          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=win32 --fallback-to-build --target_arch=ia32 --target_libc=unknown
@@ -110,19 +111,19 @@ jobs:
 
           # build executables
           # npm run build
-          npm i --target_arch=arm64 --target_platform=darwin better-sqlite3
+          npx prebuild-install --platform=darwin --arch=arm64 --build-from-source || npx prebuild --platform=darwin --arch=arm64 --build-from-source
           npx pkg . --compress GZip -t node16-macos-arm64 -o Noco-macos-arm64
           mv ./Noco-macos-arm64 ./mac-dist/
 
-          npm i --target_arch=x64 --target_platform=darwin better-sqlite3
+          npx prebuild-install --platform=darwin --arch=x64 --build-from-source || npx prebuild --platform=darwin --arch=x64 --build-from-source
           npx pkg . --compress GZip -t node16-macos-x64 -o Noco-macos-x64
           mv ./Noco-macos-x64 ./mac-dist/
 
-          npm i --target_arch=x64 --target_platform=linux better-sqlite3
+          npx prebuild-install --platform=linux --arch=x64 --build-from-source || npx prebuild --platform=linux --arch=x64 --build-from-source
           npx pkg . --compress GZip -t node16-linux-x64 -o Noco-linux-x64
           mv ./Noco-linux-x64 ./dist/
 
-          npm i --target_arch=arm64 --target_platform=linux better-sqlite3
+          npx prebuild-install --platform=linux --arch=arm64 --build-from-source || npx prebuild --platform=linux --arch=arm64 --build-from-source
           npx pkg . --compress GZip -t node16-linux-arm64 -o Noco-linux-arm64
           mv ./Noco-linux-arm64 ./dist/
 

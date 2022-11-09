@@ -3,7 +3,7 @@ import { airtableApiBase, airtableApiKey } from '../constants';
 import { DashboardPage } from '../pages/Dashboard';
 import { quickVerify } from '../quickTests/commonTest';
 import setup from '../setup';
-import { isSqlite } from '../setup/db';
+import { isPg, isSqlite } from '../setup/db';
 
 test.describe('Import', () => {
   let dashboard: DashboardPage;
@@ -49,7 +49,7 @@ test.describe('Import', () => {
       result: expected,
     });
 
-    const recordCells = { Number: '1', Float: isSqlite(context) ? '1.1' : '1.10', Text: 'abc' };
+    const recordCells = { Number: '1', Float: isSqlite(context) || isPg(context) ? '1.1' : '1.10', Text: 'abc' };
 
     for (const [key, value] of Object.entries(recordCells)) {
       await dashboard.grid.cell.verify({

@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
+import { isPg } from '../setup/db';
 
 test.describe('Grid view locked', () => {
   let dashboard: DashboardPage;
@@ -44,6 +45,9 @@ test.describe('Grid view locked', () => {
     await dashboard.grid.toolbar.viewsMenu.click({
       menu: 'Download',
       subMenu: 'Download as CSV',
+      verificationInfo: {
+        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
+      },
     });
   });
 });

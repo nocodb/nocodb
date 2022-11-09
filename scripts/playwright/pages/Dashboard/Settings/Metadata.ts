@@ -31,18 +31,17 @@ export class MetaDataPage extends BasePage {
   }
 
   async verifyRow({ index, model, state }: { index: number; model: string; state: string }) {
-    await expect
-      .poll(async () => {
-        return await this.get()
-          .locator(`tr.ant-table-row`)
-          .nth(index)
-          .locator(`td.ant-table-cell`)
-          .nth(0)
-          .textContent();
-      })
-      .toContain(model);
-    await expect(
-      await this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(1).textContent()
-    ).toContain(state);
+    await expect(this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(0)).toHaveText(
+      model,
+      {
+        ignoreCase: true,
+      }
+    );
+    await expect(this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(1)).toHaveText(
+      state,
+      {
+        ignoreCase: true,
+      }
+    );
   }
 }

@@ -55,7 +55,8 @@ export class ToolbarViewMenuPage extends BasePage {
   //    Get API Snippet
   //    ERD View
 
-  async click({ menu, subMenu }: { menu: string; subMenu?: string }) {
+  // todo: Move verification out of the click method
+  async click({ menu, subMenu, verificationInfo }: { menu: string; subMenu?: string; verificationInfo?: any }) {
     await this.viewsMenuBtn.click();
     await this.get().locator(`.ant-dropdown-menu-title-content:has-text("${menu}")`).first().click();
     if (subMenu) {
@@ -65,7 +66,7 @@ export class ToolbarViewMenuPage extends BasePage {
           downloadLocator: await this.rootPage
             .locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`)
             .last(),
-          expectedDataFile: './fixtures/expectedBaseDownloadData.txt',
+          expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
         });
       } else {
         await this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last().click();

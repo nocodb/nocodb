@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
-import { isSqlite } from '../setup/db';
+import { isMysql, isPg, isSqlite } from '../setup/db';
 
 test.describe('Shared view', () => {
   let dashboard: DashboardPage;
@@ -77,13 +77,14 @@ test.describe('Shared view', () => {
       await sharedPage.grid.column.verify(column);
     }
 
-    const expectedRecordsByDb = isSqlite(context) ? sqliteExpectedRecords : expectedRecords;
+    const expectedRecordsByDb = isSqlite(context) || isPg(context) ? sqliteExpectedRecords : expectedRecords;
     // verify order of records (original sort & filter)
     for (const record of expectedRecordsByDb) {
       await sharedPage.grid.cell.verify(record);
     }
 
-    const expectedVirtualRecordsByDb = isSqlite(context) ? sqliteExpectedVirtualRecords : expectedVirtualRecords;
+    const expectedVirtualRecordsByDb =
+      isSqlite(context) || isPg(context) ? sqliteExpectedVirtualRecords : expectedVirtualRecords;
 
     // verify virtual records
     for (const record of expectedVirtualRecordsByDb) {
@@ -104,7 +105,7 @@ test.describe('Shared view', () => {
       isLocallySaved: true,
     });
 
-    if (!isSqlite(context)) {
+    if (isMysql(context)) {
       await sharedPage.grid.toolbar.filter.addNew({
         columnTitle: 'District',
         value: 'Ta',
@@ -120,7 +121,7 @@ test.describe('Shared view', () => {
       await sharedPage.grid.column.verify(column);
     }
 
-    const expectedRecordsByDb2 = isSqlite(context) ? sqliteExpectedRecords2 : expectedRecords2;
+    const expectedRecordsByDb2 = isSqlite(context) || isPg(context) ? sqliteExpectedRecords2 : expectedRecords2;
     // verify order of records (original sort & filter)
     for (const record of expectedRecordsByDb2) {
       await sharedPage.grid.cell.verify(record);
@@ -134,7 +135,7 @@ test.describe('Shared view', () => {
     // verify download
     await sharedPage.grid.toolbar.clickDownload(
       'Download as CSV',
-      isSqlite(context) ? 'expectedDataSqlite.txt' : 'expectedData.txt'
+      isSqlite(context) || isPg(context) ? 'expectedDataSqlite.txt' : 'expectedData.txt'
     );
   });
 

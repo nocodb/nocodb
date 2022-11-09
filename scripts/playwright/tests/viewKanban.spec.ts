@@ -3,7 +3,7 @@ import { DashboardPage } from '../pages/Dashboard';
 import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
 
 import setup from '../setup';
-import { isSqlite } from '../setup/db';
+import { isPg, isSqlite } from '../setup/db';
 
 const filmRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
 
@@ -20,7 +20,13 @@ test.describe('View', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Film' });
 
-    if (isSqlite(context)) {
+    if (isPg(context)) {
+      // Since these view depend on the Ratings column of the Film table
+      await dashboard.treeView.deleteTable({ title: 'NicerButSlowerFilmList' });
+      await dashboard.treeView.deleteTable({ title: 'FilmList' });
+    }
+
+    if (isSqlite(context) || isPg(context)) {
       await dashboard.grid.column.openEdit({ title: 'Rating' });
       await dashboard.grid.column.selectType({ type: 'SingleSelect' });
       let count = 0;

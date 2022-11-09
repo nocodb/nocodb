@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup from '../setup';
+import { isPg } from '../setup/db';
 
 test.describe('Relational Columns', () => {
   let dashboard: DashboardPage;

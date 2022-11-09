@@ -1,7 +1,7 @@
 import { DashboardPage } from '../pages/Dashboard';
 import { ProjectsPage } from '../pages/ProjectsPage';
 import { NcContext } from '../setup';
-import { isMysql } from '../setup/db';
+import { isMysql, isPg } from '../setup/db';
 
 // normal fields
 const recordCells = {
@@ -103,7 +103,7 @@ const quickVerify = async ({
   await dashboard.grid.cell.verifyVirtualCell({
     index: cellIndex,
     columnHeader: 'Actor',
-    value: isMysql(context) ? ['Actor1'] : recordsVirtualCells.Actor,
+    value: isMysql(context) || isPg(context) ? ['Actor1'] : recordsVirtualCells.Actor,
   });
 
   // Status (from Actor)

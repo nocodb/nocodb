@@ -9,6 +9,8 @@ import NocoCache from '../../../cache/NocoCache';
 import { CacheScope } from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
 
+const workerStatus = {};
+
 const loginRootUser = async () => {
   const response = await axios.post(
     'http://localhost:8080/api/v1/auth/user/signin',
@@ -45,6 +47,21 @@ export class TestResetService {
 
   async process() {
     try {
+      console.log(
+        `earlier workerStatus: parrelledId: ${this.parallelId}:`,
+        workerStatus[this.parallelId]
+      );
+
+      // wait till previous worker is done
+      while (workerStatus[this.parallelId] === 'processing') {
+        console.log(
+          `waiting for previous worker to finish parrelelId:${this.parallelId}`
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      workerStatus[this.parallelId] = 'processing';
+
       const token = await loginRootUser();
 
       const { project } = await this.resetProject({
@@ -53,12 +70,18 @@ export class TestResetService {
         parallelId: this.parallelId,
       });
 
-      await removeAllProjectCreatedByTheTest(this.parallelId);
-      await removeAllPrefixedUsersExceptSuper(this.parallelId);
+      try {
+        await removeAllProjectCreatedByTheTest(this.parallelId);
+        await removeAllPrefixedUsersExceptSuper(this.parallelId);
+      } catch (e) {
+        console.log(`Error in cleaning up project: ${this.parallelId}`, e);
+      }
 
+      workerStatus[this.parallelId] = 'completed';
       return { token, project };
     } catch (e) {
       console.error('TestResetService:process', e);
+      workerStatus[this.parallelId] = 'errored';
       return { error: e };
     }
   }
@@ -80,9 +103,11 @@ export class TestResetService {
 
       const bases = await project.getBases();
 
-      await Project.delete(project.id);
+      if (bases.length > 0) {
+        await NcConnectionMgrv2.deleteAwait(bases[0]);
+      }
 
-      if (bases.length > 0) await NcConnectionMgrv2.deleteAwait(bases[0]);
+      await Project.delete(project.id);
     }
 
     if (dbType == 'sqlite') {

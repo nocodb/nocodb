@@ -6,6 +6,7 @@ on:
       db:
         required: true
         type: string
+        shard: string
 
 jobs:
   playwright:
@@ -57,7 +58,7 @@ jobs:
       - name: setup pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./
-        run: docker-compose -f ./scripts/playwright/scripts/docker-compose-pg.yml up -d &
+        run: docker-compose -f ./scripts/playwright/scripts/docker-compose-playwright-pg.yml up -d &
       - name: run frontend
         working-directory: ./packages/nc-gui
         run: npm run ci:run
@@ -86,16 +87,16 @@ jobs:
           done
       - name: Run Playwright tests
         working-directory: ./scripts/playwright
-        run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test
+        run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
       - uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: playwright-report
+          name: playwright-report-${{ inputs.db }}-${{ inputs.shard }}
           path: ./scripts/playwright/playwright-report/
           retention-days: 2
       - uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: backend logs
+          name: backend-logs-${{ inputs.db }}-${{ inputs.shard }}
           path: ./packages/nocodb/mysql_test_backend.log
           retention-days: 2

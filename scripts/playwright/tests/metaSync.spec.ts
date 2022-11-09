@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import { SettingsPage, SettingTab } from '../pages/Dashboard/Settings';
 import setup, { NcContext } from '../setup';
-import { isSqlite, mysqlExec, sqliteExec } from '../setup/db';
+import { isMysql, isPg, isSqlite, mysqlExec, pgExec, sqliteExec } from '../setup/db';
 
 // todo: Enable when view bug is fixed
 test.describe('Meta sync', () => {
@@ -23,6 +23,9 @@ test.describe('Meta sync', () => {
       case 'mysql':
         dbExec = mysqlExec;
         break;
+      case 'pg':
+        dbExec = pgExec;
+        break;
     }
   });
 
@@ -37,37 +40,41 @@ test.describe('Meta sync', () => {
 
     await settings.metaData.clickReload();
     await settings.metaData.verifyRow({
-      index: 16,
+      index: isPg(context) ? 21 : 16,
       model: `table1`,
       state: 'New table',
     });
     await settings.metaData.verifyRow({
-      index: 17,
+      index: isPg(context) ? 22 : 17,
       model: `table2`,
       state: 'New table',
     });
 
     await settings.metaData.sync();
     await settings.metaData.verifyRow({
-      index: 16,
+      index: isPg(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
     });
     await settings.metaData.verifyRow({
-      index: 17,
+      index: isPg(context) ? 22 : 17,
       model: 'Table2',
       state: 'No change identified',
     });
 
     if (!isSqlite(context)) {
       // Add relation
-      await dbExec(`ALTER TABLE table1 ADD INDEX fk1_idx (col1 ASC) VISIBLE`);
-      await dbExec(
-        `ALTER TABLE table1 ADD CONSTRAINT fk1 FOREIGN KEY (col1) REFERENCES table2 (id) ON DELETE NO ACTION ON UPDATE NO ACTION`
-      );
+      if (isPg(context)) {
+        await dbExec(`ALTER TABLE table1 ADD CONSTRAINT fk_idx FOREIGN KEY (id) REFERENCES table2 (id);`);
+      } else {
+        await dbExec(`ALTER TABLE table1 ADD INDEX fk1_idx (col1 ASC) VISIBLE`);
+        await dbExec(
+          `ALTER TABLE table1 ADD CONSTRAINT fk1 FOREIGN KEY (col1) REFERENCES table2 (id) ON DELETE NO ACTION ON UPDATE NO ACTION`
+        );
+      }
       await settings.metaData.clickReload();
       await settings.metaData.verifyRow({
-        index: 16,
+        index: isPg(context) ? 21 : 16,
         model: 'Table1',
         state: 'New relation added',
       });
@@ -75,17 +82,21 @@ test.describe('Meta sync', () => {
       //verify after sync
       await settings.metaData.sync();
       await settings.metaData.verifyRow({
-        index: 16,
+        index: isPg(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
       });
 
       // Remove relation
-      await dbExec(`ALTER TABLE table1 DROP FOREIGN KEY fk1`);
-      await dbExec(`ALTER TABLE table1 DROP INDEX fk1_idx`);
+      if (isPg(context)) {
+        await dbExec(`ALTER TABLE table1 DROP CONSTRAINT fk_idx`);
+      } else {
+        await dbExec(`ALTER TABLE table1 DROP FOREIGN KEY fk1`);
+        await dbExec(`ALTER TABLE table1 DROP INDEX fk1_idx`);
+      }
       await settings.metaData.clickReload();
       await settings.metaData.verifyRow({
-        index: 16,
+        index: isPg(context) ? 21 : 16,
         model: 'Table1',
         state: 'Relation removed',
       });
@@ -93,21 +104,24 @@ test.describe('Meta sync', () => {
       //verify after sync
       await settings.metaData.sync();
       await settings.metaData.verifyRow({
-        index: 16,
+        index: isPg(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
       });
     }
 
     // Add column
-    await dbExec(
-      isSqlite(context)
-        ? `ALTER TABLE table1 ADD COLUMN newCol TEXT NULL`
-        : `ALTER TABLE table1 ADD COLUMN newCol VARCHAR(45) NULL AFTER id`
-    );
+    if (isSqlite(context)) {
+      await dbExec(`ALTER TABLE table1 ADD COLUMN newCol TEXT NULL`);
+    } else if (isMysql(context)) {
+      await dbExec(`ALTER TABLE table1 ADD COLUMN newCol VARCHAR(45) NULL AFTER id`);
+    } else if (isPg(context)) {
+      await dbExec(`ALTER TABLE table1 ADD COLUMN newCol INT`);
+    }
+
     await settings.metaData.clickReload();
     await settings.metaData.verifyRow({
-      index: 16,
+      index: isPg(context) ? 21 : 16,
       model: `Table1`,
       state: 'New column(newCol)',
     });
@@ -115,20 +129,23 @@ test.describe('Meta sync', () => {
     //verify after sync
     await settings.metaData.sync();
     await settings.metaData.verifyRow({
-      index: 16,
+      index: isPg(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
     });
 
     // Edit column
-    await dbExec(
-      isSqlite(context)
-        ? `ALTER TABLE table1 RENAME COLUMN newCol TO newColName`
-        : `ALTER TABLE table1 CHANGE COLUMN newCol newColName VARCHAR(45) NULL DEFAULT NULL`
-    );
+    if (isSqlite(context)) {
+      await dbExec(`ALTER TABLE table1 RENAME COLUMN newCol TO newColName`);
+    } else if (isMysql(context)) {
+      await dbExec(`ALTER TABLE table1 CHANGE COLUMN newCol newColName VARCHAR(45) NULL DEFAULT NULL`);
+    } else if (isPg(context)) {
+      await dbExec(`ALTER TABLE table1 RENAME COLUMN newCol TO newColName`);
+    }
+
     await settings.metaData.clickReload();
     await settings.metaData.verifyRow({
-      index: 16,
+      index: isPg(context) ? 21 : 16,
       model: `Table1`,
       state: 'New column(newColName), Column removed(newCol)',
     });
@@ -136,7 +153,7 @@ test.describe('Meta sync', () => {
     //verify after sync
     await settings.metaData.sync();
     await settings.metaData.verifyRow({
-      index: 16,
+      index: isPg(context) ? 21 : 16,
       model: 'Table1',
       state: 'No change identified',
     });
@@ -147,7 +164,7 @@ test.describe('Meta sync', () => {
       await dbExec(`ALTER TABLE table1 DROP COLUMN newColName`);
       await settings.metaData.clickReload();
       await settings.metaData.verifyRow({
-        index: 16,
+        index: isPg(context) ? 21 : 16,
         model: `Table1`,
         state: 'Column removed(newColName)',
       });
@@ -155,7 +172,7 @@ test.describe('Meta sync', () => {
       //verify after sync
       await settings.metaData.sync();
       await settings.metaData.verifyRow({
-        index: 16,
+        index: isPg(context) ? 21 : 16,
         model: 'Table1',
         state: 'No change identified',
       });
@@ -166,12 +183,12 @@ test.describe('Meta sync', () => {
     await dbExec(`DROP TABLE table2`);
     await settings.metaData.clickReload();
     await settings.metaData.verifyRow({
-      index: 16,
+      index: isPg(context) ? 21 : 16,
       model: `table1`,
       state: 'Table removed',
     });
     await settings.metaData.verifyRow({
-      index: 17,
+      index: isPg(context) ? 22 : 17,
       model: `table2`,
       state: 'Table removed',
     });
@@ -190,7 +207,19 @@ test.describe('Meta sync', () => {
         model: 'FilmList',
         state: 'No change identified',
       });
-    } else {
+    }
+    if (isPg(context)) {
+      await settings.metaData.verifyRow({
+        index: 21,
+        model: 'ActorInfo',
+        state: 'No change identified',
+      });
+      await settings.metaData.verifyRow({
+        index: 22,
+        model: 'CustomerList',
+        state: 'No change identified',
+      });
+    } else if (isMysql(context)) {
       await settings.metaData.verifyRow({
         index: 16,
         model: 'ActorInfo',

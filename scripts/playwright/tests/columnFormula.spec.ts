@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
-import setup from '../setup';
-import { isSqlite } from '../setup/db';
+import setup, { NcContext } from '../setup';
+import { isPg, isSqlite } from '../setup/db';
 
 // Add formula to be verified here & store expected results for 5 rows
 // Column data from City table (Sakila DB)
@@ -13,7 +13,7 @@ import { isSqlite } from '../setup/db';
  * Acua                   2006-02-15 04:45:25     1789 Saint-Denis Parkway    Mexico
  * Adana                  2006-02-15 04:45:25     663 Baha Blanca Parkway     Turkey
  */
-const formulaData = [
+const formulaDataByDbType = (context: NcContext) => [
   {
     formula: '1 + 1',
     result: ['2', '2', '2', '2', '2'],
@@ -46,7 +46,9 @@ const formulaData = [
   },
   {
     formula: `LOG({CityId}) + EXP({CityId}) + POWER({CityId}, 3) + SQRT({CountryId})`,
-    result: ['13.04566088154786', '25.137588417628013', '58.23402483297667', '127.73041108667896', '284.8714548168068'],
+    result: isPg(context)
+      ? ['13.04566088154786', '24.74547123273205', '57.61253379902822', '126.94617671688704', '283.9609869087087']
+      : ['13.04566088154786', '25.137588417628013', '58.23402483297667', '127.73041108667896', '284.8714548168068'],
   },
   {
     formula: `NOW()`,
@@ -75,10 +77,10 @@ test.describe('Virtual Columns', () => {
 
   test('Formula', async () => {
     // close 'Team & Auth' tab
+    const formulaData = formulaDataByDbType(context);
     await dashboard.closeTab({ title: 'Team & Auth' });
 
     await dashboard.treeView.openTable({ title: 'City' });
-
     // Create formula column
     await dashboard.grid.column.create({
       title: 'NC_MATH_0',

@@ -61,7 +61,7 @@ test.describe('Erd', () => {
     await erd.dbClickShowColumnNames();
 
     if (isPg(context)) {
-      await erd.verifyNodesCount(mysqlSakilaTables.length);
+      await erd.verifyNodesCount(sakilaTables.length);
       await erd.verifyEdgesCount({
         count: 32,
         circleCount: 29,

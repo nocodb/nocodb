@@ -57,11 +57,11 @@ jobs:
       - name: setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./
-        run: docker-compose -f ./scripts/playwright/scripts/docker-compose-playwright.yml up -d &
+        run: docker-compose -f ./packages/nc-gui/tests/playwright/scripts/docker-compose-playwright.yml up -d &
       - name: setup pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./
-        run: docker-compose -f ./scripts/playwright/scripts/docker-compose-playwright-pg.yml up -d &
+        run: docker-compose -f ./packages/nc-gui/tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
       - name: run frontend
         working-directory: ./packages/nc-gui
         run: npm run ci:run
@@ -77,10 +77,10 @@ jobs:
           key: cache-playwright-${{ hashFiles('**/playwright/package-lock.json') }}
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        working-directory: ./scripts/playwright
+        working-directory: ./packages/nc-gui/tests/playwright
         run: npm install
       - name: Install Playwright Browsers
-        working-directory: ./scripts/playwright
+        working-directory: ./packages/nc-gui/tests/playwright
         run: npx playwright install chromium --with-deps
       - name: Wait for backend
         run: |
@@ -89,13 +89,13 @@ jobs:
             sleep 2
           done
       - name: Run Playwright tests
-        working-directory: ./scripts/playwright
+        working-directory: ./packages/nc-gui/tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
       - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: playwright-report-${{ inputs.db }}-${{ inputs.shard }}
-          path: ./scripts/playwright/playwright-report/
+          path: ./packages/nc-gui/tests/playwright/playwright-report/
           retention-days: 2
       - uses: actions/upload-artifact@v3
         if: always()

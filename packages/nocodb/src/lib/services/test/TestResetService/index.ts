@@ -47,10 +47,10 @@ export class TestResetService {
 
   async process() {
     try {
-      console.log(
-        `earlier workerStatus: parrelledId: ${this.parallelId}:`,
-        workerStatus[this.parallelId]
-      );
+      // console.log(
+      //   `earlier workerStatus: parrelledId: ${this.parallelId}:`,
+      //   workerStatus[this.parallelId]
+      // );
 
       // wait till previous worker is done
       while (workerStatus[this.parallelId] === 'processing') {

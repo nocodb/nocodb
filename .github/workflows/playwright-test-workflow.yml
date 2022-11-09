@@ -3,10 +3,13 @@ name: Playwright test reusable workflow
 on:
   workflow_call:
     inputs:
+      shard:
+        description: 'Shard number'
+        required: true
+        type: string
       db:
         required: true
         type: string
-        shard: string
 
 jobs:
   playwright:

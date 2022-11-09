@@ -62,6 +62,10 @@ jobs:
           ./make.sh
           sudo cp ./ldid /usr/local/bin
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
       - name: Update nocodb-timely
         env:
           TAG: ${{ github.event.inputs.tag || inputs.tag }}
@@ -75,10 +79,6 @@ jobs:
           git tag $TAG
           git push --tags
 
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
 
       - name : Install dependencies and build executables
         run: |
@@ -111,12 +111,12 @@ jobs:
 
           # build executables
           # npm run build
-          cd ./node_modules/better-sqlite3;
-          rm -r ./build
-          npx prebuild-install --platform=darwin --arch=arm64 || npx prebuild --platform=darwin --arch=arm64
-          cd ../..;
-          npx pkg . --compress GZip -t node16-macos-arm64 -o Noco-macos-arm64
-          mv ./Noco-macos-arm64 ./mac-dist/
+          # cd ./node_modules/better-sqlite3;
+          # rm -r ./build
+          # npx prebuild-install --platform=darwin --arch=arm64 || npx prebuild --platform=darwin --arch=arm64
+          # cd ../..;
+          # npx pkg . --compress GZip -t node16-macos-arm64 -o Noco-macos-arm64
+          # mv ./Noco-macos-arm64 ./mac-dist/
 
           cd ./node_modules/better-sqlite3;
           rm -r ./build
@@ -159,11 +159,41 @@ jobs:
     runs-on: macos-latest
     needs: build-executables
     steps:
+      -
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.NC_GITHUB_TOKEN }}
+          repository: 'nocodb/nocodb-timely'
 
       - uses: actions/download-artifact@master
         with:
           name: ${{ github.event.inputs.tag || inputs.tag }}
           path: mac-dist
+
+
+      - name: Install dependencies and build executables
+        env:
+          TAG: ${{ github.event.inputs.tag || inputs.tag }}
+        run: |
+
+          npm i -E nocodb-daily@$TAG
+
+          # install npm dependendencies
+          npm i
+
+          # clean up code to optimize size
+          npx modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,dayjs/**,express-status-monitor/**,better-sqlite3/**" --run
+
+
+          # build executables
+          cd ./node_modules/better-sqlite3;
+          rm -r ./build
+          npx prebuild-install --platform=darwin --arch=arm64 || npx prebuild --platform=darwin --arch=arm64
+          cd ../..;
+          npx pkg . --compress GZip -t node16-macos-arm64 -o Noco-macos-arm64
+          mv ./Noco-macos-arm64 ./mac-dist/
+
+
 
       - name: Sign macOS executables
         run: |

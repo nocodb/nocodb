@@ -108,16 +108,16 @@ jobs:
           # build executables
           # npm run build
           npm i --target_arch=arm64 --target_platform=darwin better-sqlite3
-          npx pkg . --compress GZip -t dist/node16-macos-arm64 -o Noco-macos-arm64
+          npx pkg . --compress GZip -t node16-macos-arm64 -o Noco-macos-arm64
 
           npm i --target_arch=x64 --target_platform=darwin better-sqlite3
-          npx pkg . --compress GZip -t dist/node16-macos-x64 -o Noco-macos-x64
+          npx pkg . --compress GZip -t node16-macos-x64 -o Noco-macos-x64
 
           npm i --target_arch=x64 --target_platform=linux better-sqlite3
-          npx pkg . --compress GZip -t dist/node16-linux-x64 -o Noco-linux-x64
+          npx pkg . --compress GZip -t node16-linux-x64 -o Noco-linux-x64
 
           npm i --target_arch=arm64 --target_platform=linux better-sqlite3
-          npx pkg . --compress GZip -t dist/node16-linux-arm64 -o Noco-linux-arm64
+          npx pkg . --compress GZip -t node16-linux-arm64 -o Noco-linux-arm64
 
           mkdir ./mac-dist
           mv ./dist/Noco-macos-arm64 ./mac-dist/

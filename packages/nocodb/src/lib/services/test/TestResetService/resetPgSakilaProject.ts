@@ -19,7 +19,7 @@ const config = {
     multipleStatements: true,
   },
   searchPath: ['public', 'information_schema'],
-  pool: { min: 0, max: 1 },
+  pool: { min: 0, max: 5 },
 };
 
 const extMysqlProject = (title, parallelId) => ({

@@ -112,25 +112,29 @@ jobs:
           # build executables
           # npm run build
           cd ./node_modules/better-sqlite3;
-          npx prebuild-install --platform=darwin --arch=arm64 --build-from-source || npx prebuild --platform=darwin --arch=arm64 --build-from-source
+          rm -r ./build
+          npx prebuild-install --platform=darwin --arch=arm64 || npx prebuild --platform=darwin --arch=arm64
           cd ../..;
           npx pkg . --compress GZip -t node16-macos-arm64 -o Noco-macos-arm64
           mv ./Noco-macos-arm64 ./mac-dist/
 
           cd ./node_modules/better-sqlite3;
-          npx prebuild-install --platform=darwin --arch=x64 --build-from-source || npx prebuild --platform=darwin --arch=x64 --build-from-source
+          rm -r ./build
+          npx prebuild-install --platform=darwin --arch=x64 || npx prebuild --platform=darwin --arch=x64
           cd ../..;
           npx pkg . --compress GZip -t node16-macos-x64 -o Noco-macos-x64
           mv ./Noco-macos-x64 ./mac-dist/
 
           cd ./node_modules/better-sqlite3;
-          npx prebuild-install --platform=linux --arch=x64 --build-from-source || npx prebuild --platform=linux --arch=x64 --build-from-source
+          rm -r ./build
+          npx prebuild-install --platform=linux --arch=x64 || npx prebuild --platform=linux --arch=x64
           cd ../..;
           npx pkg . --compress GZip -t node16-linux-x64 -o Noco-linux-x64
           mv ./Noco-linux-x64 ./dist/
 
           cd ./node_modules/better-sqlite3;
-          npx prebuild-install --platform=linux --arch=arm64 --build-from-source || npx prebuild --platform=linux --arch=arm64 --build-from-source
+          rm -r ./build
+          npx prebuild-install --platform=linux --arch=arm64 || npx prebuild --platform=linux --arch=arm64
           cd ../..;
           npx pkg . --compress GZip -t node16-linux-arm64 -o Noco-linux-arm64
           mv ./Noco-linux-arm64 ./dist/
@@ -191,5 +195,9 @@ jobs:
           overwrite: true
           file_glob: true
           repo_name: nocodb/nocodb-timely
+
+
+
+
 
 

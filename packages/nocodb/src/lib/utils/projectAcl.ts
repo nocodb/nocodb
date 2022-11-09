@@ -245,10 +245,15 @@ export default {
 
       //view
       viewUpdate: true,
+      viewColumnUpdate: true,
       // sort & filter
       sortList: true,
+      sortCreate: true,
+      sortUpdate: true,
+      sortDelete: true,
       filterList: true,
       projectInfoGet: true,
+
 
       galleryViewGet: true,
       kanbanViewGet: true,

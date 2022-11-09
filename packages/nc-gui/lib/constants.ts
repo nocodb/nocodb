@@ -75,7 +75,9 @@ export const rolePermissions = {
       smartSheet: true,
       column: true,
       projectSettings: true,
-      virtualViewsCreateOrEdit: true
+      virtualViewsCreateOrEdit: true,
+      sortSync: true,
+      fieldsSync: true,
     },
   },
 } as const

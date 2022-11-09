@@ -57,7 +57,7 @@ jobs:
       - name: setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./
-        run: docker-compose -f ./packages/nc-gui/tests/playwright/scripts/docker-compose-playwright.yml up -d &
+        run: docker-compose -f ./packages/nc-gui/tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d &
       - name: setup pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./

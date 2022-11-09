@@ -53,7 +53,7 @@ const mysqlExec = async query => {
 
 async function sqliteExec(query) {
   const parallelIndex = process.env.TEST_PARALLEL_INDEX;
-  const rootProjectDir = __dirname.replace('/scripts/playwright/setup', '');
+  const rootProjectDir = __dirname.replace('/packages/nc-gui/tests/playwright/setup', '');
   await sqliteDb.open(`${rootProjectDir}/packages/nocodb/test_sakila_${parallelIndex}.db`);
 
   await sqliteDb.run(query);

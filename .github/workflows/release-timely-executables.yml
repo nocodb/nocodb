@@ -164,6 +164,10 @@ jobs:
           token: ${{ secrets.NC_GITHUB_TOKEN }}
           repository: 'nocodb/nocodb-timely'
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
       - uses: actions/download-artifact@master
         with:
           name: ${{ github.event.inputs.tag || inputs.tag }}

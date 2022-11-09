@@ -141,22 +141,28 @@ const tabsInfo = $computed<TabGroup>(() =>
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
 // Array of keys of tabs which are selected. In our case will be only one.
-let selectedTabKeys = $computed<string[]>(() => [firstKeyOfObject(tabsInfo)])
+let selectedTabKeys = $ref<string[]>([firstKeyOfObject(tabsInfo)])
 const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
 
-let selectedSubTabKeys = $computed<string[]>(() => [firstKeyOfObject(selectedTab.subTabs)])
+let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab.subTabs)])
 const selectedSubTab = $computed(() => selectedTab.subTabs[selectedSubTabKeys[0]])
 
 watch(
-  () => selectedTabKeys[0],
-  (newTabKey) => {
+  [() => tabsInfo, () => selectedTabKeys[0]],
+  ([tabsInfo, newTabKey]) => {
+    if (!newTabKey || !tabsInfo?.[newTabKey]) {
+      return
+    }
     selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey].subTabs)]
   },
 )
 
 watch(
-  () => props.openKey,
-  (nextOpenKey) => {
+    [() => tabsInfo, () => props.openKey],
+  ([tabsInfo, nextOpenKey]) => {
+      if (!tabsInfo) {
+        return
+      }
     selectedTabKeys = [Object.keys(tabsInfo).find((key) => key === nextOpenKey) || firstKeyOfObject(tabsInfo)]
   },
 )

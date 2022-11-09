@@ -17,6 +17,21 @@ export class AppStoreSettingsPage extends BasePage {
   async install({ name }: { name: string }) {
     const card = await this.settings.get().locator(`.nc-app-store-card-${name}`);
     await card.click();
+
+    // todo: Hack to solve the issue when if the test installing a plugin fails, the next test will fail because the plugin is already installed
+    let appAlreadyInstalled = true;
+    for (let i = 0; i < 5; i++) {
+      if (await card.locator('.nc-app-store-card-install').isVisible()) {
+        appAlreadyInstalled = false;
+        break;
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    if (appAlreadyInstalled) {
+      await this.uninstall({ name });
+    }
+
     await card.locator('.nc-app-store-card-install').click();
   }
 

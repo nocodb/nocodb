@@ -159,7 +159,6 @@ jobs:
     runs-on: macos-latest
     needs: build-executables
     steps:
-      -
       - uses: actions/checkout@v3
         with:
           token: ${{ secrets.NC_GITHUB_TOKEN }}

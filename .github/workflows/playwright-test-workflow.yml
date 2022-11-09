@@ -63,7 +63,7 @@ jobs:
         working-directory: ./
         run: docker-compose -f ./packages/nc-gui/tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
       - name: setup pg for quick tests
-        if: ${{ inputs.db == 'sqlite' }} && ${{ inputs.shard == '0' }}
+        if: ${{ inputs.db == 'sqlite' && inputs.shard == '0' }}
         working-directory: ./
         run: docker-compose -f ./packages/nc-gui/tests/playwright/scripts/docker-compose-pg-pw-quick.yml up -d &
       - name: run frontend
@@ -92,26 +92,27 @@ jobs:
             printf '.'
             sleep 2
           done
+
       - name: Run Playwright tests
         working-directory: ./packages/nc-gui/tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
+
+      # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
+      - name: Run quick server and tests (pg)
+        if: ${{ inputs.db == 'sqlite' && inputs.shard == '0' }}
+        working-directory: ./packages/nocodb
+        run: kill -9 $(lsof -t -i:8080); npm run watch:run:playwright:pg:cyquick &; cd ../nc-gui/tests/playwright; npm run ci:test:quick
+      - name: Run quick server and tests (sqlite)
+        if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
+        working-directory: ./packages/nocodb
+        run: kill -9 $(lsof -t -i:8080); npm run watch:run:playwright:quick &; cd ../nc-gui/tests/playwright; npm run ci:test:quick
+
       - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: playwright-report-${{ inputs.db }}-${{ inputs.shard }}
           path: ./packages/nc-gui/tests/playwright/playwright-report/
           retention-days: 2
-
-      # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
-      - name: Run quick server and tests (pg)
-        if: (inputs.db == 'sqlite') && inputs.shard == '0'
-        working-directory: ./packages/nocodb
-        run: kill -9 $(lsof -t -i:8080); npm run watch:run:playwright:pg:cyquick &; cd ../nc-gui/tests/playwright; npm run ci:test:quick
-      - name: Run quick server and tests (sqlite)
-        if: (inputs.db == 'sqlite') && inputs.shard == '1'
-        working-directory: ./packages/nocodb
-        run: kill -9 $(lsof -t -i:8080); npm run watch:run:playwright:quick &; cd ../nc-gui/tests/playwright; npm run ci:test:quick
-
       - uses: actions/upload-artifact@v3
         if: always()
         with:

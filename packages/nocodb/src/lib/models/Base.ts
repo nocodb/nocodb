@@ -12,6 +12,7 @@ import NocoCache from '../cache/NocoCache';
 import CryptoJS from 'crypto-js';
 import { extractProps } from '../meta/helpers/extractProps';
 import { NcError } from '../meta/helpers/catchError';
+import SyncSource from './SyncSource';
 
 // todo: hide credentials
 export default class Base implements BaseType {
@@ -89,18 +90,13 @@ export default class Base implements BaseType {
 
     if (!oldBase) NcError.badRequest('Wrong base id!');
 
-    await ncMeta.metaDelete(null, null, MetaTable.BASES, {
-      id: baseId,
-    });
-
     await NocoCache.deepDel(
       CacheScope.BASE,
       `${CacheScope.BASE}:${baseId}`,
       CacheDelDirection.CHILD_TO_PARENT
     );
 
-    const insertObj = extractProps(base, [
-      'id',
+    const updateObj = extractProps(base, [
       'alias',
       'config',
       'type',
@@ -112,42 +108,37 @@ export default class Base implements BaseType {
       'order',
       'enabled',
     ]);
-
-    if (insertObj.config) {
-      insertObj.config = CryptoJS.AES.encrypt(
+    
+    if (updateObj.config) {
+      updateObj.config = CryptoJS.AES.encrypt(
         JSON.stringify(base.config),
         Noco.getConfig()?.auth?.jwt?.secret
       ).toString();
     }
 
     // type property is undefined even if not provided
-    if (!insertObj.type) {
-      insertObj.type = oldBase.type;
+    if (!updateObj.type) {
+      updateObj.type = oldBase.type;
     }
 
-    // add missing (not updated) fields
-    const finalInsertObj = {
-      ...oldBase,
-      ...insertObj,
-    };
-
-    const { id } = await ncMeta.metaInsert2(
+    await ncMeta.metaUpdate(
       base.projectId,
       null,
       MetaTable.BASES,
-      finalInsertObj
+      updateObj,
+      oldBase.id
     );
 
     await NocoCache.appendToList(
       CacheScope.BASE,
       [base.projectId],
-      `${CacheScope.BASE}:${id}`
+      `${CacheScope.BASE}:${oldBase.id}`
     );
 
     // call before reorder to update cache
-    const returnBase = await this.get(id, ncMeta);
+    const returnBase = await this.get(oldBase.id, ncMeta);
 
-    await this.reorderBases(base.projectId, id, ncMeta);
+    await this.reorderBases(base.projectId, returnBase.id, ncMeta);
 
     return returnBase;
   }
@@ -217,9 +208,6 @@ export default class Base implements BaseType {
 
     // update order for bases
     for (const [i, b] of Object.entries(bases)) {
-      await ncMeta.metaDelete(null, null, MetaTable.BASES, {
-        id: b.id,
-      });
 
       await NocoCache.deepDel(
         CacheScope.BASE,
@@ -229,20 +217,23 @@ export default class Base implements BaseType {
 
       b.order = parseInt(i) + 1;
 
-      const { id } = await ncMeta.metaInsert2(
+      await ncMeta.metaUpdate(
         b.project_id,
         null,
         MetaTable.BASES,
-        b
+        {
+          order: b.order
+        },
+        b.id
       );
-
+  
       await NocoCache.appendToList(
         CacheScope.BASE,
         [b.project_id],
-        `${CacheScope.BASE}:${id}`
+        `${CacheScope.BASE}:${b.id}`
       );
 
-      await NocoCache.set(`${CacheScope.BASE}:${id}`, b);
+      await NocoCache.set(`${CacheScope.BASE}:${b.id}`, b);
     }
   }
 
@@ -299,6 +290,12 @@ export default class Base implements BaseType {
       `${CacheScope.BASE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT
     );
+
+    const syncSources = await SyncSource.list(this.project_id, this.id, ncMeta);
+    for (const syncSource of syncSources) {
+      await SyncSource.delete(syncSource.id, ncMeta);
+    }
+
     return await ncMeta.metaDelete(null, null, MetaTable.BASES, this.id);
   }
 

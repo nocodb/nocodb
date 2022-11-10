@@ -256,16 +256,10 @@ watch(
                         <template v-if="sources[0].enabled">Hide in UI</template>
                         <template v-else>Show in UI</template>
                       </template>
-                      <MdiEyeSettings
-                        v-if="sources[0].enabled"
-                        class="text-lg text-primary outline-0"
-                        @click="toggleBase(sources[0], false)"
-                      ></MdiEyeSettings>
-                      <MdiEyeSettingsOutline
-                        v-else
-                        class="text-lg text-red-500 outline-0"
-                        @click="toggleBase(sources[0], true)"
-                      ></MdiEyeSettingsOutline>
+                      <a-checkbox
+                        :checked="sources[0].enabled ? true : false"
+                        @change="toggleBase(sources[0], $event.target?.checked)"
+                      ></a-checkbox>
                     </a-tooltip>
                   </div>
                 </div>
@@ -337,16 +331,10 @@ watch(
                         <template v-if="base.enabled">Hide in UI</template>
                         <template v-else>Show in UI</template>
                       </template>
-                      <MdiEyeSettings
-                        v-if="base.enabled"
-                        class="text-lg text-primary outline-0"
-                        @click="toggleBase(base, false)"
-                      ></MdiEyeSettings>
-                      <MdiEyeSettingsOutline
-                        v-else
-                        class="text-lg text-red-500 outline-0"
-                        @click="toggleBase(base, true)"
-                      ></MdiEyeSettingsOutline>
+                      <a-checkbox
+                        :checked="base.enabled ? true : false"
+                        @change="toggleBase(base, $event.target?.checked)"
+                      ></a-checkbox>
                     </a-tooltip>
                   </div>
                 </div>

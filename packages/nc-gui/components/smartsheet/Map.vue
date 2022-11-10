@@ -77,7 +77,7 @@ onMounted(async () => {
 
   markersClusterGroupRef.value = L.markerClusterGroup({
     iconCreateFunction(cluster) {
-      return L.divIcon({ html: `${cluster.getChildCount()}`, className: 'geo-map-marker-cluster' })
+      return L.divIcon({ html: `${cluster.getChildCount()}`, className: 'geo-map-marker-cluster', iconSize: new L.Point(40, 40) })
     },
   })
   myMap.addLayer(markersClusterGroupRef.value)
@@ -85,20 +85,31 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full nounderline">
+  <div class="flex flex-col h-full w-full no-underline">
     <div id="mapContainer" ref="mapContainerRef"></div>
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 #mapContainer {
   height: 100vh;
 }
-.nounderline {
-  text-decoration: none;
-}
+// .no-underline {
+//   text-decoration: none !important;
+//   opacity: 0.5;
+// }
 
 :global(.geo-map-marker-cluster) {
   background-color: pink;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
+
+<style>
+.no-underline a {
+  text-decoration: none !important;
 }
 </style>

@@ -90,7 +90,12 @@ export default async (req, res, next) => {
         { session: false },
         async (_err, user, _info) => {
           if (user && !req.headers['xc-shared-base-id']) {
-            if (await User.isSuperAdmin(user.id)) user.roles = 'owner';
+            if (await User.isSuperAdmin(user.id)) {
+              user.roles = user.roles
+                .split(',')
+                .concat('owner', 'creator')
+                .join(',');
+            }
             if (
               req.path.indexOf('/user/me') === -1 &&
               req.header('xc-preview') &&

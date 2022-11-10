@@ -28,21 +28,23 @@ let sources = $ref<BaseType[]>([])
 let activeBaseId = $ref('')
 let metadiffbases = $ref<string[]>([])
 let clientType = $ref<ClientType>(ClientType.MYSQL)
+let isReloading = $ref(false)
 
 async function loadBases() {
   try {
     if (!project.value?.id) return
 
+    isReloading = true
     vReload.value = true
     const baseList = await $api.base.list(project.value?.id)
     if (baseList.bases.list && baseList.bases.list.length) {
       sources = baseList.bases.list
     }
-    loadMetaDiff()
   } catch (e) {
     console.error(e)
   } finally {
     vReload.value = false
+    isReloading = false
   }
 }
 
@@ -138,14 +140,16 @@ const moveBase = async (e: any) => {
 onMounted(async () => {
   if (sources.length === 0) {
     await loadBases()
+    await loadMetaDiff()
   }
 })
 
 watch(
   () => props.reload,
   async (reload) => {
-    if (reload) {
+    if (reload && !isReloading) {
       await loadBases()
+      await loadMetaDiff()
     }
   },
 )

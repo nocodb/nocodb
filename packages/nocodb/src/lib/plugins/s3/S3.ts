@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import AWS from 'aws-sdk';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
@@ -112,7 +113,7 @@ export default class S3 implements IStorageAdapterV2 {
 
   public async test(): Promise<boolean> {
     try {
-      const tempFile = path.join(process.cwd(), 'temp.txt');
+      const tempFile = path.join(os.tmpdir(), 'temp.txt');
       const createStream = fs.createWriteStream(tempFile);
       await waitForStreamClose(createStream);
       await this.fileCreate('nc-test-file.txt', {

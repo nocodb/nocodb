@@ -301,7 +301,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
         <div class="flex-1">
           <div
-            v-if="bases[0].enabled && isUIAllowed('table-create')"
+            v-if="bases[0] && bases[0].enabled && isUIAllowed('table-create')"
             class="group flex items-center gap-2 pl-5 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             @click="openTableCreateDialog(bases[0].id)"
           >
@@ -413,7 +413,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             <div class="border-none sortable-list">
               <div v-for="[index, base] of Object.entries(bases)" :key="`base-${base.id}`">
                 <div
-                  v-if="index === '0' && base.enabled"
+                  v-if="index === '0' && base && base.enabled"
                   ref="menuRefs"
                   :key="`sortable-${base.id}-${keys[base.id || 0]}`"
                   :nc-base="base.id"
@@ -486,7 +486,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                   </div>
                 </div>
                 <a-collapse
-                  v-else-if="base.enabled"
+                  v-else-if="base && base.enabled"
                   v-model:activeKey="activeKey"
                   :class="[{ hidden: searchActive && !!filterQuery && !filteredTables?.find((el) => el.base_id === base.id) }]"
                   expand-icon-position="right"

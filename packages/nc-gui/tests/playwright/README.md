@@ -77,3 +77,4 @@ Page objects should be in `packages/nc-gui/tests/playwright/pages` folder.
 ### Verify if tests are not flaky
 
 Add `.only` to the added test and run `npm run test:repeat`. This will run the test multiple times and should show if the test is flaky.
+

@@ -12,10 +12,11 @@ provide(IsGridInj, ref(false))
 provide(IsMapInj, ref(true))
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 // const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn } = useMapViewStoreOrThrow()
-const { loadMapData, loadMapMeta } = useMapViewStoreOrThrow()
+const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn } = useMapViewStoreOrThrow()
 
-const markerRef = ref()
-const myMapRef = ref()
+// const markerRef = ref()
+const myMapRef = ref<L.Map>()
+const layerGroupRef = ref<L.LayerGroup>()
 // const markersRef = ref<MarkerClusterGroup | undefined>()
 const mapContainerRef = ref<HTMLElement>()
 
@@ -37,49 +38,61 @@ watchEffect(() => {
   }
 })
 
-// function addMarker(lat: number, long: number, popupContent: string) {
-//   L.marker([50.5, 0]).addTo(myMapRef.value)
+function addMarker(lat: number, long: number, popupContent: string) {
+  if (myMapRef.value == null) {
+    throw new Error('Map is null')
+  }
+  L.marker([lat, long]).addTo(myMapRef.value)
+  console.log(popupContent)
 
-//   console.log('myMapRef.value', myMapRef.value)
-//   const markerNew = markerRef?.value?.([lat, long])
+  console.log('myMapRef.value', myMapRef.value)
+  // const markerNew = markerRef?.value?.([lat, long])
 
-//   markersRef?.value?.addLayer(markerNew)
+  // L.marker([50, 14]).addTo();
 
-//   myMapRef?.value?.addLayer(markerRef.value)
+  // markersRef?.value?.addLayer(markerNew)
 
-//   if (markerNew) {
-//     markerNew.bindPopup(popupContent)
-//   }
-//   return markerNew
-// }
+  // myMapRef?.value?.addLayer(markerRef.value)
 
-// watch([formattedData, mapMetaData], () => {
-//   markersRef.value?.clearLayers()
+  // if (markerNew) {
+  //   markerNew.bindPopup(popupContent)
+  // }
+  // return markerNew
+}
 
-//   formattedData.value?.forEach((row) => {
-//     const primaryGeoDataColumnTitle = geoDataFieldColumn.value?.title
+watch([formattedData, mapMetaData, myMapRef], () => {
+  // markersRef.value?.clearLayers()
 
-//     if (primaryGeoDataColumnTitle == null) {
-//       throw new Error('Cannot find primary geo data column title')
-//     }
+  if (myMapRef.value == null) {
+    return
+  }
 
-//     const primaryGeoDataValue = row[primaryGeoDataColumnTitle]
+  layerGroupRef.value?.clearLayers()
 
-//     const listItems = Object.entries(row)
-//       .map(([key, val]) => {
-//         const prettyVal = val !== null && (typeof val === 'object' || Array.isArray(val)) ? JSON.stringify(val) : val
+  formattedData.value?.forEach((row) => {
+    const primaryGeoDataColumnTitle = geoDataFieldColumn.value?.title
 
-//         return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
-//       })
-//       .join('')
+    if (primaryGeoDataColumnTitle == null) {
+      throw new Error('Cannot find primary geo data column title')
+    }
 
-//     const popupContent = `<ul>${listItems}</ul>`
+    const primaryGeoDataValue = row[primaryGeoDataColumnTitle]
 
-//     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
+    const listItems = Object.entries(row)
+      .map(([key, val]) => {
+        const prettyVal = val !== null && (typeof val === 'object' || Array.isArray(val)) ? JSON.stringify(val) : val
 
-//     addMarker(lat, long, popupContent)
-//   })
-// })
+        return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
+      })
+      .join('')
+
+    const popupContent = `<ul>${listItems}</ul>`
+
+    const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
+
+    addMarker(lat, long, popupContent)
+  })
+})
 
 onMounted(async () => {
   // if (process.client) {
@@ -93,7 +106,9 @@ onMounted(async () => {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(myMap)
 
-  markerRef.value = L.marker
+  layerGroupRef.value = L.layerGroup().addTo(myMap)
+
+  // markerRef.value = L.marker
   myMapRef.value = myMap
   // markersRef.value = L.markerClusterGroup()
   // addMarker(52, 0, 'jdksauwdk')

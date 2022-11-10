@@ -13,7 +13,7 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
     >
       <div class="hidden xl:(flex)">
         <div>
-          <LazyGeneralSponsors />
+          <LazyGeneralJoinCloudCard />
         </div>
       </div>
 

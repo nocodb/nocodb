@@ -68,6 +68,8 @@ hooks.hook('page:finish', () => {
 
         <LazyGeneralReleaseInfo />
 
+        <LazyGeneralSponsorsButton class="mr-4" />
+
         <a-tooltip placement="bottom" :mouse-enter-delay="1">
           <template #title> Switch language</template>
 

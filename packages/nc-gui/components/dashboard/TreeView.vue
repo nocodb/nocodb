@@ -253,7 +253,9 @@ const onSearchCloseIconClick = () => {
           >
             <MdiPlus />
 
-            <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">{{ $t('tooltip.addTable') }}</span>
+            <span class="text-gray-500 group-hover:(text-primary/100) flex-1 nc-add-new-table">
+              {{ $t('tooltip.addTable') }}
+            </span>
 
             <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
               <MdiDotsVertical class="transition-opacity opacity-0 group-hover:opacity-100 nc-import-menu" />
@@ -433,15 +435,16 @@ const onSearchCloseIconClick = () => {
 
       <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
-      <GithubButton
-        class="ml-2 py-1"
-        href="https://github.com/nocodb/nocodb"
-        data-icon="octicon-star"
-        data-show-count="true"
-        data-size="large"
-      >
-        Star
-      </GithubButton>
+      <general-flipping-card class="ml-2 py-1 min-h-[36px]" :triggers="['click', { duration: 60000 }]">
+        <template #front>
+          <GithubButton href="https://github.com/nocodb/nocodb" data-icon="octicon-star" data-show-count="true" data-size="large">
+            Star
+          </GithubButton>
+        </template>
+        <template #back>
+          <LazyGeneralSponsorsButton ghost type="primary" />
+        </template>
+      </general-flipping-card>
     </div>
   </div>
 </template>

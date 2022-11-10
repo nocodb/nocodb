@@ -2,7 +2,6 @@
 import 'leaflet/dist/leaflet.css'
 import * as L from 'leaflet'
 import { IsGalleryInj, IsGridInj, IsMapInj, onMounted, provide, ref } from '#imports'
-import { rowProps } from 'ant-design-vue/lib/grid/Row'
 
 provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
@@ -19,39 +18,20 @@ onBeforeMount(async () => {
   await loadMapData()
 })
 
-watch([formattedData, mapMetaData], () => {
-  markersRef.value?.clearLayers()
-
-  formattedData.value?.forEach((row) => {
-    const primaryGeoDataColumnTitle = geoDataFieldColumn.value?.title
-
-    if (primaryGeoDataColumnTitle == null) {
-      throw new Error('Cannot find primary geo data column title')
-    }
-
-    console.log('primaryGeoDataColumnTitle', primaryGeoDataColumnTitle)
-
-    const primaryGeoDataValue = row[primaryGeoDataColumnTitle]
-    console.log('primaryGeoDataValue', primaryGeoDataValue)
-
-    const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
-
-    addMarker(lat, long)
-    addMarker(51, 0)
-  })
-})
-
 reloadViewDataHook?.on(async () => {
   loadMapData()
+  loadMapMeta()
 })
 
 function addMarker(lat: number, long: number, popupContent: string) {
+  L.marker([50.5, 0]).addTo(myMapRef.value)
+
+  console.log('myMapRef.value', myMapRef.value)
   const markerNew = markerRef?.value?.([lat, long])
-  // markerNew.bindPopup('I am a popup').openPopup()
 
   markersRef?.value?.addLayer(markerNew)
 
-  myMapRef?.value?.addLayer(markersRef.value)
+  myMapRef?.value?.addLayer(markerRef.value)
 
   if (markerNew) {
     markerNew.bindPopup(popupContent)
@@ -59,10 +39,6 @@ function addMarker(lat: number, long: number, popupContent: string) {
   return markerNew
 }
 
-// function addPopup(marker: any) {
-//   marker.bindPopup('I am a popup').openPopup()
-// }
-
 watch([formattedData, mapMetaData], () => {
   markersRef.value?.clearLayers()
 
@@ -73,47 +49,21 @@ watch([formattedData, mapMetaData], () => {
       throw new Error('Cannot find primary geo data column title')
     }
 
-    console.log('primaryGeoDataColumnTitle', primaryGeoDataColumnTitle)
-
     const primaryGeoDataValue = row[primaryGeoDataColumnTitle]
-
-    // const entries = Object.entries(row[0])
-    // const keys = Object.keys(row)
-    // let text = ''
-    // keys.forEach((key, index) => {
-    //   text += `<b>${key}</b><br>${row[key]}`
-    // })
-
-    // console.log('text', text)
-    // for (let i = 0; i < size; i++) {
-    //   return row.
-    // }
-    // const dataForPopup = row.toString()
-    console.log('primaryGeoDataValue', primaryGeoDataValue)
-
-    // const FOO = Object.keys(row)
 
     const listItems = Object.entries(row)
       .map(([key, val]) => {
-        console.log('key', key)
-        console.log('val', val)
-        console.log('----------')
-        return `<li><b>${key}</b>: ${val}</li>`
+        const prettyVal = val !== null && (typeof val === 'object' || Array.isArray(val)) ? JSON.stringify(val) : val
+
+        return `<li><b>${key}</b>: <br/>${prettyVal}</li>`
       })
       .join('')
 
     const popupContent = `<ul>${listItems}</ul>`
-    console.log('FOO', popupContent)
 
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
 
-    console.log('lat', lat)
-    console.log('long', long)
-
     addMarker(lat, long, popupContent)
-
-    // const marker = addMarker(lat, long)
-    // addPopup(marker)
   })
 })
 
@@ -124,19 +74,26 @@ onMounted(async () => {
   markerRef.value = marker
   myMapRef.value = myMap
   markersRef.value = L.markerClusterGroup()
+  // addMarker(52, 0, 'jdksauwdk')
+  //   {
+  //   iconCreateFunction(cluster) {
+  //     return L.divIcon({ html: `<b>${cluster.getChildCount()}</b>` })
+  //     // return L.divIcon({ html: `<b>${cluster.getChildCount()}</b>`, className: 'FOOBAR' })
+  //   },
+  // }
+  // )
 
   tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 5,
+    maxZoom: 10,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(myMap)
 })
 </script>
 
 <template>
-  {{ JSON.stringify(formattedData) }}
-  <div class="flex flex-col h-full w-full">
+  <div class="flex flex-col h-full w-full nounderline">
     <client-only placeholder="Loading...">
-      <div class="nounderline" id="map"></div>
+      <div id="map"></div>
     </client-only>
   </div>
 </template>
@@ -145,7 +102,15 @@ onMounted(async () => {
 #map {
   height: 100vh;
 }
-.nounderline a {
+.nounderline {
   text-decoration: none;
 }
+
+/* .marker-cluster b {
+  background-color: rgba(226, 36, 36, 0.6);
+} */
+
+/* .FOOBAR {
+  background-color: pink;
+} */
 </style>

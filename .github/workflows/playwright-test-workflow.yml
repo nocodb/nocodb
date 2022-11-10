@@ -33,8 +33,6 @@ jobs:
           node-version: 16.15.0
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Cache node modules
         uses: actions/cache@v3
         env:

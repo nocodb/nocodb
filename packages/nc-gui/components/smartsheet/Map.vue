@@ -75,14 +75,18 @@ onMounted(async () => {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(myMap)
 
-  markersClusterGroupRef.value = L.markerClusterGroup()
+  markersClusterGroupRef.value = L.markerClusterGroup({
+    iconCreateFunction(cluster) {
+      return L.divIcon({ html: `${cluster.getChildCount()}`, className: 'geo-map-marker-cluster' })
+    },
+  })
   myMap.addLayer(markersClusterGroupRef.value)
 })
 </script>
 
 <template>
   <div class="flex flex-col h-full w-full nounderline">
-    <div id="mapContainer" ref="mapContainerRef" class="FOOBAR"></div>
+    <div id="mapContainer" ref="mapContainerRef"></div>
   </div>
 </template>
 
@@ -92,5 +96,9 @@ onMounted(async () => {
 }
 .nounderline {
   text-decoration: none;
+}
+
+:global(.geo-map-marker-cluster) {
+  background-color: pink;
 }
 </style>

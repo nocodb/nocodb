@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { EdgeProps, Position } from '@vue-flow/core'
-import { EdgeText, getBezierPath } from '@vue-flow/core'
+import { EdgeLabelRenderer, getBezierPath } from '@vue-flow/core'
 import type { CSSProperties } from '@vue/runtime-dom'
 import type { EdgeData } from './utils'
 import { computed, toRef } from '#imports'
@@ -92,26 +92,27 @@ export default {
 
   <path class="opacity-0" :stroke-width="showSkeleton ? baseStroke * 12 : baseStroke * 8" fill="none" :d="edgePath[0]" />
 
-  <Transition name="layout">
-    <EdgeText
-      v-if="data.label?.length && data.label.length > 0"
-      :key="`edge-text-${id}.${showSkeleton}`"
-      class="color-transition"
+  <EdgeLabelRenderer>
+    <div
+      :style="{
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${edgePath[1]}px,${edgePath[2]}px)`,
+        color: 'white',
+        fontSize: `${showSkeleton ? baseStroke * 2 : baseStroke / 2}rem`,
+        backgroundColor: data.color,
+        borderRadius: '0.25rem',
+        padding: '0.25rem 0.5rem',
+      }"
+      class="nodrag nopan color-transition z-1000"
       :class="[
         selected || isHovering ? 'opacity-100' : 'opacity-0 !pointer-events-none',
         showSkeleton ? '!text-6xl' : '!text-xs',
         `nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`,
       ]"
-      :x="edgePath[1]"
-      :y="edgePath[2]"
-      :label="showSkeleton ? data.simpleLabel : data.label"
-      :label-style="{ fill: 'white', fontSize: `${showSkeleton ? baseStroke * 2 : baseStroke / 2}rem` }"
-      :label-show-bg="true"
-      :label-bg-style="{ fill: data.color }"
-      :label-bg-padding="[8, 6]"
-      :label-bg-border-radius="2"
-    />
-  </Transition>
+    >
+      {{ showSkeleton ? data.simpleLabel : data.label }}
+    </div>
+  </EdgeLabelRenderer>
 
   <template v-if="!showSkeleton">
     <rect

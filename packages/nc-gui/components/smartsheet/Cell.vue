@@ -92,6 +92,7 @@ const {
   isPhoneNumber,
   isAutoSaved,
   isManualSaved,
+  isPrimaryKey,
 } = useColumn(column)
 
 const vModel = computed({
@@ -138,10 +139,10 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     <LazyCellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />
     <LazyCellSingleSelect v-else-if="isSingleSelect" v-model="vModel" :row-index="props.rowIndex" />
     <LazyCellMultiSelect v-else-if="isMultiSelect" v-model="vModel" :row-index="props.rowIndex" />
-    <LazyCellDatePicker v-else-if="isDate" v-model="vModel" />
-    <LazyCellYearPicker v-else-if="isYear" v-model="vModel" />
-    <LazyCellDateTimePicker v-else-if="isDateTime" v-model="vModel" />
-    <LazyCellTimePicker v-else-if="isTime" v-model="vModel" />
+    <LazyCellDatePicker v-else-if="isDate" v-model="vModel" :is-pk="isPrimaryKey" />
+    <LazyCellYearPicker v-else-if="isYear" v-model="vModel" :is-pk="isPrimaryKey" />
+    <LazyCellDateTimePicker v-else-if="isDateTime" v-model="vModel" :is-pk="isPrimaryKey" />
+    <LazyCellTimePicker v-else-if="isTime" v-model="vModel" :is-pk="isPrimaryKey" />
     <LazyCellRating v-else-if="isRating" v-model="vModel" />
     <LazyCellDuration v-else-if="isDuration" v-model="vModel" />
     <LazyCellEmail v-else-if="isEmail" v-model="vModel" />

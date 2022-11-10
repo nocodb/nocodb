@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import LogosMysql from '~icons/logos/mysql'
+import LogosMysqlIcon from '~icons/logos/mysql-icon'
 import LogosPostgresql from '~icons/logos/postgresql'
 import VscodeIconsFileTypeSqlite from '~icons/vscode-icons/file-type-sqlite'
 import SimpleIconsMicrosoftsqlserver from '~icons/simple-icons/microsoftsqlserver'
@@ -10,7 +10,7 @@ const { baseType } = defineProps<{ baseType?: string }>()
 const baseIcon = computed(() => {
   switch (baseType) {
     case ClientType.MYSQL:
-      return LogosMysql
+      return LogosMysqlIcon
     case ClientType.PG:
       return LogosPostgresql
     case ClientType.SQLITE:

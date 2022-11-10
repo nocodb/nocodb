@@ -6,6 +6,7 @@ import Model from '../../../src/lib/models/Model';
 import Project from '../../../src/lib/models/Project';
 import Sort from '../../../src/lib/models/Sort';
 import NcConnectionMgrv2 from '../../../src/lib/utils/common/NcConnectionMgrv2';
+import * as _ from 'lodash';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {
@@ -88,7 +89,7 @@ const generateDefaultRowAttributes = ({
       return acc;
     }
     acc[column.title!] = rowValue(column, index);
-    return acc;
+    return _.omit(acc, ['CreatedAt', 'UpdatedAt', 'created_at', 'updated_at']);
   }, {});
 
 const createRow = async (

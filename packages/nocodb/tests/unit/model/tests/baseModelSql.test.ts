@@ -97,16 +97,18 @@ function baseModelSqlTests() {
   });
 
   it('Update record', async () => {
+    const rowId = 1;
     const request = {
       clientIp: '::ffff:192.0.0.1',
-      user: {email: 'test@example.com'}
+      user: {email: 'test@example.com'},
+      params: { rowId },
+      body: {Title: 'test'}
     }
 
     const columns = await table.getColumns();
 
     await baseModelSql.insert(generateDefaultRowAttributes({columns}));
-    const rowId = 1;
-    await baseModelSql.updateByPk(rowId, {Title: 'test'},undefined, request);
+    await baseModelSql.updateByPk(rowId, request.body, undefined, request);
 
     const updatedRow = await baseModelSql.readByPk(1);
 
@@ -122,7 +124,7 @@ function baseModelSqlTests() {
       row_id: '1',
       op_type: 'DATA',
       op_sub_type: 'UPDATE',
-      description: '1 updated in Table1_Title',
+      description: `Table ${table.table_name} : 1 field Title got changed from test-0 to test`,
     });
   });
 

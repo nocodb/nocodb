@@ -803,7 +803,7 @@ class BaseModelSqlv2 {
       )
       .first();
 
-    const { count } = await this.extractRawQueryAndExec(qb);
+    const { count } = await qb;
 
     return count;
   }
@@ -1870,7 +1870,7 @@ class BaseModelSqlv2 {
         );
 
         qb.update(updateData);
-        queryResponse = (await this.extractRawQueryAndExec(qb)) as any;
+        queryResponse = (await qb) as any;
       }
 
       const count = queryResponse ?? 0;
@@ -1940,7 +1940,7 @@ class BaseModelSqlv2 {
         this.dbDriver
       );
       qb.del();
-      const count = (await this.extractRawQueryAndExec(qb)) as any;
+      const count = (await qb) as any;
 
       await this.afterBulkDelete(count, this.dbDriver, cookie);
 

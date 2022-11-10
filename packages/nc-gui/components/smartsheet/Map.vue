@@ -42,8 +42,11 @@ function addMarker(lat: number, long: number, popupContent: string) {
   if (myMapRef.value == null) {
     throw new Error('Map is null')
   }
-  L.marker([lat, long]).addTo(myMapRef.value)
-  console.log(popupContent)
+  const newMarker = L.marker([lat, long]).addTo(myMapRef.value)
+
+  if (newMarker) {
+    newMarker.bindPopup(popupContent)
+  }
 
   console.log('myMapRef.value', myMapRef.value)
   // const markerNew = markerRef?.value?.([lat, long])
@@ -54,9 +57,6 @@ function addMarker(lat: number, long: number, popupContent: string) {
 
   // myMapRef?.value?.addLayer(markerRef.value)
 
-  // if (markerNew) {
-  //   markerNew.bindPopup(popupContent)
-  // }
   // return markerNew
 }
 

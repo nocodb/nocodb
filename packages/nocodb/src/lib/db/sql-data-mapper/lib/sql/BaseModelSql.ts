@@ -89,7 +89,7 @@ class BaseModelSql extends BaseModel {
       timeout: 25000,
     };
 
-    this.clientType = this.dbDriver.clientType();
+    this.clientType = this.dbDriver.client;
     this.dbModels = dbModels;
     this._tn = _tn;
     autoBind(this);
@@ -281,7 +281,7 @@ class BaseModelSql extends BaseModel {
 
       const query = driver(this.tnPath).insert(insertObj);
 
-      if (this.isPg() || this.dbDriver.clientType() === 'mssql') {
+      if (this.isPg() || this.dbDriver.client === 'mssql') {
         query.returning(
           Object.entries(this.aliasToColumn).map(
             ([val, key]) => `${key} as ${val}`
@@ -332,7 +332,7 @@ class BaseModelSql extends BaseModel {
   }
 
   private isPg() {
-    return this.dbDriver.clientType() === 'pg';
+    return this.dbDriver.client === 'pg';
   }
 
   /**
@@ -418,8 +418,8 @@ class BaseModelSql extends BaseModel {
       const query = dbDriver(this.tnPath).insert(insertObj);
 
       if (
-        this.dbDriver.clientType() === 'pg' ||
-        this.dbDriver.clientType() === 'mssql'
+        this.dbDriver.client === 'pg' ||
+        this.dbDriver.client === 'mssql'
       ) {
         query.returning(this.selectQuery(''));
         response = await this._run(query);
@@ -608,9 +608,12 @@ class BaseModelSql extends BaseModel {
         await this.validate(d1);
       }
 
-      const response = await this.dbDriver
-        .batchInsert(this.tn, insertDatas, 50)
-        .returning(this.pks[0].cn);
+      const response = (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') ?
+        await this.dbDriver
+          .batchInsert(this.tn, insertDatas, 50)
+          .returning(this.pks[0].cn) :
+        await this.dbDriver
+          .batchInsert(this.tn, insertDatas, 50);
 
       await this.afterInsertb(insertDatas, null);
 
@@ -1708,7 +1711,7 @@ class BaseModelSql extends BaseModel {
 
       const query = driver(this.tnPath).insert(insertObj);
 
-      if (this.isPg() || this.dbDriver.clientType() === 'mssql') {
+      if (this.isPg() || this.dbDriver.client === 'mssql') {
         query.returning(
           Object.entries(this.aliasToColumn).map(
             ([val, key]) => `${key} as ${val}`
@@ -2096,7 +2099,7 @@ class BaseModelSql extends BaseModel {
   }
 
   isMssql() {
-    return this.dbDriver.clientType() === 'mssql';
+    return this.dbDriver.client === 'mssql';
   }
 
   /**

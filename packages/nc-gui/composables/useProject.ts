@@ -39,6 +39,8 @@ const [setup, use] = useInjectionState(() => {
 
   const projectMetaInfo = ref<ProjectMetaInfo | undefined>()
 
+  const lastOpenedViewMap = ref<Record<string, string>>({})
+
   const projectId = computed(() => route.params.projectId as string)
 
   // todo: refactor path param name and variable name
@@ -165,6 +167,7 @@ const [setup, use] = useInjectionState(() => {
     projectLoadedHook: projectLoadedHook.on,
     reset,
     isLoading,
+    lastOpenedViewMap,
   }
 }, 'useProject')
 

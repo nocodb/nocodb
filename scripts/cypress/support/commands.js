@@ -29,6 +29,7 @@ import { isXcdb, isPostgres } from "./page_objects/projectConstants";
 
 require("@4tw/cypress-drag-drop");
 
+
 // recursively gets an element, returning only after it's determined to be attached to the DOM for good
 Cypress.Commands.add("getSettled", (selector, opts = {}) => {
   const retries = opts.retries || 3;

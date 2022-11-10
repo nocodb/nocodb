@@ -415,7 +415,6 @@ export class MssqlUi {
       case 'nchar':
       case 'ntext':
       case 'numeric':
-      case 'nvarchar':
       case 'real':
       case 'json':
       case 'smalldatetime':
@@ -1346,4 +1345,3 @@ export class MssqlUi {
 }
 
 // module.exports = PgUiHelp;
-

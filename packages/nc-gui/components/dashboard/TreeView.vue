@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
+import type { Input } from 'ant-design-vue'
 import Sortable from 'sortablejs'
 import GithubButton from 'vue-github-button'
+import type { VNodeRef } from '#imports'
 import {
   Empty,
   computed,
@@ -39,7 +41,7 @@ let key = $ref(0)
 
 const menuRef = $ref<HTMLLIElement>()
 
-const filterQuery = $ref('')
+let filterQuery = $ref('')
 
 const activeTable = computed(() => ([TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null))
 
@@ -207,6 +209,13 @@ function openTableCreateDialog() {
     close(1000)
   }
 }
+
+const searchInputRef: VNodeRef = (vnode: typeof Input) => vnode?.$el?.focus()
+
+const onSearchCloseIconClick = () => {
+  filterQuery = ''
+  toggleSearchActive(false)
+}
 </script>
 
 <template>
@@ -217,6 +226,7 @@ function openTableCreateDialog() {
           <Transition name="slide-left" mode="out-in">
             <a-input
               v-if="searchActive"
+              :ref="searchInputRef"
               v-model:value="filterQuery"
               class="flex-1 rounded"
               :placeholder="$t('placeholder.searchProjectTree')"
@@ -230,7 +240,7 @@ function openTableCreateDialog() {
           </Transition>
 
           <Transition name="layout" mode="out-in">
-            <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="toggleSearchActive(false)" />
+            <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
             <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="toggleSearchActive(true)" />
           </Transition>
         </div>
@@ -321,12 +331,13 @@ function openTableCreateDialog() {
                 class="nc-tree-item text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
+                :data-nc="`tree-view-table-${table.title}`"
                 @click="addTableTab(table)"
               >
                 <GeneralTooltip class="pl-5 pr-3 py-2" modifier-key="Alt">
                   <template #title>{{ table.table_name }}</template>
                   <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
-                    <div class="flex w-auto">
+                    <div class="flex w-auto" :data-nc="`tree-view-table-draggable-handle-${table.title}`">
                       <MdiDragVertical
                         v-if="isUIAllowed('treeview-drag-n-drop')"
                         :class="`nc-child-draggable-icon-${table.title}`"
@@ -355,12 +366,16 @@ function openTableCreateDialog() {
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
                           <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table)">
-                            <div class="nc-project-menu-item">
+                            <div class="nc-project-menu-item" :data-nc="`sidebar-table-rename-${table.title}`">
                               {{ $t('general.rename') }}
                             </div>
                           </a-menu-item>
 
-                          <a-menu-item v-if="isUIAllowed('table-delete')" @click="deleteTable(table)">
+                          <a-menu-item
+                            v-if="isUIAllowed('table-delete')"
+                            :data-nc="`sidebar-table-delete-${table.title}`"
+                            @click="deleteTable(table)"
+                          >
                             <div class="nc-project-menu-item">
                               {{ $t('general.delete') }}
                             </div>
@@ -415,6 +430,8 @@ function openTableCreateDialog() {
       />
 
       <LazyGeneralHelpAndSupport class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
+
+      <GeneralJoinCloud class="color-transition px-2 text-gray-500 cursor-pointer select-none hover:text-accent" />
 
       <GithubButton
         class="ml-2 py-1"

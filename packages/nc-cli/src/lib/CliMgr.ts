@@ -12,14 +12,13 @@ import client from './mgr/Client';
 // import PermissionsMgr from './mgr/PermissionsMgr';
 // import SocialMgr from './mgr/SocialMgr';
 // import DockerMgr from "./mgr/DockerMgr";
-import NewMgr from "./mgr/NewMgr";
+import NewMgr from './mgr/NewMgr';
 // import TryMgr from "./mgr/TryMgr";
 
 let cmdProcessedOnce = 0;
 let cmdOriginalArgs = null;
 
 class CliMgr {
-
   public static async runCmd(str) {
     shell.echo(`\nNow, executing command : ${str}\n\n`.blue);
     if (shell.exec(str).code !== 0) {
@@ -30,13 +29,11 @@ class CliMgr {
   }
 
   public static async process(args) {
-
     cmdOriginalArgs = cmdOriginalArgs ? cmdOriginalArgs : args;
 
     try {
       if (args._ && args._.length) {
         switch (args._[0]) {
-
           case 'man':
             if (args._.length > 1) {
               Util.showHelpForCommand(args);
@@ -53,11 +50,11 @@ class CliMgr {
             if (await NewMgr.getNewProjectInput(args)) {
               if (args._[0] === 'gap') {
                 console.log('gRPC code generation is not yet supported.');
-                process.exit(0)
+                process.exit(0);
               }
-              await client.requestSend(args)
+              await client.requestSend(args);
             } else {
-              process.exit(0)
+              process.exit(0);
             }
 
             break;
@@ -405,7 +402,6 @@ class CliMgr {
           //   process.exit(0)
           //   break;
 
-
           default:
             if (!cmdProcessedOnce) {
               cmdProcessedOnce = 1;
@@ -413,9 +409,11 @@ class CliMgr {
               args._.unshift('new');
               await this.process(args);
             } else {
-              console.log(`\nUnknown command. ${cmdOriginalArgs._[0]} -- please see help below`);
+              console.log(
+                `\nUnknown command. ${cmdOriginalArgs._[0]} -- please see help below`
+              );
               Util.showHelp(cmdOriginalArgs);
-              process.exit(0)
+              process.exit(0);
             }
             break;
         }
@@ -427,4 +425,3 @@ class CliMgr {
 }
 
 export default CliMgr;
-

@@ -9,18 +9,11 @@ import shell from 'shelljs';
 // import {CmdSocketServer} from 'nc-help';
 // import SocialMgr from './SocialMgr';
 
-
 class Client {
-
   public static async requestSend(_args) {
-
     try {
-
       // await CmdSocketServer.cmdHandler(null, null, args);
-
-
       // const portOpen = await tcpPortUsed.check(config.port, 'localhost');
-
       // if (portOpen) {
       //
       //   // client.emit('__REQUEST__', args);
@@ -28,7 +21,6 @@ class Client {
       //   await promprRunOrDownload.handle(args)
       //   process.exit(0);
       // }
-
     } catch (e) {
       console.log('Error generating code.', e.message);
       throw e;
@@ -37,7 +29,6 @@ class Client {
   }
 
   public static async runCmd(str): Promise<any> {
-
     shell.echo(`\nNow, executing command : ${str}\n\n`.blue);
     const code = shell.exec(str).code;
     if (code !== 0) {
@@ -45,16 +36,12 @@ class Client {
       // shell.echo(`\nExiting...`.red);
       shell.exit(1);
     }
-    return 0
-
+    return 0;
   }
 
   public static async responseHandle(args) {
-
     try {
-
       switch (args._[0]) {
-
         case 'ga':
         case 'gar':
         case 'gen.apis':
@@ -65,18 +52,28 @@ class Client {
           if (!args.err) {
             // SocialMgr.setCreatedApis(true)
             if (os.type() === 'Windows_NT') {
-              console.log(boxen(`# APIs generated successfully\n\n# Please run the following commands\n${('cd ' + path.dirname(args.folder) + '; npm install ; npm run dev\n').green.bold}`, {
-                borderColor: 'green',
-                borderStyle: 'round',
-                margin: 1,
-                padding: 1
-              } as any));
+              console.log(
+                boxen(
+                  `# APIs generated successfully\n\n# Please run the following commands\n${
+                    (
+                      'cd ' +
+                      path.dirname(args.folder) +
+                      '; npm install ; npm run dev\n'
+                    ).green.bold
+                  }`,
+                  {
+                    borderColor: 'green',
+                    borderStyle: 'round',
+                    margin: 1,
+                    padding: 1
+                  } as any
+                )
+              );
             } else {
               await Client.runCmd(`npm install; npm run dev;`);
             }
           }
           break;
-
 
         case 'gc':
         case 'gen.controller':
@@ -123,10 +120,10 @@ class Client {
         case 'm':
           break;
 
-        case 'db.migrate.sql.dump' :
-        case 'dmm' :
-        case 'dmmd' :
-          console.log('db.migrate.sql.dump finished')
+        case 'db.migrate.sql.dump':
+        case 'dmm':
+        case 'dmmd':
+          console.log('db.migrate.sql.dump finished');
           break;
 
         default:
@@ -136,7 +133,6 @@ class Client {
       throw e;
     }
   }
-
 }
 
 //
@@ -162,4 +158,3 @@ class Client {
 //
 
 export default Client;
-

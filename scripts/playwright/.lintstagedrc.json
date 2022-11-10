@@ -1,0 +1,3 @@
+{
+  "**/*.{ts,tsx,js,json}": "npx eslint --fix"
+}

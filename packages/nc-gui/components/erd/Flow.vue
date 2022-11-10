@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Background, Controls, Panel } from '@vue-flow/additional-components'
+import { Background, Controls, Panel, PanelPosition } from '@vue-flow/additional-components'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { TableType } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
@@ -65,7 +65,7 @@ onScopeDispose($destroy)
 
 <template>
   <VueFlow v-model="elements">
-    <Controls class="rounded" position="bottom-left" :show-fit-view="false" :show-interactive="false" />
+    <Controls class="rounded" :position="PanelPosition.BottomLeft" :show-fit-view="false" :show-interactive="false" />
 
     <template #node-custom="{ data, dragging }">
       <ErdTableNode :data="data" :dragging="dragging" :show-skeleton="showSkeleton" />
@@ -80,7 +80,7 @@ onScopeDispose($destroy)
     <Transition name="layout">
       <Panel
         v-if="showSkeleton && config.showAllColumns"
-        position="bottom-center"
+        :position="PanelPosition.BottomCenter"
         class="color-transition z-5 cursor-pointer rounded shadow-sm text-slate-400 font-semibold px-4 py-2 bg-slate-100/50 hover:(text-slate-900 ring ring-accent ring-opacity-100 bg-slate-100/90)"
         @click="zoomIn"
       >
@@ -94,10 +94,6 @@ onScopeDispose($destroy)
 </template>
 
 <style>
-.vue-flow__edges {
-  z-index: 1000 !important;
-}
-
 .vue-flow__controls-zoomin {
   @apply rounded-t;
 }

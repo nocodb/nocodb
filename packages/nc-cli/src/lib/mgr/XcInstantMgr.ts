@@ -11,11 +11,14 @@ import('colors');
 const PROGRESS_WIDTH = 30;
 
 class AppMgr {
-
   public static async install(args) {
     try {
-      const spinner = ora({text: 'Downloading Desktop App from Github..'.green.bold(), spinner: 'dots2', color: 'green'}).start();
-      const {src, dest} = await AppMgr.getDownloadLink(args);
+      const spinner = ora({
+        text: 'Downloading Desktop App from Github..'.green.bold(),
+        spinner: 'dots2',
+        color: 'green'
+      }).start();
+      const { src, dest } = await AppMgr.getDownloadLink(args);
 
       console.log(`\t${src}`);
 
@@ -23,20 +26,25 @@ class AppMgr {
         // console.log(progress)
         // Report download progress
         const p = PROGRESS_WIDTH * progress.percent;
-        spinner.text = `Downloading Desktop App now..\n[${
-          Array.from({length: PROGRESS_WIDTH}, (_, i) => i <= p ? '=' : ' ').join('')
-        }] ${(progress.transferred / (1024 * 1024)).toFixed(2)}MB/${(progress.total / (1024 * 1024)).toFixed(2)}MB\n`.green.bold()
+        spinner.text = `Downloading Desktop App now..\n[${Array.from(
+          { length: PROGRESS_WIDTH },
+          (_, i) => (i <= p ? '=' : ' ')
+        ).join('')}] ${(progress.transferred / (1024 * 1024)).toFixed(2)}MB/${(
+          progress.total /
+          (1024 * 1024)
+        ).toFixed(2)}MB\n`.green.bold();
       });
       // spinner.prefixText = '';
-      spinner.succeed(`Installable downloaded successfully at ./${dest}`.green.bold());
+      spinner.succeed(
+        `Installable downloaded successfully at ./${dest}`.green.bold()
+      );
       console.log(`\nInstallable will open automatically now.`.green.bold);
       console.log(`If not, please install it manually.`.green.bold);
       if (os.type() === 'Windows_NT') {
         // open(dest, {wait: true, app: 'explorer.exe'})
       } else {
-        open(dest, {wait: true});
+        open(dest, { wait: true });
       }
-
     } catch (e) {
       console.error(`Error in xc app.install`, e);
     }
@@ -45,7 +53,9 @@ class AppMgr {
   public static async open(args) {
     try {
       const runCommand = AppMgr.getOpenCommand(args);
-      if (!runCommand) { return }
+      if (!runCommand) {
+        return;
+      }
       if (shell.exec(runCommand).code !== 0) {
         shell.echo(`\n\nError running command internally`.red);
         shell.echo(`\nExiting...`.red);
@@ -56,20 +66,27 @@ class AppMgr {
     }
   }
 
-  public static async getDownloadLink(args):Promise<any> {
+  public static async getDownloadLink(args): Promise<any> {
     try {
       let src;
       let dest;
-      const urls:any = {};
+      const urls: any = {};
 
-      const res = await axios.get('https://api.github.com/repos/xgenecloud/xc-desktop-app/releases?page=1')
+      const res = await axios.get(
+        'https://api.github.com/repos/xgenecloud/xc-desktop-app/releases?page=1'
+      );
 
       let status = 0;
 
       for (let i = 0; i < res.data.length && status !== 15; i++) {
         const assets = res.data[i].assets;
-        for (const {name, browser_download_url} of assets) {
-          switch (name.split('.').pop().toLowerCase()) {
+        for (const { name, browser_download_url } of assets) {
+          switch (
+            name
+              .split('.')
+              .pop()
+              .toLowerCase()
+          ) {
             case 'dmg':
               urls.dmg = urls.dmg || browser_download_url;
               status = status | 1;
@@ -92,22 +109,24 @@ class AppMgr {
 
       switch (os.type()) {
         case 'Linux':
-          const linuxInfo = osInfo({mode: 'sync'});
-          if (args.debian) { src = urls.deb; }
-          else if (args.rpm) { src = urls.rpm; }
-          else {
+          const linuxInfo = osInfo({ mode: 'sync' });
+          if (args.debian) {
+            src = urls.deb;
+          } else if (args.rpm) {
+            src = urls.rpm;
+          } else {
             switch (linuxInfo.id) {
               case 'ubuntu':
               case 'raspberry':
-                src = urls.deb
+                src = urls.deb;
                 break;
               case 'fedora':
-                src = urls.rpm
+                src = urls.rpm;
                 break;
               default:
-                src = urls.rpm
+                src = urls.rpm;
             }
- }
+          }
           break;
         case 'Darwin':
           src = urls.dmg;
@@ -120,22 +139,22 @@ class AppMgr {
       }
 
       dest = src.split('/').pop();
-      return {src, dest}
+      return { src, dest };
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
   }
 
-  public static getOpenCommand(_args):any {
+  public static getOpenCommand(_args): any {
     switch (os.type()) {
       case 'Linux':
-        return 'xgenecloud'
+        return 'xgenecloud';
         break;
       case 'Darwin':
-        return 'open -a xgenecloud'
+        return 'open -a xgenecloud';
         break;
       case 'Windows_NT':
-        console.info('Open xgenecloud desktop app from Windows start menu')
+        console.info('Open xgenecloud desktop app from Windows start menu');
 
         break;
       default:
@@ -144,27 +163,4 @@ class AppMgr {
   }
 }
 
-
 export default AppMgr;
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

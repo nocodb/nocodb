@@ -1,4 +1,4 @@
-import Knex from 'knex';
+import { Knex } from 'knex';
 import { MetaTable } from '../../utils/globals';
 
 const up = async (knex: Knex) => {
@@ -11,6 +11,10 @@ const up = async (knex: Knex) => {
     table.boolean('enabled').defaultTo(true);
     table.float('order');
   });
+
+  await knex.schema.alterTable(MetaTable.AUDIT, (table) => {
+    table.dropForeign('base_id');
+  });
 };
 
 const down = async (knex) => {
@@ -21,6 +25,10 @@ const down = async (knex) => {
   await knex.schema.alterTable(MetaTable.BASES, (table) => {
     table.dropColumn('enabled');
     table.dropColumn('order');
+  });
+
+  await knex.schema.alterTable(MetaTable.AUDIT, (table) => {
+    table.foreign('base_id').references(`${MetaTable.BASES}.id`);
   });
 };
 

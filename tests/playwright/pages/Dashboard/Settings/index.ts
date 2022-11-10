@@ -1,18 +1,17 @@
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { AuditSettingsPage } from './Audit';
-import { SettingsErdPage } from './Erd';
-import { MetaDataPage } from './Metadata';
 import { AppStoreSettingsPage } from './AppStore';
 import { MiscSettingsPage } from './Miscellaneous';
 import { TeamsPage } from './Teams';
-import { AclPage } from './Acl';
+import { DataSourcesPage } from './DataSources';
 
 export enum SettingTab {
   TeamAuth = 'teamAndAuth',
   AppStore = 'appStore',
-  ProjectMetadata = 'projMetaData',
+  DataSources = 'dataSources',
   Audit = 'audit',
+  ProjectSettings = 'projectSettings',
 }
 
 export enum SettingsSubTab {
@@ -22,25 +21,19 @@ export enum SettingsSubTab {
 }
 
 export class SettingsPage extends BasePage {
-  private readonly dashboard: DashboardPage;
   readonly audit: AuditSettingsPage;
   readonly appStore: AppStoreSettingsPage;
-  readonly metaData: MetaDataPage;
   readonly miscellaneous: MiscSettingsPage;
-  readonly erd: SettingsErdPage;
+  readonly dataSources: DataSourcesPage;
   readonly teams: TeamsPage;
-  readonly acl: AclPage;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
-    this.dashboard = dashboard;
     this.audit = new AuditSettingsPage(this);
     this.appStore = new AppStoreSettingsPage(this);
-    this.metaData = new MetaDataPage(this);
     this.miscellaneous = new MiscSettingsPage(this);
-    this.erd = new SettingsErdPage(this);
+    this.dataSources = new DataSourcesPage(this);
     this.teams = new TeamsPage(this);
-    this.acl = new AclPage(this);
   }
 
   get() {

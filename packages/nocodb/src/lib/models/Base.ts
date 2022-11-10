@@ -66,7 +66,7 @@ export default class Base implements BaseType {
       [base.projectId],
       `${CacheScope.BASE}:${id}`
     );
-    
+
     // call before reorder to update cache
     const returnBase = await this.get(id, ncMeta);
 
@@ -77,7 +77,12 @@ export default class Base implements BaseType {
 
   public static async updateBase(
     baseId: string,
-    base: BaseType & { id: string; projectId: string; created_at?; updated_at? },
+    base: BaseType & {
+      id: string;
+      projectId: string;
+      created_at?;
+      updated_at?;
+    },
     ncMeta = Noco.ncMeta
   ) {
     const oldBase = await Base.get(baseId, ncMeta);
@@ -107,7 +112,7 @@ export default class Base implements BaseType {
       'order',
       'enabled',
     ]);
-    
+
     if (insertObj.config) {
       insertObj.config = CryptoJS.AES.encrypt(
         JSON.stringify(base.config),
@@ -178,7 +183,7 @@ export default class Base implements BaseType {
       return new Base(baseData);
     });
   }
-  
+
   static async get(id: string, ncMeta = Noco.ncMeta): Promise<Base> {
     let baseData =
       id &&
@@ -193,11 +198,18 @@ export default class Base implements BaseType {
     return baseData && new Base(baseData);
   }
 
-  static async reorderBases(projectId: string, keepBase?: string, ncMeta = Noco.ncMeta) {
+  static async reorderBases(
+    projectId: string,
+    keepBase?: string,
+    ncMeta = Noco.ncMeta
+  ) {
     const bases = await this.list({ projectId: projectId }, ncMeta);
-    
+
     if (keepBase) {
-      const kpBase = bases.splice(bases.indexOf(bases.find((base) => base.id === keepBase)), 1);
+      const kpBase = bases.splice(
+        bases.indexOf(bases.find((base) => base.id === keepBase)),
+        1
+      );
       if (kpBase.length) {
         bases.splice(kpBase[0].order - 1, 0, kpBase[0]);
       }
@@ -208,15 +220,15 @@ export default class Base implements BaseType {
       await ncMeta.metaDelete(null, null, MetaTable.BASES, {
         id: b.id,
       });
-  
+
       await NocoCache.deepDel(
         CacheScope.BASE,
         `${CacheScope.BASE}:${b.id}`,
         CacheDelDirection.CHILD_TO_PARENT
       );
-        
+
       b.order = parseInt(i) + 1;
-  
+
       const { id } = await ncMeta.metaInsert2(
         b.project_id,
         null,
@@ -265,10 +277,12 @@ export default class Base implements BaseType {
     return Project.get(this.project_id, ncMeta);
   }
 
-  async delete(ncMeta = Noco.ncMeta) {
+  async delete(ncMeta = Noco.ncMeta, { force }: { force?: boolean } = {}) {
     const bases = await Base.list({ projectId: this.project_id }, ncMeta);
 
-    if (bases[0].id === this.id) NcError.badRequest('Cannot delete first base');
+    if (bases[0].id === this.id && !force) {
+      NcError.badRequest('Cannot delete first base');
+    }
 
     const models = await Model.list(
       {

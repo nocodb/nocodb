@@ -1,4 +1,3 @@
-import { expect } from '@playwright/test';
 import { SettingsPage } from '.';
 import BasePage from '../../Base';
 
@@ -15,6 +14,11 @@ export class MiscSettingsPage extends BasePage {
   }
 
   async clickShowM2MTables() {
-    await this.get().locator('input[type="checkbox"]').click();
+    const clickAction = this.get().locator('input[type="checkbox"]').click();
+    await this.waitForResponse({
+      uiAction: clickAction,
+      requestUrlPathToMatch: 'tables?includeM2M',
+      httpMethodsToMatch: ['GET'],
+    });
   }
 }

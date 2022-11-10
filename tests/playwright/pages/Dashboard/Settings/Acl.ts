@@ -1,17 +1,16 @@
-import { expect, Locator } from '@playwright/test';
-import { SettingsPage } from '.';
 import BasePage from '../../Base';
+import { DataSourcesPage } from './DataSources';
 
 export class AclPage extends BasePage {
-  private readonly settings: SettingsPage;
+  readonly dataSources: DataSourcesPage;
 
-  constructor(settings: SettingsPage) {
-    super(settings.rootPage);
-    this.settings = settings;
+  constructor(dataSources: DataSourcesPage) {
+    super(dataSources.rootPage);
+    this.dataSources = dataSources;
   }
 
   get() {
-    return this.settings.get().locator(`[data-testid="nc-settings-subtab-UI Access Control"]`);
+    return this.dataSources.get();
   }
 
   async toggle({ table, role }: { table: string; role: string }) {

@@ -47,9 +47,9 @@ const sqlite3 = {
   },
   RIGHT: (args: MapFnArgs) => {
     return args.knex.raw(
-      `SUBSTR(${args.fn(args.pt.arguments[0])},-${args.fn(
+      `SUBSTR(${args.fn(args.pt.arguments[0])},-(${args.fn(
         args.pt.arguments[1]
-      )})${args.colAlias}`
+      )}))${args.colAlias}`
     );
   },
   MID: 'SUBSTR',

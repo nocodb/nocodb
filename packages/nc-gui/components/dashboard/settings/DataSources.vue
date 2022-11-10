@@ -92,6 +92,7 @@ const deleteBase = (base: BaseType) => {
         message.error(await extractSdkResponseErrorMsg(e))
       }
     },
+    style: 'top: 30%!important',
   })
 }
 
@@ -181,7 +182,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-row w-full">
+  <div class="flex flex-row w-full h-full">
     <div class="flex flex-col w-full overflow-auto">
       <div v-if="vState === ''" class="max-h-600px min-w-1200px overflow-y-auto">
         <div class="ds-table-head">
@@ -384,11 +385,11 @@ watch(
 }
 
 .ds-table-name {
-  @apply col-span-9;
+  @apply col-span-8;
 }
 
 .ds-table-actions {
-  @apply col-span-9;
+  @apply col-span-10;
 }
 
 .ds-table-col:last-child {

@@ -259,11 +259,11 @@ const testConnection = async () => {
           title: t('msg.info.dbConnected'),
           icon: null,
           type: 'success',
-
           okText: 'Ok & Edit Base',
           okType: 'primary',
           cancelText: t('general.cancel'),
           onOk: editBase,
+          style: 'top: 30%!important',
         })
       } else {
         testSuccess.value = false
@@ -338,9 +338,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div
-    class="create-external bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
-  >
+  <div class="edit-base max-w-800px mx-auto bg-white relative flex flex-col justify-center gap-2 w-full p-8">
     <h1 class="prose-2xl font-bold self-center my-4">Edit Base</h1>
 
     <a-form
@@ -545,6 +543,10 @@ onMounted(async () => {
           </a-button>
         </div>
       </a-form-item>
+      <div class="w-full flex items-center mt-2 text-[#e65100]">
+        <MdiWarning class="mr-1" />
+        Please make sure database you are trying to connect is valid! This operation can cause schema loss!!
+      </div>
     </a-form>
 
     <a-modal
@@ -593,7 +595,7 @@ onMounted(async () => {
   @apply !min-h-0;
 }
 
-.create-external {
+.edit-base {
   :deep(.ant-input-affix-wrapper),
   :deep(.ant-input),
   :deep(.ant-select) {

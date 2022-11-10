@@ -261,20 +261,22 @@ watch(
           <a-divider style="margin: 10px 0" />
         </div>
 
-        <component
-          :is="selectedSubTab?.body"
-          v-if="selectedSubTabKeys[0] === 'dataSources'"
-          v-model:state="vDataState"
-          v-model:reload="dataSourcesReload"
-          class="px-2 pb-2"
-          :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
-        />
-        <component
-          :is="selectedSubTab?.body"
-          v-else
-          class="px-2 py-6"
-          :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
-        />
+        <div class="h-[600px]">
+          <component
+            :is="selectedSubTab?.body"
+            v-if="selectedSubTabKeys[0] === 'dataSources'"
+            v-model:state="vDataState"
+            v-model:reload="dataSourcesReload"
+            class="px-2 pb-2"
+            :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
+          />
+          <component
+            :is="selectedSubTab?.body"
+            v-else
+            class="px-2 py-6"
+            :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
+          />
+        </div>
       </a-layout-content>
     </a-layout>
   </a-modal>

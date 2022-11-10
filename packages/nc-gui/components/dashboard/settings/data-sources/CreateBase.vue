@@ -263,11 +263,11 @@ const testConnection = async () => {
           title: t('msg.info.dbConnected'),
           icon: null,
           type: 'success',
-
           okText: 'Ok & Add Base',
           okType: 'primary',
           cancelText: t('general.cancel'),
           onOk: createBase,
+          style: 'top: 30%!important',
         })
       } else {
         testSuccess.value = false
@@ -345,9 +345,7 @@ watch(
 </script>
 
 <template>
-  <div
-    class="create-external bg-white relative flex flex-col justify-center gap-2 w-full p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
-  >
+  <div class="create-base max-w-800px mx-auto bg-white relative flex flex-col justify-center gap-2 w-full p-8">
     <h1 class="prose-2xl font-bold self-center my-4">New Base</h1>
 
     <a-form
@@ -600,7 +598,7 @@ watch(
   @apply !min-h-0;
 }
 
-.create-external {
+.create-base {
   :deep(.ant-input-affix-wrapper),
   :deep(.ant-input),
   :deep(.ant-select) {

@@ -1,10 +1,11 @@
-import path from 'path';
 import fs from 'fs';
-import os from 'os';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import AWS from 'aws-sdk';
 import request from 'request';
-import { waitForStreamClose } from '../../utils/pluginUtils';
+import {
+  waitForStreamClose,
+  generateTempFilePath,
+} from '../../utils/pluginUtils';
 
 export default class ScalewayObjectStorage implements IStorageAdapterV2 {
   private s3Client: AWS.S3;
@@ -30,7 +31,7 @@ export default class ScalewayObjectStorage implements IStorageAdapterV2 {
 
   public async test(): Promise<boolean> {
     try {
-      const tempFile = path.join(os.tmpdir(), 'temp.txt');
+      const tempFile = generateTempFilePath();
       const createStream = fs.createWriteStream(tempFile);
       await waitForStreamClose(createStream);
       await this.fileCreate('nc-test-file.txt', {

@@ -1,10 +1,11 @@
 import fs from 'fs';
-import path from 'path';
-import os from 'os';
 import { Client as MinioClient } from 'minio';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
-import { waitForStreamClose } from '../../utils/pluginUtils';
+import {
+  waitForStreamClose,
+  generateTempFilePath,
+} from '../../utils/pluginUtils';
 
 export default class Minio implements IStorageAdapterV2 {
   private minioClient: MinioClient;
@@ -74,7 +75,7 @@ export default class Minio implements IStorageAdapterV2 {
 
   public async test(): Promise<boolean> {
     try {
-      const tempFile = path.join(os.tmpdir(), 'temp.txt');
+      const tempFile = generateTempFilePath();
       const createStream = fs.createWriteStream(tempFile);
       await waitForStreamClose(createStream);
       await this.fileCreate('nc-test-file.txt', {

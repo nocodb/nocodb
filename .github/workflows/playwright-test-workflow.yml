@@ -78,8 +78,8 @@ jobs:
         id: playwright-cache
         with:
           path: |
-            **/nocodb/packages/nc-gui/tests/playwright/node_modules
-          key: cache-nc-playwright-${{ hashFiles('**/nocodb/packages/nc-gui/tests/playwright/package-lock.json') }}
+            **/packages/nc-gui/tests/playwright/node_modules
+          key: cache-nc-playwright-${{ hashFiles('**/packages/nc-gui/tests/playwright/package-lock.json') }}
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./packages/nc-gui/tests/playwright

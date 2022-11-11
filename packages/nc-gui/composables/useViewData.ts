@@ -282,7 +282,13 @@ export function useViewData(
       Object.assign(
         toUpdate.row,
         metaValue!.columns!.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
-          if (col.uidt === UITypes.Formula || col.uidt === UITypes.Rollup || col.au || col.cdf?.includes(' on update '))
+          if (
+            col.uidt === UITypes.Formula ||
+            col.uidt === UITypes.QrCode ||
+            col.uidt === UITypes.Rollup ||
+            col.au ||
+            col.cdf?.includes(' on update ')
+          )
             acc[col.title!] = updatedRowData[col.title!]
           return acc
         }, {} as Record<string, any>),

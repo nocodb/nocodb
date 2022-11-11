@@ -30,3 +30,6 @@ jobs:
     - name: run unit tests
       working-directory: ./packages/nocodb
       run: npm run unit-test
+    - name: run rest tests
+      working-directory: ./packages/nocodb
+      npm run local:test:unit

@@ -46,7 +46,7 @@ jobs:
           # build binaries
           cd ./node_modules/better-sqlite3;
           rm -r ./build
-          npx prebuild --arch=arm64
+          npx --yes prebuild --arch=arm64
 
       - uses: actions/upload-artifact@master
         with:
@@ -128,7 +128,7 @@ jobs:
           npm i
 
           # clean up code to optimize size
-          npx modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,dayjs/**,express-status-monitor/**,better-sqlite3/**" --run
+          npx --yes modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,dayjs/**,express-status-monitor/**,better-sqlite3/**" --run
 
           # create build directory
           mkdir ./dist
@@ -137,48 +137,48 @@ jobs:
           # build macos arm64 executable
           mkdir -p ./node_modules/better-sqlite3/build/Release/
           rsync -rvzhP ./Release/ ./node_modules/better-sqlite3/build/Release/
-          npx pkg . --compress GZip -t node16-macos-arm64 -o Noco-macos-arm64
+          npx --yes pkg . --compress GZip -t node16-macos-arm64 -o Noco-macos-arm64
           mv ./Noco-macos-arm64 ./mac-dist/
 
           # build macos x64 executable
           cd ./node_modules/better-sqlite3;
           rm -r ./build
-          npx prebuild-install --platform=darwin --arch=x64 || npx prebuild --platform=darwin --arch=x64
+          npx --yes prebuild-install --platform=darwin --arch=x64 || npx --yes prebuild --platform=darwin --arch=x64
           cd ../..;
-          npx pkg . --compress GZip -t node16-macos-x64 -o Noco-macos-x64
+          npx --yes pkg . --compress GZip -t node16-macos-x64 -o Noco-macos-x64
           mv ./Noco-macos-x64 ./mac-dist/
 
           # build linux x64 executable
           cd ./node_modules/better-sqlite3;
           rm -r ./build
-          npx prebuild-install --platform=linux --arch=x64 || npx prebuild --platform=linux --arch=x64
+          npx --yes prebuild-install --platform=linux --arch=x64 || npx --yes prebuild --platform=linux --arch=x64
           cd ../..;
-          npx pkg . --compress GZip -t node16-linux-x64 -o Noco-linux-x64
+          npx --yes pkg . --compress GZip -t node16-linux-x64 -o Noco-linux-x64
           mv ./Noco-linux-x64 ./dist/
 
           # build linux arm64 executable
           cd ./node_modules/better-sqlite3;
           rm -r ./build
-          npx prebuild-install --platform=linux --arch=arm64 || npx prebuild --platform=linux --arch=arm64
+          npx --yes prebuild-install --platform=linux --arch=arm64 || npx --yes prebuild --platform=linux --arch=arm64
           cd ../..;
-          npx pkg . --compress GZip -t node16-linux-arm64 -o Noco-linux-arm64
+          npx --yes pkg . --compress GZip -t node16-linux-arm64 -o Noco-linux-arm64
           mv ./Noco-linux-arm64 ./dist/
 
 
           # build windows x64 executable
           cd ./node_modules/better-sqlite3;
           rm -r ./build
-          npx prebuild-install --platform=win32 --arch=x64 || npx prebuild --platform=win32 --arch=x64
+          npx --yes prebuild-install --platform=win32 --arch=x64 || npx --yes prebuild --platform=win32 --arch=x64
           cd ../..;
-          npx pkg . --compress GZip -t node16-win-x64 -o Noco-win-x64.exe
+          npx --yes pkg . --compress GZip -t node16-win-x64 -o Noco-win-x64.exe
           mv ./Noco-win-x64.exe ./dist/
 
           # build windows arm64 executable
           cd ./node_modules/better-sqlite3;
           rm -r ./build
-          npx prebuild-install --platform=win32 --arch=arm64 || npx prebuild --platform=win32 --arch=arm64
+          npx --yes prebuild-install --platform=win32 --arch=arm64 || npx --yes prebuild --platform=win32 --arch=arm64
           cd ../..;
-          npx pkg . --compress GZip -t node16-win-arm64 -o Noco-win-arm64.exe
+          npx --yes pkg . --compress GZip -t node16-win-arm64 -o Noco-win-arm64.exe
           mv ./Noco-win-arm64.exe ./dist/
 
 

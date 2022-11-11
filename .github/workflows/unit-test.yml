@@ -32,4 +32,4 @@ jobs:
       run: npm run unit-test
     - name: run rest tests
       working-directory: ./packages/nocodb
-      npm run local:test:unit
+      run: npm run local:test:unit

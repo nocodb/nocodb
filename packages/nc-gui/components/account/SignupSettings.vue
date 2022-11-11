@@ -31,7 +31,7 @@ loadSettings()
 
 <template>
   <div>
-    <div class="text-xl">Settings</div>
+    <div class="text-xl mt-4">Settings</div>
     <a-divider class="!my-3" />
     <div class="-ml-6">
       <a-form-item>

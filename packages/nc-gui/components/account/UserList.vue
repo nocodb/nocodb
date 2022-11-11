@@ -124,7 +124,7 @@ const copyPasswordResetUrl = async (user: User) => {
 
 <template>
   <div data-cy="nc-super-user-list">
-    <div class="text-xl">User Management</div>
+    <div class="text-xl mt-4">User Management</div>
     <a-divider class="!my-3" />
     <div class="max-w-[900px] mx-auto p-4">
       <div class="py-2 flex gap-4 items-center">
@@ -221,13 +221,11 @@ const copyPasswordResetUrl = async (user: User) => {
         <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
           <template #default="{ text, record }">
             <div v-if="!record.roles.includes('super')" class="flex items-center gap-2">
-              <MdiDeleteOutline data-cy="nc-super-user-delete" class="nc-action-btn cursor-pointer" @click="deleteUser(text)" />
-
               <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
                 <div class="flex flex-row items-center">
                   <a-button type="text" class="!px-0">
                     <div class="flex flex-row items-center h-[1.2rem]">
-                      <IcBaselineMoreVert />
+                      <MdiDotsHorizontal/>
                     </div>
                   </a-button>
                 </div>
@@ -255,6 +253,12 @@ const copyPasswordResetUrl = async (user: User) => {
                         <div class="text-xs pl-2">{{ $t('activity.copyPasswordResetURL') }}</div>
                       </div>
                     </a-menu-item>
+                    <a-menu-item>
+                      <div class="flex flex-row items-center py-3" @click="deleteUser(text)">
+                        <MdiDeleteOutline data-cy="nc-super-user-delete" class="flex h-[1rem] text-gray-500" />
+                        <div class="text-xs pl-2">{{ $t('general.delete') }}</div>
+                      </div>
+                    </a-menu-item>
                   </a-menu>
                 </template>
               </a-dropdown>
@@ -268,5 +272,3 @@ const copyPasswordResetUrl = async (user: User) => {
     </div>
   </div>
 </template>
-
-<style scoped></style>

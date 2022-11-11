@@ -151,6 +151,7 @@ declare module '@vue/runtime-core' {
     MdiDelete: typeof import('~icons/mdi/delete')['default']
     MdiDeleteOutline: typeof import('~icons/mdi/delete-outline')['default']
     MdiDiscord: typeof import('~icons/mdi/discord')['default']
+    MdiDotsHorizontal: typeof import('~icons/mdi/dots-horizontal')['default']
     MdiDotsVertical: typeof import('~icons/mdi/dots-vertical')['default']
     MdiDownload: typeof import('~icons/mdi/download')['default']
     MdiDownloadOutline: typeof import('~icons/mdi/download-outline')['default']

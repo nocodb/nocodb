@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { navigateTo } from '#imports'
+import { navigateTo, useUIPermission } from '#imports'
 
+const { isUIAllowed } = useUIPermission()
 const $route = useRoute()
 
-// const selectedTabKeys = computed(() => [$route.params.page])
-const selectedKeys = computed(() => [$route.params.nestedPage ?? $route.params.page])
-const openKeys = ref([$route.params.nestedPage && 'users'])
+const selectedKeys = computed(() => [/^\/account\/users\/?$/.test($route.fullPath) ? (isUIAllowed('superAdminUserManagement') ? 'list' : 'settings') : $route.params.nestedPage ?? $route.params.page])
+const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 </script>
 
 <template>
@@ -14,7 +14,8 @@ const openKeys = ref([$route.params.nestedPage && 'users'])
       <!-- Side tabs -->
       <a-layout-sider>
         <div class="pt-4 h-full bg-white nc-user-sidebar">
-          <a-menu :inline-indent="12" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys" class="tabs-menu h-full" mode="inline">
+          <a-menu :inline-indent="12" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys"
+                  class="tabs-menu h-full" mode="inline">
             <!--            <a-menu-item
                           key="users-old"
                           class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
@@ -32,10 +33,15 @@ const openKeys = ref([$route.params.nestedPage && 'users'])
                 <MdiAccountSupervisorOutline />
               </template>
               <template #title>Users</template>
-              <a-menu-item key="list" class="text-xs !pl-10" @click="navigateTo('/account/users/list')">User Management</a-menu-item>
-              <a-menu-item key="settings" class="text-xs !pl-10" @click="navigateTo('/account/users/settings')">Settings</a-menu-item>
-              <a-menu-item key="password-reset" class="text-xs !pl-10" @click="navigateTo('/account/users/password-reset')">
-                Reset Password
+              <a-menu-item v-if="isUIAllowed('superAdminUserManagement')" key="list" class="text-xs"
+                           @click="navigateTo('/account/users/list')">
+                <span class="ml-4">User Management</span>
+              </a-menu-item>
+              <a-menu-item key="settings" class="text-xs" @click="navigateTo('/account/users/settings')">
+                <span class="ml-4">Settings</span>
+              </a-menu-item>
+              <a-menu-item key="password-reset" class="text-xs" @click="navigateTo('/account/users/password-reset')">
+                <span class="ml-4">Reset Password</span>
               </a-menu-item>
             </a-sub-menu>
 

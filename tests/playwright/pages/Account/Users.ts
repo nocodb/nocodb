@@ -3,15 +3,15 @@ import BasePage from '../Base';
 import { AccountPage } from './index';
 
 export class AccountUsersPage extends BasePage {
-  readonly inviteTeamBtn: Locator;
-  readonly inviteTeamModal: Locator;
+  readonly inviteUserBtn: Locator;
+  readonly inviteUserModal: Locator;
   private accountPage: AccountPage;
 
   constructor(accountPage: AccountPage) {
     super(accountPage.rootPage);
     this.accountPage = accountPage;
-    this.inviteTeamBtn = this.get().locator(`[data-testid="nc-super-user-invite"]`);
-    this.inviteTeamModal = accountPage.rootPage.locator(`.nc-modal-invite-user`);
+    this.inviteUserBtn = this.get().locator(`[data-testid="nc-super-user-invite"]`);
+    this.inviteUserModal = accountPage.rootPage.locator(`.nc-modal-invite-user`);
   }
 
   async goto() {
@@ -25,15 +25,15 @@ export class AccountUsersPage extends BasePage {
   async invite({ email: _email, role }: { email: string; role: string }) {
     const email = this.prefixEmail(_email);
 
-    await this.inviteTeamBtn.click();
-    await this.inviteTeamModal.locator(`input[placeholder="E-mail"]`).fill(email);
-    await this.inviteTeamModal.locator(`.nc-user-roles`).click();
+    await this.inviteUserBtn.click();
+    await this.inviteUserModal.locator(`input[placeholder="E-mail"]`).fill(email);
+    await this.inviteUserModal.locator(`.nc-user-roles`).click();
     const userRoleModal = this.rootPage.locator(`.nc-dropdown-user-role`);
     await userRoleModal.locator(`.nc-role-option:has-text("${role}")`).click();
-    await this.inviteTeamModal.locator(`button:has-text("Invite")`).click();
+    await this.inviteUserModal.locator(`button:has-text("Invite")`).click();
     await this.verifyToast({ message: 'Successfully added user' });
 
-    return await this.inviteTeamModal.locator(`.ant-alert-message`).innerText();
+    return await this.inviteUserModal.locator(`.ant-alert-message`).innerText();
   }
 
   prefixEmail(email: string) {
@@ -43,7 +43,7 @@ export class AccountUsersPage extends BasePage {
 
   async closeInvite() {
     // two btn-icon-only in invite modal: close & copy url
-    await this.inviteTeamModal.locator(`button.ant-btn-icon-only:visible`).first().click();
+    await this.inviteUserModal.locator(`button.ant-btn-icon-only:visible`).first().click();
   }
 
   getUserRow({ email: _email }: { email: string }) {
@@ -64,7 +64,7 @@ export class AccountUsersPage extends BasePage {
   }
 
   async inviteMore() {
-    await this.inviteTeamModal.locator(`button:has-text("Invite More")`).click();
+    await this.inviteUserModal.locator(`button:has-text("Invite More")`).click();
   }
 
   async openRowActionMenu({ email }: { email: string }) {

@@ -161,7 +161,7 @@ watch(
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
       class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
-      data-nc="attachment-cell-file-picker-button"
+      data-testid="attachment-cell-file-picker-button"
       @click.stop="open"
     >
       <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />

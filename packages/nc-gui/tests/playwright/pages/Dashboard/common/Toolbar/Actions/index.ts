@@ -13,7 +13,7 @@ export class ToolbarActionsPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator(`[data-nc="toolbar-actions"]`);
+    return this.rootPage.locator(`[data-testid="toolbar-actions"]`);
   }
 
   // todo: use enum

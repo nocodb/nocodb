@@ -14,7 +14,7 @@ export class ColumnPageObject extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator('form[data-nc="add-or-edit-column"]');
+    return this.rootPage.locator('form[data-testid="add-or-edit-column"]');
   }
 
   async create({

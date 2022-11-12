@@ -57,7 +57,7 @@ export class SettingsPage extends BasePage {
   }
 
   async close() {
-    await this.get().locator('[data-nc="settings-modal-close-button"]').click();
+    await this.get().locator('[data-testid="settings-modal-close-button"]').click();
     await this.get().waitFor({ state: 'hidden' });
   }
 }

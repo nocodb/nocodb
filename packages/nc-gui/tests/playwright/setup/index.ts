@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, selectors } from '@playwright/test';
 import axios from 'axios';
 
 export interface NcContext {
@@ -6,6 +6,8 @@ export interface NcContext {
   token: string;
   dbType?: string;
 }
+
+selectors.setTestIdAttribute('data-testid');
 
 const setup = async ({ page, isEmptyProject }: { page: Page; isEmptyProject?: boolean }): Promise<NcContext> => {
   let dbType = process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE;

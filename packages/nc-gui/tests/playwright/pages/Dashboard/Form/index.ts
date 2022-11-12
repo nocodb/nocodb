@@ -24,61 +24,65 @@ export class FormPage extends BasePage {
     this.dashboard = dashboard;
     this.toolbar = new ToolbarPage(this);
 
-    this.addAllButton = dashboard.get().locator('[data-nc="nc-form-add-all"]');
-    this.removeAllButton = dashboard.get().locator('[data-nc="nc-form-remove-all"]');
-    this.submitButton = dashboard.get().locator('[data-nc="nc-form-submit"]');
+    this.addAllButton = dashboard.get().locator('[data-testid="nc-form-add-all"]');
+    this.removeAllButton = dashboard.get().locator('[data-testid="nc-form-remove-all"]');
+    this.submitButton = dashboard.get().locator('[data-testid="nc-form-submit"]');
 
-    this.showAnotherFormRadioButton = dashboard.get().locator('[data-nc="nc-form-checkbox-submit-another-form"]');
-    this.showAnotherFormAfter5SecRadioButton = dashboard.get().locator('[data-nc="nc-form-checkbox-show-blank-form"]');
-    this.emailMeRadioButton = dashboard.get().locator('[data-nc="nc-form-checkbox-send-email"]');
-    this.formHeading = dashboard.get().locator('[data-nc="nc-form-heading"]');
-    this.formSubHeading = dashboard.get().locator('[data-nc="nc-form-sub-heading"]');
-    this.afterSubmitMsg = dashboard.get().locator('[data-nc="nc-form-after-submit-msg"]');
+    this.showAnotherFormRadioButton = dashboard.get().locator('[data-testid="nc-form-checkbox-submit-another-form"]');
+    this.showAnotherFormAfter5SecRadioButton = dashboard
+      .get()
+      .locator('[data-testid="nc-form-checkbox-show-blank-form"]');
+    this.emailMeRadioButton = dashboard.get().locator('[data-testid="nc-form-checkbox-send-email"]');
+    this.formHeading = dashboard.get().locator('[data-testid="nc-form-heading"]');
+    this.formSubHeading = dashboard.get().locator('[data-testid="nc-form-sub-heading"]');
+    this.afterSubmitMsg = dashboard.get().locator('[data-testid="nc-form-after-submit-msg"]');
   }
 
   get() {
-    return this.dashboard.get().locator('[data-nc="nc-form-wrapper"]');
+    return this.dashboard.get().locator('[data-testid="nc-form-wrapper"]');
   }
 
   getFormAfterSubmit() {
-    return this.dashboard.get().locator('[data-nc="nc-form-wrapper-submit"]');
+    return this.dashboard.get().locator('[data-testid="nc-form-wrapper-submit"]');
   }
 
   getFormHiddenColumn() {
-    return this.get().locator('[data-nc="nc-form-hidden-column"]');
+    return this.get().locator('[data-testid="nc-form-hidden-column"]');
   }
 
   getFormFields() {
-    return this.get().locator('[data-nc="nc-form-fields"]');
+    return this.get().locator('[data-testid="nc-form-fields"]');
   }
 
   getDragNDropToHide() {
-    return this.get().locator('[data-nc="nc-drag-n-drop-to-hide"]');
+    return this.get().locator('[data-testid="nc-drag-n-drop-to-hide"]');
   }
 
   getFormFieldsRemoveIcon() {
-    return this.get().locator('[data-nc="nc-field-remove-icon"]');
+    return this.get().locator('[data-testid="nc-field-remove-icon"]');
   }
 
   getFormFieldsRequired() {
-    return this.get().locator('[data-nc="nc-form-input-required"]');
+    return this.get().locator('[data-testid="nc-form-input-required"]');
   }
 
   getFormFieldsInputLabel() {
-    return this.get().locator('input[data-nc="nc-form-input-label"]:visible');
+    return this.get().locator('input[data-testid="nc-form-input-label"]:visible');
   }
 
   getFormFieldsInputHelpText() {
-    return this.get().locator('input[data-nc="nc-form-input-help-text"]:visible');
+    return this.get().locator('input[data-testid="nc-form-input-help-text"]:visible');
   }
 
   async verifyFormFieldLabel({ index, label }: { index: number; label: string }) {
-    await expect(await this.getFormFields().nth(index).locator('[data-nc="nc-form-input-label"]')).toContainText(label);
+    await expect(await this.getFormFields().nth(index).locator('[data-testid="nc-form-input-label"]')).toContainText(
+      label
+    );
   }
 
   async verifyFormFieldHelpText({ index, helpText }: { index: number; helpText: string }) {
     await expect(
-      await this.getFormFields().nth(index).locator('[data-nc="nc-form-input-help-text-label"]')
+      await this.getFormFields().nth(index).locator('[data-testid="nc-form-input-help-text-label"]')
     ).toContainText(helpText);
   }
 
@@ -91,7 +95,7 @@ export class FormPage extends BasePage {
   }
 
   async verifyFormViewFieldsOrder({ fields }: { fields: string[] }) {
-    const fieldLabels = await this.get().locator('[data-nc="nc-form-input-label"]');
+    const fieldLabels = await this.get().locator('[data-testid="nc-form-input-label"]');
     await expect(await fieldLabels).toHaveCount(fields.length);
     for (let i = 0; i < fields.length; i++) {
       await expect(await fieldLabels.nth(i)).toContainText(fields[i]);
@@ -109,21 +113,21 @@ export class FormPage extends BasePage {
   async removeField({ field, mode }: { mode: string; field: string }) {
     if (mode === 'dragDrop') {
       const src = await this.get().locator(`.nc-form-drag-${field.replace(' ', '')}`);
-      const dst = await this.get().locator(`[data-nc="nc-drag-n-drop-to-hide"]`);
+      const dst = await this.get().locator(`[data-testid="nc-drag-n-drop-to-hide"]`);
       await src.dragTo(dst);
     } else if (mode === 'hideField') {
       const src = await this.get().locator(`.nc-form-drag-${field.replace(' ', '')}`);
-      await src.locator(`[data-nc="nc-field-remove-icon"]`).click();
+      await src.locator(`[data-testid="nc-field-remove-icon"]`).click();
     }
   }
 
   async addField({ field, mode }: { mode: string; field: string }) {
     if (mode === 'dragDrop') {
-      const src = await this.get().locator(`[data-nc="nc-form-hidden-column-${field}"]`);
+      const src = await this.get().locator(`[data-testid="nc-form-hidden-column-${field}"]`);
       const dst = await this.get().locator(`.nc-form-drag-Country`);
       await src.dragTo(dst);
     } else if (mode === 'clickField') {
-      const src = await this.get().locator(`[data-nc="nc-form-hidden-column-${field}"]`);
+      const src = await this.get().locator(`[data-testid="nc-form-hidden-column-${field}"]`);
       await src.click();
     }
   }
@@ -149,7 +153,7 @@ export class FormPage extends BasePage {
   async fillForm(param: { field: string; value: string }[]) {
     for (let i = 0; i < param.length; i++) {
       await this.get()
-        .locator(`[data-nc="nc-form-input-${param[i].field.replace(' ', '')}"] >> input`)
+        .locator(`[data-testid="nc-form-input-${param[i].field.replace(' ', '')}"] >> input`)
         .fill(param[i].value);
     }
   }
@@ -167,7 +171,7 @@ export class FormPage extends BasePage {
   }) {
     await this.get()
       .locator(`.nc-form-drag-${field.replace(' ', '')}`)
-      .locator('div[data-nc="nc-form-input-label"]')
+      .locator('div[data-testid="nc-form-input-label"]')
       .click();
     await this.getFormFieldsInputLabel().fill(label);
     await this.getFormFieldsInputHelpText().fill(helpText);
@@ -196,12 +200,12 @@ export class FormPage extends BasePage {
 
     const fieldLabel = await this.get()
       .locator(`.nc-form-drag-${field.replace(' ', '')}`)
-      .locator('div[data-nc="nc-form-input-label"]');
+      .locator('div[data-testid="nc-form-input-label"]');
     await expect(fieldLabel).toHaveText(expectText);
 
     const fieldHelpText = await this.get()
       .locator(`.nc-form-drag-${field.replace(' ', '')}`)
-      .locator('div[data-nc="nc-form-input-help-text-label"]');
+      .locator('div[data-testid="nc-form-input-help-text-label"]');
     await expect(fieldHelpText).toHaveText(helpText);
   }
 
@@ -237,16 +241,18 @@ export class FormPage extends BasePage {
   async verifyAfterSubmitMenuState(param: { showBlankForm?: boolean; submitAnotherForm?: boolean; emailMe?: boolean }) {
     if (true === param.showBlankForm) {
       await expect(
-        this.get().locator('[data-nc="nc-form-checkbox-show-blank-form"][aria-checked="true"]')
+        this.get().locator('[data-testid="nc-form-checkbox-show-blank-form"][aria-checked="true"]')
       ).toBeVisible();
     }
     if (true === param.submitAnotherForm) {
       await expect(
-        this.get().locator('[data-nc="nc-form-checkbox-submit-another-form"][aria-checked="true"]')
+        this.get().locator('[data-testid="nc-form-checkbox-submit-another-form"][aria-checked="true"]')
       ).toBeVisible();
     }
     if (true === param.emailMe) {
-      await expect(this.get().locator('[data-nc="nc-form-checkbox-send-email"][aria-checked="true"]')).toBeVisible();
+      await expect(
+        this.get().locator('[data-testid="nc-form-checkbox-send-email"][aria-checked="true"]')
+      ).toBeVisible();
     }
   }
 }

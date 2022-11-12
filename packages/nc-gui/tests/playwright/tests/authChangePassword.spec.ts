@@ -46,7 +46,7 @@ test.describe('Auth', () => {
       repeatPass: '123456789',
     });
     await dashboard.rootPage
-      .locator('[data-cy="nc-user-settings-form__error"]:has-text("Current password is wrong")')
+      .locator('[data-testid="nc-user-settings-form__error"]:has-text("Current password is wrong")')
       .waitFor();
 
     // New pass and repeat pass mismatch

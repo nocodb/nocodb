@@ -309,7 +309,7 @@ watch(view, async (nextView) => {
 </script>
 
 <template>
-  <div class="flex h-full bg-white px-2" data-nc="nc-kanban-wrapper">
+  <div class="flex h-full bg-white px-2" data-testid="nc-kanban-wrapper">
     <div ref="kanbanContainerRef" class="nc-kanban-container flex my-4 px-3 overflow-x-scroll overflow-y-hidden">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']" overlay-class-name="nc-dropdown-kanban-context-menu">
         <!-- Draggable Stack -->

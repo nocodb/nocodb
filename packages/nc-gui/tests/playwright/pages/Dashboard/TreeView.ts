@@ -48,7 +48,7 @@ export class TreeViewPage extends BasePage {
 
     await this.dashboard.get().locator('.nc-modal-table-create').locator('.ant-modal-body').waitFor();
 
-    await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(title);
+    await this.dashboard.get().getByPlaceholder('Enter table name').fill(title);
 
     await this.waitForResponse({
       uiAction: this.dashboard.get().locator('button:has-text("Submit")').click(),
@@ -107,8 +107,8 @@ export class TreeViewPage extends BasePage {
   async reorderTables({ sourceTable, destinationTable }: { sourceTable: string; destinationTable: string }) {
     await this.dashboard
       .get()
-      .locator(`[data-nc="tree-view-table-draggable-handle-${sourceTable}"]`)
-      .dragTo(this.get().locator(`[data-nc="tree-view-table-${destinationTable}"]`));
+      .locator(`[data-testid="tree-view-table-draggable-handle-${sourceTable}"]`)
+      .dragTo(this.get().locator(`[data-testid="tree-view-table-${destinationTable}"]`));
   }
 
   async quickImport({ title }: { title: string }) {

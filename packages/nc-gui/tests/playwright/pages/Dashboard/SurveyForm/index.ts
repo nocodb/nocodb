@@ -13,14 +13,14 @@ export class SurveyFormPage extends BasePage {
 
   constructor(rootPage: Page) {
     super(rootPage);
-    this.formHeading = this.get().locator('[data-nc="nc-survey-form__heading"]');
-    this.formSubHeading = this.get().locator('[data-nc="nc-survey-form__sub-heading"]');
-    this.submitButton = this.get().locator('[data-nc="nc-survey-form__btn-submit"]');
-    this.nextButton = this.get().locator('[data-nc="nc-survey-form__btn-next"]');
-    this.nextSlideButton = this.get().locator('[data-nc="nc-survey-form__icon-next"]');
-    this.prevSlideButton = this.get().locator('[data-nc="nc-survey-form__icon-prev"]');
-    this.darkModeButton = this.get().locator('[data-nc="nc-form-dark-mode"]');
-    this.formFooter = this.get().locator('[data-nc="nc-survey-form__footer"]');
+    this.formHeading = this.get().locator('[data-testid="nc-survey-form__heading"]');
+    this.formSubHeading = this.get().locator('[data-testid="nc-survey-form__sub-heading"]');
+    this.submitButton = this.get().locator('[data-testid="nc-survey-form__btn-submit"]');
+    this.nextButton = this.get().locator('[data-testid="nc-survey-form__btn-next"]');
+    this.nextSlideButton = this.get().locator('[data-testid="nc-survey-form__icon-next"]');
+    this.prevSlideButton = this.get().locator('[data-testid="nc-survey-form__icon-prev"]');
+    this.darkModeButton = this.get().locator('[data-testid="nc-form-dark-mode"]');
+    this.formFooter = this.get().locator('[data-testid="nc-survey-form__footer"]');
   }
 
   get() {
@@ -42,7 +42,7 @@ export class SurveyFormPage extends BasePage {
     await expect(this.formHeading).toHaveText(heading);
     await expect(this.formSubHeading).toHaveText(subHeading);
     await expect(this.formFooter).toHaveText(footer);
-    await expect(this.get().locator(`[data-nc="nc-form-column-label"]`)).toHaveText(fieldLabel);
+    await expect(this.get().locator(`[data-testid="nc-form-column-label"]`)).toHaveText(fieldLabel);
 
     // parse footer text ("1 / 3") to identify if last slide
     let isLastSlide = false;
@@ -60,11 +60,11 @@ export class SurveyFormPage extends BasePage {
   }
 
   async fill(param: { fieldLabel: string; type?: string; value?: string }) {
-    await this.get().locator(`[data-nc="nc-survey-form__input-${param.fieldLabel}"]`).click();
+    await this.get().locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"]`).click();
     if (param.type === 'SingleLineText') {
-      await this.get().locator(`[data-nc="nc-survey-form__input-${param.fieldLabel}"] >> input`).fill(param.value);
+      await this.get().locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> input`).fill(param.value);
       // press enter key
-      await this.get().locator(`[data-nc="nc-survey-form__input-${param.fieldLabel}"] >> input`).press('Enter');
+      await this.get().locator(`[data-testid="nc-survey-form__input-${param.fieldLabel}"] >> input`).press('Enter');
     } else if (param.type === 'DateTime') {
       const modal = await this.rootPage.locator('.nc-picker-datetime');
       await expect(modal).toBeVisible();
@@ -76,7 +76,7 @@ export class SurveyFormPage extends BasePage {
 
   async validateSuccessMessage(param: { message: string; showAnotherForm?: boolean }) {
     await expect(
-      this.get().locator(`[data-nc="nc-survey-form__success-msg"]:has-text("${param.message}")`)
+      this.get().locator(`[data-testid="nc-survey-form__success-msg"]:has-text("${param.message}")`)
     ).toBeVisible();
 
     if (param.showAnotherForm) {

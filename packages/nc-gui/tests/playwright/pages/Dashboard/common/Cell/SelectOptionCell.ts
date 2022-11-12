@@ -27,12 +27,13 @@ export class SelectOptionCellPageObject extends BasePage {
   }) {
     await this.get({ index, columnHeader }).click();
 
-    await this.rootPage.locator(`[data-nc="select-option-${columnHeader}-${index}"]`, { hasText: option }).click();
+    await this.rootPage.getByTestId(`select-option-${columnHeader}-${index}`).getByText(option).click();
 
     if (multiSelect) await this.get({ index, columnHeader }).click();
 
     await this.rootPage
-      .locator(`[data-nc="select-option-${columnHeader}-${index}"]`, { hasText: option })
+      .getByTestId(`select-option-${columnHeader}-${index}`)
+      .getByText(option)
       .waitFor({ state: 'hidden' });
   }
 

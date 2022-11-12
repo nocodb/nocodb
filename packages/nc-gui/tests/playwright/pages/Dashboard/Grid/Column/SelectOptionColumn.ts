@@ -29,8 +29,8 @@ export class SelectOptionColumnPageObject extends BasePage {
     await this.column.get().locator('button:has-text("Add option")').click();
 
     // Fill text=Select options can't be nullAdd option >> input[type="text"]
-    await this.column.get().locator(`[data-nc="select-column-option-input-${index}"]`).click();
-    await this.column.get().locator(`[data-nc="select-column-option-input-${index}"]`).fill(option);
+    await this.column.get().locator(`[data-testid="select-column-option-input-${index}"]`).click();
+    await this.column.get().locator(`[data-testid="select-column-option-input-${index}"]`).fill(option);
 
     if (!skipColumnModal && columnTitle) await this.column.save({ isUpdated: true });
   }
@@ -38,8 +38,8 @@ export class SelectOptionColumnPageObject extends BasePage {
   async editOption({ columnTitle, index, newOption }: { index: number; columnTitle: string; newOption: string }) {
     await this.column.openEdit({ title: columnTitle });
 
-    await this.column.get().locator(`[data-nc="select-column-option-input-${index}"]`).click();
-    await this.column.get().locator(`[data-nc="select-column-option-input-${index}"]`).fill(newOption);
+    await this.column.get().locator(`[data-testid="select-column-option-input-${index}"]`).click();
+    await this.column.get().locator(`[data-testid="select-column-option-input-${index}"]`).fill(newOption);
 
     await this.column.save({ isUpdated: true });
   }
@@ -47,7 +47,7 @@ export class SelectOptionColumnPageObject extends BasePage {
   async deleteOption({ columnTitle, index }: { index: number; columnTitle: string }) {
     await this.column.openEdit({ title: columnTitle });
 
-    await this.column.get().locator(`svg[data-nc="select-column-option-remove-${index}"]`).click();
+    await this.column.get().locator(`svg[data-testid="select-column-option-remove-${index}"]`).click();
 
     await this.column.save({ isUpdated: true });
   }
@@ -66,8 +66,8 @@ export class SelectOptionColumnPageObject extends BasePage {
     await this.column.rootPage.waitForTimeout(150);
 
     await this.column.rootPage.dragAndDrop(
-      `svg[data-nc="select-option-column-handle-icon-${sourceOption}"]`,
-      `svg[data-nc="select-option-column-handle-icon-${destinationOption}"]`,
+      `svg[data-testid="select-option-column-handle-icon-${sourceOption}"]`,
+      `svg[data-testid="select-option-column-handle-icon-${destinationOption}"]`,
       {
         force: true,
       }

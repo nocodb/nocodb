@@ -54,7 +54,7 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async openView({ title }: { title: string }) {
-    await this.get().locator(`[data-nc="view-sidebar-view-${title}"]`).click();
+    await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).click();
   }
 
   async createKanbanView({ title }: { title: string }) {
@@ -64,7 +64,7 @@ export class ViewSidebarPage extends BasePage {
   // Todo: Make selection better
   async verifyView({ title, index }: { title: string; index: number }) {
     await expect(
-      this.get().locator('[data-nc="view-item"]').nth(index).locator('[data-nc="truncate-label"]')
+      this.get().locator('[data-testid="view-item"]').nth(index).locator('[data-testid="truncate-label"]')
     ).toHaveText(title, { ignoreCase: true });
   }
 
@@ -82,13 +82,16 @@ export class ViewSidebarPage extends BasePage {
   async reorderViews({ sourceView, destinationView }: { sourceView: string; destinationView: string }) {
     await this.dashboard
       .get()
-      .locator(`[data-nc="view-sidebar-drag-handle-${sourceView}"]`)
-      .dragTo(this.get().locator(`[data-nc="view-sidebar-view-${destinationView}"]`));
+      .locator(`[data-testid="view-sidebar-drag-handle-${sourceView}"]`)
+      .dragTo(this.get().locator(`[data-testid="view-sidebar-view-${destinationView}"]`));
   }
 
   async deleteView({ title }: { title: string }) {
-    await this.get().locator(`[data-nc="view-sidebar-view-${title}"]`).hover();
-    await this.get().locator(`[data-nc="view-sidebar-view-actions-${title}"]`).locator('.nc-view-delete-icon').click();
+    await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).hover();
+    await this.get()
+      .locator(`[data-testid="view-sidebar-view-actions-${title}"]`)
+      .locator('.nc-view-delete-icon')
+      .click();
 
     await this.rootPage.locator('.nc-modal-view-delete').locator('button:has-text("Submit"):visible').click();
 
@@ -101,15 +104,18 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async renameView({ title, newTitle }: { title: string; newTitle: string }) {
-    await this.get().locator(`[data-nc="view-sidebar-view-${title}"]`).dblclick();
-    await this.get().locator(`[data-nc="view-sidebar-view-${title}"]`).locator('input').fill(newTitle);
+    await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).dblclick();
+    await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).locator('input').fill(newTitle);
     await this.get().press('Enter');
     await this.verifyToast({ message: 'View renamed successfully' });
   }
 
   async copyView({ title }: { title: string }) {
-    await this.get().locator(`[data-nc="view-sidebar-view-${title}"]`).hover();
-    await this.get().locator(`[data-nc="view-sidebar-view-actions-${title}"]`).locator('.nc-view-copy-icon').click();
+    await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).hover();
+    await this.get()
+      .locator(`[data-testid="view-sidebar-view-actions-${title}"]`)
+      .locator('.nc-view-copy-icon')
+      .click();
     const submitAction = this.rootPage
       .locator('.ant-modal-content')
       .locator('button:has-text("Submit"):visible')

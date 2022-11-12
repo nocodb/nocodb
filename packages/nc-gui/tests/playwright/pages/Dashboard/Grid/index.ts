@@ -26,11 +26,11 @@ export class GridPage extends BasePage {
   }
 
   get() {
-    return this.dashboard.get().locator('[data-nc="nc-grid-wrapper"]');
+    return this.dashboard.get().locator('[data-testid="nc-grid-wrapper"]');
   }
 
   row(index: number) {
-    return this.get().locator(`tr[data-nc="grid-row-${index}"]`);
+    return this.get().locator(`tr[data-testid="grid-row-${index}"]`);
   }
 
   async rowCount() {
@@ -122,17 +122,17 @@ export class GridPage extends BasePage {
   }
 
   async verifyRow({ index }: { index: number }) {
-    await this.get().locator(`td[data-nc="cell-Title-${index}"]`).waitFor({ state: 'visible' });
-    await expect(this.get().locator(`td[data-nc="cell-Title-${index}"]`)).toHaveCount(1);
+    await this.get().locator(`td[data-testid="cell-Title-${index}"]`).waitFor({ state: 'visible' });
+    await expect(this.get().locator(`td[data-testid="cell-Title-${index}"]`)).toHaveCount(1);
   }
 
   async verifyRowDoesNotExist({ index }: { index: number }) {
-    await this.get().locator(`td[data-nc="cell-Title-${index}"]`).waitFor({ state: 'hidden' });
-    return await expect(this.get().locator(`td[data-nc="cell-Title-${index}"]`)).toHaveCount(0);
+    await this.get().locator(`td[data-testid="cell-Title-${index}"]`).waitFor({ state: 'hidden' });
+    return await expect(this.get().locator(`td[data-testid="cell-Title-${index}"]`)).toHaveCount(0);
   }
 
   async deleteRow(index: number) {
-    await this.get().locator(`td[data-nc="cell-Title-${index}"]`).click({
+    await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click({
       button: 'right',
     });
 
@@ -149,7 +149,7 @@ export class GridPage extends BasePage {
 
   async addRowRightClickMenu(index: number) {
     const rowCount = await this.get().locator('.nc-grid-row').count();
-    await this.get().locator(`td[data-nc="cell-Title-${index}"]`).click({
+    await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click({
       button: 'right',
     });
     // Click text=Insert New Row
@@ -158,28 +158,30 @@ export class GridPage extends BasePage {
   }
 
   async openExpandedRow({ index }: { index: number }) {
-    await this.row(index).locator(`td[data-nc="cell-Id-${index}"]`).hover();
-    await this.row(index).locator(`div[data-nc="nc-expand-${index}"]`).click();
+    await this.row(index).locator(`td[data-testid="cell-Id-${index}"]`).hover();
+    await this.row(index).locator(`div[data-testid="nc-expand-${index}"]`).click();
     await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
   }
 
   async selectAll() {
-    await this.get().locator('[data-nc="nc-check-all"]').hover();
+    await this.get().locator('[data-testid="nc-check-all"]').hover();
 
-    await this.get().locator('[data-nc="nc-check-all"]').locator('input[type="checkbox"]').check({
+    await this.get().locator('[data-testid="nc-check-all"]').locator('input[type="checkbox"]').check({
       force: true,
     });
 
     const rowCount = await this.rowCount();
     for (let i = 0; i < rowCount; i++) {
-      await expect(this.row(i).locator(`[data-nc="cell-Id-${i}"]`).locator('span.ant-checkbox-checked')).toHaveCount(1);
+      await expect(
+        this.row(i).locator(`[data-testid="cell-Id-${i}"]`).locator('span.ant-checkbox-checked')
+      ).toHaveCount(1);
     }
     await this.rootPage.waitForTimeout(300);
   }
 
   async deleteAll() {
     await this.selectAll();
-    await this.get().locator('[data-nc="nc-check-all"]').nth(0).click({
+    await this.get().locator('[data-testid="nc-check-all"]').nth(0).click({
       button: 'right',
     });
     await this.rootPage.locator('text=Delete Selected Rows').click();
@@ -211,7 +213,7 @@ export class GridPage extends BasePage {
   }
 
   async waitLoading() {
-    await this.dashboard.get().locator('[data-nc="grid-load-spinner"]').waitFor({ state: 'hidden' });
+    await this.dashboard.get().locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });
   }
 
   async verifyEditDisabled({ columnHeader = 'Title' }: { columnHeader?: string } = {}) {
@@ -224,7 +226,7 @@ export class GridPage extends BasePage {
     await expect(await cell.locator('input')).not.toBeVisible();
 
     // right click menu
-    await this.get().locator(`td[data-nc="cell-${columnHeader}-0"]`).click({
+    await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
     await expect(await this.rootPage.locator('text=Insert New Row')).not.toBeVisible();
@@ -252,7 +254,7 @@ export class GridPage extends BasePage {
     await expect(await cell.locator('input')).toBeVisible();
 
     // right click menu
-    await this.get().locator(`td[data-nc="cell-${columnHeader}-0"]`).click({
+    await this.get().locator(`td[data-testid="cell-${columnHeader}-0"]`).click({
       button: 'right',
     });
     await expect(await this.rootPage.locator('text=Insert New Row')).toBeVisible();

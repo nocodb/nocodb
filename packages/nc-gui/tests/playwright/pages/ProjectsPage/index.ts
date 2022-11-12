@@ -13,7 +13,7 @@ export class ProjectsPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator('[data-nc="projects-container"]');
+    return this.rootPage.locator('[data-testid="projects-container"]');
   }
 
   // create project
@@ -55,7 +55,7 @@ export class ProjectsPage extends BasePage {
   }
 
   async reloadProjects() {
-    const reloadUiAction = this.get().locator('[data-nc="projects-reload-button"]').click();
+    const reloadUiAction = this.get().locator('[data-testid="projects-reload-button"]').click();
     await this.waitForResponse({
       uiAction: reloadUiAction,
       requestUrlPathToMatch: '/api/v1/db/meta/projects',
@@ -133,7 +133,7 @@ export class ProjectsPage extends BasePage {
   async deleteProject({ title, withoutPrefix }: { title: string; withoutPrefix?: boolean }) {
     if (!withoutPrefix) title = this.prefixTitle(title);
 
-    await this.get().locator(`[data-nc="delete-project-${title}"]`).click();
+    await this.get().locator(`[data-testid="delete-project-${title}"]`).click();
     await this.rootPage.locator(`button:has-text("Yes")`).click();
 
     await this.get().locator('.ant-table-row', { hasText: title }).waitFor({ state: 'hidden' });

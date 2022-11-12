@@ -11,7 +11,7 @@ export class MetaDataPage extends BasePage {
   }
 
   get() {
-    return this.settings.get().locator(`[data-nc="nc-settings-subtab-Metadata"]`);
+    return this.settings.get().locator(`[data-testid="nc-settings-subtab-Metadata"]`);
   }
 
   async clickReload() {

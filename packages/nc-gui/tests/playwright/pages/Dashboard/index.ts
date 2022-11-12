@@ -61,7 +61,7 @@ export class DashboardPage extends BasePage {
   }
 
   async gotoSettings() {
-    await this.rootPage.locator('[data-nc="nc-project-menu"]').click();
+    await this.rootPage.locator('[data-testid="nc-project-menu"]').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
   }
 
@@ -70,7 +70,7 @@ export class DashboardPage extends BasePage {
   }
 
   async closeTab({ title }: { title: string }) {
-    const tab = await this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`);
+    const tab = this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`);
     await tab.locator('button.ant-tabs-tab-remove').click();
 
     // fix me!
@@ -82,7 +82,7 @@ export class DashboardPage extends BasePage {
     // todo: Fast page transition breaks the vue router
     await this.rootPage.waitForTimeout(2000);
 
-    await this.rootPage.locator('[data-cy="nc-noco-brand-icon"]').click();
+    await this.rootPage.getByTestId('nc-noco-brand-icon').click();
     const projectsPage = new ProjectsPage(this.rootPage);
     await projectsPage.waitToBeRendered();
   }
@@ -99,7 +99,7 @@ export class DashboardPage extends BasePage {
           state: 'visible',
         });
     } else {
-      await this.get().locator('[data-nc="grid-id-column"]').waitFor({
+      await this.get().getByTestId('grid-id-column').waitFor({
         state: 'visible',
       });
     }
@@ -109,13 +109,13 @@ export class DashboardPage extends BasePage {
     // wait active tab animation to finish
     await expect
       .poll(async () => {
-        return await this.tabBar.locator(`[data-nc="nc-root-tabs-${title}"]`).evaluate(el => {
+        return await this.tabBar.getByTestId(`nc-root-tabs-${title}`).evaluate(el => {
           return window.getComputedStyle(el).getPropertyValue('color');
         });
       })
       .toBe('rgb(67, 81, 232)'); // active tab text color
 
-    await this.get().locator('[data-nc="grid-load-spinner"]').waitFor({ state: 'hidden' });
+    await this.get().getByTestId('grid-load-spinner').waitFor({ state: 'hidden' });
 
     if (mode === 'standard') {
       await expect(this.rootPage).toHaveURL(
@@ -128,34 +128,35 @@ export class DashboardPage extends BasePage {
     // open change password portal
     await this.rootPage.locator('.nc-menu-accounts').click();
     await this.rootPage
-      .locator(`.nc-dropdown-user-accounts-menu >> [data-cy="nc-menu-accounts__user-settings"]`)
+      .locator('.nc-dropdown-user-accounts-menu')
+      .getByTestId('nc-menu-accounts__user-settings')
       .click();
   }
 
   // todo: Move this to a seperate page
   async changePassword({ oldPass, newPass, repeatPass }: { oldPass: string; newPass: string; repeatPass: string }) {
     // change password
-    const currentPassword = await this.rootPage.locator('input[data-cy="nc-user-settings-form__current-password"]');
-    const newPassword = await this.rootPage.locator('input[data-cy="nc-user-settings-form__new-password"]');
-    const confirmPassword = await this.rootPage.locator('input[data-cy="nc-user-settings-form__new-password-repeat"]');
+    const currentPassword = this.rootPage.locator('input[data-testid="nc-user-settings-form__current-password"]');
+    const newPassword = this.rootPage.locator('input[data-testid="nc-user-settings-form__new-password"]');
+    const confirmPassword = this.rootPage.locator('input[data-testid="nc-user-settings-form__new-password-repeat"]');
 
     await currentPassword.fill(oldPass);
     await newPassword.fill(newPass);
     await confirmPassword.fill(repeatPass);
 
-    await this.rootPage.locator('button[data-cy="nc-user-settings-form__submit"]').click();
+    await this.rootPage.locator('button[data-testid="nc-user-settings-form__submit"]').click();
   }
 
   async signOut() {
-    await this.rootPage.locator('[data-nc="nc-project-menu"]').click();
+    await this.rootPage.locator('[data-testid="nc-project-menu"]').click();
     const projMenu = await this.rootPage.locator('.nc-dropdown-project-menu');
     await projMenu.locator('[data-menu-id="account"]:visible').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
-    await this.rootPage.locator('[data-cy="nc-form-signin"]:visible').waitFor();
+    await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
   }
 
   async validateProjectMenu(param: { role: string; mode?: string }) {
-    await this.rootPage.locator('[data-nc="nc-project-menu"]').click();
+    await this.rootPage.locator('[data-testid="nc-project-menu"]').click();
     const pMenu = this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
 
     // menu items
@@ -189,11 +190,11 @@ export class DashboardPage extends BasePage {
     for (const item of menuItems[param.role]) {
       await expect(pMenu).toContainText(item);
     }
-    await this.rootPage.locator('[data-nc="nc-project-menu"]').click();
+    await this.rootPage.locator('[data-testid="nc-project-menu"]').click();
   }
 
   // Wait for the loader i.e the loader than appears when rows are being fetched, saved etc on the top right of dashboard
   async waitForLoaderToDisappear() {
-    await this.rootPage.locator('[data-nc="nc-loading"]').waitFor({ state: 'hidden' });
+    await this.rootPage.locator('[data-testid="nc-loading"]').waitFor({ state: 'hidden' });
   }
 }

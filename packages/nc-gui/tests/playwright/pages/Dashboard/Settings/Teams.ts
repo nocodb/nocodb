@@ -17,7 +17,7 @@ export class TeamsPage extends BasePage {
   }
 
   get() {
-    return this.settings.get().locator(`[data-nc="nc-settings-subtab-Users Management"]`);
+    return this.settings.get().locator(`[data-testid="nc-settings-subtab-Users Management"]`);
   }
 
   prefixEmail(email: string) {
@@ -26,7 +26,7 @@ export class TeamsPage extends BasePage {
   }
 
   getSharedBaseSubModal() {
-    return this.rootPage.locator(`[data-nc="nc-share-base-sub-modal"]`);
+    return this.rootPage.locator(`[data-testid="nc-share-base-sub-modal"]`);
   }
 
   async invite({ email, role }: { email: string; role: string }) {

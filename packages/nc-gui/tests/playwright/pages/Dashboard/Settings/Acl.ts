@@ -11,7 +11,7 @@ export class AclPage extends BasePage {
   }
 
   get() {
-    return this.settings.get().locator(`[data-nc="nc-settings-subtab-UI Access Control"]`);
+    return this.settings.get().locator(`[data-testid="nc-settings-subtab-UI Access Control"]`);
   }
 
   async toggle({ table, role }: { table: string; role: string }) {

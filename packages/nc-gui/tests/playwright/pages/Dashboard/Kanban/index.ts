@@ -14,7 +14,7 @@ export class KanbanPage extends BasePage {
   }
 
   get() {
-    return this.dashboard.get().locator('[data-nc="nc-kanban-wrapper"]');
+    return this.dashboard.get().locator('[data-testid="nc-kanban-wrapper"]');
   }
 
   card(index: number) {
@@ -65,7 +65,7 @@ export class KanbanPage extends BasePage {
     for (let i = 0; i < stacks; i++) {
       const stack = await this.get().locator(`.nc-kanban-stack`).nth(i);
       // Since otherwise stack title will be repeated as title is in two divs, with one having hidden class
-      const stackTitle = await stack.locator(`.nc-kanban-stack-head >> [data-nc="truncate-label"]`);
+      const stackTitle = await stack.locator(`.nc-kanban-stack-head >> [data-testid="truncate-label"]`);
       await expect(stackTitle).toHaveText(order[i], { ignoreCase: true });
     }
   }

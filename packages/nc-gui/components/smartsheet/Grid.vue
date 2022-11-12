@@ -460,8 +460,8 @@ watch(
 </script>
 
 <template>
-  <div class="relative flex flex-col h-full min-h-0 w-full" data-nc="nc-grid-wrapper">
-    <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15" data-nc="grid-load-spinner">
+  <div class="relative flex flex-col h-full min-h-0 w-full" data-testid="nc-grid-wrapper">
+    <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15" data-testid="grid-load-spinner">
       <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
         <a-spin size="large" />
       </div>
@@ -480,8 +480,8 @@ watch(
         >
           <thead ref="tableHead">
             <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
-              <th data-nc="grid-id-column">
-                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center" data-nc="nc-check-all">
+              <th data-testid="grid-id-column">
+                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center" data-testid="nc-check-all">
                   <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                     <div
@@ -546,8 +546,8 @@ watch(
           <tbody ref="tbodyEl" @selectstart.prevent>
             <LazySmartsheetRow v-for="(row, rowIndex) of data" ref="rowRefs" :key="rowIndex" :row="row">
               <template #default="{ state }">
-                <tr class="nc-grid-row" :data-nc="`grid-row-${rowIndex}`">
-                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-nc="`cell-Id-${rowIndex}`">
+                <tr class="nc-grid-row" :data-testid="`grid-row-${rowIndex}`">
+                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1" :data-testid="`cell-Id-${rowIndex}`">
                     <div class="items-center flex gap-1 min-w-[55px]">
                       <div
                         v-if="!readOnly || !isLocked"
@@ -568,10 +568,14 @@ watch(
                       <div
                         v-if="!readOnly || hasRole('commenter', true) || hasRole('viewer', true)"
                         class="nc-expand"
-                        :data-nc="`nc-expand-${rowIndex}`"
+                        :data-testid="`nc-expand-${rowIndex}`"
                         :class="{ 'nc-comment': row.rowMeta?.commentCount }"
                       >
-                        <a-spin v-if="row.rowMeta.saving" class="!flex items-center" :data-nc="`row-save-spinner-${rowIndex}`" />
+                        <a-spin
+                          v-if="row.rowMeta.saving"
+                          class="!flex items-center"
+                          :data-testid="`row-save-spinner-${rowIndex}`"
+                        />
                         <template v-else>
                           <span
                             v-if="row.rowMeta?.commentCount"
@@ -605,7 +609,7 @@ watch(
                         (hasEditPermission && selectedRange(rowIndex, colIndex)),
                       'nc-required-cell': isColumnRequiredAndNull(columnObj, row.row),
                     }"
-                    :data-nc="`cell-${columnObj.title}-${rowIndex}`"
+                    :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                     :data-key="rowIndex + columnObj.id"
                     :data-col="columnObj.id"
                     :data-title="columnObj.title"

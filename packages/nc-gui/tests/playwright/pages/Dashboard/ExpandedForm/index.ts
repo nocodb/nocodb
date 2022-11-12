@@ -28,7 +28,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async fillField({ columnTitle, value, type = 'text' }: { columnTitle: string; value: string; type?: string }) {
-    const field = this.get().locator(`[data-nc="nc-expand-col-${columnTitle}"]`);
+    const field = this.get().locator(`[data-testid="nc-expand-col-${columnTitle}"]`);
     await field.hover();
     switch (type) {
       case 'text':
@@ -40,7 +40,7 @@ export class ExpandedFormPage extends BasePage {
         break;
       case 'hasMany':
       case 'manyToMany':
-        await field.locator(`[data-cy="nc-child-list-button-link-to"]`).click();
+        await field.locator(`[data-testid="nc-child-list-button-link-to"]`).click();
         await this.dashboard.linkRecord.select(value);
         break;
     }
@@ -70,7 +70,7 @@ export class ExpandedFormPage extends BasePage {
     await this.get().press('Escape');
     await this.get().waitFor({ state: 'hidden' });
     await this.verifyToast({ message: `updated successfully.` });
-    await this.rootPage.locator('[data-nc="grid-load-spinner"]').waitFor({ state: 'hidden' });
+    await this.rootPage.locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });
   }
 
   async verify({ header, url }: { header: string; url: string }) {
@@ -87,7 +87,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async openChildCard(param: { column: string; title: string }) {
-    const childList = await this.get().locator(`[data-nc="nc-expand-col-${param.column}"]`);
+    const childList = await this.get().locator(`[data-testid="nc-expand-col-${param.column}"]`);
     await childList.locator(`.ant-card:has-text("${param.title}")`).click();
   }
 

@@ -21,7 +21,7 @@ export class ChildList extends BasePage {
     //    icon: reload
     await expect(this.get().locator(`.ant-modal-title`)).toHaveText(`Child list`);
     await expect(await this.get().locator(`button:has-text("Link to '${linkField}'")`).isVisible()).toBeTruthy();
-    await expect(await this.get().locator(`[data-cy="nc-child-list-reload"]`).isVisible()).toBeTruthy();
+    await expect(await this.get().locator(`[data-testid="nc-child-list-reload"]`).isVisible()).toBeTruthy();
 
     // child list body validation (card count, card title)
     const cardCount = cardTitle.length;
@@ -34,8 +34,12 @@ export class ChildList extends BasePage {
         await expect(await childList.nth(i).textContent()).toContain(cardTitle[i]);
         // icon: unlink
         // icon: delete
-        await expect(await childList.nth(i).locator(`[data-cy="nc-child-list-icon-unlink"]`).isVisible()).toBeTruthy();
-        await expect(await childList.nth(i).locator(`[data-cy="nc-child-list-icon-delete"]`).isVisible()).toBeTruthy();
+        await expect(
+          await childList.nth(i).locator(`[data-testid="nc-child-list-icon-unlink"]`).isVisible()
+        ).toBeTruthy();
+        await expect(
+          await childList.nth(i).locator(`[data-testid="nc-child-list-icon-delete"]`).isVisible()
+        ).toBeTruthy();
       }
     }
   }

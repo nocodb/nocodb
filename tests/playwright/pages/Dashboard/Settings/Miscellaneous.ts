@@ -10,7 +10,7 @@ export class MiscSettingsPage extends BasePage {
   }
 
   get() {
-    return this.settings.get().locator(`[data-testid="nc-settings-subtab-Miscellaneous"]`);
+    return this.settings.get().locator(`[data-testid="nc-settings-subtab-Misc"]`);
   }
 
   async clickShowM2MTables() {

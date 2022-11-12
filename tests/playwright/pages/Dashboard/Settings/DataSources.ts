@@ -20,7 +20,7 @@ export class DataSourcesPage extends BasePage {
   }
 
   get() {
-    return this.settings.get().locator(`[data-nc="nc-settings-subtab-Data Sources"]`);
+    return this.settings.get().locator(`[data-testid="nc-settings-subtab-Data Sources"]`);
   }
 
   async openErd({ dataSourceName }: { dataSourceName: string }) {

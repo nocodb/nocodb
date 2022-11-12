@@ -31,6 +31,7 @@ export const rolePermissions = {
     exclude: {
       appStore: true,
       superAdminUserManagement: true,
+      superAdminAppSetting: true,
       appLicense: true,
     },
   },
@@ -38,6 +39,7 @@ export const rolePermissions = {
     exclude: {
       appStore: true,
       superAdminUserManagement: true,
+      superAdminAppSetting: true,
       appLicense: true,
     },
   },

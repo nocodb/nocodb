@@ -27,18 +27,6 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
             class="tabs-menu h-full"
             mode="inline"
           >
-            <!--            <a-menu-item
-                          key="users-old"
-                          class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
-                          @click="navigateTo('/account/users')"
-                        >
-                          <div class="flex items-center space-x-2">
-                            <MdiAccountSupervisorOutline />
-
-                            <div class="select-none">User Management</div>
-                          </div>
-                        </a-menu-item> -->
-
             <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">Account Settings</div>
 
             <a-sub-menu key="users" class="!bg-white">
@@ -58,7 +46,12 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               <a-menu-item key="password-reset" class="text-xs" @click="navigateTo('/account/users/password-reset')">
                 <span class="ml-4">Reset Password</span>
               </a-menu-item>
-              <a-menu-item key="settings" class="text-xs" @click="navigateTo('/account/users/settings')">
+              <a-menu-item
+                v-if="isUIAllowed('superAdminAppSetting')"
+                key="settings"
+                class="text-xs"
+                @click="navigateTo('/account/users/settings')"
+              >
                 <span class="ml-4">Settings</span>
               </a-menu-item>
             </a-sub-menu>

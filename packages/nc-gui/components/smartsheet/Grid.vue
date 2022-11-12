@@ -181,6 +181,11 @@ const { selectCell, selectBlock, selectedRange, clearRangeRows, startSelectRange
       return true
     }
 
+    // if expanded form is active skip keyboard event handling
+    if (document.querySelector('.nc-drawer-expanded-form.active')) {
+      return true
+    }
+
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     if (e.key === ' ') {
       if (selected.row !== null && !editEnabled) {
@@ -407,6 +412,11 @@ onClickOutside(smartTable, (e) => {
   )
     return
 
+  // if expanded form is active skip resetting the active cell
+  if (document.querySelector('.nc-drawer-expanded-form.active')) {
+    return
+  }
+
   selected.row = null
   selected.col = null
 })
@@ -457,8 +467,8 @@ const saveOrUpdateRecords = async (args: { metaValue?: TableType; viewMetaValue?
       currentRow.rowMeta.changed = false
       for (const field of (args.metaValue || meta.value)?.columns ?? []) {
         if (isVirtualCol(field)) continue
-        if (field.title! in currentRow.row && currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
-          await updateOrSaveRow(currentRow, field.title!, {}, args)
+        if (currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
+          await updateOrSaveRow(currentRow, field.title!, args)
         }
       }
     }

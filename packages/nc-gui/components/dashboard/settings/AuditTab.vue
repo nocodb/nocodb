@@ -112,7 +112,7 @@ const columns = [
       :columns="columns"
       :pagination="false"
       :loading="isLoading"
-      data-nc="audit-tab-table"
+      data-testid="audit-tab-table"
     >
       <template #emptyText>
         <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />

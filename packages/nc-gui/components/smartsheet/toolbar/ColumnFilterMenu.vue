@@ -82,7 +82,7 @@ const filterAutoSaveLoc = computed({
         ref="filterComp"
         class="nc-table-toolbar-menu shadow-lg"
         :auto-save="filterAutoSave"
-        data-nc="nc-filter-menu"
+        data-testid="nc-filter-menu"
         @update:filters-length="filtersLength = $event"
       >
         <div v-if="!isPublic" class="flex items-end mt-2 min-h-[30px]" @click.stop>

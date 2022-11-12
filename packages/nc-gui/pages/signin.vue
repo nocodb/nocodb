@@ -64,7 +64,7 @@ function resetError() {
 <template>
   <NuxtLayout>
     <div
-      data-cy="nc-form-signin"
+      data-testid="nc-form-signin"
       class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
     >
       <div
@@ -87,8 +87,7 @@ function resetError() {
           <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
             <a-input
               v-model:value="form.email"
-              data-cy="nc-form-signin__email"
-              data-nc="nc-form-signin__email"
+              data-testid="nc-form-signin__email"
               size="large"
               :placeholder="$t('msg.info.signUp.workEmail')"
               @focus="resetError"
@@ -98,8 +97,7 @@ function resetError() {
           <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
             <a-input-password
               v-model:value="form.password"
-              data-cy="nc-form-signin__password"
-              data-nc="nc-form-signin__password"
+              data-testid="nc-form-signin__password"
               size="large"
               class="password"
               :placeholder="$t('msg.info.signUp.enterPassword')"
@@ -114,12 +112,7 @@ function resetError() {
           </div>
 
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-            <button
-              data-cy="nc-form-signin__submit"
-              data-nc="nc-form-signin__submit"
-              class="scaling-btn bg-opacity-100"
-              type="submit"
-            >
+            <button data-testid="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
               <span class="flex items-center gap-2">
                 <MdiLogin />
                 {{ $t('general.signIn') }}

@@ -1,0 +1,49 @@
+{
+  "name": "playwright",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "TRACE=true npx playwright test --workers=4",
+    "test:fast": "npx playwright test --workers=6",
+    "test:shard:1": "TRACE=true npx playwright test --workers=4 --shard=1/2",
+    "test:shard:2": "TRACE=true npx playwright test --workers=4 --shard=2/2",
+    "test:repeat": "TRACE=true npx playwright test --workers=4 --repeat-each=12",
+    "test:quick": "TRACE=true PW_QUICK_TEST=1 npx playwright  test --workers=4",
+    "test:debug": "./startPlayWrightServer.sh; PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console npx playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 0 --workers 1 --max-failures=1",
+    "test:debug:quick:sqlite": "./startPlayWrightServer.sh; PW_QUICK_TEST=1 PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console npx playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 5 --workers 1 --max-failures=1",
+    "ci:test": "npx playwright test --workers=2",
+    "ci:test:shard:1": "npx playwright test --workers=2 --shard=1/2",
+    "ci:test:shard:2": "npx playwright test --workers=2 --shard=2/2",
+    "ci:test:mysql": "E2E_DB_TYPE=mysql npx playwright test --workers=2",
+    "ci:test:pg": "E2E_DB_TYPE=pg npx playwright test --workers=2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "1.27.1",
+    "@typescript-eslint/eslint-plugin": "^4.0.1",
+    "@typescript-eslint/parser": "^4.0.1",
+    "axios": "^0.24.0",
+    "dotenv": "^16.0.3",
+    "eslint": "^7.8.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-functional": "^3.0.2",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-json": "^3.1.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
+    "mysql2": "^2.3.3",
+    "pg": "^8.8.0",
+    "prettier": "^2.7.1",
+    "promised-sqlite3": "^1.2.0"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.1",
+    "express": "^4.18.2",
+    "xlsx": "^0.18.5"
+  }
+}

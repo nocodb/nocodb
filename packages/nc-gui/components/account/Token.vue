@@ -97,7 +97,7 @@ const descriptionInput = ref((el) => {
 </script>
 
 <template>
-  <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-2">
+  <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-2 ">
     <div class="text-xl mt-4 mb-8 text-center font-weight-bold">Token Management</div>
     <div class="max-w-[900px] mx-auto p-4" data-cy="nc-token-list">
       <div class="py-2 flex gap-4 items-center">

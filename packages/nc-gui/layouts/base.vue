@@ -22,6 +22,8 @@ const logout = () => {
 
 const { hooks } = useNuxtApp()
 
+const isDashboard = computed(() => !!route.params.projectType)
+
 /** when page suspensions have finished, check if a sidebar element was teleported into the layout */
 hooks.hook('page:finish', () => {
   if (sidebar.value) {
@@ -39,7 +41,7 @@ hooks.hook('page:finish', () => {
     <a-layout class="!flex-col">
       <a-layout-header
         v-if="!route.meta.public && signedIn && !route.meta.hideHeader"
-        class="flex !bg-primary items-center text-white pl-4 pr-5"
+        class="flex !bg-primary items-center text-white !pl-2 !pr-5"
       >
         <div
           v-if="!route.params.projectType"
@@ -52,7 +54,10 @@ hooks.hook('page:finish', () => {
             <template #title>
               {{ currentVersion }}
             </template>
-            <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+            <div class="flex items-center gap-2">
+              <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img width="90" v-show="!isDashboard" alt="NocoDB" src="~/assets/img/brand/text.png" />
+            </div>
           </a-tooltip>
         </div>
 

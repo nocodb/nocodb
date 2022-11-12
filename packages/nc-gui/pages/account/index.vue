@@ -9,12 +9,12 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 </script>
 
 <template>
-  <div class="container mx-auto h-full">
+  <div class="mx-auto h-full">
     <a-layout class="h-full overflow-y-auto flex">
       <!-- Side tabs -->
       <a-layout-sider>
-        <div class="pt-4 h-full bg-white nc-user-sidebar">
-          <a-menu :inline-indent="12" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys"
+        <div class="h-full bg-white nc-user-sidebar">
+          <a-menu :inline-indent="16" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys"
                   class="tabs-menu h-full" mode="inline">
             <!--            <a-menu-item
                           key="users-old"
@@ -28,20 +28,24 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
                           </div>
                         </a-menu-item> -->
 
+
+            <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">Account Settings</div>
+
             <a-sub-menu key="users" class="!bg-white">
               <template #icon>
                 <MdiAccountSupervisorOutline />
               </template>
               <template #title>Users</template>
+
               <a-menu-item v-if="isUIAllowed('superAdminUserManagement')" key="list" class="text-xs"
                            @click="navigateTo('/account/users/list')">
                 <span class="ml-4">User Management</span>
               </a-menu-item>
-              <a-menu-item key="settings" class="text-xs" @click="navigateTo('/account/users/settings')">
-                <span class="ml-4">Settings</span>
-              </a-menu-item>
               <a-menu-item key="password-reset" class="text-xs" @click="navigateTo('/account/users/password-reset')">
                 <span class="ml-4">Reset Password</span>
+              </a-menu-item>
+              <a-menu-item key="settings" class="text-xs" @click="navigateTo('/account/users/settings')">
+                <span class="ml-4">Settings</span>
               </a-menu-item>
             </a-sub-menu>
 
@@ -73,7 +77,9 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 
       <!-- Sub Tabs -->
       <a-layout-content class="h-auto px-4 scrollbar-thumb-gray-500">
-        <NuxtPage />
+        <div class="container mx-auto">
+          <NuxtPage />
+        </div>
       </a-layout-content>
     </a-layout>
   </div>
@@ -83,4 +89,20 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 :deep(.nc-user-sidebar .ant-menu-sub.ant-menu-inline) {
   @apply bg-transparent;
 }
+
+:deep(.nc-user-sidebar .ant-menu-item-only-child), :deep(.ant-menu-submenu-title) {
+  @apply !h-[30px] !leading-[30px];
+}
+
+:deep(.ant-menu-submenu-arrow){
+  @apply !text-gray-400;
+}
+
+
+:deep(.ant-menu-submenu-selected .ant-menu-submenu-arrow){
+  @apply !text-inherit;
+}
+
+
+
 </style>

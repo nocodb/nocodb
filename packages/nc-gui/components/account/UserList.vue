@@ -184,18 +184,18 @@ const copyPasswordResetUrl = async (user: User) => {
               <a-select
                 v-else
                 v-model:value="record.roles"
-                class="w-[220px]"
+                class="w-[220px] nc-user-roles"
                 :dropdown-match-select-width="false"
                 @change="updateRole(record.id, record.roles)"
               >
-                <a-select-option :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
+                <a-select-option class="nc-role-option" :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
                   <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
                   <span class="text-gray-500 text-xs whitespace-normal">
                     {{ $t('msg.info.roles.orgCreator') }}
                   </span>
                 </a-select-option>
 
-                <a-select-option :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
+                <a-select-option class="nc-role-option" :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
                   <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
                   <span class="text-gray-500 text-xs whitespace-normal">
                     {{ $t('msg.info.roles.orgViewer') }}

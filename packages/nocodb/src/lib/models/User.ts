@@ -203,6 +203,7 @@ export default class User implements UserType {
         `${MetaTable.USERS}.lastname`,
         `${MetaTable.USERS}.username`,
         `${MetaTable.USERS}.email_verified`,
+        `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.created_at`,
         `${MetaTable.USERS}.updated_at`,
         `${MetaTable.USERS}.roles`

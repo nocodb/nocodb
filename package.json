@@ -36,7 +36,7 @@
     ]
   },
   "scripts": {
-    "lint:staged:playwright": "cd packages/nc-gui/tests/playwright; npx lint-staged; cd -",
+    "lint:staged:playwright": "cd ./tests/playwright; npx lint-staged; cd -",
     "build:common": "cd ./packages/nocodb-sdk; npm install; npm run build",
     "install:common": "cd ./packages/nocodb; npm install ../nocodb-sdk; cd ../nc-gui; npm install ../nocodb-sdk",
     "start:api": "npm run build:common ; cd ./packages/nocodb; npm install ../nocodb-sdk; npm install; NC_DISABLE_CACHE=true NC_DISABLE_TELE=true npm run watch:run:cypress",

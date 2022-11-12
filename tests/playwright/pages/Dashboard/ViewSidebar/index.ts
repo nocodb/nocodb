@@ -1,5 +1,5 @@
 import { expect, Locator } from '@playwright/test';
-import { DashboardPage } from '../';
+import { DashboardPage } from '..';
 import BasePage from '../../Base';
 
 export class ViewSidebarPage extends BasePage {

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import { LoginPage } from '../pages/LoginPage';
 import { ProjectsPage } from '../pages/ProjectsPage';
-import { quickVerify } from '../quickTests/commonTest';
+import { quickVerify } from './commonTest';
 import { NcContext } from '../setup';
 
 test.describe('Quick tests', () => {

@@ -30,14 +30,14 @@ loadSettings()
 </script>
 
 <template>
-  <div>
+  <div data-testid="nc-app-settings">
     <div class="text-xl mt-4 mb-8 text-center font-weight-bold">Settings</div>
     <div class="flex justify-center">
       <a-form-item>
         <a-checkbox
           v-model:checked="settings.invite_only_signup"
           v-e="['c:account:enable-signup']"
-          class="nc-checkbox"
+          class="nc-checkbox nc-invite-only-signup-checkbox"
           name="virtual"
           @change="saveSettings"
         >

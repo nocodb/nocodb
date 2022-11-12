@@ -129,7 +129,7 @@ const emailInput = ref((el) => {
 
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
-            <MaterialSymbolsCloseRounded data-cy="nc-root-user-invite-modal-close" class="flex mx-auto" />
+            <MaterialSymbolsCloseRounded data-testid="nc-root-user-invite-modal-close" class="flex mx-auto" />
           </template>
         </a-button>
       </div>
@@ -213,14 +213,22 @@ const emailInput = ref((el) => {
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 
                     <a-select v-model:value="usersData.role" class="nc-user-roles" dropdown-class-name="nc-dropdown-user-role">
-                      <a-select-option class="nc-role-option" :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
+                      <a-select-option
+                        class="nc-role-option"
+                        :value="Role.OrgLevelCreator"
+                        :label="$t(`objects.roleType.orgLevelCreator`)"
+                      >
                         <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
                         <span class="text-gray-500 text-xs whitespace-normal">
                           {{ $t('msg.info.roles.orgCreator') }}
                         </span>
                       </a-select-option>
 
-                      <a-select-option class="nc-role-option" :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
+                      <a-select-option
+                        class="nc-role-option"
+                        :value="Role.OrgLevelViewer"
+                        :label="$t(`objects.roleType.orgLevelViewer`)"
+                      >
                         <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
                         <span class="text-gray-500 text-xs whitespace-normal">
                           {{ $t('msg.info.roles.orgViewer') }}

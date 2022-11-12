@@ -458,11 +458,15 @@ onBeforeUnmount(reset)
                       <template #expandIcon></template>
 
                       <a-menu-item key="0" class="!rounded-t">
-                        <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/account/users">
+                        <nuxt-link
+                          v-e="['c:navbar:user:email']"
+                          class="nc-project-menu-item group !no-underline"
+                          to="/account/users"
+                        >
                           <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
                           <div class="prose group-hover:text-primary">
                             <div>Account</div>
-                            <div class="text-xs text-gray-500"> {{ email }}</div>
+                            <div class="text-xs text-gray-500">{{ email }}</div>
                           </div>
                         </nuxt-link>
                       </a-menu-item>

@@ -75,14 +75,6 @@ export default defineNuxtConfig({
     },
   },
 
-  ignore: ['./tests/**'],
-
-  typescript:{
-    tsConfig:{
-      exclude: [ './tests/**'],
-    }
-  },
-
   vite: {
     build: {
       commonjsOptions: {
@@ -175,7 +167,6 @@ export default defineNuxtConfig({
   },
 
   // ignore: [`tests/**`],
-
 
   experimental: {
     reactivityTransform: true,

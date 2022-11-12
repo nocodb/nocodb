@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar, useUIPermission } from '#imports'
+import { computed, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
 
 const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
 
@@ -12,8 +12,6 @@ const email = computed(() => user.value?.email ?? '---')
 const hasSider = ref(false)
 
 const sidebar = ref<HTMLDivElement>()
-
-const { isUIAllowed } = useUIPermission()
 
 const logout = () => {
   signOut()
@@ -56,7 +54,7 @@ hooks.hook('page:finish', () => {
             </template>
             <div class="flex items-center gap-2">
               <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-              <img width="90" v-show="!isDashboard" alt="NocoDB" src="~/assets/img/brand/text.png" />
+              <img v-show="!isDashboard" width="90" alt="NocoDB" src="~/assets/img/brand/text.png" />
             </div>
           </a-tooltip>
         </div>
@@ -96,12 +94,11 @@ hooks.hook('page:finish', () => {
                     <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
                       <div>Account</div>
-                      <div class="text-xs text-gray-500"> {{ email }}</div>
+                      <div class="text-xs text-gray-500">{{ email }}</div>
                     </div>
                   </nuxt-link>
                 </a-menu-item>
 
-                <a-menu-divider class="!m-0" />
                 <a-menu-divider class="!m-0" />
                 <!--                <a-menu-item v-if="isUIAllowed('appStore')" key="0" class="!rounded-t">
                   <nuxt-link

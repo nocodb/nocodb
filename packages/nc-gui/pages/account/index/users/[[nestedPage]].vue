@@ -1,3 +1,9 @@
+<script setup lang="ts">
+import { useUIPermission } from '#imports'
+
+const { isUIAllowed } = useUIPermission()
+</script>
+
 <template>
   <template v-if="$route.params.nestedPage === 'password-reset'">
     <LazyAccountResetPassword />
@@ -9,11 +15,3 @@
     <LazyAccountUserList />
   </template>
 </template>
-
-<script setup lang="ts">
-
-import { useUIPermission } from '#imports'
-
-const { isUIAllowed } = useUIPermission()
-
-</script>

@@ -123,7 +123,7 @@ const copyPasswordResetUrl = async (user: User) => {
 </script>
 
 <template>
-  <div data-cy="nc-super-user-list">
+  <div data-testid="nc-super-user-list">
     <div class="text-xl mt-4 mb-8 text-center font-weight-bold">User Management</div>
     <div class="max-w-[900px] mx-auto p-4">
       <div class="py-2 flex gap-4 items-center">
@@ -139,7 +139,7 @@ const copyPasswordResetUrl = async (user: User) => {
         <div class="flex-grow"></div>
         <MdiReload class="cursor-pointer" @click="loadUsers" />
         <a-button
-          data-cy="nc-super-user-invite"
+          data-testid="nc-super-user-invite"
           size="small"
           type="primary"
           @click="
@@ -188,14 +188,22 @@ const copyPasswordResetUrl = async (user: User) => {
                 :dropdown-match-select-width="false"
                 @change="updateRole(record.id, record.roles)"
               >
-                <a-select-option class="nc-role-option" :value="Role.OrgLevelCreator" :label="$t(`objects.roleType.orgLevelCreator`)">
+                <a-select-option
+                  class="nc-users-list-role-option"
+                  :value="Role.OrgLevelCreator"
+                  :label="$t(`objects.roleType.orgLevelCreator`)"
+                >
                   <div>{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
                   <span class="text-gray-500 text-xs whitespace-normal">
                     {{ $t('msg.info.roles.orgCreator') }}
                   </span>
                 </a-select-option>
 
-                <a-select-option class="nc-role-option" :value="Role.OrgLevelViewer" :label="$t(`objects.roleType.orgLevelViewer`)">
+                <a-select-option
+                  class="nc-users-list-role-option"
+                  :value="Role.OrgLevelViewer"
+                  :label="$t(`objects.roleType.orgLevelViewer`)"
+                >
                   <div>{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
                   <span class="text-gray-500 text-xs whitespace-normal">
                     {{ $t('msg.info.roles.orgViewer') }}
@@ -224,7 +232,7 @@ const copyPasswordResetUrl = async (user: User) => {
                 <div class="flex flex-row items-center">
                   <a-button type="text" class="!px-0">
                     <div class="flex flex-row items-center h-[1.2rem]">
-                      <MdiDotsHorizontal/>
+                      <MdiDotsHorizontal class="nc-user-row-action" />
                     </div>
                   </a-button>
                 </div>
@@ -254,7 +262,7 @@ const copyPasswordResetUrl = async (user: User) => {
                     </a-menu-item>
                     <a-menu-item>
                       <div class="flex flex-row items-center py-3" @click="deleteUser(text)">
-                        <MdiDeleteOutline data-cy="nc-super-user-delete" class="flex h-[1rem] text-gray-500" />
+                        <MdiDeleteOutline data-testid="nc-super-user-delete" class="flex h-[1rem] text-gray-500" />
                         <div class="text-xs pl-2">{{ $t('general.delete') }}</div>
                       </div>
                     </a-menu-item>

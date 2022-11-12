@@ -4,7 +4,13 @@ import { navigateTo, useUIPermission } from '#imports'
 const { isUIAllowed } = useUIPermission()
 const $route = useRoute()
 
-const selectedKeys = computed(() => [/^\/account\/users\/?$/.test($route.fullPath) ? (isUIAllowed('superAdminUserManagement') ? 'list' : 'settings') : $route.params.nestedPage ?? $route.params.page])
+const selectedKeys = computed(() => [
+  /^\/account\/users\/?$/.test($route.fullPath)
+    ? isUIAllowed('superAdminUserManagement')
+      ? 'list'
+      : 'settings'
+    : $route.params.nestedPage ?? $route.params.page,
+])
 const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 </script>
 
@@ -14,8 +20,13 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
       <!-- Side tabs -->
       <a-layout-sider>
         <div class="h-full bg-white nc-user-sidebar">
-          <a-menu :inline-indent="16" v-model:openKeys="openKeys" v-model:selectedKeys="selectedKeys"
-                  class="tabs-menu h-full" mode="inline">
+          <a-menu
+            v-model:openKeys="openKeys"
+            v-model:selectedKeys="selectedKeys"
+            :inline-indent="16"
+            class="tabs-menu h-full"
+            mode="inline"
+          >
             <!--            <a-menu-item
                           key="users-old"
                           class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
@@ -28,7 +39,6 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
                           </div>
                         </a-menu-item> -->
 
-
             <div class="text-xs text-gray-500 ml-4 pt-4 pb-2 font-weight-bold">Account Settings</div>
 
             <a-sub-menu key="users" class="!bg-white">
@@ -37,8 +47,12 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
               </template>
               <template #title>Users</template>
 
-              <a-menu-item v-if="isUIAllowed('superAdminUserManagement')" key="list" class="text-xs"
-                           @click="navigateTo('/account/users/list')">
+              <a-menu-item
+                v-if="isUIAllowed('superAdminUserManagement')"
+                key="list"
+                class="text-xs"
+                @click="navigateTo('/account/users/list')"
+              >
                 <span class="ml-4">User Management</span>
               </a-menu-item>
               <a-menu-item key="password-reset" class="text-xs" @click="navigateTo('/account/users/password-reset')">
@@ -90,19 +104,16 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
   @apply bg-transparent;
 }
 
-:deep(.nc-user-sidebar .ant-menu-item-only-child), :deep(.ant-menu-submenu-title) {
+:deep(.nc-user-sidebar .ant-menu-item-only-child),
+:deep(.ant-menu-submenu-title) {
   @apply !h-[30px] !leading-[30px];
 }
 
-:deep(.ant-menu-submenu-arrow){
+:deep(.ant-menu-submenu-arrow) {
   @apply !text-gray-400;
 }
 
-
-:deep(.ant-menu-submenu-selected .ant-menu-submenu-arrow){
+:deep(.ant-menu-submenu-selected .ant-menu-submenu-arrow) {
   @apply !text-inherit;
 }
-
-
-
 </style>

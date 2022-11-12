@@ -97,13 +97,13 @@ const descriptionInput = ref((el) => {
 </script>
 
 <template>
-  <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-2 ">
+  <div class="h-full overflow-y-scroll scrollbar-thin-dull pt-2">
     <div class="text-xl mt-4 mb-8 text-center font-weight-bold">Token Management</div>
-    <div class="max-w-[900px] mx-auto p-4" data-cy="nc-token-list">
+    <div class="max-w-[900px] mx-auto p-4" data-testid="nc-token-list">
       <div class="py-2 flex gap-4 items-center">
         <div class="flex-grow"></div>
         <MdiReload class="cursor-pointer" @click="loadTokens" />
-        <a-button data-cy="nc-token-create" size="small" type="primary" @click="showNewTokenModal = true">
+        <a-button data-testid="nc-token-create" size="small" type="primary" @click="showNewTokenModal = true">
           <div class="flex items-center gap-1">
             <MdiAdd />
             Add new token
@@ -193,9 +193,9 @@ const descriptionInput = ref((el) => {
                 </div>
 
                 <template #overlay>
-                  <a-menu>
+                  <a-menu data-testid="nc-token-row-action-icon">
                     <a-menu-item>
-                      <div class="flex flex-row items-center py-3 h-[1rem]" @click="deleteToken(record.token)">
+                      <div class="flex flex-row items-center py-3 h-[1rem] nc-delete-token" @click="deleteToken(record.token)">
                         <MdiDeleteOutline class="flex" />
                         <div class="text-xs pl-2">{{ $t('general.remove') }}</div>
                       </div>
@@ -243,13 +243,13 @@ const descriptionInput = ref((el) => {
           <a-input
             :ref="descriptionInput"
             v-model:value="selectedTokenData.description"
-            data-cy="nc-token-modal-description"
+            data-testid="nc-token-modal-description"
             :placeholder="$t('labels.description')"
           />
 
           <!-- Generate -->
           <div class="flex flex-row justify-center">
-            <a-button type="primary" html-type="submit" data-cy="nc-token-modal-save">
+            <a-button type="primary" html-type="submit" data-testid="nc-token-modal-save">
               {{ $t('general.generate') }}
             </a-button>
           </div>

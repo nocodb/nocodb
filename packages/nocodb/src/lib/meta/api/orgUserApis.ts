@@ -122,7 +122,7 @@ async function userAdd(req, res, next) {
           invite_token,
           invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
           email,
-          roles: OrgUserRoles.VIEWER,
+          roles: req.body.roles || OrgUserRoles.VIEWER,
           token_version: randomTokenString(),
         });
 

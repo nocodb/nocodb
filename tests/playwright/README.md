@@ -2,7 +2,7 @@
 
 ## Setup
 
-Make sure to install the dependencies(in the playwright folder):
+Make sure to install the dependencies(in the playwright folder, which is `./tests/playwright`):
 
 ```bash
 npm install
@@ -47,13 +47,13 @@ npm run test:debug
 For setting up mysql:
 
 ```bash
-docker-compose -f ./packages/nc-gui/tests/playwright/scripts/docker-compose-mysql-playwright.yml  up -d
+docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml  up -d
 ```
 
 For setting up postgres:
 
 ```bash
-docker-compose -f ./packages/nc-gui/tests/playwright/scripts/docker-compose-playwright-pg.yml 
+docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml 
 ```
 
 ### Running individual tests
@@ -93,7 +93,7 @@ It will have run button beside each test in the file.
 - Do not add any logic to the tests. Instead, create a page object for the page you are testing.
 All the selection, UI actions and assertions should be in the page object.
 
-Page objects should be in `packages/nc-gui/tests/playwright/pages` folder.
+Page objects should be in `./tests/playwright/pages` folder.
 
 ## Verify if tests are not flaky
 

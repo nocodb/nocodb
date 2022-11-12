@@ -34,8 +34,7 @@ loadLicense()
 
 <template>
   <div class="h-full overflow-y-scroll scrollbar-thin-dull">
-    <div class="text-xl mt-4">License</div>
-    <a-divider class="!my-3" />
+    <div class="text-xl mt-4 mb-8 text-center font-weight-bold">License</div>
     <div>
       <a-textarea v-model:value="key" placeholder="License key" class="!mt-2 !max-w-[600px]"></a-textarea>
     </div>

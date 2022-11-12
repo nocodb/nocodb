@@ -124,8 +124,7 @@ const copyPasswordResetUrl = async (user: User) => {
 
 <template>
   <div data-cy="nc-super-user-list">
-    <div class="text-xl mt-4">User Management</div>
-    <a-divider class="!my-3" />
+    <div class="text-xl mt-4 mb-8 text-center font-weight-bold">User Management</div>
     <div class="max-w-[900px] mx-auto p-4">
       <div class="py-2 flex gap-4 items-center">
         <a-input-search

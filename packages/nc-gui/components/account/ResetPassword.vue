@@ -65,8 +65,8 @@ const resetError = () => {
 </script>
 
 <template>
-  <div class="relative flex flex-col justify-center gap-2 w-full p-8 md:(bg-white) max-w-[900px]">
-    <h1 class="prose-2xl font-bold self-center my-4">{{ $t('activity.changePwd') }}</h1>
+  <div class="mx-auto relative flex flex-col justify-center gap-2 w-full px-8  md:(bg-white) max-w-[900px]">
+    <div class="text-xl mt-4 mb-8 text-center font-weight-bold">{{ $t('activity.changePwd') }}</div>
     <a-form
       ref="formValidator"
       data-cy="nc-user-settings-form"

@@ -31,9 +31,8 @@ loadSettings()
 
 <template>
   <div>
-    <div class="text-xl mt-4">Settings</div>
-    <a-divider class="!my-3" />
-    <div class="-ml-6">
+    <div class="text-xl mt-4 mb-8 text-center font-weight-bold">Settings</div>
+    <div class="flex justify-center">
       <a-form-item>
         <a-checkbox
           v-model:checked="settings.invite_only_signup"

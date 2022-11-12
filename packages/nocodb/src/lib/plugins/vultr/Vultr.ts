@@ -1,9 +1,11 @@
 import fs from 'fs';
-import path from 'path';
 import AWS from 'aws-sdk';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
-import { waitForStreamClose } from '../../utils/pluginUtils';
+import {
+  waitForStreamClose,
+  generateTempFilePath,
+} from '../../utils/pluginUtils';
 
 export default class Vultr implements IStorageAdapterV2 {
   private s3Client: AWS.S3;
@@ -109,7 +111,7 @@ export default class Vultr implements IStorageAdapterV2 {
 
   public async test(): Promise<boolean> {
     try {
-      const tempFile = path.join(process.cwd(), 'temp.txt');
+      const tempFile = generateTempFilePath();
       const createStream = fs.createWriteStream(tempFile);
       await waitForStreamClose(createStream);
       await this.fileCreate('nc-test-file.txt', {

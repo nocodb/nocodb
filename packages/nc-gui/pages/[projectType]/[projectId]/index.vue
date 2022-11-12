@@ -239,7 +239,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <NuxtLayout id="content">
+  <NuxtLayout>
     <template #sidebar>
       <a-layout-sider
         ref="sidebar"

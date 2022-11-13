@@ -53,6 +53,8 @@ const { $e } = useNuxtApp()
 
 const dataSourcesReload = ref(false)
 
+const dataSourcesAwakened = ref(false)
+
 const tabsInfo: TabGroup = {
   teamAndAuth: {
     title: t('title.teamAndAuth'),
@@ -156,6 +158,10 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
 let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab.subTabs)])
 const selectedSubTab = $computed(() => selectedTab.subTabs[selectedSubTabKeys[0]])
 
+const handleAwaken = (val: boolean) => {
+  dataSourcesAwakened.value = val
+}
+
 watch(
   () => selectedTabKeys[0],
   (newTabKey) => {
@@ -239,7 +245,11 @@ watch(
               <a-breadcrumb-item v-if="vDataState !== ''">{{ vDataState }}</a-breadcrumb-item>
             </a-breadcrumb>
             <div v-if="vDataState === ''" class="flex flex-row justify-end items-center w-full gap-1">
-              <a-button class="self-start nc-btn-new-datasource" @click="vDataState = DataSourcesSubTab.New">
+              <a-button
+                v-if="dataSourcesAwakened"
+                class="self-start nc-btn-new-datasource"
+                @click="vDataState = DataSourcesSubTab.New"
+              >
                 <div v-if="vDataState === ''" class="flex items-center gap-2 text-primary font-light">
                   <MdiDatabasePlusOutline class="text-lg group-hover:text-accent" />
                   New
@@ -269,6 +279,7 @@ watch(
             v-model:reload="dataSourcesReload"
             class="px-2 pb-2"
             :data-testid="`nc-settings-subtab-${selectedSubTab.title}`"
+            @awaken="handleAwaken"
           />
           <component
             :is="selectedSubTab?.body"

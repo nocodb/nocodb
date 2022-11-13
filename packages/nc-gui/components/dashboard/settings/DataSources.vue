@@ -16,7 +16,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:state', 'update:reload'])
+const emits = defineEmits(['update:state', 'update:reload', 'awaken'])
 
 const vState = useVModel(props, 'state', emits)
 const vReload = useVModel(props, 'reload', emits)
@@ -29,6 +29,7 @@ let activeBaseId = $ref('')
 let metadiffbases = $ref<string[]>([])
 let clientType = $ref<ClientType>(ClientType.MYSQL)
 let isReloading = $ref(false)
+let forceAwakened = $ref(false)
 
 async function loadBases() {
   try {
@@ -138,6 +139,11 @@ const moveBase = async (e: any) => {
   }
 }
 
+const forceAwaken = () => {
+  forceAwakened = !forceAwakened
+  emits('awaken', forceAwakened)
+}
+
 onMounted(async () => {
   if (sources.length === 0) {
     await loadBases()
@@ -153,6 +159,18 @@ watch(
       await loadMetaDiff()
     }
   },
+)
+
+watch(
+  () => sources.length,
+  (l) => {
+    if (l > 1 && !forceAwakened) {
+      emits('awaken', false)
+    } else {
+      emits('awaken', true)
+    }
+  },
+  { immediate: true },
 )
 
 watch(
@@ -175,6 +193,11 @@ watch(
         clientType = ClientType.MSSQL
         vState.value = DataSourcesSubTab.New
         break
+      case DataSourcesSubTab.New:
+        if (sources.length > 1 && !forceAwakened) {
+          vState.value = ''
+        }
+        break
     }
   },
   { immediate: true },
@@ -189,7 +212,7 @@ watch(
           <div class="ds-table-row">
             <div class="ds-table-col ds-table-name">Name</div>
             <div class="ds-table-col ds-table-actions">Actions</div>
-            <div class="ds-table-col ds-table-enabled">Show / Hide</div>
+            <div class="ds-table-col ds-table-enabled cursor-pointer" @dblclick="forceAwaken">Show / Hide</div>
           </div>
         </div>
         <div class="ds-table-body">
@@ -269,7 +292,7 @@ watch(
             <template #item="{ element: base, index }">
               <div v-if="index !== 0" class="ds-table-row border-gray-200">
                 <div class="ds-table-col ds-table-name">
-                  <MdiDragVertical small class="ds-table-handle" />
+                  <MdiDragVertical v-if="sources.length > 2" small class="ds-table-handle" />
                   <div class="flex items-center gap-1">
                     <GeneralBaseLogo :base-type="base.type" />
                     {{ base.is_meta ? 'BASE' : base.alias }} <span class="text-gray-400 text-xs">({{ base.type }})</span>

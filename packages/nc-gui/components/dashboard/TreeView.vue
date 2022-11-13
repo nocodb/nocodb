@@ -278,7 +278,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   <div class="nc-treeview-container flex flex-col">
     <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
       <div class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-col scrollbar-thin-dull" :class="{ 'mb-[20px]': isSharedBase }">
-        <div class="min-h-[36px] py-1 px-3 flex w-full items-center gap-1 cursor-pointer" @contextmenu="setMenuContext('main')">
+        <div
+          v-if="bases[0] && bases[0].enabled"
+          class="min-h-[36px] py-1 px-3 flex w-full items-center gap-1 cursor-pointer"
+          @contextmenu="setMenuContext('main')"
+        >
           <Transition name="slide-left" mode="out-in">
             <a-input
               v-if="searchActive"
@@ -303,9 +307,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </Transition>
         </div>
 
-        <div :class="{ 'flex-1': bases.length < 2 }">
+        <div
+          v-if="bases[0] && bases[0].enabled"
+          :class="{
+            'flex-1': bases.length < 2,
+            'max-h-[50%] overflow-y-auto scrollbar-thin-dull': bases.slice(1).filter((el) => el.enabled)?.length,
+          }"
+        >
           <div
-            v-if="bases[0] && bases[0].enabled && isUIAllowed('table-create')"
+            v-if="isUIAllowed('table-create')"
             class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             @click="openTableCreateDialog(bases[0].id)"
           >
@@ -501,12 +511,44 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </div>
 
-        <a-divider class="!my-2" style="height: 10px !important"></a-divider>
+        <a-divider
+          v-if="bases[0].enabled && bases.slice(1).filter((el) => el.enabled)?.length"
+          class="!my-2"
+          style="height: 10px !important"
+        ></a-divider>
 
-        <div v-if="bases.length > 1" class="flex-1">
-          <div class="min-h-[36px] pb-1 px-3 flex w-full items-center gap-1 cursor-default" @contextmenu="setMenuContext('main')">
+        <div v-if="bases.slice(1).filter((el) => el.enabled)?.length" class="flex-1">
+          <div
+            v-if="!bases[0].enabled"
+            class="min-h-[36px] pb-1 px-3 flex w-full items-center gap-1 cursor-default"
+            @contextmenu="setMenuContext('main')"
+          >
+            <Transition name="slide-left" mode="out-in">
+              <a-input
+                v-if="searchActive"
+                :ref="searchInputRef"
+                v-model:value="filterQuery"
+                class="flex-1 rounded"
+                :placeholder="$t('placeholder.searchProjectTree')"
+              />
+
+              <span v-else class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
+                BASES ({{ bases.slice(1).filter((el) => el.enabled).length }})
+              </span>
+            </Transition>
+
+            <Transition name="layout" mode="out-in">
+              <MdiClose v-if="searchActive" class="text-lg mx-1 mt-0.5" @click="onSearchCloseIconClick" />
+              <IcRoundSearch v-else class="text-lg text-primary mx-1 mt-0.5" @click="toggleSearchActive(true)" />
+            </Transition>
+          </div>
+          <div
+            v-else
+            class="min-h-[36px] pb-1 px-3 flex w-full items-center gap-1 cursor-default"
+            @contextmenu="setMenuContext('main')"
+          >
             <span class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
-              BASES ({{ bases.length - 1 }})
+              BASES ({{ bases.slice(1).filter((el) => el.enabled).length }})
             </span>
           </div>
 

@@ -99,6 +99,10 @@ const deleteBase = (base: BaseType) => {
 
 const toggleBase = async (base: BaseType, state: boolean) => {
   try {
+    if (!state && sources.filter((src) => src.enabled).length < 2) {
+      message.info('There should be at least one enabled base!')
+      return
+    }
     base.enabled = state
     await $api.base.update(base.project_id as string, base.id as string, {
       id: base.id,

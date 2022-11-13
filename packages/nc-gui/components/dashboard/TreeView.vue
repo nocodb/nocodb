@@ -496,7 +496,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                 >
                   <a-collapse-panel :key="`collapse-${base.id}`">
                     <template #header>
-                      <div v-if="index !== '0'" class="flex items-center gap-2 text-gray-500 font-weightd">
+                      <div v-if="index !== '0'" class="flex items-center gap-2 text-gray-500 font-bold">
                         <GeneralBaseLogo :base-type="base.type" />
                         {{ base.alias || '' }}
                       </div>

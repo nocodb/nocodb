@@ -280,10 +280,7 @@ watch(
                         <template v-if="sources[0].enabled">Hide in UI</template>
                         <template v-else>Show in UI</template>
                       </template>
-                      <a-checkbox
-                        :checked="sources[0].enabled ? true : false"
-                        @change="toggleBase(sources[0], $event.target?.checked)"
-                      ></a-checkbox>
+                      <a-switch :checked="sources[0].enabled ? true : false" @change="toggleBase(sources[0], $event)" />
                     </a-tooltip>
                   </div>
                 </div>
@@ -355,10 +352,7 @@ watch(
                         <template v-if="base.enabled">Hide in UI</template>
                         <template v-else>Show in UI</template>
                       </template>
-                      <a-checkbox
-                        :checked="base.enabled ? true : false"
-                        @change="toggleBase(base, $event.target?.checked)"
-                      ></a-checkbox>
+                      <a-switch :checked="base.enabled ? true : false" @change="toggleBase(base, $event)" />
                     </a-tooltip>
                   </div>
                 </div>

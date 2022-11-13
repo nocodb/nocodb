@@ -49,7 +49,7 @@ const keys = $ref<Record<string, number>>({})
 
 const activeKey = ref([])
 
-const menuRefs = $ref<HTMLLIElement[]>()
+const menuRefs = $ref<HTMLElement[] | HTMLElement>()
 
 let filterQuery = $ref('')
 
@@ -130,8 +130,10 @@ const initSortable = (el: Element) => {
 
 watchEffect(() => {
   if (menuRefs) {
-    for (const menuRef of menuRefs) {
-      initSortable(menuRef)
+    if (menuRefs instanceof HTMLElement) {
+      initSortable(menuRefs)
+    } else {
+      menuRefs.forEach((el) => initSortable(el))
     }
   }
 })
@@ -289,7 +291,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             <span v-else class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
               {{ $t('objects.tables') }}
 
-              ({{ tables.length || '0' }})
+              <template v-if="tables.filter((table) => table.base_id === bases[0].id)?.length">
+                ({{ tables.filter((table) => table.base_id === bases[0].id).length }})
+              </template>
             </span>
           </Transition>
 
@@ -299,10 +303,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </Transition>
         </div>
 
-        <div class="flex-1">
+        <div :class="{ 'flex-1': bases.length < 2 }">
           <div
             v-if="bases[0] && bases[0].enabled && isUIAllowed('table-create')"
-            class="group flex items-center gap-2 pl-5 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+            class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
             @click="openTableCreateDialog(bases[0].id)"
           >
             <MdiPlus />
@@ -411,15 +415,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
           <div class="transition-height duration-200 overflow-hidden">
             <div class="border-none sortable-list">
-              <div v-for="[index, base] of Object.entries(bases)" :key="`base-${base.id}`">
+              <div v-if="bases[0]" :key="`base-${bases[0].id}`">
                 <div
-                  v-if="index === '0' && base && base.enabled"
+                  v-if="bases[0] && bases[0].enabled"
                   ref="menuRefs"
-                  :key="`sortable-${base.id}-${keys[base.id || 0]}`"
-                  :nc-base="base.id"
+                  :key="`sortable-${bases[0].id}-${bases[0].id && bases[0].id in keys ? keys[bases[0].id] : '0'}`"
+                  :nc-base="bases[0].id"
                 >
                   <div
-                    v-for="table of tables.filter((table) => table.base_id === base.id)"
+                    v-for="table of tables.filter((table) => table.base_id === bases[0].id)"
                     :key="table.id"
                     v-e="['a:table:open']"
                     :class="[
@@ -432,7 +436,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     :data-testid="`tree-view-table-${table.title}`"
                     @click="addTableTab(table)"
                   >
-                    <GeneralTooltip class="pl-5 pr-3 py-2" modifier-key="Alt">
+                    <GeneralTooltip class="pl-8 pr-3 py-2" modifier-key="Alt">
                       <template #title>{{ table.table_name }}</template>
                       <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                         <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
@@ -463,7 +467,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
                           <template #overlay>
                             <a-menu class="!py-0 rounded text-sm">
-                              <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table, base.id)">
+                              <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table, bases[0].id)">
                                 <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
                                   {{ $t('general.rename') }}
                                 </div>
@@ -485,8 +489,32 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                     </GeneralTooltip>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            v-if="!tables.filter((table) => table.base_id === bases[0].id)?.length"
+            class="mt-0.5 pt-16 mx-3 flex flex-col items-center border-t-1 border-gray-50"
+          >
+            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+          </div>
+        </div>
+
+        <a-divider class="!my-2" style="height: 10px !important"></a-divider>
+
+        <div v-if="bases.length > 1" class="flex-1">
+          <div class="min-h-[36px] pb-1 px-3 flex w-full items-center gap-1 cursor-default" @contextmenu="setMenuContext('main')">
+            <span class="flex-1 text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
+              BASES ({{ bases.length - 1 }})
+            </span>
+          </div>
+
+          <div class="transition-height duration-200 overflow-hidden">
+            <div class="border-none sortable-list">
+              <div v-for="base of bases.slice(1)" :key="`base-${base.id}`">
                 <a-collapse
-                  v-else-if="base && base.enabled"
+                  v-if="base && base.enabled"
                   v-model:activeKey="activeKey"
                   :class="[{ hidden: searchActive && !!filterQuery && !filteredTables?.find((el) => el.base_id === base.id) }]"
                   expand-icon-position="right"
@@ -496,14 +524,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                 >
                   <a-collapse-panel :key="`collapse-${base.id}`">
                     <template #header>
-                      <div v-if="index !== '0'" class="flex items-center gap-2 text-gray-500 font-bold">
+                      <div class="flex items-center gap-2 text-gray-500 font-bold">
                         <GeneralBaseLogo :base-type="base.type" />
                         {{ base.alias || '' }}
+                        ({{ tables.filter((table) => table.base_id === base.id).length || '0' }})
                       </div>
                     </template>
                     <div
                       v-if="isUIAllowed('table-create')"
-                      class="group flex items-center gap-2 pl-5 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
+                      class="group flex items-center gap-2 pl-8 pr-3 py-2 text-primary/70 hover:(text-primary/100) cursor-pointer select-none"
                       @click="openTableCreateDialog(base.id)"
                     >
                       <MdiPlus />
@@ -587,7 +616,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                         </template>
                       </a-dropdown>
                     </div>
-                    <div ref="menuRefs" :key="`sortable-${base.id}-${keys[base.id || 0]}`" :nc-base="base.id">
+                    <div
+                      ref="menuRefs"
+                      :key="`sortable-${base.id}-${base.id && base.id in keys ? keys[base.id] : '0'}`"
+                      :nc-base="base.id"
+                    >
                       <div
                         v-for="table of tables.filter((table) => table.base_id === base.id)"
                         :key="table.id"
@@ -602,7 +635,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                         :data-testid="`tree-view-table-${table.title}`"
                         @click="addTableTab(table)"
                       >
-                        <GeneralTooltip class="pl-5 pr-3 py-2" modifier-key="Alt">
+                        <GeneralTooltip class="pl-8 pr-3 py-2" modifier-key="Alt">
                           <template #title>{{ table.table_name }}</template>
                           <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                             <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
@@ -663,10 +696,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                 </a-collapse>
               </div>
             </div>
-          </div>
-
-          <div v-if="!tables?.length" class="mt-0.5 pt-16 mx-3 flex flex-col items-center border-t-1 border-gray-50">
-            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
           </div>
         </div>
       </div>
@@ -772,7 +801,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 }
 
 .nc-tree-item {
-  @apply relative  cursor-pointer after:(pointer-events-none content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
+  @apply relative cursor-pointer after:(pointer-events-none content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
 }
 
 .nc-tree-item svg {

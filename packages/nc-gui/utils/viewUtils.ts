@@ -25,16 +25,15 @@ export const viewTypeAlias: Record<number, string> = {
   [ViewTypes.KANBAN]: 'kanban',
 }
 
-const isRtlLang = (lang: keyof typeof Language) => ['fa', 'ar'].includes(lang)
+export const isRtlLang = (lang: keyof typeof Language) => ['fa', 'ar'].includes(lang)
 
-const rtl = 'rtl'
-const ltr = 'ltr'
+const rtl = 'rtl' as const
+const ltr = 'ltr' as const
 
-export function applyLanguageDirection(lang: keyof typeof Language) {
-  const targetDirection = isRtlLang(lang) ? rtl : ltr
-  const oppositeDirection = targetDirection === ltr ? rtl : ltr
+export function applyLanguageDirection(dir: typeof rtl | typeof ltr) {
+  const oppositeDirection = dir === ltr ? rtl : ltr
 
   document.body.classList.remove(oppositeDirection)
-  document.body.classList.add(targetDirection)
-  document.body.style.direction = targetDirection
+  document.body.classList.add(dir)
+  document.body.style.direction = dir
 }

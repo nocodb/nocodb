@@ -80,7 +80,7 @@ export class GridPage extends BasePage {
         uiAction: clickOnColumnHeaderToSave,
         requestUrlPathToMatch: 'api/v1/db/data/noco',
         httpMethodsToMatch: ['POST'],
-        responseJsonMatcher: resJson => resJson?.[columnHeader] === value,
+        responseJsonMatcher: resJson => resJson?.[columnHeader] === rowValue,
       });
     } else {
       await this.rootPage.waitForTimeout(300);

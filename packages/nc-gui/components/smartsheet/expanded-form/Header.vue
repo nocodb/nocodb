@@ -45,9 +45,11 @@ const { copy } = useClipboard()
 
 const copyRecordUrl = () => {
   copy(
-    `${dashboardUrl?.value}#/${route.params.projectType}/${route.params.projectId}/${route.params.type}/${meta.value?.title}${
-      props.view ? `/${props.view.title}` : ''
-    }?rowId=${primaryKey.value}`,
+    encodeURI(
+      `${dashboardUrl?.value}#/${route.params.projectType}/${route.params.projectId}/${route.params.type}/${meta.value?.title}${
+        props.view ? `/${props.view.title}` : ''
+      }?rowId=${primaryKey.value}`,
+    ),
   )
   message.success('Copied to clipboard')
 }

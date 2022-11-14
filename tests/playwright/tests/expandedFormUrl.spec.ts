@@ -13,7 +13,40 @@ test.describe('Expanded form URL', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  async function viewTest(viewType: string) {
+  async function viewTestTestTable(viewType: string) {
+    await dashboard.treeView.createTable({
+      title: 'Test Table',
+    });
+    await dashboard.grid.addNewRow({ index: 0 });
+
+    let viewObj: GridPage | GalleryPage = dashboard.grid;
+    if (viewType === 'grid') {
+      viewObj = dashboard.grid;
+    } else if (viewType === 'gallery') {
+      viewObj = dashboard.gallery;
+    }
+
+    if (viewType === 'grid') {
+      await dashboard.viewSidebar.createGridView({ title: 'Test Expand' });
+    } else if (viewType === 'gallery') {
+      await dashboard.viewSidebar.createGalleryView({
+        title: 'Test Expand',
+      });
+    }
+
+    // expand row & verify URL
+    await viewObj.openExpandedRow({ index: 0 });
+    const url = await dashboard.expandedForm.getShareRowUrl();
+    await dashboard.expandedForm.close();
+    await dashboard.rootPage.goto(url);
+
+    await dashboard.expandedForm.verify({
+      header: 'Test Table: Row 0',
+      url,
+    });
+  }
+
+  async function viewTestSakila(viewType: string) {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
@@ -90,10 +123,12 @@ test.describe('Expanded form URL', () => {
   }
 
   test('Grid', async () => {
-    await viewTest('grid');
+    await viewTestSakila('grid');
+    await viewTestTestTable('grid');
   });
 
   test('Gallery', async () => {
-    await viewTest('gallery');
+    await viewTestSakila('gallery');
+    await viewTestTestTable('gallery');
   });
 });

@@ -20,6 +20,12 @@ export class ExpandedFormPage extends BasePage {
     return this.dashboard.get().locator(`.nc-drawer-expanded-form`);
   }
 
+  async getShareRowUrl() {
+    await this.copyUrlButton.click();
+    await this.verifyToast({ message: 'Copied to clipboard' });
+    return await this.getClipboardText();
+  }
+
   async gotoUsingUrlAndRowId({ rowId }: { rowId: string }) {
     const url = await this.dashboard.rootPage.url();
     const expandedFormUrl = '/' + url.split('/').slice(3).join('/').split('?')[0] + `?rowId=${rowId}`;
@@ -80,6 +86,7 @@ export class ExpandedFormPage extends BasePage {
 
   async close() {
     await this.rootPage.keyboard.press('Escape');
+    await this.get().waitFor({ state: 'hidden' });
   }
 
   async cancel() {

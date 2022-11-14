@@ -78,4 +78,8 @@ export default abstract class BasePage {
     });
     return data as any;
   }
+
+  async getClipboardText() {
+    return await this.rootPage.evaluate(() => navigator.clipboard.readText());
+  }
 }

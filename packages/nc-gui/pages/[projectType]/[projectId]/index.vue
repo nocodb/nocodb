@@ -24,6 +24,7 @@ import {
   useUIPermission,
 } from '#imports'
 import { TabType } from '~/lib'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 definePageMeta({
   hideHeader: true,
@@ -152,7 +153,17 @@ onKeyStroke(
 clearTabs()
 
 onBeforeMount(async () => {
-  await loadProject()
+  try {
+    await loadProject()
+  } catch (e: any) {
+    if (e.response?.status === 403) {
+      // Project is not accessible
+      message.error(t('msg.error.projectNotAccessible'))
+      router.replace('/')
+      return
+    }
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 
   if (!route.params.type && isUIAllowed('teamAndAuth')) {
     addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
@@ -299,7 +310,8 @@ onBeforeUnmount(reset)
 
                     <!-- Copy Auth Token -->
                     <a-menu-item key="copy">
-                      <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                      <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group"
+                           @click.stop="copyAuthToken">
                         <MdiScriptTextKeyOutline class="group-hover:text-accent" />
                         {{ $t('activity.account.authToken') }}
                       </div>

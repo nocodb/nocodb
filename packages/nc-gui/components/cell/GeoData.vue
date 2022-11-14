@@ -133,16 +133,7 @@ const latLongStr = computed(() => {
 //   longitude: number
 // }
 
-const latLong = computed(() => {
-  const [latitude, longitude] = (vModel.value || '').split(';')
-
-  return latitude == null || longitude == null
-    ? null
-    : {
-        latitude,
-        longitude,
-      }
-})
+const [latitude, longitude] = (vModel.value || '').split(';')
 
 // const latitude = ref('INITIAL')
 
@@ -152,8 +143,8 @@ const latLong = computed(() => {
 // }
 
 const formState = reactive({
-  latitude: latLong.value?.latitude,
-  longitude: latLong.value?.longitude,
+  latitude,
+  longitude,
 })
 
 const handleFinish = () => {

@@ -27,6 +27,7 @@ import {
   isPercent,
   isPhoneNumber,
   isPrimary,
+  isPrimaryKey,
   isRating,
   isSingleSelect,
   isString,
@@ -34,7 +35,6 @@ import {
   isTime,
   isURL,
   isYear,
-  isPrimaryKey,
   provide,
   ref,
   toRef,
@@ -140,10 +140,10 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
       <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellMultiSelect v-else-if="isMultiSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
-      <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey" />
-      <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey" />
-      <LazyCellDateTimePicker v-else-if="isDateTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey" />
-      <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey" />
+      <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+      <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+      <LazyCellDateTimePicker v-else-if="isDateTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+      <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
       <LazyCellRating v-else-if="isRating(column)" v-model="vModel" />
       <LazyCellDuration v-else-if="isDuration(column)" v-model="vModel" />
       <LazyCellEmail v-else-if="isEmail(column)" v-model="vModel" />

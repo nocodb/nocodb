@@ -23,7 +23,6 @@ export class WebhookFormPage extends BasePage {
     return this.dashboard.get().locator(`.nc-drawer-webhook-body`);
   }
 
-  // todo: Removing opening webhook drawer logic as it belongs to `Toolbar` page
   async create({ title, event, url = 'http://localhost:9090/hook' }: { title: string; event: string; url?: string }) {
     await this.toolbar.clickActions();
     await this.toolbar.actions.click('Webhooks');

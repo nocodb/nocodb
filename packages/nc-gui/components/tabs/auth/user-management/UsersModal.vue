@@ -145,11 +145,16 @@ const clickInviteMore = () => {
     wrap-class-name="nc-modal-invite-user-and-share-base"
     @cancel="emit('closed')"
   >
-    <div class="flex flex-col">
+    <div class="flex flex-col" data-testid="invite-user-and-share-base-modal">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
         <a-typography-title class="select-none" :level="4"> {{ $t('activity.share') }}: {{ project.title }} </a-typography-title>
 
-        <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
+        <a-button
+          type="text"
+          class="!rounded-md mr-1 -mt-1.5"
+          data-testid="invite-user-and-share-base-modal-close-btn"
+          @click="emit('closed')"
+        >
           <template #icon>
             <MaterialSymbolsCloseRounded class="flex mx-auto" />
           </template>

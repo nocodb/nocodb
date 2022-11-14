@@ -1,32 +1,31 @@
-import { expect, Locator } from '@playwright/test';
+import { Locator } from '@playwright/test';
 import { SettingsPage } from '.';
 import BasePage from '../../Base';
-import { writeFileAsync } from 'xlsx';
-import { ToolbarPage } from '../common/Toolbar';
 
 export class TeamsPage extends BasePage {
   private readonly settings: SettingsPage;
-  readonly inviteTeamBtn: Locator;
-  readonly inviteTeamModal: Locator;
+  private readonly inviteTeamBtn: Locator;
+  private readonly inviteTeamModal: Locator;
 
   constructor(settings: SettingsPage) {
     super(settings.rootPage);
     this.settings = settings;
     this.inviteTeamBtn = this.get().locator(`button:has-text("Invite Team")`);
-    this.inviteTeamModal = this.rootPage.locator(`.nc-modal-invite-user-and-share-base`);
+    this.inviteTeamModal = this.rootPage.getByTestId('invite-user-and-share-base-modal');
   }
 
   get() {
-    return this.settings.get().locator(`[data-testid="nc-settings-subtab-Users Management"]`);
+    return this.settings.get().getByTestId('nc-settings-subtab-Users Management');
   }
 
+  // Prefixing to differentiate between emails created by the tests which are deleted after the test run
   prefixEmail(email: string) {
     const parallelId = process.env.TEST_PARALLEL_INDEX ?? '0';
     return `nc_test_${parallelId}_${email}`;
   }
 
   getSharedBaseSubModal() {
-    return this.rootPage.locator(`[data-testid="nc-share-base-sub-modal"]`);
+    return this.rootPage.getByTestId('nc-share-base-sub-modal');
   }
 
   async invite({ email, role }: { email: string; role: string }) {
@@ -44,8 +43,8 @@ export class TeamsPage extends BasePage {
   }
 
   async closeInvite() {
-    // two btn-icon-only in invite modal: close & copy url
-    await this.inviteTeamModal.locator(`button.ant-btn-icon-only:visible`).first().click();
+    // todo: Fix the case where there is ghost dom for previous modal
+    await this.inviteTeamModal.getByTestId('invite-user-and-share-base-modal-close-btn').last().click();
   }
 
   async inviteMore() {
@@ -53,7 +52,7 @@ export class TeamsPage extends BasePage {
   }
 
   async toggleSharedBase({ toggle }: { toggle: boolean }) {
-    const toggleBtn = await this.getSharedBaseSubModal().locator(`.nc-disable-shared-base`);
+    const toggleBtn = this.getSharedBaseSubModal().locator(`.nc-disable-shared-base`);
     const toggleBtnText = await toggleBtn.first().innerText();
 
     const disabledBase = toggleBtnText.includes('Disable');
@@ -76,8 +75,7 @@ export class TeamsPage extends BasePage {
   }
 
   async getSharedBaseUrl() {
-    const url = await this.getSharedBaseSubModal().locator(`.nc-url:visible`).innerText();
-    return url;
+    return await this.getSharedBaseSubModal().locator(`.nc-url:visible`).textContent();
   }
 
   async sharedBaseActions({ action }: { action: string }) {

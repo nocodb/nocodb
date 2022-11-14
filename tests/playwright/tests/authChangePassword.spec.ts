@@ -4,17 +4,20 @@ import setup from '../setup';
 import { LoginPage } from '../pages/LoginPage';
 import { SettingsPage, SettingTab } from '../pages/Dashboard/Settings';
 import { SignupPage } from '../pages/SignupPage';
+import { ProjectsPage } from '../pages/ProjectsPage';
 
 test.describe('Auth', () => {
+  let context: any;
   let dashboard: DashboardPage;
   let settings: SettingsPage;
-  let context: any;
   let signupPage: SignupPage;
+  let projectsPage: ProjectsPage;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     signupPage = new SignupPage(page);
+    projectsPage = new ProjectsPage(page);
     settings = dashboard.settings;
   });
 
@@ -37,31 +40,31 @@ test.describe('Auth', () => {
       password: 'Password123.',
     });
 
-    await dashboard.openPasswordChangeModal();
+    await projectsPage.openPasswordChangeModal();
 
     // Existing active pass incorrect
-    await dashboard.changePassword({
+    await projectsPage.changePasswordPage.changePassword({
       oldPass: '123456789',
       newPass: '123456789',
       repeatPass: '123456789',
     });
-    await dashboard.rootPage
-      .locator('[data-testid="nc-user-settings-form__error"]:has-text("Current password is wrong")')
-      .waitFor();
+    await projectsPage.changePasswordPage.verifyFormError({ error: 'Current password is wrong' });
 
     // New pass and repeat pass mismatch
-    await dashboard.changePassword({
+    await projectsPage.changePasswordPage.changePassword({
       oldPass: 'Password123.',
       newPass: '123456789',
       repeatPass: '987654321',
+      networkValidation: false,
     });
-    await dashboard.rootPage.locator('.ant-form-item-explain-error:has-text("Passwords do not match")').waitFor();
+    await projectsPage.changePasswordPage.verifyPasswordDontMatchError();
 
     // All good
-    await dashboard.changePassword({
+    await projectsPage.changePasswordPage.changePassword({
       oldPass: 'Password123.',
       newPass: 'NewPasswordConfigured',
       repeatPass: 'NewPasswordConfigured',
+      networkValidation: true,
     });
 
     const loginPage = new LoginPage(page);
@@ -69,6 +72,6 @@ test.describe('Auth', () => {
     await loginPage.fillPassword('NewPasswordConfigured');
     await loginPage.submit();
 
-    await page.locator('.nc-project-page-title:has-text("My Projects")').waitFor();
+    await projectsPage.waitForRender();
   });
 });

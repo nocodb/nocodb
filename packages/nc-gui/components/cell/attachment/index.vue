@@ -59,7 +59,7 @@ const {
   selectedImage,
   isReadonly,
   storedFiles,
-} = useProvideAttachmentCell(updateModelValue, rowId)
+} = useProvideAttachmentCell(updateModelValue, rowId ?? '')
 
 watch(
   [() => rowIndex, isForm, attachmentCellRef],

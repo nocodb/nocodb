@@ -426,6 +426,8 @@ onBeforeUnmount(() => {
   openNewRecordFormHook?.off(openNewRecordHandler)
 })
 
+const columns = computed(() => meta.value?.columns)
+
 const expandedFormOnRowIdDlg = computed({
   get() {
     return !!route.query.rowId
@@ -641,7 +643,7 @@ watch(
                           !!hasEditPermission && !!editEnabled && selected.col === colIndex && selected.row === rowIndex
                         "
                         :row-index="rowIndex"
-                        :row-id="extractPkFromRow(row.row, fields)"
+                        :row-id="extractPkFromRow(row.row, columns)"
                         :active="selected.col === colIndex && selected.row === rowIndex"
                         @update:edit-enabled="editEnabled = $event"
                         @save="updateOrSaveRow(row, columnObj.title, state)"

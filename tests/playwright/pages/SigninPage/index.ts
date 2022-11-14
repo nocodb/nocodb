@@ -3,7 +3,7 @@ import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
 import { expect } from '@playwright/test';
 
-export class SignupPage extends BasePage {
+export class SigninPage extends BasePage {
   readonly projectsPage: ProjectsPage;
 
   constructor(rootPage: Page) {
@@ -17,14 +17,14 @@ export class SignupPage extends BasePage {
   }
 
   goto() {
-    return this.rootPage.goto('/#/signup/', { waitUntil: 'networkidle' });
+    return this.rootPage.goto('/#/signin/', { waitUntil: 'networkidle' });
   }
 
   get() {
     return this.rootPage.locator('html');
   }
 
-  async signUp({
+  async signIn({
     email,
     password,
     withoutPrefix,
@@ -38,13 +38,13 @@ export class SignupPage extends BasePage {
     if (!withoutPrefix) email = this.prefixEmail(email);
 
     const signUp = this.get();
-    await signUp.locator('button:has-text("SIGN UP")').waitFor();
+    await signUp.locator('button:has-text("SIGN IN")').waitFor();
 
     await signUp.locator(`input[placeholder="Enter your work email"]`).fill(email);
     await signUp.locator(`input[placeholder="Enter your password"]`).fill(password);
-    await signUp.locator(`button:has-text("SIGN UP")`).click();
+    await signUp.locator(`button:has-text("SIGN IN")`).click();
     if (expectedError) {
-      await expect(signUp.getByTestId('nc-signup-error')).toHaveText(expectedError);
+      await expect(signUp.getByTestId('nc-signin-error')).toHaveText(expectedError);
     } else {
       await this.projectsPage.waitToBeRendered();
     }

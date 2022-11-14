@@ -4,8 +4,8 @@ import { AccountUsersPage } from '../pages/Account/Users';
 import setup from '../setup';
 
 const roleDb = [
-  { email: 'creator@nocodb.com', role: 'Organization level creator', url: '' },
-  { email: 'viewer@nocodb.com', role: 'Organization level viewer', url: '' },
+  { email: 'creator@nocodb.com', role: 'Organization Level Creator', url: '' },
+  { email: 'viewer@nocodb.com', role: 'Organization Level Viewer', url: '' },
 ];
 
 test.describe('User roles', () => {
@@ -38,7 +38,7 @@ test.describe('User roles', () => {
     for (let i = 0; i < roleDb.length; i++) {
       await accountUsersPage.updateRole({
         email: roleDb[i].email,
-        role: 'Organization level viewer',
+        role: 'Organization Level Viewer',
       });
     }
 

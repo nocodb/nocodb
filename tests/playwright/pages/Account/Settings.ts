@@ -11,7 +11,7 @@ export class AccountSettingsPage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto('/?dummy=settings#/account/users/settings');
+    await this.rootPage.goto('/#/account/users/settings', { waitUntil: 'networkidle' });
   }
 
   get() {
@@ -22,8 +22,12 @@ export class AccountSettingsPage extends BasePage {
     return this.get().locator(`.nc-invite-only-signup-checkbox`);
   }
 
+  async getInviteOnlyCheckboxValue() {
+    return this.get().locator(`.nc-invite-only-signup-checkbox`).isChecked();
+  }
+
   async checkInviteOnlySignupCheckbox(value: boolean) {
-    return expect(await this.get().locator(`.nc-invite-only-signup-checkbox`).isChecked()).toBe(value);
+    return expect(await this.getInviteOnlyCheckboxValue()).toBe(value);
   }
 
   async toggleInviteOnlyCheckbox() {

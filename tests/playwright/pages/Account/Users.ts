@@ -15,7 +15,7 @@ export class AccountUsersPage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto('/?dummy=users#/account/users/list');
+    await this.rootPage.goto('/#/account/users/list', { waitUntil: 'networkidle' });
   }
 
   get() {

@@ -18,7 +18,7 @@ test.describe('Auth', () => {
     settings = dashboard.settings;
   });
 
-  test.only('Change password', async ({ page }) => {
+  test('Change password', async ({ page }) => {
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.gotoSettings();
     await settings.selectTab({ tab: SettingTab.TeamAuth });

@@ -17,6 +17,7 @@ import {
   useProject,
   useSelectedCellKeyupListener,
   watch,
+  useMetas
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -55,21 +56,24 @@ const options = computed<SelectOptionType[]>(() => {
     for (const op of opts.filter((el: SelectOptionType) => el.order === null)) {
       op.title = op.title?.replace(/^'/, '').replace(/'$/, '')
     }
-    return opts
+    return opts.map((o: SelectOptionType) => ({ ...o, value: o.title }))
   }
   return []
 })
 
 const vModel = computed({
-  get: () =>
-    selectedIds.value.reduce((acc, id) => {
-      const title = options.value.find((op) => op.id === id)?.title
+  get: () => {
+    return selectedIds.value.reduce((acc, id) => {
+      const title = (options.value.find((op) => op.id === id) || options.value.find((op) => op.title === id))?.title
 
       if (title) acc.push(title)
 
       return acc
-    }, [] as string[]),
-  set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
+    }, [] as string[])
+  },
+  set: (val) => {
+    emit('update:modelValue', val.length === 0 ? null : val.join(','))
+  },
 })
 
 const selectedTitles = computed(() =>
@@ -89,6 +93,20 @@ const selectedTitles = computed(() =>
     : [],
 )
 
+const handleKeys = async (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Escape':
+      e.preventDefault()
+      isOpen.value = false
+      break
+    case 'Enter':
+      e.stopPropagation()
+      await addIfMissingAndSave()
+      break
+  }
+}
+const v = Math.floor(Math.random() * 1000)
+
 const handleClose = (e: MouseEvent) => {
   if (aselect.value && !aselect.value.$el.contains(e.target)) {
     isOpen.value = false
@@ -97,9 +115,10 @@ const handleClose = (e: MouseEvent) => {
 
 onMounted(() => {
   selectedIds.value = selectedTitles.value.flatMap((el) => {
-    const item = options.value.find((op) => op.title === el)?.id
-    if (item) {
-      return [item]
+    const item = options.value.find((op) => op.title === el)
+    const itemIdOrTitle = item?.id || item?.title
+    if (itemIdOrTitle) {
+      return [itemIdOrTitle]
     }
 
     return []
@@ -142,6 +161,26 @@ useSelectedCellKeyupListener(active, (e) => {
       break
   }
 })
+
+const searchVal = ref()
+const { $api } = useNuxtApp()
+const {getMeta} = useMetas()
+
+async function addIfMissingAndSave() {
+  const newOptValue = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
+  if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
+    const newOptions = [...options.value]
+    newOptions.push({ title: newOptValue, value: newOptValue })
+    column.value.colOptions = { options: newOptions.map(({ value: _, ...rest }) => rest) }
+
+    await $api.dbTableColumn.update(column.value?.id as string, {
+      ...column.value,
+    })
+    await getMeta(column.value.fk_model_id!, true)
+
+    vModel.value = [...vModel.value, newOptValue]
+  }
+}
 </script>
 
 <template>
@@ -153,7 +192,8 @@ useSelectedCellKeyupListener(active, (e) => {
     class="w-full"
     :bordered="false"
     :show-arrow="!readOnly"
-    :show-search="false"
+    show-search
+    :open="isOpen"
     :disabled="readOnly"
     :class="{ '!ml-[-8px]': readOnly }"
     :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
@@ -162,7 +202,7 @@ useSelectedCellKeyupListener(active, (e) => {
   >
     <a-select-option
       v-for="op of options"
-      :key="op.id"
+      :key="op.id || op.title"
       :value="op.title"
       :data-testid="`select-option-${column.title}-${rowIndex}`"
       @click.stop

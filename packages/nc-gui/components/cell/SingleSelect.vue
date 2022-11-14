@@ -2,6 +2,7 @@
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
+import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -14,7 +15,6 @@ import {
   useEventListener,
   watch,
 } from '#imports'
-import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
 
 interface Props {
   modelValue?: string | undefined
@@ -41,28 +41,39 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const vModel = computed({
   get: () => modelValue,
-  set: (val) => emit('update:modelValue', val || null),
+  set: (val) => {
+    emit('update:modelValue', val || null)
+  },
 })
 
-const options = computed<SelectOptionType[]>(() => {
+const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
-        (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
+      (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
     for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
     }
-    return opts
+    return opts.map((o: any) => ({ ...o, value: o.title }))
   }
   return []
 })
 
-const handleClose = (e: MouseEvent) => {
-  if (aselect.value && !aselect.value.$el.contains(e.target)) {
-    isOpen.value = false
-    aselect.value.blur()
+const handleKeys = (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Escape':
+      e.preventDefault()
+      isOpen.value = false
+      break
   }
+}
+
+const handleClose = (e: MouseEvent) => {
+  // if (aselect.value && !aselect.value.$el.contains(e.target)) {
+  //   isOpen.value = false
+  //   aselect.value.blur()
+  // }
 }
 
 useEventListener(document, 'click', handleClose)
@@ -87,6 +98,22 @@ useSelectedCellKeyupListener(active, (e) => {
       break
   }
 })
+
+const val = ref()
+const { $api } = useNuxtApp()
+
+const addIfMissingAndSave = async () => {
+  const newOptValue = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
+
+  if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
+    options.value.push({ title: newOptValue, value: newOptValue })
+    column.value.colOptions = { options: options.value.map(({ value: _, ...rest }) => rest) }
+
+    await $api.dbTableColumn.update(column.value?.id as string, {
+      ...column.value,
+    })
+  }
+}
 </script>
 
 <template>
@@ -141,6 +168,3 @@ useSelectedCellKeyupListener(active, (e) => {
   opacity: 1;
 }
 </style>
-<!--
-
--->

@@ -156,8 +156,10 @@ const formState = reactive({
   longitude: latLong.value?.longitude,
 })
 
-const handleFinish = (values: FormState) => {
-  vModel.value = `${values.latitude};${values.longitude}`
+const handleFinish = () => {
+  console.log(`handleFinish - formState: `, formState)
+  vModel.value = `${formState.latitude};${formState.longitude}`
+  isExpanded = false
 }
 </script>
 

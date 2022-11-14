@@ -1,6 +1,8 @@
 import { test } from '@playwright/test';
 import { AccountPage } from '../pages/Account';
 import { AccountUsersPage } from '../pages/Account/Users';
+import { ProjectsPage } from '../pages/ProjectsPage';
+import { SignupPage } from '../pages/SignupPage';
 import setup from '../setup';
 
 const roleDb = [
@@ -11,6 +13,8 @@ const roleDb = [
 test.describe('User roles', () => {
   let accountUsersPage: AccountUsersPage;
   let accountPage: AccountPage;
+  let signupPage: SignupPage;
+  let projectsPage: ProjectsPage;
   // @ts-ignore
   let context: any;
 
@@ -18,6 +22,9 @@ test.describe('User roles', () => {
     context = await setup({ page });
     accountPage = new AccountPage(page);
     accountUsersPage = new AccountUsersPage(accountPage);
+
+    signupPage = new SignupPage(accountPage.rootPage);
+    projectsPage = new ProjectsPage(accountPage.rootPage);
   });
 
   test('Invite user, update role and delete user', async () => {
@@ -32,6 +39,9 @@ test.describe('User roles', () => {
         role: roleDb[i].role,
       });
       await accountUsersPage.closeInvite();
+      await signupAndVerify(i);
+      await accountPage.rootPage.reload({ waitUntil: 'networkidle' });
+      await accountUsersPage.goto();
     }
 
     // update role
@@ -49,4 +59,20 @@ test.describe('User roles', () => {
       });
     }
   });
+
+  // signup and verify create project button exist or not based on role
+  async function signupAndVerify(roleIdx: number) {
+    await accountPage.signOut();
+
+    await accountPage.rootPage.goto(roleDb[roleIdx].url);
+
+    await signupPage.signUp({
+      email: roleDb[roleIdx].email,
+      password: 'Password123.',
+    });
+
+    await projectsPage.checkProjectCreateButton({
+      exists: roleDb[roleIdx].role === 'Organization Level Creator',
+    });
+  }
 });

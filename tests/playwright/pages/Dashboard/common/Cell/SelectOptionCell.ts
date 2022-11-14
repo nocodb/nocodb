@@ -25,7 +25,14 @@ export class SelectOptionCellPageObject extends BasePage {
     option: string;
     multiSelect?: boolean;
   }) {
-    await this.get({ index, columnHeader }).click();
+    const selectCell = this.get({ index, columnHeader });
+
+    // check if cell active
+    if (!(await selectCell.getAttribute('class')).includes('active')) {
+      await selectCell.click();
+    }
+
+    await selectCell.click();
 
     await this.rootPage.getByTestId(`select-option-${columnHeader}-${index}`).getByText(option).click();
 

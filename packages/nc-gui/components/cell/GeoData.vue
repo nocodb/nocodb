@@ -134,7 +134,7 @@ const latLongStr = computed(() => {
 // }
 
 const latLong = computed(() => {
-  const [latitude, longitude] = vModel.value?.split(';') || [null, null]
+  const [latitude, longitude] = (vModel.value || '').split(';')
 
   return latitude == null || longitude == null
     ? null

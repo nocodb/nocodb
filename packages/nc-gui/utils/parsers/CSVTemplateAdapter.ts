@@ -179,8 +179,10 @@ export default class CSVTemplateAdapter {
           ) {
             this.tables[tableIdx].columns[columnIdx].uidt = UITypes.Date
             // take the date format with the max occurrence
-            this.tables[tableIdx].columns[columnIdx].meta.date_format =
-              Object.keys(dateFormat).reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y)) || 'YYYY/MM/DD'
+            const objKeys = Object.keys(dateFormat)
+            this.tables[tableIdx].columns[columnIdx].meta.date_format = objKeys.length
+              ? objKeys.reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y))
+              : 'YYYY/MM/DD'
           } else {
             // Datetime
             this.tables[tableIdx].columns[columnIdx].uidt = uidt

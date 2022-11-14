@@ -13,7 +13,7 @@ const { isUIAllowed } = useUIPermission()
   >
     <LazyAccountResetPassword />
   </template>
-  <template v-else-if="$route.params.nestedPage === 'settings' && !isUIAllowed('superAdminUserManagement')">
+  <template v-else-if="$route.params.nestedPage === 'settings'">
     <LazyAccountSignupSettings />
   </template>
   <template v-else-if="isUIAllowed('superAdminUserManagement')">

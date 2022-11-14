@@ -91,12 +91,20 @@ export default class User implements UserType {
       // set email prop to avoid generation of invalid cache key
       updateObj.email = (await this.get(id, ncMeta))?.email?.toLowerCase();
     }
+
+    // get old user
+    const existingUser = await this.get(id, ncMeta);
+
+    // delete the emailbased cache to avoid unexpected behaviour since we can update email as well
+    await NocoCache.del(`${CacheScope.USER}:${existingUser.email}`);
+
+    // as <projectId> is unknown, delete user:<email>___<projectId> in cache
+    await NocoCache.delAll(CacheScope.USER, `${existingUser.email}___*`);
+
     // get existing cache
     const keys = [
       // update user:<id>
       `${CacheScope.USER}:${id}`,
-      // update user:<email>
-      `${CacheScope.USER}:${user.email}`,
     ];
     for (const key of keys) {
       let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
@@ -106,10 +114,6 @@ export default class User implements UserType {
         await NocoCache.set(key, o);
       }
     }
-
-    await NocoCache.del(`${CacheScope.USER}:${user.email}`);
-    // as <projectId> is unknown, delete user:<email>___<projectId> in cache
-    await NocoCache.delAll(CacheScope.USER, `${user.email}___*`);
 
     // set meta
     return await ncMeta.metaUpdate(null, null, MetaTable.USERS, updateObj, id);
@@ -187,7 +191,7 @@ export default class User implements UserType {
       offset?: number | undefined;
       query?: string;
     } = {},
-    ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncMeta
   ) {
     let queryBuilder = ncMeta.knex(MetaTable.USERS);
 

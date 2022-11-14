@@ -4,7 +4,8 @@ import type { UnwrapRef, VNodeRef } from '@vue/runtime-core'
 import { Modal as AModal, EditModeInj, inject, useVModel, ref } from '#imports'
 
 interface Props {
-  modelValue?: GeoLocationType | null
+  // modelValue?: GeoLocationType | null
+  modelValue?: string | null
 }
 
 interface Emits {
@@ -15,15 +16,15 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const editEnabled = inject(EditModeInj)
+// const editEnabled = inject(EditModeInj)
 
-const isForm = inject(IsFormInj, ref(false))
+// const isForm = inject(IsFormInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
 // const localValueState = ref<string | undefined>()
 
-let error = $ref<string | undefined>()
+// let error = $ref<string | undefined>()
 
 let isExpanded = $ref(false)
 
@@ -73,13 +74,13 @@ let isExpanded = $ref(false)
 
 // const readOnly = inject(ReadonlyInj)!
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+// const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
-function onKeyDown(evt: KeyboardEvent) {
-  return evt.key === '.' && evt.preventDefault()
-}
+// function onKeyDown(evt: KeyboardEvent) {
+//   return evt.key === '.' && evt.preventDefault()
+// }
 
-const visibleMenu = ref(false)
+// const visibleMenu = ref(false)
 
 // const toggleVisbility = () => {
 //   visible.value = !visible.value
@@ -88,15 +89,15 @@ const visibleMenu = ref(false)
 // const latitude = computed(() => {
 
 // })
-const onSave = () => {
-  isExpanded = false
+// const onSave = () => {
+//   isExpanded = false
 
-  editEnabled.value = false
+//   editEnabled.value = false
 
-  // localValue.value = localValue ? formatJson(localValue.value as string) : localValue
+//   // localValue.value = localValue ? formatJson(localValue.value as string) : localValue
 
-  // vModel.value = localValue.value
-}
+//   // vModel.value = localValue.value
+// }
 
 // watch(
 //   vModel,
@@ -122,24 +123,41 @@ const onSave = () => {
 //   localValue.value = vModel.valuec
 // })
 
-const latLongStr = computed(() =>
-  vModel?.value?.latitude && vModel?.value.longitude ? `${vModel?.value.latitude}; ${vModel?.value.longitude}` : 'Set location',
-)
+const latLongStr = computed(() => {
+  const [latitude, longitude] = vModel.value?.split(';') || [null, null]
+  return latitude && longitude ? `${latitude}; ${longitude}` : 'Set location'
+})
 
-const latitude = ref('INITIAL')
+// interface LatLong {
+//   latitude: number
+//   longitude: number
+// }
+
+const latLong = computed(() => {
+  const [latitude, longitude] = vModel.value?.split(';') || [null, null]
+
+  return latitude == null || longitude == null
+    ? null
+    : {
+        latitude,
+        longitude,
+      }
+})
+
+// const latitude = ref('INITIAL')
 
 interface FormState {
   latitude: string
   longitude: string
 }
 
-const formState: UnwrapRef<FormState> = reactive({
-  latitude: vModel.value?.latitude,
-  longitude: vModel.value?.longitude,
+const formState = reactive({
+  latitude: latLong.value?.latitude,
+  longitude: latLong.value?.longitude,
 })
 
-const handleFinish = () => {
-  alert('FORM SUBMIT')
+const handleFinish = (values: FormState) => {
+  vModel.value = `${values.latitude};${values.longitude}`
 }
 </script>
 
@@ -158,7 +176,7 @@ const handleFinish = () => {
     <a-button>{{ latLongStr }}</a-button>
     <template #overlay>
       <a-form :model="formState" @finish="handleFinish">
-        <a-form-item v-model="latitude" label="Latitude">
+        <a-form-item v-model="formState.latitude" label="Latitude">
           <a-input v-model:value="formState.latitude" placeholder="input placeholder" />
           LAT:{{ formState.latitude }}
         </a-form-item>
@@ -167,17 +185,9 @@ const handleFinish = () => {
           LONG:{{ formState.longitude }}
         </a-form-item>
         <a-form-item>
-          <a-button type="primary">Submit</a-button>
+          <a-button type="primary" html-type="submit">Submit</a-button>
         </a-form-item>
       </a-form>
-      <div v-if="!isForm || isExpanded" class="flex flex-row">
-        <a-form-item>
-          <a-button type="primary" size="small" html-type="submit">
-            <!-- :disabled="!!error || localValue === vModel" -->
-            <div class="text-xs" :onclick="onSave">Save</div>
-          </a-button>
-        </a-form-item>
-      </div>
     </template>
   </a-dropdown>
 </template>

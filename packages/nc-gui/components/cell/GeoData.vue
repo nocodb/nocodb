@@ -171,11 +171,9 @@ const handleFinish = () => {
       <a-form :model="formState" @finish="handleFinish">
         <a-form-item v-model="formState.latitude" label="Latitude">
           <a-input v-model:value="formState.latitude" placeholder="input placeholder" />
-          LAT:{{ formState.latitude }}
         </a-form-item>
         <a-form-item label="Longitude">
           <a-input v-model:value="formState.longitude" placeholder="input placeholder" />
-          LONG:{{ formState.longitude }}
         </a-form-item>
         <a-form-item>
           <a-button type="primary" html-type="submit">Submit</a-button>

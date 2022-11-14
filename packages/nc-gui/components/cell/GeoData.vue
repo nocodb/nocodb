@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
-import type { VNodeRef } from '@vue/runtime-core'
+import type { UnwrapRef, VNodeRef } from '@vue/runtime-core'
 import { Modal as AModal, EditModeInj, inject, useVModel, ref } from '#imports'
 
 interface Props {
@@ -123,8 +123,24 @@ const onSave = () => {
 // })
 
 const latLongStr = computed(() =>
-  vModel?.value?.latitude && vModel?.value.longitude ? `${vModel?.value.latitude}; ${vModel?.value.longitude}` : 'Empty',
+  vModel?.value?.latitude && vModel?.value.longitude ? `${vModel?.value.latitude}; ${vModel?.value.longitude}` : 'Set location',
 )
+
+const latitude = ref('INITIAL')
+
+interface FormState {
+  latitude: string
+  longitude: string
+}
+
+const formState: UnwrapRef<FormState> = reactive({
+  latitude: vModel.value?.latitude,
+  longitude: vModel.value?.longitude,
+})
+
+const handleFinish = () => {
+  alert('FORM SUBMIT')
+}
 </script>
 
 <template>
@@ -141,22 +157,26 @@ const latLongStr = computed(() =>
   <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click">
     <a-button>{{ latLongStr }}</a-button>
     <template #overlay>
-      <a-form v-model="vModel">
-        <a-form-item label="Field A">
-          <a-input placeholder="input placeholder" />
+      <a-form :model="formState" @finish="handleFinish">
+        <a-form-item v-model="latitude" label="Latitude">
+          <a-input v-model:value="formState.latitude" placeholder="input placeholder" />
+          LAT:{{ formState.latitude }}
         </a-form-item>
-        <a-form-item label="Field B">
-          <a-input placeholder="input placeholder" />
+        <a-form-item label="Longitude">
+          <a-input v-model:value="formState.longitude" placeholder="input placeholder" />
+          LONG:{{ formState.longitude }}
         </a-form-item>
         <a-form-item>
           <a-button type="primary">Submit</a-button>
         </a-form-item>
       </a-form>
       <div v-if="!isForm || isExpanded" class="flex flex-row">
-        <a-button type="primary" size="small">
-          <!-- :disabled="!!error || localValue === vModel" -->
-          <div class="text-xs" :onclick="onSave">Save</div>
-        </a-button>
+        <a-form-item>
+          <a-button type="primary" size="small" html-type="submit">
+            <!-- :disabled="!!error || localValue === vModel" -->
+            <div class="text-xs" :onclick="onSave">Save</div>
+          </a-button>
+        </a-form-item>
       </div>
     </template>
   </a-dropdown>

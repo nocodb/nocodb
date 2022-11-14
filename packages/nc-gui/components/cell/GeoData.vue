@@ -146,10 +146,10 @@ const latLong = computed(() => {
 
 // const latitude = ref('INITIAL')
 
-interface FormState {
-  latitude: string
-  longitude: string
-}
+// interface FormState {
+//   latitude: string
+//   longitude: string
+// }
 
 const formState = reactive({
   latitude: latLong.value?.latitude,

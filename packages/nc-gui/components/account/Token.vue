@@ -160,7 +160,7 @@ const descriptionInput = ref((el) => {
                   <span v-else> {{ $t('general.show') }} </span>
                 </template>
 
-                <a-button type="text" class="!rounded-md" @click="record.show = !record.show">
+                <a-button type="text" class="!rounded-md nc-toggle-token-visibility" @click="record.show = !record.show">
                   <template #icon>
                     <MaterialSymbolsVisibilityOff v-if="record.show" class="flex mx-auto h-[1.1rem]" />
                     <MaterialSymbolsVisibility v-else class="flex mx-auto h-[1rem]" />

@@ -94,10 +94,6 @@ onMounted(async () => {
 #mapContainer {
   height: 100vh;
 }
-// .no-underline {
-//   text-decoration: none !important;
-//   opacity: 0.5;
-// }
 
 :global(.geo-map-marker-cluster) {
   background-color: pink;

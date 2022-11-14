@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditModeInj, inject, useVModel, ref } from '#imports'
+import { Modal as AModal, EditModeInj, inject, useVModel, ref } from '#imports'
 
 interface Props {
-  modelValue?: string | null
+  modelValue?: GeoLocationType | null
 }
 
 interface Emits {
@@ -15,9 +15,38 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
+const editEnabled = inject(EditModeInj)
+
+const isForm = inject(IsFormInj, ref(false))
+
 const vModel = useVModel(props, 'modelValue', emits)
 
-const editEnabled = inject(EditModeInj)
+// const localValueState = ref<string | undefined>()
+
+let error = $ref<string | undefined>()
+
+let isExpanded = $ref(false)
+
+// const localValue = computed<string | Record<string, any> | undefined>({
+//   get: () => localValueState.value,
+//   set: (val: undefined | string | Record<string, any>) => {
+//     localValueState.value = typeof val === 'object' ? JSON.stringify(val, null, 2) : val
+//     /** if form and not expanded then sync directly */
+//     if (isForm.value && !isExpanded) {
+//       vModel.value = val
+//     }
+//   },
+// })
+
+// const clear = () => {
+//   error = undefined
+
+//   isExpanded = false
+
+//   editEnabled.value = false
+
+//   localValue.value = vModel.value
+// }
 
 // const isPopupOpen = ref(false)
 // const showPopup = () => (isPopupOpen.value = true)
@@ -50,6 +79,8 @@ function onKeyDown(evt: KeyboardEvent) {
   return evt.key === '.' && evt.preventDefault()
 }
 
+const visibleMenu = ref(false)
+
 // const toggleVisbility = () => {
 //   visible.value = !visible.value
 // }
@@ -57,10 +88,47 @@ function onKeyDown(evt: KeyboardEvent) {
 // const latitude = computed(() => {
 
 // })
+const onSave = () => {
+  isExpanded = false
+
+  editEnabled.value = false
+
+  // localValue.value = localValue ? formatJson(localValue.value as string) : localValue
+
+  // vModel.value = localValue.value
+}
+
+// watch(
+//   vModel,
+//   (val) => {
+//     localValue.value = val
+//   },
+//   { immediate: true },
+// )
+
+// watch(localValue, (val) => {
+//   try {
+//     JSON.parse(val as string)
+
+//     error = undefined
+//   } catch (e: any) {
+//     error = e
+//   }
+// })
+
+// watch(editEnabled, () => {
+//   isExpanded = false
+
+//   localValue.value = vModel.valuec
+// })
+
+const latLongStr = computed(() =>
+  vModel?.value?.latitude && vModel?.value.longitude ? `${vModel?.value.latitude}; ${vModel?.value.longitude}` : 'Empty',
+)
 </script>
 
 <template>
-  <input
+  <!-- <input
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
@@ -68,7 +136,30 @@ function onKeyDown(evt: KeyboardEvent) {
     type="string"
     @blur="editEnabled = false"
   />
-  <span v-else class="text-sm">{{ vModel }}</span>
+  <span v-else class="text-sm">{{ vModel }}</span> -->
+
+  <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click">
+    <a-button>{{ latLongStr }}</a-button>
+    <template #overlay>
+      <a-form v-model="vModel">
+        <a-form-item label="Field A">
+          <a-input placeholder="input placeholder" />
+        </a-form-item>
+        <a-form-item label="Field B">
+          <a-input placeholder="input placeholder" />
+        </a-form-item>
+        <a-form-item>
+          <a-button type="primary">Submit</a-button>
+        </a-form-item>
+      </a-form>
+      <div v-if="!isForm || isExpanded" class="flex flex-row">
+        <a-button type="primary" size="small">
+          <!-- :disabled="!!error || localValue === vModel" -->
+          <div class="text-xs" :onclick="onSave">Save</div>
+        </a-button>
+      </div>
+    </template>
+  </a-dropdown>
 </template>
 
 <!-- <template>

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
-import type { UnwrapRef, VNodeRef } from '@vue/runtime-core'
-import { Modal as AModal, EditModeInj, inject, useVModel, ref } from '#imports'
+import { useVModel } from '#imports'
 
 interface Props {
   // modelValue?: GeoLocationType | null
@@ -24,7 +23,7 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 // const localValueState = ref<string | undefined>()
 
-// let error = $ref<string | undefined>()
+let error = $ref<string | undefined>()
 
 let isExpanded = $ref(false)
 
@@ -39,15 +38,7 @@ let isExpanded = $ref(false)
 //   },
 // })
 
-// const clear = () => {
-//   error = undefined
 
-//   isExpanded = false
-
-//   editEnabled.value = false
-
-//   localValue.value = vModel.value
-// }
 
 // const isPopupOpen = ref(false)
 // const showPopup = () => (isPopupOpen.value = true)
@@ -123,8 +114,10 @@ let isExpanded = $ref(false)
 //   localValue.value = vModel.valuec
 // })
 
+const [latitude, longitude] = (vModel.value || '').split(';')
+
 const latLongStr = computed(() => {
-  const [latitude, longitude] = vModel.value?.split(';') || [null, null]
+  const [latitude, longitude] = (vModel.value || '').split(';')
   return latitude && longitude ? `${latitude}; ${longitude}` : 'Set location'
 })
 
@@ -133,7 +126,7 @@ const latLongStr = computed(() => {
 //   longitude: number
 // }
 
-const [latitude, longitude] = (vModel.value || '').split(';')
+
 
 // const latitude = ref('INITIAL')
 
@@ -152,6 +145,16 @@ const handleFinish = () => {
   vModel.value = `${formState.latitude};${formState.longitude}`
   isExpanded = false
 }
+
+const clear = () => {
+  error = undefined
+
+  isExpanded = false
+
+  formState.latitude = latitude
+  formState.longitude = longitude
+  console.log(`clear - formState: `, formState)
+}
 </script>
 
 <template>
@@ -168,14 +171,15 @@ const handleFinish = () => {
   <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click">
     <a-button>{{ latLongStr }}</a-button>
     <template #overlay>
-      <a-form :model="formState" @finish="handleFinish">
-        <a-form-item v-model="formState.latitude" label="Latitude">
-          <a-input v-model:value="formState.latitude" placeholder="input placeholder" />
+      <a-form :model="formState" class="flex flex-col w-full" @finish="handleFinish">
+        <a-form-item label="Latitude">
+          <a-input v-model:value="formState.latitude" type="number" step="0.000001" :max="90" :min="-90" />
         </a-form-item>
         <a-form-item label="Longitude">
-          <a-input v-model:value="formState.longitude" placeholder="input placeholder" />
+          <a-input v-model:value="formState.longitude" type="number" step="0.000001" :min="-180" :max="180" />
         </a-form-item>
         <a-form-item>
+          <a-button type="text" @click="clear">Cancel</a-button>
           <a-button type="primary" html-type="submit">Submit</a-button>
         </a-form-item>
       </a-form>
@@ -183,83 +187,15 @@ const handleFinish = () => {
   </a-dropdown>
 </template>
 
-<!-- <template>
- editEnabled: {{ JSON.stringify(editEnabled) }}
- <div @click="showPopup">
-    TEST 
-  <a-popover
-    v-model:visible="isPopupOpen"
-    placement="bottomLeft"
-    :style="{ maxWidth: '100px' }"
-    trigger="click"
-    :destroy-on-close="true"
-    :onabort="{ onAbort }"
-    
-    onloadstart="onAbort"
-    destroy-tooltip-on-hide="true"
-  >
-    <template #content>
-      <div>
-        <div :style="{ display: 'flex', flexDirection: 'column' }">
-          <label for="latitude">latitude</label>
-          <a-input id="latitude" v-model="latitudeInput" />
-          <span v-else class="text-sm">{{ latitudeInput }}</span> 
-          <label for="longitude">longitude</label>
-          <a-input id="longitude" v-model="longitudeInput" />
-           <span v-else class="text-sm">{{ longitudeInput }}</span> 
-          <a-button type="primary" @click="onSubmit">Ok</a-button>
-        </div>
-      </div>
-    </template>
-    <div :style="{ width: '100%' }">No data yet</div>
-  </a-popover>
-  </div> 
-</template> -->
-
-<!-- <template>
-  <a-dropdown :trigger="['click']">
-    <a class="ant-dropdown-link" @click.prevent>
-      Click me
-      <DownOutlined />
-    </a>
-    <template #overlay>
-      <div :style="{ display: 'flex', flexDirection: 'column' }">
-        <label for="latitude">latitude</label>
-        <a-input id="latitude" v-model="latitudeInput" />
-        <span class="text-sm">{{ latitudeInput }}</span>
-        <label for="longitude">longitude</label>
-        <a-input id="longitude" v-model="longitudeInput" />
-        <span class="text-sm">{{ longitudeInput }}</span>
-        <a-button type="primary" @click="onSubmit">Ok</a-button>
-      </div>
-    </template>
-  </a-dropdown>
-</template> -->
-<!-- <template>
-  <a-dropdown >
-    <a-button>click</a-button>
-    <template #overlay>
-      <a-form v-model="vModel">
-        <a-form-item label="Field A">
-          <a-input v-model="latitudeInput" placeholder="input placeholder" />
-        </a-form-item>
-        <a-form-item label="Field B">
-          <a-input v-model="longitudeInput" placeholder="input placeholder" />
-        </a-form-item>
-        <a-form-item>
-          <a-button type="primary">Submit</a-button>
-        </a-form-item>
-      </a-form>
-    </template>
-  </a-dropdown>
-</template> -->
-
 <style scoped lang="scss">
 input[type='number']:focus {
   @apply ring-transparent;
 }
 input {
-  margin-bottom: 8px;
-  max-width: 200px;
+  max-width: 150px;
+}
+.heja {
+  background-color: red;
+  padding-top: 2rem;
 }
 </style>

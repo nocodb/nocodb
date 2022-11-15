@@ -97,7 +97,7 @@ class BaseModelSqlv2 {
 
     await this.selectObject({ qb });
 
-    qb.where(this.model.primaryKey.column_name, id);
+    qb.where(_wherePk(this.model.primaryKeys, id));
 
     const data = (await this.extractRawQueryAndExec(qb))?.[0];
 
@@ -390,7 +390,7 @@ class BaseModelSqlv2 {
         dbDriver: this.dbDriver,
       });
       await parentTable.getColumns();
-      
+
       const childTn = this.getTnPath(childTable);
       const parentTn = this.getTnPath(parentTable);
 
@@ -1628,9 +1628,9 @@ class BaseModelSqlv2 {
   private getTnPath(tb: Model) {
     const schema = (this.dbDriver as any).searchPath?.();
     const table =
-    this.isMssql && schema
-      ? this.dbDriver.raw('??.??', [schema, tb.table_name])
-      : tb.table_name;
+      this.isMssql && schema
+        ? this.dbDriver.raw('??.??', [schema, tb.table_name])
+        : tb.table_name;
     return table;
   }
 
@@ -1826,12 +1826,16 @@ class BaseModelSqlv2 {
       // refer : https://www.sqlite.org/limits.html
       const chunkSize = this.isSqlite ? 10 : _chunkSize;
 
-      const response = (this.isPg || this.isMssql) ?
-        await this.dbDriver
-          .batchInsert(this.model.table_name, insertDatas, chunkSize)
-          .returning(this.model.primaryKey?.column_name) :
-        await this.dbDriver
-          .batchInsert(this.model.table_name, insertDatas, chunkSize);
+      const response =
+        this.isPg || this.isMssql
+          ? await this.dbDriver
+              .batchInsert(this.model.table_name, insertDatas, chunkSize)
+              .returning(this.model.primaryKey?.column_name)
+          : await this.dbDriver.batchInsert(
+              this.model.table_name,
+              insertDatas,
+              chunkSize
+            );
 
       await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
 
@@ -2236,11 +2240,13 @@ class BaseModelSqlv2 {
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
       // skip validation if `validate` is undefined or false
-      if (!column?.meta?.validate) continue;
+      if (!column?.meta?.validate && !column?.validate) continue;
 
       const validate = column.getValidators();
       const cn = column.column_name;
+      const columnTitle = column.title;
       if (!validate) continue;
+
       const { func, msg } = validate;
       for (let j = 0; j < func.length; ++j) {
         const fn =
@@ -2249,17 +2255,17 @@ class BaseModelSqlv2 {
               ? customValidators[func[j]]
               : Validator[func[j]]
             : func[j];
+        const columnValue = columns?.[cn] || columns?.[columnTitle];
         const arg =
-          typeof func[j] === 'string' ? columns[cn] + '' : columns[cn];
+          typeof func[j] === 'string' ? columnValue + '' : columnValue;
         if (
-          columns[cn] !== null &&
-          columns[cn] !== undefined &&
-          columns[cn] !== '' &&
-          cn in columns &&
+          ![null, undefined, ''].includes(columnValue) &&
           !(fn.constructor.name === 'AsyncFunction' ? await fn(arg) : fn(arg))
         ) {
           NcError.badRequest(
-            msg[j].replace(/\{VALUE}/g, columns[cn]).replace(/\{cn}/g, cn)
+            msg[j]
+              .replace(/\{VALUE}/g, columnValue)
+              .replace(/\{cn}/g, columnTitle)
           );
         }
       }

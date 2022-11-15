@@ -194,7 +194,7 @@ onBeforeUnmount(reset)
           <div
             v-if="isOpen && !isSharedBase"
             v-e="['c:navbar:home']"
-            data-cy="nc-noco-brand-icon"
+            data-testid="nc-noco-brand-icon"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
             @click="navigateTo('/')"
           >
@@ -229,7 +229,7 @@ onBeforeUnmount(reset)
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
-              data-nc="nc-project-menu"
+              data-testid="nc-project-menu"
               class="group cursor-pointer flex gap-1 items-center nc-project-menu overflow-hidden"
             >
               <template v-if="isOpen">

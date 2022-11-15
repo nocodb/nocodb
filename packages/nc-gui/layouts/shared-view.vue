@@ -53,7 +53,7 @@ export default {
           <div class="flex justify-center items-center">
             <div class="flex items-center gap-2 ml-3 text-white">
               <template v-if="isLoading">
-                <span class="text-white" data-nc="nc-loading">{{ $t('general.loading') }}</span>
+                <span class="text-white" data-testid="nc-loading">{{ $t('general.loading') }}</span>
 
                 <MdiReload :class="{ 'animate-infinite animate-spin ': isLoading }" />
               </template>

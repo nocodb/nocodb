@@ -37,7 +37,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const { allRoles } = useRoles()
 
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
-  if (!state.signedIn && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
+  if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) await tryGoogleAuth(api, state.signIn)
 
   /** if public allow all visitors */
   if (to.meta.public) return

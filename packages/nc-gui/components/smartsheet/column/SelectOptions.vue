@@ -137,7 +137,7 @@ watch(inputs, () => {
               v-if="!isKanban"
               small
               class="nc-child-draggable-icon handle"
-              :data-nc="`select-option-column-handle-icon-${element.title}`"
+              :data-testid="`select-option-column-handle-icon-${element.title}`"
             />
             <a-dropdown
               v-model:visible="colorMenus[index]"
@@ -162,14 +162,14 @@ watch(inputs, () => {
               ref="inputs"
               v-model:value="element.title"
               class="caption"
-              :data-nc="`select-column-option-input-${index}`"
+              :data-testid="`select-column-option-input-${index}`"
               @change="optionChanged(element.id)"
             />
 
             <MdiClose
               class="ml-2 hover:!text-black"
               :style="{ color: 'red' }"
-              :data-nc="`select-column-option-remove-${index}`"
+              :data-testid="`select-column-option-remove-${index}`"
               @click="removeOption(index)"
             />
           </div>

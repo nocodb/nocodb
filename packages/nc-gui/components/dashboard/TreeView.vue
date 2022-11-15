@@ -331,13 +331,13 @@ const onSearchCloseIconClick = () => {
                 class="nc-tree-item text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
-                :data-nc="`tree-view-table-${table.title}`"
+                :data-testid="`tree-view-table-${table.title}`"
                 @click="addTableTab(table)"
               >
                 <GeneralTooltip class="pl-5 pr-3 py-2" modifier-key="Alt">
                   <template #title>{{ table.table_name }}</template>
                   <div class="flex items-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
-                    <div class="flex w-auto" :data-nc="`tree-view-table-draggable-handle-${table.title}`">
+                    <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
                       <MdiDragVertical
                         v-if="isUIAllowed('treeview-drag-n-drop')"
                         :class="`nc-child-draggable-icon-${table.title}`"
@@ -366,14 +366,14 @@ const onSearchCloseIconClick = () => {
                       <template #overlay>
                         <a-menu class="!py-0 rounded text-sm">
                           <a-menu-item v-if="isUIAllowed('table-rename')" @click="openRenameTableDialog(table)">
-                            <div class="nc-project-menu-item" :data-nc="`sidebar-table-rename-${table.title}`">
+                            <div class="nc-project-menu-item" :data-testid="`sidebar-table-rename-${table.title}`">
                               {{ $t('general.rename') }}
                             </div>
                           </a-menu-item>
 
                           <a-menu-item
                             v-if="isUIAllowed('table-delete')"
-                            :data-nc="`sidebar-table-delete-${table.title}`"
+                            :data-testid="`sidebar-table-delete-${table.title}`"
                             @click="deleteTable(table)"
                           >
                             <div class="nc-project-menu-item">

@@ -14,6 +14,7 @@ on:
 jobs:
   playwright:
     runs-on: ubuntu-20.04
+    timeout-minutes: 30
     steps:
       # Reference: https://github.com/pierotofy/set-swap-space/blob/master/action.yml
       - name: Set 5gb swap
@@ -55,34 +56,36 @@ jobs:
       - name: setup mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./
-        run: docker-compose -f ./packages/nc-gui/tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d &
+        run: docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d &
       - name: setup pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./
-        run: docker-compose -f ./packages/nc-gui/tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
+        run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
       - name: setup pg for quick tests
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./
-        run: docker-compose -f ./packages/nc-gui/tests/playwright/scripts/docker-compose-pg-pw-quick.yml up -d &
+        run: docker-compose -f ./tests/playwright/scripts/docker-compose-pg-pw-quick.yml up -d &
       - name: run frontend
         working-directory: ./packages/nc-gui
         run: npm run ci:run
       - name: Run backend
         working-directory: ./packages/nocodb
-        run: npm run ci:run &
+        run: |
+          npm install
+          npm run watch:run:playwright > ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
       - name: Cache playwright npm modules
         uses: actions/cache@v3
         id: playwright-cache
         with:
           path: |
-            **/playwright/node_modules
-          key: cache-nc-playwright-${{ hashFiles('**/playwright/package-lock.json') }}
+            **/tests/playwright/node_modules
+          key: cache-nc-playwright-${{ hashFiles('**/tests/playwright/package-lock.json') }}
       - name: Install dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        working-directory: ./packages/nc-gui/tests/playwright
+        working-directory: ./tests/playwright
         run: npm install
       - name: Install Playwright Browsers
-        working-directory: ./packages/nc-gui/tests/playwright
+        working-directory: ./tests/playwright
         run: npx playwright install chromium --with-deps
       - name: Wait for backend
         run: |
@@ -92,7 +95,7 @@ jobs:
           done
 
       - name: Run Playwright tests
-        working-directory: ./packages/nc-gui/tests/playwright
+        working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
 
       # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
@@ -102,26 +105,43 @@ jobs:
         run: |
           kill -9 $(lsof -t -i:8080)
           npm run watch:run:playwright:pg:cyquick &
-          cd ../nc-gui/tests/playwright
-          npm run test:quick
       - name: Run quick server and tests (sqlite)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
         working-directory: ./packages/nocodb
         run: | 
           kill -9 $(lsof -t -i:8080)
-          npm run watch:run:playwright:quick &
-          cd ../nc-gui/tests/playwright
-          npm run test:quick
-
+          npm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
+      - name: Wait for backend & run quick tests
+        if: ${{ inputs.db == 'sqlite' }}
+        working-directory: ./tests/playwright
+        run: |
+          while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do
+            printf '.'
+            sleep 2
+          done
+          PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
+      - uses: actions/upload-artifact@v3
+        if: ${{ inputs.db == 'sqlite' }}
+        with:
+          name: quick-backend-log-${{ inputs.shard }}
+          path: ./packages/nocodb/quick_${{ inputs.shard }}_test_backend.log
+          retention-days: 2
+      - uses: actions/upload-artifact@v3
+        if: ${{ inputs.db == 'sqlite' }}
+        with:
+          name: playwright-report-quick-${{ inputs.shard }}
+          path: ./tests/playwright/playwright-report-quick/
+          retention-days: 2
+          
       - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: playwright-report-${{ inputs.db }}-${{ inputs.shard }}
-          path: ./packages/nc-gui/tests/playwright/playwright-report/
+          path: ./tests/playwright/playwright-report/
           retention-days: 2
       - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: backend-logs-${{ inputs.db }}-${{ inputs.shard }}
-          path: ./packages/nocodb/mysql_test_backend.log
+          path: ./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log
           retention-days: 2

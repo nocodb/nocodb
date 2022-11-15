@@ -155,7 +155,7 @@ watch(isOpen, (n, _o) => {
       v-for="op of options"
       :key="op.id"
       :value="op.title"
-      :data-nc="`select-option-${column.title}-${rowIndex}`"
+      :data-testid="`select-option-${column.title}-${rowIndex}`"
       @click.stop
     >
       <a-tag class="rounded-tag" :color="op.color">

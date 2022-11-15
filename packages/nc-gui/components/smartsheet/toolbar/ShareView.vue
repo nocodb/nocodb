@@ -41,7 +41,7 @@ const passwordProtected = ref(false)
 const shared = ref<SharedView>({ id: '', meta: {}, password: undefined })
 
 const withRTL = computed({
-  get: () => !!shared.value.meta.locale,
+  get: () => !!shared.value.meta.rtl,
   set: (rtl) => {
     shared.value.meta = { ...shared.value.meta, rtl }
     updateSharedViewMeta()

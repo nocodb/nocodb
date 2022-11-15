@@ -117,6 +117,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       for (const file of selectedFiles) {
         try {
           const data = await api.storage.uploadWithUpdate(
+            rowId,
             {
               path: [NOCO, project.value.title, meta.value?.title, column.value?.title].join('/'),
             },
@@ -124,7 +125,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               files: file,
               json: '{}',
             },
-            rowId,
           )
 
           newAttachments.push(...data)

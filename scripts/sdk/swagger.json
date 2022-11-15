@@ -6218,6 +6218,50 @@
         ]
       }
     },
+    "/api/v1/db/storage/upload-with-update/{rowId}": {
+      "post": {
+        "summary": "Attachment",
+        "operationId": "storage-upload-with-update",
+        "responses": {},
+        "tags": [
+          "Storage"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {},
+                  "json": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "description": ""
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "path",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "rowId",
+            "in": "path",
+            "required": true
+          }
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}/users/{userId}/resend-invite": {
       "parameters": [
         {

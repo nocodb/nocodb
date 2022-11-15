@@ -4197,5 +4197,33 @@ export class Api<
         type: ContentType.Json,
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags Storage
+     * @name UploadWithUpdate
+     * @summary Attachment
+     * @request POST:/api/v1/db/storage/upload-with-update/{rowId}
+     */
+    uploadWithUpdate: (
+      rowId: string,
+      query: {
+        path: string;
+      },
+      data: {
+        files?: any;
+        json?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/storage/upload-with-update/${rowId}`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.FormData,
+        ...params,
+      }),
   };
 }

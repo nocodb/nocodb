@@ -14,6 +14,7 @@ import {
   ref,
   useEventListener,
   watch,
+  enumColor,
 } from '#imports'
 
 interface Props {
@@ -39,12 +40,24 @@ const isOpen = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
+const { $api } = useNuxtApp()
+
+const searchVal = ref()
+
+const isOptionMissing = computed(() => {
+  return (options.value ?? []).every((op) => op.title !== searchVal.value)
+})
+
 const vModel = computed({
   get: () => modelValue,
   set: (val) => {
+    if (isOptionMissing.value && val === searchVal.value) {
+      return addIfMissingAndSave()
+    }
     emit('update:modelValue', val || null)
   },
 })
+
 
 const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
@@ -68,8 +81,8 @@ const handleKeys = async (e: KeyboardEvent) => {
       break
     case 'Enter':
       e.preventDefault()
-      if (await addIfMissingAndSave())
-        e.stopPropagation()
+      // if (await addIfMissingAndSave())
+      //   e.stopPropagation()
       break
   }
 }
@@ -104,46 +117,36 @@ useSelectedCellKeyupListener(active, (e) => {
   }
 })
 
-const val = ref()
-const { $api } = useNuxtApp()
 
 async function addIfMissingAndSave() {
-  const searchInput = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')
 
-  if(!searchInput) return false
+  if (!searchVal.value) return false
 
-  const newOptValue = searchInput?.value
+  const newOptValue = searchVal.value
+  searchVal.value = ''
 
   if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
-    options.value.push({ title: newOptValue, value: newOptValue })
+    options.value.push({
+      title: newOptValue,
+      value: newOptValue,
+      color: enumColor.light[(options.value.length + 1) % enumColor.light.length],
+    })
     column.value.colOptions = { options: options.value.map(({ value: _, ...rest }) => rest) }
 
     await $api.dbTableColumn.update(column.value?.id as string, {
       ...column.value,
     })
+    vModel.value = newOptValue
   }
+}
+
+
+const search = () => {
+  searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
 </script>
 
 <template>
-  <!--  <a-auto-complete
-      ref="aselect"
-      v-model:value="val"
-      class="w-full h-fill"
-      dropdown-class-name="nc-dropdown-single-select-cell"
-      :options="options"
-      @select="vModel = val"
-      :defaultActiveFirstOption="false"
-      @keydown.enter.prevent.stop="addIfMissingAndSave"
-    >
-      <template #option="item">
-        <div style="display: flex; justify-content: space-between">
-          {{ item.value }}
-        </div>
-      </template>
-      -->
-
-
   <a-select
     ref="aselect"
     v-model:value="vModel"
@@ -155,6 +158,9 @@ async function addIfMissingAndSave() {
     :show-arrow="!readOnly && (active || editable || vModel === null)"
     :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
     @select="isOpen = false"
+    @keydown.stop
+    show-search
+    @search="search"
     @keydown.enter.stop
     @click="isOpen = (active || editable) && !isOpen"
   >
@@ -179,6 +185,15 @@ async function addIfMissingAndSave() {
         </span>
       </a-tag>
     </a-select-option>
+
+
+    <a-select-option v-if="searchVal && isOptionMissing" :key="searchVal" :value="searchVal">
+      <div class="flex gap-2 text-gray-500 items-center">
+        <MdiPlusThick class="min-w-4" />
+        <div class="text-xs whitespace-normal"> Create new option named <strong>{{ searchVal }}</strong></div>
+      </div>
+    </a-select-option>
+
   </a-select>
 </template>
 

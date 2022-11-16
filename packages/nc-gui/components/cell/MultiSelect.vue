@@ -5,7 +5,6 @@ import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
-  EditModeInj,
   IsKanbanInj,
   ReadonlyInj,
   computed,
@@ -16,8 +15,7 @@ import {
   useEventListener,
   useProject,
   useSelectedCellKeyupListener,
-  watch,
-  useMetas
+  watch,enumColor,useMetas
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -29,6 +27,8 @@ interface Props {
 const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
+
+const emptyOption = Symbol('emptyOption')
 
 const { isMysql } = useProject()
 
@@ -47,6 +47,14 @@ const aselect = ref<typeof AntSelect>()
 const isOpen = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
+
+const searchVal = ref()
+const { $api } = useNuxtApp()
+const { getMeta } = useMetas()
+
+const isOptionMissing = computed(() => {
+  return (options.value ?? []).every((op) => op.title !== searchVal.value)
+})
 
 const options = computed<(SelectOptionType & { value?: string })[]>(() => {
   if (column?.value.colOptions) {
@@ -72,6 +80,9 @@ const vModel = computed({
     }, [] as string[])
   },
   set: (val) => {
+    if (isOptionMissing.value && val[val.length - 1] === searchVal.value) {
+      return addIfMissingAndSave()
+    }
     emit('update:modelValue', val.length === 0 ? null : val.join(','))
   },
 })
@@ -81,13 +92,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-            const opa = options.value.find((el) => el.title === a)
-            const opb = options.value.find((el) => el.title === b)
-            if (opa && opb) {
-              return opa.order! - opb.order!
-            }
-            return 0
-          })
+          const opa = options.value.find((el) => el.title === a)
+          const opb = options.value.find((el) => el.title === b)
+          if (opa && opb) {
+            return opa.order! - opb.order!
+          }
+          return 0
+        })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -162,20 +173,16 @@ useSelectedCellKeyupListener(active, (e) => {
   }
 })
 
-const searchVal = ref()
-const { $api } = useNuxtApp()
-const { getMeta } = useMetas()
 
 async function addIfMissingAndSave() {
-  const searchInput = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')
+  if (!searchVal) return false
 
-  if (!searchInput) return false
-
-  const newOptValue = searchInput?.value
+  const newOptValue = searchVal?.value
 
   if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
     const newOptions = [...options.value]
-    newOptions.push({ title: newOptValue, value: newOptValue })
+    newOptions.push({ title: newOptValue, value: newOptValue,
+      color: enumColor.light[(options.value.length + 1) % enumColor.light.length], })
     column.value.colOptions = { options: newOptions.map(({ value: _, ...rest }) => rest) }
 
     await $api.dbTableColumn.update(column.value?.id as string, {
@@ -184,8 +191,12 @@ async function addIfMissingAndSave() {
     await getMeta(column.value.fk_model_id!, true)
 
     vModel.value = [...vModel.value, newOptValue]
-    searchInput.value = ''
+    searchVal.value = ''
   }
+}
+
+const search = () => {
+  searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
 </script>
 
@@ -203,7 +214,8 @@ async function addIfMissingAndSave() {
     :disabled="readOnly"
     :class="{ '!ml-[-8px]': readOnly }"
     :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
-    @keydown.enter.stop
+    @search="search"
+    @keydown.stop
     @click="isOpen = (active || editable) && !isOpen"
   >
     <a-select-option
@@ -226,6 +238,13 @@ async function addIfMissingAndSave() {
           {{ op.title }}
         </span>
       </a-tag>
+    </a-select-option>
+
+    <a-select-option v-if="searchVal && isOptionMissing" :key="searchVal" :value="searchVal">
+      <div class="flex gap-2 text-gray-500 items-center">
+        <MdiPlusThick class="min-w-4" />
+        <div class="text-xs whitespace-normal"> Create new option named <strong>{{ searchVal }}</strong></div>
+      </div>
     </a-select-option>
 
     <template #tagRender="{ value: val, onClose }">
@@ -301,6 +320,3 @@ async function addIfMissingAndSave() {
   @apply "flex overflow-hidden";
 }
 </style>
-<!--
-
--->

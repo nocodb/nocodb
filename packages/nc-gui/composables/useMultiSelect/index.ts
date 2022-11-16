@@ -1,6 +1,6 @@
 import type { MaybeRef } from '@vueuse/core'
 import { UITypes } from 'nocodb-sdk'
-import { message, reactive, unref, useCopy, useEventListener, useI18n } from '#imports'
+import { message, reactive, ref, unref, useCopy, useEventListener, useI18n } from '#imports'
 
 interface SelectedBlock {
   row: number | null
@@ -13,15 +13,18 @@ interface SelectedBlock {
 export function useMultiSelect(
   fields: MaybeRef<any[]>,
   data: MaybeRef<any[]>,
-  editEnabled: MaybeRef<boolean>,
+  _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
   clearCell: Function,
   makeEditable: Function,
   scrollToActiveCell?: (row?: number | null, col?: number | null) => void,
+  keyEventHandler?: Function,
 ) {
   const { t } = useI18n()
 
   const { copy } = useCopy()
+
+  const editEnabled = ref(_editEnabled)
 
   const selected = reactive<SelectedBlock>({ row: null, col: null })
 
@@ -38,6 +41,7 @@ export function useMultiSelect(
 
   function selectCell(row: number, col: number) {
     clearRangeRows()
+    editEnabled.value = false
     selected.row = row
     selected.col = col
   }
@@ -126,6 +130,11 @@ export function useMultiSelect(
   })
 
   const onKeyDown = async (e: KeyboardEvent) => {
+    // invoke the keyEventHandler if provided and return if it returns true
+    if (await keyEventHandler?.(e)) {
+      return
+    }
+
     if (
       !isNaN(selectedRows.startRow) &&
       !isNaN(selectedRows.startCol) &&
@@ -148,16 +157,20 @@ export function useMultiSelect(
         if (e.shiftKey) {
           if (selected.col > 0) {
             selected.col--
+            editEnabled.value = false
           } else if (selected.row > 0) {
             selected.row--
             selected.col = unref(columnLength) - 1
+            editEnabled.value = false
           }
         } else {
           if (selected.col < unref(columnLength) - 1) {
             selected.col++
+            editEnabled.value = false
           } else if (selected.row < unref(data).length - 1) {
             selected.row++
             selected.col = 0
+            editEnabled.value = false
           }
         }
         scrollToActiveCell?.()
@@ -170,11 +183,9 @@ export function useMultiSelect(
         break
       /** on delete key press clear cell */
       case 'Delete':
-        if (!unref(editEnabled)) {
-          e.preventDefault()
-          clearRangeRows()
-          await clearCell(selected as { row: number; col: number })
-        }
+        e.preventDefault()
+        clearRangeRows()
+        await clearCell(selected as { row: number; col: number })
         break
       /** on arrow key press navigate through cells */
       case 'ArrowRight':
@@ -183,6 +194,7 @@ export function useMultiSelect(
         if (selected.col < unref(columnLength) - 1) {
           selected.col++
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
       case 'ArrowLeft':
@@ -192,6 +204,7 @@ export function useMultiSelect(
         if (selected.col > 0) {
           selected.col--
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
       case 'ArrowUp':
@@ -201,6 +214,7 @@ export function useMultiSelect(
         if (selected.row > 0) {
           selected.row--
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
       case 'ArrowDown':
@@ -210,6 +224,7 @@ export function useMultiSelect(
         if (selected.row < unref(data).length - 1) {
           selected.row++
           scrollToActiveCell?.()
+          editEnabled.value = false
         }
         break
       default:

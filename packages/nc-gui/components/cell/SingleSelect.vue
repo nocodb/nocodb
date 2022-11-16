@@ -3,6 +3,7 @@ import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
 import { ActiveCellInj, ColumnInj, IsKanbanInj, ReadonlyInj, computed, inject, ref, useEventListener, watch } from '#imports'
+import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
 
 interface Props {
   modelValue?: string | undefined
@@ -44,15 +45,6 @@ const options = computed<SelectOptionType[]>(() => {
   return []
 })
 
-const handleKeys = (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Escape':
-      e.preventDefault()
-      isOpen.value = false
-      break
-  }
-}
-
 const handleClose = (e: MouseEvent) => {
   if (aselect.value && !aselect.value.$el.contains(e.target)) {
     isOpen.value = false
@@ -63,7 +55,24 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose)
 
 watch(isOpen, (n, _o) => {
-  if (!n) aselect.value?.$el.blur()
+  if (!n) {
+    aselect.value?.$el?.querySelector('input')?.blur()
+  } else {
+    aselect.value?.$el?.querySelector('input')?.focus()
+  }
+})
+
+useSelectedCellKeyupListener(active, (e) => {
+  switch (e.key) {
+    case 'Escape':
+      isOpen.value = false
+      break
+    case 'Enter':
+      if (active.value && !isOpen.value) {
+        isOpen.value = true
+      }
+      break
+  }
 })
 </script>
 
@@ -77,10 +86,10 @@ watch(isOpen, (n, _o) => {
     :open="isOpen"
     :disabled="readOnly"
     :show-arrow="!readOnly && (active || vModel === null)"
-    dropdown-class-name="nc-dropdown-single-select-cell"
+    :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
     @select="isOpen = false"
-    @keydown="handleKeys"
-    @click="isOpen = !isOpen"
+    @keydown.enter.stop
+    @click="isOpen = active && !isOpen"
   >
     <a-select-option
       v-for="op of options"
@@ -110,9 +119,11 @@ watch(isOpen, (n, _o) => {
 .rounded-tag {
   @apply py-0 px-[12px] rounded-[12px];
 }
+
 :deep(.ant-tag) {
   @apply "rounded-tag";
 }
+
 :deep(.ant-select-clear) {
   opacity: 1;
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ReadonlyInj, inject, ref, useProject, watch } from '#imports'
+import { ActiveCellInj, ReadonlyInj, inject, ref, useProject, useSelectedCellKeyupListener, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -14,6 +14,10 @@ const emit = defineEmits(['update:modelValue'])
 const { isMysql } = useProject()
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 let isDateInvalid = $ref(false)
 
@@ -56,6 +60,21 @@ watch(
   },
   { flush: 'post' },
 )
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      open.value = true
+      break
+    case 'Escape':
+      if (open.value) {
+        e.stopPropagation()
+        open.value = false
+      }
+      break
+  }
+})
 </script>
 
 <template>
@@ -68,10 +87,10 @@ watch(
     :placeholder="isDateInvalid ? 'Invalid date' : ''"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :dropdown-class-name="`${randomClass} nc-picker-datetime`"
-    :open="readOnly || (localState && isPk) ? false : open"
+    :dropdown-class-name="`${randomClass} nc-picker-datetime ${open ? 'active' : ''}`"
+    :open="readOnly || (localState && isPk) ? false : open && (active || editable)"
     :disabled="readOnly || (localState && isPk)"
-    @click="open = !open"
+    @click="open = (active || editable) && !open"
     @ok="open = !open"
   >
     <template #suffixIcon></template>

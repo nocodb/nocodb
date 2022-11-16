@@ -137,6 +137,7 @@ export default {
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
     class="nc-drawer-expanded-form"
+    :class="{ 'active': isExpanded }"
   >
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 

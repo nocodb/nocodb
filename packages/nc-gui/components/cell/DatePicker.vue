@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ColumnInj, ReadonlyInj, computed, inject, ref, watch } from '#imports'
+import {
+  ActiveCellInj,
+  ColumnInj,
+  EditModeInj,
+  ReadonlyInj,
+  computed,
+  inject,
+  ref,
+  useSelectedCellKeyupListener,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -14,6 +24,10 @@ const emit = defineEmits(['update:modelValue'])
 const columnMeta = inject(ColumnInj, null)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 let isDateInvalid = $ref(false)
 
@@ -57,6 +71,21 @@ watch(
 )
 
 const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      open.value = true
+      break
+    case 'Escape':
+      if (open.value) {
+        e.stopPropagation()
+        open.value = false
+      }
+      break
+  }
+})
 </script>
 
 <template>
@@ -68,9 +97,9 @@ const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
     :placeholder="placeholder"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :dropdown-class-name="`${randomClass} nc-picker-date`"
-    :open="readOnly || (localState && isPk) ? false : open"
-    @click="open = !open"
+    :dropdown-class-name="`${randomClass} nc-picker-date ${open ? 'active' : ''}`"
+    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
+    @click="open = (active || editable) && !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

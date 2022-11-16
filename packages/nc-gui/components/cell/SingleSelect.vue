@@ -60,11 +60,16 @@ const options = computed<(SelectOptionType & { value: string })[]>(() => {
   return []
 })
 
-const handleKeys = (e: KeyboardEvent) => {
+const handleKeys = async (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Escape':
       e.preventDefault()
       isOpen.value = false
+      break
+    case 'Enter':
+      e.preventDefault()
+      if (await addIfMissingAndSave())
+        e.stopPropagation()
       break
   }
 }
@@ -102,8 +107,12 @@ useSelectedCellKeyupListener(active, (e) => {
 const val = ref()
 const { $api } = useNuxtApp()
 
-const addIfMissingAndSave = async () => {
-  const newOptValue = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
+async function addIfMissingAndSave() {
+  const searchInput = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')
+
+  if(!searchInput) return false
+
+  const newOptValue = searchInput?.value
 
   if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
     options.value.push({ title: newOptValue, value: newOptValue })
@@ -117,6 +126,24 @@ const addIfMissingAndSave = async () => {
 </script>
 
 <template>
+  <!--  <a-auto-complete
+      ref="aselect"
+      v-model:value="val"
+      class="w-full h-fill"
+      dropdown-class-name="nc-dropdown-single-select-cell"
+      :options="options"
+      @select="vModel = val"
+      :defaultActiveFirstOption="false"
+      @keydown.enter.prevent.stop="addIfMissingAndSave"
+    >
+      <template #option="item">
+        <div style="display: flex; justify-content: space-between">
+          {{ item.value }}
+        </div>
+      </template>
+      -->
+
+
   <a-select
     ref="aselect"
     v-model:value="vModel"

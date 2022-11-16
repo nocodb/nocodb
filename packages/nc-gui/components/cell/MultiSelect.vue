@@ -48,7 +48,7 @@ const isOpen = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const options = computed<SelectOptionType[]>(() => {
+const options = computed<(SelectOptionType & { value?: string })[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? (column.value.colOptions as SelectOptionsType).options.filter((el: SelectOptionType) => el.title !== '') || []
@@ -164,10 +164,15 @@ useSelectedCellKeyupListener(active, (e) => {
 
 const searchVal = ref()
 const { $api } = useNuxtApp()
-const {getMeta} = useMetas()
+const { getMeta } = useMetas()
 
 async function addIfMissingAndSave() {
-  const newOptValue = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
+  const searchInput = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')
+
+  if (!searchInput) return false
+
+  const newOptValue = searchInput?.value
+
   if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
     const newOptions = [...options.value]
     newOptions.push({ title: newOptValue, value: newOptValue })
@@ -179,6 +184,7 @@ async function addIfMissingAndSave() {
     await getMeta(column.value.fk_model_id!, true)
 
     vModel.value = [...vModel.value, newOptValue]
+    searchInput.value = ''
   }
 }
 </script>

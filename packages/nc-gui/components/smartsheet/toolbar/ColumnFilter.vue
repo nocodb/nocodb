@@ -83,6 +83,10 @@ const types = computed(() => {
   }, {})
 })
 
+const getColumn = (filter: Filter) => {
+  return columns.value?.find(col => col.id === filter.fk_column_id)
+}
+
 watch(
   () => activeView.value?.id,
   (n, o) => {
@@ -170,11 +174,9 @@ defineExpose({
               class="nc-filter-item-remove-btn text-grey self-center"
               @click.stop="deleteFilter(filter, i)"
             />
-
             <span v-else />
 
             <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
-
             <a-select
               v-else
               v-model:value="filter.logical_op"
@@ -198,7 +200,7 @@ defineExpose({
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
-              @change="saveOrUpdate(filter, i)"
+              @change="filter.value = null; saveOrUpdate(filter, i)"
             />
 
             <a-select
@@ -231,14 +233,18 @@ defineExpose({
               @change="saveOrUpdate(filter, i)"
             />
 
-            <a-input
+            <LazySmartsheetToolbarFilterInput
               v-else
-              :key="`${i}_7`"
-              v-model:value="filter.value"
               class="nc-filter-value-select"
-              :disabled="filter.readOnly"
+              :column="getColumn(filter)"
+              :filter="filter"
               @click.stop
-              @input="saveOrUpdate(filter, i)"
+              @updateFilterValue="
+                (value) => {
+                  filter.value = value
+                  saveOrUpdate(filter, i)
+                }
+              "
             />
           </template>
         </template>

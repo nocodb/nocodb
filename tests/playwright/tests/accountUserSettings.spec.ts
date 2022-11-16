@@ -46,11 +46,13 @@ test.describe('App settings', () => {
     await accountSettingsPage.toggleInviteOnlyCheckbox();
     await accountSettingsPage.checkInviteOnlySignupCheckbox(false);
 
+    await accountPage.signOut();
+
     await signupPage.goto();
 
     await signupPage.signUp({
       email: 'test-user-1@nocodb.com',
-      password: 'Password123.'
+      password: 'Password123.',
     });
   });
 });

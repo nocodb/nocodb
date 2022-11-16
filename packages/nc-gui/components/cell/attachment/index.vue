@@ -153,7 +153,8 @@ watch(
         :target="currentCellRef"
         class="nc-attachment-cell-dropzone text-white text-lg ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
       >
-        <MaterialSymbolsFileCopyOutline class="text-accent" /> Drop here
+        <MaterialSymbolsFileCopyOutline class="text-accent" />
+        Drop here
       </general-overlay>
     </template>
 
@@ -161,12 +162,13 @@ watch(
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
       class="group cursor-pointer flex gap-1 items-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
+      data-nc="attachment-cell-file-picker-button"
       @click.stop="open"
     >
       <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
       <a-tooltip v-else placement="bottom">
-        <template #title> Click or drop a file into cell </template>
+        <template #title> Click or drop a file into cell</template>
 
         <div class="flex items-center gap-2">
           <MaterialSymbolsAttachFile
@@ -225,7 +227,7 @@ watch(
         <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <a-tooltip v-else placement="bottom">
-          <template #title> View attachments </template>
+          <template #title> View attachments</template>
 
           <MdiArrowExpand
             class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"

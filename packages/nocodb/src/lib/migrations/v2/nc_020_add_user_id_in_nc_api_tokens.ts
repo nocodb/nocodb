@@ -1,4 +1,4 @@
-import Knex from 'knex';
+import { Knex } from 'knex';
 
 const up = async knex => {
   await knex.schema.alterTable('nc_api_tokens', table => {

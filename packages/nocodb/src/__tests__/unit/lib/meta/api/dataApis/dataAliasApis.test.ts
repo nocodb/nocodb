@@ -49,11 +49,10 @@ describe('getFindOne', () => {
   afterEach(() => {
     sinon.restore();
   }),
-
-  it('calls Base.get to find base', async () => {
-    await getFindOne(model, view, req);
-    expect(baseGetFake.calledWith(model.base_id)).to.be.true;
-  });
+    it('calls Base.get to find base', async () => {
+      await getFindOne(model, view, req);
+      expect(baseGetFake.calledWith(model.base_id)).to.be.true;
+    });
 
   it('call Model.getBaseModelSQL to find baseModel', async () => {
     await getFindOne(model, view, req);

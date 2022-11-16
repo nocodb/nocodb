@@ -1,4 +1,4 @@
-import Knex from 'knex';
+import { Knex } from 'knex';
 
 const up = async knex => {
   await knex.schema.table('nc_col_relations_v2', table => {

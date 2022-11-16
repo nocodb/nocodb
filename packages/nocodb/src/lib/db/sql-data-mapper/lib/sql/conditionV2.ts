@@ -1,6 +1,6 @@
 import Filter from '../../../../models/Filter';
 import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
-import { QueryBuilder } from 'knex';
+import { Knex } from 'knex';
 import { XKnex } from '../../index';
 import Column from '../../../../models/Column';
 import LookupColumn from '../../../../models/LookupColumn';
@@ -14,7 +14,7 @@ import { sanitize } from './helpers/sanitize';
 
 export default async function conditionV2(
   conditionObj: Filter | Filter[],
-  qb: QueryBuilder,
+  qb: Knex.QueryBuilder,
   knex: XKnex
 ) {
   if (!conditionObj || typeof conditionObj !== 'object') {
@@ -127,7 +127,7 @@ const parseConditionV2 = async (
           )
         )(selectQb);
 
-        return (qbP: QueryBuilder) => {
+        return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
             qbP.whereNotIn(parentColumn.column_name, selectQb);
           else qbP.whereIn(parentColumn.column_name, selectQb);
@@ -162,7 +162,7 @@ const parseConditionV2 = async (
           )
         )(selectQb);
 
-        return (qbP: QueryBuilder) => {
+        return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
             qbP.whereNotIn(childColumn.column_name, selectQb);
           else qbP.whereIn(childColumn.column_name, selectQb);
@@ -217,7 +217,7 @@ const parseConditionV2 = async (
           )
         )(selectQb);
 
-        return (qbP: QueryBuilder) => {
+        return (qbP: Knex.QueryBuilder) => {
           if (filter.comparison_op in negatedMapping)
             qbP.whereNotIn(childColumn.column_name, selectQb);
           else qbP.whereIn(childColumn.column_name, selectQb);
@@ -428,7 +428,7 @@ async function generateLookupCondition(
         aliasCount
       );
 
-      return (qbP: QueryBuilder) => {
+      return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
           qbP.whereNotIn(parentColumn.column_name, qb);
         else qbP.whereIn(parentColumn.column_name, qb);
@@ -451,7 +451,7 @@ async function generateLookupCondition(
         aliasCount
       );
 
-      return (qbP: QueryBuilder) => {
+      return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
           qbP.whereNotIn(childColumn.column_name, qb);
         else qbP.whereIn(childColumn.column_name, qb);
@@ -485,7 +485,7 @@ async function generateLookupCondition(
         aliasCount
       );
 
-      return (qbP: QueryBuilder) => {
+      return (qbP: Knex.QueryBuilder) => {
         if (filter.comparison_op in negatedMapping)
           qbP.whereNotIn(childColumn.column_name, qb);
         else qbP.whereIn(childColumn.column_name, qb);
@@ -497,7 +497,7 @@ async function generateLookupCondition(
 async function nestedConditionJoin(
   filter: Filter,
   lookupColumn: Column,
-  qb: QueryBuilder,
+  qb: Knex.QueryBuilder,
   knex,
   alias: string,
   aliasCount: { count: number }

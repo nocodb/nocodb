@@ -21,6 +21,9 @@ RUN cp $GOPATH/bin/litestream /usr/src/lt
 FROM node:16.17.1-alpine3.15 as builder
 WORKDIR /usr/src/app
 
+# install node-gyp dependencies
+RUN apk add --no-cache python3 make g++
+
 # Copy application dependency manifests to the container image.
 # A wildcard is used to ensure both package.json AND package-lock.json are copied.
 # Copying this separately prevents re-running npm ci on every code change.

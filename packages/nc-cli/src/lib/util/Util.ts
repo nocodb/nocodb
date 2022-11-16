@@ -2,19 +2,23 @@ import path from 'path';
 import shell from 'shelljs';
 
 class Util {
-
   public static getShortVersion(args) {
-
     const shortVersion = JSON.parse(JSON.stringify(args));
 
     if (shortVersion._.length) {
-      shortVersion._[0] = shortVersion._[0].split('.').map(a => a[0]).join('')
+      shortVersion._[0] = shortVersion._[0]
+        .split('.')
+        .map(a => a[0])
+        .join('');
     }
     return shortVersion;
   }
 
   public static isProjectGraphql() {
-    const currentProjectJson = require(path.join(process.cwd(), 'config.xc.json'))
+    const currentProjectJson = require(path.join(
+      process.cwd(),
+      'config.xc.json'
+    ));
     return currentProjectJson.meta.projectType.toLowerCase() === 'graphql';
   }
 
@@ -34,7 +38,9 @@ Commands:
   public static manNew() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc new'.bold} - Creates new projects and creates APIs instantly for database inputted.
+  ${
+    'xc new'.bold
+  } - Creates new projects and creates APIs instantly for database inputted.
 
 ${'SYNOPSIS : '.bold}
   ${'xc new'.bold} ${'<projectName>'.bold}
@@ -54,7 +60,7 @@ ${'VARIATIONS :'.bold}
         - Takes in database credentials and API type as input
         - Database can be new or existing database
         - Creates a new folder by name 'airbnb'
-`
+`;
   }
 
   public static manDocker() {
@@ -77,13 +83,15 @@ ${'VARIATIONS :'.bold}
         - Database can be new or existing database
         - Scaffolds REST/GraphQL/gRPC APIs for the database specified
         - These database can be already existing or new databases.
-`
+`;
   }
 
   public static manGenApisRest() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc gen.apis.graphql'.bold} - generates REST APIs for an existing/new databases of a project.
+  ${
+    'xc gen.apis.graphql'.bold
+  } - generates REST APIs for an existing/new databases of a project.
 
 ${'SYNOPSIS : '.bold}
   ${'xc gen.apis.rest'.bold} [${'-u'.bold} DatabaseURL(s)]
@@ -92,38 +100,56 @@ ${'VARIATIONS :'.bold}
 
   The following variations are available:
 
-  ${'<>'.bold}    If ${'no'.bold} option is passed, this generates REST APIs for databases current project
+  ${'<>'.bold}    If ${
+      'no'.bold
+    } option is passed, this generates REST APIs for databases current project
         that are within project file config.xc.json
 
-  ${'-u'.bold}    ${'<Database URLs>'.bold} Creates a new project for an existing/new database
+  ${'-u'.bold}    ${
+      '<Database URLs>'.bold
+    } Creates a new project for an existing/new database
         For mysql : mysql://localhost:3306?u=root&p=password&d=ecommerce
         For pg    : pg://localhost:5432?u=postgres&p=password&d=ecommerce
         For mssql : mssql://localhost:1433?u=sa&p=Password123.&d=ecommerce
 
   ${'Examples with notes : '.bold}
-        ${'xc gen.apis.rest -u mysql://localhost:3306?u=root&p=password&d=ecommerce'.bold}
+        ${
+          'xc gen.apis.rest -u mysql://localhost:3306?u=root&p=password&d=ecommerce'
+            .bold
+        }
         - Generates REST apis for a mysql database 'ecommerce'
         - Uses current directory as project name
         - If database exists - REST APIs will be created for the tables within it.
         - If database doesnt exist - it will be created.
 
-        ${'xc gen.apis.rest -u pg://localhost:5432?u=postgres&p=password&d=ecommerce'.bold}
+        ${
+          'xc gen.apis.rest -u pg://localhost:5432?u=postgres&p=password&d=ecommerce'
+            .bold
+        }
         - Generates REST apis for a postgres database 'ecommerce'
 
-        ${'xc gen.apis.rest -u mssql://localhost:1433?u=sa&p=Password123.&d=ecommerce'.bold}
+        ${
+          'xc gen.apis.rest -u mssql://localhost:1433?u=sa&p=Password123.&d=ecommerce'
+            .bold
+        }
         - Generates REST apis for a mssql database 'ecommerce'
 
-        ${`xc gen.apis.rest -u mysql://localhost:3306?u=root&p=password&d=ecommerce
-                         -u pg://localhost:5432?u=postgres&p=password&d=crm`.bold}
+        ${
+          `xc gen.apis.rest -u mysql://localhost:3306?u=root&p=password&d=ecommerce
+                         -u pg://localhost:5432?u=postgres&p=password&d=crm`
+            .bold
+        }
         - Generates REST apis for multiple databases 'ecommerce' & 'crm'.
         - These database can be already existing or new databases.
-`
+`;
   }
 
   public static manGenApisGraphql() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc gen.apis.graphql'.bold} - generates GraphQL APIs for an existing/new databases of a project.
+  ${
+    'xc gen.apis.graphql'.bold
+  } - generates GraphQL APIs for an existing/new databases of a project.
 
 ${'SYNOPSIS : '.bold}
   ${'xc gen.apis.graphql'.bold} [${'-u'.bold} DatabaseURL(s)]
@@ -132,56 +158,84 @@ ${'VARIATIONS :'.bold}
 
   The following variations are available:
 
-  ${'<>'.bold}    If ${'no'.bold} option is passed, this generates GraphQL APIs for databases current project
+  ${'<>'.bold}    If ${
+      'no'.bold
+    } option is passed, this generates GraphQL APIs for databases current project
         that are within project file config.xc.json
 
-  ${'-u'.bold}    ${'<Database URLs>'.bold} Creates a new project for an existing/new database
+  ${'-u'.bold}    ${
+      '<Database URLs>'.bold
+    } Creates a new project for an existing/new database
         For mysql : mysql://localhost:3306?u=root&p=password&d=ecommerce
         For pg    : pg://localhost:5432?u=postgres&p=password&d=ecommerce
         For mssql : mssql://localhost:1433?u=sa&p=Password123.&d=ecommerce
 
   ${'Examples with notes : '.bold}
-        ${'xc gen.apis.graphql -u mysql://localhost:3306?u=root&p=password&d=ecommerce'.bold}
+        ${
+          'xc gen.apis.graphql -u mysql://localhost:3306?u=root&p=password&d=ecommerce'
+            .bold
+        }
         - Generates GraphQL apis for a mysql database 'ecommerce'
         - Uses current directory as project name
         - If database exists - GraphQL APIs will be created for the tables within it.
         - If database doesnt exist - it will be created.
 
-        ${'xc gen.apis.graphql -u pg://localhost:5432?u=postgres&p=password&d=ecommerce'.bold}
+        ${
+          'xc gen.apis.graphql -u pg://localhost:5432?u=postgres&p=password&d=ecommerce'
+            .bold
+        }
         - Generates GraphQL apis for a postgres database 'ecommerce'
 
-        ${'xc gen.apis.graphql -u mssql://localhost:1433?u=sa&p=Password123.&d=ecommerce'.bold}
+        ${
+          'xc gen.apis.graphql -u mssql://localhost:1433?u=sa&p=Password123.&d=ecommerce'
+            .bold
+        }
         - Generates GraphQL apis for a mssql database 'ecommerce'
 
-        ${`xc gen.apis.graphql -u mysql://localhost:3306?u=root&p=password&d=ecommerce
-                            -u pg://localhost:5432?u=postgres&p=password&d=crm`.bold}
+        ${
+          `xc gen.apis.graphql -u mysql://localhost:3306?u=root&p=password&d=ecommerce
+                            -u pg://localhost:5432?u=postgres&p=password&d=crm`
+            .bold
+        }
         - Generates GraphQL apis for multiple databases 'ecommerce' & 'crm'.
         - These database can be already existing or new databases.
-`
+`;
   }
 
   public static manGenModule() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc gen.module'.bold} - Creates a table and scaffolds the respective module files
+  ${
+    'xc gen.module'.bold
+  } - Creates a table and scaffolds the respective module files
                   In REST project    - (router, service, middleware, policy, model, meta)
                   In GraphQL project - (resolver, service, middleware, policy, model, meta)
 
 ${'SYNOPSIS : '.bold}
-  ${'xc gen.module'.bold} ${'module(s)'.bold} [--nomodel] [--router] [--service] [--dbAlias]
+  ${'xc gen.module'.bold} ${
+      'module(s)'.bold
+    } [--nomodel] [--router] [--service] [--dbAlias]
 
 ${'OPTIONS :'.bold}
 
   The following options are available:
 
-  ${'--nomodel'.bold}  Scaffolds module without creating table and model, meta files.
+  ${
+    '--nomodel'.bold
+  }  Scaffolds module without creating table and model, meta files.
         For mysql : mysql://localhost:3306?u=root&p=password&d=ecommerce
         For pg    : pg://localhost:5432?u=postgres&p=password&d=ecommerce
         For mssql : mssql://localhost:1433?u=sa&p=Password123.&d=ecommerce
 
-  ${'--dbAlias'.bold}  Defaults to 'db'(primary) database if not provided to create the table
-  ${'--router'.bold}   Will create router with model - service file will be skipped //todo
-  ${'--service'.bold}  Will create service with model - router file will be skipped //todo
+  ${
+    '--dbAlias'.bold
+  }  Defaults to 'db'(primary) database if not provided to create the table
+  ${
+    '--router'.bold
+  }   Will create router with model - service file will be skipped //todo
+  ${
+    '--service'.bold
+  }  Will create service with model - router file will be skipped //todo
 
 ${'VARIATIONS :'.bold}
 
@@ -206,13 +260,15 @@ ${'VARIATIONS :'.bold}
         - All folder/files in respective components will be created in parent table of primary table
 
 
-`
+`;
   }
 
   public static manDbMigrateInit() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc db.migrate.init'.bold} - Initialises a database migration project freshly - only necessary files are created
+  ${
+    'xc db.migrate.init'.bold
+  } - Initialises a database migration project freshly - only necessary files are created
                      - This is a legacy command and will not be required in developer flow
                      - Instead use ${'xc new'.bold}
                      - After running this command - edit config.xc.json and run xc db.migrate.sync
@@ -228,23 +284,29 @@ ${'VARIATIONS :'.bold}
         ${'xc db.migrate.init --type mysql'.bold}
         - Creates migration project of type mysql
         - xc db.migrate.sync has to be run after command
-`
+`;
   }
 
   public static manDbMigrateSync() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc db.migrate.sync'.bold} - Initialises migrations in the databases of project
+  ${
+    'xc db.migrate.sync'.bold
+  } - Initialises migrations in the databases of project
                      - Creates _evolutions table for database if it doesn't exists
 
 ${'SYNOPSIS : '.bold}
-  ${'xc db.migrate.sync'.bold} [${'--env'.bold} <environment>]  [${'--dbAlias'.bold} <databaseAlias>]
+  ${'xc db.migrate.sync'.bold} [${'--env'.bold} <environment>]  [${
+      '--dbAlias'.bold
+    } <databaseAlias>]
 
 ${'OPTIONS :'.bold}
 
   The following options are available:
   ${'--env'.bold}      Defaults to 'dev' environment if not provided
-  ${'--dbAlias'.bold}  If not provided all databases within environment are initialised
+  ${
+    '--dbAlias'.bold
+  }  If not provided all databases within environment are initialised
 
 ${'VARIATIONS :'.bold}
 
@@ -259,7 +321,7 @@ ${'VARIATIONS :'.bold}
 
         ${'xc db.migrate.sync --env production --dbAlias secondary'.bold}
         - Initialises migration for 'db2'(secondary) database within 'production' environment
-`
+`;
   }
 
   public static manDbMigrateList() {
@@ -268,7 +330,9 @@ ${'COMMAND : '.bold}
   ${'xc db.migrate.list'.bold} - Lists all the migrations
 
 ${'SYNOPSIS : '.bold}
-  ${'xc db.migrate.list'.bold} [${'--env'.bold} <environment>]  [${'--dbAlias'.bold} <databaseAlias>]
+  ${'xc db.migrate.list'.bold} [${'--env'.bold} <environment>]  [${
+      '--dbAlias'.bold
+    } <databaseAlias>]
 
 ${'OPTIONS :'.bold}
 
@@ -290,16 +354,20 @@ ${'VARIATIONS :'.bold}
 
         ${'xc db.migrate.list --env production --dbAlias secondary'.bold}
         - Lists all migrations within 'production' environment and 'db2'(secondary) database
-`
+`;
   }
 
   public static manDbMigrateCreate() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc db.migrate.create'.bold} - Creates an empty migration for environment and dbAlias
+  ${
+    'xc db.migrate.create'.bold
+  } - Creates an empty migration for environment and dbAlias
 
 ${'SYNOPSIS : '.bold}
-  ${'xc db.migrate.create'.bold} [${'--env'.bold} <environment>]  [${'--dbAlias'.bold} <databaseAlias>]
+  ${'xc db.migrate.create'.bold} [${'--env'.bold} <environment>]  [${
+      '--dbAlias'.bold
+    } <databaseAlias>]
 
 ${'OPTIONS :'.bold}
 
@@ -320,7 +388,7 @@ ${'VARIATIONS :'.bold}
 
         ${'xc db.migrate.create --env production --dbAlias secondary'.bold}
         - Creates a migration within 'production' environment and 'db2'(secondary) database
-`
+`;
   }
 
   public static manDbMigrateUp() {
@@ -329,7 +397,11 @@ ${'COMMAND : '.bold}
   ${'xc db.migrate.up'.bold} - Applies all pending migrations
 
 ${'SYNOPSIS : '.bold}
-  ${'xc db.migrate.up'.bold} [${'--env'.bold} <environment>] [${'--dbAlias'.bold} <databaseAlias>] \n\t\t\t[${'--steps'.bold} <number>]  [${'--file'.bold} <number>]
+  ${'xc db.migrate.up'.bold} [${'--env'.bold} <environment>] [${
+      '--dbAlias'.bold
+    } <databaseAlias>] \n\t\t\t[${'--steps'.bold} <number>]  [${
+      '--file'.bold
+    } <number>]
 
 ${'OPTIONS :'.bold}
 
@@ -353,18 +425,26 @@ ${'VARIATIONS :'.bold}
         ${'xc db.migrate.up --env production --steps 1'.bold}
         - Applies one pending migrations in 'production' environment
 
-        ${'xc db.migrate.up --env production --dbAlias secondary --steps 1'.bold}
+        ${
+          'xc db.migrate.up --env production --dbAlias secondary --steps 1'.bold
+        }
         - Applies one pending migrations in 'production' environment for 'db2'(secondary) database
-`
+`;
   }
 
   public static manDbMigrateDown() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc db.migrate.down'.bold} - Reverses all migrations or by steps or by till the filename
+  ${
+    'xc db.migrate.down'.bold
+  } - Reverses all migrations or by steps or by till the filename
 
 ${'SYNOPSIS : '.bold}
-  ${'xc db.migrate.down'.bold} [${'--env'.bold} <environment>] [${'--dbAlias'.bold} <databaseAlias>] \n\t\t\t[${'--steps'.bold} <number>]  [${'--file'.bold} <number>]
+  ${'xc db.migrate.down'.bold} [${'--env'.bold} <environment>] [${
+      '--dbAlias'.bold
+    } <databaseAlias>] \n\t\t\t[${'--steps'.bold} <number>]  [${
+      '--file'.bold
+    } <number>]
 
 ${'OPTIONS :'.bold}
 
@@ -388,23 +468,29 @@ ${'VARIATIONS :'.bold}
         ${'xc db.migrate.down --env production --steps 1'.bold}
         - Reverses one applied migrations in 'production' environment
 
-        ${'xc db.migrate.down --env production --dbAlias secondary --steps 1'.bold}
+        ${
+          'xc db.migrate.down --env production --dbAlias secondary --steps 1'
+            .bold
+        }
         - Reverses one applied migrations in 'production' environment for 'db2'(secondary) database
-`
+`;
   }
-
 
   public static manDbMigrateTerm() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc db.migrate.term'.bold} - Deprecated. Terminates all databases in environment.
-`
+  ${
+    'xc db.migrate.term'.bold
+  } - Deprecated. Terminates all databases in environment.
+`;
   }
 
   public static manComponentAdd() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc component.add'.bold} - Adds a new component in server/components directory by taking user input
+  ${
+    'xc component.add'.bold
+  } - Adds a new component in server/components directory by taking user input
                         on where to place the component in initialisation order.
 
 ${'SYNOPSIS : '.bold}
@@ -427,13 +513,15 @@ ${'VARIATIONS :'.bold}
   ${'Examples with notes : '.bold}
         ${'xc component.add cache'.bold}
         - Adds a cache component
-`
+`;
   }
 
   public static manAppInstall() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc app.install'.bold} - Download and starts xgenecloud desktop application installation
+  ${
+    'xc app.install'.bold
+  } - Download and starts xgenecloud desktop application installation
 
 ${'SYNOPSIS : '.bold}
   ${'xc app.install'.bold}
@@ -449,13 +537,15 @@ ${'VARIATIONS :'.bold}
 
   ${'Examples with notes : '.bold}
         ${'xc app.install'.bold}
-`
+`;
   }
 
   public static manAppOpen() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc app.open'.bold} - Opens the xgenecloud desktop application (mac and linux only)
+  ${
+    'xc app.open'.bold
+  } - Opens the xgenecloud desktop application (mac and linux only)
 
 ${'SYNOPSIS : '.bold}
   ${'xc app.open'.bold}
@@ -471,9 +561,8 @@ ${'VARIATIONS :'.bold}
 
   ${'Examples with notes : '.bold}
         ${'xc app.open'.bold}
-`
+`;
   }
-
 
   public static manPermissionsSet() {
     return `
@@ -482,17 +571,27 @@ ${'COMMAND : '.bold}
 
 ${'SYNOPSIS : '.bold}
   # For REST API project
-  ${'xc permissions.set'.bold} [${'model(s)'.bold} | $] [${'userType(s)'.bold} | $] [${'read|write)'.bold} = 1 | 0]
+  ${'xc permissions.set'.bold} [${'model(s)'.bold} | $] [${
+      'userType(s)'.bold
+    } | $] [${'read|write)'.bold} = 1 | 0]
 
   # For GraphQL API project
-  ${'xc permissions.set'.bold} [${'model(s)'.bold} | $] [${'userType(s)'.bold} | $] [${'read|write|resolverFunction)'.bold} = 1 | 0]
+  ${'xc permissions.set'.bold} [${'model(s)'.bold} | $] [${
+      'userType(s)'.bold
+    } | $] [${'read|write|resolverFunction)'.bold} = 1 | 0]
 
 ${'ARGS :'.bold}
 
   The following are arguments to function:
-  ${'model(s)'.bold}   Model name | Multiple models with dot seperated | $ - means all models
-  ${'userType(s)'.bold}User role name | Multiple user role names with dot separated | $ - means all user models
-  ${'permissions(s)'.bold}Permissions - read | write | get | post | put | delete | patch | resolverFunc | $ - means all permissions
+  ${
+    'model(s)'.bold
+  }   Model name | Multiple models with dot seperated | $ - means all models
+  ${
+    'userType(s)'.bold
+  }User role name | Multiple user role names with dot separated | $ - means all user models
+  ${
+    'permissions(s)'.bold
+  }Permissions - read | write | get | post | put | delete | patch | resolverFunc | $ - means all permissions
 ${'VARIATIONS :'.bold}
 
   None
@@ -509,7 +608,7 @@ ${'VARIATIONS :'.bold}
 
         ${'xc permissions.set $ $ read=1 write=1'.bold}
         - For 'all' models 'all' user types SET 'read' and 'write' permission
-`
+`;
   }
 
   // todo
@@ -536,9 +635,8 @@ ${'VARIATIONS :'.bold}
 
   ${'Examples with notes : '.bold}
         ${'xc permissions.get blog'.bold}
-        - Get all permissions of blog model `
+        - Get all permissions of blog model `;
   }
-
 
   public static manPermissionsUserAdd() {
     return `
@@ -564,9 +662,8 @@ ${'VARIATIONS :'.bold}
         ${'xc permissions.role.add manager'.bold}
         - Adds user role 'manager' to all the models
 
-`
+`;
   }
-
 
   public static manPermissionsUserDelete() {
     return `
@@ -590,9 +687,8 @@ ${'VARIATIONS :'.bold}
         ${'xc permissions.role.delete manager'.bold}
         - deletes user role 'manager' from all the models
 
-`
+`;
   }
-
 
   public static manPermissionsUserRename() {
     return `
@@ -617,23 +713,28 @@ ${'VARIATIONS :'.bold}
         ${'xc permissions.role.rename manager StaffManager'.bold}
         - Renames user role from 'manager' to 'StaffManager' in all the models
 
-`
+`;
   }
-
 
   public static manProjectMetaExport() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc meta.export'.bold} - Exports all meta table data to project meta directory
+  ${
+    'xc meta.export'.bold
+  } - Exports all meta table data to project meta directory
 
 ${'SYNOPSIS : '.bold}
-  ${'xc meta.export'.bold} ${'--env'.bold} <environment> [${'--dbAlias'.bold} <databaseAlias>]
+  ${'xc meta.export'.bold} ${'--env'.bold} <environment> [${
+      '--dbAlias'.bold
+    } <databaseAlias>]
 
 ${'OPTIONS :'.bold}
 
   The following options are available:
   ${'--env'.bold}      Environment name to be exported 
-  ${'--dbAlias'.bold}  dbAlias of database connection. If not provided then it will export metadata for all connections in the environment
+  ${
+    '--dbAlias'.bold
+  }  dbAlias of database connection. If not provided then it will export metadata for all connections in the environment
 
 ${'VARIATIONS :'.bold}
 
@@ -645,8 +746,7 @@ ${'VARIATIONS :'.bold}
 
         ${'xc meta.export --env production --dbAlias db2'.bold}
         - Exports metadata for 'db2' database in 'production' environment
-`
-
+`;
   }
 
   public static manProjectMetaReset() {
@@ -655,13 +755,17 @@ ${'COMMAND : '.bold}
   ${'xc meta.reset'.bold} - Clears all meta table data
 
 ${'SYNOPSIS : '.bold}
-  ${'xc meta.reset'.bold} ${'--env'.bold} <environment> [${'--dbAlias'.bold} <databaseAlias>]
+  ${'xc meta.reset'.bold} ${'--env'.bold} <environment> [${
+      '--dbAlias'.bold
+    } <databaseAlias>]
 
 ${'OPTIONS :'.bold}
 
   The following options are available:
   ${'--env'.bold}      Environment name to be reset 
-  ${'--dbAlias'.bold}  dbAlias of database connection. If not provided then it will clear metadata for all connections in the environment
+  ${
+    '--dbAlias'.bold
+  }  dbAlias of database connection. If not provided then it will clear metadata for all connections in the environment
 
 ${'VARIATIONS :'.bold}
 
@@ -673,23 +777,28 @@ ${'VARIATIONS :'.bold}
 
         ${'xc meta.reset --env production --dbAlias db2'.bold}
         - Clears metadata for 'db2' database in 'production' environment
-`
-
+`;
   }
 
   public static manProjectMetaImport() {
     return `
 ${'COMMAND : '.bold}
-  ${'xc meta.import'.bold} - Imports data from project meta folder to meta tables
+  ${
+    'xc meta.import'.bold
+  } - Imports data from project meta folder to meta tables
 
 ${'SYNOPSIS : '.bold}
-  ${'xc meta.import'.bold} ${'--env'.bold} <environment> [${'--dbAlias'.bold} <databaseAlias>]
+  ${'xc meta.import'.bold} ${'--env'.bold} <environment> [${
+      '--dbAlias'.bold
+    } <databaseAlias>]
 
 ${'OPTIONS :'.bold}
 
   The following options are available:
   ${'--env'.bold}      Environment name to be imported 
-  ${'--dbAlias'.bold}  dbAlias of database connection. If not provided then it will import metadata to all connections in the environment
+  ${
+    '--dbAlias'.bold
+  }  dbAlias of database connection. If not provided then it will import metadata to all connections in the environment
 
 ${'VARIATIONS :'.bold}
 
@@ -701,18 +810,13 @@ ${'VARIATIONS :'.bold}
 
         ${'xc meta.import --env production --dbAlias db2'.bold}
         - Imports metadata for 'db2' database in 'production' environment
-`
-
+`;
   }
 
-
   public static showHelpForCommand(args) {
-
-
     try {
       switch (args._[1]) {
-
-        case 'new' :
+        case 'new':
           console.log(Util.manNew());
           break;
 
@@ -870,14 +974,12 @@ ${'VARIATIONS :'.bold}
         //
         // /**************** END : Docker ****************/
 
-
         default:
           break;
       }
     } catch (e) {
       throw e;
     }
-
   }
 
   public static async runCmd(str) {
@@ -891,45 +993,17 @@ ${'VARIATIONS :'.bold}
 
   public static escapeShellArg(cmd) {
     return '"' + cmd.replace(/(["'$`\\])/g, '\\$1') + '"';
-  };
+  }
 
   public async play(sound) {
-
     switch (sound) {
-
       case -1:
         break;
 
       case 'fun':
         break;
-
     }
-
   }
-
 }
 
-
 export default Util;
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

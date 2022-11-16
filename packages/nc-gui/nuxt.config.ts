@@ -166,8 +166,6 @@ export default defineNuxtConfig({
     },
   },
 
-  // ignore: [`tests/**`],
-
   experimental: {
     reactivityTransform: true,
   },

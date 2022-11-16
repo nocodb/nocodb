@@ -99,7 +99,11 @@ function resetError() {
 
         <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
           <Transition name="layout">
-            <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1" data-testid="nc-signup-error">
+            <div
+              v-if="error"
+              class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1"
+              data-testid="nc-signup-error"
+            >
               <div class="flex items-center gap-2 justify-center">
                 <MaterialSymbolsWarning />
                 <div class="break-words">{{ error }}</div>

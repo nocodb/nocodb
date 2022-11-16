@@ -310,8 +310,7 @@ onBeforeUnmount(reset)
 
                     <!-- Copy Auth Token -->
                     <a-menu-item key="copy">
-                      <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group"
-                           @click.stop="copyAuthToken">
+                      <div v-e="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
                         <MdiScriptTextKeyOutline class="group-hover:text-accent" />
                         {{ $t('activity.account.authToken') }}
                       </div>

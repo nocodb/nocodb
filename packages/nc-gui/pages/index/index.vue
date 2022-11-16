@@ -9,7 +9,7 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
 <template>
   <NuxtLayout>
     <div
-      class="mx-auto min-h-[calc(100vh_-_var(--header-height))] bg-primary bg-opacity-5 flex flex-wrap justify-between xl:flex-nowrap gap-6 py-6 px-4 md:(px-12 pt-65px)"
+      class="min-h-[calc(100vh_-_var(--header-height))] bg-primary bg-opacity-5 flex flex-wrap justify-between xl:flex-nowrap gap-6 py-6 px-4 md:(px-12 pt-65px)"
     >
       <div class="hidden xl:(flex)">
         <div v-if="route.name === 'index-index'">

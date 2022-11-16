@@ -91,9 +91,9 @@ const copyToken = (token: string | undefined) => {
   $e('c:api-token:copy')
 }
 
-const descriptionInput = ref((el) => {
+const descriptionInput = (el) => {
   el?.focus()
-})
+}
 </script>
 
 <template>

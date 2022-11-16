@@ -20,14 +20,13 @@ import {
 interface Props {
   modelValue?: string | Record<string, any>[] | null
   rowIndex?: number
-  rowId?: string
 }
 
 interface Emits {
   (event: 'update:modelValue', value: string | Record<string, any>[]): void
 }
 
-const { modelValue, rowIndex, rowId } = defineProps<Props>()
+const { modelValue, rowIndex } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
@@ -59,7 +58,7 @@ const {
   selectedImage,
   isReadonly,
   storedFiles,
-} = useProvideAttachmentCell(updateModelValue, rowId ?? '')
+} = useProvideAttachmentCell(updateModelValue)
 
 watch(
   [() => rowIndex, isForm, attachmentCellRef],

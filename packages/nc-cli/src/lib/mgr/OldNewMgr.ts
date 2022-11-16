@@ -6,7 +6,7 @@ import URL from 'url';
 
 import('colors');
 
-let tcpPortUsed = require('tcp-port-used');
+const tcpPortUsed = require('tcp-port-used');
 
 const dbDefaults = {
   mysql: {
@@ -36,22 +36,20 @@ const dbDefaults = {
     username: 'sa',
     password: '',
     database: ''
-  },
+  }
 };
 
 const apiTypeMapping = {
   'GRAPHQL APIs': 'graphql',
   'REST APIs': 'rest',
   'gRPC APIs': 'grpc'
-}
+};
 const languageMapping = {
-  'Javascript': 'js',
-  'Typescript': 'ts',
-}
-
+  Javascript: 'js',
+  Typescript: 'ts'
+};
 
 class OldNewMgr {
-
   /**
    *
    * Does the below :
@@ -64,161 +62,169 @@ class OldNewMgr {
    * @returns {Promise<string|string|boolean|*>}
    */
   public static async getNewProjectInput(args) {
-
     if (args._.length < 2) {
-      const usage = '\n$ xc new project_name'.green.bold
-      console.log(`\n\nWarning! missing project name\n\nExample Usage:\n${usage}\n`.red.bold);
+      const usage = '\n$ xc new project_name'.green.bold;
+      console.log(
+        `\n\nWarning! missing project name\n\nExample Usage:\n${usage}\n`.red
+          .bold
+      );
       return false;
     }
 
     /* Construct database URL from prompt */
     const dbTypes = Object.keys(dbDefaults);
-    args.url = []
+    args.url = [];
 
-    const answers = await inquirer
-      .prompt([
-        {
-          name: 'type',
-          type: 'list',
-          message: '🔥 Choose SQL Database type\t:',
-          choices: dbTypes.map(t => ({
-            name: t,
-            value: t,
-            short: t.green.bold
-          })),
-          default: 'mysql',
-          transformer(color) {
-            return chalkPipe(color)(color.green.bold);
+    const answers = await inquirer.prompt([
+      {
+        name: 'type',
+        type: 'list',
+        message: '🔥 Choose SQL Database type\t:',
+        choices: dbTypes.map(t => ({
+          name: t,
+          value: t,
+          short: t.green.bold
+        })),
+        default: 'mysql',
+        transformer(color) {
+          return chalkPipe(color)(color.green.bold);
+        }
+      },
+      {
+        name: 'host',
+        type: 'input',
+        message: '👉 Enter database host name\t:',
+        default(ans) {
+          return dbDefaults[ans.type].host;
+        },
+        transformer(color) {
+          return chalkPipe(color)(color.green.bold);
+        },
+        when({ type }) {
+          return type !== 'sqlite3';
+        }
+      },
+      {
+        name: 'port',
+        type: 'number',
+        message: '👉 Enter database port number\t:',
+        default(ans) {
+          return dbDefaults[ans.type].port;
+        },
+        transformer(color) {
+          try {
+            return color.green.bold;
+          } catch (e) {
+            return color;
           }
         },
-        {
-          name: 'host',
-          type: 'input',
-          message: '👉 Enter database host name\t:',
-          default(ans) {
-            return dbDefaults[ans.type].host
-          },
-          transformer(color) {
-            return chalkPipe(color)(color.green.bold);
-          },
-          when({type}) {
-            return type !== 'sqlite3'
-          }
-        },
-        {
-          name: 'port',
-          type: 'number',
-          message: '👉 Enter database port number\t:',
-          default(ans) {
-            return dbDefaults[ans.type].port
-          },
-          transformer(color) {
-            try {
-              return color.green.bold;
-            } catch (e) {
-              return color
-            }
-          },
-          validate(port, answers) {
-            let done = this.async();
-            OldNewMgr.isPortOpen(answers.host, port).then(isOpen => {
+        validate(port, answers) {
+          const done = this.async();
+          OldNewMgr.isPortOpen(answers.host, port)
+            .then(isOpen => {
               if (isOpen) {
-                done(null, true)
+                done(null, true);
               } else {
                 // done('Port is not open')
-                console.log(`\n\n😩 ${answers.host}:${port} is not open please start the database if you haven't\n`.red.bold)
+                console.log(
+                  `\n\n😩 ${answers.host}:${port} is not open please start the database if you haven't\n`
+                    .red.bold
+                );
                 process.exit(0);
               }
-            }).catch(done)
-          },
-          when({type}) {
-            return type !== 'sqlite3'
-          }
+            })
+            .catch(done);
         },
-        {
-          name: 'username',
-          type: 'input',
-          message: '👉 Enter database username\t:',
-          default(ans) {
-            return dbDefaults[ans.type].username
-          },
-          transformer(color) {
-            return chalkPipe(color)(color.green.bold);
-          },
-          when({type}) {
-            return type !== 'sqlite3'
-          }
-        },
-        {
-          name: 'password',
-          type: 'input',
-          mask: true,
-          message: '🙈 Enter database password\t:',
-          transformer(color) {
-            return new Array(color.length).fill('*'.green.bold).join('')
-          },
-          when({type}) {
-            return type !== 'sqlite3'
-          }
-        },
-        {
-          name: 'database',
-          type: 'input',
-          default(_ans) {
-            return args._[1] + '_dev';
-          },
-          message: '👉 Enter database/schema name\t:',
-          transformer(color) {
-            return chalkPipe(color)(color.green.bold);
-          },
-          when({type}) {
-            return type !== 'sqlite3'
-          }
-        },
-        {
-          name: 'projectType',
-          type: 'list',
-          message: '🚀 Enter API type to generate\t:',
-          choices: ['REST APIs', 'GRAPHQL APIs'].map(t => ({
-            name: t,
-            value: t,
-            short: t.green.bold
-          })),
-          transformer(color) {
-            return chalkPipe(color)(color.green.bold);
-          },
-          when({type}) {
-            return type !== 'sqlite3'
-          }
-        },
-        {
-          name: 'programmingLanguage',
-          type: 'list',
-          message: '🚀 Enter preferred programming language\t:',
-          choices: ['Javascript', 'Typescript'].map(t => ({
-            name: t,
-            value: t,
-            short: t.green.bold
-          })),
-          transformer(color) {
-            return chalkPipe(color)(color.green.bold);
-          },
-          when({type}) {
-            return type !== 'sqlite3'
-          }
+        when({ type }) {
+          return type !== 'sqlite3';
         }
-      ])
+      },
+      {
+        name: 'username',
+        type: 'input',
+        message: '👉 Enter database username\t:',
+        default(ans) {
+          return dbDefaults[ans.type].username;
+        },
+        transformer(color) {
+          return chalkPipe(color)(color.green.bold);
+        },
+        when({ type }) {
+          return type !== 'sqlite3';
+        }
+      },
+      {
+        name: 'password',
+        type: 'input',
+        mask: true,
+        message: '🙈 Enter database password\t:',
+        transformer(color) {
+          return new Array(color.length).fill('*'.green.bold).join('');
+        },
+        when({ type }) {
+          return type !== 'sqlite3';
+        }
+      },
+      {
+        name: 'database',
+        type: 'input',
+        default(_ans) {
+          return args._[1] + '_dev';
+        },
+        message: '👉 Enter database/schema name\t:',
+        transformer(color) {
+          return chalkPipe(color)(color.green.bold);
+        },
+        when({ type }) {
+          return type !== 'sqlite3';
+        }
+      },
+      {
+        name: 'projectType',
+        type: 'list',
+        message: '🚀 Enter API type to generate\t:',
+        choices: ['REST APIs', 'GRAPHQL APIs'].map(t => ({
+          name: t,
+          value: t,
+          short: t.green.bold
+        })),
+        transformer(color) {
+          return chalkPipe(color)(color.green.bold);
+        },
+        when({ type }) {
+          return type !== 'sqlite3';
+        }
+      },
+      {
+        name: 'programmingLanguage',
+        type: 'list',
+        message: '🚀 Enter preferred programming language\t:',
+        choices: ['Javascript', 'Typescript'].map(t => ({
+          name: t,
+          value: t,
+          short: t.green.bold
+        })),
+        transformer(color) {
+          return chalkPipe(color)(color.green.bold);
+        },
+        when({ type }) {
+          return type !== 'sqlite3';
+        }
+      }
+    ]);
 
     // console.log(answers);
 
     if (answers.type === 'sqlite3') {
-      console.log('Please use desktop app to create Sqlite project'.green.bold)
+      console.log('Please use desktop app to create Sqlite project'.green.bold);
       process.exit(0);
     }
 
     /* if not valid retry getting right input */
     if (!answers.database) {
-      console.log('\n\tWarning! Database name can NOT be empty. Retry.\n '.red.bold);
+      console.log(
+        '\n\tWarning! Database name can NOT be empty. Retry.\n '.red.bold
+      );
       this.getNewProjectInput(args);
     }
 
@@ -229,7 +235,11 @@ class OldNewMgr {
     // await Util.runCmd(`cd ${args.folder}`);
 
     /* prepare the args */
-    const url = `${answers.type}://${answers.host}:${answers.port}?u=${answers.username}&p=${answers.password}&d=${answers.database}&api=${apiTypeMapping[answers.projectType]}`;
+    const url = `${answers.type}://${answers.host}:${answers.port}?u=${
+      answers.username
+    }&p=${answers.password}&d=${answers.database}&api=${
+      apiTypeMapping[answers.projectType]
+    }`;
     args._[0] = answers.projectType === 'REST APIs' ? 'gar' : 'gag';
     switch (answers.projectType) {
       case 'REST APIs':
@@ -249,13 +259,10 @@ class OldNewMgr {
 
     args.language = languageMapping[answers.programmingLanguage];
 
-    return OldNewMgr.testConnection(args)
-
+    return OldNewMgr.testConnection(args);
   }
 
-
-  public static async testConnection({url}) {
-
+  public static async testConnection({ url }) {
     for (const u of url) {
       const parsedUrlData = URL.parse(u, true);
       const queryParams = parsedUrlData.query;
@@ -267,55 +274,33 @@ class OldNewMgr {
           port: +parsedUrlData.port,
           user: queryParams.u,
           password: queryParams.p,
-          database: client === 'pg' ? 'postgres' : (client === 'mssql' ? undefined : null)
+          database:
+            client === 'pg' ? 'postgres' : client === 'mssql' ? undefined : null
         }
       };
 
-
       try {
-        const knex = require('knex')(config)
-        await knex.raw("SELECT 1+1 as data");
+        const knex = require('knex')(config);
+        await knex.raw('SELECT 1+1 as data');
       } catch (e) {
-        console.log(`\n😩 Test connection failed for : ${url}\n`.red.bold)
+        console.log(`\n😩 Test connection failed for : ${url}\n`.red.bold);
         return false;
       }
     }
     return true;
   }
 
-
   public static async isPortOpen(host, port) {
     try {
-      return await tcpPortUsed.check(+port, host)
+      return await tcpPortUsed.check(+port, host);
     } catch (e) {
-      console.log(e)
-      console.log(`\n😩 ${host}:${port} is not reachable please check\n`.red.bold)
+      console.log(e);
+      console.log(
+        `\n😩 ${host}:${port} is not reachable please check\n`.red.bold
+      );
       return true;
     }
   }
-
 }
 
 export default OldNewMgr;
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */

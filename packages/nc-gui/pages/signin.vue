@@ -95,6 +95,7 @@ const isSignupAllowed = () => {
             <a-input
               v-model:value="form.email"
               data-cy="nc-form-signin__email"
+              data-nc="nc-form-signin__email"
               size="large"
               :placeholder="$t('msg.info.signUp.workEmail')"
               @focus="resetError"
@@ -105,6 +106,7 @@ const isSignupAllowed = () => {
             <a-input-password
               v-model:value="form.password"
               data-cy="nc-form-signin__password"
+              data-nc="nc-form-signin__password"
               size="large"
               class="password"
               :placeholder="$t('msg.info.signUp.enterPassword')"
@@ -119,7 +121,12 @@ const isSignupAllowed = () => {
           </div>
 
           <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-            <button data-cy="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
+            <button
+              data-cy="nc-form-signin__submit"
+              data-nc="nc-form-signin__submit"
+              class="scaling-btn bg-opacity-100"
+              type="submit"
+            >
               <span class="flex items-center gap-2">
                 <MdiLogin />
                 {{ $t('general.signIn') }}

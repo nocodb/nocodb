@@ -1,10 +1,9 @@
 /* eslint-disable no-constant-condition */
-import Knex from 'knex';
+import { knex, Knex } from 'knex'
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import Result from '../../util/Result';
 
-import knex from 'knex';
 import lodash from 'lodash';
 import fs from 'fs';
 import { promisify } from 'util';

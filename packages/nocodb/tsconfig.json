@@ -61,6 +61,7 @@
     "src/**/*.json"
   ],
   "exclude": [
+    "src/__tests__/*",
     "node_modules/**",
     "node_modules",
     "../../../xc-lib-private/**",

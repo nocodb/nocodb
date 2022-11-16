@@ -94,10 +94,6 @@ onScopeDispose($destroy)
 </template>
 
 <style>
-.vue-flow__edges {
-  z-index: 1000 !important;
-}
-
 .vue-flow__controls-zoomin {
   @apply rounded-t;
 }

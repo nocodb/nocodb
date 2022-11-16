@@ -1,4 +1,4 @@
-import Knex from 'knex';
+import { Knex } from 'knex';
 import { MetaTable } from '../../utils/globals';
 
 export async function up(knex: Knex): Promise<void> {

@@ -12,7 +12,7 @@ import { apiTokenListEE } from './ee/orgTokenApis';
 async function apiTokenList(req, res) {
   const fk_user_id = req.user.id;
   let includeUnmappedToken = false;
-  if (req['user'].roles.includes(OrgUserRoles.SUPER)) {
+  if (req['user'].roles.includes(OrgUserRoles.SUPER_ADMIN)) {
     includeUnmappedToken = true;
   }
 
@@ -43,7 +43,7 @@ export async function apiTokenDelete(req: Request, res: Response) {
   const fk_user_id = req['user'].id;
   const apiToken = await ApiToken.getByToken(req.params.token);
   if (
-    !req['user'].roles.includes(OrgUserRoles.SUPER) &&
+    !req['user'].roles.includes(OrgUserRoles.SUPER_ADMIN) &&
     apiToken.fk_user_id !== fk_user_id
   ) {
     NcError.notFound('Token not found');

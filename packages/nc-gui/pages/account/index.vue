@@ -47,7 +47,7 @@ const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
                 <span class="ml-4">Reset Password</span>
               </a-menu-item>
               <a-menu-item
-                v-if="isUIAllowed('superAdminAppSetting')"
+                v-if="isUIAllowed('superAdminAppSettings')"
                 key="settings"
                 class="text-xs"
                 @click="navigateTo('/account/users/settings')"

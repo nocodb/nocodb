@@ -189,7 +189,7 @@ export default {
       dataGroupBy: true,
       commentsCount: true,
 
-      alleryViewGet: true,
+      galleryViewGet: true,
       kanbanViewGet: true,
       groupedDataList: true,
 
@@ -282,7 +282,7 @@ export default {
       projectList: true,
     },
   },
-  [OrgUserRoles.SUPER]: '*',
+  [OrgUserRoles.SUPER_ADMIN]: '*',
   [OrgUserRoles.CREATOR]: {
     include: {
       apiTokenList: true,

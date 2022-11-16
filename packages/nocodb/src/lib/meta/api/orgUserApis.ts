@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { PluginCategory } from 'nocodb-sdk';
+import {
+  AuditOperationSubTypes,
+  AuditOperationTypes,
+  PluginCategory,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import { OrgUserRoles } from '../../../enums/OrgUserRoles';
@@ -34,7 +38,7 @@ async function userUpdate(req, res) {
 
   const user = await User.get(req.params.userId);
 
-  if (user.roles.includes(OrgUserRoles.SUPER)) {
+  if (user.roles.includes(OrgUserRoles.SUPER_ADMIN)) {
     NcError.badRequest('Cannot update super admin roles');
   }
 
@@ -46,7 +50,7 @@ async function userDelete(req, res) {
   try {
     const user = await User.get(req.params.userId, ncMeta);
 
-    if (user.roles.includes(OrgUserRoles.SUPER)) {
+    if (user.roles.includes(OrgUserRoles.SUPER_ADMIN)) {
       NcError.badRequest('Cannot delete super admin');
     }
 
@@ -130,8 +134,8 @@ async function userAdd(req, res, next) {
         Tele.emit('evt', { evt_type: 'org:user:invite', count });
 
         await Audit.insert({
-          op_type: 'ORG_USER',
-          op_sub_type: 'INVITE',
+          op_type: AuditOperationTypes.ORG_USER,
+          op_sub_type: AuditOperationSubTypes.INVITE,
           user: req.user.email,
           description: `invited ${email} to ${req.params.projectId} project `,
           ip: req.clientIp,
@@ -198,8 +202,8 @@ async function userInviteResend(req, res): Promise<any> {
   await sendInviteEmail(user.email, invite_token, req);
 
   await Audit.insert({
-    op_type: 'ORG_USER',
-    op_sub_type: 'RESEND_INVITE',
+    op_type: AuditOperationTypes.ORG_USER,
+    op_sub_type: AuditOperationSubTypes.RESEND_INVITE,
     user: user.email,
     description: `resent a invite to ${user.email} `,
     ip: req.clientIp,
@@ -250,7 +254,7 @@ router.get(
   '/api/v1/users',
   metaApiMetrics,
   ncMetaAclMw(userList, 'userList', {
-    allowedRoles: [OrgUserRoles.SUPER],
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
 );
@@ -258,7 +262,7 @@ router.patch(
   '/api/v1/users/:userId',
   metaApiMetrics,
   ncMetaAclMw(userUpdate, 'userUpdate', {
-    allowedRoles: [OrgUserRoles.SUPER],
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
 );
@@ -266,7 +270,7 @@ router.delete(
   '/api/v1/users/:userId',
   metaApiMetrics,
   ncMetaAclMw(userDelete, 'userDelete', {
-    allowedRoles: [OrgUserRoles.SUPER],
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
 );
@@ -274,7 +278,7 @@ router.post(
   '/api/v1/users',
   metaApiMetrics,
   ncMetaAclMw(userAdd, 'userAdd', {
-    allowedRoles: [OrgUserRoles.SUPER],
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
 );
@@ -282,7 +286,7 @@ router.post(
   '/api/v1/users/settings',
   metaApiMetrics,
   ncMetaAclMw(userSettings, 'userSettings', {
-    allowedRoles: [OrgUserRoles.SUPER],
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
 );
@@ -290,7 +294,7 @@ router.post(
   '/api/v1/users/:userId/resend-invite',
   metaApiMetrics,
   ncMetaAclMw(userInviteResend, 'userInviteResend', {
-    allowedRoles: [OrgUserRoles.SUPER],
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
 );
@@ -299,7 +303,7 @@ router.post(
   '/api/v1/users/:userId/generate-reset-url',
   metaApiMetrics,
   ncMetaAclMw(generateResetUrl, 'generateResetUrl', {
-    allowedRoles: [OrgUserRoles.SUPER],
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
 );
@@ -308,7 +312,7 @@ router.get(
   '/api/v1/app-settings',
   metaApiMetrics,
   ncMetaAclMw(appSettingsGet, 'appSettingsGet', {
-    allowedRoles: [OrgUserRoles.SUPER],
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
 );
@@ -317,7 +321,7 @@ router.post(
   '/api/v1/app-settings',
   metaApiMetrics,
   ncMetaAclMw(appSettingsSet, 'appSettingsSet', {
-    allowedRoles: [OrgUserRoles.SUPER],
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
     blockApiTokenAccess: true,
   })
 );

@@ -1,5 +1,5 @@
 export enum OrgUserRoles {
-  SUPER = 'super',
+  SUPER_ADMIN = 'super',
   CREATOR = 'org-level-creator',
   VIEWER = 'org-level-viewer',
 }

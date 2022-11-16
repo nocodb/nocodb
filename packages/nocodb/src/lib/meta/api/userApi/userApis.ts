@@ -91,7 +91,7 @@ export async function signup(req: Request, res: Response<TableType>) {
     let roles: string = OrgUserRoles.CREATOR;
 
     if (await User.isFirst()) {
-      roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER}`;
+      roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
       // todo: update in nc_store
       // roles = 'owner,creator,editor'
       Tele.emit('evt', {

@@ -8,7 +8,7 @@ const { isUIAllowed } = useUIPermission()
   <template
     v-if="
       $route.params.nestedPage === 'password-reset' ||
-      (!isUIAllowed('superAdminUserManagement') && !isUIAllowed('superAdminAppSetting'))
+      (!isUIAllowed('superAdminUserManagement') && !isUIAllowed('superAdminAppSettings'))
     "
   >
     <LazyAccountResetPassword />

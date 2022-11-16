@@ -1,5 +1,5 @@
 import express from 'express';
-import { LICENSE_KEY } from '../../constants';
+import { NC_LICENSE_KEY } from '../../constants';
 import Store from '../../models/Store';
 
 export default function getHandler(
@@ -7,7 +7,7 @@ export default function getHandler(
   eeHandler: express.Handler
 ): express.Handler {
   return async (...args) => {
-    const key = await Store.get(LICENSE_KEY);
+    const key = await Store.get(NC_LICENSE_KEY);
     if (!key?.value) {
       return defaultHandler(...args);
     }

@@ -16,7 +16,7 @@ export async function apiTokenCreate(req: Request, res: Response) {
 export async function apiTokenDelete(req: Request, res: Response) {
   const apiToken = await ApiToken.getByToken(req.params.apiTokenId);
   if (
-    !req['user'].roles.includes(OrgUserRoles.SUPER) &&
+    !req['user'].roles.includes(OrgUserRoles.SUPER_ADMIN) &&
     apiToken.fk_user_id !== req['user'].id
   ) {
     NcError.notFound('Token not found');

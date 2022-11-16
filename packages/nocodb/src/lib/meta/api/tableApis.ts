@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import Model from '../../models/Model';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import DOMPurify from 'isomorphic-dompurify';
 import {

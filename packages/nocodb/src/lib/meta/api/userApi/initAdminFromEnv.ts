@@ -9,7 +9,7 @@ import ProjectUser from '../../../models/ProjectUser';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
 import NocoCache from '../../../cache/NocoCache';
-import { Tele } from '../../../utils/Tele';
+import { Tele } from 'nc-help';
 
 const { isEmail } = require('validator');
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };

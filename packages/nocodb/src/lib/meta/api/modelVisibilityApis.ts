@@ -1,7 +1,7 @@
 import Model from '../../models/Model';
 import ModelRoleVisibility from '../../models/ModelRoleVisibility';
 import { Router } from 'express';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import Project from '../../models/Project';
 import { metaApiMetrics } from '../helpers/apiMetrics';

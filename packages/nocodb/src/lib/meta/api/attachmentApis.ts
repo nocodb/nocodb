@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid';
 import path from 'path';
 import slash from 'slash';
 import mimetypes, { mimeIcons } from '../../utils/mimeTypes';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import catchError from '../helpers/catchError';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';

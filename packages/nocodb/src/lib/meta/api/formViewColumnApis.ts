@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import FormViewColumn from '../../models/FormViewColumn';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 

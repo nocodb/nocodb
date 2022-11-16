@@ -21,7 +21,7 @@ import NcProjectBuilder from '../../v1-legacy/NcProjectBuilder';
 import Noco from '../../Noco';
 import NcMetaIO from '../../meta/NcMetaIO';
 import XcCache from '../../v1-legacy/plugins/adapters/cache/XcCache';
-import { Tele } from '../Tele';
+import { Tele } from 'nc-help';
 
 import BaseModel from './BaseModel';
 import { XcCron } from './XcCron';

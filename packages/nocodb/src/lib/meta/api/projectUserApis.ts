@@ -1,5 +1,5 @@
 import { OrgUserRoles } from '../../../enums/OrgUserRoles';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Router } from 'express';
 import { PagedResponseImpl } from '../helpers/PagedResponse';

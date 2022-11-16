@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { NcConfig } from '../interface/config';
 import Migrator from './db/sql-migrator/lib/KnexMigrator';
 import NcConfigFactory from './utils/NcConfigFactory';
-import { Tele } from './utils/Tele';
+import { Tele } from 'nc-help';
 
 import NcProjectBuilderCE from './v1-legacy/NcProjectBuilder';
 import NcProjectBuilderEE from './v1-legacy/NcProjectBuilderEE';

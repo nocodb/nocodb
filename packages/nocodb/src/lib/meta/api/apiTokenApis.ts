@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { OrgUserRoles } from '../../../enums/OrgUserRoles';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import { NcError } from '../helpers/catchError';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import ApiToken from '../../models/ApiToken';

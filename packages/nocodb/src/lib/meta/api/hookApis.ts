@@ -1,4 +1,4 @@
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import catchError from '../helpers/catchError';
 import { Request, Response, Router } from 'express';
 import Hook from '../../models/Hook';

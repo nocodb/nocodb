@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 // @ts-ignore
 import Model from '../../models/Model';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 // @ts-ignore
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { FormType, ViewTypes } from 'nocodb-sdk';

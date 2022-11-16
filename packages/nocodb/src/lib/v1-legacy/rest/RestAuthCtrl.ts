@@ -29,7 +29,7 @@ const { isEmail } = require('validator');
 import axios from 'axios';
 
 import IEmailAdapter from '../../../interface/IEmailAdapter';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import XcCache from '../plugins/adapters/cache/XcCache';
 
 passport.serializeUser(function (

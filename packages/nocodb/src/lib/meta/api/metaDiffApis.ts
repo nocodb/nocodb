@@ -1,6 +1,6 @@
 // // Project CRUD
 
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import Model from '../../models/Model';
 import Project from '../../models/Project';

@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import { OrgUserRoles } from '../../../enums/OrgUserRoles';
 import ApiToken from '../../models/ApiToken';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { NcError } from '../helpers/catchError';
 import getHandler from '../helpers/getHandler';

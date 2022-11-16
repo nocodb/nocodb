@@ -1,4 +1,4 @@
-import { Tele } from '../../../../utils/Tele';
+import { Tele } from 'nc-help';
 import FetchAT from './fetchAT';
 import { UITypes } from 'nocodb-sdk';
 // import * as sMap from './syncMap';

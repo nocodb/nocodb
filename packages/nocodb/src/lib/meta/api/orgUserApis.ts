@@ -15,7 +15,7 @@ import SyncSource from '../../models/SyncSource';
 import User from '../../models/User';
 import Noco from '../../Noco';
 import { MetaTable } from '../../utils/globals';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { NcError } from '../helpers/catchError';
 import { extractProps } from '../helpers/extractProps';

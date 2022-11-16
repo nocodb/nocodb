@@ -40,7 +40,7 @@ import NcTemplateParser from '../v1-legacy/templates/NcTemplateParser';
 import { defaultConnectionConfig } from '../utils/NcConfigFactory';
 import xcMetaDiff from './handlers/xcMetaDiff';
 import { UITypes } from 'nocodb-sdk';
-import { Tele } from '../utils/Tele';
+import { Tele } from 'nc-help';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 

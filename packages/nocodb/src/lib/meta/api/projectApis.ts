@@ -3,7 +3,7 @@ import Project from '../../models/Project';
 import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
 import DOMPurify from 'isomorphic-dompurify';
 import { packageVersion } from '../../utils/packageVersion';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import syncMigration from '../helpers/syncMigration';
 import { IGNORE_TABLES } from '../../utils/common/BaseApiBuilder';

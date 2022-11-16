@@ -1,6 +1,6 @@
 /* eslint-disable no-constant-condition */
-import { knex, Knex } from 'knex'
-import { Tele } from '../../../utils/Tele';
+import { knex, Knex } from 'knex';
+import { Tele } from 'nc-help';
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import Result from '../../util/Result';

@@ -3,7 +3,7 @@ import Model from '../../models/Model';
 import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 import Base from '../../models/Base';
 import Column from '../../models/Column';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import validateParams from '../helpers/validateParams';
 
 import { customAlphabet } from 'nanoid';

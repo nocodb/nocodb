@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { v4 as uuidv4 } from 'uuid';
 import Project from '../../models/Project';

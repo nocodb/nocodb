@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import Plugin from '../../models/Plugin';
 import { PluginType } from 'nocodb-sdk';

@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 
 import SyncSource from '../../../models/SyncSource';
-import { Tele } from '../../../utils/Tele';
+import { Tele } from 'nc-help';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 

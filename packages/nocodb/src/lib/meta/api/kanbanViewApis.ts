@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 import { KanbanType, ViewTypes } from 'nocodb-sdk';
 import View from '../../models/View';
 import KanbanView from '../../models/KanbanView';
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 

@@ -2,7 +2,7 @@ import { NcConfig } from '../../interface/config';
 
 import debug from 'debug';
 import NcMetaIO from '../meta/NcMetaIO';
-import { Tele } from '../utils/Tele';
+import { Tele } from 'nc-help';
 import ncProjectEnvUpgrader from './ncProjectEnvUpgrader';
 import ncProjectEnvUpgrader0011045 from './ncProjectEnvUpgrader0011045';
 import ncProjectUpgraderV2_0090000 from './ncProjectUpgraderV2_0090000';

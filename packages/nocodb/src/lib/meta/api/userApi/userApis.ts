@@ -3,7 +3,7 @@ import { TableType, validatePassword } from 'nocodb-sdk';
 import { OrgUserRoles } from '../../../../enums/OrgUserRoles';
 import { NC_APP_SETTINGS } from '../../../constants';
 import Store from '../../../models/Store';
-import { Tele } from '../../../utils/Tele';
+import { Tele } from 'nc-help';
 import catchError, { NcError } from '../../helpers/catchError';
 
 const { isEmail } = require('validator');

@@ -1,4 +1,4 @@
-import { Tele } from '../../utils/Tele';
+import { Tele } from 'nc-help';
 import orgLicenseApis from './orgLicenseApis'
 import orgTokenApis from './orgTokenApis';
 import orgUserApis from './orgUserApis';

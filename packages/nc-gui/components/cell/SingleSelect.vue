@@ -43,16 +43,20 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const { $api } = useNuxtApp()
 
 const searchVal = ref()
+const tempVal = ref<string>()
 
 const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
 const vModel = computed({
-  get: () => modelValue,
+  get: () => tempVal.value ?? modelValue,
   set: (val) => {
     if (isOptionMissing.value && val === searchVal.value) {
-      return addIfMissingAndSave()
+      tempVal.value = val
+      return addIfMissingAndSave().finally(() => {
+        tempVal.value = undefined
+      })
     }
     emit('update:modelValue', val || null)
   },
@@ -161,7 +165,6 @@ const search = () => {
     @keydown.stop
     show-search
     @search="search"
-    @keydown.enter.stop
     @click="isOpen = (active || editable) && !isOpen"
   >
     <a-select-option

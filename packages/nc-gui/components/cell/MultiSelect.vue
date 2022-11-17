@@ -15,7 +15,7 @@ import {
   useEventListener,
   useProject,
   useSelectedCellKeyupListener,
-  watch,enumColor,useMetas
+  watch, enumColor, useMetas,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -49,8 +49,12 @@ const isOpen = ref(false)
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const searchVal = ref()
+
 const { $api } = useNuxtApp()
+
 const { getMeta } = useMetas()
+
+const tempVal = ref<string>()
 
 const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
@@ -71,13 +75,17 @@ const options = computed<(SelectOptionType & { value?: string })[]>(() => {
 
 const vModel = computed({
   get: () => {
-    return selectedIds.value.reduce((acc, id) => {
+    const selected = selectedIds.value.reduce((acc, id) => {
       const title = (options.value.find((op) => op.id === id) || options.value.find((op) => op.title === id))?.title
 
       if (title) acc.push(title)
 
       return acc
     }, [] as string[])
+
+    if (tempVal.value) selected.push(tempVal.value)
+
+    return selected
   },
   set: (val) => {
     if (isOptionMissing.value && val[val.length - 1] === searchVal.value) {
@@ -116,7 +124,6 @@ const handleKeys = async (e: KeyboardEvent) => {
       break
   }
 }
-const v = Math.floor(Math.random() * 1000)
 
 const handleClose = (e: MouseEvent) => {
   if (aselect.value && !aselect.value.$el.contains(e.target)) {
@@ -176,24 +183,34 @@ useSelectedCellKeyupListener(active, (e) => {
 
 async function addIfMissingAndSave() {
   if (!searchVal) return false
+  try {
+    tempVal.value = searchVal.value
+    const newOptValue = searchVal?.value
 
-  const newOptValue = searchVal?.value
+    if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
+      const newOptions = [...options.value]
+      newOptions.push({
+        title: newOptValue, value: newOptValue,
+        color: enumColor.light[(options.value.length + 1) % enumColor.light.length],
+      })
+      column.value.colOptions = { options: newOptions.map(({ value: _, ...rest }) => rest) }
 
-  if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
-    const newOptions = [...options.value]
-    newOptions.push({ title: newOptValue, value: newOptValue,
-      color: enumColor.light[(options.value.length + 1) % enumColor.light.length], })
-    column.value.colOptions = { options: newOptions.map(({ value: _, ...rest }) => rest) }
+      await $api.dbTableColumn.update(column.value?.id as string, {
+        ...column.value,
+      })
+      await getMeta(column.value.fk_model_id!, true)
 
-    await $api.dbTableColumn.update(column.value?.id as string, {
-      ...column.value,
-    })
-    await getMeta(column.value.fk_model_id!, true)
-
-    vModel.value = [...vModel.value, newOptValue]
-    searchVal.value = ''
+      vModel.value = [...vModel.value]
+      searchVal.value = ''
+    }
+  } catch (e) {
+    // todo: handle error message
+    console.log(e)
+  } finally {
+    tempVal.value = ''
   }
 }
+
 
 const search = () => {
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value

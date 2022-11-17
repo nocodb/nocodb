@@ -103,7 +103,7 @@ export default {
         borderRadius: '0.25rem',
         padding: '0.25rem 0.5rem',
       }"
-      class="nodrag nopan color-transition z-1000"
+      class="nodrag nopan color-transition z-1001"
       :class="[
         selected || isHovering ? 'opacity-100' : 'opacity-0 !pointer-events-none',
         showSkeleton ? '!text-6xl' : '!text-xs',

@@ -3,20 +3,36 @@ import type { NodeProps } from '@vue-flow/core'
 import { Handle, Position, useVueFlow } from '@vue-flow/core'
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import type { NodeData } from './utils'
-import { MetaInj, computed, provide, refAutoReset, toRef, useNuxtApp, watch } from '#imports'
+import type { ERDConfig, NodeData } from './utils'
+import { MetaInj, computed, provide, refAutoReset, useMetas, useNuxtApp, watch } from '#imports'
 
 interface Props extends Pick<NodeProps<NodeData>, 'data' | 'dragging'> {
   data: NodeData
   showSkeleton: boolean
   dragging: boolean
+  config: ERDConfig
 }
 
-const { data, showSkeleton, dragging } = defineProps<Props>()
+const { data, showSkeleton, dragging, config } = defineProps<Props>()
+
+const { metasWithIdAsKey } = useMetas()
 
 const { viewport } = useVueFlow()
 
-const table = toRef(data, 'table')
+const table = computed(() => metasWithIdAsKey.value[data.tableId])
+
+const columns = computed(
+  () =>
+    metasWithIdAsKey.value[data.tableId].columns?.filter(
+      (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
+    ) || [],
+)
+
+const pkAndFkColumns = computed(() =>
+  columns.value.filter(() => config.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey),
+)
+
+const nonPkColumns = computed(() => columns.value.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey))
 
 const isZooming = refAutoReset(false, 200)
 
@@ -27,7 +43,7 @@ const { $e } = useNuxtApp()
 const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
   colOptions.type === 'mm' ? colOptions.fk_parent_column_id : colOptions.fk_child_column_id
 
-const hasColumns = computed(() => data.pkAndFkColumns.length || data.nonPkColumns.length)
+const hasColumns = computed(() => pkAndFkColumns.value.length || nonPkColumns.value.length)
 
 watch(
   () => viewport.value.zoom,
@@ -74,7 +90,7 @@ watch(
 
       <div v-else-if="hasColumns">
         <div
-          v-for="col in data.pkAndFkColumns"
+          v-for="col in pkAndFkColumns"
           :key="col.title"
           class="w-full h-full min-w-32 border-b-1 py-2 px-1 border-slate-200 bg-slate-100"
           :class="`nc-erd-table-node-${table.table_name}-column-${col.column_name}`"
@@ -82,10 +98,10 @@ watch(
           <LazySmartsheetHeaderCell v-if="col" :column="col" :hide-menu="true" />
         </div>
 
-        <div v-for="(col, index) in data.nonPkColumns" :key="col.title">
+        <div v-for="(col, index) in nonPkColumns" :key="col.title">
           <div
             class="relative w-full h-full flex items-center min-w-32 border-slate-200 py-2 px-1"
-            :class="index + 1 === data.nonPkColumns.length ? 'rounded-b-lg' : 'border-b-1'"
+            :class="index + 1 === nonPkColumns.length ? 'rounded-b-lg' : 'border-b-1'"
           >
             <div
               v-if="col.uidt === UITypes.LinkToAnotherRecord"

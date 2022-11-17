@@ -3,8 +3,8 @@ import { Background, Controls, Panel, PanelPosition } from '@vue-flow/additional
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { TableType } from 'nocodb-sdk'
 import type { ERDConfig } from './utils'
-import { useErdElements } from './utils'
-import { computed, onScopeDispose, toRefs, watch } from '#imports'
+import { useErdElements, useLayout } from './utils'
+import { computed, onBeforeUnmount, toRefs, watch } from '#imports'
 
 interface Props {
   tables: TableType[]
@@ -15,27 +15,22 @@ const props = defineProps<Props>()
 
 const { tables, config } = toRefs(props)
 
-const { $destroy, fitView, onPaneReady, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
+const { $destroy, fitView, onNodesInitialized, viewport, onNodeDoubleClick } = useVueFlow({ minZoom: 0.05, maxZoom: 2 })
 
-const { layout, elements } = useErdElements(tables, config)
+const { elements } = useErdElements(tables, config)
 
 const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
-function init() {
-  layout(showSkeleton.value)
-  if (!showSkeleton.value) {
-    setTimeout(zoomIn, 100)
-  }
-}
+const layout = useLayout(showSkeleton)
 
 function zoomIn(nodeId?: string) {
   fitView({ nodes: nodeId ? [nodeId] : undefined, duration: 300, minZoom: 0.2 })
 }
 
-onPaneReady(() => {
-  layout(showSkeleton.value)
-
+onNodesInitialized(() => {
   setTimeout(() => {
+    layout()
+
     fitView({ duration: 250, minZoom: 0.16 })
   }, 100)
 })
@@ -43,15 +38,44 @@ onPaneReady(() => {
 onNodeDoubleClick(({ node }) => {
   if (showSkeleton.value) zoomIn()
 
-  setTimeout(() => {
-    zoomIn(node.id)
-  }, 250)
+  setTimeout(
+    () => {
+      zoomIn(node.id)
+    },
+    showSkeleton.value ? 250 : 0,
+  )
 })
 
-watch(tables, init)
+watch(
+  tables,
+  () => {
+    setTimeout(() => {
+      layout()
+
+      if (!showSkeleton.value) {
+        setTimeout(zoomIn, 100)
+      }
+    }, 0)
+  },
+  { flush: 'post' },
+)
+
+watch(
+  config,
+  () => {
+    setTimeout(() => {
+      layout()
+
+      if (!showSkeleton.value) fitView({ duration: 250, minZoom: 0.16 })
+    }, 100)
+  },
+  { deep: true },
+)
+
 watch(showSkeleton, (isSkeleton) => {
-  layout(isSkeleton)
   setTimeout(() => {
+    layout()
+
     fitView({
       duration: 300,
       minZoom: isSkeleton ? undefined : viewport.value.zoom,
@@ -60,7 +84,7 @@ watch(showSkeleton, (isSkeleton) => {
   }, 100)
 })
 
-onScopeDispose($destroy)
+onBeforeUnmount($destroy)
 </script>
 
 <template>
@@ -68,7 +92,7 @@ onScopeDispose($destroy)
     <Controls class="rounded" :position="PanelPosition.BottomLeft" :show-fit-view="false" :show-interactive="false" />
 
     <template #node-custom="{ data, dragging }">
-      <ErdTableNode :data="data" :dragging="dragging" :show-skeleton="showSkeleton" />
+      <ErdTableNode :config="config" :data="data" :dragging="dragging" :show-skeleton="showSkeleton" />
     </template>
 
     <template #edge-custom="edgeProps">
@@ -94,6 +118,10 @@ onScopeDispose($destroy)
 </template>
 
 <style>
+.vue-flow__edges {
+  @apply !z-1000;
+}
+
 .vue-flow__controls-zoomin {
   @apply rounded-t;
 }

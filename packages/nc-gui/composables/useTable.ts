@@ -79,6 +79,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
       okText: t('general.yes'),
       okType: 'danger',
       cancelText: t('general.no'),
+      width: 450,
       async onOk() {
         try {
           const meta = (await getMeta(table.id as string, true)) as TableType

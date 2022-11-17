@@ -18,6 +18,7 @@ export default class S3 implements IStorageAdapterV2 {
   async fileCreate(key: string, file: XcFile): Promise<any> {
     const uploadParams: any = {
       ACL: 'public-read',
+      ContentType: file.mimetype,
     };
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
@@ -53,11 +54,12 @@ export default class S3 implements IStorageAdapterV2 {
           url: url,
           encoding: null,
         },
-        (err, _, body) => {
+        (err, httpResponse, body) => {
           if (err) return reject(err);
 
           uploadParams.Body = body;
           uploadParams.Key = key;
+          uploadParams.ContentType = httpResponse.headers['content-type'];
 
           // call S3 to retrieve upload file to specified bucket
           this.s3Client.upload(uploadParams, (err1, data) => {
@@ -119,7 +121,7 @@ export default class S3 implements IStorageAdapterV2 {
       await waitForStreamClose(createStream);
       await this.fileCreate('nc-test-file.txt', {
         path: tempFile,
-        mimetype: '',
+        mimetype: 'text/plain',
         originalname: 'temp.txt',
         size: '',
       });

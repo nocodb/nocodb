@@ -21,6 +21,11 @@ const vModel = useVModel(props, 'modelValue', emits)
     class="w-full !border-none text-base"
     :class="{ '!px-2': editEnabled }"
     type="number"
+    @keydown.down.stop
+    @keydown.left.stop
+    @keydown.right.stop
+    @keydown.up.stop
+    @keydown.delete.stop
   />
   <span v-else>{{ vModel }}</span>
 </template>

@@ -61,6 +61,11 @@ onMounted(() => {
     v-model="vModel"
     class="w-full h-full border-none outline-none px-2"
     @blur="submitCurrency"
+    @keydown.down.stop
+    @keydown.left.stop
+    @keydown.right.stop
+    @keydown.up.stop
+    @keydown.delete.stop
   />
 
   <span v-else-if="vModel">{{ currency }}</span>

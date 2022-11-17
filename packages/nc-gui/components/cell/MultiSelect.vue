@@ -14,6 +14,7 @@ import {
   ref,
   useEventListener,
   useProject,
+  useSelectedCellKeyupListener,
   watch,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
@@ -85,17 +86,7 @@ const selectedTitles = computed(() =>
     : [],
 )
 
-const handleKeys = (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Escape':
-      e.preventDefault()
-      isOpen.value = false
-      break
-    case 'Enter':
-      e.stopPropagation()
-      break
-  }
-}
+const v = Math.floor(Math.random() * 1000)
 
 const handleClose = (e: MouseEvent) => {
   if (aselect.value && !aselect.value.$el.contains(e.target)) {
@@ -131,7 +122,24 @@ watch(
 )
 
 watch(isOpen, (n, _o) => {
-  if (!n) aselect.value?.$el.blur()
+  if (!n) {
+    aselect.value?.$el?.querySelector('input')?.blur()
+  } else {
+    aselect.value?.$el?.querySelector('input')?.focus()
+  }
+})
+
+useSelectedCellKeyupListener(active, (e) => {
+  switch (e.key) {
+    case 'Escape':
+      isOpen.value = false
+      break
+    case 'Enter':
+      if (active.value && !isOpen.value) {
+        isOpen.value = true
+      }
+      break
+  }
 })
 </script>
 
@@ -139,17 +147,17 @@ watch(isOpen, (n, _o) => {
   <a-select
     ref="aselect"
     v-model:value="vModel"
+    v-model:open="isOpen"
     mode="multiple"
     class="w-full"
     :bordered="false"
     :show-arrow="!readOnly"
     :show-search="false"
-    :open="isOpen"
     :disabled="readOnly"
     :class="{ '!ml-[-8px]': readOnly }"
-    dropdown-class-name="nc-dropdown-multi-select-cell"
-    @keydown="handleKeys"
-    @click="isOpen = !isOpen"
+    :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
+    @keydown.enter.stop
+    @click="isOpen = active && !isOpen"
   >
     <a-select-option
       v-for="op of options"
@@ -221,18 +229,23 @@ watch(isOpen, (n, _o) => {
   margin-right: -6px;
   margin-left: 3px;
 }
+
 .ms-close-icon:before {
   display: block;
 }
+
 .ms-close-icon:hover {
   color: rgba(0, 0, 0, 0.45);
 }
+
 .rounded-tag {
   @apply py-0 px-[12px] rounded-[12px];
 }
+
 :deep(.ant-tag) {
   @apply "rounded-tag" my-[2px];
 }
+
 :deep(.ant-tag-close-icon) {
   @apply "text-slate-500";
 }

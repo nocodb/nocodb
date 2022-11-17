@@ -3,6 +3,7 @@ import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import {
+  ActiveCellInj,
   DropZoneRef,
   IsGalleryInj,
   IsKanbanInj,
@@ -12,6 +13,7 @@ import {
   openLink,
   ref,
   useDropZone,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useSmartsheetStoreOrThrow,
   watch,
@@ -113,9 +115,17 @@ watch(
           attachments.value = []
         }
       }
+    } else {
+      if (isPublic.value && isForm.value) {
+        storedFiles.value = []
+      } else {
+        attachments.value = []
+      }
     }
   },
-  { immediate: true },
+  {
+    immediate: true,
+  },
 )
 
 /** updates attachments array for autosave */
@@ -136,6 +146,13 @@ watch(
     rowState.value[column.value!.title!] = storedFiles.value
   },
 )
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e) => {
+  if (e.key === 'Enter' && !isReadonly.value) {
+    e.stopPropagation()
+    modalVisible.value = true
+  }
+})
 </script>
 
 <template>

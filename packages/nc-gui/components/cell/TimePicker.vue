@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ReadonlyInj, inject, onClickOutside, useProject, watch } from '#imports'
+import { ActiveCellInj, ReadonlyInj, inject, onClickOutside, useProject, useSelectedCellKeyupListener, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null | undefined
@@ -14,6 +14,10 @@ const emit = defineEmits(['update:modelValue'])
 const { isMysql } = useProject()
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 let isTimeInvalid = $ref(false)
 
@@ -65,6 +69,21 @@ watch(
   },
   { flush: 'post' },
 )
+
+useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      e.stopPropagation()
+      open.value = true
+      break
+    case 'Escape':
+      if (open.value) {
+        e.stopPropagation()
+        open.value = false
+      }
+      break
+  }
+})
 </script>
 
 <template>
@@ -79,9 +98,9 @@ watch(
     :placeholder="isTimeInvalid ? 'Invalid time' : ''"
     :allow-clear="!readOnly && !localState && !isPk"
     :input-read-only="true"
-    :open="readOnly || (localState && isPk) ? false : open"
-    :popup-class-name="`${randomClass} nc-picker-time`"
-    @click="open = !open"
+    :open="(readOnly || (localState && isPk)) && !active && !editable ? false : open"
+    :popup-class-name="`${randomClass} nc-picker-time ${open ? 'active' : ''}`"
+    @click="open = (active || editable) && !open"
     @ok="open = !open"
   >
     <template #suffixIcon></template>

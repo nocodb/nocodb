@@ -13,6 +13,7 @@ import {
   inject,
   ref,
   useProvideLTARStore,
+  useSelectedCellKeyupListener,
   useSmartsheetRowStoreOrThrow,
   useUIPermission,
 } from '#imports'
@@ -81,6 +82,15 @@ const onAttachRecord = () => {
   childListDlg.value = false
   listItemsDlg.value = true
 }
+
+useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Enter':
+      listItemsDlg.value = true
+      e.stopPropagation()
+      break
+  }
+})
 </script>
 
 <template>

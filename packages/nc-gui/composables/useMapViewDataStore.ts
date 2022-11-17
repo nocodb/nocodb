@@ -14,6 +14,8 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     const { project } = useProject()
     const { $api } = useNuxtApp()
 
+    const { isUIAllowed } = useUIPermission()
+
     const mapMetaData = ref<MapType>({})
 
     const geoDataFieldColumn = ref<ColumnType | undefined>()
@@ -35,10 +37,19 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
       formattedData.value = res.list
     }
 
+    async function updateMapMeta(updateObj: Partial<MapType>) {
+      if (!viewMeta?.value?.id || !isUIAllowed('xcDatatableEditable')) return
+      await $api.dbView.mapUpdate(viewMeta.value.id, {
+        ...mapMetaData.value,
+        ...updateObj,
+      })
+    }
+
     return {
       formattedData,
       loadMapData,
       loadMapMeta,
+      updateMapMeta,
       mapMetaData,
       geoDataFieldColumn,
     }

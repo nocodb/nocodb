@@ -18,7 +18,7 @@ const { allowCSVDownload } = useSharedView()
     style="z-index: 7"
   >
     <LazySmartsheetToolbarViewActions
-      v-if="(isGrid || isGallery || isKanban) && !isPublic && isUIAllowed('dataInsert')"
+      v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"
       :show-system-fields="false"
       class="ml-1"
     />
@@ -29,9 +29,11 @@ const { allowCSVDownload } = useSharedView()
 
     <LazySmartsheetToolbarKanbanStackEditOrAdd v-if="isKanban" />
 
+    <LazySmartsheetToolbarMappedBy v-if="isMap" />
+
     <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
-    <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban" />
+    <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
     <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 

@@ -91,7 +91,10 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const project = await Project.getWithInfo(req.params.projectId);
   const base = project.bases[0];
 
-  if (!req.body.table_name) {
+  if (
+    !req.body.table_name ||
+    (project.prefix && project.prefix === req.body.table_name)
+  ) {
     NcError.badRequest(
       'Missing table name `table_name` property in request body'
     );

@@ -21,6 +21,9 @@ test.describe('App settings', () => {
 
     await accountSettingsPage.goto();
 
+    // todo: remove after route navigation issue resolved
+    await accountSettingsPage.rootPage.reload({ waitUntil: 'networkidle' });
+
     // enable invite only signup
     if (!(await accountSettingsPage.getInviteOnlyCheckboxValue())) {
       await accountSettingsPage.toggleInviteOnlyCheckbox();

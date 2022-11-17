@@ -14,6 +14,10 @@ export class AccountSettingsPage extends BasePage {
     await this.rootPage.goto('/#/account/users/settings', { waitUntil: 'networkidle' });
   }
 
+  async waitUntilContentLoads() {
+    return this.rootPage.waitForResponse(resp => resp.url().includes('api/v1/app-settings') && resp.status() === 200);
+  }
+
   get() {
     return this.accountPage.get().locator(`[data-testid="nc-app-settings"]`);
   }

@@ -178,8 +178,6 @@ const createQrCodeColumn = async (
   const qrCodeColumn = await createColumn(context, table, {
     title: title,
     uidt: UITypes.QrCode,
-    // TODO: check - table_name needed?
-    table_name: table.table_name,
     column_name: title,
     fk_qr_value_column_id: referencedQrValueTableColumnId,
   });

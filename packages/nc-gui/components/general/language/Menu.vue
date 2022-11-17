@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Language } from '~/lib'
-import { onMounted, useGlobal, useI18n, useNuxtApp } from '#imports'
+import { useGlobal, useI18n, useNuxtApp } from '#imports'
 import { setI18nLanguage } from '~/plugins/a.i18n'
 
 const { $e } = useNuxtApp()
@@ -11,31 +11,14 @@ const { locale } = useI18n()
 
 const languages = $computed(() => Object.entries(Language).sort() as [keyof typeof Language, Language][])
 
-const isRtlLang = $computed(() => ['fa', 'ar'].includes(currentLang.value))
-
-function applyDirection() {
-  const targetDirection = isRtlLang ? 'rtl' : 'ltr'
-  const oppositeDirection = targetDirection === 'ltr' ? 'rtl' : 'ltr'
-
-  document.body.classList.remove(oppositeDirection)
-  document.body.classList.add(targetDirection)
-  document.body.style.direction = targetDirection
-}
-
 async function changeLanguage(lang: string) {
   const nextLang = lang as keyof typeof Language
 
   await setI18nLanguage(nextLang)
   currentLang.value = nextLang
 
-  applyDirection()
-
   $e('c:navbar:lang', { lang })
 }
-
-onMounted(() => {
-  applyDirection()
-})
 </script>
 
 <template>

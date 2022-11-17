@@ -2,14 +2,13 @@ import 'mocha';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/project';
 import request from 'supertest';
-import { ColumnType, UITypes } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
 import { createQrCodeColumn, createColumn } from '../../factory/column';
-import { createTable, getTable } from '../../factory/table';
+import { getTable } from '../../factory/table';
 import Model from '../../../../src/lib/models/Model';
 import Project from '../../../../src/lib/models/Project';
 import { expect } from 'chai';
 import Column from '../../../../src/lib/models/Column';
-import { table } from 'console';
 import { title } from 'process';
 
 function columnTypeSpecificTests() {
@@ -17,7 +16,7 @@ function columnTypeSpecificTests() {
   let project: Project;
   let sakilaProject: Project;
   let customerTable: Model;
-  let qrValueReferenceColumn: Column; 
+  let qrValueReferenceColumn: Column;
 
   const qrValueReferenceColumnTitle = 'Qr Value Column';
   const qrCodeReferenceColumnTitle = 'Qr Code Column';
@@ -32,17 +31,18 @@ function columnTypeSpecificTests() {
       project: sakilaProject,
       name: 'customer',
     });
-
-    qrValueReferenceColumn = await createColumn(context, customerTable, {
-      title: qrValueReferenceColumnTitle,
-      uidt: UITypes.SingleLineText,
-      table_name: customerTable.table_name,
-      column_name: title,
-    });
   });
 
   describe('Qr Code Column', () => {
-    describe('adding a QR code column which references the column ', async () => {
+    beforeEach(async function () {
+      qrValueReferenceColumn = await createColumn(context, customerTable, {
+        title: qrValueReferenceColumnTitle,
+        uidt: UITypes.SingleLineText,
+        table_name: customerTable.table_name,
+        column_name: title,
+      });
+    });
+    describe('adding a QR code column which references another column ', async () => {
       beforeEach(async function () {
         await createQrCodeColumn(context, {
           title: qrCodeReferenceColumnTitle,
@@ -58,9 +58,9 @@ function columnTypeSpecificTests() {
         expect(resp.body.list[0][qrValueReferenceColumnTitle]).to.eql(
           resp.body.list[0][qrCodeReferenceColumnTitle]
         );
-        expect(resp.body.list.map((row) => row[qrValueReferenceColumnTitle])).to.eql(
-          resp.body.list.map((row) => row[qrCodeReferenceColumnTitle])
-        );
+        expect(
+          resp.body.list.map((row) => row[qrValueReferenceColumnTitle])
+        ).to.eql(resp.body.list.map((row) => row[qrCodeReferenceColumnTitle]));
       });
 
       it('gets deleted if the referenced column gets deleted', async () => {

@@ -178,7 +178,7 @@ watch(
       <a-button
         type="text"
         class="!rounded-md border-none -mt-1.5 -mr-1"
-        data-nc="settings-modal-close-button"
+        data-testid="settings-modal-close-button"
         @click="vModel = false"
       >
         <template #icon>
@@ -220,7 +220,7 @@ watch(
           </a-menu-item>
         </a-menu>
 
-        <component :is="selectedSubTab?.body" class="px-2 py-6" :data-nc="`nc-settings-subtab-${selectedSubTab.title}`" />
+        <component :is="selectedSubTab?.body" class="px-2 py-6" :data-testid="`nc-settings-subtab-${selectedSubTab.title}`" />
       </a-layout-content>
     </a-layout>
   </a-modal>

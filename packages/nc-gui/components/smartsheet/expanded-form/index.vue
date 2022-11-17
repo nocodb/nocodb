@@ -137,6 +137,7 @@ export default {
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
     class="nc-drawer-expanded-form"
+    :class="{ 'active': isExpanded }"
   >
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 
@@ -150,7 +151,7 @@ export default {
               :key="col.title"
               class="mt-2 py-2"
               :class="`nc-expand-col-${col.title}`"
-              :data-nc="`nc-expand-col-${col.title}`"
+              :data-testid="`nc-expand-col-${col.title}`"
             >
               <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
 

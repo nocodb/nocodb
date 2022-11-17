@@ -12,14 +12,34 @@ export default `<!DOCTYPE html>
 </div>
 
 <script>
+
+let initialLocalStorage = {}
+
+try {
+  initialLocalStorage = JSON.parse(localStorage.getItem('nocodb-gui-v2') || '{}');
+} catch (e) {
+  console.error('Failed to parse local storage', e);
+}
+
+var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
+xmlhttp.open("GET", "./swagger.json");
+xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+xmlhttp.setRequestHeader("xc-auth", initialLocalStorage && initialLocalStorage.token);
+xmlhttp.onload = function () {
+
   const ui = SwaggerUIBundle({
-    url: "./swagger.json",
+    // url: ,
+    spec: JSON.parse(xmlhttp.responseText),
     dom_id: '#app',
     presets: [
       SwaggerUIBundle.presets.apis,
       SwaggerUIBundle.SwaggerUIStandalonePreset
     ],
   })
+}
+xmlhttp.send();
+
+  
   console.log('%c🚀 We are Hiring!!! 🚀%c\\n%cJoin the forces http://careers.nocodb.com', 'color:#1348ba;font-size:3rem;padding:20px;', 'display:none', 'font-size:1.5rem;padding:20px');
     const linkEl = document.createElement('a')
   linkEl.setAttribute('href', "http://careers.nocodb.com")

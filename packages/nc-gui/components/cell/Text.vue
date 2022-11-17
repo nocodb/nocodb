@@ -27,6 +27,11 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
     class="h-full w-full outline-none bg-transparent"
     :class="{ '!px-2': editEnabled }"
     @blur="editEnabled = false"
+    @keydown.down.stop
+    @keydown.left.stop
+    @keydown.right.stop
+    @keydown.up.stop
+    @keydown.delete.stop
   />
 
   <span v-else>{{ vModel }}</span>

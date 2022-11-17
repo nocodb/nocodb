@@ -139,7 +139,7 @@ const getIcon = (c: ColumnType) =>
     <template #overlay>
       <div
         class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
-        data-nc="nc-fields-menu"
+        data-testid="nc-fields-menu"
         @click.stop
       >
         <a-card
@@ -167,7 +167,7 @@ const getIcon = (c: ColumnType) =>
                 v-show="filteredFieldList.includes(field)"
                 :key="field.id"
                 class="px-2 py-1 flex items-center"
-                :data-nc="`nc-fields-menu-${field.title}`"
+                :data-testid="`nc-fields-menu-${field.title}`"
                 @click.stop
               >
                 <a-checkbox

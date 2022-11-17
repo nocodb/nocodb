@@ -167,12 +167,12 @@ function onStopEdit() {
 <template>
   <a-menu-item
     class="select-none group !flex !items-center !my-0 hover:(bg-primary !bg-opacity-5)"
-    :data-nc="`view-sidebar-view-${vModel.alias || vModel.title}`"
+    :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
     @click.stop="onClick"
   >
-    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2" data-nc="view-item">
-      <div class="flex w-auto" :data-nc="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
+    <div v-e="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2" data-testid="view-item">
+      <div class="flex w-auto" :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`">
         <MdiDrag
           class="nc-drag-icon hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 !cursor-move"
           @click.stop.prevent
@@ -194,7 +194,7 @@ function onStopEdit() {
       <div class="flex-1" />
 
       <template v-if="!isEditing && !isLocked && isUIAllowed('virtualViewsCreateOrEdit')">
-        <div class="flex items-center gap-1" :data-nc="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
+        <div class="flex items-center gap-1" :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`">
           <a-tooltip placement="left">
             <template #title>
               {{ $t('activity.copyView') }}

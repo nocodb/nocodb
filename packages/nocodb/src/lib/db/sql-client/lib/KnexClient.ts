@@ -1,5 +1,6 @@
 /* eslint-disable no-constant-condition */
-import { knex, Knex } from 'knex'
+import { knex, Knex } from 'knex';
+import { Tele } from 'nc-help';
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import Result from '../../util/Result';
@@ -13,7 +14,6 @@ import mkdirp from 'mkdirp';
 import Order from './order';
 import * as dataHelp from './data.helper';
 import SqlClient from './SqlClient';
-import { Tele } from 'nc-help';
 const evt = new Emit();
 
 const log = new Debug('KnexClient');

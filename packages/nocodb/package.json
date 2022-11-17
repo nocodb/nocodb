@@ -38,7 +38,7 @@
     "watch:run": "cross-env NC_DISABLE_TELE1=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
     "watch:run:playwright": "rm -f ./test_noco.db; cross-env DATABASE_URL=sqlite:./test_noco.db PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
     "watch:run:playwright:quick": "rm -f ./test_noco.db; cp ../../scripts/cypress/fixtures/quickTest/noco_0_91_7.db ./test_noco.db; cross-env DATABASE_URL=sqlite:./test_noco.db NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
-    "watch:run:playwright:pg:cyquick": "rm -f ./test_noco.db; cp ../../scripts/cypress/fixtures/quickTest/noco_0_91_7.db ./test_noco.db; cross-env EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG_CyQuick.ts --log-error --project tsconfig.json\"",
+    "watch:run:playwright:pg:cyquick": "rm -f ./test_noco.db; cp ../../scripts/cypress/fixtures/quickTest/noco_0_91_7.db ./test_noco.db; cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG_CyQuick.ts --log-error --project tsconfig.json\"",
     "watch:run:cypress": "cross-env EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
     "watch:run:cypress:pg": "cross-env EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
     "watch:run:cypress:pg:cyquick": "cross-env EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG_CyQuick.ts --log-error --project tsconfig.json\"",
@@ -46,8 +46,7 @@
     "watch:run:pg": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
     "run": "ts-node src/run/docker",
     "watch:try": "nodemon -e ts,js -w ./src -x \"ts-node src/run/try --log-error --project tsconfig.json\"",
-    "example:docker": "ts-node src/run/docker.ts",
-    "ci:run": "npm install; npm run watch:run:playwright > mysql_test_backend.log"
+    "example:docker": "ts-node src/run/docker.ts"
   },
   "engines": {
     "node": ">=8.9"

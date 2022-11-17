@@ -1,6 +1,6 @@
+import { Tele } from 'nc-help';
 import FetchAT from './fetchAT';
 import { UITypes } from 'nocodb-sdk';
-import { Tele } from 'nc-help';
 // import * as sMap from './syncMap';
 
 import { Api } from 'nocodb-sdk';
@@ -2236,13 +2236,13 @@ export default async (
         const recordsMap = {};
 
         for (let i = 0; i < ncTblList.list.length; i++) {
+          // not a migrated table, skip
+          if (undefined === aTblSchema.find((x) => x.name === ncTblList.list[i].title))
+            continue;
+            
           const _perfStart = recordPerfStart();
           const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
           recordPerfStats(_perfStart, 'dbTable.read');
-
-          // not a migrated table, skip
-          if (undefined === aTblSchema.find((x) => x.name === ncTbl.title))
-            continue;
 
           recordCnt = 0;
           // await nocoReadData(syncDB, ncTbl);
@@ -2264,7 +2264,12 @@ export default async (
 
         logBasic('Configuring Record Links...');
         for (let i = 0; i < ncTblList.list.length; i++) {
+          // not a migrated table, skip
+          if (undefined === aTblSchema.find((x) => x.name === ncTblList.list[i].title))
+            continue;
+
           const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+
           rtc.data.nestedLinks += await importLTARData({
             table: ncTbl,
             projectName: syncDB.projectName,

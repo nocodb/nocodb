@@ -55,7 +55,7 @@ watch(
     <template #overlay>
       <div
         class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto !border"
-        data-nc="nc-sorts-menu"
+        data-testid="nc-sorts-menu"
       >
         <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
           <template v-for="(sort, i) in sorts || []" :key="i">

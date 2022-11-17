@@ -111,6 +111,7 @@ const vModel = computed({
 })
 
 const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
+  console.log('syncAndNavigate', e.target)
   if (isJSON.value) return
 
   if (currentRow.value.rowMeta.changed || currentRow.value.rowMeta.new) {

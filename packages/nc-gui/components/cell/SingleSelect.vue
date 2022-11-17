@@ -2,7 +2,18 @@
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import { ActiveCellInj, ColumnInj, IsKanbanInj, ReadonlyInj, computed, inject, ref, useEventListener, watch } from '#imports'
+import {
+  ActiveCellInj,
+  ColumnInj,
+  EditModeInj,
+  IsKanbanInj,
+  ReadonlyInj,
+  computed,
+  inject,
+  ref,
+  useEventListener,
+  watch,
+} from '#imports'
 import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
 
 interface Props {
@@ -19,6 +30,8 @@ const column = inject(ColumnInj)!
 const readOnly = inject(ReadonlyInj)!
 
 const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 const aselect = ref<typeof AntSelect>()
 
@@ -85,11 +98,11 @@ useSelectedCellKeyupListener(active, (e) => {
     :bordered="false"
     :open="isOpen"
     :disabled="readOnly"
-    :show-arrow="!readOnly && (active || vModel === null)"
+    :show-arrow="!readOnly && (active || editable || vModel === null)"
     :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
     @select="isOpen = false"
     @keydown.enter.stop
-    @click="isOpen = active && !isOpen"
+    @click="isOpen = (active || editable) && !isOpen"
   >
     <a-select-option
       v-for="op of options"

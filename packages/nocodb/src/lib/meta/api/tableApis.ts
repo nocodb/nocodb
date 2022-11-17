@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 import Model from '../../models/Model';
-import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { Tele } from 'nc-help';
+import { PagedResponseImpl } from '../helpers/PagedResponse';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AuditOperationSubTypes,

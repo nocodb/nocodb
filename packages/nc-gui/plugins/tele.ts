@@ -37,6 +37,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
     socket.emit('page', {
       path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
+      pid: route?.params?.projectId,
     })
   })
 
@@ -48,6 +49,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
           event: evt,
           ...(data || {}),
           path: route?.matched?.[0]?.path,
+          pid: route?.params?.projectId,
         })
       }
     },

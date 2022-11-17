@@ -1,12 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import url from 'url';
-import { Tele } from 'nc-help';
 
 import fsExtra from 'fs-extra';
 import importFresh from 'import-fresh';
 import inflection from 'inflection';
 import slash from 'slash';
+import { Tele } from 'nc-help';
 import SqlClientFactory from '../sql-client/lib/SqlClientFactory';
 // import debug from 'debug';
 

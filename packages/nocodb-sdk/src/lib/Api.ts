@@ -16,7 +16,6 @@ export interface UserType {
   lastname: string;
   /** @format email */
   email: string;
-  /** @format email */
   roles?: string;
   /**
    * @format date
@@ -545,6 +544,9 @@ export interface ApiTokenType {
   id?: string;
   token?: string;
   description?: string;
+  fk_user_id?: string;
+  created_at?: any;
+  updated_at?: any;
 }
 
 export interface HookLogType {
@@ -1184,6 +1186,303 @@ export class Api<
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/meta/projects/${projectId}/users/${userId}/resend-invite`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+  };
+  orgTokens = {
+    /**
+ * No description
+ * 
+ * @tags Org tokens
+ * @name List
+ * @summary Organisation API Tokens List
+ * @request GET:/api/v1/tokens
+ * @response `200` `{
+  users?: {
+  list: ((ApiTokenType & {
+  created_by?: string,
+
+}))[],
+  pageInfo: PaginatedType,
+
+},
+
+}` OK
+ */
+    list: (params: RequestParams = {}) =>
+      this.request<
+        {
+          users?: {
+            list: (ApiTokenType & {
+              created_by?: string;
+            })[];
+            pageInfo: PaginatedType;
+          };
+        },
+        any
+      >({
+        path: `/api/v1/tokens`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Org tokens
+     * @name Create
+     * @request POST:/api/v1/tokens
+     * @response `200` `void` OK
+     */
+    create: (data: ApiTokenType, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/tokens`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Org tokens
+     * @name Delete
+     * @request DELETE:/api/v1/tokens/{token}
+     * @response `200` `void` OK
+     */
+    delete: (token: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/tokens/${token}`,
+        method: 'DELETE',
+        ...params,
+      }),
+  };
+  orgLicense = {
+    /**
+ * No description
+ * 
+ * @tags Org license
+ * @name Get
+ * @summary App license get
+ * @request GET:/api/v1/license
+ * @response `200` `{
+  key?: string,
+
+}` OK
+ */
+    get: (params: RequestParams = {}) =>
+      this.request<
+        {
+          key?: string;
+        },
+        any
+      >({
+        path: `/api/v1/license`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Org license
+     * @name Set
+     * @summary App license get
+     * @request POST:/api/v1/license
+     * @response `200` `void` OK
+     */
+    set: (
+      data: {
+        key?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/license`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  orgAppSettings = {
+    /**
+ * No description
+ * 
+ * @tags Org app settings
+ * @name Get
+ * @summary App settings get
+ * @request GET:/api/v1/app-settings
+ * @response `200` `{
+  invite_only_signup?: boolean,
+
+}` OK
+ */
+    get: (params: RequestParams = {}) =>
+      this.request<
+        {
+          invite_only_signup?: boolean;
+        },
+        any
+      >({
+        path: `/api/v1/app-settings`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Org app settings
+     * @name Set
+     * @summary App app settings get
+     * @request POST:/api/v1/app-settings
+     * @response `200` `void` OK
+     */
+    set: (
+      data: {
+        invite_only_signup?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/app-settings`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  orgUsers = {
+    /**
+ * No description
+ * 
+ * @tags Org users
+ * @name List
+ * @summary Organisation Users
+ * @request GET:/api/v1/users
+ * @response `200` `{
+  users?: {
+  list: (UserType)[],
+  pageInfo: PaginatedType,
+
+},
+
+}` OK
+ */
+    list: (params: RequestParams = {}) =>
+      this.request<
+        {
+          users?: {
+            list: UserType[];
+            pageInfo: PaginatedType;
+          };
+        },
+        any
+      >({
+        path: `/api/v1/users`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Org users
+     * @name Add
+     * @summary Organisation User Add
+     * @request POST:/api/v1/users
+     * @response `200` `any` OK
+     */
+    add: (data: UserType, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/users`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Org users
+     * @name Update
+     * @summary Organisation User Update
+     * @request PATCH:/api/v1/users/{userId}
+     * @response `200` `void` OK
+     */
+    update: (userId: string, data: UserType, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Org users
+     * @name Delete
+     * @summary Organisation User Delete
+     * @request DELETE:/api/v1/users/{userId}
+     * @response `200` `void` OK
+     */
+    delete: (userId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Org users
+     * @name ResendInvite
+     * @summary Organisation User Invite
+     * @request POST:/api/v1/users/{userId}/resend-invite
+     * @response `200` `void` OK
+     */
+    resendInvite: (userId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/users/${userId}/resend-invite`,
+        method: 'POST',
+        ...params,
+      }),
+
+    /**
+ * No description
+ * 
+ * @tags Org users
+ * @name GeneratePasswordResetToken
+ * @summary Organisation User Generate Password Reset Token
+ * @request POST:/api/v1/users/{userId}/generate-reset-url
+ * @response `200` `{
+  reset_password_token?: string,
+  reset_password_url?: string,
+
+}` OK
+ */
+    generatePasswordResetToken: (userId: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          reset_password_token?: string;
+          reset_password_url?: string;
+        },
+        any
+      >({
+        path: `/api/v1/users/${userId}/generate-reset-url`,
         method: 'POST',
         format: 'json',
         ...params,
@@ -3572,7 +3871,7 @@ export class Api<
      */
     commentCount: (
       query: {
-        ids: any[];
+        ids: any;
         fk_model_id: string;
       },
       params: RequestParams = {}

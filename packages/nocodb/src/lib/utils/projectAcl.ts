@@ -1,3 +1,5 @@
+import { OrgUserRoles } from '../../enums/OrgUserRoles';
+
 export default {
   owner: {
     exclude: {
@@ -271,15 +273,21 @@ export default {
       dataCount: true,
     },
   },
-  user_new: {
+  [OrgUserRoles.VIEWER]: {
     include: {
+      apiTokenList: true,
+      apiTokenCreate: true,
+      apiTokenDelete: true,
       passwordChange: true,
       projectList: true,
     },
   },
-  super: '*',
-  user: {
+  [OrgUserRoles.SUPER_ADMIN]: '*',
+  [OrgUserRoles.CREATOR]: {
     include: {
+      apiTokenList: true,
+      apiTokenCreate: true,
+      apiTokenDelete: true,
       upload: true,
       uploadViaURL: true,
       passwordChange: true,

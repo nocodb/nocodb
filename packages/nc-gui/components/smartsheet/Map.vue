@@ -108,4 +108,8 @@ onMounted(async () => {
 .no-underline a {
   text-decoration: none !important;
 }
+.leaflet-popup-content-wrapper {
+  max-height: 255px;
+  overflow: scroll;
+}
 </style>

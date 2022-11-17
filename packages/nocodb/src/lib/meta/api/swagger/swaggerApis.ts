@@ -2,6 +2,7 @@
 import catchError, { NcError } from '../../helpers/catchError';
 import { Router } from 'express';
 import Model from '../../../models/Model';
+import ncMetaAclMw from '../../helpers/ncMetaAclMw'
 import getSwaggerJSON from './helpers/getSwaggerJSON';
 import Project from '../../../models/Project';
 import swaggerHtml from './swaggerHtml';
@@ -42,7 +43,7 @@ const router = Router({ mergeParams: true });
 // todo: auth
 router.get(
   '/api/v1/db/meta/projects/:projectId/swagger.json',
-  catchError(swaggerJson)
+  ncMetaAclMw(swaggerJson, 'swaggerJson')
 );
 router.get('/api/v1/db/meta/projects/:projectId/swagger', (_req, res) =>
   res.send(swaggerHtml)

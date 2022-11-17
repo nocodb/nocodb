@@ -103,9 +103,9 @@ const activeLang = $computed(() => langs.find((lang) => lang.name === selectedLa
 
 const code = $computed(() => {
   if (activeLang?.name === 'nocodb-sdk') {
-    return `${selectedClient === 'node' ? 'const { Api } require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
+    return `${selectedClient === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
 const api = new Api({
-  baseURL: ${JSON.stringify(apiUrl)},
+  baseURL: "${(appInfo && appInfo.ncSiteUrl) || '/'}",
   headers: {
     "xc-auth": ${JSON.stringify(token as string)}
   }

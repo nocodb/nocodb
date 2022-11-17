@@ -40,6 +40,14 @@ const passwordProtected = ref(false)
 
 const shared = ref<SharedView>({ id: '', meta: {}, password: undefined })
 
+const withRTL = computed({
+  get: () => !!shared.value.meta.rtl,
+  set: (rtl) => {
+    shared.value.meta = { ...shared.value.meta, rtl }
+    updateSharedViewMeta()
+  },
+})
+
 const transitionDuration = computed({
   get: () => shared.value.meta.transitionDuration || 250,
   set: (duration) => {
@@ -105,7 +113,7 @@ const sharedViewUrl = computed(() => {
       viewType = 'view'
   }
 
-  return `${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}`
+  return encodeURI(`${dashboardUrl?.value}#/nc/${viewType}/${shared.value.uuid}`)
 })
 
 async function saveAllowCSVDownload() {
@@ -283,6 +291,19 @@ watch(passwordProtected, (value) => {
                 />
               </div>
             </Transition>
+          </div>
+
+          <div>
+            <!-- use RTL orientation in form - todo: i18n -->
+            <a-checkbox
+              v-if="shared.type === ViewTypes.FORM"
+              v-model:checked="withRTL"
+              data-testid="nc-modal-share-view__locale"
+              class="!text-sm"
+            >
+              <!-- todo i18n -->
+              RTL Orientation
+            </a-checkbox>
           </div>
 
           <div>

@@ -1,9 +1,19 @@
 import { Page } from '@playwright/test';
 import BasePage from '../Base';
+import { AccountSettingsPage } from './Settings';
+import { AccountTokenPage } from './Token';
+import { AccountUsersPage } from './Users';
 
 export class AccountPage extends BasePage {
+  readonly settings: AccountSettingsPage;
+  readonly token: AccountTokenPage;
+  readonly users: AccountUsersPage;
+
   constructor(page: Page) {
     super(page);
+    this.settings = new AccountSettingsPage(this);
+    this.token = new AccountTokenPage(this);
+    this.users = new AccountUsersPage(this);
   }
 
   get() {

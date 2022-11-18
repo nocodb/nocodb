@@ -7,7 +7,7 @@ export class ChangePasswordPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.getByTestId('user-change-password');
+    return this.rootPage.getByTestId('nc-user-settings-form');
   }
 
   async changePassword({

@@ -1,10 +1,12 @@
 import { Locator } from '@playwright/test';
 import BasePage from '../Base';
+import { ChangePasswordPage } from './ChangePassword';
 import { AccountPage } from './index';
 
 export class AccountUsersPage extends BasePage {
   readonly inviteUserBtn: Locator;
   readonly inviteUserModal: Locator;
+  readonly changePasswordPage: ChangePasswordPage;
   private accountPage: AccountPage;
 
   constructor(accountPage: AccountPage) {
@@ -12,6 +14,7 @@ export class AccountUsersPage extends BasePage {
     this.accountPage = accountPage;
     this.inviteUserBtn = this.get().locator(`[data-testid="nc-super-user-invite"]`);
     this.inviteUserModal = accountPage.rootPage.locator(`.nc-modal-invite-user`);
+    this.changePasswordPage = new ChangePasswordPage(this.rootPage);
   }
 
   async goto() {

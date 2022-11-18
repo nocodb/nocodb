@@ -1,14 +1,10 @@
 import { expect, Page } from '@playwright/test';
 import BasePage from '../Base';
 import { DashboardPage } from '../Dashboard';
-import { ChangePasswordPage } from './ChangePassword';
 
 export class ProjectsPage extends BasePage {
-  readonly changePasswordPage: ChangePasswordPage;
-
   constructor(rootPage: Page) {
     super(rootPage);
-    this.changePasswordPage = new ChangePasswordPage(rootPage);
   }
 
   prefixTitle(title: string) {
@@ -51,6 +47,9 @@ export class ProjectsPage extends BasePage {
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/projects/',
     });
+
+    // wait for dashboard to render
+    await this.rootPage.locator('.nc-container').waitFor({ state: 'visible' });
   }
 
   async checkProjectCreateButton({ exists = true }) {

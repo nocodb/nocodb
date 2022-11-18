@@ -5,6 +5,7 @@ import { LoginPage } from '../pages/LoginPage';
 import { SettingsPage, SettingTab } from '../pages/Dashboard/Settings';
 import { SignupPage } from '../pages/SignupPage';
 import { ProjectsPage } from '../pages/ProjectsPage';
+import { AccountPage } from '../pages/Account';
 
 test.describe('Auth', () => {
   let context: any;
@@ -12,12 +13,15 @@ test.describe('Auth', () => {
   let settings: SettingsPage;
   let signupPage: SignupPage;
   let projectsPage: ProjectsPage;
+  let accountPage: AccountPage;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
     signupPage = new SignupPage(page);
     projectsPage = new ProjectsPage(page);
+    accountPage = new AccountPage(page);
+
     settings = dashboard.settings;
   });
 
@@ -43,24 +47,24 @@ test.describe('Auth', () => {
     await projectsPage.openPasswordChangeModal();
 
     // Existing active pass incorrect
-    await projectsPage.changePasswordPage.changePassword({
+    await accountPage.users.changePasswordPage.changePassword({
       oldPass: '123456789',
       newPass: '123456789',
       repeatPass: '123456789',
     });
-    await projectsPage.changePasswordPage.verifyFormError({ error: 'Current password is wrong' });
+    await accountPage.users.changePasswordPage.verifyFormError({ error: 'Current password is wrong' });
 
     // New pass and repeat pass mismatch
-    await projectsPage.changePasswordPage.changePassword({
+    await accountPage.users.changePasswordPage.changePassword({
       oldPass: 'Password123.',
       newPass: '123456789',
       repeatPass: '987654321',
       networkValidation: false,
     });
-    await projectsPage.changePasswordPage.verifyPasswordDontMatchError();
+    await accountPage.users.changePasswordPage.verifyPasswordDontMatchError();
 
     // All good
-    await projectsPage.changePasswordPage.changePassword({
+    await accountPage.users.changePasswordPage.changePassword({
       oldPass: 'Password123.',
       newPass: 'NewPasswordConfigured',
       repeatPass: 'NewPasswordConfigured',

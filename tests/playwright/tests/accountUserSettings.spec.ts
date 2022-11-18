@@ -13,7 +13,7 @@ test.describe('App settings', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     accountPage = new AccountPage(page);
-    accountSettingsPage = new AccountSettingsPage(accountPage);
+    accountSettingsPage = accountPage.settings;
   });
 
   test('Toggle invite only signup', async () => {

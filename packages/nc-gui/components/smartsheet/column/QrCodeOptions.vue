@@ -6,6 +6,7 @@ import { useVModel } from '#imports'
 const props = defineProps<{
   modelValue: any
 }>()
+
 const emit = defineEmits(['update:modelValue'])
 
 const meta = inject(MetaInj, ref())
@@ -53,22 +54,14 @@ setAdditionalValidations({
 <template>
   <a-row>
     <a-col :span="24">
-      <div class="nc-fields-list py-1">
-        <div class="grouping-field">
-          <a-form-item
-            class="flex w-1/2 pb-2"
-            :label="$t('labels.qrCodeValueColumn')"
-            v-bind="validateInfos.fk_qr_value_column_id"
-          >
-            <a-select
-              v-model:value="vModel.fk_qr_value_column_id"
-              :options="columnsAllowedAsQrValue"
-              placeholder="Select a column for the QR code value"
-              @click.stop
-            />
-          </a-form-item>
-        </div>
-      </div>
+      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.qrCodeValueColumn')" v-bind="validateInfos.fk_qr_value_column_id">
+        <a-select
+          v-model:value="vModel.fk_qr_value_column_id"
+          :options="columnsAllowedAsQrValue"
+          placeholder="Select a column for the QR code value"
+          @click.stop
+        />
+      </a-form-item>
     </a-col>
   </a-row>
 </template>

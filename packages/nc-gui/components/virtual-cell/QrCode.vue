@@ -4,14 +4,17 @@ import { useQRCode } from '@vueuse/integrations/useQRCode'
 const cellValue = inject(CellValueInj)
 
 const qrValue = computed(() => String(cellValue?.value))
+
 const qrCode = useQRCode(qrValue, {
   width: 150,
 })
+
 const qrCodeLarge = useQRCode(qrValue, {
   width: 600,
 })
 
 const modalVisible = ref(false)
+
 const showQrModal = (ev: MouseEvent) => {
   ev.stopPropagation()
   modalVisible.value = true

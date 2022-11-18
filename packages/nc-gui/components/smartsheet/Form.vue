@@ -75,7 +75,6 @@ const { syncLTARRefs, row } = useProvideSmartsheetRowStore(
   }),
 )
 
-// const columns = computed(() => meta?.value?.columns?.filter((col) => col.uidt !== UITypes.QrCode) || [])
 const columns = computed(() => meta?.value?.columns || [])
 
 const localColumns = ref<Record<string, any>[]>([])
@@ -259,7 +258,6 @@ async function checkSMTPStatus() {
 }
 
 function setFormData() {
-  // const col = formColumnData?.value?.filter((c) => c.uidt !== UITypes.QrCode) || []
   const col = formColumnData?.value || []
 
   formViewData.value = {

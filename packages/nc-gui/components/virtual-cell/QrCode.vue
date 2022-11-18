@@ -24,7 +24,10 @@ const handleModalOkClick = () => (modalVisible.value = false)
 </script>
 
 <template>
-  <a-modal v-model:visible="modalVisible" :title="qrValue" footer @ok="handleModalOkClick" :bodyStyle="{ padding: '0px' }">
+  <a-modal v-model:visible="modalVisible" footer @ok="handleModalOkClick" :bodyStyle="{ padding: '0px' }">
+    <template #title>
+      <div class="mr-4">{{ qrValue }}</div>
+    </template>
     <img v-if="qrValue" :src="qrCodeLarge" alt="QR Code" class="qr-code" />
   </a-modal>
   <img v-if="qrValue" :src="qrCode" alt="QR Code" class="qr-code" @click="showQrModal" />

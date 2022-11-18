@@ -42,7 +42,12 @@ async function userUpdate(req, res) {
     NcError.badRequest('Cannot update super admin roles');
   }
 
-  res.json(await User.update(req.params.userId, updateBody));
+  res.json(
+    await User.update(req.params.userId, {
+      ...updateBody,
+      token_version: null,
+    })
+  );
 }
 
 async function userDelete(req, res) {

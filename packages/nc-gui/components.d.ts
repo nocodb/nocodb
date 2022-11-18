@@ -95,6 +95,8 @@ declare module '@vue/runtime-core' {
     MaterialSymbolsDarkModeOutline: typeof import('~icons/material-symbols/dark-mode-outline')['default']
     MaterialSymbolsFileCopyOutline: typeof import('~icons/material-symbols/file-copy-outline')['default']
     MaterialSymbolsKeyboardReturn: typeof import('~icons/material-symbols/keyboard-return')['default']
+    MaterialSymbolsKeyboardShift: typeof import('~icons/material-symbols/keyboard-shift')['default']
+    MaterialSymbolsLightMode: typeof import('~icons/material-symbols/light-mode')['default']
     MaterialSymbolsLightModeOutline: typeof import('~icons/material-symbols/light-mode-outline')['default']
     MaterialSymbolsRocketLaunchOutline: typeof import('~icons/material-symbols/rocket-launch-outline')['default']
     MaterialSymbolsSendOutline: typeof import('~icons/material-symbols/send-outline')['default']

@@ -87,7 +87,7 @@ export class WebhookFormPage extends BasePage {
     await this.rootPage.waitForTimeout(1500);
 
     if (operator != 'is null' && operator != 'is not null') {
-      await modal.locator('input.nc-filter-value-select').fill(value);
+      await modal.locator('.nc-filter-value-select > input').fill(value);
     }
 
     if (save) {

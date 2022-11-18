@@ -36,6 +36,12 @@ export default class ProjectUser {
       true
     );
 
+    await NocoCache.appendToList(
+      CacheScope.USER_PROJECT,
+      [projectUser.fk_user_id],
+      `${CacheScope.USER_PROJECT}:${projectUser.project_id}`
+    );
+
     return this.get(project_id, fk_user_id, ncMeta);
   }
 
@@ -166,7 +172,7 @@ export default class ProjectUser {
     );
   }
 
-  static async delete(projectId: string, userId, ncMeta = Noco.ncMeta) {
+  static async delete(projectId: string, userId: string, ncMeta = Noco.ncMeta) {
     // await NocoCache.deepDel(
     //   CacheScope.PROJECT_USER,
     //   `${CacheScope.PROJECT_USER}:${projectId}:${userId}`,
@@ -178,6 +184,20 @@ export default class ProjectUser {
     if (email) {
       await NocoCache.delAll(CacheScope.USER, `${email}*`);
     }
+
+    // remove project from user project list cache
+    let cachedProjectList = await NocoCache.getList(CacheScope.USER_PROJECT, [
+      userId,
+    ]);
+    if (cachedProjectList?.length) {
+      cachedProjectList = cachedProjectList.filter((p) => p.id !== projectId);
+      await NocoCache.setList(
+        CacheScope.USER_PROJECT,
+        [userId],
+        cachedProjectList
+      );
+    }
+
     await NocoCache.del(`${CacheScope.PROJECT_USER}:${projectId}:${userId}`);
     return await ncMeta.metaDelete(null, null, MetaTable.PROJECT_USERS, {
       fk_user_id: userId,
@@ -196,83 +216,44 @@ export default class ProjectUser {
 
   static async getProjectsList(
     userId: string,
-    isSuperAdmin: boolean,
+    _params: any,
     ncMeta = Noco.ncMeta
   ): Promise<ProjectType[]> {
     // todo: pagination
-    // todo: caching
-    // let projectList = await NocoCache.getList(CacheScope.PROJECT, []);
+    let projectList = await NocoCache.getList(CacheScope.USER_PROJECT, [
+      userId,
+    ]);
 
-    const qb = ncMeta
+    if (projectList.length) {
+      return projectList;
+    }
+
+    projectList = await ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
-      [isSuperAdmin ? 'leftJoin' : 'innerJoin'](
-        MetaTable.PROJECT_USERS,
-        function () {
-          this.on(
-            `${MetaTable.PROJECT_USERS}.project_id`,
-            `${MetaTable.PROJECT}.id`
-          );
+      .innerJoin(MetaTable.PROJECT_USERS, function () {
+        this.on(
+          `${MetaTable.PROJECT_USERS}.project_id`,
+          `${MetaTable.PROJECT}.id`
+        );
 
-          if (!isSuperAdmin) {
-            this.andOn(
-              `${MetaTable.PROJECT_USERS}.fk_user_id`,
-              ncMeta.knex.raw('?', [userId])
-            );
-          }
-        }
-      )
-      // .innerJoin(MetaTable.USERS, function () {
-      //   this.on(
-      //     `${MetaTable.PROJECT_USERS}.fk_user_id`,
-      //     `${MetaTable.USERS}.id`
-      //   );
-      // })
-      // .where(function () {
-      //   this.where(`${MetaTable.PROJECT_USERS}.fk_user_id`, userId)
-      //     .orWhere(
-      //     `${MetaTable.USERS}.roles`,
-      //     'like',
-      //     `%${OrgUserRoles.SUPER_ADMIN}%`
-      //   );
-      // })
+        // if (!isSuperAdmin) {
+        this.andOn(
+          `${MetaTable.PROJECT_USERS}.fk_user_id`,
+          ncMeta.knex.raw('?', [userId])
+        );
+        // }
+      })
       .where(function () {
         this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
           `${MetaTable.PROJECT}.deleted`
         );
       });
-    //   if (!projectList.length) {
-    //     projectList = await ncMeta.metaList2(null, null, MetaTable.PROJECT, {
-    //       xcCondition: {
-    //         _or: [
-    //           {
-    //             deleted: {
-    //               eq: false,
-    //             },
-    //           },
-    //           {
-    //             deleted: {
-    //               eq: null,
-    //             },
-    //           },
-    //         ],
-    //       },
-    //     })
-    //     await NocoCache.setList(CacheScope.PROJECT, [], projectList)
-    //   }
-    //   projectList = projectList.filter(
-    //     (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
-    //   )
-    //   return projectList.map((m) => new Project(m))
-    //
-    //
-    //   return await ncMeta.metaList2(null, null, MetaTable.PROJECT_USERS, {
-    //     condition: { fk_user_id: userId },
-    //   })
-    // }
 
-    console.log(qb.toQuery());
+    if (projectList?.length) {
+      await NocoCache.setList(CacheScope.USER_PROJECT, [userId], projectList);
+    }
 
-    return qb;
+    return projectList;
   }
 }

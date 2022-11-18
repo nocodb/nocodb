@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { OrgUserRoles } from 'nocodb-sdk';
+import { OrgUserRoles, ProjectType } from 'nocodb-sdk';
 import Project from '../../models/Project';
 import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
 import DOMPurify from 'isomorphic-dompurify';
@@ -77,14 +77,13 @@ export async function projectList(
   next
 ) {
   try {
-    const projects = await ProjectUser.getProjectsList(
-      req.user.id,
-      req.user?.roles?.includes(OrgUserRoles.SUPER_ADMIN)
-    );
+    const projects = req.user?.roles?.includes(OrgUserRoles.SUPER_ADMIN)
+      ? await Project.list(req.query)
+      : await ProjectUser.getProjectsList(req.user.id, req.query);
 
     res // todo: pagination
       .json(
-        new PagedResponseImpl(projects, {
+        new PagedResponseImpl(projects as ProjectType[], {
           count: projects.length,
           limit: projects.length,
         })

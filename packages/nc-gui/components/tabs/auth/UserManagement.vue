@@ -251,20 +251,21 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
         </div>
       </div>
 
-      <div v-for="(user, index) of users" :key="index"
-           class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
+      <div v-for="(user, index) of users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
         <div class="flex w-4/6 flex-wrap nc-user-email">
           {{ user.email }}
         </div>
 
         <div class="flex w-1/6 justify-center flex-wrap ml-4">
-          <div v-if="isSuperAdmin(user)" class="rounded-full px-2 py-1 nc-user-role"
-               :style="{ backgroundColor: projectRoleTagColors[OrgUserRoles.SUPER_ADMIN] }"
+          <div
+            v-if="isSuperAdmin(user)"
+            class="rounded-full px-2 py-1 nc-user-role"
+            :style="{ backgroundColor: projectRoleTagColors[OrgUserRoles.SUPER_ADMIN] }"
           >
             Super Admin
           </div>
           <div
-            v-else-if="user.roles"
+            v-if="user.roles"
             class="rounded-full px-2 py-1 nc-user-role"
             :style="{ backgroundColor: projectRoleTagColors[user.roles] }"
           >
@@ -311,8 +312,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
               </a-button>
             </a-tooltip>
 
-            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight"
-                        overlay-class-name="nc-dropdown-user-mgmt">
+            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
               <div class="flex flex-row items-center">
                 <a-button type="text" class="!px-0">
                   <div class="flex flex-row items-center h-[1.2rem]">

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { OrgUserRoles } from '../../../enums/OrgUserRoles';
 import Project from '../../models/Project';
 import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
 import DOMPurify from 'isomorphic-dompurify';
@@ -71,12 +72,15 @@ export async function projectUpdate(
 }
 
 export async function projectList(
-  req: Request<any, any, any>,
+  req: Request<any> & { user: { id: string; roles: string } },
   res: Response<ProjectListType>,
   next
 ) {
   try {
-    const projects = await Project.list(req.query);
+    const projects = await ProjectUser.getProjectsList(
+      req.user.id,
+      req.user?.roles?.includes(OrgUserRoles.SUPER_ADMIN)
+    );
 
     res // todo: pagination
       .json(
@@ -92,7 +96,7 @@ export async function projectList(
 }
 
 export async function projectDelete(
-  req: Request<any, any, any>,
+  req: Request<any>,
   res: Response<ProjectListType>
 ) {
   const result = await Project.softDelete(req.params.projectId);

@@ -60,7 +60,7 @@ async function userDelete(req, res) {
     }
 
     // delete project user entry and assign to super admin
-    const projectUsers = await ProjectUser.getProjectsList(
+    const projectUsers = await ProjectUser.getProjectsIdList(
       req.params.userId,
       ncMeta
     );

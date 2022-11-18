@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { OrgUserRoles } from '../../../enums/OrgUserRoles';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { NC_LICENSE_KEY } from '../../constants'
 import Store from '../../models/Store';
 import { metaApiMetrics } from '../helpers/apiMetrics';

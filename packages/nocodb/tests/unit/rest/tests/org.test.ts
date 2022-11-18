@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import 'mocha'
 import request from 'supertest'
-import { OrgUserRoles } from '../../../../src/enums/OrgUserRoles'
+import { OrgUserRoles } from 'nocodb-sdk'
 import init from '../../init'
 
 function authTests() {

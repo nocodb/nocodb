@@ -1,4 +1,4 @@
-import { OrgUserRoles } from '../../../../enums/OrgUserRoles';
+import { OrgUserRoles } from 'nocodb-sdk';
 import User from '../../../models/User';
 import ProjectUser from '../../../models/ProjectUser';
 import { promisify } from 'util';

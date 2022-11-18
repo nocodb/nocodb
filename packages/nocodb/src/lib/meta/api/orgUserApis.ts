@@ -6,7 +6,7 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
-import { OrgUserRoles } from '../../../enums/OrgUserRoles';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '../../constants';
 import Audit from '../../models/Audit';
 import ProjectUser from '../../models/ProjectUser';

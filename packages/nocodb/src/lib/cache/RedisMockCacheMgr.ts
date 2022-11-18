@@ -101,11 +101,16 @@ export default class RedisMockCacheMgr extends CacheMgr {
     log(
       `RedisMockCacheMgr::delAll: deleting all keys with pattern ${this.prefix}:${scope}:${pattern}`
     );
-    return Promise.all(
+    await Promise.all(
       keys.map(
         async (k) =>
           await this.deepDel(scope, k, CacheDelDirection.CHILD_TO_PARENT)
       )
+    );
+    return Promise.all(
+      keys.map(async (k) => {
+        await this.del(k);
+      })
     );
   }
 

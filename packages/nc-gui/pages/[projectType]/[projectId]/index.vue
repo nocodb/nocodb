@@ -475,7 +475,7 @@ onBeforeUnmount(reset)
                           to="/account/users"
                         >
                           <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
-                          <div class="prose group-hover:text-primary">
+                          <div class="prose-sm group-hover:text-primary">
                             <div>Account</div>
                             <div class="text-xs text-gray-500">{{ email }}</div>
                           </div>

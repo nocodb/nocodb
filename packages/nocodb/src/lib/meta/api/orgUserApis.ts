@@ -6,7 +6,7 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
-import { OrgUserRoles } from '../../../enums/OrgUserRoles';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '../../constants';
 import Audit from '../../models/Audit';
 import ProjectUser from '../../models/ProjectUser';
@@ -42,7 +42,12 @@ async function userUpdate(req, res) {
     NcError.badRequest('Cannot update super admin roles');
   }
 
-  res.json(await User.update(req.params.userId, updateBody));
+  res.json(
+    await User.update(req.params.userId, {
+      ...updateBody,
+      token_version: null,
+    })
+  );
 }
 
 async function userDelete(req, res) {
@@ -55,7 +60,7 @@ async function userDelete(req, res) {
     }
 
     // delete project user entry and assign to super admin
-    const projectUsers = await ProjectUser.getProjectsList(
+    const projectUsers = await ProjectUser.getProjectsIdList(
       req.params.userId,
       ncMeta
     );

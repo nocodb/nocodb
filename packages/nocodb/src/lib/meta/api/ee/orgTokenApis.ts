@@ -1,4 +1,4 @@
-import { OrgUserRoles } from '../../../../enums/OrgUserRoles';
+import { OrgUserRoles } from 'nocodb-sdk';
 import ApiToken from '../../../models/ApiToken';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 

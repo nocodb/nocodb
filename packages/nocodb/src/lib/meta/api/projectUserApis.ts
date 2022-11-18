@@ -1,4 +1,4 @@
-import { OrgUserRoles } from '../../../enums/OrgUserRoles';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Router } from 'express';

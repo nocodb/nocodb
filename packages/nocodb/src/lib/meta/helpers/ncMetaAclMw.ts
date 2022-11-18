@@ -1,4 +1,4 @@
-import { OrgUserRoles } from '../../../enums/OrgUserRoles';
+import { OrgUserRoles } from 'nocodb-sdk';
 import projectAcl from '../../utils/projectAcl';
 import { NextFunction, Request, Response } from 'express';
 import catchError, { NcError } from './catchError';

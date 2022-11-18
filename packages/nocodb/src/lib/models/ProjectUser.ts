@@ -36,10 +36,10 @@ export default class ProjectUser {
       true
     );
 
-    await NocoCache.appendToList(
+    // reset all user projects cache
+    await NocoCache.delAll(
       CacheScope.USER_PROJECT,
-      [projectUser.fk_user_id],
-      `${CacheScope.USER_PROJECT}:${projectUser.project_id}`
+      `${projectUser.fk_user_id}:*`
     );
 
     return this.get(project_id, fk_user_id, ncMeta);
@@ -236,13 +236,10 @@ export default class ProjectUser {
           `${MetaTable.PROJECT_USERS}.project_id`,
           `${MetaTable.PROJECT}.id`
         );
-
-        // if (!isSuperAdmin) {
         this.andOn(
           `${MetaTable.PROJECT_USERS}.fk_user_id`,
           ncMeta.knex.raw('?', [userId])
         );
-        // }
       })
       .where(function () {
         this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(

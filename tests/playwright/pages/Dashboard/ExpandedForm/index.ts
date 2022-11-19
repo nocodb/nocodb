@@ -57,7 +57,7 @@ export class ExpandedFormPage extends BasePage {
   }: {
     waitForRowsData?: boolean;
   } = {}) {
-    const saveRowAction = this.get().locator('button:has-text("Save Row")').click();
+    const saveRowAction = this.get().locator('button:has-text("Save & Exit")').click();
     if (waitForRowsData) {
       await this.waitForResponse({
         uiAction: saveRowAction,
@@ -104,9 +104,9 @@ export class ExpandedFormPage extends BasePage {
 
   async validateRoleAccess(param: { role: string }) {
     if (param.role === 'commenter' || param.role === 'viewer') {
-      await expect(await this.get().locator('button:has-text("Save Row")')).toBeDisabled();
+      await expect(await this.get().locator('button:has-text("Save & Exit")')).toBeDisabled();
     } else {
-      await expect(await this.get().locator('button:has-text("Save Row")')).toBeEnabled();
+      await expect(await this.get().locator('button:has-text("Save & Exit")')).toBeEnabled();
     }
     if (param.role === 'viewer') {
       await expect(await this.toggleCommentsButton).toHaveCount(0);

@@ -189,6 +189,14 @@ export function useViewData(
       : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value })
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
+
+    // to cater the case like when querying with a non-zero offset
+    // the result page may point to the target page where the actual returned data don't display on
+    const expectedPage = Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!)
+    if (Math.max(1, expectedPage) < paginationData.value.page!) {
+      await changePage(expectedPage)
+    }
+
     if (viewMeta.value?.type === ViewTypes.GRID) {
       await loadAggCommentsCount()
     }

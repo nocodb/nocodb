@@ -8,14 +8,17 @@ import {
   IsKanbanInj,
   ReadonlyInj,
   computed,
+  enumColor,
   h,
   inject,
   onMounted,
+  reactive,
   ref,
   useEventListener,
+  useMetas,
   useProject,
   useSelectedCellKeyupListener,
-  watch, enumColor, useMetas,
+  watch,
 } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -27,8 +30,6 @@ interface Props {
 const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
-
-const emptyOption = Symbol('emptyOption')
 
 const { isMysql } = useProject()
 
@@ -54,11 +55,7 @@ const { $api } = useNuxtApp()
 
 const { getMeta } = useMetas()
 
-const tempVal = ref<string>()
-
-const isOptionMissing = computed(() => {
-  return (options.value ?? []).every((op) => op.title !== searchVal.value)
-})
+const tempVal = reactive([])
 
 const options = computed<(SelectOptionType & { value?: string })[]>(() => {
   if (column?.value.colOptions) {
@@ -73,6 +70,10 @@ const options = computed<(SelectOptionType & { value?: string })[]>(() => {
   return []
 })
 
+const isOptionMissing = computed(() => {
+  return (options.value ?? []).every((op) => op.title !== searchVal.value)
+})
+
 const vModel = computed({
   get: () => {
     const selected = selectedIds.value.reduce((acc, id) => {
@@ -83,7 +84,7 @@ const vModel = computed({
       return acc
     }, [] as string[])
 
-    if (tempVal.value) selected.push(tempVal.value)
+    if (tempVal.length) selected.push(...tempVal)
 
     return selected
   },
@@ -112,18 +113,18 @@ const selectedTitles = computed(() =>
     : [],
 )
 
-const handleKeys = async (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Escape':
-      e.preventDefault()
-      isOpen.value = false
-      break
-    case 'Enter':
-      e.stopPropagation()
-      await addIfMissingAndSave()
-      break
-  }
-}
+// const handleKeys = async (e: KeyboardEvent) => {
+//   switch (e.key) {
+//     case 'Escape':
+//       e.preventDefault()
+//       isOpen.value = false
+//       break
+//     case 'Enter':
+//       e.stopPropagation()
+//       await addIfMissingAndSave()
+//       break
+//   }
+// }
 
 const handleClose = (e: MouseEvent) => {
   if (aselect.value && !aselect.value.$el.contains(e.target)) {
@@ -177,20 +178,26 @@ useSelectedCellKeyupListener(active, (e) => {
         isOpen.value = true
       }
       break
+    default:
+      isOpen.value = true
+      break
   }
 })
 
+const activeOptCreateInProgress = ref(0)
 
 async function addIfMissingAndSave() {
   if (!searchVal) return false
   try {
-    tempVal.value = searchVal.value
+    tempVal.push(searchVal.value)
     const newOptValue = searchVal?.value
-
+    searchVal.value = ''
+    activeOptCreateInProgress.value++
     if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
       const newOptions = [...options.value]
       newOptions.push({
-        title: newOptValue, value: newOptValue,
+        title: newOptValue,
+        value: newOptValue,
         color: enumColor.light[(options.value.length + 1) % enumColor.light.length],
       })
       column.value.colOptions = { options: newOptions.map(({ value: _, ...rest }) => rest) }
@@ -198,19 +205,24 @@ async function addIfMissingAndSave() {
       await $api.dbTableColumn.update(column.value?.id as string, {
         ...column.value,
       })
-      await getMeta(column.value.fk_model_id!, true)
 
-      vModel.value = [...vModel.value]
-      searchVal.value = ''
+      activeOptCreateInProgress.value--
+      if (!activeOptCreateInProgress.value) {
+        await getMeta(column.value.fk_model_id!, true)
+        vModel.value = [...vModel.value];
+        tempVal.splice(0, tempVal.length);
+      }
+    } else {
+      activeOptCreateInProgress.value--
     }
   } catch (e) {
     // todo: handle error message
     console.log(e)
+    activeOptCreateInProgress.value--
   } finally {
-    tempVal.value = ''
+    // tempVal.value = ''
   }
 }
-
 
 const search = () => {
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
@@ -226,7 +238,7 @@ const search = () => {
     class="w-full"
     :bordered="false"
     :show-arrow="!readOnly"
-    show-search
+    :show-search="active || editable"
     :open="isOpen"
     :disabled="readOnly"
     :class="{ '!ml-[-8px]': readOnly }"
@@ -260,7 +272,9 @@ const search = () => {
     <a-select-option v-if="searchVal && isOptionMissing" :key="searchVal" :value="searchVal">
       <div class="flex gap-2 text-gray-500 items-center">
         <MdiPlusThick class="min-w-4" />
-        <div class="text-xs whitespace-normal"> Create new option named <strong>{{ searchVal }}</strong></div>
+        <div class="text-xs whitespace-normal">
+          Create new option named <strong>{{ searchVal }}</strong>
+        </div>
       </div>
     </a-select-option>
 

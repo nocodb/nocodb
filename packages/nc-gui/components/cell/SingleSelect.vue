@@ -10,11 +10,11 @@ import {
   IsKanbanInj,
   ReadonlyInj,
   computed,
+  enumColor,
   inject,
   ref,
   useEventListener,
   watch,
-  enumColor,
 } from '#imports'
 
 interface Props {
@@ -45,6 +45,20 @@ const { $api } = useNuxtApp()
 const searchVal = ref()
 const tempVal = ref<string>()
 
+const options = computed<(SelectOptionType & { value: string })[]>(() => {
+  if (column?.value.colOptions) {
+    const opts = column.value.colOptions
+      ? // todo: fix colOptions type, options does not exist as a property
+        (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
+      : []
+    for (const op of opts.filter((el: any) => el.order === null)) {
+      op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+    }
+    return opts.map((o: any) => ({ ...o, value: o.title }))
+  }
+  return []
+})
+
 const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
@@ -62,36 +76,21 @@ const vModel = computed({
   },
 })
 
+// const handleKeys = async (e: KeyboardEvent) => {
+//   switch (e.key) {
+//     case 'Escape':
+//       e.preventDefault()
+//       isOpen.value = false
+//       break
+//     case 'Enter':
+//       e.preventDefault()
+//       // if (await addIfMissingAndSave())
+//       //   e.stopPropagation()
+//       break
+//   }
+// }
 
-const options = computed<(SelectOptionType & { value: string })[]>(() => {
-  if (column?.value.colOptions) {
-    const opts = column.value.colOptions
-      ? // todo: fix colOptions type, options does not exist as a property
-      (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
-      : []
-    for (const op of opts.filter((el: any) => el.order === null)) {
-      op.title = op.title.replace(/^'/, '').replace(/'$/, '')
-    }
-    return opts.map((o: any) => ({ ...o, value: o.title }))
-  }
-  return []
-})
-
-const handleKeys = async (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Escape':
-      e.preventDefault()
-      isOpen.value = false
-      break
-    case 'Enter':
-      e.preventDefault()
-      // if (await addIfMissingAndSave())
-      //   e.stopPropagation()
-      break
-  }
-}
-
-const handleClose = (e: MouseEvent) => {
+const handleClose = (_e: MouseEvent) => {
   // if (aselect.value && !aselect.value.$el.contains(e.target)) {
   //   isOpen.value = false
   //   aselect.value.blur()
@@ -121,9 +120,7 @@ useSelectedCellKeyupListener(active, (e) => {
   }
 })
 
-
 async function addIfMissingAndSave() {
-
   if (!searchVal.value) return false
 
   const newOptValue = searchVal.value
@@ -144,7 +141,6 @@ async function addIfMissingAndSave() {
   }
 }
 
-
 const search = () => {
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
@@ -161,9 +157,9 @@ const search = () => {
     :disabled="readOnly"
     :show-arrow="!readOnly && (active || editable || vModel === null)"
     :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
+    :show-search="active || editable"
     @select="isOpen = false"
     @keydown.stop
-    show-search
     @search="search"
     @click="isOpen = (active || editable) && !isOpen"
   >
@@ -189,14 +185,14 @@ const search = () => {
       </a-tag>
     </a-select-option>
 
-
     <a-select-option v-if="searchVal && isOptionMissing" :key="searchVal" :value="searchVal">
       <div class="flex gap-2 text-gray-500 items-center">
         <MdiPlusThick class="min-w-4" />
-        <div class="text-xs whitespace-normal"> Create new option named <strong>{{ searchVal }}</strong></div>
+        <div class="text-xs whitespace-normal">
+          Create new option named <strong>{{ searchVal }}</strong>
+        </div>
       </div>
     </a-select-option>
-
   </a-select>
 </template>
 

@@ -128,4 +128,29 @@ test.describe('Multi select', () => {
 
     await grid.column.delete({ title: 'MultiSelect' });
   });
+
+  test.only('Add new option directly from cell', async () => {
+    await grid.cell.selectOption.addNewOption({
+      index: 0,
+      columnHeader: 'MultiSelect',
+      option: 'Option added from cell 1',
+      multiSelect: true,
+    });
+
+    await grid.cell.selectOption.addNewOption({
+      index: 0,
+      columnHeader: 'MultiSelect',
+      option: 'Option added from cell 2',
+      multiSelect: true,
+    });
+
+    await grid.cell.selectOption.verifyOptions({
+      index: 0,
+      columnHeader: 'MultiSelect',
+      options: ['Option added from cell 1', 'Option added from cell 2'],
+    });
+    await new Promise(resolve => setTimeout(resolve, 100000));
+
+    await grid.column.delete({ title: 'SingleSelect' });
+  });
 });

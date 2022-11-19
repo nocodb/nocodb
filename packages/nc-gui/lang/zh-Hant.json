@@ -104,7 +104,9 @@
       "creator": "創造者",
       "editor": "編輯",
       "commenter": "評論者",
-      "viewer": "檢視者"
+      "viewer": "檢視者",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
     },
     "sqlVIew": "SQL View"
   },
@@ -200,6 +202,7 @@
     "codeSnippet": "Code Snippet"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "透過...通知",
     "projName": "項目名",
     "tableName": "表名稱",
@@ -296,7 +299,8 @@
     "signUpWithGoogle": "Sign up with Google",
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
-    "welcomeToNc": "Welcome to NocoDB!"
+    "welcomeToNc": "Welcome to NocoDB!",
+    "inviteOnlySignup": "Allow signup only using invite url"
   },
   "activity": {
     "createProject": "建立專案",
@@ -341,12 +345,14 @@
     "invite": "邀請",
     "inviteMore": "邀請更多",
     "inviteTeam": "邀請團隊",
+    "inviteUser": "Invite User",
     "inviteToken": "邀請權杖",
     "newUser": "新使用者",
     "editUser": "編輯使用者",
     "deleteUser": "從專案中刪除使用者",
     "resendInvite": "重新發送邀請電子郵件",
     "copyInviteURL": "複製邀請連結",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "新角色",
     "reloadRoles": "重新載入角色",
     "nextPage": "下一頁",
@@ -480,6 +486,10 @@
   },
   "msg": {
     "info": {
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "每頁行駛",
       "upload": "選擇檔案以上傳",
       "upload_sub": "或拖放檔案",
@@ -653,7 +663,8 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty."
+      "fieldRequired": "{value} cannot be empty.",
+      "projectNotAccessible": "Project not accessible"
     },
     "toast": {
       "exportMetadata": "專案中繼資料已成功匯出",
@@ -683,13 +694,16 @@
       "tableDataExported": "Successfully exported all table data",
       "updated": "Successfully updated",
       "sharedViewDeleted": "Deleted shared view successfully",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "View renamed successfully",
       "tokenGenerated": "Token generated successfully",
       "tokenDeleted": "Token deleted successfully",
       "userAddedToProject": "Successfully added user to project",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "Successfully deleted user from project",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Successfully updated the user details",
@@ -699,7 +713,9 @@
       "webhookTested": "Webhook tested successfully",
       "columnUpdated": "Column updated",
       "columnCreated": "Column created",
-      "passwordChanged": "Password changed successfully. Please login again."
+      "passwordChanged": "Password changed successfully. Please login again.",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

@@ -104,7 +104,9 @@
       "creator": "创造者",
       "editor": "编辑者",
       "commenter": "评论者",
-      "viewer": "浏览者"
+      "viewer": "浏览者",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
     },
     "sqlVIew": "SQL 视图"
   },
@@ -200,6 +202,7 @@
     "codeSnippet": "代码片段"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "通知通过",
     "projName": "项目名",
     "tableName": "表名称",
@@ -296,7 +299,8 @@
     "signUpWithGoogle": "使用 Google 注册",
     "signInWithGoogle": "使用 Google 登录",
     "agreeToTos": "注册即表明您同意服务条款",
-    "welcomeToNc": "欢迎来到NocoDB！"
+    "welcomeToNc": "欢迎来到NocoDB！",
+    "inviteOnlySignup": "Allow signup only using invite url"
   },
   "activity": {
     "createProject": "创建项目",
@@ -341,12 +345,14 @@
     "invite": "邀请",
     "inviteMore": "邀请更多",
     "inviteTeam": "邀请团队",
+    "inviteUser": "Invite User",
     "inviteToken": "邀请令牌",
     "newUser": "新用户",
     "editUser": "编辑用户",
     "deleteUser": "从项目中删除用户",
     "resendInvite": "重新发送邀请电子邮件",
     "copyInviteURL": "复制邀请链接",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "新角色",
     "reloadRoles": "重新加载角色",
     "nextPage": "下一页",
@@ -480,6 +486,10 @@
   },
   "msg": {
     "info": {
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "每页行驶",
       "upload": "选择文件以上传",
       "upload_sub": "或拖放文件",
@@ -653,7 +663,8 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "可接受的文件类型是 .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "参数键不能为空",
       "duplicateParameterKeysAreNotAllowed": "不允许重复的参数键",
-      "fieldRequired": "{value} 不能为空。"
+      "fieldRequired": "{value} 不能为空。",
+      "projectNotAccessible": "Project not accessible"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",
@@ -683,13 +694,16 @@
       "tableDataExported": "成功导出所有表内数据",
       "updated": "更新成功",
       "sharedViewDeleted": "共享视图删除成功",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "视图重命名成功",
       "tokenGenerated": "令牌生成成功",
       "tokenDeleted": "Token deleted successfully",
       "userAddedToProject": "添加用户到项目成功",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "从项目中删除用户成功",
       "inviteEmailSent": "邀请邮件发送成功",
       "inviteURLCopied": "邀请URL已复制到剪贴板",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "已将可共享的基础URL复制到剪贴板！",
       "embeddableHTMLCodeCopied": "已复制可嵌入的 HTML 代码！",
       "userDetailsUpdated": "成功更新用户详细信息",
@@ -699,7 +713,9 @@
       "webhookTested": "Webhook 测试成功",
       "columnUpdated": "列已更新",
       "columnCreated": "已创建列",
-      "passwordChanged": "密码修改成功。请重新登录。"
+      "passwordChanged": "密码修改成功。请重新登录。",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

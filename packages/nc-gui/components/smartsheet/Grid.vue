@@ -524,19 +524,23 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 watch(
   view,
   async (next, old) => {
-    if (next && next.id !== old?.id) {
-      // whenever tab changes or view changes save any unsaved data
-      if (old?.id) {
-        const oldMeta = await getMeta(old.fk_model_id!)
-        if (oldMeta) {
-          await saveOrUpdateRecords({
-            viewMetaValue: old,
-            metaValue: oldMeta as TableType,
-            data: data.value,
-          })
+    try {
+      if (next && next.id !== old?.id) {
+        // whenever tab changes or view changes save any unsaved data
+        if (old?.id) {
+          const oldMeta = await getMeta(old.fk_model_id!)
+          if (oldMeta) {
+            await saveOrUpdateRecords({
+              viewMetaValue: old,
+              metaValue: oldMeta as TableType,
+              data: data.value,
+            })
+          }
         }
+        await loadData()
       }
-      await loadData()
+    } catch (e) {
+      console.log(e)
     }
   },
   { immediate: true },

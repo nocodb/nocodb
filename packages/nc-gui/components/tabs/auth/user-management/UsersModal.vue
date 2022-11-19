@@ -3,7 +3,6 @@ import {
   Form,
   computed,
   extractSdkResponseErrorMsg,
-  isEmail,
   message,
   onMounted,
   projectRoleTagColors,
@@ -14,6 +13,7 @@ import {
   useI18n,
   useNuxtApp,
   useProject,
+  validateEmail,
 } from '#imports'
 import type { User } from '~/lib'
 import { ProjectRole } from '~/lib'
@@ -57,7 +57,7 @@ const validators = computed(() => {
             callback('Email is required')
             return
           }
-          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !isEmail(e))
+          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
           if (invalidEmails.length > 0) {
             callback(`${invalidEmails.length > 1 ? ' Invalid emails:' : 'Invalid email:'} ${invalidEmails.join(', ')} `)
           } else {

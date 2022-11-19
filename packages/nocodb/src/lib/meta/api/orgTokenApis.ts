@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { OrgUserRoles } from '../../../enums/OrgUserRoles';
+import { OrgUserRoles } from 'nocodb-sdk';
 import ApiToken from '../../models/ApiToken';
 import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';

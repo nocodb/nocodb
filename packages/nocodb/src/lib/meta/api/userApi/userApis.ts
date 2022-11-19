@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { TableType, validatePassword } from 'nocodb-sdk';
-import { OrgUserRoles } from '../../../../enums/OrgUserRoles';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { NC_APP_SETTINGS } from '../../../constants';
 import Store from '../../../models/Store';
 import { Tele } from 'nc-help';

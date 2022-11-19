@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import type { Ref } from 'vue'
 import {
   CellUrlDisableOverlayInj,
   CellValueInj,
@@ -10,43 +9,66 @@ import {
   ReadonlyInj,
   computed,
   inject,
+  isAttachment,
   provide,
   refAutoReset,
-  useColumn,
+  ref,
   useMetas,
+  watch,
 } from '#imports'
 
 const { metas, getMeta } = useMetas()
 
 provide(ReadonlyInj, ref(true))
 
-const column = inject(ColumnInj)! as Ref<ColumnType & { colOptions: LookupType }>
+const column = inject(ColumnInj, ref())
 
 const meta = inject(MetaInj, ref())
 
-const value = inject(CellValueInj)
+const cellValue = inject(CellValueInj, ref())
 
-const arrValue = computed(() => (Array.isArray(value?.value) ? value?.value : [value?.value]) ?? [])
+const arrValue = computed(() => {
+  if (!cellValue.value) return []
 
-const relationColumn = meta.value?.columns?.find((c) => c.id === column.value.colOptions?.fk_relation_column_id) as ColumnType & {
-  colOptions: LinkToAnotherRecordType
-}
+  if (Array.isArray(cellValue.value)) return cellValue.value
 
-await getMeta(relationColumn.colOptions.fk_related_model_id!)
+  return [cellValue.value]
+})
 
-const lookupTableMeta = computed(() => metas.value[relationColumn.colOptions.fk_related_model_id!])
-
-const lookupColumn = computed<any>(
+const relationColumn = computed(
   () =>
-    lookupTableMeta.value.columns?.find(
-      (c: Record<string, any>) => c.id === column.value.colOptions?.fk_lookup_column_id,
-    ) as ColumnType,
+    meta.value?.columns?.find((c) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
+      | (ColumnType & {
+          colOptions: LinkToAnotherRecordType | undefined
+        })
+      | undefined,
+)
+
+watch(
+  relationColumn,
+  async (relationCol) => {
+    if (relationCol && relationCol.colOptions) await getMeta(relationCol.colOptions.fk_related_model_id!)
+  },
+  { immediate: true },
+)
+
+const lookupTableMeta = computed<Record<string, any> | undefined>(() => {
+  if (relationColumn.value && relationColumn.value?.colOptions)
+    return metas.value[relationColumn.value.colOptions.fk_related_model_id!]
+
+  return undefined
+})
+
+const lookupColumn = computed(
+  () =>
+    lookupTableMeta.value?.columns?.find((c: any) => c.id === (column.value?.colOptions as LookupType)?.fk_lookup_column_id) as
+      | ColumnType
+      | undefined,
 )
 
 provide(MetaInj, lookupTableMeta)
-provide(CellUrlDisableOverlayInj, ref(true))
 
-const lookupColumnMetaProps = useColumn(lookupColumn)
+provide(CellUrlDisableOverlayInj, ref(true))
 
 const timeout = 3000 // in ms
 
@@ -94,7 +116,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
             :key="i"
             class="min-w-max"
             :class="{
-              'bg-gray-100 px-1 rounded-full flex-1': !lookupColumnMetaProps.isAttachment,
+              'bg-gray-100 px-1 rounded-full flex-1': !isAttachment(lookupColumn),
               ' border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
                 lookupColumn.uidt,
               ),

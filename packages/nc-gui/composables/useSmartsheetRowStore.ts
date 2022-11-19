@@ -8,6 +8,9 @@ import {
   deepCompare,
   extractPkFromRow,
   extractSdkResponseErrorMsg,
+  isBt,
+  isHm,
+  isMm,
   message,
   ref,
   unref,
@@ -16,7 +19,6 @@ import {
   useMetas,
   useNuxtApp,
   useProject,
-  useVirtualCell,
 } from '#imports'
 import type { Row } from '~/lib'
 
@@ -36,12 +38,11 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     const state = ref<Record<string, Record<string, any> | Record<string, any>[] | null>>({})
 
     // getters
-    const isNew = computed(() => unref(row).rowMeta?.new ?? false)
+    const isNew = computed(() => unref(row).rowMeta.new ?? false)
 
     // actions
     const addLTARRef = async (value: Record<string, any>, column: ColumnType) => {
-      const { isHm, isMm, isBt } = $(useVirtualCell(ref(column)))
-      if (isHm || isMm) {
+      if (isHm(column) || isMm(column)) {
         if (!state.value[column.title!]) state.value[column.title!] = []
 
         if (state.value[column.title!]!.find((ln: Record<string, any>) => deepCompare(ln, value))) {
@@ -50,17 +51,16 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
         }
 
         state.value[column.title!]!.push(value)
-      } else if (isBt) {
+      } else if (isBt(column)) {
         state.value[column.title!] = value
       }
     }
 
     // actions
     const removeLTARRef = async (value: Record<string, any>, column: ColumnType) => {
-      const { isHm, isMm, isBt } = $(useVirtualCell(ref(column)))
-      if (isHm || isMm) {
+      if (isHm(column) || isMm(column)) {
         state.value[column.title!]?.splice(state.value[column.title!]?.indexOf(value), 1)
-      } else if (isBt) {
+      } else if (isBt(column)) {
         state.value[column.title!] = null
       }
     }
@@ -92,13 +92,14 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       const id = extractPkFromRow(row, metaValue?.columns as ColumnType[])
       for (const column of metaValue?.columns ?? []) {
         if (column.uidt !== UITypes.LinkToAnotherRecord) continue
-        const colOptions = column?.colOptions as LinkToAnotherRecordType
 
-        const { isHm, isMm, isBt } = $(useVirtualCell(ref(column)))
+        const colOptions = column.colOptions as LinkToAnotherRecordType
+
         const relatedTableMeta = metas.value?.[colOptions?.fk_related_model_id as string]
 
-        if (isHm || isMm) {
+        if (isHm(column) || isMm(column)) {
           const relatedRows = (state.value?.[column.title!] ?? []) as Record<string, any>[]
+
           for (const relatedRow of relatedRows) {
             await linkRecord(
               id,
@@ -108,7 +109,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
               { metaValue },
             )
           }
-        } else if (isBt && state?.value?.[column.title!]) {
+        } else if (isBt(column) && state.value?.[column.title!]) {
           await linkRecord(
             id,
             extractPkFromRow(state.value?.[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[]),

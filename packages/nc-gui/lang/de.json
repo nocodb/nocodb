@@ -104,7 +104,9 @@
       "creator": "Ersteller",
       "editor": "Bearbeiter",
       "commenter": "Kommentator",
-      "viewer": "Zuschauer"
+      "viewer": "Zuschauer",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
     },
     "sqlVIew": "SQL Ansicht"
   },
@@ -200,6 +202,7 @@
     "codeSnippet": "Code Ausschnitt"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "Benachrichtigen mit",
     "projName": "Projektname",
     "tableName": "Tabellenname",
@@ -296,7 +299,8 @@
     "signUpWithGoogle": "Sign up with Google",
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "Mit Ihrer Anmeldung stimmen Sie den allgemeinen Nutzungsbedingungen zu",
-    "welcomeToNc": "Willkommen bei NocoDB!"
+    "welcomeToNc": "Willkommen bei NocoDB!",
+    "inviteOnlySignup": "Allow signup only using invite url"
   },
   "activity": {
     "createProject": "Projekt erstellen",
@@ -341,12 +345,14 @@
     "invite": "Einladen",
     "inviteMore": "Mehr einladen",
     "inviteTeam": "Team einladen",
+    "inviteUser": "Invite User",
     "inviteToken": "Token einladen",
     "newUser": "Neuer Benutzer",
     "editUser": "Benutzer bearbeiten",
     "deleteUser": "Benutzer vom Projekt entfernen",
     "resendInvite": "Einladungs-Email erneut versenden",
     "copyInviteURL": "Einladungs-URL kopieren",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "Neue Rolle",
     "reloadRoles": "Rollen neu laden",
     "nextPage": "Nächste Seite",
@@ -480,6 +486,10 @@
   },
   "msg": {
     "info": {
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "Zeilen pro Seite",
       "upload": "Datei zum Hochladen auswählen",
       "upload_sub": "oder Drag & Drop Datei",
@@ -653,7 +663,8 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "Die akzeptierten Dateitypen sind .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty."
+      "fieldRequired": "{value} cannot be empty.",
+      "projectNotAccessible": "Project not accessible"
     },
     "toast": {
       "exportMetadata": "Projektmetadaten erfolgreich exportiert",
@@ -683,13 +694,16 @@
       "tableDataExported": "Successfully exported all table data",
       "updated": "Successfully updated",
       "sharedViewDeleted": "Deleted shared view successfully",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "Ansicht erfolgreich umbenannt",
       "tokenGenerated": "Token erfolgreich generiert",
       "tokenDeleted": "Token erfolgreich gelöscht",
       "userAddedToProject": "Benutzer erfolgreich zum Projekt hinzugefügt",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "Benutzer erfolgreich aus dem Projekt gelöscht",
       "inviteEmailSent": "Einladungs-E-Mail erfolgreich gesendet",
       "inviteURLCopied": "Einladungslink wurde in Zwischenablage kopiert",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "Copied shareable base URL to clipboard!",
       "embeddableHTMLCodeCopied": "Copied embeddable HTML code!",
       "userDetailsUpdated": "Benutzerdaten erfolgreich aktualisiert",
@@ -699,7 +713,9 @@
       "webhookTested": "Webhook tested successfully",
       "columnUpdated": "Spalte aktualisiert",
       "columnCreated": "Spalte erstellt",
-      "passwordChanged": "Kennwort erfolgreich geändert. Bitte melden Sie sich erneut an."
+      "passwordChanged": "Kennwort erfolgreich geändert. Bitte melden Sie sich erneut an.",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

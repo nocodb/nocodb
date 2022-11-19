@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { OrgUserRoles } from 'nocodb-sdk'
 import type { RequestParams } from 'nocodb-sdk'
 import {
   extractSdkResponseErrorMsg,
@@ -160,6 +161,10 @@ onBeforeMount(async () => {
 })
 
 watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
+
+const isSuperAdmin = (user: { main_roles?: string }) => {
+  return user.main_roles?.split(',').includes(OrgUserRoles.SUPER_ADMIN)
+}
 </script>
 
 <template>
@@ -253,6 +258,13 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
 
         <div class="flex w-1/6 justify-center flex-wrap ml-4">
           <div
+            v-if="isSuperAdmin(user)"
+            class="rounded-full px-2 py-1 nc-user-role"
+            :style="{ backgroundColor: projectRoleTagColors[OrgUserRoles.SUPER_ADMIN] }"
+          >
+            Super Admin
+          </div>
+          <div
             v-if="user.roles"
             class="rounded-full px-2 py-1 nc-user-role"
             :style="{ backgroundColor: projectRoleTagColors[user.roles] }"
@@ -261,71 +273,73 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
           </div>
         </div>
         <div class="flex w-1/6 flex-wrap justify-end">
-          <a-tooltip v-if="user.project_id" placement="bottom">
-            <template #title>
-              <span>{{ $t('activity.editUser') }}</span>
-            </template>
-
-            <a-button type="text" class="!rounded-md nc-user-edit" @click="onEdit(user)">
-              <template #icon>
-                <IcRoundEdit class="flex mx-auto h-[1rem] text-gray-500" />
+          <template v-if="!isSuperAdmin(user)">
+            <a-tooltip v-if="user.project_id" placement="bottom">
+              <template #title>
+                <span>{{ $t('activity.editUser') }}</span>
               </template>
-            </a-button>
-          </a-tooltip>
 
-          <!--          Add user to project -->
-          <a-tooltip v-if="!user.project_id" placement="bottom">
-            <template #title>
-              <span>{{ $t('activity.addUserToProject') }}</span>
-            </template>
-
-            <a-button type="text" class="!rounded-md nc-user-invite" @click="inviteUser(user)">
-              <template #icon>
-                <MdiPlus class="flex mx-auto h-[1.1rem] text-gray-500" />
-              </template>
-            </a-button>
-          </a-tooltip>
-
-          <!--          Remove user from the project -->
-          <a-tooltip v-else placement="bottom">
-            <template #title>
-              <span>{{ $t('activity.deleteUser') }}</span>
-            </template>
-
-            <a-button v-e="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
-              <template #icon>
-                <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
-              </template>
-            </a-button>
-          </a-tooltip>
-
-          <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
-            <div class="flex flex-row items-center">
-              <a-button type="text" class="!px-0">
-                <div class="flex flex-row items-center h-[1.2rem]">
-                  <IcBaselineMoreVert />
-                </div>
+              <a-button type="text" class="!rounded-md nc-user-edit" @click="onEdit(user)">
+                <template #icon>
+                  <IcRoundEdit class="flex mx-auto h-[1rem] text-gray-500" />
+                </template>
               </a-button>
-            </div>
+            </a-tooltip>
 
-            <template #overlay>
-              <a-menu>
-                <a-menu-item>
-                  <!--                  Resend invite Email -->
-                  <div class="flex flex-row items-center py-3" @click="resendInvite(user)">
-                    <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
-                    <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
+            <!--          Add user to project -->
+            <a-tooltip v-if="!user.project_id" placement="bottom">
+              <template #title>
+                <span>{{ $t('activity.addUserToProject') }}</span>
+              </template>
+
+              <a-button type="text" class="!rounded-md nc-user-invite" @click="inviteUser(user)">
+                <template #icon>
+                  <MdiPlus class="flex mx-auto h-[1.1rem] text-gray-500" />
+                </template>
+              </a-button>
+            </a-tooltip>
+
+            <!--          Remove user from the project -->
+            <a-tooltip v-else placement="bottom">
+              <template #title>
+                <span>{{ $t('activity.deleteUser') }}</span>
+              </template>
+
+              <a-button v-e="['c:user:delete']" type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
+                <template #icon>
+                  <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
+                </template>
+              </a-button>
+            </a-tooltip>
+
+            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight" overlay-class-name="nc-dropdown-user-mgmt">
+              <div class="flex flex-row items-center">
+                <a-button type="text" class="!px-0">
+                  <div class="flex flex-row items-center h-[1.2rem]">
+                    <IcBaselineMoreVert />
                   </div>
-                </a-menu-item>
-                <a-menu-item>
-                  <div class="flex flex-row items-center py-3" @click="copyInviteUrl(user)">
-                    <MdiContentCopy class="flex h-[1rem] text-gray-500" />
-                    <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
-                  </div>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
+                </a-button>
+              </div>
+
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item>
+                    <!--                  Resend invite Email -->
+                    <div class="flex flex-row items-center py-3" @click="resendInvite(user)">
+                      <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
+                      <div class="text-xs pl-2">{{ $t('activity.resendInvite') }}</div>
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item>
+                    <div class="flex flex-row items-center py-3" @click="copyInviteUrl(user)">
+                      <MdiContentCopy class="flex h-[1rem] text-gray-500" />
+                      <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
+          </template>
         </div>
       </div>
 

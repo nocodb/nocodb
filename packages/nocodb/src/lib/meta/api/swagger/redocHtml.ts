@@ -17,8 +17,33 @@ export default `<!DOCTYPE html>
     </style>
 </head>
 <body>
-<redoc spec-url='./swagger.json'></redoc>
-<script src="https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js"> </script>
+<div id="redoc"></div>
+<script src="https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js"></script>
+<script>
+  let initialLocalStorage = {}
+  
+  try {
+    initialLocalStorage = JSON.parse(localStorage.getItem('nocodb-gui-v2') || '{}');
+  } catch (e) {
+    console.error('Failed to parse local storage', e);
+  }
+
+  const xhttp = new XMLHttpRequest();
+  
+  xhttp.open("GET", "./swagger.json");
+  xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+  xhttp.setRequestHeader("xc-auth", initialLocalStorage && initialLocalStorage.token);
+
+  xhttp.onload = function () {
+      const swaggerJson = this.responseText;
+      const swagger = JSON.parse(swaggerJson);
+      Redoc.init(swagger, {
+        scrollYOffset: 50
+      }, document.getElementById('redoc'))
+  };
+  
+  xhttp.send();
+</script>
 <script>
  console.log('%c🚀 We are Hiring!!! 🚀%c\\n%cJoin the forces http://careers.nocodb.com', 'color:#1348ba;font-size:3rem;padding:20px;', 'display:none', 'font-size:1.5rem;padding:20px')
    const linkEl = document.createElement('a')
@@ -61,4 +86,4 @@ export default `<!DOCTYPE html>
   setTimeout(() => linkEl.classList.add('active'), 2000)
 </script>
 </body>
-</html>`;
+</html>`

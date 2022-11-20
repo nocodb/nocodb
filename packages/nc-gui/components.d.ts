@@ -200,6 +200,7 @@ declare module '@vue/runtime-core' {
     MdiPlus: typeof import('~icons/mdi/plus')['default']
     MdiPlusCircleOutline: typeof import('~icons/mdi/plus-circle-outline')['default']
     MdiPlusOutline: typeof import('~icons/mdi/plus-outline')['default']
+    MdiPlusThick: typeof import('~icons/mdi/plus-thick')['default']
     MdiReddit: typeof import('~icons/mdi/reddit')['default']
     MdiRefresh: typeof import('~icons/mdi/refresh')['default']
     MdiReload: typeof import('~icons/mdi/reload')['default']

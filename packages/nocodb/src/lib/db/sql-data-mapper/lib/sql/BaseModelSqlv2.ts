@@ -9,7 +9,7 @@ import RollupColumn from '../../../../models/RollupColumn';
 import LookupColumn from '../../../../models/LookupColumn';
 import DataLoader from 'dataloader';
 import Column from '../../../../models/Column';
-import { XcFilter, XcFilterWithAlias } from '../BaseModel';
+import { XcFilter, XcFilterWithAlias } from '../BaseModel'
 import conditionV2 from './conditionV2';
 import Filter from '../../../../models/Filter';
 import sortV2 from './sortV2';
@@ -2240,7 +2240,7 @@ class BaseModelSqlv2 {
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
       // skip validation if `validate` is undefined or false
-      if (!column?.meta?.validate && !column?.validate) continue;
+      if (!column?.meta?.validate || !column?.validate) continue;
 
       const validate = column.getValidators();
       const cn = column.column_name;

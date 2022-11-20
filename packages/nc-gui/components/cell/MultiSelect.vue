@@ -41,6 +41,8 @@ const active = inject(ActiveCellInj, ref(false))
 
 const editable = inject(EditModeInj, ref(false))
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const selectedIds = ref<string[]>([])
 
 const aselect = ref<typeof AntSelect>()
@@ -49,7 +51,7 @@ const isOpen = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
-const searchVal = ref()
+const searchVal = ref<string | null>()
 
 const { $api } = useNuxtApp()
 
@@ -101,13 +103,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-          const opa = options.value.find((el) => el.title === a)
-          const opb = options.value.find((el) => el.title === b)
-          if (opa && opb) {
-            return opa.order! - opb.order!
-          }
-          return 0
-        })
+            const opa = options.value.find((el) => el.title === a)
+            const opb = options.value.find((el) => el.title === b)
+            if (opa && opb) {
+              return opa.order! - opb.order!
+            }
+            return 0
+          })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -187,7 +189,7 @@ useSelectedCellKeyupListener(active, (e) => {
 const activeOptCreateInProgress = ref(0)
 
 async function addIfMissingAndSave() {
-  if (!searchVal) return false
+  if (!searchVal || isPublic.value) return false
   try {
     tempVal.push(searchVal.value)
     const newOptValue = searchVal?.value
@@ -202,17 +204,16 @@ async function addIfMissingAndSave() {
       })
       column.value.colOptions = { options: newOptions.map(({ value: _, ...rest }) => rest) }
 
-      await $api.dbTableColumn.update(column.value?.id as string, {
+      await $api.dbTableColumn.update((column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string), {
         ...column.value,
       })
 
       activeOptCreateInProgress.value--
       if (!activeOptCreateInProgress.value) {
         await getMeta(column.value.fk_model_id!, true)
-        vModel.value = [...vModel.value];
-        tempVal.splice(0, tempVal.length);
+        vModel.value = [...vModel.value]
+        tempVal.splice(0, tempVal.length)
       }
-
     } else {
       activeOptCreateInProgress.value--
     }
@@ -270,8 +271,8 @@ const search = () => {
       </a-tag>
     </a-select-option>
 
-    <a-select-option v-if="searchVal && isOptionMissing" :key="searchVal" :value="searchVal">
-      <div class="flex gap-2 text-gray-500 items-center">
+    <a-select-option v-if="searchVal && isOptionMissing && !isPublic" :key="searchVal" :value="searchVal">
+      <div class="flex gap-2 text-gray-500 items-center h-full">
         <MdiPlusThick class="min-w-4" />
         <div class="text-xs whitespace-normal">
           Create new option named <strong>{{ searchVal }}</strong>

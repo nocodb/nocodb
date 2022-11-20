@@ -40,6 +40,8 @@ const isOpen = ref(false)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { $api } = useNuxtApp()
 
 const searchVal = ref()
@@ -121,7 +123,7 @@ useSelectedCellKeyupListener(active, (e) => {
 })
 
 async function addIfMissingAndSave() {
-  if (!searchVal.value) return false
+  if (!searchVal.value || isPublic.value) return false
 
   const newOptValue = searchVal.value
   searchVal.value = ''
@@ -134,7 +136,7 @@ async function addIfMissingAndSave() {
     })
     column.value.colOptions = { options: options.value.map(({ value: _, ...rest }) => rest) }
 
-    await $api.dbTableColumn.update(column.value?.id as string, {
+    await $api.dbTableColumn.update((column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string), {
       ...column.value,
     })
     vModel.value = newOptValue
@@ -185,8 +187,8 @@ const search = () => {
       </a-tag>
     </a-select-option>
 
-    <a-select-option v-if="searchVal && isOptionMissing" :key="searchVal" :value="searchVal">
-      <div class="flex gap-2 text-gray-500 items-center">
+    <a-select-option v-if="searchVal && isOptionMissing && !isPublic" :key="searchVal" :value="searchVal">
+      <div class="flex gap-2 text-gray-500 items-center h-full">
         <MdiPlusThick class="min-w-4" />
         <div class="text-xs whitespace-normal">
           Create new option named <strong>{{ searchVal }}</strong>

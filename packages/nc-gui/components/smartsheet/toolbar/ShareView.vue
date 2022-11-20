@@ -5,12 +5,12 @@ import tinycolor from 'tinycolor2'
 import {
   computed,
   extractSdkResponseErrorMsg,
+  isRtlLang,
   message,
   projectThemeColors,
   ref,
   useCopy,
   useDashboard,
-  isRtlLang,
   useI18n,
   useNuxtApp,
   useProject,
@@ -196,7 +196,6 @@ watch(passwordProtected, (value) => {
 const { locale } = useI18n()
 
 const isRtl = computed(() => isRtlLang(locale.value as any))
-
 </script>
 
 <template>
@@ -234,8 +233,7 @@ const isRtl = computed(() => isRtlLang(locale.value as any))
           <MdiOpenInNew class="text-sm text-gray-500 mt-2" />
         </a>
 
-        <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer"
-                        @click="copyLink" />
+        <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
       </div>
 
       <div class="px-1 mt-2 flex flex-col gap-3">
@@ -312,8 +310,7 @@ const isRtl = computed(() => isRtlLang(locale.value as any))
             "
           >
             <!-- Allow Download -->
-            <a-checkbox v-model:checked="allowCSVDownload" data-testid="nc-modal-share-view__with-csv-download"
-                        class="!text-sm">
+            <a-checkbox v-model:checked="allowCSVDownload" data-testid="nc-modal-share-view__with-csv-download" class="!text-sm">
               {{ $t('labels.downloadAllowed') }}
             </a-checkbox>
           </div>

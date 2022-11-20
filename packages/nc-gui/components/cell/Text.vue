@@ -16,7 +16,9 @@ const readonly = inject(ReadonlyInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const focus: VNodeRef = (el) => {
+  ;(el as HTMLInputElement)?.focus()
+}
 </script>
 
 <template>

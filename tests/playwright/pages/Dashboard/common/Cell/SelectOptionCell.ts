@@ -136,13 +136,24 @@ export class SelectOptionCellPageObject extends BasePage {
     await selectCell.locator('.ant-select-selection-search-input').press('Enter');
 
     if (multiSelect) await selectCell.locator('.ant-select-selection-search-input').press('Escape');
+    // todo: wait for update api call
+  }
 
-    // await this.rootPage.getByTestId(`select-option-${columnHeader}-${index}`).getByText(option).click();
-    //
-    //
-    // await this.rootPage
-    //   .getByTestId(`select-option-${columnHeader}-${index}`)
-    //   .getByText(option)
-    //   .waitFor({ state: 'hidden' });
+  async verifySelectedOptions({
+    index,
+    options,
+    columnHeader,
+  }: {
+    columnHeader: string;
+    options: string[];
+    index: number;
+  }) {
+    const selectCell = this.get({ index, columnHeader });
+
+    let counter = 0;
+    for (const option of options) {
+      await expect(selectCell.locator(`.nc-selected-option`).nth(counter)).toHaveText(option);
+      counter++;
+    }
   }
 }

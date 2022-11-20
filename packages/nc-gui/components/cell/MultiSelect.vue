@@ -212,6 +212,7 @@ async function addIfMissingAndSave() {
         vModel.value = [...vModel.value];
         tempVal.splice(0, tempVal.length);
       }
+
     } else {
       activeOptCreateInProgress.value--
     }
@@ -281,7 +282,7 @@ const search = () => {
     <template #tagRender="{ value: val, onClose }">
       <a-tag
         v-if="options.find((el) => el.title === val)"
-        class="rounded-tag"
+        class="rounded-tag nc-selected-option"
         :style="{ display: 'flex', alignItems: 'center' }"
         :color="options.find((el) => el.title === val)?.color"
         :closable="(active || editable) && (vModel.length > 1 || !column?.rqd)"

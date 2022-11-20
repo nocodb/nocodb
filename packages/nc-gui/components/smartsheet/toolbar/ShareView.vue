@@ -10,7 +10,7 @@ import {
   ref,
   useCopy,
   useDashboard,
-  useDebounceFn,
+  isRtlLang,
   useI18n,
   useNuxtApp,
   useProject,
@@ -192,6 +192,11 @@ watch(passwordProtected, (value) => {
     saveShareLinkPassword()
   }
 })
+
+const { locale } = useI18n()
+
+const isRtl = computed(() => isRtlLang(locale.value as any))
+
 </script>
 
 <template>
@@ -229,7 +234,8 @@ watch(passwordProtected, (value) => {
           <MdiOpenInNew class="text-sm text-gray-500 mt-2" />
         </a>
 
-        <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
+        <MdiContentCopy v-e="['c:view:share:copy-url']" class="text-gray-500 text-sm cursor-pointer"
+                        @click="copyLink" />
       </div>
 
       <div class="px-1 mt-2 flex flex-col gap-3">
@@ -306,7 +312,8 @@ watch(passwordProtected, (value) => {
             "
           >
             <!-- Allow Download -->
-            <a-checkbox v-model:checked="allowCSVDownload" data-testid="nc-modal-share-view__with-csv-download" class="!text-sm">
+            <a-checkbox v-model:checked="allowCSVDownload" data-testid="nc-modal-share-view__with-csv-download"
+                        class="!text-sm">
               {{ $t('labels.downloadAllowed') }}
             </a-checkbox>
           </div>
@@ -332,7 +339,7 @@ watch(passwordProtected, (value) => {
             </Transition>
           </div>
 
-          <div v-if="shared.type === ViewTypes.FORM">
+          <div v-if="shared.type === ViewTypes.FORM && isRtl">
             <!-- use RTL orientation in form - todo: i18n -->
             <a-checkbox v-model:checked="withRTL" data-testid="nc-modal-share-view__locale" class="!text-sm">
               <!-- todo i18n -->

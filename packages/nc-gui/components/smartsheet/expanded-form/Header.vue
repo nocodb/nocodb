@@ -107,9 +107,9 @@ const copyRecordUrl = () => {
 
     <a-button class="!text mx-1 nc-expand-form-close-btn" @click="emit('cancel')">
       <div class="flex items-center">
-        <MdiCancel class="mr-1" />
-        <!-- Cancel -->
-        {{ $t('general.cancel') }}
+        <MdiCloseCircleOutline class="mr-1" />
+        <!-- Close -->
+        {{ $t('general.close') }}
       </div>
     </a-button>
 

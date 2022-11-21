@@ -316,11 +316,7 @@ const copyProjectMeta = async () => {
   }
 
   &:hover::after {
-    @apply transform scale-110 ring ring-accent;
-  }
-
-  &:active::after {
-    @apply ring ring-accent;
+    @apply transform scale-110;
   }
 }
 

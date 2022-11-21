@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Input } from 'ant-design-vue'
 import {
   Form,
   computed,
@@ -133,6 +134,10 @@ const clickInviteMore = () => {
   usersData.role = ProjectRole.Viewer
   usersData.emails = undefined
 }
+
+const emailField = (inputEl: typeof Input) => {
+  inputEl?.$el?.focus()
+}
 </script>
 
 <template>
@@ -222,6 +227,7 @@ const clickInviteMore = () => {
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('datatype.Email') }}:</div>
 
                     <a-input
+                      :ref="emailField"
                       v-model:value="usersData.emails"
                       validate-trigger="onBlur"
                       :placeholder="$t('labels.email')"

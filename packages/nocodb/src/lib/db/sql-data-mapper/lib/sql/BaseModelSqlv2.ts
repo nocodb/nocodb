@@ -2240,7 +2240,7 @@ class BaseModelSqlv2 {
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
       // skip validation if `validate` is undefined or false
-      if (!column?.meta?.validate && !column?.validate) continue;
+      if (!column?.meta?.validate || !column?.validate) continue;
 
       const validate = column.getValidators();
       const cn = column.column_name;

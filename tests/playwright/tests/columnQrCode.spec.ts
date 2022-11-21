@@ -3,6 +3,7 @@ import { DashboardPage } from '../pages/Dashboard';
 import setup, { NcContext } from '../setup';
 import { isPg, isSqlite } from '../setup/db';
 import { expect, Locator } from '@playwright/test';
+import { GridPage } from '../pages/Dashboard/Grid';
 
 // Add qr code column referencing the City column
 // and compare the base64 encoded codes/src attributes for the first 3 rows.
@@ -22,11 +23,13 @@ const expectedQrCodeCellValues = [
 
 test.describe('Virtual Columns', () => {
   let dashboard: DashboardPage;
+  let grid: GridPage;
   let context: any;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.project);
+    grid = dashboard.grid;
   });
 
   async function qrCodeVerify(qrColumnTitle: string, expectedQrCodes: string[]) {
@@ -57,6 +60,12 @@ test.describe('Virtual Columns', () => {
     });
 
     await qrCodeVerify('QrCode1', expectedQrCodeCellValues);
+
+    // We expect that the QR code column is deleted
+    // when the column that is referenced by the QR code column gets deleted.
+    await grid.column.verify({ title: 'QrCode1', isVisible: true });
+    await grid.column.delete({ title: 'City' });
+    await grid.column.verify({ title: 'QrCode1', isVisible: false });
 
     await dashboard.closeTab({ title: 'City' });
   });

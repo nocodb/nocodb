@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
@@ -20,6 +21,7 @@ import {
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
@@ -210,6 +212,7 @@ async function addIfMissingAndSave() {
     // todo: handle error
     console.log(e)
     activeOptCreateInProgress.value--
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
@@ -15,6 +16,7 @@ import {
   ref,
   watch,
 } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 interface Props {
   modelValue?: string | undefined
@@ -44,6 +46,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 const { $api } = useNuxtApp()
 
 const searchVal = ref()
+
+const { getMeta } = useMetas()
 
 // a variable to keep newly created option value
 // temporary until it's add the option to column meta
@@ -108,17 +112,23 @@ async function addIfMissingAndSave() {
   searchVal.value = ''
 
   if (newOptValue && !options.value.some((o) => o.title === newOptValue)) {
-    options.value.push({
-      title: newOptValue,
-      value: newOptValue,
-      color: enumColor.light[(options.value.length + 1) % enumColor.light.length],
-    })
-    column.value.colOptions = { options: options.value.map(({ value: _, ...rest }) => rest) }
+    try {
+      options.value.push({
+        title: newOptValue,
+        value: newOptValue,
+        color: enumColor.light[(options.value.length + 1) % enumColor.light.length],
+      })
+      column.value.colOptions = { options: options.value.map(({ value: _, ...rest }) => rest) }
 
-    await $api.dbTableColumn.update((column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string), {
-      ...column.value,
-    })
-    vModel.value = newOptValue
+      await $api.dbTableColumn.update((column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string), {
+        ...column.value,
+      })
+      vModel.value = newOptValue
+      await getMeta(column.value.fk_model_id!, true)
+    } catch (e) {
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
 }
 

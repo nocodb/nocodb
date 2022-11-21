@@ -131,7 +131,6 @@ export function useMultiSelect(
   })
 
   const onKeyDown = async (e: KeyboardEvent) => {
-
     // invoke the keyEventHandler if provided and return if it returns true
     if (await keyEventHandler?.(e)) {
       return true

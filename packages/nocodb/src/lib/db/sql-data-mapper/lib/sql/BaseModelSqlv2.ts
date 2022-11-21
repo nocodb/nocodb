@@ -9,7 +9,7 @@ import RollupColumn from '../../../../models/RollupColumn';
 import LookupColumn from '../../../../models/LookupColumn';
 import DataLoader from 'dataloader';
 import Column from '../../../../models/Column';
-import { XcFilter, XcFilterWithAlias } from '../BaseModel'
+import { XcFilter, XcFilterWithAlias } from '../BaseModel';
 import conditionV2 from './conditionV2';
 import Filter from '../../../../models/Filter';
 import sortV2 from './sortV2';

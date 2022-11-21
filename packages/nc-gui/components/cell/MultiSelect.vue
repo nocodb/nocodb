@@ -57,7 +57,7 @@ const { $api } = useNuxtApp()
 
 const { getMeta } = useMetas()
 
-const tempVal = reactive([])
+const tempVal = reactive<string[]>([])
 
 const options = computed<(SelectOptionType & { value?: string })[]>(() => {
   if (column?.value.colOptions) {
@@ -103,13 +103,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-            const opa = options.value.find((el) => el.title === a)
-            const opb = options.value.find((el) => el.title === b)
-            if (opa && opb) {
-              return opa.order! - opb.order!
-            }
-            return 0
-          })
+          const opa = options.value.find((el) => el.title === a)
+          const opb = options.value.find((el) => el.title === b)
+          if (opa && opb) {
+            return opa.order! - opb.order!
+          }
+          return 0
+        })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -151,10 +151,10 @@ useEventListener(document, 'click', handleClose)
 watch(
   () => modelValue,
   () => {
-    selectedIds.value = selectedIds.value = selectedTitles.value.flatMap((el) => {
-      const item = options.value.find((op) => op.title === el)?.id
-      if (item) {
-        return [item]
+    selectedIds.value = selectedTitles.value.flatMap((el) => {
+      const item = options.value.find((op) => op.title === el)
+      if (item && (item.id || item.title)) {
+        return [(item.id || item.title)!]
       }
 
       return []
@@ -189,7 +189,7 @@ useSelectedCellKeyupListener(active, (e) => {
 const activeOptCreateInProgress = ref(0)
 
 async function addIfMissingAndSave() {
-  if (!searchVal || isPublic.value) return false
+  if (!searchVal.value || isPublic.value) return false
   try {
     tempVal.push(searchVal.value)
     const newOptValue = searchVal?.value

@@ -47,19 +47,6 @@ test.describe('Virtual Columns', () => {
     await dashboard.closeTab({ title: 'Team & Auth' });
 
     await dashboard.treeView.openTable({ title: 'City' });
-    await dashboard.grid.column.create({
-      title: 'QrCode1',
-      type: 'QrCode',
-      qrCodeValueColumnTitle: 'City',
-    });
-
-    await dashboard.grid.cell.verifyQrCodeCell({
-      index: 0,
-      columnHeader: 'QrCode1',
-      expectedSrcValue: expectedQrCodeCellValues[0],
-    });
-
-    await qrCodeVerify('QrCode1', expectedQrCodeCellValues);
 
     // We expect that the QR code column is deleted
     // when the column that is referenced by the QR code column gets deleted.
@@ -74,6 +61,21 @@ test.describe('Virtual Columns', () => {
     await grid.column.verify({ title: 'QrCode2', isVisible: true });
     await grid.column.delete({ title: 'column_name_a' });
     await grid.column.verify({ title: 'QrCode2', isVisible: false });
+
+
+    await dashboard.grid.column.create({
+      title: 'QrCode1',
+      type: 'QrCode',
+      qrCodeValueColumnTitle: 'City',
+    });
+
+    await dashboard.grid.cell.verifyQrCodeCell({
+      index: 0,
+      columnHeader: 'QrCode1',
+      expectedSrcValue: expectedQrCodeCellValues[0],
+    });
+
+    await qrCodeVerify('QrCode1', expectedQrCodeCellValues);
 
     await dashboard.closeTab({ title: 'City' });
   });

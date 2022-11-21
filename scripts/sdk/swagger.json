@@ -8065,6 +8065,10 @@
           "fk_model_id": {
             "type": "string"
           },
+          "fk_view_id": {
+            "type": "string",
+            "minLength": 1
+          },
           "fk_geo_data_col_id": {
             "type": [
               "string",

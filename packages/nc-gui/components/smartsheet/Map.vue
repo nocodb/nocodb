@@ -12,6 +12,9 @@ const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn
 
 const markersClusterGroupRef = ref<L.MarkerClusterGroup>()
 const mapContainerRef = ref<HTMLElement>()
+const myMapRef = ref<L.Map>()
+
+console.log('meta', mapMetaData)
 
 onBeforeMount(async () => {
   await loadMapMeta()
@@ -68,10 +71,16 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
 })
 
 onMounted(async () => {
-  const myMap = L.map(mapContainerRef.value!).setView([51.505, -0.09], 13)
+  // TODO: also here add/use viewId suffix approach (see comment below)
+  const initialZoomLevel = parseInt(localStorage.getItem(`mapView.zoom${mapMetaData.value.fk_view_id}`) || '10')
+  // const initialBounds = parseInt(localStorage.getItem(`mapView.bounds${mapMetaData.value.fk_view_id}`) || '10')
+  // myMap.setZoom(initialZoomLevel)
+
+  const myMap = L.map(mapContainerRef.value!).setView([51.505, -0.09], initialZoomLevel)
+  myMapRef.value = myMap
 
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 10,
+    maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(myMap)
 
@@ -81,6 +90,24 @@ onMounted(async () => {
     },
   })
   myMap.addLayer(markersClusterGroupRef.value)
+
+  myMap.on('zoomend', function (params) {
+    const bounds = myMap.getBounds()
+    const newS = bounds.getSouthWest()
+
+    console.log('bounds', newS)
+    console.log('params', params)
+
+    if (localStorage != null) {
+      // TODO: use current mapView id as suffix to the local storage key,
+      // so there are no clashes when there are multiple map views, e.g.:
+      // localStorage.setItem(`mapView.${meta?.value.id || 'DEFAULT_ID'}`, this.input)
+      localStorage.setItem(`mapView.zoom${mapMetaData.value.fk_view_id}`, myMap.getZoom().toString())
+    }
+  })
+
+  const bounds = myMap.getBounds()
+  console.log(bounds)
 })
 </script>
 

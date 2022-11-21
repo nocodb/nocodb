@@ -407,6 +407,7 @@ export interface MapType {
   alias?: string;
   initial_geo_position?: GeoLocationType;
   fk_model_id?: string;
+  fk_view_id?: string;
   fk_geo_data_col_id?: string | null;
   columns?: MapColumnType[];
   meta?: string | object;

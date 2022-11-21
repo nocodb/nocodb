@@ -32,8 +32,6 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
       const res = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!)
 
-      console.log('in useMapViewDataStore - res.list: ', res.list)
-
       formattedData.value = res.list
     }
 

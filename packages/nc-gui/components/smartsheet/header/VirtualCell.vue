@@ -7,6 +7,12 @@ import {
   MetaInj,
   computed,
   inject,
+  isBt,
+  isFormula,
+  isHm,
+  isLookup,
+  isMm,
+  isRollup,
   isVirtualColRequired,
   provide,
   ref,
@@ -14,7 +20,6 @@ import {
   useI18n,
   useMetas,
   useUIPermission,
-  useVirtualCell,
 } from '#imports'
 
 const props = defineProps<{ column: ColumnType; hideMenu?: boolean; required?: boolean | number }>()
@@ -37,14 +42,12 @@ const meta = inject(MetaInj, ref())
 
 const isForm = inject(IsFormInj, ref(false))
 
-const { isLookup, isBt, isRollup, isMm, isHm, isFormula } = useVirtualCell(column)
-
 const colOptions = $computed(() => column.value?.colOptions)
 
 const tableTile = $computed(() => meta?.value?.title)
 
 const relationColumnOptions = $computed<LinkToAnotherRecordType | null>(() => {
-  if (isMm.value || isHm.value || isBt.value) {
+  if (isMm(column.value) || isHm(column.value) || isBt(column.value)) {
     return column.value?.colOptions as LinkToAnotherRecordType
   } else if ((column?.value?.colOptions as LookupType | RollupType)?.fk_relation_column_id) {
     return meta?.value?.columns?.find(
@@ -62,10 +65,10 @@ const relatedTableTitle = $computed(() => relatedTableMeta?.title)
 
 const childColumn = $computed(() => {
   if (relatedTableMeta?.columns) {
-    if (isRollup.value) {
+    if (isRollup(column.value)) {
       return relatedTableMeta?.columns.find((c: ColumnType) => c.id === (colOptions as RollupType).fk_rollup_column_id)
     }
-    if (isLookup.value) {
+    if (isLookup(column.value)) {
       return relatedTableMeta?.columns.find((c: ColumnType) => c.id === (colOptions as LookupType).fk_lookup_column_id)
     }
   }
@@ -76,22 +79,22 @@ const tooltipMsg = computed(() => {
   if (!column.value) {
     return ''
   }
-  if (isHm.value) {
+  if (isHm(column.value)) {
     return `'${tableTile}' ${t('labels.hasMany')} '${relatedTableTitle}'`
-  } else if (isMm.value) {
+  } else if (isMm(column.value)) {
     return `'${tableTile}' & '${relatedTableTitle}' ${t('labels.manyToMany')}`
-  } else if (isBt.value) {
+  } else if (isBt(column.value)) {
     return `'${column?.value?.title}' ${t('labels.belongsTo')} '${relatedTableTitle}'`
-  } else if (isLookup.value) {
+  } else if (isLookup(column.value)) {
     return `'${childColumn.title}' from '${relatedTableTitle}' (${childColumn.uidt})`
-  } else if (isFormula.value) {
+  } else if (isFormula(column.value)) {
     const formula = substituteColumnIdWithAliasInFormula(
       (column.value?.colOptions as FormulaType)?.formula,
       meta?.value?.columns as ColumnType[],
       (column.value?.colOptions as any)?.formula_raw,
     )
     return `Formula - ${formula}`
-  } else if (isRollup.value) {
+  } else if (isRollup(column.value)) {
     return `'${childColumn.title}' of '${relatedTableTitle}' (${childColumn.uidt})`
   }
   return ''

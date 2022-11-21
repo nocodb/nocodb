@@ -1,4 +1,4 @@
-import { OrgUserRoles } from '../../enums/OrgUserRoles';
+import { OrgUserRoles } from 'nocodb-sdk';
 
 export default {
   owner: {

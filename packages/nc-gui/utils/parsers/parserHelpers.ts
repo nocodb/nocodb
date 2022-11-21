@@ -1,6 +1,6 @@
 import { UITypes } from 'nocodb-sdk'
 import { isValidURL } from '~/utils/urlUtils'
-import { isEmail } from '~/utils/validation'
+import { validateEmail } from '~/utils/validation'
 
 const booleanOptions = [
   { checked: true, unchecked: false },
@@ -109,7 +109,7 @@ export const isDecimalType = (colData: []) =>
 
 export const isEmailType = (colData: []) =>
   colData.some((v: any) => {
-    return v && isEmail(v)
+    return v && validateEmail(v)
   })
 
 export const isUrlType = (colData: []) =>

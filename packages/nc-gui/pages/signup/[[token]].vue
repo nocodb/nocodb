@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { validatePassword } from 'nocodb-sdk'
-import { definePageMeta, isEmail, navigateTo, reactive, ref, useApi, useGlobal, useI18n, useNuxtApp, useRoute } from '#imports'
+import {
+  definePageMeta,
+  navigateTo,
+  reactive,
+  ref,
+  useApi,
+  useGlobal,
+  useI18n,
+  useNuxtApp,
+  useRoute,
+  validateEmail,
+} from '#imports'
 
 definePageMeta({
   requiresAuth: false,
@@ -33,7 +44,7 @@ const formRules = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (!v?.length || isEmail(v)) return resolve(true)
+          if (!v?.length || validateEmail(v)) return resolve(true)
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
       },

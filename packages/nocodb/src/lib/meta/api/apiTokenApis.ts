@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { OrgUserRoles } from '../../../enums/OrgUserRoles';
+import { OrgUserRoles } from 'nocodb-sdk';
 import { Tele } from 'nc-help';
 import { NcError } from '../helpers/catchError';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';

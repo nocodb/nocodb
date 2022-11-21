@@ -5,6 +5,7 @@ import type { SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
+  EditModeInj,
   IsKanbanInj,
   ReadonlyInj,
   computed,
@@ -35,6 +36,8 @@ const column = inject(ColumnInj)!
 const readOnly = inject(ReadonlyInj)!
 
 const active = inject(ActiveCellInj, ref(false))
+
+const editable = inject(EditModeInj, ref(false))
 
 const selectedIds = ref<string[]>([])
 
@@ -85,8 +88,6 @@ const selectedTitles = computed(() =>
       : modelValue
     : [],
 )
-
-const v = Math.floor(Math.random() * 1000)
 
 const handleClose = (e: MouseEvent) => {
   if (aselect.value && !aselect.value.$el.contains(e.target)) {
@@ -157,7 +158,7 @@ useSelectedCellKeyupListener(active, (e) => {
     :class="{ '!ml-[-8px]': readOnly }"
     :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
     @keydown.enter.stop
-    @click="isOpen = active && !isOpen"
+    @click="isOpen = (active || editable) && !isOpen"
   >
     <a-select-option
       v-for="op of options"
@@ -187,7 +188,7 @@ useSelectedCellKeyupListener(active, (e) => {
         class="rounded-tag"
         :style="{ display: 'flex', alignItems: 'center' }"
         :color="options.find((el) => el.title === val)?.color"
-        :closable="active && (vModel.length > 1 || !column?.rqd)"
+        :closable="(active || editable) && (vModel.length > 1 || !column?.rqd)"
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"
       >

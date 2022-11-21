@@ -2,6 +2,7 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
 import setup, { NcContext } from '../setup';
 import { isPg, isSqlite } from '../setup/db';
+import { expect, Locator } from '@playwright/test';
 
 // Add formula to be verified here & store expected results for 5 rows
 // Column data from City table (Sakila DB)
@@ -71,21 +72,15 @@ test.describe('Virtual Columns', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  async function formulaResultVerify({
-    qrColumnTitle,
-    expectedQrCodes,
-  }: {
-    qrColumnTitle: string;
-    expectedQrCodes: string[];
-  }) {
-    for (let i = 0; i < expectedQrCodes.length; i++) {
-      await dashboard.grid.cell.verify({
-        index: i,
-        columnHeader: qrColumnTitle,
-        value: expectedQrCodes[i],
-      });
-    }
-  }
+  // async function qrCodeVerify(qrColumnTitle: string, expectedQrCodes: string[]) {
+  //   for (let i = 0; i < expectedQrCodes.length; i++) {
+  //     await dashboard.grid.cell.verifyQrCodeCell({
+  //       index: i,
+  //       columnHeader: qrColumnTitle,
+  //       expectedSrcValue: expectedQrCodes[i],
+  //     });
+  //   }
+  // }
 
   test('QrCode', async () => {
     // close 'Team & Auth' tab
@@ -99,6 +94,26 @@ test.describe('Virtual Columns', () => {
       type: 'QrCode',
       qrCodeValueColumnTitle: 'City',
     });
+
+
+    await dashboard.grid.cell.verifyQrCodeCell({
+      index: 0,
+      columnHeader: 'QrCode1',
+      expectedSrcValue: expectedQrCodeCellValues[0],
+    });
+
+
+    // expect
+    //     .poll(async () => {
+
+          // const FOO = await this.get({
+          //   index,
+          //   columnHeader,
+          // });
+
+    // for (let i = 1; i < expectedQrCodeCellValues.length; i++) {
+    // await qrCodeVerify('QrCode1', expectedQrCodeCellValues);
+    // }
 
     // verify different formula's
     // for (let i = 1; i < formulaData.length; i++) {

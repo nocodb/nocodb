@@ -91,16 +91,28 @@ export class CellPageObject extends BasePage {
     columnHeader: string;
     expectedSrcValue: string;
   }) {
+    console.log('FOOBAR!!!');
     const _verify = async text => {
       await expect
         .poll(async () => {
-          const innerTexts = await this.get({
+          const FOO = await this.get({
             index,
             columnHeader,
-          }).allInnerTexts();
-          return typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
+          });
+          console.log('index: ', index);
+          console.log('columnHeader: ', columnHeader);
+          console.log('expectedSrcValue: ', expectedSrcValue);
+          const img = await FOO.getByRole('img');
+          console.log('img: ', img);
+          const src = await img.getAttribute('src');
+          console.log('src: ', src);
+          // const innerTexts = FOO.allInnerTexts();
+          // console.log('innerTexts', innerTexts);
+          console.log('--------------------------');
+          // return typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
+          return src;
         })
-        .toContain(text);
+        .toEqual(text);
     };
 
     await _verify(expectedSrcValue);

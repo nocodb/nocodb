@@ -52,7 +52,7 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
       throw new Error('Cannot find primary geo data column title')
     }
 
-    const primaryGeoDataValue = row[primaryGeoDataColumnTitle]
+    const primaryGeoDataValue = row.row[primaryGeoDataColumnTitle]
 
     const listItems = Object.entries(row)
       .map(([key, val]) => {
@@ -63,6 +63,10 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
       .join('')
 
     const popupContent = `<ul>${listItems}</ul>`
+
+    if (primaryGeoDataValue == null) {
+      return
+    }
 
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
 

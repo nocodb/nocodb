@@ -3,6 +3,13 @@ import type { ColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import { ref, useInjectionState } from '#imports'
 import type { Row } from '~/lib'
 
+const formatData = (list: Row[]) =>
+  list.map((row) => ({
+    row: { ...row },
+    oldRow: { ...row },
+    rowMeta: {},
+  }))
+
 const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
   (
     meta: Ref<TableType | MapType | undefined>,
@@ -32,7 +39,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
       const res = await api.dbViewRow.list('noco', project.value.id!, meta.value!.id!, viewMeta.value!.id!)
 
-      formattedData.value = res.list
+      formattedData.value = formatData(res.list)
     }
 
     async function updateMapMeta(updateObj: Partial<MapType>) {

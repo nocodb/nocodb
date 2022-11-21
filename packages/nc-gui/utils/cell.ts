@@ -2,7 +2,8 @@ import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 
 export const dataTypeLow = (column: ColumnType) => column.dt?.toLowerCase()
-export const isBoolean = (abstractType: any) => abstractType === 'boolean'
+export const isBoolean = (column: ColumnType, abstractType?: any) =>
+  column.uidt === UITypes.Checkbox || abstractType === 'boolean'
 export const isString = (column: ColumnType, abstractType: any) =>
   column.uidt === UITypes.SingleLineText || abstractType === 'string'
 export const isTextArea = (column: ColumnType) => column.uidt === UITypes.LongText

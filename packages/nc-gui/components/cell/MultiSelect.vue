@@ -231,7 +231,7 @@ const search = () => {
     :bordered="false"
     :show-arrow="!readOnly"
     :show-search="active || editable"
-    :open="isOpen"
+    :open="isOpen && (active || editable)"
     :disabled="readOnly"
     :class="{ '!ml-[-8px]': readOnly }"
     :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"

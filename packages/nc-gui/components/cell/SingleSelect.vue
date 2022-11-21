@@ -57,7 +57,7 @@ const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
-        (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
+      (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
     for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
@@ -135,6 +135,20 @@ async function addIfMissingAndSave() {
 const search = () => {
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
+
+const toggleMenu = (e: Event) => {
+  // todo: refactor
+  if (
+    (e.target as HTMLElement)?.classList.contains('ant-select-clear') ||
+    (e.target as HTMLElement)?.parentElement?.classList.contains('ant-select-clear') ||
+    (e.target as HTMLElement)?.parentElement?.parentElement?.classList.contains('ant-select-clear') ||
+    (e.target as HTMLElement)?.parentElement?.parentElement?.parentElement?.classList.contains('ant-select-clear')
+  ) {
+    vModel.value = ''
+    return
+  }
+  isOpen.value = (active.value || editable.value) && !isOpen.value
+}
 </script>
 
 <template>
@@ -144,7 +158,7 @@ const search = () => {
     class="w-full"
     :allow-clear="!column.rqd && active"
     :bordered="false"
-    :open="isOpen"
+    :open="isOpen && (active || editable)"
     :disabled="readOnly"
     :show-arrow="!readOnly && (active || editable || vModel === null)"
     :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
@@ -152,7 +166,7 @@ const search = () => {
     @select="isOpen = false"
     @keydown.stop
     @search="search"
-    @click="isOpen = (active || editable) && !isOpen"
+    @click="toggleMenu"
   >
     <a-select-option
       v-for="op of options"

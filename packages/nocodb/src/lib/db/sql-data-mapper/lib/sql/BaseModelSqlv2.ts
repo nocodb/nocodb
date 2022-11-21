@@ -249,7 +249,7 @@ class BaseModelSqlv2 {
       qb.orderBy('created_at');
     }
 
-    applyPaginate(qb, rest);
+    if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
     const data = await this.extractRawQueryAndExec(qb);
 

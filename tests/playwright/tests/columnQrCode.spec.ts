@@ -63,9 +63,17 @@ test.describe('Virtual Columns', () => {
 
     // We expect that the QR code column is deleted
     // when the column that is referenced by the QR code column gets deleted.
-    await grid.column.verify({ title: 'QrCode1', isVisible: true });
-    await grid.column.delete({ title: 'City' });
-    await grid.column.verify({ title: 'QrCode1', isVisible: false });
+    await grid.column.create({ title: 'column_name_a' });
+    await grid.column.verify({ title: 'column_name_a' });
+    // await grid.addNewRow({ index: 0, columnHeader: 'column_name_a', value: `Row 0` });
+    await dashboard.grid.column.create({
+      title: 'QrCode2',
+      type: 'QrCode',
+      qrCodeValueColumnTitle: 'column_name_a',
+    });
+    await grid.column.verify({ title: 'QrCode2', isVisible: true });
+    await grid.column.delete({ title: 'column_name_a' });
+    await grid.column.verify({ title: 'QrCode2', isVisible: false });
 
     await dashboard.closeTab({ title: 'City' });
   });

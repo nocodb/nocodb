@@ -4,58 +4,15 @@ import setup, { NcContext } from '../setup';
 import { isPg, isSqlite } from '../setup/db';
 import { expect, Locator } from '@playwright/test';
 
-// Add formula to be verified here & store expected results for 5 rows
+// Add qr code column referencing the City column
+// and compare the base64 encoded codes/src attributes for the first 3 rows.
 // Column data from City table (Sakila DB)
 /**
  * City                   LastUpdate              Address List                Country
  * A Corua (La Corua)     2006-02-15 04:45:25     939 Probolinggo Loop        Spain
  * Abha                   2006-02-15 04:45:25     733 Mandaluyong Place       Saudi Arabia
  * Abu Dhabi              2006-02-15 04:45:25     535 Ahmadnagar Manor        United Arab Emirates
- * Acua                   2006-02-15 04:45:25     1789 Saint-Denis Parkway    Mexico
- * Adana                  2006-02-15 04:45:25     663 Baha Blanca Parkway     Turkey
  */
-// const formulaDataByDbType = (context: NcContext) => [
-//   {
-//     formula: '1 + 1',
-//     result: ['2', '2', '2', '2', '2'],
-//   },
-//   {
-//     formula: 'ADD({CityId}, {CountryId}) + AVG({CityId}, {CountryId}) + LEN({City})',
-//     result: ['150', '130', '165', '100', '158'],
-//   },
-//   {
-//     formula: `WEEKDAY("2022-07-19")`,
-//     result: ['1', '1', '1', '1', '1'],
-//   },
-//   {
-//     formula: `WEEKDAY("2022-07-19", "sunday")`,
-//     result: ['2', '2', '2', '2', '2'],
-//   },
-//   {
-//     formula: `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`,
-//     result: [
-//       'A CORUA (LA CORUA)a corua (la corua)trimmed',
-//       'ABHAabhatrimmed',
-//       'ABU DHABIabu dhabitrimmed',
-//       'ACUAacuatrimmed',
-//       'ADANAadanatrimmed',
-//     ],
-//   },
-//   {
-//     formula: `CEILING(1.4) + FLOOR(1.6) + ROUND(2.5) + MOD({CityId}, 3) + MIN({CityId}, {CountryId}) + MAX({CityId}, {CountryId})`,
-//     result: ['95', '92', '110', '71', '110'],
-//   },
-//   {
-//     formula: `LOG({CityId}) + EXP({CityId}) + POWER({CityId}, 3) + SQRT({CountryId})`,
-//     result: isPg(context)
-//       ? ['13.04566088154786', '24.74547123273205', '57.61253379902822', '126.94617671688704', '283.9609869087087']
-//       : ['13.04566088154786', '25.137588417628013', '58.23402483297667', '127.73041108667896', '284.8714548168068'],
-//   },
-//   {
-//     formula: `NOW()`,
-//     result: ['1', '1', '1', '1', '1'],
-//   },
-// ];
 
 const expectedQrCodeCellValues = [
   'data:image/png;base64,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',
@@ -84,11 +41,9 @@ test.describe('Virtual Columns', () => {
 
   test('QrCode', async () => {
     // close 'Team & Auth' tab
-    // const formulaData = formulaDataByDbType(context);
     await dashboard.closeTab({ title: 'Team & Auth' });
 
     await dashboard.treeView.openTable({ title: 'City' });
-    // Create qr code column
     await dashboard.grid.column.create({
       title: 'QrCode1',
       type: 'QrCode',
@@ -101,36 +56,7 @@ test.describe('Virtual Columns', () => {
       expectedSrcValue: expectedQrCodeCellValues[0],
     });
 
-    // expect
-    //     .poll(async () => {
-
-    // const FOO = await this.get({
-    //   index,
-    //   columnHeader,
-    // });
-
-    // for (let i = 1; i < expectedQrCodeCellValues.length; i++) {
-    //   await qrCodeVerify('QrCode1', expectedQrCodeCellValues);
-    // }
-
-    // verify different formula's
-    // for (let i = 1; i < formulaData.length; i++) {
-    //   // Sqlite does not support log function
-    //   if (isSqlite(context) && formulaData[i].formula.includes('LOG(')) continue;
-
-    //   await dashboard.grid.column.openEdit({
-    //     title: 'NC_MATH_0',
-    //     type: 'Formula',
-    //     formula: formulaData[i].formula,
-    //   });
-    //   await dashboard.grid.column.save({ isUpdated: true });
-    //   if (formulaData[i].formula !== `NOW()`) {
-    //     await formulaResultVerify({
-    //       title: 'NC_MATH_0',
-    //       result: formulaData[i].result,
-    //     });
-    //   }
-    // }
+    await qrCodeVerify('QrCode1', expectedQrCodeCellValues);
 
     await dashboard.closeTab({ title: 'City' });
   });

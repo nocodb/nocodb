@@ -3,26 +3,16 @@ import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import 'leaflet.markercluster'
 import { IsGalleryInj, IsGridInj, IsMapInj, onMounted, provide, ref } from '#imports'
-import type { Row as RowType } from '~/lib'
 
-const meta = inject(MetaInj, ref())
 provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
 provide(IsMapInj, ref(true))
-const view = inject(ActiveViewInj, ref())
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn } = useMapViewStoreOrThrow()
 
 const markersClusterGroupRef = ref<L.MarkerClusterGroup>()
 const mapContainerRef = ref<HTMLElement>()
 const myMapRef = ref<L.Map>()
-
-const route = useRoute()
-
-const router = useRouter()
-const expandedFormDlg = ref(false)
-const expandedFormRow = ref<RowType>()
-const expandedFormRowState = ref<Record<string, any>>()
 
 console.log('meta', mapMetaData)
 
@@ -36,55 +26,11 @@ reloadViewDataHook?.on(async () => {
   loadMapMeta()
 })
 
-const expandForm = (row: RowType) => {
-  const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-
-  if (rowId) {
-    router.push({
-      query: {
-        ...route.query,
-        rowId,
-      },
-    })
-  } else {
-    expandedFormRow.value = row
-    // expandedFormRowState.value = state
-    expandedFormDlg.value = true
-  }
-}
-
-const expandFormClick = async (row: RowType) => {
-  expandForm(row)
-}
-
-// openNewRecordFormHook?.on(async () => {
-//   const newRow = await addEmptyRow()
-//   expandForm(newRow)
-// })
-
-const expandedFormOnRowIdDlg = computed({
-  get() {
-    return !!route.query.rowId
-  },
-  set(val) {
-    if (!val)
-      router.push({
-        query: {
-          ...route.query,
-          rowId: undefined,
-        },
-      })
-  },
-})
-
-function addMarker(lat: number, long: number, popupContent: string, row: RowType) {
+function addMarker(lat: number, long: number, popupContent: string) {
   if (markersClusterGroupRef.value == null) {
     throw new Error('Map is null')
   }
-  const onMarkerClick = () => {
-    expandFormClick(row)
-  }
-  const newMarker = L.marker([lat, long]).on('click', onMarkerClick)
+  const newMarker = L.marker([lat, long])
   markersClusterGroupRef.value?.addLayer(newMarker)
 
   if (newMarker) {
@@ -120,11 +66,7 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
 
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
 
-    addMarker(lat, long, popupContent, row)
-
-    // myMapRef.value?.off('contextmenu', function (e) {
-    //   console.log('mapref in watch', e.latlng)
-    // })
+    addMarker(lat, long, popupContent)
   })
 })
 
@@ -149,12 +91,12 @@ onMounted(async () => {
   })
   myMap.addLayer(markersClusterGroupRef.value)
 
-  myMap.on('zoomend', function (_params) {
+  myMap.on('zoomend', function (params) {
     const bounds = myMap.getBounds()
     const newS = bounds.getSouthWest()
 
-    // console.log('bounds', newS)
-    // console.log('params', params)
+    console.log('bounds', newS)
+    console.log('params', params)
 
     if (localStorage != null) {
       // TODO: use current mapView id as suffix to the local storage key,
@@ -164,8 +106,8 @@ onMounted(async () => {
     }
   })
 
-  // const bounds = myMap.getBounds()
-  // console.log(bounds)
+  const bounds = myMap.getBounds()
+  console.log(bounds)
 })
 </script>
 
@@ -173,27 +115,6 @@ onMounted(async () => {
   <div class="flex flex-col h-full w-full no-underline">
     <div id="mapContainer" ref="mapContainerRef"></div>
   </div>
-  <Suspense>
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormRow && expandedFormDlg"
-      v-model="expandedFormDlg"
-      :row="expandedFormRow"
-      :meta="meta"
-      :view="view"
-    />
-  </Suspense>
-
-  <Suspense>
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg"
-      :key="route.query.rowId"
-      v-model="expandedFormOnRowIdDlg"
-      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
-      :meta="meta"
-      :row-id="route.query.rowId"
-      :view="view"
-    />
-  </Suspense>
 </template>
 
 <style scoped lang="scss">

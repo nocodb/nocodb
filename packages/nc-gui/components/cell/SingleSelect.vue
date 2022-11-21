@@ -138,11 +138,10 @@ const search = () => {
 
 const toggleMenu = (e: Event) => {
   // todo: refactor
+  // check clicked element is clear icon
   if (
     (e.target as HTMLElement)?.classList.contains('ant-select-clear') ||
-    (e.target as HTMLElement)?.parentElement?.classList.contains('ant-select-clear') ||
-    (e.target as HTMLElement)?.parentElement?.parentElement?.classList.contains('ant-select-clear') ||
-    (e.target as HTMLElement)?.parentElement?.parentElement?.parentElement?.classList.contains('ant-select-clear')
+    (e.target as HTMLElement)?.closest('.ant-select-clear')
   ) {
     vModel.value = ''
     return

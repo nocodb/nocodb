@@ -95,7 +95,7 @@ const vModel = computed({
     return selected
   },
   set: (val) => {
-    if (isOptionMissing.value && val[val.length - 1] === searchVal.value) {
+    if (isOptionMissing.value && val.length && val[val.length - 1] === searchVal.value) {
       return addIfMissingAndSave()
     }
     emit('update:modelValue', val.length === 0 ? null : val.join(','))
@@ -107,13 +107,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-            const opa = options.value.find((el) => el.title === a)
-            const opb = options.value.find((el) => el.title === b)
-            if (opa && opb) {
-              return opa.order! - opb.order!
-            }
-            return 0
-          })
+          const opa = options.value.find((el) => el.title === a)
+          const opb = options.value.find((el) => el.title === b)
+          if (opa && opb) {
+            return opa.order! - opb.order!
+          }
+          return 0
+        })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -219,6 +219,17 @@ async function addIfMissingAndSave() {
 const search = () => {
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
+
+const onTagClick = (e: Event, onClose: Function) => {
+  // check clicked element is remove icon
+  if (
+    (e.target as HTMLElement)?.classList.contains('ant-tag-close-icon') ||
+    (e.target as HTMLElement)?.closest('.ant-tag-close-icon')
+  ) {
+    e.stopPropagation()
+    onClose()
+  }
+}
 </script>
 
 <template>
@@ -229,6 +240,7 @@ const search = () => {
     mode="multiple"
     class="w-full"
     :bordered="false"
+    clear-icon
     :show-arrow="!readOnly"
     :show-search="active || editable"
     :open="isOpen && (active || editable)"
@@ -272,6 +284,7 @@ const search = () => {
 
     <template #tagRender="{ value: val, onClose }">
       <a-tag
+        @click="onTagClick($event, onClose)"
         v-if="options.find((el) => el.title === val)"
         class="rounded-tag nc-selected-option"
         :style="{ display: 'flex', alignItems: 'center' }"

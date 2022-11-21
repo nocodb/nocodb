@@ -141,7 +141,6 @@ export default defineNuxtConfig({
       'process.env.DEBUG': 'false',
       'process.nextTick': () => {},
       'process.env.ANT_MESSAGE_DURATION': process.env.ANT_MESSAGE_DURATION,
-      'process.env.NC_BACKEND_URL': process.env.NC_BACKEND_URL,
     },
     server: {
       watch: {

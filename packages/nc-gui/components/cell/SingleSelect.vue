@@ -13,7 +13,6 @@ import {
   enumColor,
   inject,
   ref,
-  useEventListener,
   watch,
 } from '#imports'
 
@@ -45,7 +44,10 @@ const isPublic = inject(IsPublicInj, ref(false))
 const { $api } = useNuxtApp()
 
 const searchVal = ref()
-const tempVal = ref<string>()
+
+// a variable to keep newly created option value
+// temporary until it's add the option to column meta
+const tempSelectedOptState = ref<string>()
 
 const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
@@ -66,40 +68,17 @@ const isOptionMissing = computed(() => {
 })
 
 const vModel = computed({
-  get: () => tempVal.value ?? modelValue,
+  get: () => tempSelectedOptState.value ?? modelValue,
   set: (val) => {
     if (isOptionMissing.value && val === searchVal.value) {
-      tempVal.value = val
+      tempSelectedOptState.value = val
       return addIfMissingAndSave().finally(() => {
-        tempVal.value = undefined
+        tempSelectedOptState.value = undefined
       })
     }
     emit('update:modelValue', val || null)
   },
 })
-
-// const handleKeys = async (e: KeyboardEvent) => {
-//   switch (e.key) {
-//     case 'Escape':
-//       e.preventDefault()
-//       isOpen.value = false
-//       break
-//     case 'Enter':
-//       e.preventDefault()
-//       // if (await addIfMissingAndSave())
-//       //   e.stopPropagation()
-//       break
-//   }
-// }
-
-const handleClose = (_e: MouseEvent) => {
-  // if (aselect.value && !aselect.value.$el.contains(e.target)) {
-  //   isOpen.value = false
-  //   aselect.value.blur()
-  // }
-}
-
-useEventListener(document, 'click', handleClose)
 
 watch(isOpen, (n, _o) => {
   if (!n) {

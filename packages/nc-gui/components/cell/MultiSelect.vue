@@ -57,7 +57,9 @@ const { $api } = useNuxtApp()
 
 const { getMeta } = useMetas()
 
-const tempVal = reactive<string[]>([])
+// a variable to keep newly created options value
+// temporary until it's add the option to column meta
+const tempSelectedOptsState = reactive<string[]>([])
 
 const options = computed<(SelectOptionType & { value?: string })[]>(() => {
   if (column?.value.colOptions) {
@@ -86,7 +88,7 @@ const vModel = computed({
       return acc
     }, [] as string[])
 
-    if (tempVal.length) selected.push(...tempVal)
+    if (tempSelectedOptsState.length) selected.push(...tempSelectedOptsState)
 
     return selected
   },
@@ -103,30 +105,17 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-          const opa = options.value.find((el) => el.title === a)
-          const opb = options.value.find((el) => el.title === b)
-          if (opa && opb) {
-            return opa.order! - opb.order!
-          }
-          return 0
-        })
+            const opa = options.value.find((el) => el.title === a)
+            const opb = options.value.find((el) => el.title === b)
+            if (opa && opb) {
+              return opa.order! - opb.order!
+            }
+            return 0
+          })
         : modelValue.split(',')
       : modelValue
     : [],
 )
-
-// const handleKeys = async (e: KeyboardEvent) => {
-//   switch (e.key) {
-//     case 'Escape':
-//       e.preventDefault()
-//       isOpen.value = false
-//       break
-//     case 'Enter':
-//       e.stopPropagation()
-//       await addIfMissingAndSave()
-//       break
-//   }
-// }
 
 const handleClose = (e: MouseEvent) => {
   if (aselect.value && !aselect.value.$el.contains(e.target)) {
@@ -191,7 +180,7 @@ const activeOptCreateInProgress = ref(0)
 async function addIfMissingAndSave() {
   if (!searchVal.value || isPublic.value) return false
   try {
-    tempVal.push(searchVal.value)
+    tempSelectedOptsState.push(searchVal.value)
     const newOptValue = searchVal?.value
     searchVal.value = ''
     activeOptCreateInProgress.value++
@@ -212,17 +201,15 @@ async function addIfMissingAndSave() {
       if (!activeOptCreateInProgress.value) {
         await getMeta(column.value.fk_model_id!, true)
         vModel.value = [...vModel.value]
-        tempVal.splice(0, tempVal.length)
+        tempSelectedOptsState.splice(0, tempSelectedOptsState.length)
       }
     } else {
       activeOptCreateInProgress.value--
     }
   } catch (e) {
-    // todo: handle error message
+    // todo: handle error
     console.log(e)
     activeOptCreateInProgress.value--
-  } finally {
-    // tempVal.value = ''
   }
 }
 

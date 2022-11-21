@@ -131,9 +131,10 @@ export function useMultiSelect(
   })
 
   const onKeyDown = async (e: KeyboardEvent) => {
+
     // invoke the keyEventHandler if provided and return if it returns true
     if (await keyEventHandler?.(e)) {
-      return
+      return true
     }
 
     if (
@@ -268,7 +269,7 @@ export function useMultiSelect(
           }
 
           if (unref(editEnabled) || e.ctrlKey || e.altKey || e.metaKey) {
-            return
+            return true
           }
 
           /** on letter key press make cell editable and empty */

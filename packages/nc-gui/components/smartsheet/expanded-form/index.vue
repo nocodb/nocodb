@@ -156,7 +156,7 @@ export default {
 
               <LazySmartsheetHeaderCell v-else :column="col" />
 
-              <div class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2">
+              <div class="relative !bg-white rounded px-1 min-h-[35px] flex items-center mt-2">
                 <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
 
                 <LazySmartsheetCell

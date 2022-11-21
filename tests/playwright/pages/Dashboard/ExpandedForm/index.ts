@@ -98,13 +98,13 @@ export class ExpandedFormPage extends BasePage {
     await expect.poll(() => this.rootPage.url()).toContain(url);
   }
 
-  async close() {
+  async escape() {
     await this.rootPage.keyboard.press('Escape');
     await this.get().waitFor({ state: 'hidden' });
   }
 
-  async cancel() {
-    await this.get().locator('button:has-text("Cancel")').last().click();
+  async close() {
+    await this.get().locator('button:has-text("Close")').last().click();
   }
 
   async openChildCard(param: { column: string; title: string }) {

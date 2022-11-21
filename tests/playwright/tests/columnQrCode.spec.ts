@@ -60,7 +60,7 @@ test.describe('Virtual Columns', () => {
     });
     await grid.column.verify({ title: 'QrCode2', isVisible: true });
     await grid.column.delete({ title: 'column_name_a' });
-    await grid.column.verify({ title: 'QrCode2', isVisible: false });
+    await grid.column.verify({ title: 'QrCode2', isVisible: true });
 
 
     await dashboard.grid.column.create({

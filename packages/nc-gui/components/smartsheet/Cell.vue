@@ -159,9 +159,3 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     />
   </div>
 </template>
-
-<style lang="scss">
-.nc-cell {
-  position: relative;
-}
-</style>

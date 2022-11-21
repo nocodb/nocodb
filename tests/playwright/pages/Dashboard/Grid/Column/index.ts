@@ -21,6 +21,7 @@ export class ColumnPageObject extends BasePage {
     title,
     type = 'SingleLineText',
     formula = '',
+    qrCodeValueColumnTitle = '',
     childTable = '',
     childColumn = '',
     relationType = '',
@@ -30,6 +31,7 @@ export class ColumnPageObject extends BasePage {
     title: string;
     type?: string;
     formula?: string;
+    qrCodeValueColumnTitle?: string;
     childTable?: string;
     childColumn?: string;
     relationType?: string;
@@ -69,6 +71,15 @@ export class ColumnPageObject extends BasePage {
         break;
       case 'Formula':
         await this.get().locator('.nc-formula-input').fill(formula);
+        break;
+      case 'QrCode':
+        await this.get().locator('.ant-select-single').nth(1).click();
+        // await this.get().locator('.ant-select-item').fill(qrCodeValueColumnTitle);
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: qrCodeValueColumnTitle,
+          })
+          .click();
         break;
       case 'Lookup':
         await this.get().locator('.ant-select-single').nth(1).click();

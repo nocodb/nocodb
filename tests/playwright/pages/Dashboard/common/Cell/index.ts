@@ -92,27 +92,18 @@ export class CellPageObject extends BasePage {
     expectedSrcValue: string;
   }) {
     console.log('FOOBAR!!!');
-    const _verify = async text => {
+    const _verify = async expectedQrCodeImgSrc => {
       await expect
         .poll(async () => {
-          const FOO = await this.get({
+          const qrCell = await this.get({
             index,
             columnHeader,
           });
-          console.log('index: ', index);
-          console.log('columnHeader: ', columnHeader);
-          console.log('expectedSrcValue: ', expectedSrcValue);
-          const img = await FOO.getByRole('img');
-          console.log('img: ', img);
-          const src = await img.getAttribute('src');
-          console.log('src: ', src);
-          // const innerTexts = FOO.allInnerTexts();
-          // console.log('innerTexts', innerTexts);
-          console.log('--------------------------');
-          // return typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
-          return src;
+          const qrImg = await qrCell.getByRole('img');
+          const qrImgSrc = await qrImg.getAttribute('src');
+          return qrImgSrc;
         })
-        .toEqual(text);
+        .toEqual(expectedQrCodeImgSrc);
     };
 
     await _verify(expectedSrcValue);

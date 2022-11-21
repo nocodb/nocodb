@@ -72,15 +72,15 @@ test.describe('Virtual Columns', () => {
     dashboard = new DashboardPage(page, context.project);
   });
 
-  // async function qrCodeVerify(qrColumnTitle: string, expectedQrCodes: string[]) {
-  //   for (let i = 0; i < expectedQrCodes.length; i++) {
-  //     await dashboard.grid.cell.verifyQrCodeCell({
-  //       index: i,
-  //       columnHeader: qrColumnTitle,
-  //       expectedSrcValue: expectedQrCodes[i],
-  //     });
-  //   }
-  // }
+  async function qrCodeVerify(qrColumnTitle: string, expectedQrCodes: string[]) {
+    for (let i = 0; i < expectedQrCodes.length; i++) {
+      await dashboard.grid.cell.verifyQrCodeCell({
+        index: i,
+        columnHeader: qrColumnTitle,
+        expectedSrcValue: expectedQrCodes[i],
+      });
+    }
+  }
 
   test('QrCode', async () => {
     // close 'Team & Auth' tab
@@ -95,24 +95,22 @@ test.describe('Virtual Columns', () => {
       qrCodeValueColumnTitle: 'City',
     });
 
-
     await dashboard.grid.cell.verifyQrCodeCell({
       index: 0,
       columnHeader: 'QrCode1',
       expectedSrcValue: expectedQrCodeCellValues[0],
     });
 
-
     // expect
     //     .poll(async () => {
 
-          // const FOO = await this.get({
-          //   index,
-          //   columnHeader,
-          // });
+    // const FOO = await this.get({
+    //   index,
+    //   columnHeader,
+    // });
 
     // for (let i = 1; i < expectedQrCodeCellValues.length; i++) {
-    // await qrCodeVerify('QrCode1', expectedQrCodeCellValues);
+    //   await qrCodeVerify('QrCode1', expectedQrCodeCellValues);
     // }
 
     // verify different formula's

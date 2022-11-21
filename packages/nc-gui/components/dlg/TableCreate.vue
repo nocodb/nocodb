@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, computed, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
+import { Form, computed, nextTick, onMounted, ref, useProject, useTable, useTabs, useVModel, validateTableName } from '#imports'
 import { TabType } from '~/lib'
 
 const props = defineProps<{
@@ -89,8 +89,10 @@ const _createTable = async () => {
 
 onMounted(() => {
   generateUniqueTitle()
-
-  inputEl.value?.focus()
+  nextTick(() => {
+    inputEl.value?.focus()
+    inputEl.value?.select()
+  })
 })
 </script>
 

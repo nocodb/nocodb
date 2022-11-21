@@ -163,12 +163,12 @@ watch(inputs, () => {
               v-model:value="element.title"
               class="caption"
               :data-testid="`select-column-option-input-${index}`"
+              @keydown.enter.prevent="element.title?.trim() && addNewOption()"
               @change="optionChanged(element.id)"
             />
 
             <MdiClose
-              class="ml-2 hover:!text-black"
-              :style="{ color: 'red' }"
+              class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
               :data-testid="`select-column-option-remove-${index}`"
               @click="removeOption(index)"
             />

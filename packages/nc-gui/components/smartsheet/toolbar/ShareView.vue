@@ -5,12 +5,12 @@ import tinycolor from 'tinycolor2'
 import {
   computed,
   extractSdkResponseErrorMsg,
+  isRtlLang,
   message,
   projectThemeColors,
   ref,
   useCopy,
   useDashboard,
-  useDebounceFn,
   useI18n,
   useNuxtApp,
   useProject,
@@ -48,12 +48,12 @@ const withRTL = computed({
   },
 })
 
-const transitionDuration = computed({
-  get: () => shared.value.meta.transitionDuration || 250,
-  set: (duration) => {
-    shared.value.meta = { ...shared.value.meta, transitionDuration: duration > 5000 ? 5000 : duration }
-  },
-})
+// const transitionDuration = computed({
+//   get: () => shared.value.meta.transitionDuration || 50,
+//   set: (duration) => {
+//     shared.value.meta = { ...shared.value.meta, transitionDuration: duration > 5000 ? 5000 : duration }
+//   },
+// })
 
 const allowCSVDownload = computed({
   get: () => !!shared.value.meta.allowCSVDownload,
@@ -131,7 +131,7 @@ async function saveTheme() {
   $e(`a:view:share:${viewTheme.value ? 'enable' : 'disable'}-theme`)
 }
 
-const saveTransitionDuration = useDebounceFn(updateSharedViewMeta, 1000, { maxWait: 2000 })
+// const saveTransitionDuration = useDebounceFn(updateSharedViewMeta, 1000, { maxWait: 2000 })
 
 async function updateSharedViewMeta() {
   try {
@@ -192,6 +192,10 @@ watch(passwordProtected, (value) => {
     saveShareLinkPassword()
   }
 })
+
+const { locale } = useI18n()
+
+const isRtl = computed(() => isRtlLang(locale.value as any))
 </script>
 
 <template>
@@ -248,7 +252,7 @@ watch(passwordProtected, (value) => {
               Use Survey Mode
             </a-checkbox>
 
-            <Transition name="layout" mode="out-in">
+            <!--            <Transition name="layout" mode="out-in">
               <div v-if="surveyMode" class="flex flex-col justify-center pl-6">
                 <a-form-item class="!my-1" :has-feedback="false" name="transitionDuration">
                   <template #label>
@@ -264,46 +268,7 @@ watch(passwordProtected, (value) => {
                   />
                 </a-form-item>
               </div>
-            </Transition>
-          </div>
-
-          <div>
-            <!-- todo: i18n -->
-            <a-checkbox
-              v-if="shared.type === ViewTypes.FORM"
-              v-model:checked="viewTheme"
-              data-testid="nc-modal-share-view__with-theme"
-              class="!text-sm"
-            >
-              Use Theme
-            </a-checkbox>
-
-            <Transition name="layout" mode="out-in">
-              <div v-if="viewTheme" class="flex pl-6">
-                <LazyGeneralColorPicker
-                  data-testid="nc-modal-share-view__theme-picker"
-                  class="!p-0"
-                  :model-value="shared.meta.theme?.primaryColor"
-                  :colors="projectThemeColors"
-                  :row-size="9"
-                  :advanced="false"
-                  @input="onChangeTheme"
-                />
-              </div>
-            </Transition>
-          </div>
-
-          <div>
-            <!-- use RTL orientation in form - todo: i18n -->
-            <a-checkbox
-              v-if="shared.type === ViewTypes.FORM"
-              v-model:checked="withRTL"
-              data-testid="nc-modal-share-view__locale"
-              class="!text-sm"
-            >
-              <!-- todo i18n -->
-              RTL Orientation
-            </a-checkbox>
+            </Transition> -->
           </div>
 
           <div>
@@ -339,18 +304,43 @@ watch(passwordProtected, (value) => {
             </Transition>
           </div>
 
-          <div>
+          <div
+            v-if="
+              shared && (shared.type === ViewTypes.GRID || shared.type === ViewTypes.KANBAN || shared.type === ViewTypes.GALLERY)
+            "
+          >
             <!-- Allow Download -->
-            <a-checkbox
-              v-if="
-                shared &&
-                (shared.type === ViewTypes.GRID || shared.type === ViewTypes.KANBAN || shared.type === ViewTypes.GALLERY)
-              "
-              v-model:checked="allowCSVDownload"
-              data-testid="nc-modal-share-view__with-csv-download"
-              class="!text-sm"
-            >
+            <a-checkbox v-model:checked="allowCSVDownload" data-testid="nc-modal-share-view__with-csv-download" class="!text-sm">
               {{ $t('labels.downloadAllowed') }}
+            </a-checkbox>
+          </div>
+
+          <div v-if="shared.type === ViewTypes.FORM">
+            <!-- todo: i18n -->
+            <a-checkbox v-model:checked="viewTheme" data-testid="nc-modal-share-view__with-theme" class="!text-sm">
+              Use Theme
+            </a-checkbox>
+
+            <Transition name="layout" mode="out-in">
+              <div v-if="viewTheme" class="flex pl-6">
+                <LazyGeneralColorPicker
+                  data-testid="nc-modal-share-view__theme-picker"
+                  class="!p-0"
+                  :model-value="shared.meta.theme?.primaryColor"
+                  :colors="projectThemeColors"
+                  :row-size="9"
+                  :advanced="false"
+                  @input="onChangeTheme"
+                />
+              </div>
+            </Transition>
+          </div>
+
+          <div v-if="shared.type === ViewTypes.FORM && isRtl">
+            <!-- use RTL orientation in form - todo: i18n -->
+            <a-checkbox v-model:checked="withRTL" data-testid="nc-modal-share-view__locale" class="!text-sm">
+              <!-- todo i18n -->
+              RTL Orientation
             </a-checkbox>
           </div>
         </div>

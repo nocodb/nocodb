@@ -41,6 +41,7 @@ export function useMultiSelect(
 
   function selectCell(row: number, col: number) {
     clearRangeRows()
+    if (selected.row === row && selected.col === col) return
     editEnabled.value = false
     selected.row = row
     selected.col = col

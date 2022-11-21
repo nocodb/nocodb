@@ -27,6 +27,8 @@ let error = $ref<string | undefined>()
 
 let isExpanded = $ref(false)
 
+let isLoading = $ref(false)
+
 // const localValue = computed<string | Record<string, any> | undefined>({
 //   get: () => localValueState.value,
 //   set: (val: undefined | string | Record<string, any>) => {
@@ -37,8 +39,6 @@ let isExpanded = $ref(false)
 //     }
 //   },
 // })
-
-
 
 // const isPopupOpen = ref(false)
 // const showPopup = () => (isPopupOpen.value = true)
@@ -126,8 +126,6 @@ const latLongStr = computed(() => {
 //   longitude: number
 // }
 
-
-
 // const latitude = ref('INITIAL')
 
 // interface FormState {
@@ -155,6 +153,28 @@ const clear = () => {
   formState.longitude = longitude
   console.log(`clear - formState: `, formState)
 }
+
+const onGetCurrentLocation = () => {
+  isLoading = true
+  const success = (position) => {
+    const crd = position.coords
+    formState.latitude = crd.latitude
+    formState.longitude = crd.longitude
+  }
+
+  const error = (err) => {
+    console.warn(`ERROR(${err.code}): ${err.message}`)
+  }
+
+  const options = {
+    enableHighAccuracy: true,
+    timeout: 8000,
+    maximumAge: 10000,
+  }
+
+  navigator.geolocation.getCurrentPosition(success, error, options)
+  if (success !== null) isLoading = false
+}
 </script>
 
 <template>
@@ -173,12 +193,16 @@ const clear = () => {
     <template #overlay>
       <a-form :model="formState" class="flex flex-col w-full" @finish="handleFinish">
         <a-form-item label="Latitude">
-          <a-input v-model:value="formState.latitude" type="number" step="0.000001" :max="90" :min="-90" />
+          <a-input v-model:value="formState.latitude" type="number" step="0.0000001" required :max="90" :min="-90" />
         </a-form-item>
         <a-form-item label="Longitude">
-          <a-input v-model:value="formState.longitude" type="number" step="0.000001" :min="-180" :max="180" />
+          <a-input v-model:value="formState.longitude" type="number" step="0.0000001" required :min="-180" :max="180" />
         </a-form-item>
         <a-form-item>
+          <a-form-item>
+            <a-button @click="onGetCurrentLocation">Your Location</a-button>
+            <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
+          </a-form-item>
           <a-button type="text" @click="clear">Cancel</a-button>
           <a-button type="primary" html-type="submit">Submit</a-button>
         </a-form-item>

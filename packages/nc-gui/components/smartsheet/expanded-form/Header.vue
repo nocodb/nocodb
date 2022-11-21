@@ -113,9 +113,9 @@ const copyRecordUrl = () => {
       </div>
     </a-button>
 
-    <a-dropdown-button type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
+    <a-dropdown-button class="nc-expand-form-save-btn" type="primary" :disabled="!isUIAllowed('tableRowUpdate')" @click="save">
       <template #overlay>
-        <a-menu>
+        <a-menu class="nc-expand-form-save-dropdown-menu">
           <a-menu-item key="0" class="!py-2 flex gap-2" @click="saveRowAndStay = 0">
             <div class="flex items-center">
               <MdiContentSave class="mr-1" />

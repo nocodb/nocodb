@@ -107,13 +107,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-            const opa = options.value.find((el) => el.title === a)
-            const opb = options.value.find((el) => el.title === b)
-            if (opa && opb) {
-              return opa.order! - opb.order!
-            }
-            return 0
-          })
+          const opa = options.value.find((el) => el.title === a)
+          const opb = options.value.find((el) => el.title === b)
+          if (opa && opb) {
+            return opa.order! - opb.order!
+          }
+          return 0
+        })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -175,11 +175,15 @@ useSelectedCellKeyupListener(active, (e) => {
     case 'ArrowDown':
     case 'ArrowRight':
     case 'ArrowLeft':
+    case 'Delete':
       // skip
       break
     default:
-      e.stopPropagation()
-      isOpen.value = true
+      // toggle only if char key pressed
+      if (e.key?.length === 1) {
+        e.stopPropagation()
+        isOpen.value = true
+      }
       break
   }
 })

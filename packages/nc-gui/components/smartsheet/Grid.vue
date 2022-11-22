@@ -520,11 +520,14 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 // trigger initial data load in grid
 // reloadViewDataHook.trigger()
 
+const switchingTab = ref(false)
+
 watch(
   view,
   async (next, old) => {
     try {
       if (next && next.id !== old?.id) {
+        switchingTab.value = true
         // whenever tab changes or view changes save any unsaved data
         if (old?.id) {
           const oldMeta = await getMeta(old.fk_model_id!)
@@ -540,6 +543,8 @@ watch(
       }
     } catch (e) {
       console.log(e)
+    } finally {
+      switchingTab.value = false
     }
   },
   { immediate: true },
@@ -706,7 +711,7 @@ watch(
                     @mouseover="selectBlock(rowIndex, colIndex)"
                     @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
                   >
-                    <div class="w-full h-full">
+                    <div class="w-full h-full" v-if="!switchingTab">
                       <LazySmartsheetVirtualCell
                         v-if="isVirtualCol(columnObj)"
                         v-model="row.row[columnObj.title]"

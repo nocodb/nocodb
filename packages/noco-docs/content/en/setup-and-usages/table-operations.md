@@ -116,17 +116,24 @@ For adding new values to the table we need new rows, new rows can be added in tw
 - A new empty row will be created
   <img width="567" alt="image" src="https://user-images.githubusercontent.com/35857179/189080009-3aeb70b4-92b0-4702-acb9-e5e52e31855e.png">
 
+### Row Add (Pressing Enter Key from Previous Row)
+
+When you finish editing a cell and press Enter, the cell in the next row with the same column will be highlighted.
+
+![image](https://user-images.githubusercontent.com/35857179/203271676-bab64ca4-e0e4-4deb-9a62-609a97158911.png)
+
 ### Row Edit
 
 You can start editing by any of the following methods  
   - Double click on cell to edit  
   - Click on cell and start typing (this way it will clear the previous content)  
-  - Click on cell and press enter to start editing  
+  - Click on cell and press enter to start editing
 - And it will automatically save on blur event or if inactive.  
 
 ### Row Delete
 
 Right-click on anywhere in the row and then from the context menu select `Delete Row` option.  
+
 Bulk delete is also possible by selecting multiple rows by using the checkbox in first column and then `Delete Selected Rows` options from the right click context menu.
 
 <img width="568" alt="image" src="https://user-images.githubusercontent.com/35857179/189081764-9f13c286-e02a-40d0-93ea-4b1362d96827.png">

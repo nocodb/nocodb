@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types,prefer-const */
-import  { Knex } from 'knex';
+import { Knex } from 'knex';
 import Filter from '../../../models/Filter';
 import Sort from '../../../models/Sort';
 
@@ -220,10 +220,7 @@ abstract class BaseModel {
 
       const query = this.$db.insert(data);
 
-      if (
-        this.dbDriver.client === 'pg' ||
-        this.dbDriver.client === 'mssql'
-      ) {
+      if (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') {
         query.returning('*');
         response = await this._run(query);
       } else {
@@ -265,10 +262,7 @@ abstract class BaseModel {
 
       const query = this.$db.insert(data);
 
-      if (
-        this.dbDriver.client === 'pg' ||
-        this.dbDriver.client === 'mssql'
-      ) {
+      if (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') {
         query.returning('*');
         response = await this._run(query);
       } else {
@@ -302,13 +296,13 @@ abstract class BaseModel {
       for (const d of data) {
         await this.validate(d);
       }
-      
-      const response = (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') ?
-        this.dbDriver
-          .batchInsert(this.tn, data, 50)
-          .returning(this.pks?.[0]?.cn || '*') :
-        this.dbDriver
-          .batchInsert(this.tn, data, 50);
+
+      const response =
+        this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql'
+          ? this.dbDriver
+              .batchInsert(this.tn, data, 50)
+              .returning(this.pks?.[0]?.cn || '*')
+          : this.dbDriver.batchInsert(this.tn, data, 50);
 
       await this.afterInsertb(data);
 

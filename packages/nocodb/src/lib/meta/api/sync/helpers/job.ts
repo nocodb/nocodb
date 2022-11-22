@@ -2237,9 +2237,12 @@ export default async (
 
         for (let i = 0; i < ncTblList.list.length; i++) {
           // not a migrated table, skip
-          if (undefined === aTblSchema.find((x) => x.name === ncTblList.list[i].title))
+          if (
+            undefined ===
+            aTblSchema.find((x) => x.name === ncTblList.list[i].title)
+          )
             continue;
-            
+
           const _perfStart = recordPerfStart();
           const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
           recordPerfStats(_perfStart, 'dbTable.read');
@@ -2265,7 +2268,10 @@ export default async (
         logBasic('Configuring Record Links...');
         for (let i = 0; i < ncTblList.list.length; i++) {
           // not a migrated table, skip
-          if (undefined === aTblSchema.find((x) => x.name === ncTblList.list[i].title))
+          if (
+            undefined ===
+            aTblSchema.find((x) => x.name === ncTblList.list[i].title)
+          )
             continue;
 
           const ncTbl = await api.dbTable.read(ncTblList.list[i].id);

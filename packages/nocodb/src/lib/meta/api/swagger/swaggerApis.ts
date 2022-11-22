@@ -2,7 +2,7 @@
 import catchError, { NcError } from '../../helpers/catchError';
 import { Router } from 'express';
 import Model from '../../../models/Model';
-import ncMetaAclMw from '../../helpers/ncMetaAclMw'
+import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import getSwaggerJSON from './helpers/getSwaggerJSON';
 import Project from '../../../models/Project';
 import swaggerHtml from './swaggerHtml';

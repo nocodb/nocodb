@@ -468,7 +468,9 @@ class PGClient extends KnexClient {
       }
       if (rows.length === 0) {
         log.debug('creating database:', args);
-        await tempSqlClient.raw(`CREATE DATABASE ?? ENCODING 'UTF8'`, [args.database]);
+        await tempSqlClient.raw(`CREATE DATABASE ?? ENCODING 'UTF8'`, [
+          args.database,
+        ]);
       }
 
       // if (this.connectionConfig.searchPath && this.connectionConfig.searchPath[0]) {

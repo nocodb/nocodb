@@ -1,11 +1,9 @@
 import { Router } from 'express';
 import { OrgUserRoles } from 'nocodb-sdk';
-import { NC_LICENSE_KEY } from '../../constants'
+import { NC_LICENSE_KEY } from '../../constants';
 import Store from '../../models/Store';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-
-
 
 async function licenseGet(_req, res) {
   const license = await Store.get(NC_LICENSE_KEY);

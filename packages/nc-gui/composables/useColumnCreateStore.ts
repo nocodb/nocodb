@@ -195,9 +195,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       try {
         if (!(await validate())) return
       } catch (e) {
-        console.log(e)
-        console.trace()
-
         const errorMsgs = e.errorFields
           ?.map((e: any) => e.errors?.join(', '))
           .filter(Boolean)

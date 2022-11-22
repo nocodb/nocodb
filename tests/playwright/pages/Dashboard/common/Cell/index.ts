@@ -91,7 +91,6 @@ export class CellPageObject extends BasePage {
     columnHeader: string;
     expectedSrcValue: string;
   }) {
-    console.log('FOOBAR!!!');
     const _verify = async expectedQrCodeImgSrc => {
       await expect
         .poll(async () => {

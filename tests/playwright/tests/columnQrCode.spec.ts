@@ -26,7 +26,7 @@ test.describe('Virtual Columns', () => {
         });
       }
     }
-    test('QrCode column creation and showing value in grid view', async () => {
+    test('creation and showing value in grid view', async () => {
       // Add qr code column referencing the City column
       // and compare the base64 encoded codes/src attributes for the first 3 rows.
       // Column data from City table (Sakila DB)
@@ -55,10 +55,15 @@ test.describe('Virtual Columns', () => {
 
       await qrCodeColumnVerify('QrCode1', expectedQrCodeCellValues);
 
+      // Clicking on qr code in first row and expect it shows a
+      // popup with an enlarged version of the qr code
+      await dashboard.grid.cell.get({ columnHeader: 'QrCode1', index: 0 }).click();
+      await dashboard.grid.qrCodeOverlay.clickCloseButton();
+
       await dashboard.closeTab({ title: 'City' });
     });
 
-    test('QrCode column gets deleted when the reference value column is deleted', async () => {
+    test('deletion when the reference value column is deleted', async () => {
       // close 'Team & Auth' tab
       await dashboard.closeTab({ title: 'Team & Auth' });
 

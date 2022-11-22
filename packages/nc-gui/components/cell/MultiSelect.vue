@@ -171,7 +171,14 @@ useSelectedCellKeyupListener(active, (e) => {
         isOpen.value = true
       }
       break
+    case 'ArrowUp':
+    case 'ArrowDown':
+    case 'ArrowRight':
+    case 'ArrowLeft':
+      // skip
+      break
     default:
+      e.stopPropagation()
       isOpen.value = true
       break
   }
@@ -248,7 +255,7 @@ const onTagClick = (e: Event, onClose: Function) => {
     :class="{ '!ml-[-8px]': readOnly }"
     :dropdown-class-name="`nc-dropdown-multi-select-cell ${isOpen ? 'active' : ''}`"
     @search="search"
-    @keydown.stop
+    @keydown.enter.stop
     @click="isOpen = (active || editable) && !isOpen"
   >
     <a-select-option

@@ -10,6 +10,7 @@ import {
   ReadonlyInj,
   computed,
   enumColor,
+  extractSdkResponseErrorMsg,
   h,
   inject,
   onMounted,
@@ -21,7 +22,6 @@ import {
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
@@ -107,13 +107,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-          const opa = options.value.find((el) => el.title === a)
-          const opb = options.value.find((el) => el.title === b)
-          if (opa && opb) {
-            return opa.order! - opb.order!
-          }
-          return 0
-        })
+            const opa = options.value.find((el) => el.title === a)
+            const opb = options.value.find((el) => el.title === b)
+            if (opa && opb) {
+              return opa.order! - opb.order!
+            }
+            return 0
+          })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -284,13 +284,13 @@ const onTagClick = (e: Event, onClose: Function) => {
 
     <template #tagRender="{ value: val, onClose }">
       <a-tag
-        @click="onTagClick($event, onClose)"
         v-if="options.find((el) => el.title === val)"
         class="rounded-tag nc-selected-option"
         :style="{ display: 'flex', alignItems: 'center' }"
         :color="options.find((el) => el.title === val)?.color"
         :closable="(active || editable) && (vModel.length > 1 || !column?.rqd)"
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
+        @click="onTagClick($event, onClose)"
         @close="onClose"
       >
         <span

@@ -3,7 +3,6 @@ import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import { useSelectedCellKeyupListener } from '~/composables/useSelectedCellKeyupListener'
 import {
   ActiveCellInj,
   ColumnInj,
@@ -12,11 +11,12 @@ import {
   ReadonlyInj,
   computed,
   enumColor,
+  extractSdkResponseErrorMsg,
   inject,
   ref,
+  useSelectedCellKeyupListener,
   watch,
 } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
 
 interface Props {
   modelValue?: string | undefined
@@ -57,7 +57,7 @@ const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
-      (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
+        (column.value.colOptions as any).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
     for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')

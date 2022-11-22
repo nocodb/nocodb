@@ -8,10 +8,10 @@ import {
   getNestedParams,
   limitParam,
   offsetParam,
-  shuffleParam,
   referencedRowIdParam,
   relationTypeParam,
   rowIdParam,
+  shuffleParam,
   sortParam,
   whereParam,
 } from './params';
@@ -446,6 +446,60 @@ export const getModelPaths = async (ctx: {
                 },
             }
           : {}),
+      }
+    : {}),
+  ...(ctx.type === ModelTypes.TABLE
+    ? {
+        '/api/v1/db/storage/upload-with-update/{rowId}': {
+          post: {
+            summary: 'Upload Attachment with row update',
+            operationId:
+              '${ctx.tableName.toLowerCase()}-storage-upload-with-update',
+            responses: {},
+            tags: [ctx.tableName],
+            requestBody: {
+              content: {
+                'multipart/form-data': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      files: {
+                        type: 'file',
+                        description: `The file to upload.`,
+                        required: true,
+                      },
+                      json: {
+                        type: 'string',
+                        default: {},
+                      },
+                    },
+                  },
+                },
+              },
+              description: '',
+            },
+            parameters: [
+              {
+                schema: {
+                  type: 'string',
+                },
+                name: 'path',
+                in: 'query',
+                required: true,
+                description: 'upload path with project, table and column name',
+                example: `noco/${ctx.projectName}/${ctx.tableName}/{columnName}`,
+              },
+              {
+                schema: {
+                  type: 'string',
+                },
+                name: 'rowId',
+                in: 'path',
+                required: true,
+              },
+            ],
+          },
+        },
       }
     : {}),
   [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/export/{type}`]:

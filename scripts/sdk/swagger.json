@@ -6232,7 +6232,11 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "files": {},
+                  "files": {
+                    "type": "file",
+                    "description": "The file to upload.",
+                    "required": true
+                  },
                   "json": {
                     "type": "string"
                   }

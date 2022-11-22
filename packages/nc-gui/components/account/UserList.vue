@@ -29,7 +29,7 @@ const searchText = ref<string>('')
 const pagination = reactive({
   total: 0,
   pageSize: 10,
- position: ['bottomCenter']
+  position: ['bottomCenter'],
 })
 
 const loadUsers = async (page = currentPage, limit = currentLimit) => {

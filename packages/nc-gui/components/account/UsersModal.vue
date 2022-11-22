@@ -4,13 +4,13 @@ import {
   Form,
   computed,
   extractSdkResponseErrorMsg,
-  validateEmail,
   message,
   ref,
   useCopy,
   useDashboard,
   useI18n,
   useNuxtApp,
+  validateEmail,
 } from '#imports'
 import type { User } from '~/lib'
 import { Role } from '~/lib'

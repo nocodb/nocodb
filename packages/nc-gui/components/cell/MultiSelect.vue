@@ -33,8 +33,6 @@ const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const { isMysql } = useProject()
-
 const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
@@ -58,6 +56,8 @@ const searchVal = ref<string | null>()
 const { $api } = useNuxtApp()
 
 const { getMeta } = useMetas()
+
+const { isPg, isMysql } = useProject()
 
 // a variable to keep newly created options value
 // temporary until it's add the option to column meta
@@ -107,13 +107,13 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-          const opa = options.value.find((el) => el.title === a)
-          const opb = options.value.find((el) => el.title === b)
-          if (opa && opb) {
-            return opa.order! - opb.order!
-          }
-          return 0
-        })
+            const opa = options.value.find((el) => el.title === a)
+            const opb = options.value.find((el) => el.title === b)
+            if (opa && opb) {
+              return opa.order! - opb.order!
+            }
+            return 0
+          })
         : modelValue.split(',')
       : modelValue
     : [],
@@ -206,9 +206,26 @@ async function addIfMissingAndSave() {
       })
       column.value.colOptions = { options: newOptions.map(({ value: _, ...rest }) => rest) }
 
-      await $api.dbTableColumn.update((column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string), {
-        ...column.value,
-      })
+      const updatedColMeta = { ...column.value }
+
+      // todo: refactor and avoid repetition
+      // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
+      if (isPg.value) {
+        updatedColMeta.cdf = updatedColMeta.cdf.substring(
+          updatedColMeta.cdf.indexOf(`'`) + 1,
+          updatedColMeta.cdf.lastIndexOf(`'`),
+        )
+      }
+
+      // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
+      if (!isMysql.value) {
+        updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
+      }
+
+      await $api.dbTableColumn.update(
+        (column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string),
+        updatedColMeta,
+      )
 
       activeOptCreateInProgress.value--
       if (!activeOptCreateInProgress.value) {

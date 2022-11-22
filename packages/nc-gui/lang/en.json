@@ -368,6 +368,8 @@
     "setPrimary": "Set as Primary value",
     "addRow": "Add new row",
     "saveRow": "Save row",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Insert New Row",
     "deleteRow": "Delete Row",
     "deleteSelectedRow": "Delete Selected Rows",

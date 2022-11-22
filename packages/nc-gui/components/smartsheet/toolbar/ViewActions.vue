@@ -108,7 +108,7 @@ useMenuCloseOnEsc(open)
       </a-button>
 
       <template #overlay>
-        <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded" data-testid="toolbar-actions">
+        <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded" data-testid="toolbar-actions" @click="open = false">
           <a-menu-item-group>
             <a-sub-menu
               v-if="isUIAllowed('view-type')"

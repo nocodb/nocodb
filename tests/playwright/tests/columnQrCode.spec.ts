@@ -1,9 +1,12 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
-import setup, { NcContext } from '../setup';
-import { isPg, isSqlite } from '../setup/db';
-import { expect, Locator } from '@playwright/test';
+import setup from '../setup';
 import { GridPage } from '../pages/Dashboard/Grid';
+
+type ExpectedQrCodeData = {
+  referencedValue: string;
+  base64EncodedSrc: string;
+};
 
 test.describe('Virtual Columns', () => {
   let dashboard: DashboardPage;
@@ -17,12 +20,12 @@ test.describe('Virtual Columns', () => {
   });
 
   test.describe('QrCode Column', () => {
-    async function qrCodeColumnVerify(qrColumnTitle: string, expectedQrCodes: string[]) {
-      for (let i = 0; i < expectedQrCodes.length; i++) {
+    async function qrCodeColumnVerify(qrColumnTitle: string, expectedQrCodeData: ExpectedQrCodeData[]) {
+      for (let i = 0; i < expectedQrCodeData.length; i++) {
         await dashboard.grid.cell.verifyQrCodeCell({
           index: i,
           columnHeader: qrColumnTitle,
-          expectedSrcValue: expectedQrCodes[i],
+          expectedSrcValue: expectedQrCodeData[i].base64EncodedSrc,
         });
       }
     }
@@ -36,7 +39,7 @@ test.describe('Virtual Columns', () => {
        * Abha                   2006-02-15 04:45:25     733 Mandaluyong Place       Saudi Arabia
        * Abu Dhabi              2006-02-15 04:45:25     535 Ahmadnagar Manor        United Arab Emirates
        */
-      const expectedQrCodeCellValues = [
+      const expectedQrCodeCellValues: ExpectedQrCodeData[] = [
         {
           referencedValue: 'A Corua (La Corua)',
           base64EncodedSrc:

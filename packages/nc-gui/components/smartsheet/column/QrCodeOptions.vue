@@ -56,7 +56,6 @@ setAdditionalValidations({
     <a-col :span="24">
       <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.qrCodeValueColumn')" v-bind="validateInfos.fk_qr_value_column_id">
         <a-select
-          class="nc-qrcode-value-col-id"
           v-model:value="vModel.fk_qr_value_column_id"
           :options="columnsAllowedAsQrValue"
           placeholder="Select a column for the QR code value"

@@ -368,6 +368,8 @@
     "setPrimary": "Als Primärwert festlegen",
     "addRow": "Neue Zeile hinzufügen",
     "saveRow": "Zeile speichern",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "Neue Zeile einfügen",
     "deleteRow": "Zeile löschen",
     "deleteSelectedRow": "Ausgewählte Zeilen löschen",

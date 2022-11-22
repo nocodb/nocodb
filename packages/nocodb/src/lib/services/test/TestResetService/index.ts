@@ -23,11 +23,13 @@ const loginRootUser = async () => {
 const projectTitleByType = {
   sqlite: 'sampleREST',
   mysql: 'externalREST',
-  pg: 'pgExtREST',
+  pg: 'pgExtREST'
 };
 
 export class TestResetService {
   private readonly parallelId;
+  // todo: Hack to resolve issue with pg resetting
+  private readonly workerId;
   private readonly dbType;
   private readonly isEmptyProject: boolean;
 
@@ -35,14 +37,17 @@ export class TestResetService {
     parallelId,
     dbType,
     isEmptyProject,
+    workerId
   }: {
     parallelId: string;
     dbType: string;
     isEmptyProject: boolean;
+    workerId: string;
   }) {
     this.parallelId = parallelId;
     this.dbType = dbType;
     this.isEmptyProject = isEmptyProject;
+    this.workerId = workerId;
   }
 
   async process() {
@@ -68,6 +73,7 @@ export class TestResetService {
         token,
         dbType: this.dbType,
         parallelId: this.parallelId,
+        workerId: this.workerId
       });
 
       try {
@@ -90,10 +96,12 @@ export class TestResetService {
     token,
     dbType,
     parallelId,
+    workerId
   }: {
     token: string;
     dbType: string;
     parallelId: string;
+    workerId: string;
   }) {
     const title = `${projectTitleByType[dbType]}${parallelId}`;
     const project: Project | undefined = await Project.getByTitle(title);
@@ -115,7 +123,7 @@ export class TestResetService {
         token,
         title,
         parallelId,
-        isEmptyProject: this.isEmptyProject,
+        isEmptyProject: this.isEmptyProject
       });
     } else if (dbType == 'mysql') {
       await resetMysqlSakilaProject({
@@ -123,20 +131,20 @@ export class TestResetService {
         title,
         parallelId,
         oldProject: project,
-        isEmptyProject: this.isEmptyProject,
+        isEmptyProject: this.isEmptyProject
       });
     } else if (dbType == 'pg') {
       await resetPgSakilaProject({
         token,
         title,
-        parallelId,
+        parallelId: workerId,
         oldProject: project,
-        isEmptyProject: this.isEmptyProject,
+        isEmptyProject: this.isEmptyProject
       });
     }
 
     return {
-      project: await Project.getByTitle(title),
+      project: await Project.getByTitle(title)
     };
   }
 }
@@ -169,7 +177,7 @@ const removeProjectUsersFromCache = async (project: Project) => {
   const projectUsers: ProjectUser[] = await ProjectUser.getUsersList({
     project_id: project.id,
     limit: 1000,
-    offset: 0,
+    offset: 0
   });
 
   for (const projectUser of projectUsers) {

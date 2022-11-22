@@ -69,13 +69,30 @@ export class ToolbarPage extends BasePage {
     if (menuOpen) await this.sort.get().waitFor({ state: 'hidden' });
   }
 
-  async clickFilter() {
+  async clickFilter({
+    // `networkValidation` is used to verify that api calls are made when the button is clicked
+    // which happens when the filter is opened for the first time
+    networkValidation,
+  }: { networkValidation?: boolean } = {}) {
     const menuOpen = await this.filter.get().isVisible();
 
-    await this.get().locator(`button.nc-filter-menu-btn`).click();
-
+    const clickFilterAction = this.get().locator(`button.nc-filter-menu-btn`).click();
     // Wait for the menu to close
-    if (menuOpen) await this.filter.get().waitFor({ state: 'hidden' });
+    if (menuOpen) {
+      await clickFilterAction;
+      await this.filter.get().waitFor({ state: 'hidden' });
+    } else {
+      if (networkValidation) {
+        // Since on opening filter menu, api is called to fetch filter options, and will rerender the menu
+        await this.waitForResponse({
+          uiAction: clickFilterAction,
+          requestUrlPathToMatch: '/api/v1/db',
+          httpMethodsToMatch: ['GET'],
+        });
+      } else {
+        await clickFilterAction;
+      }
+    }
   }
 
   async clickShareView() {

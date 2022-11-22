@@ -132,7 +132,7 @@ export class GridPage extends BasePage {
   }
 
   async deleteRow(index: number) {
-    await this.get().locator(`td[data-testid="cell-Title-${index}"]`).click({
+    await this.get().getByTestId(`cell-Title-${index}`).click({
       button: 'right',
     });
 

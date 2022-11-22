@@ -40,9 +40,10 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
+
 const tabsInfo = $computed<TabGroup>(() =>
   ({
-  teamAndAuth: {
+    ...(isUIAllowed('teamAndAuth') ? { teamAndAuth: {
     title: t('title.teamAndAuth'),
     icon: TeamFillIcon,
     subTabs: {
@@ -86,8 +87,8 @@ const tabsInfo = $computed<TabGroup>(() =>
           },
         },
       }
-    : {}),
-  projMetaData: {
+    : {}) } : {}),
+  ...(isUIAllowed('projMetaData') ? { projMetaData: {
     // Project Metadata
     title: t('title.projMeta'),
     icon: MultipleTableIcon,
@@ -120,8 +121,8 @@ const tabsInfo = $computed<TabGroup>(() =>
     onClick: () => {
       $e('c:settings:proj-metadata')
     },
-  },
-  audit: {
+  }} : {}),
+    ...(isUIAllowed('audit') ? { audit: {
     // Audit
     title: t('title.audit'),
     icon: NotebookOutline,
@@ -135,25 +136,25 @@ const tabsInfo = $computed<TabGroup>(() =>
     onClick: () => {
       $e('c:settings:audit')
     },
-  },
+  }} : {}),
 }));
 
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
 // Array of keys of tabs which are selected. In our case will be only one.
 let selectedTabKeys = $ref<string[]>([firstKeyOfObject(tabsInfo)])
-const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
+const selectedTab = $computed(() => tabsInfo[selectedTabKeys?.[0]])
 
-let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab.subTabs)])
-const selectedSubTab = $computed(() => selectedTab.subTabs[selectedSubTabKeys[0]])
+let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab?.subTabs ?? {})])
+const selectedSubTab = $computed(() => selectedTab?.subTabs[selectedSubTabKeys?.[0]])
 
 watch(
-  [() => tabsInfo, () => selectedTabKeys[0]],
+  [() => tabsInfo, () => selectedTabKeys?.[0]],
   ([tabsInfo, newTabKey]) => {
     if (!newTabKey || !tabsInfo?.[newTabKey]) {
       return
     }
-    selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey].subTabs)]
+    selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey]?.subTabs ?? {})]
   },
 )
 
@@ -205,11 +206,11 @@ watch(
             :key="key"
             class="group active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
           >
-            <div class="flex items-center space-x-2" @click="tab.onClick">
-              <component :is="tab.icon" class="group-hover:text-accent" />
+            <div class="flex items-center space-x-2" @click="tab?.onClick">
+              <component :is="tab?.icon" class="group-hover:text-accent" />
 
               <div class="select-none">
-                {{ tab.title }}
+                {{ tab?.title }}
               </div>
             </div>
           </a-menu-item>
@@ -220,16 +221,16 @@ watch(
       <a-layout-content class="h-auto px-4 scrollbar-thumb-gray-500">
         <a-menu v-model:selectedKeys="selectedSubTabKeys" :open-keys="[]" mode="horizontal">
           <a-menu-item
-            v-for="(tab, key) of selectedTab.subTabs"
+            v-for="(tab, key) of selectedTab?.subTabs"
             :key="key"
             class="active:(!ring-0) select-none"
-            @click="tab.onClick"
+            @click="tab?.onClick"
           >
-            {{ tab.title }}
+            {{ tab?.title }}
           </a-menu-item>
         </a-menu>
 
-        <component :is="selectedSubTab?.body" class="px-2 py-6" :data-nc="`nc-settings-subtab-${selectedSubTab.title}`" />
+        <component :is="selectedSubTab?.body" class="px-2 py-6" :data-nc="`nc-settings-subtab-${selectedSubTab?.title}`" />
       </a-layout-content>
     </a-layout>
   </a-modal>

@@ -158,6 +158,7 @@ export default {
       uploadViaURL: true,
       apiTokenCreate: true,
       apiTokenList: true,
+      apiTokenDelete: true,
 
       gridViewCreate: true
     },
@@ -287,6 +288,7 @@ export default {
       dataCount: true,
       apiTokenCreate: true,
       apiTokenList: true,
+      apiTokenDelete: true,
 
       /* filters */
       filterCreate: true,

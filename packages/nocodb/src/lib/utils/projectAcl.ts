@@ -157,7 +157,7 @@ export default {
       dataCount: true,
       upload: true,
       uploadViaURL: true,
-      swaggerJson:true
+      swaggerJson: true,
     },
   },
   commenter: {
@@ -217,7 +217,7 @@ export default {
       xcAuditModelCommentsCount: true,
       xcExportAsCsv: true,
       dataCount: true,
-      swaggerJson:true
+      swaggerJson: true,
     },
   },
   viewer: {
@@ -273,7 +273,7 @@ export default {
       list: true,
       xcExportAsCsv: true,
       dataCount: true,
-      swaggerJson:true
+      swaggerJson: true,
     },
   },
   [OrgUserRoles.VIEWER]: {
@@ -294,11 +294,7 @@ export default {
       upload: true,
       uploadViaURL: true,
       passwordChange: true,
-      pluginList: true,
-      pluginRead: true,
-      pluginTest: true,
       isPluginActive: true,
-      pluginUpdate: true,
       projectCreate: true,
       projectList: true,
       projectCost: true,

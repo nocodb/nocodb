@@ -1,5 +1,5 @@
 import { Tele } from 'nc-help';
-import orgLicenseApis from './orgLicenseApis'
+import orgLicenseApis from './orgLicenseApis';
 import orgTokenApis from './orgTokenApis';
 import orgUserApis from './orgUserApis';
 import projectApis from './projectApis';
@@ -61,7 +61,7 @@ export default function (router: Router, server) {
   projectApis(router);
   utilApis(router);
 
-  if(process.env['PLAYWRIGHT_TEST'] === 'true') {
+  if (process.env['PLAYWRIGHT_TEST'] === 'true') {
     router.use(testApis);
   }
   router.use(columnApis);

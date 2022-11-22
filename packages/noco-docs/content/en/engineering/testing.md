@@ -3,7 +3,7 @@ title: "Writing Tests"
 description: "Overview to testing"
 position: 3250
 category: "Engineering"
-menuTitle: "Testing"
+menuTitle: "Writing Tests"
 ---
 
 ## Unit Tests
@@ -36,6 +36,7 @@ Configure the following variables
 > DB_PASSWORD : password </br>
 
 ### Run Tests
+
 ``` bash
 npm run test:unit
 ```

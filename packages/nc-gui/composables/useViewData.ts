@@ -203,8 +203,7 @@ export function useViewData(
   }
 
   async function loadGalleryData() {
-    if (!viewMeta?.value?.id) return
-
+    if (!viewMeta?.value?.id || isPublic.value) return
     galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
   }
 

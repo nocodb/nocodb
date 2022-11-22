@@ -368,6 +368,8 @@
     "setPrimary": "प्राथमिक मूल्य के रूप में सेट करें",
     "addRow": "नई पंक्ति जोड़ें",
     "saveRow": "पंक्ति सहेजें",
+    "saveAndExit": "Save & Exit",
+    "saveAndStay": "Save & Stay",
     "insertRow": "नई पंक्ति डालें",
     "deleteRow": "पंक्ति को हटाएं",
     "deleteSelectedRow": "चयनित पंक्तियों को हटा दें",

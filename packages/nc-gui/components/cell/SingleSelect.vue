@@ -102,6 +102,13 @@ useSelectedCellKeyupListener(active, (e) => {
         isOpen.value = true
       }
       break
+    default:
+      // toggle only if char key pressed
+      if (e.key?.length === 1) {
+        e.stopPropagation()
+        isOpen.value = true
+      }
+      break
   }
 })
 

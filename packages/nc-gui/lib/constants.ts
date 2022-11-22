@@ -18,7 +18,7 @@ export const rolePermissions = {
   [Role.Super]: '*',
   [Role.Admin]: {} as Record<string, boolean>,
   [Role.Guest]: {} as Record<string, boolean>,
-  [Role.User]: {
+  [Role.OrgLevelCreator]: {
     include: {
       projectCreate: true,
       projectActions: true,
@@ -30,11 +30,17 @@ export const rolePermissions = {
   [ProjectRole.Creator]: {
     exclude: {
       appStore: true,
+      superAdminUserManagement: true,
+      superAdminAppSettings: true,
+      appLicense: true,
     },
   },
   [ProjectRole.Owner]: {
     exclude: {
       appStore: true,
+      superAdminUserManagement: true,
+      superAdminAppSettings: true,
+      appLicense: true,
     },
   },
   [ProjectRole.Editor]: {

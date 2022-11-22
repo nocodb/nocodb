@@ -39,6 +39,8 @@ export enum MetaTable {
   SYNC_LOGS = 'nc_sync_logs_v2',
   MAP_VIEW = 'nc_map_view_v2',
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
+  STORE = 'nc_store',
+
 }
 
 export const orderedMetaTables = [
@@ -141,6 +143,7 @@ export enum CacheScope {
   MODEL_ROLE_VISIBILITY = 'modelRoleVisibility',
   API_TOKEN = 'apiToken',
   INSTANCE_META = 'instanceMeta',
+  USER_PROJECT = 'userProject',
 }
 export enum CacheGetType {
   TYPE_ARRAY = 'TYPE_ARRAY',

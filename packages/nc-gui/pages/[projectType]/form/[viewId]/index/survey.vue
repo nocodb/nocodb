@@ -44,7 +44,7 @@ const el = ref<HTMLDivElement>()
 
 provide(DropZoneRef, el)
 
-const transitionDuration = computed(() => sharedViewMeta.value.transitionDuration || 250)
+const transitionDuration = computed(() => sharedViewMeta.value.transitionDuration || 50)
 
 const steps = computed(() => {
   if (!formColumns.value) return []
@@ -305,7 +305,7 @@ onMounted(() => {
                 </button>
               </div>
 
-              <div v-else-if="!submitted" class="flex items-center gap-3">
+              <div v-else-if="!submitted" class="flex items-center gap-3 flex-col">
                 <a-tooltip
                   :title="v$.localState[field.title]?.$error ? v$.localState[field.title].$errors[0].$message : 'Go to next'"
                   :mouse-enter-delay="0.25"

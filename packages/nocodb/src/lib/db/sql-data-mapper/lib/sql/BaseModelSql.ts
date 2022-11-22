@@ -358,7 +358,7 @@ class BaseModelSql extends BaseModel {
         driver(this.tnPath).update(mappedData).where(this._wherePk(id))
       );
 
-      let response = await this.nestedRead(id, this.defaultNestedQueryParams);
+      const response = await this.nestedRead(id, this.defaultNestedQueryParams);
       await this.afterUpdate(response, trx, cookie);
       return response;
     } catch (e) {

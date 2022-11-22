@@ -175,7 +175,7 @@ class BaseModelSqlv2 {
       sortArr?: Sort[];
       sort?: string | string[];
     } = {},
-    ignoreFilterSort = false
+    ignoreViewFilterAndSort = false
   ): Promise<any> {
     const { where, ...rest } = this._getListArgs(args as any);
 
@@ -189,7 +189,7 @@ class BaseModelSqlv2 {
     let sorts = extractSortsObject(rest?.sort, aliasColObjMap);
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     // todo: replace with view id
-    if (!ignoreFilterSort && this.viewId) {
+    if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         [
           new Filter({
@@ -249,7 +249,7 @@ class BaseModelSqlv2 {
       qb.orderBy('created_at');
     }
 
-    if (!ignoreFilterSort) applyPaginate(qb, rest);
+    if (!ignoreViewFilterAndSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
     const data = await this.extractRawQueryAndExec(qb);
 
@@ -261,7 +261,7 @@ class BaseModelSqlv2 {
 
   public async count(
     args: { where?: string; limit?; filterArr?: Filter[] } = {},
-    ignoreFilterSort = false
+    ignoreViewFilterAndSort = false
   ): Promise<any> {
     await this.model.getColumns();
     const { where } = this._getListArgs(args);
@@ -272,7 +272,7 @@ class BaseModelSqlv2 {
     const aliasColObjMap = await this.model.getAliasColObjMap();
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
-    if (!ignoreFilterSort && this.viewId) {
+    if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         [
           new Filter({
@@ -2240,7 +2240,7 @@ class BaseModelSqlv2 {
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
       // skip validation if `validate` is undefined or false
-      if (!column?.meta?.validate && !column?.validate) continue;
+      if (!column?.meta?.validate || !column?.validate) continue;
 
       const validate = column.getValidators();
       const cn = column.column_name;
@@ -2474,7 +2474,7 @@ class BaseModelSqlv2 {
   public async groupedList(
     args: {
       groupColumnId: string;
-      ignoreFilterSort?: boolean;
+      ignoreViewFilterAndSort?: boolean;
       options?: (string | number | null | boolean)[];
     } & Partial<XcFilter>
   ): Promise<
@@ -2527,7 +2527,7 @@ class BaseModelSqlv2 {
       let sorts = extractSortsObject(args?.sort, aliasColObjMap);
       const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
       // todo: replace with view id
-      if (!args.ignoreFilterSort && this.viewId) {
+      if (!args.ignoreViewFilterAndSort && this.viewId) {
         await conditionV2(
           [
             new Filter({
@@ -2640,7 +2640,10 @@ class BaseModelSqlv2 {
   }
 
   public async groupedListCount(
-    args: { groupColumnId: string; ignoreFilterSort?: boolean } & XcFilter
+    args: {
+      groupColumnId: string;
+      ignoreViewFilterAndSort?: boolean;
+    } & XcFilter
   ) {
     const column = await this.model
       .getColumns()
@@ -2659,7 +2662,7 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
     // todo: replace with view id
 
-    if (!args.ignoreFilterSort && this.viewId) {
+    if (!args.ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         [
           new Filter({

@@ -1,8 +1,8 @@
-<script setup lang="ts">
+import type { PropType } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { ColumnInj, inject, ref, toRef } from '#imports'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { ColumnInj, MetaInj, defineComponent, h, inject, isBt, isHm, isLookup, isMm, isRollup, ref, toRef } from '#imports'
 import GenericIcon from '~icons/mdi/square-rounded'
 import HMIcon from '~icons/mdi/table-arrow-right'
 import BTIcon from '~icons/mdi/table-arrow-left'
@@ -13,30 +13,10 @@ import CountIcon from '~icons/mdi/counter'
 import SpecificDBTypeIcon from '~icons/mdi/database-settings'
 import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
 
-const props = defineProps<{ columnMeta?: ColumnType }>()
-
-const columnMeta = toRef(props, 'columnMeta')
-
-const column = inject(ColumnInj, ref(columnMeta)) as Ref<ColumnType & { colOptions: LookupType }>
-
-let relationColumn: ColumnType & { colOptions: LookupType }
-
-if (column) {
-  const { isLookup, isBt, isRollup, isMm, isHm } = useVirtualCell(column as Ref<ColumnType>)
-
-  if (isLookup || isBt || isRollup || isMm || isHm) {
-    const meta = inject(MetaInj, ref())
-
-    relationColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_relation_column_id) as ColumnType & {
-      colOptions: LinkToAnotherRecordType
-    }
-  }
-}
-
-const icon = computed(() => {
-  switch (column?.value?.uidt) {
+const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
+  switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
-      switch ((column?.value?.colOptions as LinkToAnotherRecordType)?.type) {
+      switch ((column.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
           return { icon: MMIcon, color: 'text-accent' }
         case RelationTypes.HAS_MANY:
@@ -72,10 +52,43 @@ const icon = computed(() => {
     case UITypes.Count:
       return { icon: CountIcon, color: 'text-grey' }
   }
-  return { icon: GenericIcon, color: 'text-grey' }
-})
-</script>
 
-<template>
-  <component :is="icon.icon" class="mx-1 !text-xs" :class="icon.color" />
-</template>
+  return { icon: GenericIcon, color: 'text-grey' }
+}
+
+export default defineComponent({
+  name: 'VirtualCellIcon',
+  props: {
+    columnMeta: {
+      type: Object as PropType<ColumnType>,
+      required: false,
+    },
+  },
+  setup(props) {
+    const columnMeta = toRef(props, 'columnMeta')
+
+    const column = inject(ColumnInj, columnMeta) as Ref<ColumnType & { colOptions: LookupType }>
+
+    let relationColumn: ColumnType & { colOptions: LookupType }
+
+    return () => {
+      if (!column.value) return null
+
+      if (column && column.value) {
+        if (isMm(column.value) || isHm(column.value) || isBt(column.value) || isLookup(column.value) || isRollup(column.value)) {
+          const meta = inject(MetaInj, ref())
+
+          relationColumn = meta.value?.columns?.find(
+            (c) => c.id === column.value?.colOptions?.fk_relation_column_id,
+          ) as ColumnType & {
+            colOptions: LinkToAnotherRecordType
+          }
+        }
+      }
+
+      const { icon: Icon, color } = renderIcon(column.value, relationColumn)
+
+      return h(Icon, { class: `${color} mx-1 !text-xs` })
+    }
+  },
+})

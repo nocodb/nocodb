@@ -14,7 +14,7 @@ export const genTest = (apiType, dbType) => {
 
             cy.get("[data-cy='nc-menu-accounts']").click();
             cy.get("[data-cy='nc-menu-accounts__user-settings']").click();
-
+            cy.get('.user-management-tab-label:contains("Reset Password")').should('exist').click()
             cy.get("[data-cy='nc-user-settings-form']").should("exist");
         });
 

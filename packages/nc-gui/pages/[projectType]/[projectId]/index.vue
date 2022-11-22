@@ -24,6 +24,7 @@ import {
   useUIPermission,
 } from '#imports'
 import { TabType } from '~/lib'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 definePageMeta({
   hideHeader: true,
@@ -152,7 +153,17 @@ onKeyStroke(
 clearTabs()
 
 onBeforeMount(async () => {
-  await loadProject()
+  try {
+    await loadProject()
+  } catch (e: any) {
+    if (e.response?.status === 403) {
+      // Project is not accessible
+      message.error(t('msg.error.projectNotAccessible'))
+      router.replace('/')
+      return
+    }
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 
   if (!route.params.type && isUIAllowed('teamAndAuth')) {
     addTab({ type: TabType.AUTH, title: t('title.teamAndAuth') })
@@ -189,20 +200,20 @@ onBeforeUnmount(reset)
         <div
           style="height: var(--header-height)"
           :class="isOpen ? 'pl-4' : ''"
-          class="flex items-center !bg-primary text-white px-1 gap-2"
+          class="flex items-center !bg-primary text-white px-1 gap-1"
         >
           <div
             v-if="isOpen && !isSharedBase"
             v-e="['c:navbar:home']"
             data-testid="nc-noco-brand-icon"
-            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
+            class="w-[29px] min-w-[29px] transition-all duration-200 py-1 pl-1 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
             @click="navigateTo('/')"
           >
             <a-tooltip placement="bottom">
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
             </a-tooltip>
           </div>
 
@@ -216,7 +227,7 @@ onBeforeUnmount(reset)
               <template #title>
                 {{ currentVersion }}
               </template>
-              <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+              <img width="25" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
             </a-tooltip>
           </a>
 
@@ -234,12 +245,12 @@ onBeforeUnmount(reset)
             >
               <template v-if="isOpen">
                 <a-tooltip v-if="project.title?.length > 12" placement="bottom">
-                  <div class="text-lg font-semibold truncate">{{ project.title }}</div>
+                  <div class="text-md font-semibold truncate">{{ project.title }}</div>
                   <template #title>
                     <div class="text-sm">{{ project.title }}</div>
                   </template>
                 </a-tooltip>
-                <div v-else class="text-lg font-semibold truncate">{{ project.title }}</div>
+                <div v-else class="text-md font-semibold truncate capitalize">{{ project.title }}</div>
 
                 <MdiChevronDown class="min-w-[17px] group-hover:text-accent text-md" />
               </template>
@@ -257,7 +268,7 @@ onBeforeUnmount(reset)
                       <MdiFolder class="group-hover:text-accent text-xl" />
 
                       <div class="flex flex-col">
-                        <div class="text-lg group-hover:(!text-primary) font-semibold">
+                        <div class="text-lg group-hover:(!text-primary) font-semibold capitalize">
                           <GeneralTruncateText>{{ project.title }}</GeneralTruncateText>
                         </div>
 
@@ -458,10 +469,16 @@ onBeforeUnmount(reset)
                       <template #expandIcon></template>
 
                       <a-menu-item key="0" class="!rounded-t">
-                        <nuxt-link v-e="['c:navbar:user:email']" class="nc-project-menu-item group !no-underline" to="/user">
+                        <nuxt-link
+                          v-e="['c:navbar:user:email']"
+                          class="nc-project-menu-item group !no-underline"
+                          to="/account/users"
+                        >
                           <MdiAt class="mt-1 group-hover:text-accent" />&nbsp;
-
-                          <span class="prose-sm">{{ email }}</span>
+                          <div class="prose-sm group-hover:text-primary">
+                            <div>Account</div>
+                            <div class="text-xs text-gray-500">{{ email }}</div>
+                          </div>
                         </nuxt-link>
                       </a-menu-item>
 

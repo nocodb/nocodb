@@ -4,10 +4,10 @@ import multer from 'multer';
 
 import { NcConfig } from '../../interface/config';
 import ProjectMgr from '../db/sql-mgr/ProjectMgr';
+import { packageVersion } from '../utils/packageVersion';
 import projectAcl from '../utils/projectAcl';
 import Noco from '../Noco';
 import NcPluginMgr from '../v1-legacy/plugins/NcPluginMgr';
-import { packageVersion } from 'nc-help';
 import NcMetaIO from './NcMetaIO';
 import { defaultConnectionConfig } from '../utils/NcConfigFactory';
 import ncCreateLookup from './handlersv2/ncCreateLookup';

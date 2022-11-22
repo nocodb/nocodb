@@ -3,7 +3,7 @@ import { Tele } from 'nc-help';
 
 const countMap = {};
 
-const metrics = async (req: Request, c = 50) => {
+const metrics = async (req: Request, c = 150) => {
   if (!req?.route?.path) return;
   const event = `a:api:${req.route.path}:${req.method}`;
   countMap[event] = (countMap[event] || 0) + 1;
@@ -14,7 +14,7 @@ const metrics = async (req: Request, c = 50) => {
 };
 
 const metaApiMetrics = (req: Request, _res, next) => {
-  metrics(req, 10).then(() => {});
+  metrics(req, 50).then(() => {});
   next();
 };
 export default (req: Request, _res, next) => {

@@ -11,6 +11,7 @@
     "test:repeat": "TRACE=true npx playwright test --workers=4 --repeat-each=12",
     "test:quick": "TRACE=true PW_QUICK_TEST=1 npx playwright  test --workers=4",
     "test:debug": "./startPlayWrightServer.sh; PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console npx playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 0 --workers 1 --max-failures=1",
+    "test:debug:watch": "npx nodemon -e ts -w ./ -x \"npm run test:debug\"",
     "test:debug:quick:sqlite": "./startPlayWrightServer.sh; PW_QUICK_TEST=1 PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console npx playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 5 --workers 1 --max-failures=1",
     "ci:test": "npx playwright test --workers=2",
     "ci:test:shard:1": "npx playwright test --workers=2 --shard=1/2",

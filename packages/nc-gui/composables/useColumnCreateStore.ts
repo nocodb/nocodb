@@ -97,7 +97,19 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const onUidtOrIdTypeChange = () => {
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
-        ...formState.value,
+        ...(!isEdit.value && {
+          // only take title, column_name and uidt when creating a column
+          // to avoid the extra props from being taken (e.g. SingleLineText -> LTAR -> SingleLineText)
+          // to mess up the column creation
+          title: formState.value.title,
+          column_name: formState.value.column_name,
+          uidt: formState.value.uidt,
+        }),
+        ...(isEdit.value && {
+          // take the existing formState.value when editing a column
+          // LTAR is not available in this case
+          ...formState.value,
+        }),
         meta: {},
         rqd: false,
         pk: false,

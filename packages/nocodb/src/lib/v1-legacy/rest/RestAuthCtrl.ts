@@ -3,7 +3,6 @@ import { promisify } from 'util';
 import bcrypt from 'bcryptjs';
 import * as ejs from 'ejs';
 import * as jwt from 'jsonwebtoken';
-import { Tele } from 'nc-help';
 import passport from 'passport';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GithubStrategy } from 'passport-github';
@@ -30,6 +29,7 @@ const { isEmail } = require('validator');
 import axios from 'axios';
 
 import IEmailAdapter from '../../../interface/IEmailAdapter';
+import { Tele } from 'nc-help';
 import XcCache from '../plugins/adapters/cache/XcCache';
 
 passport.serializeUser(function (
@@ -315,7 +315,7 @@ export default class RestAuthCtrl {
         if (apiToken) {
           done(null, { roles: 'editor' });
         } else {
-          return done({ msg: 'Invalid tok' });
+          return done({ msg: 'Invalid token' });
         }
       })
     );

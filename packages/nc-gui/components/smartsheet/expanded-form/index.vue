@@ -121,6 +121,12 @@ if (isKanban.value) {
     }
   }
 }
+
+const cellWrapperEl = (wrapperEl: HTMLElement) => {
+  nextTick(() => {
+    ;(wrapperEl?.querySelector('input,select,textarea') as HTMLInputElement)?.focus()
+  })
+}
 </script>
 
 <script lang="ts">
@@ -137,7 +143,7 @@ export default {
     :body-style="{ 'padding': 0, 'display': 'flex', 'flex-direction': 'column' }"
     :closable="false"
     class="nc-drawer-expanded-form"
-    :class="{ 'active': isExpanded }"
+    :class="{ active: isExpanded }"
   >
     <SmartsheetExpandedFormHeader :view="props.view" @cancel="onClose" />
 
@@ -146,7 +152,7 @@ export default {
         <div class="flex-1 overflow-auto scrollbar-thin-dull nc-form-fields-container">
           <div class="w-[500px] mx-auto">
             <div
-              v-for="col of fields"
+              v-for="(col, i) of fields"
               v-show="!isVirtualCol(col) || !isNew || col.uidt === UITypes.LinkToAnotherRecord"
               :key="col.title"
               class="mt-2 py-2"
@@ -157,7 +163,7 @@ export default {
 
               <LazySmartsheetHeaderCell v-else :column="col" />
 
-              <div class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2">
+              <div :ref="i ? null : cellWrapperEl" class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2">
                 <LazySmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
 
                 <LazySmartsheetCell

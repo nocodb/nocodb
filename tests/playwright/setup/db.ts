@@ -11,17 +11,18 @@ const isSqlite = (context: NcContext) => context.dbType === 'sqlite';
 
 const isPg = (context: NcContext) => context.dbType === 'pg';
 
-const pg_credentials = () => ({
+const pg_credentials = (context: NcContext) => ({
   user: 'postgres',
   host: 'localhost',
-  database: `sakila_${process.env.TEST_PARALLEL_INDEX}`,
+  // todo: Hack to resolve issue with pg resetting
+  database: `sakila_${context.workerId}`,
   password: 'password',
   port: 5432,
 });
 
-const pgExec = async (query: string) => {
+const pgExec = async (query: string, context: NcContext) => {
   // open pg client connection
-  const client = new Client(pg_credentials());
+  const client = new Client(pg_credentials(context));
   await client.connect();
 
   await client.query(query);

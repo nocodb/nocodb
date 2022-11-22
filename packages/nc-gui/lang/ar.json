@@ -104,7 +104,9 @@
       "creator": "منشيء",
       "editor": "محرر",
       "commenter": "معلق",
-      "viewer": "مشاهد"
+      "viewer": "مشاهد",
+      "orgLevelCreator": "Organization Level Creator",
+      "orgLevelViewer": "Organization Level Viewer"
     },
     "sqlVIew": "SQL View"
   },
@@ -200,6 +202,7 @@
     "codeSnippet": "كتلة برمجية"
   },
   "labels": {
+    "createdBy": "Created By",
     "notifyVia": "إعلام عبر",
     "projName": "اسم المشروع",
     "tableName": "اسم الجدول",
@@ -296,7 +299,8 @@
     "signUpWithGoogle": "التسجيل بواسطة Google",
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "بالتسجيل، أنت توافق على شروط الخدمة",
-    "welcomeToNc": "مرحبا بكم في NocoDB!"
+    "welcomeToNc": "مرحبا بكم في NocoDB!",
+    "inviteOnlySignup": "Allow signup only using invite url"
   },
   "activity": {
     "createProject": "إنشاء مشروع",
@@ -341,12 +345,14 @@
     "invite": "دعوة",
     "inviteMore": "دعوة المزيد",
     "inviteTeam": "دعوة فريق",
+    "inviteUser": "Invite User",
     "inviteToken": "رمز دعوة",
     "newUser": "مستخدم جديد",
     "editUser": "تحرير مستخدم",
     "deleteUser": "إزالة المستخدم من المشروع",
     "resendInvite": "إعادة إرسال دعوة البريد الإلكتروني",
     "copyInviteURL": "نسخ رابط الدعوة",
+    "copyPasswordResetURL": "Copy password reset URL",
     "newRole": "دور جديد",
     "reloadRoles": "إعادة تحميل الأدوار",
     "nextPage": "الصفحة التالية",
@@ -480,6 +486,10 @@
   },
   "msg": {
     "info": {
+      "roles": {
+        "orgCreator": "Creator can create new projects and access any invited project.",
+        "orgViewer": "Viewer is not allowed to create new projects but they can access any invited project."
+      },
       "footerInfo": "الصفوف لكل صفحة",
       "upload": "حدد الملف المراد رفعه",
       "upload_sub": "أو سحب وإسقاط الملف",
@@ -653,7 +663,8 @@
       "theAcceptedFileTypesAreXlsXlsxXlsmOdsOts": "The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots",
       "parameterKeyCannotBeEmpty": "Parameter key cannot be empty",
       "duplicateParameterKeysAreNotAllowed": "Duplicate parameter keys are not allowed",
-      "fieldRequired": "{value} cannot be empty."
+      "fieldRequired": "{value} cannot be empty.",
+      "projectNotAccessible": "Project not accessible"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",
@@ -683,13 +694,16 @@
       "tableDataExported": "تم تصدير جميع بيانات الجدول بنجاح",
       "updated": "تم التحديث بنجاح",
       "sharedViewDeleted": "تم حذف العرض المشترك بنجاح",
+      "userDeleted": "User deleted successfully",
       "viewRenamed": "تمت إعادة التسمية بنجاح",
       "tokenGenerated": "تم إنشاء الرمز بنجاح",
       "tokenDeleted": "تم حذف الرمز بنجاح",
       "userAddedToProject": "تمت إضافة المستخدم إلى المشروع بنجاح",
+      "userAdded": "Successfully added user",
       "userDeletedFromProject": "تم حذف المستخدم بنجاح من المشروع",
       "inviteEmailSent": "دعوة البريد الإلكتروني مرسلة بنجاح",
       "inviteURLCopied": "تم نسخ عنوان URL الدعوة إلى الحافظة",
+      "passwordResetURLCopied": "Password reset URL copied to clipboard",
       "shareableURLCopied": "تم نسخ عنوان URL الأساسي القابل للمشاركة إلى الحافظة!",
       "embeddableHTMLCodeCopied": "تم نسخ رمز HTML القابل للدمج!",
       "userDetailsUpdated": "تم تحديث تفاصيل المستخدم بنجاح",
@@ -699,7 +713,9 @@
       "webhookTested": "تم اختبار Webhook بنجاح",
       "columnUpdated": "تم تحديث العمود",
       "columnCreated": "تم إنشاء العمود",
-      "passwordChanged": "تم تغيير كلمة المرور بنجاح. الرجاء تسجيل الدخول مرة أخرى."
+      "passwordChanged": "تم تغيير كلمة المرور بنجاح. الرجاء تسجيل الدخول مرة أخرى.",
+      "settingsSaved": "Settings saved successfully",
+      "roleUpdated": "Role updated successfully"
     }
   }
 }

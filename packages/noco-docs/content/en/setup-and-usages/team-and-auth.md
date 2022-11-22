@@ -1,12 +1,13 @@
 ---
-title: 'Team & Auth'
+title: 'Team & Settings > Team & Auth'
 description: 'Breakdown of roles & permissions for team user management'
-position: 630
+position: 580
 category: 'Product'
-menuTitle: 'Team & Auth'
+menuTitle: 'Team & Settings > Team & Auth'
 ---
 
 # Accessing Team & Auth 
+
 - Click on `Team & Settings` from the `Project Menu` 
 - Access `Team & Auth` under `Settings`
   
